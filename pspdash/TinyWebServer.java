@@ -1368,6 +1368,7 @@ public class TinyWebServer extends Thread {
         }
         this.port = port;
         DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
+        TinyCGIBase.setDefaultCharset(Settings.getVal("http.charset"));
     }
 
     /**
