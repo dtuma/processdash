@@ -119,11 +119,8 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         TOTAL_INJ = injLen-1;
         TOTAL_REM = remLen-1;
 
-        HashMap m = new HashMap();
-        m.put("for", "[Rollup_List]");
-        m.put("order", "Completed");
         projects = ResultSet.getPrefixList
-            (getDataRepository(), m, getPrefix());
+            (getDataRepository(), parameters, getPrefix());
     }
 
 
