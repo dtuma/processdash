@@ -5,12 +5,10 @@
 
 <toc version="1.0">
   <tocitem image="DashIcon" target="QuickOverview" text="Process Dashboard Help">
-    <tocitem image="BookIcon" text="Overview">
-      <tocitem image="PageIcon" target="QuickOverview" text="Quick overview of the Dashboard" />
+    <tocitem image="BookIcon" target="QuickOverview" text="Overview">
       <tocitem image="PageIcon" target="ProcessScripts" text="The process scripts" />
 
-      <tocitem image="BookIcon" text="Quick start example: PSP1.1">
-         <tocitem image="PageIcon" target="QuickStartPSP1" text="Quick start example: PSP1.1"/>
+      <tocitem image="BookIcon" target="QuickStartPSP1" text="Quick start example: PSP1.1">
          <tocitem image="PageIcon" target="QSCreatingTheProject" text="Step 1: Creating the project"/>
          <tocitem image="PageIcon" target="QSPlanningTheProject" text="Step 2: Planning the project"/>
          <tocitem image="PageIcon" target="QSDesigningTheProgram" text="Step 3: Designing the program"/>
@@ -26,8 +24,7 @@
       <tocitem image="PageIcon" target="GPL" text="GNU Public License"/>
     </tocitem>
 
-    <tocitem image="BookIcon" text="Planning">
-      <tocitem image="PageIcon" target="Planning" text="Why you should plan"/>
+    <tocitem image="BookIcon" target="Planning" text="Planning">
       <tocitem image="PageIcon" target="EnteringData" text="Entering data into the dashboard"/>
       <tocitem image="PageIcon" target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
       <tocitem image="PageIcon" target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
@@ -46,8 +43,7 @@
     
     </tocitem>
 
-    <tocitem image="BookIcon" text="Postmortem Analysis">
-      <tocitem image="PageIcon" target="PostmortemAnalysis" text="Why you should have a postmortem"/>
+    <tocitem image="BookIcon" target="PostmortemAnalysis" text="Postmortem Analysis">
       <tocitem image="PageIcon" target="DataChartsAndReports" text="Creating reports and charts"/>
       <tocitem image="PageIcon" target="ExportingData" text="Exporting your data"/>
     </tocitem>
