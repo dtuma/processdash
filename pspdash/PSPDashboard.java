@@ -125,6 +125,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
                 (Settings.getVal("http.allowRemote"));
             Browser.setDefaults("localhost", webServer.getPort());
             ScriptID.setNameResolver(new ScriptNameResolver(webServer));
+            PCSH.setWebServer(webServer);
         } catch (IOException ioe) {
             System.err.println("Couldn't start web server: " + ioe);
         }

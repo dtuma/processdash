@@ -132,9 +132,9 @@ Authors:
     <available property="javahelp.jhindexerjar"
                file ="${env.JAVAHELP_HOME}/javahelp/bin/jhindexer.jar"
                value="${env.JAVAHELP_HOME}/javahelp/bin/jhindexer.jar"/>
-    <available property="javahelp.jhalljar"
-               file ="${env.JAVAHELP_HOME}/javahelp/lib/jhall.jar"
-               value="${env.JAVAHELP_HOME}/javahelp/lib/jhall.jar"/>
+    <available property="javahelp.jhjar"
+               file ="${env.JAVAHELP_HOME}/javahelp/lib/jh.jar"
+               value="${env.JAVAHELP_HOME}/javahelp/lib/jh.jar"/>
     <available property="commondom.support"
                classname="com.sun.java.browser.dom.DOMService"/>
     <available property="nsobject.support"
@@ -164,16 +164,58 @@ Authors:
     </javac>
   </target>
 
-  <target name="javahelp-broker" depends="compile" if="javahelp.jhalljar"
-          description="Compile the context-sensitive help support">
+
+
+  <target name="javahelp-broker" depends="compile" if="javahelp.jhjar"
+          description="Compile the built-in context-sensitive help support">
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"> 
        <classpath>
          <path refid="build.classpath"/>
-	 <pathelement location="${javahelp.jhalljar}"/>
+	 <pathelement location="${javahelp.jhjar}"/>
        </classpath>
        <include name="pspdash/DashHelpBroker.java"/>
-     </javac>
+    </javac>
   </target>
+
+
+
+  <target name="javahelp-addon" depends="compile" if="javahelp.jhjar"
+          description="Compile the add-on context-sensitive help support">
+    <!-- compile the bootstrap cgi script -->
+    <mkdir dir="${build}/Templates/help"/>
+    <javac srcdir="${templates}/help" destdir="${templates}/help" 
+           debug="${debug}">
+       <classpath>
+         <path refid="build.classpath"/>
+	 <pathelement location="${javahelp.jhjar}"/>
+       </classpath>
+       <include name="createBroker.java"/>
+    </javac>
+
+    <!-- jar up the contents of the add-on -->
+    <jar destfile="${build}/dashHelp.jar" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+	<attribute name="Dash-Pkg-ID" value="DashHelp"/>
+	<attribute name="Dash-Pkg-Version" value="1.0"/>
+	<attribute name="Dash-Pkg-Name"
+		   value="JavaHelp&#x2122; from Sun Microsystems"/>
+	<attribute name="Dash-Pkg-URL"
+	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <!-- include the bootstrap cgi script -->
+      <fileset dir="${templates}/.."
+      	       includes="Templates/help/createBroker.class"/>
+
+      <!-- include the contents of the javahelp distribution -->
+      <zipfileset src="${javahelp.jhjar}" excludes="META-INF/ meta-inf/"/>
+    </jar>
+
+    <!-- cleanup: delete the bootstrap cgi script -->
+    <delete file="${templates}/help/createBroker.class"/>
+  </target>
+
 
 
   <target name="parser" depends="init,-parser-depend"
