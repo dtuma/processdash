@@ -16,3 +16,7 @@
 [Sync_Full_WBS] = 0;
 
 [Effective_Defect_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Type !~ '^(MGMT|STRAT|PM)$' --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
+
+// find sized objects in this project
+
+[Sized_Object_List] = search(".", "Sized_Object_Units");
