@@ -2,20 +2,20 @@
 
 = Students must manually calculate test defect density for program 7A.
 
-Test/Estimated Defects Removed per KLOC=0.0
-Test/Defects Removed per KLOC=0.0
+Test/7A Estimated Defects Removed per KLOC=0.0
+Test/7A Defects Removed per KLOC=0.0
 Test/7A Defects Removed per KLOC To Date=0.0
 
 = Students must manually calculate total defect density for program 7A.
 
-Estimated Defects per KLOC=0.0
-Defects per KLOC=0.0
+7A Estimated Defects per KLOC=0.0
+7A Defects per KLOC=0.0
 7A Defects per KLOC To Date=0.0
 
 = Students must manually calculate yield for program 7A.
 
-Estimated Yield=0.0
-Yield=0.0
+7A Estimated Yield=0.0
+7A Yield=0.0
 7A Yield To Date=0.0
 
 = Students must manually spread their time over the phases for program 7A.
@@ -55,24 +55,24 @@ Estimated Defects Removed=0.0
 
 = Students must manually calculate defect removal efficiency metrics for 7A.
 
-Design Review/Estimated Defects Removed per Hour=0.0
-Design Review/Defects Removed per Hour=0.0
+Design Review/7A Estimated Defects Removed per Hour=0.0
+Design Review/7A Defects Removed per Hour=0.0
 Design Review/7A Defects Removed per Hour To Date=0.0
-Code Review/Estimated Defects Removed per Hour=0.0
-Code Review/Defects Removed per Hour=0.0
+Code Review/7A Estimated Defects Removed per Hour=0.0
+Code Review/7A Defects Removed per Hour=0.0
 Code Review/7A Defects Removed per Hour To Date=0.0
-Compile/Estimated Defects Removed per Hour=0.0
-Compile/Defects Removed per Hour=0.0
+Compile/7A Estimated Defects Removed per Hour=0.0
+Compile/7A Defects Removed per Hour=0.0
 Compile/7A Defects Removed per Hour To Date=0.0
-Test/Estimated Defects Removed per Hour=0.0
-Test/Defects Removed per Hour=0.0
+Test/7A Estimated Defects Removed per Hour=0.0
+Test/7A Defects Removed per Hour=0.0
 Test/7A Defects Removed per Hour To Date=0.0
-Design Review/Estimated DRL=0.0
-Design Review/DRL=0.0
+Design Review/7A Estimated DRL=0.0
+Design Review/7A DRL=0.0
 Design Review/7A DRL To Date=0.0
-Code Review/Estimated DRL=0.0
-Code Review/DRL=0.0
+Code Review/7A Estimated DRL=0.0
+Code Review/7A DRL=0.0
 Code Review/7A DRL To Date=0.0
-Compile/Estimated DRL=0.0
-Compile/DRL=0.0
+Compile/7A Estimated DRL=0.0
+Compile/7A DRL=0.0
 Compile/7A DRL To Date=0.0

@@ -12,8 +12,8 @@ Postmortem/Estimated Time=0.0
 
 = Students must calculate Added and N&C LOC for program 2A.
 
-New & Changed LOC=0.0
-Added LOC=0.0
+2A New & Changed LOC=0.0
+2A Added LOC=0.0
 
 
 = Students must enter To Date LOC

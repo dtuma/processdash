@@ -8,12 +8,12 @@
 
 = Students must manually calculate % Reused for program 5A.
 
-Estimated % Reused=0.0
-% Reused=0.0
+5A Estimated % Reused=0.0
+5A % Reused=0.0
 5A % Reused To Date=0.0
 
 = Students must manually calculate % New Reused for program 5A.
 
-Estimated % New Reused=0.0
-% New Reused=0.0
+5A Estimated % New Reused=0.0
+5A % New Reused=0.0
 5A % New Reused To Date=0.0
