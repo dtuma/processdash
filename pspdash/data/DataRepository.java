@@ -1064,6 +1064,7 @@ public class DataRepository implements Repository {
                 // move - but none of that stuff should be moving.
                 if (value instanceof SimpleData) {
                     newName = newPrefix + name.substring(oldPrefixLen);
+                    newName = newName.intern();
                     //System.out.println("renaming " + name + " to " + newName);
                     putValue(newName, value.getSimpleValue());
                     putValue(name, null);
@@ -1427,6 +1428,32 @@ public class DataRepository implements Repository {
             }
         }
 
+        public void putSimpleValueOrDefault(String name, String value)
+            throws MalformedValueException
+        {
+            System.out.println("putSimpleValueOrDefault("+value+")");
+            if ("?NaN".equals(value) || "null".equals(value)) {
+                DataElement d = (DataElement) data.get(name);
+                String defaultValue = lookupDefaultValue(name, d);
+                System.out.println("defaultValue is "+defaultValue);
+                if (defaultValue != null) {
+                    SaveableData o = null;
+                    String prefix = (d.datafile == null ? "" : d.datafile.prefix);
+                    try {
+                        o = ValueFactory.create(name, defaultValue, this, prefix);
+                    } catch (MalformedValueException mfe) {
+                        o = new MalformedData(defaultValue);
+                    }
+                    putValue(name, o);
+                    return;
+                }
+            }
+
+            // if value is not "null", or if there is no default, just create
+            // the simple value and store it in the repository.
+            putValue(name, ValueFactory.create(null, value, null, null));
+        }
+
 
         private static final String includeTag = "#include ";
         private final Hashtable includedFileCache = new Hashtable();
@@ -1732,7 +1759,7 @@ public class DataRepository implements Repository {
                 while (dataNames.hasMoreElements()) {
                     localName = (String) dataNames.nextElement();
                     value = (String) values.get(localName);
-                    name = dataPrefix + "/" + localName;
+                    name = createDataName(dataPrefix, localName);
 
                     if (value.startsWith("=")) {
                         dataEditable = false;
@@ -1745,7 +1772,7 @@ public class DataRepository implements Repository {
                     try {
                         o = ValueFactory.createQuickly(name, value, this, dataPrefix);
                     } catch (MalformedValueException mfe) {
-                        System.err.println("Data value for '"+dataPrefix+"/"+name+
+                        System.err.println("Data value for '"+name+
                                            "' in file '"+datafilePath+"' is malformed.");
                         o = new MalformedData(value);
                     }
@@ -2225,5 +2252,15 @@ public class DataRepository implements Repository {
         }
 
         public Set getDataElementNameSet() { return dataElementNameSet_ext; }
+
+        public static String createDataName(String prefix, String name) {
+            if (name == null) return null;
+            if (name.startsWith("/")) return name.intern();
+            StringBuffer buf = new StringBuffer(prefix.length() + name.length() + 1);
+            buf.append(prefix);
+            if (!prefix.endsWith("/")) buf.append("/");
+            buf.append(name);
+            return buf.toString().intern();
+        }
 
 }
