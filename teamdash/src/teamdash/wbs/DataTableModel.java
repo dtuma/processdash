@@ -296,6 +296,12 @@ public class DataTableModel extends AbstractTableModel {
         return super.findColumn(columnName);
     }
 
+
+    public int getPreferredWidth(int columnIndex) {
+        if (columnIndex < 0 || columnIndex >= columns.size()) return -1;
+        return getColumn(columnIndex).getPreferredWidth();
+    }
+
     /** Let the model know that data in a particular column has been changed.
      * 
      * The column (and all columns that depend upon it) will be marked as

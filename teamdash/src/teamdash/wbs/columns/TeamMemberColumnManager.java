@@ -94,6 +94,8 @@ public class TeamMemberColumnManager
             TableColumn tableColumn = new TableColumn(columnIndex);
             tableColumn.setHeaderValue(column.getColumnName());
             tableColumn.setIdentifier(column.getColumnID());
+            if (column.getPreferredWidth() > 0)
+                tableColumn.setPreferredWidth(column.getPreferredWidth());
             model.addColumn(tableColumn);
             int pos = model.getColumnIndex(tableColumn.getIdentifier());
             if (pos != destPos)

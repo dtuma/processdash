@@ -58,9 +58,9 @@ public class WBSEditor implements WindowListener {
                      new String[] { "Team", "" });
 
         table.addTab("Task Time",
-                     new String[] { "Phase", "Task Size", "Task Size Units", "Rate", "Hrs/Indiv", "# People", "Time" },
+                     new String[] { "Phase", "Task Size", "Task Size Units", "Rate", "Hrs/Indiv", "# People", "Time", "Assigned To" },
                      new String[] { "Phase", "Task Size", "Units", "Rate", "Hrs/Indiv", "# People",
-                         "Time" });
+                         "Time", "Assigned To" });
 
         String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         //table.addTab("Defects", s, s);

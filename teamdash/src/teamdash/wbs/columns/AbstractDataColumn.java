@@ -7,6 +7,7 @@ public abstract class AbstractDataColumn implements DataColumn {
     protected String columnID;
     protected String columnName;
     protected String[] dependentColumns = null;
+    protected int preferredWidth = -1;
 
     public String getColumnID()   { return columnID;     }
     public String getColumnName() { return columnName;   }
@@ -14,5 +15,6 @@ public abstract class AbstractDataColumn implements DataColumn {
     public String[] getDependentColumnIDs() { return dependentColumns; }
     public String[] getAffectedColumnIDs() { return null; }
     public void resetDependentColumns() {}
+    public int getPreferredWidth() { return preferredWidth; }
 
 }

@@ -19,6 +19,7 @@ public class TaskSizeColumn extends SizeAliasColumn {
         System.arraycopy(this.dependentColumns, 0, dependentCols, 0, len);
         dependentCols[len] = TaskSizeUnitsColumn.COLUMN_ID;
         this.dependentColumns = dependentCols;
+        this.preferredWidth = 65;
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {

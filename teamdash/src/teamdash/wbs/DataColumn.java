@@ -9,5 +9,6 @@ public interface DataColumn {
     public boolean isCellEditable(WBSNode node);
     public Object getValueAt(WBSNode node);
     public void setValueAt(Object aValue, WBSNode node);
+    public int getPreferredWidth();
 
 }

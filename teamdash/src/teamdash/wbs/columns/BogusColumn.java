@@ -18,5 +18,8 @@ public class BogusColumn implements DataColumn {
     public Object getValueAt(WBSNode node) { return name+":"+node.getName(); }
     public void setValueAt(Object aValue, WBSNode node) {}
     public String getColumnID() { return name; }
+    public int getPreferredWidth() {
+        return -1;
+    }
 
 }

@@ -10,6 +10,7 @@ public class PhaseColumn extends AbstractDataColumn
 
     public PhaseColumn() {
         this.columnID = this.columnName = "Phase";
+        this.preferredWidth = 100;
     }
 
     public Object getValueAt(WBSNode node) {

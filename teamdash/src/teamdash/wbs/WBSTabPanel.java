@@ -112,6 +112,8 @@ public class WBSTabPanel extends JPanel
                 name = tableModel.getColumn(columnIndex).getColumnName();
             tableColumn.setHeaderValue(name);
             tableColumn.setIdentifier(columnIDs[i]);
+            int width = tableModel.getPreferredWidth(columnIndex);
+            if (width > 0) tableColumn.setPreferredWidth(width);
             columnModel.addColumn(tableColumn);
         }
 

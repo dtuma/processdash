@@ -208,6 +208,9 @@ public class SizeAccountingColumnSet {
         public Class getColumnClass() {
             return column.getColumnClass();
         }
+        public int getPreferredWidth() {
+            return column.getPreferredWidth();
+        }
 
         protected boolean isFiltered(WBSNode node) {
             return !editableType.equals(node.getType());

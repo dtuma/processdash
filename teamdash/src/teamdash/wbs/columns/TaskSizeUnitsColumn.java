@@ -16,6 +16,7 @@ implements CalculatedDataColumn {
         this.teamProcess = teamProcess;
         this.columnName = "Units";
         this.columnID = COLUMN_ID;
+        this.preferredWidth = 80;
     }
 
     public Class getColumnClass() { return TaskSizeUnitsColumn.class; }
