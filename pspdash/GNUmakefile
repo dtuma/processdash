@@ -75,13 +75,13 @@ pspdash: PSPDashboard.class $(CLASS_FILES)
 
 
 cgi-scripts: $(CGI_CLASSES)
+	@cp Templates/psp1/sizeest.class Templates/psp1.1
 
 $(CGI_CLASSES) : %.class : %.java
 	$(JAVAC) \
 	    -classpath build \
 	    -deprecation \
-	    -sourcepath . \
-	    -d . \
+	    -d $(dir $^) \
 	    $^
 
 
