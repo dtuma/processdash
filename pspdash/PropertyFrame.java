@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -66,6 +66,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     protected PSPDashboard  dashboard = null;
     protected ConfigureButton configureButton;
 
+    static final ResourceBundle  resource =
+        Resources.getBundle("pspdash.PropertyFrame");
 
     static final char NO_MOVE_CHAR    = 'M';
     static final char NO_EDIT_CHAR    = 'E';
@@ -164,8 +166,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         revertProperties ();
         updateTemplateMenu (null, null);
 
-        frame = new JFrame("Hierarchy Editor");
-        frame.setTitle("Hierarchy Editor");
+        frame = new JFrame(resource.getString("HierarchyEditor"));
+        frame.setTitle(resource.getString("HierarchyEditor"));
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("North", buildToolBar());
@@ -319,10 +321,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     private JProgressBar progressBar = null;
 
     private void createProgressDialog(int size) {
-        progressDialog = new JDialog(frame, "Saving Changes", true);
+        progressDialog = new JDialog(frame, resource.getString("SavingChanges"), true);
         progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         progressDialog.getContentPane().add
-            (new JLabel("Saving changes..."), BorderLayout.NORTH);
+            (new JLabel(resource.getString("SavingChangesDots")), BorderLayout.NORTH);
         progressDialog.getContentPane().add
             (progressBar = new JProgressBar(0, size), BorderLayout.CENTER);
         progressDialog.pack();
@@ -359,11 +361,11 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     }
 
     private static final Object CONFIRM_CLOSE_MSG =
-        "Do you want to save the changes you made to the hierarchy?";
+        resource.getString("HierarchyChangeConfirm");
     public void confirmClose(boolean showCancel) {
         if (isDirty())
             switch (JOptionPane.showConfirmDialog
-                    (frame, CONFIRM_CLOSE_MSG, "Save Changes?",
+                    (frame, CONFIRM_CLOSE_MSG, resource.getString("SaveChanges"),
                      showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
                                 : JOptionPane.YES_NO_OPTION)) {
             case JOptionPane.CLOSED_OPTION:
@@ -428,22 +430,22 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         JMenuItem        menuItem;
 
         /* File Options (close, save, revert). */
-        menu = new JMenu("File");
+        menu = new JMenu(Resources.getString("File"));
         menuBar.add(menu);
 
-        menuItem = menu.add(new JMenuItem("Close"));
+        menuItem = menu.add(new JMenuItem(Resources.getString("Close")));
         menuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 confirmClose(true);
             }});
 
-        saveMenuItem = menu.add(new JMenuItem("Save"));
+        saveMenuItem = menu.add(new JMenuItem(Resources.getString("Save")));
         saveMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 saveProperties ();
             }});
 
-        revertMenuItem = menu.add(new JMenuItem("Revert"));
+        revertMenuItem = menu.add(new JMenuItem(Resources.getString("Revert")));
         revertMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 tree.getSelectionModel().clearSelection();
@@ -457,10 +459,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         setDirty (false);
 
         /* Tree related stuff. */
-        menu = new JMenu("Edit");
+        menu = new JMenu(Resources.getString("Edit"));
         menuBar.add(menu);
 
-        deleteMenuItem = menu.add(new JMenuItem("Delete"));
+        deleteMenuItem = menu.add(new JMenuItem(Resources.getString("Delete")));
         deleteMenuItem.addActionListener(new RemoveAction());
         deleteMenuItem.setEnabled (false);
 
@@ -478,14 +480,14 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         menu.addSeparator();
 
-        addNodeMenu = (JMenu) menu.add(new JMenu("Add Node"));
+        addNodeMenu = (JMenu) menu.add(new JMenu(resource.getString("HierarchyAddNode")));
         addNodeMenu.setPopupMenuVisible (false);
 
         addNodeMenu.add(addNodeAboveAction = new InsertAction());
         addNodeMenu.add(addNodeBelowAction = new AddAction());
         addNodeMenu.add(addNodeChildAction = new AddChildAction());
 
-        addTemplateMenu = (JMenu) menu.add(new JMenu("Add Template"));
+        addTemplateMenu = (JMenu) menu.add(new JMenu(resource.getString("HierarchyAddTemplate")));
         addTemplateMenu.setPopupMenuVisible (false);
 
         return menuBar;
@@ -712,7 +714,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 //      System.out.println("Update: passed " + val);
             enableMenu = true;
             if (addTemplateMenu.getItemCount() > 18)
-                addTemplateMenu = (JMenu) addTemplateMenu.add(new JMenu("More..."), 0);
+                addTemplateMenu = (JMenu) addTemplateMenu.add
+                    (new JMenu(Resources.addDialogIndicator
+                               (Resources.getString("More"))),
+                     0);
             menuItem = addTemplateMenu.add(new JMenuItem(display));
             menuItem.addActionListener(new AddTemplateAction(val));
         }
@@ -754,8 +759,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     private boolean newNameIsAcceptable(PropertyKey parent, String newName) {
         if (newName.indexOf('/') != -1) {
             JOptionPane.showMessageDialog
-                (frame, "Hierarchy names cannot contain the '/' character.",
-                 "Invalid name", JOptionPane.ERROR_MESSAGE);
+                (frame, resource.getString("HierarchyNameError"),
+                 resource.getString("InvalidName"), JOptionPane.ERROR_MESSAGE);
             return false;
         } else if (!useProps.pget(parent).isUniqueChildName(newName)) {
             //JOptionPane.showMessageDialog
@@ -766,8 +771,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             return false;
         else if (!newName.equals(new String(newName.getBytes()))) {
             JOptionPane.showMessageDialog
-                (frame, UNICODE_ERROR_MESSAGE,
-                 "Invalid name", JOptionPane.ERROR_MESSAGE);
+                (frame,
+                 StringUtils.split(resource.getString("HierarchyUnicodeError"), "\n"),
+                 resource.getString("InvalidName"), JOptionPane.ERROR_MESSAGE);
             return false;
         } else
             return true;
@@ -961,9 +967,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     class AddAction extends AbstractAction {
 
         public AddAction() {
-            super("Below",
+            super(resource.getString("HierarchyBelow"),
                   new ImageIcon(PropertyFrame.class.getResource("ins-after.gif")));
-            putValue(Action.SHORT_DESCRIPTION, "Add Node Below");
+            putValue(Action.SHORT_DESCRIPTION, resource.getString("HierarchyAddNodeBelow"));
         }
 
         /**
@@ -1006,9 +1012,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         public int               addCount;
 
         public AddChildAction() {
-            super("As Child",
+            super(resource.getString("HierarchyAsChild"),
                   new ImageIcon(PropertyFrame.class.getResource("ins-child.gif")));
-            putValue(Action.SHORT_DESCRIPTION, "Add Node As Child");
+            putValue(Action.SHORT_DESCRIPTION, resource.getString("HierarchyAddNodeAsChild"));
         }
 
         /**
@@ -1051,9 +1057,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         public int               insertCount;
 
         public InsertAction() {
-            super("Above",
+            super(resource.getString("HierarchyAbove"),
                   new ImageIcon(PropertyFrame.class.getResource("ins-before.gif")));
-            putValue(Action.SHORT_DESCRIPTION, "Add Node Above");
+            putValue(Action.SHORT_DESCRIPTION, resource.getString("HierarchyAddNodeAbove"));
         }
 
         /**
@@ -1132,9 +1138,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     /** MoveUpAction swaps the selected node with its preceeding sibling. */
     class MoveUpAction extends AbstractAction {
         public MoveUpAction() {
-            super("Move Up", new ImageIcon(PropertyFrame.class.getResource
+            super(resource.getString("HierarchyMoveUp"), new ImageIcon(PropertyFrame.class.getResource
                                            ("block-up-arrow.gif")));
-            putValue(Action.SHORT_DESCRIPTION, "Move Node Up");
+            putValue(Action.SHORT_DESCRIPTION, resource.getString("HierarchyMoveNodeUp"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -1148,9 +1154,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     /** MoveDownAction swaps the selected node with its following sibling. */
     class MoveDownAction extends AbstractAction {
         public MoveDownAction() {
-            super("Move Down", new ImageIcon(PropertyFrame.class.getResource
+            super(resource.getString("HierarchyMoveDown"), new ImageIcon(PropertyFrame.class.getResource
                                              ("block-down-arrow.gif")));
-            putValue(Action.SHORT_DESCRIPTION, "Move Node Down");
+            putValue(Action.SHORT_DESCRIPTION, resource.getString("HierarchyMoveNodeDown"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -1221,8 +1227,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     /** CutAction remembers the selected node for future paste operations. */
     class CutAction extends AbstractAction {
         public CutAction() {
-            super("Cut", new ImageIcon(PropertyFrame.class.getResource("cut.gif")));
-            putValue(Action.SHORT_DESCRIPTION, "Cut Node");
+            super(Resources.getString("Cut"),
+                  new ImageIcon(PropertyFrame.class.getResource("cut.gif")));
+            putValue(Action.SHORT_DESCRIPTION,
+                     resource.getString("HierarchyCutNode"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -1237,9 +1245,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
      *  currently selected node. */
     class PasteAction extends AbstractAction {
         public PasteAction() {
-            super("Paste",
+            super(Resources.getString("Paste"),
                   new ImageIcon(PropertyFrame.class.getResource("paste.gif")));
-            putValue(Action.SHORT_DESCRIPTION, "Paste Node");
+            putValue(Action.SHORT_DESCRIPTION,
+                     resource.getString("HierarchyPasteNode"));
         }
 
         public void actionPerformed(ActionEvent e) {

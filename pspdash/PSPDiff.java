@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -32,8 +32,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.ResourceBundle;
 
 public class PSPDiff {
+
+    static final ResourceBundle resource =
+        Resources.getBundle("pspdash.PSPDiff");
 
     private int base, added, deleted, modified, total;
     WhitespaceCompareString[] linesA, linesB;
@@ -382,8 +386,8 @@ public class PSPDiff {
             name = (String) i.next();
             web.getRequest("/" + name, false);
         } catch (Exception e) {
-            System.err.println("Couldn't initialize language filter '" +
-                               name + "':");
+            System.err.println
+                (Resources.format(resource, "PspDiffCouldNotInit_FMT", name));
             e.printStackTrace();
         }
         languageFilters = filterNames;
@@ -454,8 +458,7 @@ public class PSPDiff {
             out.print(filterName);
             out.println("</h2><table border>");
             printOption(out, "-lang=" + filterName,
-                        Resources.getBundle("pspdash.PSPDiff")
-                            .getString("Force_Explanation"));
+                        resource.getString("Force_Explanation"));
             String[][] options = currentFilter.getOptions();
             if (options != null)
                 for (int j = 0;   j < options.length;   j++) {

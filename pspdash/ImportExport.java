@@ -54,6 +54,9 @@ import pspdash.data.DataImporter;
 
 public class ImportExport extends JDialog implements ActionListener {
 
+ static final ResourceBundle resource =
+    Resources.getBundle("pspdash.ImportExport");
+
     static final int X_DATA = 0;
     static final int X_LIST = 1;
 
@@ -69,7 +72,7 @@ public class ImportExport extends JDialog implements ActionListener {
 
 
     public ImportExport (PSPDashboard dash) {
-        super (dash, "Export");
+        super (dash, resource.getString("Export"));
         PCSH.enableHelpKey(this, "ExportingData");
 
         parent = dash;
@@ -95,7 +98,7 @@ public class ImportExport extends JDialog implements ActionListener {
         Box mainBox = new Box(BoxLayout.Y_AXIS);
         Box aBox = new Box(BoxLayout.X_AXIS);
         aBox.add (Box.createHorizontalStrut(2));
-        incNonTemplate = new JCheckBox ("Show leaf nodes");
+        incNonTemplate = new JCheckBox (resource.getString("ShowLeafNodes"));
         incNonTemplate.setActionCommand("leaves");
         incNonTemplate.addActionListener(this);
         aBox.add (incNonTemplate);
@@ -107,14 +110,14 @@ public class ImportExport extends JDialog implements ActionListener {
 
         Box buttonBox = new Box(BoxLayout.Y_AXIS);
         JRadioButton button;
-        button = new JRadioButton ("Export Data");
+        button = new JRadioButton (resource.getString("ExportData"));
         button.setActionCommand("XData");
         button.addActionListener(this);
         button.setSelected(true);
         bg.add (button);
         buttonBox.add (button);
 
-        button = new JRadioButton ("Export Hierarchy List");
+        button = new JRadioButton (resource.getString("ExportHierarchy"));
         button.setActionCommand("XList");
         button.addActionListener(this);
         bg.add (button);
@@ -125,11 +128,11 @@ public class ImportExport extends JDialog implements ActionListener {
 
         Box btnBox = new Box(BoxLayout.X_AXIS);
         btnBox.add(Box.createHorizontalGlue());
-        JButton btn = new JButton ("Export");
+        JButton btn = new JButton (resource.getString("Export"));
         btn.setActionCommand("Apply");
         btn.addActionListener(this);
         btnBox.add(btn);
-        btn = new JButton ("Close");
+        btn = new JButton (Resources.getString("Close"));
         btn.setActionCommand("Close");
         btn.addActionListener(this);
         btnBox.add(btn);
@@ -202,7 +205,7 @@ public class ImportExport extends JDialog implements ActionListener {
                 // use file dialog to get file name/loc?
                 //  (extend file dialog class to add more functionality/options?)
                 fd = new FileDialog (parent,
-                                     "Export Data To",
+                                     resource.getString("ExportDataTo"),
                                      FileDialog.SAVE);
                 //fd.setDirectory ("");
                 fd.setFile ("dash.txt");
@@ -218,7 +221,7 @@ public class ImportExport extends JDialog implements ActionListener {
                 // use file dialog to get file name/loc?
                 //  (extend file dialog class to add more functionality/options?)
                 fd = new FileDialog (parent,
-                                     "Export Hierarchy To",
+                                     resource.getString("ExportHierarchyTo"),
                                      FileDialog.SAVE);
                 //fd.setDirectory ("");
                 fd.setFile ("hierarch.txt");
@@ -226,9 +229,9 @@ public class ImportExport extends JDialog implements ActionListener {
                 lastFile = fd.getFile ();
                 if (lastFile != null) {
                     JDialog working;
-                    working = new JDialog (parent, "Exporting...");
+                    working = new JDialog (parent, resource.getString("ExportExportingDots"));
                     working.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    JLabel lab = new JLabel ("Export in Progress.  Please Wait.");
+                    JLabel lab = new JLabel (resource.getString("ExportExportingMessage"));
                     working.getContentPane().add(lab, "Center");
                     working.pack();
                     working.show();
@@ -244,7 +247,7 @@ public class ImportExport extends JDialog implements ActionListener {
                     } catch (IOException ioe) {
                         fail = true; System.out.println("IOException: " + e);
                     };
-                    lab.setText ("Export Complete.");
+                    lab.setText (resource.getString("ExportComplete"));
                     working.invalidate();
                 }
                 break;
@@ -260,12 +263,16 @@ public class ImportExport extends JDialog implements ActionListener {
                                            Vector filter, File dest) {
         ProgressDialog p = null;
         if (window instanceof Dialog)
-            p = new ProgressDialog((Dialog)window, "Exporting", "Exporting data...");
+            p = new ProgressDialog((Dialog)window,
+                              resource.getString("ExportExporting"),
+                              resource.getString("ExportExportingDataDots") );
         else if (window instanceof Frame)
-            p = new ProgressDialog((Frame)window, "Exporting", "Exporting data...");
+            p = new ProgressDialog((Frame)window,
+                              resource.getString("ExportExporting"),
+                              resource.getString("ExportExportingDataDots") );
 
         p.addTask(new ExportTask(parent, filter, dest));
-        p.setCompletionMessage("Export done.");
+        p.setCompletionMessage(resource.getString("ExportDone"));
         p.run();
     }
 
@@ -352,8 +359,9 @@ public class ImportExport extends JDialog implements ActionListener {
     public static void exportAll(PSPDashboard parent, String userSetting) {
 
         boolean foundWork = false;
-        ProgressDialog p = new ProgressDialog(parent, "Auto Exporting",
-                                              "Exporting data...");
+        ProgressDialog p = new ProgressDialog(parent,
+                                  resource.getString("ExportAutoExporting"),
+                                  resource.getString("ExportExportingDataDots"));
 
         if (userSetting != null && userSetting.length() > 0) {
             // parse the user setting to find data export instructions
