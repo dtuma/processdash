@@ -191,9 +191,9 @@ public class TemplateLoader {
         String rollupXML = AutoData.generateRollupTemplateXML();
         if (rollupXML == null) return;
 
-        ByteArrayInputStream in =
-            new ByteArrayInputStream(rollupXML.getBytes());
         try {
+            ByteArrayInputStream in =
+                new ByteArrayInputStream(rollupXML.getBytes("UTF-8"));
             loadXMLProcessTemplate(templates, data, null, in, true);
         } catch (IOException ioe) {}
     }
