@@ -228,11 +228,11 @@ public class dtsEdit extends TinyCGIBase {
         showEditBox(realName);
 
         out.print("<p><input type=submit name='"+SAVE+"' value='");
-        out.print(HTMLUtils.escapeEntities(Resources.getGlobalString("Save")));
+        out.print(HTMLUtils.escapeEntities(resources.getString("Save")));
         out.print("'>&nbsp;");
 
         out.print("<input type=submit name='cancel' value='");
-        out.print(HTMLUtils.escapeEntities(Resources.getGlobalString("Cancel")));
+        out.print(HTMLUtils.escapeEntities(resources.getString("Cancel")));
         out.print("'>");
         out.print("</form></body></html>");
     }
@@ -269,11 +269,11 @@ public class dtsEdit extends TinyCGIBase {
         showName(standardName, false);
 
         out.print("<p><input type=submit name='"+SAVE+"' value='");
-        out.print(HTMLUtils.escapeEntities(Resources.getGlobalString("OK")));
+        out.print(HTMLUtils.escapeEntities(resources.getString("OK")));
         out.print("'>&nbsp;");
 
         out.print("<input type=submit name='cancel' value='");
-        out.print(HTMLUtils.escapeEntities(Resources.getGlobalString("Cancel")));
+        out.print(HTMLUtils.escapeEntities(resources.getString("Cancel")));
         out.print("'>");
         out.print("</form></body></html>");
     }
@@ -288,11 +288,11 @@ public class dtsEdit extends TinyCGIBase {
         showName(standardName, false);
 
         out.print("<p><input type=submit name='"+SET_DEFAULT+"' value='");
-        out.print(HTMLUtils.escapeEntities(Resources.getGlobalString("OK")));
+        out.print(HTMLUtils.escapeEntities(resources.getString("OK")));
         out.print("'>&nbsp;");
 
         out.print("<input type=submit name='cancel' value='");
-        out.print(HTMLUtils.escapeEntities(Resources.getGlobalString("Cancel")));
+        out.print(HTMLUtils.escapeEntities(resources.getString("Cancel")));
         out.print("'>");
         out.print("</form></body></html>");
     }

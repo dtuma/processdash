@@ -213,8 +213,8 @@ public class TaskScheduleDialog
     protected void setDirty(boolean dirty) {
         isDirty = dirty;
         saveButton.setEnabled(isDirty);
-        closeButton.setText(isDirty ? Resources.getGlobalString("Cancel")
-                                    : Resources.getGlobalString("Close"));
+        closeButton.setText(isDirty ? resources.getString("Cancel")
+                                    : resources.getString("Close"));
     }
 
     protected Component buildTaskButtons(boolean isRollup) {
@@ -370,14 +370,14 @@ public class TaskScheduleDialog
         box.add(reportButton);
         box.add(Box.createHorizontalStrut(2));
 
-        closeButton = new JButton(Resources.getGlobalString("Close"));
+        closeButton = new JButton(resources.getString("Close"));
         closeButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     confirmClose(true); }});
         box.add(closeButton);
         box.add(Box.createHorizontalStrut(2));
 
-        saveButton = new JButton(Resources.getGlobalString("Save"));
+        saveButton = new JButton(resources.getString("Save"));
         saveButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     save(); }});

@@ -863,13 +863,13 @@ public class TimeLogEditor extends Object
         retPanel.add ("Center", table);
 
         JPanel btnPanel = new JPanel(false);
-        addButton = button = new JButton (Resources.getGlobalString("Add"));
+        addButton = button = new JButton (resources.getString("Add"));
         button.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) { addRow(); }
         });
         btnPanel.add (button);
 
-        button = new JButton (Resources.getGlobalString("Delete"));
+        button = new JButton (resources.getString("Delete"));
         button.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) { deleteSelectedRow(); }
         });
@@ -904,15 +904,15 @@ public class TimeLogEditor extends Object
             public void actionPerformed(ActionEvent e) {
                 showTimeCard(); }});
 
-        revertButton = new JButton (Resources.getGlobalString("Revert"));
+        revertButton = new JButton (resources.getString("Revert"));
         retPanel.add (revertButton);
         revertButton.addActionListener (new ReloadAction ());
 
-        saveButton = new JButton (Resources.getGlobalString("Save"));
+        saveButton = new JButton (resources.getString("Save"));
         retPanel.add (saveButton);
         saveButton.addActionListener (new SaveAction ());
 
-        JButton closeButton = new JButton(Resources.getGlobalString("Close"));
+        JButton closeButton = new JButton(resources.getString("Close"));
         retPanel.add(closeButton);
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { confirmClose(true); }

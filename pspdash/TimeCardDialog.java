@@ -164,7 +164,7 @@ public class TimeCardDialog {
                     resizeColumns(); }});
 
         result.add(Box.createHorizontalGlue());
-        JButton closeButton = new JButton(Resources.getGlobalString("Close"));
+        JButton closeButton = new JButton(resources.getString("Close"));
         dontGrow(closeButton);
         result.add(result.createVerticalStrut
                    (closeButton.getPreferredSize().height + 4));

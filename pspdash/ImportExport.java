@@ -98,7 +98,7 @@ public class ImportExport extends JDialog implements ActionListener {
         Box mainBox = new Box(BoxLayout.Y_AXIS);
         Box aBox = new Box(BoxLayout.X_AXIS);
         aBox.add (Box.createHorizontalStrut(2));
-        incNonTemplate = new JCheckBox (Resources.getGlobalString("Show_Leaf_Nodes"));
+        incNonTemplate = new JCheckBox (resource.getString("Show_Leaf_Nodes"));
         incNonTemplate.setActionCommand("leaves");
         incNonTemplate.addActionListener(this);
         aBox.add (incNonTemplate);
@@ -132,7 +132,7 @@ public class ImportExport extends JDialog implements ActionListener {
         btn.setActionCommand("Apply");
         btn.addActionListener(this);
         btnBox.add(btn);
-        btn = new JButton (Resources.getGlobalString("Close"));
+        btn = new JButton (resource.getString("Close"));
         btn.setActionCommand("Close");
         btn.addActionListener(this);
         btnBox.add(btn);

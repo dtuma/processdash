@@ -68,7 +68,7 @@ public class ChartDialog extends JDialog {
         if (labelY == null) labelY = resources.getString("Empty_Label");
 
         titles = new Vector();
-        titles.add(Resources.getGlobalString("Task_Project"));
+        titles.add(resources.getString("Task_Project"));
         titles.add(labelX);
         titles.add(labelY);
 
@@ -90,7 +90,7 @@ public class ChartDialog extends JDialog {
 
         Box buttonBox = new Box(BoxLayout.X_AXIS);
         buttonBox.add (Box.createGlue());
-        JButton button = new JButton (Resources.getGlobalString("Close"));
+        JButton button = new JButton (resources.getString("Close"));
         button.setActionCommand("close");
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

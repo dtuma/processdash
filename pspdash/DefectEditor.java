@@ -508,7 +508,7 @@ public class DefectEditor extends Component
         JPanel btnPanel = new JPanel(false);
                                     // Should only be available if one
                                     // entry is selected
-        editButton = new JButton (Resources.getGlobalString("Edit"));
+        editButton = new JButton (resources.getString("Edit"));
         editButton.setActionCommand ("edit");
         editButton.addActionListener (this);
         editButton.setEnabled (false);
@@ -516,13 +516,13 @@ public class DefectEditor extends Component
 
                                     // Should only be available if one
                                     // entry is selected
-        deleteButton = new JButton (Resources.getGlobalString("Delete"));
+        deleteButton = new JButton (resources.getString("Delete"));
         deleteButton.setActionCommand ("delete");
         deleteButton.addActionListener (this);
         deleteButton.setEnabled (false);
         btnPanel.add (deleteButton);
 
-        closeButton = new JButton (Resources.getGlobalString("Close"));
+        closeButton = new JButton (resources.getString("Close"));
         closeButton.setActionCommand ("close");
         closeButton.addActionListener (this);
         btnPanel.add (closeButton);

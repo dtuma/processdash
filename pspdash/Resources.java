@@ -36,15 +36,40 @@ import java.util.NoSuchElementException;
 public class Resources extends ResourceBundle {
 
     private String bundleName;
+    private ResourceBundle delegate;
 
-    private Resources(String bundleName, ResourceBundle parent) {
+    private Resources(String bundleName, ResourceBundle delegate,
+                      ResourceBundle parent) {
         this.bundleName = bundleName;
+        this.delegate = delegate;
         setParent(parent);
     }
 
-    protected Object handleGetObject(String key) { return null; }
-    public Enumeration getKeys() { return parent.getKeys(); }
-    public Locale getLocale() { return parent.getLocale(); }
+    protected Object handleGetObject(String key) {
+        try {
+            return delegate.getObject(key);
+        } catch (MissingResourceException mre) {
+            return null;
+        }
+    }
+    public Enumeration getKeys() {
+        // this isn't exactly accurate.  It won't include the
+        // inherited keys from our parent.
+        return delegate.getKeys();
+    }
+    public Locale getLocale() {
+        return delegate.getLocale();
+    }
+
+    public String getDlgString(String key) {
+        String result = null;
+        try {
+            result = getString(key + "_DLG");
+        } catch (MissingResourceException mre) {}
+        if (result == null)
+            result = addDialogIndicator(getString(key));
+        return result;
+    }
 
 
 
@@ -52,20 +77,19 @@ public class Resources extends ResourceBundle {
     private static MessageFormat dialogIndicatorFormat = null;
 
     private static void initGlobalResources() {
-        if (globalResources == null) {
-            globalResources = getDashBundle("pspdash.Resources");
-        }
+        if (globalResources == null)
+            globalResources = getDashBundle("pspdash.Resources", null);
     }
 
-    public static String getGlobalString(String key) {
+    public static Resources getGlobalBundle() {
         initGlobalResources();
-        return globalResources.getString(key);
+        return globalResources;
     }
 
-    public static String addDialogIndicator(String value) {
+    private static String addDialogIndicator(String value) {
         if (dialogIndicatorFormat == null)
             dialogIndicatorFormat = new MessageFormat
-                (getGlobalString("Dialog_Indicator_FMT"));
+                (getGlobalBundle().getString("Dialog_Indicator_FMT"));
 
         return dialogIndicatorFormat.format(new Object[] { value });
     }
@@ -93,13 +117,18 @@ public class Resources extends ResourceBundle {
     private static final boolean TIME_LOADING = false;
 
     public static Resources getDashBundle(String bundleName) {
+        initGlobalResources();
+        return getDashBundle(bundleName, globalResources);
+    }
+    private static Resources getDashBundle(String bundleName,
+                                           ResourceBundle parent) {
         long start = 0;
         if (TIME_LOADING)
             start = System.currentTimeMillis();
 
-        ResourceBundle parentBundle = ResourceBundle.getBundle
+        ResourceBundle realBundle = ResourceBundle.getBundle
             (bundleName, Locale.getDefault(), RESOURCE_LOADER);
-        Resources result = new Resources(bundleName, parentBundle);
+        Resources result = new Resources(bundleName, realBundle, parent);
 
         if (TIME_LOADING) {
             long end = System.currentTimeMillis();

@@ -65,8 +65,7 @@ class ScriptButton extends DropDownButton {
         getButton().setFocusPainted(false);
         parent = dash;
 
-        moreItem = new JMenuItem(Resources.addDialogIndicator
-                                 (Resources.getGlobalString("More")));
+        moreItem = new JMenuItem(Resources.getGlobalBundle().getDlgString("More"));
         moreItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new ScriptBrowser(ScriptButton.this.parent, true); } } );

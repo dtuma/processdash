@@ -86,7 +86,7 @@ public class FilterDialog extends JDialog implements ActionListener {
         Box mainBox = new Box(BoxLayout.Y_AXIS);
         Box aBox = new Box(BoxLayout.X_AXIS);
         aBox.add (Box.createHorizontalStrut(2));
-        incNonTemplate = new JCheckBox (Resources.getGlobalString("Show_Leaf_Nodes"));
+        incNonTemplate = new JCheckBox (resources.getString("Show_Leaf_Nodes"));
         incNonTemplate.setActionCommand("leaves");
         incNonTemplate.addActionListener(this);
         aBox.add (incNonTemplate);
@@ -102,7 +102,7 @@ public class FilterDialog extends JDialog implements ActionListener {
         button.addActionListener(this);
         buttonBox.add (button);
         buttonBox.add (Box.createGlue());
-        button = new JButton (Resources.getGlobalString("Close"));
+        button = new JButton (resources.getString("Close"));
         button.setActionCommand("close");
         button.addActionListener(this);
         buttonBox.add (button);

@@ -240,12 +240,12 @@ public class DefectDialog extends JDialog
         g.gridy = 8;  g.insets = small_margin;
         g.anchor = g.CENTER;   g.fill = g.NONE;
 
-        OKButton = new JButton(Resources.getGlobalString("OK"));
+        OKButton = new JButton(resources.getString("OK"));
         OKButton.addActionListener(this);
         g.gridx = 0;   layout.setConstraints(OKButton, g);
         panel.add(OKButton);
 
-        CancelButton = new JButton(Resources.getGlobalString("Cancel"));
+        CancelButton = new JButton(resources.getString("Cancel"));
         CancelButton.addActionListener(this);
         g.gridx = 1; g.gridwidth = 2; layout.setConstraints(CancelButton, g);
         panel.add(CancelButton);

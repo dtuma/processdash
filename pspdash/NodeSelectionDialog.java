@@ -97,13 +97,13 @@ public class NodeSelectionDialog extends JDialog
     private Component buildButtonPanel(String okayLabel) {
         JPanel result = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 
-        JButton cancelButton = new JButton(Resources.getGlobalString("Cancel"));
+        JButton cancelButton = new JButton(Resources.getGlobalBundle().getString("Cancel"));
         cancelButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     dispose(); }});
         result.add(cancelButton);
 
-        if (okayLabel == null) okayLabel = Resources.getGlobalString("OK");
+        if (okayLabel == null) okayLabel = Resources.getGlobalBundle().getString("OK");
         okayButton = new JButton(okayLabel);
         okayButton.addActionListener(this);
         okayButton.setEnabled(false);

@@ -90,8 +90,8 @@ public class TaskScheduleChooser
     private static boolean showRollupOption =
         Settings.getBool("ev.enableRollup",false);
 
-    private static final String OK = Resources.getGlobalString("OK");
-    private static final String CANCEL = Resources.getGlobalString("Cancel");
+    private static final String OK = resources.getString("OK");
+    private static final String CANCEL = resources.getString("Cancel");
     protected String getTemplateName(Component parent,
                                      String title, String prompt,
                                      boolean showRollupOptions) {
@@ -184,23 +184,23 @@ public class TaskScheduleChooser
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
         buttons.add(newButton = new JButton
-            (Resources.addDialogIndicator(Resources.getGlobalString("New"))));
+            (resources.getDlgString("New")));
         newButton.addActionListener(this);
 
         buttons.add(renameButton = new JButton
-            (Resources.addDialogIndicator(Resources.getGlobalString("Rename"))));
+            (resources.getDlgString("Rename")));
         renameButton.addActionListener(this);
         renameButton.setEnabled(false);
 
         buttons.add(deleteButton = new JButton
-            (Resources.addDialogIndicator(Resources.getGlobalString("Delete"))));
+            (resources.getDlgString("Delete")));
         deleteButton.addActionListener(this);
         deleteButton.setEnabled(false);
 
-        buttons.add(cancelButton = new JButton(Resources.getGlobalString("Cancel")));
+        buttons.add(cancelButton = new JButton(resources.getString("Cancel")));
         cancelButton.addActionListener(this);
 
-        buttons.add(okayButton = new JButton(Resources.getGlobalString("Open")));
+        buttons.add(okayButton = new JButton(resources.getString("Open")));
         okayButton.addActionListener(this);
         okayButton.setEnabled(false);
 

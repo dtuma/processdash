@@ -238,7 +238,7 @@ public class ProbeDialog extends JFrame implements
 
         g.gridy++;              //new row: close button
 
-        closeButton = new JButton (Resources.getGlobalString("Close"));
+        closeButton = new JButton (resources.getString("Close"));
         closeButton.setActionCommand("close");
         closeButton.addActionListener(this);
         layout.setConstraints(closeButton, g);   panel.add(closeButton);

@@ -268,7 +268,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(filler3, oConst);
 
             cancelButton = newJButton();
-            cancelButton.setText(Resources.getGlobalString("Cancel"));
+            cancelButton.setText(resources.getString("Cancel"));
             cancelButton.setBackground(null);
             buttonBox.add(cancelButton);
             oConst = new GridBagConstraints();
@@ -509,7 +509,7 @@ public class TaskScheduleCollaborationWizard {
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
-            cancelButton = new JButton(Resources.getGlobalString("Cancel"));
+            cancelButton = new JButton(resources.getString("Cancel"));
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);
 
@@ -713,7 +713,7 @@ public class TaskScheduleCollaborationWizard {
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
-            cancelButton = new JButton(Resources.getGlobalString("Cancel"));
+            cancelButton = new JButton(resources.getString("Cancel"));
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);
 
@@ -888,7 +888,7 @@ public class TaskScheduleCollaborationWizard {
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
-            cancelButton = new JButton(Resources.getGlobalString("Cancel"));
+            cancelButton = new JButton(resources.getString("Cancel"));
             cancelButton.setEnabled(false);
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);
