@@ -30,6 +30,7 @@ package net.sourceforge.processdash.ui.web.reports;
 import java.util.HashSet;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -96,13 +97,16 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
             out.println(resources.getHTML("Filter.Header") + "<UL>");
             if (typeFilt != null)
                 out.println("<LI>" + HTMLUtils.escapeEntities
-                            (resources.format("Filter.Type_FMT", typeFilt)));
+                            (resources.format("Filter.Type_FMT",
+                                              tr(typeFilt))));
             if (injFilt != null)
                 out.println("<LI>" + HTMLUtils.escapeEntities
-                            (resources.format("Filter.Injected_FMT", injFilt)));
+                            (resources.format("Filter.Injected_FMT",
+                                              tr(injFilt))));
             if (remFilt != null)
                 out.println("<LI>" + HTMLUtils.escapeEntities
-                            (resources.format("Filter.Removed_FMT", remFilt)));
+                            (resources.format("Filter.Removed_FMT",
+                                              tr(remFilt))));
             out.println("</UL><P>");
         }
         out.print(resources.interpolate(START_TEXT, HTMLUtils.ESC_ENTITIES));
@@ -122,6 +126,10 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
             return resources.format("For_FMT", phrase);
         else
             return "";
+    }
+
+    private String tr(String text) {
+        return Translator.translate(text);
     }
 
     private boolean phaseMatches(String a, String b) {
