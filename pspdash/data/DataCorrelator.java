@@ -81,8 +81,9 @@ public class DataCorrelator {
         String name, xFullName, prefix, yFullName, completedFullName;
         int prefixPos;
         DoubleData x, y;
-        DateData completed;
+        DateData completed = null;
         double[] dataPoint;
+        boolean onlyCompleted = onlyCompleted();
 
         dataPoints = new Vector();
         dataNames = new Vector();
@@ -97,11 +98,11 @@ public class DataCorrelator {
 
                 y = (DoubleData) data.getValue(yFullName);
                 x = (DoubleData) data.getValue(xFullName);
-                completed = (DateData) data.getValue(completedFullName);
+                if (onlyCompleted)
+                    completed = (DateData) data.getValue(completedFullName);
 
-                if (x != null && !Double.isNaN(x.getDouble()) &&
-                    y != null && !Double.isNaN(y.getDouble()) &&
-                    (completed != null || onlyCompleted() == false)) {
+                if (numberIsOkay(x) && numberIsOkay(y) &&
+                    (onlyCompleted == false || completed != null)) {
 
                     dataPoint = new double[] {x.getDouble(), y.getDouble()};
                     dataPoints.addElement(dataPoint);
@@ -109,6 +110,13 @@ public class DataCorrelator {
                 }
             } catch (Exception e) {};
         }
+    }
+
+    private static boolean numberIsOkay(DoubleData d) {
+        if (d == null) return false;
+        double dd = d.getDouble();
+        if (Double.isNaN(dd) || Double.isInfinite(dd)) return false;
+        return true;
     }
 
     private static Boolean onlyCompleted = null;
