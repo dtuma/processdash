@@ -74,6 +74,7 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
 
         chromeless = (parameters.get("chromeless") != null);
         JFreeChart chart = createChart();
+        chart.setSeriesPaint(TaskScheduleChart.SERIES_COLORS);
 
         int width = getIntSetting("width");
         int height = getIntSetting("height");

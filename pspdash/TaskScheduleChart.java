@@ -26,6 +26,7 @@
 
 package pspdash;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -46,6 +47,10 @@ public class TaskScheduleChart extends JFrame
     EVTaskList taskList;
     EVSchedule schedule;
     JTabbedPane tabPane;
+
+    public static Color[] SERIES_COLORS = {
+            Color.red, Color.blue, Color.green, Color.orange, Color.cyan,
+            Color.magenta, Color.yellow, Color.pink, Color.lightGray };
 
     static Resources resources =
         Resources.getDashBundle("pspdash.TaskScheduleChart");
@@ -93,6 +98,7 @@ public class TaskScheduleChart extends JFrame
     private JFreeChartPanel buildChart(XYDataSource data) {
         JFreeChart chart = JFreeChart.createTimeSeriesChart(data);
         chart.setTitle((Title) null);
+        chart.setSeriesPaint(SERIES_COLORS);
         charts[numCharts]   = chart;
         legends[numCharts++] = chart.getLegend();
         data.addChangeListener(new DataChangeWrapper(chart));
