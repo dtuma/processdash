@@ -1466,10 +1466,19 @@ public class DataRepository implements Repository {
                     if (d.datafile != null &&
                         value != oldValue &&
                         (oldValue == null || value == null ||
-                         !value.saveString().equals(oldValue.saveString())))
-                        datafileModified(d.datafile);
+                         !value.saveString().equals(oldValue.saveString()))) {
 
-                                            // possibly throw away the old value.
+                        // This data element has been changed and should be saved.
+                        if (d.datafile == PHANTOM_DATAFILE) {
+                            // move the item OUT of the phantom datafile so it will be saved.
+                            d.datafile = guessDataFile(name);
+                            if (value != null && value.saveString().length() ==0)
+                                System.out.println("phantom:old="+oldValue+",new="+value);
+                        }
+                        datafileModified(d.datafile);
+                    }
+
+                                          // possibly throw away the old value.
                     if (oldValue != null && oldValue != value)
                         oldValue.dispose();
 
@@ -2344,6 +2353,7 @@ public class DataRepository implements Repository {
                                 name = name.substring(prefixLength);
 
                                 valStr = value.saveString();
+                                if (valStr == null || valStr.length() == 0) continue;
                                 if (!value.isEditable()) valStr = "=" + valStr;
                                 defaultVal = defaultValues.get(name);
                                 defaultValStr = null;
