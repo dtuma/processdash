@@ -28,6 +28,7 @@ package pspdash.data;
 
 import pspdash.Settings;
 import java.applet.Applet;
+import java.net.URL;
 
 
 public class DataApplet extends java.applet.Applet {
@@ -145,5 +146,23 @@ public class DataApplet extends java.applet.Applet {
     public String readOnlyColor() { return readOnlyColorString; }
 
     public boolean unlocked() { return ("true".equals(getParameter("unlock"))); }
+
+    public void refreshPage() {
+        try {
+            String urlStr = getParameter("docURL");
+            if (urlStr == null || urlStr.length() == 0)
+                urlStr = getDocumentBase().toString();
+            if (urlStr.indexOf('?') == -1)
+                urlStr = urlStr + "?reload";
+            else
+                urlStr = urlStr + "&reload";
+
+            URL url = new URL(urlStr);
+            stop();
+            getAppletContext().showDocument(url, "_self");
+        } catch (Exception ioe) {
+            printError(ioe);
+        }
+    }
 
 }

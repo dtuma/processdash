@@ -34,7 +34,8 @@ import java.util.Vector;
 import com.ms.osp.*;
 
 
-class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
+class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager,
+                                DataListener {
 
 
     IEField[] fields = null;
@@ -44,6 +45,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
     int waitingOnElements;
     Vector dataInfo = null;
     boolean unlocked = false;
+    DataApplet applet;
 
 
     public static final String checkboxType = new String("checkbox");
@@ -73,6 +75,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
                 i = InterpreterFactory.create(data, dataName, dataPath);
                 i.setConsumer(this);
                 if (unlocked) unlock();
+                if (i.isActive()) i.setChangeListener(IEFieldManager.this);
             }
         }
 
@@ -155,6 +158,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
         String dataName, fieldName;
         dataInfo = new Vector();
         unlocked = a.unlocked();
+        this.applet = a;
 
                                     // scan the applet parameters for field specs
         while ((dataName = a.getParameter(fieldName="field"+dataCount)) != null) {
@@ -215,6 +219,9 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
         fields = null;
     }
 
+
+    public void dataValuesChanged(Vector v) { dataValueChanged(null); }
+    public void dataValueChanged(DataEvent e) { applet.refreshPage(); }
 
 
     public int getRWStatus(int iRow,int iColumn) {

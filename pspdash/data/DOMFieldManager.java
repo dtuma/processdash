@@ -33,7 +33,7 @@ import com.sun.java.browser.dom.*;
 import org.w3c.dom.html.*;
 
 
-class DOMFieldManager implements HTMLFieldManager {
+class DOMFieldManager implements HTMLFieldManager, DataListener {
 
     DOMService service = null;
     DOMDelayedRedrawer redrawer = null;
@@ -61,24 +61,6 @@ class DOMFieldManager implements HTMLFieldManager {
         }
     }
 
-    /*
-        // First order of business: get the current browser window object.
-        // Sometimes this will fail if the browser is slow in coming up,
-        // so we will try repeatedly until we succeed.
-
-        window = null;
-        for (int i = 50;   isRunning && (i != 0);   i--) try {
-            window = JSObject.getWindow(a);
-            break;
-        } catch (Exception e) {
-            try {                     // Pause before retrying...
-                Thread.currentThread().sleep(100);
-            } catch (InterruptedException ie) {}
-        }
-
-        if (window == null)
-            throw new Exception("Javascript not available in this window.");
-    */
 
 
     public void initialize(Repository data, String dataPath) {
@@ -199,6 +181,7 @@ class DOMFieldManager implements HTMLFieldManager {
                 inputListeners.setElementAt(f, pos);
                 //element.setMember(INDEX_ATTR, new Integer(pos));
                 if (unlocked) f.unlock();
+                if (f.i.isActive()) f.i.setChangeListener(this);
             }
             String key = formIdx + "," + elemIdx;
             inputListenersH.put(key, new Integer(pos));
@@ -207,7 +190,7 @@ class DOMFieldManager implements HTMLFieldManager {
             e.printStackTrace();
         }
     }
-    private static final String INDEX_ATTR = "dashIndex";
+    private static final String INDEX_ATTR = "id";
 
 
     public void notifyListener(String key) {
@@ -222,6 +205,9 @@ class DOMFieldManager implements HTMLFieldManager {
 
         if (f != null) f.userEvent();
     }
+
+    public void dataValuesChanged(Vector v) { dataValueChanged(null); }
+    public void dataValueChanged(DataEvent e) { a.refreshPage(); }
 
     protected void printError(Exception e) {
         System.err.println("Exception: " + e);

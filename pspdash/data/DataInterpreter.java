@@ -40,6 +40,7 @@ abstract class DataInterpreter implements DataListener {
                                   // always be reported as read-only, even if the
     boolean readOnly = false;     // underlying data element is editable.
     boolean unlocked = false;
+    boolean active = false;
 
     /** If this value is true, then this data element is optional, and null
      *  values shouldn't be flagged with "?????". */
@@ -47,6 +48,8 @@ abstract class DataInterpreter implements DataListener {
     boolean receivedEvent = false;
     protected boolean noConnection = false;
     HTMLField consumer = null;
+    private DataListener changeListener = null;
+
 
     /** A string which the user can type into a data field to restore the
      * calculated default value for this data element. */
@@ -120,6 +123,11 @@ abstract class DataInterpreter implements DataListener {
 
     public void dataValueChanged(DataEvent e) {
         if (e != null) {
+            if (active && changeListener != null && receivedEvent) try {
+                changeListener.dataValueChanged(e);
+                return;
+            } catch (Exception ioe) {}
+
             receivedEvent = true;
             value = e.getValue();
 
@@ -186,8 +194,14 @@ abstract class DataInterpreter implements DataListener {
         dataName = null;
         consumer = null;
         value = lastValue = null;
+        changeListener = null;
+        active = false;
     }
 
     public void unlock() { unlocked = true; }
+
+    public void setChangeListener(DataListener l) { changeListener = l; }
+    public void setActive(boolean active) { this.active = active; }
+    public boolean isActive() { return active; }
 
 }
