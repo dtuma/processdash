@@ -5,9 +5,12 @@
 <xsl:output method="html" encoding="iso-8859-1"/>
 
 
+<xsl:variable name="targetMap" select="document('Map.xml')"/>
+
+
 <xsl:template name="mapLookup">
     <xsl:param name="target" />
-    <xsl:for-each select="document('Map.xml')/map/mapID[@target=$target]">
+    <xsl:for-each select="$targetMap/map/mapID[@target=$target]">
         <xsl:value-of select="@url"/>
     </xsl:for-each>
 </xsl:template>
@@ -44,7 +47,7 @@
 
 <html>
 <head>
-<title>Process Dashboard Users' Manual - Table of Contents</title>
+<title>Process Dashboard Users Manual - Table of Contents</title>
 <base target="contents"/>
 <style>
 BODY { color: black; background-color: white }
@@ -62,7 +65,7 @@ A  { color: black; text-decoration: none }
 
 <script>
   var helpTopics = [
-<xsl:apply-templates select="document('Map.xml')/map/mapID" />
+<xsl:apply-templates select="$targetMap/map/mapID" />
     [ "ignored", "ignored" ]
   ];
   var activateLink = location.search;

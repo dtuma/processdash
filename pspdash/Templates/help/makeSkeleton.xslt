@@ -5,9 +5,12 @@
 <xsl:output method="html" encoding="iso-8859-1"/>
 
 
+<xsl:variable name="targetMap" select="document('Map.xml')"/>
+
+
 <xsl:template name="mapLookup">
     <xsl:param name="target" />
-    <xsl:for-each select="document('Map.xml')/map/mapID[@target=$target]">
+    <xsl:for-each select="$targetMap/map/mapID[@target=$target]">
         <xsl:value-of select="@url"/>
     </xsl:for-each>
 </xsl:template>
