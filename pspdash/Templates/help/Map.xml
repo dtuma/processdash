@@ -32,6 +32,8 @@
   <mapID target="UsingProbeWizard" url="Topics/Planning/UsingProbeWizard.html" />
   <mapID target="UsingSizeEstimatingTemplate" url="Topics/Planning/UsingSizeEstimatingTemplate.html" />
   <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
+  <mapID target="UsingTaskSchedule.chooser" url="Topics/Planning/UsingTaskSchedule.html#chooser" />
+  <mapID target="UsingTaskSchedule.chart" url="Topics/Planning/UsingTaskSchedule.html#chart" />
   <mapID target="DataFreezing" url="Topics/Planning/DataFreezing.html" />
 
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
