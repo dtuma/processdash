@@ -4,29 +4,51 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
+
+/** Holds a numeric value and various attributes of that value.
+ */
 public class NumericDataValue {
 
+    /** The numeric value */
     public double value;
+
+    /** True if this value is editable */
     public boolean isEditable = true;
+
+    /** True if this value should be hidden from the user */
     public boolean isInvisible = false;
 
+    /** An optional error message describing why this value is erroneous.
+     * <code>null</code> indicates this value is not erroneous. */
     public String errorMessage;
+
+    /** The color to use when highlighting an error. This value should be
+     * ignored if there is no error. */
     public Color errorColor = Color.red;
+
+    /** If this value is erroneous, this is the value the validation
+     * logic expected to see instead. */
     public double expectedValue;
 
+
+
+    /** Create an editable, visible, non-erroneous numeric value. */
     public NumericDataValue(double v) {
         this(v, true, false, null, v);
     }
 
+    /** Create a visible, non-erroneous numeric value. */
     public NumericDataValue(double v, boolean editable) {
         this(v, editable, false, null, v);
     }
 
+    /** Create a numeric value.  The expected value will equal the value. */
     public NumericDataValue(double v, boolean editable, boolean invisible,
                             String error) {
         this(v, editable, invisible, error, v);
     }
 
+    /** Create a numeric value. */
     public NumericDataValue(double v, boolean editable, boolean invisible,
                             String error, double expected)
     {
@@ -36,21 +58,17 @@ public class NumericDataValue {
         this.errorMessage = error;
         this.expectedValue = expected;
     }
-    /*
-    public NumericDataValue(String value) {
-        System.out.println("In NumericDataValue(string)");
-        this.value = Double.NaN;
-        if (value != null && value.length() != 0) try {
-            this.value = FORMATTER.parse(value).doubleValue();
-        } catch (ParseException pe) {}
-    }
-    */
 
+
+
+    /** Format this numeric value for display. */
     public String toString() {
         return format(value);
     }
 
 
+
+    /** Format a double value for display. */
     public static String format(double value) {
         if (Double.isNaN(value) || Double.isInfinite(value))
             return "";
@@ -58,6 +76,8 @@ public class NumericDataValue {
             return FORMATTER.format(value);
     }
 
+
+    /** Parse an object as a number */
     public static double parse(Object aValue) {
 
         if (aValue instanceof NumericDataValue)
@@ -76,12 +96,8 @@ public class NumericDataValue {
 
     protected static final NumberFormat FORMATTER =
         NumberFormat.getNumberInstance();
-    //protected static final NumberFormat NO_COMMA_FORMATTER =
-        //NumberFormat.getNumberInstance();
     static {
         FORMATTER.setMaximumFractionDigits(1);
-        //NO_COMMA_FORMATTER.setMaximumFractionDigits(1);
-        //NO_COMMA_FORMATTER.
     }
 
 }

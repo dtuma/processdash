@@ -127,9 +127,15 @@ public class WBSTabPanel extends JPanel
 
 
     /** Get an action capable of inserting a workflow into the work breakdown
-     * 	structure */
+     *  structure */
     public Action getInsertWorkflowAction(WBSModel workflows) {
         return wbsTable.getInsertWorkflowAction(workflows);
+    }
+
+
+    /** Listen for changes in team member initials, and disable undo. */
+    public void initialsChanged(String oldInitials, String newInitials) {
+        undoList.clear();
     }
 
 
@@ -356,10 +362,6 @@ public class WBSTabPanel extends JPanel
         }
         public void paint(Graphics g) {
         }
-    }
-
-    public void initialsChanged(String oldInitials, String newInitials) {
-        undoList.clear();
     }
 
 }
