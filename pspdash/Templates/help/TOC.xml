@@ -9,8 +9,8 @@
       <tocitem target="QuickOverview" text="Quick overview of the Dashboard" />
       <tocitem target="ProcessScripts" text="The process scripts" />
 
-      <tocitem text="Quick start example: PSP1">
-         <tocitem target="QuickStartPSP1" text="Quick start example: PSP1"/>
+      <tocitem text="Quick start example: PSP1.1">
+         <tocitem target="QuickStartPSP1" text="Quick start example: PSP1.1"/>
          <tocitem target="QSCreatingTheProject" text="Step 1: Creating the project"/>
          <tocitem target="QSPlanningTheProject" text="Step 2: Planning the project"/>
          <tocitem target="QSDesigningTheProgram" text="Step 3: Designing the program"/>
