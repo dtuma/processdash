@@ -296,7 +296,7 @@ Authors:
     <i18n-generateTranslator
         classname="net.sourceforge.processdash.i18n.DefaultEngine"
 	destdir="src"
-	dir="${resources}" includes="Resources.properties"/>
+	dir="${resources}" includes="(Resources).properties"/>
   </target>
 
   <target name="-translator-depend"
@@ -304,7 +304,7 @@ Authors:
     <uptodate property="translator.upToDate"
               targetfile="${i18n}/DefaultEngine.java">
       <srcfiles dir=".">
-        <include name="${resources}/Resources.properties"/>
+        <include name="${resources}/(Resources).properties"/>
         <include name="lib/src/net/sourceforge/processdash/i18n/GenerateTranslatorTemplate.lex"/>
       </srcfiles>
     </uptodate>

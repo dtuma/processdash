@@ -145,7 +145,7 @@ public class Resources extends ResourceBundle {
 
     private static void initGlobalResources() {
         if (globalResources == null)
-            globalResources = getResourceBundle("resources.Resources", null);
+            globalResources = getResourceBundle("resources.(Resources)", null);
     }
 
     public static Resources getGlobalBundle() {
@@ -161,21 +161,12 @@ public class Resources extends ResourceBundle {
         return dialogIndicatorFormat.format(new Object[] { value });
     }
 
-    private static final String TRANSLATOR_EXAMPLE_BUNDLE =
-        "resources/" + Translator.BUNDLE_NAME + ".properties";
-
     private static class SafeTemplateClassLoader extends ClassLoader {
 
         protected Class findClass(String name) throws ClassNotFoundException {
             throw new ClassNotFoundException(name);
         }
         protected URL findResource(String name) {
-            // the Translator.properties file is present only to provide an
-            // example list of translatable items - it shouldn't actually be
-            // used at runtime by the application.
-            if (name.equals(TRANSLATOR_EXAMPLE_BUNDLE))
-                return null;
-
             name = name.replace('$', '.');
             return findResourceImpl(name);
         }

@@ -36,8 +36,6 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 
 public class Translator {
 
-    static final String BUNDLE_NAME = "Translator";
-
     /** The translation engine in use */
     private static TranslationEngine TRANSLATOR = null;
 
@@ -115,7 +113,7 @@ public class Translator {
             Class c = cl.loadClass(className);
             try {
                 Constructor cstr = c.getConstructor(new Class[] { Map.class });
-                Resources r = Resources.getDashBundle("Resources");
+                Resources r = Resources.getGlobalBundle();
                 TRANSLATOR = (TranslationEngine) cstr.newInstance
                     (new Object[] { r.asMap() });
             } catch (Exception e) {
@@ -153,7 +151,7 @@ public class Translator {
 
     private static void createDefaultEngine() {
         try {
-            Resources r = Resources.getDashBundle("Resources");
+            Resources r = Resources.getGlobalBundle();
             Locale l = r.getLocale();
             String lang = l.getLanguage();
             if (lang != null && lang.length() != 0) {
