@@ -41,7 +41,7 @@ class XmlReader
     private void getTable(Hashtable place, XmlElement root, String prefix)
     {
         String xmap = (String)root.getAttribute("lang");
-        if(xmap!=null) xmap = xmap;
+//        if(xmap!=null) xmap = xmap;
         if(xmap==null) xmap = (String)root.getAttribute("name");
         if(xmap==null) xmap = root.getName();
         String name = prefix + xmap + "!";
