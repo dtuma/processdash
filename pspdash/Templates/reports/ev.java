@@ -150,24 +150,28 @@ public class ev extends CGIChartBase {
         synchronized (getClass()) {
             if (drawingChart &&
                 (now - lastRecalcTime < MAX_DELAY) &&
-                taskListName.equals(lastTaskListName))
+                taskListName.equals(lastTaskListName)) {
                 evModel = lastEVModel;
-            else {
-                lastTaskListName = taskListName;
-                lastRecalcTime = now;
-                evModel = EVTaskList.openExisting
-                    (taskListName,
-                     getDataRepository(),
-                     getPSPProperties(),
-                     getObjectCache(),
-                     false); // change notification not required
-                if (evModel == null)
-                    throw new TinyCGIException(404, "Not Found",
-                                               "No such task/schedule");
-
-                evModel.recalc();
-                lastEVModel = evModel;
+                return;
             }
+        }
+
+        evModel = EVTaskList.openExisting
+            (taskListName,
+             getDataRepository(),
+             getPSPProperties(),
+             getObjectCache(),
+             false); // change notification not required
+        if (evModel == null)
+            throw new TinyCGIException(404, "Not Found",
+                                       "No such task/schedule");
+
+        evModel.recalc();
+
+        synchronized (getClass()) {
+            lastTaskListName = taskListName;
+            lastRecalcTime = now;
+            lastEVModel = evModel;
         }
     }
 
