@@ -11,4 +11,4 @@ BODY { color: black;
 .nonDash { color: #C0C0C0 }
 
 /* style for instructions that are specific to the dashboard */
-.dash { color: red }
+.dash { color: #00A000 }

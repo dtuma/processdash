@@ -95,7 +95,7 @@ $(CGI_CLASSES) : %.class : %.java
 clean:
 	cd build; $(MAKE) clean
 	cd data; $(MAKE) clean
-	rm $(CGI_CLASSES)
+	rm -f `find Templates -name \*.class -print`
 
 
 new: clean all
