@@ -41,10 +41,11 @@ public class TranslationFilter implements Comparator {
     }
 
     public int compare(Object key, Object value) {
-        if (keyNeedsTranslation((String) key))
+        if (keyNeedsNoTranslation((String) key))
+            return NEEDS_NO_TRANSLATION;
+        else if (keyNeedsTranslation((String) key))
             return NEEDS_TRANSLATION;
-        else if (keyNeedsNoTranslation((String) key) ||
-                 valueNeedsNoTranslation((String) value))
+        else if (valueNeedsNoTranslation((String) value))
             return NEEDS_NO_TRANSLATION;
         else
             return NEEDS_TRANSLATION;
