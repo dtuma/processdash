@@ -58,21 +58,9 @@ public class NSDataApplet extends DataApplet {
             System.out.println(e);
             e.printStackTrace();
 
-            try {
-                ByteArrayOutputStream buf = new ByteArrayOutputStream();
-                PrintWriter w = new PrintWriter(buf);
-                e.printStackTrace(w);
-                w.flush();
-                String urlStr =
-                    PROBLEM_URL + "?ERROR_MESSAGE=" + URLEncoder.encode(buf.toString());
-                URL url = new URL(getDocumentBase(), urlStr);
-                getAppletContext().showDocument(url, "_top");
-            } catch (IOException ioe) {}
+            redirectToProblemURL(e);
         }
     }
-
-    private static final String PROBLEM_URL =
-        "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";
 
     public void notifyListener(Object element, Object id) {
         if (mgr != null)
@@ -80,4 +68,25 @@ public class NSDataApplet extends DataApplet {
     }
 
     protected void debug(String s) { /*System.out.println("NSDataApplet: "+s);*/}
+
+    private static final String PROBLEM_URL =
+        "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";
+
+    private void redirectToProblemURL(Throwable t) {
+        try {
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            PrintWriter w = new PrintWriter(buf);
+            t.printStackTrace(w);
+            w.flush();
+            String javaVersion = System.getProperty("java.vendor") +
+                " JRE " + System.getProperty("java.version") +
+                "; " + System.getProperty("os.name");
+            String urlStr = PROBLEM_URL +
+                "?JAVA_VERSION=" + URLEncoder.encode(javaVersion) +
+                "&ERROR_MESSAGE=" + URLEncoder.encode(buf.toString());
+            URL url = new URL(getDocumentBase(), urlStr);
+            getAppletContext().showDocument(url, "_top");
+        } catch (IOException ioe) {}
+    }
+
 }
