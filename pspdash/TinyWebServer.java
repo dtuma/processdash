@@ -111,7 +111,7 @@ public class TinyWebServer extends Thread {
         Writer out = null;
         boolean isRunning = false;
         IOException ioexception = null;
-        boolean errorEncountered = false;
+        boolean errorEncountered = false, headerRead = false;
 
         String uri, method, protocol, id, path, query;
 
@@ -311,6 +311,7 @@ public class TinyWebServer extends Thread {
                 else
                     env.put("HTTP_" + header, text.toString());
             }
+            headerRead = true;
 
             // Run the cgi script, and capture the results.
             ByteArrayOutputStream cgiOut = new ByteArrayOutputStream();
@@ -507,10 +508,14 @@ public class TinyWebServer extends Thread {
 
         /** read and discard the rest of the request header from inputStream */
         private void discardHeader() throws IOException {
+            if (headerRead) return;
+
             String line;
             while (null != (line = readLine(inputStream)))
                 if (line.length() == 0)
                     break;
+
+            headerRead = true;
         }
 
 
@@ -642,7 +647,7 @@ public class TinyWebServer extends Thread {
     static String readLine(InputStream in) throws IOException {
         StringBuffer result = new StringBuffer();
         int c;
-        while (in.available() > 0 && (c = in.read()) != -1) {
+        while ((c = in.read()) != -1) {
             if (c == '\n')
                 break;
             else if (c == '\r')
