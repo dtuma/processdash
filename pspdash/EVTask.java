@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -39,6 +39,7 @@ import org.w3c.dom.NodeList;
 import pspdash.data.DataRepository;
 import pspdash.data.DataListener;
 import pspdash.data.DataEvent;
+import pspdash.data.SaveableData;
 import pspdash.data.SimpleData;
 import pspdash.data.NumberData;
 import pspdash.data.NumberFunction;
@@ -1156,5 +1157,20 @@ public class EVTask implements DataListener {
         else
             // otherwise, claim it as our own.
             return this;
+    }
+
+
+    public static boolean taskIsPruned(DataRepository data,
+                                       String taskListName,
+                                       String taskPath)
+    {
+        SaveableData d = data.getInheritableValue
+            (taskPath, TASK_PRUNING_PREFIX + taskListName);
+        int pruningFlag = INFER_FROM_CONTEXT;
+
+        if (d != null && d.getSimpleValue() instanceof NumberData)
+            pruningFlag = ((NumberData) d.getSimpleValue()).getInteger();
+
+        return pruningFlag == USER_PRUNED;
     }
 }
