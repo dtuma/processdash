@@ -1,9 +1,0 @@
-= specification for the PROBE method C1 for Time graph
-
-
-d1==Estimated Object LOC
-where==[Estimated Object LOC] > 0
-
-d2==[Time] / 60
-
-trend=average

@@ -195,7 +195,7 @@ public abstract class ProbeMethod implements Comparable {
             else
                 resKey = "Method.Fatal_Error_Message_FMT";
             out.println(resources.format
-                        (resKey, formatMethodTutorial(getMethodName())));
+                        (resKey, formatMethodTutorial(getMethodShortName())));
 
             for (Iterator i = errorMessages.iterator(); i.hasNext();)
                 out.println(Tutorial.annotate((String) i.next()));
@@ -210,7 +210,7 @@ public abstract class ProbeMethod implements Comparable {
                 out.println(resources.format
                             (resKey,
                              formatMethodTutorial(getMethodShortName()),
-                             getPurposeLabel()));
+                             getPurposeLabel().toLowerCase()));
             }
 
             for (Iterator i = observations.iterator(); i.hasNext();)

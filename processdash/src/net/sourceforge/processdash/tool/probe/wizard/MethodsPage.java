@@ -58,10 +58,12 @@ public class MethodsPage extends WizardPage {
     public void writeHTMLContents() {
         buildMethods();
 
-        writeStepTitle(getRes("Title"));
+        String purposeLabel = resources.getString(purpose.getKey());
+        writeStepTitle(purposeLabel);
+        purposeLabel = purposeLabel.toLowerCase();
 
         out.print("<p><b>");
-        out.print(Tutorial.annotate(getRes("Header_HTML")));
+        out.print(resources.format("Method.Header_HTML_FMT", purposeLabel));
         out.println("</b><br><br></p>");
 
         out.println("<table>");
@@ -75,7 +77,7 @@ public class MethodsPage extends WizardPage {
 
 
         out.print("<p>");
-        out.print(Tutorial.annotate(getRes("Footer_HTML")));
+        out.print(resources.format("Method.Footer_HTML_FMT", purposeLabel));
         if (probeMethods.size() == 1)
             writeStrictExplanation();
         out.println("</p>");
@@ -146,7 +148,7 @@ public class MethodsPage extends WizardPage {
         buildMethods();
 
         String purposeLabel = resources.getString(purpose.getKey());
-        writeSectionTitle(resources.format("Method.Title_FMT", purposeLabel));
+        writeSectionTitle(resources.format("Method.Report_Title_FMT", purposeLabel));
 
         out.println("<table border style='margin-left:1cm'>");
         ProbeMethod.writeReportTableHeader(out);

@@ -38,7 +38,7 @@ public class Wizard extends TinyCGIBase {
 
 
     // HTTP URL parameters used by this control servlet
-    public static final String URL = "probeWizard";
+    public static final String URL = "probe.class";
     public static final String PAGE = "page";
     public static final String NEXT_PAGE = "nextPage";
     public static final String REPORT = "report";
@@ -79,7 +79,7 @@ public class Wizard extends TinyCGIBase {
         if (!page.parseFormData())
             nextPage = pageKey;
 
-        out.print("Location: probeWizard?"+PAGE+"=");
+        out.print("Location: " + URL + "?" + PAGE + "=");
         out.print(nextPage);
         out.print("\r\n\r\n");
     }

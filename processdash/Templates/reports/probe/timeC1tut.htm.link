@@ -1,7 +1,0 @@
-average.shtm
-x=C1
-purpose=Time
-xvar=estimated object LOC
-yvar=actual time
-input=estimated object LOC
-output=estimated time

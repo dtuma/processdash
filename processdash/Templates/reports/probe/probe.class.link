@@ -1,1 +1,1 @@
-class:net.sourceforge.processdash.tool.probe.ProbeWizard
+class:net.sourceforge.processdash.tool.probe.wizard.Wizard
