@@ -208,8 +208,25 @@ public class RepositoryServer extends Thread {
         // WARNING - you must manually synchronize on the <code>out</code>
         // object before calling this method.
         private void sendDataEvent(DataEvent e) throws IOException {
+
+            // We used to just send data events verbatim.  But there was one
+            // problem with this; when an item's simple value is "null", it
+            // has no way to communicate whether that null value is
+            // read-only.  Then, when the item is displayed to the user, the
+            // null value is editable - a bad thing. So when the value is
+            // null, we have to do the legwork to find out whether it is
+            // read-only.
+
             if (e.getValue() == null) {
-                SaveableData d = data.getValue(e.getName());
+                // look up the element in the repository, following any
+                // applicable data aliases
+                SaveableData d = data.getValue(data.getAliasedName(e.getName()));
+
+                // if the resulting item is not null and is not editable, then
+                // we instead will create a proxy data event which claims that
+                // the element's value is the read only empty string (rather
+                // than null).
+
                 if (d != null && !d.isEditable())
                     e = new DataEvent((Repository) e.getSource(), e.getName(),
                                       e.getID(), ImmutableStringData.EMPTY_STRING);
