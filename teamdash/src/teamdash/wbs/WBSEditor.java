@@ -12,6 +12,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JSeparator;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -22,7 +23,7 @@ public class WBSEditor implements WindowListener {
     TeamProject teamProject;
     JFrame frame;
     TeamTimePanel teamTimePanel;
-    UndoList undoList;
+
 
     public WBSEditor(TeamProject teamProject) {
         this.teamProject = teamProject;
@@ -56,9 +57,6 @@ public class WBSEditor implements WindowListener {
         String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         table.addTab("Defects", s, s);
 
-        undoList = new UndoList(model);
-        undoList.setForComponent(table);
-
         teamTimePanel =
             new TeamTimePanel(teamProject.getTeamMemberList(), data);
         teamTimePanel.setVisible(false);
@@ -78,7 +76,7 @@ public class WBSEditor implements WindowListener {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu());
-        result.add(buildEditMenu(tabPanel.wbsTable.getEditingActions()));
+        result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildWorkflowMenu());
         result.add(buildViewMenu());
 
@@ -92,11 +90,10 @@ public class WBSEditor implements WindowListener {
     }
     private JMenu buildEditMenu(Action[] editingActions) {
         JMenu result = new JMenu("Edit");
-        result.add(undoList.getUndoAction());
-        result.add(undoList.getRedoAction());
-        result.addSeparator();
         for (int i = 0;   i < editingActions.length;   i++)
             result.add(editingActions[i]);
+
+        result.add(new JSeparator(), 2);
         return result;
     }
     private JMenu buildWorkflowMenu() {

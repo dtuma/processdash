@@ -126,7 +126,7 @@ public class UndoList {
 
     private class UndoAction extends AbstractAction {
         public UndoAction() {
-            super("Undo");
+            super("Undo", IconFactory.getUndoIcon());
             setEnabled(isUndoAvailable());
         }
         public void actionPerformed(ActionEvent e) {
@@ -136,7 +136,7 @@ public class UndoList {
 
     private class RedoAction extends AbstractAction {
         public RedoAction() {
-            super("Redo");
+            super("Redo", IconFactory.getRedoIcon());
             setEnabled(isRedoAvailable());
         }
         public void actionPerformed(ActionEvent e) {

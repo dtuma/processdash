@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.plaf.metal.MetalIconFactory;
 
 public class IconFactory {
@@ -269,6 +270,60 @@ public class IconFactory {
         }
         */
     }
+
+    private static Icon getIcon(String name) {
+        return new ImageIcon(IconFactory.class.getResource(name));
+    }
+
+    public static Icon getUndoIcon() {
+        if (UNDO_ICON == null) UNDO_ICON = getIcon("undo.png");
+        return UNDO_ICON;
+    }
+    public static Icon UNDO_ICON = null;
+
+    public static Icon getRedoIcon() {
+        if (REDO_ICON == null) REDO_ICON = getIcon("redo.png");
+        return REDO_ICON;
+    }
+    public static Icon REDO_ICON = null;
+
+    public static Icon getPromoteIcon() {
+        if (PROMOTE_ICON == null) PROMOTE_ICON = getIcon("promote.png");
+        return PROMOTE_ICON;
+    }
+    public static Icon PROMOTE_ICON = null;
+
+    public static Icon getDemoteIcon() {
+        if (DEMOTE_ICON == null) DEMOTE_ICON = getIcon("demote.png");
+        return DEMOTE_ICON;
+    }
+    public static Icon DEMOTE_ICON = null;
+
+    public static Icon getCutIcon() {
+        if (CUT_ICON == null) CUT_ICON = getIcon("cut.gif");
+        return CUT_ICON;
+    }
+    public static Icon CUT_ICON = null;
+
+    public static Icon getCopyIcon() {
+        if (COPY_ICON == null) COPY_ICON = getIcon("copy.png");
+        return COPY_ICON;
+    }
+    public static Icon COPY_ICON = null;
+
+    public static Icon getPasteIcon() {
+        if (PASTE_ICON == null) PASTE_ICON = getIcon("paste.png");
+        return PASTE_ICON;
+    }
+    public static Icon PASTE_ICON = null;
+
+    public static Icon getDeleteIcon() {
+        if (DELETE_ICON == null) DELETE_ICON = getIcon("delete.png");
+        return DELETE_ICON;
+    }
+    public static Icon DELETE_ICON = null;
+
+
 
     public static final int PHANTOM_ICON = 1;
     public static final int ERROR_ICON = 2;

@@ -111,6 +111,30 @@ public class TeamProcess {
 
         a = norm(phaseNum, 0, numPhases);
 
+        /*
+        if (a > 0.8) {
+            r = 128 * norm(a, 0.8, 1.0);
+            g = 63 * norm(a, 1.0, 0.8);
+            b = 255;
+        } else if (a > 0.6) { // blend from cyan to purple.
+            r = 0;
+            g = 255 - 192 * norm(a, 0.6, 0.8);
+            b = 255;
+        } else if (a > 0.40) { // blend from green to cyan.
+            r = 0;
+            g = 255;
+            b = 255 * norm(a, 0.4, 0.6);
+        } else if (a > 0.2) { // blend from yellow to green
+            r = 255 * norm(a, 0.4, 0.2);
+            g = 255;
+            b = 0;
+        } else { // blend from orange to yellow.
+            r = 255;
+            g = 255 - 128 * norm(a, 0.2, 0.0);
+            b = 0;
+        }
+
+        */
         if (a > 0.75) { // blend from cyan to purple.
             r = 0;
             g = 255 - 192 * norm(a, 0.75, 1.0);

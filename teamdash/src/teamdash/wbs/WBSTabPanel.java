@@ -5,17 +5,21 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Map;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JToolBar;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableColumnModel;
@@ -35,6 +39,8 @@ public class WBSTabPanel extends JPanel {
     JScrollPane scrollPane;
     JTabbedPane tabbedPane;
     JSplitPane splitPane;
+    JToolBar toolBar;
+    UndoList undoList;
     ArrayList tableColumnModels = new ArrayList();
     GridBagLayout layout;
 
@@ -54,11 +60,15 @@ public class WBSTabPanel extends JPanel {
         setOpaque(false);
         setLayout(layout = new GridBagLayout());
 
+        undoList = new UndoList(wbs);
+        undoList.setForComponent(this);
+
         // build the components to display in this panel
         makeTables(wbs, data, iconMap, iconMenu);
         makeSplitter();
         makeScrollPane();
         makeTabbedPane();
+        makeToolBar();
 
         // manually set the initial divider location, to trigger the
         // size coordination logic.
@@ -108,6 +118,17 @@ public class WBSTabPanel extends JPanel {
         // an automatic tab selection event, which will effectively install
         // the tableColumnModel we just created.)
         tabbedPane.add(tabName, new EmptyComponent(new Dimension(10, 10)));
+    }
+
+
+    /** Get a list of actions for editing the work breakdown structure */
+    public Action[] getEditingActions() {
+        Action[] tableActions = wbsTable.getEditingActions();
+        Action[] result = new Action[tableActions.length + 2];
+        System.arraycopy(tableActions, 0, result, 2, tableActions.length);
+        result[0] = undoList.getUndoAction();
+        result[1] = undoList.getRedoAction();
+        return result;
     }
 
 
@@ -199,6 +220,40 @@ public class WBSTabPanel extends JPanel {
         c.insets.left = 215;
         add(tabbedPane);
         layout.setConstraints(tabbedPane, c);
+    }
+
+    /** Create and install the tool bar component. */
+    private void makeToolBar() {
+        toolBar = new JToolBar();
+        toolBar.setFloatable(false);
+        toolBar.setMargin(new Insets(0,0,0,0));
+        addToolbarButton(undoList.getUndoAction());
+        addToolbarButton(undoList.getRedoAction());
+
+        Action[] editingActions = wbsTable.getEditingActions();
+        for (int i = 0;   i < editingActions.length;   i++)
+            if (editingActions[i].getValue(Action.SMALL_ICON) != null)
+                addToolbarButton(editingActions[i]);
+
+        // add the tool bar to the panel
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = c.gridy = 0;
+        c.weightx = c.weighty = 1.0;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.insets.left = 10;
+        c.insets.right = c.insets.bottom = c.insets.top = 0;
+        add(toolBar);
+        layout.setConstraints(toolBar, c);
+    }
+
+    /** Add a button to the beginning of the internal tool bar */
+    private void addToolbarButton(Action a) {
+        JButton button = new JButton(a);
+        button.setMargin(new Insets(0,0,0,0));
+        button.setFocusPainted(false);
+        button.setToolTipText((String)a.getValue(Action.NAME));
+        button.setText(null);
+        toolBar.add(button);
     }
 
     /** Listen for changes to the tab selection, and install the corresponding

@@ -13,6 +13,9 @@
 	 <pathelement location="../../../pspdash/build/out/pspdash.jar"/>
       </classpath>
     </javac>
+    <copy todir="../bin/teamdash/wbs">
+      <fileset dir="wbs" includes="*.png *.gif"/>
+    </copy>
   </target>
 
 </project>

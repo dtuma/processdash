@@ -17,11 +17,15 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 
 /** Displays the nodes of a WBSModel in a JTable, and installs custom
@@ -70,6 +74,7 @@ public class WBSJTable extends JTable {
 
         installCustomActions(this);
         installTableActions();
+        getSelectionModel().addListSelectionListener(SELECTION_LISTENER);
     }
 
 
@@ -107,16 +112,22 @@ public class WBSJTable extends JTable {
     }
 
 
-
     /** Change the current selection so it contains the given list of rows */
     public void selectRows(int[] rowsToSelect) {
         if (rowsToSelect != null) {
-            clearSelection();
-            for (int i=rowsToSelect.length;   i-- > 0; )
-                addRowSelectionInterval(rowsToSelect[i],
-                                        rowsToSelect[i]);
+            if (rowsToSelect.length == 0)
+                clearSelection();
+            else {
+                getSelectionModel().setValueIsAdjusting(true);
+                clearSelection();
+                for (int i=rowsToSelect.length;   i-- > 0; )
+                    addRowSelectionInterval(rowsToSelect[i],
+                                            rowsToSelect[i]);
+                getSelectionModel().setValueIsAdjusting(false);
+            }
         }
     }
+
 
     /** Return a list of actions useful for editing the wbs */
     public Action[] getEditingActions() {
@@ -124,6 +135,17 @@ public class WBSJTable extends JTable {
             DEMOTE_ACTION, PROMOTE_ACTION, INSERT_ACTION, ENTER_ACTION,
             DELETE_ACTION };
     }
+
+
+    /** */
+    public void setSelectionModel(ListSelectionModel newModel) {
+        ListSelectionModel oldModel = getSelectionModel();
+        if (oldModel != null)
+            oldModel.removeListSelectionListener(SELECTION_LISTENER);
+        newModel.addListSelectionListener(SELECTION_LISTENER);
+        super.setSelectionModel(newModel);
+    }
+
 
     /** Populate the <tt>customActions</tt> list with actions for editing
      * the work breakdown structure. */
@@ -191,6 +213,27 @@ public class WBSJTable extends JTable {
     }
 
 
+    /** Look at each of our actions to determine if it should be enabled. */
+    private void recalculateEnablement() {
+        int[] selectedRows = getSelectedRows();
+        CUT_ACTION.recalculateEnablement(selectedRows);
+        COPY_ACTION.recalculateEnablement(selectedRows);
+        PASTE_ACTION.recalculateEnablement(selectedRows);
+        DELETE_ACTION.recalculateEnablement(selectedRows);
+        PROMOTE_ACTION.recalculateEnablement(selectedRows);
+        DEMOTE_ACTION.recalculateEnablement(selectedRows);
+        INSERT_ACTION.recalculateEnablement(selectedRows);
+        ENTER_ACTION.recalculateEnablement(selectedRows);
+    }
+
+
+    /** Return true if the list of rows contains at least one row other than
+     * row 0. */
+    private boolean notJustRoot(int[] selectedRows) {
+        if (selectedRows == null || selectedRows.length == 0) return false;
+        if (selectedRows.length == 1 && selectedRows[0] == 0) return false;
+        return true;
+    }
 
 
 
@@ -250,6 +293,9 @@ public class WBSJTable extends JTable {
 
         public RestartEditingAction() { }
         public RestartEditingAction(String name) { super(name); }
+        public RestartEditingAction(String name, Icon icon) {
+            super(name, icon);
+        }
         public void actionPerformed(ActionEvent e) {
             // Get a "restart editing" event from the cell editor.
             EventObject restartEvent = editor.getRestartEditingEvent();
@@ -312,11 +358,16 @@ public class WBSJTable extends JTable {
 
     /** An action to demote the selected rows. */
     private class DemoteAction extends RestartEditingAction {
-        public DemoteAction() { super("Demote"); }
+        public DemoteAction() {
+            super("Demote", IconFactory.getDemoteIcon());
+        }
         public void doAction(ActionEvent e) {
             System.out.println("Demote");
             selectRows(wbsModel.indentNodes(getSelectedRows(), 1));
             UndoList.madeChange(WBSJTable.this, "Demote");
+        }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(notJustRoot(selectedRows));
         }
     }
     final DemoteAction DEMOTE_ACTION = new DemoteAction();
@@ -324,11 +375,26 @@ public class WBSJTable extends JTable {
 
     /** An action to promote the selected rows. */
     private class PromoteAction extends RestartEditingAction {
-        public PromoteAction() { super("Promote"); }
+        public PromoteAction() {
+            super("Promote", IconFactory.getPromoteIcon());
+        }
         public void doAction(ActionEvent e) {
             System.out.println("Promote");
             selectRows(wbsModel.indentNodes(getSelectedRows(), -1));
             UndoList.madeChange(WBSJTable.this, "Promote");
+        }
+        public void recalculateEnablement(int[] selectedRows) {
+            if (notJustRoot(selectedRows) == false)
+                setEnabled(false);
+            else {
+                for (int i = selectedRows.length;   i-- > 0; )
+                    if (wbsModel.getNodeForRow(selectedRows[i])
+                        .getIndentLevel() < 2) {
+                        setEnabled(false);
+                        return;
+                    }
+                setEnabled(true);
+            }
         }
     }
     final PromoteAction PROMOTE_ACTION = new PromoteAction();
@@ -358,7 +424,9 @@ public class WBSJTable extends JTable {
 
     /** An action to perform a "cut" operation */
     private class CutAction extends AbstractAction {
-        public CutAction() { super("Cut"); }
+        public CutAction() {
+            super("Cut", IconFactory.getCutIcon());
+        }
         public void actionPerformed(ActionEvent e) {
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
@@ -375,6 +443,10 @@ public class WBSJTable extends JTable {
             // displaying phantom icons).
             wbsModel.fireTableRowsUpdated(rows[0], rows[rows.length-1]);
             if (isEditing()) editor.updateIconAppearance();
+            WBSJTable.this.recalculateEnablement();
+        }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(notJustRoot(selectedRows));
         }
     }
     final CutAction CUT_ACTION = new CutAction();
@@ -382,7 +454,9 @@ public class WBSJTable extends JTable {
 
     /** An action to perform a "copy" operation */
     private class CopyAction extends AbstractAction {
-        public CopyAction() { super("Copy"); }
+        public CopyAction() {
+            super("Copy", IconFactory.getCopyIcon());
+        }
         public void actionPerformed(ActionEvent e) {
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
@@ -394,6 +468,10 @@ public class WBSJTable extends JTable {
             // make a list of the copied nodes
             copyList = WBSNode.cloneNodeList
                 (wbsModel.getNodesForRows(rows, true));
+            WBSJTable.this.recalculateEnablement();
+        }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(notJustRoot(selectedRows));
         }
     }
     final CopyAction COPY_ACTION = new CopyAction();
@@ -401,7 +479,9 @@ public class WBSJTable extends JTable {
 
     /** An action to perform a "paste" operation */
     private class PasteAction extends AbstractAction {
-        public PasteAction() { super("Paste"); }
+        public PasteAction() {
+            super("Paste", IconFactory.getPasteIcon());
+        }
         public void actionPerformed(ActionEvent e) {
             WBSNode beforeNode = getLocation();
             if (beforeNode == null) return;
@@ -441,15 +521,17 @@ public class WBSJTable extends JTable {
                     addRowSelectionInterval(rowsInserted[i], rowsInserted[i]);
             }*/
         }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled((cutList != null || copyList != null) &&
+                       (selectedRows != null && selectedRows.length != 0) &&
+                       getLocation() != null);
+        }
     }
     final PasteAction PASTE_ACTION = new PasteAction();
 
 
     /** An action to perform an "insert node before" operation */
     private class InsertAction extends RestartEditingAction {
-        // we inherit from DelegateActionRestartEditing because we want
-        // the editing to resume with the cell we designate, not the cell
-        // that was last edited.  We don't use the delegation mechanism
         public InsertAction() { this("Insert"); }
         public InsertAction(String name) {
             super(name);
@@ -477,6 +559,9 @@ public class WBSJTable extends JTable {
 
             UndoList.madeChange(WBSJTable.this, "Insert WBS element");
         }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(selectedRows != null && selectedRows.length > 0);
+        }
     }
     final InsertAction INSERT_ACTION = new InsertAction();
 
@@ -493,7 +578,9 @@ public class WBSJTable extends JTable {
 
     /** An action to perform a "delete" operation */
     private class DeleteAction extends AbstractAction {
-        public DeleteAction() { super("Delete"); }
+        public DeleteAction() {
+            super("Delete", IconFactory.getDeleteIcon());
+        }
         public void actionPerformed(ActionEvent e) {
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
@@ -522,12 +609,28 @@ public class WBSJTable extends JTable {
 
             UndoList.madeChange(WBSJTable.this, "Delete WBS elements");
         }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(notJustRoot(selectedRows));
+        }
     }
     final DeleteAction DELETE_ACTION = new DeleteAction();
+
+
+    /** Recalculate enablement following changes in selection */
+    private final class SelectionListener implements ListSelectionListener {
+        public SelectionListener() {
+            recalculateEnablement();
+        }
+        public void valueChanged(ListSelectionEvent e) {
+            if (!e.getValueIsAdjusting())
+                recalculateEnablement();
+        }
+    }
+    final SelectionListener SELECTION_LISTENER = new SelectionListener();
+
 
 
     // convenience declarations
     private static final int SHIFT = Event.SHIFT_MASK;
     private static final int CTRL  = Event.CTRL_MASK;
-
 }
