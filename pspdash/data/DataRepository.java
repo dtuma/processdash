@@ -2173,7 +2173,7 @@ public class DataRepository implements Repository {
             String identifier;
             while (i.hasNext()) {
                 identifier = (String) i.next();
-                definitions.remove(identifier);
+                result.remove(identifier);
             }
 
             // remove data elements which match any of the regular expressions.
