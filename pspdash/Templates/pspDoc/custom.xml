@@ -1,0 +1,21 @@
+<?xml version='1.0'?>
+
+<file-list>
+
+<directory name="PSP Project Document Directory"
+           templatePath="/Templates/pspDoc"
+           path="[PSP Project Document Directory]">
+      <var name="[PSP Project Document Directory]">
+           Please enter the complete path to a directory where you would like
+           to store documents pertaining to this PSP Project.</var>
+
+  <!-- 
+     This file is intentionally empty.  It is simply a placeholder
+     that allows end users to incorporate additional documents into
+     the built-in PSP processes, without needing to override either
+     dataFile.txt or files.xml.
+  -->
+
+</directory>
+
+</file-list>

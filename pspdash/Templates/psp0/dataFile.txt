@@ -89,5 +89,5 @@ combine(Defects Removed);
 /*
  * Constants for use with external document integration
  */
-[FILES_XML] = "/pspDoc/files.xml";
+[FILES_XML] = ",/pspDoc/custom.xml,/pspDoc/files.xml,";
 [PSP Project Document Directory] = "?????";
