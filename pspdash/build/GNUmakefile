@@ -90,7 +90,7 @@ com/jrefinery/chart/JFreeChart.class: jfreechart.jar
 	rm -rf com/jrefinery/util com/jrefinery/chart/ui com/jrefinery/chart/XYPlot.class
 
 com/jrefinery/chart/XYPlot.class: ../Templates/reports/XYPlot.java
-	cd ..; make XYPlot.class
+	cd ..; $(MAKE) XYPlot.class
 
 clean:
 	rm -f pspdash.jar *~
