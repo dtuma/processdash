@@ -48,24 +48,11 @@ all: pspdash.jar
 
 install: pspdash.jar
 
-# "no templates" version of the jar file.  It actually includes the Templates 
-# directory so that it can pick up the NS and IE specific code buried in 
-# there.  It will not have the HTML templated PSP forms, however.
-install-nt: $(INSTALLED_FILES) manifest perltools notemplates FORCE
-	$(JAR) cfm pspdash.jar manifest pspdash com Templates
-	cp -R ../Templates .
-	rm -rf Templates/NS
-	rm -rf Templates/IE
-	rm -rf `find Templates -name CVS -print`
-	rm -f `find Templates -type f -print | fgrep '~'`
+# "no templates" version of the jar file.  A little nicer for playing with 
+# the HTML and/or CGI stuff at runtime.
+install-nt: $(INSTALLED_FILES) manifest perltools templates FORCE
+	$(JAR) cfm pspdash.jar manifest pspdash com
 
-notemplates: FORCE
-	rm -rf Templates
-	mkdir Templates
-	cp -R ../Templates/NS Templates
-	cp -R ../Templates/IE Templates
-	rm -rf `find Templates -name CVS -print`
-	rm -f `find Templates -type f -print | fgrep '~'`
 
 # package everything up for distribution
 pspdash.jar: $(INSTALLED_FILES) manifest perltools templates FORCE
