@@ -45,14 +45,24 @@
  * Calculate accumulated size metrics.
  */
 
-<!--#foreach name=Metric values=",Req Pages,HLD Pages,DLD Lines,New & Changed LOC," #-->
+[Local_Sized_Object_List//All] =
+    filter(([^] == chopPath(chopPath([_]))), inherit("Sized_Object_List"));
+
+<!--#foreach name=Metric values=",Req Pages,HLD Pages,Text Pages,DLD Lines,New & Changed LOC," #-->
 <!--#foreach name=Inspected_ values=",,Inspected ," #-->
+[Local_Sized_Object_List//Inspected_Metric] =
+    filter(eval("[Sized_Object_Units] == \"Inspected_Metric\""),
+           [Local_Sized_Object_List//All]);
+
 <!--#foreach name=Estimated_ values=",Estimated ,," #-->
 
 [Sub_tasks /Estimated_Inspected_Metric] =
     sumFor("Estimated_Inspected_Metric", [Subtask_List]);
 [Total_Plus_Subtasks/Estimated_Inspected_Metric] =
     [Estimated_Inspected_Metric] + [Sub_tasks /Estimated_Inspected_Metric];
+[Estimated_Inspected_Metric] =
+    0 + sumFor("Estimated_Size", [Local_Sized_Object_List//Inspected_Metric]);
+
 <!--#endfor-->
 <!--#endfor-->
 <!--#endfor-->
