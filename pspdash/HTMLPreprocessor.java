@@ -32,6 +32,7 @@ import pspdash.data.StringData;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.net.URLDecoder;
 import java.util.*;
 
 import com.oroinc.text.perl.Perl5Util;
@@ -162,6 +163,8 @@ public class HTMLPreprocessor {
                 value = XMLUtils.escapeAttribute(value);
             else if ("data".equalsIgnoreCase(encoding))
                 value = AutoData.esc(value);
+            else if ("dir".equalsIgnoreCase(encoding))
+                value = dirEncode(value);
             else
                 // default: HTML entity encoding
                 value = HTMLUtils.escapeEntities(value);
@@ -491,7 +494,40 @@ public class HTMLPreprocessor {
             int endPos = t.indexOf(t.charAt(0), 1);
             if (endPos != -1) t = t.substring(1, endPos);
         }
-        return t;
+        return dirUnencode(t);
+    }
+
+    private static String dirEncode(String s) {
+        if (s == null) return null;
+        for (int i = s.length();   i-- > 0; )
+            // look for unsafe characters in the string.
+            if (-1 == SAFE_CHARS.indexOf(s.charAt(i)))
+                // if we find an unsafe character, encode the entire value.
+                return DIR_ENC_BEG + URLEncoder.encode(s) + DIR_ENC_END;
+        return s;
+    }
+    private static final String SAFE_CHARS =
+        "abcdefghijklmnopqrstuvwxyz" +
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+        "0123456789" +
+        "/_,. "; // Note: space char IS included
+    private static final String DIR_ENC_BEG = "%(";
+    private static final String DIR_ENC_END = "%)";
+    private static String dirUnencode(String s) {
+        if (s == null) return null;
+        int beg = s.indexOf(DIR_ENC_BEG);
+        while (beg != -1) {
+            int end = s.indexOf(DIR_ENC_END, beg);
+            if (end == -1) break;
+            String decoded =
+                URLDecoder.decode(s.substring(beg+DIR_ENC_BEG.length(), end));
+            s = s.substring(0, beg) +
+                decoded +
+                s.substring(end+DIR_ENC_END.length());
+
+            beg = s.indexOf(DIR_ENC_BEG, beg + decoded.length());
+        }
+        return s;
     }
 
 
@@ -656,7 +692,7 @@ public class HTMLPreprocessor {
         public String getAttribute(String attrName) {
             if (attributes == null)
                 attributes = parseAttributes();
-            return (String) attributes.get(attrName);
+            return dirUnencode((String) attributes.get(attrName));
         }
 
         /** parse the inner contents of the directive as a set of
