@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -54,12 +54,12 @@ public class TaskScheduleChart extends JFrame
     static Resources resources =
         Resources.getDashBundle("pspdash.TaskScheduleChart");
 
-    public TaskScheduleChart(TaskScheduleDialog parent) {
-        super(resources.format("Window_Title_FMT", parent.taskListName));
+    public TaskScheduleChart(EVTaskList tl) {
+        super(resources.format("Window_Title_FMT", tl.getDisplayName()));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         setIconImage(DashboardIconFactory.getWindowIconImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        taskList = parent.model;
+        taskList = tl;
         taskList.addRecalcListener(this);
         schedule = taskList.getSchedule();
 

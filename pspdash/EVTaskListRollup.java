@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -143,6 +143,11 @@ public class EVTaskListRollup extends EVTaskList {
             data.putValue(dataName, list);
             taskListName = newName;
         }
+    }
+
+    public EVTaskList getSubSchedule(int pos) {
+        if (pos < 0 || pos >= evTaskLists.size()) return null;
+        return (EVTaskList) evTaskLists.get(pos);
     }
 
     public EVTask createAndAddTask(String path,

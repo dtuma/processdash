@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -229,6 +229,9 @@ public class EVTaskList extends AbstractTreeTableModel
         TESTING_TASK_LIST = taskList;
     }
 
+    public String getDisplayName() {
+        return getDisplayName(taskListName);
+    }
 
     public static String getDisplayName(String taskListName) {
         int slashPos = taskListName.lastIndexOf('/');
