@@ -49,6 +49,9 @@ import javax.swing.event.TableModelListener;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.help.PCSH;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -57,10 +60,6 @@ import org.jfree.chart.Legend;
 import org.jfree.chart.axis.Axis;
 import org.jfree.data.XYDataset;
 
-import pspdash.DashboardIconFactory;
-import pspdash.PCSH;
-import pspdash.RangeXYItemRenderer;
-import pspdash.Resources;
 
 public class TaskScheduleChart extends JFrame
     implements EVTaskList.RecalcListener, ComponentListener {

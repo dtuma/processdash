@@ -37,6 +37,7 @@ import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -44,7 +45,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.Legend;
 import org.jfree.data.XYDataset;
 
-import pspdash.CGIChartBase;
 import pspdash.CachedURLObject;
 import pspdash.TinyCGIException;
 import pspdash.TinyWebServer;

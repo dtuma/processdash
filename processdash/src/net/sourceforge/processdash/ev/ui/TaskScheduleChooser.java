@@ -56,8 +56,8 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ev.EVTaskList;
-import pspdash.PCSH;
-import pspdash.Resources;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.help.PCSH;
 import pspdash.Settings;
 import pspdash.data.DataRepository;
 

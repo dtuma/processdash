@@ -23,30 +23,26 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ev.ui;
+package net.sourceforge.processdash.i18n;
 
 
-import java.io.IOException;
-
-import pspdash.DashController;
-
-import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import java.util.Enumeration;
+import javax.swing.UIManager;
 
 
+public class LookAndFeelSettings {
 
-public class ShowTaskSchedule extends TinyCGIBase {
-
-    /** Write the CGI header. */
-    protected void writeHeader() {
-        out.print("Expires: 0\r\n");
-        super.writeHeader();
-    }
-
-    /** Generate CGI script output. */
-    protected void writeContents() throws IOException {
-        DashController.checkIP(env.get("REMOTE_ADDR"));
-        DashController.showTaskSchedule(getPrefix());
-        DashController.printNullDocument(out);
+    public static void loadLocalizedSettings() {
+        try {
+            Resources r = Resources.getDashBundle
+                ("pspdash.LookAndFeelSettings");
+            Enumeration e = r.getKeys();
+            while (e.hasMoreElements()) {
+                String dest = (String) e.nextElement();
+                String src = r.getString(dest);
+                UIManager.put(dest, UIManager.get(src));
+            }
+        } catch (Exception e) {}
     }
 
 }

@@ -23,30 +23,32 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ev.ui;
+
+package net.sourceforge.processdash.hier;
+
+import java.util.Vector;
 
 
-import java.io.IOException;
+/** This class implements a primitive filter for hierarchy paths.  If
+ *  the string begins with one of the hierarchy prefixes in the
+ *  Vector, or if the Vector is null, it passes.
+ */
+public class Filter {
 
-import pspdash.DashController;
-
-import net.sourceforge.processdash.ui.web.TinyCGIBase;
-
-
-
-public class ShowTaskSchedule extends TinyCGIBase {
-
-    /** Write the CGI header. */
-    protected void writeHeader() {
-        out.print("Expires: 0\r\n");
-        super.writeHeader();
+    public static boolean matchesFilter (Vector theFilter, String name) {
+        if (theFilter == null)
+            return true;
+        for (int ii = 0; ii < theFilter.size(); ii++) {
+            if (pathMatches(name, (String) theFilter.elementAt(ii)))
+                return true;
+        }
+        return false;
     }
 
-    /** Generate CGI script output. */
-    protected void writeContents() throws IOException {
-        DashController.checkIP(env.get("REMOTE_ADDR"));
-        DashController.showTaskSchedule(getPrefix());
-        DashController.printNullDocument(out);
+    public static boolean pathMatches(String fullName, String pathPrefix) {
+        if (fullName.equals(pathPrefix)) return true;
+        if (!fullName.startsWith(pathPrefix)) return false;
+        return (fullName.charAt(pathPrefix.length()) == '/');
     }
 
 }

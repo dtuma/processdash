@@ -23,30 +23,15 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ev.ui;
+package net.sourceforge.processdash.i18n;
+
+import java.io.Reader;
 
 
-import java.io.IOException;
+public interface TranslationEngine {
 
-import pspdash.DashController;
+    String translateString(String s);
 
-import net.sourceforge.processdash.ui.web.TinyCGIBase;
-
-
-
-public class ShowTaskSchedule extends TinyCGIBase {
-
-    /** Write the CGI header. */
-    protected void writeHeader() {
-        out.print("Expires: 0\r\n");
-        super.writeHeader();
-    }
-
-    /** Generate CGI script output. */
-    protected void writeContents() throws IOException {
-        DashController.checkIP(env.get("REMOTE_ADDR"));
-        DashController.showTaskSchedule(getPrefix());
-        DashController.printNullDocument(out);
-    }
+    Reader translateStream(Reader s);
 
 }

@@ -23,30 +23,21 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ev.ui;
 
+package net.sourceforge.processdash.log;
 
-import java.io.IOException;
+import net.sourceforge.processdash.hier.PropertyKey;
 
-import pspdash.DashController;
+public class DefectLogID {
 
-import net.sourceforge.processdash.ui.web.TinyCGIBase;
+    public String filename  = null;
+    public PropertyKey path = null;
 
-
-
-public class ShowTaskSchedule extends TinyCGIBase {
-
-    /** Write the CGI header. */
-    protected void writeHeader() {
-        out.print("Expires: 0\r\n");
-        super.writeHeader();
+    public DefectLogID (String defectLog, PropertyKey defectPath) {
+        filename = defectLog;
+        path     = defectPath;
     }
-
-    /** Generate CGI script output. */
-    protected void writeContents() throws IOException {
-        DashController.checkIP(env.get("REMOTE_ADDR"));
-        DashController.showTaskSchedule(getPrefix());
-        DashController.printNullDocument(out);
+    public String toString() {
+        return "DefectLogID:" + filename + ", " + path;
     }
-
 }

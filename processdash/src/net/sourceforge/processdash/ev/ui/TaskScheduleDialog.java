@@ -74,20 +74,20 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.NodeSelectionDialog;
+import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.ErrorReporter;
+import net.sourceforge.processdash.ui.lib.JTreeTable;
+import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
+import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.Browser;
 import pspdash.CachedObject;
 import pspdash.CachedURLObject;
-import pspdash.DashboardIconFactory;
-import pspdash.ErrorReporter;
-import pspdash.JTreeTable;
-import pspdash.NodeSelectionDialog;
-import pspdash.PCSH;
-import pspdash.Resources;
 import pspdash.Settings;
-import pspdash.ToolTipTableCellRendererProxy;
-import pspdash.TreeTableModel;
 
 public class TaskScheduleDialog
     implements EVTask.Listener, EVTaskList.RecalcListener, EVSchedule.Listener
