@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -773,14 +773,14 @@ public class file extends TinyCGIBase {
                 displayName = displayName.substring(1);
             out.print(TinyWebServer.encodeHtmlEntities(displayName));
             out.print("&nbsp;</td><td valign='top'>" +
-                      "<input size='40' type='text' name='");
+                      "<input size=\"40\" type=\"text\" name=\"");
             out.print(TinyWebServer.encodeHtmlEntities(varName));
             String value = pathVar.getValue();
             if (value != null) {
-                out.print("' value='");
+                out.print("\" value=\"");
                 out.print(TinyWebServer.encodeHtmlEntities(value));
             }
-            out.print("'>");
+            out.print("\">");
             String comment = pathVar.getCommentText();
             if (XMLUtils.hasValue(comment)) {
                 out.print("<br><i>");
