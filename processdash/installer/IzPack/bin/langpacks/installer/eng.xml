@@ -100,4 +100,27 @@
 
     <!-- Add your own panels specific strings here if you need -->
 
+    <!-- Conditional License Panel strings -->
+    <str id="LicencePanel.deselect.title" txt="Deselect Packages?"/>
+    <str id="LicencePanel.deselect.message1" txt="You have indicated that you do not consent to this license\nagreement.  Would you like to remove the module(s)"/>
+    <str id="LicencePanel.deselect.message2" txt="from the installation list?"/>
+
+    <!-- Data Dir Panel strings -->
+    <str id="DataDirPanel.info" txt="Select a directory for your personal metrics data :"/>
+    <str id="DataDirPanel.empty_datadir" txt="You must select a data directory."/>
+
+    <!-- Shutdown Dashboard Panel strings -->
+    <str id="ShutdownDashboardPanel.info" txt="If you are running the Process Dashboard right now,\ninstalling new files can cause unpredictable errors.  It is\ntherefore imperative that you shut down the Dashboard if it\nis currently running.\n \nIf you are installing the Process Dashboard for the first\ntime, or if you are not currently running the Process\nDashboard, you can ignore this warning.\n \nOtherwise, shut down any currently running instances of the\nProcess Dashboard before you click the &quot;Next&quot; button."/>
+    <str id="ShutdownDashboardPanel.error.info" txt="This installer has detected that an instance\nof the Process Dashboard is currently running\non this machine.  You must shut it down before\nyou can proceed."/>
+    <str id="ShutdownDashboardPanel.error.title" txt="Process Dashboard Running"/>
+
+    <!-- Package Downloader strings -->
+    <str id="PackageDownloader.title" txt="Downloading..."/>
+    <str id="PackageDownloader.info1" txt="Downloading &quot;"/>
+    <str id="PackageDownloader.info2" txt="&quot;..."/>
+    <str id="PackageDownloader.error.title" txt="Installation Warning"/>
+    <str id="PackageDownloader.error.info1" txt="The package:"/>
+    <str id="PackageDownloader.error.info2" txt="could not be downloaded, and was not installed."/>
+
+
 </langpack>
