@@ -74,7 +74,7 @@ class PercentageFunction extends DoubleData implements DataListener {
 
         String dataName = name.substring(flagPos + PERCENTAGE_FLAG.length());
         String childPrefix = name.substring(0, flagPos);
-        numeratorName = childPrefix + "/" + dataName;
+        numeratorName = DataRepository.createDataName(childPrefix, dataName);
 
         int slashPos = childPrefix.lastIndexOf('/');
         if (slashPos == -1)
@@ -82,7 +82,7 @@ class PercentageFunction extends DoubleData implements DataListener {
                 ("PercentageFunction: '" + name + "' does not have a parent.");
 
         String parentPrefix = name.substring(0, slashPos);
-        denominatorName = parentPrefix + "/" + dataName;
+        denominatorName = DataRepository.createDataName(parentPrefix,dataName);
     }
 
 

@@ -78,7 +78,8 @@ public class RepositoryServer extends Thread {
                 if (requiredTag.length() == 0)
                     out.writeBoolean(true);
                 else {
-                    SaveableData d = data.getValue(dataPath+"/"+requiredTag);
+                    SaveableData d =
+                        data.getValue(data.createDataName(dataPath,requiredTag));
                     if (d instanceof NumberData &&
                         ((NumberData)d).getDouble() == 0.0) d = null;
                     else if (d instanceof StringData &&

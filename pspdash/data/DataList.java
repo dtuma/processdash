@@ -122,7 +122,7 @@ abstract class DataList {
     private class SimpleDataWatcher implements Handler, DataListener {
 
         SimpleDataWatcher() {
-            if (dataName.charAt(0) != '/') dataName = prefix + "/" + dataName;
+            dataName = data.createDataName(prefix, dataName);
             dataList.put(dataName, new DataListValue(null)); // needed?
             data.addActiveDataListener(dataName, this, customerName);
         }

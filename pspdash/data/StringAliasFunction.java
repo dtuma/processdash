@@ -41,12 +41,7 @@ class StringAliasFunction extends StringData implements DataListener {
         data = r;
         saveValue = saveAs;
 
-        // is the name of the aliased data element absolute or relative?
-        if (params.startsWith("/"))
-            aliasOf = params;
-        else
-            aliasOf = prefix + "/" + params;
-
+        aliasOf = data.createDataName(prefix, params);
         data.addActiveDataListener(aliasOf, this, name);
 
         myName = name;

@@ -223,7 +223,7 @@ public class ResultSet {
                 }
 
                 } else {
-                    dataName = prefix + "/" + dataNames[d];
+                    dataName = data.createDataName(prefix, dataNames[d]);
                     result.setData(p+1, d+1, data.getSimpleValue(dataName));
                 }
         }
