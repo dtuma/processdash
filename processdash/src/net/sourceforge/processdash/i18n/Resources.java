@@ -150,6 +150,8 @@ public class Resources extends ResourceBundle {
         return dialogIndicatorFormat.format(new Object[] { value });
     }
 
+    private static final String TRANSLATOR_EXAMPLE_BUNDLE =
+        "resources/" + Translator.BUNDLE_NAME + ".properties";
 
     private static class SafeTemplateClassLoader extends ClassLoader {
 
@@ -157,6 +159,12 @@ public class Resources extends ResourceBundle {
             throw new ClassNotFoundException(name);
         }
         protected URL findResource(String name) {
+            // the Translator.properties file is present only to provide an
+            // example list of translatable items - it shouldn't actually be
+            // used at runtime by the application.
+            if (name.equals(TRANSLATOR_EXAMPLE_BUNDLE))
+                return null;
+
             name = name.replace('$', '.');
             return findResourceImpl(name);
         }
