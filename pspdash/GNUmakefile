@@ -34,6 +34,7 @@ BIN = build
 MSJAVAC ?= //c/java/ms/SDK3.2/bin/jvc.exe
 JAVAC   ?= //c/java/sun/jdk1.3/bin/javac.exe
 JAR     ?= //c/java/sun/jdk1.3/bin/jar.exe
+JHINDEXER ?= //c/java/sun/jh1.1/javahelp/bin/jhindexer.exe
 
 JAVA_FILES=$(wildcard *.java)
 CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
@@ -107,6 +108,8 @@ build: FORCE
 data: FORCE
 	cd data; $(MAKE) all
 
+help-search: FORCE
+	cd Templates/help; $(JHINDEXER) Topics
 
 pspdash: PSPDashboard.class $(CLASS_FILES) Templates/PSP.globalData
 
