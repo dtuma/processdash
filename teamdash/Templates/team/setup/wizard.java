@@ -5,6 +5,7 @@ import pspdash.data.DataImporter;
 import pspdash.data.ImmutableStringData;
 import pspdash.data.ImmutableDoubleData;
 import pspdash.data.SimpleData;
+import pspdash.data.StringData;
 
 import java.io.*;
 import java.net.*;
@@ -619,12 +620,17 @@ public class wizard extends TinyCGIBase {
 
 
     protected void createTeamSchedule(String scheduleName) {
+        DataRepository data = getDataRepository();
         EVTaskListRollup rollup = new EVTaskListRollup
-            (scheduleName, getDataRepository(),
+            (scheduleName, data,
              getPSPProperties(), getObjectCache(), false);
         rollup.save();
 
-        // todo: create a top-down schedule as well.
+        // publish the newly created schedule, with no password required.
+        String passwordDataName = "/ev /" + scheduleName + "/_Password_";
+        data.putValue(passwordDataName, ImmutableDoubleData.TRUE);
+        passwordDataName = "/ev /" + scheduleName + "/PW_STOR";
+        data.putValue(passwordDataName, StringData.create(" none "));
     }
 
     protected void alterTeamTemplateID(String teamPID) {
