@@ -39,7 +39,8 @@ JAVA_FILES=$(wildcard *.java)
 CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
 
 CGI_JAVA=Templates/psp1/sizeest.java \
-	Templates/psp3/cyclesum.java
+	Templates/psp3/cyclesum.java \
+	Templates/reports/table.java
 CGI_CLASSES=$(subst .java,.class,$(CGI_JAVA))
 SIZEEST_COPIES=Templates/psp1.1/sizeest.class \
 	Templates/psp2/sizeest.class \
