@@ -38,18 +38,13 @@ import java.util.Vector;
 // The scriptButton class activates a browser loaded with the current phase's
 // script when it is pressed.  A right click can activate a popup menu with
 // a selection of scripts.
-class ScriptButton extends JButton {
+class ScriptButton extends DropDownButton {
     PSPDashboard parent = null;
     ImageIcon enabled_icon = null;
     ImageIcon disabled_icon = null;
-    String browserCommand = null;
     String scriptFilename = null;
     String path  = null;
     Vector paths = null; // A list of valid script paths for the popup menu
-    JPopupMenu jPopup = null;
-    Rectangle rv = new Rectangle();
-    Point popupOrigin;
-    int menuIndex;  // keeps track of the last menu item selected, -1 if none.
 
     public static final String URL_PREFIX = "/";
 
@@ -58,163 +53,60 @@ class ScriptButton extends JButton {
         try {
             enabled_icon = new ImageIcon(getClass().getResource("script.gif"));
             disabled_icon = new ImageIcon(getClass().getResource("scriptd.gif"));
-            setIcon(enabled_icon);
-            setDisabledIcon(disabled_icon);
+            getButton().setIcon(enabled_icon);
+            getButton().setDisabledIcon(disabled_icon);
         } catch (Exception e) {
-            setText("Script");
+            getButton().setText("Script");
         }
-        setMargin (new Insets (1,2,1,2));
+        getButton().setMargin (new Insets (1,2,1,2));
+        getButton().setFocusPainted(false);
         parent = dash;
-        setEnabled(false);    // Add event listeners for the button itself.
-        addActionListener(scriptButtonActionListener);
-        addMouseListener(scriptButtonMouseListener);
 
-        browserCommand = Settings.getVal("browser.command");
         dash.getContentPane().add(this);
     }
 
-    // setPaths creates a new JPopupMenu, and populates it with valid script paths.
+    // setPaths populates the popup menu with valid script paths.
     // However, it does not command the menu to be displayed.
     public void setPaths(Vector v) {
         paths = v;
-        if (paths == null)
-            setEnabled(false);
-        else {
-            setEnabled(paths.size() != 0);
-            ScriptID id;      /* debug code
-            for (int i = 0; i < paths.size(); i++) {
-                id = (ScriptID) paths.elementAt (i);
-                System.err.println(id.toString());
-            }*/
+        getMenu().removeAll();
+        ScriptID id;
 
-            // create the popup menu
-            jPopup = new JPopupMenu("Templates");
-            jPopup.setInvoker (this);
-
-            // initialize the menuIndex to "none selected".
-            menuIndex = -1;
-            JMenuIndexItem m;
-
-            // populate the popup menu with items for each script.
-            for (int i = 0; i < paths.size(); i++) {
-                id = (ScriptID) paths.elementAt (i);
-                m = (JMenuIndexItem)jPopup.add (new JMenuIndexItem (id.getUserName(),i));
-
-                // add event listeners for each popup menu item.
-                m.addActionListener (scriptMenuActionListener);
-                m.addMouseListener (scriptMenuMouseListener);
-            }
+        // populate the popup menu with items for each script.
+        if (paths != null) for (int i = 0;  i < paths.size();  i++) {
+            id = (ScriptID) paths.elementAt (i);
+            getMenu().add(new ScriptMenuItem(id.getUserName(), id));
         }
     }
 
-    public void hidePopup() {
-        if (menuIndex == -1) {
-            jPopup.setVisible (false);
-        }
-    }
+    /** ScriptMenuItem is an extended JMenuItem class with built-in
+     * logic for displaying a script item. */
+    public class ScriptMenuItem extends JMenuItem implements ActionListener {
+        ScriptID id;
 
-    protected void viewScript (String theScript, String thePath) {
-        if (theScript != null) {
-            String url = encode(thePath) + "//" + theScript;
-            Browser.launch(url);
-        }
-    }
-
-    protected String encode(String path) {
-        String result = URLEncoder.encode(path);
-        result = StringUtils.findAndReplace(result, "%2f", "/");
-        result = StringUtils.findAndReplace(result, "%2F", "/");
-        return result;
-    }
-
-    // JMenuIndexItem is an extended JMenuItem class that adds a data member
-    // to keep track of which item in the menu it is.
-    public class JMenuIndexItem extends JMenuItem {
-        int index;
-
-        public JMenuIndexItem(String text, int index) {
+        public ScriptMenuItem(String text, ScriptID id) {
             super(text);
-            this.index = index;
+            this.id = id;
+            addActionListener(this);
         }
 
-        public int getIndex() {
-            return index;
+        public void actionPerformed(ActionEvent e) {
+            viewScript (id.getScript(), id.getDataPath());
         }
 
+        protected void viewScript (String theScript, String thePath) {
+            if (theScript != null) {
+                String url = encode(thePath) + "//" + theScript;
+                Browser.launch(url);
+            }
+        }
+
+        protected String encode(String path) {
+            String result = URLEncoder.encode(path);
+            result = StringUtils.findAndReplace(result, "%2f", "/");
+            result = StringUtils.findAndReplace(result, "%2F", "/");
+            return result;
+        }
     }
-
-    // This data member of ScriptButton handles action events for ScriptButton.
-    ActionListener scriptButtonActionListener = new ActionListener () {
-
-        // If a click & release is performed on the script button, view the script
-        // for the current phase, and hide the popup if it is visible.
-        public void actionPerformed(ActionEvent e) {
-            if (jPopup != null && jPopup.isVisible())
-                jPopup.setVisible (false);
-            if (paths != null) {
-                ScriptID id = (ScriptID)paths.elementAt (0);
-                viewScript (id.getScript(), id.getDataPath());
-            }
-        }
-
-    };
-
-    // This data member of ScriptButton handles mouse events for ScriptButton.
-    MouseAdapter scriptButtonMouseListener = new MouseAdapter () {
-
-        // If the right mouse button is pressed on the script button, display the
-        // popup menu.
-        public void mousePressed(MouseEvent e) {
-
-            if (e.getModifiers() == e.BUTTON3_MASK) {
-                popupOrigin = e.getPoint();
-                Point p = getLocationOnScreen();
-                jPopup.setLocation (p.x + e.getX(), p.y + e.getY());
-                jPopup.setVisible (true);
-            }
-        }
-
-        // If the left mouse button is released on the script button, hide the
-        // popup menu if it is visible.
-        public void mouseReleased(MouseEvent e) {
-            if (jPopup != null && jPopup.isVisible()) {
-                if (e.getModifiers() == e.BUTTON1_MASK) {
-                    jPopup.setVisible (false);
-                }
-            }
-        }
-
-    };
-
-    // This data member of ScriptButton handles action events for menu items.
-    ActionListener scriptMenuActionListener = new ActionListener () {
-
-        // If a click & release is performed on a menu item, view the script
-        // for the menu item.
-        public void actionPerformed(ActionEvent e) {
-            if (menuIndex >= 0) {
-                ScriptID id = (ScriptID)paths.elementAt (menuIndex);
-                viewScript (id.getScript(), id.getDataPath());
-            }
-        }
-
-    };
-
-    // This data member of ScriptButton handles mouse events for menu items.
-    MouseAdapter scriptMenuMouseListener = new MouseAdapter() {
-
-        // When the mouse enters a menu item, set the menuIndex to that menu item.
-        public synchronized void mouseEntered(MouseEvent e) {
-            if(e.getSource() instanceof JMenuIndexItem) {
-                menuIndex = ((JMenuIndexItem)e.getSource()).getIndex();
-            }
-        }
-
-        // When the mouse exits a menu item, set the menuIndex to "none selected".
-        public synchronized void mouseExited(MouseEvent e) {
-            menuIndex = -1;
-        }
-
-    };
 
 }
