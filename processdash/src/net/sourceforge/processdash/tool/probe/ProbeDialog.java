@@ -116,13 +116,21 @@ public class ProbeDialog extends JFrame implements
         g.gridy = 0;   g.insets = no_margin;
 
         c = label = new JLabel(resources.getString("Method_Label"));
-        g.gridx = 0;   g.gridwidth = 1;
-        g.weightx = 0;   g.anchor = g.CENTER;   g.fill = g.NONE;
-        layout.setConstraints(c, g);   panel.add(c);
+        g.gridx = 0;
+        g.gridwidth = 1;
+        g.weightx = 0;
+        g.anchor = GridBagConstraints.CENTER;
+        g.fill = GridBagConstraints.NONE;
+        layout.setConstraints(c, g);
+        panel.add(c);
 
-        method = new JComboBox(PROBE_METHODS);   g.gridx = 1;  g.gridwidth = 3;
-        g.weightx = 0;   g.fill = g.HORIZONTAL;
-        layout.setConstraints(method, g);   panel.add(method);
+        method = new JComboBox(PROBE_METHODS);
+        g.gridx = 1;
+        g.gridwidth = 3;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        layout.setConstraints(method, g);
+        panel.add(method);
         method.addActionListener(this);
         method.setMaximumRowCount(PROBE_METHODS.length);
 
@@ -130,71 +138,105 @@ public class ProbeDialog extends JFrame implements
         g.gridy++;              // next row
 
         c = new JLabel(resources.getString("X_Label"));
-        g.gridx = 0;   g.gridwidth = 1;
-        g.weightx = 0;   g.fill = g.NONE;
-        layout.setConstraints(c, g);   panel.add(c);
+        g.gridx = 0;
+        g.gridwidth = 1;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.NONE;
+        layout.setConstraints(c, g);
+        panel.add(c);
 
         xName = new DataComboBox(data);
-        g.gridx = 1;  g.gridwidth = 3;  g.weightx = 0;  g.fill = g.HORIZONTAL;
-        layout.setConstraints(xName, g);   panel.add(xName);
+        g.gridx = 1;
+        g.gridwidth = 3;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        layout.setConstraints(xName, g);
+        panel.add(xName);
         xName.setToolTipText(resources.getString("X_Description"));
         xName.addActionListener(this);
 
 
-        g.gridy++;              // new row
+        g.gridy++; // new row
 
         c = new JLabel(resources.getString("Y_Label"));
-        g.gridx = 0;   g.gridwidth = 1;
-        g.weightx = 0;   g.fill = g.NONE;
-        layout.setConstraints(c, g);   panel.add(c);
+        g.gridx = 0;
+        g.gridwidth = 1;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.NONE;
+        layout.setConstraints(c, g);
+        panel.add(c);
 
         yName = new DataComboBox(data);
-        g.gridx = 1;   g.gridwidth = 3;
-        g.weightx = 0;   g.anchor = g.WEST;   g.fill = g.HORIZONTAL;
-        layout.setConstraints(yName, g);   panel.add(yName);
+        g.gridx = 1;
+        g.gridwidth = 3;
+        g.weightx = 0;
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        layout.setConstraints(yName, g);
+        panel.add(yName);
         yName.setToolTipText(resources.getString("Y_Description"));
         yName.addActionListener(this);
 
 
         g.gridy++;              // new row: blank space
 
-        c = new JLabel(" ");   g.gridx = 0;   g.gridwidth = 4;
-        layout.setConstraints(c, g);   panel.add(c);
+        c = new JLabel(" ");
+        g.gridx = 0;
+        g.gridwidth = 4;
+        layout.setConstraints(c, g);
+        panel.add(c);
 
 
         g.gridy++;              // new row
 
         estimateLabel = new JLabel(resources.getString("Estimate_Label"));
-        g.gridx = 0; g.gridwidth = 1;   g.weightx = 0;   g.anchor = g.EAST;
-        g.fill = g.NONE;   g.insets = no_margin;
-        layout.setConstraints(estimateLabel, g);   panel.add(estimateLabel);
+        g.gridx = 0;
+        g.gridwidth = 1;
+        g.weightx = 0;
+        g.anchor = GridBagConstraints.EAST;
+        g.fill = GridBagConstraints.NONE;
+        g.insets = no_margin;
+        layout.setConstraints(estimateLabel, g);
+        panel.add(estimateLabel);
 
-        estimate = new JTextField(7);   g.gridx = 1;   g.gridwidth = 1;
-        g.anchor = g.WEST;
+        estimate = new JTextField(7);
+        g.gridx = 1;
+        g.gridwidth = 1;
+        g.anchor = GridBagConstraints.WEST;
         estimate.setMinimumSize(estimate.getPreferredSize());
-        layout.setConstraints(estimate, g);   panel.add(estimate);
+        layout.setConstraints(estimate, g);
+        panel.add(estimate);
         estimate.addActionListener(this);
         estimate.getDocument().addDocumentListener(this);
 
         percentLabel = new JLabel(resources.getString("Percent_Label"));
-        g.gridx = 2; g.gridwidth = 1;   g.anchor = g.EAST;
-        layout.setConstraints(percentLabel, g);   panel.add(percentLabel);
+        g.gridx = 2;
+        g.gridwidth = 1;
+        g.anchor = GridBagConstraints.EAST;
+        layout.setConstraints(percentLabel, g);
+        panel.add(percentLabel);
 
-        percent = new JTextField("70", 7);   g.gridx = 3;   g.gridwidth = 1;
-        g.anchor = g.WEST;
+        percent = new JTextField("70", 7);
+        g.gridx = 3;
+        g.gridwidth = 1;
+        g.anchor = GridBagConstraints.WEST;
         percent.setMinimumSize(percent.getPreferredSize());
-        layout.setConstraints(percent, g);   panel.add(percent);
+        layout.setConstraints(percent, g);
+        panel.add(percent);
         percent.addActionListener(this);
         percent.getDocument().addDocumentListener(this);
 
 
         g.gridy++;              // new row: blank space
-        c = new JLabel(" ");   g.gridx = 0;   g.gridwidth = 4;
-        layout.setConstraints(c, g);   panel.add(c);
+        c = new JLabel(" ");
+        g.gridx = 0;
+        g.gridwidth = 4;
+        layout.setConstraints(c, g);
+        panel.add(c);
 
 
         g.gridy++;
-        g.fill = g.HORIZONTAL;
+        g.fill = GridBagConstraints.HORIZONTAL;
 
         JPanel box = new JPanel();
         box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
@@ -210,9 +252,12 @@ public class ProbeDialog extends JFrame implements
         box.add(range = new JLabel());
         box.add(upi = new JLabel());
         box.add(lpi = new JLabel());
-        g.gridx = 0;   g.gridwidth = 2;   g.gridheight = 5;
+        g.gridx = 0;
+        g.gridwidth = 2;
+        g.gridheight = 5;
         g.insets = left_margin;
-        layout.setConstraints(box, g);   panel.add(box);
+        layout.setConstraints(box, g);
+        panel.add(box);
         regressionBox = box;
 
         rSquared.setToolTipText(resources.getString("R_Squared_Description"));
@@ -226,37 +271,47 @@ public class ProbeDialog extends JFrame implements
         box.add(Cprojection = new JLabel());
         box.add(Cbeta0 = new JLabel());
         box.add(Cbeta1 = new JLabel());
-        g.gridx = 2;  g.gridwidth = 2;   g.gridheight = 1;
-        layout.setConstraints(box, g);   panel.add(box);
+        g.gridx = 2;
+        g.gridwidth = 2;
+        g.gridheight = 1;
+        layout.setConstraints(box, g);
+        panel.add(box);
         averageBox = box;
 
 
         g.gridy++;              //new row: blank space
-        c = new JLabel(" ");   g.gridx = 2;   g.gridwidth = 2;
+        c = new JLabel(" ");
+        g.gridx = 2;
+        g.gridwidth = 2;
         g.weighty = 1;
-        layout.setConstraints(c, g);   panel.add(c);
+        layout.setConstraints(c, g);
+        panel.add(c);
 
         g.gridy++;              //new row: filter button
-        g.fill = g.HORIZONTAL;  g.weighty = 0;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.weighty = 0;
 
         filterButton = new JButton (resources.getString("Filter_Button"));
         filterButton.setActionCommand("filter");
         filterButton.addActionListener(this);
-        layout.setConstraints(filterButton, g);   panel.add(filterButton);
+        layout.setConstraints(filterButton, g);
+        panel.add(filterButton);
 
         g.gridy++;              //new row: chart button
 
-        chartButton = new JButton (resources.getString("Chart_Button"));
+        chartButton = new JButton(resources.getString("Chart_Button"));
         chartButton.setActionCommand("chart");
         chartButton.addActionListener(this);
-        layout.setConstraints(chartButton, g);   panel.add(chartButton);
+        layout.setConstraints(chartButton, g);
+        panel.add(chartButton);
 
         g.gridy++;              //new row: close button
 
-        closeButton = new JButton (resources.getString("Close"));
+        closeButton = new JButton(resources.getString("Close"));
         closeButton.setActionCommand("close");
         closeButton.addActionListener(this);
-        layout.setConstraints(closeButton, g);   panel.add(closeButton);
+        layout.setConstraints(closeButton, g);
+        panel.add(closeButton);
 
 
         getContentPane().add(panel);
