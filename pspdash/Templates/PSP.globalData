@@ -70,3 +70,17 @@ To D[a]te As Of=>~To Date/PSP/All/Rollup As Of Date
     "90 (System - configuration, timing, memory)|" &
     "100 (Environment - design, compile, test, or other support " & 
          "system problems)";
+
+/*
+ * Default guidelines for the quality profile
+ */
+
+[Target Design/Code Ratio] = 1.0;
+
+[Target Design Review/Design Ratio] = 0.5;
+
+[Target Code Review/Code Ratio] = 0.5;
+
+[Target Test Defect Density] = 5;
+
+[Target Compile Defect Density] = 10;
