@@ -31,9 +31,9 @@ import java.io.IOException;
 import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.LanguageFilter;
 import net.sourceforge.processdash.tool.diff.LOCDiff;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.TinyCGIBase;
 import pspdash.TinyCGIHighVolume;
 
 

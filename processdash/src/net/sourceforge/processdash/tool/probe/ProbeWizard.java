@@ -31,10 +31,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 import pspdash.Settings;
-import pspdash.TinyCGIBase;
 import pspdash.data.DataRepository;
 import pspdash.data.DoubleData;
 import pspdash.data.NumberData;

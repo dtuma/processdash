@@ -57,12 +57,12 @@ import javax.swing.JTextField;
 
 import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.LOCDiff;
+import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.Browser;
 import pspdash.DashController;
-import pspdash.TinyCGIBase;
 import pspdash.TinyWebServer;
 
 

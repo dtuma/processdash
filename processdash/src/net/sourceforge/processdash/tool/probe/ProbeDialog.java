@@ -51,12 +51,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import pspdash.DashboardIconFactory;
-import pspdash.DataComboBox;
-import pspdash.PCSH;
-import pspdash.PSPProperties;
-import pspdash.Resources;
-import pspdash.SwingWorker;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.DataComboBox;
+import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.SwingWorker;
+
 import pspdash.data.DataCorrelator;
 import pspdash.data.DataRepository;
 import pspdash.data.DoubleData;
@@ -64,7 +65,7 @@ import pspdash.data.DoubleData;
 public class ProbeDialog extends JFrame implements
       ActionListener, DocumentListener {
 
-    PSPProperties hier;
+    DashHierarchy hier;
     DataRepository data;
 
     FilterDialog filterDlg = null;
@@ -88,7 +89,7 @@ public class ProbeDialog extends JFrame implements
     Resources resources = Resources.getDashBundle("pspdash.PROBE");
 
 
-    public ProbeDialog(PSPProperties props, DataRepository data) {
+    public ProbeDialog(DashHierarchy props, DataRepository data) {
         super();
         setTitle(resources.getString("PROBE_Window_Title"));
         PCSH.enableHelpKey(this, "UsingProbeTool");

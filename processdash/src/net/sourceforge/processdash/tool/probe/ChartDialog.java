@@ -48,9 +48,10 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-import pspdash.PCSH;
-import pspdash.Resources;
-import pspdash.Translator;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.ui.help.PCSH;
+
 import pspdash.data.DataCorrelator;
 
 public class ChartDialog extends JDialog {

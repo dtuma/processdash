@@ -38,14 +38,15 @@ import javax.swing.JDialog;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
-import pspdash.PCSH;
-import pspdash.PSPProperties;
-import pspdash.Resources;
-import pspdash.SelectableHierarchyTree;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.ui.SelectableHierarchyTree;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.help.PCSH;
+
 
 public class FilterDialog extends JDialog implements ActionListener {
 
-    PSPProperties props;
+    DashHierarchy props;
     SelectableHierarchyTree tree;
 
     ActionListener      l;
@@ -53,7 +54,7 @@ public class FilterDialog extends JDialog implements ActionListener {
     Resources resources = Resources.getDashBundle("pspdash.PROBE");
 
 
-    public FilterDialog (PSPProperties props,
+    public FilterDialog (DashHierarchy props,
                          Frame probeWindow,
                          ActionListener l) {
         super (probeWindow);
