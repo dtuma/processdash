@@ -1,0 +1,452 @@
+<!--
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 1999  United States Air Force
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// 
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+// 
+// E-Mail POC:  ken.raisor@hill.af.mil
+-->
+
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="../style.css">
+<TITLE><!--#echo var="[Process_ID]" --> Project Planning Summary</TITLE>
+</HEAD>
+<BODY>
+
+<H1><!--#echo var="PATH_TRANSLATED" --></H1>
+<H2><!--#echo var="[Process_ID]" --> Project Planning Summary</H2>
+
+<FORM>
+
+<INPUT TYPE=hidden NAME=requiredTag
+<!--#if requiredTag -->
+       VALUE="<!--#echo var=requiredTag -->"
+<!--#elif rollup -->
+       VALUE="<!--#echo var='rollup' --> Rollup Tag"
+<!--#else-->
+       VALUE="<!--#echo var="[Process_ID]" --> Tag"
+<!--#endif-->
+>
+
+<!--#if not rollup -->
+
+<TABLE>
+<TR>
+<TD>Project Owner</TD>
+<TD><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
+</TR>
+
+<TR>
+<TD>Start Date</TD>
+<TD><INPUT TYPE=text SIZE=25 NAME="Started	d"></TD>
+</TR>
+
+<TR>
+<TD>Completion Date</TD>
+<TD><INPUT TYPE=text SIZE=25 NAME="Completed	d"> Completed: <INPUT TYPE=checkbox NAME="Completed	d"></TD>
+</TR>
+
+<TR>
+<TD>Keywords</TD>
+<TD><INPUT TYPE=text SIZE=25 NAME="Project/Keywords	s"></TD>
+</TR>
+
+<TR>
+<TD>Language</TD>
+<TD><INPUT TYPE=text SIZE=15 NAME="Project/Language	s"></TD>
+</TR>
+
+</TABLE>
+<!--#include file="../dash/selectRollup.class" -->
+
+<!--#endif rollup -->
+
+
+
+<H2>Overall Metrics</H2>
+
+<TABLE>
+
+<TR>
+<TD><B>Summary</B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<!--#if not rollup -->
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<!--#endif-->
+</TR>
+
+<!--#if [Productivity] -->
+<TR>
+<TD>Productivity</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Productivity"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Productivity"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Productivity To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endif-->
+
+<TR>
+<TD>Planned Time</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time To Date"></TD>
+<!--#endif-->
+</TR>
+
+<TR>
+<TD>Actual Time</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Time To Date"></TD>
+<!--#endif-->
+</TR>
+
+<TR>
+<TD>CPI (Cost-Performance Index)</TD>
+<TD></TD>
+<!--#if rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="CPI"></TD>
+<!--#else-->
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="CPI To Date"></TD>
+<!--#endif-->
+</TR>
+
+<!--#if [Defect Density] -->
+<!--#if [Last_Failure_Phase] -->
+<TR>
+<TD><!--#echo [Last_Failure_Phase] --> Defect Density</TD>
+<TD><INPUT TYPE=text SIZE=7
+    NAME="<!--#echo [Last_Failure_Phase] -->/Estimated Defect Density"></TD>
+<TD><INPUT TYPE=text SIZE=7
+    NAME="<!--#echo [Last_Failure_Phase] -->/Defect Density"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7
+    NAME="<!--#echo [Last_Failure_Phase] -->/Defect Density To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endif [Last_Failure_Phase] -->
+
+<TR>
+<TD>Total Defect Density</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Defect Density"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defect Density"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Defect Density To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endif [Defect Density] -->
+
+<!--#if [Yield] -->
+<TR>
+<TD>Yield %</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Yield	%"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Yield	%"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Yield To Date	%"></TD>
+<!--#endif-->
+</TR>
+<!--#endif-->
+
+<!--#if [% Appraisal COQ] -->
+<TR>
+<TD>% Appraisal COQ</TD>
+<TD><INPUT TYPE=text SIZE=7
+    MANUALFOR="8A" NAME="Estimated % Appraisal COQ	%"></TD>
+<TD><INPUT TYPE=text SIZE=7
+    MANUALFOR="8A" NAME="% Appraisal COQ	%"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7
+    MANUALFOR="8A" NAME="% Appraisal COQ To Date	%"></TD>
+<!--#endif-->
+</TR>
+<!--#endif-->
+
+<!--#if [% Failure COQ] -->
+<TR>
+<TD>% Failure COQ</TD>
+<TD><INPUT TYPE=text SIZE=7
+    MANUALFOR="8A" NAME="Estimated % Failure COQ	%"></TD>
+<TD><INPUT TYPE=text SIZE=7 MANUALFOR="8A" NAME="% Failure COQ	%"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7
+    MANUALFOR="8A" NAME="% Failure COQ To Date	%"></TD>
+<!--#endif-->
+</TR>
+
+<!--#if [% Appraisal COQ] -->
+<TR>
+<TD>COQ A/F Ratio</TD>
+<TD><INPUT TYPE=text SIZE=7 MANUALFOR="8A" NAME="Estimated AFR"></TD>
+<TD><INPUT TYPE=text SIZE=7 MANUALFOR="8A" NAME="AFR"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 MANUALFOR="8A" NAME="AFR To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endif [% Appraisal COQ] -->
+<!--#endif [% Failure COQ] -->
+
+<!--#if [Size] -->
+<TR>
+<TD>Size</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Size"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Size To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endif-->
+
+<!--#if not rollup -->
+<TR>
+<TD>&nbsp;&nbsp;Size UPI (70%)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max Size"></TD>
+<TD></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;Size LPI (70%)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min Size"></TD>
+<TD></TD>
+<TD></TD>
+</TR>
+<!--#endif-->
+
+</TABLE>
+
+
+<H2>Time</H2>
+
+<TABLE>
+
+<TR>
+<TD><B>Time in Phase (min.)</B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<!--#if not rollup -->
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<TD ALIGN=CENTER><B>To Date %</B></TD>
+<!--#endif-->
+</TR>
+
+<!--#foreach name=Phase list=[Phase_List] -->
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo value="Phase" --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Time"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Time To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/%/Time To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endfor-->
+
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;Total</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Time To Date"></TD>
+<TD></TD>
+<!--#endif-->
+</TR>
+
+<!--#if not rollup -->
+<TR>
+<TD>&nbsp;&nbsp;Total Time UPI (70%)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max Time"></TD>
+<TD></TD>
+<TD></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;Total Time LPI (70%)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min Time"></TD>
+<TD></TD>
+<TD></TD>
+<TD></TD>
+</TR>
+<!--#endif-->
+
+</TABLE>
+
+
+
+<!--#if [Defects Injected] -->
+
+<H2>Defects Injected</H2>
+
+<TABLE>
+
+<TR>
+<TD><B>Defects Injected</B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<!--#if not rollup -->
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<TD ALIGN=CENTER><B>To Date %</B></TD>
+<!--#endif-->
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;Before Development</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Before Development/Estimated Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Before Development/Defects Injected"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Before Development/Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Before Development/%/Defects Injected To Date"></TD>
+<!--#endif-->
+</TR>
+
+<!--#foreach name=Phase list=[Phase_List] -->
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo value="Phase" --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Estimated Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Injected"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/%/Defects Injected To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endfor-->
+
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;Total Development</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Injected"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Injected To Date"></TD>
+<TD></TD>
+<!--#endif-->
+</TR>
+
+</TABLE>
+
+<!--#endif [Defects Injected] -->
+
+
+<!--#if [Defects Removed] -->
+
+<H2>Defects Removed</H2>
+
+<TABLE>
+
+<TR>
+<TD><B>Defects Removed</B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<!--#if not rollup -->
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<TD ALIGN=CENTER><B>To Date %</B></TD>
+<!--#endif-->
+</TR>
+
+<!--#foreach name=Phase list=[Phase_List] -->
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo value="Phase" --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Estimated Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Removed"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Removed To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/%/Defects Removed To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endfor-->
+
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;Total Development</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Removed"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Removed To Date"></TD>
+<TD></TD>
+<!--#endif-->
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;After Development</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="After Development/Estimated Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="After Development/Defects Removed"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="After Development/Defects Removed To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="After Development/%/Defects Removed To Date"></TD>
+<!--#endif-->
+</TR>
+
+</TABLE>
+
+
+<H2>Defect Removal Efficiency</H2>
+
+<TABLE>
+
+<TR>
+<TD><B>Defect Removal Efficiency</B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<!--#if not rollup -->
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<!--#endif-->
+</TR>
+
+<!--#foreach name=Phase list=[Quality_Phase_List] -->
+<TR>
+<TD>Defects/Hour - <!--#echo value="Phase" --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Estimated Defects Removed per Hour"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Removed per Hour"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Removed per Hour To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endfor-->
+
+<!--#foreach name=QPhase list=[Quality_Phase_List] -->
+<!--#if [QPhase/DRL] -->
+<TR>
+<TD>DRL (<!--#echo value="QPhase" -->/<!--#echo [Last_Failure_Phase] -->)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="QPhase/Estimated DRL"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="QPhase/DRL"></TD>
+<!--#if not rollup -->
+<TD><INPUT TYPE=text SIZE=7 NAME="QPhase/DRL To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endif-->
+<!--#endfor-->
+
+</TABLE>
+
+<!--#endif [Defects Removed] -->
+
+</FORM>
+
+<SCRIPT SRC="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</SCRIPT>
+
+</BODY>
+</HTML>
