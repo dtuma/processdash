@@ -34,7 +34,8 @@ This file exists for the sole purpose of precaching names for the
 -->
 
 <dashboard-process-template>
-  <template name="Imaginary pspForEng Template" imaginary="true">
+  <template name="Imaginary pspForEng Template"
+            imaginary="true" defineRollup="no">
     <html ID="size4A" title="PSP1 Size Estimating Template"
                       href="pspForEng/4A/sizeest.class"/>
     <html ID="size5A" title="PSP1.1 Size Estimating Template"
