@@ -127,11 +127,11 @@ the # character.</p>
 
  <li><a name="dateTimeFormat"></a><strong>dateTimeFormat</strong><br>
    Display format for date and time fields.<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>A list of recognized date formats, separated by 
-      the | character.  The first format in the list will be used when 
-      displaying date-times.  For valid format syntax, see the documentation for 
-      java.text.SimpleDateFormat in the Sun Java Developer Kit.
+   <table border=0><tr valign="top"><td NOWRAP>Format:</td><td>A list of 
+      recognized date formats, separated by the | character.  The first 
+      format in the list will be used when displaying date-times.  For valid 
+      format syntax, see the documentation for java.text.SimpleDateFormat in 
+      the Sun Java Developer Kit.
       </td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>MMM dd, yyyy hh:mm:ss aaa</td></tr>
     <tr valign="top"><td NOWRAP>Example:</td><td>dateFormat=MMM dd, yyyy hh:mm</td></tr>
@@ -160,11 +160,12 @@ the # character.</p>
    phase B."  When you remove a defect during phase B of a process, it will 
    then use phase A as the default injection phase.<br>
    <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>It should be a list of phase pairs; the pairs 
-      should be separated from each other by "|" characters.  Each pair 
-      should be of the form "phase A=&gt;phase B".</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>HLD=>Design|Design=>Test</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.phaseMap=HLD=>Design|Code=>Test</td></tr>
+    <tr valign="top"><td NOWRAP>Format:</td><td>It should be a list of phase 
+      pairs; the pairs should be separated from each other by "|" 
+      characters.  Each pair should be of the form "phase A=&gt;phase 
+      B".</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>HLD=&gt;Design|Design=&gt;Test</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.phaseMap=HLD=&gt;Design|Code=&gt;Test</td></tr>
    </table>
  </li>
  <br>
