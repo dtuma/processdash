@@ -1,21 +1,23 @@
 <HTML>
 <head>
 <TITLE>Making changes to the standard scripts</TITLE>
+<link rel=stylesheet type="text/css" href="../../../style.css">
 </head>
 <BODY>
 
 <a name="OverwritingScript"></a><h1>Making a change to a script</h1>
 
-<p>Perhaps the built-in PSP processes suit you well, but you'd like to make 
+<p>Perhaps a pre-existing process suits you well, but you'd like to make 
 some small tweak to one of the HTML scripts.  For example, you might like to 
 add company specific instructions to some of the steps (to run a code 
 analyzer perhaps).</p>
 
-<p>When you're viewing the page in question, you notice it has the URL:</p>
+<p>When you're viewing the page in question, you notice it has a URL like:</p>
 
-<p><code>http://localhost:2468/Project+Path//<b>psp2.1/develop.htm</b></code></p>
+<p><code>http://localhost:2468/Project+Path//<b>procID/script.htm</b></code></p>
 
-<p>This example uses the PSP2.1 process - other processes will have other text in place of "psp2.1".</p>
+<p>In this example, "procID" is the ID of the process containing the script, 
+and "script.htm" is the name of an HTML script within that process.</p>
 
 <p>Take the following steps:</p>
 <ol>
@@ -24,13 +26,14 @@ analyzer perhaps).</p>
    running on Unix, you should know where the pspdash.jar is located based on 
    where you installed the dashboard!).</li>
  <li>Create a directory alongside it called "Templates".</li>
- <li>Create a subdirectory within "Templates" called "psp2.1".</li>
- <li>Save the current version of the HTML file to the psp2.1 subdirectory. 
-   This can be done by choosing &quot;File
+ <li>Create a subdirectory within "Templates" with the name that appears
+   in the "procID" space in the example above.</li>
+ <li>Save the current version of the HTML file to the subdirectory you
+   just created. This can be done by choosing &quot;File
    <img src="../../../Images/rarrow.png"> 
    Save As...&quot; from within your web browser. <ul>
    <li>Give the file the same name that appears in the URL - in this
-      instance, we would save the file as "develop.htm".  (Note: if the
+      instance, we would save the file as "script.htm".  (Note: if the
       URL contains a "?" or "#", just use the filename that appears
       before the "?" or "#".)
    <li>If your web browser has a feature to save "html only", use it.</li>
@@ -40,9 +43,9 @@ analyzer perhaps).</p>
  <li>Edit it to your heart's content using the HTML editor of your choice.</li>
 </ol>
 
-<p>Now, every time you visit that page, for any applicable project in your 
-hierarchy, the dashboard will show you the page containing your custom 
-changes.</p>
+<p>Now, every time you visit that page, for any project in your
+hierarchy that uses this process, the dashboard will show you the page
+containing your custom changes.</p>
 
 <a name="FindFiles"></a><H1>How the Dashboard finds process files</H1>
 

@@ -1,10 +1,11 @@
 <HTML>
 <head>
 <TITLE>Counting LOC</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
 </head>
 <BODY>
 
-<H1>Counting LOC</H1>
+<H1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP-->Counting LOC</H1>
 
 <p>Measuring size is an important step in the PSP Postmortem phase. If you 
 don't pause in your project postmortem to measure the number of added, 
@@ -15,10 +16,15 @@ data for future planning efforts.</p>
 <P>You may already have a LOC counter that you use on a regular basis. (In 
 fact, most people who complete the PSP training course write a LOC counter 
 during the training.) If you do need a LOC counter, one is built into the 
-dashboard. A link to this LOC counter is included in the Postmortem scripts 
-for PSP0.1 and up.</P>
+dashboard.</p>
 
-<p><center><img src="../../Images/PspDiffLink.png"></center></p>
+<p class="unlesspsp">You can access this LOC counter by pointing your
+web browser at <u>http://localhost:2468/dash/pspdiff.htm</u>.</p>
+
+<p class="ifpsp">A link to this LOC counter is included in the
+Postmortem scripts for PSP0.1 and up.</P>
+
+<p class="ifpsp" align="center"><img src="../../Images/PspDiffLink.png"></p>
 
 <P>The built-in LOC counter helps to determine the number of physical LOC 
 that you have added, deleted, and modified. It also displays a "redlined" 
