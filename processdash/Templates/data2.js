@@ -307,6 +307,7 @@ var DISPATCH_CONNECTION_LOST = 2;
 var dispatchState = DISPATCH_IDLE;
 
 
+var DISPATCH_MAX_MSG_SIZE = 2000;
 var DISPATCH_ACK_TIMEOUT = 5000;
 var DISPATCH_DONE_TIMEOUT = 30000;
 var DISPATCH_FRAME = "listener";
@@ -337,10 +338,53 @@ function initDispatch(nullMsgFunc, connLostFunc) {
 
 // public - this method can be called freely by other javascript.
 function addMessage(msg) {
+    if (msg.length < DISPATCH_MAX_MSG_SIZE) {
+        addMessageSimple(msg);
+    } else {
+        addMessageBatch(msg);
+    }
+}
+
+// private (should only be called by dispatch logic)
+function addMessageSimple(msg) {
     var msgID = nextMessageID++;
     var fullMessage = msg + getMsgIDSuffix(msgID);
 
     messageQueue.push(fullMessage);
+    if (dispatchState == DISPATCH_IDLE)
+        dispatchMessage(true);
+}
+
+// private (should only be called by dispatch logic)
+function addMessageBatch(msg) {
+    var pos = msg.indexOf("?");
+    if (pos == -1) {
+        // not much else we can do!
+        addMessageSimple(msg);
+	return;
+    }
+
+    var url = msg.substr(0, pos+1);
+    var query = msg.substr(pos+1);
+    var batchID = nextMessageID++;
+    var partLen = DISPATCH_MAX_MSG_SIZE - 100;
+
+    while (query.length > 0) {
+        var queryPart = "";
+        if (query.length > partLen) {
+	    queryPart = query.substr(0, partLen) + "&batchID=" + batchID;
+	    query = query.substr(partLen);
+        } else {
+	    queryPart = query + "&batchDoneID=" + batchID;
+	    query = "";
+	}
+	
+	var msgPart = url + queryPart;
+	var msgPartID = nextMessageID++;
+	var fullMessage = msgPart + getMsgIDSuffix(msgPartID);
+	messageQueue.push(fullMessage);
+    }
+
     if (dispatchState == DISPATCH_IDLE)
         dispatchMessage(true);
 }

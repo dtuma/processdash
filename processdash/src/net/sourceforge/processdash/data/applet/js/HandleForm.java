@@ -27,6 +27,12 @@ package net.sourceforge.processdash.data.applet.js;
 
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.Settings;
@@ -42,6 +48,88 @@ public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
 
     static int REFRESH_DELAY =
         1000 * Settings.getInt("dataApplet.refreshInterval", 15);
+
+    static Hashtable BATCH_PARAMETERS = new Hashtable();
+    static final String BATCH_ID = "&batchID=";
+    static final String BATCH_DONE_ID = "&batchDoneID=";
+
+    public void service(InputStream in, OutputStream out, Map env)
+            throws IOException
+    {
+        String query = (String) env.get("QUERY_STRING");
+        if (query.indexOf(BATCH_ID) != -1)
+            handleQueryBatchInstruction(out, env, query);
+
+        else {
+            if (query.indexOf(BATCH_DONE_ID) != -1)
+                prependQueryBatch(env, query);
+            super.service(in, out, env);
+        }
+    }
+
+    private void handleQueryBatchInstruction(OutputStream out, Map env,
+                                             String query) throws IOException {
+        int pos = query.indexOf(BATCH_ID);
+        String queryPart = query.substring(0, pos);
+        String batchID = extractParamVal(query, BATCH_ID);
+        String messageID = extractParamVal(query, "&msgid=");
+
+        synchronized (BATCH_PARAMETERS) {
+            String existingParam = (String) BATCH_PARAMETERS.get(batchID);
+            String newParam;
+            if (existingParam == null)
+                newParam = queryPart;
+            else {
+                if (queryPart.startsWith("action=")) {
+                    pos = queryPart.indexOf('&');
+                    queryPart = queryPart.substring(pos+1);
+                }
+                newParam = existingParam + queryPart;
+            }
+            BATCH_PARAMETERS.put(batchID, newParam);
+        }
+
+        this.out = new PrintWriter(new OutputStreamWriter(out, charset));
+        parameters.clear();
+        parameters.put("msgid", messageID);
+
+        writeHeader();
+        writeHTMLHeader();
+        writeAckCommand();
+        writeDoneCommand(10);
+        writeHTMLFooter();
+        this.out.flush();
+    }
+
+    private void prependQueryBatch(Map env, String query) {
+        String batchID = extractParamVal(query, BATCH_DONE_ID);
+        String batchedQuery = (String) BATCH_PARAMETERS.remove(batchID);
+        if (batchedQuery == null) {
+            // shouldn't happen!!
+            return;
+        } else {
+            if (query.startsWith("action=")) {
+                int pos = query.indexOf('&');
+                query = query.substring(pos+1);
+            }
+
+            query = batchedQuery + query;
+            env.put("QUERY_STRING", query);
+        }
+    }
+
+    private String extractParamVal(String query, String param) {
+        int beg = query.lastIndexOf(param);
+        if (beg == -1) return null;
+
+        beg += param.length();
+        int end = query.indexOf('&', beg);
+        if (end == -1)
+            return query.substring(beg);
+        else
+            return query.substring(beg, end);
+    }
+
 
     /** Write the CGI header. */
     protected void writeHeader() {
