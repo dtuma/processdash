@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /****************************************************************************
 // PSP Dashboard - Data Automation Tool for PSP-like processes
 // Copyright (C) 1999  United States Air Force
@@ -25,7 +26,6 @@
 // E-Mail POC:  ken.raisor@hill.af.mil
 ****************************************************************************/
 
-// -*- mode: c++ -*-
 
 				// if this (no-op) statement is removed, a
 				// bug in Netscape causes this entire script
@@ -189,6 +189,7 @@ function IEregisterElement(elem) {
         // element is disabled and thus cannot receive the focus until the
         // IEDataApplet is ready.
     elem.onfocus = IEcheckEditable;
+    elem.onblur = IEscanForReadOnly;
   }
 }
 				// function object for use by elementIterate
@@ -210,14 +211,12 @@ function IEsetup() {
 
 				// add a data applet to the page.
     document.writeln('<applet id=IEDataAppl'+
-		            ' codebase="../../.."' +
+		            ' codebase="/1/IE"' +
 		            ' code=pspdash.data.IEDataApplet'+
 		            ' width=0 height=0>');
     document.writeln(IEparameterString);
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
-    document.writeln('<param name=searchString value=' +
-		     location.search.substring(1) +'>');
     document.writeln('</applet>');
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
@@ -410,13 +409,11 @@ function NSSetup() {
   if (pageContainsElements == true) {
     if (debug) document.writeln("<p>creating applet.");
     document.writeln('<applet name=NSDataAppl'+
-		            ' codebase="../../.." '+
+		            ' codebase="/1/NS" '+
 		            ' code=pspdash.data.NSDataApplet'+
 		            ' width=0 height=0 MAYSCRIPT>');
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
-    document.writeln('<param name=searchString value=' +
-		     location.search.substring(1) +'>');
     document.writeln('</applet>');
   }
 }
@@ -447,32 +444,15 @@ function NSversion() {
 if (debug) document.writeln("Starting setup process.");
 
 
-/*
- * The program currently communicates its data prefix by appending
- * "?prefixIDnum" to the end of the URL.  The next few lines of code reset
- * the HREFs of all hyperlinks in the document so they will pass this
- * information on to related HTML pages.
- */
-
-if (debug) document.writeln("<p>Redirecting HREFs of included links.");
-
-if (location.search != "") {
-  var linkNum;
-  for (linkNum = document.links.length;   linkNum-- > 0;   )
-    document.links[linkNum].search = location.search;
-}
-
-
-
 if (MSIEversion() >= 4)
   IEsetup();
-else if (NSversion() >= 4)
+else if (NSversion() >= 4 && NSversion() < 6)
   NSSetup();
 else {
     document.write("<HR><CENTER>");
     document.write("HTML Data support of the PSP Dashboard requires either ");
     document.write("Microsoft Internet Explorer 4.0 (or later) or ");
-    document.write("Netscape Navigator 4.0 (or later).  To use these ");
+    document.write("Netscape Navigator 4.0-4.75.  To use these ");
     document.write("features, please click on one of the icons below to ");
     document.write("download the latest version.<P>");
     document.write('<A HREF="http://www.microsoft.com/ie/logo.asp"><IMG SRC="http://www.microsoft.com/sitebuilder/graphics/ie4get_animated.gif" WIDTH="88" HEIGHT="31" BORDER="0" ALT="Get Microsoft Internet Explorer"></A>');
