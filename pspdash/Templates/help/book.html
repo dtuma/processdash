@@ -1111,8 +1111,24 @@ University.</P>
 
 <H2><a name="para_1_6_"></a>1.6. Using help</H2>
 
-<P>This help system is a standard JavaHelp implementation.  Starting the help 
-system is as easy as clicking "help" on the "C" (configure) menu.</p>
+<p>Starting the help system is as easy as clicking "help" on the "C"
+(configure) menu.  This online help is available via two methods:<ul>
+
+   <li>If you have JavaHelp<sup>(TM)</sup> installed on your computer,
+       the dashboard will use it to provide context-sensitive help
+       with an index and full-text search capabilities.</li>
+
+   <li>If JavaHelp is not present on your computer, the dashboard will
+       display help topics in your web browser.</li>
+
+</ul>
+
+<p>The full-text search capability is a very useful feature; for this
+reason, we strongly recommend installing JavaHelp.  You can download
+JavaHelp from Sun Microsystems by visiting
+<u>http://java.sun.com/products/javahelp/</u> .  The paragraphs below
+describe the behavior of the help when JavaHelp has been
+installed.</p>
 
 <P>Currently the help system provides three ways of accessing help topics:</P>
 <UL>
@@ -1169,6 +1185,8 @@ tool.</p>
 
 
 <!-- DISCLAIMER -->
+
+<p><i>JavaHelp is a trademark of Sun Microsystems.</i></p>
 
 </div>
 <div>
@@ -5249,6 +5267,18 @@ the # character.</p>
     <tr valign="top"><td NOWRAP>Format:</td><td>Text</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>N/A</td></tr>
     <tr valign="top"><td NOWRAP>Example:</td><td>autoUpdate.proxyUsername=dashuser</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>backup.enabled</strong><br>
+   If this is property is set to "true", the dashboard will back up the files
+   in your data directory daily, and each time the dashboard starts and
+   stops.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>backup.enabled=true</td></tr>
    </table>
  </li>
  <br>
