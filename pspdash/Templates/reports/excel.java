@@ -123,12 +123,7 @@ public class excel extends pspdash.TinyCGIBase {
         return uri;
     }
     private String getURL() {
-        String host;
-        try {
-            host = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException uhe) {
-            host = "localhost";
-        }
+        String host = pspdash.TinyWebServer.getHostName();
         String port = (String) env.get("SERVER_PORT");
         return "http://" + host + ":" + port + getURI();
     }
