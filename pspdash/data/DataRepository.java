@@ -1154,6 +1154,11 @@ public class DataRepository implements Repository {
 
 
         public synchronized void dumpRepository (PrintWriter out, Vector filt) {
+            dumpRepository(out, filt, false);
+        }
+
+        public synchronized void dumpRepository (PrintWriter out, Vector filt,
+                                                 boolean dataStyle) {
             Iterator k = getKeys();
             String name, value;
             DataElement  de;
@@ -1175,15 +1180,22 @@ public class DataRepository implements Repository {
                         if (de.datafile != null) {
                             value = null;
                             sd = de.getSimpleValue();
-                            if (sd instanceof DateData) {
+                            if (sd == null) continue;
+
+                            if (dataStyle) {
+                                value = sd.saveString();
+                            } else if (sd instanceof DateData) {
                                 value = ((DateData)sd).formatDate();
                             } else if (sd instanceof StringData) {
                                 value = StringData.escapeString(((StringData)sd).getString());
                                 // } else if (sd instanceof DoubleData) {
                                 // value = ((DoubleData)sd).formatNumber(3);
-                            } else if (sd != null)
+                            } else
                                 value = sd.toString();
-                            if (value != null) {
+
+                            if (dataStyle) {
+                                out.println(name.substring(1) + "==" + value);
+                            } else {
                                 if (name.indexOf(',') != -1)
                                     name = EscapeString.escape(name, '\\', ",", "c");
                                 out.println(name + "," + value);

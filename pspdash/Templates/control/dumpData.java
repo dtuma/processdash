@@ -28,7 +28,7 @@ import pspdash.*;
 import java.io.IOException;
 import java.util.Vector;
 
-public class dumpData extends TinyCGIBase {
+public class dumpData extends TinyCGIBase implements TinyCGIHighVolume {
 
     protected void writeHeader() {
         out.print("Content-type: text/plain\r\n\r\n");
@@ -43,7 +43,7 @@ public class dumpData extends TinyCGIBase {
             filter = new Vector();
             filter.add(prefix);
         }
-        getDataRepository().dumpRepository(out, filter);
+        getDataRepository().dumpRepository(out, filter, true);
     }
 
 }
