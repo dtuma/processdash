@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -70,7 +70,7 @@ public class DefectDialog extends JDialog
     /** A timer object for refreshing the fix time field. */
     private javax.swing.Timer activeRefreshTimer = null;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.DefectDialog");
+    ResourceBundle resources = Resources.getBundle("pspdash.Defects");
 
 
     DefectDialog(PSPDashboard dash, String defectFilename,
@@ -81,7 +81,7 @@ public class DefectDialog extends JDialog
     DefectDialog(PSPDashboard dash, String defectFilename,
                  PropertyKey defectPath, boolean guessDefaults) {
         super(dash);
-        setTitle(resources.getString("Window_Title"));
+        setTitle(resources.getString("Defect_Dialog_Window_Title"));
         PCSH.enableHelpKey(this, "EnteringDefects");
 
         parent = dash;

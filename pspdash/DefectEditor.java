@@ -56,7 +56,7 @@ public class DefectEditor extends Component
     protected JComboBox dtsSelector;
 //  protected UserWarning     warnUser;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.DefectEditor");
+    ResourceBundle resources = Resources.getBundle("pspdash.Defects");
     String inheritTypeSelection, typeSelectionTooltip;
     boolean buildingDtsSelector = false;
 
@@ -85,7 +85,7 @@ public class DefectEditor extends Component
         defectLogs = new Hashtable ();
         reload ();
 
-        frame = new JFrame(resources.getString("Window_Title"));
+        frame = new JFrame(resources.getString("Defect_Log_Window_Title"));
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("Center", panel);

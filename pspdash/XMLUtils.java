@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -112,11 +112,12 @@ public class XMLUtils {
 
         if (e instanceof SAXParseException) {
             SAXParseException spe = (SAXParseException) e;
-            message = Resources.format(Resources.getBundle("pspdash.Misc"),
-                                       "XML_Exception_FMT",
-                                       message,
-                                       new Integer(spe.getLineNumber()),
-                                       new Integer(spe.getColumnNumber()));
+            message = Resources.format
+                (Resources.getBundle("pspdash.Templates"),
+                 "XML_Exception_FMT",
+                 message,
+                 new Integer(spe.getLineNumber()),
+                 new Integer(spe.getColumnNumber()));
         }
 
         return message;

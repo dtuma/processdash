@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -331,7 +331,7 @@ public class TemplateLoader {
             root = doc.getDocumentElement();
         } catch (SAXException se) {
             String message = XMLUtils.exceptionMessage(se);
-            ResourceBundle r = Resources.getBundle("pspdash.TemplateLoader");
+            ResourceBundle r = Resources.getBundle("pspdash.Templates");
             if (message == null)
                 message = Resources.format(r, "Error_FMT", filename);
             else
@@ -699,7 +699,7 @@ public class TemplateLoader {
 
             if (v.size() == 0) {
                 String planSummaryName = Resources.format
-                    (Resources.getBundle("pspdash.AutoData"),
+                    (Resources.getBundle("pspdash.Templates"),
                      "Plan_Summary_Name_FMT", ID);
                 v.addElement(new ScriptID("dash/summary.shtm", null,
                                           planSummaryName));
@@ -748,7 +748,7 @@ public class TemplateLoader {
     private static ErrorReporter errorReporter = null;
     public synchronized static void logTemplateError(String error) {
         if (errorReporter == null) {
-            ResourceBundle r = Resources.getBundle("pspdash.TemplateLoader");
+            ResourceBundle r = Resources.getBundle("pspdash.Templates");
             errorReporter = new ErrorReporter
                 (r.getString("Error_Title"),
                  StringUtils.split(r.getString("Error_Header"), "\n"),

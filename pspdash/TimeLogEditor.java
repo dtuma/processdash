@@ -90,7 +90,7 @@ public class TimeLogEditor extends Object
     boolean tableContainsRows = false;
     boolean selectedNodeLoggingAllowed = false;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.TimeLogEditor");
+    ResourceBundle resources = Resources.getBundle("pspdash.Time");
 
     //
     // member functions
@@ -113,7 +113,7 @@ public class TimeLogEditor extends Object
             tl.read (dashboard.getTimeLog());
         } catch (IOException e) {}
 
-        frame = new JFrame(resources.getString("Window_Title"));
+        frame = new JFrame(resources.getString("Time_Log_Editor_Window_Title"));
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("Center", panel);

@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -53,7 +53,7 @@ public class ScriptBrowser extends JDialog
 
     protected JButton editButton, deleteButton, closeButton;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.Misc");
+    ResourceBundle resources = Resources.getBundle("pspdash.PSPDashboard");
 
 
     //

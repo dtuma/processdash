@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -63,7 +63,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static final String FORUM_URL =
         "http://sourceforge.net/forum/forum.php?forum_id=30753";
 
-    ResourceBundle resources = Resources.getBundle("pspdash.ConfigureButton");
+    ResourceBundle resources = Resources.getBundle("pspdash.PSPDashboard");
 
                                   // menu labels
     static final String HIERARCHY_FRAME  = "Hierarchy";

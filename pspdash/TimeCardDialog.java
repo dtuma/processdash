@@ -56,13 +56,13 @@ public class TimeCardDialog {
     private static final int HOURS = 1;
     private static final int MINUTES = 2;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.TimeCardDialog");
+    ResourceBundle resources = Resources.getBundle("pspdash.Time");
 
     public TimeCardDialog(PSPProperties useProps, TimeLog timeLog) {
         this.useProps = useProps;
         this.timeLog = timeLog;
 
-        frame = new JFrame(resources.getString("Window_Title"));
+        frame = new JFrame(resources.getString("Time_Card_Window_Title"));
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
 

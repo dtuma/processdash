@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -42,7 +42,7 @@ class CompletionButton extends JCheckBox implements ActionListener {
         super();
         PCSH.enableHelp(this, "CompletionButton");
         parent = dash;
-        resources = Resources.getBundle("pspdash.Misc");
+        resources = Resources.getBundle("pspdash.PSPDashboard");
         setMargin (new Insets (0,2,0,2));
         addActionListener(this);
         GridBagConstraints g = new GridBagConstraints();
