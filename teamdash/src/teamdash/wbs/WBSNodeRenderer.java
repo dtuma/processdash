@@ -39,8 +39,14 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         nameError = (String) node.getAttribute
             (WBSModelValidator.NODE_NAME_ERROR_ATTR_NAME);
 
+        int modFlags = 0;
         if (iconError != null)
-            icon = IconFactory.getModifiedIcon(icon, IconFactory.ERROR_ICON);
+            modFlags |= IconFactory.ERROR_ICON;
+        if (table instanceof WBSJTable && ((WBSJTable) table).isCutNode(node))
+            modFlags |= IconFactory.PHANTOM_ICON;
+
+        if (modFlags != 0)
+            icon = IconFactory.getModifiedIcon(icon, modFlags);
 
         expansionIcon.realIcon = icon;
 

@@ -212,6 +212,11 @@ public class WBSNodeEditor extends AbstractCellEditor
     public EventObject getRestartEditingEvent() {
         return editorComponent.getRestartEditingEvent();
     }
+    public void updateEditorAppearance() {
+        editorComponent.updateInfo();
+        editorComponent.invalidate();
+        editorComponent.repaint();
+    }
 
     private static final int CLICKED_NONE = 0;
     private static final int CLICKED_WHITESPACE = 1;
@@ -346,9 +351,14 @@ public class WBSNodeEditor extends AbstractCellEditor
             iconError = (String) editingNode.getAttribute
                 (WBSModelValidator.NODE_TYPE_ERROR_ATTR_NAME);
             iconListener.setToolTipText(iconError);
+            int modFlags = 0;
             if (iconError != null)
-                nodeIcon = IconFactory.getModifiedIcon
-                    (nodeIcon, IconFactory.ERROR_ICON);
+                modFlags |= IconFactory.ERROR_ICON;
+            if (table instanceof WBSJTable &&
+                ((WBSJTable) table).isCutNode(editingNode))
+                modFlags |= IconFactory.PHANTOM_ICON;
+            if (modFlags != 0)
+                nodeIcon = IconFactory.getModifiedIcon(nodeIcon, modFlags);
         }
 
         public void setText(String text) { textField.setText(text); }
@@ -474,10 +484,7 @@ public class WBSNodeEditor extends AbstractCellEditor
                 editingNode.setType(type);
                 wbsModel.fireTableRowsUpdated(rowNumber,
                                               wbsModel.getRowCount()-1);
-                editorComponent.updateInfo();
-                editorComponent.invalidate();
-                editorComponent.repaint();
-                //wbsModel.fireTableRowsUpdated(rowNumber, rowNumber);
+                updateEditorAppearance();
             } else {
                 System.out.println("in NodeIconMenuAction.actionPerformed: editingNode = null!");
             }

@@ -1,12 +1,16 @@
 
 package teamdash.wbs;
 
+import java.io.IOException;
+import java.io.Writer;
+import java.util.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.event.EventListenerList;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-
-import java.util.*;
 
 public class WBSModel extends AbstractTableModel {
 
@@ -15,10 +19,19 @@ public class WBSModel extends AbstractTableModel {
     protected EventListenerList listenerList = new EventListenerList();
 
 
-    public WBSModel() {
+    public WBSModel() { this("Root"); }
+
+    public WBSModel(String name) {
         wbsNodes = new ArrayList();
-        add(new WBSNode(this, "Root", "Project", 0, true));
+        add(new WBSNode(this, name, "Project", 0, true));
         validator = new WBSModelValidator(this);
+    }
+
+    public WBSModel(Element e) {
+        wbsNodes = new ArrayList();
+        loadXML(e);
+        validator = new WBSModelValidator(this);
+        validator.recalc();
     }
 
     public void add(WBSNode node) {
@@ -115,6 +128,33 @@ public class WBSModel extends AbstractTableModel {
         return result;
     }
 
+    private IntList getDescendantIndexes(WBSNode node, int pos) {
+        if (node == null)
+            node = (WBSNode) wbsNodes.get(pos);
+        int parentIndentLevel = node.getIndentLevel();
+
+        WBSNode possibleDescendantNode;
+        int nodeIndentLevel;
+
+        IntList result = new IntList(wbsNodes.size() - pos);
+
+        while (++pos < wbsNodes.size()) {
+            possibleDescendantNode = (WBSNode) wbsNodes.get(pos);
+            nodeIndentLevel = possibleDescendantNode.getIndentLevel();
+
+            // if this node is at the same indentation level as the
+            // parent, or if it is further left than the parent, then
+            // it is impossible for the parent to have any more descendants
+            if (nodeIndentLevel <= parentIndentLevel)
+                break;
+
+            // this node is a descendant of the parent.  Store it in
+            // our result list.
+            result.add(pos);
+        }
+        return result;
+    }
+
     private int[] rows;
 
 
@@ -206,21 +246,45 @@ public class WBSModel extends AbstractTableModel {
         return true;
     }
 
+
+
+    protected IntList getIndexesForRows(int[] rowNumbers,
+                                        boolean excludeRoot)
+    {
+        IntList result = new IntList();
+        WBSNode node;
+        for (int i = 0;   i < rowNumbers.length;   i++) {
+            if (rowNumbers[i] == 0 && excludeRoot) continue;
+            node = getNodeForRow(rowNumbers[i]);
+            if (node == null) continue;
+            result.add(rows[rowNumbers[i]]);
+            if (node.isExpanded() == false)
+                result.addAll(getDescendantIndexes(node, rows[rowNumbers[i]]));
+        }
+        return result;
+    }
+
+    public List getNodesForRows(int[] rowNumbers, boolean excludeRoot) {
+        ArrayList result = new ArrayList();
+        IntList nodeIndexes = getIndexesForRows(rowNumbers, excludeRoot);
+        for (int i = 0;   i < nodeIndexes.size();   i++)
+            result.add(wbsNodes.get(nodeIndexes.get(i)));
+
+        return result;
+    }
+    public IntList getRowsForNodes(List nodes) {
+        IntList result = new IntList(nodes.size());
+        Iterator i = nodes.iterator();
+        while (i.hasNext())
+            result.add(wbsNodes.indexOf(i.next()));
+        return result;
+    }
+
     public synchronized int[] indentNodes(int[] rowNumbers, int delta) {
         if (delta == 0) return null;
         WBSNode n;
 
-        IntList allNodesToIndent = new IntList();
-        for (int i = 0;   i < rowNumbers.length;   i++) {
-            System.out.println("indent row: " + rowNumbers[i]);
-            if (rowNumbers[i] == 0) continue;
-            n = getNodeForRow(rowNumbers[i]);
-            if (n == null) continue;
-            allNodesToIndent.add(rows[rowNumbers[i]]);
-            if (n.isExpanded() == false)
-                allNodesToIndent.addAll
-                    (getChildIndexes(n, rows[rowNumbers[i]]));
-        }
+        IntList allNodesToIndent = getIndexesForRows(rowNumbers, true);
         System.out.println("need to indent nodes "+allNodesToIndent);
 
         // check to ensure that the indent is legal
@@ -250,14 +314,8 @@ public class WBSModel extends AbstractTableModel {
         // the indentation operation may have caused some previously
         // visible nodes to disappear. See if this has happened, and
         // correct.
-        boolean expandedNodes = false;
-        for (int i = 0;   i < oldVisibleRows.length;   i++) {
-            int nodePos = oldVisibleRows[i];
-            if (!isVisible(nodePos)) {
-                makeVisible(nodePos);
-                expandedNodes = true;
-            }
-        }
+        makeVisible(oldVisibleRows);
+
         // fire "table data changed" to alert the table about the changes.
         fireTableDataChanged();
 
@@ -293,6 +351,7 @@ public class WBSModel extends AbstractTableModel {
         return -1;
     }
     private void makeVisible(int nodePos) {
+        if (nodePos < 0 || nodePos > wbsNodes.size()-1) return;
         WBSNode n = (WBSNode) wbsNodes.get(nodePos);
         do {
             n = getParent(n);
@@ -301,6 +360,80 @@ public class WBSModel extends AbstractTableModel {
         } while (true);
         recalcRows(false);
     }
+    private boolean makeVisible(int[] nodePosList) {
+        boolean expandedNodes = false;
+        for (int i = 0;   i < nodePosList.length;   i++) {
+            int nodePos = nodePosList[i];
+            if (!isVisible(nodePos)) {
+                makeVisible(nodePos);
+                expandedNodes = true;
+            }
+        }
+        return expandedNodes;
+    }
+
+    public void deleteNodes(List nodesToDelete) {
+        deleteNodes(nodesToDelete, true);
+    }
+    public void deleteNodes(List nodesToDelete, boolean notify) {
+        boolean deletionOccurred = false;
+
+        List currentVisibleNodes = new ArrayList();
+        for (int i = 0;   i < rows.length;   i++)
+            currentVisibleNodes.add(wbsNodes.get(rows[i]));
+
+        Iterator i = nodesToDelete.iterator();
+        while (i.hasNext())
+            if (wbsNodes.remove(i.next()))
+                deletionOccurred = true;
+
+        if (deletionOccurred) {
+            recalcRows(false);
+            i = currentVisibleNodes.iterator();
+            while (i.hasNext())
+                makeVisible(wbsNodes.indexOf(i.next()));
+
+            if (notify)
+                fireTableDataChanged();
+        }
+    }
+
+    public int[] insertNodes(List nodesToInsert, int beforeRow) {
+        if (nodesToInsert == null || nodesToInsert.size() == 0) return null;
+
+        List currentVisibleNodes = new ArrayList();
+        for (int i = 0;   i < rows.length;   i++)
+            currentVisibleNodes.add(wbsNodes.get(rows[i]));
+        currentVisibleNodes.add(nodesToInsert.get(0));
+
+        // it's illegal to insert anything before the root node!
+        if (beforeRow == 0) beforeRow = 1;
+
+        if (beforeRow < 0 || beforeRow >= rows.length)
+            // if the insertion point is illegal, just append nodes to
+            // the end of the list.
+            wbsNodes.addAll(nodesToInsert);
+
+        else {
+            int beforePos = rows[beforeRow];
+            wbsNodes.addAll(beforePos, nodesToInsert);
+        }
+
+        recalcRows(false);
+        Iterator i = currentVisibleNodes.iterator();
+        while (i.hasNext())
+            makeVisible(wbsNodes.indexOf(i.next()));
+        fireTableDataChanged();
+
+        IntList result = new IntList(nodesToInsert.size());
+        i = nodesToInsert.iterator();
+        while (i.hasNext()) {
+            int pos = getRowForNode((WBSNode) i.next());
+            if (pos != -1) result.add(pos);
+        }
+        return result.getAsArray();
+    }
+
 
     public static final String PROJECT_TYPE = "Project";
     public static final String SOFTWARE_COMPONENT_TYPE = "Software Component";
@@ -308,6 +441,7 @@ public class WBSModel extends AbstractTableModel {
     public static final String GENERAL_DOCUMENT = "General Document";
     public static final String HLD_DOCUMENT = "High Level Design Document";
     public static final String DLD_DOCUMENT = "Detailed Design Document";
+    public static final String PSP_TASK = "PSP Task";
     public static final Set DOCUMENT_TYPES = new HashSet();
     static {
         DOCUMENT_TYPES.add(REQTS_DOCUMENT);
@@ -318,7 +452,12 @@ public class WBSModel extends AbstractTableModel {
 
     public boolean isSoftwareComponent(String type) {
         return "Software Component".equalsIgnoreCase(type) ||
-            "Project".equalsIgnoreCase(type);
+            "Project".equalsIgnoreCase(type) ||
+            "PSP Task".equalsIgnoreCase(type);
+    }
+
+    public boolean isPSPTask(String type) {
+        return "PSP Task".equalsIgnoreCase(type);
     }
 
     public boolean isDocument(String type) {
@@ -344,5 +483,23 @@ public class WBSModel extends AbstractTableModel {
                 ((WBSNodeListener)listeners[i+1]).nodeChanged(e);
             }
         }
+    }
+
+    protected void loadXML(Element e) {
+        NodeList wbsElements = e.getChildNodes();
+        int len = wbsElements.getLength();
+        for (int i=0;   i < len;   i++) {
+            Node n = wbsElements.item(i);
+            if (n instanceof Element &&
+                WBSNode.ELEMENT_NAME.equals(((Element) n).getTagName()))
+                add(new WBSNode((Element) n));
+        }
+    }
+
+    public void getAsXML(Writer out) throws IOException {
+        out.write("<wbsModel>");
+        for (int i = 0;   i < wbsNodes.size();   i++)
+            ((WBSNode) wbsNodes.get(i)).getAsXML(out);
+        out.write("</wbsModel>");
     }
 }

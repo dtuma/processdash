@@ -1,6 +1,9 @@
 
 package teamdash.wbs;
 
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
 
@@ -10,11 +13,20 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 
-public class WBSTest {
+import pspdash.XMLUtils;
+import org.w3c.dom.Document;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowEvent;
+
+
+public class WBSTest implements WindowListener {
 
     public static void main(String args[]) {
-        new WBSTest();
-        //new WBSTest(args.length > 0 ? args[0] : "#ccccff");
+        String filename = null;
+        if (args.length > 0) filename = args[0];
+
+        new WBSTest(filename);
+        //new WBSTest(filename, true);
     }
 
     JTable table;
@@ -22,21 +34,32 @@ public class WBSTest {
 
     private static final String[][] nodes = {
         { " A",  "Software Component" },
-        { "  B", "Document" },
+        { "  B", "Requirements Document" },
         { "  C", "Task" },
         { "D",   "Software Component" },
-        { " E",   "Software Component" },
-        { "  F",  "Task" },
-        { " G",   "Document" },
-        { " H",  "Document" },
-        { "I", "Document" },
+        { " E",  "Software Component" },
+        { "  F", "Task" },
+        { " G",  "High Level Design Document" },
+        { " H",  "Detailed Design Document" },
+        { "I",   "General Document" },
         { "  J", "Task" },
-        { " K", "Document" },
-        { " L", "Task" },
-        { "M", "Software Component" },
+        { " K",  "General Document" },
+        { " L",  "Task" },
+        { "M",  "Software Component" },
         { "N", null } };
 
-    public WBSTest(String colFmt) {
+    private void buildModel(String filename) {
+        if (filename != null) try {
+            Document doc = XMLUtils.parse(new FileInputStream(filename));
+            model = new WBSModel(doc.getDocumentElement());
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        buildDefaultModel();
+    }
+    private void buildDefaultModel() {
         model = new WBSModel();
         for (int i = 0;   i < nodes.length;   i++)
             model.add(new WBSNode(model,
@@ -45,6 +68,10 @@ public class WBSTest {
                                   1 + (nodes[i][0].length() -
                                        nodes[i][0].trim().length()),
                                   true));
+    }
+
+    public WBSTest(String filename, boolean ignored) {
+        buildModel(filename);
         Map iconMap = buildIconMap();
         table = new WBSJTable(model, iconMap);
         JScrollPane sp = new JScrollPane(table);
@@ -56,15 +83,8 @@ public class WBSTest {
         frame.show();
     }
 
-    public WBSTest() {
-        model = new WBSModel();
-        for (int i = 0;   i < nodes.length;   i++)
-            model.add(new WBSNode(model,
-                                  nodes[i][0].trim(),
-                                  nodes[i][1],
-                                  1 + (nodes[i][0].length() -
-                                       nodes[i][0].trim().length()),
-                                  true));
+    public WBSTest(String filename) {
+        buildModel(filename);
         DataTableModel data = new DataTableModel(model);
 
         Map iconMap = buildIconMap();
@@ -79,7 +99,9 @@ public class WBSTest {
 
         JFrame frame = new JFrame("WBSTest");
         frame.getContentPane().add(table);
-        frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
+        //frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(frame.DISPOSE_ON_CLOSE);
+        frame.addWindowListener(this);
         frame.pack();
         frame.show();
     }
@@ -88,15 +110,41 @@ public class WBSTest {
         Map result = new HashMap();
         Color c = new Color(204, 204, 255);
         result.put("Project", IconFactory.getProjectIcon());
-        result.put("Software Component", IconFactory.getSoftwareComponentIcon());
-        result.put("Requirements Document", IconFactory.getDocumentIcon(Color.orange));
-        result.put("High Level Design Document", IconFactory.getDocumentIcon(Color.blue));
-        result.put("Detailed Design Document", IconFactory.getDocumentIcon(Color.green));
-        result.put("General Document", IconFactory.getDocumentIcon(Color.white));
+        result.put("Software Component",
+                   IconFactory.getSoftwareComponentIcon());
+        result.put("Requirements Document",
+                   IconFactory.getDocumentIcon(new Color(204, 204, 0)));
+        result.put("High Level Design Document",
+                   IconFactory.getDocumentIcon(new Color(153, 153, 255)));
+        result.put("Detailed Design Document",
+                   IconFactory.getDocumentIcon(new Color(102, 255, 102)));
+        result.put("General Document",
+                   IconFactory.getDocumentIcon(Color.white));
         result.put("Task", IconFactory.getTaskIcon(c));
+        result.put("PSP Task", IconFactory.getPSPTaskIcon(c));
         result.put(null, IconFactory.getTaskIcon(c));
 
         return result;
+    }
+
+
+    // implementation of java.awt.event.WindowListener interface
+
+    public void windowOpened(WindowEvent param1) {}
+    public void windowClosed(WindowEvent param1) {}
+    public void windowDeiconified(WindowEvent param1) {}
+    public void windowActivated(WindowEvent param1) {}
+    public void windowDeactivated(WindowEvent param1) {}
+    public void windowIconified(WindowEvent param1) {}
+    public void windowClosing(WindowEvent param1) {
+        try {
+            FileWriter out = new FileWriter("out.xml");
+            model.getAsXML(out);
+            out.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        System.exit(0);
     }
 
 }

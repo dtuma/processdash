@@ -12,6 +12,7 @@ import java.awt.image.WritableRaster;
 import java.awt.image.RGBImageFilter;
 import java.awt.image.ImageProducer;
 import java.awt.image.FilteredImageSource;
+import java.awt.Graphics2D;
 
 public class IconFactory {
 
@@ -107,8 +108,26 @@ public class IconFactory {
             int bottom = height - 1;
 
             // Draw fill
-            g.setColor(Color.white);
-            g.fillRect(4, 2, 9, 12 );
+            if (g instanceof Graphics2D) {
+                Color col = mixColors(highlight, Color.white, 0.5f);
+                GradientPaint grad = new GradientPaint(0, 0, Color.white,
+                                                       16, 16, highlight);
+                ((Graphics2D) g).setPaint(grad);
+                g.fillRect( 3, 1, 9, 14 );
+                g.fillRect(12, 4, 2, 11 );
+
+            } else {
+                g.setColor(Color.white);
+                g.fillRect(4, 2, 9, 12 );
+
+                // Draw highlight
+                g.setColor(highlight);
+                g.drawLine( 3, 1, 3, bottom - 1 );                  // left
+                g.drawLine( 3, 1, right - 6, 1 );                   // top
+                g.drawLine( right - 2, 7, right - 2, bottom - 1 );  // right
+                g.drawLine( right - 5, 2, right - 3, 4 );           // slant
+                g.drawLine( 3, bottom - 1, right - 2, bottom - 1 ); // bottom
+            }
 
             // Draw outline
             g.setColor(Color.black);
@@ -121,13 +140,38 @@ public class IconFactory {
             g.drawLine( right - 3, 2, right - 3, 3 );      // part of slant 2
             g.drawLine( right - 2, 4, right - 2, 5 );      // part of slant 2
 
-            // Draw highlight
-            g.setColor(highlight);
-            g.drawLine( 3, 1, 3, bottom - 1 );                  // left
-            g.drawLine( 3, 1, right - 6, 1 );                   // top
-            g.drawLine( right - 2, 7, right - 2, bottom - 1 );  // right
-            g.drawLine( right - 5, 2, right - 3, 4 );           // slant
-            g.drawLine( 3, bottom - 1, right - 2, bottom - 1 ); // bottom
+
+        }
+    }
+
+    private static class PolygonIcon extends BufferedIcon {
+        int[] xPoints;
+        int[] yPoints;
+        Color fillColor;
+
+        protected void doPaint(Component c, Graphics g) {
+            // fill shape
+            g.setColor(fillColor);
+            g.fillPolygon(xPoints, yPoints, yPoints.length);
+
+            // draw custom highlights
+            doHighlights(c, g);
+
+            // draw black outline
+            g.setColor(Color.black);
+            g.drawPolygon(xPoints, yPoints, yPoints.length);
+        }
+
+        protected void doHighlights(Component c, Graphics g) { }
+        protected void drawHighlight(Graphics g, int segment,
+                                     int xDelta, int yDelta) {
+            int segStart = segment;
+            int segEnd = (segment + 1) % xPoints.length;
+
+            g.drawLine(xPoints[segStart] + xDelta,
+                       yPoints[segStart] + yDelta,
+                       xPoints[segEnd]   + xDelta,
+                       yPoints[segEnd]   + yDelta);
         }
     }
 
@@ -135,38 +179,91 @@ public class IconFactory {
     public static Icon getTaskIcon(Color fill) {
         return new TaskIcon(fill);
     }
-    private static class TaskIcon extends BufferedIcon {
+    private static class TaskIcon extends PolygonIcon {
 
-        Color fillColor, highlight, shadow;
+        Color highlight, shadow;
 
         public TaskIcon(Color fill) {
+            this.xPoints = new int[] {  0, 5, 15, 10 };
+            this.yPoints = new int[] { 14, 1,  1, 14 };
             this.fillColor = fill;
             this.highlight = mixColors(fill, Color.white, 0.3f);
             this.shadow    = mixColors(fill, Color.black, 0.7f);
         }
 
-        protected void doPaint(Component c, Graphics g) {
-            g.setColor(fillColor);
-            g.fillRect(4,  2,  8, 12);
-            g.drawLine(12, 2, 12,  9);
-            g.drawLine(13, 2, 13,  6);
-            g.drawLine(2,  9,  2, 13);
-            g.drawLine(3,  6,  3, 13);
-
+        protected void doHighlights(Component c, Graphics g) {
             g.setColor(shadow);
-            g.drawLine(14, 0,  10, 14); // right shadow
-            g.drawLine(2,  14, 9,  14); // bottom shadow
+            drawHighlight(g, 2, -1,  0);
+            drawHighlight(g, 3,  0, -1);
+
 
             g.setColor(highlight);
-            g.drawLine(1,  15, 5,  1); // left highlight
-            g.drawLine(6,  1,  14, 1); // top highlight
-
-            g.setColor(Color.black);
-            g.drawLine(0, 15,  4,  1); // left side
-            g.drawLine(15, 0, 11, 14); // right side
-            g.drawLine(5,  0, 15,  0); // top side
-            g.drawLine(0, 15, 10, 15); // bottom side
+            drawHighlight(g, 0, 1, 0);
+            drawHighlight(g, 1, 0, 1);
         }
+    }
+
+
+
+    public static Icon getPSPTaskIcon(Color fill) {
+        return new PSPTaskIcon(fill);
+    }
+    private static class PSPTaskIcon extends PolygonIcon {
+
+        Color highlight, shadow;
+
+        public PSPTaskIcon(Color fill) {
+            this.xPoints = new int[] { 7, 0,  3, 12, 15, 8 };
+            this.yPoints = new int[] { 1, 7, 15, 15,  7, 1 };
+            this.fillColor = fill;
+            this.highlight = mixColors(fill, Color.white, 0.3f);
+            this.shadow    = mixColors(fill, Color.black, 0.7f);
+        }
+
+
+        protected void doHighlights(Component c, Graphics g) {
+            g.setColor(Color.white);
+            drawHighlight(g, 1,  1, 0); // bottom left highlight
+            drawHighlight(g, 4,  0, 1); // top right highlight
+
+            g.setColor(highlight);
+            drawHighlight(g, 0,  0, 1); // top left highlight
+            drawHighlight(g, 0,  1, 1); // top left highlight
+
+            g.setColor(shadow);
+            drawHighlight(g, 2,  0, -1); // bottom shadow
+            drawHighlight(g, 3, -1,  0); // right shadow
+        }
+        /*
+        protected void olddoPaint(Component c, Graphics g) {
+            int[] xPoints = new int[] { 7, 0,  3, 12, 15, 8 };
+            int[] yPoints = new int[] { 1, 7, 15, 15,  7, 1 };
+
+            g.setColor(fillColor);
+            g.fillPolygon(xPoints, yPoints, yPoints.length);
+
+            g.setColor(Color.white);
+            // bottom left highlight
+            g.drawLine(xPoints[1]+1, yPoints[1], xPoints[2]+1, yPoints[2]);
+            // top right highlight
+            g.drawLine(xPoints[4], yPoints[4]+1, xPoints[5], yPoints[5]+1);
+
+            g.setColor(highlight);
+            // top highlight
+            g.drawLine(xPoints[0], yPoints[0]+1, xPoints[1], yPoints[1]+1);
+            g.drawLine(xPoints[0]+1, yPoints[0]+1, xPoints[1]+1, yPoints[1]+1);
+
+            g.setColor(shadow);
+            // bottom shadow
+            g.drawLine(xPoints[2], yPoints[2]-1, xPoints[3], yPoints[3]-1);
+            // right shadow
+            g.drawLine(xPoints[3]-1, yPoints[3], xPoints[4]-1, yPoints[4]);
+
+            // draw black outline
+            g.setColor(Color.black);
+            g.drawPolygon(xPoints, yPoints, yPoints.length);
+        }
+        */
     }
 
     public static final int PHANTOM_ICON = 1;
@@ -223,7 +320,7 @@ public class IconFactory {
             int green = filt((rgb >> 8)  & 0xff);
             int blue  = filt((rgb >> 0)  & 0xff);
 
-            return alpha | (red << 16) | (blue << 8) | green;
+            return alpha | (red << 16) | (green << 8) | blue;
         }
         public int filt(int component) {
             return (component + 0xff) / 2;

@@ -2,6 +2,7 @@
 package teamdash.wbs;
 
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.HashSet;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TableModelEvent;
@@ -83,8 +84,8 @@ public class WBSModelValidator implements TableModelListener {
             // software component.
 
             if (! isSoftwareComponent(parentType))
-                return "Software components can only be children of "+
-                    "other software components.";
+                return capitalize(type) + "s can only be children "+
+                    "of other software components.";
 
         } else if (isDocument(type)) {
 
@@ -94,6 +95,12 @@ public class WBSModelValidator implements TableModelListener {
             if (!isSoftwareComponent(parentType) && !type.equals(parentType))
                 return "This document must be a child either of a software "+
                     "component or of another " + type.toLowerCase() + ".";
+
+        }
+
+        if (isPSPTask(parentType)) {
+            // PSP Tasks cannot have children.
+            return "PSP tasks cannot have subtasks.";
         }
 
         // No problems detected.
@@ -114,5 +121,16 @@ public class WBSModelValidator implements TableModelListener {
 
     protected boolean isSoftwareComponent(String type) {
         return wbsModel.isSoftwareComponent(type);
+    }
+
+    protected boolean isPSPTask(String type) {
+        return wbsModel.isPSPTask(type);
+    }
+    protected String capitalize(String type) {
+        StringTokenizer tok = new StringTokenizer(type);
+        String result = tok.nextToken();
+        while (tok.hasMoreTokens())
+            result += " " + tok.nextToken().toLowerCase();
+        return result;
     }
 }
