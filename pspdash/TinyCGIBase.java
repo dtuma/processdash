@@ -182,6 +182,16 @@ public class TinyCGIBase implements TinyCGI {
         }
         return result;
     }
+    /** get the name of the person who owns the data in the repository */
+    protected String getOwner() {
+        DataRepository data = getDataRepository();
+        String result = data.getSimpleValue("/Owner").format();
+        if ("Enter your name".equals(result))
+            return null;
+        else
+            return result;
+    }
+
     /** Does this CGI script want to support query parameter files?
      * child classes that DO NOT want query parameter support should
      * override this method to return false. */
