@@ -1,0 +1,60 @@
+<?xml version='1.0'?>
+
+<!--
+
+PSP Dashboard - Data Automation Tool for PSP-like processes
+Copyright (C) 1999  United States Air Force
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+The author(s) may be contacted at:
+OO-ALC/TISHD
+Attn: PSP Dashboard Group
+6137 Wardleigh Road
+Hill AFB, UT 84056-5843
+
+E-Mail POC:  ken.raisor@hill.af.mil
+
+-->
+
+<!--
+   This process definition defines a PSP1.0.1 level process.  PSP1.0.1 was 
+   defined at CMU for their MSE program.  It is basically just a PSP1 process    
+   with added code and design reviews.
+-->
+
+<dashboard-process-template>
+
+  <template name="PSP1.0.1" ID="PSP1.0.1" defectLog="true" usesRollup="PSP"
+            dataFile="psp1.0.1/dataFile.txt" htmlID="top">
+    <html ID="sum"  title="PSP1.0.1 Project Summary"    href="psp1.0.1/summary.htm"/>
+    <html ID="size" title="PSP1.0.1 Size Estimating Template"
+                    href="psp1.0.1/sizeest.class"/>
+    <html ID="top"  title="PSP1.0.1 Process Script"     href="psp1.0.1/script.htm"/>
+    <html ID="plan" title="PSP1.0.1 Planning Script"    href="psp1.0.1/planning.htm"/>
+    <html ID="dev"  title="PSP1.0.1 Development Script" href="psp1.0.1/develop.htm"/>
+    <html ID="pm"   title="PSP1.0.1 Postmortem Script"  href="psp1.0.1/postmort.htm"/>
+
+    <phase name="Planning"      htmlID="plan" type="plan"/>
+    <phase name="Design"        htmlID="dev"  type="dld"/>
+    <phase name="Design Review" htmlID="dev"  type="dldr"/>
+    <phase name="Code"          htmlID="dev"  type="code"/>
+    <phase name="Code Review"   htmlID="dev"  type="cr"/>
+    <phase name="Compile"       htmlID="dev"  type="comp"/>
+    <phase name="Test"          htmlID="dev"  type="ut"/>
+    <phase name="Postmortem"    htmlID="pm"   type="pm"/>
+  </template>
+
+</dashboard-process-template>
