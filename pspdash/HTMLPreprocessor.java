@@ -129,10 +129,12 @@ public class HTMLPreprocessor {
         encoding = echo.getAttribute("encoding");
         if ("none".equalsIgnoreCase(encoding))
             ; // perform no encoding.
-        else if ("url".equalsIgnoreCase(encoding))
+        else if ("url".equalsIgnoreCase(encoding)) {
             // url encode the value
             value = URLEncoder.encode(value);
-        else
+            value = StringUtils.findAndReplace(value, "%2F", "/");
+            value = StringUtils.findAndReplace(value, "%2f", "/");
+        } else
             // default: HTML entity encoding
             value = web.encodeHtmlEntities(value);
 
