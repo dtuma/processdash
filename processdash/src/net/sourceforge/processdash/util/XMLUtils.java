@@ -105,17 +105,24 @@ public class XMLUtils {
         if (message == null) message = e.getMessage();
         if (message == null) return null;
 
+        int line = -1, col = -1;
         if (e instanceof SAXParseException) {
             SAXParseException spe = (SAXParseException) e;
-            Resources r = Resources.getDashBundle("Templates");
-            message = r.format
-                ("XML_Exception_FMT",
-                 message,
-                 new Integer(spe.getLineNumber()),
-                 new Integer(spe.getColumnNumber()));
+            line = spe.getLineNumber();
+            col = spe.getColumnNumber();
         }
-
-        return message;
+        if (line == -1)
+            // no line number information.  Just return the message.
+            return message;
+        else {
+            // format a message containing line#/col# information.
+            Resources r = Resources.getDashBundle("Templates");
+            String fmtKey = "XML_Exception_Line_FMT";
+            if (col != -1)
+                fmtKey = "XML_Exception_Line_Column_FMT";
+            return r.format
+                (fmtKey, message, new Integer(line), new Integer(col));
+        }
     }
 
 
