@@ -65,12 +65,12 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         nc.gridx = 0;
         nc.anchor = GridBagConstraints.WEST;
         nc.insets.left = nc.insets.right = 5;
-        nc.insets.top = nc.insets.bottom = 1;
+        nc.insets.top = nc.insets.bottom = 0;
         GridBagConstraints bc = new GridBagConstraints();
         bc.gridx = 1;
         bc.fill = GridBagConstraints.BOTH;
         bc.insets.left = bc.insets.right = 5;
-        bc.insets.top = bc.insets.bottom = 1;
+        bc.insets.top = bc.insets.bottom = 0;
         bc.weightx = bc.weighty = 1;
         for (int i = 0;   i < teamMembers.size();   i++) {
             TeamMember m = (TeamMember) teamMembers.get(i);
@@ -97,7 +97,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             Rectangle r = ((TeamMemberBar) teamMemberBars.get(0)).getBounds();
             int pos = r.x + (int) (r.width * balancedWeeks / maxNumWeeks);
             balancedBar.setBounds(pos - BALANCED_BAR_WIDTH/2, 1,
-                                  BALANCED_BAR_WIDTH, getHeight()-2);
+                                  BALANCED_BAR_WIDTH, getHeight());
         }
     }
 
@@ -163,7 +163,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             NumericDataValue totalTime =
                 (NumericDataValue) dataModel.getValueAt(0, columnNumber);
             numWeeks = totalTime.value / getHoursPerWeek();
-            setToolTipText(formatWeeks(numWeeks));
+            setToolTipText(teamMember.getName()+" - "+formatWeeks(numWeeks));
             return numWeeks;
         }
 
