@@ -70,6 +70,9 @@ public class DefectDialog extends JDialog
     /** A timer object for refreshing the fix time field. */
     private javax.swing.Timer activeRefreshTimer = null;
 
+    ResourceBundle resources = Resources.getBundle("pspdash.DefectDialog");
+
+
     DefectDialog(PSPDashboard dash, String defectFilename,
                  PropertyKey defectPath) {
         this(dash, defectFilename, defectPath, true);
@@ -77,7 +80,8 @@ public class DefectDialog extends JDialog
 
     DefectDialog(PSPDashboard dash, String defectFilename,
                  PropertyKey defectPath, boolean guessDefaults) {
-        super(dash, "Defect Dialog");
+        super(dash);
+        setTitle(resources.getString("Window_Title"));
         PCSH.enableHelpKey(this, "EnteringDefects");
 
         parent = dash;
@@ -103,7 +107,7 @@ public class DefectDialog extends JDialog
         g.gridx = 0;   layout.setConstraints(number, g);
         panel.add(number);
 
-        c = new JLabel("Fix Defect");
+        c = new JLabel(resources.getString("Fix_Defect_Label"));
         g.gridx = 1;   g.gridwidth = 2; layout.setConstraints(c, g);
         panel.add(c);
 
@@ -112,7 +116,7 @@ public class DefectDialog extends JDialog
         g.gridwidth = 1;
         defect_type = DefectTypeStandard.get
             (defectPath.path(), dash.data).getAsComboBox();
-        defect_type.insertItemAt("Choose a type", 0);
+        defect_type.insertItemAt(resources.getString("Defect_Type_Prompt"), 0);
         defect_type.setMaximumRowCount(20);
         defect_type.setSelectedIndex(0);
         defect_type.addActionListener(this);
@@ -135,11 +139,11 @@ public class DefectDialog extends JDialog
                                 // third row
         g.gridy = 2;   g.insets = small_margin;   g.anchor = g.WEST;
 
-        c = new JLabel("Injected");
+        c = new JLabel(resources.getString("Injected_Label"));
         g.gridx = 0;   layout.setConstraints(c, g);
         panel.add(c);
 
-        c = new JLabel("Removed");
+        c = new JLabel(resources.getString("Removed_Label"));
         g.gridx = 1;   g.gridwidth = 2;   layout.setConstraints(c, g);
         panel.add(c);
 
@@ -178,7 +182,7 @@ public class DefectDialog extends JDialog
         g.gridy = 4;   g.insets = small_margin;   g.anchor = g.WEST;
         g.gridwidth = 1;
 
-        c = new JLabel("Fix Time");
+        c = new JLabel(resources.getString("Fix_Time_Label"));
         g.gridx = 0;   layout.setConstraints(c, g);
         panel.add(c);
 
@@ -193,7 +197,8 @@ public class DefectDialog extends JDialog
         panel.add(fix_time);
         fix_time.getDocument().addDocumentListener(this);
 
-        defectTimerButton = new JButton("Start Fixing");
+        defectTimerButton = new JButton
+            (resources.getString("Start_Fixing_Button"));
         defectTimerButton.addActionListener(this);
         g.gridx = 1;   g.gridwidth = 2;   g.anchor = g.NORTH;
         layout.setConstraints(defectTimerButton, g);
@@ -202,7 +207,7 @@ public class DefectDialog extends JDialog
                                 // seventh row
         g.gridy = 6;   g.insets = small_margin;   g.anchor = g.WEST;
         g.gridwidth = 1;
-        c = new JLabel("Description");
+        c = new JLabel(resources.getString("Description_Label"));
         g.gridx = 0;   layout.setConstraints(c, g);
         panel.add(c);
 
@@ -235,12 +240,12 @@ public class DefectDialog extends JDialog
         g.gridy = 8;  g.insets = small_margin;
         g.anchor = g.CENTER;   g.fill = g.NONE;
 
-        OKButton = new JButton("OK");
+        OKButton = new JButton(Resources.getString("OK"));
         OKButton.addActionListener(this);
         g.gridx = 0;   layout.setConstraints(OKButton, g);
         panel.add(OKButton);
 
-        CancelButton = new JButton("Cancel");
+        CancelButton = new JButton(Resources.getString("Cancel"));
         CancelButton.addActionListener(this);
         g.gridx = 1; g.gridwidth = 2; layout.setConstraints(CancelButton, g);
         panel.add(CancelButton);
@@ -310,13 +315,16 @@ public class DefectDialog extends JDialog
         defectLog.writeDefect(d);
 
         defectNumber = d.number;
-        number.setText("Defect #" + d.number);
+        number.setText(formatDefectNum(d.number));
         setDirty(false);
+    }
+    private String formatDefectNum(String number) {
+        return Resources.format(resources, "Defect_Number_FMT", number);
     }
 
     public void startTimingDefect() {
         stopwatch.start();
-        defectTimerButton.setText("Stop Fixing");
+        defectTimerButton.setText(resources.getString("Stop_Fixing_Button"));
         if (activeRefreshTimer == null)
             activeRefreshTimer = new javax.swing.Timer(6000, this);
         activeRefreshTimer.start();
@@ -334,7 +342,7 @@ public class DefectDialog extends JDialog
 
     public void stopTimingDefect() {
         stopwatch.stop();
-        defectTimerButton.setText("Start Fixing");
+        defectTimerButton.setText(resources.getString("Start_Fixing_Button"));
         if (activeRefreshTimer != null)
             activeRefreshTimer.stop();
 
@@ -538,7 +546,7 @@ public class DefectDialog extends JDialog
     public void setValues(Defect d) {
         date = d.date;
         defectNumber = d.number;
-        number.setText("Defect #" + d.number);
+        number.setText(formatDefectNum(d.number));
         comboSelect(defect_type, d.defect_type);
         comboSelect(phase_injected, d.phase_injected);
         comboSelect(phase_removed, d.phase_removed);
@@ -582,21 +590,18 @@ public class DefectDialog extends JDialog
             if (option.equalsIgnoreCase(injected))
                 return true;
             if (option.equalsIgnoreCase(removed)) {
-                JOptionPane.showMessageDialog(this, SEQUENCE_ERROR_MSG,
-                                              "Sequence Error",
-                                              JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog
+                    (this,
+                     StringUtils.split(resources.getString
+                                       ("Sequence_Error_Message"), "\n"),
+                     resources.getString("Sequence_Error_Title"),
+                     JOptionPane.ERROR_MESSAGE);
                 return false;
             }
         }
         // We shouldn't get here...
         return true;
     }
-    private static final String [] SEQUENCE_ERROR_MSG = {
-        "It is impossible to remove a defect before it has",
-        "been injected!  Please double-check the injection",
-        "and removal phases you have selected, and change",
-        "them so the defect is not removed in an earlier",
-        "phase than when it was injected." };
 
 
     /** Check to ensure that the user has selected a defect type.
@@ -609,8 +614,9 @@ public class DefectDialog extends JDialog
             return true;
 
         JOptionPane.showMessageDialog
-            (this, "Please choose a type for the defect.",
-             "Choose defect type", JOptionPane.ERROR_MESSAGE);
+            (this, resources.getString("Choose_Defect_Type_Message"),
+             resources.getString("Choose_Defect_Type_Title"),
+             JOptionPane.ERROR_MESSAGE);
 
         return false;
     }
@@ -627,7 +633,8 @@ public class DefectDialog extends JDialog
     private boolean checkDirty() {
         return (!isDirty ||
                 JOptionPane.showConfirmDialog
-                (this, "Discard changes?", "Confirm Cancel",
+                (this, resources.getString("Confirm_Cancel_Message"),
+                 resources.getString("Confirm_Cancel_Title"),
                  JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
     }
 

@@ -90,6 +90,8 @@ public class TimeLogEditor extends Object
     boolean tableContainsRows = false;
     boolean selectedNodeLoggingAllowed = false;
 
+    ResourceBundle resources = Resources.getBundle("pspdash.TimeLogEditor");
+
     //
     // member functions
     //
@@ -111,8 +113,7 @@ public class TimeLogEditor extends Object
             tl.read (dashboard.getTimeLog());
         } catch (IOException e) {}
 
-        frame = new JFrame("TimeLogEditor");
-        frame.setTitle("TimeLogEditor");
+        frame = new JFrame(resources.getString("Window_Title"));
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("Center", panel);
@@ -166,8 +167,6 @@ public class TimeLogEditor extends Object
     }
 
 
-    private static final Object CONFIRM_CLOSE_MSG =
-        "Do you want to save the changes you made to the time log?";
     public void confirmClose(boolean showCancel) {
         if (saveRevertOrCancel(showCancel)) {
             saveCustomDimensions();
@@ -179,7 +178,9 @@ public class TimeLogEditor extends Object
     public boolean saveRevertOrCancel(boolean showCancel) {
         if (isDirty())
             switch (JOptionPane.showConfirmDialog
-                    (frame, CONFIRM_CLOSE_MSG, "Save Changes?",
+                    (frame,
+                     resources.getString("Confirm_Close_Prompt"),
+                     resources.getString("Confirm_Close_Title"),
                      showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
                                 : JOptionPane.YES_NO_OPTION)) {
             case JOptionPane.CLOSED_OPTION:
@@ -295,8 +296,8 @@ public class TimeLogEditor extends Object
         return String.valueOf (t / 60) + ":" + String.valueOf (min);
     }
 
-    private static final String[] TIME_FORMATS = {
-        "Hrs:Mins", "Hours", "% of parent", "% of total" };
+    private static final String[] TIME_FORMAT_KEY_NAMES = {
+        "Hours_Minutes", "Hours", "Percent_Parent", "Percent_Total" };
     private static final int FORMAT_HOURS_MINUTES = 0;
     private static final int FORMAT_HOURS = 1;
     private static final int FORMAT_PERCENT_PARENT = 2;
@@ -315,11 +316,13 @@ public class TimeLogEditor extends Object
             return decimalFormatter.format( (double) t / 60.0);
 
         case FORMAT_PERCENT_PARENT:
-            return (parentTime == 0 ? "0%" :
+            return (parentTime == 0 ?
+                    percentFormatter.format(0.0) :
                     percentFormatter.format( (double) t / (double) parentTime));
 
         case FORMAT_PERCENT_TOTAL:
-            return (totalTime == 0 ? "0%" :
+            return (totalTime == 0 ?
+                    percentFormatter.format(0.0) :
                     percentFormatter.format( (double) t / (double) totalTime));
 
         case FORMAT_HOURS_MINUTES: default:
@@ -603,27 +606,28 @@ public class TimeLogEditor extends Object
 
         retPanel.add(Box.createHorizontalGlue());
 
-        label = new JLabel ("Time Format: ");
+        label = new JLabel (resources.getString("Format_Label")+" ");
         retPanel.add(label);   retPanel.add(Box.createHorizontalStrut(5));
-        formatChoice = new JComboBox(TIME_FORMATS);
+        formatChoice = new JComboBox
+            (Resources.getStrings(resources, "Format_", TIME_FORMAT_KEY_NAMES));
         retPanel.add(formatChoice);   retPanel.add(Box.createHorizontalStrut(5));
         formatChoice.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 timeFormat = formatChoice.getSelectedIndex(); setTimes(); }} );
         retPanel.add(new JLabel("          "));
 
-        label = new JLabel ("Filter: ");
+        label = new JLabel (resources.getString("Filter_Label") + " ");
         retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
 
-        btn = new JButton("<<");
+        btn = new JButton(resources.getString("Filter_Scroll_Backward_Button"));
         btn.setMargin(insets);
-        btn.setToolTipText("Scroll filter backward");
+        btn.setToolTipText(resources.getString("Filter_Scroll_Backward_Tooltip"));
         btn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { scrollFilterBackward(); }
             });
         retPanel.add(btn);   retPanel.add(Box.createHorizontalStrut(5));
 
-        label = new JLabel ("From ");
+        label = new JLabel (resources.getString("Filter_From") + " ");
         retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
 
         fromDate = new JTextField ("", 10);
@@ -633,7 +637,7 @@ public class TimeLogEditor extends Object
         fromDate.addFocusListener (l);
         retPanel.add (fromDate);   retPanel.add(Box.createHorizontalStrut(5));
 
-        label = new JLabel (" To ");
+        label = new JLabel (" " + resources.getString("Filter_To") + " ");
         retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
 
         toDate = new JTextField ("", 10);
@@ -644,35 +648,38 @@ public class TimeLogEditor extends Object
         retPanel.add (toDate);   retPanel.add(Box.createHorizontalStrut(5));
 
 
-        btn = new JButton(">>");
+        btn = new JButton(resources.getString("Filter_Scroll_Forward_Button"));
         btn.setMargin(insets);
-        btn.setToolTipText("Scroll filter forward");
+        btn.setToolTipText(resources.getString("Filter_Scroll_Forward_Tooltip"));
         btn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { scrollFilterForward(); }
             });
         retPanel.add(btn);   retPanel.add(Box.createHorizontalStrut(5));
 
-        button = new DropDownButton ("Apply Filter");
+        button = new DropDownButton (resources.getString("Filter_Apply"));
         button.setRunFirstMenuOption(false);
         button.getButton().addActionListener(new ActionListener () {
             public void actionPerformed(ActionEvent e) { applyFilter (true); }
             });
         JMenu menu = button.getMenu();
-        menu.add("Today").addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { filterToday(); }
-            });
-        menu.add("This Week").addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { filterThisWeek(); }
-            });
-        menu.add("This Month").addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                filterThisMonth(new Date());
-            }
-            });
+        menu.add(resources.getString("Filter_Today")).addActionListener
+            (new ActionListener() {
+                public void actionPerformed(ActionEvent e) { filterToday(); }
+                });
+        menu.add(resources.getString("Filter_Week")).addActionListener
+            (new ActionListener() {
+                public void actionPerformed(ActionEvent e) { filterThisWeek(); }
+                });
+        menu.add(resources.getString("Filter_Month")).addActionListener
+            (new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    filterThisMonth(new Date());
+                }});
         menu.addSeparator();
-        menu.add("Remove Filter").addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { clearFilter(); }
-            });
+        menu.add(resources.getString("Filter_Remove")).addActionListener
+            (new ActionListener() {
+                public void actionPerformed(ActionEvent e) { clearFilter(); }
+                });
         retPanel.add (button);
 
         retPanel.add(Box.createHorizontalGlue());
@@ -829,55 +836,47 @@ public class TimeLogEditor extends Object
     }
 
     protected void summarizeWarning() {
-        if (JOptionPane.showConfirmDialog(frame, SUMMARIZE_WARNING_MESSAGE,
-                                          "Summarization Warning",
-                                          JOptionPane.OK_CANCEL_OPTION,
-                                          JOptionPane.WARNING_MESSAGE)
+        if (JOptionPane.showConfirmDialog
+            (frame,
+             StringUtils.split(resources.getString
+                               ("Summarization_Warning_Message"), "\n"),
+             resources.getString("Summarization_Warning_Title"),
+             JOptionPane.OK_CANCEL_OPTION,
+             JOptionPane.WARNING_MESSAGE)
             == JOptionPane.OK_OPTION) {
             summarize();
         }
     }
-    private static String[] SUMMARIZE_WARNING_MESSAGE = {
-        "Time  log  summarization  is  INCOMPATIBLE with  earned  value",
-        "analysis!  Therefore, you should NOT use the summarize feature",
-        "on  any task  which  you have  added  to a  task and  schedule",
-        "template, unless you never care to view that task and schedule",
-        "template again in the future.",
-        " ",
-        "Click OK to collapse visible fields with duplicate 'Logged To'",
-        "fields into a single entry.  Otherwise click CANCEL." };
 
+    private static final String[] COLUMN_KEYS = {
+        "Logged_To", "Start_Time", "Delta_Time", "Interrupt_Time", "Comment" };
     private JPanel constructEditPanel () {
         JPanel  retPanel = new JPanel(false);
         JButton button;
 
         retPanel.setLayout(new BorderLayout());
         table = new ValidatingTable
-            (new Object[] {"Logged To", "Start T", "Delta", "Int", "Comment"},
+            (Resources.getStrings(resources, "Column_Name_", COLUMN_KEYS),
              null,
              new int[] {250, 180, 45, 40, 180 },
-             new String[] {"What the time is logged to",
-                           "The start time(minutes)",
-                           "The elapsed time(minutes)",
-                           "The interrupt time(minutes)",
-                           "Comments" },
+             Resources.getStrings(resources, "Column_Tooltip_", COLUMN_KEYS),
              null, this, 0, true, null, null);
         retPanel.add ("Center", table);
 
         JPanel btnPanel = new JPanel(false);
-        addButton = button = new JButton ("Add");
+        addButton = button = new JButton (Resources.getString("Add"));
         button.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) { addRow(); }
         });
         btnPanel.add (button);
 
-        button = new JButton ("Delete");
+        button = new JButton (Resources.getString("Delete"));
         button.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) { deleteSelectedRow(); }
         });
         btnPanel.add (button);
 
-        button = new JButton ("Summarize");
+        button = new JButton (resources.getString("Summarize_Button"));
         button.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) { summarizeWarning(); }
         });
@@ -898,22 +897,23 @@ public class TimeLogEditor extends Object
     private JPanel constructControlPanel () {
         JPanel  retPanel = new JPanel(false);
 
-        JButton timeCardButton = new JButton("Time Card View");
+        JButton timeCardButton = new JButton
+            (resources.getString("Time_Card_View_Button"));
         retPanel.add(timeCardButton);
         retPanel.add(Box.createHorizontalStrut(100));
         timeCardButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 showTimeCard(); }});
 
-        revertButton = new JButton ("Revert");
+        revertButton = new JButton (Resources.getString("Revert"));
         retPanel.add (revertButton);
         revertButton.addActionListener (new ReloadAction ());
 
-        saveButton = new JButton ("Save");
+        saveButton = new JButton (Resources.getString("Save"));
         retPanel.add (saveButton);
         saveButton.addActionListener (new SaveAction ());
 
-        JButton closeButton = new JButton("Close");
+        JButton closeButton = new JButton(Resources.getString("Close"));
         retPanel.add(closeButton);
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { confirmClose(true); }

@@ -126,4 +126,13 @@ public class Resources {
             (format(bundle, key, arg1, arg2, arg3, arg4), delim);
     }
 
+    public static String[] getStrings(ResourceBundle bundle,
+                                      String prefix,
+                                      String[] keys) {
+        String[] result = new String[keys.length];
+        for (int i = keys.length;   i-- > 0; )
+            result[i] = bundle.getString(prefix + keys[i]);
+        return result;
+    }
+
 }
