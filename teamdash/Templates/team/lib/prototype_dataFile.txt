@@ -268,3 +268,13 @@ undefine([Use_Rollup]);
     1);
 
 <!--#endfor-->
+
+/*
+ * Enable display of the earned value "week" form.
+ */
+[/Enable_EV_Week_form] = TAG;
+
+/*
+ * Provide a hook for customized external document integration.
+ */
+[FILES_XML] = "/<!--#echo Process_ID -->/files.xml";
