@@ -74,23 +74,23 @@ public class sizeest extends pspdash.TinyCGIBase {
     }
 
     private static final String [] baseData = {
-        "Base Additions/Description #//#",
-        "Base Additions/Type #//#",
-        "Base Additions/Methods #//#",
-        "Base Additions/Relative Size #//#",
-        "Base Additions/LOC #//#",
-        "Base Additions/Actual LOC #//#" };
+        "Base Additions/#//#/Description",
+        "Base Additions/#//#/Type",
+        "Base Additions/#//#/Methods",
+        "Base Additions/#//#/Relative Size",
+        "Base Additions/#//#/LOC",
+        "Base Additions/#//#/Actual LOC" };
     private static final String [] newData = {
-        "New Objects/Description #//#",
-        "New Objects/Type #//#",
-        "New Objects/Methods #//#",
-        "New Objects/Relative Size #//#",
-        "New Objects/LOC #//#",
-        "New Objects/Actual LOC #//#" };
+        "New Objects/#//#/Description",
+        "New Objects/#//#/Type",
+        "New Objects/#//#/Methods",
+        "New Objects/#//#/Relative Size",
+        "New Objects/#//#/LOC",
+        "New Objects/#//#/Actual LOC" };
     private static final String [] reusedData = {
-        "Reused Objects/Description #//#",
-        "Reused Objects/LOC #//#",
-        "Reused Objects/Actual LOC #//#" };
+        "Reused Objects/#//#/Description",
+        "Reused Objects/#//#/LOC",
+        "Reused Objects/#//#/Actual LOC" };
 
 
     /** Generate CGI script output.

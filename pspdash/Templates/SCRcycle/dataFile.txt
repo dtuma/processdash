@@ -145,13 +145,13 @@ Estimated Max New & Changed LOC=0.0
 Estimated Min New & Changed LOC=0.0
 Estimated Added LOC==![(-	Estimated New & Changed LOC	Estimated Modified LOC)]
 Estimated New Reused LOC==![(+	~New Objects/New Reused LOC \d+)]
-Estimated LOC==![(-	[(+	Estimated New & Changed LOC	Estimated Base LOC	Estimated Reused LOC)]	Estimated Deleted LOC	Estimated Modified LOC)]
+Estimated Total LOC==![(-	[(+	Estimated New & Changed LOC	Estimated Base LOC	Estimated Reused LOC)]	Estimated Deleted LOC	Estimated Modified LOC)]
 Estimated Max LOC=0.0
 Estimated Min LOC=0.0
-Estimated KLOC==![(/	Estimated LOC	1000)]
+Estimated KLOC==![(/	Estimated Total LOC	1000)]
 
-Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated LOC)]
-Estimated % Reused==![(/	Estimated Reused LOC	Estimated LOC)]
+Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated New & Changed LOC)]
+Estimated % Reused==![(/	Estimated Reused LOC	Estimated Total LOC)]
 
 = Actual LOC
 

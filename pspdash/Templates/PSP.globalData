@@ -58,7 +58,7 @@ New & Changed LOC To Date==![(+	~/.*/{Completed}{PSP Project}New & Changed LOC)]
 New & Changed KLOC To Date==![(/	New & Changed LOC To Date	1000)]
 New Reused LOC To Date==![(+	~/.*/{Completed}{PSP Project}New Reused LOC)]
 Reused LOC To Date==![(+	~/.*/{Completed}{PSP Project}Reused LOC)]
-LOC To Date==![(+	~/.*/{Completed}{PSP Project}LOC)]
+Total LOC To Date==![(+	~/.*/{Completed}{PSP Project}Total LOC)]
 KLOC To Date==![(/	LOC To Date	1000)]
 LOC per Hour To Date==![(/	New & Changed LOC To Date	Time To Date	0.0166667)]
 

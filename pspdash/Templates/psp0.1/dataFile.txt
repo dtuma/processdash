@@ -72,8 +72,14 @@ Base LOC=0.0
 Deleted LOC=0.0
 Modified LOC=0.0
 Reused LOC=0.0
-LOC=0.0
-Total LOC==![(+	LOC)]
+Total LOC=0.0
 New Reused LOC=0.0
 New & Changed LOC==![(+	Added LOC	Modified LOC)]
 Added LOC==![(-	[(+	Total LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
+
+
+==
+== rename deprecated data element names
+==
+
+L[O]C=>~Total LOC

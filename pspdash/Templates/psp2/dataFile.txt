@@ -41,8 +41,8 @@
 
 psp2==1.0
 PSP2==1.0
-psp1.1==0.0
-PSP1.1==0.0
+psp1.1==null
+PSP1.1==null
 
 
 

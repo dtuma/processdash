@@ -41,9 +41,9 @@
 
 psp3cycle==1.0
 PSP3cycle==1.0
-psp2.1==0.0
-PSP2.1==0.0
-PSP Project==0.0
+psp2.1==null
+PSP2.1==null
+PSP Project==null
 
 
 ==
@@ -70,3 +70,10 @@ Defects Injected==![(+	~.*/Defects Injected)]
 
 Reassessment/Defects Removed==0.0
 Defects Removed==![(+	~.*/Defects Removed)]
+
+
+==
+== Cancel renaming operation requested by psp2.1
+==
+
+(Base Additions|New Objects|Reused Objects)/([^0-9]+) (\d+)=null

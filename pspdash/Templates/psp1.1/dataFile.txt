@@ -41,8 +41,8 @@
 
 psp1.1==1.0
 PSP1.1==1.0
-psp1==0.0
-PSP1==0.0
+psp1==null
+PSP1==null
 
 ==
 == New Elements for PSP1.1
@@ -51,8 +51,8 @@ PSP1==0.0
 Estimated Max Time=0.0
 Estimated Min Time=0.0
 
-Estimated % Reused==![(/	Estimated Reused LOC	Estimated LOC)]
+Estimated % Reused==![(/	Estimated Reused LOC	Estimated Total LOC)]
 Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated New & Changed LOC)]
 
-% Reused==![(/	Reused LOC	LOC)]
+% Reused==![(/	Reused LOC	Total LOC)]
 % New Reused==![(/	New Reused LOC	New & Changed LOC)]

@@ -58,7 +58,7 @@ sumUp(New & Changed LOC)
 New & Changed KLOC To Date==![(/	New & Changed LOC To Date	1000)]
 sumUp(New Reused LOC)
 sumUp(Reused LOC)
-sumUp(LOC)
+sumUp(Total LOC)
 KLOC To Date==![(/	LOC To Date	1000)]
 LOC per Hour To Date==![(/	New & Changed LOC To Date	Time To Date	0.0166667)]
 

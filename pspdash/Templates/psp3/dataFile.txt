@@ -41,8 +41,8 @@
 
 psp3==1.0
 PSP3==1.0
-psp2.1==0.0
-PSP2.1==0.0
+psp2.1==null
+PSP2.1==null
 
 
 == NEEDS WORK: how should (time/defect) estimates be made for HLD?
@@ -181,3 +181,10 @@ Test/Estimated Defects Removed==![(+	~.*/Test/Estimated Defects Removed)]
 Reassessment/Estimated Defects Removed==![(+	~.*/Reassessment/Estimated Defects Removed)]
 
 Cycles/Estimated Defects Removed==![(+	~.*/{psp3cycle}Estimated Defects Removed)]
+
+
+==
+== Cancel renaming operation requested by psp2.1
+==
+
+(Base Additions|New Objects|Reused Objects)/([^0-9]+) (\d+)=null

@@ -41,8 +41,8 @@
 
 psp1==1.0
 PSP1==1.0
-psp0.1==0.0
-PSP0.1==0.0
+psp0.1==null
+PSP0.1==null
 
 
 
@@ -55,24 +55,24 @@ PSP0.1==0.0
 Estimated Base LOC=0.0
 Estimated Deleted LOC=0.0
 Estimated Modified LOC=0.0
-Estimated Base Additions LOC==![(+	~Base Additions/LOC \d+)]
-Estimated New Objects LOC==![(+	~New Objects/LOC \d+)]
-Estimated Reused LOC==![(+	~Reused Objects/LOC \d+)]
+Estimated Base Additions LOC==![(+	~Base Additions/\d+/LOC)]
+Estimated New Objects LOC==![(+	~New Objects/\d+/LOC)]
+Estimated Reused LOC==![(+	~Reused Objects/\d+/LOC)]
 Estimated Object LOC==![(+	Estimated Base Additions LOC	Estimated New Objects LOC	Estimated Modified LOC)]
 Estimated Added LOC==![(-	Estimated New & Changed LOC	Estimated Modified LOC)]
-Estimated New Reused LOC==![(+	~New Objects/New Reused LOC \d+)]
-Estimated LOC==![(-	[(+	Estimated New & Changed LOC	Estimated Base LOC	Estimated Reused LOC)]	Estimated Deleted LOC	Estimated Modified LOC)]
+Estimated New Reused LOC==![(+	~New Objects/\d+/{New Reused?}LOC)]
+Estimated Total LOC==![(-	[(+	Estimated New & Changed LOC	Estimated Base LOC	Estimated Reused LOC)]	Estimated Deleted LOC	Estimated Modified LOC)]
 Estimated Max LOC=0.0
 Estimated Min LOC=0.0
 Estimated New & Changed KLOC==![(/	Estimated New & Changed LOC	1000)]
 
 = Actual LOC
 
-Base Additions LOC==![(+	~Base Additions/Actual LOC \d+)]
-New Objects LOC==![(+	~New Objects/Actual LOC \d+)]
-Reused LOC==![(+	~Reused Objects/Actual LOC \d+)]
+Base Additions LOC==![(+	~Base Additions/\d+/Actual LOC)]
+New Objects LOC==![(+	~New Objects/\d+/Actual LOC)]
+Reused LOC==![(+	~Reused Objects/\d+/Actual LOC)]
 Object LOC==![(+	Base Additions LOC	New Objects LOC	Modified LOC)]
-New Reused LOC==![(+	~New Objects/Actual New Reused LOC \d+)]
+New Reused LOC==![(+	~New Objects/\d+/Actual {New Reused?}LOC)]
 New & Changed KLOC==![(/	New & Changed LOC	1000)]
 
 
