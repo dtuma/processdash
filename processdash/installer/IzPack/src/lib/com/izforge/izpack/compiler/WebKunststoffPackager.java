@@ -123,8 +123,6 @@ public class WebKunststoffPackager extends WebPackager
         // Closes the stream
         outJar.flush();
         outJar.close();
-        webJar.flush();
-        webJar.close();
 
         sendStop();
     }
