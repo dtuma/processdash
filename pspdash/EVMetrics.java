@@ -248,7 +248,7 @@ public class EVMetrics implements TableModel {
         "Cost Performance Index",
         "{0,number}",
         "{0,number}",
-        "Work is taking {0,choice,0#more|1#less} time than planned.  For every effort hour actually spent, you are accomplishing {0,number} hours worth of planned results." };
+        "Work is taking {0,choice,0#more|1#less} time than planned.  For every effort hour actually spent, you are accomplishing {0,number} hours worth of planned results.  This usually means that your original effort estimate was too {0,choice,0#small|1#big}." };
 
     public String schedulePerformanceIndex(int style) {
         double d= schedulePerformanceIndex();
@@ -259,7 +259,7 @@ public class EVMetrics implements TableModel {
         "Schedule Performance Index",
         "{0,number}",
         "{0,number}",
-        "You are completing tasks more {0,choice,0#slowly|1#quickly} than scheduled.  For every effort hour of work you should have accomplished to date, you are completing {0,number} hours." };
+        "You are completing tasks more {0,choice,0#slowly|1#quickly} than scheduled.  For every effort hour of work you should have accomplished to date, you are completing {0,number} hours.  This may mean that your original planned schedule was too {0,choice,0#aggressive|1#laid-back}." };
 
 
     public String percentComplete(int style) {
@@ -307,7 +307,7 @@ public class EVMetrics implements TableModel {
         "Improvement Ratio",
         "{0,number}",
         "{0,number}",
-        "In order to complete all the work within the original effort estimate, you must be {1,number,percent} {0,choice,-1#less|0#more} productive in the future than you have been in the past." };
+        "In order to complete all the work within the original effort estimate, you {0,choice,-1#can|0#must} be {1,number,percent} {0,choice,-1#less|0#more} productive in the future than you have been in the past." };
 
 
     public String independentForecastCost(int style) {
