@@ -57,6 +57,8 @@ public class PauseButton extends DropDownButton implements ActionListener {
     private static final String continue_string = " Go ";
 
     private javax.swing.Timer activeRefreshTimer = null;
+    int refreshIntervalMillis = MILLIS_PER_MINUTE; // default: one minute
+    private static final int FAST_REFRESH_INTERVAL = 5 * 1000;
 
     PauseButton(PSPDashboard dash) {
         super();
@@ -75,8 +77,6 @@ public class PauseButton extends DropDownButton implements ActionListener {
         setRunFirstMenuOption(false);
         parent = dash;
 
-        int refreshIntervalMillis = MILLIS_PER_MINUTE; // default: one minute
-
         String refreshInterval = Settings.getVal("timelog.updateInterval");
         if (refreshInterval != null) try {
             refreshIntervalMillis = (int)
@@ -85,6 +85,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
 
         activeRefreshTimer =
             new javax.swing.Timer(refreshIntervalMillis, this);
+        activeRefreshTimer.setInitialDelay(MILLIS_PER_MINUTE + 1000);
         activeRefreshTimer.start();
 
         // Load the audio clip
@@ -129,8 +130,8 @@ public class PauseButton extends DropDownButton implements ActionListener {
             // time.  So if the interrupt time passes some "critical
             // point", just commit the current row.
             if (paused && stopwatch != null) {
-                long interruptMinutes = stopwatch.minutesInterrupt();
-                if (interruptMinutes > 5 &&
+                double interruptMinutes = stopwatch.runningMinutesInterrupt();
+                if (interruptMinutes > 5.0 &&
                     interruptMinutes > (0.25 * elapsedMinutes))
                     releaseCurrentTimeLogEntry();
             }
@@ -166,7 +167,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
     public void cont() {
         paused = false;
         if (stopwatch == null) {
-            stopwatch = new Timer();
+            stopwatch = newTimer();
         } else {
             stopwatch.start();
         }
@@ -253,7 +254,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
         long roundedElapsedMinutes = (long) (elapsedMinutes + 0.5);
 
         if (currentTimeLogEntry == null) {
-            if (roundedElapsedMinutes == 0 && !WRITE_ZERO) return;
+            if (elapsedMinutes < 1.0 && !WRITE_ZERO) return;
             if (previousElapsedMinutes == elapsedMinutes) return;
 
             currentTimeLogEntry = new TimeLogEntry
@@ -262,6 +263,15 @@ public class PauseButton extends DropDownButton implements ActionListener {
                  roundedElapsedMinutes,
                  stopwatch.minutesInterrupt());
             entryHasBeenSaved = 0;
+
+            // When we began timing this phase, we set the timer for a
+            // fast, 5 second interval (so we could catch the top of
+            // the minute as it went by).  This allows us to create
+            // the new time log entry within 5 seconds of the one
+            // minute point.  Once we've created the new time log
+            // entry, slow the timer back down to the user-requested
+            // refresh interval.
+            activeRefreshTimer.setDelay(refreshIntervalMillis);
 
         } else {
             currentTimeLogEntry.minutesElapsed  = roundedElapsedMinutes;
@@ -320,11 +330,23 @@ public class PauseButton extends DropDownButton implements ActionListener {
 
     private void releaseCurrentTimeLogEntry() {
         saveCurrentTimeLogEntry();
+        activeRefreshTimer.setDelay(refreshIntervalMillis);
 
-        stopwatch = (paused ? null : new Timer());
+        stopwatch = (paused ? null : newTimer());
         currentTimeLogEntry = null;
         entryHasBeenSaved = 0;
         savedElapsedMinutes = elapsedMinutes = 0.0;
+    }
+
+    private Timer newTimer() {
+        // The instructions below will cause the timer to wait for 61
+        // seconds (starting right now), then fire once every 5
+        // seconds.  This quick firing interval allows it to catch the
+        // one minute mark fairly closely.
+        activeRefreshTimer.setDelay(FAST_REFRESH_INTERVAL);
+        activeRefreshTimer.restart();
+
+        return new Timer();
     }
 
     public void maybeReleaseEntry(TimeLogEntry tle) {
@@ -342,7 +364,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
             log.save(timeLogFilename);
             if (entryHasBeenSaved > 0)
                 entryHasBeenSaved = 1;
-            System.err.println("Cleaned up time log.");
+            //System.err.println("Cleaned up time log.");
         } catch (IOException ioe) {}
     }
 
