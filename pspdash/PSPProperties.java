@@ -749,9 +749,10 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
 
     // gets all the applicable script IDs for the script button
     // based on the current phase.
-    public Vector getScriptIDs(PropertyKey key) {    Vector v = new Vector();    Prop val;    String scriptFile;
+    public Vector getScriptIDs(PropertyKey key) {
+        Vector v = new Vector();    Prop val;    String scriptFile;
         PropertyKey tempKey = key;
-        PropertyKey parentKey = key.getParent();
+        PropertyKey parentKey = null;
 
         // First add the key and the key's ancestors (parents)
         while (tempKey != null) {
@@ -759,8 +760,12 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
             scriptFile = val.getScriptFile();
             if (scriptFile != null && scriptFile.length() != 0)
                 v.addElement(new ScriptID(scriptFile, datapath(tempKey), tempKey.path()));
+            if (parentKey == null && hasDataFile(val))
+                parentKey = tempKey;
             tempKey = tempKey.getParent();
         }
+
+        if (parentKey == null) return v;
 
         // Then add all the parent's children, except the key.
         int numChildren = getNumChildren(parentKey);

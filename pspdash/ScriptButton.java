@@ -45,6 +45,7 @@ class ScriptButton extends DropDownButton {
     String scriptFilename = null;
     String path  = null;
     Vector paths = null; // A list of valid script paths for the popup menu
+    JMenuItem moreItem = null;
 
     public static final String URL_PREFIX = "/";
 
@@ -64,6 +65,11 @@ class ScriptButton extends DropDownButton {
         getButton().setFocusPainted(false);
         parent = dash;
 
+        moreItem = new JMenuItem("More...");
+        moreItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new ScriptBrowser(ScriptButton.this.parent, true); } } );
+
         dash.getContentPane().add(this);
     }
 
@@ -79,6 +85,9 @@ class ScriptButton extends DropDownButton {
             id = (ScriptID) paths.elementAt (i);
             getMenu().add(new ScriptMenuItem(id.getUserName(), id));
         }
+
+        getMenu().addSeparator();
+        getMenu().add(moreItem);
     }
 
     /** ScriptMenuItem is an extended JMenuItem class with built-in
@@ -93,21 +102,7 @@ class ScriptButton extends DropDownButton {
         }
 
         public void actionPerformed(ActionEvent e) {
-            viewScript (id.getScript(), id.getDataPath());
-        }
-
-        protected void viewScript (String theScript, String thePath) {
-            if (theScript != null) {
-                String url = encode(thePath) + "//" + theScript;
-                Browser.launch(url);
-            }
-        }
-
-        protected String encode(String path) {
-            String result = URLEncoder.encode(path);
-            result = StringUtils.findAndReplace(result, "%2f", "/");
-            result = StringUtils.findAndReplace(result, "%2F", "/");
-            return result;
+            id.display();
         }
     }
 

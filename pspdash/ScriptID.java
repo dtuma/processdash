@@ -26,6 +26,8 @@
 
 package pspdash;
 
+import java.net.URLEncoder;
+
 public class ScriptID {
 
     protected String scriptfile = null;
@@ -63,6 +65,24 @@ public class ScriptID {
     }
 
     public String toString() {
-        return "ScriptID:" + scriptfile + ", " + datapath + ", " + username;
+        return username;
+    }
+
+    public void display() {
+        viewScript (scriptfile, datapath);
+    }
+
+    protected void viewScript (String theScript, String thePath) {
+        if (theScript != null) {
+            String url = encode(thePath) + "//" + theScript;
+            Browser.launch(url);
+        }
+    }
+
+    protected String encode(String path) {
+        String result = URLEncoder.encode(path);
+        result = StringUtils.findAndReplace(result, "%2f", "/");
+        result = StringUtils.findAndReplace(result, "%2F", "/");
+        return result;
     }
 }

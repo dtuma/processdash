@@ -349,6 +349,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
         save();
     }
 
+    public PropertyKey getCurrentPhase() { return currentPhase; }
+
     public void addToTimeLogEditor (TimeLogEntry tle) {
         configure_button.addToTimeLogEditor (tle);
     }

@@ -107,4 +107,22 @@ public class PropTreeModel extends DefaultTreeModel
         return key;
     }
 
+    public TreeNode getNodeForKey (PSPProperties props, PropertyKey key) {
+        if (PropertyKey.ROOT.equals(key))
+            return (TreeNode) getRoot();
+        PropertyKey parentKey = key.getParent();
+        TreeNode parent = getNodeForKey(props, parentKey);
+        PropertyKey childKey;
+        for (int i = props.getNumChildren(parentKey);  i-- > 0; ) {
+            childKey = props.getChildKey(parentKey, i);
+            if (childKey.equals(key))
+                return parent.getChildAt(i);
+        }
+        return null;
+    }
+
+    public Object [] getPathToKey (PSPProperties props, PropertyKey key) {
+        return getPathToRoot(getNodeForKey(props, key));
+    }
+
 }
