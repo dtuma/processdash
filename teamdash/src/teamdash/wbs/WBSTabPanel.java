@@ -12,6 +12,7 @@ import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -39,12 +40,13 @@ public class WBSTabPanel extends JPanel {
 
 
     /** Create a WBSTabPanel */
-    public WBSTabPanel(WBSModel wbs, DataTableModel data, Map iconMap) {
+    public WBSTabPanel(WBSModel wbs, DataTableModel data,
+                       Map iconMap, JMenu iconMenu) {
         setOpaque(false);
         setLayout(layout = new GridBagLayout());
 
         // build the components to display in this panel
-        makeTables(wbs, data, iconMap);
+        makeTables(wbs, data, iconMap, iconMenu);
         makeSplitter();
         makeScrollPane();
         makeTabbedPane();
@@ -89,9 +91,10 @@ public class WBSTabPanel extends JPanel {
 
 
     /** Create the JTables and perform necessary setup */
-    private void makeTables(WBSModel wbs, DataTableModel data, Map iconMap) {
+    private void makeTables(WBSModel wbs, DataTableModel data,
+                            Map iconMap, JMenu iconMenu) {
         // create the WBS table to display the hierarchy
-        wbsTable = new WBSJTable(wbs, iconMap);
+        wbsTable = new WBSJTable(wbs, iconMap, iconMenu);
         // create the table to display hierarchy data
         dataTable = new DataJTable(data);
         // link the tables together so they have the same scrolling behavior,
