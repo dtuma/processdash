@@ -56,7 +56,7 @@ public class ShutdownDashboardPanel extends IzPanel {
         superLayout.addLayoutComponent(centerPanel, gbConstraints);
         add(centerPanel);
 
-        String[] text = parent.langpack.getString("ShutdownDashboardPanel.info").split("\\\\n");
+        String[] text = getStringList("ShutdownDashboardPanel.info");
         for (int i = 0; i < text.length; i++)
             centerPanel.add(new JLabel(text[i]));
     }
@@ -79,13 +79,17 @@ public class ShutdownDashboardPanel extends IzPanel {
 
 
     private void showErrorDialog() {
-        String[] message = parent.langpack.getString("ShutdownDashboardPanel.error.info").split("\\\\n");
         JOptionPane.showMessageDialog(
             this,
-            message,
+            getStringList("ShutdownDashboardPanel.error.info"),
             parent.langpack.getString("ShutdownDashboardPanel.error.title"),
             JOptionPane.ERROR_MESSAGE);
         needToRestart = true;
+    }
+
+
+    private String[] getStringList(String id) {
+        return parent.langpack.getString(id).trim().split("\\\\n|[\r\n]+");
     }
 
 
