@@ -117,8 +117,12 @@ public class ImportExport extends JDialog implements ActionListener {
 
         Box btnBox = new Box(BoxLayout.X_AXIS);
         btnBox.add(Box.createHorizontalGlue());
-        JButton btn = new JButton ("Apply");
+        JButton btn = new JButton ("Export");
         btn.setActionCommand("Apply");
+        btn.addActionListener(this);
+        btnBox.add(btn);
+        btn = new JButton ("Close");
+        btn.setActionCommand("Close");
         btn.addActionListener(this);
         btnBox.add(btn);
         btnBox.add(Box.createHorizontalGlue());
@@ -173,6 +177,8 @@ public class ImportExport extends JDialog implements ActionListener {
             operation = X_DATA;
         } else if (cmd.equals("XList")) {
             operation = X_LIST;
+        } else if (cmd.equals("Close")) {
+            setVisible(false);
         } else if (cmd.equals("Apply")) {
             DefaultMutableTreeNode dmn;
             Vector v = new Vector();
