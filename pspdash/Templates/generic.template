@@ -56,8 +56,8 @@
 ##
 
 PropertyKey<top><Generic>=Prop[true][Generic][generic/summary.class][generic/dataFile.txt][<Generic Phase(-1)][0][2][PropertyKey<top/Generic><Planning>][PropertyKey<top/Generic><Postmortem>]
-PropertyKey<top/Generic><Planning>=Prop[][Generic Phase][][generic/phaseData.txt][ME<>][0][0]
-PropertyKey<top/Generic><Postmortem>=Prop[][Generic Phase][][generic/phaseData.txt][ME<>][0][0]
+PropertyKey<top/Generic><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/Generic><Postmortem>=Prop[][][][][ME<>][0][0]
 
 ##
 ## Template for a generic phase.
