@@ -41,6 +41,18 @@ public class FormToHTML {
                                  String prefix) {
         int beg, end, end2;
 
+        // dashboard forms have clearly delineated table cells because
+        // of the squares drawn around <INPUT> tags.  When those
+        // squares disappear, the tables are hard to read.  Enhance
+        // readability by adding thin table borders.
+        if ((beg = findTag(text, STYLE_END, 0)) != -1) {
+            text.insert(beg, TABLE_STYLE_DECL);
+        } else if ((beg = findTag(text, HEAD_END, 0)) != -1) {
+            text.insert(beg, "</style>")
+                .insert(beg, TABLE_STYLE_DECL)
+                .insert(beg, "<style>");
+        }
+
         // find and replace all the <INPUT> tags.
         end = 0;
         Map attrs = null;
@@ -86,11 +98,17 @@ public class FormToHTML {
         }
     }
 
+    private static final String STYLE_END = "</style";
+    private static final String HEAD_END = "</head";
     private static final String INPUT_TAG = "<input";
     private static final String SELECT_TAG = "<select";
     private static final String SELECT_END = "</select";
     private static final String TEXTAREA_TAG = "<textarea";
     private static final String TEXTAREA_END = "</textarea";
+
+    private static final String TABLE_STYLE_DECL =
+        " table { border: 1px solid grey; border-collapse: collapse } " +
+        " td    { border: 1px solid grey } ";
 
     // tag should already start with "<".
     public static int findTag(StringBuffer text, String tag, int start) {
