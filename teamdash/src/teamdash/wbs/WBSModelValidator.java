@@ -7,13 +7,24 @@ import java.util.HashSet;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TableModelEvent;
 
+
+/** Checks a WBSModel for errors, and saves those errors as attributes
+ * on the erroneous nodes.
+ */
 public class WBSModelValidator implements TableModelListener {
 
+    /** The node attribute used to record problems with the type of a node.
+     */
     public static final String NODE_TYPE_ERROR_ATTR_NAME = "Node_Type_Error";
+
+    /** The node attribute used to record problems with the name of a node.
+     */
     public static final String NODE_NAME_ERROR_ATTR_NAME = "Node_Name_Error";
 
+    /** The wbs model to validate */
     protected WBSModel wbsModel;
 
+    /** Create a validator for the given WBSModel. */
     public WBSModelValidator(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
         wbsModel.addTableModelListener(this);
@@ -22,12 +33,12 @@ public class WBSModelValidator implements TableModelListener {
     public void tableChanged(TableModelEvent e) { recalc(); }
 
     public void recalc() {
-        //System.out.println("WBSModelValidator.recalc()");
         recalc(wbsModel.getRoot());
     }
 
     protected void recalc(WBSNode node) {
 
+        // check for illegal parent/child node type relationships
         String type = wbsModel.filterNodeType(node);
         WBSNode parent = wbsModel.getParent(node);
         String typeError = null;
@@ -105,7 +116,7 @@ public class WBSModelValidator implements TableModelListener {
         return null;
     }
 
-
+    /** Check to ensure that the name of this node is valid. */
     protected String checkNodeName(String name, String type) {
         if (name == null || name.trim().length() == 0)
             return "Every " + type.toLowerCase() + " must have a name.";
@@ -113,17 +124,23 @@ public class WBSModelValidator implements TableModelListener {
         return null;
     }
 
+    /** Convenience method to check for document types */
     protected boolean isDocument(String type) {
         return wbsModel.isDocument(type);
     }
 
+    /** Convenience method to check for software component types */
     protected boolean isSoftwareComponent(String type) {
         return wbsModel.isSoftwareComponent(type);
     }
 
+    /** Convenience method to check for PSP tasks */
     protected boolean isPSPTask(String type) {
         return wbsModel.isPSPTask(type);
     }
+
+    /** Alter the capitalization of the given type so it can be used to
+     * start a sentence. */
     protected String capitalize(String type) {
         StringTokenizer tok = new StringTokenizer(type);
         String result = tok.nextToken();
