@@ -31,7 +31,10 @@
         <tocitem image="PageIcon" target="SunBerkeley" text="Sun Microsystems"/>
         <tocitem image="PageIcon" target="VisualNumerics" text="Visual Numerics"/>
         <tocitem image="PageIcon" target="JpegEncoder" text="Jpeg Encoder"/>
-        <tocitem image="PageIcon" target="Separation" text="PSP Processes"/>
+        <tocitem image="BookIcon" target="Separation" text="PSP Processes">
+          <tocitem image="PageIcon" target="RequestLetter" text="PSP Request Letter"/>
+          <tocitem image="PageIcon" target="PermissionLetter" text="PSP Permission Letter"/>
+        </tocitem>
       </tocitem>
     </tocitem>
 
@@ -43,6 +46,7 @@
       <tocitem image="PageIcon" target="UsingProbeTool" text="Using the PROBE Tool"/>
       <tocitem image="BookIcon" target="UsingTaskSchedule" text="Using the Task &amp; Schedule Tool">
         <tocitem image="PageIcon" target="TaskScheduleCollaboration" text="Task &amp; Schedule Collaboration"/>
+        <tocitem image="PageIcon" target="TaskScheduleRanges" text="Prediction Ranges in the Task &amp; Schedule Tool"/>
       </tocitem>
       <tocitem image="PageIcon" target="DataFreezing" text="Data Freezing"/>
     </tocitem>

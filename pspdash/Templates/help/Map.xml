@@ -129,8 +129,11 @@
   <mapID target="TaskScheduleCollaboration.createRollup" url="Topics/Planning/TaskScheduleCollaboration.html#createRollup" />
   <mapID target="TaskScheduleCollaboration.limitations" url="Topics/Planning/TaskScheduleCollaboration.html#limitations" />
   <mapID target="UsingTaskSchedule.progress" url="Topics/Planning/UsingTaskSchedule.html#progress" />
+  <mapID target="TaskScheduleRanges" url="Topics/Planning/TaskScheduleRanges.html" />
   <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
   <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />
   <mapID target="Separation" url="Topics/Overview/Separation.html" />
+  <mapID target="PermissionLetter" url="Topics/Overview/PermissionLetter.html" />
+  <mapID target="RequestLetter" url="Topics/Overview/RequestLetter.html" />
 
 </map>
