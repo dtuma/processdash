@@ -32,7 +32,7 @@ import java.util.Enumeration;
 public class timelog extends TinyCGIBase {
 
     private static final String START_TEXT =
-        "<HTML><HEAD><TITLE>Time Log%for path%</TITLE>\n" +
+        "<HTML><HEAD><TITLE>Time Log%for path%</TITLE>%css%\n" +
         "<STYLE>\n" +
         "    TABLE { empty-cells: show }\n" +
         "    .header { font-weight: bold }\n" +
@@ -61,8 +61,10 @@ public class timelog extends TinyCGIBase {
         else
             title = "";
 
-        out.print(StringUtils.findAndReplace(START_TEXT, "%for path%",
-                                             title));
+        String header = START_TEXT;
+        header = StringUtils.findAndReplace(header, "%for path%", title);
+        header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
+        out.print(header);
 
         TimeLog tl = new TimeLog();
         tl.readDefault();

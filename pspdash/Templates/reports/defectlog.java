@@ -34,7 +34,7 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
     private String typeFilt, injFilt, remFilt;
 
     private static final String HEADER_TEXT =
-        "<HTML><HEAD><TITLE>Defect Log%for path%</TITLE>\n" +
+        "<HTML><HEAD><TITLE>Defect Log%for path%</TITLE>%css%\n" +
         "<STYLE>\n" +
         "    TABLE { empty-cells: show }\n" +
         "    .header { font-weight: bold }\n" +
@@ -69,8 +69,11 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
         else
             title = "";
 
-        out.print(StringUtils.findAndReplace(HEADER_TEXT, "%for path%",
-                                             title));
+        String header = HEADER_TEXT;
+        header = StringUtils.findAndReplace(header, "%for path%", title);
+        header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
+        out.print(header);
+
         typeFilt = getParameter("type");
         injFilt  = getParameter("inj");
         remFilt  = getParameter("rem");

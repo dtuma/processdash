@@ -53,7 +53,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         "inj=Design", "inj=Code", "rem=Compile", "rem=Test" };
 
     private static final String HEADER_TEXT =
-        "<HTML><HEAD><TITLE>Report R4</TITLE>\n" +
+        "<HTML><HEAD><TITLE>Report R4</TITLE>%css%\n" +
         "<STYLE>\n" +
         "    TABLE { empty-cells: show }\n" +
         "    TD { text-align:center; vertical-align: baseline }\n" +
@@ -72,7 +72,8 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         initValues();
         DefectAnalyzer.run(getPSPProperties(), path, this);
 
-        out.println(HEADER_TEXT);
+        out.println(StringUtils.findAndReplace(HEADER_TEXT, "%css%",
+                                               cssLinkHTML()));
 
         out.println("<H2>Table D23</H2>");
         out.println("<TABLE NAME=D23 BORDER><TR class=header><TD></TD>");

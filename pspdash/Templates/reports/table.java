@@ -44,7 +44,6 @@ public class table extends pspdash.TinyCGIBase {
 
     protected void writeContents() throws IOException {
         String title = (String) parameters.get("title");
-        String style = (String) parameters.get("style");
         String head  = (String) parameters.get("headerComment");
         String foot  = (String) parameters.get("footerComment");
 
@@ -55,14 +54,13 @@ public class table extends pspdash.TinyCGIBase {
         if (!includable) {
             out.println("<HTML><HEAD>");
             if (title != null) out.println("<TITLE>" + title + "</TITLE>");
-            if (style != null)
-                out.println("<LINK REL='stylesheet' TYPE='text/css' HREF='" +
-                            style + "'>");
+            out.println(cssLinkHTML());
 
             out.println("</HEAD><BODY>");
             if (title != null) out.println("<H1>" + title + "</H1>");
             if (head  != null) out.println("<P>"  + head  + "</P>");
-            out.println(style == null ? "<TABLE BORDER>" : "<TABLE>");
+            out.println(parameters.containsKey("style") ?
+                        "<TABLE>" : "<TABLE BORDER>");
         }
 
         // get the data

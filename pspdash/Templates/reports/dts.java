@@ -39,8 +39,7 @@ public class dts extends TinyCGIBase {
         String name = defectTypeStandard.getName();
         String title = (name == null ? "" : " (" + name + ")");
 
-        out.println("<HTML><HEAD>");
-        out.println(STYLESHEET_LINK_HTML);
+        out.println("<HTML><HEAD>" + cssLinkHTML());
         out.println("<TITLE>Defect Type Standard" + title + "</TITLE>");
         out.println("</HEAD><BODY>");
         out.println("<H1>Defect Type Standard" + title + "</H1>");
