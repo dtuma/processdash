@@ -34,8 +34,9 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
     private String typeFilt, injFilt, remFilt;
 
     private static final String HEADER_TEXT =
-        "<HTML><HEAD><TITLE>Defect Log%for path%</TITLE>%css%\n" +
+        "<HTML><HEAD><TITLE>Defect Log%for owner%%for path%</TITLE>%css%\n" +
         "<STYLE>\n" +
+        "    @media print { TD { font-size: 8pt } }\n" +
         "    TABLE { empty-cells: show }\n" +
         "    .header { font-weight: bold }\n" +
         "    TD { vertical-align: baseline }\n" +
@@ -64,13 +65,12 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
     /** Generate CGI script output. */
     protected void writeContents() {
 
-        String path = getPrefix(), title;
-        if (path != null && path.length() > 1)
-            title = " for " + path;
-        else
-            title = "";
+        String path = getPrefix();
+        String title = For(path);
+        String owner = For(getOwner());
 
         String header = HEADER_TEXT;
+        header = StringUtils.findAndReplace(header, "%for owner%", owner);
         header = StringUtils.findAndReplace(header, "%for path%", title);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
         out.print(header);
@@ -94,6 +94,13 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
         DefectAnalyzer.run(getPSPProperties(), path, this);
 
         out.println(END_TEXT);
+    }
+
+    private String For(String phrase) {
+        if (phrase != null && phrase.length() > 1)
+            return " for " + phrase;
+        else
+            return "";
     }
 
     private boolean phaseMatches(String a, String b) {

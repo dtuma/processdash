@@ -32,7 +32,7 @@ import java.util.Enumeration;
 public class timelog extends TinyCGIBase {
 
     private static final String START_TEXT =
-        "<HTML><HEAD><TITLE>Time Log%for path%</TITLE>%css%\n" +
+        "<HTML><HEAD><TITLE>Time Log%for owner%%for path%</TITLE>%css%\n" +
         "<STYLE>\n" +
         "    TABLE { empty-cells: show }\n" +
         "    .header { font-weight: bold }\n" +
@@ -57,13 +57,12 @@ public class timelog extends TinyCGIBase {
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
 
-        String path = getPrefix(), title;
-        if (path != null && path.length() > 1)
-            title = " for " + path;
-        else
-            title = "";
+        String path = getPrefix();
+        String title = For(path);
+        String owner = For(getOwner());
 
         String header = START_TEXT;
+        header = StringUtils.findAndReplace(header, "%for owner%", owner);
         header = StringUtils.findAndReplace(header, "%for path%", title);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
         out.print(header);
@@ -99,5 +98,12 @@ public class timelog extends TinyCGIBase {
             out.print(DISCLAIMER);
 
         out.println("</BODY></HTML>");
+    }
+
+    private String For(String phrase) {
+        if (phrase != null && phrase.length() > 1)
+            return " for " + phrase;
+        else
+            return "";
     }
 }
