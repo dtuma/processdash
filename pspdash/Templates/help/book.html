@@ -4593,7 +4593,7 @@ in Netscape versus the way it is handled in Internet Explorer.</p>
 <UL>
  <LI><a href="#doc38_MacInstall">How can I install the Process Dashboard on a Macintosh computer?</A></LI>
  <LI><a href="#doc38_NoServer">My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</A></LI>
- <LI><a href="#doc38_SunPlugin">My web browser is able to show the forms, but none of the entry blanks have any information.  What is wrong?</a></li>
+ <LI><a href="#doc38_BrokenForms">My web browser is able to show the forms, but none of the entry blanks have any information.  What is wrong?</a></li>
 
  <LI><a href="#doc38_ChooseJVM">I have several versions of the Java Runtime Environment on my computer. How
   can I tell the dashboard which one to use?</a></li>
@@ -4682,25 +4682,22 @@ is running.</p>
       &quot;localhost&quot;.</LI>
   </UL>
 
-<p><hr><a name="doc38_SunPlugin"></a><b>My web browser is able to show the forms, 
+<p><hr><a name="doc38_BrokenForms"></a><b>My web browser is able to show the forms, 
 but none of the entry blanks have any information.  What is wrong?</b>
 
-<p>If you can see the HTML forms but they don't seem to be talking to the 
-Dashboard, you may have a problem with the particular Java Plugin that has 
-been installed in your browser.  We know that the Sun Java Plugin when 
-running in Internet Explorer under windows has a problem.  To fix that 
-problem:</p>
+<p>The dashboard uses web browsers in unique and innovative
+ways. Unfortunately, some browsers aren't up to the task. If you can
+see the HTML forms but they don't seem to be talking to the Dashboard,
+then it is likely that your browser (or the Java environment within
+your browser) is encountering problems.</p>
 
-<ol>
- <li>Click on &quot;Start <img src="Images/rarrow.png"> Settings <img src="Images/rarrow.png"> Control Panel <img src="Images/rarrow.png"> Java Plug In&quot;</li>
- <li>Select the &quot;Browser&quot; tab</li>
- <li>Remove the checkmark next to &quot;Microsoft Internet Explorer&quot;</li>
- <li>Choose &quot;Apply&quot;</li>
- <li>You may have to restart IE</li>
-</ol>
+<p>Your first step should be to ensure that you are using one of the
+browsers recommended for use with the dashboard. (See the
+<a href="#doc13_top">installation help topic</a> for
+more information.)</p>
 
-<p>If you are running on another system / browser and have this problem, 
-please send us an email at 
+<p>If you are using one of the approved browsers and you still have
+this problem, please send us an email at
 <em>processdash-devel@lists.sourceforge.net</em></p> and we will attempt to 
 help you with the problem.
 
@@ -4924,8 +4921,9 @@ the script files.</p>
 two places: the user's data directory or the user's home directory (on Unix 
 systems).  The dashboard looks in the data directory first, then in the user's
 home directory.  To find out exactly where your configuration file is located,
-choose "About" from the configuration menu, then click on the link for "user
-settings". See the <a href="#doc40_top">configuration file</A> help
+choose &quot;Help <img src="Images/rarrow.png"> About Process
+Dashboard&quot; from the configuration menu, then click on the link for
+"user settings". See the <a href="#doc40_top">configuration file</A> help
 topic for more information about the configuration file and the settings that
 can be defined there.</P>
 
