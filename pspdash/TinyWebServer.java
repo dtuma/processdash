@@ -93,7 +93,7 @@ public class TinyWebServer extends Thread {
                 return result;
 
             // Read the class definition from the connection
-            byte [] defn = slurpContents(conn.getInputStream());
+            byte [] defn = slurpContents(conn.getInputStream(), true);
 
             // Create a class from the definition read.
             result = defineClass(className, defn, 0, defn.length);
@@ -462,15 +462,8 @@ public class TinyWebServer extends Thread {
             throws TinyWebThreadException, IOException
         {
             // Slurp the entire file into a StringBuffer.
-            String content = null;
-            content = new String(slurpContents(conn.getInputStream()));
-
-            // Check to see if the file we just slurped is a server parsed
-            // file.  If not, just return its contents. (This check is
-            // necessary to keep from parsing included .html files).
-            //if (! SERVER_PARSED_MIME_TYPE.equals
-            // (getMimeTypeFromName(conn.getURL().getFile())))
-            // return content;
+            String content = new String(slurpContents(conn.getInputStream(),
+                                                      true));
 
             // Look for and process include directives.
             StringBuffer result = new StringBuffer();
@@ -614,7 +607,7 @@ public class TinyWebServer extends Thread {
     }
 
     /** Utility routine: slurp an entire file from an InputStream. */
-    public static byte[] slurpContents(InputStream in)
+    public static byte[] slurpContents(InputStream in, boolean close)
         throws IOException
     {
         byte [] result = null;
@@ -626,6 +619,7 @@ public class TinyWebServer extends Thread {
                 slurpBuffer.write(buffer, 0, bytesRead);
             result = slurpBuffer.toByteArray();
         }
+        if (close) try { in.close(); } catch (IOException ioe) {}
         return result;
     }
     private static ByteArrayOutputStream slurpBuffer =
