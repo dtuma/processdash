@@ -78,8 +78,13 @@ public class Resources {
 
 
     public static ResourceBundle getBundle(String bundleName) {
-        return ResourceBundle.getBundle
+        long start = System.currentTimeMillis();
+        ResourceBundle result = ResourceBundle.getBundle
             (bundleName, Locale.getDefault(), RESOURCE_LOADER);
+        long end = System.currentTimeMillis();
+        long delta = end - start;
+        System.out.println("Loading bundle Took " + delta + " ms");
+        return result;
     }
 
     public static String format(ResourceBundle bundle, String key,
@@ -138,12 +143,28 @@ public class Resources {
             (format(bundle, key, arg1, arg2, arg3, arg4), delim);
     }
 
+    public static String[] getStrings(ResourceBundle bundle, String key) {
+        return StringUtils.split(bundle.getString(key), "\r\n");
+    }
+
     public static String[] getStrings(ResourceBundle bundle,
                                       String prefix,
                                       String[] keys) {
         String[] result = new String[keys.length];
         for (int i = keys.length;   i-- > 0; )
             result[i] = bundle.getString(prefix + keys[i]);
+        return result;
+    }
+
+    public static int[] getInts(ResourceBundle bundle,
+                                String prefix,
+                                String[] keys) {
+        int[] result = new int[keys.length];
+        for (int i = keys.length;   i-- > 0; ) try {
+            result[i] = Integer.parseInt(bundle.getString(prefix + keys[i]));
+        } catch (NumberFormatException nfe) {
+            result[i] = -1;
+        }
         return result;
     }
 
