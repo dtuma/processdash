@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -300,21 +300,23 @@ public class TimeCardDialog {
         public void recalc(PSPProperties props, TimeLog timeLog,
                            int month, int year) {
             TimeCardNode root = new TimeCardNode(props);
+            this.year = year;
+            this.month = month;
 
             Calendar cal = Calendar.getInstance();
-            cal.set(cal.YEAR, this.year = year);
-            cal.set(cal.MONTH, this.month = month);
-            cal.set(cal.DAY_OF_MONTH, 1);
+            cal.clear();
+            cal.set(year, month, 1,     // year, month, day
+                    0, 0, 0);           // hour, minute, second
             Date from = cal.getTime();
-            daysInMonth = cal.getActualMaximum(cal.DAY_OF_MONTH);
-            cal.set(cal.DAY_OF_MONTH, daysInMonth);
+            daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+            cal.add(Calendar.MONTH, 1);
             Date to = cal.getTime();
 
             for (int i=32;  i-- > 0; )
                 if (i >= daysInMonth)
                     dayNames[i] = null;
                 else {
-                    cal.set(cal.DAY_OF_MONTH, i+1);
+                    cal.set(year, month, i+1);
                     dayNames[i] = dayFormat.format(cal.getTime());
                 }
 
