@@ -75,12 +75,17 @@ public class week extends TinyCGIBase {
         EVMetrics  metrics = schedule.getMetrics();
         totalPlanTime = metrics.totalPlan();
 
-        String effDateParam = getParameter(EFF_DATE_PARAM);
         //FIXME: allow the user to change the effective date somehow.
+        String effDateParam = getParameter(EFF_DATE_PARAM);
+        Date effDateTime = null;
+        if (effDateParam != null) try {
+            effDateTime = new Date(Long.parseLong(effDateParam));
+        } catch (Exception e) {}
+        if (effDateTime == null) effDateTime = new Date();
 
         // by default, look at the EV model and find the start of the current
         // period; use that as the effective date.
-        Date effDate = schedule.getPeriodStart(new Date());
+        Date effDate = schedule.getPeriodStart(effDateTime);
         if (effDate == null)
             effDate = new Date();
 
