@@ -24,6 +24,7 @@
 // E-Mail POC:  ken.raisor@hill.af.mil
 
 import java.io.IOException;
+import pspdash.StringUtils;
 import pspdash.data.DataRepository;
 import pspdash.data.ResultSet;
 
@@ -48,7 +49,10 @@ public class excel extends pspdash.TinyCGIBase {
             String port = (String) env.get("SERVER_PORT");
             hostPort = host + ":" + port;
         }
-        out.print("http://" + hostPort + "/0/reports/table.class?");
+        String uri = (String) env.get("REQUEST_URI");
+        uri = StringUtils.findAndReplace(uri, "/excel.iqy",   "/table.class");
+        uri = StringUtils.findAndReplace(uri, "/excel.class", "/table.class");
+        out.print("http://" + hostPort + uri);
         out.println(queryString);
     }
 
