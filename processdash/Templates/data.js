@@ -400,10 +400,15 @@ function NSchangeNotify()  {
 }
 
 function NSchangeNotifyElem(elem) {
+  var value;
+  if (elem.type.toLowerCase() == "checkbox")
+      value = elem.checked;
+  else
+      value = elem.value;
   if (document.applets["NSDataAppl"] != null)
-    document.applets["NSDataAppl"].notifyListener(elem.id);
+    document.applets["NSDataAppl"].notifyListener(elem.id, value);
   else if (document.all && document.all.NSDataAppl)
-    document.all.NSDataAppl.notifyListener(elem.id);
+    document.all.NSDataAppl.notifyListener(elem.id, value);
 }
 
 
@@ -454,10 +459,20 @@ function NSregisterElement(elem) {
 				// function object for use with elementIterate
 function NSregisterElementObj() { this.func = NSregisterElement; }
 
+var NSparameterString = "";     // a list of parameters for the NSDataApplet.
+
 function NSAssignIdentifiers() {
-  for (i = NSelementList.length;   i > 0; ) {
-    i--;
-    NSelementList[i].id = "dashelem_" + i;
+  NSparameterString = "";
+
+  var elem;
+  for (i = 0;   i < NSelementList.length;   i++) {
+    elem = NSelementList[i];
+    elem.id = "dashelem_" + i;
+    NSparameterString = NSparameterString +
+	'<param name=field_id'  +i+' value="'+ elem.id +'">'+
+	'<param name=field_type'+i+' value="'+ elem.type +'">'+
+	'<param name=field_name'+i+' value="'+
+                textToHTML(escStr(elem.name)) +'">';
   }
 }
 
@@ -465,6 +480,71 @@ function NSSetupElements() {
   NSelementList = new Array();
   elementIterate(new NSregisterElementObj());
   NSAssignIdentifiers();
+}
+
+function updateFields() {
+  var nsapplet;
+  var elem;
+  if (document.applets["NSDataAppl"] != null)
+    nsapplet = document.applets["NSDataAppl"];
+  else if (document.all && document.all.NSDataAppl)
+    nsapplet = document.all.NSDataAppl;
+  else {
+    self.setTimeout("updateFields()", 1000);
+    return;
+  }
+
+  var notification = nsapplet.getDataNotification();
+  if (notification == "none") 
+    self.setTimeout("updateFields()", 300);
+  else if (notification == null) 
+    self.setTimeout("updateFields()", 2000);
+  else {
+    updateField(notification);
+    self.setTimeout("updateFields()", 1);
+  }
+}
+
+function updateField(notification) {
+  notification = "" + notification;
+  var pos = notification.indexOf(",");
+  var id = notification.substring(0, pos);
+  paintField(findField(id), notification.substr(pos+1));
+}
+
+function findField(id) {
+  for (i = NSelementList.length;   i > 0; ) {
+    i--;
+    if (NSelementList[i].id == id) return NSelementList[i];
+  }  
+  return null;
+}
+
+function paintField(elem, value) {
+  if (elem == null) return;
+
+  var readOnly = (value.substring(0, 1) == "=");
+  value = value.substr(1);
+
+  elem.className = (readOnly ? "readOnlyElem" : "editableElem");
+  switch (elem.type.toLowerCase()) {
+
+    case "checkbox":
+      elem.checked = (value == "true");
+      elem.readOnly = readOnly;
+      break;
+
+    case "text" :
+    case "textarea" :
+      elem.value = value;
+      elem.readOnly = readOnly;
+      break;
+
+    case "select-one" :
+    case "select-multiple":
+      elem.value = value;
+      break;
+  }
 }
 
 /*
@@ -492,9 +572,12 @@ function NSSetup() {
     document.writeln('<param name=nsVersion value="'+nsVersion+'">');
     document.writeln('<param name=debug value="<!--#echo dataApplet.debug -->">');
     document.writeln('<param name=disableDOM value="<!--#echo dataApplet.disableDOM -->">');
+    document.writeln(NSparameterString);
     document.writeln('</applet>');
 
     writeFooter();
+
+    self.setTimeout("updateFields()", 300);
   }
 }
 
@@ -531,9 +614,12 @@ function ForcePlugInSetup() {
     document.writeln('<param name=nsVersion value="'+nsVersion+'">');
     document.writeln('<param name=debug value="<!--#echo dataApplet.debug -->">');
     document.writeln('<param name=disableDOM value="<!--#echo dataApplet.disableDOM -->">');
+    document.writeln(NSparameterString);
     document.writeln('</object>');
 
     writeFooter();
+
+    self.setTimeout("updateFields()", 300);
   }
 }
 

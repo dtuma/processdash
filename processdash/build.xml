@@ -218,7 +218,7 @@ Authors:
       <!-- specify the manifest file contents -->
       <manifest>
         <attribute name="Dash-Pkg-ID" value="importPSP"/>
-        <attribute name="Dash-Pkg-Version" value="1.2"/>
+        <attribute name="Dash-Pkg-Version" value="1.3"/>
         <attribute name="Dash-Pkg-Name"
                    value="PSP(SM) Data Import Add-on Process Set"/>
         <attribute name="Dash-Pkg-URL"
@@ -339,8 +339,12 @@ Authors:
       <!-- include the template files -->
       <fileset dir=".">
         <include name="Templates/"/>
+	<exclude name="Templates/data.js"/> <!-- temp change -->
         <excludesfile name="${lib}/fileset-template-ignore.txt"/>
       </fileset>
+
+      <zipfileset dir="." includes="Templates/data2.js"
+               fullpath="Templates/data.js"/> <!-- temp change -->
 
       <!-- include the contents of the libraries we use -->
       <zipfileset src="${jcommon.jar}"/>
@@ -436,6 +440,7 @@ Authors:
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
     <delete quiet="true" file="${processdash}/ui/help/DashHelpBrokerCGI.java"/>
+    <delete quiet="true" dir="${helpsearch}"/>
 
     <delete quiet="true" file="${dist}/pspdash.jar"/>
     <delete quiet="true" file="${dist}/dashHelp.jar"/>

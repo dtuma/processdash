@@ -1,2 +1,3 @@
 net/sourceforge/processdash/data/applet/ns/*.java
+net/sourceforge/processdash/data/applet/js/JS*.java
 net/sourceforge/processdash/data/applet/dom/*.java
