@@ -1255,6 +1255,12 @@ public class TinyWebServer extends Thread {
         else
             DEFAULT_ENV.put(TinyCGI.DATA_REPOSITORY, data);
     }
+    public void setCache(ObjectCache cache) {
+        if (cache == null)
+            DEFAULT_ENV.remove(TinyCGI.OBJECT_CACHE);
+        else
+            DEFAULT_ENV.put(TinyCGI.OBJECT_CACHE, cache);
+    }
     public void allowRemoteConnections(String setting) {
         this.allowRemoteConnections = "true".equalsIgnoreCase(setting);
 

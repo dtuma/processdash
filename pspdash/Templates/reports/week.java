@@ -61,12 +61,15 @@ public class week extends TinyCGIBase {
             taskListName = taskListName.substring(4);
 
         // Load and recalculate the named earned value model.
-        EVTaskList evModel =
-            new EVTaskList(taskListName,
-                           getDataRepository(),
-                           getPSPProperties(),
-                           false,  // don't try to create a rollup
-                           false); // change notification not required
+        EVTaskList evModel = EVTaskList.openExisting
+            (taskListName,
+             getDataRepository(),
+             getPSPProperties(),
+             getObjectCache(),
+             false); // change notification not required
+        if (evModel == null)
+            throw new TinyCGIException(404, "Not Found",
+                                       "No such task/schedule");
         evModel.recalc();
         EVSchedule schedule = evModel.getSchedule();
         EVMetrics  metrics = schedule.getMetrics();

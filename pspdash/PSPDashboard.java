@@ -56,6 +56,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     ConcurrencyLock concurrencyLock = null;
     AutoUpdateManager aum = null;
     ConsoleWindow consoleWindow = new ConsoleWindow();
+    ObjectCache objectCache;
 
     boolean paused = true;
     String timeLogName        = "time.log";
@@ -256,8 +257,17 @@ public class PSPDashboard extends JFrame implements WindowListener {
         }
         ImportExport.startAutoExporter(this);
 
+        try {
+            objectCache =
+                new FileObjectCache(new File(property_directory), ".obj");
+        } catch (IOException ioe) {
+            // not possible?
+            ioe.printStackTrace();
+        }
+
         webServer.setData(data);
         webServer.setProps(props);
+        webServer.setCache(objectCache);
 
         hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
         if (Settings.getVal(COMPLETION_FLAG_SETTING) == null) {

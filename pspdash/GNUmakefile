@@ -222,7 +222,8 @@ $(BIN)/pspdash/%.class: %.java
 	    -deprecation \
 	    -sourcepath $(SRC) \
 	    -d $(BIN) \
-	    $^
+	    *.java
+# $^
 
 DataSources.class: $(BIN)/com/jrefinery/chart/DataSources.class
 XYPlot.class: $(BIN)/com/jrefinery/chart/XYPlot.class

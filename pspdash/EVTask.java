@@ -84,7 +84,7 @@ public class EVTask implements DataListener {
 
     /** Add a child task to this EVTask. */
     public boolean add(EVTask child) {
-        if (children.contains(child))
+        if (containsNode(children, child))
             return false;
 
         child.parent = this;
@@ -94,7 +94,7 @@ public class EVTask implements DataListener {
 
     /** Add a child task to this EVTask. */
     public boolean add(int pos, EVTask child) {
-        if (children.contains(child))
+        if (containsNode(children, child))
             return false;
 
         child.parent = this;
@@ -102,8 +102,9 @@ public class EVTask implements DataListener {
         return true;
     }
 
+    /** Remove a child task from this EVTask */
     public int remove(EVTask child) {
-        int pos = children.indexOf(child);
+        int pos = indexOfNode(children, child);
         if (pos != -1)
             children.remove(pos);
         return pos;
@@ -119,9 +120,7 @@ public class EVTask implements DataListener {
         }
     }
 
-    public boolean equals(Object obj) {
-        if (!(obj instanceof EVTask)) return false;
-        EVTask that = (EVTask) obj;
+    public boolean sameNode(EVTask that) {
         if ("".equals(this.fullName))
             // compare root nodes by examining their node name.
             return cmpStrings(this.name, that.name);
@@ -341,7 +340,12 @@ public class EVTask implements DataListener {
     }
 
     public int getNumChildren() { return children.size(); }
-    public int getChildIndex(Object child) { return children.indexOf(child); }
+    public int getChildIndex(Object child) {
+        if (child instanceof EVTask)
+            return indexOfNode(children, (EVTask) child);
+        else
+            return -1;
+    }
     public boolean isLeaf() { return children.isEmpty(); }
     public EVTask getChild(int pos) { return (EVTask) children.get(pos); }
     public EVTask getParent() { return parent; }
@@ -556,7 +560,8 @@ public class EVTask implements DataListener {
             break;
 
         case 1:                 // this is a child of the root.
-            if (rootChildList.contains(this) || otherNodeList.contains(this)) {
+            if (containsNode(rootChildList, this) ||
+                containsNode(otherNodeList, this)) {
                 metrics.addError("The task \"" + fullName + "\" appears in "+
                                  "the task list more than once.", this);
                 setTaskError("Duplicate task");
@@ -566,7 +571,7 @@ public class EVTask implements DataListener {
             break;
 
         default:
-            int pos = rootChildList.indexOf(this);
+            int pos = indexOfNode(rootChildList, this);
             if (pos != -1) {
                 EVTask t = (EVTask) rootChildList.get(pos);
                 metrics.addError("The task \"" + t.fullName + "\" appears in "+
@@ -747,5 +752,17 @@ public class EVTask implements DataListener {
                 getChild(i).saveToXML(result);
             result.append("</task>");
         }
+    }
+
+    static int indexOfNode(List list, EVTask node) {
+        int i;
+        if (node != null && list != null && (i = list.size()) > 0)
+            while (i-- > 0)
+                if (node.sameNode((EVTask) list.get(i)))
+                    return i;
+        return -1;
+    }
+    static boolean containsNode(List list, EVTask node) {
+        return indexOfNode(list, node) != -1;
     }
 }

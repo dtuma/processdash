@@ -252,7 +252,8 @@ public class EVSchedule implements TableModel {
     Vector periods = new Vector();
     EVMetrics metrics = new EVMetrics();
 
-    public EVSchedule() {
+    public EVSchedule() { this(20.0); }
+    public EVSchedule(double hours) {
         Calendar c = Calendar.getInstance();
         c.set(c.DAY_OF_WEEK, 1);
 
@@ -260,7 +261,7 @@ public class EVSchedule implements TableModel {
         Date end = new Date(begin.getTime() + WEEK_MILLIS);
 
         add(new Period(begin, 0.0));
-        add(new Period(end, 20 * 60));
+        add(new Period(end, hours * 60));
     }
     private static Date truncDate(Date d) {
         Calendar c = Calendar.getInstance();

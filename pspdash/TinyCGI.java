@@ -39,6 +39,9 @@ public interface TinyCGI {
     /** Key for looking up the data repository in the environment. */
     public static final String DATA_REPOSITORY = "DATA_REPOSITORY";
 
+    /** Key for looking up the object cache in the environment. */
+    public static final String OBJECT_CACHE = "OBJECT_CACHE";
+
     /** Key for looking up the web server in the environment. */
     public static final String TINY_WEB_SERVER = "TINY_WEB_SERVER";
 

@@ -84,7 +84,7 @@ public class DashController {
 
         // Search the data repository for elements that begin with any of
         // the prefixes we just contructed.
-        String dataName, prefix, ord_pref = "/"+EVTaskList.TASK_ORDINAL_PREFIX;
+        String dataName, prefix, ord_pref = "/"+EVTaskListData.TASK_ORDINAL_PREFIX;
         Iterator i = dash.data.getKeys();
         ArrayList taskLists = new ArrayList();
 

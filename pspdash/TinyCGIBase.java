@@ -246,6 +246,9 @@ public class TinyCGIBase implements TinyCGI {
     protected PSPProperties getPSPProperties() {
         return (PSPProperties) env.get(PSP_PROPERTIES);
     }
+    protected ObjectCache getObjectCache() {
+        return (ObjectCache) env.get(OBJECT_CACHE);
+    }
     /** Perform an internal http request. */
     protected byte[] getRequest(String uri, boolean skipHeaders)
         throws IOException {

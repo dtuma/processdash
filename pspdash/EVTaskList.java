@@ -49,51 +49,27 @@ import pspdash.data.SimpleData;
 import pspdash.data.ListData;
 
 public class EVTaskList extends AbstractTreeTableModel
-    implements EVTask.Listener, ActionListener, PSPProperties.Listener
+    implements EVTask.Listener, ActionListener
 {
 
     public static final String MAIN_DATA_PREFIX = "/Task-Schedule/";
-    public static final String TASK_ORDINAL_PREFIX = "TST_";
-    public static final String EST_HOURS_DATA_NAME = "Planned Hours";
-    public static final String TASK_LISTS_DATA_NAME = "Task Lists";
-    public static final String XML_DATA_NAME = "XML Task List";
-    public static final String XML_SAVE_NAME = "XML Saved List";
 
 
     protected String taskListName;
-    protected DataRepository data;
-    protected PSPProperties hierarchy;
     protected EVSchedule schedule;
-    protected Vector evTaskLists = null;
+
     /** timer for triggering recalculations */
-    protected Timer recalcTimer;
+    protected Timer recalcTimer = null;
 
+    protected double totalPlanTime;
 
-    /**
-     * @param taskListName the name of the task list. This will be one of:
-     *   for plain task lists: a simple string, not containing any '/'
-     *      characters (e.g. "My Tasks").
-     *
-     *   for XML task lists: a data name pointing to the data element in
-     *      the repository where the XML can be found. (e.g.
-     *      "/Imported/298243029/Task-Schedule/My Tasks").
-     *
-     *   for URL task lists: an encoded URL indicating where the XML task
-     *      list can be downloaded, and what password to use.  In the
-     *      URL, '/' chars have been replaced with '|'. Also, a trailing
-     *      '|!' and user credential may have been appended. (e.g.
-     *      "http:||host:2468|ev+|My Tasks||reports|ev.class?xml|Basic A1209C")
-     */
-    public EVTaskList(String taskListName,
-                      DataRepository data,
-                      PSPProperties hierarchy,
-                      boolean createRollup,
-                      boolean willNeedChangeNotification) {
+    protected EVTaskList(String taskListName,
+                         String displayName,
+                         boolean willNeedChangeNotification) {
         super(null);
 
         this.taskListName = taskListName;
-        this.data = data;
-        this.hierarchy = hierarchy;
+
         if (willNeedChangeNotification) {
             recalcListeners = Collections.synchronizedSet(new HashSet());
 
@@ -102,291 +78,24 @@ public class EVTaskList extends AbstractTreeTableModel
             recalcTimer.setRepeats(false);
         }
 
-        if (openURL(data, taskListName)) return;
-        if (openXML(data, taskListName)) return;
-
-        root = new EVTask(taskListName);
-
-        if (isRollup(data, taskListName) ||
-            (createRollup && !isPlain(data, taskListName))) {
-            evTaskLists = new Vector();
-            addTaskListsFromData(data, hierarchy, taskListName);
-            schedule = new EVScheduleRollup(evTaskLists);
-        } else {
-            addTasksFromData(data, taskListName);
-            schedule = getSchedule(data, taskListName);
-        }
+        if (displayName != null)
+            root = new EVTask(taskListName);
     }
 
-    private void addTasksFromData(DataRepository data, String taskListName) {
-        // search for tasks that belong to the named task list.
-        SortedMap tasks = new TreeMap(DataComparator.instance);
-        String ordinalPrefix = "/" + TASK_ORDINAL_PREFIX + taskListName;
-        Iterator i = data.getKeys();
-        String dataName, path;
-        SimpleData value;
-        while (i.hasNext()) {
-            dataName = (String) i.next();
-            if (!dataName.endsWith(ordinalPrefix)) continue;
-            value = data.getSimpleValue(dataName);
-            path = dataName.substring
-                (0, dataName.length() - ordinalPrefix.length());
-
-            // If this is an imported data item not corresponding to any
-            // real hierarchy node, ignore it.
-            if (hierarchy.findExistingKey(path) == null) continue;
-            tasks.put(value, path);
-        }
-
-        // now add each task found to the task list.
-        i = tasks.values().iterator();
-        boolean willNeedChangeNotification = (recalcListeners != null);
-        while (i.hasNext())
-            addTask((String) i.next(), data, hierarchy,
-                    willNeedChangeNotification);
-
-        hierarchy.addHierarchyListener(this);
-    }
-    private EVSchedule getSchedule(DataRepository data, String taskListName) {
-        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
-        String dataName =
-            data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
-        SimpleData d = data.getSimpleValue(dataName);
-        if (d instanceof StringData) d = ((StringData) d).asList();
-        if (d instanceof ListData)
-            return new EVSchedule((ListData) d);
-        else
-            return new EVSchedule();
+    public EVTaskList(String taskListName,
+                      String displayName,
+                      String errorMessage) {
+        this(taskListName, null, false);
+        createErrorRootNode(displayName, errorMessage);
     }
 
-    private void addTaskListsFromData(DataRepository data,
-                                      PSPProperties hierarchy,
-                                      String taskListName) {
-        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
-        String dataName =
-            data.createDataName(globalPrefix, TASK_LISTS_DATA_NAME);
-        SimpleData listVal = data.getSimpleValue(dataName);
-        ListData list = null;
-        if (listVal instanceof ListData)
-            list = (ListData) listVal;
-        else if (listVal instanceof StringData)
-            list = ((StringData) listVal).asList();
 
-        if (list == null) return;
-        for (int i = 0;   i < list.size();   i++) {
-            taskListName = (String) list.get(i);
-            EVTaskList taskList =
-                new EVTaskList(taskListName, data, hierarchy, false, false);
-            ((EVTask) root).add((EVTask) taskList.root);
-            evTaskLists.add(taskList);
-        }
+    protected void createErrorRootNode(String displayName,
+                                       String errorMessage) {
+        root = new EVTask(displayName);
+        ((EVTask) root).setTaskError(errorMessage);
+        schedule = new EVSchedule(0.0);
     }
-
-    private boolean openURL(DataRepository data, String taskListName) {
-        if (!taskListName.startsWith("http:||")) return false;
-        String xmlDoc = null, error = null, url = taskListName;
-        String saveName =
-            data.createDataName("/" + taskListName, XML_SAVE_NAME);
-
-        // Retrieve the password, if it is present.
-        String credential = null;
-        int credentialPos = url.indexOf("|!");
-        if (credentialPos != -1) {
-            credential = url.substring(credentialPos + 2);
-            url = url.substring(0, credentialPos);
-        }
-
-        /*
-        // Retrieve the friendly name, if it is present.
-        String friendlyName = null;
-        int namePos = url.indexOf("|~");
-        if (namePos != -1) {
-            friendlyName = url.substring(namePos + 2);
-            url = url.substring(0, namePos);
-        }*/
-
-        // translate the taskListName into a URL.
-        url = url.replace('|', '/');
-        URL u = null;
-
-        // first try to connect to the given URL and fetch the XML doc.
-        try {
-            u = new URL(url);
-            URLConnection conn = u.openConnection();
-            if (credential != null)
-                conn.setRequestProperty("Authorization", credential);
-            conn.connect();
-
-            // check for errors.
-            int status = ((HttpURLConnection) conn).getResponseCode();
-            if (status == 403)          // unauthorized?
-                error = "You don't have the correct password to connect "+
-                    "to your coworker's schedule.";
-
-            else if (status == 404)     // no such schedule?
-                error = "Your coworker doesn't have a schedule by this name. "+
-                    "(They may have renamed the schedule?)";
-
-            else if (status != 200)     // some other problem?
-                error = "Couldn't retrieve this schedule from your " +
-                    "coworker's computer.";
-
-            // retrieve the xml document and use it to create the task list.
-            if (error == null) {
-                xmlDoc = new String
-                    (TinyWebServer.slurpContents(conn.getInputStream(), true));
-                if (openXML(xmlDoc, null)) {
-                    data.putValue(saveName, StringData.create(xmlDoc));
-                    return true;
-                }
-            }
-
-        } catch (MalformedURLException mue) {
-            error = "The url '" + url + "' is malformed.";
-        } catch (UnknownHostException uhe) {
-            error = "Couldn't find your coworker's computer" +
-                (u == null ? "." : ", '" + u.getHost() + "'.");
-        } catch (ConnectException ce) {
-            error = "Couldn't connect to your coworker's computer. " +
-                "(They may not have their dashboard running?)";
-        } catch (IOException ioe) {
-            error = "There was a problem connecting to your " +
-                "coworker's computer.";
-        }
-
-        // if that fails, look for a cached value of the XML in the data
-        // repository
-        SimpleData value = data.getSimpleValue(saveName);
-        if (value instanceof StringData) {
-            xmlDoc = value.format();
-            if (openXML(xmlDoc, null)) return true;
-            // fixme - possibly check the effective date of the cached
-            // schedule, and display a warning if it is really old?
-        }
-
-        // if that fails, create an "invalid task list".
-        return false;
-    }
-
-    private boolean openXML(DataRepository data, String taskListName) {
-        String dataName = data.createDataName(taskListName, XML_DATA_NAME);
-        SimpleData value = data.getSimpleValue(dataName);
-        if (!(value instanceof StringData))
-            return false;
-        String xmlDoc = value.format();
-        return openXML(xmlDoc, cleanupName(taskListName));
-    }
-    private boolean openXML(String xmlDoc, String displayName) {
-        if (xmlDoc.equals(xmlSource)) return true;
-
-        try {
-            Document doc = XMLUtils.parse(xmlDoc);
-            Element docRoot = doc.getDocumentElement();
-            root = new EVTask((Element) docRoot.getFirstChild());
-            schedule = new EVSchedule((Element) docRoot.getLastChild());
-            if (displayName != null)
-                ((EVTask) root).name = displayName;
-            ((EVTask) root).simpleRecalc();
-            totalPlanTime = schedule.getMetrics().totalPlan();
-            xmlSource = xmlDoc;
-            return true;
-        } catch (Exception e) {
-            System.err.println("Got exception: " +e);
-            e.printStackTrace();
-            return false;
-        }
-    }
-    private String xmlSource = null;
-    private boolean isXML() { return xmlSource != null; }
-
-
-    public void save() { save(taskListName); }
-
-    public void save(String newName) {
-        if (isRollup())
-            saveRollup(newName);
-        else
-            savePlain(newName);
-    }
-
-    protected void savePlain(String newName) {
-        // First, compile a list of all the elements in the datafile that
-        // were previously used to save this task list.  (That way we'll
-        // know what we need to delete.)
-        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
-        String ordinalPrefix = "/" + TASK_ORDINAL_PREFIX + taskListName;
-        Iterator i = data.getKeys();
-        Set oldNames = new HashSet();
-        String dataName;
-        while (i.hasNext()) {
-            dataName = (String) i.next();
-            if (dataName.startsWith(globalPrefix) ||
-                dataName.endsWith(ordinalPrefix))
-                oldNames.add(dataName);
-        }
-
-        // Now, save the data to the repository.
-        if (newName != null) {
-            globalPrefix = MAIN_DATA_PREFIX + newName;
-            ordinalPrefix = TASK_ORDINAL_PREFIX + newName;
-            EVTask r = (EVTask) root;
-            for (int j = r.getNumChildren();  j-- > 0;  ) {
-                dataName = data.createDataName(r.getChild(j).getFullName(),
-                                               ordinalPrefix);
-                data.putValue(dataName, new DoubleData(j, false));
-                oldNames.remove(dataName);
-            }
-            dataName = data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
-            data.putValue(dataName, schedule.getSaveList());
-            oldNames.remove(dataName);
-            taskListName = newName;
-        }
-
-        // Finally, delete any old unused data elements.
-        i = oldNames.iterator();
-        while (i.hasNext())
-            data.removeValue((String) i.next());
-    }
-
-    protected void saveRollup(String newName) {
-        String dataName;
-
-        // First, erase the data element that used to hold the list of
-        // task lists.
-        if (!taskListName.equals(newName)) {
-            dataName = data.createDataName(MAIN_DATA_PREFIX + taskListName,
-                                           TASK_LISTS_DATA_NAME);
-            data.putValue(dataName, null);
-        }
-
-        // Now, save the rollup to the repository with the new name.
-        if (newName != null) {
-            dataName = data.createDataName(MAIN_DATA_PREFIX + newName,
-                                           TASK_LISTS_DATA_NAME);
-            ListData list = new ListData();
-            Iterator i = evTaskLists.iterator();
-            while (i.hasNext())
-                list.add(((EVTaskList) i.next()).taskListName);
-
-            data.putValue(dataName, list);
-            taskListName = newName;
-        }
-    }
-
-    public String getAsXML() {
-        StringBuffer result = new StringBuffer();
-        result.append("<EVModel>");
-        ((EVTask) root).saveToXML(result);
-        schedule.saveToXML(result);
-        result.append("</EVModel>");
-        //System.out.print(result.toString());
-        try {
-            return new String(result.toString().getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException uee) { // can't happen?
-            return result.toString();
-        }
-    }
-
 
 
     public static String[] findTaskLists(DataRepository data) {
@@ -403,21 +112,27 @@ public class EVTaskList extends AbstractTreeTableModel
          */
         TreeSet result = new TreeSet();
         Iterator i = data.getKeys();
-        String dataName;
+        String dataName, taskListName;
         while (i.hasNext()) {
             dataName = (String) i.next();
-            if (dataName.startsWith(MAIN_DATA_PREFIX)) {
-                if (excludeRollups && dataName.endsWith(TASK_LISTS_DATA_NAME))
-                    continue;
-                dataName = dataName.substring(MAIN_DATA_PREFIX.length());
-                int slashPos = dataName.indexOf('/');
-                dataName = dataName.substring(0, slashPos);
-                result.add(dataName);
-            } else if (includeImports && dataName.indexOf(MAIN_DATA_PREFIX)>0){
-                int slashPos = dataName.lastIndexOf('/');
-                dataName = dataName.substring(0, slashPos);
-                result.add(dataName);
-            }
+
+            // see if this data name defines a regular task list.
+            taskListName =
+                EVTaskListData.taskListNameFromDataElement(dataName);
+
+            // if that failed, maybe see if this defines a rollup.
+            if (taskListName == null && !excludeRollups)
+                taskListName =
+                    EVTaskListRollup.taskListNameFromDataElement(dataName);
+
+            // if that failed, maybe see if this defines an imported list.
+            if (taskListName == null && includeImports)
+                taskListName =
+                    EVTaskListXML.taskListNameFromDataElement(dataName);
+
+            // if any of the tests succeeded, add the name to the list.
+            if (taskListName != null)
+                result.add(taskListName);
         }
 
         String[] ret = new String[result.size()];
@@ -427,35 +142,77 @@ public class EVTaskList extends AbstractTreeTableModel
             ret[j++] = (String) i.next();
         return ret;
     }
+
+    /** Finds and opens an existing task list.
+     *  @param taskListName the symbolic name of the task list.
+     *  @param data a reference to the data repository.
+     *  @param hierarchy a reference to the user's hierarchy.
+     *  @param willNeedChangeNotification should the returned task list
+     *     support change notifications?
+     *  @return the named task list, or null if no list by that name is found.
+     */
+    public static EVTaskList openExisting(String taskListName,
+                                          DataRepository data,
+                                          PSPProperties hierarchy,
+                                          ObjectCache cache,
+                                          boolean willNeedChangeNotification)
+    {
+        // most common case: open a regular task list
+        if (EVTaskListData.validName(taskListName) &&
+            EVTaskListData.exists(data, taskListName))
+            return new EVTaskListData(taskListName, data, hierarchy,
+                                      willNeedChangeNotification);
+
+        // next most common case: open a rollup task list
+        if (EVTaskListRollup.validName(taskListName) &&
+            EVTaskListRollup.exists(data, taskListName))
+            return new EVTaskListRollup(taskListName, data, hierarchy, cache);
+
+        // open an cached imported XML task list.
+        if (EVTaskListCached.validName(taskListName) &&
+            EVTaskListCached.exists(taskListName, cache))
+            return new EVTaskListCached(taskListName, cache);
+
+        // open an imported XML task list
+        if (EVTaskListXML.validName(taskListName) &&
+            EVTaskListXML.exists(data, taskListName))
+            return new EVTaskListXML(taskListName, data);
+
+        // no task list was found.
+        return null;
+    }
+
+    public static EVTaskList open(String taskListName,
+                                  DataRepository data,
+                                  PSPProperties hierarchy,
+                                  ObjectCache cache,
+                                  boolean willNeedChangeNotification)
+    {
+        EVTaskList result = openExisting
+            (taskListName, data, hierarchy, cache, willNeedChangeNotification);
+
+        if (result == null && EVTaskListData.validName(taskListName))
+            result = new EVTaskListData
+                (taskListName, data, hierarchy, willNeedChangeNotification);
+
+        if (result == null && EVTaskListXML.validName(taskListName))
+            result = new EVTaskListXML(taskListName, data);
+
+        if (result == null)
+            result = new EVTaskList(taskListName,
+                                    getDisplayName(taskListName),
+                                    "Invalid Schedule");
+
+        return result;
+    }
+
+
     public static String getDisplayName(String taskListName) {
         int slashPos = taskListName.lastIndexOf('/');
         if (slashPos == -1)
             return taskListName;
         else
             return taskListName.substring(slashPos+1);
-    }
-
-
-
-    public boolean isEmpty() { return ((EVTask) root).isLeaf(); }
-
-    public boolean isRollup() {
-        return evTaskLists != null;
-    }
-
-    public static boolean isRollup(DataRepository data, String taskListName) {
-        String dataName = data.createDataName(MAIN_DATA_PREFIX + taskListName,
-                                              TASK_LISTS_DATA_NAME);
-        return data.getSimpleValue(dataName) != null;
-    }
-    public static boolean isPlain(DataRepository data, String taskListName) {
-        String dataName = data.createDataName(MAIN_DATA_PREFIX + taskListName,
-                                              EST_HOURS_DATA_NAME);
-        return data.getSimpleValue(dataName) != null;
-    }
-    public static boolean isXML(DataRepository data, String taskListName) {
-        String dataName = data.createDataName(taskListName, XML_DATA_NAME);
-        return data.getSimpleValue(dataName) != null;
     }
 
     public static String cleanupName(String taskListDataName) {
@@ -473,28 +230,37 @@ public class EVTaskList extends AbstractTreeTableModel
         return taskListDataName;
     }
 
+    public boolean isEmpty() { return ((EVTask) root).isLeaf(); }
+    public boolean isEditable() { return false; }
 
-    public EVSchedule getSchedule() { return schedule; }
+
+    public void save() { save(taskListName); }
+    public void save(String newName) {}
+
+    public String getAsXML() {
+        StringBuffer result = new StringBuffer();
+        result.append("<EVModel>");
+        ((EVTask) root).saveToXML(result);
+        schedule.saveToXML(result);
+        result.append("</EVModel>");
+        //System.out.print(result.toString());
+        try {
+            return new String(result.toString().getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException uee) { // can't happen?
+            return result.toString();
+        }
+    }
 
     public boolean addTask(String path,
-                        DataRepository data,
-                        PSPProperties hierarchy,
-                        boolean willNeedChangeNotification) {
-        if (path == null || path.length() == 0) return false;
+                           DataRepository data,
+                           PSPProperties hierarchy,
+                           ObjectCache cache,
+                           boolean willNeedChangeNotification) {
+        if (path == null || path.length() == 0 || !isEditable()) return false;
 
-        // create the new task and add it.
-        EVTask newTask;
-        if (isRollup()) {
-            EVTaskList taskList = new EVTaskList(path, data, hierarchy,
-                                                 false, false);
-            evTaskLists.add(taskList);
-            ((EVScheduleRollup) schedule).addSchedule(taskList.schedule);
-            newTask = (EVTask) taskList.root;
-        } else {
-            newTask = new EVTask(path, data, hierarchy,
-                                 willNeedChangeNotification ? this : null);
-        }
-        if (!((EVTask) root).add(newTask))
+        EVTask newTask = createAndAddTask(path, data, hierarchy, cache,
+                                          willNeedChangeNotification);
+        if (newTask == null)
             return false;
 
         // send the appropriate TreeModel event.
@@ -504,8 +270,17 @@ public class EVTaskList extends AbstractTreeTableModel
             (this, ((EVTask) root).getPath(), childIndices, children);
         return true;
     }
+    public EVTask createAndAddTask(String path,
+                                   DataRepository data,
+                                   PSPProperties hierarchy,
+                                   ObjectCache cache,
+                                   boolean willNeedChangeNotification) {
+        return null;
+    }
 
     public boolean removeTask(TreePath path) {
+        if (!isEditable()) return false;
+
         // for now, only remove tasks which are children of the root.
         int pathLen = path.getPathCount();
         if (pathLen != 2) return false;
@@ -513,12 +288,9 @@ public class EVTaskList extends AbstractTreeTableModel
         EVTask parent = (EVTask) path.getPathComponent(pathLen-2);
         EVTask child  = (EVTask) path.getPathComponent(pathLen-1);
         int pos = parent.remove(child);
-
-        if (isRollup()) {
-            EVTaskList taskList = (EVTaskList) evTaskLists.remove(pos);
-            ((EVScheduleRollup) schedule).removeSchedule(taskList.schedule);
-        }
+        finishRemovingTask(pos);
         child.destroy();
+
 
         // send the appropriate TreeModel event.
         int[] childIndices = new int[] { pos };
@@ -527,56 +299,19 @@ public class EVTaskList extends AbstractTreeTableModel
             (this, ((EVTask) parent).getPath(), childIndices, children);
         return true;
     }
+    protected void finishRemovingTask(int pos) {}
 
-    public boolean explodeTask(TreePath path) {
-        // for now, only remove tasks which are children of the root.
-        int pathLen = path.getPathCount();
-        if (pathLen != 2) return false;
-
-        EVTask parent = (EVTask) path.getPathComponent(pathLen-2);
-        EVTask child  = (EVTask) path.getPathComponent(pathLen-1);
-        if (child.getNumChildren() == 0) return false;
-        int pos = parent.remove(child);
-
-        List leafTasks = child.getLeafTasks();
-        int[] insertedIndicies = new int[leafTasks.size()];
-        Object[] insertedChildren = new Object[leafTasks.size()];
-        Iterator i = leafTasks.iterator();
-        EVTask leaf;
-        int leafNum = 0;
-        while (i.hasNext()) {
-            leaf = (EVTask) i.next();
-            leaf.getParent().remove(leaf);
-            leaf.name = leaf.fullName.substring(1);
-            parent.add(pos+leafNum, leaf);
-
-            insertedIndicies[leafNum] = leafNum + pos;
-            insertedChildren[leafNum] = leaf;
-            leafNum++;
-        }
-        child.destroy();
-
-        // send the appropriate TreeModel events.
-        int[] removedIndices = new int[] { pos };
-        Object[] removedChildren = new Object[] { child };
-        EVTask[] parentPath = ((EVTask) parent).getPath();
-        fireTreeNodesRemoved
-            (this, parentPath, removedIndices, removedChildren);
-        fireTreeNodesInserted
-            (this, parentPath, insertedIndicies, insertedChildren);
-        return true;
-    }
+    public boolean explodeTask(TreePath path) { return false; }
 
     public boolean moveTaskUp(int pos) {
+        if (!isEditable()) return false;
+
         EVTask r = (EVTask) root;
         if (pos < 1 || pos >= r.getNumChildren()) return false;
 
         // make the change
         r.moveUp(pos);
-        if (isRollup()) {
-            Object taskList = evTaskLists.remove(pos);
-            evTaskLists.insertElementAt(taskList, pos-1);
-        }
+        finishMovingTaskUp(pos);
 
         // send the appropriate TreeModel event.
         int[] childIndices = new int[] { pos-1, pos };
@@ -584,11 +319,19 @@ public class EVTaskList extends AbstractTreeTableModel
         fireTreeStructureChanged(this, r.getPath(), childIndices, children);
         return true;
     }
+    protected void finishMovingTaskUp(int pos) {}
 
 
+    //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     /// Change notification support
     //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+
+
+    /*
+     * Pass along evNodeChanged events to up to one additional EVTask.Listener
+     */
 
     EVTask.Listener evNodeListener = null;
     public void setNodeListener(EVTask.Listener l) { evNodeListener = l; }
@@ -596,6 +339,7 @@ public class EVTaskList extends AbstractTreeTableModel
         if (evNodeListener != null) evNodeListener.evNodeChanged(node);
         if (recalcTimer    != null) recalcTimer.restart();
     }
+
 
     /** Defines the interface for an object that listens for recalculations
      *  that occur in an EVTaskList.
@@ -619,7 +363,7 @@ public class EVTaskList extends AbstractTreeTableModel
             maybeDispose();
         }
     }
-    private boolean someoneCares() {
+    protected boolean someoneCares() {
         return (recalcListeners != null && !recalcListeners.isEmpty());
     }
     protected void fireEvRecalculated() {
@@ -639,67 +383,25 @@ public class EVTaskList extends AbstractTreeTableModel
     private void maybeDispose() {
         if (recalcListeners == null) return;
         if (recalcListeners.isEmpty()) {
-            //System.out.println("disposing!");
-            hierarchy.removeHierarchyListener(this);
-            ((EVTask) root).destroy();
         }
     }
-    public void hierarchyChanged(PSPProperties.Event e) {
-        if (someoneCares()) {
-            EVTask r = (EVTask) root;
+    protected void dispose() {
+        //System.out.println("disposing!");
+        ((EVTask) root).destroy();
+    }
 
-            // delete all the previous children.
-            int n = r.getNumChildren();
-            int[] childIndices = new int[n];
-            Object[] children = new Object[n];
-            while (n-- > 0)
-                children[(childIndices[n] = n)] = r.getChild(n);
-            r.destroy();
-            fireTreeNodesRemoved
-                (this, ((EVTask) r).getPath(), childIndices, children);
-
-            // add the new kids.
-            addTasksFromData(data, taskListName);
-            fireTreeStructureChanged(this, r.getPath(), null, null);
-            recalc();
-        }
+    public void finalize() throws Throwable {
+        //System.out.println("finalizing EVTaskList " + taskListName);
+        super.finalize();
     }
 
 
-
-
-    private double totalPlanTime;
     public void recalc() {
-        //System.out.println("recalculating " + taskListName);
-        if (isXML())
-            openXML(data, taskListName);
-        else if (isRollup())
-            recalcRollup();
-        else
-            recalcSimple();
-
         totalPlanTime = schedule.getMetrics().totalPlan();
         fireEvRecalculated();
     }
 
-    protected void recalcSimple() {
-        TimeLog log = new TimeLog();
-        try { log.readDefault(); } catch (IOException ioe) {}
-        ((EVTask) root).recalc(schedule, log);
-    }
-
-    protected void recalcRollup() {
-        // Recalculate all the subschedules.
-        Iterator i = evTaskLists.iterator();
-        while (i.hasNext())
-            ((EVTaskList) i.next()).recalc();
-
-        // Recalculate the root node.
-        ((EVTask) root).recalcRollupNode();
-
-        // Recalculate the rollup schedule.
-        ((EVScheduleRollup) schedule).recalc();
-    }
+    public EVSchedule getSchedule() { return schedule; }
 
 
 
@@ -901,9 +603,137 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
-    public void finalize() throws Throwable {
-        //System.out.println("finalizing EVTaskList " + taskListName);
-        super.finalize();
-    }
 
 }
+
+//  class ignored extends AbstractTreeTableModel
+//      implements EVTask.Listener, ActionListener, PSPProperties.Listener
+//  {
+
+//      public static final String XML_SAVE_NAME = "XML Saved List";
+
+
+
+
+
+//      /**
+//       * @param taskListName the name of the task list. This will be one of:
+//       *   for plain task lists: a simple string, not containing any '/'
+//       *      characters (e.g. "My Tasks").
+//       *
+//       *   for XML task lists: a data name pointing to the data element in
+//       *      the repository where the XML can be found. (e.g.
+//       *      "/Imported/298243029/Task-Schedule/My Tasks").
+//       *
+//       *   for URL task lists: an encoded URL indicating where the XML task
+//       *      list can be downloaded, and what password to use.  In the
+//       *      URL, '/' chars have been replaced with '|'. Also, a trailing
+//       *      '|!' and user credential may have been appended. (e.g.
+//       *      "http:||host:2468|ev+|My Tasks||reports|ev.class?xml|Basic A1209C")
+//       */
+//      public EVTaskList(String taskListName,
+//                        DataRepository data,
+//                        PSPProperties hierarchy,
+//                        boolean createRollup,
+//                        boolean willNeedChangeNotification) {
+
+//          if (openURL(data, taskListName)) return;
+//          if (openXML(data, taskListName)) return;
+
+//          root = new EVTask(taskListName);
+
+//          if (isRollup(data, taskListName) ||
+//              (createRollup && !isPlain(data, taskListName))) {
+//          } else {
+//          }
+//      }
+
+
+
+//      private boolean openURL(DataRepository data, String taskListName) {
+//          if (!taskListName.startsWith("http:||")) return false;
+//          String xmlDoc = null, error = null, url = taskListName;
+//          String saveName =
+//              data.createDataName("/" + taskListName, XML_SAVE_NAME);
+
+//          // Retrieve the password, if it is present.
+//          String credential = null;
+//          int credentialPos = url.indexOf("|!");
+//          if (credentialPos != -1) {
+//              credential = url.substring(credentialPos + 2);
+//              url = url.substring(0, credentialPos);
+//          }
+
+//          /*
+//          // Retrieve the friendly name, if it is present.
+//          String friendlyName = null;
+//          int namePos = url.indexOf("|~");
+//          if (namePos != -1) {
+//              friendlyName = url.substring(namePos + 2);
+//              url = url.substring(0, namePos);
+//          }*/
+
+//          // translate the taskListName into a URL.
+//          url = url.replace('|', '/');
+//          URL u = null;
+
+//          // first try to connect to the given URL and fetch the XML doc.
+//          try {
+//              u = new URL(url);
+//              URLConnection conn = u.openConnection();
+//              if (credential != null)
+//                  conn.setRequestProperty("Authorization", credential);
+//              conn.connect();
+
+//              // check for errors.
+//              int status = ((HttpURLConnection) conn).getResponseCode();
+//              if (status == 403)          // unauthorized?
+//                  error = "You don't have the correct password to connect "+
+//                      "to your coworker's schedule.";
+
+//              else if (status == 404)     // no such schedule?
+//                  error = "Your coworker doesn't have a schedule by this name. "+
+//                      "(They may have renamed the schedule?)";
+
+//              else if (status != 200)     // some other problem?
+//                  error = "Couldn't retrieve this schedule from your " +
+//                      "coworker's computer.";
+
+//              // retrieve the xml document and use it to create the task list.
+//              if (error == null) {
+//                  xmlDoc = new String
+//                      (TinyWebServer.slurpContents(conn.getInputStream(), true));
+//                  if (openXML(xmlDoc, null)) {
+//                      data.putValue(saveName, StringData.create(xmlDoc));
+//                      return true;
+//                  }
+//              }
+
+//          } catch (MalformedURLException mue) {
+//              error = "The url '" + url + "' is malformed.";
+//          } catch (UnknownHostException uhe) {
+//              error = "Couldn't find your coworker's computer" +
+//                  (u == null ? "." : ", '" + u.getHost() + "'.");
+//          } catch (ConnectException ce) {
+//              error = "Couldn't connect to your coworker's computer. " +
+//                  "(They may not have their dashboard running?)";
+//          } catch (IOException ioe) {
+//              error = "There was a problem connecting to your " +
+//                  "coworker's computer.";
+//          }
+
+//          // if that fails, look for a cached value of the XML in the data
+//          // repository
+//          SimpleData value = data.getSimpleValue(saveName);
+//          if (value instanceof StringData) {
+//              xmlDoc = value.format();
+//              if (openXML(xmlDoc, null)) return true;
+//              // fixme - possibly check the effective date of the cached
+//              // schedule, and display a warning if it is really old?
+//          }
+
+//          // if that fails, create an "invalid task list".
+//          return false;
+//      }
+
+//  }

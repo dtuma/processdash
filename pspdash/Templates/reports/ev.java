@@ -27,6 +27,7 @@ import pspdash.*;
 import pspdash.data.DateData;
 import pspdash.data.DoubleData;
 import pspdash.data.ResultSet;
+import pspdash.data.StringData;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -130,7 +131,7 @@ public class ev extends CGIChartBase {
     }
 
 
-    private void getEVModel() {
+    private void getEVModel() throws TinyCGIException {
         taskListName = getPrefix();
         if (taskListName == null || taskListName.length() < 2) {
             // FIXME: error handling?
@@ -152,13 +153,18 @@ public class ev extends CGIChartBase {
             else {
                 lastTaskListName = taskListName;
                 lastRecalcTime = now;
-                lastEVModel = evModel =
-                    new EVTaskList(taskListName,
-                                   getDataRepository(),
-                                   getPSPProperties(),
-                                   false,  // don't try to create a rollup
-                                   false); // change notification not required
+                evModel = EVTaskList.openExisting
+                    (taskListName,
+                     getDataRepository(),
+                     getPSPProperties(),
+                     getObjectCache(),
+                     false); // change notification not required
+                if (evModel == null)
+                    throw new TinyCGIException(404, "Not Found",
+                                               "No such task/schedule");
+
                 evModel.recalc();
+                lastEVModel = evModel;
             }
         }
     }
@@ -170,8 +176,13 @@ public class ev extends CGIChartBase {
             out.print("Status: 404 Not Found\r\n\r\n");
             out.flush();
         } else {
-            outStream.write("Content-type: application/xml\r\n\r\n"
-                            .getBytes());
+            outStream.write("Content-type: application/xml\r\n".getBytes());
+            String owner = getOwner();
+            if (owner != null)
+                outStream.write((CachedURLObject.OWNER_HEADER_FIELD +
+                                 ": " + owner + "\r\n").getBytes());
+            outStream.write("\r\n".getBytes());
+
             outStream.write(XML_HEADER.getBytes("UTF-8"));
             outStream.write(evModel.getAsXML().getBytes("UTF-8"));
             outStream.flush();
@@ -223,7 +234,10 @@ public class ev extends CGIChartBase {
         out.print("<h2>Schedule Template</h2>\n");
         writeHTMLTable("SCHEDULE", s, s.toolTips);
 
-        out.print(FOOTER_HTML);
+        out.print(FOOTER_HTML1);
+        if (getDataRepository().getValue("/Enable_EV_Week_form") != null)
+            out.print(OPT_FOOTER_HTML);
+        out.print(FOOTER_HTML2);
     }
     protected void writeMetric(EVMetrics m, int i) {
         String name = (String) m.getValueAt(i, EVMetrics.NAME);
@@ -259,12 +273,13 @@ public class ev extends CGIChartBase {
         "&width=320&hideLegend'><br>\n";
     static final String COMBINED_CHARTS_HTML =
         "<img src='ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
-    static final String FOOTER_HTML =
+    static final String FOOTER_HTML1 =
         "<p class='doNotPrint'><a href=\"../reports/excel.iqy\">" +
         "<i>Export text to Excel</i></a>&nbsp; &nbsp; &nbsp; &nbsp;" +
-        "<a href='ev.xls'><i>Export charts to Excel</i></a>&nbsp; &nbsp; "+
-        "&nbsp; &nbsp;<a href='week.class'><i>Show Weekly View</i></a>" +
-        "</body></html>";
+        "<a href='ev.xls'><i>Export charts to Excel</i></a>";
+    static final String OPT_FOOTER_HTML = "&nbsp; &nbsp; "+
+        "&nbsp; &nbsp;<a href='week.class'><i>Show Weekly View</i></a>";
+    static final String FOOTER_HTML2 = "</body></html>";
 
     /** Generate an HTML table based on a TableModel.
      *
@@ -375,8 +390,15 @@ public class ev extends CGIChartBase {
         int seriesCount = xydata.getSeriesCount();
         if (parameters.get("nohdr") == null) {
             out.print("<tr><td>Date</td>");
+            // print out the series names in the data source.
             for (int i = 0;  i < seriesCount;   i++)
                 out.print("<td>" + xydata.getSeriesName(i) + "</td>");
+
+            // if the data source came up short, fill in default
+            // column headers.
+            if (seriesCount < 1) out.print("<td>Plan</td>");
+            if (seriesCount < 2) out.print("<td>Actual</td>");
+            if (seriesCount < 3) out.print("<td>Forecast</td>");
             out.println("</tr>");
         }
 
@@ -402,6 +424,21 @@ public class ev extends CGIChartBase {
                     out.print("<td></td>");
                 out.println("</tr>");
             }
+        }
+        if (seriesCount < 3) {
+            Date d = new Date();
+            if (seriesCount > 0)
+                d = new Date(xydata.getXValue(0,0).longValue());
+            StringBuffer s = new StringBuffer();
+            s.append("<tr><td>").append(f.format(d)).append("</td><td>");
+            if (seriesCount < 1) s.append("0");
+            s.append("</td><td>");
+            if (seriesCount < 2) s.append("0");
+            s.append("</td><td>");
+            if (seriesCount < 3) s.append("0");
+            s.append("</td></tr>\n");
+            out.print(s.toString());
+            out.print(s.toString());
         }
         out.println("</table></body></html>");
     }

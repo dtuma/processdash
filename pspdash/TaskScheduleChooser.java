@@ -260,10 +260,10 @@ public class TaskScheduleChooser
              taskListName + "':", false);
 
         if (newName != null) {
-            EVTaskList taskList =
-                new EVTaskList(taskListName, dash.data, dash.props,
-                               false, false);
-            taskList.save(newName);
+            EVTaskList taskList = EVTaskList.openExisting
+                (taskListName, dash.data, dash.props, dash.objectCache, false);
+            if (taskList != null)
+                taskList.save(newName);
             refreshList();
             dialog.toFront();
         }
@@ -281,10 +281,10 @@ public class TaskScheduleChooser
                                           JOptionPane.YES_NO_OPTION,
                                           JOptionPane.QUESTION_MESSAGE)
             == JOptionPane.YES_OPTION) {
-            EVTaskList taskList =
-                new EVTaskList(taskListName, dash.data, dash.props,
-                               false, false);
-            taskList.save(null);
+            EVTaskList taskList = EVTaskList.openExisting
+                (taskListName, dash.data, dash.props, dash.objectCache, false);
+            if (taskList != null)
+                taskList.save(null);
             refreshList();
             dialog.toFront();
         }

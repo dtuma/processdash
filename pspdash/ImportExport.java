@@ -297,14 +297,16 @@ public class ImportExport extends JDialog implements ActionListener {
             String owner = (o == null ? "?????" : safeName(o.format()));
             while (i.hasNext()) {
                 name = (String) i.next();
-                EVTaskList tl = new EVTaskList(name, parent.data, parent.props,
-                                               false, false);
+                EVTaskList tl = EVTaskList.openExisting
+                    (name, parent.data, parent.props, parent.objectCache, false);
+                if (tl == null) continue;
+
                 tl.recalc();
                 String xml = tl.getAsXML();
                 xml = new String(xml.getBytes("UTF-8"));
                 name = safeName(name) + " (" + owner + ")";
                 out.write(EVTaskList.MAIN_DATA_PREFIX + name + "/" +
-                          EVTaskList.XML_DATA_NAME + ",");
+                          EVTaskListXML.XML_DATA_NAME + ",");
                 out.write(StringData.escapeString(xml));
                 out.println();
             }
@@ -327,7 +329,7 @@ public class ImportExport extends JDialog implements ActionListener {
         out.close();
         if (fail) dest.delete();
     }
-    private static String TASK_ORD_PREF = "/" + EVTaskList.TASK_ORDINAL_PREFIX;
+    private static String TASK_ORD_PREF = "/" + EVTaskListData.TASK_ORDINAL_PREFIX;
     private static String safeName(String n) {
         return n.replace('/', '_').replace(',', '_');
     }
