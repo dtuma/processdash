@@ -26,8 +26,6 @@
 
 package pspdash;
 
-import pspdash.data.TagData;
-
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.JTextComponent;
@@ -250,10 +248,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             public void run() {
                 try {
                     savePendingVector();
-                    updateNodesAndLeaves();
+                    HierarchyAlterer.updateNodesAndLeaves(dashboard.data, useProps);
+                    incrementProgressDialog();
                 } catch (Throwable t) { t.printStackTrace(); }
                 closeProgressDialog();
-                configureButton.reloadHierarchy(useProps);
             }
             };
         t.start();
@@ -316,62 +314,6 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         dashboard.refreshHierarchy();
     }
 
-    private HashSet nodesAndLeaves;
-    private void readNodesAndLeaves() {
-        nodesAndLeaves = new HashSet();
-        Iterator dataNames = dashboard.data.getKeys();
-        String name;
-
-        while (dataNames.hasNext()) {
-            name = (String) dataNames.next();
-            if ((name.endsWith(NODE_TAG) || name.endsWith(LEAF_TAG)) &&
-                dashboard.data.getValue(name) instanceof TagData)
-                nodesAndLeaves.add(name);
-        }
-        /* "Pretend" that the data item "/node" is set.  We never want
-         * that element to be set; claiming that it IS set will
-         * effectively prevent setNodesAndLeaves() from setting it.
-         */
-        nodesAndLeaves.add(NODE_TAG);
-    }
-
-    public static final String NODE_TAG = "/node";
-    public static final String LEAF_TAG = "/leaf";
-
-    private void setNodesAndLeaves(PropertyKey key) {
-        String path = key.path();
-        String name;
-
-        // set the "node" tag on every node
-        name = path + NODE_TAG;
-        if (nodesAndLeaves.remove(name) == false)
-            dashboard.data.putValue(name, TagData.getInstance());
-
-        // set or unset the leaf tag, if applicable.
-        int numChildren = useProps.getNumChildren(key);
-        name = path + LEAF_TAG;
-        if (numChildren == 0) {
-            if (nodesAndLeaves.remove(name) == false)
-                dashboard.data.putValue(name, TagData.getInstance());
-        } else {
-            while (numChildren-- > 0)
-                                      // recursively process all children.
-                setNodesAndLeaves(useProps.getChildKey(key, numChildren));
-        }
-    }
-
-    private void clearNodesAndLeaves() {
-        Iterator i = nodesAndLeaves.iterator();
-        while (i.hasNext())
-            dashboard.data.putValue((String) i.next(), null);
-    }
-
-    private void updateNodesAndLeaves() {
-        readNodesAndLeaves();
-        setNodesAndLeaves(PropertyKey.ROOT);
-        clearNodesAndLeaves();
-        incrementProgressDialog();
-    }
 
     private JDialog progressDialog = null;
     private JProgressBar progressBar = null;
