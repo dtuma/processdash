@@ -160,7 +160,8 @@ public class EVTask implements DataListener {
 
     private static final Date COMPLETION_DATE_NA = EVSchedule.A_LONG_TIME_AGO;
 
-    static Resources resources = Resources.getDashBundle("pspdash.EVTask");
+    static Resources resources =
+        Resources.getDashBundle("pspdash.TaskScheduleDialog");
 
     /** Creates an EVTask suitable for the root of an EVTaskList.  */
     public EVTask(String rootName) {
