@@ -38,9 +38,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.*;
 import javax.swing.tree.TreePath;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import pspdash.data.DataRepository;
 import pspdash.data.DataComparator;
 import pspdash.data.DoubleData;
