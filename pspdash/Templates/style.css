@@ -19,3 +19,6 @@ OL { margin-top: 0pt; margin-bottom: 0pt }
 
 /* style for items which should be omitted when printing a document. */
 @media print { .doNotPrint { display: none } }
+
+/* style for read only items on a form */
+.readOnlyElem { background-color: "#cccccc" }
