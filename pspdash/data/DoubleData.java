@@ -101,6 +101,10 @@ public class DoubleData implements SimpleData, NumberData {
     }
 
     public String format() {
+        return formatNumber(value);
+    }
+
+    public static String formatNumber(double value) {
         return formatNumber(value, (value-((int)value)==0.0) ? 0 : 2);
     }
 
