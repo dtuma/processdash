@@ -1,4 +1,4 @@
-package http.utils.multipartrequest;
+package pspdash;
 
 import java.util.Hashtable;
 import java.io.BufferedOutputStream;
@@ -430,6 +430,7 @@ public class MultipartRequest
             }
 
         this.intContentLength = intContentLength;
+        this.intTotalRead = 0;
         // FIX: 115
         if (intContentLength > intMaxReadBytes)
             throw new IOException("Content Length Error (" + intContentLength
@@ -441,7 +442,6 @@ public class MultipartRequest
         blockOfBytes = new byte[READ_LINE_BLOCK];
 
         // Now parse the data.
-        //parse(in);//new BufferedInputStream(in));
         parse(new BufferedInputStream(in));
 
         // No need for this once parse is complete.
