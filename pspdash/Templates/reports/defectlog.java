@@ -26,12 +26,15 @@
 
 import pspdash.*;
 import pspdash.data.DataRepository;
+import pspdash.data.ResultSet;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashSet;
 
 public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
 
     private String typeFilt, injFilt, remFilt;
+    private HashSet projectList;
 
     private static final String HEADER_TEXT =
         "<HTML><HEAD><TITLE>Defect Log%for owner%%for path%</TITLE>%css%\n" +
@@ -92,7 +95,12 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
         }
         out.print(START_TEXT);
 
-        DefectAnalyzer.run(getPSPProperties(), path, this);
+        String forParam = getParameter("for");
+        if (forParam != null && forParam.length() > 0)
+            DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
+                               path, parameters, this);
+        else
+            DefectAnalyzer.run(getPSPProperties(), path, this);
 
         out.println(END_TEXT);
     }
