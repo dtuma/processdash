@@ -50,7 +50,7 @@ public class EVScheduleConfidenceIntervals
         this.schedule = sched;
         this.randomObjects = randomObjects;
         this.metrics = sched.getMetrics();
-        cost = new CostInterval();
+        cost = new MonteCarloConfidenceInterval();
         date = new MonteCarloConfidenceInterval();
         if (metrics instanceof EVMetricsRollup)
             optimizedDate = new MonteCarloConfidenceInterval();
@@ -116,30 +116,6 @@ public class EVScheduleConfidenceIntervals
 
     private double getTime(Date d) {
         return (d == null ? EVSchedule.NEVER.getTime() : d.getTime());
-    }
-
-    private class CostInterval extends MonteCarloConfidenceInterval
-        implements EVMetrics.RecalcCompleteTask
-    {
-        public void recalcComplete(EVSchedule s, EVMetrics m) {
-            calcViability(m.independentForecastCost() - m.actual(), 0.7);
-            boolean costViable = getViability() > ACCEPTABLE;
-
-            Date forecastDate =
-                costViable ? m.independentForecastDate() : null;
-            long forecastTime =
-                forecastDate == null ? -1 : forecastDate.getTime();
-            date.calcViability(forecastTime, 0.7);
-
-            if (optimizedDate != null) {
-                Date optForecastDate = costViable
-                    ? ((EVMetricsRollup) m).optimizedForecastDate()
-                    : null;
-                long optForecastTime =
-                    optForecastDate == null ? -1 : optForecastDate.getTime();
-                optimizedDate.calcViability(optForecastTime, 0.7);
-            }
-        }
     }
 
 }
