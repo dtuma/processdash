@@ -225,7 +225,6 @@ public class EVCalculatorRollup extends EVCalculator {
             randSchedules[i] = new EVScheduleRandom((EVSchedule) subs.get(i));
 
         EVScheduleRollup sr = new EVScheduleRollup(randSchedules);
-        sr.metrics = new EVMetricsRollupRandom(sr);
         EVScheduleConfidenceIntervals ci = new EVScheduleConfidenceIntervals
             (sr, Arrays.asList(randSchedules));
 

@@ -75,6 +75,8 @@ public class EVScheduleRollup extends EVSchedule {
 
         for (int i = 0;   i < list.length;   i++)
             addSchedule(list[i]);
+
+        metrics = new EVMetricsRollupRandom(this);
     }
 
 
