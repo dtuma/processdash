@@ -338,9 +338,7 @@ public class DefectDialog extends JDialog implements ActionListener,
     private volatile boolean programmaticallyChangingFixTime = false;
 
     private void fixTimeChanged() {
-        System.err.println("fixTimeChanged");
         if (programmaticallyChangingFixTime) return;
-        System.err.println("fixTimeChanged - acting");
         stopwatch.setElapsed((long) (fix_time.getValue() * 60.0));
     }
 
