@@ -397,6 +397,8 @@ public class WBSNodeEditor extends AbstractCellEditor
         String iconToolTip;
         /** The border to draw */
         Border border;
+        /** Is the node type editable or read only? */
+        boolean nodeTypeEditable;
 
 
 
@@ -447,15 +449,18 @@ public class WBSNodeEditor extends AbstractCellEditor
             isExpanded       = editingNode.isExpanded();
             isLeaf           = wbsModel.isLeaf(editingNode);
             Object iconObj   = WBSNodeRenderer.getIconForNode
-                (table, iconMap, editingNode);
+                (table, iconMap, editingNode, wbsModel);
             if (iconObj instanceof ErrorValue) {
                 iconToolTip = ((ErrorValue) iconObj).error;
                 nodeIcon = (Icon) ((ErrorValue) iconObj).value;
+                nodeTypeEditable = true;
             } else {
-                iconToolTip = editingNode.getType();
+                iconToolTip = wbsModel.filterNodeType(editingNode);
                 nodeIcon = (Icon) iconObj;
+                nodeTypeEditable = editingNode.getType().equals(iconToolTip);
             }
             iconListener.setToolTipText(iconToolTip);
+            iconMenu.setEnabled(nodeTypeEditable);
         }
 
         /** set the text to be displayed for the node */

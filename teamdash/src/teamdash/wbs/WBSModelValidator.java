@@ -28,11 +28,11 @@ public class WBSModelValidator implements TableModelListener {
 
     protected void recalc(WBSNode node) {
 
-        String type = node.getType();
+        String type = wbsModel.filterNodeType(node);
         WBSNode parent = wbsModel.getParent(node);
         String typeError = null;
         if (parent != null) {
-            String parentType = parent.getType();
+            String parentType = wbsModel.filterNodeType(parent);
             typeError = checkParentType(type, parentType);
         }
         node.setAttribute(NODE_TYPE_ERROR_ATTR_NAME, typeError);

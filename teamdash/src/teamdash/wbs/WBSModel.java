@@ -636,4 +636,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         node.setIndentLevel(node.getIndentLevel() + indentDelta);
         dest.add(node);
     }
+    public String filterNodeType(WBSNode node) {
+        return node.getType();
+    }
 }

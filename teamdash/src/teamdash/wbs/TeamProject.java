@@ -141,12 +141,12 @@ public class TeamProject {
     private void openWorkflows() {
         try {
             Element xml = openXML(new File(directory, FLOW_FILENAME));
-            if (xml != null) workflows = new WBSModel(xml);
+            if (xml != null) workflows = new WorkflowWBSModel(xml);
         } catch (Exception e) {
             e.printStackTrace();
         }
         if (workflows == null)
-            workflows = new WBSModel("Common Workflows");
+            workflows = new WorkflowWBSModel("Common Workflows");
     }
 
     /** Save the common workflows */

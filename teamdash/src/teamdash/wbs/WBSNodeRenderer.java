@@ -29,6 +29,7 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     /** The icon displayed for this node */
     private ExpansionIcon expansionIcon = new ExpansionIcon();
 
+
     /** Create a renderer for the given wbs model and icon map. */
     public WBSNodeRenderer(WBSModel wbsModel, Map iconMap) {
         this.wbsModel = wbsModel;
@@ -55,12 +56,12 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         expansionIcon.indentationLevel = node.getIndentLevel();
         expansionIcon.isExpanded = node.isExpanded();
         expansionIcon.isLeaf = wbsModel.isLeaf(node);
-        Object iconObj = getIconForNode(table, iconMap, node);
+        Object iconObj = getIconForNode(table, iconMap, node, wbsModel);
         if (iconObj instanceof ErrorValue) {
             iconToolTip = ((ErrorValue) iconObj).error;
             expansionIcon.realIcon = (Icon) ((ErrorValue) iconObj).value;
         } else {
-            iconToolTip = node.getType();
+            iconToolTip = wbsModel.filterNodeType(node);
             expansionIcon.realIcon = (Icon) iconObj;
         }
         // install the expansion icon
@@ -84,9 +85,10 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
 
     /** Convenience method - allows sharing of logic with WBSNodeEditor */
     public static Object getIconForNode(JTable table, Map iconMap,
-                                        WBSNode node)
+                                        WBSNode node, WBSModel model)
     {
-        Icon icon = (Icon) iconMap.get(node.getType());
+        String nodeType = model.filterNodeType(node);
+        Icon icon = (Icon) iconMap.get(nodeType);
         if (icon == null) icon = (Icon) iconMap.get(null);
 
         String iconError = (String) node.getAttribute

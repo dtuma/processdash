@@ -93,6 +93,7 @@ public class TeamProcess {
         iconMap.put(SW_COMP, IconFactory.getSoftwareComponentIcon());
         iconMap.put(GEN_DOC, IconFactory.getDocumentIcon(Color.white));
         iconMap.put("PSP Task", IconFactory.getPSPTaskIcon(c));
+        iconMap.put("Workflow", IconFactory.getWorkflowIcon());
         iconMap.put(null, IconFactory.getTaskIcon(c));
 
         int numPhases = phases.size();

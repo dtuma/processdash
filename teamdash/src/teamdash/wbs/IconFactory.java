@@ -36,6 +36,10 @@ public class IconFactory {
         return new DocumentIcon(highlight);
     }
 
+    public static Object getWorkflowIcon() {
+        return new WorkflowIcon(DEFAULT_COLOR);
+    }
+
     private static class BufferedIcon implements Icon {
         protected Image image = null;
         protected int width = 16, height = 16;
@@ -280,36 +284,48 @@ public class IconFactory {
             drawHighlight(g, 2,  0, -1); // bottom shadow
             drawHighlight(g, 3, -1,  0); // right shadow
         }
-        /*
-        protected void olddoPaint(Component c, Graphics g) {
-            int[] xPoints = new int[] { 7, 0,  3, 12, 15, 8 };
-            int[] yPoints = new int[] { 1, 7, 15, 15,  7, 1 };
+    }
 
-            g.setColor(fillColor);
-            g.fillPolygon(xPoints, yPoints, yPoints.length);
 
-            g.setColor(Color.white);
-            // bottom left highlight
-            g.drawLine(xPoints[1]+1, yPoints[1], xPoints[2]+1, yPoints[2]);
-            // top right highlight
-            g.drawLine(xPoints[4], yPoints[4]+1, xPoints[5], yPoints[5]+1);
+    private static class WorkflowIcon extends PolygonIcon {
+
+        Color highlight, shadow;
+
+        public WorkflowIcon(Color fill) {
+            this.xPoints = new int[] { 1, 1, 7, 7 };
+            this.yPoints = new int[] { 1, 7, 7, 1 };
+            this.fillColor = fill;
+            this.highlight = mixColors(fill, Color.white, 0.3f);
+            this.shadow    = mixColors(fill, Color.black, 0.7f);
+        }
+
+        protected void doPaint(Component c, Graphics g) {
+            super.doPaint(c, g);
+            g.translate(6, 0);
+            super.doPaint(c, g);
+            g.translate(0, 6);
+            super.doPaint(c, g);
+            g.translate(-6, 0);
+            super.doPaint(c, g);
+            g.translate(0, -6);
+
+            g.setColor(Color.black);
+            g.drawLine(7, 0, 7, 0);
+            g.drawLine(0, 7, 0, 7);
+            g.drawLine(7, 14, 7, 14);
+            g.drawLine(14, 7, 14, 7);
+        }
+
+        protected void doHighlights(Component c, Graphics g) {
+            g.setColor(shadow);
+            drawHighlight(g, 1,  0, -1);
+            drawHighlight(g, 2, -1,  0);
 
             g.setColor(highlight);
-            // top highlight
-            g.drawLine(xPoints[0], yPoints[0]+1, xPoints[1], yPoints[1]+1);
-            g.drawLine(xPoints[0]+1, yPoints[0]+1, xPoints[1]+1, yPoints[1]+1);
-
-            g.setColor(shadow);
-            // bottom shadow
-            g.drawLine(xPoints[2], yPoints[2]-1, xPoints[3], yPoints[3]-1);
-            // right shadow
-            g.drawLine(xPoints[3]-1, yPoints[3], xPoints[4]-1, yPoints[4]);
-
-            // draw black outline
-            g.setColor(Color.black);
-            g.drawPolygon(xPoints, yPoints, yPoints.length);
+            drawHighlight(g, 0, 1, 0);
+            drawHighlight(g, 3, 0, 1);
         }
-        */
+
     }
 
     private static Icon getIcon(String name) {
