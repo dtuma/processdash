@@ -41,6 +41,7 @@ public class ConsoleWindow extends JFrame {
     JTextArea textArea;
     ConsoleOutputStream outputStream = null;
     PrintStream printStream = null;
+    OutputStream copy = null;
 
     public ConsoleWindow() { this(true); }
 
@@ -75,6 +76,9 @@ public class ConsoleWindow extends JFrame {
         if (install) install();
     }
 
+    public void setCopyOutputStream(OutputStream c) {
+        copy = c;
+    }
     public OutputStream getOutputStream() {
         if (outputStream == null)
             outputStream = new ConsoleOutputStream(System.out);
@@ -104,12 +108,14 @@ public class ConsoleWindow extends JFrame {
         public ConsoleOutputStream(OutputStream o) { orig = o; }
         public void write(int b) throws IOException {
             orig.write(b);
+            if (copy != null) copy.write(b);
             byte[] buf = new byte[1];
             buf[0] = (byte) b;
             textArea.append(new String(buf));
         }
         public void write(byte[] b, int off, int len) throws IOException {
             orig.write(b, off, len);
+            if (copy != null) copy.write(b, off, len);
             textArea.append(new String(b, off, len));
         }
     }
