@@ -634,9 +634,11 @@ public class wizard extends TinyCGIBase {
     protected void handleJoinTeamSchedPage() {
         String teamScheduleName = getValue("Project_Schedule_Name");
         String indivExportedName = getParameter("scheduleName");
+        String indivScheduleID = getParameter("scheduleID");
         String indivFileName = getParameter("fileName");
         if (addIndivScheduleToTeamSchedule
-            (teamScheduleName, indivExportedName, indivFileName)) {
+            (teamScheduleName, indivExportedName,
+             indivScheduleID, indivFileName)) {
             // print out a null document and call it good.
             out.print("Content-type: text/plain\r\n\r\n ");
         } else {
@@ -647,6 +649,7 @@ public class wizard extends TinyCGIBase {
     /** Add an individual's personal schedule to the team rollup. */
     protected boolean addIndivScheduleToTeamSchedule(String teamScheduleName,
                                                      String indivExportedName,
+                                                     String indivScheduleID,
                                                      String indivFileName)
     {
         if (teamScheduleName == null || teamScheduleName.length() == 0 ||
@@ -657,9 +660,30 @@ public class wizard extends TinyCGIBase {
         //*debug*/ System.out.println("indivExportedName="+indivExportedName);
         //*debug*/ System.out.println("indivFileName="+indivFileName);
 
+        String indivSchedPath = getSchedulePath
+            (indivExportedName, indivScheduleID, indivFileName);
+        if (indivSchedPath == null)
+            indivSchedPath = getFallbackSchedulePath
+                (indivExportedName, indivScheduleID);
+        if (indivSchedPath == null) return false;
+
+        //*debug*/ System.out.println("indivSchedPath="+indivSchedPath);
+        //*debug*/ SimpleData sd =
+        //*debug*/     getDataRepository().getSimpleValue(indivSchedPath);
+        //*debug*/ String sdStr = (sd == null ? null : sd.format());
+        //*debug*/ System.out.println("indivSchedPath.value="+sdStr);
+
+        // add the imported schedule to the team schedule.
+        return addScheduleToRollup(teamScheduleName, indivSchedPath);
+    }
+
+    /** Calculate the fully qualified name of an imported XML schedule */
+    protected String getSchedulePath(String indivExportedName,
+                                     String indivScheduleID,
+                                     String indivFileName) {
         // calculate the import prefix
         String projectID = getValue("Project_ID");
-        if (projectID == null || projectID.length() == 0) return false;
+        if (projectID == null || projectID.length() == 0) return null;
         String importPrefix = "/Import_"+projectID;
         //*debug*/ System.out.println("importPrefix="+importPrefix);
 
@@ -669,7 +693,7 @@ public class wizard extends TinyCGIBase {
 
         // calculate the name of the import directory.
         String teamDirectory = getValue("Team_Directory");
-        if (teamDirectory == null || teamDirectory.length() == 0) return false;
+        if (teamDirectory == null || teamDirectory.length() == 0) return null;
         teamDirectory = teamDirectory.replace('\\', '/');
         String importDir = teamDirectory+"/data/"+projectID;
         //*debug*/ System.out.println("importDir="+importDir);
@@ -677,7 +701,7 @@ public class wizard extends TinyCGIBase {
         // calculate the full name of the imported file.
         indivFileName = indivFileName.replace('\\', '/');
         int slashPos = indivFileName.lastIndexOf('/');
-        if (slashPos == -1) return false;
+        if (slashPos == -1) return null;
         String importedFile =
             importDir + "/" + indivFileName.substring(slashPos+1);
         //*debug*/ System.out.println("importedFile="+importedFile);
@@ -688,19 +712,31 @@ public class wizard extends TinyCGIBase {
         try {
             dataPrefix = DataImporter.getPrefix(importPrefix, f);
         } catch (IOException ioe) {
-            return false;
+            return null;
         }
         //*debug*/ System.out.println("dataPrefix="+dataPrefix);
         String indivSchedPath = dataPrefix + indivExportedName;
-        //*debug*/ System.out.println("indivSchedPath="+indivSchedPath);
-        //*debug*/ SimpleData sd =
-        //*debug*/     getDataRepository().getSimpleValue(indivSchedPath);
-        //*debug*/ String sdStr = (sd == null ? null : sd.format());
-        //*debug*/ System.out.println("indivSchedPath.value="+sdStr);
 
-        // add the imported schedule to the team schedule.
-        return addScheduleToRollup(teamScheduleName, indivSchedPath);
+        // prepend the task list ID if it is available.
+        if (indivScheduleID != null && indivScheduleID.length() != 0)
+            indivSchedPath = indivScheduleID + EVTaskListXML.XMLID_FLAG +
+                indivSchedPath;
+
+        return indivSchedPath;
     }
+
+    /** In cases where a fully qualified name can not be calculated for an
+     * imported XML schedule, calculate a fallback name that will work. */
+    private String getFallbackSchedulePath(String indivExportedName,
+                                           String indivScheduleID) {
+        if (indivExportedName == null || indivExportedName.length() == 0 ||
+            indivScheduleID == null || indivScheduleID.length() == 0)
+            return null;
+
+        return indivScheduleID + EVTaskListXML.XMLID_FLAG +
+            "/ignored-fallback" + indivExportedName;
+    }
+
 
     protected boolean addScheduleToRollup(String teamScheduleName,
                                           String indivSchedPath) {
@@ -1016,13 +1052,14 @@ public class wizard extends TinyCGIBase {
         createIndivProject(indivTemplateID);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
                             teamDirectory, teamDirectoryUNC, isLocal);
-        createIndivSchedule(scheduleName);
+        String scheduleID = createIndivSchedule(scheduleName);
         exportIndivData();
         boolean joinSucceeded = true;
         if (isLocal)
             joinSucceeded = joinLocalTeamSchedule(teamURL, scheduleName);
         else
-            joinSucceeded = joinTeamSchedule(teamURL, scheduleName);
+            joinSucceeded = joinTeamSchedule
+                (teamURL, scheduleName, scheduleID);
 
         showIndivSuccessPage(joinSucceeded);
     }
@@ -1102,19 +1139,21 @@ public class wizard extends TinyCGIBase {
             putValue("EXPORT_FILE", ImmutableStringData.EMPTY_STRING);
     }
 
-    protected void createIndivSchedule(String scheduleName) {
+    protected String createIndivSchedule(String scheduleName) {
         EVTaskListData schedule = new EVTaskListData
             (scheduleName, getDataRepository(), getPSPProperties(), false);
         schedule.addTask(getPrefix(), getDataRepository(),
                          getPSPProperties(), null, false);
         schedule.save();
+        return schedule.getID();
     }
 
     protected void exportIndivData() {
         DashController.exportData(getPrefix());
     }
 
-    protected boolean joinTeamSchedule(String teamURL, String scheduleName) {
+    protected boolean joinTeamSchedule(String teamURL, String scheduleName,
+                                       String scheduleID) {
         String exportedScheduleName = ImportExport.exportedScheduleName
             (getDataRepository(), scheduleName);
         String exportFileName = getValue("EXPORT_FILE");
@@ -1122,6 +1161,8 @@ public class wizard extends TinyCGIBase {
         String urlStr = "setup/wizard.class?"+PAGE+"="+JOIN_TEAM_SCHED_PAGE+
             "&scheduleName=" + URLEncoder.encode(exportedScheduleName) +
             "&fileName=" + URLEncoder.encode(exportFileName);
+        if (scheduleID != null && scheduleID.length() != 0)
+            urlStr = urlStr + "&scheduleID=" + URLEncoder.encode(scheduleID);
         URL u = buildTeamURLReference(teamURL, urlStr);
         try {
             URLConnection conn = u.openConnection();
