@@ -73,7 +73,7 @@ Authors:
 
   <property environment="env"/>
 
-  <property name="version"    value="1.5.0.1"/>
+  <property name="version"    value="1.5.0.2"/>
 
   <property name="debug"      value="on"/>
 
@@ -154,6 +154,7 @@ Authors:
       <include name="pspdash/*.java"/>
       <include name="pspdash/data/**/*.java"/>
       <exclude name="pspdash/DashHelpBroker.java"/>
+      <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ie.txt"/>
       <excludesfile name="${lib}/fileset-ns.txt"/>
@@ -188,11 +189,6 @@ Authors:
       <arg file="${src}"/>
       <arg file="${compiler}/grammar.txt"/>
     </java>
-    <!-- copy data files to the build output directory -->
-    <copy  file="${compiler}/lexer/lexer.dat" 
-           todir="${build}/pspdash/data/compiler/lexer"/>
-    <copy  file="${compiler}/parser/parser.dat" 
-           todir="${build}/pspdash/data/compiler/parser"/>
   </target>
 
   <target name="-parser-depend"
@@ -394,7 +390,7 @@ Authors:
 
       <!-- include the compiled files and cgi scripts -->
       <fileset dir="${build}" includes="com/ pspdash/ Templates/"
-               excludes="Templates/reports/excel.class"/>
+               excludes="Templates/reports/excel.class **/*Test.class"/>
 
       <!-- include important non-class files in the pspdash directory -->
       <fileset dir="${src}" includesfile="${lib}/fileset-nonclass.txt"/>
