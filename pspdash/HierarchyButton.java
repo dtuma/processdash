@@ -306,7 +306,7 @@ public class HierarchyButton implements ActionListener {
             setHorizontalTextPosition(SwingConstants.LEFT);
             dataname = getCompletedDataname(key);
             if (SHOW_CHECKMARKS) {
-                System.out.println("addDataListener("+dataname+")");
+                //System.out.println("addDataListener("+dataname+")");
                 parent.data.addDataListener(dataname, this);
             }
         }
@@ -322,7 +322,7 @@ public class HierarchyButton implements ActionListener {
         }
         public void delete() {
             if (SHOW_CHECKMARKS) {
-                System.out.println("removeDataListener("+dataname+")");
+                //System.out.println("removeDataListener("+dataname+")");
                 parent.data.removeDataListener(dataname, this);
             }
         }
