@@ -5,25 +5,15 @@
 <file name="Coding Standard"
       path="[/{Project/Language} Coding Standard Document]"
       templatePath="none" />
- <var name="[/{Project/Language} Coding Standard Document]">
-      Please enter the complete path to the document.  This document should
-      already exist; the dashboard cannot create it automatically.</var>
 
 <directory name="PSP Project Document Directory"
            templatePath="/Templates/pspDoc"
            path="[PSP Project Document Directory]">
-      <var name="[PSP Project Document Directory]">
-           Please enter the complete path to a directory where you would like
-           to store documents pertaining to this PSP Project.</var>
 
   <file name="Requirements Statement"
         path="[Requirements Document Filename]" templatePath="none"/>
   <file name="Requirements Document"
         path="[Requirements Document Filename]" templatePath="none"/>
-   <var name="[Requirements Document Filename]">
-        Please enter the path to this document (it need not reside in the
-        PSP Project Document Directory listed above).  The document should
-        already exist; the dashboard cannot create it automatically.</var>
 
   <file name="Conceptual Design" path="[Conceptual Design Filename]"
         defaultPath="Conceptual Design.rtf"
@@ -38,15 +28,9 @@
   <file name="Design Review Checklist"
         path="[Design Review Checklist Filename]"
 	templatePath="[/{Project/Language} Design Review Checklist Template]"/>
-   <var name="[/{Project/Language} Design Review Checklist Template]">
-        Please enter the complete path to the document.  This document should
-        already exist; the dashboard cannot create it automatically.</var>
 
   <file name="Code Review Checklist" path="[Code Review Checklist Filename]"
 	templatePath="[/{Project/Language} Code Review Checklist Template]"/>
-   <var name="[/{Project/Language} Code Review Checklist Template]">
-        Please enter the complete path to the document.  This document should
-        already exist; the dashboard cannot create it automatically.</var>
 
   <file name="Operational Scenarios"
         path="[Operational Scenario Filename]"
