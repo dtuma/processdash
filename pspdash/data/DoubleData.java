@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash.data;
 
@@ -170,7 +170,8 @@ public class DoubleData implements SimpleData, NumberData {
     }
     public boolean test() {
         // should NaN and Infinity count as true values?
-        return (getDouble() != 0.0 &&
+        double value = getDouble();
+        return (value != 0.0 &&
                 !Double.isNaN(value) &&
                 !Double.isInfinite(value));
     }
