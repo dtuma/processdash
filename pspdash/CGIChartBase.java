@@ -54,7 +54,7 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
     /** create the data upon which this chart is based. */
     protected void buildData() {
         massageParameters();
-        String prefix = (String) env.get("PATH_TRANSLATED");
+        String prefix = getPrefix();
         data = ResultSet.get(getDataRepository(), parameters, prefix,
                              getPSPProperties());
     }
