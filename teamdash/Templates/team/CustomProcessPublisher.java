@@ -53,7 +53,7 @@ public class CustomProcessPublisher {
         this.webServer = webServer;
         parameters = new HashMap();
         customParams = new HashMap();
-        processor = new HTMLPreprocessor(webServer, null, "",
+        processor = new HTMLPreprocessor(webServer, null, null, "",
                                          customParams, parameters);
     }
 
