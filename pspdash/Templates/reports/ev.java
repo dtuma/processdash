@@ -62,15 +62,10 @@ public class ev extends CGIChartBase {
         drawingChart = (parameters.get(CHART_PARAM) != null);
         if (parameters.get(XML_PARAM) != null) return;
 
-        out.print("Content-type: ");
         if (drawingChart)
-            out.print("image/jpeg");
+            super.writeHeader();
         else
-            out.print("text/html");
-        out.print("\r\n\r\n");
-
-        // flush in case writeContents wants to use outStream instead of out.
-        out.flush();
+            writeHtmlHeader();
     }
 
 
