@@ -1,1 +1,1 @@
-class:net.sourceforge.processdash.ui.web.reports.ProcessAnalysisPage
+class:net.sourceforge.processdash.ui.web.reports.analysis.ProcessAnalysisPage

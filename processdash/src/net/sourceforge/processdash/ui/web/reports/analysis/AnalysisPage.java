@@ -23,7 +23,7 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ui.web.reports;
+package net.sourceforge.processdash.ui.web.reports.analysis;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -281,6 +281,11 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
         result.append(getCumPhaseSum(phases, thruPhase, dataElem))
             .append(" / [").append(escData(dataElem)).append("]");
         return result.toString();
+    }
+
+    protected String getAggrSizeLabel() {
+        return Translator.translate
+            (getProcessString("AGGR_SIZE_METRIC_NAME_ABBR"));
     }
 
 }

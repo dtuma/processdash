@@ -23,7 +23,7 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ui.web.reports;
+package net.sourceforge.processdash.ui.web.reports.analysis;
 
 import java.io.IOException;
 

@@ -23,7 +23,7 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ui.web.reports;
+package net.sourceforge.processdash.ui.web.reports.analysis;
 
 import java.io.IOException;
 
@@ -239,12 +239,6 @@ public class DefectAnalysisPage extends AnalysisPage {
         out.print("d2=");
         out.print(phaseY);
         out.println("/Defect Density");
-    }
-
-
-    protected String getAggrSizeLabel() {
-        return Translator.translate
-            (getProcessString("AGGR_SIZE_METRIC_NAME_ABBR"));
     }
 
 

@@ -1,1 +1,1 @@
-class:net.sourceforge.processdash.ui.web.reports.QualityAnalysisPage
+class:net.sourceforge.processdash.ui.web.reports.analysis.QualityAnalysisPage

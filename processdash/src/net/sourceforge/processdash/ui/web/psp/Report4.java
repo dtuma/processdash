@@ -36,7 +36,7 @@ import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
-import net.sourceforge.processdash.ui.web.reports.AnalysisPage;
+import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
