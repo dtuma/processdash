@@ -97,6 +97,7 @@ Authors:
   <property name="help"       value="${templates}/help"/>
   <property name="helpsearch" value="${help}/JavaHelpSearch"/>
   <property name="libsrc"     value="${lib}/src"/>
+  <property name="installer"  value="installer"/>
 
   <property name="ns.dir" value="${build}/NS"/>
   <property name="ns.jar" value="${build}/Templates/${applet.file}.jar"/>
@@ -474,6 +475,19 @@ Authors:
 
 
   <!-- =================================================================== -->
+  <!-- Installer                                                           -->
+  <!-- =================================================================== -->
+
+  <target name="installer">
+    <ant antfile="${installer}/build.xml" inheritAll="false">
+      <property name="alreadyRebuilt" value="true"/>
+      <property name="dontCleanDist" value="true"/>
+      <property name="dist" value="../dist"/>
+    </ant>
+  </target>
+
+
+  <!-- =================================================================== -->
   <!-- Internationalization / Localization                                 -->
   <!-- =================================================================== -->
 
@@ -517,6 +531,8 @@ Authors:
   <target name="dist-src" depends="ant-tasks">
     <cvszip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"/>
   </target>
+
+  <target name="dist-all" depends="dist,dist-src,installer"/>
 
 </project>
 
