@@ -312,7 +312,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
         if (currentTimeLogEntry == null) return;  // nothing to save.
 
         String timeLogFilename = parent.getTimeLog();
-        if (timeLogFilename != null || timeLogFilename.length() != 0) try {
+        if (timeLogFilename != null && timeLogFilename.length() != 0) try {
                                 // write an entry to the time log.
             String log_msg = currentTimeLogEntry.toString();
             FileOutputStream timeLogFile =
@@ -348,8 +348,9 @@ public class PauseButton extends DropDownButton implements ActionListener {
                              new DoubleData(currentMinutes, false));
         //System.out.println("updating time to " + currentMinutes);
 
-        parent.hierarchy.workPerformed
-                  (new DateData(stopwatch.createTime, true));
+        if (stopwatch != null)
+            parent.hierarchy.workPerformed
+                (new DateData(stopwatch.createTime, true));
     }
 
     private void releaseCurrentTimeLogEntry() {
