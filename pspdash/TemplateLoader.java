@@ -35,6 +35,7 @@ import java.net.URLConnection;
 import java.io.*;
 import java.util.*;
 import java.net.JarURLConnection;
+import java.util.Arrays;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
@@ -404,6 +405,7 @@ public class TemplateLoader {
         if (dir == null) return;
 
         File[] dirContents = dir.listFiles();
+        Arrays.sort(dirContents);
         String name, lname;
         for (int i=0;  i < dirContents.length;  i++) try {
             name = dirContents[i].toURL().toString();
