@@ -1,0 +1,7 @@
+#include <psp1/dataFile.txt>
+
+= Students must manually calculate LOC/Hr for program 4A.
+
+Estimated LOC per Hour=0.0
+LOC per Hour=0.0
+4A LOC per Hour To Date=0.0
