@@ -1400,6 +1400,7 @@ public class TinyWebServer extends Thread {
             // bind to the same inet address as the "main" server socket.
             InetAddress listenAddress = serverSocket.getInetAddress();
             secondaryServerSocket = new ServerSocket(port, 50, listenAddress);
+            dataSocket = new ServerSocket(port-1, 50, listenAddress);
 
             setDaemon(true);
         }
