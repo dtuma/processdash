@@ -61,8 +61,8 @@ install-nt: $(INSTALLED_FILES) manifest perltools jfreechart templates jhelp FOR
 
 
 # package everything up for distribution
-pspdash.jar: $(INSTALLED_FILES) manifest perltools jfreechart templates jhelp FORCE
-	$(JAR) cfm pspdash.jar manifest pspdash com Templates javax
+pspdash.jar: $(INSTALLED_FILES) manifest perltools jaxp crimson jfreechart templates jhelp FORCE
+	$(JAR) cfm pspdash.jar manifest pspdash com Templates javax org
 
 
 # make a local copy of the contents of the templates directory, without
@@ -95,6 +95,16 @@ perltools: com/oroinc/text/perl/Perl5Util.class
 
 com/oroinc/text/perl/Perl5Util.class: PerlTools.jar
 	$(JAR) -xf PerlTools.jar
+
+jaxp: javax/xml/parsers/DocumentBuilderFactory.class
+
+javax/xml/parsers/DocumentBuilderFactory.class: jaxp.jar
+	$(JAR) -xf jaxp.jar
+
+crimson: org/w3c/dom/Document.class
+
+org/w3c/dom/Document.class: crimson.jar
+	$(JAR) -xf crimson.jar
 
 # unzip the JFreeChart jarfile.
 jfreechart: com/jrefinery/chart/JFreeChart.class com/jrefinery/chart/XYPlot.class com/jrefinery/chart/PiePlot.class

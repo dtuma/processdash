@@ -165,7 +165,7 @@ $(CLASS_FILES) : %.class : $(BIN)/pspdash/%.class
 
 $(BIN)/pspdash/%.class: %.java
 	$(JAVAC) \
-	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar$(DS)build/jh.jar' \
+	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar$(DS)build/jh.jar$(DS)build/jaxp.jar$(DS)build/crimson.jar' \
 	    -deprecation \
 	    -sourcepath $(SRC) \
 	    -d $(BIN) \
