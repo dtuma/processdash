@@ -45,7 +45,8 @@ public class TinyCGIBase implements TinyCGI {
         this.outStream = out;
         this.out = new PrintWriter(out);
         this.env = env;
-        parseInput();
+        parameters.clear();
+        parseInput((String) env.get("QUERY_STRING"));
         writeHeader();
         writeContents();
         this.out.flush();
@@ -58,20 +59,19 @@ public class TinyCGIBase implements TinyCGI {
      * In the future, if form handling is required, this method might
      * be extended to parse POSTed form data.
      */
-    protected void parseInput() {
-        parameters.clear();
+    protected void parseInput(String query) {
+        if (query == null || query.length() == 0) return;
 
-        String query = (String) env.get("QUERY_STRING");
-        if (query == null || query.length() == 0)
-            return;
-
-        StringTokenizer params = new StringTokenizer(query, "&");
+        String delim = (query.indexOf('\n') == -1) ? "&" : "\r\n";
+        StringTokenizer params = new StringTokenizer(query, delim);
         String param;
         int equalsPos;
         while (params.hasMoreTokens()) {
             param = params.nextToken();
             equalsPos = param.indexOf('=');
-            if (equalsPos == -1)
+            if (equalsPos == 0 || param.length() == 0)
+                continue;
+            else if (equalsPos == -1)
                 parameters.put(URLDecoder.decode(param), Boolean.TRUE);
             else
                 parameters.put
