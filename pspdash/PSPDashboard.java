@@ -77,7 +77,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     static final String TEMPLATES_FILE = "state";
     PropertyKey currentPhase  = null;
 
-    private static final String TEMPLATES_CLASSPATH = "/Templates";
+    private static final String TEMPLATES_CLASSPATH = "Templates/";
 
     private void debug(String msg) {
         System.err.print("PSPDashboard: ");
