@@ -2,12 +2,16 @@ import java.io.IOException;
 import java.net.URLEncoder;
 
 import pspdash.TinyCGIBase;
+import pspdash.TinyWebServer;
 import pspdash.data.DataRepository;
 import pspdash.data.SimpleData;
 
 public class inclTeamTools extends TinyCGIBase {
 
-    private static final String URL = "../../team/tools/index.shtm?directory=";
+    private static final String WBS_EDITOR_URL =
+        "../../team/tools/index.shtm?directory=";
+    private static final String SYNC_PARAM = "&syncURL=";
+    private static final String SYNC_URL = "sync.class?run";
 
     protected void writeContents() throws IOException {
         try {
@@ -24,8 +28,16 @@ public class inclTeamTools extends TinyCGIBase {
             }
 
             String directory = d.format();
-            String url = URL + URLEncoder.encode(directory);
-            outStream.write(getRequest(url, true));
+            String wbsURL = WBS_EDITOR_URL + URLEncoder.encode(directory);
+            String scriptPath = (String) env.get("SCRIPT_PATH");
+            String uri = resolveRelativeURI(scriptPath, wbsURL);
+
+            String syncURI = resolveRelativeURI(scriptPath, SYNC_URL);
+            String syncURL = "http://" + TinyWebServer.getHostName() +
+                ":" + getTinyWebServer().getPort() + syncURI;
+            uri = uri + SYNC_PARAM + URLEncoder.encode(syncURL);
+
+            outStream.write(getRequest(uri, true));
         } catch (Exception e) {
             out.print(TOOLS_MISSING_MSG);
         }
