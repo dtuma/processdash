@@ -48,7 +48,7 @@ install: pspdash.jar
 
 # package everything up for distribution
 pspdash.jar: $(INSTALLED_FILES) manifest perltools templates FORCE
-	$(JAR) cfm pspdash.jar pspdash manifest com Templates
+	$(JAR) cfm pspdash.jar manifest pspdash com Templates
 
 
 # make a local copy of the contents of the templates directory, without
@@ -62,7 +62,7 @@ templates: FORCE
 
 # copy non-class files if needed.
 $(INSTALLED_FILES) : pspdash/% : ../%
-	cp $< pspdash
+	cp $< pspdash/$<
 
 
 # unzip the PerlTools jarfile.
