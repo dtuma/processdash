@@ -282,6 +282,7 @@ public class HTMLPreprocessor {
         String loopContents = text.substring(fortree.end, endtree.begin);
         StringBuffer replacement = new StringBuffer();
         addSetDirective(replacement, "ROOT", rootPrefix);
+        addSetDirective(replacement, "SPACER", SPACER);
         recurseTreeNode(replacement, loopContents, rootNode, 0, "",
                         expandName, includeRoot, maxDepth, parentLast);
 
@@ -317,6 +318,7 @@ public class HTMLPreprocessor {
         }
         addSetDirective(buf, "NAME", node.name());
         addSetDirective(buf, "DEPTH", Integer.toString(depth));
+        addSetDirective(buf, "DEPTH_SPACER", makeDepthSpacer(depth));
         addSetDirective(buf, "ISLEAF", isLeaf ? "true" : null);
         if (expansionName != null) {
             addSetDirective(buf, "EXPANSIONNAME", expansionName);
@@ -359,7 +361,12 @@ public class HTMLPreprocessor {
             outputTreeNode(buf, loopContents, node, depth, relPath,
                            expansionName, isLeaf, isExpanded);
     }
-
+    private String makeDepthSpacer(int depth) {
+        StringBuffer result = new StringBuffer();
+        while (depth-- > 0)
+            result.append(SPACER);
+        return result.toString();
+    }
     private String makeExpansionName(String relPath, String expandName) {
         if (expandName == null) return null;
         return expandName + relPath;
@@ -367,18 +374,26 @@ public class HTMLPreprocessor {
     private String makeExpansionLink(String expansionName, boolean isLeaf,
                                      boolean isExpanded) {
         if (isLeaf) return LEAF_LINK;
-        String dataName = URLEncoder.encode(prefix + "/" + expansionName);
-        return StringUtils.findAndReplace
-            (isExpanded ? COLLAPSE_LINK : EXPAND_LINK, "###", dataName);
+        String dataName = prefix + "/" + expansionName;
+        String anchor = "exp_" + dataName.hashCode();
+        dataName = URLEncoder.encode(dataName);
+        String result = StringUtils.findAndReplace
+            (isExpanded ? COLLAPSE_LINK : EXPAND_LINK, "%%%", dataName);
+        result = StringUtils.findAndReplace(result, "###", anchor);
+        return result;
     }
-    private static final String LEAF_LINK =
+    private static final String SPACER =
         "<img width=9 height=9 src='/Images/blank.png'>";
+    private static final String LEAF_LINK = SPACER;
+    private static final String ANCHOR_TEXT = "<a name='###'></a>";
     private static final String COLLAPSE_LINK =
-        "<a border=0 href='/dash/expand.class?collapse=###'>"+
-        "<img border=0 width=9 height=9 src='/Images/minus.png'></a>";
+        "<a border=0 href='/dash/expand.class?collapse=%%%'>"+
+        "<img border=0 width=9 height=9 src='/Images/minus.png'></a>"+
+        ANCHOR_TEXT;
     private static final String EXPAND_LINK =
-        "<a border=0 href='/dash/expand.class?expand=###'>"+
-        "<img border=0 width=9 height=9 src='/Images/plus.png'></a>";
+        "<a border=0 href='/dash/expand.class?expand=%%%'>"+
+        "<img border=0 width=9 height=9 src='/Images/plus.png'></a>"+
+        ANCHOR_TEXT;
 
 
 
