@@ -88,7 +88,7 @@ Authors:
   <property name="build"      value="build/out"/>
   <property name="lib"        value="${pspdash}/build"/>
 
-  <property name="applet.file" value="DataApplet151"/>
+  <property name="applet.file" value="DataApplet152"/>
   <property name="ns.dir" value="${build}/NS"/>
   <property name="ns.jar" value="${build}/Templates/${applet.file}.jar"/>
   <property name="ie.dir" value="${build}/IE"/>
@@ -139,6 +139,8 @@ Authors:
                classname="com.sun.java.browser.dom.DOMService"/>
     <available property="nsobject.support"
                file="${java.home}/lib/jaws.jar"/>
+    <available property="nsobject.support"
+               file="${java.home}/lib/plugin.jar"/>
   </target>
 
 
@@ -284,10 +286,13 @@ Authors:
           description="Compile the data applet support for netscape">
     <mkdir dir="${ns.dir}"/>
     <javac srcdir="${src}" destdir="${ns.dir}" debug="${debug}"
-           includeAntRuntime="no" includeJavaRuntime="no" target="1.1"
-           classpath="${java.home}/lib/jaws.jar">
+           includeAntRuntime="no" includeJavaRuntime="no" target="1.1">
       <bootclasspath>
       </bootclasspath>
+      <classpath>
+         <pathelement location="${java.home}/lib/jaws.jar"/>
+         <pathelement location="${java.home}/lib/plugin.jar"/>
+      </classpath>
       <includesfile name="${lib}/fileset-applet-only.txt"/>
       <includesfile name="${lib}/fileset-applet-extra.txt"/>
       <includesfile name="${lib}/fileset-ns.txt"/>
