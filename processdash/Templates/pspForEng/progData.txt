@@ -1,0 +1,23 @@
+=
+= Common data definitions for all 10 programs
+=
+
+= Use "/To Date/PSP/All" for PROBE data, even when a different
+= subset prefix is in effect (e.g. 7A - 10A).
+
+[PROBE_SUBSET] = "/To Date/PSP/All";
+
+
+= Inherit the language setting from the "PSP for Engineers" datafile.
+
+[Project/Language] = [../Project/Language];
+
+
+= Numbers which are normally defaulted to 0, force students to enter
+
+Estimated Base LOC=?NaN
+Estimated Deleted LOC=?NaN
+Estimated Modified LOC=?NaN
+Base LOC=?NaN
+Deleted LOC=?NaN
+Modified LOC=?NaN

@@ -79,6 +79,9 @@ Authors:
 
   <property file="${lib}/version.properties"/>
 
+  <property name="eng.version"     value="1.6.1.1"/><!-- VERSION -->
+  <property name="eng.requires"    value="1.6.1.1+"/><!-- VERSION -->
+
   <property name="version"     value="${dashboard.version}"/>
   <property name="applet.file" value="DataApplet${dashboardVersion}"/>
 
@@ -120,6 +123,7 @@ Authors:
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${dist}"/>
     <mkdir dir="${build}"/>
     <mkdir dir="${build}/Templates"/>
     <!-- Check to see if optional packages are present -->
@@ -183,7 +187,7 @@ Authors:
     </javac>
 
     <!-- jar up the contents of the add-on -->
-    <jar destfile="${build}/dashHelp.jar" duplicate="fail">
+    <jar destfile="${dist}/dashHelp.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
         <attribute name="Dash-Pkg-ID" value="dashHelp"/>
@@ -206,7 +210,7 @@ Authors:
 
 
   <target name="import-addon">
-    <jar destfile="${build}/importPSP.jar" duplicate="fail">
+    <jar destfile="${dist}/importPSP.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
         <attribute name="Dash-Pkg-ID" value="importPSP"/>
@@ -222,6 +226,30 @@ Authors:
         <include name="Templates/import/dataFile.txt"/>
         <include name="Templates/import/import.htm"/>
       </fileset>
+    </jar>
+  </target>
+
+
+
+  <target name="pspForEng-addon" depends="compile">
+    <!-- build the jarfile -->
+    <jar destfile="${dist}/pspForEng.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="pspForEng"/>
+        <attribute name="Dash-Pkg-Version" value="${eng.version}"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="${eng.requires}"/>
+        <attribute name="Dash-Pkg-Name"
+                   value="PSP for Engineers Add-on Process Set"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <fileset dir=".">
+        <include name="Templates/pspForEng/"/>
+        <include name="Templates/pspForEng*"/>
+	<exclude name="Templates/pspForEng/repair.*"/>
+      </fileset>
+      <fileset dir="${build}" includes="net/**/PspForEngFilter.class"/>
     </jar>
   </target>
 
@@ -324,21 +352,6 @@ Authors:
   <target name="cgi-scripts" depends="compile,jfreechart"
           description="Compile the cgi scripts.">
 
-    <!-- compile the cgi script for the size estimating template -->
-    <mkdir dir="${build}/Templates/psp1"/>
-    <javac srcdir="${templates}/psp1" destdir="${build}/Templates/psp1"
-           classpathref="build.classpath" debug="${debug}"
-           includes="sizeest.java"/>
-    <!-- make a copy for each process that uses the size est template -->
-    <copy file="${build}/Templates/psp1/sizeest.class"
-          todir="${build}/Templates/psp1.1"/>
-    <copy file="${build}/Templates/psp1/sizeest.class"
-          todir="${build}/Templates/psp2"/>
-    <copy file="${build}/Templates/psp1/sizeest.class"
-          todir="${build}/Templates/psp2.1"/>
-    <copy file="${build}/Templates/psp1/sizeest.class"
-          todir="${build}/Templates/psp3"/>
-
     <!-- compile the psp3 cycle summary form -->
     <mkdir dir="${build}/Templates/psp3"/>
     <javac srcdir="${templates}/psp3" destdir="${build}/Templates/psp3"
@@ -414,9 +427,15 @@ Authors:
       </manifest>
 
       <!-- include the compiled files and cgi scripts -->
-      <fileset dir="${build}" includes="org/ pspdash/ Templates/"
-               excludes="Templates/reports/excel.class **/*Test.class"
-	       excludesfile="${lib}/fileset-nonclass.txt"/>
+      <fileset dir="${build}" excludesfile="${lib}/fileset-nonclass.txt">
+          <include name="org/"/>
+          <include name="pspdash/"/>
+          <include name="Templates/"/>
+          <include name="net/"/>
+          <exclude name="Templates/reports/excel.class"/>
+	  <exclude name="**/*Test.class"/>
+	  <exclude name="net/**/PspForEngFilter.class"/>
+      </fileset>
 
       <!-- include important non-class files in the pspdash directory -->
       <fileset dir="${src}" includesfile="${lib}/fileset-nonclass.txt"/>
@@ -520,9 +539,15 @@ Authors:
     <delete quiet="true" dir="${compiler}/parser"/>
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
+
+    <delete quiet="true" file="${dist}/pspdash.jar"/>
+    <delete quiet="true" file="${dist}/dashHelp.jar"/>
+    <delete quiet="true" file="${dist}/importPSP.jar"/>
+    <delete quiet="true" file="${dist}/pspForEng.jar"/>
   </target>
 
-  <target name="dist" depends="javahelp-addon,import-addon,jar"/>
+  <target name="dist"
+      depends="jar,javahelp-addon,import-addon,pspForEng-addon"/>
 
 </project>
 
