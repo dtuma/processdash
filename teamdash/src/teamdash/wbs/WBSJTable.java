@@ -18,6 +18,7 @@ import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 
@@ -46,8 +47,12 @@ public class WBSJTable extends JTable {
     private List copyList = null;
 
 
-    /** Create a JTable to display a WBS */
+    /** Create a JTable to display a WBS. Construct a default icon menu. */
     public WBSJTable(WBSModel model, Map iconMap) {
+        this(model, iconMap, null);
+    }
+    /** Create a JTable to display a WBS */
+    public WBSJTable(WBSModel model, Map iconMap, JMenu iconMenu) {
         super(model);
         wbsModel = model;
 
@@ -57,7 +62,7 @@ public class WBSJTable extends JTable {
         renderer = new WBSNodeRenderer(model, iconMap);
         setDefaultRenderer(WBSNode.class, renderer);
 
-        editor = new WBSNodeEditor(this, model, iconMap);
+        editor = new WBSNodeEditor(this, model, iconMap, iconMenu);
         setDefaultEditor(WBSNode.class, editor);
 
         installCustomActions(this);
@@ -232,7 +237,7 @@ public class WBSJTable extends JTable {
             int editingColumn = WBSJTable.this.editingColumn;
 
             // find out what node is currently being edited.
-            WBSNode editingNode = editor.getEditingNode();
+            WBSNode editingNode = (WBSNode) editor.getCellEditorValue();
 
             // stop the current editing session.
             if (editingNode != null) editor.stopCellEditing();
@@ -332,7 +337,7 @@ public class WBSJTable extends JTable {
             // update the appearance of newly cut cells (they will be
             // displaying phantom icons).
             wbsModel.fireTableRowsUpdated(rows[0], rows[rows.length-1]);
-            if (isEditing()) editor.updateEditorAppearance();
+            if (isEditing()) editor.updateIconAppearance();
         }
     }
     final CutAction CUT_ACTION = new CutAction();
@@ -357,7 +362,7 @@ public class WBSJTable extends JTable {
     final CopyAction COPY_ACTION = new CopyAction();
 
 
-    /** An action to perform a "paste" operation*/
+    /** An action to perform a "paste" operation */
     private class PasteAction extends AbstractAction {
         public PasteAction() { super("Paste"); }
         public void actionPerformed(ActionEvent e) {
