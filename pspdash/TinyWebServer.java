@@ -642,88 +642,13 @@ public class TinyWebServer extends Thread {
             }
             String content = new String(rawContent);
 
-            // Look for and process directives.
-            StringBuffer result = new StringBuffer();
-            String directive, attrStr, generatedContent;
-            Map attributes;
-            int beg, end;
-            while ((beg = content.indexOf(DIRECTIVE_START)) != -1) {
-                result.append(content.substring(0, beg));
-                beg += DIRECTIVE_START.length();
-                end = content.indexOf(' ', beg);
-                directive = content.substring(beg, end);
-                beg = end+1;
-                end = content.indexOf(DIRECTIVE_END, beg);
-                attrStr = content.substring(beg, end);
-                content = content.substring(end + DIRECTIVE_END.length());
-                attributes = parseDirectiveAttributes(attrStr);
+            parseHTTPHeaders();
 
-                if (INCLUDE_DIRECTIVE.equalsIgnoreCase(directive)) {
-                    generatedContent = processIncludeDirective(attributes);
-                } else if (ECHO_DIRECTIVE.equalsIgnoreCase(directive)) {
-                    if (env == null) parseHTTPHeaders();
-                    generatedContent = processEchoDirective(env, attributes);
-                } else {
-                    generatedContent = "";
-                }
-                result.append(generatedContent);
-            }
-            result.append(content);
-
-            return result.toString();
+            HTMLPreprocessor p =
+                new HTMLPreprocessor(TinyWebServer.this, data, env);
+            return p.preprocess(content);
         }
 
-        private static final String DIRECTIVE_START = "<!--#";
-        private static final String DIRECTIVE_END   = "-->";
-        private static final String INCLUDE_DIRECTIVE = "include";
-        private static final String ECHO_DIRECTIVE    = "echo";
-
-        private String processIncludeDirective(Map attributes)
-            throws IOException
-        {
-            String include = (String) attributes.get("file");
-            if (include == null) return "";
-
-            return new String(getRequest(uri, include, true));
-        }
-
-        private String processEchoDirective(Map env, Map attributes) {
-            String varName = (String) attributes.get("var");
-            if (varName == null) return "";
-
-            Object obj = env.get(varName);
-            if (obj == null) return "(none)";
-
-            String result = obj.toString();
-            String encoding = (String) attributes.get("encoding");
-            if ("none".equalsIgnoreCase(encoding))
-                return result;
-            else if ("url".equalsIgnoreCase(encoding))
-                return URLEncoder.encode(result);
-            else
-                // default: entity encoding
-                return encodeHtmlEntities(result);
-        }
-
-        /** Currently not very robust. */
-        private Map parseDirectiveAttributes(String directive) {
-            HashMap result = new HashMap();
-            if (directive == null) return result;
-            StringTokenizer tok = new StringTokenizer(directive);
-            String token, name, value;
-            int equalsPos;
-            while (tok.hasMoreTokens()) {
-                token = tok.nextToken();
-                equalsPos = token.indexOf('=');
-                if (equalsPos == -1) continue;
-                name = token.substring(0, equalsPos);
-                value = token.substring(equalsPos+1);
-                if (value.startsWith("\"") && value.endsWith("\""))
-                    value = value.substring(1, value.length() - 1);
-                result.put(name, value);
-            }
-            return result;
-        }
 
         /** read and discard the rest of the request header from inputStream */
         private void discardHeader() throws IOException {
