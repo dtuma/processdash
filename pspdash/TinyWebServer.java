@@ -62,6 +62,7 @@ public class TinyWebServer extends Thread {
         "text/x-server-parsed-html";
     public static final String CGI_MIME_TYPE = "application/x-httpd-cgi";
     public static final String TIMESTAMP_HEADER = "Dash-Startup-Timestamp";
+    public static final String PACKAGE_ENV_PREFIX = "Dash_Package_";
 
     private static final DateFormat dateFormat =
                            // Tue, 05 Dec 2000 17:28:07 GMT
@@ -1367,6 +1368,18 @@ public class TinyWebServer extends Thread {
         cgiCache.clear();
     }
 
+    private void writePackagesToDefaultEnv() {
+        Iterator i = DEFAULT_ENV.keySet().iterator();
+        while (i.hasNext())
+            if (((String) i.next()).startsWith(PACKAGE_ENV_PREFIX))
+                i.remove();
+        i = TemplateLoader.getPackages().iterator();
+        while (i.hasNext()) {
+            DashPackage pkg = (DashPackage) i.next();
+            DEFAULT_ENV.put(PACKAGE_ENV_PREFIX + pkg.id, pkg.version);
+        }
+    }
+
     /** Parse the HTTP headers in text, and put them into the dest map.
      *  Returns the number of bytes of header information found and parsed,
      *  so the body of the HTTP message will begin at that char in text.
@@ -1437,6 +1450,7 @@ public class TinyWebServer extends Thread {
         }
         this.port = port;
         DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
+        writePackagesToDefaultEnv();
 
         String charsetName = Settings.getVal("http.charset");
         if (charsetName != null && charsetName.length() > 0) try {
@@ -1502,6 +1516,7 @@ public class TinyWebServer extends Thread {
     void setRoots(URL [] roots) {
         this.roots = roots;
         clearClassLoaderCaches();
+        writePackagesToDefaultEnv();
     }
     void setProps(PSPProperties props) {
         if (props == null)
