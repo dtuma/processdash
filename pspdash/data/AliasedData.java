@@ -23,13 +23,9 @@
 //
 // E-Mail POC:  ken.raisor@hill.af.mil
 
-package pspdash.data.compiler;
+package pspdash.data;
 
-public interface Stack {
-    public Object pop();
-    public Object push(Object item);
-    public Object push(Object item, Object descriptor);
-    public boolean empty();
-    public Object peek();
-    public Object peekDescriptor();
+
+public interface AliasedData {
+    public String getAliasedDataName();
 }

@@ -39,6 +39,7 @@ public class Indirect extends AbstractFunction {
     {
         String variable = asStringVal(getArg(arguments, 0));
         if (variable == null) return null;
-        return context.get(variable);
+        return new DescribedValue(context.get(variable),
+                                  context.resolveName(variable));
     }
 }

@@ -76,7 +76,7 @@ class CompletionButton extends JCheckBox implements ActionListener {
                 update();
             }
         } else {
-            parent.data.putValue(dataName, null);
+            parent.data.userPutValue(dataName, null);
             setToolTipText("Click to mark this phase completed");
         }
     }

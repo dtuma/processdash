@@ -67,4 +67,11 @@ public class LocalExpressionContext implements ExpressionContext {
         else
             return context.get(dataName);
     }
+
+    public String resolveName(String dataName) {
+        if ("_".equals(dataName))
+            return null;
+        else
+            return context.resolveName(dataName);
+    }
 }

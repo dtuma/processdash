@@ -32,4 +32,5 @@ import java.util.*;
 public interface ExpressionContext {
     public static final String PREFIXVAR_NAME = "^";
     public SimpleData get(String dataName);
+    public String resolveName(String dataName);
 }

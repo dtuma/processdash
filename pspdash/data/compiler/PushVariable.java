@@ -36,7 +36,7 @@ class PushVariable implements Instruction {
     }
 
     public void execute(Stack stack, ExpressionContext context) {
-        stack.push(context.get(dataName));
+        stack.push(context.get(dataName), context.resolveName(dataName));
     }
 
     public String toString() {

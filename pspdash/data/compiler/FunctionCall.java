@@ -122,7 +122,11 @@ class FunctionCall implements Instruction {
         }
 
         Object result = f.call(arguments, context);
-        stack.push(result);
+        if (result instanceof Function.DescribedValue)
+            stack.push(((Function.DescribedValue) result).getValue(),
+                       ((Function.DescribedValue) result).getDescriptor());
+        else
+            stack.push(result);
     }
 
     public String toString() { return functionName; }

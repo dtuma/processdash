@@ -288,13 +288,13 @@ public class EVTask implements DataListener {
                     this.planTime = topDownPlanTime =
                         bottomUpPlanTime = planTime;
                     // save those minutes to the data repository
-                    data.putValue(data.createDataName(fullName,
-                                                      PLAN_TIME_DATA_NAME),
-                                  new DoubleData(planTime, true));
+                    data.userPutValue(data.createDataName(fullName,
+                                                          PLAN_TIME_DATA_NAME),
+                                      new DoubleData(planTime, true));
                 }
             } else {
                 this.planTime = topDownPlanTime = bottomUpPlanTime;
-                data.putValue(data.createDataName(fullName,
+                data.userPutValue(data.createDataName(fullName,
                                                   PLAN_TIME_DATA_NAME),
                               null);
             }
@@ -308,10 +308,10 @@ public class EVTask implements DataListener {
             // save the Date object to the data repository
             if (aValue instanceof Date) {
                 dateCompleted = (Date) aValue;
-                data.putValue(dataName, new DateData(dateCompleted, true));
+                data.userPutValue(dataName, new DateData(dateCompleted, true));
             } else {
                 dateCompleted = null;
-                data.putValue(dataName, null);
+                data.userPutValue(dataName, null);
             }
         }
     }
@@ -621,7 +621,11 @@ public class EVTask implements DataListener {
             metrics.addError("The top-down estimate of " + getPlanTime() +
                              " for task \"" + fullName + "\" does not " +
                              "agree with the bottom-up estimate of " +
-                             formatTime(bottomUpPlanTime) + ".", this);
+                             formatTime(bottomUpPlanTime) + ". (Consider " +
+                             "editing or deleting the top-down estimate " +
+                             "for task \"" + fullName + "\", or modifying " +
+                             "the estimates of the tasks underneath it.)",
+                             this);
     }
 
 

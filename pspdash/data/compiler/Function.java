@@ -30,6 +30,11 @@ import java.util.List;
 
 public interface Function extends Serializable {
 
+    public interface DescribedValue {
+        Object getDescriptor();
+        Object getValue();
+    }
+
     /** Perform a procedure call.
      *
      * This method <b>must</b> be thread-safe.

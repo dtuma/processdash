@@ -27,6 +27,7 @@ package pspdash.data.compiler;
 
 import pspdash.data.DataRepository;
 import pspdash.data.DoubleData;
+import pspdash.data.SimpleData;
 
 import java.util.Iterator;
 import java.util.List;
@@ -45,16 +46,25 @@ public class Sumfor extends AbstractFunction {
         if (name == null) return null;
 
         Iterator i = collapseLists(arguments, 1).iterator();
-        String path, dataName;
+        String path, dataName, alias;
+        alias = NO_ALIAS_YET;
+        boolean editable;
+        SimpleData sVal = null;
         while (i.hasNext()) {
             path = asStringVal(i.next());
             if (path == null) continue;
 
             dataName = DataRepository.createDataName(path, name);
-            val = asDouble(context.get(dataName));
+            if (alias == NO_ALIAS_YET) alias = dataName; else alias = null;
+            sVal = context.get(dataName);
+            val = asDouble(sVal);
             if (!Double.isNaN(val) && !Double.isInfinite(val))
                 result += val;
         }
-        return new DoubleData(result);
+        if (alias != null && alias != NO_ALIAS_YET && sVal != null)
+            return new DescribedValue(sVal, context.resolveName(alias));
+        else
+            return new DoubleData(result);
     }
+    private static final String NO_ALIAS_YET = "";
 }

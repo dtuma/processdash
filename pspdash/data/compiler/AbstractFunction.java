@@ -35,6 +35,14 @@ import java.util.ArrayList;
 
 public class AbstractFunction implements Function {
 
+    protected class DescribedValue implements Function.DescribedValue {
+        private Object value, descriptor;
+        public DescribedValue(Object v, Object d) {
+            value = v; descriptor = d; }
+        public Object getValue()      { return value;      }
+        public Object getDescriptor() { return descriptor; }
+    }
+
     public Object call(List arguments, ExpressionContext context) {
         return null;            // null operation, meant to be overridden.
     }

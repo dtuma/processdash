@@ -31,13 +31,13 @@ import pspdash.data.compiler.ExecutionException;
 import pspdash.data.compiler.ExpressionContext;
 import pspdash.data.compiler.ListStack;
 
-class CompiledFunction implements SaveableData,
+class CompiledFunction implements SaveableData, AliasedData,
                                   ActiveExpressionContext.Listener
 {
     private static final SimpleData UNCALCULATED_VALUE =
         new DoubleData(Double.NaN, false);
 
-    protected String name = null, prefix;
+    protected String name = null, prefix, aliasFor;
     protected CompiledScript script;
     protected DataRepository data;
     protected ActiveExpressionContext context = null;
@@ -99,8 +99,9 @@ class CompiledFunction implements SaveableData,
                     currentlyCalculating = true;
                     script.run(stack, context);
                     currentlyCalculating = false;
+                    aliasFor = (String) stack.peekDescriptor();
                     value = (SimpleData) stack.pop();
-                    if (value != null)
+                    if (value != null && aliasFor == null)
                         value = (SimpleData) value.getEditable(false);
                 } catch (ExecutionException e) {
                     System.err.println("Error executing " + name + ": " + e);
@@ -124,6 +125,13 @@ class CompiledFunction implements SaveableData,
     public boolean isDefined() { return true; }
     public void setDefined(boolean d) {}
     public String saveString() { return script.saveString(); }
+
+    public String getAliasedDataName() {
+        if (value == UNCALCULATED_VALUE)
+            recalc();
+
+        return aliasFor;
+    }
 
     public SimpleData getSimpleValue() {
         if (value == UNCALCULATED_VALUE)

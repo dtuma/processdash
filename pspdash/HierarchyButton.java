@@ -210,7 +210,7 @@ public class HierarchyButton implements ActionListener {
     private void markCompleted() {
           // mark this phase as completed in the data repository.
         String dataName = getCompletedDataname(self);
-        parent.data.putValue(dataName, new DateData());
+        parent.data.userPutValue(dataName, new DateData());
     }
 
     private String getCompletedDataname(PropertyKey key) {

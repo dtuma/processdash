@@ -138,8 +138,8 @@ public class RepositoryServer extends Thread {
                     if (RESTORE_DEFAULT_TOKEN.equals(value))
                         data.restoreDefaultValue(dataName);
                     else
-                        data.putValue(dataName,
-                                      ValueFactory.create(null, value, null, null));
+                        data.userPutValue(dataName,
+                                          ValueFactory.create(null, value, null, null));
                 }
                                         // removeValue
                 else if (methodName.equals("removeValue")) {

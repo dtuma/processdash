@@ -45,6 +45,13 @@ public class RelativeExpressionContext implements ExpressionContext {
     }
 
     public SimpleData get(String dataName) {
+        if (dataName.equals(PREFIXVAR_NAME))
+            return StringData.create(prefix);
+        else
+            return context.get(resolveName(dataName));
+    }
+
+    public String resolveName(String dataName) {
         if (dataName.startsWith("{") && dataName.endsWith("}"))
             // Names bracketed with {curly braces} should be interpreted
             // relative to the prefix of the original expression context.
@@ -55,15 +62,12 @@ public class RelativeExpressionContext implements ExpressionContext {
             // localize it or change it in any way
             ;
 
-        else if (dataName.equals(PREFIXVAR_NAME))
-            return StringData.create(prefix);
-
         else
             // Non-bracketed names should be interpreted in the context
             // of our prefix.  (Note that createDataName() is already
             // smart enough to leave absolute names - e.g. "/foo" - alone.)
             dataName = DataRepository.createDataName(prefix, dataName);
 
-        return context.get(dataName);
+        return dataName;
     }
 }

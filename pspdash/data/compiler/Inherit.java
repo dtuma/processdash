@@ -53,7 +53,9 @@ public class Inherit extends AbstractFunction {
 
             variable = prefix + "/" + name;
             result = context.get(variable);
-            if (result != null) return result;
+            if (result != null)
+                return new DescribedValue
+                    (result, context.resolveName(variable));
         }
     }
 }

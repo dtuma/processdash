@@ -1540,6 +1540,17 @@ public class DataRepository implements Repository {
             }
         }
 
+        public void userPutValue(String name, SaveableData value) {
+            DataElement d = (DataElement) data.get(name);
+            String aliasName = null;
+            if (d != null && d.getValue() instanceof AliasedData)
+                aliasName = ((AliasedData) d.getValue()).getAliasedDataName();
+            if (aliasName != null)
+                userPutValue(aliasName, value);
+            else
+                putValue(name, value);
+        }
+
         public void restoreDefaultValue(String name) {
 
             DataElement d = (DataElement) data.get(name);
@@ -1581,6 +1592,8 @@ public class DataRepository implements Repository {
             public SimpleExpressionContext(String p) { prefix = p; }
             public SimpleData get(String dataName) {
                 return getSimpleValue(createDataName(prefix, dataName)); }
+            public String resolveName(String dataName) {
+                return createDataName(prefix, dataName); }
         }
 
 

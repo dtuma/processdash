@@ -100,6 +100,11 @@ class ActiveExpressionContext implements ExpressionContext, DataListener
         }
     }
 
+    public synchronized String resolveName(String dataName) {
+        setNames(dataName);
+        return externalName();
+    }
+
     public synchronized SimpleData get(String dataName) {
         if (PREFIXVAR_NAME.equals(dataName))
             return StringData.create(prefix);
