@@ -281,22 +281,30 @@ public class EVTask implements DataListener {
 
     public void setPlanTime(Object aValue) {
         if (plannedTimeIsEditable() && aValue instanceof String) {
-            if (((String) aValue).length() > 0) {
-                // parse the value to obtain a number of minutes
-                long planTime = TimeLogEditor.parseTime((String) aValue);
-                if (planTime != -1) {
-                    this.planTime = topDownPlanTime =
-                        bottomUpPlanTime = planTime;
-                    // save those minutes to the data repository
-                    data.userPutValue(data.createDataName(fullName,
-                                                          PLAN_TIME_DATA_NAME),
-                                      new DoubleData(planTime, true));
-                }
+            long planTime = -1;
+
+            // parse the value to obtain a number of minutes
+            if (((String) aValue).length() > 0)
+                planTime = TimeLogEditor.parseTime((String) aValue);
+
+            // if the user is obviously correcting a top-down/bottom-up
+            // mismatch, then just treat the input the same as if the
+            // user had deleted the top-down estimate.
+            if (hasPlanTimeError() &&
+                Math.abs(planTime - bottomUpPlanTime) < 0.9)
+                planTime = -1;
+
+            if (planTime != -1) {
+                this.planTime = topDownPlanTime = bottomUpPlanTime = planTime;
+                // save those minutes to the data repository
+                data.userPutValue(data.createDataName(fullName,
+                                                      PLAN_TIME_DATA_NAME),
+                                  new DoubleData(planTime, true));
             } else {
                 this.planTime = topDownPlanTime = bottomUpPlanTime;
                 data.userPutValue(data.createDataName(fullName,
-                                                  PLAN_TIME_DATA_NAME),
-                              null);
+                                                      PLAN_TIME_DATA_NAME),
+                                  null);
             }
         }
     }
@@ -318,13 +326,24 @@ public class EVTask implements DataListener {
 
     protected static NumberFormat percentFormatter =
         NumberFormat.getPercentInstance();
+    protected static NumberFormat intPercentFormatter =
+        NumberFormat.getPercentInstance();
     static {
         percentFormatter.setMaximumFractionDigits(1);
+        intPercentFormatter.setMaximumFractionDigits(0);
     }
     static String formatPercent(double percent) {
         if (Double.isNaN(percent) || Double.isInfinite(percent))
             percent = 0;
-        return percentFormatter.format(percent);
+        if (percent >= 100 || percent <= 100)
+            return intPercentFormatter.format(percent);
+        else
+            return percentFormatter.format(percent);
+    }
+    static String formatIntPercent(double percent) {
+        if (Double.isNaN(percent) || Double.isInfinite(percent))
+            percent = 0;
+        return intPercentFormatter.format(percent);
     }
 
 
@@ -371,10 +390,10 @@ public class EVTask implements DataListener {
     public Date getActualDate() { return dateCompleted; }
     public String getPercentComplete() {
         if (valueEarned == 0) return "";
-        else return formatPercent(valueEarned / planTime); }
+        else return formatIntPercent(valueEarned / planTime); }
     public String getPercentSpent() {
         if (actualTime == 0) return "";
-        else return formatPercent(actualTime / planTime); }
+        else return formatIntPercent(actualTime / planTime); }
     public String getValueEarned(double totalPlanTime) {
         if (dateCompleted != null || valueEarned != 0.0)
             return formatPercent(valueEarned/totalPlanTime);
@@ -454,9 +473,13 @@ public class EVTask implements DataListener {
         schedule.firePreparedEvents();
     }
 
-    public void simpleRecalc() {
+    public void simpleRecalc(EVSchedule schedule) {
+        recalcPlanTimes();
         recalcPlanCumTime(0.0);
         recalcPlanValue();
+        checkForNodeErrors(schedule.getMetrics(), 0,
+                           new ArrayList(), new ArrayList());
+        checkForScheduleErrors(schedule.getMetrics(), schedule);
     }
 
     protected void resetRootValues() {
@@ -588,6 +611,16 @@ public class EVTask implements DataListener {
             otherNodeList.add(this);
         }
 
+        if (hasPlanTimeError())
+            metrics.addError("The top-down estimate of " + getPlanTime() +
+                             " for task \"" + fullName + "\" does not " +
+                             "agree with the bottom-up estimate of " +
+                             formatTime(bottomUpPlanTime) + ". (Consider " +
+                             "editing or deleting the top-down estimate " +
+                             "for task \"" + fullName + "\", or modifying " +
+                             "the estimates of the tasks underneath it.)",
+                             this);
+
         for (int i = 0;   i < getNumChildren();   i++)
             getChild(i).checkForNodeErrors(metrics, depth+1,
                                            rootChildList, otherNodeList);
@@ -622,16 +655,6 @@ public class EVTask implements DataListener {
             if (actualNodeTime > 0)
                 metrics.addTask(0, actualNodeTime, null, metrics.startDate());
         }
-
-        if (hasPlanTimeError())
-            metrics.addError("The top-down estimate of " + getPlanTime() +
-                             " for task \"" + fullName + "\" does not " +
-                             "agree with the bottom-up estimate of " +
-                             formatTime(bottomUpPlanTime) + ". (Consider " +
-                             "editing or deleting the top-down estimate " +
-                             "for task \"" + fullName + "\", or modifying " +
-                             "the estimates of the tasks underneath it.)",
-                             this);
     }
 
 
