@@ -1,1 +1,1 @@
-class:net.sourceforge.processdash.ui.web.dash.ScriptBrowser
+class:net.sourceforge.processdash.process.ui.ScriptBrowserHTML
