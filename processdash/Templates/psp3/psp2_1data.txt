@@ -39,6 +39,7 @@ undefine			// undefine various psp2.1 data elements:
   // Erase the phase lists from PSP2.1 - our process will define what we need.
   [Child_List], [Phase_List], [Yield_Phase_List],
   [Quality_Phase_List], [Failure_Phase_List], [Appraisal_Phase_List],
+  [Development_Phase_List], [Overhead_Phase_List],
 
   // Erase the following hierarchy tags - our process will define what we need.
 
