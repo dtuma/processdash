@@ -46,6 +46,7 @@ import pspdash.RobustFileWriter;
 /* This class imports data files into the repository */
 public class DataImporter extends Thread {
 
+    public static final String EXPORT_DATANAME = "EXPORT_FILE";
     private static final long TIME_DELAY = 1 * 60 * 1000; // 10 minutes
     private static Vector importers = new Vector();
 
@@ -178,35 +179,45 @@ public class DataImporter extends Thread {
                            String prefix, DataRepository data)
         throws IOException
     {
-        BufferedReader in =
-            new BufferedReader(new InputStreamReader(inputStream));
-        Map defns = new HashMap();
-
-        String line, name, value;
-        int commaPos;
-        while ((line = in.readLine()) != null) {
-            if (line.startsWith("!")) break;
-
-            commaPos = line.indexOf(',');
-            if (commaPos == -1) return; // this isn't a valid dump file.
-
-            name = line.substring(1, commaPos);
-            name = EscapeString.unescape(name, '\\', ",", "c");
-            value = line.substring(commaPos+1);
-            defns.put(name, parseValue(value));
-        }
-
-        // Protect this data from being viewed via external http requests.
-        defns.put("_Password_", ImmutableDoubleData.READ_ONLY_ZERO);
-
         try {
-            // We don't want these threads to flood the data repository
-            // with multiple simultaneous mountImportedData() calls, so
-            // we'll synchronize on a lock object.
-            synchronized(SYNCH_LOCK) {
-                data.mountImportedData(prefix, defns);
+            BufferedReader in =
+                new BufferedReader(new InputStreamReader(inputStream));
+            Map defns = new HashMap();
+
+            String line, name, value;
+            int commaPos;
+            while ((line = in.readLine()) != null) {
+                if (line.startsWith("!")) break;
+
+                commaPos = line.indexOf(',');
+                if (commaPos == -1) return; // this isn't a valid dump file.
+
+                name = line.substring(1, commaPos);
+                name = EscapeString.unescape(name, '\\', ",", "c");
+                value = line.substring(commaPos+1);
+
+                // don't import the data elements which contain export
+                // instructions - this would get us into an infinite
+                // import/export loop.
+                if (name.indexOf(EXPORT_DATANAME) != -1) continue;
+
+                defns.put(name, parseValue(value));
             }
-        } catch (InvalidDatafileFormat idf) {}
+
+            // Protect this data from being viewed via external http requests.
+            defns.put("_Password_", ImmutableDoubleData.READ_ONLY_ZERO);
+
+            try {
+                // We don't want these threads to flood the data repository
+                // with multiple simultaneous mountImportedData() calls, so
+                // we'll synchronize on a lock object.
+                synchronized(SYNCH_LOCK) {
+                    data.mountImportedData(prefix, defns);
+                }
+            } catch (InvalidDatafileFormat idf) {}
+        } finally {
+            if (close) inputStream.close();
+        }
     }
 
     private static final Object SYNCH_LOCK = new Object();
