@@ -55,6 +55,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
@@ -87,6 +88,7 @@ import pspdash.data.compiler.node.AReadOnlyAssignop;
 import pspdash.data.compiler.node.AUndefineDeclaration;
 import pspdash.data.compiler.node.Start;
 import pspdash.data.compiler.node.TIdentifier;
+import pspdash.data.compiler.node.TStringLiteral;
 import pspdash.data.compiler.parser.Parser;
 import pspdash.data.compiler.parser.ParserException;
 
@@ -1852,7 +1854,16 @@ public class DataRepository implements Repository {
                 try {
                     Map cachedIncludeFile =
                         loadIncludedFileDefinitions(inheritedDatafile);
-                    dest.putAll(cachedIncludeFile);
+                    Map filteredIncludeFile = cachedIncludeFile;
+
+                    if (node.getExcludeClause() != null) {
+                        IdentifierLister filter = new IdentifierLister();
+                        node.getExcludeClause().apply(filter);
+                        filteredIncludeFile = filterDefinitions
+                            (cachedIncludeFile, filter.identifiers, filter.strings);
+                    }
+
+                    dest.putAll(filteredIncludeFile);
                 } catch (Exception e) {
                     throw new LoadingException(e);
                 }
@@ -1869,9 +1880,12 @@ public class DataRepository implements Repository {
 
         private class IdentifierLister extends DepthFirstAdapter {
             public ArrayList identifiers = new ArrayList();
+            public ArrayList strings = new ArrayList();
             public IdentifierLister() {}
             public void caseTIdentifier(TIdentifier node) {
                 identifiers.add(Compiler.trimDelim(node)); }
+            public void caseTStringLiteral(TStringLiteral node) {
+                strings.add(Compiler.trimDelim(node)); }
         }
 
         // loadDatafile - opens the file passed to it and looks for "x = y" type
@@ -2148,6 +2162,35 @@ public class DataRepository implements Repository {
         public static final String SIMPLE_RENAME_PREFIX = "<=";
         public static final String PATTERN_RENAME_PREFIX = ">~";
 
+
+        private Map filterDefinitions(Map definitions,
+                                       List identifiers,
+                                       List regularExpressions) {
+            Map result = new HashMap(definitions);
+
+            // delete all the specified identifiers from the map.
+            Iterator i = identifiers.iterator();
+            String identifier;
+            while (i.hasNext()) {
+                identifier = (String) i.next();
+                definitions.remove(identifier);
+            }
+
+            // remove data elements which match any of the regular expressions.
+            Iterator r = regularExpressions.iterator();
+            String regExp;
+            while (r.hasNext()) {
+                regExp = "m\n^" + r.next() + "$\n";
+                i = result.keySet().iterator();
+                while (i.hasNext()) {
+                    identifier = (String) i.next();
+                    if (!perl.match(regExp, identifier))
+                        i.remove();
+                }
+            }
+
+            return result;
+        }
 
         public void openDatafile(String dataPrefix, String datafilePath)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {

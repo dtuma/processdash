@@ -77,6 +77,7 @@ Helpers
     map = m a p;
     true = t r u e;
     false = f a l s e;
+    exclude = e x c l u d e;
 
 States
    b, // beginning of line
@@ -122,6 +123,7 @@ Tokens
     {b->i, i} tag = tag;
     {b->i, i} search = search;
     {b->i, i} undefine = undefine;
+    {b->i, i} exclude = exclude;
     {b->i, i} script1_function_name = filter | map;
     {b->i, i} function_name = nondigit+;
 
@@ -156,7 +158,10 @@ Productions
     {simple_search} identifier assignop search l_par [start]:string_literal
          [c1]:comma [tag]:string_literal r_par semicolon |
     {undefine} undefine l_par identifier_list r_par semicolon |
-    {include} include_directive;
+    {include} include_directive exclude_clause? ;
+
+  exclude_clause =
+    exclude l_par exclude_list r_par;
 
   assignop =
     {normal} equal |
@@ -255,3 +260,11 @@ Productions
 
   identifier_list_tail =
     comma identifier;
+
+  exclude_list =
+    {identifier} identifier exclude_list_tail* |
+    {string} string_literal exclude_list_tail*;
+
+  exclude_list_tail =
+    {identifier} comma identifier |
+    {string} comma string_literal;
