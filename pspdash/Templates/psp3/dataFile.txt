@@ -113,3 +113,6 @@ sumUp(Reassessment);
 sumForCycles(Time);
 sumForCycles(Defects Injected);
 sumForCycles(Defects Removed);
+
+[Completed] = maxDate("Completed",
+		      ",Planning,HLD,HLD Review,Postmortem,", [PSP3_Cycles]);
