@@ -1161,6 +1161,8 @@ public class EVSchedule implements TableModel {
         public Number getMinimumRangeValue() { return low; }
 
         public Number getMaximumRangeValue() { return high; }
+
+        public String toString() { return String.valueOf(value); }
     }
 
     protected interface ChartSeries {
