@@ -386,8 +386,7 @@ public class EVReport extends CGIChartBase {
 
         // Alter the appearance of the chart.
         maybeWriteParam
-            ("title",
-             resources.getString("Chart.Tabs.Direct_Hours_Chart.Full_Name"));
+            ("title", resources.getString("Report.Time_Chart_Title"));
 
         super.writeContents();
     }
@@ -398,10 +397,7 @@ public class EVReport extends CGIChartBase {
         xydata = evModel.getSchedule().getValueChartData();
 
         // Alter the appearance of the chart.
-        maybeWriteParam
-            ("title",
-             resources.getString
-             ("Chart.Tabs.Earned_Value_Chart.Full_Name") + " (%)");
+        maybeWriteParam("title", resources.getString("Report.EV_Chart_Title"));
 
         super.writeContents();
     }

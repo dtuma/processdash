@@ -610,28 +610,28 @@ public class TimeLogEditor extends Object
 
         retPanel.add(Box.createHorizontalGlue());
 
-        label = new JLabel (resources.getString("Format_Label")+" ");
+        label = new JLabel (resources.getString("Time_Format.Label")+" ");
         retPanel.add(label);   retPanel.add(Box.createHorizontalStrut(5));
         formatChoice = new JComboBox
-            (resources.getStrings("Format_", TIME_FORMAT_KEY_NAMES));
+            (resources.getStrings("Time_Format.", TIME_FORMAT_KEY_NAMES));
         retPanel.add(formatChoice);   retPanel.add(Box.createHorizontalStrut(5));
         formatChoice.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 timeFormat = formatChoice.getSelectedIndex(); setTimes(); }} );
         retPanel.add(new JLabel("          "));
 
-        label = new JLabel (resources.getString("Filter_Label") + " ");
+        label = new JLabel (resources.getString("Filter.Label") + " ");
         retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
 
-        btn = new JButton(resources.getString("Filter_Scroll_Backward_Button"));
+        btn = new JButton(resources.getString("Filter.Scroll_Backward_Button"));
         btn.setMargin(insets);
-        btn.setToolTipText(resources.getString("Filter_Scroll_Backward_Tooltip"));
+        btn.setToolTipText(resources.getString("Filter.Scroll_Backward_Tooltip"));
         btn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { scrollFilterBackward(); }
             });
         retPanel.add(btn);   retPanel.add(Box.createHorizontalStrut(5));
 
-        label = new JLabel (resources.getString("Filter_From") + " ");
+        label = new JLabel (resources.getString("Filter.From") + " ");
         retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
 
         fromDate = new JTextField ("", 10);
@@ -641,7 +641,7 @@ public class TimeLogEditor extends Object
         fromDate.addFocusListener (l);
         retPanel.add (fromDate);   retPanel.add(Box.createHorizontalStrut(5));
 
-        label = new JLabel (" " + resources.getString("Filter_To") + " ");
+        label = new JLabel (" " + resources.getString("Filter.To") + " ");
         retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
 
         toDate = new JTextField ("", 10);
@@ -652,35 +652,35 @@ public class TimeLogEditor extends Object
         retPanel.add (toDate);   retPanel.add(Box.createHorizontalStrut(5));
 
 
-        btn = new JButton(resources.getString("Filter_Scroll_Forward_Button"));
+        btn = new JButton(resources.getString("Filter.Scroll_Forward_Button"));
         btn.setMargin(insets);
-        btn.setToolTipText(resources.getString("Filter_Scroll_Forward_Tooltip"));
+        btn.setToolTipText(resources.getString("Filter.Scroll_Forward_Tooltip"));
         btn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { scrollFilterForward(); }
             });
         retPanel.add(btn);   retPanel.add(Box.createHorizontalStrut(5));
 
-        button = new DropDownButton (resources.getString("Filter_Apply"));
+        button = new DropDownButton (resources.getString("Filter.Apply"));
         button.setRunFirstMenuOption(false);
         button.getButton().addActionListener(new ActionListener () {
             public void actionPerformed(ActionEvent e) { applyFilter (true); }
             });
         JMenu menu = button.getMenu();
-        menu.add(resources.getString("Filter_Today")).addActionListener
+        menu.add(resources.getString("Filter.Today")).addActionListener
             (new ActionListener() {
                 public void actionPerformed(ActionEvent e) { filterToday(); }
                 });
-        menu.add(resources.getString("Filter_Week")).addActionListener
+        menu.add(resources.getString("Filter.Week")).addActionListener
             (new ActionListener() {
                 public void actionPerformed(ActionEvent e) { filterThisWeek(); }
                 });
-        menu.add(resources.getString("Filter_Month")).addActionListener
+        menu.add(resources.getString("Filter.Month")).addActionListener
             (new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     filterThisMonth(new Date());
                 }});
         menu.addSeparator();
-        menu.add(resources.getString("Filter_Remove")).addActionListener
+        menu.add(resources.getString("Filter.Remove")).addActionListener
             (new ActionListener() {
                 public void actionPerformed(ActionEvent e) { clearFilter(); }
                 });

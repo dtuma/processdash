@@ -97,21 +97,22 @@ public class TaskScheduleChart extends JFrame
     }
     public void evRecalculated(EventObject e) {}
 
-
     private ChartPanel buildTimeChart() {
-        return buildChart(schedule.getTimeChartData());
+        return buildChart(schedule.getTimeChartData(), UNITS[1]);
     }
 
     private ChartPanel buildValueChart() {
-        return buildChart(schedule.getValueChartData());
+        return buildChart(schedule.getValueChartData(), UNITS[0]);
     }
 
     private ChartPanel buildCombinedChart() {
-        return buildChart(schedule.getCombinedChartData());
+        return buildChart(schedule.getCombinedChartData(), UNITS[2]);
     }
 
-    private ChartPanel buildChart(XYDataset data) {
+    private ChartPanel buildChart(XYDataset data, String units) {
         JFreeChart chart = createChart(data);
+        if (units != null && units.length() != 0)
+            chart.getXYPlot().getRangeAxis().setLabel(units);
         charts[numCharts]    = chart;
         legends[numCharts++] = chart.getLegend();
         ChartPanel panel = new ChartPanel(chart);
@@ -169,6 +170,7 @@ public class TaskScheduleChart extends JFrame
     private static int SHORT_WINDOW_WIDTH = 170;
 
     private static final String[][] TAB_NAMES;
+    private static final String[] UNITS;
     static {
         String[] colKeys = new String[]
             { "Earned_Value_Chart", "Direct_Hours_Chart",
@@ -177,6 +179,10 @@ public class TaskScheduleChart extends JFrame
         TAB_NAMES[FULL] = resources.getStrings("Tabs.", colKeys, ".Full_Name");
         TAB_NAMES[MED]  = resources.getStrings("Tabs.", colKeys, ".Med_Name");
         TAB_NAMES[SHORT]= resources.getStrings("Tabs.", colKeys, ".Short_Name");
+        String[] chartColKeys = new String[3];
+        System.arraycopy(colKeys, 0, chartColKeys, 0, 3);
+        UNITS = resources.getStrings("Tabs.", chartColKeys, ".Units");
+
         if ("CURRENCY".equals(TAB_NAMES[SHORT][1]))
             TAB_NAMES[SHORT][1] =
                 (new DecimalFormatSymbols()).getCurrencySymbol();
@@ -205,14 +211,15 @@ public class TaskScheduleChart extends JFrame
         for (int i=0;   i < charts.length;   i++) {
             charts[i].setLegend(style != FULL ? null : legends[i]);
             adjustAxis(charts[i].getXYPlot().getRangeAxis(),
-                       style != FULL);
+                       style != FULL, UNITS[i]);
             adjustAxis(charts[i].getXYPlot().getDomainAxis(),
-                       style == SHORT);
+                       style == SHORT, null);
         }
     }
-    private void adjustAxis(Axis a, boolean chromeless) {
+    private void adjustAxis(Axis a, boolean chromeless, String units) {
         a.setTickLabelsVisible(!chromeless);
         a.setTickMarksVisible(!chromeless);
+        a.setLabel(chromeless ? null : units);
     }
 
 

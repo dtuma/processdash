@@ -75,7 +75,7 @@ public class TimeCardDialog {
         this.useProps = useProps;
         this.timeLog = timeLog;
 
-        frame = new JFrame(resources.getString("Time_Card_Window_Title"));
+        frame = new JFrame(resources.getString("Time_Card.Window_Title"));
         frame.setIconImage(DashboardIconFactory.getWindowIconImage());
 
         model = new TimeCard(useProps, timeLog);
@@ -129,7 +129,8 @@ public class TimeCardDialog {
     private Component buildTopPanel() {
         Box result = Box.createHorizontalBox();
 
-        result.add(new JLabel(resources.getString("Month_Label")+" "));
+        result.add(new JLabel
+            (resources.getString("Time_Card.Month_Label")+" "));
         // We have to build our own month name array because the "official"
         // one contains 13 month names, the last one empty for Gregorian
         // Calendars
@@ -155,7 +156,7 @@ public class TimeCardDialog {
                 public void changedUpdate(DocumentEvent e)  { recalc(); }});
 
         result.add(Box.createHorizontalGlue());
-        result.add(new JLabel(resources.getString("Time_Format_Label")+" "));
+        result.add(new JLabel(resources.getString("Time_Format.Label")+" "));
         formatType = new JComboBox();
         formatType.addItem(format(75, HOURS_MINUTES));
         formatType.addItem(format(75, HOURS));
@@ -168,8 +169,8 @@ public class TimeCardDialog {
 
         result.add(Box.createHorizontalGlue());
         hideColumns = new JCheckBox();
-        result.add(new JLabel
-            (" " + resources.getString("Hide_Empty_Columns_Label") + " "));
+        result.add(new JLabel(" " + resources.getString
+                              ("Time_Card.Hide_Empty_Columns_Label") + " "));
         result.add(hideColumns);
         hideColumns.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -231,9 +232,9 @@ public class TimeCardDialog {
                                  DashHierarchy props,
                                  PropertyKey key) {
                 this.parent = parent;
-                this.name =
-                    (parent == null ? resources.getString("Daily_Total")
-                                    : key.name());
+                this.name = (parent == null
+                             ? resources.getString("Time_Card.Daily_Total")
+                             : key.name());
                 this.fullname = key.path();
                 this.time = new double[32];
                 this.children = new ArrayList();
@@ -395,7 +396,7 @@ public class TimeCardDialog {
         public int getColumnCount() { return 32; }
 
         private String totalColumnName =
-            resources.getString("Total_Column_Name");
+            resources.getString("Time_Card.Total_Column_Name");
 
         /** Returns the name for a particular column. */
         public String getColumnName(int column) {
@@ -433,7 +434,7 @@ public class TimeCardDialog {
 
     private static NumberFormat formatter = NumberFormat.getNumberInstance();
     private SimpleDateFormat dayFormat = new SimpleDateFormat
-        (resources.getString("Column_Date_Tooltip_Format"));
+        (resources.getString("Time_Card.Column_Date_Tooltip_Format"));
     static {
         formatter.setMaximumFractionDigits(2);
     }
