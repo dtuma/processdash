@@ -882,10 +882,20 @@ public class WebServer extends Thread {
         private String preprocessTextFile(InputStream in, boolean translate)
             throws TinyWebThreadException, IOException
         {
-            byte[] rawContent = slurpContents(in, true);
-            String content = new String(rawContent, DASH_CHARSET);
-            if (translate)
-                content = Translator.translate(content);
+            String content = null;
+            if (translate) {
+                Reader r = Translator.translate
+                    (new InputStreamReader(in, DASH_CHARSET));
+                StringBuffer buf = new StringBuffer();
+                int c;
+                while ((c = r.read()) > 0)
+                    buf.append((char) c);
+                content = buf.toString();
+
+            } else {
+                byte[] rawContent = slurpContents(in, true);
+                content = new String(rawContent, DASH_CHARSET);
+            }
 
             parseHTTPHeaders();
 
