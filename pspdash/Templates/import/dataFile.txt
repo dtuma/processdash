@@ -78,20 +78,21 @@ Estimated Time=?NaN
 
 = Actual Time
 
-Planning/Time=?NaN
-HLD/Time=?NaN
-HLD Review/Time=?NaN
-Design/Time=?NaN
-Design Review/Time=?NaN
+Planning/Time=?0.0
+HLD/Time=?0.0
+HLD Review/Time=?0.0
+Design/Time=?0.0
+Design Review/Time=?0.0
 Design/Combined Time==![(+	Design/Time	Design Review/Time)]
-Code/Time=?NaN
-Code Review/Time=?NaN
+Code/Time=?0.0
+Code Review/Time=?0.0
 Code/Combined Time==![(+	Code/Time	Code Review/Time)]
-Compile/Time=?NaN
-Test/Time=?NaN
-Postmortem/Time=?NaN
+Compile/Time=?0.0
+Test/Time=?0.0
+Postmortem/Time=?0.0
 PM/Time==![(#=	Postmortem/Time)]
-Time==![(+	Planning/Time	~HLD( Review)?/Time	Design/Time	Code/Time	~(Design|Code) Review/Time	Compile/Time	Test/Time	Postmortem/Time)]
+Time==![(+	~(Planning|HLD|HLD Review|Design|Design Review|Code|Code Review|Compile|Test|Postmortem)/Time)]
+
 
 = Actual % Time.
 
@@ -115,37 +116,37 @@ PM/% Time==![(/	PM/Time	Time)]
 ==
 
 Before Development/Defects Injected=0.0
-Planning/Defects Injected=?NaN
-HLD/Defects Injected=?NaN
-HLD Review/Defects Injected=?NaN
-Design/Defects Injected=?NaN
-Design Review/Defects Injected=?NaN
+Planning/Defects Injected=?0.0
+HLD/Defects Injected=?0.0
+HLD Review/Defects Injected=?0.0
+Design/Defects Injected=?0.0
+Design Review/Defects Injected=?0.0
 Design/Combined Defects Injected==![(+	Design/Defects Injected	Design Review/Defects Injected)]
-Code/Defects Injected=?NaN
-Code Review/Defects Injected=?NaN
+Code/Defects Injected=?0.0
+Code Review/Defects Injected=?0.0
 Code/Combined Defects Injected==![(+	Code/Defects Injected	Code Review/Defects Injected)]
-Compile/Defects Injected=?NaN
-Test/Defects Injected=?NaN
-Defects Injected==![(+	Planning/Defects Injected	~HLD( Review)?/Defects Injected	Design/Defects Injected	Code/Defects Injected	~(Design|Code) Review/Defects Injected	Compile/Defects Injected	Test/Defects Injected)]
+Compile/Defects Injected=?0.0
+Test/Defects Injected=?0.0
+Defects Injected==![(+	~(Planning|HLD|HLD Review|Design|Design Review|Code|Code Review|Compile|Test)/Defects Injected)]
 
 
 ==
 == Data Elements to track defects removed
 ==
 
-Planning/Defects Removed=?NaN
-HLD/Defects Removed=?NaN
-HLD Review/Defects Removed=?NaN
-Design/Defects Removed=?NaN
-Design Review/Defects Removed=?NaN
+Planning/Defects Removed=?0.0
+HLD/Defects Removed=?0.0
+HLD Review/Defects Removed=?0.0
+Design/Defects Removed=?0.0
+Design Review/Defects Removed=?0.0
 Design/Combined Defects Removed==![(+	Design/Defects Removed	Design Review/Defects Removed)]
-Code/Defects Removed=?NaN
-Code Review/Defects Removed=?NaN
+Code/Defects Removed=?0.0
+Code Review/Defects Removed=?0.0
 Code/Combined Defects Removed==![(+	Code/Defects Removed	Code Review/Defects Removed)]
-Compile/Defects Removed=?NaN
-Test/Defects Removed=?NaN
+Compile/Defects Removed=?0.0
+Test/Defects Removed=?0.0
 After Development/Defects Removed=0.0
-Defects Removed==![(+	Planning/Defects Removed	~HLD( Review)?/Defects Removed	Design/Defects Removed	Code/Defects Removed	~(Design|Code) Review/Defects Removed	Compile/Defects Removed	Test/Defects Removed)]
+Defects Removed==![(+	~(Planning|HLD|HLD Review|Design|Design Review|Code|Code Review|Compile|Test)/Defects Removed)]
 
 
 Yield==![(/	[(+	~.*/{<	PSP Phase	50}Defects Removed)]	Defects Removed)]
@@ -161,17 +162,25 @@ AFR==![(/	% Appraisal COQ	% Failure COQ)]
 Estimated New & Changed LOC=?NaN
 Estimated Object LOC=?NaN
 
-Base LOC=?0.0
-Deleted LOC=?0.0
-Modified LOC=?0.0
 Reused LOC=?0.0
 Total LOC=?NaN
 New Reused LOC=?0.0
 New & Changed LOC=?NaN
-Added LOC=?NaN
 
+
+
+==
+== Mark this project as being completed on Jan 1, 1970.  Flag the value
+== as "undefined", so it will show up on summary forms as "?????".
+==
 
 Completed=?@43200000
+
+
+==
+== The following data elements record which process was used to perform
+== this task, and grey out data elements which do not apply for that process.
+==
 
 PSP_Level=2.1
 FreezeFlag/HLD( Review)?/.*==![(<	PSP_Level	3)]
