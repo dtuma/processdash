@@ -1,4 +1,4 @@
-package net.sourceforge.processdash.data.repository;
+package net.sourceforge.processdash.util;
 
 import java.util.HashSet;
 import java.util.Iterator;

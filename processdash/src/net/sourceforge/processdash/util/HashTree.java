@@ -23,14 +23,13 @@
 //
 // E-Mail POC:  tuma@users.sourceforge.net
 
-package net.sourceforge.processdash.data.repository;
+package net.sourceforge.processdash.util;
 
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import net.sourceforge.processdash.util.IteratorFilter;
 
 
 // 77305 MB is the mem usage to beat.
