@@ -294,9 +294,15 @@ public class PSPDashboard extends JFrame implements WindowListener {
         save();
     }
 
+    static SplashScreen ss = null;
+
+    public static void dropSplashScreen() {
+        if (ss != null) ss.okayToDispose();
+        ss = null;
+    }
+
     public static void main(String args[]) {
-        SplashScreen ss = new SplashScreen
-            (PSPDashboard.class.getResource("splash.gif"));
+        ss = new SplashScreen(PSPDashboard.class.getResource("splash.gif"));
         ss.displayFor(3000);      // show for at least 3 seconds.
 
         PSPDashboard dash = new PSPDashboard("Process Dashboard");
@@ -304,8 +310,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         dash.pack();
         dash.show();
 
-        ss.okayToDispose();
-        ss = null;
+        dropSplashScreen();
     }
 
 }

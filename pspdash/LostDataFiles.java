@@ -102,6 +102,7 @@ public class LostDataFiles implements FilenameFilter {
 
         // If there are lost files, resolve them
         if (lostCount > 0) {
+            parent.dropSplashScreen();
 
             // Create an instance of the InfoDialog
             response = JOptionPane.showConfirmDialog(parent ,
