@@ -764,9 +764,19 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             return false;
         } else if (newName.trim().length() == 0)
             return false;
-        else
+        else if (!newName.equals(new String(newName.getBytes()))) {
+            JOptionPane.showMessageDialog
+                (frame, UNICODE_ERROR_MESSAGE,
+                 "Invalid name", JOptionPane.ERROR_MESSAGE);
+            return false;
+        } else
             return true;
     }
+    private static final String[] UNICODE_ERROR_MESSAGE = {
+        "Sorry, the dashboard currently does not support the",
+        "use of extended unicode characters in hierarchy",
+        "names. (This will be fixed in a future release.)" };
+
 
     public void treeNodesInserted (TreeModelEvent e) {
         // debug ("treeNodesInserted:"+e.toString());
