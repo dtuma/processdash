@@ -39,7 +39,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
     IEField[] fields = null;
     OLEDBSimpleProviderListener listener = null;
     Repository data = null;
-    String dataPath = null;	// may also store an error message
+    String dataPath = null;       // may also store an error message
     int waitingOnElements;
     Vector dataInfo = null;
 
@@ -237,7 +237,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
 
     public void addOLEDBSimpleProviderListener(OLEDBSimpleProviderListener l) {
         debug("addOLEDBSimpleProviderListener");
-        listener = l;
+        listener = new OLEDBListenerWrapper(l);
     }
 
     public void removeOLEDBSimpleProviderListener(OLEDBSimpleProviderListener l){
@@ -246,10 +246,10 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
     }
 
 
-    public int getRowCount()	{ return 1; }
+    public int getRowCount()      { return 1; }
     public int getEstimatedRows() { return 2; }
-    public int getColumnCount()	{ return fields.length; }
-    public int isAsync()		{ return 1; }
+    public int getColumnCount()   { return fields.length; }
+    public int isAsync()          { return 1; }
 
     public int find(int iStartRow, int iColumn, Object varSearchVal,
                     int findFlags, int compType) { return 0; }
