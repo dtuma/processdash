@@ -123,7 +123,7 @@ class HistData {
         }
     }
 
-    private void calcProductivity() {
+    void calcProductivity() {
         double loc = 0, hours = 0;
         double[] dataPoint;
         Vector v = getXYDataPoints(ACT_NC_LOC, ACT_TIME);
@@ -183,17 +183,19 @@ class HistData {
         return result;
     }
 
-    public void printDataTable(PrintWriter out) {
+    public void printDataTable(PrintWriter out, boolean concise) {
         int numRows = resultSet.numRows();
-        out.print("<input type=hidden name="+SAVE_TASK_DATA+" value=1>");
+        if (!concise)
+            out.print("<input type=hidden name="+SAVE_TASK_DATA+" value=1>");
         if (numRows == 0) {
             out.print("<p>You do not have any historical data.</p>");
             return;
         }
 
-        out.print("The PROBE calculations will be based upon the "+
-                  "following set of historical data:<br>&nbsp;\n"+
-                  "<table border style='margin-left:1cm'>"+
+        if (!concise)
+            out.print("The PROBE calculations will be based upon the "+
+                      "following set of historical data:<br>&nbsp;\n");
+        out.print("<table border style='margin-left:1cm'>"+
                   "<tr><th>Project/Task</th>"+
                   "<th><img src='EstObjLOC.gif'></th>" +
                   "<th><img src='EstNCLOC.gif'></th>"+
@@ -218,16 +220,18 @@ class HistData {
                 out.print(" checked");
             out.print("></td></tr>\n");
         }
-        out.print("</table>\n"+
-                  "<p style='margin-left:1cm'><font size=-1>"+
-                  "<i>(<b>Advanced:</b> if you feel that "+
-                  "one or more of the projects in the list above is an "+
-                  "&quot;<a href='outlier.htm'"+probe.LINK_ATTRS+
-                  "><u>outlier</u></a>,&quot; you may exclude it from the "+
-                  "PROBE calculations by checking the appropriate box in the "+
-                  "&quot;Exclude&quot; column.  Unless you <b>really</b> "+
-                  "understand what you are doing, it is best to leave all "+
-                  "the boxes unchecked.)</i></font>\n");
+        out.print("</table>\n");
+        if (!concise)
+            out.print
+                ("<p style='margin-left:1cm'><font size=-1>"+
+                 "<i>(<b>Advanced:</b> if you feel that "+
+                 "one or more of the projects in the list above is an "+
+                 "&quot;<a href='outlier.htm'"+probe.LINK_ATTRS+
+                 "><u>outlier</u></a>,&quot; you may exclude it from the "+
+                 "PROBE calculations by checking the appropriate box in the "+
+                 "&quot;Exclude&quot; column.  Unless you <b>really</b> "+
+                 "understand what you are doing, it is best to leave all "+
+                 "the boxes unchecked.)</i></font>\n");
     }
 
     private static final String TASK_FIELD = "TaskName";

@@ -115,4 +115,9 @@ class RegressionMethod extends Method {
         printOption(out, l.projection, isSelected, l.beta0, l.beta1, l.range,
                     0.70, (c.r * c.r));
     }
+
+    void printTableRow(PrintWriter out, boolean isSelected) {
+        printTableRow(out, l.projection, isSelected, l.beta0, l.beta1,
+                      l.range, (c.r * c.r), l.stddev);
+    }
 }

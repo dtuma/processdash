@@ -65,4 +65,9 @@ class AveragingMethod extends Method {
     void printOption(PrintWriter out, boolean isSelected) {
         printOption(out, l.projection, isSelected, 0, l.beta1, -1, -1, -1);
     }
+
+    void printTableRow(PrintWriter out, boolean isSelected) {
+        printTableRow(out, l.projection, isSelected, 0, l.beta1,
+                      Double.NaN, Double.NaN, Double.NaN);
+    }
 }

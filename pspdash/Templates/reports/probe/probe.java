@@ -134,6 +134,7 @@ public class probe extends TinyCGIBase {
     protected static final String SIZE_PAGE = "size";
     protected static final String TIME_PAGE = "time";
     protected static final String CHECK_PAGE = "check";
+    protected static final String REPORT = "report";
 
 
     protected void doGet() {
@@ -145,6 +146,13 @@ public class probe extends TinyCGIBase {
 
         out.print("Content-type: text/html\r\n"+
                   "Expires: 0\r\n\r\n");
+
+        // if report, print report and exit.
+        if (REPORT.equals(page)) {
+            printReport();
+            return;
+        }
+
         printHeader();
 
         // Get the estimated object loc which the user entered on
@@ -189,19 +197,29 @@ public class probe extends TinyCGIBase {
             return Double.NaN;
     }
 
-    private static final String HEADER_HTML =
+    private static final String WIZARD_HEADER_HTML =
         "<html><head><title>PROBE Wizard</title>\n"+
-        "<link rel=stylesheet type='text/css' href='style.css'>\n"+
+        "<link rel=stylesheet type='text/css' href='style.css'>\n";
+    private static final String POPUP_SCRIPT =
         "<script>function popup() {\n"+
         "   var newWin = window.open('','popup','width=450,height=330,"+
                                               "dependent=1,scrollbars=1');\n"+
         "   newWin.focus();\n"+
-        "}</script>\n"+
-        "</head><body>";
+        "}</script>\n";
+    private static final String REPORT_HEADER_HTML =
+        "<html><head><title>PROBE Report</title>\n" +
+        "<link rel=stylesheet type='text/css' href='/style.css'>\n"+
+        "<style>\n" +
+        "    A.plain:link    { color:black; text-decoration:none }\n" +
+        "    A.plain:visited { color:black; text-decoration:none }\n" +
+        "    A.plain:hover   { color:blue;  text-decoration:underline }\n" +
+        "</style>\n";
 
     protected void printHeader() {
-        out.print(HEADER_HTML);
-        out.print("<h1>PROBE - ");
+        out.print(WIZARD_HEADER_HTML);
+        out.print(POPUP_SCRIPT);
+        out.print("</head><body>\n"+
+                  "<h1>PROBE - ");
         out.print(HTMLUtils.escapeEntities(getPrefix()));
         out.print("</h1>\n<form action='probe.class' method=post>");
     }
@@ -244,7 +262,7 @@ public class probe extends TinyCGIBase {
             String text = new String(getRequest(uri, true));
         */
 
-        data.printDataTable(out);
+        data.printDataTable(out, false);
 
         out.print("<p>If all the information above is correct, press the "+
                   "continue button.\n");
@@ -277,11 +295,6 @@ public class probe extends TinyCGIBase {
         out.println("</td></tr></table>");
     }
 
-
-
-    protected void printDataTable(HistData data) {
-    }
-
     protected void printSizeSection(HistData data, double estObjLOC,
                                     double estNCLOC) {
 
@@ -291,7 +304,19 @@ public class probe extends TinyCGIBase {
                   "methods:</b><br><br>\n");
         String selectedMethod = getSelectedMethod(ESTM_NC_LOC);
 
-        // Calculate data for each of the PROBE methods for size.
+        printMethods(getSizeMethods(data, estObjLOC, estNCLOC, selectedMethod),
+                     selectedMethod);
+
+        out.print("<p>Choose your size estimate from the options above, "+
+                  "then click the Continue button.");
+        printContinueButton(HIST_PAGE, TIME_PAGE);
+    }
+
+    /** Calculate data for each of the PROBE methods for size. */
+    protected ArrayList getSizeMethods(HistData data, double estObjLOC,
+                                       double estNCLOC,
+                                       String selectedMethod) {
+
         ArrayList sizeMethods = new ArrayList();
         sizeMethods.add(new RegressionMethod (data, estObjLOC, EST_OBJ,
                                               ACT_NC, "A", "size"));
@@ -308,11 +333,7 @@ public class probe extends TinyCGIBase {
             methodDSize = estObjLOC;
         sizeMethods.add(new MethodD (data, methodDSize, "size"));
 
-        printMethods(sizeMethods, selectedMethod);
-
-        out.print("<p>Choose your size estimate from the options above, "+
-                  "then click the Continue button.");
-        printContinueButton(HIST_PAGE, TIME_PAGE);
+        return sizeMethods;
     }
 
     protected void printTimeSection(HistData data, double estObjLOC,
@@ -327,7 +348,24 @@ public class probe extends TinyCGIBase {
                       " methods:</b><br><br>\n");
         String selectedMethod = getSelectedMethod(ESTM_TIME);
 
-        // Calculate data for each of the PROBE methods for time.
+        printMethods(getTimeMethods(data, estObjLOC, estNCLOC, estTime,
+                                    selectedMethod, onlyMethodD),
+                     selectedMethod);
+
+        if (onlyMethodD)
+            out.print("<p>Enter your time estimate above, ");
+        else
+            out.print("<p>Choose your time estimate from the options above, ");
+        out.print("then click the Continue button.");
+        printContinueButton(SIZE_PAGE, CHECK_PAGE);
+    }
+
+    /** Calculate data for each of the PROBE methods for time. */
+    protected ArrayList getTimeMethods(HistData data, double estObjLOC,
+                                       double estNCLOC, double estTime,
+                                       String selectedMethod,
+                                       boolean onlyMethodD) {
+
         ArrayList timeMethods = new ArrayList();
         if (!onlyMethodD) {
             boolean strictMethods = true;
@@ -357,21 +395,14 @@ public class probe extends TinyCGIBase {
         }
         double methodDTime;
         if ("D".equals(selectedMethod))
-            methodDTime = estTime;
+            methodDTime = estTime / 60;
         else
             methodDTime = Double.NaN;
         MethodD m = new MethodD (data, methodDTime, "time");
         m.setIsOnly(onlyMethodD);
         timeMethods.add(m);
 
-        printMethods(timeMethods, selectedMethod);
-
-        if (onlyMethodD)
-            out.print("<p>Enter your time estimate above, ");
-        else
-            out.print("<p>Choose your time estimate from the options above, ");
-        out.print("then click the Continue button.");
-        printContinueButton(SIZE_PAGE, CHECK_PAGE);
+        return timeMethods;
     }
 
     protected boolean showOnlyTimeD() {
@@ -408,10 +439,39 @@ public class probe extends TinyCGIBase {
             if (selected == null)
                 isSelected = isBest;
             else
-                isSelected = selected.equals(m.getMethodLetter());
+                isSelected = selected.equalsIgnoreCase(m.getMethodLetter());
             m.printRow(out, isBest, isSelected);
             out.print(DIVIDER);
             isBest = false;
+        }
+
+        out.print("</table>\n\n\n");
+    }
+
+    protected void printMethodsTable(ArrayList methods, String selected) {
+
+        out.print("<table border style='margin-left:1cm'><tr>" +
+                  "<th ALIGN='RIGHT'>Method</th>" +
+                  "<th>Estimate</th>" +
+                  "<th>&nbsp;" + RegressionMethod.RSQ + "&nbsp;</th>" +
+                  "<th>" + Method.BETA0 + "</th>" +
+                  "<th>" + Method.BETA1 + "</th>" +
+                  "<th>Range (70%)</th>" +
+                  "<th>&nbsp;LPI&nbsp;</th>" +
+                  "<th>&nbsp;UPI&nbsp;</th>" +
+                  "<th>Variance</th>" +
+                  "<th>Std. Dev.</th>" +
+                  "<th>Comments</th></tr>\n");
+
+        Collections.sort(methods);
+        Iterator i = methods.iterator();
+        boolean isSelected;
+        Method m;
+        while (i.hasNext()) {
+            m = (Method) i.next();
+            m.printTableRow(out,
+                            selected != null &&
+                            selected.equalsIgnoreCase(m.getMethodLetter()));
         }
 
         out.print("</table>\n\n\n");
@@ -467,6 +527,91 @@ public class probe extends TinyCGIBase {
         }
     }
     private static final String PLUS_MINUS = "&plusmn;";
+
+    protected void printReport() {
+        String prefix = getPrefix();
+        double estObjLOC = getNumber(ESTM_OBJ_LOC);
+        double estNCLOC  = getNumber(ESTM_NC_LOC);
+        double estTime   = getNumber(ESTM_TIME);
+        HistData data = new HistData(getDataRepository(), getPrefix(),
+                                     getParameter(SUBSET_PREFIX_NAME));
+        data.calcProductivity();
+
+        // print report-specific HTML header
+        out.print(REPORT_HEADER_HTML);
+        out.print(POPUP_SCRIPT);
+        out.print("</head><body>\n");
+
+        // print report title with the current project path
+        out.print("<h1>PROBE Report</h1>\n"+
+                  "<h2>" + HTMLUtils.escapeEntities(prefix) + "</h2>\n");
+
+        // print the Estimated Object LOC
+        if (estObjLOC > 0) {
+            out.print("<h3>Estimated Object LOC</h3>\n" +
+                      "<p style='margin-left:1cm'>From your Size Estimating "+
+                      "Template, your Estimated Object LOC is <tt><b>");
+            out.print(formatNumber(estObjLOC));
+            out.print("</b></tt>.");
+        } else {
+            out.print("<p><font color='red'>The PROBE process uses " +
+                      "Estimated Object LOC as the basis for generating " +
+                      "final estimates for size and time.  Before you " +
+                      "can generate a PROBE Report, you <b>must</b> "+
+                      "estimate the object LOC for this project. Please "+
+                      "return to your Size Estimating Template.</font></p>\n" +
+                      "</body></html>\n");
+            return;
+        }
+
+        // print table of historical data
+        out.print("<h3>Historical Data</h3>\n<form>\n");
+        data.printDataTable(out, true);
+        out.print("</form>\n");
+
+        // print data on the various methods for size
+        String selectedMethod = getSelectedMethod(ESTM_NC_LOC);
+        ArrayList methods =
+            getSizeMethods(data, estObjLOC, estNCLOC, selectedMethod);
+        out.print("<h3>PROBE Methods for Size</h3>\n");
+        printMethodsTable(methods, selectedMethod);
+
+        // print data on the various methods for time
+        selectedMethod = getSelectedMethod(ESTM_TIME);
+        boolean onlyMethodD = showOnlyTimeD();
+        methods = getTimeMethods(data, estObjLOC, estNCLOC, estTime,
+                                 selectedMethod, onlyMethodD);
+        out.print("<h3>PROBE Methods for Time</h3>\n");
+        printMethodsTable(methods, selectedMethod);
+
+        // copy logic from printCheckPage
+        if (estNCLOC > 0 && estTime > 0) {
+            double estProductivity = estNCLOC * 60 / estTime;
+            double histProductivity = data.getProductivity();
+            double histDev = data.getProdStddev();
+            double workDev = (histDev > 0 ? histDev : histProductivity * 0.3);
+
+            out.print("<h3>Estimated Productivity</h3>\n" +
+                      "<p style='margin-left:1cm'>Your estimates for size "+
+                      "and time translate into a planned productivity of ");
+            out.print(formatNumber(estProductivity));
+            out.print(" LOC/Hr.  This is ");
+            if (estProductivity > histProductivity + workDev)
+                out.print("significantly greater than");
+            else if (estProductivity < histProductivity - workDev)
+                out.print("significantly less than");
+            else
+                out.print("comparable to");
+            out.print(" your historical productivity of ");
+            out.print(formatNumber(histProductivity));
+            out.print(" LOC/Hr");
+            if (histDev > 0)
+                out.print(" (" +PLUS_MINUS+" "+ formatNumber(histDev) + ")");
+            out.print(".</p>\n");
+        }
+
+        out.print("</body></html>\n");
+    }
 
     protected void printFooter() {
         out.print("</form></body></html>");

@@ -202,6 +202,55 @@ class Method implements Comparable {
         out.print("</a>\n");
     }
 
+    void printTableRow(PrintWriter out, boolean isSelected) { }
+
+    private void maybePrint(PrintWriter out, double num, String str) {
+        if (Double.isNaN(num) || Double.isInfinite(num))
+            out.print("&nbsp;");
+        else
+            out.print(str != null ? str : formatNumber(num));
+    }
+
+    void printTableRow(PrintWriter out, double estimate, boolean isSelected,
+                       double beta0, double beta1, double range,
+                       double rSquared, double stddev) {
+        double rating = getRating();
+
+        if (rating <= CANNOT_CALCULATE ||
+            Double.isNaN(estimate) || Double.isInfinite(estimate)) return;
+        String columnDivider = "</td><td ALIGN='CENTER'>";
+
+        out.print("<tr><td ALIGN='RIGHT'>");
+        if (isSelected)
+            out.print("<img src='rarrow.gif' width=14 height=13>&nbsp;");
+        out.print(getMethodLetter());
+        out.print(columnDivider);
+        maybePrint(out, estimate, null);
+        out.print(columnDivider);
+        maybePrint(out, rSquared, null);
+        out.print(columnDivider);
+        maybePrint(out, beta0, null);
+        out.print(columnDivider);
+        maybePrint(out, beta1, formatBeta1(beta1));
+        out.print(columnDivider);
+        maybePrint(out, range, null);
+        out.print(columnDivider);
+        double lpi = estimate - range; if (lpi < 0) lpi = 0;
+        maybePrint(out, lpi, null);
+        out.print(columnDivider);
+        double upi = estimate + range; if (upi < 0) upi = 0;
+        maybePrint(out, upi, null);
+        out.print(columnDivider);
+        double variance = stddev * stddev;
+        maybePrint(out, variance, null);
+        out.print(columnDivider);
+        maybePrint(out, stddev, null);
+        out.print(columnDivider);
+        if (isSelected) out.print("<b>Selected.</b> ");
+        if (rating <= SERIOUS_PROBLEM) out.print("<i>Do not use</i>");
+        out.print("</td></tr>");
+    }
+
     /** Examine beta values.
      */
     public void rateBetas(boolean checkBeta0, double beta0, double projection,

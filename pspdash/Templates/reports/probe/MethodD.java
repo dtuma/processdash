@@ -100,10 +100,8 @@ class MethodD extends Method {
         out.print("<input type='text' name='"+ qual+FLD_ESTIMATE +"' value='");
         if (Double.isNaN(estimate))
             out.print("?????");
-        else if ("size".equals(purpose))
-            out.print(formatNumber(estimate));
         else
-            out.print(formatNumber(estimate/60));
+            out.print(formatNumber(estimate));
         out.print("' size='7'");
         if (!isOnly)
             out.print(" onFocus='select_"+purpose+"D();'");
@@ -125,4 +123,10 @@ class MethodD extends Method {
         "        document.forms[0].PURPOSE[PURPOSEDoption].checked = true;\n"+
         "    }\n"+
         "</script>\n";
+
+    void printTableRow(PrintWriter out, boolean isSelected) {
+        if (isSelected)
+            printTableRow(out, estimate, isSelected, Double.NaN,
+                          Double.NaN, Double.NaN, Double.NaN, Double.NaN);
+    }
 }
