@@ -79,10 +79,13 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     protected JMenuItem deleteMenuItem;
     protected JMenuItem moveUpMenuItem;
     protected JMenuItem moveDownMenuItem;
+    protected JMenuItem cutMenuItem;
+    protected JMenuItem pasteMenuItem;
     protected JMenuItem addNodeAboveMenuItem;
     protected JMenuItem addNodeBelowMenuItem;
     protected JMenuItem addNodeChildMenuItem;
 
+    protected DefaultMutableTreeNode cutNode = null;
 
     //
     // member functions
@@ -388,6 +391,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         setDirty (false);
         if (pendingVector != null)
             pendingVector.removeAllElements();
+        cutNode = null;
     }
 
     public void show() {
@@ -484,6 +488,14 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         moveDownMenuItem.addActionListener(new MoveDownAction());
         moveDownMenuItem.setEnabled (false);
 
+        cutMenuItem = menu.add(new JMenuItem("Cut"));
+        cutMenuItem.addActionListener(new CutAction());
+        cutMenuItem.setEnabled (false);
+
+        pasteMenuItem = menu.add(new JMenuItem("Paste"));
+        pasteMenuItem.addActionListener(new PasteAction());
+        pasteMenuItem.setEnabled (false);
+
         menu.addSeparator();
 
         addNodeMenu = (JMenu) menu.add(new JMenu("Add Node"));
@@ -541,6 +553,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             addTemplateMenu.setPopupMenuVisible (true);
 
         updateTemplateMenu (templateChildren, myID);
+
+        pasteMenuItem.setEnabled(canPaste(myID, templateChildren, cutNode));
     }
 
     /**
@@ -599,6 +613,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             deletable =
                 status.startsWith("" + NO_MOVE_CHAR + NO_EDIT_CHAR + DELETE_OK_CHAR);
         deleteMenuItem.setEnabled (deletable);
+        cutMenuItem.setEnabled (deletable);
 
         String pStatus = useProps.pget(key.getParent()).getStatus();
         if ((pStatus != null) && (pStatus.indexOf(ALLOWED_CHILD) >= 0))
@@ -1145,6 +1160,57 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         setDirty(true);
     }
+
+
+    /** CutAction remembers the selected node for future paste operations. */
+    class CutAction implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            DefaultMutableTreeNode node = getSelectedNode();
+            if (node != null)
+                cutNode = node;
+        }
+    }
+
+
+    /** PasteAction moves the previously cut node to become a child of the
+     *  currently selected node. */
+    class PasteAction implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            if (cutNode == null) return;
+
+            DefaultMutableTreeNode node = getSelectedNode();
+            if (node == null) return;
+
+
+            cutNode = null;
+            pasteMenuItem.setEnabled(false);
+        }
+    }
+
+    private boolean canPaste(String parentID, Vector templateChildren,
+                             DefaultMutableTreeNode cutNode) {
+        if (parentID == null || cutNode == null ||
+            (templateChildren != null && templateChildren.size() == 0))
+            return false;
+
+        PropertyKey cutKey = treeModel.getPropKey (useProps, cutNode.getPath());
+        Prop cutProp = useProps.pget(cutKey);
+        String cutID = cutProp.getID();
+        if (!templateChildren.contains(cutID)) return false;
+
+        String cutStatus = cutProp.getStatus();
+        if (cutStatus == null) return true;
+        int idx = cutStatus.indexOf(REQUIRED_PARENT);
+        if (idx == -1) return true;
+
+        StringTokenizer st = new StringTokenizer
+            (cutStatus.substring (idx + 1), String.valueOf (REQUIRED_PARENT));
+        while (st.hasMoreElements())
+            if (parentID.equals(st.nextElement())) return true;
+
+        return false;
+    }
+
 
     private void startEditingNode(TreeNode node) {
         final TreePath path = new TreePath(treeModel.getPathToRoot(node));

@@ -65,6 +65,12 @@ public class LostDataFiles implements FilenameFilter {
                     return false;
                 }  // end if
             } // end for
+
+            // Zero length files are harmless - just delete them, rather
+            // than panicking the user.
+            File f = new File(location, filename);
+            if (f.length() == 0 && f.delete())
+                return false;
         } // end if
         else {
             return false;
@@ -131,4 +137,3 @@ public class LostDataFiles implements FilenameFilter {
     return (result);
     }
 }
-

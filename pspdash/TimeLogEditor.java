@@ -253,7 +253,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     }
 
 
-    protected long parseTime (String s) {
+    protected static long parseTime (String s) {
         int colon = s.indexOf (":");
         long lv = -1;
         if (colon >= 0) {

@@ -45,7 +45,7 @@ import java.io.File;
 class ConfigureButton extends JMenuBar implements ActionListener {
     PSPDashboard   parent       = null;
     PropertyFrame  prop_frame   = null;
-    TaskTemplate   task_frame   = null;
+    TaskScheduleDialog   task_frame   = null;
     TimeLogEditor  time_frame   = null;
     DefectEditor   defect_frame = null;
     ImportExport   impexp_frame = null;
@@ -73,7 +73,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         { TIME_LOG_FRAME,   "UsingTimeLogEditor" },
         { DEFECT_LOG_FRAME, "UsingDefectLogEditor" },
         { PROBE_DIALOG,     "UsingProbeTool" },
-        //{ TASK_DIALOG, "TaskAndSchedule???" }, // disabled
+        { TASK_DIALOG, "TaskAndSchedule???" }, // disabled
         { DATA_ANALYSIS,    "DataChartsAndReports" },
         { IMPORT_EXPORT,    "ExportingData" },
         { HELP_FRAME,       null },
@@ -199,9 +199,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             if (task_frame != null)
                 task_frame.show();
             else
-                task_frame = new TaskTemplate(parent,
-                                              this,
-                                              parent.getProperties());
+                task_frame = new TaskScheduleDialog(parent);
         }
     }
 
@@ -214,8 +212,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     public void exitProgram() { parent.exitProgram(); }
 
     public void save() {
-        if (task_frame != null)
-            task_frame.save();
+        //    if (task_frame != null)
+        //task_frame.save();
     }
 
     public void actionPerformed(ActionEvent e) {

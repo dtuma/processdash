@@ -427,6 +427,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     protected void quit() {
+        if (data != null)
+            data.saveAllDatafiles();
         ImportExport.exportAll(this, Settings.getVal("export.data"));
         if (hierarchy != null) {
             hierarchy.terminate();
