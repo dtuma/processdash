@@ -65,6 +65,7 @@ import com.izforge.izpack.GUIPrefs;
 import com.izforge.izpack.LocaleDatabase;
 import com.izforge.izpack.gui.ButtonFactory;
 import com.izforge.izpack.gui.IzPackMetalTheme;
+import com.izforge.izpack.util.LocaleMapper;
 
 /**
  *  The IzPack graphical installer class.
@@ -376,7 +377,7 @@ public class GUIInstaller extends InstallerBase
             contentPane.add(imgLabel);
 
             gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-            JLabel label1 = new JLabel("Please select your language (ISO3 code)", SwingConstants.CENTER);
+            JLabel label1 = new JLabel("Please select your language", SwingConstants.CENTER);
             gbConstraints.gridy = 1;
             gbConstraints.insets = new Insets(5, 5, 0, 5);
             layout.addLayoutComponent(label1, gbConstraints);
@@ -394,6 +395,12 @@ public class GUIInstaller extends InstallerBase
             gbConstraints.gridy = 3;
             layout.addLayoutComponent(comboBox, gbConstraints);
             contentPane.add(comboBox);
+
+            // select the best language by default
+            String defaultISO3 = LocaleMapper.getISO3forDefaultLocale();
+            for (int i = items.length;   i-- > 0; )
+                if (defaultISO3.equals(items[i]))
+                    comboBox.setSelectedIndex(i);
 
             okButton = new JButton("Ok");
             okButton.addActionListener(this);
@@ -528,7 +535,7 @@ public class GUIInstaller extends InstallerBase
 
             // We put the label
             String iso3 = (String) value;
-            setText(iso3);
+            setText(LocaleMapper.getDisplayName(iso3));
             if (isSelected)
             {
                 if (lnf.equalsIgnoreCase("swing"))
