@@ -1445,9 +1445,9 @@ public class DataRepository implements Repository {
                     // Add proper exception handling in case someone is somehow using
                     // the deprecated include syntax.
                     if (inheritedDatafile.startsWith("\"")) {
-                        System.err.println("datafile #include directives with relative" +
-                                           " paths are no longer supported.");
-                        throw new InvalidDatafileFormat();
+                        throw new InvalidDatafileFormat
+                            ("datafile #include directives with relative" +
+                             " paths are no longer supported.");
                     }
 
                     Map cachedIncludeFile =
@@ -1476,7 +1476,8 @@ public class DataRepository implements Repository {
                         continue;
 
                     if ((equalsPosition = line.indexOf('=', 0)) == -1)
-                        throw new InvalidDatafileFormat();
+                        throw new InvalidDatafileFormat
+                            ("There is no '=' character on the line: '" + line + "'.");
 
                     name = line.substring(0, equalsPosition);
                     value = line.substring(equalsPosition+1);
@@ -1585,9 +1586,9 @@ public class DataRepository implements Repository {
                         if (!valueName.equals(valueRename))
                             renamingOperations.put(valueRename, valueName);
                     } catch (MalformedPerl5PatternException mpe) {
-                        System.err.println("Malformed renaming operation '" + name +
-                                           "=" + PATTERN_RENAME_PREFIX + value + "'");
-                        throw new InvalidDatafileFormat();
+                        throw new InvalidDatafileFormat
+                            ("Malformed renaming operation '" + name +
+                             "=" + PATTERN_RENAME_PREFIX + value + "'");
                     }
                 }
             }
@@ -2033,9 +2034,9 @@ public class DataRepository implements Repository {
 
             public void run() {
                 // give things a chance to settle down.
-                System.out.println("waiting for notifier at " + new java.util.Date());
+                //System.out.println("waiting for notifier at " +new java.util.Date());
                 dataNotifier.flush();
-                System.out.println("notifier done at " + new java.util.Date());
+                //System.out.println("notifier done at " + new java.util.Date());
 
                 Iterator i = listenersToNotify.iterator();
                 DataConsistencyObserver o;

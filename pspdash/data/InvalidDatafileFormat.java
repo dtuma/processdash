@@ -25,4 +25,6 @@
 
 package pspdash.data;
 
-public class InvalidDatafileFormat extends Exception {}
+public class InvalidDatafileFormat extends Exception {
+    public InvalidDatafileFormat(String msg) { super(msg); }
+}
