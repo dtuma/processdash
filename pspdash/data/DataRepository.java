@@ -1561,6 +1561,18 @@ public class DataRepository implements Repository {
             putValue(name, ValueFactory.create(null, value, null, null));
         }
 
+        public void putExpression(String name, String prefix, String expression)
+            throws MalformedValueException
+        {
+            try {
+                CompiledFunction f = new CompiledFunction
+                    (name, Compiler.compile(expression), this, prefix);
+                putValue(name, f);
+            } catch (CompilationException e) {
+                throw new MalformedValueException();
+            }
+        }
+
 
         private static final String includeTag = "#include ";
         private final Hashtable includedFileCache = new Hashtable();
