@@ -21,4 +21,4 @@ OL { margin-top: 0pt; margin-bottom: 0pt }
 @media print { .doNotPrint { display: none } }
 
 /* style for read only items on a form */
-.readOnlyElem { background-color: "#cccccc" }
+.readOnlyElem { background-color: #CCCCCC }
