@@ -26,6 +26,7 @@
 package pspdash.data;
 
 import pspdash.InternalSettings;
+import pspdash.StringUtils;
 import java.net.*;
 import java.io.*;
 import java.util.Hashtable;
@@ -172,6 +173,12 @@ public class RepositoryServer extends Thread {
                     }
                 }
 
+                else if (methodName.equals("logMessage")) {
+                    value = LOG_PREFIX + in.readLine();
+                    value = StringUtils.findAndReplace(value, "\u0001", "\n"+LOG_PREFIX);
+                    System.out.println(value);
+                }
+
                 else
                     System.err.println("RepositoryServerThread: I don't understand " +
                                        methodName);
@@ -180,6 +187,7 @@ public class RepositoryServer extends Thread {
 
             cleanup();
         }
+        private static final String LOG_PREFIX = "DApplet:";
 
         public void dataValueChanged(DataEvent e) {
             try {
