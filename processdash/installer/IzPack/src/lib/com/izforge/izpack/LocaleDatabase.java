@@ -77,7 +77,10 @@ public class LocaleDatabase extends TreeMap
         for (int i = 0; i < size; i++)
         {
             XMLElement e = (XMLElement) children.get(i);
-            putTranslation(e.getAttribute("id"), e.getAttribute("txt"));
+            String text = e.getAttribute("txt");
+            if (text == null)
+                text = e.getContent();
+            putTranslation(e.getAttribute("id"), text);
         }
     }
 

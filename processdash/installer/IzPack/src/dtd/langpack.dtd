@@ -14,6 +14,6 @@
 <!ELEMENT langpack (str+)>
 
 <!-- A String definition -->
-<!ELEMENT str EMPTY>
+<!ELEMENT str (#PCDATA)>
     <!ATTLIST str id CDATA #REQUIRED>
-    <!ATTLIST str txt CDATA #REQUIRED>
+    <!ATTLIST str txt CDATA #IMPLIED>
