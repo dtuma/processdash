@@ -27,6 +27,11 @@
 package pspdash.data;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
@@ -44,10 +49,30 @@ public class NSDataApplet extends DataApplet {
             mgr = new NSFieldManager(this);
             super.start();
 
-        } catch (Exception e) {     // creating the NSFieldManager could throw
-            printError(e);            // an exception
+        } catch (Throwable e) {
+            // creating or initializing the NSFieldManager in an unsupported
+            // browser could cause various exceptions or errors to be thrown.
+            System.out.println
+                ("Your current browser configuration appears to be incapable\n"+
+                 "of supporting the dashboard. The error encountered was:");
+            System.out.println(e);
+            e.printStackTrace();
+
+            try {
+                ByteArrayOutputStream buf = new ByteArrayOutputStream();
+                PrintWriter w = new PrintWriter(buf);
+                e.printStackTrace(w);
+                w.flush();
+                String urlStr =
+                    PROBLEM_URL + "?ERROR_MESSAGE=" + URLEncoder.encode(buf.toString());
+                URL url = new URL(getDocumentBase(), urlStr);
+                getAppletContext().showDocument(url, "_top");
+            } catch (IOException ioe) {}
         }
     }
+
+    private static final String PROBLEM_URL =
+        "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";
 
     public void notifyListener(Object element, Object id) {
         if (mgr != null)
