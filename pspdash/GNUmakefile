@@ -40,13 +40,24 @@ CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
 
 CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/psp3/cyclesum.java \
+	Templates/reports/psp/r3c.java \
+	Templates/reports/psp/r4.java \
+	Templates/reports/psp/r5a.java \
+	Templates/reports/psp/r5b.java \
+	Templates/reports/defectlog.java \
+	Templates/reports/bar.java \
 	Templates/reports/line.java \
+	Templates/reports/pie.java \
 	Templates/reports/xy.java \
 	Templates/reports/table.java
 CGI_CLASSES=$(subst .java,.class,$(CGI_JAVA))
 SIZEEST_COPIES=Templates/psp1.1/sizeest.class \
 	Templates/psp2/sizeest.class \
 	Templates/psp2.1/sizeest.class
+
+JFREECHART_JAVA=Templates/reports/XYPlot.java \
+	Templates/reports/PiePlot.java
+JFREECHART_CLASSES=$(subst .java,.class,$(JFREECHART_JAVA))
 
 # build platform dependency
 BUILD_PLATFORM ?= CYGWIN
@@ -91,12 +102,12 @@ cgi-scripts: $(CGI_CLASSES) $(SIZEEST_COPIES)
 $(SIZEEST_COPIES): Templates/psp1/sizeest.class
 	cp Templates/psp1/sizeest.class $@
 
-$(CGI_CLASSES) : %.class : %.java
+$(CGI_CLASSES) : %.class : %.java $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)/com/jrefinery/chart/PiePlot.class
 	$(JAVAC) \
 	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar' \
 	    -deprecation \
-	    -d $(dir $^) \
-	    $^
+	    -d $(dir $<) \
+	    $<
 
 
 clean:
@@ -136,8 +147,9 @@ $(BIN)/pspdash/%.class: %.java
 	    $^
 
 XYPlot.class: $(BIN)/com/jrefinery/chart/XYPlot.class
+PiePlot.class: $(BIN)/com/jrefinery/chart/PiePlot.class
 
-$(BIN)/com/jrefinery/chart/XYPlot.class: Templates/reports/XYPlot.java
+$(BIN)/com/jrefinery/chart/%.class: Templates/reports/%.java
 	$(JAVAC) \
 	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar' \
 	    -deprecation \
