@@ -99,6 +99,7 @@ Estimated New Reused LOC==![(+	~New Objects/New Reused LOC \d+)]
 [New & Changed LOC] = [Added LOC] + [Modified LOC];
 [New Reused LOC] = 0;
 [LOC] = 0;
+[Total LOC] = [LOC];
 [KLOC] = [LOC] / 1000;
 
 [% New Reused] = [New Reused LOC] / [New & Changed LOC];
