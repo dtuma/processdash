@@ -96,8 +96,8 @@ public class DefectAnalyzer {
             // read all the defects in that log, and
             Defect[] defects = dl.readDefects();
             for (int d=0;  d < defects.length;  d++)
-                t.analyze(path, defects[d]); // pass them to the analyzer task.
-
+                if (defects[d] != null)   // pass them to the analyzer task.
+                    t.analyze(path, defects[d]);
         }
 
         // recursively analyze all the children of this node.
