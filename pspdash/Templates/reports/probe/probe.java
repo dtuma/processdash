@@ -330,25 +330,30 @@ public class probe extends TinyCGIBase {
         // Calculate data for each of the PROBE methods for time.
         ArrayList timeMethods = new ArrayList();
         if (!onlyMethodD) {
-            double altInput = estObjLOC;
+            boolean strictMethods = true;
             if ("false".equalsIgnoreCase
                 (Settings.getVal("probeWizard.strictTimeMethods")))
-                altInput = estNCLOC;
+                strictMethods = false;
+            double altInput = strictMethods ? estObjLOC : estNCLOC;
+            Method m;
 
-            timeMethods.add(new RegressionMethod (data, estObjLOC, EST_OBJ,
-                                                  ACT_TIME, "A", "time"));
-            timeMethods.add(new RegressionMethod (data, estObjLOC, EST_NC,
-                                                  ACT_TIME, "B", "time"));
-            timeMethods.add(new AveragingMethod  (data, estObjLOC, EST_OBJ,
-                                                  ACT_TIME, "C1", "time"));
-            timeMethods.add(new AveragingMethod  (data, altInput, EST_NC,
-                                                  ACT_TIME, "C2", "time"));
-            timeMethods.add(new AveragingMethod  (data, altInput, ACT_NC,
-                                                  ACT_TIME, "C3", "time") {
+            timeMethods.add(new RegressionMethod     (data, estObjLOC, EST_OBJ,
+                                                      ACT_TIME, "A", "time"));
+            timeMethods.add(m = new RegressionMethod (data, altInput, EST_NC,
+                                                      ACT_TIME, "B", "time"));
+            if (strictMethods) m.useAltTutorial();
+            timeMethods.add(new AveragingMethod      (data, estObjLOC, EST_OBJ,
+                                                      ACT_TIME, "C1", "time"));
+            timeMethods.add(m = new AveragingMethod (data, altInput, EST_NC,
+                                                     ACT_TIME, "C2", "time"));
+            if (strictMethods) m.useAltTutorial();
+            timeMethods.add(m = new AveragingMethod  (data, altInput, ACT_NC,
+                                                      ACT_TIME, "C3", "time") {
                     public double getRating() {
                         observations.clear();
                         return (rating < 0.0 ? rating
                                 : Method.PROBE_METHOD_D + 0.00001); } });
+            if (strictMethods) m.useAltTutorial();
         }
         double methodDTime;
         if ("D".equals(selectedMethod))

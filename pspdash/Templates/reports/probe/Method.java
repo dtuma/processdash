@@ -98,7 +98,8 @@ class Method implements Comparable {
         return getMethodLetter() + " for " + getMethodPurpose();
     }
 
-
+    protected String TUT_SUFFIX = "tut.htm";
+    public void useAltTutorial() { TUT_SUFFIX = "tut2.htm"; }
 
     public void printRow(PrintWriter out, boolean isBest, boolean isSelected) {
         out.print("<tr><td valign=middle>");
@@ -111,7 +112,7 @@ class Method implements Comparable {
         out.print("</td><td valign=middle>&nbsp;<br>");
 
         String link = ("<a href='"+getMethodPurpose()+getMethodLetter()+
-                       "tut.htm' "+probe.LINK_ATTRS+">");
+                       TUT_SUFFIX+"' "+probe.LINK_ATTRS+">");
         Iterator i;
         if (errorMessages.size() != 0) {
 
