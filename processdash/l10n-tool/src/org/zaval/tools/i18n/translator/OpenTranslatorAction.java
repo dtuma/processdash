@@ -36,22 +36,28 @@ public class OpenTranslatorAction extends AbstractAction {
 
     private String filename;
     private Comparator filter;
+    private Comparator sorter;
     private ActionListener saveListener;
     private ActionListener helpListener;
     
     public OpenTranslatorAction(String filename, String displayName, 
                                 Comparator filter, 
+                                Comparator sorter,
                                 ActionListener saveListener,
                                 ActionListener helpListener) {
         super(displayName);
         this.filename = filename;
         this.filter = filter;
+        this.sorter = sorter;
         this.saveListener = saveListener;
         this.helpListener = helpListener;
     }
 
     public void actionPerformed(ActionEvent e) {
         try {
+            if (sorter != null)
+                BundleSet.DEFAULT_COMPARATOR = sorter;
+            
             Main.main(new String[] { filename});
             Main.setFilter(filter);
             Main.setSaveListener(saveListener);

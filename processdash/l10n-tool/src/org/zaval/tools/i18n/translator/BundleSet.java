@@ -52,13 +52,14 @@ implements TranslatorConstants
 
     static final String BROKEN_FORMAT_SUFFIX = "!broken";
     public static final String FORMAT_SUFFIX = "_FMT";
+    static Comparator DEFAULT_COMPARATOR = String.CASE_INSENSITIVE_ORDER;
     
     private TreeMap items;
     private Vector lng;
     
     BundleSet()
     {
-        items = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+        items = new TreeMap(DEFAULT_COMPARATOR);
         lng = new Vector();
     }
 

@@ -179,7 +179,8 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
             Class jrc = Class.forName
                 ("org.zaval.tools.i18n.translator.OpenTranslatorAction");
             Constructor cstr = jrc.getConstructor
-                (new Class[] { String.class, String.class, Comparator.class,
+                (new Class[] { String.class, String.class,
+                               Comparator.class, Comparator.class,
                                ActionListener.class, ActionListener.class });
 
             // get the name of the dashboard jar file
@@ -189,9 +190,10 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
             // create an instance of the action
             String displayName = resources.getString("Localization_Tool");
             TranslationFilter filter = new TranslationFilter();
+            TranslationSorter sorter = new TranslationSorter();
             TranslationsSavedListener listener = new TranslationsSavedListener();
             Action a = (Action) cstr.newInstance
-                (new Object[] { jarfilename, displayName, filter, listener, this });
+                (new Object[] { jarfilename, displayName, filter, sorter, listener, this });
             toolMenu.add(a);
 
         } catch (Throwable t) {}
