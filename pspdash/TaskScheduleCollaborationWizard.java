@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -33,6 +33,7 @@ import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
+import java.util.ResourceBundle;
 import java.util.Stack;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -58,6 +59,9 @@ public class TaskScheduleCollaborationWizard {
     private String taskListName;
     private String rollupTaskListName = null;
     private Stack previousPanes = new Stack();
+
+    ResourceBundle resources = Resources.getBundle
+        ("pspdash.TaskScheduleCollaborationWizard");
 
     /** Create and display a collaboration wizard.
      */
@@ -85,7 +89,7 @@ public class TaskScheduleCollaborationWizard {
         this.taskListName = taskListName;
 
         // Create the frame and set an appropriate icon
-        frame = new JFrame("Task and Schedule Collaboration Wizard");
+        frame = new JFrame(resources.getString("Window_Title"));
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
 
@@ -195,7 +199,7 @@ public class TaskScheduleCollaborationWizard {
             GridBagConstraints oConst;
 
             publishButton = newJButton();
-            publishButton.setText("Publish");
+            publishButton.setText(resources.getString("Publish_Button"));
             publishButton.setBackground(null);
             buttonBox.add(publishButton);
             oConst = new GridBagConstraints();
@@ -217,7 +221,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(filler1, oConst);
 
             shareButton = newJButton();
-            shareButton.setText("Share");
+            shareButton.setText(resources.getString("Share_Button"));
             shareButton.setBackground(null);
             shareButton.setEnabled(!isRollup);
             buttonBox.add(shareButton);
@@ -241,7 +245,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(filler2, oConst);
 
             rollupButton = newJButton();
-            rollupButton.setText("Rollup");
+            rollupButton.setText(resources.getString("Rollup_Button"));
             rollupButton.setBackground(null);
             rollupButton.setEnabled(!isRollup);
             buttonBox.add(rollupButton);
@@ -265,7 +269,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(filler3, oConst);
 
             cancelButton = newJButton();
-            cancelButton.setText("Cancel");
+            cancelButton.setText(Resources.getString("Cancel"));
             cancelButton.setBackground(null);
             buttonBox.add(cancelButton);
             oConst = new GridBagConstraints();
@@ -302,7 +306,8 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(taskListName, oConst);
 
             prompt = new JLabel();
-            prompt.setText("What would you like to do?");
+            prompt.setText(resources.getString("Welcome_Screen_Prompt"));
+
             oPanel.add(prompt);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -420,12 +425,9 @@ public class TaskScheduleCollaborationWizard {
         }
         ImageIcon[] images = new ImageIcon[4];
         private final String[] TEXT = new String[] {
-            "Publish this schedule so your co-workers, manager, and/or" +
-                " customer can see it.",
-            "Share this schedule so your co-workers and/or manager can" +
-                " add it to a roll-up schedule.",
-            "Create a new schedule which rolls up this schedule with"+
-                " other schedules.",
+            resources.getString("Publish_Description"),
+            resources.getString("Share_Description"),
+            resources.getString("Rollup_Description"),
             "" };
 
         public void actionPerformed(ActionEvent e) {
@@ -496,18 +498,19 @@ public class TaskScheduleCollaborationWizard {
             FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
             buttonBox.setLayout(oLayout);
 
-            backButton = new JButton("<Back");
+            backButton = new JButton(resources.getString("Back_Button"));
             backButton.addActionListener(this);
             buttonBox.add(backButton);
 
-            nextButton = new JButton("Next>");
+            nextButton = new JButton(resources.getString("Next_Button"));
+
             nextButton.addActionListener(this);
             buttonBox.add(nextButton);
 
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
-            cancelButton = new JButton("Cancel");
+            cancelButton = new JButton(Resources.getString("Cancel"));
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);
 
@@ -535,9 +538,9 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(taskListName, oConst);
 
             prompt = new JTextArea("", 2, 10);
-            prompt.setText("Please configure the permissions for "+
-                           (action == PUBLISH ? "publishing" : "sharing") +
-                           " this schedule: ");
+            prompt.setText(resources.getString(action == PUBLISH
+                                               ? "Publish_Permissions_Prompt"
+                                               : "Share_Permissions_Prompt"));
             prompt.setBackground(null);
             prompt.setLineWrap(true);
             prompt.setWrapStyleWord(true);
@@ -560,7 +563,8 @@ public class TaskScheduleCollaborationWizard {
             reqPasswordOption = new JRadioButton();
             buttonGroup.add(reqPasswordOption);
             reqPasswordOption.setBackground(null);
-            reqPasswordOption.setText("Require people to enter this password:");
+            reqPasswordOption.setText
+                (resources.getString("Require_Password_Option"));
             oPanel.add(reqPasswordOption);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -572,7 +576,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(reqPasswordOption, oConst);
 
             passPrompt = new JLabel();
-            passPrompt.setText("Password:");
+            passPrompt.setText(resources.getString("Password_Label"));
             oPanel.add(passPrompt);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -594,7 +598,8 @@ public class TaskScheduleCollaborationWizard {
             noPasswordOption = new JRadioButton();
             buttonGroup.add(noPasswordOption);
             noPasswordOption.setBackground(null);
-            noPasswordOption.setText("Don't require a password");
+            noPasswordOption.setText
+                (resources.getString("Do_Not_Require_Password_Option"));
             oPanel.add(noPasswordOption);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -666,7 +671,9 @@ public class TaskScheduleCollaborationWizard {
             String newPassword = password.getText();
             if (newPassword == null || newPassword.trim().length() == 0) {
                 JOptionPane.showMessageDialog
-                    (frame, PASSWORD_ERROR, "Please Enter Password",
+                    (frame,
+                     Resources.getStrings(resources, "Password_Error_Prompt"),
+                     resources.getString("Password_Error_Title"),
                      JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -682,10 +689,6 @@ public class TaskScheduleCollaborationWizard {
         "TaskScheduleCollaboration.sharePassword",
         "TaskScheduleCollaboration.createRollup" };
 
-    private static final String[] PASSWORD_ERROR = {
-        "Please enter a password, or select",
-        "the \"Don't require a password\" option." };
-
     private class RollupNameScreen extends JPanel implements ActionListener {
         public JLabel taskListName;
         public JTextArea prompt;
@@ -700,18 +703,18 @@ public class TaskScheduleCollaborationWizard {
             FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
             buttonBox.setLayout(oLayout);
 
-            backButton = new JButton("<Back");
+            backButton = new JButton(resources.getString("Back_Button"));
             backButton.addActionListener(this);
             buttonBox.add(backButton);
 
-            nextButton = new JButton("Next>");
+            nextButton = new JButton(resources.getString("Next_Button"));
             nextButton.addActionListener(this);
             buttonBox.add(nextButton);
 
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
-            cancelButton = new JButton("Cancel");
+            cancelButton = new JButton(Resources.getString("Cancel"));
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);
 
@@ -739,9 +742,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(taskListName, oConst);
 
             prompt = new JTextArea("", 3, 10);
-            prompt.setText("This wizard will create a new rollup schedule, " +
-                           "and add the current schedule to it.  Please " +
-                           "choose a name for the resulting rollup schedule:");
+            prompt.setText(resources.getString("Choose_Rollup_Name_Prompt"));
             prompt.setBackground(null);
             prompt.setLineWrap(true);
             prompt.setWrapStyleWord(true);
@@ -762,7 +763,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(prompt, oConst);
 
             namePrompt = new JLabel();
-            namePrompt.setText("Name:");
+            namePrompt.setText(resources.getString("Name_Label"));
             oPanel.add(namePrompt);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -777,8 +778,9 @@ public class TaskScheduleCollaborationWizard {
                 rollupName.setText(rollupTaskListName);
             else
                 rollupName.setText
-                    (TaskScheduleCollaborationWizard.this.taskListName +
-                     " Rollup");
+                    (Resources.format
+                     (resources, "Default_Rollup_Name_FMT",
+                        TaskScheduleCollaborationWizard.this.taskListName));
             rollupName.setColumns(15);
             oPanel.add(rollupName);
             oConst = new GridBagConstraints();
@@ -837,10 +839,11 @@ public class TaskScheduleCollaborationWizard {
             String errorMessage =
                 TaskScheduleChooser.checkNewTemplateName(newName, data);
             if (errorMessage != null) {
-                errorMessage = StringUtils.findAndReplace
-                    (errorMessage, "template", "schedule");
+                //errorMessage = StringUtils.findAndReplace
+                //    (errorMessage, "template", "schedule");
                 JOptionPane.showMessageDialog
-                    (frame, errorMessage, "Invalid Schedule Name",
+                    (frame, errorMessage,
+                     resources.getString("Invalid_Schedule_Name_Title"),
                      JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -875,18 +878,18 @@ public class TaskScheduleCollaborationWizard {
             FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
             buttonBox.setLayout(oLayout);
 
-            backButton = new JButton("<Back");
+            backButton = new JButton(resources.getString("Back_Button"));
             backButton.addActionListener(this);
             buttonBox.add(backButton);
 
-            finishButton = new JButton("Finish");
+            finishButton = new JButton(resources.getString("Finish_Button"));
             finishButton.addActionListener(this);
             buttonBox.add(finishButton);
 
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
-            cancelButton = new JButton("Cancel");
+            cancelButton = new JButton(Resources.getString("Cancel"));
             cancelButton.setEnabled(false);
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);
@@ -1045,17 +1048,16 @@ public class TaskScheduleCollaborationWizard {
         "TaskScheduleCollaboration.createRollup" };
 
     private static final String[] resultURL = {
-        "/Templates/dash/ev-publish-results.htm",
-        "/Templates/dash/ev-share-results.htm",
-        "/Templates/dash/ev-rollup-results.htm" };
+        "/dash/ev-publish-results.htm",
+        "/dash/ev-share-results.htm",
+        "/dash/ev-rollup-results.htm" };
     private static final String EV_URL =
         "//reports/ev.class";
 
-    private static String getText(String resourceName) {
+    private String getText(String resourceName) {
         try {
             return new String
-                (TinyWebServer.slurpContents
-                 (TaskScheduleCollaborationWizard.class.getResourceAsStream(resourceName), true));
+                (webServer.getRequest(resourceName, true), "UTF-8");
         } catch (IOException ioe) {
             return "";
         }

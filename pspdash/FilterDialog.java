@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -86,7 +86,7 @@ public class FilterDialog extends JDialog implements ActionListener {
         Box mainBox = new Box(BoxLayout.Y_AXIS);
         Box aBox = new Box(BoxLayout.X_AXIS);
         aBox.add (Box.createHorizontalStrut(2));
-        incNonTemplate = new JCheckBox (resources.getString("Show_Leaf_Nodes"));
+        incNonTemplate = new JCheckBox (Resources.getString("Show_Leaf_Nodes"));
         incNonTemplate.setActionCommand("leaves");
         incNonTemplate.addActionListener(this);
         aBox.add (incNonTemplate);

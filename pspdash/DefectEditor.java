@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -489,9 +489,7 @@ public class DefectEditor extends Component
         table = new ValidatingTable
             (Resources.getStrings(resources, "Column_Name_", columns),
              null,
-             new int[] {200, 25,  80,
-                        100, 100, 40,
-                        30,  200, 100},
+             Resources.getInts(resources, "Column_Width_", columns),
              Resources.getStrings(resources, "Column_Tooltip_", columns),
              null, null, 0, true, null,
              new boolean[] {false, false, false, // no columns editable

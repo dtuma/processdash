@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -32,6 +32,7 @@ import java.awt.Dimension;
 import java.awt.event.*;
 import java.text.DecimalFormatSymbols;
 import java.util.EventObject;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.event.ListSelectionEvent;
@@ -47,8 +48,12 @@ public class TaskScheduleChart extends JFrame
     EVSchedule schedule;
     JTabbedPane tabPane;
 
+    static ResourceBundle resources =
+        Resources.getBundle("pspdash.TaskScheduleChart");
+
     public TaskScheduleChart(TaskScheduleDialog parent) {
-        super("EV Chart - " + parent.taskListName);
+        super(Resources.format(resources, "Window_Title_FMT",
+                               parent.taskListName));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         setIconImage(parent.frame.getIconImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -57,14 +62,15 @@ public class TaskScheduleChart extends JFrame
         schedule = taskList.getSchedule();
 
         tabPane = new JTabbedPane();
-        tabPane.addTab("Earned Value", buildValueChart());
-        tabPane.addTab("Direct Hours", buildTimeChart());
-        tabPane.addTab("Combined",     buildCombinedChart());
-        tabPane.addTab("Statistics",   buildStatsTable());
+        tabPane.addTab(TAB_NAMES[FULL][0], buildValueChart());
+        tabPane.addTab(TAB_NAMES[FULL][1], buildTimeChart());
+        tabPane.addTab(TAB_NAMES[FULL][2], buildCombinedChart());
+        tabPane.addTab(TAB_NAMES[FULL][3], buildStatsTable());
         tabPane.addComponentListener(this);
 
         getContentPane().add(tabPane);
         pack();
+        adjustTabNames(getWidth());
         show();
     }
     public void dispose() {
@@ -129,24 +135,51 @@ public class TaskScheduleChart extends JFrame
         adjustTabNames(tabPane.getWidth());
     }
 
-    private static final String[][] tabNames = {
-        { "%", (new DecimalFormatSymbols()).getCurrencySymbol(), "&", "#" },
-        { "EV", "Hours", "Both", "Stats" },
-        { "Earned Value", "Direct Hours", "Combined", "Statistics" }};
+
     private static final int FULL = 2;
     private static final int MED = 1;
     private static final int SHORT = 0;
     private int currentStyle = FULL;
+    private static int MED_WINDOW_WIDTH = 325;
+    private static int SHORT_WINDOW_WIDTH = 170;
+
+    private static final String[][] TAB_NAMES;
+    static {
+        String[] colKeys = new String[]
+            { "Earned_Value_Chart", "Direct_Hours_Chart",
+                  "Combined_Chart", "Statistics" };
+        TAB_NAMES = new String[3][0];
+        TAB_NAMES[FULL] = Resources.getStrings
+            (resources, "Tab_Full_Name_", colKeys);
+        TAB_NAMES[MED] = Resources.getStrings
+            (resources, "Tab_Med_Name_", colKeys);
+        TAB_NAMES[SHORT] = Resources.getStrings
+            (resources, "Tab_Short_Name_", colKeys);
+        if ("CURRENCY".equals(TAB_NAMES[SHORT][1]))
+            TAB_NAMES[SHORT][1] =
+                (new DecimalFormatSymbols()).getCurrencySymbol();
+        try {
+            MED_WINDOW_WIDTH = Integer.parseInt
+                (resources.getString("Med_Name_Window_Width"));
+        } catch (NumberFormatException nfe) {}
+        try {
+            SHORT_WINDOW_WIDTH = Integer.parseInt
+                (resources.getString("Short_Name_Window_Width"));
+        } catch (NumberFormatException nfe) {}
+    }
 
     private void adjustTabNames(int width) {
-        int style = (width > 325 ? FULL : (width > 170 ? MED : SHORT));
+        int style;
+        if (width > MED_WINDOW_WIDTH)         style = FULL;
+        else if (width > SHORT_WINDOW_WIDTH)  style = MED;
+        else                                  style = SHORT;
         synchronized (this) {
             if (style == currentStyle) return;
             currentStyle = style;
         }
 
-        for (int i=tabNames[style].length;   i-- > 0; )
-            tabPane.setTitleAt(i, tabNames[style][i]);
+        for (int i=TAB_NAMES[style].length;   i-- > 0; )
+            tabPane.setTitleAt(i, TAB_NAMES[style][i]);
         for (int i=0;   i < charts.length;   i++) {
             charts[i].setLegend(style != FULL ? null : legends[i]);
             adjustAxis(charts[i].getPlot().getAxis(Plot.HORIZONTAL_AXIS),
@@ -167,7 +200,7 @@ public class TaskScheduleChart extends JFrame
         EVMetrics metrics;
         ListSelectionModel selectionModel;
         public DescriptionPane(EVMetrics m, ListSelectionModel sm) {
-            super("Select a metric above for more information...");
+            super(resources.getString("Choose_Metric_Instruction"));
             setBackground(null);
             setLineWrap(true); setWrapStyleWord(true); setEditable(false);
             doResize();

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -56,11 +56,13 @@ public class TimeCardDialog {
     private static final int HOURS = 1;
     private static final int MINUTES = 2;
 
+    ResourceBundle resources = Resources.getBundle("pspdash.TimeCardDialog");
+
     public TimeCardDialog(PSPProperties useProps, TimeLog timeLog) {
         this.useProps = useProps;
         this.timeLog = timeLog;
 
-        frame = new JFrame("Time Card");
+        frame = new JFrame(resources.getString("Window_Title"));
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
 
@@ -115,7 +117,7 @@ public class TimeCardDialog {
     private Component buildTopPanel() {
         Box result = Box.createHorizontalBox();
 
-        result.add(new JLabel("Month: "));
+        result.add(new JLabel(resources.getString("Month_Label")+" "));
         // We have to build our own month name array because the "official"
         // one contains 13 month names, the last one empty for Gregorian
         // Calendars
@@ -141,23 +143,28 @@ public class TimeCardDialog {
                 public void changedUpdate(DocumentEvent e)  { recalc(); }});
 
         result.add(Box.createHorizontalGlue());
-        result.add(new JLabel("Time Format: "));
-        formatType = new JComboBox(FORMATS);
+        result.add(new JLabel(resources.getString("Time_Format_Label")+" "));
+        formatType = new JComboBox();
+        formatType.addItem(format(75, HOURS_MINUTES));
+        formatType.addItem(format(75, HOURS));
+        formatType.addItem(format(75, MINUTES));
         dontGrow(formatType);
         result.add(formatType);
         formatType.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     redraw(); }});
 
+        result.add(Box.createHorizontalGlue());
         hideColumns = new JCheckBox();
-        result.add(new JLabel(" Hide empty columns "));
+        result.add(new JLabel
+            (" " + resources.getString("Hide_Empty_Columns_Label") + " "));
         result.add(hideColumns);
         hideColumns.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     resizeColumns(); }});
 
         result.add(Box.createHorizontalGlue());
-        JButton closeButton = new JButton("Close");
+        JButton closeButton = new JButton(Resources.getString("Close"));
         dontGrow(closeButton);
         result.add(result.createVerticalStrut
                    (closeButton.getPreferredSize().height + 4));
@@ -171,7 +178,6 @@ public class TimeCardDialog {
     private void dontGrow(JComponent c) {
         c.setMaximumSize(c.getPreferredSize());
     }
-    private static final String[] FORMATS = { "1:15", "1.25", "75" };
 
     public void hide() { frame.setVisible(false); }
     public void show() { frame.setVisible(true); }
@@ -213,7 +219,9 @@ public class TimeCardDialog {
                                  PSPProperties props,
                                  PropertyKey key) {
                 this.parent = parent;
-                this.name = (parent == null ? "Daily Total" : key.name());
+                this.name =
+                    (parent == null ? resources.getString("Daily_Total")
+                                    : key.name());
                 this.fullname = key.path();
                 this.time = new double[32];
                 this.children = new ArrayList();
@@ -371,9 +379,13 @@ public class TimeCardDialog {
         /** Returns the number of columns. */
         public int getColumnCount() { return 32; }
 
+        private String totalColumnName =
+            resources.getString("Total_Column_Name");
+
         /** Returns the name for a particular column. */
         public String getColumnName(int column) {
-            return (column == 31 ? "Total" : Integer.toString(column+1));
+            return (column == 31 ? totalColumnName :
+                    Integer.toString(column+1));
         }
 
         /** Returns the class for the particular column. */
@@ -389,24 +401,26 @@ public class TimeCardDialog {
 
         /** Set the value at a particular row/column */
         public void setValueAt(Object aValue, Object node, int column) {}
+    }
 
-        protected String format(double time) {
-            if (time == 0) return "";
-            if (format == HOURS_MINUTES)
-                return EVTask.formatTime(time);
-            else if (format == MINUTES)
-                return Integer.toString((int) time);
-            else
-                return formatter.format(time / 60.0);
-        }
+    protected String format(double time) {
+        return format(time, format);
+    }
+    protected String format(double time, int format) {
+        if (time == 0) return "";
+        if (format == HOURS_MINUTES)
+            return EVTask.formatTime(time);
+        else if (format == MINUTES)
+            return Integer.toString((int) time);
+        else
+            return formatter.format(time / 60.0);
     }
 
     private static NumberFormat formatter = NumberFormat.getNumberInstance();
-    private static SimpleDateFormat dayFormat =
-        new SimpleDateFormat("EEE, MMM d, yyyy");
+    private SimpleDateFormat dayFormat = new SimpleDateFormat
+        (resources.getString("Column_Date_Tooltip_Format"));
     static {
         formatter.setMaximumFractionDigits(2);
-        FORMATS[1] = formatter.format(1.25);
     }
 
     private Color mixColors(Color a, Color b, float r) {
