@@ -49,7 +49,7 @@ public class ProbeDialog extends JDialog implements
         ChartDialog  chartDlg  = null;
 
         JButton filterButton, chartButton;
-        DataComboBox yName, xName;
+        JComboBox yName, xName;
         JTextField estimate, percent;
         JLabel beta0, beta1, rSquared, significance, variance, stddev;
         JLabel estimateLabel, percentLabel, projection, range, upi, lpi;
@@ -66,6 +66,8 @@ public class ProbeDialog extends JDialog implements
             parent = dash;
             data   = parent.data;
 
+            boolean simpleProbeLists =
+                Settings.getVal("probe.dataList").equalsIgnoreCase("simple");
             JPanel panel = new JPanel();
             GridBagLayout layout = new GridBagLayout();
             GridBagConstraints g = new GridBagConstraints();
@@ -84,7 +86,9 @@ public class ProbeDialog extends JDialog implements
             g.weightx = 0;   g.anchor = g.EAST;   g.fill = g.NONE;
             layout.setConstraints(c, g);   panel.add(c);
 
-            xName = new DataComboBox(data);    g.gridx = 1;   g.gridwidth = 4;
+            if (!simpleProbeLists) xName = new DataComboBox(data);
+            else (xName = new JComboBox(simpleXData)).setEditable(true);
+            g.gridx = 1;   g.gridwidth = 4;
             g.weightx = 0;   g.anchor = g.WEST;   g.fill = g.HORIZONTAL;
             layout.setConstraints(xName, g);   panel.add(xName);
             xName.setToolTipText
@@ -99,7 +103,9 @@ public class ProbeDialog extends JDialog implements
             g.weightx = 0;   g.anchor = g.CENTER;   g.fill = g.NONE;
             layout.setConstraints(c, g);   panel.add(c);
 
-            yName = new DataComboBox(data);    g.gridx = 1;   g.gridwidth = 4;
+            if (!simpleProbeLists) yName = new DataComboBox(data);
+            else (yName = new JComboBox(simpleYData)).setEditable(true);
+            g.gridx = 1;   g.gridwidth = 4;
             g.weightx = 0;   g.anchor = g.WEST;   g.fill = g.HORIZONTAL;
             layout.setConstraints(yName, g);   panel.add(yName);
             yName.setToolTipText
@@ -135,7 +141,7 @@ public class ProbeDialog extends JDialog implements
             g.gridwidth = 1;   g.anchor = g.EAST;
             layout.setConstraints(percentLabel, g);   panel.add(percentLabel);
 
-            percent = new JTextField(7);   g.gridx = 3;   g.gridwidth = 1;
+            percent = new JTextField("70", 7);   g.gridx = 3;   g.gridwidth = 1;
             g.anchor = g.WEST;
             layout.setConstraints(percent, g);   panel.add(percent);
             percent.addActionListener(this);
@@ -255,6 +261,12 @@ public class ProbeDialog extends JDialog implements
             return DoubleData.formatNumber(value, numDecimalPoints);
         }
 
+        private static final String[] simpleXData = {
+            "Estimated Object LOC", "Estimated New & Changed LOC" };
+        private static final String[] simpleYData = {
+            "New & Changed LOC", "Time" };
+
+
         private void setAFields (boolean enableFields,
                                  String  b0Text,
                                  String  b1Text,
@@ -345,12 +357,12 @@ public class ProbeDialog extends JDialog implements
 
                 if (r_squared >= 0.9) rSquared.setForeground(Color.black);
                 else if (r_squared >= 0.7) rSquared.setForeground(Color.blue);
-                else if (r_squared >= 0.5) rSquared.setForeground(Color.orange);
+                else if (r_squared >= 0.5) rSquared.setForeground(Color.orange.darker());
                 else rSquared.setForeground(Color.red);
 
                 if (corr.c.p <= 0.05) significance.setForeground(Color.black);
                 else if (corr.c.p <= 0.12) significance.setForeground(Color.blue);
-                else if (corr.c.p < 0.20) significance.setForeground(Color.orange);
+                else if (corr.c.p < 0.20) significance.setForeground(Color.orange.darker());
                 else significance.setForeground(Color.red);
 
                 setCFields (enableFields,
