@@ -9,6 +9,8 @@
 )
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
 
+[FILES_XML] = "/<!--#echo Process_ID -->/files.xml";
+
 
 /*
  * Get a list of the subtasks immediately underneath this task.
