@@ -55,11 +55,16 @@ public class EVTaskListRollup extends EVTaskList {
     protected DataRepository data;
     protected Vector evTaskLists;
 
+    /** Create a rollup task list.
+     *
+     * Note: change notification is only <b>partially</b> supported.
+     */
     public EVTaskListRollup(String taskListName,
                             DataRepository data,
                             PSPProperties hierarchy,
-                            ObjectCache cache) {
-        super(taskListName, taskListName, false);
+                            ObjectCache cache,
+                            boolean willNeedChangeNotification) {
+        super(taskListName, taskListName, willNeedChangeNotification);
         this.data = data;
 
         evTaskLists = new Vector();

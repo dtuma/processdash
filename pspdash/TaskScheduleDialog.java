@@ -86,7 +86,8 @@ public class TaskScheduleDialog
         if (model == null) {
             if (createRollup)
                 model = new EVTaskListRollup
-                    (taskListName, dash.data, dash.props, dash.objectCache);
+                    (taskListName, dash.data, dash.props, dash.objectCache,
+                     true);
             else
                 model = new EVTaskListData
                     (taskListName, dash.data, dash.props, true);

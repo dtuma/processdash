@@ -169,7 +169,8 @@ public class EVTaskList extends AbstractTreeTableModel
         // next most common case: open a rollup task list
         if (EVTaskListRollup.validName(taskListName) &&
             EVTaskListRollup.exists(data, taskListName))
-            return new EVTaskListRollup(taskListName, data, hierarchy, cache);
+            return new EVTaskListRollup(taskListName, data, hierarchy, cache,
+                                        willNeedChangeNotification);
 
         // open an cached imported XML task list.
         if (EVTaskListCached.validName(taskListName) &&

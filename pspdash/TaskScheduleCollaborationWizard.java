@@ -847,7 +847,7 @@ public class TaskScheduleCollaborationWizard {
 
             // create the new task list, and add the current list to it.
             EVTaskListRollup rollup = new EVTaskListRollup
-                (newName, data, hierarchy, cache);
+                (newName, data, hierarchy, cache, false);
             rollup.addTask(TaskScheduleCollaborationWizard.this.taskListName,
                            data, hierarchy, cache, false);
             rollup.save();
