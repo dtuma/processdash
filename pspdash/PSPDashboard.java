@@ -356,6 +356,14 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     public void refreshHierarchy() {
+        if (SwingUtilities.isEventDispatchThread())
+            refreshHierarchyImpl();
+        else try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() { refreshHierarchyImpl(); }});
+        } catch (Exception e) { }
+    }
+    private void refreshHierarchyImpl() {
         hierarchy.delete();
         hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
         props.fireHierarchyChanged();
