@@ -58,6 +58,7 @@ public class TinyWebServer extends Thread {
                            // Tue, 05 Dec 2000 17:28:07 GMT
         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
 
+    private static InetAddress LOCAL_HOST_ADDR, LOOPBACK_ADDR;
     private static final Properties mimeTypes = new Properties();
     private static final Hashtable DEFAULT_ENV = new Hashtable();
     private static final String CRLF = "\r\n";
@@ -77,6 +78,10 @@ public class TinyWebServer extends Thread {
             mimeTypes.load(TinyWebServer.class
                            .getResourceAsStream("mime_types"));
         } catch (Exception e) { e.printStackTrace(); }
+        try {
+            LOCAL_HOST_ADDR = InetAddress.getLocalHost();
+            LOOPBACK_ADDR   = InetAddress.getByName("127.0.0.1");
+        } catch (UnknownHostException uhe) {}
     }
 
     private class CGILoader extends ClassLoader {
@@ -531,11 +536,9 @@ public class TinyWebServer extends Thread {
         private boolean checkIP() {
             if (clientSocket == null)
                 return true;
-            byte[] remoteIP = clientSocket.getInetAddress().getAddress();
-            return (remoteIP[0] == 127 &&
-                    remoteIP[1] == 0   &&
-                    remoteIP[2] == 0   &&
-                    remoteIP[3] == 1);
+            InetAddress remoteIP = clientSocket.getInetAddress();
+            return (remoteIP.equals(LOOPBACK_ADDR) ||
+                    remoteIP.equals(LOCAL_HOST_ADDR));
         }
 
 
