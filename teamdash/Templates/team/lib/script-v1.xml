@@ -86,6 +86,7 @@
           out="rollup_quality_summary.shtm">
 	<param name="rollup" value="true"/>
     </file>
+    <file in="autoExport.js" encoding="none"/>
 
     <FILE in="" encoding="html"
           out="rollup_filter.shtm"/>
