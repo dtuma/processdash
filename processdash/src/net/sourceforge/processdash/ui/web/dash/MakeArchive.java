@@ -40,7 +40,7 @@ import java.util.Date;
 import java.util.Map;
 
 import net.sourceforge.processdash.net.http.TinyCGIHighVolume;
-import net.sourceforge.processdash.tool.export.MimeHTMLArchiver;
+import net.sourceforge.processdash.tool.export.HTMLArchiver;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -99,7 +99,7 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
             return "dash-archive";
 
         if (filename.indexOf("PREFIX") != -1) {
-            String prefix = MimeHTMLArchiver.getPrefixFromURI(uri);
+            String prefix = HTMLArchiver.getPrefixFromURI(uri);
             int pos = prefix.lastIndexOf('/');
             if (pos != -1) prefix = prefix.substring(pos+1);
             prefix = makeSafe(prefix);
@@ -177,9 +177,14 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
         if (startingURI == null)
             throw new NullPointerException();
 
-        MimeHTMLArchiver.archive(getTinyWebServer(),
-                                 getDataRepository(),
-                                 outStream, startingURI);
+        int outputMode = HTMLArchiver.OUTPUT_MIME;
+        if ("jar".equalsIgnoreCase(getParameter("out")))
+            outputMode = HTMLArchiver.OUTPUT_JAR;
+        else if ("zip".equalsIgnoreCase(getParameter("out")))
+            outputMode = HTMLArchiver.OUTPUT_ZIP;
+
+        HTMLArchiver.archive(getTinyWebServer(), getDataRepository(),
+                             outStream, startingURI, outputMode);
     }
 
     protected static final String CRLF = "\r\n";

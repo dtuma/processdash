@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2004 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,142 +28,69 @@ package net.sourceforge.processdash.tool.export;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-
 import java.net.URL;
-
-import java.text.SimpleDateFormat;
-
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Locale;
-import java.util.Random;
-
+import java.util.Map;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.FormToHTML;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
-/** Class for creating MIME Encoded HTML archives of dashboard content.
- *
- * For more information on MIME Encoded HTML archives, see
- *     http://www.ietf.org/rfc/rfc2110.txt
- *
- * Current bug: if the item named by the starting URI is a dashboard form
- * or a page containing a link to "excel.iqy", the excel file will become
- * the root page instead.
+
+/** Class for creating archives of dashboard web content.
  */
-public class MimeHTMLArchiver {
+public class HTMLArchiver {
 
-    protected String base;
-    protected String boundary;
+    public static final int OUTPUT_MIME = 0;
+    public static final int OUTPUT_JAR = 1;
+    public static final int OUTPUT_ZIP = 2;
+
     protected HashSet seenURIs;
-    protected HashMap safeUriMap;
-    protected int itemNumber;
-    protected OutputStream outStream;
-    protected PrintWriter out;
     protected WebServer webServer;
     protected DataRepository data;
+    protected ArchiveWriter writer;
+    protected Map requestContents;
 
 
     public static void archive(WebServer webServer, DataRepository data,
-                               OutputStream outStream, String startingUri)
+                               OutputStream outStream, String startingUri,
+                               int outputMode)
         throws IOException
     {
-        MimeHTMLArchiver m = new MimeHTMLArchiver(webServer, data);
+        HTMLArchiver m = new HTMLArchiver(webServer, data, outputMode);
         m.run(outStream, startingUri);
     }
 
-    protected MimeHTMLArchiver(WebServer webServer, DataRepository data) {
-        // the URL we use needs to be generally recognizable and
-        // parseable as a URL.  It does not have to correspond to any
-        // real URL, however.  I intentionally don't use the real
-        // URLs, for two reasons:
-        // 1) Using real URLs means that items missing from the
-        //    archive might get loaded on the fly from the running
-        //    dashboard, which misrepresents archiving functionality
-        // 2) Some valid URLs seem to confuse internet explorer. For
-        //    example, a url containing the string "%23" (the URL encoded
-        //    version of "#") seems to confuse IE enough that it fails to
-        //    locate the identically named mime part within the archive.
-        base = "http://localhost:9999";
-        boundary = createBoundary();
-        seenURIs = new HashSet();
-        safeUriMap = new HashMap();
-        itemNumber = 0;
+    protected HTMLArchiver(WebServer webServer, DataRepository data,
+                           int outputMode) {
+
+        this.seenURIs = new HashSet();
         this.webServer = webServer;
         this.data = data;
+        this.requestContents = new HashMap();
+
+        switch (outputMode) {
+            case OUTPUT_MIME: default:
+                this.writer = new MimeArchiveWriter();
+        }
     }
-
-
 
     protected void run(OutputStream outStream, String startingURI)
         throws IOException
     {
-        this.outStream = outStream;
-        this.out = new PrintWriter(outStream);
-
-        getSafeURL(startingURI);
-
-        writeMimeHeader();
+        writer.startArchive(outStream);
+        getMappedURI(startingURI);
         writeItemAndRecurse(startingURI);
-        writeMimeEnding();
-        out.flush();
+        writer.finishArchive();
+        outStream.flush();
     }
-
-
-    /** Create a randomly generated MIME-part boundary.
-     */
-    private String createBoundary() {
-        StringBuffer boundary = new StringBuffer("Boundary=_");
-        Random r = new Random();
-
-        while (boundary.length() < 45) {
-            int i = r.nextInt();
-
-            if (i < 0)
-                i = 0 - i;
-
-            boundary.append(".")
-                .append(Integer.toString(i, Character.MAX_RADIX));
-        }
-
-        String result = boundary.toString();
-
-        if (result.length() > 45)
-            result = result.substring(0, 45);
-
-        return result;
-    }
-
-
-    /** Write the header of the MIME-HTML file.
-     */
-    protected void writeMimeHeader() {
-        out.print("From: <Saved by the Process Dashboard>" + CRLF);
-        out.print("Subject: <Archived Data>" + CRLF);
-        out.print("Date: ");
-        out.print(dateFormat.format(new Date()));
-        out.print(CRLF);
-        out.print("MIME-Version: 1.0" + CRLF);
-        out.print("Content-Type: multipart/related;" + CRLF);
-        out.print("\tboundary=\"" + boundary + "\";" + CRLF);
-        out.print("\ttype=\"text/html\"" + CRLF + CRLF);
-        out.print("This is a multi-part message in MIME format." + CRLF);
-    }
-
-
-    /** Write the closing boundary of the MIME-HTML file.
-     */
-    protected void writeMimeEnding() {
-        out.print(CRLF + "--" + boundary + "--" + CRLF);
-    }
-
 
     /** Add an item to the MIME archive, and recursively add any items it
      * refers to.
@@ -178,65 +105,31 @@ public class MimeHTMLArchiver {
         seenURIs.add(uri);
 
         try {
-            byte[] contents = webServer.getRequest(getExportURI(uri), false);
+            RequestResult item = openURI(uri);
 
-            if (contents == null)
+            if (item.getContents() == null)
                 return;
 
-            int headerLength = HTTPUtils.getHeaderLength(contents);
-            String header = new String(contents, 0, headerLength - 2,
-                    "ISO-8859-1");
-            String contentType = HTTPUtils.getContentType(header);
+            if (item.getContentType().startsWith("text/html"))
+                handleHTML(uri, item.getContentType(),
+                           item.getContents(),
+                           item.getHeaderLength());
 
-            if (contentType == null)
-                contentType = "text/html";
-
-            if (contentType.startsWith("text/html"))
-                handleHTML(uri, contents, headerLength, contentType);
             else
-                writeMimePart(uri, contentType, contents, headerLength);
+                writer.addFile(uri, item.getContentType(),
+                               item.getContents(),
+                               item.getHeaderLength());
+
+            item.clearContents();
         } catch (IOException ioe) {
             // couldn't open file. this could easily happen if the uri
             // did not name an internal dashboard uri; just move along.
         }
     }
-    protected String getExportURI(String uri) {
-        if (uri.indexOf('?') == -1)
-            return uri + "?EXPORT=archive";
-        else
-            return uri + "&EXPORT=archive";
-    }
 
 
-    protected void writeMimePart(String uri, String contentType, byte[] contents,
-        int headerLength) throws IOException
-    {
-        writePartHeader(uri, contentType);
-        outStream.write(contents, headerLength, contents.length - headerLength);
-    }
-
-
-    protected void writeMimePart(String uri, String contentType, StringBuffer content)
-        throws IOException
-    {
-        writePartHeader(uri, contentType);
-        for (int i = 0; i < content.length(); i++)
-            out.print(content.charAt(i));
-        out.flush();
-    }
-
-
-    protected void writePartHeader(String uri, String contentType) {
-        out.print(CRLF + "--" + boundary + CRLF);
-        out.print("Content-Type: " + contentType + CRLF);
-        out.print("Content-Transfer-Encoding: binary" + CRLF);
-        out.print("Content-Location: " + getSafeURL(uri) + CRLF + CRLF);
-        out.flush();
-    }
-
-
-    protected void handleHTML(String uri, byte[] contents, int headerLength,
-        String contentType)
+    protected void handleHTML(String uri, String contentType, byte[] contents,
+                              int headerLength)
     {
         try {
             String htmlContent = newString
@@ -246,7 +139,7 @@ public class MimeHTMLArchiver {
             stripHTMLComments(html);
 
             ArrayList references = getReferencedItems(htmlContent);
-            URL baseURL = new URL(base + uri);
+            URL baseURL = new URL("http://ignored" + uri);
             if (references != null) {
                 Iterator i = references.iterator();
                 String subURI, safeURL, extra;
@@ -265,7 +158,7 @@ public class MimeHTMLArchiver {
                             extra = " target='_blank'";
                         } else {
                             URL u = new URL(baseURL, subURI);
-                            safeURL = getSafeURL(u.getFile());
+                            safeURL = getMappedURI(u.getFile());
                             extra = "";
                         }
 
@@ -285,8 +178,7 @@ public class MimeHTMLArchiver {
             else
 
                 // if this is not a form, write it out verbatim
-                writeMimePart(uri, contentType, html);
-
+                writeTextFile(uri, contentType, html);
 
             if (references != null) {
                 Iterator i = references.iterator();
@@ -303,19 +195,6 @@ public class MimeHTMLArchiver {
             }
 
         } catch (IOException ioe) {}
-    }
-
-    protected String getSafeURL(String uri) {
-        if (uri.startsWith(base + "/item"))
-            // this is already a safe URL, not a URI!  Just return it.
-            return uri;
-
-        String result = (String) safeUriMap.get(uri);
-        if (result == null) {
-            result = base + "/item" + itemNumber++;
-            safeUriMap.put(uri, result);
-        }
-        return result;
     }
 
     protected int findFormScriptStart(StringBuffer html) {
@@ -362,7 +241,14 @@ public class MimeHTMLArchiver {
             result.insert(pos, exportLink);
 
         // write out the resulting document
-        writeMimePart(uri, contentType, result);
+        writeTextFile(uri, contentType, result);
+    }
+
+    private void writeTextFile(String uri, String contentType,
+                               StringBuffer result) throws IOException {
+        byte[] htmlBytes = result.toString().getBytes
+            (HTTPUtils.getCharset(contentType));
+        writer.addFile(uri, contentType, htmlBytes, 0);
     }
 
     protected String writeExcelPart(String forUri, StringBuffer content)
@@ -370,7 +256,7 @@ public class MimeHTMLArchiver {
     {
         // write out the document with a special content-type to support
         // export-to-excel functionality.
-        String safeURL = getSafeURL(forUri);
+        String safeURL = getMappedURI(forUri);
         String excelURL = makeExcelURL(safeURL);
 
         // hide portions that are marked with the "doNotPrint" style.
@@ -392,7 +278,7 @@ public class MimeHTMLArchiver {
         StringUtils.findAndReplace(content, "<IMG", "<dis_img");
 
         // write it out.
-        writeMimePart(excelURL, "application/vnd.ms-excel", content);
+        writeTextFile(excelURL, "application/vnd.ms-excel", content);
 
         // undo the damage we did earlier
         StringUtils.findAndReplace(content, "<dis_img", "<img");
@@ -453,20 +339,6 @@ public class MimeHTMLArchiver {
     protected void unhideElements(StringBuffer content) {
         StringUtils.findAndReplace(content, " HIDDEN--", "");
         StringUtils.findAndReplace(content, "!--HIDDEN ", "");
-    }
-
-    public static String getPrefixFromURI(String uri) {
-        String prefix = "";
-        int slashPos = uri.indexOf("//");
-
-        if (slashPos != -1)
-            prefix = HTMLUtils.urlDecode(uri.substring(0, slashPos));
-
-        return prefix;
-    }
-
-    protected String makeExcelURL(String url) {
-        return url + "_.xls";
     }
 
 
@@ -577,10 +449,85 @@ public class MimeHTMLArchiver {
         }
     }
 
+    public static String getPrefixFromURI(String uri) {
+        String prefix = "";
+        int slashPos = uri.indexOf("//");
 
-    protected static final String CRLF = "\r\n";
-    protected static final SimpleDateFormat dateFormat =
-        // ------------------ Tue, 05 Dec 2000 17:28:07 GMT
-        new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+        if (slashPos != -1)
+            prefix = HTMLUtils.urlDecode(uri.substring(0, slashPos));
+
+        return prefix;
+    }
+
+    protected String makeExcelURL(String url) {
+        return url + "_.xls";
+    }
+
+    protected String getMappedURI(String uri) throws IOException {
+        return writer.mapURI(uri, getContentType(uri));
+    }
+
+    protected String getExportURI(String uri) {
+        if (uri.indexOf('?') == -1)
+            return uri + "?EXPORT=archive";
+        else
+            return uri + "&EXPORT=archive";
+    }
+
+    private String getContentType(String uri) throws IOException {
+        return openURI(uri).getContentType();
+    }
+
+    private RequestResult openURI(String uri) throws IOException {
+        RequestResult results = (RequestResult) requestContents.get(uri);
+        if (results == null) {
+            results = new RequestResult(uri);
+            requestContents.put(uri, results);
+        }
+
+        return results;
+    }
+
+
+    private final class RequestResult {
+        private String uri;
+        private byte[] contents;
+        private int headerLength = 0;
+        private String header = null;
+        private String contentType = null;
+
+        public RequestResult(String uri) throws IOException {
+            this.uri = uri;
+            this.contents = webServer.getRequest(getExportURI(uri), false);
+
+            if (this.contents != null) {
+                headerLength = HTTPUtils.getHeaderLength(contents);
+                header = new String(contents, 0, headerLength - 2,
+                        "ISO-8859-1");
+                contentType = HTTPUtils.getContentType(header);
+
+                if (contentType == null)
+                    contentType = "text/html";
+            }
+        }
+
+        public boolean equals(Object obj) {
+            return (obj instanceof RequestResult &&
+                    ((RequestResult) obj).uri.equals(this.uri));
+        }
+
+        public int hashCode() { return uri.hashCode(); }
+
+        public byte[] getContents() { return contents; }
+        public String getContentType() { return contentType; }
+        public String getHeader() { return header; }
+        public int getHeaderLength() { return headerLength; }
+        public String getUri() { return uri; }
+
+        public void clearContents() {
+            contents = null;
+        }
+
+    }
 
 }
