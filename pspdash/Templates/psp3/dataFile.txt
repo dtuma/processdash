@@ -114,5 +114,18 @@ sumForCycles(Time);
 sumForCycles(Defects Injected);
 sumForCycles(Defects Removed);
 
+// The following calculations help us to distribute Estimated Time across
+// the PSP3 cycles
+
+[PSP3_Cycle_Count] = count([PSP3_Cycles]);
+[PSP3_Cycle_Size] = sumFor("Estimated New & Changed LOC", [PSP3_Cycles]);
+[PSP3_Cycle_Est_Time] = [Estimated Time] - [Planning/Estimated Time] -
+    [HLD/Estimated Time] - [HLD Review/Estimated Time] -
+    [Postmortem/Estimated Time];
+[PSP3_Cycle_Time_Ratio] = [PSP3_Cycle_Est_Time] / [PSP3_Cycle_Size];
+[PSP3_Cycle_Even_Time] = [PSP3_Cycle_Est_Time] / [PSP3_Cycle_Count];
+
+// Calculate project completion date
+
 [Completed] = maxDate("Completed",
 		      ",Planning,HLD,HLD Review,Postmortem,", [PSP3_Cycles]);

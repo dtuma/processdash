@@ -150,6 +150,7 @@ public class TemplateAutoData extends AutoData {
                                   StringBuffer nodeDefinitions)
     {
         if (!isProcessNode(node)) return;
+        if (noAutoDataNode(node)) return;
 
         // Iterate over the children of this element.
         NodeList children = node.getChildNodes();
@@ -157,7 +158,8 @@ public class TemplateAutoData extends AutoData {
         Node c; Element child;
         for (int i=0;  i<children.getLength();  i++) {
             c = children.item(i);
-            if (c instanceof Element && isProcessNode((Element) c)) {
+            if (c instanceof Element && isProcessNode((Element) c) &&
+                !noAutoDataNode((Element) c)) {
                 child = (Element) c;
                 String childName =
                     pathConcat(path, child.getAttribute(NAME_ATTR));
@@ -263,6 +265,9 @@ public class TemplateAutoData extends AutoData {
                 "phase".equals(tagName) ||
                 "template".equals(tagName));
     }
+    public static boolean noAutoDataNode(Element e) {
+        return "none".equals(e.getAttribute(DATA_EXTENT_ATTR));
+    }
 
 
     private static final String PATH_MACRO = "PATH";
@@ -303,6 +308,13 @@ public class TemplateAutoData extends AutoData {
 
         public String getPathAttributeName(Element e) {
             return (isProcessNode(e) ? NAME_ATTR : null);
+        }
+
+        public void run(Node n, Stack path) {
+            if (n instanceof Element && noAutoDataNode((Element) n))
+                return;
+            else
+                super.run(n, path);
         }
 
         public void caseElement(Element e, List path) {

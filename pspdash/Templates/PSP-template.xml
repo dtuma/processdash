@@ -197,6 +197,19 @@ This file contains the template definitions for the standard PSP processes.
         <phase imaginary="true" name="Compile"       type="comp"/>
         <phase imaginary="true" name="Test"          type="ut"/>
         <phase imaginary="true" name="Reassessment"  type="pm"/>
+
+        <node name="PSP3cycle" ID="PSP3cycle" autoData="none"
+            dataFile="psp3/cycleData.txt"
+            constraints="{Design Inspection(2){Code Inspection(-2)}PSP3">
+           <phase name="Design"        type="dld"/>
+           <phase name="Design Review" type="dldr"/>
+           <phase name="Code"          type="code"/>
+           <phase name="Code Review"   type="cr"/>
+           <phase name="Compile"       type="comp"/>
+           <phase name="Test"          type="ut"/>
+           <phase name="Reassessment"  type="pm"/>
+        </node>
+
     <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 

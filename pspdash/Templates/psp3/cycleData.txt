@@ -69,6 +69,12 @@ undefine([Size Estimating Template Tag],
 	 [Est_Reused_Objects],     [Reused_Objects]);
 
 
+// Calculate estimated time on behalf of the user.
+
+[Estimated Time] =
+    nvl(nvl([Estimated New & Changed LOC], 0) * [../PSP3_Cycle_Time_Ratio],
+	[../PSP3_Cycle_Even_Time]);
+
 // We do not need local copies of these to date numbers for each cycle.
 
 undefine([LOC per Hour To Date], [ESTIMATED Time To Date], [Time To Date],
