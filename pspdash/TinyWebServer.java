@@ -259,7 +259,7 @@ public class TinyWebServer extends Thread {
 
             int pos = uri.indexOf("//");
             if (pos >= 0) {
-                id = URLDecoder.decode(uri.substring(0, pos));
+                id = uri.substring(0, pos);
                 path = uri.substring(pos+2);
             } else try {
                 pos = uri.indexOf('/', 1);
@@ -338,7 +338,7 @@ public class TinyWebServer extends Thread {
             env.put("REQUEST_METHOD", method);
             env.put("PATH_INFO", id);
             if (id != null && id.startsWith("/")) {
-                env.put("PATH_TRANSLATED", id);
+                env.put("PATH_TRANSLATED", URLDecoder.decode(id));
                 env.put("SCRIPT_PATH", id + "//" + path);
             } else {
                 env.put("PATH_TRANSLATED", data.getPath(id));
