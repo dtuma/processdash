@@ -28,6 +28,7 @@ package pspdash.data.compiler;
 import pspdash.data.SimpleData;
 import pspdash.data.StringData;
 import pspdash.data.NumberData;
+import pspdash.data.DoubleData;
 import pspdash.data.ListData;
 import java.util.List;
 import java.util.ArrayList;
@@ -102,5 +103,14 @@ public class AbstractFunction implements Function {
         if (o == null) return null;
         if (o instanceof SimpleData) return ((SimpleData)o).format();
         return o.toString();
+    }
+
+    protected static SimpleData asSimpleData(Object o) {
+        if (o == null) return null;
+        if (o instanceof SimpleData) return (SimpleData) o;
+        if (o instanceof String) return StringData.create((String) o);
+        if (o instanceof Number)
+            return new DoubleData(((Number) o).doubleValue());
+        return null;
     }
 }
