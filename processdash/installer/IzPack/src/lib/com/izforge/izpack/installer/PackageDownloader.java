@@ -101,7 +101,7 @@ public class PackageDownloader extends Thread {
             long elapsed = endTime - startTime;
             long remaining = MIN_DELAY - elapsed;
             if (remaining > 0)
-                Thread.currentThread().sleep(remaining);
+                Thread.sleep(remaining);
             if (progressBar != null)
                 progressBar.setValue(totalBytesRead);
 
