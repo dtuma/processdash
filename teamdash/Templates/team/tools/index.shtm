@@ -1,0 +1,22 @@
+<html>
+<body>
+
+<p><form action="/team/tools/CustomProcessEditor.class" method="POST">
+<input type=submit name="submit" value="Custom Process Editor">
+</form>
+
+<p><form action="/team/tools/OpenWBSEditor.class" method="POST">
+<input type=submit name="submit" value="Edit Team Member List">
+<input type=hidden name="team" value="Edit Team Member List">
+<input type=hidden name="directory" 
+       value="<!--#echo var=directory encoding=url -->">
+</form>
+
+<p><form action="/team/tools/OpenWBSEditor.class" method="POST">
+<input type=submit name="submit" value="Edit Work Breakdown Structure">
+<input type=hidden name="directory" 
+       value="<!--#echo var=directory encoding=url -->">
+</form>
+
+</body>
+</html>
