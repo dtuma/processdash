@@ -128,7 +128,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             hb = new DashHelpBroker(hs);
 
             // set the size for the display
-            hb.setSize(new Dimension(600,450));
+            hb.setSize(new Dimension(645,495));
 
             CSH.setHelpIDString(helpItem ,"QuickOverview");
 
