@@ -68,7 +68,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     static final char REQUIRED_PARENT = '>';
 
     protected Vector    pendingVector = null;
-    protected JMenu     addTemplateMenu;	// Memorable menu[item]s
+    protected JMenu     addTemplateMenu;  // Memorable menu[item]s
     protected JMenu     addNodeMenu;
     protected JMenuItem saveMenuItem;
     protected JMenuItem revertMenuItem;
@@ -103,7 +103,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 newChange.oldPrefix == null)
                 pendingVector.addElement(newChange);
 
-            else {			// step backward through changes
+            else {                    // step backward through changes
                 for (int i = pendingVector.size(); i-- > 0; ) {
                     existingChange = (PendingDataChange) pendingVector.elementAt(i);
 
@@ -119,11 +119,11 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                                 existingChange.oldPrefix.equals(existingChange.newPrefix))
                                 pendingVector.removeElementAt(i);
                             newChange = null;   break;
-                        } else		// newChange.changeType is DELETE
+                        } else              // newChange.changeType is DELETE
                             if (existingChange.changeType == PendingDataChange.CREATE) {
                                 pendingVector.removeElementAt(i);
                                 newChange = null;   break;
-                            } else {		// existingChange.changeType is CHANGE
+                            } else {          // existingChange.changeType is CHANGE
                                 newChange.oldPrefix = existingChange.oldPrefix;
                                 pendingVector.setElementAt(newChange, i);
                                 newChange = null;   break;
@@ -152,8 +152,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         revertProperties ();
         updateTemplateMenu (null, null);
 
-        frame = new JFrame("PropertyFrame");
-        frame.setTitle("PropertyFrame");
+        frame = new JFrame("Hierarchy Editor");
+        frame.setTitle("Hierarchy Editor");
+        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
+                           (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("Center", panel);
         frame.setJMenuBar(menuBar);
         frame.setBackground(Color.lightGray);
@@ -170,7 +172,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         treeModel.useTreeModelListener (true);
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
-        tree.setRowHeight(-1);	// Make tree ask for the height of each row.
+        tree.setRowHeight(-1);      // Make tree ask for the height of each row.
         adjustMenu (false, true, false, null, null); // deselection case
 
         /* Put the Tree in a scroller. */
@@ -214,7 +216,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                             createDataFile(dataDir + p.destFile, p.srcFile);
 
                         if (p.newPrefix != null)
-                            dashboard.openDataFile (p.newPrefix, p.destFile);
+                            dashboard.openDatafile (p.newPrefix, p.destFile);
                         break;
 
                     case PendingDataChange.DELETE:
@@ -271,7 +273,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         revertMenuItem = menu.add(new JMenuItem("Revert"));
         revertMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                revertProperties ();	// reset properties
+                revertProperties ();    // reset properties
                                         // remove listener while reloading
                 treeModel.useTreeModelListener (false);
                 treeModel.reload (useProps); // remove children of root
@@ -350,7 +352,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     public void valueChanged (TreeSelectionEvent e) {
         TreePath tp = e.getNewLeadSelectionPath();
 
-        if (tp == null) {		// deselection
+        if (tp == null) {           // deselection
             deleteMenuItem.setEnabled (false);
             adjustMenu (false, true, false, null, null);
             return;
@@ -364,7 +366,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                                     // enable if deleteable, else...
         if (path.length > 1) {
             deleteMenuItem.setEnabled (true);
-        } else {			// top two levels (root & 1st sub) static
+        } else {                    // top two levels (root & 1st sub) static
             deleteMenuItem.setEnabled (false);
         }
 
@@ -395,7 +397,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         if ((pStatus != null) && (pStatus.indexOf(ALLOWED_CHILD) >= 0))
             allowsSiblings = false;
         if ((parseIndex = status.indexOf (ALLOWED_CHILD)) >= 0) {
-            allowsChildren = false;	// can only add specified templates
+            allowsChildren = false;   // can only add specified templates
             allowedChildren = new Vector(); // non-null implies REQUIRED match
 
             int lastChar = status.indexOf (REQUIRED_PARENT);
@@ -414,8 +416,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                     if (endIndex < 0)
                         endIndex = sDebug.length();
                     allowedChildren.addElement (sDebug.substring (0, endIndex));
-//	  System.out.println("Allowing Template " +
-//			     sDebug.substring (0, endIndex));
+//        System.out.println("Allowing Template " +
+//                           sDebug.substring (0, endIndex));
                 }
             }
         }
@@ -619,7 +621,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                                                     (idx1 + 1, idx2)).intValue();
                             newIndex = ((idx1 < 0) ? (newIndex + idx1) : idx1);
                         }
-                        break;		// exit while loop
+                        break;              // exit while loop
                     }
                 }
             }
