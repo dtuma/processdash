@@ -74,7 +74,9 @@ combine(Defects Removed);
 
 [Planning/Estimated Time]   = 0.05 * [Estimated Time];
 [Design/Estimated Time]     = 0.25 * [Estimated Time];
+[Design Review/Estimated Time] = 0;
 [Code/Estimated Time]       = 0.50 * [Estimated Time];
+[Code Review/Estimated Time] = 0;
 [Compile/Estimated Time]    = 0.05 * [Estimated Time];
 [Test/Estimated Time]       = 0.10 * [Estimated Time];
 [Postmortem/Estimated Time] = 0.05 * [Estimated Time];
