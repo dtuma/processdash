@@ -124,4 +124,7 @@ public class StringData implements SimpleData {
     public boolean greaterThan(SimpleData val) {
         return ((val instanceof StringData) && (cmp(val) > 0));
     }
+    public boolean test() {
+        return (value != null && value.length() > 0);
+    }
 }
