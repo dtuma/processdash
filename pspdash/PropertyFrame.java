@@ -194,6 +194,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 (tree, (DefaultTreeCellRenderer) tree.getCellRenderer()));
         } catch (ClassCastException cce) {}
         adjustMenu (false, true, false, null, null, null); // deselection case
+        addTemplateMenu.setEnabled (false);
 
         /* Put the Tree in a scroller. */
         JScrollPane sp = new JScrollPane
@@ -579,6 +580,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             moveUpMenuItem.setEnabled (false);
             moveDownMenuItem.setEnabled (false);
             adjustMenu (false, true, false, null, null, null);
+            addTemplateMenu.setEnabled (false);
             return;
         }
         Object [] path = tp.getPath();
