@@ -446,7 +446,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             validateCell = null;
             return false;
         }
-        switch (col) {
+        switch (table.table.getColumnModel().getColumn(col).getModelIndex()) {
         case 0:                     //Logged To (key) (must exist in hierarchy)
             PropertyKey key = useProps.findExistingKey (newValue);
             if (key == null || key.equals(tle.key) ||
@@ -731,7 +731,6 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                            "The elapsed time(minutes)",
                            "The interrupt time(minutes)"},
              null, this, 0, true, null, null);
-        table.table.getTableHeader().setReorderingAllowed(false);
         retPanel.add ("Center", table);
 
         JPanel btnPanel = new JPanel(false);
