@@ -39,7 +39,7 @@ that are shipped with the dashboard
             dataFile="Timer/dataFile.txt" href="Timer/script.htm"/>
 
   <template name="Generic" ID="Generic" defectLog="true" defineRollup="no"
-            dataFile="generic/dataFile.txt" htmlID="sum"
+            dataFile="generic/dataFile2.txt" htmlID="sum"
 	    constraints="{Generic Phase(-1)">
     <html ID="sum" title="Generic Project Planning Summary"
           href="generic/summary.class"/>
