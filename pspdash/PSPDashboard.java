@@ -58,6 +58,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     static final String DEFAULT_PROP_FILE = "state";
     String starting_dir       = "";
     String property_directory = null;
+    static String default_directory = null;
     String propertiesFile     = DEFAULT_PROP_FILE;
     static final String TEMPLATES_FILE = "state";
     PropertyKey currentPhase  = null;
@@ -114,6 +115,9 @@ public class PSPDashboard extends JFrame implements WindowListener {
         propertiesFile = Settings.getFile("stateFile");
         File prop_file = new File(propertiesFile);
         property_directory = prop_file.getParent() + Settings.sep;
+        try {
+            default_directory = prop_file.getParentFile().getCanonicalPath();
+        } catch (IOException ioe) {}
         DefectAnalyzer.setDataDirectory(property_directory);
         TimeLog.setDefaultFilename(getTimeLog());
 
@@ -256,6 +260,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
     public String getDirectory() {
         return (property_directory != null) ? property_directory : "";
     }
+
+    public static String getDefaultDirectory() { return default_directory; }
 
     public PSPProperties getProperties() {
         return props;

@@ -7,7 +7,9 @@
 <H1>Using the PROBE tool</H1>
 
 <P>The PROBE tool provides assistance in making estimates by performing the 
-PROBE calculations for you.</p>
+PROBE calculations for you. The PROBE tool can be opened by selecting the
+"PROBE" option on the <a href="../Execution/ConfigureMenu.html">configure
+menu</a>.</p>
 
 <p><img src="../../Images/ProbeToolStart.png"></p>
 
@@ -70,7 +72,7 @@ method.  The degree of confidence as measured by the r<sup>2</sup> variable
 is shown on the dialog by its color.  When the value is too low to be used 
 for predictive purposes, the r<sup>2</sup> value will show up in red.  Values 
 that show better and better agreement are shown in different colors.  The 
-colors used are: red (very bad), yellow/orange (bad), blue (good), and black 
+colors used are: red (very bad), yellow/orange (fair), blue (good), and black 
 (very good).</p>
 
 <a name="significance"></a><h3>The significance measurement</h3>
@@ -99,8 +101,10 @@ like.  Setting the confidence interval higher will give you a wider range of
 possible values, and setting the interval lower will narrow the range of 
 possible values.</p>
 
-<P>The tool will update all of its data, if possible.  Some calculations may 
-come out with errors do to the mathematics if the data is poorly correlated.  
+<P>As you change the input parameters, the tool will relcalculate all the
+numbers appropriately.  Some calculations may display ERROR if the data is
+poorly correlated, or if there are not enough historical data points to
+perform the calculation.
 The projected estimate will show up at the top of both columns (the left 
 column showing the projection using linear regression and the right column 
 showing the projection based on an averaging technique).  It is up to you to 

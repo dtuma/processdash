@@ -35,7 +35,7 @@
       <tocitem image="PageIcon" target="HierarchyMenus" text="Navigating the Hierarchy menus"/>
       <tocitem image="PageIcon" target="AccessingScripts" text="Accessing the online PSP scripts"/>
       <tocitem image="PageIcon" target="PlayPause" text="Using the Play/Pause button to time your work"/>
-      <tocitem image="PageIcon" target="CompletionButton" text="Completing tasks with the completion button"/>
+      <tocitem image="PageIcon" target="CompletionButton" text="Completing tasks with the completion checkbox"/>
       <tocitem image="PageIcon" target="UsingTimeLogEditor" text="Editing Time data" />
       <tocitem image="PageIcon" target="EnteringDefects" text="Entering Defects"/>
       <tocitem image="PageIcon" target="UsingDefectLogEditor" text="Editing Defect data"/>

@@ -9,86 +9,165 @@
 <P>This is a list of Frequently Asked Questions about the Process Dashboard</P>
 
 <UL>
+ <LI><a href="FAQ.html#NoServer">My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</A></LI>
  <LI><a href="FAQ.html#NoConnection">All my data elements say "NO CONNECTION".  What is wrong?</A></LI>
  <LI><a href="FAQ.html#ERROR">Some of my data elements say "ERROR".  What is wrong?</A></LI>
  <LI><a href="FAQ.html#WhereIsConfig">Where is the configuration file located?</A></LI>
  <LI><a href="FAQ.html#NoSubmit">Why is there no "submit" button on the HTML forms?</A></LI>
  <LI><a href="FAQ.html#TimerUpdate">I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</A></LI>
+ <LI><a href="FAQ.html#WhereData">Where is my PSP data stored?</A></LI>
+ <LI><a href="FAQ.html#MoveData">How can I backup my psp data and/or move it to another computer?</A></LI>
  <LI><a href="FAQ.html#FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
  <LI><a href="FAQ.html#DCRSCR">What happened to the DCR and SCR processes?</A></LI>
  <LI><a href="FAQ.html#Website">Where can I get the latest information about the Process Dashboard?</A></LI>
  <LI><a href="FAQ.html#BugReport">I think I've found a bug.  Whom do I contact?</A></LI>
 </UL>
 
-<HR>
+<P><HR><a name="NoServer"></a><B>My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</B></P>
 
-<P><a name="NoConnection"></a><B>All my data elements say "NO CONNECTION".  What is wrong?</B></P>
-<P>The scripting on the web pages that connects the web browser to the 
-dashboard will return "NO CONNECTION" when the dashboard is not running.  The 
-dashboard actually contains a very small HTTP server that provides all the 
-web content and thus the content cannot be displayed when the dashboard is 
-not running.</P>
+<P>The dashboard actually contains a very small HTTP server that provides all
+the web content and thus the content cannot be displayed when the dashboard is
+not running.  If you get an error message like "The page cannot be displayed -
+cannot find server" from Internet Explorer, or "Netscape is unable to locate
+the server localhost" from Netscape, check to make certain that the dashboard
+is running.</p>
 
-<P><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B>
-<P>Any time the dashboard runs into an error trying to calculate a particular 
-data value, "ERROR" will show up in the web browser for that data element.  
-Many times this is due to having a very small number of usable data points 
-recorded by the dashboard.  For instance, if you start the dashboard for the 
-first time and try to look at Process Summary forms for a PSP2.1 process, the 
-"% To Date" fields will be filled with "ERROR".  This is because the total 
-amount of time recorded in the tool is 0.  The percentage calculation 
-attempts to divide by zero and returns the error.</P>
+<P>If the dashboard <b>is</b> running, and you have <b>never</b> been able to
+ view a script/form/chart/report, it may be that you need to adjust your proxy
+ settings.  Many people work at companies where they do not have a direct
+ connection to the internet, but instead must connect to the web via an HTTP
+ proxy server. If this describes you, you may need to tell your browser to
+ bypass the proxy for the address "localhost". The instructions below may not
+ apply to your browser word-for-word, but should hopefully get you pointed in
+ the right direction:
+  <UL>
+   <LI>For Internet Explorer, choose "Tools &gt; Internet Options". Click on 
+      the "Connections" tab, then on the "LAN Settings" button. Make certain 
+      the "Bypass proxy server for local addresses" box is 
+      <B><STRONG>checked</STRONG></B>.</li>
+   <LI>For Netscape, choose "Edit &gt; Preferences". Under the Category 
+      "Advanced &gt; Proxies", click the "Manual proxy configuration" button, 
+      and ensure that the "No Proxy for" box contains "localhost".</LI>
+  </UL></p>
+
+
+<P><HR><a name="NoConnection"></a><B>All my data elements say "NO CONNECTION".  What is wrong?</B></P>
+
+<P>The forms always display "live" data - this allows them to auto-recalculate
+numbers (like a spreadsheet does) when you edit data.  It also allows changes
+made in one browser window to appear immediately in other browser windows. To
+make all this happen, the browser maintains an open connection to the
+dashboard, and passes data back and forth across this connection.</P>
+
+<P>If you are viewing a form, and you close the main dashboard window, this
+open connection is closed as well.  When this occurs, the form immediately
+displays "NO CONNECTION" to let you know that your changes are no longer making
+it back to the dashboard's data repository. To fix the problem, you must<OL>
+<LI>restart the dashboard, then
+<LI>click the refresh button on your browser.</OL></P>
+
+<P><HR><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B>
+<P>Any time the dashboard runs into an error (like divide-by-zero) when
+calculating a particular data value, "ERROR" will show up in the web browser
+for that data element. Many times this is due to having a very small number of
+usable data points recorded by the dashboard.  For instance, if you start the
+dashboard for the first time and try to look at Process Summary forms for a
+PSP2.1 process, the "% To Date" fields will be filled with "ERROR".  This is
+because the total amount of time recorded in the tool is 0.  The percentage
+calculation attempts to divide by zero and returns the error.</P>
 
 <P>Another problem can contribute to this condition as well.  If you are not 
-in the habit of clicking the little "completion" button at the right end of 
+in the habit of clicking the little "completion" checkbox at the right end of 
 the dashboard, some (or all) of your data will be ignored by the dashboard 
 when creating reports and graphs.  The reporting features of the dashboard 
 only report tasks that are marked as complete.  See the <a 
-href="../Execution/CompletionButton.html">Using the Completion Button</a> 
+href="../Execution/CompletionButton.html">Using the Completion Checkbox</a> 
 help topic for more information.</P>
 
-<P><a name="WhereIsConfig"></A><B>Where is the configuration file located?</B></P>
-<P>The configuration file is named .pspdash on Unix systems and pspdash.ini 
-on Windows systems.  It can be located in either of two places: the user's 
-data directory or in the same directory as the pspdash.jar file.  The 
-dashboard looks in the data directory first, then in the pspdash.jar 
-installation directory.  See the <a 
-href="../AdvancedTopics/ConfigurationFile.html">configuration file</A> help 
-topic for more information about the configuration file and the settings that 
+<P><HR><a name="WhereIsConfig"></A><B>Where is the configuration file located?</B></P>
+<P>The configuration file is named <code>.pspdash</code> on Unix systems and
+<code>pspdash.ini</code> on Windows systems.  It can be located in either of
+two places: the user's data directory or (on Unix systems) the user's home
+directory.  The dashboard looks in the data directory first, then in the user's
+home directory.  To find out exactly where your configuration file is located,
+choose "About" from the configuration menu, then click on the link for "user
+settings". See the <a
+href="../AdvancedTopics/ConfigurationFile.html">configuration file</A> help
+topic for more information about the configuration file and the settings that
 can be defined there.</P>
 
-<P><a name="NoSubmit"></A><B>Why is there no "submit" button on the HTML forms?</B></P>
+<P><HR><a name="NoSubmit"></A><B>Why is there no "submit" button on the HTML forms?</B></P>
 <P>The HTML forms used by the dashboard are continually "live".  There is no 
 need to press a submit button to send your data to the dashboard.  Simply 
-enter your data where necessary, and the dashboard will record it.</P>
+enter your data where necessary, and the dashboard will record it.  (However,
+after editing a data field, it is usually necessary to leave that field for
+your changes to take effect.  You can press the TAB button or click somewhere
+else on the page, and you should see other data elements
+</P>
 
-<P><a name="TimerUpdate"></a><B>I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</b></P>
-<P>Unlike the data input fields and various fields that can be calculated, 
-the elements that report time on the reports do not update continually.  
-However, they do get updated eventually.  The form will show changes to the 
-time measurement approximately every five minutes.  Also, when a change is 
-made from one process phase to another the timing numbers get updated.</P>
 
-<P><a name="FormsColors"></a><b>What is the significance of the different text colors on the PSP process scripts and forms?</b></p>
+<P><HR><a name="TimerUpdate"></a><B>I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</b></P>
+
+<p>When the timer is running and you first navigate to an activity, the
+dashboard will not create an entry in the time log until you have spent a full
+minute there; this is by design.  For a more detailed explanation, see the
+help topic for the <a href="../Execution/PlayPause.html#timelogdelay">play /
+pause button</a>.
+
+<P><HR><a name="WhereData"></a><B>Where is my PSP data stored?</B></A></P>
+<P>The dashboard stores all of your data in a single directory, in plain text
+files.  This directory is often referred to in this documentation as the "data
+directory".  With the current default configuration, data is always stored in
+the "current working directory" when the dashboard is run.</P>
+
+<P>On Windows systems, the "current working directory" is set by the icon you
+use to run the dashboard.  If you right-click on that icon and choose
+"Properties", there will be a text field labelled "Start in:" which identifies
+your data directory.  Altering this value will change the location where the
+dashboard looks for your data.  It is possible to have multiple, independent
+data directories all on the same machine; just make copies of the icon you use
+to start the dashboard, and give each icon a different value for the "Start in"
+directory.</P>
+
+<P>You can find out the exact location of your data directory by choosing
+"About" from the configuration menu, then clicking on the link for "user
+settings".</p>
+
+
+<P><HR><a name="MoveData"></A><B>How can I backup my psp data and/or move it to another computer?</B></P>
+
+<P>If you want to backup your psp data, simply back up the contents of your
+<a href="#WhereData">data directory</a>.  To move your psp data to a different
+computer,<UL>
+<LI>stop the dashboard if it is running</LI>
+<LI>copy the contents of your data directory to a directory on the new
+    computer</LI>
+<LI>run the dashboard on the new computer, using the chosen directory as the
+    data directory.</LI></UL></P>
+
+
+<P><HR><a name="FormsColors"></a><b>What is the significance of the different text colors on the PSP process scripts and forms?</b></p>
 <P>In his book <I>A Discipline for Software Engineering</I> where he outlines 
 the Personal Software Process, Watts Humphrey introduces the various process 
 elements for doing PSP work in a graduated manner.  Each PSP process is built 
 upon the previous one.  As a way of showing which process elements were added 
 to the previous process definition, the forms in the book highlight the new 
-process elements.  These highlighted elements return to normal text at the 
-next process level.</P>
+process elements in <b><i>bold italics</i></b>.  These highlighted elements
+return to normal text at the next process level. In our attempt to make our
+online forms as identical to the PSP forms as possible, we have included that
+detail.</P>
 
-<P>In our attempt to make our online forms as identical to the PSP forms as 
-possible, we have included that detail.  However, there are many places where 
-the Process Dashboard makes certain steps on the scripts and forms 
-unnecessary (e.g. instructions to sum up various data items -- the dashboard 
-sums them for you).  Also there are places where the dashboard slightly 
-changes the way certain steps are performed (e.g. instead of performing a 
-PROBE calculation, the PROBE tool should be used).  In these cases, the color 
-in the forms changes to indicate this slight departure from the "true PSP 
-forms".</P>
+<P>However, the Process Dashboard makes certain steps on the scripts and forms
+unnecessary (e.g. instructions to sum up various data items -- the dashboard
+sums them for you).  These unnecessary process steps are displayed as
+greyed-out text.</P>
 
-<P><a name="DCRSCR"></a><b>What happened to the DCR and SCR processes?</b></p>
+<P>Also, there are places where the dashboard <i>slightly</i> changes the way
+certain steps are performed (e.g.  instead of performing a PROBE calculation,
+the PROBE tool should be used).  Green text is used to indicate this slight
+departure from the <i>true</i> PSP scripts and forms.</P>
+
+<P><HR><a name="DCRSCR"></a><b>What happened to the DCR and SCR processes?</b></p>
 <P>The DCR and SCR processes which were shipped with prior versions of the 
 Process Dashboard are still available, but are now distributed as add-on 
 process sets.  They can be downloaded from the Process Dashboard website at 
@@ -96,12 +175,12 @@ process sets.  They can be downloaded from the Process Dashboard website at
 installation of add-on process sets, see the <a 
 href="../Overview/HowToInstall.html">installation</a> help topic.</p>
 
-<P><a name="Website"></a><b>Where can I get the latest information about the Process Dashboard?</b></p>
+<P><HR><a name="Website"></a><b>Where can I get the latest information about the Process Dashboard?</b></p>
 <P>The latest developments in the development of the Process Dashboard, 
-including the latest version can be found at 
+including the latest version, can be found at 
 <em>http://processdash.sourceforge.net.</em></p>
 
-<P><a name="BugReport"></a><B>I think I've found a bug.  Whom do I contact?</b></p>
+<P><HR><a name="BugReport"></a><B>I think I've found a bug.  Whom do I contact?</b></p>
 <P>You can fill out a bug form on our web site at 
 <em>http://sourceforge.net/bugs/?group_id=9858</em> or if you would rather 
 send us an email, write to <em>processdash-devel@lists.sourceforge.net</em></p>

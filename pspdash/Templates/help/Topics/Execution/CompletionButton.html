@@ -1,21 +1,17 @@
 <HTML>
 <head>
-<TITLE>Using the completion button</TITLE>
+<TITLE>Using the completion checkbox</TITLE>
 </head>
 <BODY>
 
-<H1>Using the completion button</H1>
+<H1>Using the completion checkbox</H1>
 
 <P>As you complete the activities for a given process phase, you should mark
-that phase as completed via the completion button.</P>
+that phase as completed via the completion checkbox.</P>
 
 <p><img src="../../Images/PointToCompletionButton.png"></p>
 
-<P>When you mark a phase as completed, the data associated with that phase 
-will show up in the various Project Summary forms in the "To Date" entries, 
-the data analysis reports, and the PROBE tool.</p>
-
-<P>When the completion button is pressed the dashboard moves the current 
+<P>When the completion checkbox is pressed, the dashboard moves the current 
 phase to the next phase prescribed by the running process template.  If the 
 timer is currently running, it will automatically stop recording time for the 
 given phase and start the timing of the next phase.  For more information on 
@@ -23,7 +19,8 @@ using the timer, see the <a href="PlayPause.html">Using the Play/Pause
 button</A> help topic.</P>
 
 <P>Phases marked as complete will show a little checkmark in the completion 
-button.</P>
+checkbox.  (If you hover the mouse over the checked box, the tooltip will tell
+you exactly what date and time the phase was marked complete.)</P>
 
 <p><img src="../../Images/ShowCheckedCompletionButton.png"></p>
 
@@ -31,8 +28,20 @@ button.</P>
 complete.</P>
 
 <P>If you need to go back to a previous phases in a given process, you can 
-still do so even if the completion button has been pressed.  The dashboard 
+still do so even if the completion checkbox has been pressed.  The dashboard 
 will still accumulate time in whatever phase you make current.</P>
+
+<p>As a convenience, if you mark the final <b>phase</b> in a project complete,
+it will automatically mark the <b>project</b> complete as well.  Still, the
+completion flag for the project and the completion flag for the last phase are
+distinct entities, so marking the final phase incomplete will <b>not</b> also
+mark the project incomplete.  You can typically edit the project completion
+flag via the Project Plan Summary form.</p>
+
+<P>It is worth remembering that the "To Date" data entries, the data analysis
+reports, and the PROBE tool only use data from projects that are marked
+complete, so it is good to make a habit of marking your projects complete,
+either with the completion checkbox or via the Project Plan Summary form.</p>
 
 <a name="freeze"></a><h2>"Freezing" data</h2>
 
@@ -44,12 +53,12 @@ project.</p>
 <P>In PSP process levels 0.1 and above, when you are planning your project 
 the dashboard will use your historical data to help you create an estimate of 
 how your total time will be distributed across the process phases.  Once you 
-click the completion button to complete the planning phase, your time 
+click the completion checkbox to complete the planning phase, your time 
 estimate and those computed data elements will be frozen so that your planned 
 data will always stay constant (if you really want to know more about why 
 this is necessary, read the <a href="#gory">gory details</a> section).</p>
 
-<P>When you click the completion button on the postmortem phase of the 
+<P>When you click the completion checkbox on the postmortem phase of the 
 project, the project itself gets marked as completed.  At this point the To 
 Date numbers will be brought up to date and frozen.  This will enable you to 
 view this report again in the future without having the To Date numbers 
@@ -57,7 +66,7 @@ changing in the report.</p>
 
 <P>One side effect of the freezing of data is that if you want to change your 
 time estimate, you will have to navigate back to the Planning phase and mark 
-it as incomplete by clicking the completion button again.  Once it has been 
+it as incomplete by clicking the completion checkbox again.  Once it has been 
 marked as incomplete the dashboard will allow you to enter a different 
 estimate.</p>
 
