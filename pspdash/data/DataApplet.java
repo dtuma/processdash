@@ -89,8 +89,12 @@ public class DataApplet extends java.applet.Applet
             if ((s = Settings.getVal("browser.readonly.color")) != null)
                 readOnlyColorString = s;
             debug = Settings.getBool("dataApplet.debug", false);
-            if (!Settings.getBool("dataApplet.quiet", false))
-                dataStoredSound = getAudioClip(getCodeBase(), "/dataStored.au");
+            if (!Settings.getBool("dataApplet.quiet", false)) {
+                String soundFile =
+                    (System.getProperty("java.version").startsWith("1.1")
+                     ? "/dataStored.au" : "/dataStored.wav");
+                dataStoredSound = getAudioClip(getCodeBase(), soundFile);
+            }
 
         } catch (RemoteException e) {
             debug("got remote exception.");
