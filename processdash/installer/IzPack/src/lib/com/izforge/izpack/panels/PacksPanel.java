@@ -321,7 +321,7 @@ public class PacksPanel extends IzPanel implements ActionListener,ListSelectionL
                     return new Integer( val );
 
                 case 1:
-                    return pack.name;
+                    return pack.getDisplayName();
 
                 case 2:
                     return Pack.toByteUnitsString((int)pack.nbytes);
@@ -365,7 +365,7 @@ public class PacksPanel extends IzPanel implements ActionListener,ListSelectionL
         if (i >= 0)
         {
             Pack pack = (Pack) idata.availablePacks.get(i);
-            descriptionArea.setText(pack.description);
+            descriptionArea.setText(pack.getDisplayDescription());
         }
     }
 

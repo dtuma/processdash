@@ -139,7 +139,7 @@ public class Unpacker extends Thread
 
                 // We unpack the files
                 int nfiles = objIn.readInt();
-                handler.nextStep (((Pack) packs.get(i)).name, i+1, nfiles);
+                handler.nextStep (((Pack) packs.get(i)).getDisplayName(), i+1, nfiles);
                 for (int j = 0; j < nfiles; j++)
                 {
                     // We read the header

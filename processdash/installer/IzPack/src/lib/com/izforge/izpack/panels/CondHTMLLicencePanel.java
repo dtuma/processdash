@@ -254,7 +254,7 @@ public class CondHTMLLicencePanel extends IzPanel implements HyperlinkListener, 
         for (int i = 0; i < idata.selectedPacks.size (); i++)
         {
             Pack p = (Pack)idata.selectedPacks.get (i);
-            String packName = p.name;
+            String packName = p.getDisplayName();
             String packID = p.id;
             if (forPacks.contains(packID)) {
                 selectedPacks.add(p);

@@ -167,7 +167,7 @@ public class ImgPacksPanel extends IzPanel implements ActionListener, ListSelect
         Pack pack = (Pack) idata.availablePacks.get(index);
         checkBox.setEnabled(!pack.required);
         checkBox.setSelected(idata.selectedPacks.contains(pack));
-        descLabel.setText(pack.description);
+        descLabel.setText(pack.getDisplayDescription());
 
     }
 
@@ -241,7 +241,7 @@ public class ImgPacksPanel extends IzPanel implements ActionListener, ListSelect
         Pack pack = (Pack) idata.availablePacks.get(index);
         checkBox.setEnabled(!pack.required);
         checkBox.setSelected(idata.selectedPacks.contains(pack));
-        descLabel.setText(pack.description);
+        descLabel.setText(pack.getDisplayDescription());
     }
 
 
