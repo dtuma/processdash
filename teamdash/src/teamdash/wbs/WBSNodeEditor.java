@@ -577,7 +577,7 @@ public class WBSNodeEditor extends AbstractCellEditor
 
 
         /** Event object which can be used to resume an interrupted editing
-                 * session */
+         * session */
         class RestartEditingEvent extends EventObject implements Runnable {
             /** Which node were we editing when we saved editing state? */
             private WBSNode savedStateFromNode;
