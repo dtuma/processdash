@@ -72,7 +72,7 @@ public class ConcurrencyLock {
      */
     public ConcurrencyLock(String directory, int port, String timeStamp) {
 
-        String currentHost = "127.0.0.1";
+        String currentHost = LOOPBACK_ADDR;
         try {
             // Look up the address of the local host (where our web server
             // is currently running).
@@ -98,7 +98,8 @@ public class ConcurrencyLock {
              * on that socket.  And if we connect to this host/port, we'll
              * just be talking to ourselves!
              */
-            if (!otherHost.equals(currentHost) || otherPort != port) {
+            if ((!otherHost.equals(currentHost) &&
+                 !otherHost.equals(LOOPBACK_ADDR)) || otherPort != port) {
 
                 URL testUrl = new URL("http", otherHost, otherPort, RAISE_URL);
                 HttpURLConnection conn =
@@ -157,6 +158,7 @@ public class ConcurrencyLock {
             System.exit(0);
         }
     }
+    private static final String LOOPBACK_ADDR = "127.0.0.1";
 
     private String getPath(File file) {
         File parent = file.getParentFile();
