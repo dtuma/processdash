@@ -12,6 +12,7 @@
  <LI><a href="FAQ.html#NoServer">My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</A></LI>
  <LI><a href="FAQ.html#NoConnection">All my data elements say "NO CONNECTION".  What is wrong?</A></LI>
  <LI><a href="FAQ.html#ERROR">Some of my data elements say "ERROR".  What is wrong?</A></LI>
+ <LI><a href="FAQ.html#BadExcel">I tried to export my data to Excel with the link on one of the forms, but I just got a small ASCII file.  What is wrong?</A></LI>
  <LI><a href="FAQ.html#WhereIsConfig">Where is the configuration file located?</A></LI>
  <LI><a href="FAQ.html#NoSubmit">Why is there no "submit" button on the HTML forms?</A></LI>
  <LI><a href="FAQ.html#TimerUpdate">I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</A></LI>
@@ -66,7 +67,7 @@ it back to the dashboard's data repository. To fix the problem, you must<OL>
 <LI>restart the dashboard, then
 <LI>click the refresh button on your browser.</OL></P>
 
-<P><HR><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B>
+<P><HR><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B></P>
 <P>Any time the dashboard runs into an error (like divide-by-zero) when
 calculating a particular data value, "ERROR" will show up in the web browser
 for that data element. Many times this is due to having a very small number of
@@ -83,6 +84,51 @@ when creating reports and graphs.  The reporting features of the dashboard
 only report tasks that are marked as complete.  See the <a 
 href="../Execution/CompletionButton.html">Using the Completion Checkbox</a> 
 help topic for more information.</P>
+
+<P><HR><a name="BadExcel"></a><B>I tried to export my data to Excel with the 
+   link on one of the forms, but I just got a small ASCII file.  What is 
+   wrong?</B></P>
+<P>You need to setup the file association for .IQY files.  .IQY files specify 
+an "<b>I</b>nternet <b>Q</b>uer<b>Y</b>" file for Excel.  Depending on how 
+Microsoft Office was installed on your computer, this file association may 
+not have been created.</p>
+
+<P>To set it up manually, choose the "File Types" tab from within the file 
+explorer by choosing Tools -&gt; Folder Options -&gt; File Types.  Look for 
+the file extension "IQY" in the list of extensions.  Select it and click the 
+"Change..." button (if it is not in the list, choose the "New" button).</p>
+
+<P>The exact sequence of things to do depends on what version of Windows you 
+are running.  You may only need to set the program that Windows uses to open 
+IQY files, but you may also need to set a few other values. Many of these 
+values may be accessed via an "Advanced" button. Here is a list of what needs 
+to be set to what value:</p>
+
+<ul>
+ <li>Extension: IQY
+ <li>File Type: "Microsoft Excel Web Query File"</li>
+ <li>Details for the <b>Open</b> action:
+  <ul>
+   <li>Application used to perform action: Should be set to the full pathname 
+     for Excel.  A typical value would be 
+     C:\Program Files\Microsoft Office\Office\EXCEL.EXE</li>
+   <li>Use DDE: checked</li>
+   <li>DDE Message: [open("%1")]</li>
+   <li>Application: Excel</li>
+   <li>DDE Application not running: &lt;leave this field blank&gt;
+   <li>Topic: system</li>
+  </ul>
+ </li>
+</ul>
+
+<P>If this still doesn't cause Excel to automatically open the data from the 
+dashboard, you may have to save the .IQY file and then open it manually from 
+within Excel.  To get the data this way, choose Data -&gt; Get External Data 
+-&gt; Run Web Query from within Excel.  Then browse to where you saved the 
+.IQY file and choose it.</p>
+
+<P>You may have to reinstall Excel to get this feature to work 
+automatically.</p>
 
 <P><HR><a name="WhereIsConfig"></A><B>Where is the configuration file located?</B></P>
 <P>The configuration file is named <code>.pspdash</code> on Unix systems and
