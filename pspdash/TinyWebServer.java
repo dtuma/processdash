@@ -328,21 +328,10 @@ public class TinyWebServer extends Thread {
         private URLConnection resolveURL(String url)
             throws TinyWebThreadException
         {
-            URL u;
-            URLConnection result;
-            for (int i = 0;  i < roots.length;  i++) try {
-                u = new URL(roots[i], url);
-                // System.out.println("trying url: " + u);
-                result = u.openConnection();
-                // System.out.println("connection opened.");
-                result.connect();
-                // System.out.println("connection connected.");
-                // System.out.println("Using URL: " + u);
-                return result;
-            } catch (IOException ioe) { }
-
-            sendError(404, "Not Found", "File '" + url + "' not found.");
-            return null;        // this line will never be reached.
+            URLConnection result = TinyWebServer.this.resolveURL(url);
+            if (result == null)
+                sendError(404, "Not Found", "File '" + url + "' not found.");
+            return result;
         }
 
         /** Resolve a relative URL */
@@ -552,7 +541,8 @@ public class TinyWebServer extends Thread {
         }
         private void doneWithScript(Object script) {
             CGIPool pool = (CGIPool) cgiCache.get(path);
-            pool.release(script);
+            if (pool != null)
+                pool.release(script);
         }
 
 
@@ -879,6 +869,23 @@ public class TinyWebServer extends Thread {
         }
     }
 
+    private URLConnection resolveURL(String url) {
+        URL u;
+        URLConnection result;
+        for (int i = 0;  i < roots.length;  i++) try {
+            u = new URL(roots[i], url);
+            // System.out.println("trying url: " + u);
+            result = u.openConnection();
+            // System.out.println("connection opened.");
+            result.connect();
+            // System.out.println("connection connected.");
+            // System.out.println("Using URL: " + u);
+            return result;
+        } catch (IOException ioe) { }
+
+        return null;
+    }
+
 
     /** Encode HTML entities in the given string, and return the result. */
     public static String encodeHtmlEntities(String str) {
@@ -1011,6 +1018,34 @@ public class TinyWebServer extends Thread {
         return getRequest(uri, skipHeaders);
     }
 
+    /** Perform an internal http request and return raw results.
+     *
+     * Server-parsed HTML files are returned verbatim, and
+     * cgi scripts are returned as binary streams.
+     */
+    public byte[] getRawRequest(String uri)
+        throws IOException
+    {
+        try {
+            if (uri.startsWith("/"))
+                uri = uri.substring(1);
+            URLConnection conn = resolveURL(uri);
+            if (conn == null) return null;
+
+            InputStream in = conn.getInputStream();
+            byte[] result = slurpContents(in, true);
+            return result;
+        } catch (IOException ioe) {
+            return null;
+        }
+    }
+
+    /** Clear the classloader caches, so classes will be reloaded.
+     */
+    public void clearClassLoaderCaches() {
+        cgiLoaderMap.clear();
+        cgiCache.clear();
+    }
 
     /** Parse the HTTP headers in text, and put them into the dest map.
      *  Returns the number of bytes of header information found and parsed,
