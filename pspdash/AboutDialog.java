@@ -39,7 +39,7 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
      */
     public AboutDialog(Frame parent, String text) {
         super(parent, "About");
-        setSize(400, 300);
+        setSize(400, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         JEditorPane jep = new JEditorPane();
