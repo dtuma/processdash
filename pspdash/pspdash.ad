@@ -128,7 +128,7 @@ import.directories=Imported=>./import
 # names currently in use, override this definition and check the
 # combo box lists in the probe dialog.
 #
-hiddenData=^(PSP Project|LOC|SCR|DCR|SCRCYCLE|TIMER|PSPFORENG|GENERIC|INSPECTION|Project/Language|Estimated KLOC|KLOC)$|Total Time|\\d|To Date| per |/Estimated Defects|/Estimated Time|/Estimated DRL|/Combined|^Cycles|Defect Type Standard|FreezeFlag|^Generic - Show|^PM/|New & Changed KLOC|PSP Phase|GENERICPHASE|_|//|node$|leaf$|/Interval Percent$|/R Squared$|/Range$
+hiddenData=^(LOC|ESTIMATED Time|Project/Language|Estimated KLOC|KLOC)$|Total Time|\\d|To Date| per |/Estimated Defects|/Estimated Time|/Estimated DRL|/Combined|^Cycles|Defect Type Standard|FreezeFlag|^Generic - Show|^PM/|New & Changed KLOC|_|//|node$|leaf$|/Interval Percent$|/R Squared$|/Range$|/Estimated Appraisal Rate$|/Estimated Defect Density$|/Cumulative Defect |/Estimated Defect |Completed
 
 
 #
