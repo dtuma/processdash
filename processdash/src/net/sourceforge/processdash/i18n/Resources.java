@@ -217,7 +217,8 @@ public class Resources extends ResourceBundle {
         String bundlePrefix = null;
         String bundleBaseName = getBundleBaseName(bundleName);
         if (!bundleName.equals(bundleBaseName))
-            bundlePrefix = bundleName.substring(bundleBaseName.length()+1);
+            bundlePrefix = bundleName.substring(bundleBaseName.length()+1)
+                .replace(PREFIX_SEPARATOR, '.');
 
         ResourceBundle realBundle = ResourceBundle.getBundle
             (bundleBaseName, Locale.getDefault(), RESOURCE_LOADER);

@@ -39,7 +39,7 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 public class DefectFixTimeReport extends TinyCGIBase implements DefectAnalyzer.Task {
 
     private static final Resources resources =
-        Resources.getDashBundle("Defects.D22");
+        Resources.getDashBundle("Defects.R3.D22");
 
     /** Generate CGI script output. */
     protected void writeContents() {
@@ -68,7 +68,7 @@ public class DefectFixTimeReport extends TinyCGIBase implements DefectAnalyzer.T
         out.println("<TD>" + avgTime(INJ_DESIGN, REM_TEST) + "</TD>");
         out.println("<TD>" + avgTime(INJ_DESIGN, REM_TOTAL) + "</TD></TR>");
 
-        printRes("<TR><TD rowspan=3>Defects injected in coding</TD>");
+        printRes("<TR><TD rowspan=3>${Injected_Coding}</TD>");
         printRes("<TD ALIGN=right NOWRAP>${Total_Fix_Time}</TD>");
         out.println("<TD>" + time(INJ_CODE, REM_COMPILE) + "</TD>");
         out.println("<TD>" + time(INJ_CODE, REM_TEST) + "</TD>");

@@ -85,10 +85,10 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
         "<TD colspan=2>${D23.Percentage_Removed}</TD></TR>\r\n" +
 
         "<TR><TD>${D23.Type}</TD>\r\n" +
-        "<TD>Design</TD><TD>Code</TD>\r\n" +
-        "<TD>Design</TD><TD>Code</TD>\r\n" +
-        "<TD>Compile</TD><TD>Test</TD>\r\n" +
-        "<TD>Compile</TD><TD>Test</TD></TR>\r\n";
+        "<TD>${Design}</TD><TD>${Code}</TD>\r\n" +
+        "<TD>${Design}</TD><TD>${Code}</TD>\r\n" +
+        "<TD>${Compile}</TD><TD>${Test}</TD>\r\n" +
+        "<TD>${Compile}</TD><TD>${Test}</TD></TR>\r\n";
 
     private static final String D24_HEADER =
         "<H3>${D24.Title}</H3>\r\n" +

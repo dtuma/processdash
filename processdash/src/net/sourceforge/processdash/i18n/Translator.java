@@ -31,6 +31,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.templates.TemplateLoader;
 
 
@@ -38,6 +39,12 @@ public class Translator {
 
     /** The translation engine in use */
     private static TranslationEngine TRANSLATOR = null;
+
+    /** Translation resources in use */
+    private static Map TRANSLATION_ITEMS = null;
+
+    /** Should string translations be strict? */
+    private static boolean STRICT_STRING_TRANSLATION = false;
 
 
     /** Returns true if a translation engine is operating.
@@ -60,7 +67,10 @@ public class Translator {
         try{
             if (TRANSLATOR == null || s == null)
                 return s;
-            else
+            else if (STRICT_STRING_TRANSLATION) {
+                String result = (String) TRANSLATION_ITEMS.get(s);
+                return (result != null ? result : s);
+            } else
                 return TRANSLATOR.translateString(s);
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,6 +102,8 @@ public class Translator {
         TRANSLATOR = null;
         createCustomEngine();
         if (TRANSLATOR == null) createDefaultEngine();
+        STRICT_STRING_TRANSLATION = Settings.getBool
+            ("i18n.strictTranslation", true);
         //System.out.println("Translator is " +
         //                   (TRANSLATOR == null ? "OFF" : "ON"));
     }
@@ -113,9 +125,8 @@ public class Translator {
             Class c = cl.loadClass(className);
             try {
                 Constructor cstr = c.getConstructor(new Class[] { Map.class });
-                Resources r = Resources.getGlobalBundle();
                 TRANSLATOR = (TranslationEngine) cstr.newInstance
-                    (new Object[] { r.asMap() });
+                    (new Object[] { buildTranslationItemsMap() });
             } catch (Exception e) {
                 TRANSLATOR = (TranslationEngine) c.newInstance();
             }
@@ -155,11 +166,30 @@ public class Translator {
             Locale l = r.getLocale();
             String lang = l.getLanguage();
             if (lang != null && lang.length() != 0) {
-                TRANSLATOR = new DefaultEngine(r.asMap());
+                TRANSLATOR = new DefaultEngine(buildTranslationItemsMap());
                 System.out.println("Created default translation engine.");
             }
         } catch (Exception e) {
         }
+    }
+
+    private static Map buildTranslationItemsMap() {
+        Resources r = Resources.getGlobalBundle();
+        Map m = r.asMap();
+
+        TRANSLATION_ITEMS = new HashMap();
+        TRANSLATION_ITEMS.putAll(m);
+        Iterator i = m.keySet().iterator();
+        while (i.hasNext()) {
+            String key = (String) i.next();
+            if (key.indexOf('_') == -1)
+                continue;
+
+            String modKey = key.replace('_', ' ');
+            TRANSLATION_ITEMS.put(modKey, r.getString(key));
+        }
+
+        return m;
     }
 
 }

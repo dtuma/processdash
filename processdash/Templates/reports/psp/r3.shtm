@@ -24,6 +24,7 @@
 // 
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 -->
+<!--#resources file="../reports" -->
 
 <HTML>
 <head>
@@ -33,17 +34,17 @@ TD        { text-align: center }
 TD.header { font-weight: bold;  font-size: large }
 TD.task   { text-align: left; white-space: nowrap }
 </style>
-<title>Report R3</title>
+<title><!--#echo R3.Title --></title>
 </head>
 <BODY>
 
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
-<H2>Report R3</H2>
+<H2><!--#echo R3.Title --></H2>
 
 <TABLE NAME=D21 BORDER>
 <TR>
-<TD class=header colspan=4>Defect Densities</TD>
-<TD class=header colspan=4>Compile and Test Defects</TD>
+<TD class=header colspan=4><!--#echo R3.Defect_Densities --></TD>
+<TD class=header colspan=4><!--#echo R3.Compile_and_Test_Defects --></TD>
 </TR>
 <!--#include file="../table.class?qf=psp/r3a.rpt&includable&c0=task" -->
 <!--#include file="../table.class?qf=psp/r3b.rpt&includable&c1=task" -->
@@ -51,7 +52,7 @@ TD.task   { text-align: left; white-space: nowrap }
 
 <P><!--#include file="r3c.class?qf=r3a.rpt" -->
 
-<P><A HREF="../excel.iqy"><I>Export to Excel</I></A>
+<P><A HREF="../excel.iqy"><I><!--#echo Export_to_Excel --></I></A>
 
 </BODY>
 </HTML>

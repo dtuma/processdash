@@ -25,16 +25,18 @@
 // 
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 -->
+<!--#resources file="../reports" -->
+
 <HTML>
 <HEAD>
 <link rel=stylesheet type="text/css" href="/style.css">
-<TITLE>Process Analysis</TITLE>
+<TITLE><!--#echo Process.Title --></TITLE>
 </HEAD>
 <BODY>
 
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
-<TABLE><TR><TD><H2>Process Analysis&nbsp;</H2></TD>
-<TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
+<TABLE><TR><TD><H2><!--#echo Process.Title -->&nbsp;</H2></TD>
+<TD VALIGN="BASELINE"><I><!--#echo More_Detail_Instruction --></I></TD></TR></TABLE>
 
 <!--#set var=q value="qf=process/productivity.rpt" #-->
 <!--#set var=small value="qf=small.rpt" #-->

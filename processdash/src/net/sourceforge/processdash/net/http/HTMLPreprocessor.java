@@ -687,6 +687,9 @@ public class HTMLPreprocessor {
             // fetch the requested url (relative to the current url) and
             // replace the include directive with its contents.
             String context = (String) env.get("REQUEST_URI");
+            int pos = context.indexOf("//");
+            if (pos != -1)
+                context = context.substring(pos+1);
             URL tempURL = new URL("http://ignored" + context);
             tempURL = new URL(tempURL, url);
             url = tempURL.getFile();

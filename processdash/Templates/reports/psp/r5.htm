@@ -25,6 +25,7 @@
 // 
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 -->
+<!--#resources file="../reports" -->
 
 <HTML>
 <head>
@@ -34,12 +35,12 @@ TD        { text-align: center }
 TD.header { font-weight: bold;  font-size: large }
 TD.task   { text-align: left; white-space: nowrap }
 </style>
-<title>Pareto Defect Analysis</title>
+<title><!--#echo Pareto.Title_Long --></title>
 </head>
 <BODY>
 
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
-<H2>Pareto Defect Analysis</H2>
+<H2><!--#echo Pareto.Title_Long --></H2>
 
 <IMG WIDTH=500 HEIGHT=400 SRC="r5a.class?qf=../compProj.rpt&categoryLabels=vertical&width=500&height=400&strict"> <BR> 
 <IMG WIDTH=500 HEIGHT=400 SRC="r5b.class?qf=../compProj.rpt&categoryLabels=vertical&width=500&height=400&strict">
