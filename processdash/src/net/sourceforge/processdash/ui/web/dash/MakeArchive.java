@@ -36,13 +36,13 @@ import java.io.OutputStream;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 
 import java.text.SimpleDateFormat;
 
 import java.util.Date;
 import java.util.Map;
 
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -82,9 +82,9 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
         out.print("<title>Archiving Dashboard Data</title>\n");
         out.print("<meta http-equiv='Refresh' "+
                   "content='1;URL=archive.class?run&uri=");
-        out.print(URLEncoder.encode(uri));
+        out.print(HTMLUtils.urlEncode(uri));
         out.print("&filename=");
-        out.print(URLEncoder.encode(filename));
+        out.print(HTMLUtils.urlEncode(filename));
         out.print("'>\n");
         out.print("</head><body><h1>Archiving Dashboard Data</h1>\n");
         out.print("Please wait while the dashboard creates a web archive ");

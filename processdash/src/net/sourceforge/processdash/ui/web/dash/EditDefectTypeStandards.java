@@ -27,7 +27,6 @@ package net.sourceforge.processdash.ui.web.dash;
 
 
 import java.io.IOException;
-import java.net.URLEncoder;
 
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -121,7 +120,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     protected void showStandard(String name) throws IOException {
         out.print("<html><head><meta http-equiv='Refresh' "+
                   "CONTENT='0;URL=../reports/dts.class?name=");
-        out.print(URLEncoder.encode(name));
+        out.print(HTMLUtils.urlEncode(name));
         out.print("'></head><body>&nbsp;</body></html>");
     }
 
@@ -147,7 +146,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
 
             for (int i = 0;   i < standards.length;   i++) {
                 String htmlName = HTMLUtils.escapeEntities(standards[i]);
-                String urlName = URLEncoder.encode(standards[i]);
+                String urlName = HTMLUtils.urlEncode(standards[i]);
 
                 out.print("<tr><td><ul><li>&quot;<b>");
                 out.print(htmlName);

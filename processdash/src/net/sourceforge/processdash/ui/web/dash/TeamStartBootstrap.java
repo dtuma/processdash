@@ -32,12 +32,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -285,7 +284,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
         if (errMsg == null)
             joinProject();
         else
-            printRedirect(TEAM_URL_URL + "?errMsg="+URLEncoder.encode(errMsg));
+            printRedirect(TEAM_URL_URL +
+                          "?errMsg="+HTMLUtils.urlEncode(errMsg));
     }
 
     /** Contact the team dashboard and download information about the
@@ -384,7 +384,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
                 printRedirect(JOIN_VERIFY_URL);
             else
                 printRedirect(JOIN_ERROR_URL + "?errMsg=" +
-                              URLEncoder.encode(errorMessage));
+                              HTMLUtils.urlEncode(errorMessage));
         }
     }
 
@@ -412,7 +412,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         if (!urlStr.startsWith("jar:file:")) return false;
         pos = urlStr.indexOf("!/Templates");
         if (pos == -1) return false;
-        String urlJarpath = URLDecoder.decode(urlStr.substring(9, pos));
+        String urlJarpath = HTMLUtils.urlDecode(urlStr.substring(9, pos));
         File urlJarfile = new File(urlJarpath);
         File templateJarfile = new File(templatePath);
         try {
