@@ -75,7 +75,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     static final String HELP_FRAME     = "Help Topics";
     static final String HELP_SEARCH    = "Search";
-    static final String HELP_PRINT     = "Printable User's Manual";
+    static final String HELP_PRINT     = "Printable Users Manual";
     static final String HELP_ABOUT     = "About Process Dashboard";
     static final String HELP_BUG       = "Submit bug report";
     static final String HELP_FORUM     = "Online help forum";
