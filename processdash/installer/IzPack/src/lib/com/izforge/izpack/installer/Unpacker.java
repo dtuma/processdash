@@ -35,6 +35,7 @@ import java.net.*;
 import java.util.*;
 import java.util.zip.*;
 import java.util.jar.*;
+import javax.swing.*;
 
 /**
  *  Unpacker class.
@@ -136,22 +137,19 @@ public class Unpacker extends Thread
             int npacks = packs.size();
             udata = UninstallData.getInstance();
 
-            // Specific to the web installers
-            if (idata.kind.equalsIgnoreCase("web") ||
-                idata.kind.equalsIgnoreCase("web-kunststoff"))
-            {
-                InputStream kin = getClass().getResourceAsStream("/res/WebInstallers.url");
-                BufferedReader kreader = new BufferedReader(new InputStreamReader(kin));
-                jarLocation = kreader.readLine();
-            }
-
             // We unpack the selected packs
             for (int i = 0; i < npacks; i++)
             {
                 // We get the pack stream
                 int n = idata.allPacks.indexOf(packs.get(i));
-                ObjectInputStream objIn
-                    = new ObjectInputStream(getPackAsStream(n));
+                InputStream rawIn = getPackAsStream(n);
+                if (rawIn == null) {
+                    if (((Pack) packs.get(i)).required)
+                        System.exit(1);
+                    else
+                        continue;
+                }
+                ObjectInputStream objIn = new ObjectInputStream(rawIn);
 
                 // We unpack the files
                 int nfiles = objIn.readInt();
@@ -177,10 +175,13 @@ public class Unpacker extends Thread
                         listener.progressUnpack(j, path);
 
                         //if this file exists and shouldnot override skip this file
-                        if (((pf.override == false) && (pathFile.exists())))
-                        {
-                            objIn.skip(pf.length);
-                            continue;
+                        if (pathFile.exists()) {
+                            if (pf.override == false) {
+                                objIn.skip(pf.length);
+                                continue;
+                            } else {
+                                pathFile.delete();
+                            }
                         }
 
                         // We copy the file
@@ -357,11 +358,57 @@ public class Unpacker extends Thread
 
         else
             if (idata.kind.equalsIgnoreCase("web") ||
-            idata.kind.equalsIgnoreCase("web-kunststoff"))
+                idata.kind.equalsIgnoreCase("web-kunststoff"))
         {
-            URL url = new URL("jar:" + jarLocation + "!/packs/pack" + n);
-            JarURLConnection jarConnection = (JarURLConnection) url.openConnection();
-            in = jarConnection.getInputStream();
+            /* Special handling for the WebInstallers file.
+             *
+             * We may have a legal need for packages to be downloaded from
+             * different locations.  We also have a legal requirement NOT to
+             * download optional packages if the user didn't agree to the
+             * license agreement for that package.
+             *
+             * Also, we want to be able to support hybrid installations, where
+             * some packages are contained in the installer, and some are
+             * downloaded on demand.  This is convenient for the distribution
+             * of core (required) packages.
+             */
+            String packName = ((Pack) idata.allPacks.get(n)).name;
+            String packID = ((Pack) idata.allPacks.get(n)).id;
+            String packLabel = packID + "==";
+            InputStream kin = getClass().getResourceAsStream
+                ("/res/WebInstallers.url");
+            BufferedReader kreader = new BufferedReader(new InputStreamReader(kin));
+            String line;
+            String packageLocation = null;
+            while ((line = kreader.readLine()) != null) {
+                if (line.startsWith(packLabel)) {
+                    packageLocation = line.substring(packLabel.length());
+                    System.out.println("location for "+packName+" is "+packageLocation);
+                    break;
+                }
+            }
+
+            if (packageLocation != null &&
+                !packageLocation.equalsIgnoreCase("internal")) {
+                PackageDownloader downloader = new PackageDownloader
+                    (packName, packageLocation);
+                in = downloader.getInputStream();
+            } else {
+                // the packageLocation is either not specified, or was "internal".
+                // attempt to load the package normally.
+                in = getClass().getResourceAsStream("/packs/pack" + n);
+            }
+
+            if (in == null) {
+                String[] message = {
+                    "The package:",
+                    "        " + packName,
+                    "could not be downloaded, and was not installed."
+                };
+                JOptionPane.showMessageDialog(
+                    null, message, "Installation warning",
+                    JOptionPane.WARNING_MESSAGE);
+            }
         }
         return in;
     }
@@ -382,4 +429,3 @@ public class Unpacker extends Thread
         return destination.replace('/', File.separatorChar);
     }
 }
-
