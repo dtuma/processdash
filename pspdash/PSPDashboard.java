@@ -162,12 +162,20 @@ public class PSPDashboard extends JFrame implements WindowListener {
                     v = props.loadXML(propertiesFile, templates);
                 } catch (SAXException se1) {
                     se = se1;
-                    v = props.load(propertiesFile);
+                    props.load(propertiesFile);
+                    props.saveXML(propertiesFile, null);
+                    props.clear();
+                    v = props.loadXML(propertiesFile, templates);
                 }
             } catch (Exception e) {
                 // this is a serious problem, indicating a corrupt
                 // state file.  Display a warning to the user, then exit.
-                displayCorruptStateFileWarning(propertiesFile, se, e);
+                if (se != null) e = se;
+                propertiesFile = prop_file.getAbsolutePath();
+                try {
+                    propertiesFile = prop_file.getCanonicalPath();
+                } catch (Exception e2) {}
+                displayCorruptStateFileWarning(propertiesFile, e);
                 System.exit(0);
             }
         } else {
@@ -259,17 +267,18 @@ public class PSPDashboard extends JFrame implements WindowListener {
         "projects/tasks will be inaccessible and/or incomplete."};
 
     private void displayCorruptStateFileWarning(String filename,
-                                                SAXException se,
                                                 Exception e) {
         CORRUPT_STATEFILE_WARNING[6] = "    " + filename;
-        if (se == null)
-            CORRUPT_STATEFILE_WARNING[8] = "    " + e.getMessage();
-        else if (se instanceof SAXParseException &&
-                 ((SAXParseException) se).getLineNumber() != -1)
-            CORRUPT_STATEFILE_WARNING[8] = "    " + se.getMessage() +
-                " on line " + ((SAXParseException) se).getLineNumber();
+        CORRUPT_STATEFILE_WARNING[8] = "    " + e.getMessage();
+        int lineNum = -1;
+        if (e instanceof SAXParseException)
+            lineNum = ((SAXParseException) e).getLineNumber();
+        if (lineNum != -1)
+            CORRUPT_STATEFILE_WARNING[7] =
+                CORRUPT_STATEFILE_WARNING[7] + " on line " + lineNum + ":";
         else
-            CORRUPT_STATEFILE_WARNING[8] = "    " + se.getMessage();
+            CORRUPT_STATEFILE_WARNING[7] =
+                CORRUPT_STATEFILE_WARNING[7] + ":";
 
         JOptionPane.showMessageDialog(null, CORRUPT_STATEFILE_WARNING,
                                       "Cannot read hierarchy file",
@@ -283,7 +292,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         "will not continue until the problem is corrected.  Please",
         "examine the file:",
         "",
-        "and correct the following error:",
+        "and correct the following error",
         "",
         "If you cannot correct this error, the only other course of",
         "action is to rename or delete the file.  This effectively",
