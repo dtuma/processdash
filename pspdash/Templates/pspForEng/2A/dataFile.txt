@@ -1,0 +1,24 @@
+#include <psp0.1/dataFile.txt>
+
+= Students must manually spread the time across the phases for program 2A.
+
+Planning/Estimated Time=0.0
+Design/Combined Estimated Time=0.0
+Code/Combined Estimated Time=0.0
+Compile/Estimated Time=0.0
+Test/Estimated Time=0.0
+Postmortem/Estimated Time=0.0
+
+
+= Students must calculate Added and N&C LOC for program 2A.
+
+New & Changed LOC=0.0
+Added LOC=0.0
+
+
+= Students must enter To Date LOC
+
+2A Reused LOC To Date=0.0
+2A New & Changed LOC To Date=0.0
+2A Total LOC To Date=0.0
+2A New Reused LOC To Date=0.0
