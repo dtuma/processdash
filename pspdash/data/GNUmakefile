@@ -122,6 +122,7 @@ DATA_FILES=$(COMMON_FILES) \
 	NumberAliasFunction.java \
 	NumberFunction.java \
 	OrFunction.java \
+	PercentageFunction.java \
 	PrefixHierarchy.java \
 	ProductList.java \
 	RemoteException.java \

@@ -1289,21 +1289,38 @@ public class DataRepository implements Repository {
         public SaveableData getValue(String name) {
 
             DataElement d = (DataElement)data.get(name);
-            if (d == null)
+            if (d != null)
+                return d.getValue();
+            else
+                return maybeCreatePercentage(name);
+        }
+
+        /** only call this routine if the item doesn't already exist.
+         * If the item looks like a percentage, automatically creates the
+         * percentage on the fly and returns it.
+         */
+        private SaveableData maybeCreatePercentage(String name) {
+
+            if (name == null) return null;
+            if (name.indexOf(PercentageFunction.PERCENTAGE_FLAG) == -1)
                 return null;
 
-            return d.getValue();
+            try {
+                SaveableData result = new PercentageFunction(name, this);
+                add(name, result, null, false);
+                return result;
+            } catch (MalformedValueException mve) {
+                return null;
+            }
         }
 
 
-
-
         public final SimpleData getSimpleValue(String name) {
-            DataElement d = (DataElement)data.get(name);
-            if (d == null || d.getValue() == null)
+            SaveableData value = getValue(name);
+            if (value == null)
                 return null;
             else
-                return d.getSimpleValue();
+                return value.getSimpleValue();
         }
 
 
@@ -1917,7 +1934,14 @@ public class DataRepository implements Repository {
         public void addDataListener(String name, DataListener dl) {
             DataElement d;
             synchronized (data) {
+                // lookup the element.
                 d = (DataElement)data.get(name);
+
+                // if we didn't find the element, try autocreating a percentage.
+                if (d == null && maybeCreatePercentage(name) != null)
+                    d = (DataElement)data.get(name);
+
+                // the item doesn't exist. Create an entry for it with the value null.
                 if (d == null)
                     d = add(name, null, guessDataFile(name), true);
             }
