@@ -116,6 +116,7 @@ public class TaskScheduleChart extends JFrame
         charts[numCharts]    = chart;
         legends[numCharts++] = chart.getLegend();
         ChartPanel panel = new ChartPanel(chart);
+        panel.setMouseZoomable(true, false);
         return panel;
     }
 
