@@ -148,8 +148,8 @@ public class NetworkDriveList {
      * returns null.
      */
     public String getUNCName(String driveLetter) {
+        driveLetter = getDriveLetter(driveLetter);
         if (driveLetter == null) return null;
-        driveLetter = driveLetter.toUpperCase();
         return (String) networkDrives.get(driveLetter);
     }
 
@@ -164,6 +164,8 @@ public class NetworkDriveList {
         if (driveLetter == null) return null;
 
         String uncPrefix = getUNCName(driveLetter);
+        if (uncPrefix == null) return null;
+
         if (uncPrefix.endsWith("\\"))
             uncPrefix = uncPrefix.substring(0, uncPrefix.length()-1);
         filename = filename.substring(2);
@@ -181,14 +183,15 @@ public class NetworkDriveList {
     public String fromUNCName(String uncName) {
         if (!successful) return null;
         if (uncName == null || !uncName.startsWith("\\\\")) return null;
+        String uncNameLC = uncName.toLowerCase();
 
         Iterator i = networkDrives.entrySet().iterator();
         while (i.hasNext()) {
             Map.Entry e = (Map.Entry) i.next();
             String driveLetter = (String) e.getKey();
             String uncPrefix = (String) e.getValue();
-            if (uncName.startsWith(uncPrefix))
-                return driveLetter + uncName.substring(uncPrefix.length());
+            if (uncNameLC.startsWith(uncPrefix.toLowerCase()))
+                return driveLetter+":"+uncName.substring(uncPrefix.length());
         }
         return null;
     }
@@ -203,8 +206,14 @@ public class NetworkDriveList {
     /** Extract the drive letter from a filename */
     private String getDriveLetter(String filename) {
         if (filename == null) return null;
+
+        // is it already a drive letter?
+        if (filename.length() == 1 &&
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(filename.charAt(0)) != -1)
+            return filename;
+
         if (filename.length() < 2) return null;
         if (filename.charAt(1) != ':') return null;
-        return filename.substring(0, 1);
+        return filename.substring(0, 1).toUpperCase();
     }
 }
