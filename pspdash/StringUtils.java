@@ -217,4 +217,96 @@ public class StringUtils
         // array list and if the objects can be cast correctly.  voila!
         return (String[])workArray.toArray(new String[0]);
     }
+
+    /** Performs the equivalent of buf.toString().indexOf(str), but is
+     *  much more memory efficient. */
+    public static int indexOf(StringBuffer buf, String str) {
+        return indexOf(buf, str, 0);
+    }
+    /** Performs the equivalent of buf.toString().indexOf(str, fromIndex),
+     *  but is much more memory efficient. */
+    public static int indexOf(StringBuffer buf, String str, int fromIndex) {
+        int count = buf.length();
+        int max = count - str.length();
+        if (fromIndex >= count) {
+            if (count == 0 && fromIndex == 0 && str.length() == 0)
+                return 0;
+            else
+                return -1;
+        }
+        if (fromIndex < 0) fromIndex = 0;
+        if (str.length() == 0) return fromIndex;
+
+        char first = str.charAt(0);
+        int i = fromIndex;
+
+    startSearchForFirstChar:
+        while (true) {
+            /* Look for first character. */
+            while (i <= max && buf.charAt(i) != first)
+                i++;
+            if (i > max)
+                return -1;
+
+            /* Found first character, now look at the rest of str */
+            int j = i + 1;
+            int end = j + str.length() - 1;
+            int k = 1;
+            while (j < end) {
+                if (buf.charAt(j++) != str.charAt(k++)) {
+                    i++;
+                    /* Look for str's first char again. */
+                    continue startSearchForFirstChar;
+                }
+            }
+            return i; /* Found whole string. */
+        }
+    }
+
+    /** Performs the equivalent of buf.toString().lastIndexOf(str), but is
+     *  much more memory efficient. */
+    public static int lastIndexOf(StringBuffer buf, String str) {
+        return lastIndexOf(buf, str, buf.length());
+    }
+
+    /** Performs the equivalent of buf.toString().lastIndexOf(str, fromIndex),
+     *  but is much more memory efficient. */
+    public static int lastIndexOf(StringBuffer buf, String str, int fromIndex) {
+        int count = buf.length();
+        int rightIndex = count - str.length();
+        if (fromIndex < 0) return -1;
+        if (fromIndex > rightIndex) fromIndex = rightIndex;
+
+        /* Empty string always matches. */
+        if (str.length() == 0) return fromIndex;
+
+        int strLastIndex = str.length() - 1;
+        char strLastChar = str.charAt(strLastIndex);
+        int min = str.length() - 1;
+        int i = min + fromIndex;
+
+    startSearchForLastChar:
+        while (true) {
+            /* Look for the last character */
+            while (i >= min && buf.charAt(i) != strLastChar)
+                i--;
+            if (i < min) return -1;
+
+            /* Found last character, now look at the rest of str. */
+            int j = i - 1;
+            int start = j - (str.length() - 1);
+            int k = strLastIndex - 1;
+
+            while (j > start) {
+                if (buf.charAt(j--) != str.charAt(k--)) {
+                    i--;
+                    /* Look for str's last char again. */
+                    continue startSearchForLastChar;
+                }
+            }
+
+            return start + 1;    /* Found whole string. */
+        }
+    }
+
 }
