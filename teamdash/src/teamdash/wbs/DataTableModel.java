@@ -108,6 +108,14 @@ public class DataTableModel extends AbstractTableModel {
                 }
             }
         }
+
+        // recalculate all calculated columns.
+        try {
+            beginChange();
+            dirtyColumns.addAll(calculatedColumns);
+        } finally {
+            endChange();
+        }
     }
 
     public void addDataColumn(DataColumn column) {
@@ -291,13 +299,18 @@ public class DataTableModel extends AbstractTableModel {
         synchronized (dirtyColumns) {
             if (dirtyColumns.isEmpty()) return;
 
-            Object [] columnsToRecalc = dirtyColumns.toArray();
             HashSet waitingColumns = new HashSet();
 
-            for (int i = 0;   i < columnsToRecalc.length;   i++) {
-                waitingColumns.clear();
-                recalcColumn((CalculatedDataColumn) columnsToRecalc[i],
-                             waitingColumns);
+            try {
+                beginChange();
+                while (!dirtyColumns.isEmpty()) {
+                    waitingColumns.clear();
+                    CalculatedDataColumn c =
+                        (CalculatedDataColumn) dirtyColumns.iterator().next();
+                    recalcColumn(c, waitingColumns);
+                }
+            } finally {
+                endChange();
             }
         }
     }

@@ -10,10 +10,6 @@ public abstract class AbstractNumericColumn extends AbstractDataColumn {
 
     public Class getColumnClass() { return NumericDataValue.class; }
 
-    //eventually delete these.
-    protected final String getErrorAt(WBSNode node) { return null; }
-    protected final boolean isCellVisible(WBSNode node) { return true; }
-
 
     protected double getValueForNode(WBSNode node) { return 0; }
 
@@ -31,6 +27,8 @@ public abstract class AbstractNumericColumn extends AbstractDataColumn {
 
 
     protected boolean equal(double a, double b) {
+        if (Double.isNaN(a)) return Double.isNaN(b);
+        if (Double.isInfinite(a)) return Double.isInfinite(b);
         return Math.abs(a - b) < fuzzFactor;
     }
 

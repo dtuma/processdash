@@ -34,7 +34,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         topDownAttrName   = id + " (Top Down)";
         bottomUpAttrName  = id + " (Bottom_Up)";
         inheritedAttrName = id + " (Inherited_)";
-        recalculate();
+        //recalculate();
     }
     protected void setPruner(Pruner p) {
         pruner = p;
@@ -49,13 +49,6 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         if (node == null) return false;
 
         if (node.getAttribute(inheritedAttrName) != null) return false;
-        if (shouldPrune(node)) {
-            System.out.println("pointA"); // TODO - this shouldn't be necessary.
-            return false; }
-        /*
-        if (node.getAttribute(topDownAttrName) != null) return true;
-        if (node.getAttribute(bottomUpAttrName) != null) return true;
-        */
 
         return true;
     }
@@ -94,9 +87,10 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         System.out.println("setValueAt("+aValue+")");
         if (node == null) return;
 
-        if ("".equals(aValue))
+        if ("".equals(aValue)) {
+            userChangingValue(node, Double.NaN);
             node.setAttribute(topDownAttrName, null);
-        else {
+        } else {
 
             // parse the value we were given to obtain a double.
             double newValue = NumericDataValue.parse(aValue);
@@ -113,6 +107,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             maybeMultiplyValues(node,  newValue / oldValue);
 
             // save the new top-down value for this node.
+            userChangingValue(node, newValue);
             node.setNumericAttribute(topDownAttrName, newValue);
         }
 
@@ -265,12 +260,17 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             topDownValue = child.getNumericAttribute(topDownAttrName);
             if (!Double.isNaN(topDownValue)) {
                 topDownValue *= ratio;
+                userChangingValue(child, topDownValue);
                 child.setNumericAttribute(topDownAttrName, topDownValue);
             }
 
             multiplyValue(child, ratio);
         }
     }
+
+    /** When the user edits and changes a value, this function is called
+     * for each affected node before the change is made. */
+    protected void userChangingValue(WBSNode node, double value) {}
 
 
     public void storeDependentColumn(String ID, int columnNumber) { }

@@ -26,4 +26,8 @@ public class ErrorValue {
         this.error = errorMsg;
         this.severity = severity;
     }
+
+    public String toString() {
+        return String.valueOf(value);
+    }
 }

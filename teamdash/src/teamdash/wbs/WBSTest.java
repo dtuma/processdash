@@ -141,6 +141,11 @@ public class WBSTest implements WindowListener {
         teamColumnNames[0] = "Team";
         table.addTab("Time", teamColumnIDs, teamColumnNames);
 
+        table.addTab("Time Calc",
+                     new String[] { "Size", "Size-Units", "Rate", "Hrs/Indiv", "# People", "Time", "111-Time", "222-Time", "333-Time" },
+                     new String[] { "Size", "Units", "Rate", "Hrs/Indiv", "# People",
+                         "Time", "111", "222", "333" });
+
         String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         table.addTab("Defects", s, s);
 

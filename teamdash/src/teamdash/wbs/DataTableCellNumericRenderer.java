@@ -30,17 +30,20 @@ class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
         String display = "";
         String errorMsg = null;
         boolean readOnly = false;
+        Color errorColor = null;
 
         if (number != null) {
             display = number.isInvisible ? "" : number.toString();
             errorMsg = number.errorMessage;
+            errorColor = number.errorColor;
             readOnly = (number.isEditable == false);
         }
 
         Component result = super.getTableCellRendererComponent
             (table, display, isSelected, hasFocus, row, column);
 
-        result.setForeground(getForegroundColor(errorMsg, readOnly));
+        result.setForeground
+            (getForegroundColor(errorMsg, errorColor, readOnly));
 
         Font f = getFont(errorMsg != null, result);
         if (f != null) result.setFont(f);
@@ -51,9 +54,10 @@ class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
         return result;
     }
 
-    protected Color getForegroundColor(String errorMsg, boolean readOnly) {
+    protected Color getForegroundColor(String errorMsg, Color errorColor,
+                                       boolean readOnly) {
         if (errorMsg != null)
-            return Color.red;
+            return errorColor;
         else
             return (readOnly ? Color.gray : Color.black);
     }

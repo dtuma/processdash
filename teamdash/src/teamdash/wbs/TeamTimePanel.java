@@ -104,13 +104,12 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
 
     public void recalc() {
-        recalcIndividuals();
         recalcTeam();
+        recalcIndividuals();
         revalidate();
     }
 
     protected void recalcIndividuals() {
-        maxNumWeeks = 0;
         Iterator i = teamMemberBars.iterator();
         while (i.hasNext())
             maxNumWeeks =
@@ -132,6 +131,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         balancedWeeks = teamTotal.value / teamHoursPerWeek;
         balancedBar.setToolTipText("Balanced Team Duration - " +
                                    formatWeeks(balancedWeeks));
+        if (Double.isInfinite(balancedWeeks) || Double.isNaN(balancedWeeks))
+            maxNumWeeks = 0;
+        else
+            maxNumWeeks = balancedWeeks;
     }
 
     public void tableChanged(TableModelEvent e) {

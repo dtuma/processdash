@@ -1,5 +1,6 @@
 package teamdash.wbs;
 
+import java.awt.Color;
 import java.text.NumberFormat;
 
 public class NumericDataValue {
@@ -9,6 +10,7 @@ public class NumericDataValue {
     public boolean isInvisible = false;
 
     public String errorMessage;
+    public Color errorColor = Color.red;
     public double expectedValue;
 
     public NumericDataValue(double v) {
@@ -41,7 +43,10 @@ public class NumericDataValue {
 
 
     public static String format(double value) {
-        return FORMATTER.format(value);
+        if (Double.isNaN(value) || Double.isInfinite(value))
+            return "";
+        else
+            return FORMATTER.format(value);
     }
 
     public static double parse(Object aValue) {

@@ -8,4 +8,8 @@ public class ReadOnlyValue {
     public ReadOnlyValue(Object value) {
         this.value = value;
     }
+
+    public String toString() {
+        return String.valueOf(value);
+    }
 }
