@@ -397,7 +397,7 @@ public class EVSchedule implements TableModel {
     protected synchronized Period get(Date when) {
         long time = when.getTime();
         Period p;
-        for (int i = periods.size();  i-- > 1; ) {
+        for (int i = periods.size();  i-- > 0; ) {
             p = get(i);
             if (p != null && p.getBeginDate().getTime() < time)
                 return p;
