@@ -27,12 +27,13 @@
         <res src="files/DataDir-windows.txt" id="DataDirPanel.dir.windows"/>
         <res src="files/WebInstallers.txt" id="WebInstallers.url"/>
         <res src="files/shortcutSpec.xml" id="shortcutSpec.xml"/>
-        <res src="files/AWHeader.txt" id="CondHTMLLicencePanel0.header"/>
         <res src="files/AWLicense.html" id="CondHTMLLicencePanel0.licence"/>
         <res src="files/AWLicense-list.txt" id="CondHTMLLicencePanel0.packList"/>
-        <res src="files/JHHeader.txt" id="CondHTMLLicencePanel1.header"/>
         <res src="files/JHLicense.html" id="CondHTMLLicencePanel1.licence"/>
         <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
+        <res src="files/text-eng.xml" id="text.xml"/>
+        <!-- res src="files/text-jpn.xml" id="text.xml_jpn"/ -->
+
         <!-- additional resources -->
     </resources>
 
@@ -58,9 +59,8 @@
     <!-- The list of packages the user can install -->
     <packs>
         <pack name="Process Dashboard" id="pdash" required="yes">
-            <description>The core Process Dashboard application.
+            <description>Process Dashboard</description>
 
-The Process Dashboard is distributed under the terms of the GNU General Public License.</description>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspdash.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
@@ -104,11 +104,7 @@ The Process Dashboard is distributed under the terms of the GNU General Public L
 	
         <pack name="PSP(SM) Processes" id="pspProc" required="no"
 	      excludeIf="noProc">
-            <description>Templates, scripts, and forms supporting the Personal Software Process(SM).
-
-This module incorporates templates, scripts, and other materials from the book by Watts S. Humphrey, A Discipline for Software Engineering.  Copyright (c) 1995 by Addison-Wesley.  These materials are reproduced with the permission of the publisher.
-
-Addison-Wesley requires that you consent to an additional license agreement to download and install this module.</description>
+            <description>PSP(SM) Processes</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspProc.jar" />
@@ -116,11 +112,7 @@ Addison-Wesley requires that you consent to an additional license agreement to d
 
         <pack name="PSP(SM) for Engineers" id="pspForEng" required="no"
               includeIf="pspForEng">
-            <description>Support for students taking the SEI's Personal Software Process(SM) course.
-
-This module incorporates templates, scripts, and other materials from the book by Watts S. Humphrey, A Discipline for Software Engineering.  Copyright (c) 1995 by Addison-Wesley.  These materials are reproduced with the permission of the publisher.
-
-Addison-Wesley requires that you consent to an additional license agreement to download and install this module.</description>
+            <description>PSP(SM) for Engineers</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspProc.jar" />
@@ -139,11 +131,8 @@ Addison-Wesley requires that you consent to an additional license agreement to d
 
         <pack name="JavaHelp(TM) Help Browser" id="javaHelp" required="no"
               excludeIf="noHelp">
-            <description>Help browser from Sun Microsystems.
+            <description>JavaHelp(TM) Help Browser</description>
 
-This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced browsing of the Process Dashboard help documentation, including full-text search capabilities.
-
-The contents of this module are copyrighted by Sun Microsystems and are not open source.  Sun Microsystems requires that you consent to an additional license agreement to download and install this module.</description>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/dashHelp.jar"/>
         </pack>

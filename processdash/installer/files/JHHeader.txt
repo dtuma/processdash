@@ -1,1 +1,0 @@
-You have chosen to install the JavaHelp(TM) software, written by Sun Microsystems.  To download and install this optional module, you must consent to the following license agreement.
