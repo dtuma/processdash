@@ -64,8 +64,6 @@ class SearchFactory {
             // compile the expression into a script.
             script = Compiler.compile(expr);
             script = Compiler.exprAndDefined(script, tag);
-            System.err.println("Built search:" + name + ", value: ");
-            System.err.println(script);
 
             return new SearchFunction(name, data.createDataName(prefix, start),
                                       tag, script, data, prefix);
