@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
@@ -63,15 +63,7 @@ class DoubleInterpreter extends DataInterpreter {
 
 
     public SimpleData getNullValue() {
-        DoubleData result = new DoubleData(Double.NaN, true);
-        result.setDefined(false);
-        return result;
-        //System.out.println("NULL_VAL: isDefined()=" + NULL_VAL.isDefined());
-        //return NULL_VAL;
+        return ImmutableDoubleData.EDITABLE_UNDEF_NAN;
     }
-
-    protected static final DoubleData NULL_VAL =
-        new DoubleData(Double.NaN, true);
-    static { NULL_VAL.setDefined(false); }
 
 }
