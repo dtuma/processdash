@@ -55,6 +55,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     TinyWebServer webServer = null;
     ConcurrencyLock concurrencyLock = null;
     AutoUpdateManager aum = null;
+    ConsoleWindow consoleWindow = new ConsoleWindow();
 
     boolean paused = true;
     String timeLogName        = "time.log";
