@@ -592,6 +592,12 @@ public class Compiler extends Thread
                 XMLElement f = (XMLElement) iter.next();
                 String path = basedir + File.separator + f.getAttribute("dir");
                 String casesensitive = f.getAttribute("casesensitive");
+
+                //  get override
+                boolean override = true;
+                if (f.getAttribute("override") != null)
+                    override = f.getAttribute("override").equalsIgnoreCase("true");
+
                 //  get includes and excludes
                 Vector xcludesList = f.getChildrenNamed("include");
                 String[] includes = null;
@@ -623,6 +629,7 @@ public class Compiler extends Thread
             addFileSet(path, includes, excludes,
                 targetDir,
                 f.getAttribute("os"),
+                override,
                 pack.packFiles,
                 casesensitive);
             }
@@ -649,7 +656,8 @@ public class Compiler extends Thread
      * @exception  Exception  Description of the Exception
      */
     protected void addFileSet(String path, String[] includes, String[] excludes,
-                              String relPath, String targetOs, ArrayList list, String casesensitive)
+                              String relPath, String targetOs, boolean override,
+                              ArrayList list, String casesensitive)
         throws Exception
     {
         boolean bCasesensitive = false;
@@ -703,7 +711,7 @@ public class Compiler extends Thread
                     instPath = expPath.substring(0, pathLimit);
                 else
                     instPath = relPath;
-                addFile(file, instPath, targetOs, true, list);
+                addFile(file, instPath, targetOs, override, list);
             }
 
             // Empty directories are left by the previous code section, so we need to
@@ -717,7 +725,7 @@ public class Compiler extends Thread
                     instPath = relPath + File.separator + dirs[i];
                     pathLimit = instPath.indexOf(dir.getName());
                     instPath = instPath.substring(0, pathLimit);
-                    addFile(dir, instPath, targetOs, true, list);
+                    addFile(dir, instPath, targetOs, override, list);
                 }
             }
         }
