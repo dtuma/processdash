@@ -103,7 +103,14 @@ public class TinyCGIBase implements TinyCGI {
 
     /* Read name=value pairs from POSTed form data. */
     protected void parseFormData() throws IOException {
-        parseInput(new String(TinyWebServer.slurpContents(inStream, false)));
+        int length;
+        try {
+            length = Integer.parseInt((String) env.get("CONTENT_LENGTH"));
+        } catch (Exception e) { return; }
+
+        byte [] messageBody = new byte[length];
+        int bytesRead = inStream.read(messageBody);
+        parseInput(new String(messageBody, 0, bytesRead));
     }
 
     /* Read name=value pairs from the given URI. If the URI is not
