@@ -787,14 +787,14 @@ public class OpenDocument extends TinyCGIBase {
                 displayName = displayName.substring(1);
             out.print(WebServer.encodeHtmlEntities(displayName));
             out.print("&nbsp;</td><td valign='top'>" +
-                      "<input size='40' type='text' name='");
+                      "<input size=\"40\" type=\"text\" name=\"");
             out.print(WebServer.encodeHtmlEntities(varName));
             String value = pathVar.getValue();
             if (value != null) {
-                out.print("' value='");
+                out.print("\" value=\"");
                 out.print(WebServer.encodeHtmlEntities(value));
             }
-            out.print("'>");
+            out.print("\">");
             String comment = pathVar.getCommentText();
             if (XMLUtils.hasValue(comment)) {
                 out.print("<br><i>");
