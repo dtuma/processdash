@@ -40,6 +40,7 @@ import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.MultipartRequest;
+import net.sourceforge.processdash.util.StringMapper;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class TinyCGIBase implements TinyCGI {
@@ -51,6 +52,7 @@ public class TinyCGIBase implements TinyCGI {
     protected PrintWriter out = null;
     protected Map env = null;
     protected Map parameters = new HashMap();
+    protected Interpolator interpolator = null;
     protected String charset = DEFAULT_CHARSET;
 
     public void service(InputStream in, OutputStream out, Map env)
@@ -116,7 +118,7 @@ public class TinyCGIBase implements TinyCGI {
                     parseResourceFile(context, val);
                 else {
                     if (interpolate)
-                        val = StringUtils.interpolate(parameters, val);
+                        val = StringUtils.interpolate(getInterpolator(), val);
                     putParam(name, val);
                 }
             } catch (Exception e) {
@@ -258,7 +260,7 @@ public class TinyCGIBase implements TinyCGI {
 
         try {
             Resources bundle = Resources.getTemplateBundle(bundleName);
-            parameters.putAll(bundle.asMap());
+            getInterpolator().addResources(bundle);
         } catch (MissingResourceException mre) {
             System.out.println("Couldn't find resource file: " + bundleName);
             System.out.println("(Specified as '" + filename + "' from '" +
@@ -412,5 +414,35 @@ public class TinyCGIBase implements TinyCGI {
      */
     public static String getDefaultCharset() {
         return DEFAULT_CHARSET;
+    }
+
+    protected Interpolator getInterpolator() {
+        if (interpolator == null)
+            interpolator = new Interpolator();
+        return interpolator;
+    }
+
+    protected class Interpolator implements StringMapper {
+
+        LinkedList resources = new LinkedList();
+
+        public String getString(String key) {
+            if (parameters.containsKey(key))
+                return (String) parameters.get(key);
+
+            Iterator i = resources.iterator();
+            while (i.hasNext()) {
+                Resources r = (Resources) i.next();
+                try {
+                    return r.getString(key);
+                } catch (Exception e) {}
+            }
+
+            return "";
+        }
+
+        public void addResources(Resources r) {
+            resources.add(r);
+        }
     }
 }

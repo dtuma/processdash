@@ -56,6 +56,7 @@ public class HTMLPreprocessor {
     Map env, params;
     String prefix;
     String defaultEchoEncoding = null;
+    LinkedList resources;
 
 
     public HTMLPreprocessor(WebServer web, DataRepository data, Map env) {
@@ -702,12 +703,8 @@ public class HTMLPreprocessor {
             } catch (MissingResourceException mre) {
                 throw new FileNotFoundException(url + ".properties");
             }
-            Enumeration keys = r.getKeys();
-            while (keys.hasMoreElements()) {
-                String key = (String) keys.nextElement();
-                String value = r.getString(key);
-                params.put(key, value);
-            }
+            if (resources == null) resources = new LinkedList();
+            resources.add(r);
         }
         resDir.replace("");
     }
@@ -860,12 +857,16 @@ public class HTMLPreprocessor {
             if (param != null)
                 for (int i = 0;   i < param.length;   i++)
                     result.add(param[i]);
-            else if (params.get(listName) instanceof String) {
-                String paramVal = (String) params.get(listName);
-                if (paramVal.startsWith("LIST="))
-                    return new ListData(paramVal.substring(5));
-                else
-                    result.add(paramVal);
+            else {
+                Object p = params.get(listName);
+                if (p == null) p = getResource(listName);
+                if (p instanceof String) {
+                    String paramVal = (String) p;
+                    if (paramVal.startsWith("LIST="))
+                        return new ListData(paramVal.substring(5));
+                    else
+                        result.add(paramVal);
+                }
             }
 
             return result;
@@ -900,6 +901,10 @@ public class HTMLPreprocessor {
             if (result instanceof String) return (String) result;
             if (result != null) return result.toString();
 
+                                // look for a resource value.
+            result = getResource(name);
+            if (result != null) return (String) result;
+
                                 // look for a user setting
             result = Settings.getVal(name);
             if (result != null) return result.toString();
@@ -908,6 +913,20 @@ public class HTMLPreprocessor {
         }
     }
     private static long uniqueNumber = System.currentTimeMillis();
+
+    private String getResource(String name) {
+        if (resources != null) {
+            Iterator i = resources.iterator();
+            while (i.hasNext()) {
+                Resources r = (Resources) i.next();
+                try {
+                    return r.getString(name);
+                } catch (Exception e) {}
+            }
+        }
+        return null;
+    }
+
 
     /** lookup a named value in the data repository. */
     private SimpleData getSimpleValue(String name) {
