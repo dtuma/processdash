@@ -65,7 +65,10 @@ public class RepositoryServer extends Thread {
                 // debug("reading from input stream...");
                 String ID = in.readLine();
                 String requiredTag = in.readLine();
-                dataPath = data.getPath(ID);
+                if (ID.startsWith("/"))
+                    dataPath = URLDecoder.decode(ID);
+                else
+                    dataPath = data.getPath(ID);
                 if (dataPath == null)
                     dataPath = "//anonymous//";
 
