@@ -108,6 +108,7 @@ public class DataRepository implements Repository {
         Vector datafiles = new Vector();
 
         RepositoryServer dataServer = null;
+        RepositoryServer secondaryDataServer = null;
 
         Hashtable PathIDMap = new Hashtable(20);
         Hashtable IDPathMap = new Hashtable(20);
@@ -981,6 +982,13 @@ public class DataRepository implements Repository {
             }
         }
 
+        public void startSecondServer(ServerSocket socket) {
+            if (secondaryDataServer == null) {
+                secondaryDataServer = new RepositoryServer(this, socket);
+                secondaryDataServer.start();
+            }
+        }
+
         public void saveAllDatafiles() {
             DataFile datafile;
 
@@ -1011,6 +1019,8 @@ public class DataRepository implements Repository {
             saveAllDatafiles();
             if (dataServer != null)
                 dataServer.quit();
+            if (secondaryDataServer != null)
+                secondaryDataServer.quit();
         }
 
 
@@ -2203,7 +2213,7 @@ public class DataRepository implements Repository {
                 i = result.keySet().iterator();
                 while (i.hasNext()) {
                     identifier = (String) i.next();
-                    if (!perl.match(regExp, identifier))
+                    if (perl.match(regExp, identifier))
                         i.remove();
                 }
             }
