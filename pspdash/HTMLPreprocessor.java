@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -552,11 +552,36 @@ public class HTMLPreprocessor {
             return getString(cleanup(t));
         }
         private boolean eq(String l, String r) {
-            return ((l == null && r == null) || (l != null && l.equals(r))); }
+            if (l == null && r == null) return true;
+            if (l == null || r == null) return false;
+            try {
+                double ll = Double.parseDouble(l);
+                double rr = Double.parseDouble(r);
+                return (ll == rr);
+            } catch (NumberFormatException nfe) {}
+
+            return l.equals(r);
+        }
         private boolean lt(String l, String r) {
-            return (l != null && r != null && l.compareTo(r) < 0); }
+            if (l == null || r == null) return false;
+            try {
+                double ll = Double.parseDouble(l);
+                double rr = Double.parseDouble(r);
+                return (ll < rr);
+            } catch (NumberFormatException nfe) {}
+
+            return (l.compareTo(r) < 0);
+        }
         private boolean gt(String l, String r) {
-            return (l != null && r != null && l.compareTo(r) > 0); }
+            if (l == null || r == null) return false;
+            try {
+                double ll = Double.parseDouble(l);
+                double rr = Double.parseDouble(r);
+                return (ll > rr);
+            } catch (NumberFormatException nfe) {}
+
+            return (l.compareTo(r) > 0);
+        }
         private boolean matches(String l, String r) {
             if (l == null || r == null) return false;
             boolean result = false;
