@@ -102,7 +102,7 @@ public class EVMetricsRollup extends EVMetrics {
         super.recalcViability(s);
         maybeRecalcComplete(s, optCompletionDateInterval);
         if (unviable(optCompletionDateInterval)) {
-            System.out.println("opt date interval is not viable");
+            // System.out.println("opt date interval is not viable");
             optCompletionDateInterval = null;
         }
     }
@@ -111,6 +111,8 @@ public class EVMetricsRollup extends EVMetrics {
     }
     protected void recalcOptimizedPlanDate(EVSchedule s) {
         optimizedPlanDate = s.getHypotheticalDate(totalPlan());
+        if (optimizedPlanDate == EVSchedule.NEVER)
+            optimizedPlanDate = null;
     }
 
     public void setOptimizedDateConfidenceInterval
