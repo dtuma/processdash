@@ -1,6 +1,7 @@
 
 package JLex;
 
+import java.io.File;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -86,9 +87,10 @@ class CLexGen
 	  }
 
 	/* Open output stream. */
+    File file = new File(filename + ".java");
 	m_outstream 
 	  = new java.io.PrintWriter(new java.io.BufferedWriter(
-		new java.io.FileWriter(filename + ".java")));
+		new java.io.FileWriter(file)));
 	if (null == m_outstream)
 	  {
 	    System.out.println("Error: Unable to open output file "
@@ -125,7 +127,7 @@ class CLexGen
 	m_makeNfa = new CMakeNfa();
 	m_simplifyNfa = new CSimplifyNfa();
 
-	m_emit = new CEmit();
+	m_emit = new CEmit(file.getParentFile());
 
 	/* Successful initialization flag. */
 	m_init_flag = true;
