@@ -13,24 +13,26 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-//import teamdash.wbs.*;
 
+/** A graphical user interface for editing the list of team members.
+ */
 public class TeamMemberListEditor {
 
-    TeamMemberList teamMemberList, orig;
-    JTable table;
-    JPanel buttons;
-    JFrame frame;
-/*
-    public TeamMemberListEditor(TeamProject teamProject) {
-        this(teamProject.getTeamMemberList());
-    }
-*/
+    /** The list of team members we are editing. */
+    private TeamMemberList teamMemberList;
+    /** The original list of team members, before we edited it. */
+    private TeamMemberList orig;
+    /** The table displaying the team member list */
+    private JTable table;
+    /** The frame containing/displaying the editor  */
+    private JFrame frame;
+
+
     public TeamMemberListEditor(TeamMemberList teamList) {
         teamMemberList = new TeamMemberList(orig = teamList);
         teamMemberList.maybeAddEmptyRow();
         buildTable();
-        buildButtons();
+        JPanel buttons = buildButtons();
 
         frame = new JFrame("Team Members");
         frame.getContentPane().add(new JScrollPane(table));
@@ -80,16 +82,23 @@ public class TeamMemberListEditor {
 
     public boolean save() {
         if (table.isEditing())
+            // stop editing the current table cell.
             table.getCellEditor().stopCellEditing();
 
+        // don't save if there are errors.
         if (!checkForErrors()) return false;
 
+        // confirm that the user wants to perform the changes.
         TeamMemberList.Delta[] irreversibleChanges =
             orig.calculateDelta(teamMemberList);
         if (!confirmDestructiveChanges(irreversibleChanges)) return false;
 
+        // commit and save the changes
         orig.publishChanges(irreversibleChanges);
         orig.copyFrom(teamMemberList);
+
+        // now refresh the table with the newly saved data. (This will discard
+        // empty rows in the middle of the list.)
         teamMemberList.copyFrom(orig);
         teamMemberList.maybeAddEmptyRow();
         return true;
@@ -98,6 +107,7 @@ public class TeamMemberListEditor {
     public void cancel() {
         if (table.isEditing())
             table.getCellEditor().stopCellEditing();
+        // revert back to the original version of the team member list.
         teamMemberList.copyFrom(orig);
     }
 
@@ -115,8 +125,8 @@ public class TeamMemberListEditor {
         table.getColumn("Est Hours/Week").setPreferredWidth(100);
     }
 
-    private void buildButtons() {
-        buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+    private JPanel buildButtons() {
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 
         JButton button = new JButton("Cancel");
         button.addActionListener(new ActionListener() {
@@ -129,5 +139,6 @@ public class TeamMemberListEditor {
             public void actionPerformed(ActionEvent e) {
                 if (save()) hide(); } });
         buttons.add(button);
+        return buttons;
     }
 }

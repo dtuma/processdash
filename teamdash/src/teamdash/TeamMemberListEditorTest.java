@@ -1,39 +1,34 @@
 
 package teamdash;
 
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
-public class TeamMemberListEditorTest implements WindowListener {
+public class TeamMemberListEditorTest implements TableModelListener {
 
     private TeamMemberListEditor editor;
+    private TeamMemberList teamList;
 
     public static void main(String args[]) {
         new TeamMemberListEditorTest();
     }
 
     public TeamMemberListEditorTest() {
-        editor = new TeamMemberListEditor(new TeamMemberList());
-        editor.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        editor.frame.addWindowListener(this);
+        teamList = new TeamMemberList();
+        teamList.addTableModelListener(this);
+        editor = new TeamMemberListEditor(teamList);
+        //editor.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    public void windowOpened(WindowEvent e) {}
-    public void windowClosing(WindowEvent e) {
+    public void tableChanged(TableModelEvent e) {
         try {
             FileWriter out = new FileWriter("team.xml");
-            editor.teamMemberList.getAsXML(out);
+            teamList.getAsXML(out);
             out.close();
         } catch (IOException ioe) {}
     }
-    public void windowClosed(WindowEvent e) {}
-    public void windowIconified(WindowEvent e) {}
-    public void windowDeiconified(WindowEvent e) {}
-    public void windowActivated(WindowEvent e) {}
-    public void windowDeactivated(WindowEvent e) {}
 
 }
