@@ -629,14 +629,23 @@ public class TaskScheduleDialog
                 (tree, value, selected, expanded, leaf, row, hasFocus);
             String errorStr = null;
 
+            // find the EVTask for the indicated row
             TreePath path = tree.getPathForRow(row);
             EVTask node = null;
-            if (path != null && model != null)
+            if (path != null)
+                node = (EVTask) path.getLastPathComponent();
+
+            // in flat mode, display the full name of the node rather
+            // than the terminal name
+            if (row > 0 && node != null && tree.getModel() == flatModel)
+                setText(node.fullName);
+
+            // retrieve the error string for this node
+            if (node != null && model != null)
                 errorStr = ((EVTaskList) model).getErrorStringAt
-                    (node = (EVTask) path.getLastPathComponent(),
-                     EVTaskList.TASK_COLUMN);
+                    (node, EVTaskList.TASK_COLUMN);
 
-
+            // display the error string if needed
             if (result instanceof JComponent)
                 ((JComponent) result).setToolTipText(errorStr);
             if (errorStr != null)
@@ -645,6 +654,7 @@ public class TaskScheduleDialog
             Font f = getFont(errorStr != null, result);
             if (f != null) result.setFont(f);
 
+            // give pruned nodes a special appearance
             if (node != null && node.isUserPruned()) {
                 result.setForeground(PHANTOM_COLOR);
                 if (errorStr == null && result instanceof JComponent)
@@ -652,6 +662,8 @@ public class TaskScheduleDialog
                         (resources.getString("Task_Removed_Tooltip"));
                 if (result instanceof JLabel)
                     ((JLabel) result).setIcon(getPrunedIcon(expanded, leaf));
+
+            // give chronologically pruned nodes a special appearance
             } else if (node != null && node.isChronologicallyPruned()) {
                 result.setForeground(SEPIA);
                 if (errorStr == null && result instanceof JComponent)
@@ -661,6 +673,7 @@ public class TaskScheduleDialog
                 if (result instanceof JLabel)
                     ((JLabel) result).setIcon(getChronIcon(expanded, leaf));
             }
+
             return result;
         }
         private Icon prunedOpenIcon = null;
