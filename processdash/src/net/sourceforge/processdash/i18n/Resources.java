@@ -126,18 +126,6 @@ public class Resources extends ResourceBundle implements StringMapper {
     public Map asMap() {
         Map result = new HashMap();
 
-        // add all the keys named by our parent.
-        if (parent != null) {
-            Enumeration e = parent.getKeys();
-            while (e.hasMoreElements()) {
-                String key = (String) e.nextElement();
-                String value = parent.getString(key);
-                result.put(key, value);
-            }
-        }
-
-        // add all the keys named by our delegate.  Override keys placed
-        // by the parent, if they exist.
         Enumeration e = delegate.getKeys();
         while (e.hasMoreElements()) {
             String key = (String) e.nextElement();
