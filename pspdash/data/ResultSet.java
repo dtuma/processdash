@@ -517,18 +517,15 @@ public class ResultSet {
     private static final String FAKE_DATA_NAME =
         DataRepository.anonymousPrefix + "/Data Enumerator";
 
-
-    /** Perform a query and return a result set.
-     *  the queryParameters Map contains the instructions for performing
-     * the query */
-    public static ResultSet get(DataRepository data, Map queryParameters,
-                                String prefix, Comparator nodeComparator) {
+    private static String getForParam(Map queryParameters) {
         // forParam is stored in the "for" parameter
-        String forParam = (String) queryParameters.get("for");
-
+        return (String) queryParameters.get("for");
+    }
+    private static String getOrderBy(Map queryParameters) {
         // orderBy dataElement name is stored in the "order" parameter
-        String orderBy = (String) queryParameters.get("order");
-
+        return (String) queryParameters.get("order");
+    }
+    private static String[] getConditions(Map queryParameters) {
         // conditions are given via "where" parameter(s)
         String [] conditions = (String[]) queryParameters.get("where_ALL");
         if (conditions == null) {
@@ -538,6 +535,18 @@ public class ResultSet {
                 conditions[0] = cond;
             }
         }
+        return conditions;
+    }
+
+    /** Perform a query and return a result set.
+     *  the queryParameters Map contains the instructions for performing
+     * the query */
+    public static ResultSet get(DataRepository data, Map queryParameters,
+                                String prefix, Comparator nodeComparator) {
+
+        String forParam      = getForParam(queryParameters);
+        String orderBy       = getOrderBy(queryParameters);
+        String [] conditions = getConditions(queryParameters);
 
         // data names are given with parameters like "d1", "d2", "d3", etc.
         int i = 1;
@@ -573,6 +582,24 @@ public class ResultSet {
 
         return result;
     }
+
+    /** Return the list of prefixes that would have been used to generate
+     *  a result set.
+     */
+    public static String[] getPrefixList(DataRepository data,
+                                         Map queryParameters,
+                                         String prefix) {
+        ListData list =  getFilteredList(data,
+                                         getForParam(queryParameters),
+                                         getConditions(queryParameters),
+                                         getOrderBy(queryParameters),
+                                         prefix);
+        int i = list.size();
+        String [] result = new String[i];
+        while (i-- > 0) result[i] = (String) list.get(i);
+        return result;
+    }
+
 
     /** Make certain that we have at least one row of data, even if it is
      * bogus.
