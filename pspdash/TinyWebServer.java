@@ -170,6 +170,13 @@ public class TinyWebServer extends Thread {
                 return null;
         }
 
+        public void dispose() {
+            close();
+            inputStream = null;
+            outputStream = null;
+            ioexception = null;
+        }
+
         public synchronized void close() {
             if (isRunning)
                 this.interrupt();
@@ -864,6 +871,7 @@ public class TinyWebServer extends Thread {
             result = t.getOutput();
         } finally {
             synchronized(this) { internalRequestNesting--; }
+            if (t != null) t.dispose();
         }
 
         if (!skipHeaders)
