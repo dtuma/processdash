@@ -30,8 +30,10 @@ import java.text.DateFormat;
 import javax.swing.table.*;
 import javax.swing.event.*;
 
+import com.jrefinery.chart.RangeInfo;
 import com.jrefinery.chart.XYDataSource;
 import com.jrefinery.chart.event.DataSourceChangeListener;
+import com.jrefinery.chart.event.DataSourceChangeEvent;
 
 import pspdash.data.ListData;
 
@@ -694,17 +696,15 @@ public class EVSchedule implements TableModel {
     // based on EVSchedules.
     //////////////////////////////////////////////////////////////////////
 
-    private static Double ZERO = new Double(0.0);
+    private static final Double ZERO = new Double(0.0);
+    private static final Double ONE_HUNDRED = new Double(100.0);
 
-    private class ChartData implements XYDataSource {
+    private class ChartData implements XYDataSource, TableModelListener {
         /** Returns the number of series in the data source. */
         public int getSeriesCount() { return 2; }
         /** Returns the name of the specified series (zero-based). */
         public String getSeriesName(int seriesIndex) {
             return (seriesIndex == 0 ? "Plan" : "Actual"); }
-        /* The following methods are not applicable for us */
-        public void addChangeListener(DataSourceChangeListener listener) {}
-        public void removeChangeListener(DataSourceChangeListener listener) {}
         /** Returns the number of items in the specified series */
         public int getItemCount(int seriesIndex) { return getRowCount()+1; }
 
@@ -718,6 +718,37 @@ public class EVSchedule implements TableModel {
             return getYVal(seriesIndex, itemIndex);
         }
         public Number getYVal(int seriesIndex, int itemIndex) { return ZERO; }
+
+
+        private ArrayList listenerList = null;
+        public void addChangeListener(DataSourceChangeListener l) {
+            if (listenerList == null) listenerList = new ArrayList();
+            synchronized (listenerList) {
+                if (listenerList.size() == 0) addTableModelListener(this);
+                if (!listenerList.contains(l)) listenerList.add(l);
+            }
+        }
+        public void removeChangeListener(DataSourceChangeListener l) {
+            if (listenerList == null) return;
+            synchronized (listenerList) {
+                if (listenerList.remove(l) && listenerList.size() == 0)
+                    removeTableModelListener(this);
+            }
+        }
+        public void fireChangeEvent() {
+            if (listenerList == null) return;
+            DataSourceChangeEvent e = null;
+            Object [] listeners = listenerList.toArray();
+            // Process the listeners last to first, notifying
+            // those that are interested in this event
+            for (int i = listeners.length; i-- > 0; ) {
+                if (e == null) e = new DataSourceChangeEvent(this);
+                ((DataSourceChangeListener)listeners[i]).dataSourceChanged(e);
+            }
+        }
+
+        // TableModelListener implementation:
+        public void tableChanged(TableModelEvent e) { fireChangeEvent(); }
     }
 
     private class TimeChartData extends ChartData {
@@ -733,7 +764,7 @@ public class EVSchedule implements TableModel {
     }
     public XYDataSource getTimeChartData() { return new TimeChartData(); }
 
-    private class ValueChartData extends ChartData {
+    private class ValueChartData extends ChartData implements RangeInfo {
         public Number getYVal(int seriesIndex, int itemIndex) {
             Period p = get(itemIndex);
             if (seriesIndex == 1 &&
@@ -743,6 +774,8 @@ public class EVSchedule implements TableModel {
             double result=(seriesIndex==0 ? p.cumPlanValue : p.cumEarnedValue);
             return new Double(result * 100.0);
         }
+        public Number getMinimumRangeValue() { return ZERO; }
+        public Number getMaximumRangeValue() { return ONE_HUNDRED; }
     }
     public XYDataSource getValueChartData() { return new ValueChartData(); }
 
