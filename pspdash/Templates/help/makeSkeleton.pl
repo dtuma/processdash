@@ -87,9 +87,11 @@ print OUT <<'HEADER';
 BODY { color: black; background-color: white }
 .hideInBook { display: none }
 </STYLE>
+<link rel=stylesheet type="text/css" href="style.css">
 </HEAD>
 <BODY>
 <H1 NO_NUMBER>Process Dashboard Users Manual</H1>
+<p class="unlesspsp" align="center"><a href="Topics/Overview/Separation.html"><img border="0" src="Images/PSPDisclaimer.png"></a></p>
 <H2 NO_NUMBER>Table of Contents</h2>
 TABLE_OF_CONTENTS
 
