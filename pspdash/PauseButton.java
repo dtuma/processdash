@@ -32,6 +32,7 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.StringTokenizer;
 import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -63,8 +64,8 @@ public class PauseButton extends DropDownButton implements ActionListener {
         super();
         PCSH.enableHelp(this, "PlayPause");
         PCSH.enableHelpKey(getMenu(), "PlayPause");
-        showCurrent = "true".equalsIgnoreCase(Settings.getVal
-                                              ("pauseButton.showCurrent"));
+        loadUserSettings();
+
         try {
             pause_icon = new ImageIcon(getClass().getResource("pause.gif"));
             continue_icon = new ImageIcon(getClass().getResource("continue.gif"));
@@ -78,11 +79,6 @@ public class PauseButton extends DropDownButton implements ActionListener {
         setRunFirstMenuOption(false);
         parent = dash;
 
-        String refreshInterval = Settings.getVal("timelog.updateInterval");
-        if (refreshInterval != null) try {
-            refreshIntervalMillis = (int)
-                (Double.parseDouble(refreshInterval) * MILLIS_PER_MINUTE);
-        } catch (NumberFormatException nfe) {}
 
         activeRefreshTimer =
             new javax.swing.Timer(refreshIntervalMillis, this);
@@ -94,14 +90,6 @@ public class PauseButton extends DropDownButton implements ActionListener {
             timingSound = new SoundClip(getClass().getResource("timing.wav"));
         } else
             timingSound = new SoundClip(null);
-
-        // Load the user setting for history size
-        String userSetting = Settings.getVal("pauseButton.historySize");
-        if (userSetting != null) try {
-            maxNumHistoryItems = Integer.parseInt(userSetting);
-            if (maxNumHistoryItems < 1)
-                maxNumHistoryItems = 10;
-        } catch (NumberFormatException nfe) {}
 
         dash.getContentPane().add(this);
     }
@@ -251,6 +239,10 @@ public class PauseButton extends DropDownButton implements ActionListener {
             menu.remove(maxNumHistoryItems);
     }
 
+    public void quit() {
+        saveUserSettings();
+    }
+
     private static boolean WRITE_ZERO =
         "true".equalsIgnoreCase(Settings.getVal("timeLog.writeZero"));
 
@@ -398,6 +390,53 @@ public class PauseButton extends DropDownButton implements ActionListener {
                 entryHasBeenSaved = 1;
             //System.err.println("Cleaned up time log.");
         } catch (IOException ioe) {}
+    }
+
+    private void loadUserSettings() {
+        // Load the user setting for button appearance
+        showCurrent = "true".equalsIgnoreCase(Settings.getVal
+                                              ("pauseButton.showCurrent"));
+
+        // Load the user setting for refresh interval
+        String refreshInterval = Settings.getVal("timelog.updateInterval");
+        if (refreshInterval != null) try {
+            refreshIntervalMillis = (int)
+                (Double.parseDouble(refreshInterval) * MILLIS_PER_MINUTE);
+        } catch (NumberFormatException nfe) {}
+
+        // Load the user setting for history size
+        String historySize = Settings.getVal("pauseButton.historySize");
+        if (historySize != null) try {
+            maxNumHistoryItems = Integer.parseInt(historySize);
+            if (maxNumHistoryItems < 1)
+                maxNumHistoryItems = 10;
+        } catch (NumberFormatException nfe) {}
+
+        // Load the saved history list, if it is available.
+        String history = Settings.getVal("pauseButton.historyList");
+        if (history != null) {
+            StringTokenizer tok = new StringTokenizer(history, "\t");
+            while (tok.hasMoreTokens())
+                addToMenu(tok.nextToken());
+        }
+    }
+
+    private void saveUserSettings() {
+        // the only item that could have changed is the history list.
+        JMenu menu = getMenu();
+        JMenuItem oneItem;
+        StringBuffer setting = new StringBuffer();
+
+        // Walk through the history items in reverse order, and build
+        // up a list.
+        for (int i = menu.getItemCount();  i-- > 0; ) {
+            oneItem = menu.getItem(i);
+            setting.append(oneItem.getText());
+            if (i > 0) setting.append("\t");
+        }
+
+        // save the setting.
+        InternalSettings.set("pauseButton.historyList", setting.toString());
     }
 
 }
