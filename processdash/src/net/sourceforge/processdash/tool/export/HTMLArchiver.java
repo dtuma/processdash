@@ -77,6 +77,9 @@ public class HTMLArchiver {
         this.requestContents = new HashMap();
 
         switch (outputMode) {
+            case OUTPUT_JAR:
+                this.writer = new JarArchiveWriter(); break;
+
             case OUTPUT_ZIP:
                 this.writer = new ZipArchiveWriter(); break;
 

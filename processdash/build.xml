@@ -98,6 +98,8 @@ Authors:
   <property name="helpsearch" value="${help}/JavaHelpSearch"/>
   <property name="libsrc"     value="${lib}/src"/>
   <property name="installer"  value="installer"/>
+  <property name="basePkg"    value="net/sourceforge/processdash"/>
+  <property name="jarsurf"    value="${basePkg}/tool/export/jarsurf"/>
 
   <property name="ns.dir" value="${build}/NS"/>
   <property name="ns.jar" value="${build}/Templates/${applet.file}.jar"/>
@@ -292,6 +294,25 @@ Authors:
 
 
 
+  <target name="jarsurf-list" depends="compile">
+    <pathconvert property=".buildbasedir" pathsep=":" dirsep="/">
+      <path path="${build}"/>
+    </pathconvert>
+    <pathconvert property=".jarsurf_filelist" pathsep="&#x0a;" dirsep="/">
+      <path>
+        <fileset dir="${.buildbasedir}">
+	  <include name="${jarsurf}/*.class"/>
+	  <include name="${basePkg}/ui/lib/BrowserLauncher.class"/>
+        </fileset>
+      </path>
+    </pathconvert>
+    <echo message="${.jarsurf_filelist}" file="${src}/${jarsurf}/classes.txt"/>
+    <replace file="${src}/${jarsurf}/classes.txt"
+             token="${.buildbasedir}" value=""/>
+  </target>
+
+
+
   <target name="translator" depends="ant-tasks,-translator-depend"
           description="Regenerate source code for the default translation engine if necessary."
 	  unless="translator.upToDate">
@@ -352,7 +373,7 @@ Authors:
 
 
 
-  <target name="jar" depends="init,compile,optional,javahelp,l10n-tool"
+  <target name="jar" depends="init,compile,optional,javahelp,l10n-tool,jarsurf-list"
           description="Make the jarfile for distribution">
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->

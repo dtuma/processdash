@@ -42,10 +42,10 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class ZipArchiveWriter implements ArchiveWriter {
 
-    private ZipOutputStream zipOut;
+    protected ZipOutputStream zipOut;
+    protected String defaultPath;
     private int itemNumber;
     private Map uriMap;
-    private String defaultURI;
 
 
     //////////////////////////////////////////////////////////////
@@ -78,20 +78,20 @@ public class ZipArchiveWriter implements ArchiveWriter {
     // internal implementation methods
     //////////////////////////////////////////////////////////////
 
-    protected void init(OutputStream out) {
+    protected void init(OutputStream out) throws IOException {
         zipOut = createArchiveOutputStream(out);
         zipOut.setLevel(9);
         itemNumber = 0;
         uriMap = new HashMap();
     }
 
-    protected ZipOutputStream createArchiveOutputStream(OutputStream out) {
+    protected ZipOutputStream createArchiveOutputStream(OutputStream out) throws IOException {
         return new ZipOutputStream(out);
     }
 
     protected void writeEntry(String uri, String contentType, byte[] content, int offset) throws IOException {
         String safeURI = getSafeURI(uri, contentType);
-        String path = FILES_SUBDIR + "/" + safeURI;
+        String path = getZipEntryFilename(safeURI);
 
         String dnType = contentType.toLowerCase();
         if (dnType.startsWith("text/html") &&
@@ -100,9 +100,14 @@ public class ZipArchiveWriter implements ArchiveWriter {
             offset = 0;
         }
 
+        addingZipEntry(path, contentType);
         zipOut.putNextEntry(new ZipEntry(path));
         zipOut.write(content, offset, content.length - offset);
         zipOut.closeEntry();
+    }
+
+    protected void addingZipEntry(String path, String contentType) {
+
     }
 
     private byte[] addContentTypeHTMLHeader(String contentType, byte[] content,
@@ -135,11 +140,14 @@ public class ZipArchiveWriter implements ArchiveWriter {
     private void writeIndexFile() throws IOException {
         zipOut.putNextEntry(new ZipEntry(INDEX_FILENAME));
         String contents = StringUtils.findAndReplace
-            (INDEX_CONTENTS, "DEFAULT_FILE", FILES_SUBDIR + "/" + defaultURI);
+            (INDEX_CONTENTS, "DEFAULT_FILE", defaultPath);
         zipOut.write(contents.getBytes(HTTPUtils.DEFAULT_CHARSET));
         zipOut.closeEntry();
     }
 
+    protected String getZipEntryFilename(String fileURI) {
+        return FILES_SUBDIR + "/" + fileURI;
+    }
 
     protected String getSafeURI(String uri, String contentType) {
         if (uri.startsWith(ITEM_PREFIX))
@@ -149,7 +157,8 @@ public class ZipArchiveWriter implements ArchiveWriter {
         String result = (String) uriMap.get(uri);
         if (result == null) {
             result = ITEM_PREFIX + itemNumber++ + getSuffix(contentType);
-            if (defaultURI == null) defaultURI = result;
+            if (defaultPath == null)
+                defaultPath = getZipEntryFilename(result);
             uriMap.put(uri, result);
         }
         return result;
@@ -186,7 +195,7 @@ public class ZipArchiveWriter implements ArchiveWriter {
 
 
     private static final String ITEM_PREFIX = "arch_item_";
-    private static final String FILES_SUBDIR = "files";
+    protected static final String FILES_SUBDIR = "files";
     private static final String INDEX_FILENAME = "index.htm";
     private static final Map CONTENT_TYPE_SUFFIX_MAP = loadSuffixes();
 
