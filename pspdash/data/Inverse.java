@@ -47,21 +47,41 @@ public class Inverse implements GenericFunction {
     }
 
     public double f(double y) {
+        if (Double.isNaN(y) || Double.isInfinite(y) ||
+            Double.isNaN(acceptableDelta) || acceptableDelta == 0.0)
+            return Double.NaN;
+
         double lowerBound = -1.0;
         double upperBound = 1.0;
 
         while (func.f(foobar * upperBound) < y) {
             lowerBound = upperBound;
             upperBound *= 2.0;
+            // prevent this loop from running forever; if upperBound
+            // overflows, exit.
+            if (Double.isInfinite(upperBound)) return Double.NaN;
         }
         while (func.f(foobar * lowerBound) > y) {
             upperBound = lowerBound;
             lowerBound *= 2.0;
+            // prevent this loop from running forever; if lowerBound
+            // overflows, exit.
+            if (Double.isInfinite(lowerBound)) return Double.NaN;
         }
 
         double currentGuess;
 
-        while (true) {
+        /* Don't allow the loop below to run forever. At most, run through
+         * The loop 3000 times.  (This number is safe, because even if
+         * upperBound starts out at Double.MAX_VALUE and lowerBound starts
+         * out at -Double.MAX_VALUE, after approximately 2100 times through
+         * the loop, they will differ by less than Double.MIN_VALUE.) It
+         * may not be possible for the loop to run this many times, but this
+         * will finally stop it if it does.
+         */
+        int iter = 3000;
+
+        while (iter-- > 0) {
             currentGuess = (upperBound + lowerBound) / 2.0;
 
             if (upperBound - lowerBound < acceptableDelta)
@@ -72,6 +92,7 @@ public class Inverse implements GenericFunction {
             else
                 upperBound = currentGuess;
         }
+
+        return Double.NaN;
     }
 }
-
