@@ -51,6 +51,8 @@ class ActiveExpressionContext implements ExpressionContext, DataListener
     {
         this.data = r;
         this.name = name;
+        if (prefix.endsWith("/"))
+            prefix = prefix.substring(0, prefix.length()-1);
         this.prefix = prefix;
         this.listener = l;
         this.localValues = new HashMap();
@@ -90,7 +92,7 @@ class ActiveExpressionContext implements ExpressionContext, DataListener
             // like a local value.
             currentMap = localValues;
             externalName_ = dataName;
-            internalName = dataName.substring(prefix.length());
+            internalName = dataName.substring(prefix.length()+1);
         } else {
             // otherwise, the name is a global name.
             currentMap = globalValues;
