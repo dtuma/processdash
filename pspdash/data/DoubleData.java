@@ -136,4 +136,7 @@ public class DoubleData implements SimpleData, NumberData {
     public boolean greaterThan(SimpleData val) {
         return ((val instanceof DoubleData) && (value>((DoubleData)val).value));
     }
+    public boolean test() {
+        return (value != 0.0);
+    }
 }
