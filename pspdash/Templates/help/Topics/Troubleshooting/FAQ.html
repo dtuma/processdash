@@ -11,12 +11,16 @@
 <UL>
  <LI><a href="FAQ.html#NoServer">My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</A></LI>
  <LI><a href="FAQ.html#NoConnection">All my data elements say "NO CONNECTION".  What is wrong?</A></LI>
- <LI><a href="FAQ.html#ERROR">Some of my data elements say "ERROR".  What is wrong?</A></LI>
+ <LI><a href="FAQ.html#ERROR">Some of my data elements say
+  &quot;#VALUE!&quot; or &quot;#DIV/0!&quot;.  What is wrong?</A></LI>
  <LI><a href="FAQ.html#BadExcel">I tried to export my data to Excel with the link on one of the forms, but I just got a small ASCII file.  What is wrong?</A></LI>
  <LI><a href="FAQ.html#WhereIsConfig">Where is the configuration file located?</A></LI>
  <LI><a href="FAQ.html#NoSubmit">Why is there no "submit" button on the HTML forms?</A></LI>
  <LI><a href="FAQ.html#TimerUpdate">I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</A></LI>
  <LI><a href="FAQ.html#FrozenData">I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</A></LI>
+ <LI>I'm entering data in the Size Estimating Template, but the &quot;Total
+  Base Additions&quot;, &quot;Total New Objects&quot;, and &quot;Reused
+  Total&quot; fields are not recalculating.</LI>
  <LI><a href="FAQ.html#WhereData">Where is my PSP data stored?</A></LI>
  <LI><a href="FAQ.html#MoveData">How can I backup my psp data and/or move it to another computer?</A></LI>
  <LI><a href="FAQ.html#FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
@@ -34,7 +38,7 @@
 the web content and thus the content cannot be displayed when the dashboard is
 not running.  If you get an error message like "The page cannot be displayed -
 cannot find server" from Internet Explorer, or "Netscape is unable to locate
-the server localhost" from Netscape, check to make certain that the dashboard
+the server localhost&quot; from Netscape, check to make certain that the dashboard
 is running.</p>
 
 <P>If the dashboard <b>is</b> running, and you have <b>never</b> been able to
@@ -42,17 +46,20 @@ is running.</p>
  settings.  Many people work at companies where they do not have a direct
  connection to the internet, but instead must connect to the web via an HTTP
  proxy server. If this describes you, you may need to tell your browser to
- bypass the proxy for the address "localhost". The instructions below may not
+ bypass the proxy for the address &quot;localhost&quot;. The instructions below may not
  apply to your browser word-for-word, but should hopefully get you pointed in
  the right direction:
   <UL>
-   <LI>For Internet Explorer, choose "Tools &gt; Internet Options". Click on 
+   <LI>For Internet Explorer, choose "Tools <IMG BORDER="0"
+    SRC="../../Images/rarrow.png" WIDTH="12" HEIGHT="9"> Internet Options". Click on 
       the "Connections" tab, then on the "LAN Settings" button. Make certain 
       the "Bypass proxy server for local addresses" box is 
       <B><STRONG>checked</STRONG></B>.</li>
-   <LI>For Netscape, choose "Edit &gt; Preferences". Under the Category 
-      "Advanced &gt; Proxies", click the "Manual proxy configuration" button, 
-      and ensure that the "No Proxy for" box contains "localhost".</LI>
+   <LI>For Netscape, choose "Edit <IMG BORDER="0"
+    SRC="../../Images/rarrow.png" WIDTH="12" HEIGHT="9"> Preferences". Under the Category 
+      "Advanced <IMG BORDER="0" SRC="../../Images/rarrow.png" WIDTH="12"
+    HEIGHT="9"> Proxies", click the "Manual proxy configuration" button, 
+      and ensure that the "No Proxy for" box contains &quot;localhost&quot;.</LI>
   </UL>
 
 
@@ -70,7 +77,7 @@ displays "NO CONNECTION" to let you know that your changes are no longer making
 it back to the dashboard's data repository. To fix the problem, you must
 <OL>
  <LI>restart the dashboard</li>
- <LI>click the refresh button on your browser.</li>
+ <LI>click the refresh/reload button on your browser.</li>
 </OL>
 
 <P>If the dashboard <em>is running</em> and you are still getting "NO 
@@ -94,13 +101,25 @@ problem, you must</p>
 <P>This will allow the dashboard to search for an available communications 
 port.</p>
 
-<P><HR><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B>
-<P>Any time the dashboard runs into an error (like divide-by-zero) when
-calculating a particular data value, "ERROR" will show up in the web browser
-for that data element. Many times this is due to having a very small number of
+<P><HR><a name="ERROR"></a><B>Some of my data elements say
+&quot;<code>#VALUE!</code>&quot; or &quot;<code>#DIV/0!</code>&quot;. What is wrong?</B>
+<P> &quot;<code>#VALUE!</code>&quot; indicates that the dashboard cannot
+calculate a value because the formula references a value that is missing
+(displayed as &quot;<CODE>?????</CODE>&quot;) or otherwise invalid (for
+example, a value like &quot;<CODE>foo</CODE>&quot; when a number was
+expected).
+When you see &quot;<code>#VALUE!</code>&quot; in a dashboard form, it almost <I>always</I>
+means that there is a &quot;<code>?????</code>&quot; field somewhere that you still need
+to fill in. If you fill in all the &quot;<code>?????</code>&quot; fields
+and the &quot;<code>#VALUE!</code>&quot; field does not recalculate, check
+to ensure that the calculation is not <A
+HREF="../Planning/DataFreezing.html">frozen</A>.</P>
+
+<P> &quot;<code>#DIV/0!</code>&quot; indicates that the dashboard encounted a divide-by-zero error when
+calculating a particular data value. Many times this is due to having a very small number of
 usable data points recorded by the dashboard.  For instance, if you start the
 dashboard for the first time and try to look at Process Summary forms for a
-PSP2.1 process, the "% To Date" fields will be filled with "ERROR".  This is
+PSP2.1 process, the "% To Date" fields will be filled with &quot;<code>#DIV/0!</code>&quot;.  This is
 because the total amount of time recorded in the tool is 0.  The percentage
 calculation attempts to divide by zero and returns the error.</P>
 
@@ -108,14 +127,14 @@ calculation attempts to divide by zero and returns the error.</P>
 in the habit of clicking the little "completion" checkbox at the right end of 
 the dashboard, some (or all) of your data will be ignored by the dashboard 
 when creating reports and graphs.  The reporting features of the dashboard 
-only report tasks that are marked as complete.  See the <a 
+only report tasks/projects that are marked as complete.  See the <a 
 href="../Execution/CompletionButton.html">Using the Completion Checkbox</a> 
 help topic for more information.</P>
 
 <P><HR><a name="BadExcel"></a><B>I tried to export my data to Excel with the link on one of the forms, but I just got a small ASCII file.  What is wrong?</B>
 
 <P>For the "Export to Excel" functionality to work seamlessly, you must have 
-the ".IQY" file type properly set up on your system.  This setup is normally 
+the &quot;.IQY&quot; file type properly set up on your system.  This setup is normally 
 performed by Microsoft Office during the installation process for Excel.</p>
 
 <P>If the IQY file type is not properly set up, clicking the "Export to 
@@ -124,12 +143,14 @@ text file. Alternatively, that three line text file might appear in an Excel
 spreadsheet.</p>
 
 <P>If you encounter such problems, try reinstalling Excel.  If that does not 
-solve the problem, add the following line to your <a
+solve the problem, you might try configuring the IQY file type manually. If
+all else fails, add the following line to your <a
 href="../AdvancedTopics/ConfigurationFile.html">configuration file</a>:</p>
 
-<pre>
- excel.exportMethod=mime
-</pre>
+<pre> excel.exportMethod=mime</pre>
+
+<p>And data will be exported to Excel <A
+HREF="../PostmortemAnalysis/ExportingData.html#static">statically</A>.</P>
 
 <P><HR><a name="WhereIsConfig"></A><B>Where is the configuration file located?</B>
 <P>The configuration file is named <code>.pspdash</code> on Unix systems and
@@ -150,7 +171,9 @@ enter your data where necessary, and the dashboard will record it.  However,
 after editing a data field, it is usually necessary to leave that field for
 your changes to take effect.  You can press the TAB button or click somewhere
 else on the page. If the data you are changing is related to other data items 
-on the page, you should see the other data elements update.</P>
+on the page, you should see the other data elements update. For more
+information, see the <A HREF="../Planning/EnteringData.html">Entering process data</A>
+help topic.</P>
 
 
 <P><HR><a name="TimerUpdate"></a><B>I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</b>
@@ -178,7 +201,18 @@ again.  For more info on freezing data see the <a
 href="../Execution/CompletionButton.html">completion checkbox</a> help 
 topic.</p>
 
-<P><HR><a name="WhereData"></a><B>Where is my PSP data stored?</B>
+<P>&nbsp;<HR><A NAME="SizeFrozen"></A><B>I'm entering data in the Size
+Estimating Template, but the &quot;Total Base Additions&quot;, &quot;Total
+New Objects&quot;, and &quot;Reused Total&quot; fields are not
+recalculating.</B>
+
+<P>These fields are probably <A HREF="../Planning/DataFreezing.html">frozen</A>.
+Make certain that the <B>Planning</B> phase is not <A
+HREF="../Execution/CompletionButton.html">marked complete</A>. Also make
+certain that the <B>project</B> is not marked complete (look for the &quot;Completion Date&quot;
+field on the Project Plan Summary form).
+
+<P>&nbsp;<HR><a name="WhereData"></a><B>Where is my PSP data stored?</B>
 <P>The dashboard stores all of your data in a single directory, in plain text
 files.  This directory is often referred to in this documentation as the "data
 directory".  With the current default configuration, data is always stored in
@@ -243,7 +277,8 @@ you to save it (not very helpful). To solve this problem, you must:</P>
   <LI>Obtain a program capable of editing rich text files, and install it
     on your machine.&nbsp; (&quot;Star Office&quot; is one possibility; it
     is free and runs on Linux.)</LI>
-  <LI>Configure your web browser, and tell it that files of mime type
+  <LI>Configure your web browser, and tell it that files ending with
+    &quot;.rtf&quot; and/or files of mime type
     &quot;application/rtf&quot; should be opened with the program you just
     installed.</LI>
 </OL>
@@ -271,7 +306,7 @@ will pause the timer. And
 
 <PRE><FONT SIZE="-2">http://localhost:2468/Non+Project/foo//control/setPath.class</FONT></PRE>
 
-will change the current hierarchy path to "/Non Project/foo". If you want
+will change the current hierarchy path to "/Non Project/foo&quot;. If you want
 to change the current hierarchy path <b>and</b> start the timer, use
 
 <PRE><FONT SIZE="-2">...//control/setPath.class<B>?start</B></FONT></PRE>
@@ -286,8 +321,8 @@ including the latest version, can be found at
 <em>http://processdash.sourceforge.net.</em></p>
 
 <P><HR><a name="BugReport"></a><B>I think I've found a bug.  Whom do I contact?</b>
-<P>You can fill out a bug form on our web site at 
-<em>http://sourceforge.net/bugs/?group_id=9858</em> or if you would rather 
+<P>You can fill out a bug form on our web site at <EM>http://sourceforge.net/tracker/?group_id=9858&amp;atid=109858</EM>
+or if you would rather 
 send us an email, write to <em>processdash-devel@lists.sourceforge.net</em></p>
 
 <!-- DISCLAIMER -->

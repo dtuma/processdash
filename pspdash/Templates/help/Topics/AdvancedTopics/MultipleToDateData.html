@@ -6,13 +6,18 @@
 
 <H1>Using Multiple "To Date" Data Sets</H1>
 
-<PRE>paragraph stating why you would want multiple "To Date"
-data sets. mention reasons like:
-* segregating data from work in different programming
-  languages
-* rolling up data from all the subprojects that make up a
-  given project
-</PRE>
+<P>By default, the dashboard maintains one set of &quot;To Date&quot; data,
+which rolls up data from all of your completed PSP projects. This may not
+meet your data needs. For example, if you continually work in several
+different programming languages, you might want multiple, independent sets
+of &quot;To Date&quot; data, one for each programming language.&nbsp;
+&quot;Data Rollup Templates&quot; address this need.
+</P>
+
+<P>(Incidentally, the &quot;Data Rollup Templates&quot; can also be used to
+roll data from many small PSP-sized tasks up to the project level. It's
+just a matter of how you define the data rollup filter expression.)
+</P>
 
 <H2>Creating Multiple "To Date" Data Sets</H2>
 
@@ -76,12 +81,16 @@ roll up data from.  To do this:
     
 <H2>Viewing Rolled Up Data</H2>    
 
-<PRE>
-* navigate to a data rollup
-* click the script button
-* the Data Analysis center will appear, showing the data
-  from the projects in the rollup.
-</PRE>
+<P>
+To view rolled up data, just use the hierarchy menus to navigate to a data
+rollup node, and click the script button. The <A
+HREF="../PostmortemAnalysis/DataChartsAndReports.html#charts">Data
+Analysis</A> center will appear - but it will be displaying only data from
+the projects that you have included in your rollup! (In fact, the main
+&quot;Data Analysis&quot; center which is launched from the Configure menu
+is nothing more than a view of the rolled up data for the automatic data
+rollup called &quot;/To Date/PSP/All&quot;.)
+</P>
 
 <H2>Using Alternate "To Date" Data Sets</H2>
 
@@ -92,14 +101,15 @@ Settings" section of the plan summary form.  The drop-down list is
 labeled "Base 'To Date' PSP data on:", and the drop down list will
 contain all the PSP data rollup objects you have defined, plus the
 extra "default" rollup, which is called "/To Date/PSP/All".  Choosing
-a different rollup from this list will cause all this project to
-use that rollup for calculating data in the "Plan" and "To Date" columns.
+a different rollup from this list will cause this project to
+use that rollup as the basis for data in the "Plan" and "To Date" columns.
 
-<p><B>TIP:</B> remember that data in the plan column freezes when
+<p><B>TIP:</B> remember that data in the plan column <A
+HREF="../Planning/DataFreezing.html">freezes</A> when
 planning is marked complete, and data in the "To Date" columns freezes
 when the project is marked complete.  Therefore, if Planning and/or
 the entire project is marked complete when you alter the drop-down,
-the data in the "Plan" and "To Date" columns will not recalculate.
+the data in the "Plan" and/or "To Date" columns will not recalculate.
 
 </BODY>
 </HTML>

@@ -45,6 +45,7 @@
   <mapID target="PostmortemAnalysis" url="Topics/PostmortemAnalysis/PostmortemAnalysis.html" />
   <mapID target="DataChartsAndReports" url="Topics/PostmortemAnalysis/DataChartsAndReports.html" />
   <mapID target="ExportingData" url="Topics/PostmortemAnalysis/ExportingData.html" />
+  <mapID target="LOCCounter" url="Topics/PostmortemAnalysis/LOCCounter.html" />
 
   <mapID target="FAQ" url="Topics/Troubleshooting/FAQ.html" />
 

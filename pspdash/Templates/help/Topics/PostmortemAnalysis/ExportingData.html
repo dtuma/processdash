@@ -47,7 +47,7 @@ the following format:</p>
 
 <pre>/complete/path/to/data/item</pre>
 
-<h2>Exporting data to Excel (PC only)</h2>
+<a name="excel"></a><h2>Exporting data to Excel (PC only)</h2>
 <p>Many of the reporting forms in the dashboard have links that say "Export 
 to Excel...".  When this link is clicked, an Excel sheet will come up that 
 contains the data from that form.</p>
@@ -56,10 +56,10 @@ contains the data from that form.</p>
 in Netscape versus the way it is handled in Internet Explorer.</p>
 
 <ul>
- <li>In Netscape, the sheet will have static data elements that contain the 
+ <li><B><A NAME="static">Static export</A>:</B> In Netscape, the sheet will have static data elements that contain the 
    values of the process variables at the instant that the export was 
    done.</li>
- <li>In Internet Explorer, the sheet will be a linked spreadsheet.  Excel 
+ <li><B>Dynamic export:</B> In Internet Explorer, the sheet will be a linked spreadsheet.  Excel 
    will connect to the dashboard and retrieve the data items.  Excel will 
    typically also display a floating "External data" toolbar, which can be 
    used to refresh the data (as long as the dashboard is still running).  By 
@@ -68,8 +68,13 @@ in Netscape versus the way it is handled in Internet Explorer.</p>
    spreadsheet is opened.</li>
 </ul>
 
+<P>If this feature doesn't seem to be working for you, see the <A
+HREF="../Troubleshooting/FAQ.html#BadExcel">related FAQ</A>.
+
 <P>The "Export to Excel..." option will appear on 
 <UL>
+ <li>forms such as the Project Plan Summary and the Size Estimating
+  Template</li>
  <li>tables that are displayed by clicking on a graphical chart (see <a 
    href="DataChartsAndReports.html#charts">Data Charts and Reports</a> for
    more information)</li>
@@ -77,9 +82,12 @@ in Netscape versus the way it is handled in Internet Explorer.</p>
    from a PSP1.0 or higher process script</li>
  <li>the HTML time log</li>
  <li>the HTML defect log</li>
+ <li>the HTML report that is displayed when you click the
+  &quot;Report&quot; button on the <A
+  HREF="../Planning/UsingTaskSchedule.html">task &amp; schedule tool</A></li>
  <li>the R3 report</li>
  <li>the R4 report</li>
-</ul></p>
+</ul>
 
 <!-- DISCLAIMER -->
 

@@ -46,6 +46,7 @@
     </tocitem>
 
     <tocitem image="BookIcon" target="PostmortemAnalysis" text="Postmortem Analysis">
+      <tocitem image="PageIcon" target="LOCCounter" text="Counting LOC"/>
       <tocitem image="PageIcon" target="DataChartsAndReports" text="Creating reports and charts"/>
       <tocitem image="PageIcon" target="ExportingData" text="Exporting your data"/>
     </tocitem>
@@ -56,10 +57,10 @@
       <tocitem image="PageIcon" target="ConfigurationFile" text="The configuration file"/>
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>
       <tocitem image="PageIcon" target="DashboardFindsFiles" text="How the dashboard finds the files"/>
-
+      <tocitem image="PageIcon" target="DefiningOwnProcesses" text="Defining your own custom processes"/>
 
       <!-- tocitem image="PageIcon" target="MinorProcessChanges" text="Making minor changes to the built-in processes"/ -->
-      <!-- tocitem image="BookIcon" target="DefiningOwnProcesses" text="Defining your own custom processes" -->
+
          <!-- tocitem image="PageIcon" target="ThinkProcessesThrough" text="Think your process through carefully"/ -->
          <!-- tocitem image="PageIcon" target="CreateProcessStepByStep" text="Making a simple process step by step"/ -->
          <!-- tocitem image="BookIcon" target="ProcessDefinitionArch" text="The process definition architecture" -->
