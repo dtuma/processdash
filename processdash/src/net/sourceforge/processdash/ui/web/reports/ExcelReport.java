@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 // The author(s) may be contacted at:
-// OO-ALC/TISHD
-// Attn: PSP Dashboard Group
+// Process Dashboard Group
+// c/o Ken Raisor
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
