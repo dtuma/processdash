@@ -21,31 +21,24 @@ supporting the dashboard's data integration features.
     Explorer</a> 4.0 or greater <i>(on Windows systems only)</i>
 
 <li><a href="http://home.netscape.com/download/archive.html">Netscape 4.7</a>
+    <i>(on most platforms)</i>, and 
+    <a href="http://home.netscape.com/download">higher versions of
+    Netscape</a> <i>(on Windows systems)</i>
 
 </ul>
 
-<p>Don't worry - you can still keep using your current web browser as the
-system-default, and use a different web browser with the dashboard:<ul>
-
-<li>Netscape will allow you to have several versions of Communicator
-installed on your computer without conflict. So even if you are using
-some other version of Netscape as the system default, you can still
-install Netscape 4.7 on your computer for use with the dashboard.
-
-<li>(Windows systems only) Or, you can avoid installing multiple versions
-of Netscape by using Internet Explorer with the dashboard while keeping
-Netscape as your system default. (Unless you really dislike IE, this may be
-the simplest option. And for what it's worth, IE <u>does</u> work better
-with the dashboard than Netscape.)
-</ul>
-
-<p>To correct this problem, print this page and follow the instructions
-below:</p>
+<p>Don't worry - you can still keep using your current web browser as
+the system-default, and use a different web browser with the
+dashboard. To correct this problem, print this page and follow the
+instructions below:</p>
 
 <ol>
 
 <li>Choose between the options listed above, and make certain you have an
 appropriate browser installed on your system.
+
+<li><i>(Windows)</i> If you installed an appropriate browser <b>and</b>
+made that browser your system default, you're done. Otherwise, continue.
 
 <li>Shut down the dashboard if it is running.
 
@@ -55,7 +48,7 @@ and add one of the following lines to that file:
 
 <pre>     browser.command=<font color="#FF0000">C:/Program Files/Internet Explorer/IExplore.exe</font></pre>
 
-if you want the dashboard to display scripts and forms in Internet Explorer (recommended), or
+if you want the dashboard to display scripts and forms in Internet Explorer, or
 
 <pre>     browser.command=<font color="#FF0000">C:/Program Files/Netscape/Communicator/Program/Netscape.exe</font></pre>
 
@@ -72,7 +65,7 @@ should appear in your newly designated browser.<br><br><b>Troubleshooting:</b>
 <li>If the form opens in the same browser as before, then you either failed
 to correctly locate your configuration file, or you mistyped the
 &quot;<code>browser.command=</code>&quot; portion of the configuration
-line.  Go back to step 2, but be more careful in step 3 to correctly open
+line.  Go back to step 3, but be more careful in step 4 to correctly open
 and edit the file.
 
 <li>If you receive an error dialog, then you most likely made an error in
@@ -87,6 +80,29 @@ or double backslashes (&quot;<code><font
 </ul>
 
 </ol>
+
+<!--#if ERROR_MESSAGE -->
+
+<h2>Diagnostic Information</h2>
+
+<p>When attempting to initialize the data integration features, your
+browser encountered the following error:</p>
+
+<PRE><!--#echo var="ERROR_MESSAGE" encoding="html" --></PRE>
+
+<!--#if HTTP_USER_AGENT -->
+
+<p>You are using the following browser:</p>
+
+<PRE><!--#echo var="HTTP_USER_AGENT" encoding="html" --></PRE>
+
+<!--#endif-->
+
+<p>This information may help dashboard developers to pinpoint the
+problem your browser is having, and work around that problem in a
+future release of the dashboard.</p>
+
+<!--#endif-->
 
 </BODY>
 </HTML>
