@@ -335,7 +335,7 @@ public class TinyWebServer extends Thread {
                     getMimeTypeFromName(conn.getURL().getFile());
                 if (!Translator.isTranslating() &&
                     SERVER_PARSED_MIME_TYPE.equals(initial_mime_type))
-                    servePreprocessedFile(conn);
+                    servePreprocessedFile(conn, "text/html");
                 else if (CGI_MIME_TYPE.equals(initial_mime_type))
                     serveCGI(conn);
                 else
@@ -707,7 +707,7 @@ public class TinyWebServer extends Thread {
 
             if (mime_type == null ||
                 (preprocess && translate) ||
-                mime_type.startsWith("text/html")) {
+                mime_type.startsWith("text/")) {
 
                 PushbackInputStream pb = new PushbackInputStream
                     (content, SCAN_BUF_SIZE + 1);
@@ -721,18 +721,19 @@ public class TinyWebServer extends Thread {
                     mime_type = getDefaultMimeType(buffer, numBytes);
 
                 if ((preprocess && translate) ||
-                    mime_type.startsWith("text/html")) {
+                     mime_type.startsWith("text/")) {
                     String scanBuf = new String
                         (buffer, 0, numBytes, DASH_CHARSET);
                     translate =
-                        translate && !containsNoTranslateTag(scanBuf);
+                        translate && mime_type.startsWith("text/html") &&
+                        !containsNoTranslateTag(scanBuf);
                     preprocess =
                         preprocess || containsServerParseOverride(scanBuf);
                 }
             }
 
             if (preprocess)
-                servePreprocessedFile(content, translate);
+                servePreprocessedFile(content, translate, mime_type);
 
             else if (translate && mime_type.startsWith("text/html"))
                 serveTranslatedFile(content, mime_type);
@@ -763,34 +764,37 @@ public class TinyWebServer extends Thread {
             "<!--#do-not-translate";
 
         private boolean nonTranslatedPath(String path) {
-            return (path.startsWith("help/") ||
-                    path.startsWith("psp0") ||
-                    path.startsWith("psp1") ||
-                    path.startsWith("psp2") ||
-                    path.startsWith("psp3") ||
-                    path.startsWith("pspForEng/"));
+            return path.startsWith("help/");
+        }
+
+        private String setMimeTypeCharset(String type, String charset) {
+            int pos = type.toLowerCase().indexOf("charset=");
+            if (pos == -1)
+                return type + "; charset=" + charset;
+            return type.substring(pos+8) + charset;
         }
 
 
         /** Serve up a server-parsed html file. */
-        private void servePreprocessedFile(URLConnection conn)
+        private void servePreprocessedFile(URLConnection conn, String mimeType)
             throws TinyWebThreadException, IOException
         {
             String content = preprocessTextFile(conn.getInputStream(), false);
             byte[] bytes = content.getBytes(outputCharset);
-            String contentType = "text/html; charset="+outputCharset;
+            String contentType = setMimeTypeCharset(mimeType, outputCharset);
             sendHeaders(200, "OK", contentType, bytes.length, -1, null);
             outputStream.write(bytes);
         }
 
 
         /** Serve up a server-parsed html file. */
-        private void servePreprocessedFile(InputStream in, boolean translate)
+        private void servePreprocessedFile(InputStream in, boolean translate,
+                                           String mimeType)
             throws TinyWebThreadException, IOException
         {
             String content = preprocessTextFile(in, translate);
             byte[] bytes = content.getBytes(outputCharset);
-            String contentType = "text/html; charset="+outputCharset;
+            String contentType = setMimeTypeCharset(mimeType, outputCharset);
             sendHeaders(200, "OK", contentType, bytes.length, -1, null);
             outputStream.write(bytes);
         }
@@ -817,7 +821,7 @@ public class TinyWebServer extends Thread {
             Reader fileReader = new InputStreamReader(content, DASH_CHARSET);
             Reader translatedReader = Translator.translate(fileReader);
             Writer output = new OutputStreamWriter(outputStream, outputCharset);
-            mime_type = mime_type + "; charset="+outputCharset;
+            mime_type = setMimeTypeCharset(mime_type, outputCharset);
 
             sendHeaders(200, "OK", mime_type, -1, -1, null);
 
@@ -1043,7 +1047,8 @@ public class TinyWebServer extends Thread {
         private String getDefaultMimeType(byte [] buffer, int numBytes)
         {
             while (numBytes-- > 0)
-                if (Character.isISOControl((char) buffer[numBytes]))
+                if (Character.isISOControl((char) buffer[numBytes]) &&
+                    "\t\r\n\f".indexOf((char) buffer[numBytes]) == -1)
                     return DEFAULT_BINARY_MIME_TYPE;
 
             return DEFAULT_TEXT_MIME_TYPE;
