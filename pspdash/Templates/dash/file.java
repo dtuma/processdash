@@ -37,6 +37,8 @@ import pspdash.*;
 import pspdash.data.DataRepository;
 import pspdash.data.InterpolatingFilter;
 import pspdash.data.ListData;
+import pspdash.data.SaveableData;
+import pspdash.data.SimpleData;
 import pspdash.data.StringData;
 
 import java.io.ByteArrayInputStream;
@@ -410,10 +412,13 @@ public class file extends TinyCGIBase {
 
                 String defaultValue = null;
                 if (firstItem && !tok.hasMoreTokens() &&
-                    XMLUtils.hasValue(defaultPath))
+                    !isTemplate && XMLUtils.hasValue(defaultPath))
                     // if the path expression is comprised of this variable
                     // reference and nothing more, then the defaultPath is
-                    // also the default value for this variable.
+                    // also the default value for this variable.  (This
+                    // logic does NOT apply to templates - if a templatePath
+                    // is composed of a lone variable, don't presume the
+                    // default value.)
                     defaultValue = defaultPath;
 
                 pathVar = getPathVariable(token, impliedPath, defaultValue);
@@ -433,7 +438,7 @@ public class file extends TinyCGIBase {
         // if any data elements were not found, check to see if there is a
         // defaultPath attribute. If there is, use it. Otherwise return null.
         if (unknownsPresent) {
-            if (XMLUtils.hasValue(defaultPath))
+            if (!isTemplate && XMLUtils.hasValue(defaultPath))
                 selfPath = defaultPath;
             else {
                 foundTemplate = (foundTemplate || isTemplate);
@@ -547,6 +552,8 @@ public class file extends TinyCGIBase {
                 // repository.
                 StringBuffer prefix = new StringBuffer(getPrefix());
                 val = data.getInheritableValue(prefix, name);
+                if (val != null && !(val instanceof SimpleData))
+                    val = ((SaveableData)val).getSimpleValue();
                 dataName = data.createDataName(prefix.toString(), name);
             }
 
@@ -568,8 +575,8 @@ public class file extends TinyCGIBase {
                     data.putValue(dataName, StringData.create(value));
                 }
 
-            } else if (val instanceof StringData)
-                value = ((StringData) val).getString();
+            } else if (val instanceof SimpleData)
+                value = ((SimpleData) val).format();
 
             if (isUnknown() && defaultValue != null)
                 value = defaultValue;
