@@ -1070,7 +1070,8 @@ public class TaskScheduleDialog
     }
 
     protected void enableTaskButtons() {
-        enableTaskButtons(treeTable.getTree().getSelectionPath());
+        if (treeTable != null)
+            enableTaskButtons(treeTable.getTree().getSelectionPath());
     }
 
     protected void enableTaskButtons(TreePath selectionPath) {
