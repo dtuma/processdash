@@ -24,6 +24,8 @@
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 import java.io.IOException;
+import pspdash.Resources;
+import pspdash.Translator;
 import pspdash.data.DataRepository;
 import pspdash.data.ResultSet;
 
@@ -31,9 +33,9 @@ public class table extends pspdash.TinyCGIBase {
 
 
     protected void writeContents() throws IOException {
-        String title = (String) parameters.get("title");
-        String head  = (String) parameters.get("headerComment");
-        String foot  = (String) parameters.get("footerComment");
+        String title = tr((String) parameters.get("title"));
+        String head  = tr((String) parameters.get("headerComment"));
+        String foot  = tr((String) parameters.get("footerComment"));
 
         boolean skipRowHdr = (parameters.get("skipRowHdr") != null);
         boolean skipColHdr = (parameters.get("skipColHdr") != null);
@@ -85,6 +87,10 @@ public class table extends pspdash.TinyCGIBase {
         if (cssClass == null) cssClass = (String) parameters.get("c");
         if (cssClass == null) return "";
         return " class='" + cssClass + "'";
+    }
+
+    protected String tr(String s) {
+        return Translator.translate(s);
     }
 
 }

@@ -53,7 +53,7 @@ public class ScriptBrowser extends JDialog
 
     protected JButton editButton, deleteButton, closeButton;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.PSPDashboard");
+    Resources resources = Resources.getDashBundle("pspdash.PSPDashboard");
 
 
     //
@@ -117,13 +117,13 @@ public class ScriptBrowser extends JDialog
 
         Box buttonBox = new Box(BoxLayout.X_AXIS);
         buttonBox.add (Box.createGlue());
-        displayButton = new JButton (Resources.getString("Display"));
+        displayButton = new JButton (Resources.getGlobalString("Display"));
         displayButton.setActionCommand("display");
         displayButton.addActionListener(this);
         buttonBox.add (displayButton);
         displayButton.setEnabled(false);
         buttonBox.add (Box.createGlue());
-        JButton button = new JButton (Resources.getString("Close"));
+        JButton button = new JButton (Resources.getGlobalString("Close"));
         button.setActionCommand("close");
         button.addActionListener(this);
         buttonBox.add (button);

@@ -192,13 +192,13 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
 
         return result.toString();
     }
-    private static ResourceBundle resources = null;
+    private static Resources resources = null;
     private static void replaceRollupResource(StringBuffer buf, String key,
                                               String rollupID) {
         if (resources == null)
-            resources = Resources.getBundle("pspdash.Templates");
+            resources = Resources.getDashBundle("pspdash.Templates");
 
-        String val = Resources.format(resources, key+"_FMT", rollupID);
+        String val = resources.format(key+"_FMT", rollupID);
         StringUtils.findAndReplace(buf, key, XMLUtils.escapeAttribute(val));
     }
     private static final String ROLLUP_TEMPLATE_XML =

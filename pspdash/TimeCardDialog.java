@@ -56,7 +56,7 @@ public class TimeCardDialog {
     private static final int HOURS = 1;
     private static final int MINUTES = 2;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.Time");
+    Resources resources = Resources.getDashBundle("pspdash.Time");
 
     public TimeCardDialog(PSPProperties useProps, TimeLog timeLog) {
         this.useProps = useProps;
@@ -164,7 +164,7 @@ public class TimeCardDialog {
                     resizeColumns(); }});
 
         result.add(Box.createHorizontalGlue());
-        JButton closeButton = new JButton(Resources.getString("Close"));
+        JButton closeButton = new JButton(Resources.getGlobalString("Close"));
         dontGrow(closeButton);
         result.add(result.createVerticalStrut
                    (closeButton.getPreferredSize().height + 4));

@@ -33,7 +33,6 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.StringTokenizer;
-import java.util.ResourceBundle;
 import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -66,7 +65,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
         PCSH.enableHelpKey(getMenu(), "PlayPause");
         loadUserSettings();
 
-        ResourceBundle res = Resources.getBundle("pspdash.PSPDashboard");
+        Resources res = Resources.getDashBundle("pspdash.PSPDashboard");
         pause_string = res.getString("Pause_String");
         pause_tip = res.getString("Pause_Tip");
         continue_string = res.getString("Continue_String");

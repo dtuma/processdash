@@ -32,7 +32,6 @@ import java.awt.Dimension;
 import java.awt.event.*;
 import java.text.DecimalFormatSymbols;
 import java.util.EventObject;
-import java.util.ResourceBundle;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.event.ListSelectionEvent;
@@ -48,12 +47,11 @@ public class TaskScheduleChart extends JFrame
     EVSchedule schedule;
     JTabbedPane tabPane;
 
-    static ResourceBundle resources =
-        Resources.getBundle("pspdash.TaskScheduleChart");
+    static Resources resources =
+        Resources.getDashBundle("pspdash.TaskScheduleChart");
 
     public TaskScheduleChart(TaskScheduleDialog parent) {
-        super(Resources.format(resources, "Window_Title_FMT",
-                               parent.taskListName));
+        super(resources.format("Window_Title_FMT", parent.taskListName));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         setIconImage(parent.frame.getIconImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -149,12 +147,9 @@ public class TaskScheduleChart extends JFrame
             { "Earned_Value_Chart", "Direct_Hours_Chart",
                   "Combined_Chart", "Statistics" };
         TAB_NAMES = new String[3][0];
-        TAB_NAMES[FULL] = Resources.getStrings
-            (resources, "Tab_Full_Name_", colKeys);
-        TAB_NAMES[MED] = Resources.getStrings
-            (resources, "Tab_Med_Name_", colKeys);
-        TAB_NAMES[SHORT] = Resources.getStrings
-            (resources, "Tab_Short_Name_", colKeys);
+        TAB_NAMES[FULL] = resources.getStrings("Tab_Full_Name_", colKeys);
+        TAB_NAMES[MED] = resources.getStrings("Tab_Med_Name_", colKeys);
+        TAB_NAMES[SHORT] = resources.getStrings("Tab_Short_Name_", colKeys);
         if ("CURRENCY".equals(TAB_NAMES[SHORT][1]))
             TAB_NAMES[SHORT][1] =
                 (new DecimalFormatSymbols()).getCurrencySymbol();

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -70,7 +70,7 @@ public class ProbeDialog extends JFrame implements
 
     private javax.swing.Timer docChangeTimer;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.PROBE");
+    Resources resources = Resources.getDashBundle("pspdash.PROBE");
 
 
     ProbeDialog(PSPDashboard dash) {
@@ -238,7 +238,7 @@ public class ProbeDialog extends JFrame implements
 
         g.gridy++;              //new row: close button
 
-        closeButton = new JButton (Resources.getString("Close"));
+        closeButton = new JButton (Resources.getGlobalString("Close"));
         closeButton.setActionCommand("close");
         closeButton.addActionListener(this);
         layout.setConstraints(closeButton, g);   panel.add(closeButton);
@@ -293,15 +293,15 @@ public class ProbeDialog extends JFrame implements
         String[] result = new String[10];
         String size = resources.getString("Size");
         String time = resources.getString("Time");
-        result[0]  = Resources.format(resources, "Method_FMT", "A", size);
-        result[1]  = Resources.format(resources, "Method_FMT", "A", time);
-        result[2]  = Resources.format(resources, "Method_FMT", "B", size);
-        result[3]  = Resources.format(resources, "Method_FMT", "B", time);
-        result[4]  = Resources.format(resources, "Method_FMT", "C1", size);
-        result[5]  = Resources.format(resources, "Method_FMT", "C2", size);
-        result[6]  = Resources.format(resources, "Method_FMT", "C1", time);
-        result[7]  = Resources.format(resources, "Method_FMT", "C2", time);
-        result[8]  = Resources.format(resources, "Method_FMT", "C3", time);
+        result[0]  = resources.format("Method_FMT", "A", size);
+        result[1]  = resources.format("Method_FMT", "A", time);
+        result[2]  = resources.format("Method_FMT", "B", size);
+        result[3]  = resources.format("Method_FMT", "B", time);
+        result[4]  = resources.format("Method_FMT", "C1", size);
+        result[5]  = resources.format("Method_FMT", "C2", size);
+        result[6]  = resources.format("Method_FMT", "C1", time);
+        result[7]  = resources.format("Method_FMT", "C2", time);
+        result[8]  = resources.format("Method_FMT", "C3", time);
         result[9]  = resources.getString("Custom_Method");
         return result;
     }

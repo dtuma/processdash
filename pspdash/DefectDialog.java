@@ -70,7 +70,7 @@ public class DefectDialog extends JDialog
     /** A timer object for refreshing the fix time field. */
     private javax.swing.Timer activeRefreshTimer = null;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.Defects");
+    Resources resources = Resources.getDashBundle("pspdash.Defects");
 
 
     DefectDialog(PSPDashboard dash, String defectFilename,
@@ -240,12 +240,12 @@ public class DefectDialog extends JDialog
         g.gridy = 8;  g.insets = small_margin;
         g.anchor = g.CENTER;   g.fill = g.NONE;
 
-        OKButton = new JButton(Resources.getString("OK"));
+        OKButton = new JButton(Resources.getGlobalString("OK"));
         OKButton.addActionListener(this);
         g.gridx = 0;   layout.setConstraints(OKButton, g);
         panel.add(OKButton);
 
-        CancelButton = new JButton(Resources.getString("Cancel"));
+        CancelButton = new JButton(Resources.getGlobalString("Cancel"));
         CancelButton.addActionListener(this);
         g.gridx = 1; g.gridwidth = 2; layout.setConstraints(CancelButton, g);
         panel.add(CancelButton);
@@ -319,7 +319,7 @@ public class DefectDialog extends JDialog
         setDirty(false);
     }
     private String formatDefectNum(String number) {
-        return Resources.format(resources, "Defect_Number_FMT", number);
+        return resources.format("Defect_Number_FMT", number);
     }
 
     public void startTimingDefect() {
@@ -592,7 +592,7 @@ public class DefectDialog extends JDialog
             if (option.equalsIgnoreCase(removed)) {
                 JOptionPane.showMessageDialog
                     (this,
-                     Resources.getStrings(resources, "Sequence_Error_Message"),
+                     resources.getStrings("Sequence_Error_Message"),
                      resources.getString("Sequence_Error_Title"),
                      JOptionPane.ERROR_MESSAGE);
                 return false;

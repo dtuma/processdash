@@ -66,8 +66,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     protected PSPDashboard  dashboard = null;
     protected ConfigureButton configureButton;
 
-    static final ResourceBundle  resource =
-        Resources.getBundle("pspdash.PropertyFrame");
+    static final Resources resource =
+        Resources.getDashBundle("pspdash.PropertyFrame");
 
     static final char NO_MOVE_CHAR    = 'M';
     static final char NO_EDIT_CHAR    = 'E';
@@ -432,22 +432,22 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         JMenuItem        menuItem;
 
         /* File Options (close, save, revert). */
-        menu = new JMenu(Resources.getString("File"));
+        menu = new JMenu(Resources.getGlobalString("File"));
         menuBar.add(menu);
 
-        menuItem = menu.add(new JMenuItem(Resources.getString("Close")));
+        menuItem = menu.add(new JMenuItem(Resources.getGlobalString("Close")));
         menuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 confirmClose(true);
             }});
 
-        saveMenuItem = menu.add(new JMenuItem(Resources.getString("Save")));
+        saveMenuItem = menu.add(new JMenuItem(Resources.getGlobalString("Save")));
         saveMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 saveProperties ();
             }});
 
-        revertMenuItem = menu.add(new JMenuItem(Resources.getString("Revert")));
+        revertMenuItem = menu.add(new JMenuItem(Resources.getGlobalString("Revert")));
         revertMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 tree.getSelectionModel().clearSelection();
@@ -461,10 +461,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         setDirty (false);
 
         /* Tree related stuff. */
-        menu = new JMenu(Resources.getString("Edit"));
+        menu = new JMenu(Resources.getGlobalString("Edit"));
         menuBar.add(menu);
 
-        deleteMenuItem = menu.add(new JMenuItem(Resources.getString("Delete")));
+        deleteMenuItem = menu.add(new JMenuItem(Resources.getGlobalString("Delete")));
         deleteMenuItem.addActionListener(new RemoveAction());
         deleteMenuItem.setEnabled (false);
 
@@ -718,7 +718,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             if (addTemplateMenu.getItemCount() > 18)
                 addTemplateMenu = (JMenu) addTemplateMenu.add
                     (new JMenu(Resources.addDialogIndicator
-                               (Resources.getString("More"))),
+                               (Resources.getGlobalString("More"))),
                      0);
             menuItem = addTemplateMenu.add(new JMenuItem(display));
             menuItem.addActionListener(new AddTemplateAction(val));
@@ -785,7 +785,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         else if (!newName.equals(new String(newName.getBytes()))) {
             JOptionPane.showMessageDialog
                 (frame,
-                 Resources.getStrings(resource, "HierarchyUnicodeError"),
+                 resource.getStrings("HierarchyUnicodeError"),
                  resource.getString("InvalidName"), JOptionPane.ERROR_MESSAGE);
             return false;
         } else
@@ -1236,7 +1236,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     /** CutAction remembers the selected node for future paste operations. */
     class CutAction extends AbstractAction {
         public CutAction() {
-            super(Resources.getString("Cut"),
+            super(Resources.getGlobalString("Cut"),
                   new ImageIcon(PropertyFrame.class.getResource("cut.gif")));
             putValue(Action.SHORT_DESCRIPTION,
                      resource.getString("HierarchyCutNode"));
@@ -1254,7 +1254,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
      *  currently selected node. */
     class PasteAction extends AbstractAction {
         public PasteAction() {
-            super(Resources.getString("Paste"),
+            super(Resources.getGlobalString("Paste"),
                   new ImageIcon(PropertyFrame.class.getResource("paste.gif")));
             putValue(Action.SHORT_DESCRIPTION,
                      resource.getString("HierarchyPasteNode"));

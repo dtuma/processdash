@@ -33,7 +33,6 @@ import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
-import java.util.ResourceBundle;
 import java.util.Stack;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -60,7 +59,7 @@ public class TaskScheduleCollaborationWizard {
     private String rollupTaskListName = null;
     private Stack previousPanes = new Stack();
 
-    ResourceBundle resources = Resources.getBundle
+    Resources resources = Resources.getDashBundle
         ("pspdash.TaskScheduleCollaborationWizard");
 
     /** Create and display a collaboration wizard.
@@ -269,7 +268,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(filler3, oConst);
 
             cancelButton = newJButton();
-            cancelButton.setText(Resources.getString("Cancel"));
+            cancelButton.setText(Resources.getGlobalString("Cancel"));
             cancelButton.setBackground(null);
             buttonBox.add(cancelButton);
             oConst = new GridBagConstraints();
@@ -510,7 +509,7 @@ public class TaskScheduleCollaborationWizard {
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
-            cancelButton = new JButton(Resources.getString("Cancel"));
+            cancelButton = new JButton(Resources.getGlobalString("Cancel"));
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);
 
@@ -672,7 +671,7 @@ public class TaskScheduleCollaborationWizard {
             if (newPassword == null || newPassword.trim().length() == 0) {
                 JOptionPane.showMessageDialog
                     (frame,
-                     Resources.getStrings(resources, "Password_Error_Prompt"),
+                     resources.getStrings("Password_Error_Prompt"),
                      resources.getString("Password_Error_Title"),
                      JOptionPane.ERROR_MESSAGE);
                 return;
@@ -714,7 +713,7 @@ public class TaskScheduleCollaborationWizard {
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
-            cancelButton = new JButton(Resources.getString("Cancel"));
+            cancelButton = new JButton(Resources.getGlobalString("Cancel"));
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);
 
@@ -778,8 +777,8 @@ public class TaskScheduleCollaborationWizard {
                 rollupName.setText(rollupTaskListName);
             else
                 rollupName.setText
-                    (Resources.format
-                     (resources, "Default_Rollup_Name_FMT",
+                    (resources.format
+                     ("Default_Rollup_Name_FMT",
                         TaskScheduleCollaborationWizard.this.taskListName));
             rollupName.setColumns(15);
             oPanel.add(rollupName);
@@ -889,7 +888,7 @@ public class TaskScheduleCollaborationWizard {
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
-            cancelButton = new JButton(Resources.getString("Cancel"));
+            cancelButton = new JButton(Resources.getGlobalString("Cancel"));
             cancelButton.setEnabled(false);
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash.data;
 
@@ -32,6 +32,7 @@ import com.jrefinery.chart.event.DataSourceChangeListener;
 import java.util.*;
 import pspdash.data.compiler.Compiler;
 import pspdash.EscapeString;
+import pspdash.Translator;
 
 public class ResultSet {
 
@@ -85,7 +86,9 @@ public class ResultSet {
     public void setRowName(int row, String name) { data[row][0] = name; }
     /** Get the header name of a given row.
      * Data row numbering starts at 1 and ends at numRows(). */
-    public String getRowName(int row) { return asString(data[row][0]); }
+    public String getRowName(int row) {
+        return Translator.translate(asString(data[row][0]));
+    }
 
     /** Return the number of columns of data, not counting the header col. */
     public int numCols() { return data[0].length - 1; }
@@ -94,7 +97,9 @@ public class ResultSet {
     public void setColName(int col, String name) { data[0][col] = name; }
     /** Get the header name of a given column.
      * Data column numbering starts at 1 and ends at numCols(). */
-    public String getColName(int col) { return asString(data[0][col]); }
+    public String getColName(int col) {
+        return Translator.translate(asString(data[0][col]));
+    }
 
     /** Store an object in the result set.
      * Data rows and columns are numbered starting with 1 and ending with
@@ -149,7 +154,8 @@ public class ResultSet {
      * the empty string. */
     public String format(int row, int col) {
         // row and column headers are strings
-        if (row == 0 || col == 0) return data[row][col].toString();
+        if (row == 0 || col == 0)
+            return Translator.translate(asString(data[row][col]));
 
         SimpleData d = getData(row, col);
         if (d == null || !d.isDefined()) return "";

@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -66,7 +66,7 @@ class ScriptButton extends DropDownButton {
         parent = dash;
 
         moreItem = new JMenuItem(Resources.addDialogIndicator
-                                 (Resources.getString("More")));
+                                 (Resources.getGlobalString("More")));
         moreItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new ScriptBrowser(ScriptButton.this.parent, true); } } );

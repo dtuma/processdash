@@ -32,12 +32,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.ResourceBundle;
 
 public class PSPDiff {
 
-    static final ResourceBundle resource =
-        Resources.getBundle("pspdash.PSPDiff");
+    static final Resources resource =
+        Resources.getDashBundle("pspdash.PSPDiff");
 
     private int base, added, deleted, modified, total;
     WhitespaceCompareString[] linesA, linesB;
@@ -387,7 +386,7 @@ public class PSPDiff {
             web.getRequest("/" + name, false);
         } catch (Exception e) {
             System.err.println
-                (Resources.format(resource, "PspDiffCouldNotInit_FMT", name));
+                (resource.format("PspDiffCouldNotInit_FMT", name));
             e.printStackTrace();
         }
         languageFilters = filterNames;

@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -97,13 +97,13 @@ public class NodeSelectionDialog extends JDialog
     private Component buildButtonPanel(String okayLabel) {
         JPanel result = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 
-        JButton cancelButton = new JButton(Resources.getString("Cancel"));
+        JButton cancelButton = new JButton(Resources.getGlobalString("Cancel"));
         cancelButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     dispose(); }});
         result.add(cancelButton);
 
-        if (okayLabel == null) okayLabel = Resources.getString("OK");
+        if (okayLabel == null) okayLabel = Resources.getGlobalString("OK");
         okayButton = new JButton(okayLabel);
         okayButton.addActionListener(this);
         okayButton.setEnabled(false);

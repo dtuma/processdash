@@ -56,7 +56,7 @@ public class DefectEditor extends Component
     protected JComboBox dtsSelector;
 //  protected UserWarning     warnUser;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.Defects");
+    Resources resources = Resources.getDashBundle("pspdash.Defects");
     String inheritTypeSelection, typeSelectionTooltip;
     boolean buildingDtsSelector = false;
 
@@ -440,7 +440,7 @@ public class DefectEditor extends Component
                 // display a confirmation dialog
                 if (JOptionPane.showConfirmDialog
                     (frame,
-                     Resources.format(resources, "Confirm_Delete_Message_FMT", number),
+                     resources.format("Confirm_Delete_Message_FMT", number),
                      resources.getString("Confirm_Delete_Title"),
                      JOptionPane.YES_NO_OPTION) ==
                     JOptionPane.YES_OPTION)
@@ -487,10 +487,10 @@ public class DefectEditor extends Component
 
         retPanel.setLayout(new BorderLayout());
         table = new ValidatingTable
-            (Resources.getStrings(resources, "Column_Name_", columns),
+            (resources.getStrings("Column_Name_", columns),
              null,
-             Resources.getInts(resources, "Column_Width_", columns),
-             Resources.getStrings(resources, "Column_Tooltip_", columns),
+             resources.getInts("Column_Width_", columns),
+             resources.getStrings("Column_Tooltip_", columns),
              null, null, 0, true, null,
              new boolean[] {false, false, false, // no columns editable
                             false, false, false,
@@ -508,7 +508,7 @@ public class DefectEditor extends Component
         JPanel btnPanel = new JPanel(false);
                                     // Should only be available if one
                                     // entry is selected
-        editButton = new JButton (Resources.getString("Edit"));
+        editButton = new JButton (Resources.getGlobalString("Edit"));
         editButton.setActionCommand ("edit");
         editButton.addActionListener (this);
         editButton.setEnabled (false);
@@ -516,13 +516,13 @@ public class DefectEditor extends Component
 
                                     // Should only be available if one
                                     // entry is selected
-        deleteButton = new JButton (Resources.getString("Delete"));
+        deleteButton = new JButton (Resources.getGlobalString("Delete"));
         deleteButton.setActionCommand ("delete");
         deleteButton.addActionListener (this);
         deleteButton.setEnabled (false);
         btnPanel.add (deleteButton);
 
-        closeButton = new JButton (Resources.getString("Close"));
+        closeButton = new JButton (Resources.getGlobalString("Close"));
         closeButton.setActionCommand ("close");
         closeButton.addActionListener (this);
         btnPanel.add (closeButton);

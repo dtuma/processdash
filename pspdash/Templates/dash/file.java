@@ -55,7 +55,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
 
@@ -159,8 +158,8 @@ public class file extends TinyCGIBase {
     public static final String TEMPLATE_ROOT_WIN = "\\Templates\\";
     public static final String TEMPLATE_ROOT_UNIX = "/Templates/";
 
-    private static final ResourceBundle resources =
-        Resources.getBundle("dash.file");
+    private static final Resources resources =
+        Resources.getDashBundle("dash.file");
 
 
     protected void writeHeader() {}
@@ -222,8 +221,8 @@ public class file extends TinyCGIBase {
                 // if the user is asking for a directory but it
                 // doesn't exist, create it for them.
                 if (!result.mkdirs()) {
-                    String message = Resources.format
-                        (resources, "Create_Directory_Error_FMT",
+                    String message = resources.format
+                        ("Create_Directory_Error_FMT",
                          HTMLUtils.escapeEntities(result.getPath()));
                     sendCopyTemplateError(message);
                     return;
@@ -284,15 +283,15 @@ public class file extends TinyCGIBase {
         File resultDir = result.getParentFile();
         if (!resultDir.exists())
             if (!resultDir.mkdirs()) {
-                String message = Resources.format
-                    (resources, "Create_Directory_Error_FMT",
+                String message = resources.format
+                    ("Create_Directory_Error_FMT",
                      HTMLUtils.escapeEntities(resultDir.getPath()));
                 sendCopyTemplateError(message);
                 return;
             }
         if (copyFile(template, templateURL, result) == false) {
-            String message = Resources.format
-                (resources, "Copy_File_Error_FMT",
+            String message = resources.format
+                ("Copy_File_Error_FMT",
                  HTMLUtils.escapeEntities(template.getPath()),
                  HTMLUtils.escapeEntities(result.getPath()));
             sendCopyTemplateError(message);
@@ -695,7 +694,7 @@ public class file extends TinyCGIBase {
         Document doc = e.getOwnerDocument();
         if (doc == null) return defValue;
 
-        ResourceBundle bundle = (ResourceBundle) resourceMap.get(doc);
+        Resources bundle = (Resources) resourceMap.get(doc);
         if (bundle == null) return defValue;
 
         resName = resName.replace(' ', '_');
@@ -713,8 +712,8 @@ public class file extends TinyCGIBase {
         super.writeHeader();
         String title = resources.getString("No_Such_File_Title");
         String filenameDisplayName = HTMLUtils.escapeEntities(filename);
-        String message = Resources.format
-            (resources, "No_Such_File_Message_FMT", filenameDisplayName);
+        String message = resources.format
+            ("No_Such_File_Message_FMT", filenameDisplayName);
         out.print
             ("<html><head><title>"+title+"</title></head>\n" +
              "<body><h1>"+title+"</h1>\n" + message + "</body></html>");
@@ -742,8 +741,8 @@ public class file extends TinyCGIBase {
         out.print("<html><head><title>"+title+"</title></head>\n"+
                   "<body><h1>"+title+"</h1>\n");
         if (file != null && reason != CREATE_CONFIRM) {
-            message = Resources.format
-                (resources, "Missing_File_Message_FMT",
+            message = resources.format
+                ("Missing_File_Message_FMT",
                  HTMLUtils.escapeEntities(file.getPath()),
                  new Integer(isTemplate ? 1 : 0));
             out.println(message);
@@ -751,8 +750,8 @@ public class file extends TinyCGIBase {
         }
         String filenameDisplayName = HTMLUtils.escapeEntities
             (getProp(e, filename + DISPLAY_NAME_PROP, filename));
-        message = Resources.format
-            (resources, "Provide_Info_Prompt_FMT", filenameDisplayName,
+        message = resources.format
+            ("Provide_Info_Prompt_FMT", filenameDisplayName,
              new Integer(isTemplate ? 1 : 0),
              new Integer(reason));
         out.println(message);
@@ -851,7 +850,7 @@ public class file extends TinyCGIBase {
                 resourceName = resourceName.replace('/', '.');
                 if (resourceName.startsWith("."))
                     resourceName = resourceName.substring(1);
-                ResourceBundle bundle = Resources.getBundle(resourceName);
+                Resources bundle = Resources.getDashBundle(resourceName);
                 resourceMap.put(result, bundle);
             } catch (Exception e) {}
         }

@@ -46,7 +46,6 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 public class TaskScheduleDialog
     implements EVTask.Listener, EVTaskList.RecalcListener, EVSchedule.Listener
@@ -75,8 +74,8 @@ public class TaskScheduleDialog
 
     protected JFrame chartDialog = null;
 
-    protected ResourceBundle resources =
-        Resources.getBundle("pspdash.TaskScheduleDialog");
+    protected Resources resources =
+        Resources.getDashBundle("pspdash.TaskScheduleDialog");
 
 
     public TaskScheduleDialog(PSPDashboard dash, String taskListName,
@@ -214,8 +213,8 @@ public class TaskScheduleDialog
     protected void setDirty(boolean dirty) {
         isDirty = dirty;
         saveButton.setEnabled(isDirty);
-        closeButton.setText(isDirty ? Resources.getString("Cancel")
-                                    : Resources.getString("Close"));
+        closeButton.setText(isDirty ? Resources.getGlobalString("Cancel")
+                                    : Resources.getGlobalString("Close"));
     }
 
     protected Component buildTaskButtons(boolean isRollup) {
@@ -371,14 +370,14 @@ public class TaskScheduleDialog
         box.add(reportButton);
         box.add(Box.createHorizontalStrut(2));
 
-        closeButton = new JButton(Resources.getString("Close"));
+        closeButton = new JButton(Resources.getGlobalString("Close"));
         closeButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     confirmClose(true); }});
         box.add(closeButton);
         box.add(Box.createHorizontalStrut(2));
 
-        saveButton = new JButton(Resources.getString("Save"));
+        saveButton = new JButton(Resources.getGlobalString("Save"));
         saveButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     save(); }});
@@ -434,8 +433,8 @@ public class TaskScheduleDialog
         if (errors == null || errors.size() == 0) return;
         ErrorReporter err = new ErrorReporter
             (resources.getString("Error_Dialog_Title"),
-             Resources.getStrings(resources, "Error_Dialog_Head"),
-             Resources.getStrings(resources, "Error_Dialog_Foot"));
+             resources.getStrings("Error_Dialog_Head"),
+             resources.getStrings("Error_Dialog_Foot"));
         Iterator i = errors.keySet().iterator();
         while (i.hasNext())
             err.logError((String) i.next());
@@ -1183,14 +1182,13 @@ public class TaskScheduleDialog
         String owner = (String) importedSchedule.getLocalAttr
             (CachedURLObject.OWNER_ATTR);
         if (owner != null)
-            localName = Resources.format
-                (resources, "Imported_Schedule_Name_FMT", localName, owner);
+            localName = resources.format
+                ("Imported_Schedule_Name_FMT", localName, owner);
 
         do {
             localName = (String) JOptionPane.showInputDialog
                 (frame,
-                 Resources.getStrings(resources,
-                                      "Imported_Schedule_Name_Prompt"),
+                 resources.getStrings("Imported_Schedule_Name_Prompt"),
                  resources.getString("Imported_Schedule_Name_Dialog_Title"),
                  JOptionPane.PLAIN_MESSAGE, null, null, localName);
             if (localName != null)
@@ -1236,11 +1234,10 @@ public class TaskScheduleDialog
         EVTask task = (EVTask) selPath.getLastPathComponent();
         String fullName = isRollup() ? task.getName() : task.getFullName();
         String[] message =
-            Resources.format("\n", resources,
-                             isRollup()
-                                 ? "Confirm_Delete_Schedule_Prompt_FMT"
-                                 : "Confirm_Delete_Task_Prompt_FMT",
-                             fullName);
+            resources.formatStrings(isRollup()
+                                        ? "Confirm_Delete_Schedule_Prompt_FMT"
+                                        : "Confirm_Delete_Task_Prompt_FMT",
+                                    fullName);
         return (JOptionPane.showConfirmDialog
                 (frame, message,
                  isRollup()

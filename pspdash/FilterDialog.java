@@ -51,7 +51,7 @@ public class FilterDialog extends JDialog implements ActionListener {
     PropSelectTreeModel treeModel;
     ActionListener      l;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.PROBE");
+    Resources resources = Resources.getDashBundle("pspdash.PROBE");
 
 
     public FilterDialog (PSPDashboard dash,
@@ -86,7 +86,7 @@ public class FilterDialog extends JDialog implements ActionListener {
         Box mainBox = new Box(BoxLayout.Y_AXIS);
         Box aBox = new Box(BoxLayout.X_AXIS);
         aBox.add (Box.createHorizontalStrut(2));
-        incNonTemplate = new JCheckBox (Resources.getString("Show_Leaf_Nodes"));
+        incNonTemplate = new JCheckBox (Resources.getGlobalString("Show_Leaf_Nodes"));
         incNonTemplate.setActionCommand("leaves");
         incNonTemplate.addActionListener(this);
         aBox.add (incNonTemplate);
@@ -102,7 +102,7 @@ public class FilterDialog extends JDialog implements ActionListener {
         button.addActionListener(this);
         buttonBox.add (button);
         buttonBox.add (Box.createGlue());
-        button = new JButton (Resources.getString("Close"));
+        button = new JButton (Resources.getGlobalString("Close"));
         button.setActionCommand("close");
         button.addActionListener(this);
         buttonBox.add (button);

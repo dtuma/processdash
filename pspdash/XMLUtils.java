@@ -112,9 +112,9 @@ public class XMLUtils {
 
         if (e instanceof SAXParseException) {
             SAXParseException spe = (SAXParseException) e;
-            message = Resources.format
-                (Resources.getBundle("pspdash.Templates"),
-                 "XML_Exception_FMT",
+            Resources r = Resources.getDashBundle("pspdash.Templates");
+            message = r.format
+                ("XML_Exception_FMT",
                  message,
                  new Integer(spe.getLineNumber()),
                  new Integer(spe.getColumnNumber()));

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -168,7 +168,7 @@ public class CachedURLObject extends CachedObject {
     }
 
 
-    private static ResourceBundle RESOURCES = null;
+    private static Resources RESOURCES = null;
 
     public static String translateMessage(ResourceBundle resources,
                                           String prefix,
@@ -178,7 +178,7 @@ public class CachedURLObject extends CachedObject {
         if (result != null) return result;
 
         if (RESOURCES == null)
-            RESOURCES = Resources.getBundle("pspdash.CachedURLObject");
+            RESOURCES = Resources.getDashBundle("pspdash.CachedURLObject");
         result = RESOURCES.getString(errorKey);
         return result == null ? errorKey : result;
     }

@@ -88,7 +88,7 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
         if (chromeless || title == null || title.length() == 0)
             chart.setTitle((Title) null);
         else {
-            chart.setTitle(title);
+            chart.setTitle(Translator.translate(title));
             String titleFontSize = getSetting("titleFontSize");
             if (titleFontSize != null) try {
                 float fontSize = Float.parseFloat(titleFontSize);
@@ -190,13 +190,15 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
 
         if (!chromeless) {
             String catAxisLabel = data.getColName(0);
-            if (catAxisLabel == null) catAxisLabel = "Project/Task";
+            if (catAxisLabel == null)
+                catAxisLabel = Translator.translate("Project/Task");
 
-            String otherAxisLabel = getSetting("units");
+            String otherAxisLabel = Translator.translate(getSetting("units"));
             if ((otherAxisLabel == null || otherAxisLabel.length() == 0)
                 && data.numCols() == 1)
                 otherAxisLabel = data.getColName(1);
-            if (otherAxisLabel == null) otherAxisLabel = "Value";
+            if (otherAxisLabel == null)
+                otherAxisLabel = Translator.translate("Value");
 
             String catLabels = getParameter("categoryLabels");
 

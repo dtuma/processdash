@@ -90,7 +90,7 @@ public class TimeLogEditor extends Object
     boolean tableContainsRows = false;
     boolean selectedNodeLoggingAllowed = false;
 
-    ResourceBundle resources = Resources.getBundle("pspdash.Time");
+    Resources resources = Resources.getDashBundle("pspdash.Time");
 
     //
     // member functions
@@ -609,7 +609,7 @@ public class TimeLogEditor extends Object
         label = new JLabel (resources.getString("Format_Label")+" ");
         retPanel.add(label);   retPanel.add(Box.createHorizontalStrut(5));
         formatChoice = new JComboBox
-            (Resources.getStrings(resources, "Format_", TIME_FORMAT_KEY_NAMES));
+            (resources.getStrings("Format_", TIME_FORMAT_KEY_NAMES));
         retPanel.add(formatChoice);   retPanel.add(Box.createHorizontalStrut(5));
         formatChoice.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -838,7 +838,7 @@ public class TimeLogEditor extends Object
     protected void summarizeWarning() {
         if (JOptionPane.showConfirmDialog
             (frame,
-             Resources.getStrings(resources, "Summarization_Warning_Message"),
+             resources.getStrings("Summarization_Warning_Message"),
              resources.getString("Summarization_Warning_Title"),
              JOptionPane.OK_CANCEL_OPTION,
              JOptionPane.WARNING_MESSAGE)
@@ -855,21 +855,21 @@ public class TimeLogEditor extends Object
 
         retPanel.setLayout(new BorderLayout());
         table = new ValidatingTable
-            (Resources.getStrings(resources, "Column_Name_", COLUMN_KEYS),
+            (resources.getStrings("Column_Name_", COLUMN_KEYS),
              null,
-             Resources.getInts(resources, "Column_Width_", COLUMN_KEYS),
-             Resources.getStrings(resources, "Column_Tooltip_", COLUMN_KEYS),
+             resources.getInts("Column_Width_", COLUMN_KEYS),
+             resources.getStrings("Column_Tooltip_", COLUMN_KEYS),
              null, this, 0, true, null, null);
         retPanel.add ("Center", table);
 
         JPanel btnPanel = new JPanel(false);
-        addButton = button = new JButton (Resources.getString("Add"));
+        addButton = button = new JButton (Resources.getGlobalString("Add"));
         button.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) { addRow(); }
         });
         btnPanel.add (button);
 
-        button = new JButton (Resources.getString("Delete"));
+        button = new JButton (Resources.getGlobalString("Delete"));
         button.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) { deleteSelectedRow(); }
         });
@@ -904,15 +904,15 @@ public class TimeLogEditor extends Object
             public void actionPerformed(ActionEvent e) {
                 showTimeCard(); }});
 
-        revertButton = new JButton (Resources.getString("Revert"));
+        revertButton = new JButton (Resources.getGlobalString("Revert"));
         retPanel.add (revertButton);
         revertButton.addActionListener (new ReloadAction ());
 
-        saveButton = new JButton (Resources.getString("Save"));
+        saveButton = new JButton (Resources.getGlobalString("Save"));
         retPanel.add (saveButton);
         saveButton.addActionListener (new SaveAction ());
 
-        JButton closeButton = new JButton(Resources.getString("Close"));
+        JButton closeButton = new JButton(Resources.getGlobalString("Close"));
         retPanel.add(closeButton);
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { confirmClose(true); }

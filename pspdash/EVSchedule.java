@@ -44,8 +44,8 @@ public class EVSchedule implements TableModel {
 
     public static final Date NEVER = new Date(Long.MAX_VALUE);
     public static final Date A_LONG_TIME_AGO = new Date(0);
-    static ResourceBundle resources =
-        Resources.getBundle("pspdash.TaskScheduleDialog");
+    static Resources resources =
+        Resources.getDashBundle("pspdash.TaskScheduleDialog");
 
     public interface Listener {
         public void evScheduleChanged();
@@ -975,12 +975,11 @@ public class EVSchedule implements TableModel {
     protected static final int TIME_W = 50; // width for time columns
     protected static final int PCT_W  = 40; // width for percentage columns
     public static final String[] colNames =
-        Resources.getStrings(resources, "Schedule_Column_Name_", COLUMN_KEYS);
+        resources.getStrings("Schedule_Column_Name_", COLUMN_KEYS);
     public static final int[] colWidths =
-        Resources.getInts(resources, "Schedule_Column_Width_", COLUMN_KEYS);
+        resources.getInts("Schedule_Column_Width_", COLUMN_KEYS);
     public static final String[] TOOL_TIPS =
-        Resources.getStrings(resources, "Schedule_Column_Tooltip_",
-                             COLUMN_KEYS);
+        resources.getStrings("Schedule_Column_Tooltip_", COLUMN_KEYS);
 
     public static final int FROM_COLUMN           = 0;
     public static final int TO_COLUMN             = 1;

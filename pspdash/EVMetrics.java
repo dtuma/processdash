@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -77,6 +76,15 @@ public class EVMetrics implements TableModel {
 
     /** The end of the current time period in the schedule */
     protected Date periodEnd = null;
+
+    /** A confidence interval predicting the total cost of the tasks
+     * which have not yet been completed (note that this <b>includes</b>
+     * time spent so far on the incomplete tasks).
+    protected ConfidenceInterval costInterval = null; */
+
+    /** A confidence interval predicting the ratio of actual direct time
+     * to planned direct time
+    protected ConfidenceInterval timeErrInterval = null; */
 
     /** A list of warnings/errors associated with this EVModel.
      *  the keys are the error messages; they may map to an EVTask
@@ -280,8 +288,7 @@ public class EVMetrics implements TableModel {
 
 
 
-    static ResourceBundle resources =
-        Resources.getBundle("pspdash.EVMetrics");
+    static Resources resources = Resources.getDashBundle("pspdash.EVMetrics");
 
     protected String getResourcePrefix() { return null; }
 

@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import java.io.File;
 
 class ConfigureButton extends JMenuBar implements ActionListener {
@@ -63,7 +62,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static final String FORUM_URL =
         "http://sourceforge.net/forum/forum.php?forum_id=30753";
 
-    ResourceBundle resources = Resources.getBundle("pspdash.PSPDashboard");
+    Resources resources = Resources.getDashBundle("pspdash.PSPDashboard");
 
                                   // menu labels
     static final String HIERARCHY_FRAME  = "Hierarchy";

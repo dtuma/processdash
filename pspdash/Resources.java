@@ -21,30 +21,43 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  tuma@users.sourceforge.net
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.Enumeration;
 import java.util.ResourceBundle;
+import java.util.NoSuchElementException;
 
-public class Resources {
+public class Resources extends ResourceBundle {
 
-    private static ResourceBundle globalResources = null;
+    private String bundleName;
+
+    private Resources(String bundleName, ResourceBundle parent) {
+        this.bundleName = bundleName;
+        setParent(parent);
+    }
+
+    protected Object handleGetObject(String key) { return null; }
+    public Enumeration getKeys() { return parent.getKeys(); }
+    public Locale getLocale() { return parent.getLocale(); }
+
+
+
+    private static Resources globalResources = null;
     private static MessageFormat dialogIndicatorFormat = null;
-
-    private Resources() {}
 
     private static void initGlobalResources() {
         if (globalResources == null) {
-            globalResources = getBundle("pspdash.Resources");
-
+            globalResources = getDashBundle("pspdash.Resources");
         }
     }
 
-    public static String getString(String key) {
+    public static String getGlobalString(String key) {
         initGlobalResources();
         return globalResources.getString(key);
     }
@@ -52,7 +65,7 @@ public class Resources {
     public static String addDialogIndicator(String value) {
         if (dialogIndicatorFormat == null)
             dialogIndicatorFormat = new MessageFormat
-                (getString("Dialog_Indicator_FMT"));
+                (getGlobalString("Dialog_Indicator_FMT"));
 
         return dialogIndicatorFormat.format(new Object[] { value });
     }
@@ -79,13 +92,14 @@ public class Resources {
 
     private static final boolean TIME_LOADING = false;
 
-    public static ResourceBundle getBundle(String bundleName) {
+    public static Resources getDashBundle(String bundleName) {
         long start = 0;
         if (TIME_LOADING)
             start = System.currentTimeMillis();
 
-        ResourceBundle result = ResourceBundle.getBundle
+        ResourceBundle parentBundle = ResourceBundle.getBundle
             (bundleName, Locale.getDefault(), RESOURCE_LOADER);
+        Resources result = new Resources(bundleName, parentBundle);
 
         if (TIME_LOADING) {
             long end = System.currentTimeMillis();
@@ -96,26 +110,42 @@ public class Resources {
         return result;
     }
 
+    public String format(String key, Object[] args) {
+        return format(this, key, args);
+    }
     public static String format(ResourceBundle bundle, String key,
                                 Object[] args) {
         return MessageFormat.format(bundle.getString(key), args);
     }
 
+    public String format(String key, Object arg1) {
+        return format(this, key, arg1);
+    }
     public static String format(ResourceBundle bundle, String key,
                                 Object arg1) {
         return format(bundle, key, new Object[] { arg1 });
     }
 
+    public String format(String key, Object arg1, Object arg2) {
+        return format(this, key, arg1, arg2);
+    }
     public static String format(ResourceBundle bundle, String key,
                                 Object arg1, Object arg2) {
         return format(bundle, key, new Object[] { arg1, arg2 });
     }
 
+    public String format(String key, Object arg1, Object arg2, Object arg3) {
+        return format(this, key, arg1, arg2, arg3);
+    }
     public static String format(ResourceBundle bundle, String key,
                                 Object arg1, Object arg2, Object arg3) {
         return format(bundle, key, new Object[] { arg1, arg2, arg3 });
     }
 
+    public String format(String key, Object arg1, Object arg2, Object arg3,
+                                    Object arg4) {
+        return format(this, key, arg1, arg2, arg3, arg4);
+    }
     public static String format(ResourceBundle bundle, String key,
                                 Object arg1, Object arg2, Object arg3,
                                 Object arg4) {
@@ -123,39 +153,64 @@ public class Resources {
     }
 
 
-
-    public static String[] format(String delim, ResourceBundle bundle,
-                                  String key, Object[] args) {
-        return StringUtils.split(format(bundle, key, args), delim);
+    private static String[] split_(String s) {
+        return StringUtils.split(s, "\r\n");
     }
 
-    public static String[] format(String delim, ResourceBundle bundle,
-                                  String key, Object arg1) {
-        return StringUtils.split(format(bundle, key, arg1), delim);
+    public String[] formatStrings(String key, Object[] args) {
+        return formatStrings(this, key, args);
+    }
+    public static String[] formatStrings(ResourceBundle bundle,
+                                         String key, Object[] args) {
+        return split_(format(bundle, key, args));
     }
 
-    public static String[] format(String delim, ResourceBundle bundle,
-                                  String key, Object arg1, Object arg2) {
-        return StringUtils.split(format(bundle, key, arg1, arg2), delim);
+    public String[] formatStrings(String key, Object arg1) {
+        return formatStrings(this, key, arg1);
+    }
+    public static String[] formatStrings(ResourceBundle bundle, String key,
+                                         Object arg1) {
+        return split_(format(bundle, key, arg1));
     }
 
-    public static String[] format(String delim, ResourceBundle bundle,
-                                  String key, Object arg1, Object arg2,
+    public String[] formatStrings(String key, Object arg1, Object arg2) {
+        return formatStrings(this, key, arg1, arg2);
+    }
+    public static String[] formatStrings(ResourceBundle bundle, String key,
+                                         Object arg1, Object arg2) {
+        return split_(format(bundle, key, arg1, arg2));
+    }
+
+    public String[] formatStrings(String key, Object arg1, Object arg2,
                                   Object arg3) {
-        return StringUtils.split(format(bundle, key, arg1, arg2, arg3), delim);
+        return formatStrings(this, key, arg1, arg2, arg3);
+    }
+    public static String[] formatStrings(ResourceBundle bundle, String key,
+                                         Object arg1, Object arg2,
+                                         Object arg3) {
+        return split_(format(bundle, key, arg1, arg2, arg3));
     }
 
-    public static String[] format(String delim, ResourceBundle bundle,
-                                  String key, Object arg1, Object arg2,
+    public String[] formatStrings(String key, Object arg1, Object arg2,
                                   Object arg3, Object arg4) {
-        return StringUtils.split
-            (format(bundle, key, arg1, arg2, arg3, arg4), delim);
+        return formatStrings(this, key, arg1, arg2, arg3, arg4);
+    }
+    public static String[] formatStrings(ResourceBundle bundle, String key,
+                                         Object arg1, Object arg2,
+                                         Object arg3, Object arg4) {
+        return split_(format(bundle, key, arg1, arg2, arg3, arg4));
     }
 
+    public String[] getStrings(String key) {
+        return getStrings(this, key);
+    }
     public static String[] getStrings(ResourceBundle bundle, String key) {
-        return StringUtils.split(bundle.getString(key), "\r\n");
+        return split_(bundle.getString(key));
     }
 
+    public String[] getStrings(String prefix, String[] keys) {
+        return getStrings(this, prefix, keys);
+    }
     public static String[] getStrings(ResourceBundle bundle,
                                       String prefix,
                                       String[] keys) {
@@ -165,6 +220,9 @@ public class Resources {
         return result;
     }
 
+    public int[] getInts(String prefix, String[] keys) {
+        return getInts(this, prefix, keys);
+    }
     public static int[] getInts(ResourceBundle bundle,
                                 String prefix,
                                 String[] keys) {

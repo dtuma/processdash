@@ -32,14 +32,13 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.ResourceBundle;
 
 /** No-op implementation of the LanguageFilter interface.
  */
 public class AbstractLanguageFilter implements LanguageFilter {
 
-    static final ResourceBundle resource =
-        Resources.getBundle("pspdash.PSPDiff");
+    static final Resources resource =
+        Resources.getDashBundle("pspdash.PSPDiff");
 
     protected static final String COMMENT_START_STR =
         String.valueOf(COMMENT_START);

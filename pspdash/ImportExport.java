@@ -54,8 +54,8 @@ import pspdash.data.DataImporter;
 
 public class ImportExport extends JDialog implements ActionListener {
 
- static final ResourceBundle resource =
-    Resources.getBundle("pspdash.ImportExport");
+    static final Resources resource =
+        Resources.getDashBundle("pspdash.ImportExport");
 
     static final int X_DATA = 0;
     static final int X_LIST = 1;
@@ -98,7 +98,7 @@ public class ImportExport extends JDialog implements ActionListener {
         Box mainBox = new Box(BoxLayout.Y_AXIS);
         Box aBox = new Box(BoxLayout.X_AXIS);
         aBox.add (Box.createHorizontalStrut(2));
-        incNonTemplate = new JCheckBox (Resources.getString("Show_Leaf_Nodes"));
+        incNonTemplate = new JCheckBox (Resources.getGlobalString("Show_Leaf_Nodes"));
         incNonTemplate.setActionCommand("leaves");
         incNonTemplate.addActionListener(this);
         aBox.add (incNonTemplate);
@@ -132,7 +132,7 @@ public class ImportExport extends JDialog implements ActionListener {
         btn.setActionCommand("Apply");
         btn.addActionListener(this);
         btnBox.add(btn);
-        btn = new JButton (Resources.getString("Close"));
+        btn = new JButton (Resources.getGlobalString("Close"));
         btn.setActionCommand("Close");
         btn.addActionListener(this);
         btnBox.add(btn);

@@ -53,8 +53,8 @@ public class EVTaskList extends AbstractTreeTableModel
 {
 
     public static final String MAIN_DATA_PREFIX = "/Task-Schedule/";
-    static ResourceBundle resources =
-        Resources.getBundle("pspdash.TaskScheduleDialog");
+    static Resources resources =
+        Resources.getDashBundle("pspdash.TaskScheduleDialog");
 
 
     protected String taskListName;
@@ -446,11 +446,11 @@ public class EVTaskList extends AbstractTreeTableModel
 
     /** Names of the columns in the TreeTableModel. */
     protected static String[] colNames =
-        Resources.getStrings(resources, "Task_Column_Name_", COLUMN_KEYS);
+        resources.getStrings("Task_Column_Name_", COLUMN_KEYS);
     public static int[] colWidths =
-        Resources.getInts(resources, "Task_Column_Width_", COLUMN_KEYS);
+        resources.getInts("Task_Column_Width_", COLUMN_KEYS);
     public static String[] toolTips =
-        Resources.getStrings(resources, "Task_Column_Tooltip_", COLUMN_KEYS);
+        resources.getStrings("Task_Column_Tooltip_", COLUMN_KEYS);
 
     public static final int TASK_COLUMN           = 0;
     public static final int PLAN_TIME_COLUMN      = 1;

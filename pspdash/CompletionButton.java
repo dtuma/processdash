@@ -30,19 +30,18 @@ import javax.swing.JCheckBox;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.*;
-import java.util.ResourceBundle;
 import pspdash.data.DateData;
 
 class CompletionButton extends JCheckBox implements ActionListener {
     PSPDashboard parent = null;
     String dataName = null;
-    ResourceBundle resources;
+    Resources resources;
 
     CompletionButton(PSPDashboard dash) {
         super();
         PCSH.enableHelp(this, "CompletionButton");
         parent = dash;
-        resources = Resources.getBundle("pspdash.PSPDashboard");
+        resources = Resources.getDashBundle("pspdash.PSPDashboard");
         setMargin (new Insets (0,2,0,2));
         addActionListener(this);
         GridBagConstraints g = new GridBagConstraints();

@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -54,7 +54,7 @@ public class TaskScheduleChooser
     protected JButton newButton, renameButton, deleteButton,
         cancelButton, okayButton;
 
-    static ResourceBundle resources = Resources.getBundle
+    static Resources resources = Resources.getDashBundle
         ("pspdash.TaskScheduleChooser");
 
     TaskScheduleChooser(PSPDashboard dash) {
@@ -90,8 +90,8 @@ public class TaskScheduleChooser
     private static boolean showRollupOption =
         Settings.getBool("ev.enableRollup",false);
 
-    private static final String OK = Resources.getString("OK");
-    private static final String CANCEL = Resources.getString("Cancel");
+    private static final String OK = Resources.getGlobalString("OK");
+    private static final String CANCEL = Resources.getGlobalString("Cancel");
     protected String getTemplateName(Component parent,
                                      String title, String prompt,
                                      boolean showRollupOptions) {
@@ -148,8 +148,7 @@ public class TaskScheduleChooser
             return resources.getString("Slash_Prohibited_Message");
 
         if (templateExists(taskName, data))
-            return Resources.format
-                (resources, "Duplicate_Name_Message_FMT", taskName);
+            return resources.format("Duplicate_Name_Message_FMT", taskName);
 
         return null;
     }
@@ -185,23 +184,23 @@ public class TaskScheduleChooser
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
         buttons.add(newButton = new JButton
-            (Resources.addDialogIndicator(Resources.getString("New"))));
+            (Resources.addDialogIndicator(Resources.getGlobalString("New"))));
         newButton.addActionListener(this);
 
         buttons.add(renameButton = new JButton
-            (Resources.addDialogIndicator(Resources.getString("Rename"))));
+            (Resources.addDialogIndicator(Resources.getGlobalString("Rename"))));
         renameButton.addActionListener(this);
         renameButton.setEnabled(false);
 
         buttons.add(deleteButton = new JButton
-            (Resources.addDialogIndicator(Resources.getString("Delete"))));
+            (Resources.addDialogIndicator(Resources.getGlobalString("Delete"))));
         deleteButton.addActionListener(this);
         deleteButton.setEnabled(false);
 
-        buttons.add(cancelButton = new JButton(Resources.getString("Cancel")));
+        buttons.add(cancelButton = new JButton(Resources.getGlobalString("Cancel")));
         cancelButton.addActionListener(this);
 
-        buttons.add(okayButton = new JButton(Resources.getString("Open")));
+        buttons.add(okayButton = new JButton(Resources.getGlobalString("Open")));
         okayButton.addActionListener(this);
         okayButton.setEnabled(false);
 
@@ -271,8 +270,7 @@ public class TaskScheduleChooser
 
         String newName = getTemplateName
             (dialog, resources.getString("Rename_Window_Title"),
-             Resources.format(resources, "Rename_Window_Prompt_FMT",
-                              taskListName),
+             resources.format("Rename_Window_Prompt_FMT", taskListName),
              false);
 
         if (newName != null) {
@@ -289,8 +287,8 @@ public class TaskScheduleChooser
         String taskListName = (String) list.getSelectedValue();
         if (taskListName == null) return;
 
-        String message = Resources.format
-            (resources, "Delete_Window_Prompt_FMT", taskListName);
+        String message = resources.format
+            ("Delete_Window_Prompt_FMT", taskListName);
         if (JOptionPane.showConfirmDialog
             (dialog, message,
              resources.getString("Delete_Window_Title"),
