@@ -22,16 +22,13 @@
 package net.sourceforge.processdash.ui;
 
 import java.io.IOException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+
 import javax.swing.JOptionPane;
 
-import pspdash.InternalSettings;
-import pspdash.PSPDashboard;
-import pspdash.Settings;
-
-import net.sourceforge.processdash.ui.lib.*;
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ui.lib.BrowserLauncher;
 
 /**
  * This class is used for launching the current platforms browser.
@@ -42,7 +39,7 @@ public class Browser {
 
     // static { try { maybeSetupForWindowsIE(); } catch (Exception e) {} }
     private static String defaultHost = "localhost";
-    private static int defaultPort = PSPDashboard.DEFAULT_WEB_PORT;
+    private static int defaultPort = ProcessDashboard.DEFAULT_WEB_PORT;
 
     public static final String BROWSER_LAUNCHER = "BrowserLauncher";
 
@@ -177,75 +174,16 @@ public class Browser {
         }
     }
 
-    private static File getTrustlibDir() {
-        File result = null;
-
-        /* It would be nice to do this, but JRE throws an error, stating that
-         * deprecated method getenv() is no longer supported.
-        String windir = System.getenv("windir");
-        if (windir != null) {
-            result = new File(windir);
-            if (result.isDirectory()) return result;
-        }
-        */
-
-        result = new File("c:\\windows\\java\\trustlib");
-        if (result.isDirectory()) return result;
-
-        result = new File("c:\\winnt\\java\\trustlib");
-        if (result.isDirectory()) return result;
-
-        return null;
-    }
-
     private static void debug(String msg) {
         // System.out.println("Browser: " + msg);
-    }
-    private static void maybeSetupForWindowsIE() throws IOException {
-
-        debug("maybeSetupForWindowsIE");
-        if (!isWindows()) return;
-        debug("isWindows.");
-
-        File trustlibdir = getTrustlibDir();
-        if (trustlibdir == null) return;
-        debug("got trustlibdir");
-
-        File pspdashdir = new File(trustlibdir, "pspdash");
-        if (!(pspdashdir.isDirectory() || pspdashdir.mkdir())) return;
-        debug("made pspdashdir");
-
-        File datadir = new File(pspdashdir, "data");
-        if (!(datadir.isDirectory() || datadir.mkdir())) return;
-        debug("made datadir");
-
-        copyClassFile(datadir, "OLEDBDSLWrapper.class");
-        copyClassFile(datadir, "OLEDBListenerWrapper.class");
-        debug("copied classes");
-
-    }
-
-    private static void copyClassFile(File destdir, String classFileName)
-        throws IOException
-    {
-        File destFile = new File(destdir, classFileName);
-        if (destFile.exists()) return;
-
-        FileOutputStream out = new FileOutputStream(destFile);
-        InputStream in = Browser.class.getResourceAsStream
-            ("/pspdash/data/" + classFileName);
-
-        byte [] buffer = new byte[3000];
-        int bytesRead;
-        while ((bytesRead = in.read(buffer)) > -1)
-            out.write(buffer, 0, bytesRead);
-        out.close();
-        in.close();
     }
 }
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.2  2003/11/08 21:13:28  tuma
+ * Remove "dead" code related to preparing Windows for the IEDataApplet
+ *
  * Revision 1.1  2003/11/02 06:03:09  tuma
  * Moved from pspdash
  *
