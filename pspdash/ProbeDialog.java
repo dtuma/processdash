@@ -30,6 +30,7 @@ import pspdash.data.DoubleData;
 import pspdash.data.DataRepository;
 import pspdash.data.DataCorrelator;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -233,8 +234,16 @@ public class ProbeDialog extends JFrame implements
                     public void windowClosing(WindowEvent e) {
                         ProbeDialog.this.close();
                     } });
-            method.setSelectedIndex(0);
+
+            // This will cause all the labels to be populated
+            setAFields (false, null, null, null, null, null, null);
+            setARanges (false, null, null, null, null);
+            setCFields (false, null, null);
+            pack();
             show();
+
+            // This will trigger a correlation in a background thread.
+            method.setSelectedIndex(0);
         }
 
         private String format(double value, int numDecimalPoints) {
@@ -335,7 +344,17 @@ public class ProbeDialog extends JFrame implements
                 c.getComponent(i).setForeground(label.getForeground());
         }
 
+        private volatile Thread correlationThread = null;
+
         private void correlate() {
+            synchronized (this) {
+                correlationThread = new Thread() {
+                        public void run() { doCorrelate(this); } };
+                correlationThread.start();
+            }
+        }
+
+        private void doCorrelate(Thread t) {
             String x_name = (String)xName.getSelectedItem();
             String y_name = (String)yName.getSelectedItem();
             boolean enableFields = false;
@@ -356,8 +375,14 @@ public class ProbeDialog extends JFrame implements
                 setCFields (enableFields, null, null);
 
             } else {
-                                      // calculate and update output fields
+                getContentPane().setCursor
+                    (Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+                                        // calculate and update output fields
                 corr = new DataCorrelator(data, x_name, y_name, theFilter);
+                synchronized (ProbeDialog.this) {
+                    if (correlationThread != t) return;
+                }
                 enableFields = true;
                 double var = corr.r.stddev * corr.r.stddev;
                 double r_squared = corr.c.r * corr.c.r;
@@ -402,6 +427,8 @@ public class ProbeDialog extends JFrame implements
 
             if (!showRegression) doDisable(regressionBox);
             if (!showAverage)    doDisable(averageBox);
+
+            getContentPane().setCursor(Cursor.getDefaultCursor());
         }
 
         private void findRange() {
