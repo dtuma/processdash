@@ -88,18 +88,21 @@ public class TinyCGIBase implements TinyCGI {
                 else val = URLDecoder.decode(val);
                 if (supportQueryFiles() && QUERY_FILE_PARAM.equals(name))
                     parseInputFile(val);
-                else {
-                    parameters.put(name, val);
-                    name = name + "_ALL";
-                    parameters.put
-                        (name, append((String[]) parameters.get(name), val));
-                }
+                else
+                    putParam(name, val);
             } catch (Exception e) {
                 System.err.println("Malformed query parameter: " + param);
             }
         }
     }
     public static final String QUERY_FILE_PARAM = "qf";
+
+    private void putParam(String name, String val) {
+        parameters.put(name, val);
+        name = name + "_ALL";
+        parameters.put
+            (name, append((String[]) parameters.get(name), val));
+    }
 
     /* Read name=value pairs from POSTed form data. */
     protected void parseFormData() throws IOException {
@@ -112,6 +115,62 @@ public class TinyCGIBase implements TinyCGI {
         int bytesRead = inStream.read(messageBody);
         parseInput(new String(messageBody, 0, bytesRead));
     }
+
+    /* Read name=value pairs, and uploaded files, from multipart form data.
+     *
+     * For each uploaded file with parameter name "foo", the following
+     * entries will appear in the parameter list:<ul>
+     * <li>foo - the name of the uploaded file.
+     * <li>foo_SIZE - the size of the uploaded file (a Long).
+     * <li>foo_TYPE - the content type of the uploaded file
+     * <li>foo_CONTENTS - the contents of the uploaded file (byte[]).
+     * </ul>
+     */
+    protected void parseMultipartFormData() throws IOException {
+        String contentType = (String) env.get("CONTENT_TYPE");
+        int contentLength;
+        try {
+            contentLength =
+                Integer.parseInt((String) env.get("CONTENT_LENGTH"));
+        } catch (Exception e) { return; }
+
+        try {
+            // Parse the incoming multipart form data. This may throw
+            // an IllegalArgumentException if the incoming data is not
+            // multipart/form data.
+            MultipartRequest req = new MultipartRequest
+                (new PrintWriter(System.out), contentType, contentLength,
+                 inStream, MultipartRequest.MAX_READ_BYTES);
+
+            // copy the name/value pairs from the request into our
+            // list of parameters.
+            Enumeration parameterNames = req.getParameterNames();
+            while (parameterNames.hasMoreElements()) {
+                String name = (String) parameterNames.nextElement();
+                Enumeration values = req.getURLParameters(name);
+                while (values.hasMoreElements())
+                    putParam(name, (String) values.nextElement());
+            }
+
+            // fetch all the files read, and store them into our
+            // parameters map.
+            parameterNames = req.getFileParameterNames();
+            while (parameterNames.hasMoreElements()) {
+                String name = (String) parameterNames.nextElement();
+                parameters.put(name, req.getFileSystemName(name));
+                parameters.put(name + "_SIZE",
+                               req.getFileParameter(name, req.SIZE));
+                parameters.put(name + "_TYPE",
+                               req.getFileParameter(name, req.CONTENT_TYPE));
+                parameters.put(name + "_CONTENTS",
+                               req.getFileParameter(name, req.CONTENTS));
+            }
+
+        } catch (IllegalArgumentException iae) {
+            parseFormData();
+        }
+    }
+
 
     /* Read name=value pairs from the given URI. If the URI is not
      * absolute (e.g. "/reports/foo"), it is interpreted relative
