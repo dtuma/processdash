@@ -40,6 +40,9 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import java.util.*;
 
+import pspdash.data.ListData;
+import pspdash.data.StringData;
+
 public class DefectDialog extends JDialog
     implements ActionListener, DocumentListener, WindowListener
 {
@@ -147,13 +150,16 @@ public class DefectDialog extends JDialog
 
         int prefixLength = defectPath.path().length() + 1;
         String defaultRemovalPhase = null;
-        if (guessDefaults)
-            defaultRemovalPhase =
-                parent.currentPhase.path().substring(prefixLength);
+        if (guessDefaults) {
+            String phasePath = parent.currentPhase.path();
+            if (phasePath.length() > prefixLength)
+                defaultRemovalPhase = phasePath.substring(prefixLength);
+        }
+
         phase_removed = phaseComboBox(defectPath, defaultRemovalPhase);
 
         String defaultInjectionPhase = null;
-        if (guessDefaults)
+        if (guessDefaults && defaultRemovalPhase != null)
             defaultInjectionPhase =
                 guessInjectionPhase(phase_removed, defaultRemovalPhase);
         phase_injected = phaseComboBox(defectPath, defaultInjectionPhase);
@@ -377,12 +383,19 @@ public class DefectDialog extends JDialog
                                     String selectedChild) {
         JComboBox result = new JComboBox();
 
-        int prefixLength = defectPath.path().length() + 1;
-        String item = null;
-        Enumeration leafNames = parent.getProperties().getLeafNames(defectPath);
+        int prefixLength = 0;
 
+        Enumeration leafNames = getInheritedPhaseList(defectPath.path());
+        if (leafNames == null) {
+            leafNames = parent.getProperties().getLeafNames(defectPath);
+            prefixLength = defectPath.path().length() + 1;
+        }
+
+        String item = null;
         while (leafNames.hasMoreElements()) {
-            item = ((String)leafNames.nextElement()).substring(prefixLength);
+            item = (String) leafNames.nextElement();
+            if (item == null || item.length() <= prefixLength) continue;
+            item = item.substring(prefixLength);
 
             // This is NOT the right way to do this. A better way would be to
             // look at the defect flag of each leaf.  Leaves that wanted to
@@ -396,6 +409,26 @@ public class DefectDialog extends JDialog
 
         return result;
     }
+
+    protected Enumeration getInheritedPhaseList(String defectPath) {
+        Object inheritedPhaseList = parent.data.getInheritableValue
+            (defectPath, "Effective_Defect_Phase_List");
+        ListData list = null;
+        if (inheritedPhaseList instanceof ListData)
+            list = (ListData) inheritedPhaseList;
+        else if (inheritedPhaseList instanceof StringData)
+            list = ((StringData) inheritedPhaseList).asList();
+
+        if (list == null)
+            return null;
+
+        Vector result = new Vector();
+        for (int i = 0;   i < list.size();   i++)
+            result.add(list.get(i).toString());
+        return result.elements();
+    }
+
+
 
     /** Make an educated guess about which injection phase might correspond
      *  to the given removal phase.
@@ -426,6 +459,7 @@ public class DefectDialog extends JDialog
             if (result == null &&
                 !onePhase.endsWith(" Review") &&
                 !onePhase.endsWith(" Inspection") &&
+                !onePhase.endsWith(" Inspect") &&
                 !onePhase.endsWith("Compile") &&
                 !onePhase.endsWith("Test"))
                 // remember the first non-quality, non-failure phase
