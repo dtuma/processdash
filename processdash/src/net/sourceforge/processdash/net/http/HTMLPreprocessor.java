@@ -703,28 +703,43 @@ public class HTMLPreprocessor {
     private void processResourcesDirective(DirectiveMatch resDir)
         throws IOException
     {
-        // what file do they want us to include?
-        String url = resDir.getAttribute("file");
-        if (isNull(url))
-            url = resDir.contents;
-        if (!isNull(url)) {
-            // fetch the requested url (relative to the current url) and
-            // replace the include directive with its contents.
-            String context = (String) env.get("REQUEST_URI");
-            int pos = context.indexOf("//");
-            if (pos != -1)
-                context = context.substring(pos+1);
-            URL tempURL = new URL("http://ignored" + context);
-            tempURL = new URL(tempURL, url);
-            url = tempURL.getFile();
-            String resName =
-                url.substring(1).replace('.', '$').replace('/', '.');
-            Resources r;
+        Resources r = null;
+
+        // what bundle do they want us to include?
+        String bundle = resDir.getAttribute("bundle");
+        if (bundle != null) {
             try {
-                r = Resources.getTemplateBundle(resName);
+                r = Resources.getDashBundle(bundle);
             } catch (MissingResourceException mre) {
-                throw new FileNotFoundException(url + ".properties");
+                throw new FileNotFoundException(bundle + ".properties");
             }
+
+        } else {
+            // what file do they want us to include?
+            String url = resDir.getAttribute("file");
+            if (isNull(url))
+                url = resDir.contents;
+            if (!isNull(url)) {
+                // fetch the requested url (relative to the current url) and
+                // replace the include directive with its contents.
+                String context = (String) env.get("REQUEST_URI");
+                int pos = context.indexOf("//");
+                if (pos != -1)
+                    context = context.substring(pos+1);
+                URL tempURL = new URL("http://ignored" + context);
+                tempURL = new URL(tempURL, url);
+                url = tempURL.getFile();
+                String resName =
+                    url.substring(1).replace('.', '$').replace('/', '.');
+                try {
+                    r = Resources.getTemplateBundle(resName);
+                } catch (MissingResourceException mre) {
+                    throw new FileNotFoundException(url + ".properties");
+                }
+            }
+        }
+
+        if (r != null) {
             if (resources == null) resources = new LinkedList();
             resources.add(r);
         }
