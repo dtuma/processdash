@@ -2,7 +2,6 @@
 package teamdash.wbs;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
@@ -17,7 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
@@ -50,6 +48,10 @@ public class WBSTabPanel extends JPanel {
         makeSplitter();
         makeScrollPane();
         makeTabbedPane();
+
+        // manually set the initial divider location, to trigger the
+        // size coordination logic.
+        splitPane.setDividerLocation(200);
     }
 
 
@@ -130,15 +132,19 @@ public class WBSTabPanel extends JPanel {
                                      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         // remove the borders from the scroll pane
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        // we need to add an explicit border for the scroll bar in Java 1.3,
+        // otherwise its right edge vanishes when we remove the border from
+        // the scrollPane.
         if (System.getProperty("java.version").startsWith("1.3"))
-            // need to add an explicit border for the scroll bar in Java 1.3
             scrollPane.getVerticalScrollBar().setBorder
                 (BorderFactory.createMatteBorder(0, 0, 0, 1, Color.darkGray));
 
         // make the WBS table the "row header view" of the scroll pane.
-        scrollPane.setRowHeaderView(wrapWBSTable(wbsTable));
+        scrollPane.setRowHeaderView(wbsTable);
         // don't paint over the splitter bar when we repaint.
         scrollPane.setOpaque(false);
+        wbsTable.setOpaque(false);
+        scrollPane.getRowHeader().setOpaque(false);
 
         // add the scroll pane to the panel
         GridBagConstraints c = new GridBagConstraints();
@@ -149,43 +155,6 @@ public class WBSTabPanel extends JPanel {
         c.insets.top = 30;
         add(scrollPane);
         layout.setConstraints(scrollPane, c);
-    }
-
-
-    /** Since JTables aren't used to being put in the "row header view" of
-     * a scroll pane, we have to place it in a panel that provides some
-     * guidance about how the table should lay itself out
-     */
-    private Component wrapWBSTable(JTable t) {
-        JPanel result = new JPanel();
-        result.setOpaque(false);
-
-        GridBagLayout layout = new GridBagLayout();
-        result.setLayout(layout);
-
-        // add the table to the grid in the top left position.  The table's
-        // preferred width will drive the preferred width of the JPanel, so
-        // we don't have to worry about "fill" modes.
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridx = c.gridy = 0;
-        c.insets.left = c.insets.top = c.insets.bottom = 0;
-        c.insets.right = 20;    // leave empty space for the splitter bar
-        c.anchor = GridBagConstraints.NORTHWEST;
-        result.add(t);
-        layout.setConstraints(t, c);
-
-        // add an invisible component below the table that grows to absorb
-        // the remaining space.  This ensures that the JPanel will be as tall
-        // as the viewport view, and that the table will be top-justified
-        // within the panel.
-        JComponent filler = new EmptyComponent(new Dimension(0, 0));
-        c.gridy = 1;
-        c.weightx = c.weighty = 1.0;
-        c.fill = GridBagConstraints.BOTH;
-        result.add(filler);
-        layout.setConstraints(filler, c);
-
-        return result;
     }
 
 
@@ -254,9 +223,13 @@ public class WBSTabPanel extends JPanel {
 
             // resize the wbsTable to fit on the left side of the divider
             TableColumn col = wbsTable.getColumnModel().getColumn(0);
-            col.setMaxWidth(dividerLocation - 5);
             col.setMinWidth(dividerLocation - 5);
+            col.setMaxWidth(dividerLocation - 5);
             col.setPreferredWidth(dividerLocation - 5);
+            // add an extra 20 pixels to the width of the JScrollPane's
+            // row header, to allow space for the splitter bar.
+            Dimension d = new Dimension(dividerLocation+15, 100);
+            wbsTable.setPreferredScrollableViewportSize(d);
 
             // resize the tabbed pane to fit on the right side of the divider.
             GridBagConstraints c = new GridBagConstraints();
