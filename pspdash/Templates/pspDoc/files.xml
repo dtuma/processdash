@@ -7,8 +7,10 @@
 	   templatePath="/Templates/pspDoc">
 
   <file name="PIP Form" path="[PIP Form Filename]"
-        defaultPath="Process Improvement Proposal.rtf"
-	templatePath="PIP.rtf"/>
+        defaultPath="Process Improvement Proposal.rtf" templatePath="C27.rtf"/>
+
+  <file name="Test Report" path="[Test Report Filename]"
+        defaultPath="Test Report.rtf" templatePath="C37.rtf"/>
 
   <!-- add more lines here for additional files -->
 
