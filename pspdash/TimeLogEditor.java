@@ -60,7 +60,8 @@ import pspdash.data.NumberFunction;
 import pspdash.data.DoubleData;
 
 
-public class TimeLogEditor extends Object implements TreeSelectionListener, TableValidator
+public class TimeLogEditor extends Object
+    implements TreeSelectionListener, TableValidator, PSPProperties.Listener
 {
     /** Class Attributes */
     protected JFrame          frame;
@@ -105,6 +106,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         JPanel   panel   = new JPanel(true);
 
         useProps       = props;
+        props.addHierarchyListener(this);
         try {
             tl.read (dashboard.getTimeLog());
         } catch (IOException e) {}
@@ -919,8 +921,12 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         setDirty(false);
     }
 
+
+    public void hierarchyChanged(PSPProperties.Event e) { reloadAll(null); }
+
     public void reloadAll(PSPProperties newProps) {
-        useProps.copy(newProps);
+        if (newProps != null)
+            useProps.copy(newProps);
         treeModel.reload (useProps);
 
         checkSelectedNodeLoggingAllowed();
