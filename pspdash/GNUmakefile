@@ -122,7 +122,7 @@ Templates/PSP.globalData: Templates/PSP.globalData.pre
 clean:
 	cd build; $(MAKE) clean
 	cd data; $(MAKE) clean
-	rm -f `find Templates -name \*.class -print`
+	rm -f *~ `find Templates -name \*.class -print`
 
 
 new: clean all
