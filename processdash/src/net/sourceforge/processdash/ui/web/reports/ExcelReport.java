@@ -72,8 +72,7 @@ public class ExcelReport extends TinyCGIBase {
         out.print("Content-type: application/vnd.ms-excel\r\n\r\n");
 
         // write contents
-        byte [] contents = getTinyWebServer().getRequest(getURI(), true);
-        String results = new String(contents, "UTF-8");
+        String results = getTinyWebServer().getRequestAsString(getURI());
         int beginPos = results.indexOf("<TABLE");
         int endPos   = results.lastIndexOf("/TABLE");
         if (endPos != -1) endPos = results.indexOf('>', endPos);

@@ -44,8 +44,8 @@ public class FormReport extends TinyCGIBase {
         if (slashPos != -1)
             prefix = HTMLUtils.urlDecode(uri.substring(0, slashPos));
 
-        byte [] contents = getTinyWebServer().getRequest(uri, true);
-        StringBuffer results = new StringBuffer(new String(contents, "UTF-8"));
+        String contents = getTinyWebServer().getRequestAsString(uri);
+        StringBuffer results = new StringBuffer(contents);
 
         FormToHTML.translate(results, getDataRepository(), prefix);
         out.print(results.toString());

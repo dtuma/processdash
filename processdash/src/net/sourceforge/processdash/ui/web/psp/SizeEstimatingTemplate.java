@@ -57,7 +57,7 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
             int pos = uri.lastIndexOf('/');
             pos = uri.indexOf('.', pos);
             uri = uri.substring(0, pos) + ".htm";
-            String text = new String(getRequest(uri, true), "UTF-8");
+            String text = getRequestAsString(uri);
 
             int beg, end;
             end = text.indexOf(BASE_CUT);

@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Random;
 
 
@@ -182,10 +183,10 @@ public class MimeHTMLArchiver {
             if (contents == null)
                 return;
 
-            int headerLength = getHeaderLength(contents);
+            int headerLength = HTTPUtils.getHeaderLength(contents);
             String header = new String(contents, 0, headerLength - 2,
                     "ISO-8859-1");
-            String contentType = getContentType(header);
+            String contentType = HTTPUtils.getContentType(header);
 
             if (contentType == null)
                 contentType = "text/html";
@@ -234,57 +235,13 @@ public class MimeHTMLArchiver {
     }
 
 
-    /** Determine the length (in bytes) of the header in an HTTP response.
-     */
-    protected int getHeaderLength(byte[] result) {
-        int a = 0;
-        int b = 1;
-        int c = 2;
-        int d = 3;
-
-        do {
-            if ((result[a] == '\r') && (result[b] == '\n') &&
-                    (result[c] == '\r') && (result[d] == '\n'))
-                return (d + 1);
-
-            a++;
-            b++;
-            c++;
-            d++;
-        } while (d < result.length);
-
-        return result.length;
-    }
-
-
-    /** Extract the content type from the given HTTP response headers.
-     */
-    protected String getContentType(String header) {
-        String upHeader = CRLF + header.toUpperCase();
-        int pos = upHeader.indexOf(CRLF + "CONTENT-TYPE:");
-
-        if (pos == -1)
-            return null;
-
-        int beg = pos + 15; // add length of header name and CRLF
-
-        // ASSUMPTION: not supporting wrapped headers
-        int end = upHeader.indexOf(CRLF, beg);
-
-        if (end == -1)
-            end = upHeader.length();
-
-        return header.substring(beg - 2, end - 2).trim();
-    }
-
-
     protected void handleHTML(String uri, byte[] contents, int headerLength,
         String contentType)
     {
         try {
             String htmlContent = newString
                 (contents, headerLength, contents.length - headerLength,
-                 getCharset(contentType));
+                 HTTPUtils.getCharset(contentType));
             StringBuffer html = new StringBuffer(htmlContent);
             stripHTMLComments(html);
 
@@ -621,21 +578,9 @@ public class MimeHTMLArchiver {
     }
 
 
-    protected String getCharset(String contentType) {
-        String upType = contentType.toUpperCase();
-        int pos = upType.indexOf("charset=");
-
-        if (pos == -1)
-            return null;
-
-        int beg = pos + 8;
-
-        return contentType.substring(beg);
-    }
-
     protected static final String CRLF = "\r\n";
     protected static final SimpleDateFormat dateFormat =
         // ------------------ Tue, 05 Dec 2000 17:28:07 GMT
-        new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+        new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 
 }

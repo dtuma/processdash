@@ -1095,8 +1095,7 @@ public class TaskScheduleCollaborationWizard {
 
     private String getText(String resourceName) {
         try {
-            return new String
-                (webServer.getRequest(resourceName, true), "UTF-8");
+            return webServer.getRequestAsString(resourceName);
         } catch (IOException ioe) {
             return "";
         }

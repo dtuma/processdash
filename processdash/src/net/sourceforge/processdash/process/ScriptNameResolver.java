@@ -49,8 +49,7 @@ public class ScriptNameResolver implements ScriptID.NameResolver {
             return (result.length() == 0 ? null : result);
 
         try {
-            String text = new String
-                (web.getRequest("/"+scriptFile, true), "UTF-8");
+            String text = web.getRequestAsString("/"+scriptFile);
 
             int beg = text.indexOf("<TITLE>");
             if (beg == -1) return null;

@@ -53,7 +53,7 @@ public class CycleSummaryForm extends TinyCGIBase {
         try {
             String uri = (String) env.get("SCRIPT_NAME");
             uri = uri.substring(0, uri.length() - 6) + ".htm";
-            String text = new String(getRequest(uri, true), "UTF-8");
+            String text = getRequestAsString(uri);
 
             ArrayList staticList  = new ArrayList();
             ArrayList dynamicList = new ArrayList();

@@ -219,8 +219,7 @@ public class TinyCGIBase implements TinyCGI {
         String origFilename = filename;
         try {
             filename = resolveRelativeURI(scriptPath, filename);
-            parseInput(filename,
-                       new String(t.getRequest(filename, true), "UTF-8"));
+            parseInput(filename, t.getRequestAsString(filename));
 
             // now try looking for a companion resource bundle, and load
             // values from it as well.
@@ -322,6 +321,9 @@ public class TinyCGIBase implements TinyCGI {
     protected byte[] getRequest(String uri, boolean skipHeaders)
         throws IOException {
         return getTinyWebServer().getRequest(uri, skipHeaders);
+    }
+    protected String getRequestAsString(String uri) throws IOException {
+        return getTinyWebServer().getRequestAsString(uri);
     }
     /** Fetch a named query parameter */
     protected String getParameter(String name) {

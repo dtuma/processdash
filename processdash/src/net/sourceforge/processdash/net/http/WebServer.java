@@ -44,6 +44,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.Base64;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.MD5;
 import net.sourceforge.processdash.util.ResourcePool;
 import net.sourceforge.processdash.util.StringUtils;
@@ -80,14 +81,14 @@ public class WebServer extends Thread {
 
     private static final DateFormat dateFormat =
                            // Tue, 05 Dec 2000 17:28:07 GMT
-        new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+        new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 
     private static InetAddress LOCAL_HOST_ADDR, LOOPBACK_ADDR;
     private static final Properties mimeTypes = new Properties();
     private static final Hashtable DEFAULT_ENV = new Hashtable();
     private static final String CRLF = "\r\n";
     private static final int SCAN_BUF_SIZE = 4096;
-    private static final String DASH_CHARSET = "iso-8859-1";
+    private static final String DASH_CHARSET = HTTPUtils.DEFAULT_CHARSET;
     private static final String HEADER_CHARSET = DASH_CHARSET;
     private static String OUTPUT_CHARSET = DASH_CHARSET;
 
@@ -1453,15 +1454,9 @@ public class WebServer extends Thread {
         if (!skipHeaders)
             return result;
         else {
-            int a=0, b=1, c=2, d=3;
-            do {
-                if (result[a] == '\r' && result[b] == '\n' &&
-                    result[c] == '\r' && result[d] == '\n')
-                    break;
-                a++; b++; c++; d++;
-            } while (d < result.length);
-            byte [] contents = new byte[result.length - d - 1];
-            System.arraycopy(result, d+1, contents, 0, contents.length);
+            int headerLen = HTTPUtils.getHeaderLength(result);
+            byte [] contents = new byte[result.length - headerLen];
+            System.arraycopy(result, headerLen, contents, 0, contents.length);
             return contents;
         }
     }
@@ -1483,6 +1478,20 @@ public class WebServer extends Thread {
             uri = uriURL.getFile();
         }
         return getRequest(uri, skipHeaders);
+    }
+
+    public String getRequestAsString(String uri) throws IOException {
+        byte[] response = getRequest(uri, false);
+        int headerLen = HTTPUtils.getHeaderLength(response);
+        String header = new String(response, 0, headerLen, HEADER_CHARSET);
+
+        String charset = HTTPUtils.DEFAULT_CHARSET;
+        String contentType = HTTPUtils.getContentType(header);
+        if (contentType != null)
+            charset = HTTPUtils.getCharset(contentType);
+
+        return new String
+            (response, headerLen, response.length - headerLen, charset);
     }
 
     /** Perform an internal http request and return raw results.
