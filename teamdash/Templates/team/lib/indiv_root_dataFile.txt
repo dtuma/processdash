@@ -3,17 +3,15 @@
 //
 
 #include <<!--#echo Process_ID -->/indiv_empty_dataFile.txt> exclude (
-    [<!--#echo Process_ID -->/IndivEmptyNode],
+    [<!--#echo Process_ID -->/IndivEmptyNode Tag],
     [Process_ID]
 )
 #include <<!--#echo Process_ID -->/root_data.txt>
-
-[<!--#echo Process_ID --> IndivRoot Tag] = tag;
 
 [Indiv_Initials] = "tttt";
 [EXPORT_FILE] = 
     iff([Team_Directory] == "Enter network directory path", "",
         [Team_Directory] & [file_sep] & "data" & [file_sep] &
-        [Indiv_Initials] & "-data.txt");
+	[Project_ID] & [file_sep] & [Indiv_Initials] & "-data.txt");
 
 [Effective_Defect_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Type !~ '^(MGMT|STRAT|PM)$' --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
