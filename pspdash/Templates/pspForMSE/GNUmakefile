@@ -86,7 +86,7 @@ $(SIZEEST_COPIES): ../psp1/sizeest.class
 # Other miscellaneous targets
 
 clean:
-	rm -f *~ *B/*~ *A/*~ *B/*.*htm *A/*.*htm *B/sizeest.class pspForMSE.jar
+	rm -f *~ *B/*~ *A/*~ *B/*.*htm *A/*.*htm *B/sizeest.class pspForMSE.jar ../../build/pspForMSE.jar
 
 install: all
 	cp pspForMSE.jar ../../build/pspForMSE.jar
