@@ -72,3 +72,10 @@
     iff([Team_Directory] && [Team_Directory] != "Enter network directory path",
         [Team_Directory] & [file_sep] & "data" & [file_sep] & [Project_ID],
 	"");
+
+
+/*
+ * Enable display of the earned value "week" form.
+ */
+[/Enable_EV_Week_form] = TAG;
+
