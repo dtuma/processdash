@@ -35,6 +35,21 @@ import javax.swing.JOptionPane;
 public class Browser {
 
     // static { try { maybeSetupForWindowsIE(); } catch (Exception e) {} }
+    private static String defaultHost = "localhost";
+    private static int defaultPort = PSPDashboard.DEFAULT_WEB_PORT;
+
+    public static void setDefaults(String host, int port) {
+        defaultHost = host;
+        defaultPort = port;
+    }
+    public static String mapURL(String url) {
+        if (!url.startsWith("http://")) {
+            if (!url.startsWith("/"))
+                url = "/" + url;
+            url = "http://" + defaultHost + ":" + defaultPort + url;
+        }
+        return url;
+    }
 
     /**
      * Starts the browser for the current platform.
@@ -43,6 +58,7 @@ public class Browser {
     public static void launch(String url)
     //        throws InterruptedException, IOException
     {
+        url = mapURL(url);
         String cmd = Settings.getFile("browser.command");
 
         try {
@@ -205,6 +221,10 @@ public class Browser {
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.7  2001/05/23 05:16:48  tuma
+ * Create a mechanism for automatically appending the host:port of the local
+ * web server so other code doesn't need to construct it.
+ *
  * Revision 1.6  2001/03/06 23:58:10  tuma
  * In anticipation of creating GUIs for editing user preferences, revamped
  * the Settings class so it automatically saves changes out to the user's
