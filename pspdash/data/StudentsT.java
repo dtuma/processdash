@@ -30,25 +30,44 @@ public class StudentsT {
     private int degreesOfFreedom;
 
     public StudentsT(int degreesOfFreedom) {
+        if (degreesOfFreedom < 1)
+            throw new ArithmeticException
+                ("Degrees of freedom must be a positive integer.");
         this.degreesOfFreedom = degreesOfFreedom;
     }
 
 
+    /** Return the area under the t distribution, integrating from 0 to t */
     public double alpha(double t) { return alpha(t, 0.0001); }
     public double alpha(double t, double acceptable_error) {
-        return new T_Dist(degreesOfFreedom, acceptable_error).f(t);
+        if (Double.isNaN(t))
+            return Double.NaN;
+        else if (Double.isInfinite(t))
+            return (t > 0.0 ? 0.5 : -0.5);
+        else
+            return new T_Dist(degreesOfFreedom, acceptable_error).f(t);
     }
 
-    public double probability(double alpha) {
-        return probability(alpha, 0.0001);
-    }
-    public double probability(double alpha, double acceptable_error) {
-        return new Inverse(new T_Dist(degreesOfFreedom, acceptable_error/10),
-                           acceptable_error).f(alpha);
+
+    /** Return the value of t such that integrating from 0 to t gives alpha */
+    public double t(double alpha) { return t(alpha, 0.0001); }
+    public double t(double alpha, double acceptable_err) {
+        if (Double.isNaN(alpha))
+            return Double.NaN;
+        else if (alpha >= 0.5)
+            return Double.POSITIVE_INFINITY;
+        else if (alpha <= -0.5)
+            return Double.NEGATIVE_INFINITY;
+        else
+            return new Inverse(new T_Dist(degreesOfFreedom, acceptable_err/10),
+                               acceptable_err).f(alpha);
     }
 
     static final double TOLERANCE = 0.0000001;
 
+
+    /** This function draws the T distribution for a given number of
+     *  degrees of freedom */
     private class T_Term implements GenericFunction {
         int n;
         double gamma_constant;
@@ -78,6 +97,8 @@ public class StudentsT {
         }
     }
 
+    /** This function returns the area under the T distribution, integrating
+     *  from 0 to a given value of x. */
     private class T_Dist implements GenericFunction {
         private GenericFunction t_func;
         double acceptable_error;
