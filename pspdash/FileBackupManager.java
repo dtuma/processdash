@@ -76,7 +76,8 @@ public class FileBackupManager {
 
         saveFileInfo(fileList, fileTimes, fileSizes);
 
-        startLogging(dataDir);
+        if (when != SHUTDOWN)
+            startLogging(dataDir);
     }
 
     private static void loadFileInfo(File list, Map fileTimes, Map fileSizes) {
