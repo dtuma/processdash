@@ -46,6 +46,15 @@ public class HTMLUtils {
         return result.toString();
     }
 
+    public static String unescapeEntities(String value) {
+        value = StringUtils.findAndReplace(value, "&lt;",   "<");
+        value = StringUtils.findAndReplace(value, "&gt;",   ">");
+        value = StringUtils.findAndReplace(value, "&quot;", "\"");
+        value = StringUtils.findAndReplace(value, "&apos;", "'");
+        value = StringUtils.findAndReplace(value, "&amp;",  "&");
+        return value;
+    }
+
     /** parse the inner contents of a tag as a set of
      * attrName=attrValue pairs
      * @param contents the text beginning after the tag name and ending
@@ -86,6 +95,7 @@ public class HTMLUtils {
                 value = attrs.substring(0, endPos);
                 attrs = attrs.substring(endPos);
             }
+            value = unescapeEntities(value);
             result.put(name, value);
         }
         return result;
