@@ -412,6 +412,8 @@ function NSchangeNotifyElem(elem) {
  * handlers.
  */
 
+var NSelementList;
+
 function NSregisterElement(elem) {
 
   pageContainsElements = true;
@@ -419,7 +421,8 @@ function NSregisterElement(elem) {
   if (elem.name.toLowerCase() == "requiredtag")
     requiredTag = elem.value;
 
-  else if (elem.name && elem.name.indexOf("NOT_DATA") == -1)
+  else if (elem.name && elem.name.indexOf("NOT_DATA") == -1) {
+    NSelementList.push(elem);
     switch (elem.type.toLowerCase()) {
 
     case "select-one" :
@@ -446,10 +449,23 @@ function NSregisterElement(elem) {
       // BUTTON, or RADIO.  no event handlers need to be setup
       // for these elements.
     }
+  }
 }
 				// function object for use with elementIterate
 function NSregisterElementObj() { this.func = NSregisterElement; }
 
+function NSAssignIdentifiers() {
+  for (i = NSelementList.length;   i > 0; ) {
+    i--;
+    NSelementList[i].id = "dashelem_" + i;
+  }
+}
+
+function NSSetupElements() {
+  NSelementList = new Array();
+  elementIterate(new NSregisterElementObj());
+  NSAssignIdentifiers();
+}
 
 /*
  * Netscape top-level setup procedure.
@@ -459,7 +475,7 @@ function NSSetup() {
 
   if (debug) document.writeln("<p>Setting up under Netscape, ");
 
-  elementIterate(new NSregisterElementObj());
+  NSSetupElements();
 
   if (pageContainsElements == true) {
     if (debug) document.writeln("<p>creating applet.");
@@ -491,18 +507,19 @@ function ForcePlugInSetup() {
 
   if (debug) document.writeln("<p>Setting up in IE, forcing use of plug-in ");
 
-  elementIterate(new NSregisterElementObj());
+  NSSetupElements();
 
   if (pageContainsElements == true) {
     if (debug) document.writeln("<p>creating applet.");
     document.writeln
 	('<object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" '+
 	     'width="1" height="1" id="NSDataAppl" '+
-  	     'codebase="http://java.sun.com/products/plugin/1.3.0_02/jinstall-130_02-win32.cab#Version=1,3,0,2">'+
+  	     'codebase="http://java.sun.com/products/plugin/autodl/jinstall-1_4-windows-i586.cab#Version=1,4,0,0">'+
+	     '<param name=type value="application/x-java-applet;version=1.4">'+
 	     '<param name=CODE value="pspdash.data.NSDataApplet">'+
 	     '<param name=ARCHIVE value="/'+AppletName+'.jar">'+
 	     '<param name=NAME value="NSDataAppl">'+
-	     '<param name=type value="application/x-java-applet;version=1.3">'+
+	     '<param name=scriptable value="true">'+
   	     '<param name=MAYSCRIPT value=true>');
 	 
     if (requiredTag != "")
