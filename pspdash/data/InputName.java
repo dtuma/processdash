@@ -66,7 +66,7 @@ public class InputName {
             char c = flags.charAt(--pos);
             if ((c <= '9') && (c >= '0')) return (c - '0');
         }
-        return 0;
+        return DoubleData.AUTO_DECIMAL;
     }
 
     public String toString() {
