@@ -247,6 +247,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        ImportExport.registerUserSetting(this, Settings.getVal("export.data"));
 
         webServer.setData(data);
         webServer.setProps(props);
@@ -426,6 +427,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     protected void quit() {
+        ImportExport.exportAll(this, Settings.getVal("export.data"));
         if (hierarchy != null) {
             hierarchy.terminate();
             hierarchy = null;
