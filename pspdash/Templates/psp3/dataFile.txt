@@ -1,0 +1,97 @@
+#include <psp2.1/dataFile.txt>
+=============================================================================
+== PSP Dashboard - Data Automation Tool for PSP-like processes
+== Copyright (C) 1999  United States Air Force
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 2
+== of the License, or (at your option) any later version.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, write to the Free Software
+== Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+== 
+== The author(s) may be contacted at:
+== OO-ALC/TISHD
+== Attn: PSP Dashboard Group
+== 6137 Wardleigh Road
+== Hill AFB, UT 84056-5843
+== 
+== E-Mail POC:  ken.raisor@hill.af.mil
+
+=============================================================================
+== Title:	$Id$
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Fri Jan 30 16:08:52 1998
+==
+== Description: This is the data file for a PSP3 process.
+==
+
+
+==
+== The following elements identify the data in this file as belonging to
+== a PSP3 process.
+==
+
+psp3==1.0
+PSP3==1.0
+psp2.1==0.0
+PSP2.1==0.0
+
+
+==
+== Two new phases: High Level Design and High Level Design Review. Detailed 
+== Design wil be picked up via the Design tag from earlier levels.
+== 
+==
+
+= Estimated time
+
+High Level Design/Estimated Time==![(*	Estimated Time	/High Level Design/% Time To Date)]
+High Level Design Review/Estimated Time==![(*	Estimated Time	/High Level Design/% Time To Date)]
+
+= Actual time
+
+High Level Design/Time==0.0
+High Level Design Review/Time==0.0
+Time==![(+	Planning/Time	High Level Design/Time	High Level Design Review/Time	Design/Time	Design Review/Time	Code/Time	Code Review/Time	Compile/Time	Test/Time	Postmortem/Time)]
+
+= Actual % Time.
+
+High Level Design/% Time==![(/	High Level Design/Time	Time)]
+High Level Design Review/% Time==![(/	High Level Design Review/Time	Time)]
+
+= Actual Defects Injected
+
+High Level Design/Defects Injected==0.0
+High Level Design Review/Defects Injected==0.0
+Defects Injected==![(+	Planning/Defects Injected	High Level Design/Defects Injected	High Level Design Review/Defects Injected	Design/Defects Injected	Design Review/Defects Injected	Code/Defects Injected	Code Review/Defects Injected	Compile/Defects Injected	Test/Defects Injected	Postmortem/Defects Injected)]
+
+= Actual Defects Removed
+
+High Level Design/Defects Removed==0.0
+High Level Design Review/Defects Removed==0.0
+Defects Injected==![(+	Planning/Defects Removed	High Level Design/Defects Removed	High Level Design Review/Defects Removed	Design/Defects Removed	Design Review/Defects Removed	Code/Defects Removed	Code Review/Defects Removed	Compile/Defects Removed	Test/Defects Removed	Postmortem/Defects Removed)]
+
+
+==
+== Estimate "Defects Injected" from historical "To Date" data
+==
+
+High Level Design/Estimated Defects Injected==![(*	Estimated Defects Injected	/High Level Design/% Defects Injected To Date)]
+High Level Design Review/Estimated Defects Injected==![(*	Estimated Defects Injected	/High Level Design Review/% Defects Injected To Date)]
+
+
+==
+== Estimate "Defects Removed" from historical "To Date" data
+==
+
+High Level Design/Estimated Defects Removed==![(*	Estimated Defects Removed	/High Level Design/% Defects Removed To Date)]
+High Level Design Review/Estimated Defects Removed==![(*	Estimated Defects Removed	/High Level Design Review/% Defects Removed To Date)]
+
