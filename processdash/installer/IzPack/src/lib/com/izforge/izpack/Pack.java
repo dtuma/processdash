@@ -38,6 +38,9 @@ public class Pack implements Serializable
     /**  The pack name. */
     public String name;
 
+    /**  The pack id. */
+    public String id;
+
     /**  The pack description. */
     public String description;
 
@@ -56,9 +59,10 @@ public class Pack implements Serializable
      * @param  targetOs    Description of the Parameter
      * @param  required     Indicates wether the pack is required or not.
      */
-        public Pack(String name, String description, String targetOs, boolean required)
+        public Pack(String name, String id, String description, String targetOs, boolean required)
     {
         this.name = name;
+        this.id = id;
         this.description = description;
         this.os = targetOs;
         this.required = required;
