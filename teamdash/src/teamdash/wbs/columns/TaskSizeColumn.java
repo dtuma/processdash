@@ -40,9 +40,10 @@ public class TaskSizeColumn extends SizeAliasColumn {
     }
 
     public boolean isCellEditable(WBSNode node) {
-        // we only allow the user to edit time for "leaf tasks". If this
-        // isn't a leaf task, it's not editable.
-        if (!TeamTimeColumn.isLeafTask(wbsModel, node)) return false;
+        // if this isn't a leaf task, ask our superclass if the value is
+        // editable.
+        if (!TeamTimeColumn.isLeafTask(wbsModel, node))
+            return super.isCellEditable(node);
 
         // if this leaf task is inheriting it's size from some standard
         // size metrics (like LOC), we don't want to let the user edit the
@@ -60,9 +61,11 @@ public class TaskSizeColumn extends SizeAliasColumn {
     }
 
     public Object getValueAt(WBSNode node) {
-        if (!TeamTimeColumn.isLeafTask(wbsModel, node)) return BLANK;
-
         Object result = super.getValueAt(node);
+
+        if (!TeamTimeColumn.isLeafTask(wbsModel, node))
+            return result;
+
         if (result != BLANK)
             return new NumericDataValue(NumericDataValue.parse(result), false);
 
@@ -74,9 +77,12 @@ public class TaskSizeColumn extends SizeAliasColumn {
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
-        if (!isCellEditable(node)) return;
-
-        node.setNumericAttribute(ATTR_NAME, NumericDataValue.parse(aValue));
+        if (!TeamTimeColumn.isLeafTask(wbsModel, node)) {
+            super.setValueAt(aValue, node);
+        } else if (isCellEditable(node)) {
+            node.setNumericAttribute
+                (ATTR_NAME, NumericDataValue.parse(aValue));
+        }
     }
 
     private static final String ATTR_NAME = EditableSizeColumn.ATTR_NAME;

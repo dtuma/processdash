@@ -344,6 +344,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 dataModel.columnChanged(timePerPersonColumn);
                 dataModel.columnChanged(rateColumn);
                 dataModel.columnChanged(numPeopleColumn);
+                dataModel.columnChanged(resourcesColumn);
                 dataModel.columnChanged(TeamTimeColumn.this);
             }
         }
@@ -491,9 +492,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             if (time > 0)
                 setTime(time * ratio);
         }
-        public StringBuffer appendTimeString(StringBuffer buf) {
-            buf.append(initials)
-                .append("(").append(NumericDataValue.format(time)).append(")");
+        public StringBuffer appendTimeString(StringBuffer buf,
+                                             double defaultTime) {
+            buf.append(initials);
+            if (!equal(time, defaultTime))
+                buf.append("(").append(NumericDataValue.format(time)).append(")");
             return buf;
         }
         public void setTime(HashMap times) {
@@ -590,9 +593,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         protected Object getValueAtLeaf(LeafNodeData nodeData) {
             return new NumericDataValue(nodeData.numPeople);
         }
-        protected Object getValueAtNode(WBSNode node) {
-            return new NumericDataValue(countPeople(node), false);
-        }
+        //protected Object getValueAtNode(WBSNode node) {
+        //    return new NumericDataValue(countPeople(node), false);
+        //}
         protected void setValueAtLeaf(double value, LeafNodeData nodeData) {
             nodeData.userSetNumPeople(value);
         }
@@ -617,20 +620,24 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         public Object getValueAt(WBSNode node) {
             LeafNodeData leafData = getLeafNodeData(node);
             if (leafData != null)
-                return getValueForTimes(leafData.individualTimes);
+                return getValueForTimes(leafData.individualTimes,
+                                        leafData.timePerPerson);
             else
                 return new ReadOnlyValue
-                    (getValueForTimes(getIndivTimes(node)));
+                    (getValueForTimes(getIndivTimes(node), 0));
         }
 
         public boolean recalculate() { return true; }
         public void storeDependentColumn(String ID, int columnNumber) {}
 
-        private Object getValueForTimes(IndivTime[] times) {
+        private Object getValueForTimes(IndivTime[] times,
+                                        double defaultTime)
+        {
             StringBuffer result = new StringBuffer();
             for (int i = 0;   i < times.length;   i++)
                 if (times[i].time > 0)
-                    times[i].appendTimeString(result.append(", "));
+                    times[i].appendTimeString
+                        (result.append(", "), defaultTime);
 
             if (result.length() == 0)
                 return UNASSIGNED;

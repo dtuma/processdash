@@ -10,7 +10,6 @@ import java.awt.Color;
 class DataTableCellRenderer extends DefaultTableCellRenderer {
 
     public DataTableCellRenderer() {
-        // TODO: use a smaller font.
         //this.setFont()
     }
 

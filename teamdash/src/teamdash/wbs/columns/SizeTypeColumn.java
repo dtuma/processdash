@@ -11,6 +11,8 @@ import teamdash.wbs.WBSNode;
 
 public class SizeTypeColumn extends AbstractDataColumn {
 
+    static final String COLUMN_ID = "Size-Units";
+
     public static final String[] SIZE_UNITS = new String[] {
             "LOC","Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
 
@@ -22,7 +24,7 @@ public class SizeTypeColumn extends AbstractDataColumn {
 
     public SizeTypeColumn(DataTableModel m) {
         this.dataModel = m;
-        this.columnID = "Size-Units";
+        this.columnID = COLUMN_ID;
         this.columnName = "Units";
     }
 

@@ -201,7 +201,7 @@ public class DataTableModel extends AbstractTableModel {
         SizeTypeColumn.createSizeColumns(this);
         addDataColumn(new PhaseColumn());
         addDataColumn(new TaskSizeColumn(this));
-        addDataColumn(new TaskSizeUnitsColumn(wbsModel, teamProcess));
+        addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new TeamTimeColumn(this));
         memberColumnManager = new TeamMemberColumnManager(this, teamList);
 

@@ -23,7 +23,7 @@ public class WorkflowModel extends DataTableModel {
         addDataColumn(new WBSNodeColumn(wbsModel));
         addDataColumn(new WorkflowPercentageColumn(wbsModel));
         addDataColumn(new WorkflowRateColumn(this));
-        addDataColumn(new TaskSizeUnitsColumn(wbsModel, teamProcess));
+        addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new WorkflowNumPeopleColumn(wbsModel));
     }
 
