@@ -27,6 +27,8 @@
 # Commands to run JDK tools
 JAR ?= //C/java/sun/jdk1.2.2/bin/jar.exe
 
+# build platform dependency
+BUILD_PLATFORM ?= CYGWIN
 
 # non-class Files that need to be a part of the distribution jar file
 NON_CLASS_FILES=continue.gif \
@@ -62,7 +64,11 @@ pspdash.jar: $(INSTALLED_FILES) manifest perltools jfreechart templates jhelp FO
 
 # make a local copy of the contents of the templates directory, without
 # CVS stuff or emacs backup~ files.
+ifeq ($(BUILD_PLATFORM),CYGWIN)
 templates: $(TEMPLATE_FILES) Templates/DataApplet.cab Templates/DataApplet.jar
+else
+templates: $(TEMPLATE_FILES) Templates/DataApplet.jar
+endif
 
 $(TEMPLATE_FILES) : Templates/% : ../Templates/%
 	@mkdir -p '$(dir Templates/$*)'
