@@ -31,6 +31,8 @@ import java.net.URL;
 
 import javax.swing.ImageIcon;
 
+import com.izforge.izpack.LocaleDatabase;
+
 /**
  *  With this ResourceManager you are able to get resources from the jar file.
  *
@@ -68,6 +70,8 @@ public class ResourceManager
     /**  The instance of this class. */
     private static ResourceManager instance = null;
 
+    /** Text resources defined by XML files */
+    private LocaleDatabase xmlTextResources = null;
 
     /**
      *  Constructor. Protected because this is a singleton.
@@ -86,7 +90,9 @@ public class ResourceManager
             // try to figure out ourself
             this.locale = installData.xmlData.getAttribute("langpack", "eng");
         }
+        loadXMLTextResources();
     }
+
 
     /**
      * Create the resource manager.
@@ -217,16 +223,31 @@ public class ResourceManager
         }
         catch (Exception ex)
         {
-            in = this.getInputStream(resource);
+            try {
+                in = this.getInputStream(resource);
+            } catch (Exception ex2) {}
         }
 
-        ByteArrayOutputStream infoData = new ByteArrayOutputStream();
-        byte[] buffer = new byte[5120];
-        int bytesInBuffer;
-        while ((bytesInBuffer = in.read(buffer)) != -1)
-            infoData.write(buffer, 0, bytesInBuffer);
+        if (in != null) {
+            ByteArrayOutputStream infoData = new ByteArrayOutputStream();
+            byte[] buffer = new byte[5120];
+            int bytesInBuffer;
+            while ((bytesInBuffer = in.read(buffer)) != -1)
+                infoData.write(buffer, 0, bytesInBuffer);
 
-        return infoData.toString();
+            return infoData.toString("UTF-8");
+        }
+
+
+        // next, look in the XML text resources.
+        if (xmlTextResources != null) {
+            String xmlResult = xmlTextResources.getString(resource);
+            if (xmlResult != null)
+                return xmlResult;
+        }
+
+        // if the resource was not found, throw an exception.
+        throw new ResourceNotFoundException("Can not find Resource " + resource);
     }
 
 
@@ -270,6 +291,26 @@ public class ResourceManager
     public String getLocale()
     {
         return this.locale;
+    }
+
+
+    private void loadXMLTextResources() {
+        loadXMLTextResource("text.xml_"+locale);
+        loadXMLTextResource("text.xml");
+    }
+
+
+    private void loadXMLTextResource(String resName) {
+        try {
+            String resourcePath = this.resourceBasePath + resName;
+            InputStream in = getClass().getResourceAsStream(resourcePath);
+            if (in != null)
+                if (xmlTextResources == null)
+                    xmlTextResources = new LocaleDatabase(in);
+                else
+                    xmlTextResources.loadXML(in);
+        } catch (Exception e) {
+        }
     }
 }
 
