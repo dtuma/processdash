@@ -43,11 +43,12 @@ public class Browser {
         defaultPort = port;
     }
     public static String mapURL(String url) {
-        if (!url.startsWith("http://")) {
-            if (!url.startsWith("/"))
-                url = "/" + url;
-            url = "http://" + defaultHost + ":" + defaultPort + url;
-        }
+        if (url.startsWith("http:/") || url.startsWith("file:/"))
+            return url;
+
+        if (!url.startsWith("/"))
+            url = "/" + url;
+        url = "http://" + defaultHost + ":" + defaultPort + url;
         return url;
     }
 
@@ -122,6 +123,9 @@ public class Browser {
         if (url == null || url.length() < 2 ||
             url.charAt(0) == '\\' || url.charAt(1) == ':')
             return url;
+
+        if (url.startsWith("file:/"))
+            return url.substring(6);
 
         String lower_url = url.toLowerCase();
         int i = badEndings.length;
@@ -221,6 +225,9 @@ public class Browser {
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.8  2002/02/16 05:02:36  tuma
+ * Tweak to be able to launch file: URLs.  (Microsoft is so broken.)
+ *
  * Revision 1.7  2001/05/23 05:16:48  tuma
  * Create a mechanism for automatically appending the host:port of the local
  * web server so other code doesn't need to construct it.
