@@ -307,7 +307,7 @@ public class EVMetrics implements TableModel {
         "Improvement Ratio",
         "{0,number}",
         "{0,number}",
-        "In order to complete all the work within the original effort estimate, you must be {1,number,percent} {0,choice,-1#less|0#} productive in the future as you have been in the past." };
+        "In order to complete all the work within the original effort estimate, you must be {1,number,percent} {0,choice,-1#less|0#more} productive in the future than you have been in the past." };
 
 
     public String independentForecastCost(int style) {
