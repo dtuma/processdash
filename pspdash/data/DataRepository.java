@@ -41,6 +41,7 @@ import java.io.PushbackReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -1100,6 +1101,12 @@ public class DataRepository implements Repository {
             }
         }
 
+
+        private boolean definitionsDirty = true;
+        public void maybeSaveDefinitions(File out) throws IOException {
+            if (definitionsDirty)
+                saveDefinitions(new FileOutputStream(out));
+        }
         public void saveDefinitions(OutputStream out) throws IOException {
             ObjectOutputStream o = new ObjectOutputStream(out);
             o.writeObject(includedFileCache);
@@ -1108,6 +1115,7 @@ public class DataRepository implements Repository {
             o.writeObject(globalDataDefinitions);
             o.writeObject(mountedPhantomData);
             o.close();
+            definitionsDirty = false;
         }
         public void loadDefinitions(InputStream in) {
             try {
@@ -1125,6 +1133,7 @@ public class DataRepository implements Repository {
                 globalDataDefinitions.putAll(d);
                 System.out.println("loaded serialized definitions.");
                 in.close();
+                definitionsDirty = false;
             } catch (Throwable t) {}
         }
 
@@ -1564,6 +1573,7 @@ public class DataRepository implements Repository {
                 definitions = ((DefinitionFactory) definitions).getDefinitions(this);
                 definitions = Collections.unmodifiableMap((Map) definitions);
                 includedFileCache.put(datafile, definitions);
+                definitionsDirty = true;
             }
             return (Map) definitions;
         }
@@ -1622,6 +1632,7 @@ public class DataRepository implements Repository {
 
                 result = Collections.unmodifiableMap(result);
                 includedFileCache.put(datafile, result);
+                definitionsDirty = true;
             }
 
             return result;
@@ -1889,6 +1900,7 @@ public class DataRepository implements Repository {
         private final Hashtable defineDeclarations = new Hashtable();
         public void putDefineDeclarations(String datafile, String decls) {
             defineDeclarations.put(bracket(datafile), decls);
+            definitionsDirty = true;
         }
 
         private final Hashtable defaultDefinitions = new Hashtable();
@@ -1901,6 +1913,7 @@ public class DataRepository implements Repository {
                 defaultDefinitions.put(bracket(imaginaryFilename), bracket(datafile));
             } else
                 includedFileCache.put(bracket(imaginaryFilename), d);
+            definitionsDirty = true;
         }
         private String bracket(String filename) {
             if (filename == null || filename.startsWith("<")) return filename;
@@ -1937,6 +1950,7 @@ public class DataRepository implements Repository {
 
             if (o != null) {
                 globalDataDefinitions.put(name.substring(1), valueObj);
+                definitionsDirty = true;
                 putValue(name, o);
             }
         }
@@ -2227,8 +2241,10 @@ public class DataRepository implements Repository {
             // can be deleted at any time if no one is listening to its value.
             mountData(getPhantomDataFile(), dataPrefix, values);
 
-            if (mountedPhantomData != null)
+            if (mountedPhantomData != null) {
                 mountedPhantomData.put(dataPrefix, values);
+                definitionsDirty = true;
+            }
         }
 
         void mountImportedData(String dataPrefix, Map values)

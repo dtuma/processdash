@@ -243,7 +243,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         DataImporter.init(data, Settings.getFile("import.directories"));
         data.finishInconsistency();
         try {
-            data.saveDefinitions(new FileOutputStream(serializedDefinitions));
+            data.maybeSaveDefinitions(serializedDefinitions);
         } catch (Exception e) {
             e.printStackTrace();
         }
