@@ -56,23 +56,10 @@ public class ShutdownDashboardPanel extends IzPanel {
         superLayout.addLayoutComponent(centerPanel, gbConstraints);
         add(centerPanel);
 
+        String[] text = parent.langpack.getString("ShutdownDashboardPanel.info").split("\\\\n");
         for (int i = 0; i < text.length; i++)
             centerPanel.add(new JLabel(text[i]));
     }
-
-    private String[] text = {
-        "If you are running the Process Dashboard right now,",
-        "installing new files can cause unpredictable errors.  It is",
-        "therefore imperative that you shut down the Dashboard if it",
-        "is currently running.",
-        " ",
-        "If you are installing the Process Dashboard for the first",
-        "time, or if you are not currently running the Process",
-        "Dashboard, you can ignore this warning.",
-        " ",
-        "Otherwise, shut down any currently running instances of the",
-        "Process Dashboard before you click the 'Next' button.",
-    };
 
 
     public void panelActivate() {
@@ -92,16 +79,11 @@ public class ShutdownDashboardPanel extends IzPanel {
 
 
     private void showErrorDialog() {
-        String[] message = new String[] {
-            "This installer has detected that an instance",
-            "of the Process Dashboard is currently running",
-            "on this machine.  You must shut it down before",
-            "you can proceed."
-        };
+        String[] message = parent.langpack.getString("ShutdownDashboardPanel.error.info").split("\\\\n");
         JOptionPane.showMessageDialog(
             this,
             message,
-            "Process Dashboard Running",
+            parent.langpack.getString("ShutdownDashboardPanel.error.title"),
             JOptionPane.ERROR_MESSAGE);
         needToRestart = true;
     }

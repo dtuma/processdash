@@ -95,7 +95,7 @@ public class DataDirPanel extends IzPanel implements ActionListener
         // We create and put the components
 
         infoLabel = new JLabel
-            ("Select a directory for your personal metrics data :",
+            (parent.langpack.getString("DataDirPanel.info"),
              parent.icons.getImageIcon("home"), JLabel.TRAILING);
         parent.buildConstraints(gbConstraints, 0, 0, 2, 1, 3.0, 0.0);
         gbConstraints.insets = new Insets(5, 5, 5, 5);
@@ -112,7 +112,7 @@ public class DataDirPanel extends IzPanel implements ActionListener
         layout.addLayoutComponent(textField, gbConstraints);
         add(textField);
 
-        browseButton = ButtonFactory.createButton("Browse ...",
+        browseButton = ButtonFactory.createButton(parent.langpack.getString("TargetPanel.browse"),
             parent.icons.getImageIcon("open"),
             idata.buttonsHColor);
         browseButton.addActionListener(this);
@@ -228,7 +228,7 @@ public class DataDirPanel extends IzPanel implements ActionListener
         if (dataPath.length() == 0)
         {
             JOptionPane.showMessageDialog(this,
-                "You must select a data directory.",
+                parent.langpack.getString("DataDirPanel.empty_datadir"),
                 parent.langpack.getString("installer.error"),
                 JOptionPane.ERROR_MESSAGE);
             return false;

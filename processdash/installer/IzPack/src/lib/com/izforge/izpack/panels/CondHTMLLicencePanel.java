@@ -293,15 +293,17 @@ public class CondHTMLLicencePanel extends IzPanel implements HyperlinkListener, 
 
         else if (noRadio.isSelected())
         {
-            boolean plural = selectedPacks.size() > 1;
-            String[] message = {
-                "You have indicated that you do not consent to this license",
-                "agreement.  Would you like to remove the module"+(plural ? "s" : ""),
-                "        " + selectedPacksText,
-                "from the installation list?"
-            };
+            String title = parent.langpack.getString("LicencePanel.deselect.title");
+
+            Object[] message = new Object[3];
+            message[0] = parent.langpack.getString("LicencePanel.deselect.message1")
+                .split("\\\\n");
+            message[1] = "        " + selectedPacksText;
+            message[2] = parent.langpack.getString("LicencePanel.deselect.message2")
+                .split("\\\\n");
+
             int choice = JOptionPane.showConfirmDialog
-                (this, message, "Deselect Packages?", JOptionPane.OK_CANCEL_OPTION);
+                (this, message, title, JOptionPane.OK_CANCEL_OPTION);
             if (choice == JOptionPane.OK_OPTION) {
                 deselectPacks();
                 return true;
