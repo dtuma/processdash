@@ -110,17 +110,21 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
                 while (itemIndex<itemCount) {
                     Number x = data.getXValue(series, itemIndex);
                     Number y = data.getYValue(series, itemIndex);
-                    double xx = getHorizontalValueAxis().translatedValue(x, plotArea);
-                    double yy = getVerticalValueAxis().translatedValue(y, plotArea);
-                    Paint p = chart.getSeriesPaint(series);
-                    Stroke s = chart.getSeriesStroke(series);
-                    Point2D current = new Point2D.Double(xx, yy);
-                    if (isScatter) {
-                        lines.add(new Bar(xx-3, yy-3, 6.0, 6.0, s, Color.black, p));
-                    } else if (prev!=null) {
-                        lines.add(new Line(prev.getX(), prev.getY(), current.getX(), current.getY(), s, p));
+                    if (y == null)
+                        prev = null;
+                    else {
+                        double xx = getHorizontalValueAxis().translatedValue(x, plotArea);
+                        double yy = getVerticalValueAxis().translatedValue(y, plotArea);
+                        Paint p = chart.getSeriesPaint(series);
+                        Stroke s = chart.getSeriesStroke(series);
+                        Point2D current = new Point2D.Double(xx, yy);
+                        if (isScatter) {
+                            lines.add(new Bar(xx-3, yy-3, 6.0, 6.0, s, Color.black, p));
+                        } else if (prev!=null) {
+                            lines.add(new Line(prev.getX(), prev.getY(), current.getX(), current.getY(), s, p));
+                        }
+                        prev = current;
                     }
-                    prev = current;
                     itemIndex++;
                 }
             }
