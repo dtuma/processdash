@@ -40,6 +40,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Properties;
+import javax.help.*;
+import java.io.File;
+import java.net.URL;
 
 class ConfigureButton extends JMenuBar implements ActionListener {
     PSPDashboard  parent       = null;
@@ -49,11 +52,13 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     DefectEditor  defect_frame = null;
     ImportExport  impexp_frame = null;
     ProbeDialog   probe_dialog = null;
+    HelpSet       hs           = null;
+    HelpBroker    hb           = null;
 
     static String FILE_SEP = null;
     static final String ANALYSIS_URL =
                                   ScriptButton.URL_PREFIX +"0/reports/index.htm";
-    static final String HELP_URL = ScriptButton.URL_PREFIX +"0/help/PSPDash.htm";
+// static final String HELP_URL = ScriptButton.URL_PREFIX +"0/help/PSPDash.htm";
     static final String ABOUT_URL = ScriptButton.URL_PREFIX + "0/help/about.htm";
 
                                   // indices into menu labels
@@ -90,12 +95,18 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         String    s;
         JMenu     menu = new JMenu("C");
         JMenuItem menuItem;
+        JMenuItem helpItem = null;
         add (menu);
 
         for (int ii = 0; ii < menuLabels.length; ii++) {
-            menuItem = menu.add(new JMenuItem(menuLabels[ii]));
-            menuItem.setActionCommand(menuLabels[ii]);
-            menuItem.addActionListener(this);
+            if (ii != HELP_FRAME) {
+                menuItem = menu.add(new JMenuItem(menuLabels[ii]));
+                menuItem.setActionCommand(menuLabels[ii]);
+                menuItem.addActionListener(this);
+            } else {
+                helpItem = new JMenuItem(menuLabels[HELP_FRAME]);
+                menu.add(helpItem);
+            }
         }
 
         //popup.addSeparator();
@@ -106,6 +117,24 @@ class ConfigureButton extends JMenuBar implements ActionListener {
                                     // get needed system properties
         Properties prop = System.getProperties ();
         FILE_SEP = prop.getProperty ("file.separator");
+
+        // add help listener
+        try {
+            URL hsURL = new URL((new File(".")).toURL(), "Templates/help/PSPDash.hs");
+
+            hs = new HelpSet(null,hsURL);
+            System.out.println("Found help set at " + hsURL);
+
+            hb = hs.createHelpBroker();
+
+            CSH.setHelpIDString(helpItem ,"Overview");
+
+            ActionListener helper = new CSH.DisplayHelpFromSource(hb);
+            helpItem.addActionListener(helper);
+
+        } catch (Exception e) {
+            System.out.println("Error on help");
+        }
     }
 
     public void quit () {
@@ -195,7 +224,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void startDataAnalysis() { Browser.launch(ANALYSIS_URL); }
 
-    public void startHelp() { Browser.launch(HELP_URL); }
+// public void startHelp() { Browser.launch(HELP_URL); }
 
     public void startAboutDialog() { new AboutDialog(parent, ABOUT_URL); }
 
@@ -223,8 +252,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             startDataAnalysis ();
         } else if (cmd.equals(menuLabels[IMPORT_EXPORT])) {
             startImportExport ();
-        } else if (cmd.equals(menuLabels[HELP_FRAME])) {
-            startHelp ();
+//  } else if (cmd.equals(menuLabels[HELP_FRAME])) {
+//    startHelp ();
         } else if (cmd.equals(menuLabels[ABOUT_DIALOG])) {
             startAboutDialog ();
         } else if (cmd.equals(menuLabels[EXIT_PROGRAM])) {
