@@ -211,6 +211,13 @@ public class Installer
         installdata.localeISO3 = selectedPack;
         InputStream in = getClass().getResourceAsStream("/langpacks/" + selectedPack + ".xml");
         langpack = new LocaleDatabase(in);
+
+        // also load items from english langpack, if needed.
+        if (!"eng".equals(selectedPack)) {
+            in = getClass().getResourceAsStream("/langpacks/eng.xml");
+            if (in != null)
+                langpack.loadXML(in);
+        }
     }
 
 
