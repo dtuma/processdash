@@ -1,6 +1,12 @@
 
 <project default="jar" basedir=".">
 
+  <property name="processdash.dir" value="D:\Tuma\projects\processdash"/>
+  <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
+  <property name="TeamProcessCGI.jar"
+      value="Templates/team/lib/TeamProcessCGI.jar"/>
+
+
   <target name="filelist.txt">
     <pathconvert property=".filelistbasedir" pathsep="," dirsep="/">
       <path id=".jhbasedir.path" path="Templates/team/setup"/>
@@ -15,21 +21,24 @@
     <replace file="${filelist}" token="${.filelistbasedir}/" value=""/>
   </target>
 
-  <target name="jar" depends="filelist.txt">
+  <target name="TeamProcessCGI">
     <!-- Create a signed jarfile of cgi scripts -->  
-    <jar destfile="TeamProcessCGI.jar" duplicate="fail">
+    <jar destfile="${TeamProcessCGI.jar}" duplicate="fail">
       <fileset dir="bin" includes="teamdash/templates/setup/"/>
     </jar>
     <property environment="env"/>
-    <signjar jar="TeamProcessCGI.jar" alias="processdash-full-permissions"
+    <signjar jar="${TeamProcessCGI.jar}" alias="processdash-full-permissions"
 	storepass="${env.TDKSPW}"/>
+  </target>
 
+  <target name="jar" depends="filelist.txt,TeamProcessCGI">
     <jar destfile="TeamTools.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
 	<attribute name="Dash-Pkg-ID" value="teamTools"/>
-	<attribute name="Dash-Pkg-Version" value="1.9.0"/>
+	<attribute name="Dash-Pkg-Version" value="2.0.0"/>
+    <attribute name="Dash-Pkg-Requires-Version" value="1.7b.20050401"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
@@ -53,15 +62,20 @@
         <include name="Templates/team/setup/*.shtm" />
         <include name="Templates/team/setup/filelist.txt" />
       </fileset>
-
-      <!-- include the signed jarfile of cgi scripts -->
-      <zipfileset dir="." includes="TeamProcessCGI.jar"
-          fullpath="Templates/team/lib/TeamProcessCGI.jar"/>
-
     </jar>
 
     <signjar jar="TeamTools.jar" alias="processdash-full-permissions"
 	storepass="${env.TDKSPW}"/>
+  </target>
+
+  <target name="TSP" depends="jar">
+    <java classname="teamdash.process.GenerateDefaultProcess" fork="true">
+      <classpath>
+        <pathelement location="F:/teamdash/TeamTools.jar"/>	
+        <pathelement location="D:/Tuma/projects/processdash/dist/pspdash.jar"/>
+      </classpath>
+      <arg value="."/>
+    </java>
   </target>
 
 </project>

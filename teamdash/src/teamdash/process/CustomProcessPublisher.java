@@ -1,6 +1,7 @@
 
 package teamdash.process;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.jar.Attributes;
+import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
@@ -105,8 +107,17 @@ public class CustomProcessPublisher {
             script.getDocumentElement().getAttribute("version");
         String scriptReqt =
             script.getDocumentElement().getAttribute("requiresDashboard");
+        String scriptStartingJar =
+            script.getDocumentElement().getAttribute("startingJar");
 
         Manifest mf = new Manifest();
+        JarInputStream startingJarIn = null;
+        if (scriptStartingJar != null) {
+            startingJarIn = openStartingJar(scriptStartingJar);
+            if (startingJarIn != null)
+                mf = startingJarIn.getManifest();
+        }
+
         Attributes attrs = mf.getMainAttributes();
         attrs.putValue("Manifest-Version", "1.0");
         attrs.putValue(DashPackage.NAME_ATTRIBUTE,
@@ -120,13 +131,50 @@ public class CustomProcessPublisher {
         FileOutputStream fos = new FileOutputStream(destFile);
         zip = new JarOutputStream(fos, mf);
         out = new OutputStreamWriter(zip);
-    }
 
+        if (startingJarIn != null)
+            copyFilesFromStartingJar(startingJarIn);
+    }
 
     protected void close() throws IOException {
         out.flush();
         zip.closeEntry();
         zip.close();
+    }
+
+    private JarInputStream openStartingJar(String scriptStartingJar) throws IOException {
+        byte[] contents = getRawFileBytes(scriptStartingJar);
+        if (contents == null) return null;
+
+        ByteArrayInputStream bytesIn = new ByteArrayInputStream(contents);
+        return new JarInputStream(bytesIn);
+    }
+
+    private void copyFilesFromStartingJar(JarInputStream startingJarIn) throws IOException {
+        ZipEntry entry;
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+
+        while ((entry = startingJarIn.getNextEntry()) != null) {
+            ZipEntry outEntry = cloneZipEntry(entry);
+        zip.putNextEntry(outEntry);
+        while ((bytesRead = startingJarIn.read(buffer)) != -1)
+            zip.write(buffer, 0, bytesRead);
+            zip.closeEntry();
+        }
+    }
+
+    private ZipEntry cloneZipEntry(ZipEntry entry) {
+        ZipEntry result = new ZipEntry(entry.getName());
+
+        if (entry.getComment() != null)
+            result.setComment(entry.getComment());
+        if (entry.getExtra() != null)
+            result.setExtra(entry.getExtra());
+        if (entry.getTime() != -1)
+            result.setTime(entry.getTime());
+
+        return result;
     }
 
     protected void initProcess(CustomProcess process) {
