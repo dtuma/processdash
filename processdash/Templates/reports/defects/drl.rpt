@@ -1,0 +1,18 @@
+= Defect Removal Leverage query
+
+qf=../compProj.rpt
+
+title=Defect Removal Leverage
+headerComment==(vs. Unit Test)
+
+h1==Test
+d1==1.0  /* [ignored but necessary] */
+
+h2==Compile
+d2==Compile/DRL
+
+h3==Code Rev.
+d3==Code Review/DRL
+
+h4==Des. Rev.
+d4==Design Review/DRL

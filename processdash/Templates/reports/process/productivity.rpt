@@ -1,0 +1,8 @@
+= Productivity query
+
+qf=../compProj.rpt
+
+title=Productivity
+
+d1==Productivity
+h1=LOC/Hr

@@ -1,0 +1,164 @@
+<HTML>
+<head>
+<TITLE>Data File Functions</TITLE>
+<link rel=stylesheet type="text/css" href="../../../style.css">
+</head>
+<BODY>
+
+<H1>The data file built-in functions</H1>
+
+<H2>chopPath</H2>
+
+<table>
+<tr><td valign=top><b>Usage</b>&nbsp;</td><td><code>
+chopPath(<i>path</i>)
+</code></td></tr>
+<tr><td valign=top><b>Parameters</b></td>
+<td><code><i>path</i></code> - An expression which evaluates to a string</td></tr>
+<tr><td valign=top><b>Description</b>&nbsp;</td><td>
+
+The argument is interpreted as a hierarchy/data path (a list of path
+names, separated by &quot;<code>/</code>&quot; characters).  The final
+name in the sequence (including any preceding/trailing
+&quot;<code>/</code>&quot characters) will be removed, and the
+resulting value will be returned.  If there is no final component to
+trim (for example, because the original path is the empty string),
+null will be returned.
+<p>More precisely, if the argument ends with a &quot;<code>/</code>&quot, it will be removed. Then, the last &quot;<code>/</code>&quot in the string will be located, and it all all characters after it will be removed.  The resulting string is returned.  If no slash was found, null is returned.
+
+</td></tr>
+    
+<tr><td valign=top><b>Examples</b>&nbsp;</td><td>
+
+<code>chopPath("/Project/My Project/Time") </code> <i>returns</i> <code> "/Project/My Project"</code><br>
+<code>chopPath("/foo/bar/baz") </code> <i>returns</i> <code> "/foo/bar"</code><br>
+<code>chopPath("/foo/bar/") </code> <i>returns</i> <code> "/foo"</code><br>
+<code>chopPath("/foo") </code> <i>returns</i> <code> ""</code><br>
+<code>chopPath("/") </code> <i>returns</i> <code> null</code><br>
+<code>chopPath("") </code> <i>returns</i> <code> null</code><br>
+<code>chopPath("not really a path") </code> <i>returns</i> <code> null</code>
+</td></tr>
+
+</table>
+
+<H2><HR>count</H2>
+
+<table>
+<tr><td valign=top><b>Usage</b>&nbsp;</td><td><code>
+count(<i>arguments</i>, ...)
+</code></td></tr>
+<tr><td valign=top><b>Parameters</b></td>
+<td><code><i>arguments</i></code> - one or more of expressions, separated by
+commas</td></tr>
+<tr><td valign=top><b>Description</b>&nbsp;</td><td>
+
+Counts the number of items in one or more lists, and returns the
+integer result.
+
+<p>Each of the arguments is evaluated.  If any argument is a list
+expression, the argument is replaced by the contents of the list.
+This step is performed recursively until no lists remain.  Then, the
+number of resulting items is counted and returned.
+
+</td></tr>
+    
+<tr><td valign=top><b>Examples</b>&nbsp;</td><td>
+
+<code>count("a", "b", "c") </code> <i>returns</i> <code> 3</code><br>
+<code>count(",a,b,c,") </code> <i>returns</i> <code> 3</code><br>
+<code>count([List]) </code> <i>returns the number of items in</i> <code> [List]</code><br>
+<code>sum([List]) / count([List]) </code> <i>returns the average of the numbers
+in</i> <code> [List]</code>
+</td></tr>
+
+</table>
+
+<H2><HR>defined</H2>
+
+<table>
+<tr><td valign=top><b>Usage</b>&nbsp;</td><td><code>
+defined(<i>expression</i>)
+</code></td></tr>
+<tr><td valign=top><b>Parameters</b></td>
+<td><code><i>expression</i></code> - any expression</td></tr>
+<tr><td valign=top><b>Description</b>&nbsp;</td><td>
+
+Returns <code>true</code> if the expression is not <code>null</code>,
+<code>false</code> otherwise.
+
+</td></tr>
+
+</table>
+
+<H2><HR>endsWith</H2>
+
+<table>
+<tr><td valign=top><b>Usage</b>&nbsp;</td><td><code>
+endsWith(<i>string1, string2</i>)<br>
+endsWith(<i>string1</i>)
+</code></td></tr>
+<tr><td valign=top><b>Parameters</b></td>
+
+<td><code><i>string1</i></code> - An expression which evaluates to a
+string<br>
+
+<i><code>string2</code> (optional)</i> - An expression which
+evaluates to a string. If <i><code>string2</code></i> is omitted, the
+value of the variable <code>[_]</code> will be used instead.</td></tr>
+
+<tr><td valign=top><b>Description</b>&nbsp;</td><td>
+
+Returns true if <code><i>string1</i></code> ends with
+<code><i>string2</i></code>, false otherwise.
+
+</td></tr>
+    
+<tr><td valign=top><b>Examples</b>&nbsp;</td><td>
+
+<code>endsWith("foo", "bar") </code> <i>returns</i> <code> false</code><br>
+<code>endsWith("foo", "oo") </code> <i>returns</i> <code> true</code><br>
+<code>endsWith("/Project/My Project/Code", "/Code") </code> <i>returns</i> <code> true</code><br>
+</td></tr>
+
+</table>
+
+<H2><HR>esc</H2>
+
+<H2><HR>eval</H2><HR>
+
+<H2><HR>filter</H2><HR>
+
+<H2><HR>iff</H2>
+
+<H2><HR>indirect</H2>
+
+<H2><HR>join</H2>
+
+<H2><HR>list</H2>
+
+<H2><HR>listFor</H2>
+
+<H2><HR>map</H2>
+
+<H2><HR>match</H2>
+
+<H2><HR>max</H2>
+
+<H2><HR>maxDate</H2>
+
+<H2><HR>min</H2>
+
+<H2><HR>sort</H2>
+
+<H2><HR>startsWith</H2>
+
+<H2><HR>sumFor</H2>
+
+
+
+<!-- How to define your own custom process
+   * More detail on the data files
+     * A list of functions that are available when writing equations -->
+
+</BODY>
+</HTML>
