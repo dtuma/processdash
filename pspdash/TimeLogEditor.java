@@ -35,6 +35,7 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.util.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -360,6 +361,69 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         addButton.setEnabled(tableContainsRows || selectedNodeHasNoChildren);
     }
 
+    private void setFilter(Date from, Date to) {
+        fromDate.setText(DateFormatter.formatDate(from));
+        toDate.setText(DateFormatter.formatDate(to));
+        applyFilter(true);
+    }
+
+    public void filterToday() {
+        Date now = new Date();
+        setFilter(now, now);
+    }
+    public void filterThisWeek() {
+        Date now = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now); cal.set(cal.DAY_OF_WEEK, 1);
+        Date from = cal.getTime();
+        cal.setTime(now); cal.set(cal.DAY_OF_WEEK, 7);
+        Date to = cal.getTime();
+        setFilter(from, to);
+    }
+    public void filterThisMonth(Date when) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(when); cal.set(cal.DAY_OF_MONTH, 1);
+        Date from = cal.getTime();
+        cal.set(cal.DAY_OF_MONTH, cal.getActualMaximum(cal.DAY_OF_MONTH));
+        Date to = cal.getTime();
+        setFilter(from, to);
+    }
+    public void scrollFilterForward() {
+        Date fd = DateFormatter.parseDate (fromDate.getText());
+        Date td = DateFormatter.parseDate (toDate.getText());
+        if (fd == null) return;
+        if (td == null) td = fd;
+
+        long diff = 1 + (td.getTime() - fd.getTime()) / DAY_IN_MILLIS;
+        fd = new Date(td.getTime() + DAY_IN_MILLIS);
+        if (diff == 28 || diff == 29 || diff == 30 || diff == 31) {
+            filterThisMonth(fd);
+        } else {
+            td = new Date(fd.getTime() + (diff-1) * DAY_IN_MILLIS);
+            setFilter(fd, td);
+        }
+    }
+    public void scrollFilterBackward() {
+        Date fd = DateFormatter.parseDate (fromDate.getText());
+        Date td = DateFormatter.parseDate (toDate.getText());
+        if (fd == null) return;
+        if (td == null) td = fd;
+
+        long diff = 1 + (td.getTime() - fd.getTime()) / DAY_IN_MILLIS;
+        td = new Date(fd.getTime() - DAY_IN_MILLIS);
+        if (diff == 28 || diff == 29 || diff == 30 || diff == 31) {
+            filterThisMonth(td);
+        } else {
+            fd = new Date(td.getTime() - (diff-1) * DAY_IN_MILLIS);
+            setFilter(fd, td);
+        }
+    }
+    public void clearFilter() {
+        fromDate.setText("");
+        toDate.setText("");
+        applyFilter(true);
+    }
+
     // This method implements utilTableValidator
     public boolean validate (int        id,
                              int        row,
@@ -437,10 +501,23 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
     private JPanel constructFilterPanel () {
         JPanel  retPanel = new JPanel(false);
-        JButton button;
+        DropDownButton button;
+        JButton btn;
+        Insets insets = new Insets(0, 2, 0, 2);
         JLabel  label;
 
-        label = new JLabel ("Filter: From ");
+        label = new JLabel ("Filter: ");
+        retPanel.add (label);
+
+        btn = new JButton("<<");
+        btn.setMargin(insets);
+        btn.setToolTipText("Scroll filter backward");
+        btn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { scrollFilterBackward(); }
+            });
+        retPanel.add(btn);
+
+        label = new JLabel ("From ");
         retPanel.add (label);
 
         fromDate = new JTextField ("", 10);
@@ -458,10 +535,36 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         toDate.addFocusListener (l);
         retPanel.add (toDate);
 
-        button = new JButton ("Apply Filter");
-        button.addActionListener (new ActionListener () {
+
+        btn = new JButton(">>");
+        btn.setMargin(insets);
+        btn.setToolTipText("Scroll filter forward");
+        btn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { scrollFilterForward(); }
+            });
+        retPanel.add(btn);
+
+        button = new DropDownButton ("Apply Filter");
+        button.setRunFirstMenuOption(false);
+        button.getButton().addActionListener(new ActionListener () {
             public void actionPerformed(ActionEvent e) { applyFilter (true); }
-        });
+            });
+        JMenu menu = button.getMenu();
+        menu.add("Today").addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { filterToday(); }
+            });
+        menu.add("This Week").addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { filterThisWeek(); }
+            });
+        menu.add("This Month").addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                filterThisMonth(new Date());
+            }
+            });
+        menu.addSeparator();
+        menu.add("Remove Filter").addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { clearFilter(); }
+            });
         retPanel.add (button);
 
         return retPanel;
