@@ -245,7 +245,6 @@ public class HierarchyAlterer implements ItemListener {
      */
     public static void updateNodesAndLeaves(DataRepository data,
                                             DashHierarchy useProps) {
-        // REFACTOR this should not be visible
         HashSet nodesAndLeaves = new HashSet();
         readNodesAndLeaves(nodesAndLeaves, data);
         setNodesAndLeaves(nodesAndLeaves, data, useProps, PropertyKey.ROOT);
