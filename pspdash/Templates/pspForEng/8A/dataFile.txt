@@ -1,0 +1,19 @@
+#include <psp2.1/dataFile.txt>
+
+= Students must manually calculate appraisal COQ for program 7A.
+
+Estimated % Appraisal COQ=0.0
+% Appraisal COQ=0.0
+8A % Appraisal COQ To Date=0.0
+
+= Students must manually calculate failure COQ for program 7A.
+
+Estimated % Failure COQ=0.0
+% Failure COQ=0.0
+8A % Failure COQ To Date=0.0
+
+= Students must manually calculate AFR for program 7A.
+
+Estimated AFR=0.0
+AFR=0.0
+8A AFR To Date=0.0
