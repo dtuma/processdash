@@ -27,13 +27,45 @@ package net.sourceforge.processdash.i18n;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.URL;
+
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+
+import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.util.ClientHttpRequest;
 
 
 public class TranslationsSavedListener implements ActionListener {
 
+
+    private static final Resources resources =
+        Resources.getDashBundle("ProcessDashboard.Translation");
+
+    TranslationSharer sharer = new TranslationSharer();
+
+
     public void actionPerformed(ActionEvent e) {
-        String filename = e.getActionCommand();
-        System.out.println("saved translations: "+ filename);
+        sharer.maybeShareTranslations(e.getActionCommand());
+        showSaveMessage();
+    }
+
+
+    private void showSaveMessage() {
+        JOptionPane.showMessageDialog
+            (null, resources.getStrings("Save.Message"),
+             resources.getString("Save.Title"), JOptionPane.PLAIN_MESSAGE);
     }
 
 }
