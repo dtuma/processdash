@@ -32,6 +32,7 @@
 == Description: This data file collects data from all other datafiles.
 ==
 
+Owner="Enter your name
 
 ==
 ==  Data Elements to track LOC to Date
@@ -110,7 +111,7 @@ Code Review/Defects Injected To Date==![(+	~/.*/{Completed}Code Review/Defects I
 Compile/Defects Injected To Date==![(+	~/.*/{Completed}Compile/Defects Injected$)]
 Test/Defects Injected To Date==![(+	~/.*/{Completed}Test/Defects Injected$)]
 Postmortem/Defects Injected To Date==![(+	~/.*/{Completed}Postmortem/Defects Injected$)]
-Defects Injected To Date==![(+	~[^/]*/Defects Injected To Date)]
+Defects Injected To Date==![(-	~[^/]*/Defects Injected To Date	Before Development/Defects Injected To Date)]
 Defects Injected per KLOC To Date==![(/	Defects Injected To Date	KLOC To Date)]
 Defects per KLOC To Date==![(/	Defects Injected To Date	KLOC To Date)]
 
