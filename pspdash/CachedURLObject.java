@@ -156,7 +156,7 @@ public class CachedURLObject extends CachedObject {
         if (!olderThanAge(maxAge))
             return true;
 
-        if (Ping.ping(url.getHost(), maxWait))
+        if (Ping.ping(url.getHost(), url.getPort(), maxWait))
             return refresh();
 
         errorMessage = NO_SUCH_HOST;

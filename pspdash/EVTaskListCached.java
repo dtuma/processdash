@@ -60,12 +60,17 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
         localName = taskListName.substring(slashPos+1);
         objectID = Integer.parseInt(taskListName.substring(6, slashPos));
 
-        object = cache.getCachedObject(objectID, 1);
+        object = cache.getCachedObject(objectID, -1);
         openXML();
     }
 
 
     private boolean openXML() {
+        if (object == null) {
+            createErrorRootNode(localName, "Cannot open schedule.");
+            return false;
+        }
+
         String xmlDoc = object.getString("UTF-8");
         String errorMessage = null;
         if (object.olderThanAge(3)) {
@@ -85,7 +90,8 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
 
 
     public void recalc() {
-        object.refresh(0);
+        if (object != null)
+            object.refresh(0, 1000);
         openXML();
 
         super.recalc();
@@ -97,8 +103,18 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
     }
 
     public static boolean exists(String taskListName, ObjectCache cache) {
-        // FIXME
-        return true;
+        try {
+            if (taskListName == null) return false;
+
+            int slashPos = taskListName.indexOf('/');
+            if (slashPos < 7) return false;
+            int objectID =
+                Integer.parseInt(taskListName.substring(6, slashPos));
+            CachedObject object = cache.getCachedObject(objectID, -1);
+            return (object != null &&
+                    CACHED_OBJECT_TYPE.equals(object.getType()));
+        } catch (Exception e) { }
+        return false;
     }
 
     public static String buildTaskListName(int id, String displayName) {
