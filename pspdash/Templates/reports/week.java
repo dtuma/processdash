@@ -235,8 +235,7 @@ public class week extends TinyCGIBase {
             out.println("</td></tr>\n</table>");
         }
 
-        if (!parameters.containsKey("EXPORT"))
-            out.print(EXPORT_HTML);
+        out.print(EXPORT_HTML);
         out.print(FOOTER_HTML);
     }
 
@@ -350,7 +349,7 @@ public class week extends TinyCGIBase {
     static final String EXPORT_HTML =
         "<p class='doNotPrint'>" +
         "<a href=\"excel.iqy?uri=week.class&fullPage\">" +
-        "<i>Export to Excel</i></a>";
+        "<i>Export to Excel</i></a></p>";
     static final String FOOTER_HTML = "</body></html>";
 
 
