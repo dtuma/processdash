@@ -45,7 +45,6 @@
   <mapID target="FAQ" url="Topics/Troubleshooting/FAQ.html" />
 
   <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
-  <mapID target="AddOnProcessSets" url="Topics/AdvancedTopics/AddingAddOnProcessSets.html" />
   <mapID target="ModifyingExistingProcesses" url="Topics/AdvancedTopics/ModifyingExistingProcesses.html" />
   <mapID target="CreatingNewProcesses" url="Topics/AdvancedTopics/CreatingNewProcesses.html" />
 </map>

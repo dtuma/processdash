@@ -58,7 +58,6 @@
 
     <tocitem text="Advanced Topics">
       <tocitem target="ConfigurationFile" text="The configuration file"/>
-      <tocitem target="AddOnProcessSets" text="Adding add-on process sets"/>
 
 <!-- 
       <tocitem target="ModifyingExistingProcesses" text="Modifying the existing processes"/>
