@@ -182,6 +182,10 @@ Reassessment/Estimated Defects Removed==![(+	~.*/Reassessment/Estimated Defects 
 
 Cycles/Estimated Defects Removed==![(+	~.*/{psp3cycle}Estimated Defects Removed)]
 
+High Level Design Review/Estimated Defects Removed per Hour==![(*	60	[(/	High Level Design Review/Estimated Defects Removed	High Level Design Review/Estimated Time)])]
+High Level Design Review/Estimated DRL==![(/	High Level Design Review/Estimated Defects Removed per Hour	Test/Estimated Defects Removed per Hour)]
+High Level Design Review/Defects Removed per Hour==![(*	60	[(/	High Level Design Review/Defects Removed	High Level Design Review/Time)])]
+High Level Design Review/DRL==![(/	High Level Design Review/Defects Removed per Hour	Test/Defects Removed per Hour)]
 
 ==
 == Cancel renaming operation requested by psp2.1
