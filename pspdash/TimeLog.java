@@ -84,7 +84,8 @@ public class TimeLog {
             try {
                 if (line.startsWith(CONTINUATION_FLAG)) {
                     line = line.substring(CONTINUATION_FLAG.length());
-                    v.remove(v.size() - 1);
+                    int s = v.size();
+                    if (s > 0) v.remove(s - 1);
                 }
                 tle = TimeLogEntry.valueOf(line);
                 v.addElement (tle);
