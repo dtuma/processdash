@@ -41,11 +41,11 @@ import java.util.Map;
 public interface LanguageFilter extends TinyCGI {
 
     /** a constant indicating that this class definitely <b>cannot</b> act
-        as a filter for a particular file. */
+     *  as a filter for a particular file. */
     int LANGUAGE_MISMATCH = 0;
 
     /** a constant indicating that this class definitely <b>can</b> act as
-        a filter for a particular file. */
+     *  a filter for a particular file. */
     int LANGUAGE_MATCH = 100;
 
     /** Judge whether this filter is capable of acting as a filter for a
@@ -78,6 +78,8 @@ public interface LanguageFilter extends TinyCGI {
     /** a character used to flag the end of a comment */
     char COMMENT_END   = '\u0002';
 
+    /** a character used to flag logical LOC */
+    char LOGICAL_LOC_SEPARATOR = '\u0005';
 
 
     /** Insert flags in a file to highlight the syntax of the language.
@@ -111,10 +113,14 @@ public interface LanguageFilter extends TinyCGI {
      *     line-by-line comparison.  For example, this method should strip
      *     line numbers.
      *
-     * <li>If you would like to reformat the source code intelligently,
-     *     placing no more than one logical LOC on each physical LOC, this
-     *     method can do that as well.  This, however, is <b>not</b>
-     *     required.</ul>
+     * <li><i>(Optional)</i> LanguageFilters that wish to support
+     *     <b>logical</b> LOC counting should parse the syntax of the
+     *     file and insert <code>LOGICAL_LOC_SEPARATOR</code>
+     *     characters between each logical line of code.  If pspdiff
+     *     finds any <code>LOGICAL_LOC_SEPARATOR</code> characters in
+     *     the StringBuffer, it will generate logical LOC counts
+     *     rather than physical LOC counts.
+     * </ul>
      */
     void highlightSyntax(StringBuffer file);
 
