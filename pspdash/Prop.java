@@ -81,6 +81,7 @@ class Prop
 
     public void addChild (PropertyKey childKey, int where) {
                                   // error handling
+        if (childKey == null) return;
         int newLength = (children == null) ? 1 : children.length + 1;
         if ((where < 0) || (where >= newLength))
             where = newLength - 1;

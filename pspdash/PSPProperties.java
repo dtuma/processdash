@@ -346,6 +346,13 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     public static final String DATAFILE_ATTR = "dataFile";
     public static final String DEFECTLOG_ATTR = "defectLog";
     public static final String SELECTED_ATTR = "selected";
+    public static final String HTML_HREF_ATTR = "href";
+    public static final String CONSTRAINTS_ATTR = "constraints";
+
+    public static final String TEMPLATE_NODE_NAME = "template";
+    public static final String HTML_NODE_NAME = "html";
+    public static final String ID_ATTR = "ID";
+
     public static final String XML_HEADER =
         "<?xml version='1.0'?>";
     public static final String XML_DTD =
@@ -363,51 +370,75 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         new PropertyKey((PropertyKey) null, "INVALID");
     private static final String DEFAULT_PHASE_STATUS   = "ME<>";
     private static final String DEFAULT_PROJECT_STATUS = "MED<>";
+    private static final String DEFAULT_TEMPLATE_STATUS = "<";
 
     private PropertyKey loadXMLNode (Element e, PSPProperties templates,
                                      PropertyKey parentKey,
                                      PropertyKey parentTemplate)
         throws SAXException
     {
+        String nodeType = e.getTagName();
+        if (HTML_NODE_NAME.equals(nodeType)) return null;
+
         String nodeName = e.getAttribute(NAME_ATTR);
         if (nodeName == null || nodeName.length() == 0)
             throw new SAXException("Every node MUST have a name.");
         PropertyKey key = new PropertyKey(parentKey, nodeName);
 
-        // Determine the template node which this node should be modeled after.
         PropertyKey templateKey = null;
-        String id = getChildIDFromTemplate(nodeName, templates, parentTemplate);
-        if (id == null) id = e.getAttribute(TEMPLATE_ATTR);
-        boolean idSet = Prop.hasValue(id);
-        if (idSet) {
-            templateKey = templates.getByID(id);
-            if (templateKey == null) templateKey = INVALID_TEMPLATE;
-        } else if (parentTemplate == INVALID_TEMPLATE)
-            templateKey = INVALID_TEMPLATE;
-        else if (parentTemplate != null)
-            templateKey = new PropertyKey(parentTemplate, nodeName);
-        Prop template = null;
-        if (templateKey != null && templateKey != INVALID_TEMPLATE) {
-            template = (Prop) templates.get(templateKey);
-            if (template == null)
-                templateKey = idSet ? INVALID_TEMPLATE : null;
-        }
-
         Prop val = new Prop();
         val.setDefectLog(e.getAttribute(DEFECTLOG_ATTR));
-        val.setID(e.getAttribute(TEMPLATE_ATTR));
         val.setDataFile(e.getAttribute(DATAFILE_ATTR));
 
-        // Copy script and status information from the template, if there is one.
-        if (template == null) {
-            val.setScriptFile("");
-            if (templateKey != INVALID_TEMPLATE)
-                val.setStatus("");
-            else
-                val.setStatus(idSet ? DEFAULT_PROJECT_STATUS : DEFAULT_PHASE_STATUS);
+        if (templates != null) {
+            // We are reading the user's state file.
+            // Determine the template node which this node should be modeled after.
+            String id = getChildIDFromTemplate(nodeName, templates, parentTemplate);
+            if (id == null) id = e.getAttribute(TEMPLATE_ATTR);
+            boolean idSet = Prop.hasValue(id);
+            if (idSet) {
+                templateKey = templates.getByID(id);
+                if (templateKey == null) templateKey = INVALID_TEMPLATE;
+            } else if (parentTemplate == INVALID_TEMPLATE)
+                templateKey = INVALID_TEMPLATE;
+            else if (parentTemplate != null)
+                templateKey = new PropertyKey(parentTemplate, nodeName);
+            Prop template = null;
+            if (templateKey != null && templateKey != INVALID_TEMPLATE) {
+                template = (Prop) templates.get(templateKey);
+                if (template == null)
+                    templateKey = idSet ? INVALID_TEMPLATE : null;
+            }
+
+            val.setID(e.getAttribute(TEMPLATE_ATTR));
+
+            // Copy script and status information from the template, if there is one.
+            if (template == null) {
+                val.setScriptFile("");
+                if (templateKey != INVALID_TEMPLATE)
+                    val.setStatus("");
+                else
+                    val.setStatus(idSet ? DEFAULT_PROJECT_STATUS : DEFAULT_PHASE_STATUS);
+            } else {
+                val.setScriptFile(template.getScriptFile());
+                val.setStatus(template.getStatus());
+            }
+
         } else {
-            val.setScriptFile(template.getScriptFile());
-            val.setStatus(template.getStatus());
+            // We are loading a process template definition. Store the template ID.
+            val.setID(e.getAttribute(ID_ATTR));
+
+            // Store the defined script href.
+            val.setScriptFile(e.getAttribute(HTML_HREF_ATTR));
+
+            // Store the applicable constraint.
+            String constraints = e.getAttribute(CONSTRAINTS_ATTR);
+            if (Prop.hasValue(constraints))
+                constraints = constraints.replace('{', '<').replace('}', '>');
+            else
+                constraints = (TEMPLATE_NODE_NAME.equals(nodeType) ?
+                               DEFAULT_TEMPLATE_STATUS : DEFAULT_PHASE_STATUS);
+            val.setStatus(constraints);
         }
 
         // Recursively add children.
@@ -452,6 +483,11 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         scanForDataFiles(v, PropertyKey.ROOT);
         if (v.isEmpty()) v = null;
         return v;
+    }
+
+    public void loadXMLTemplate (Element e) throws SAXException {
+        e.setAttribute(NAME_ATTR, "top");
+        loadXMLNode(e, null, null, null);
     }
 
     private void scanForDataFiles(Vector v, PropertyKey key) {

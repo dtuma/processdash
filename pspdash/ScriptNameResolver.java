@@ -63,4 +63,7 @@ public class ScriptNameResolver implements ScriptID.NameResolver {
     return result;
     }
 
+    public static void precacheName(String scriptFile, String name) {
+        displayNameCache.put(scriptFile, name);
+    }
 }

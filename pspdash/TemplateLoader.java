@@ -53,9 +53,18 @@ import java.util.jar.JarInputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+
 public class TemplateLoader {
 
     private static final String TEMPLATE_SUFFIX = ".template";
+    private static final String XML_TEMPLATE_SUFFIX = "-template.xml";
     private static final String DATAFILE_SUFFIX = ".globaldata";
     private static final String TEMPLATE_DIR = "Templates/";
 
@@ -145,7 +154,11 @@ public class TemplateLoader {
                     filename.lastIndexOf('/') != 9)
                     continue;
 
-                if (filename.endsWith(TEMPLATE_SUFFIX)) {
+                if (filename.endsWith(XML_TEMPLATE_SUFFIX)) {
+                    debug("loading template: " + filename);
+                    loadXMLProcessTemplate(templates, data, jarFile, false);
+                    foundTemplates = true;
+                } else if (filename.endsWith(TEMPLATE_SUFFIX)) {
                     debug("loading template: " + filename);
                     loadProcessTemplate(templates, jarFile, false);
                     foundTemplates = true;
@@ -182,7 +195,16 @@ public class TemplateLoader {
         while (i-- > 0) {
             f = process_templates[i];
             filename = f.getName().toLowerCase();
-            if (filename.endsWith(TEMPLATE_SUFFIX)) {
+            if (filename.endsWith(XML_TEMPLATE_SUFFIX)) {
+                try {
+                    debug("loading template: " + f);
+                    loadXMLProcessTemplate
+                        (templates, data, new FileInputStream(f), true);
+                    foundTemplates = true;
+                } catch (IOException ioe) {
+                    debug("unable to load process template: " + f);
+                }
+            } else if (filename.endsWith(TEMPLATE_SUFFIX)) {
                 try {
                     debug("loading template: " + f);
                     loadProcessTemplate
@@ -214,6 +236,39 @@ public class TemplateLoader {
         createScriptMaps(template);
 
         templates.putAll(template);
+    }
+
+    private static void loadXMLProcessTemplate(PSPProperties templates,
+                                               DataRepository data,
+                                               InputStream in, boolean close)
+        throws IOException
+    {
+        Element root = null;
+        try {
+            if (!close)
+                in = new ByteArrayInputStream
+                    (TinyWebServer.slurpContents(in, false));
+
+            // this closes the file without our permission.
+            Document doc = XMLUtils.parse(in);
+            root = doc.getDocumentElement();
+        } catch (SAXException se) {
+            // FIXME: print an error message
+            return;
+        }
+
+        createScriptMaps(root);
+
+        try {
+            PSPProperties template = new PSPProperties(null);
+            template.loadXMLTemplate(root);
+            template.premove(PropertyKey.ROOT);
+            templates.putAll(template);
+        } catch (SAXException se) {
+            // Can this happen?
+        }
+
+        createDefaultData(root, data);
     }
 
     protected static void debug(String msg) {
@@ -404,6 +459,82 @@ public class TemplateLoader {
                 return;
         v.addElement(new ScriptID(scriptFile, null, null));
     }
+
+    private static void createScriptMaps(Element e) {
+        NodeList templates = e.getElementsByTagName(TEMPLATE_NODE_NAME);
+        for (int i = templates.getLength();  i-- > 0; ) try {
+            Element template = (Element) templates.item(i);
+            Map idMap = addScriptMaps
+                (template.getAttribute(ID_ATTR),
+                 template.getElementsByTagName(HTML_NODE_NAME));
+            resolveScriptIDs(template, idMap);
+        } catch (ClassCastException cce) {}
+    }
+    private static Map addScriptMaps(String id, NodeList htmlPages) {
+        if (id == null || id.length() == 0 ||
+            htmlPages == null || htmlPages.getLength() == 0)
+            return null;
+
+        Map result = new HashMap();
+        Vector v = (Vector) scriptMaps.get(id);
+        if (v == null)
+            scriptMaps.put(id, (v = new Vector()));
+
+        Element htmlPage;
+        String htmlID, htmlName, htmlHref;
+
+        for (int i=0;  i<htmlPages.getLength();  i++) try {
+            htmlPage = (Element) htmlPages.item(i);
+            htmlHref = htmlPage.getAttribute(HTML_HREF_ATTR);
+            if (!hasValue(htmlHref)) {
+                // Print out an error message?
+                continue;
+            }
+
+            if (hasValue(htmlID = htmlPage.getAttribute(ID_ATTR)))
+                result.put(htmlID, htmlHref);
+            if (hasValue(htmlName = htmlPage.getAttribute(HTML_NAME_ATTR)))
+                ScriptNameResolver.precacheName(htmlHref, htmlName);
+            maybeAddScriptID(v, htmlHref);
+        } catch (ClassCastException cce) {}
+
+        return result;
+    }
+    private static void resolveScriptIDs(Element node, Map idMap) {
+        if (idMap == null) return;
+        String htmlID = node.getAttribute(HTML_ID_ATTR), htmlHref;
+        if (hasValue(htmlID)) {
+            htmlHref = (String) idMap.get(htmlID);
+            if (hasValue(htmlHref))
+                node.setAttribute(HTML_HREF_ATTR, htmlHref);
+        }
+        if (node.hasChildNodes()) {
+            NodeList children = node.getChildNodes();
+            for (int i=children.getLength();  i-- > 0; ) try {
+                resolveScriptIDs((Element) children.item(i), idMap);
+            } catch (ClassCastException cce) {}
+        }
+    }
+
+    private static boolean hasValue(String v) {
+        return (v != null && v.length() > 0);
+    }
+
+    private static void createDefaultData(Element templates,
+                                          DataRepository data) {
+        // FIXME: define this.
+    }
+
+
+    private static final String HTML_NODE_NAME = PSPProperties.HTML_NODE_NAME;
+    private static final String TEMPLATE_NODE_NAME =
+        PSPProperties.TEMPLATE_NODE_NAME;
+
+    private static final String HTML_ID_ATTR   = "htmlID";
+    private static final String HTML_NAME_ATTR = "title";
+    private static final String HTML_HREF_ATTR = PSPProperties.HTML_HREF_ATTR;
+    private static final String ID_ATTR   = PSPProperties.ID_ATTR;
+
     private static Hashtable scriptMaps = new Hashtable();
 
     public static Vector getScriptIDs(String templateID, String path) {
