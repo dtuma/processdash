@@ -81,6 +81,7 @@ undefine([Size Estimating Template Tag],
 [Reused LOC]         = 0;
 [New Reused LOC]     = 0;
 
+[New & Changed LOC]  = 0;
 
 // Alias this data element; this will cause PSP projects to (correctly)
 // get the "ESTIMATED Time To Date" element they have been expecting.
