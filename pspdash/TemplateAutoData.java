@@ -247,11 +247,11 @@ public class TemplateAutoData extends AutoData {
         "appraisal", "reqinsp", "hldr", "hldrinsp",
         "dldr", "dldinsp", "cr", "codeinsp" });
     static PhaseTypeSet failurePhaseTypes = new PhaseTypeSet(new String[] {
-        "failure", "comp", "ut", "it", "st", "at" });
+        "failure", "comp", "ut", "it", "st", "at", "pl" });
     static PhaseTypeSet overheadPhaseTypes = new PhaseTypeSet(new String[] {
         "mgmt", "strat", "plan", "pm" });
     static PhaseTypeSet developmentPhaseTypes = new PhaseTypeSet(new String[] {
-        "req", "stp", "itp", "td", "hld", "dld", "code", "pl", "doc" });
+        "req", "stp", "itp", "td", "hld", "dld", "code", "doc" });
 
 
     private static final String LEAF_DATA    = getFileContents("leafData.txt");
