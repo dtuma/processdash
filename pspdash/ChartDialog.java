@@ -60,6 +60,8 @@ public class ChartDialog extends JDialog {
 
         names  = (corr == null) ? null : corr.getDataNames();
         points = (corr == null) ? null : corr.getDataPoints();
+        labelX = Translator.translate(labelX);
+        labelY = Translator.translate(labelY);
 
         chart = new ChartCanvas(c, labelX, labelY, showRegression, showAverage);
 
@@ -110,6 +112,8 @@ public class ChartDialog extends JDialog {
         corr = c;
         names  = (corr == null) ? null : corr.getDataNames();
         points = (corr == null) ? null : corr.getDataPoints();
+        labelX = Translator.translate(labelX);
+        labelY = Translator.translate(labelY);
 
         // set the column names
         titles.setElementAt(labelX, 1);
