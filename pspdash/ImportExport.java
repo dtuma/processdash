@@ -47,6 +47,7 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import java.util.*;
 
+import pspdash.data.DataRepository;
 import pspdash.data.SimpleData;
 import pspdash.data.StringData;
 import pspdash.data.DataImporter;
@@ -273,6 +274,17 @@ public class ImportExport extends JDialog implements ActionListener {
         public ExportTask(PSPDashboard p, Vector f, File d) {
             parent = p; filter = f;  dest = d; }
         public void run() { export(parent, filter, dest); }
+    }
+
+    /** If the named schedule were to be exported to a file, what would
+     * the data element be named?
+     */
+    public static String exportedScheduleName(DataRepository data,
+                                              String scheduleName) {
+        SimpleData o = data.getSimpleValue("/Owner");
+        String owner = (o == null ? "?????" : safeName(o.format()));
+        String name = safeName(scheduleName) + " (" + owner + ")";
+        return EVTaskList.MAIN_DATA_PREFIX + name;
     }
 
     public static void export(PSPDashboard parent, Vector filter, File dest) {
