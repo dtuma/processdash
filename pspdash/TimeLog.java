@@ -42,6 +42,7 @@ import java.util.Vector;
 public class TimeLog {
 
     static final long MILLI_PER_MINUTE = 60000; // 60 sec/min * 1000 milli/sec
+    static private String defaultTimeLogFile = null;
 
     Vector v = new Vector();
 
@@ -49,6 +50,17 @@ public class TimeLog {
     public TimeLog () {
         TimeLogEntry.sortByPhase =
             "true".equalsIgnoreCase(Settings.getVal("timeLog.sortByPhase"));
+    }
+
+    public static void setDefaultFilename(String filename) {
+        defaultTimeLogFile = filename;
+    }
+
+    public void readDefault() throws IOException {
+        if (defaultTimeLogFile == null)
+            throw new IOException();
+        else
+            read(defaultTimeLogFile);
     }
 
     public void read (String logFile) throws IOException {

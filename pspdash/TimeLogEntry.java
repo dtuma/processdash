@@ -40,7 +40,7 @@ public class TimeLogEntry {
     private static final DateFormat df =
         DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
 
-    private static final String TAB        = "	";
+    private static final String TAB        = "\t";
     private static final String START      = "Start Time: ";
     private static final String ELAPSED    = "Elapsed Time: ";
     private static final String INTERRUPT  = "Interruption Time: ";
@@ -113,5 +113,10 @@ public class TimeLogEntry {
         int comp = (sortByPhase ? key.key().compareTo (o.key.key()) : 0);
         return (comp == 0 ? createTime.before (o.createTime) : comp < 0);
     }
+
+    public String getPath() { return (key == null) ? "" : key.path(); }
+    public Date getStartTime() { return createTime; }
+    public long getElapsedTime() { return minutesElapsed; }
+    public long getInterruptTime() { return minutesInterrupt; }
 
 }
