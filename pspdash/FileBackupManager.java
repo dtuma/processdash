@@ -133,6 +133,9 @@ public class FileBackupManager {
             ConsoleWindow.getInstalledConsole().setCopyOutputStream(logFile);
             System.out.println("Version 1.5.0.2 - logging started at " +
                                new Date());
+            System.out.println(System.getProperty("java.vendor") +
+                               " JRE " + System.getProperty("java.version") +
+                               "; " + System.getProperty("os.name"));
         } catch (IOException ioe) { printError(ioe); }
     }
 
