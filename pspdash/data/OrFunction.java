@@ -61,11 +61,11 @@ class OrFunction extends DoubleData implements NumberFunction {
         if (name == null) return;
 
         double oldValue = value;
-        value = 1.0;
+        value = 0.0;
 
         for (int i = datalists.size();   i-- != 0; )
-            if (((IfList)datalists.elementAt(i)).value == 0.0) {
-                value = 0.0;
+            if (((IfList)datalists.elementAt(i)).value == 1.0) {
+                value = 1.0;
                 break;
             }
 
@@ -88,4 +88,3 @@ class OrFunction extends DoubleData implements NumberFunction {
 
     public String name() { return name; }
 }
-
