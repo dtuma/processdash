@@ -56,6 +56,7 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
 
     private static final String END_TEXT =
         "</TABLE>" +
+        "<P class=doNotPrint><A HREF=\"excel.iqy\"><I>Export to Excel</I></A>"+
         "<P class=doNotPrint><I>This view of the defect log is read-only. " +
         "To add entries to the defect log, use the defect button on the " +
         "dashboard. To edit or delete defects, use the defect log editor " +

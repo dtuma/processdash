@@ -50,5 +50,7 @@ TD.task   { text-align: left; white-space: nowrap }
 
 <P><!--#include file="r3c.class" -->
 
+<P><A HREF="../excel.iqy"><I>Export to Excel</I></A>
+
 </BODY>
 </HTML>

@@ -47,6 +47,7 @@ public class timelog extends TinyCGIBase {
         "<TD>Interrupt</TD></TR>\n";
 
     private static final String DISCLAIMER =
+        "<P class=doNotPrint><A HREF=\"excel.iqy\"><I>Export to Excel</I></A>"+
         "<P class=doNotPrint><I>This view of the time log is read-only. To " +
         "add entries to the time log, use the play/pause button on the " +
         "dashboard. To edit or delete time log entries, use the time log " +

@@ -118,6 +118,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         printD24("Total", totals);
 
         out.println("</TABLE>");
+        out.println("<P><A HREF=\"../excel.iqy\"><I>Export to Excel</I></A>");
         if (strict)
             out.println("<P><HR>" + FOOTNOTE);
         out.println("</BODY></HTML>");
