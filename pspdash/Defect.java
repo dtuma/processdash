@@ -32,7 +32,7 @@ import java.text.*;
 public class Defect {
     public Date date;
     public String number, defect_type, phase_injected, phase_removed,
-                  fix_time, fix_defect, description;
+                  fix_time, fix_defect, description, dateStr;
 
     Defect() {}
 
@@ -47,12 +47,7 @@ public class Defect {
             fix_time = tok.nextToken();
             fix_defect = tok.nextToken();
             description = tok.nextToken();
-            try {
-                date = DateFormat.getDateInstance().parse(tok.nextToken());
-            } catch (ParseException e) {
-                System.out.println("Parse exception: " + e);
-                throw e;
-            }
+            date = DateFormatter.parseDate(dateStr = tok.nextToken());
         } catch (NoSuchElementException e) {
             System.out.println("NoSuchElementException: " + e);
             throw new ParseException("Poor defect formatting", 0);
@@ -68,6 +63,7 @@ public class Defect {
 
     public String toString() {
         String tab = "\t";
+        if (date != null) dateStr = DateFormatter.formatDate(date);
         return (token(number, false) + tab +
                 token(defect_type, false) + tab +
                 token(phase_injected, false) + tab +
@@ -75,7 +71,7 @@ public class Defect {
                 token(fix_time, false) + tab +
                 token(fix_defect, false) + tab +
                 token(description, true) + tab +
-                DateFormat.getDateInstance().format(date) + tab);
+                token(dateStr, false) + tab);
     }
 
 }
