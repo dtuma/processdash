@@ -285,23 +285,21 @@ public class EVSchedule implements TableModel {
 
         public void saveToXML(StringBuffer result) {
             result.append("<period end='").append(saveDate(endDate))
-                .append("' pt='").append(planTotalTime)
-                .append("' pdt='").append(planDirectTime)
+                .append("' pt='").append(planDirectTime)
                 .append("' at='").append(actualDirectTime)
-                .append("' ait='").append(actualIndirectTime)
                 .append("' cpv='").append(cumPlanValue)
                 .append("' cev='").append(cumEarnedValue);
+            if (planTotalTime != planDirectTime)
+                result.append("' ptt='").append(planTotalTime);
+            if (actualIndirectTime > 0)
+                result.append("' ait='").append(actualIndirectTime);
             if (automatic) result.append("' auto='true");
             result.append("'/>");
         }
         public Period(Element e) {
             endDate = getXMLDate(e, "end");
-            if (XMLUtils.hasValue(e.getAttribute("pdt"))) {
-                planTotalTime = getXMLNum(e, "pt");
-                planDirectTime = getXMLNum(e, "pdt");
-            } else {
-                planTotalTime = planDirectTime = getXMLNum(e, "pt");
-            }
+            planDirectTime = getXMLNum(e, "pt");
+            planTotalTime = getXMLNum(e, "ptt", planDirectTime);
             actualDirectTime = getXMLNum(e, "at");
             actualIndirectTime = getXMLNum(e, "ait");
             cumPlanValue = getXMLNum(e, "cpv");

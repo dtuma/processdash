@@ -92,6 +92,8 @@ public class week extends TinyCGIBase {
         // Calculate the dates one week before and after the effective date.
         Date lastWeek = new Date(effDate.getTime() - EVSchedule.WEEK_MILLIS);
         Date nextWeek = new Date(effDate.getTime() + EVSchedule.WEEK_MILLIS);
+        Date startDate = schedule.getStartDate();
+        if (lastWeek.before(startDate)) lastWeek = startDate;
 
         // Get a slice of the schedule representing the previous week.
         EVSchedule.Period weekSlice =
@@ -119,17 +121,20 @@ public class week extends TinyCGIBase {
                 (Date) tasks.getValueAt(i, evModel.DATE_COMPLETE_COLUMN);
             if (completed != null && completed.before(effDate)) {
                     completedTasksTotalPlanTime += parseTime
-                        (tasks.getValueAt(i, evModel.PLAN_TIME_COLUMN));
+                        (tasks.getValueAt(i, evModel.PLAN_DTIME_COLUMN));
                     completedTasksTotalActualTime += parseTime
-                        (tasks.getValueAt(i, evModel.ACT_TIME_COLUMN));
+                        (tasks.getValueAt(i, evModel.ACT_DTIME_COLUMN));
 
-                    if (completed.after(lastWeek))
+                    if (completed.after(lastWeek) &&
+                        completed.before(nextWeek))
                         completedLastWeek[i] = oneCompletedLastWeek = true;
 
             } else {
                 Date due =
                     (Date) tasks.getValueAt(i, evModel.PLAN_DATE_COLUMN);
-                if (due != null && due.before(nextWeek))
+                if (due != null &&
+                    due.after(startDate) &&
+                    due.before(nextWeek))
                     dueThroughNextWeek[i] = oneDueNextWeek = true;
             }
         }

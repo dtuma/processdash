@@ -609,6 +609,19 @@ public class EVTaskList extends AbstractTreeTableModel
                 rowList = calculator.getEVLeaves();
             if (rowList == null || rowList.isEmpty())
                 rowList = ((EVTask) root).getLeafTasks();
+            rowList = filterRowList(rowList);
+        }
+
+        private List filterRowList(List rowList) {
+            List result = new ArrayList(rowList);
+            Iterator i = result.iterator();
+            while (i.hasNext()) {
+                EVTask task = (EVTask) i.next();
+                if (task.isChronologicallyPruned() &&
+                    task.actualDirectTime == 0)
+                    i.remove();
+            }
+            return result;
         }
 
         public int getRowCount() { return rowList.size(); }

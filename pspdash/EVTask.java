@@ -311,7 +311,7 @@ public class EVTask implements DataListener {
         topDownPlanTime = bottomUpPlanTime = planTime;
         actualTime = EVSchedule.getXMLNum(e, "at");
         actualDirectTime = EVSchedule.getXMLNum(e, "adt", actualTime);
-        actualCurrentTime = EVSchedule.getXMLNum(e, "act", actualTime);
+        actualCurrentTime = EVSchedule.getXMLNum(e, "act", actualDirectTime);
         planDate = EVSchedule.getXMLDate(e, "pd");
         dateCompleted = EVSchedule.getXMLDate(e, "cd");
         if (e.hasAttribute("loe"))
@@ -630,9 +630,7 @@ public class EVTask implements DataListener {
         return (hasTopDownBottomUpError() || planTimeIsMissing());
     }
     private boolean hasTopDownBottomUpError() {
-        // TODO: think about whether top-down-bottom-up errors in
-        // chronologically pruned tasks should be highlighted.
-        return (!isValuePruned() && //!isLevelOfEffortTask() && !isTotallyPruned() &&
+        return (!isValuePruned() &&
             (bottomUpPlanTime > 0) &&
             (Math.abs(planTime - bottomUpPlanTime) > 0.5));
     }
@@ -1074,7 +1072,7 @@ public class EVTask implements DataListener {
             result.append("' ptt='").append(planTime);
         if (actualTime != actualDirectTime)
             result.append("' adt='").append(actualDirectTime);
-        if (actualCurrentTime != actualTime)
+        if (actualCurrentTime != actualDirectTime)
             result.append("' act='").append(actualCurrentTime);
         if (planDate != null)
             result.append("' pd='").append(EVSchedule.saveDate(planDate));
