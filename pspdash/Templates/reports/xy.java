@@ -41,7 +41,7 @@ public class xy extends pspdash.CGIChartBase {
     /** Create a  line chart. */
     public JFreeChart createChart() {
         JFreeChart chart;
-        if ((data.numRows() > 0 && data.numCols() == 0 &&
+        if ((data.numRows() > 0 && data.numCols() > 0 &&
              data.getData(1,1) instanceof DateData) ||
             parameters.get("xDate") != null)
             chart = JFreeChart.createTimeSeriesChart(data.xyDataSource());
