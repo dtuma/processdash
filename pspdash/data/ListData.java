@@ -44,19 +44,25 @@ public class ListData implements SimpleData {
     public ListData(String l) {
         if (l == null) return;
 
-        StringTokenizer tok = null;
+        int delim = -1;
         if (l.length() > 1) {
             char first = l.charAt(0);
             char last = l.charAt(l.length() - 1);
             if (first == last && !Character.isLetterOrDigit(first))
-                tok = new StringTokenizer(l, "" + first);
+                delim = first;
         }
 
-        if (tok == null)
+        if (delim == -1)
             add(l);
-        else
-            while (tok.hasMoreTokens())
-                add(tok.nextToken());
+        else {
+            l = l.substring(1);
+            int pos;
+            while (l.length() > 0) {
+                pos = l.indexOf(delim);
+                add(l.substring(0, pos));
+                l = l.substring(pos+1);
+            }
+        }
     }
 
     // If you call either of the following methods, it is up to you to
