@@ -37,7 +37,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.util.Stack;
 
@@ -1093,7 +1092,7 @@ public class TaskScheduleCollaborationWizard {
     }
 
     private static String urlEncode(String str) {
-        str = URLEncoder.encode(str);
+        str = HTMLUtils.urlEncode(str);
         str = StringUtils.findAndReplace(str, "+", "%20");
         return str;
     }

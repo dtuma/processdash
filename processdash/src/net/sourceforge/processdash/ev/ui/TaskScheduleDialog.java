@@ -46,7 +46,6 @@ import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.Date;
 import java.util.EventObject;
 import java.util.Iterator;
@@ -75,6 +74,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 import pspdash.Browser;
 import pspdash.CachedObject;
@@ -1596,7 +1596,7 @@ public class TaskScheduleDialog
     public static final String CHART_URL = "//reports/ev.class";
     public void showHTML() {
         if (saveOrCancel(true)) {
-            String uri = "/" + URLEncoder.encode(taskListName) + CHART_URL;
+            String uri = "/" + HTMLUtils.urlEncode(taskListName) + CHART_URL;
             Browser.launch(uri);
         }
     }

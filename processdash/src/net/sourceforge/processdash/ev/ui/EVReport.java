@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.ev.ui;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Iterator;
@@ -38,6 +37,7 @@ import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.jfree.chart.JFreeChart;
@@ -215,7 +215,7 @@ public class EVReport extends CGIChartBase {
      */
     public void writeHTML() {
         String taskListHTML = TinyWebServer.encodeHtmlEntities(taskListName);
-        String taskListURL = URLEncoder.encode(taskListName);
+        String taskListURL = HTMLUtils.urlEncode(taskListName);
 
         out.print(StringUtils.findAndReplace
                   (HEADER_HTML, TASK_LIST_VAR, taskListHTML));
@@ -246,7 +246,7 @@ public class EVReport extends CGIChartBase {
 
         out.print("<h2>Task Template</h2>\n");
         writeHTMLTable("TASK", evModel.getSimpleTableModel(),
-                       evModel.toolTips);
+                       EVTaskList.toolTips);
 
         out.print("<h2>Schedule Template</h2>\n");
         writeHTMLTable("SCHEDULE", s, s.getColumnTooltips());
