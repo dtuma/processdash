@@ -10,3 +10,4 @@ qf=../compProj.rpt
 
 h1=Defects/KLOC
 units=Defects/KLOC
+headerComment=(Defects/KLOC)
