@@ -89,21 +89,13 @@ undefine([Size Estimating Template Tag],
 
 
 // Redefine phase data as literal values instead of equations, so they
-// will be summed plainly. Also undefine many the phase estimates, since
-// they are auto-calculated from "To Date" data anyway - computing a rollup
-// is pointless.
+// will be summed plainly.
 
 #define fixPhase(Phase)                                 \
-  undefine([Phase/node], [Phase/leaf], 		        \
-           [Phase/Estimated Time],                      \
-	   [Phase/Estimated Defects Injected],          \
-	   [Phase/Estimated Defects Removed],           \
-	   [Phase/Estimated Defects Injected per Hour],	\
-	   [Phase/Estimated Defect Injection Density],  \
-	   [Phase/Estimated Defects Removed per Hour],  \
-	   [Phase/Estimated Defect Density],		\
-	   [Phase/Estimated DRL],			\
-	   [Phase/Estimated Appraisal Rate]);           \
+  undefine([Phase/node], [Phase/leaf]);		        \
+  [Phase/Estimated Time]             = 0;               \
+  [Phase/Estimated Defects Injected] = 0;		\
+  [Phase/Estimated Defects Removed]  = 0;               \
   [Phase/Time]             = 0;                         \
   [Phase/Defects Injected] = 0;                         \
   [Phase/Defects Removed]  = 0;
@@ -120,17 +112,6 @@ fixPhase(Test);
 fixPhase(Reassessment);
 fixPhase(Postmortem);
 
-
-// Remove the definitions for the following estimated data elements.
-// Since they are auto-calculated from "To Date" data, summing them up
-// is pointless.
-
-undefine([Before Development/Estimated Defects Injected],
-	 [After Development/Estimated Defects Removed],
-	 [Estimated Yield], [Estimated % Appraisal COQ],
-	 [Estimated % COQ], [Estimated % Failure COQ],
-	 [Estimated AFR], [Estimated % COQ], [Estimated Productivity],
-	 [Estimated Defect Density]);
 
 // Compute percentages to use as normalizing factors when spreading
 // time and defects across various sets of PSP phases.
