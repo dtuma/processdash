@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -34,12 +34,21 @@ import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.swing.JCheckBox;
+import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.event.HyperlinkEvent;
+
+import org.w3c.dom.*;
+import org.xml.sax.*;
 
 
 /** Automatically determines whether newer versions of the dashboard (or any
@@ -189,39 +198,76 @@ public class AutoUpdateManager {
      */
     protected void displayUpdateMessage(Component parent,
                                         int numUpdatesFound) {
-
-        Object [] message = new Object[numUpdatesFound+3];
-        message[0] = ((numUpdatesFound == 1
-                       ? "A new version of the following package is"
-                       : "New versions of the following packages are") +
-                      " now available:");
-        int pos = 1;
+        HashSet urlsSeen = new HashSet();
         DashPackage pkg;
-        for (int i = packages.size();  i-- > 0; ) {
+        StringBuffer html = new StringBuffer();
+        html.append("<html><head><style>"+
+                    "UL { margin-top: 0pt; margin-bottom: 0pt }"+
+                    "</style></head><body>");
+
+        for (int i = 0;   i < packages.size();   i++) {
             pkg = (DashPackage) packages.get(i);
-            if (pkg.updateAvailable)
-                message[pos++] = BULLET + " " + pkg.name;
+            if (!pkg.updateAvailable) continue;
+            String userURL = pkg.userURL;
+            if (userURL == null || urlsSeen.contains(userURL)) continue;
+            urlsSeen.add(userURL);
+
+            ArrayList updates = new ArrayList();
+            updates.add(pkg.name);
+            for (int j = i + 1;   j < packages.size();   j++) {
+                pkg = (DashPackage) packages.get(j);
+                if (pkg.updateAvailable && userURL.equals(pkg.userURL))
+                    updates.add(pkg.name);
+            }
+            Collections.sort(updates, String.CASE_INSENSITIVE_ORDER);
+
+            html.append("<p>");
+            if (updates.size() == 1)
+                html.append("A new version of the following package is");
+            else
+                html.append("New versions of the following packages are");
+            html.append(" now available from<br><a href=\"")
+                .append(userURL).append("\">")
+                .append(HTMLUtils.escapeEntities(userURL))
+                .append("</a>:<ul>");
+            Iterator u = updates.iterator();
+            while (u.hasNext())
+                html.append("<li>")
+                    .append(HTMLUtils.escapeEntities((String) u.next()));
+            html.append("</ul>");
         }
-        message[pos++] =
-            "Please visit http://processdash.sourceforge.net to download!";
+
+        JEditorPane message = new JEditorPane();
+        message.setContentType("text/html");
+        message.setEditable(false);
+        message.setBackground(null);
+        message.setText(html.toString());
+        message.addHyperlinkListener(new HyperlinkListener() {
+                public void hyperlinkUpdate(HyperlinkEvent e) {
+                    if (e.getEventType() ==
+                        HyperlinkEvent.EventType.ACTIVATED)
+                        Browser.launch(e.getURL().toString());
+                } } );
+
+
         JCheckBox disable = new JCheckBox
             ("Don't perform a monthly check for new releases.");
-        message[pos] = disable;
+        Object[] messageDisplay = new Object[2];
+        messageDisplay[0] = message;
+        messageDisplay[1] = disable;
 
         int choice = JOptionPane.showOptionDialog
-            (parent, message, "Software Updates are Available",
+            (parent, messageDisplay, "Software Updates are Available",
              JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
              null, UPDATE_OPTIONS, UPDATE_OPTIONS[0]);
         if (choice == 0)
-            Browser.launch(DOWNLOAD_URL);
-        else if (choice == 1)
             InternalSettings.set(AUTO_UPDATE_SETTING + REMIND, "true");
 
         if (disable.isSelected())
             InternalSettings.set(AUTO_UPDATE_SETTING + DISABLED, "true");
     }
     private static final String [] UPDATE_OPTIONS = {
-        "Visit website", "Remind me again", "Close this window" };
+        "Remind me again", "Close this window" };
     private static final String DOWNLOAD_URL =
         "http://processdash.sourceforge.net/autoupdate.html";
 
@@ -285,7 +331,10 @@ public class AutoUpdateManager {
         public boolean updateAvailable;
 
         /** the update document retrieved from the server */
-        public String updateDocument;
+        public Document updateDocument;
+
+        /** A URL the user can visit to download the updates */
+        public String userURL;
 
         /** Create a package object based on information found in a
          *  manifest file.
@@ -333,33 +382,62 @@ public class AutoUpdateManager {
 
                 // a content-length of -1 means that the connection failed.
                 connectFailed = (cl < 0);
+
+                // a content-length of -1 or 0 automatically implies
+                // that no update is available.
+                updateAvailable = (cl > 0);
+                if (updateAvailable) {
+                    try {
+                        // Download the update package, which is an XML
+                        // document containing upgrade info.
+                        updateDocument = XMLUtils.parse(conn.getInputStream());
+                        connectFailed = false;
+                    } catch (Exception e) {
+                        connectFailed = true;
+                        updateAvailable = false;
+                    }
+                }
+
+                if (updateAvailable) {
+                    updateAvailable = false;
+
+                    NodeList updatePackages = updateDocument
+                        .getDocumentElement()
+                        .getElementsByTagName(XML_PKG_TAG);
+                    int numPackages = updatePackages.getLength();
+                    Element pkg;
+                    for (int i=0;  i<numPackages;  i++) {
+                        if (!(updatePackages.item(i) instanceof Element))
+                            continue;
+
+                        pkg = (Element) updatePackages.item(i);
+                        String xmlPackageID =
+                            pkg.getAttribute(XML_PKG_ID_ATTR);
+                        if (!id.equals(xmlPackageID))
+                            continue;
+
+                        userURL = pkg.getAttribute(XML_PKG_USER_URL_ATTR);
+                        String xmlVers =
+                            pkg.getAttribute(XML_PKG_VERSION_ATTR);
+                        debug("Retrieved XML for package " + id +
+                              "\n\tcurrent-version = " + xmlVers +
+                              "\n\tuser-url = " + userURL);
+
+                        if (compareVersions(version, xmlVers) < 0)
+                            updateAvailable = true;
+                        break;
+                    }
+                }
+
                 if (!connectFailed)
                     InternalSettings.set
                         (AUTO_UPDATE_SETTING + LAST_CHECK + "." + id,
                          Long.toString(lastUpdateCheckTime = now),
                          COMMENT_START + "\"" + name + "\"");
 
-                // a content-length of -1 or 0 automatically implies
-                // that no update is available.
-                updateAvailable = (cl > 0);
-                if (updateAvailable) {
-                    // Download the update package, which is an XML
-                    // document containing upgrade info.
-                    updateDocument = new String
-                        (TinyWebServer.slurpContents(conn.getInputStream(),
-                                                     true));
-                    // scan the update package (dumbly for now) to see if
-                    // our version is still the current version.
-                    String versionString = "current-version=\"" +version+ "\"";
-                    if (updateDocument.toUpperCase().indexOf
-                        (versionString.toUpperCase()) != -1)
-                        updateAvailable = false;
-                }
-
                 debug("getUpdateInfo: for " + name +
                       "\n\tconnectFailed = " + connectFailed +
-                      "\n\tupdateAvailable = " + updateAvailable +
-                      "\n\tupdateDocument = " + updateDocument);
+                      "\n\tupdateAvailable = " + updateAvailable);
             } catch (IOException ioe) {}
         }
 
@@ -368,9 +446,42 @@ public class AutoUpdateManager {
             "check for an updated version of ";
     }
 
+    public static int compareVersions(String version1, String version2) {
+        if (version1.equals(version2)) return 0;
+
+        StringTokenizer v1 = new StringTokenizer(version1, ".");
+        StringTokenizer v2 = new StringTokenizer(version2, ".");
+
+        while (true) {
+            if (!v1.hasMoreTokens()) return -1;
+            if (!v2.hasMoreTokens()) return 1;
+
+            double result = vNum(v1.nextToken()) - vNum(v2.nextToken());
+            if (result > 0) return 1;
+            if (result < 0) return -1;
+        }
+    }
+    private static double vNum(String num) {
+        double result = 0;
+        if (num.endsWith("b")) {
+            num = num.substring(0, num.length()-1);
+            result = -0.1;
+        }
+        try {
+            result += Integer.parseInt(num);
+        } catch (NumberFormatException nfe) {}
+        return result;
+    }
+
     private void debug(String msg) {
         // System.out.println("AutoUpdateManager: " + msg);
     }
+
+    static final String XML_PKG_TAG = "package";
+    static final String XML_PKG_ID_ATTR = "pkg-id";
+    static final String XML_PKG_VERSION_ATTR = "current-version";
+    static final String XML_PKG_USER_URL_ATTR = "user-url";
+
 
     public static final String ID_ATTRIBUTE      = "Dash-Pkg-ID";
     public static final String VERSION_ATTRIBUTE = "Dash-Pkg-Version";
