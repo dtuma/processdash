@@ -25,8 +25,9 @@
 
 package pspdash.data;
 
-import pspdash.StringUtils;
+import pspdash.Perl5Util;
 import pspdash.PerlPool;
+import pspdash.StringUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -35,8 +36,8 @@ import java.util.Iterator;
 import java.util.Stack;
 import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
-import com.oroinc.text.perl.Perl5Util;
-import com.oroinc.text.MalformedCachePatternException;
+
+
 
 /** Perform cpp-like macro expansion on a stream of text.
  *
@@ -58,6 +59,7 @@ public class CppFilter {
     BufferedReader in;
     Perl5Util perl;
     HashMap substitutions;
+    HashMap newSubstitutions;
     Stack ifStack;
     boolean ifSuppressionOn = false, disposeDisabled = false;
     int borrowedNewlineCount = 0;
@@ -66,6 +68,7 @@ public class CppFilter {
         this.in = in;
         this.perl = PerlPool.get();
         this.substitutions = new HashMap();
+        this.newSubstitutions = new HashMap();
         this.ifStack = null;
     }
 
@@ -252,6 +255,7 @@ public class CppFilter {
         macro = StringUtils.findAndReplace(macro, "\t", "");
 
         String definition = "1";
+        String newDef = definition;
         if (tok.hasMoreTokens()) {
             // Get the remainder of the line as the macro definition
             buffer.setLength(0);
@@ -264,15 +268,19 @@ public class CppFilter {
             if (tok.hasMoreTokens()) buffer.append(tok.nextToken("\n"));
 
             definition = buffer.toString();
+            newDef = Perl5Util.regexpQuote(definition);
             definition = definition.replace(DOLLAR_SIGN, DOLLAR_REPLACEMENT);
         }
 
         StringBuffer regexp = new StringBuffer();
+        StringBuffer newRegexp = new StringBuffer();
 
         int openParenPos = macro.indexOf('(');
         if (openParenPos == -1) {
             regexp.append("s\n\\b").append(macro).append("\\b\n")
                 .append(definition).append("\ng");
+            newRegexp.append("s\n\\b").append(macro).append("\\b\n")
+                .append(newDef).append("\ng");
 
         } else {
             tok = new StringTokenizer(macro, "(,)");
@@ -280,20 +288,29 @@ public class CppFilter {
 
             macro = tok.nextToken();
             regexp.append("s\n\\b").append(macro);
+            newRegexp.append("s\n\\b").append(macro);
             separator = "\\(";
             int argPos = 0;
             while (tok.hasMoreTokens()) {
                 argName = tok.nextToken();
                 argPos++;
                 regexp.append(separator).append("([^(,)]*)");
+                newRegexp.append(separator).append("([^(,)]*)");
                 separator = ",";
                 definition = perl.substitute
                     ("s\n\\b" + argName + "\\b\n$" + argPos + "\ng",
+                     "s\n\\b" + argName + "\\b\n\\$" + argPos + "\ng",
                      definition);
+                newDef = perl.substitute
+                    ("s\n\\b" + argName + "\\b\n$" + argPos + "\ng",
+                     "s\n\\b" + argName + "\\b\n\\$" + argPos + "\ng",
+                     newDef);
             }
             regexp.append("\\)\n").append(definition).append("\ng");
+            newRegexp.append("\\)\n").append(newDef).append("\ng");
         }
         substitutions.put(macro, regexp.toString());
+        newSubstitutions.put(macro, newRegexp.toString());
         macros = null;
     }
 
@@ -301,7 +318,7 @@ public class CppFilter {
 
     public String expandMacros(String line) {
         if (macros == null)
-            macros = new ArrayList(substitutions.values());
+            macros = new ArrayList(substitutions.keySet());
         boolean keepGoing = true, performedExpansion = false;
         Iterator i;
         String cmp;
@@ -309,14 +326,18 @@ public class CppFilter {
             keepGoing = false;
             i = macros.iterator();
             while (i.hasNext()) try {
-                line = perl.substitute((String) i.next(), cmp = line);
+                String macroName = (String) i.next();
+                String oldExpr = (String) substitutions.get(macroName);
+                String newExpr = (String) newSubstitutions.get(macroName);
+
+                line = perl.substitute(oldExpr, newExpr, cmp = line);
                 if (!line.equals(cmp)) {
                     keepGoing = true;
                     performedExpansion = true;
                     i.remove();
                 }
-            } catch (MalformedCachePatternException mppe) {
-                System.err.println(mppe);
+            } catch (Perl5Util.RegexpException re) {
+                System.err.println(re);
             }
         }
         if (performedExpansion)

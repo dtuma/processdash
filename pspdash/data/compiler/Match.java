@@ -25,13 +25,12 @@
 
 package pspdash.data.compiler;
 
+import pspdash.Perl5Util;
 import pspdash.PerlPool;
 import pspdash.data.ImmutableDoubleData;
 
-import com.oroinc.text.perl.Perl5Util;
-import com.oroinc.text.MalformedCachePatternException;
-
 import java.util.List;
+
 
 public class Match extends AbstractFunction {
 

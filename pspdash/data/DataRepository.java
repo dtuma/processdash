@@ -65,8 +65,8 @@ import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Stack;
-import com.oroinc.text.perl.Perl5Util;
-import com.oroinc.text.MalformedCachePatternException;
+import pspdash.Perl5Util;
+
 
 import pspdash.RobustFileWriter;
 
@@ -918,7 +918,8 @@ public class DataRepository implements Repository {
                             return;           // don't freeze freeze flags!
                         if (!perl.match(freezeRegexp, e.getNameCA()))
                             return;           // only freeze data which matches the regexp.
-                    } catch (MalformedCachePatternException m) {
+
+                    } catch (Perl5Util.RegexpException m) {
                         //The user has given a bogus pattern!
                         System.out.println("The regular expression for " + freezeFlagName +
                                            " is malformed.");
@@ -2161,7 +2162,7 @@ public class DataRepository implements Repository {
                         valueRename = perl.substitute(re, valueName);
                         if (!valueName.equals(valueRename))
                             renamingOperations.put(valueRename, valueName);
-                    } catch (MalformedCachePatternException mpe) {
+                    } catch (Perl5Util.RegexpException mpe) {
                         throw new InvalidDatafileFormat
                             ("Malformed renaming operation '" + name +
                              "=" + PATTERN_RENAME_PREFIX + value + "'");

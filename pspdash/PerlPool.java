@@ -25,7 +25,7 @@
 
 package pspdash;
 
-import com.oroinc.text.perl.Perl5Util;
+//import com.oroinc.text.perl.Perl5Util;
 
 public class PerlPool {
 

@@ -98,12 +98,18 @@ Authors:
 
   <path id="build.classpath">
     <pathelement location="${build}"/>
-    <pathelement location="${lib}/PerlTools.jar"/>
+    <!-- pathelement location="${lib}/PerlTools.jar"/ -->
+    <pathelement location="${lib}/jregex.jar"/>
     <pathelement location="${lib}/jfreechart.jar"/>
     <pathelement location="${lib}/jaxp.jar"/>
     <pathelement location="${lib}/crimson.jar"/>
   </path>
 
+  <path id="build.perl.classpath">
+    <path refid="build.classpath"/>
+    <pathelement location="${lib}/PerlTools.jar"/>
+  </path>
+    
 
 
   <target name="init">
@@ -131,6 +137,11 @@ Authors:
 
   <target name="compile" depends="init,parser"
         description="Compile the main dashboard classes" >
+
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}"
+           classpathref="build.perl.classpath"
+	   includes="pspdash/Perl5Util.java"/>
+
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
            classpathref="build.classpath">
@@ -355,7 +366,9 @@ Authors:
 	<exclude name="meta-inf/"/>
 	<exclude name="META-INF/"/>
       </zipfileset>
+
       <zipfileset src="${lib}/PerlTools.jar" excludes="META-INF/ meta-inf/"/>
+      <zipfileset src="${lib}/jregex.jar"    excludes="META-INF/ meta-inf/"/>
       <zipfileset src="${lib}/jaxp.jar"      excludes="META-INF/ meta-inf/"/>
       <zipfileset src="${lib}/crimson.jar"   excludes="META-INF/ meta-inf/"/>
     </jar>

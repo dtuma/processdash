@@ -31,8 +31,8 @@ import javax.swing.*;
 import java.util.*;
 import java.io.*;
 import pspdash.data.DataRepository;
-import com.oroinc.text.perl.Perl5Util;
-import com.oroinc.text.MalformedCachePatternException;
+//import com.oroinc.text.perl.Perl5Util;
+//import com.oroinc.text.MalformedCachePatternException;
 
 public class DataComboBox extends JComboBox implements ILessThan {
 
@@ -76,7 +76,7 @@ public class DataComboBox extends JComboBox implements ILessThan {
             try {
                 if (!perl.match(hiddenDataRE, dataName))
                     result.add(dataName);
-            } catch (MalformedCachePatternException mp5pe) {
+            } catch (Perl5Util.RegexpException p5ure) {
                 System.err.println("The user setting, 'hiddenData', is not a valid " +
                                    "regular expression.");
                 break;

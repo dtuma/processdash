@@ -25,11 +25,12 @@
 
 package pspdash.data;
 
-import pspdash.PerlPool;
 import java.lang.reflect.Constructor;
 import java.util.Hashtable;
-import com.oroinc.text.perl.Perl5Util;
-import com.oroinc.text.MalformedCachePatternException;
+
+import pspdash.Perl5Util;
+import pspdash.PerlPool;
+
 
                                 // We do not explicitly use these classes, but
                                 // if we do not import them, they never get
@@ -263,7 +264,7 @@ class ValueFactory {
                     if (!perl.match(containsSimpleFunction, expression))
                         throw new MalformedValueException
                             ("mismatched parentheses");
-                } catch (MalformedCachePatternException e) {
+                } catch (Perl5Util.RegexpException e) {
                     throw new MalformedValueException(e.toString());
                 }
 
