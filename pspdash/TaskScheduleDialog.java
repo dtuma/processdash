@@ -35,6 +35,7 @@ import javax.swing.table.*;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.text.DateFormat;
 import java.util.Date;
@@ -60,7 +61,7 @@ public class TaskScheduleDialog
 
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
-        deletePeriodButton, closeButton, saveButton;
+        deletePeriodButton, chartButton, closeButton, saveButton;
 
 
     public TaskScheduleDialog(PSPDashboard dash, String taskListName) {
@@ -228,6 +229,12 @@ public class TaskScheduleDialog
     protected Component buildMainButtons() {
         JPanel result = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
         result.setBorder(BorderFactory.createRaisedBevelBorder());
+
+        chartButton = new JButton("Chart");
+        chartButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    showChart(); }});
+        result.add(chartButton);
 
         closeButton = new JButton("Close");
         closeButton.addActionListener(new ActionListener() {
@@ -670,6 +677,14 @@ public class TaskScheduleDialog
             //((DefaultCellEditor)e).setClickCountToStart(1);
             ((DefaultCellEditor)e).addCellEditorListener(this);
             }*/
+
+    public static final String CHART_URL = "//reports/ev.class";
+    public void showChart() {
+        if (saveOrCancel(true)) {
+            String uri = "/" + URLEncoder.encode(taskListName) + CHART_URL;
+            Browser.launch(uri);
+        }
+    }
 
     private static final Object CONFIRM_CLOSE_MSG =
         "Do you want to save the changes you made to this " +
