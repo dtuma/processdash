@@ -197,6 +197,18 @@ HLD Review/DRL==![(/	HLD Review/Defects Removed per Hour	Test/Defects Removed pe
 (Base Additions|New Objects|Reused Objects)/([^0-9]+) (\d+)=null
 
 ==
+== Since the following phases do not exist directly for PSP3, the tags
+== need to be cancelled.
+==
+
+Design/PSP Phase==null
+Design Review/PSP Phase==null
+Code/PSP Phase==null
+Code Review/PSP Phase==null
+Compile/PSP Phase==null
+Test/PSP Phase==null
+
+==
 == tags identifying new/different nodes and leaves in this process
 ==
 
