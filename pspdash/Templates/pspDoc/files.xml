@@ -52,6 +52,10 @@
         path="[Logic Specification Filename]"
         defaultPath="Logic Specification.rtf" templatePath="C72.rtf"/>
 
+  <file name="Issue Tracking Log"
+        path="[Issue Tracking Log Filename]"
+	defaultPath="Issue Tracking Log.rtf" templatePath="C85.rtf"/>
+
   <!-- add more lines here for additional files -->
 
   <!-- support requirements statement? -->
