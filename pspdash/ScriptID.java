@@ -66,6 +66,15 @@ public class ScriptID {
         return scriptfile;
     }
 
+    public boolean scriptEquals(ScriptID other) {
+        return scriptEquals(other.getScript());
+    }
+
+    public boolean scriptEquals(String other) {
+        if (scriptfile == null || other == null) return false;
+        return stripHash(scriptfile).equals(stripHash(other));
+    }
+
     public String getDataPath () {
         return datapath;
     }
@@ -73,9 +82,7 @@ public class ScriptID {
     public String getDisplayName () {
         if (displayname == null && nameResolver != null)
             displayname = nameResolver.lookup(scriptfile);
-        if (displayname == null)
-            displayname = scriptfile;
-        return displayname;
+        return (displayname == null ? scriptfile : displayname);
     }
 
     public String toString() {
@@ -98,6 +105,11 @@ public class ScriptID {
         result = StringUtils.findAndReplace(result, "%2f", "/");
         result = StringUtils.findAndReplace(result, "%2F", "/");
         return result;
+    }
+
+    protected String stripHash(String script) {
+        int hashPos = script.indexOf('#');
+        return (hashPos == -1 ? script : script.substring(0, hashPos));
     }
 
     public interface NameResolver {
