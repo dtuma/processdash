@@ -109,6 +109,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     }
 
     public void quit () {
+        if (time_frame != null) {
+            time_frame.confirmClose(false);
+            time_frame = null;
+        }
         if (prop_frame != null) {
             prop_frame.confirmClose(false);
             prop_frame = null;
