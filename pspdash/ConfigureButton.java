@@ -179,13 +179,6 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             time_frame.saveRevertOrCancel(false);
     }
 
-    public void reloadHierarchy(PSPProperties newProps) {
-        if (time_frame != null)
-            time_frame.reloadAll(newProps);
-        if (defect_frame != null)
-            defect_frame.reloadAll(newProps);
-    }
-
     protected void startPropertyFrame () {
         if (parent.getProperties() != null) {
             if (prop_frame != null)
