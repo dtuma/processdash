@@ -71,7 +71,7 @@ public class FrozenData implements SaveableData {
             util.formerEditable = true;
             util.setFormer("null", defaultVal);
         } else {
-            value = thawedVal.getEditable(false).getSimpleValue();
+            value = thawedVal.getSimpleValue();
             util.formerEditable = thawedVal.isEditable();
             util.setFormer(thawedVal.saveString(), defaultVal);
         }
@@ -79,7 +79,7 @@ public class FrozenData implements SaveableData {
             util.currentSaveString = "null";
         else {
             util.currentSaveString = value.saveString();
-            value.setEditable(false);
+            value = (SimpleData) value.getEditable(false);
         }
     }
 
