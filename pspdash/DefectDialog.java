@@ -66,7 +66,7 @@ public class DefectDialog extends JDialog implements ActionListener,
 
     DefectDialog(PSPDashboard dash, String defectFilename,
                  PropertyKey defectPath) {
-        super(dash);
+        super(dash, "Defect Dialog");
 
         parent = dash;
         this.defectFilename = defectFilename;
@@ -375,6 +375,7 @@ public class DefectDialog extends JDialog implements ActionListener,
             activeRefreshTimer.removeActionListener(this);
             activeRefreshTimer = null;
         }
+        interruptedDialogs.remove(this); // it might not be there, that's OK
         super.dispose();
     }
 
