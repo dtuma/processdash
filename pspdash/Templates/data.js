@@ -326,6 +326,7 @@ function IEsetup() {
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
     if (unlocked)
       document.writeln('<param name=unlock value=true>');
+    document.writeln('<param name=docURL value="'+window.location.href+'">');
     document.writeln('</applet>');
 
     if (!SILENT) {
@@ -383,8 +384,7 @@ function NScheckEditable() {
     java.lang.System.out.println(this.isEditable);
   }
   
-  if ((typeof(this.isEditable) == "object") &&
-      ((this.isEditable == false) || (this.isEditable.toString() == 0)))
+  if (this.className == "readOnlyElem")
     return false;
   else
     return true;
@@ -471,6 +471,7 @@ function NSSetup() {
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
     if (unlocked)
       document.writeln('<param name=unlock value=true>');
+    document.writeln('<param name=docURL value="'+window.location.href+'">');
     document.writeln('</applet>');
 
     if (!SILENT) {
@@ -499,6 +500,14 @@ function NSversion() {
 }
 
 
+function isWindows() {
+  var agt=navigator.userAgent.toLowerCase();
+  return ( (agt.indexOf("win")!=-1) || (agt.indexOf("16bit")!=-1) )
+}
+
+function notUsingPlugIn() {
+  return (window.location.search.indexOf("UsingJavaPlugIn") == -1);
+}
 
 
 /***********************************************************************
@@ -508,17 +517,21 @@ function NSversion() {
 
 if (debug) document.writeln("Starting setup process.");
 
-
-if (MSIEversion() >= 4) // && is windows
-  IEsetup();
+if (MSIEversion() >= 4) {
+  if (isWindows() && notUsingPlugIn())
+    IEsetup();
+  else
+    NSSetup();
+}
+/*
 else if (NSversion() >= 5) // Netscape 6 uses "5" as its major version number
   top.location.pathname =
     "/help/Topics/Troubleshooting/DataApplet/NS6.htm";
+*/
 else if (NSversion() >= 4)
   NSSetup();
 else
   top.location.pathname =
     "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";
-
 
 if (debug) document.writeln("<p>done with data.js.");
