@@ -16,6 +16,7 @@
  <LI><a href="FAQ.html#WhereIsConfig">Where is the configuration file located?</A></LI>
  <LI><a href="FAQ.html#NoSubmit">Why is there no "submit" button on the HTML forms?</A></LI>
  <LI><a href="FAQ.html#TimerUpdate">I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</A></LI>
+ <LI><a href="FAQ.html#FrozenData">I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</A></LI>
  <LI><a href="FAQ.html#WhereData">Where is my PSP data stored?</A></LI>
  <LI><a href="FAQ.html#MoveData">How can I backup my psp data and/or move it to another computer?</A></LI>
  <LI><a href="FAQ.html#FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
@@ -64,9 +65,11 @@ dashboard, and passes data back and forth across this connection.</P>
 <P>If you are viewing a form, and you close the main dashboard window, this
 open connection is closed as well.  When this occurs, the form immediately
 displays "NO CONNECTION" to let you know that your changes are no longer making
-it back to the dashboard's data repository. To fix the problem, you must<OL>
-<LI>restart the dashboard, then
-<LI>click the refresh button on your browser.</OL></P>
+it back to the dashboard's data repository. To fix the problem, you must
+<OL>
+ <LI>restart the dashboard, then</li>
+ <LI>click the refresh button on your browser.</li>
+</OL></P>
 
 <P><HR><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B></P>
 <P>Any time the dashboard runs into an error (like divide-by-zero) when
@@ -135,7 +138,16 @@ minute there; this is by design.  For a more detailed explanation, see the
 help topic for the <a href="../Execution/PlayPause.html#timelogdelay">play /
 pause button</a>.
 
-<P><HR><a name="WhereData"></a><B>Where is my PSP data stored?</B></A></P>
+<P><HR><a name="FrozenData"></a><B>I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</b></P>
+<P>The dashboard will "freeze" your planning data once you have completed the 
+planning phase by clicking the completion checkbox.  Also it will freeze all 
+the data when the project is marked as complete.  You can make these numbers 
+editable by marking either the project or the planning phase incomplete 
+again.  For more info on freezing data see the <a 
+href="../Execution/CompletionButton.html">completion checkbox</a> help 
+topic.</p>
+
+<P><HR><a name="WhereData"></a><B>Where is my PSP data stored?</B></P>
 <P>The dashboard stores all of your data in a single directory, in plain text
 files.  This directory is often referred to in this documentation as the "data
 directory".  With the current default configuration, data is always stored in
