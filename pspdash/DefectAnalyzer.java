@@ -26,6 +26,11 @@
 
 package pspdash;
 
+import java.util.Map;
+
+import pspdash.data.DataRepository;
+import pspdash.data.ResultSet;
+
 public class DefectAnalyzer {
 
     public interface Task {
@@ -36,6 +41,17 @@ public class DefectAnalyzer {
          *          considered read-only.
          */
         void analyze(String path, Defect d);
+    }
+
+    public static void run(PSPProperties props,
+                           DataRepository data,
+                           String prefix,
+                           Map queryParameters,
+                           Task t) {
+        String [] prefixes = ResultSet.getPrefixList
+            (data, queryParameters, prefix);
+        for (int i = prefixes.length;   i-- > 0; )
+            run(props, prefixes[i], t);
     }
 
     /** Perform some analysis task on all the defects under a given node
