@@ -43,9 +43,8 @@ public class TranslationFilter implements Comparator {
     public int compare(Object key, Object value) {
         if (keyNeedsNoTranslation((String) key))
             return NEEDS_NO_TRANSLATION;
-        else if (keyNeedsTranslation((String) key))
-            return NEEDS_TRANSLATION;
-        else if (valueNeedsNoTranslation((String) value))
+        else if (valueNeedsNoTranslation
+                 ((String) value, canBeTranslated((String) key)))
             return NEEDS_NO_TRANSLATION;
         else
             return NEEDS_TRANSLATION;
@@ -57,23 +56,25 @@ public class TranslationFilter implements Comparator {
         return false;
     }
 
-    private boolean keyNeedsTranslation(String key) {
-        if (key.startsWith("(Resources)"))
-            return true;
-        if (key.startsWith("org"))
-            return true;
-        return false;
+    private boolean canBeTranslated(String key) {
+        if (key.startsWith("(Resources)") ||
+            key.startsWith("org") ||
+            key.startsWith("com"))
+            return false;
+
+        return true;
     }
 
-
-    private boolean valueNeedsNoTranslation(String value) {
+    private boolean valueNeedsNoTranslation(String value,
+                                            boolean isTranslated) {
         if (value == null)
             // if no default translation is provided, then no translation is
             // required.
             return true;
 
         value = removeVariables(value);
-        value = removeTranslatables(value);
+        if (isTranslated)
+            value = removeTranslatables(value);
         return valueContainsNoCharacters(value);
     }
 
