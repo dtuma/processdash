@@ -42,6 +42,7 @@ import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -173,25 +174,12 @@ public class GUIInstaller extends InstallerBase
         }
     }
     private String[] split(String s) {
+        s = s.trim();
+
         Vector v = new Vector();
-        int nextIndex     = 0;
-        int currentIndex  = 0;
-
-        do
-        {
-            nextIndex = s.indexOf ("\\n", currentIndex);
-
-            if (nextIndex > -1)
-            {
-                v.addElement (s.substring (currentIndex, nextIndex));
-                currentIndex =  nextIndex + 2;
-            }
-            else
-            {
-                v.addElement (s.substring (currentIndex, s.length ()));
-            }
-        }
-        while (nextIndex > -1);
+        StringTokenizer tok = new StringTokenizer(s, "\r\n~");
+        while (tok.hasMoreTokens())
+            v.addElement(tok.nextToken());
 
         String[] result = new String[v.size()];
         for (int i = 0;   i < v.size();   i++)
