@@ -168,17 +168,22 @@ public class EVMetrics implements TableModel {
         recalcViability(s);
         recalcMetricsFormatters();
     }
+    private static boolean RETARGET_INTERVALS =
+        !Settings.getBool("ev.disableRetarget", false);
     protected void retargetViability(EVSchedule s,
                                       TargetedConfidenceInterval t,
                                       double target) {
-        t.calcViability(target, 0.7);
+        if (RETARGET_INTERVALS)
+            t.calcViability(target, 0.7);
     }
     protected void retargetViability(EVSchedule s,
                                       TargetedConfidenceInterval t,
                                       Date target) {
-        double v = -1;
-        if (target != null) v = target.getTime();
-        t.calcViability(v, 0.7);
+        if (RETARGET_INTERVALS) {
+            double v = -1;
+            if (target != null) v = target.getTime();
+            t.calcViability(v, 0.7);
+        }
     }
     protected boolean unviable(ConfidenceInterval ci) {
         if (ci == null) return false;
