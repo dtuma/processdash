@@ -47,7 +47,7 @@ h12=CompMin
 d13=Test/Time
 h13=TestMin
 
-d14=Postmortem/Time
+d14=PM/Time
 h14=PMMin
 
 = Defects Injected
@@ -73,7 +73,7 @@ h20=CompInj
 d21=Test/Defects Injected
 h21=TestInj
 
-d22=Postmortem/Defects Injected
+d22=PM/Defects Injected
 h22=PMInj
 
 = Defects Removed
@@ -99,5 +99,5 @@ h28=CompRem
 d29=Test/Defects Removed
 h29=TestRem
 
-d30=Postmortem/Defects Removed
+d30=PM/Defects Removed
 h30=PMRem
