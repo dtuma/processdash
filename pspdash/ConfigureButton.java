@@ -153,6 +153,18 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         }
     }
 
+    public void saveOrRevertTimeLog() {
+        if (time_frame != null)
+            time_frame.saveRevertOrCancel(false);
+    }
+
+    public void reloadHierarchy(PSPProperties newProps) {
+        if (time_frame != null)
+            time_frame.reloadAll(newProps);
+        if (defect_frame != null)
+            defect_frame.reloadAll(newProps);
+    }
+
 //  public void setHistoryItem(String label, String dest) {
 //    update history portion of popup menu here (save where?????)
 //  }
