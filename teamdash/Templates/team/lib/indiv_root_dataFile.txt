@@ -10,8 +10,9 @@
 
 [Indiv_Initials] = "tttt";
 [EXPORT_FILE] = 
-    iff([Team_Directory] == "Enter network directory path", "",
-        [Team_Directory] & [file_sep] & "data" & [file_sep] &
-	[Project_ID] & [file_sep] & [Indiv_Initials] & "-data.txt");
+    iff([Team_Data_Directory] == "", "",
+        [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data.txt");
+
+[Sync_Full_WBS] = 0;
 
 [Effective_Defect_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Type !~ '^(MGMT|STRAT|PM)$' --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";

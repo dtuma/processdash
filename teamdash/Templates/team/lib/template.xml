@@ -63,8 +63,18 @@
       ID="PID/TeamNode"
       defineRollup="no"
       dataFile="PID/team_node_dataFile.txt"
+      constraints="ME{}"
+      ><!--#break comment-->
+         We alter the constraints to make this node immovable and
+	 uneditable.  We also change the 'required parent' list to '}',
+	 which makes it impossible for users to instantiate this
+	 node into their hierarchy manually.
+
+	 The old value for constraints was:
+
       constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/TeamRoot}PID/TeamNode"
-      >
+
+       <!--#endbreak comment-->
 
     <html ID="sump" href="PID/rollup_plan_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
@@ -267,7 +277,7 @@
       defectLog="true"
       dataFile="PID/indiv_empty_dataFile.txt"
       size="New &amp; Changed LOC"
-      constraints="ME<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}"
+      constraints="MED<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}"
       ><!--#break comment-->
          We alter the constraints to make this node immovable and
 	 uneditable.  We also change the 'required parent' list to '}',
