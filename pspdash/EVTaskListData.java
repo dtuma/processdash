@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -51,6 +51,7 @@ public class EVTaskListData extends EVTaskList
 
     public static final String TASK_ORDINAL_PREFIX = "TST_";
     public static final String EST_HOURS_DATA_NAME = "Planned Hours";
+    public static final String ID_DATA_NAME = "Task List ID";
 
     protected DataRepository data;
     protected PSPProperties hierarchy;
@@ -65,6 +66,7 @@ public class EVTaskListData extends EVTaskList
 
         addTasksFromData(data, taskListName);
         schedule = getSchedule(data, taskListName);
+        loadID(taskListName);
         calculator = new EVCalculatorData((EVTask) root, schedule);
     }
     public boolean isEditable() { return true; }
@@ -109,6 +111,39 @@ public class EVTaskListData extends EVTaskList
         else
             return new EVSchedule();
     }
+    /** Load the unique ID for this task list.
+     */
+    protected void loadID(String taskListName) {
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
+        String dataName = data.createDataName(globalPrefix, ID_DATA_NAME);
+
+        SimpleData d = data.getSimpleValue(dataName);
+        if (d != null) {
+            taskListID = d.format();
+        } else {
+            // This task list doesn't have a unique ID yet.  Generate one.
+            // It should be a value that needs no special handling to
+            // appear as an XML attribute.
+            int i = Math.abs((new Random()).nextInt());
+            taskListID =
+                Integer.toString(i, Character.MAX_RADIX) + "." +
+                Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
+
+            // Since unique task list IDs were introduced after version 1.5
+            // of the dashboard, we may be in this branch of code not
+            // because this is a new task list, but because this is the
+            // first time the list has been opened.  In the latter case,
+            // we need to save the unique ID.
+            String scheduleDataName =
+                data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
+            if (data.getValue(scheduleDataName) != null) {
+                // getting to this point indicates that this task list is
+                // not new - it has been previously saved to the repository.
+                data.putValue(dataName, StringData.create(taskListID));
+            }
+        }
+    }
+
 
     public void save(String newName) {
         EVTask r = (EVTask) root;
@@ -138,9 +173,15 @@ public class EVTaskListData extends EVTaskList
                 data.putValue(dataName, new DoubleData(j, false));
                 oldNames.remove(dataName);
             }
+            // save the schedule
             dataName = data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
             data.putValue(dataName, schedule.getSaveList());
             oldNames.remove(dataName);
+            // save the task list unique ID
+            dataName = data.createDataName(globalPrefix, ID_DATA_NAME);
+            data.putValue(dataName, StringData.create(taskListID));
+            oldNames.remove(dataName);
+
             taskListName = newName;
         }
 

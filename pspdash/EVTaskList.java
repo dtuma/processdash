@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -56,6 +56,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     protected String taskListName;
+    protected String taskListID = null;
     protected EVSchedule schedule;
     protected EVCalculator calculator;
 
@@ -135,7 +136,7 @@ public class EVTaskList extends AbstractTreeTableModel
             // if that failed, maybe see if this defines an imported list.
             if (taskListName == null && includeImports)
                 taskListName =
-                    EVTaskListXML.taskListNameFromDataElement(dataName);
+                    EVTaskListXML.taskListNameFromDataElement(data, dataName);
 
             // if any of the tests succeeded, add the name to the list.
             if (taskListName != null)
@@ -241,6 +242,7 @@ public class EVTaskList extends AbstractTreeTableModel
     public boolean isEmpty() { return ((EVTask) root).isLeaf(); }
     public boolean isEditable() { return false; }
     public String getRootName() { return ((EVTask) root).name; }
+    public String getID() { return taskListID; }
 
 
     public void save() { save(taskListName); }
@@ -249,8 +251,10 @@ public class EVTaskList extends AbstractTreeTableModel
     public String getAsXML() {
         StringBuffer result = new StringBuffer();
         result.append("<EVModel rct='")
-            .append(calculator.reorderCompletedTasks)
-            .append("'>");
+            .append(calculator.reorderCompletedTasks);
+        if (getID() != null)
+            result.append("' tlid='").append(getID());
+        result.append("'>");
         ((EVTask) root).saveToXML(result);
         schedule.saveToXML(result);
         result.append("</EVModel>");
