@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash.data.compiler;
 
@@ -306,7 +306,7 @@ public class Compiler extends DepthFirstAdapter {
         if (text == null) return null;
         int len = text.length();
         if (len < 2) return "";
-        return StringData.unescapeString(text.substring(1, len-1));
+        return StringData.unescapeString(text.substring(1, len-1)).intern();
     }
 
     public static String escapeLiteral(String literal) {
