@@ -28,12 +28,9 @@ package pspdash.data;
 
 public class MalformedData extends DoubleData {
 
-    private static StringData SIMPLE_VALUE = null;
+    private static StringData SIMPLE_VALUE = StringData.create("ERROR");
     static {
-        try {
-            SIMPLE_VALUE = new StringData("\"ERROR");
-            SIMPLE_VALUE.setEditable(false);
-        } catch (MalformedValueException mve) {}
+        SIMPLE_VALUE.setEditable(false);
     }
 
     String saveString;

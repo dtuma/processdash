@@ -39,19 +39,20 @@
 == a PSP3 cycle.
 ==
 
-psp3cycle==1.0
-PSP3cycle==1.0
-psp2.1==null
-PSP2.1==null
-PSP Project==null
+psp3cycle==TAG
+PSP3cycle==TAG
+psp2.1=null
+PSP2.1=null
+PSP Project=null
 
 
 ==
 == New phase: Reassessment.  No estimations needed.
 == 
 
-Normalized Estimated Time==![(/	Estimated Time	/Normalization %/Time/PSP3cycle)]
-Normalized Estimated Defects Injected==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP3cycle)]
+Normalized Estimated Time//==![(/	Estimated Time	/Normalization %/Time/PSP3cycle)]
+Normalized Estimated Defects Injected//==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP3cycle)]
+Normalized Estimated Defects Removed//==![(/	Estimated Defects Removed	/Normalization %/Defects Removed/PSP3cycle)]
 
 Reassessment/PSP Phase==70.0
 
@@ -92,9 +93,87 @@ New Reused LOC=0.0
 == tags identifying new/different nodes and leaves in this process
 ==
 
-Reassessment/node==1.0
-Reassessment/leaf==1.0
-Planning/node==null
-Planning/leaf==null
-Postmortem/node==null
-Postmortem/leaf==null
+Reassessment/node==TAG
+Reassessment/leaf==TAG
+Planning/node=null
+Planning/leaf=null
+Postmortem/node=null
+Postmortem/leaf=null
+
+= We do not need local copies of these to date numbers for each cycle.
+
+LOC per Hour To Date=null
+Estimated Time To Date=null
+Time To Date=null
+CPI To Date=null
+% Reused To Date=null
+% New Reused To Date=null
+Defects per KLOC To Date=null
+Yield To Date=null
+Reused LOC To Date=null
+New & Changed LOC To Date=null
+Total LOC To Date=null
+New Reused LOC To Date=null
+Planning/Time To Date=null
+Planning/% Time To Date=null
+Design/Time To Date=null
+Design/% Time To Date=null
+Design Review/Time To Date=null
+Design Review/% Time To Date=null
+Code/Time To Date=null
+Code/% Time To Date=null
+Code Review/Time To Date=null
+Code Review/% Time To Date=null
+Compile/Time To Date=null
+Compile/% Time To Date=null
+Test/Time To Date=null
+Test/% Time To Date=null
+Postmortem/Time To Date=null
+Postmortem/% Time To Date=null
+Time To Date=null
+Before Development/Defects Injected To Date=null
+Before Development/% Defects Injected To Date=null
+Planning/Defects Injected To Date=null
+Planning/% Defects Injected To Date=null
+Design/Defects Injected To Date=null
+Design/% Defects Injected To Date=null
+Design Review/Defects Injected To Date=null
+Design Review/% Defects Injected To Date=null
+Code/Defects Injected To Date=null
+Code/% Defects Injected To Date=null
+Code Review/Defects Injected To Date=null
+Code Review/% Defects Injected To Date=null
+Compile/Defects Injected To Date=null
+Compile/% Defects Injected To Date=null
+Test/Defects Injected To Date=null
+Test/% Defects Injected To Date=null
+Defects Injected To Date=null
+Planning/Defects Removed To Date=null
+Planning/% Defects Removed To Date=null
+Design/Defects Removed To Date=null
+Design/% Defects Removed To Date=null
+Design Review/Defects Removed To Date=null
+Design Review/% Defects Removed To Date=null
+Code/Defects Removed To Date=null
+Code/% Defects Removed To Date=null
+Code Review/Defects Removed To Date=null
+Code Review/% Defects Removed To Date=null
+Compile/Defects Removed To Date=null
+Compile/% Defects Removed To Date=null
+Test/Defects Removed To Date=null
+Test/% Defects Removed To Date=null
+Defects Removed To Date=null
+After Development/Defects Removed To Date=null
+After Development/% Defects Removed To Date=null
+Design Review/Defects Removed per Hour To Date=null
+Code Review/Defects Removed per Hour To Date=null
+Compile/Defects Removed per Hour To Date=null
+Test/Defects Removed per Hour To Date=null
+Design Review/DRL To Date=null
+Code Review/DRL To Date=null
+Compile/DRL To Date=null
+
+= We do not need these freeze flags any longer.
+
+FreezeFlag/.*Estimated.*=null
+FreezeFlag/.* To Date=null

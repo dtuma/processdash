@@ -2,18 +2,28 @@
 
 = Students must manually calculate CPI for program 5A.
 
-5A Estimated Time To Date=0.0
-5A Time To Date=0.0
-5A CPI To Date=0.0
+5A Estimated Time To Date=?NaN
+5A Time To Date=?NaN
+5A CPI To Date=?NaN
 
 = Students must manually calculate % Reused for program 5A.
 
-5A Estimated % Reused=0.0
-5A % Reused=0.0
-5A % Reused To Date=0.0
+5A Estimated % Reused=?NaN
+5A % Reused=?NaN
+5A % Reused To Date=?NaN
 
 = Students must manually calculate % New Reused for program 5A.
 
-5A Estimated % New Reused=0.0
-5A % New Reused=0.0
-5A % New Reused To Date=0.0
+5A Estimated % New Reused=?NaN
+5A % New Reused=?NaN
+5A % New Reused To Date=?NaN
+
+
+= Numbers which are normally defaulted to 0, force students to enter
+
+Estimated Base LOC=?NaN
+Estimated Deleted LOC=?NaN
+Estimated Modified LOC=?NaN
+Base LOC=?NaN
+Deleted LOC=?NaN
+Modified LOC=?NaN

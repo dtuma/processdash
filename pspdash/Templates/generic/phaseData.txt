@@ -37,8 +37,8 @@
 == a generic process phase. 
 ==
 
-genericPhase==1.0
-GENERICPHASE==1.0
+genericPhase==20.0
+GENERICPHASE==20.0
 
 
 ==
@@ -66,5 +66,5 @@ Defects Removed per Hour==![(/	Defects Removed	Time	0.016667)]
 == tags identifying this phase as a node and a leaf.
 ==
 
-node==1.0
-leaf==1.0
+node==TAG
+leaf==TAG

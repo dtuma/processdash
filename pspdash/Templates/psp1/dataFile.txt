@@ -39,10 +39,10 @@
 == a PSP1 process.
 ==
 
-psp1==1.0
-PSP1==1.0
-psp0.1==null
-PSP0.1==null
+psp1==TAG
+PSP1==TAG
+psp0.1=null
+PSP0.1=null
 
 
 
@@ -84,3 +84,16 @@ New & Changed KLOC==![(/	New & Changed LOC	1000)]
 Estimated LOC per Hour==![(*	60	[(/	Estimated New & Changed LOC	Estimated Time)])]
 LOC per Hour==![(*	60	[(/	New & Changed LOC	Time)])]
 Defects per KLOC==![(/	Defects Injected	New & Changed KLOC)]
+
+
+==
+== Freeze flags for the entire project
+==
+
+FreezeFlag/(New )?Reused LOC=null
+
+==
+== Local copies of To Date data
+==
+
+LOC per Hour To Date==![(#=	/LOC per Hour To Date)]

@@ -2,18 +2,27 @@
 
 = Students must manually calculate appraisal COQ for program 8A.
 
-8A Estimated % Appraisal COQ=0.0
-8A % Appraisal COQ=0.0
-8A % Appraisal COQ To Date=0.0
+8A Estimated % Appraisal COQ=?NaN
+8A % Appraisal COQ=?NaN
+8A % Appraisal COQ To Date=?NaN
 
 = Students must manually calculate failure COQ for program 8A.
 
-8A Estimated % Failure COQ=0.0
-8A % Failure COQ=0.0
-8A % Failure COQ To Date=0.0
+8A Estimated % Failure COQ=?NaN
+8A % Failure COQ=?NaN
+8A % Failure COQ To Date=?NaN
 
 = Students must manually calculate AFR for program 8A.
 
-8A Estimated AFR=0.0
-8A AFR=0.0
-8A AFR To Date=0.0
+8A Estimated AFR=?NaN
+8A AFR=?NaN
+8A AFR To Date=?NaN
+
+= Numbers which are normally defaulted to 0, force students to enter
+
+Estimated Base LOC=?NaN
+Estimated Deleted LOC=?NaN
+Estimated Modified LOC=?NaN
+Base LOC=?NaN
+Deleted LOC=?NaN
+Modified LOC=?NaN

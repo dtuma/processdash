@@ -39,10 +39,10 @@
 == a PSP1.1 process.
 ==
 
-psp1.1==1.0
-PSP1.1==1.0
-psp1==null
-PSP1==null
+psp1.1==TAG
+PSP1.1==TAG
+psp1=null
+PSP1=null
 
 ==
 == New Elements for PSP1.1
@@ -56,3 +56,13 @@ Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated New & Changed LO
 
 % Reused==![(/	Reused LOC	Total LOC)]
 % New Reused==![(/	New Reused LOC	New & Changed LOC)]
+
+==
+== Local copies of To Date data
+==
+
+Estimated Time To Date==![(#=	/Estimated Time To Date)]
+Time To Date==![(#=	/Time To Date)]
+CPI To Date==![(#=	/CPI To Date)]
+% Reused To Date==![(#=	/% Reused To Date)]
+% New Reused To Date==![(#=	/% New Reused To Date)]

@@ -39,8 +39,8 @@
 = a SCR Cycle process. 
 =
 
-SCRCYCLE==1.0
-scrcycle==1.0
+SCRCYCLE==TAG
+scrcycle==TAG
 
 
 =

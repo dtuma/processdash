@@ -38,9 +38,9 @@
 == a PSP0 process. 
 ==
 
-psp0==1.0
-PSP0==1.0
-PSP Project==1.0
+psp0==TAG
+PSP0==TAG
+PSP Project==TAG
 
 
 ==
@@ -61,19 +61,19 @@ Postmortem/PSP Phase==70.0
 = tags identifying the nodes and leaves in this process (reviews 
 = intentionally omitted).
 
-node==1.0
-Planning/leaf==1.0
-Planning/node==1.0
-Design/leaf==1.0
-Design/node==1.0
-Code/leaf==1.0
-Code/node==1.0
-Compile/leaf==1.0
-Compile/node==1.0
-Test/leaf==1.0
-Test/node==1.0
-Postmortem/leaf==1.0
-Postmortem/node==1.0
+node==TAG
+Planning/leaf==TAG
+Planning/node==TAG
+Design/leaf==TAG
+Design/node==TAG
+Code/leaf==TAG
+Code/node==TAG
+Compile/leaf==TAG
+Compile/node==TAG
+Test/leaf==TAG
+Test/node==TAG
+Postmortem/leaf==TAG
+Postmortem/node==TAG
 
 
 ==
@@ -155,3 +155,55 @@ Yield==![(/	[(+	~.*/{<	PSP Phase	50}Defects Removed)]	Defects Removed)]
 % Appraisal COQ==![(/	[(+	Design Review/Time	Code Review/Time)]	Time)]
 % Failure COQ==![(/	[(+	Compile/Time	Test/Time)]	Time)]
 AFR==![(/	% Appraisal COQ	% Failure COQ)]
+
+
+==
+== Freeze flags for the planning phase and the entire project
+==
+
+FreezeFlag/.*Estimated.*==![(||	Planning/Completed	Completed)]
+FreezeFlag/.* To Date==![(&&	Completed)]
+
+==
+== Local copies of To Date data
+==
+
+Planning/Time To Date==![(#=	/Planning/Time To Date)]
+Planning/% Time To Date==![(#=	/Planning/% Time To Date)]
+Design/Combined Time To Date==![(#=	/Design/Combined Time To Date)]
+Design/Combined % Time To Date==![(#=	/Design/Combined % Time To Date)]
+Code/Combined Time To Date==![(#=	/Code/Combined Time To Date)]
+Code/Combined % Time To Date==![(#=	/Code/Combined % Time To Date)]
+Compile/Time To Date==![(#=	/Compile/Time To Date)]
+Compile/% Time To Date==![(#=	/Compile/% Time To Date)]
+Test/Time To Date==![(#=	/Test/Time To Date)]
+Test/% Time To Date==![(#=	/Test/% Time To Date)]
+Postmortem/Time To Date==![(#=	/Postmortem/Time To Date)]
+Postmortem/% Time To Date==![(#=	/Postmortem/% Time To Date)]
+Time To Date==![(#=	/Time To Date)]
+Before Development/Defects Injected To Date==![(#=	/Before Development/Defects Injected To Date)]
+Before Development/% Defects Injected To Date==![(#=	/Before Development/% Defects Injected To Date)]
+Planning/Defects Injected To Date==![(#=	/Planning/Defects Injected To Date)]
+Planning/% Defects Injected To Date==![(#=	/Planning/% Defects Injected To Date)]
+Design/Combined Defects Injected To Date==![(#=	/Design/Combined Defects Injected To Date)]
+Design/Combined % Defects Injected To Date==![(#=	/Design/Combined % Defects Injected To Date)]
+Code/Combined Defects Injected To Date==![(#=	/Code/Combined Defects Injected To Date)]
+Code/Combined % Defects Injected To Date==![(#=	/Code/Combined % Defects Injected To Date)]
+Compile/Defects Injected To Date==![(#=	/Compile/Defects Injected To Date)]
+Compile/% Defects Injected To Date==![(#=	/Compile/% Defects Injected To Date)]
+Test/Defects Injected To Date==![(#=	/Test/Defects Injected To Date)]
+Test/% Defects Injected To Date==![(#=	/Test/% Defects Injected To Date)]
+Defects Injected To Date==![(#=	/Defects Injected To Date)]
+Planning/Defects Removed To Date==![(#=	/Planning/Defects Removed To Date)]
+Planning/% Defects Removed To Date==![(#=	/Planning/% Defects Removed To Date)]
+Design/Combined Defects Removed To Date==![(#=	/Design/Combined Defects Removed To Date)]
+Design/Combined % Defects Removed To Date==![(#=	/Design/Combined % Defects Removed To Date)]
+Code/Combined Defects Removed To Date==![(#=	/Code/Combined Defects Removed To Date)]
+Code/Combined % Defects Removed To Date==![(#=	/Code/Combined % Defects Removed To Date)]
+Compile/Defects Removed To Date==![(#=	/Compile/Defects Removed To Date)]
+Compile/% Defects Removed To Date==![(#=	/Compile/% Defects Removed To Date)]
+Test/Defects Removed To Date==![(#=	/Test/Defects Removed To Date)]
+Test/% Defects Removed To Date==![(#=	/Test/% Defects Removed To Date)]
+Defects Removed To Date==![(#=	/Defects Removed To Date)]
+After Development/Defects Removed To Date==![(#=	/After Development/Defects Removed To Date)]
+After Development/% Defects Removed To Date==![(#=	/After Development/% Defects Removed To Date)]

@@ -85,7 +85,7 @@ class FrozenUtil {
             if (defaultVal == null)
                 return "null";
             else if (defaultVal.startsWith("=")) {
-                formerEditable = true;
+                formerEditable = false;
                 defaultVal = defaultVal.substring(1);
             }
             return defaultVal;

@@ -39,10 +39,10 @@
 == a PSP2 process.
 ==
 
-psp2==1.0
-PSP2==1.0
-psp1.1==null
-PSP1.1==null
+psp2==TAG
+PSP2==TAG
+psp1.1=null
+PSP1.1=null
 
 
 
@@ -53,17 +53,17 @@ PSP1.1==null
 Estimated Defects per KLOC==![(+	/Defects Injected per KLOC To Date)]
 Estimated Defects Injected==![(*	Estimated New & Changed KLOC	Estimated Defects per KLOC)]
 
-Normalized Estimated Defects Injected==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP0-2)]
+Normalized Estimated Defects Injected//==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP0-2)]
 
 Before Development/Estimated Defects Injected==![(*	Estimated Defects Injected	/Before Development/% Defects Injected To Date)]
-Planning/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected	/Planning/% Defects Injected To Date)]
-Design/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected	/Design/% Defects Injected To Date)]
-Design Review/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected	/Design Review/% Defects Injected To Date)]
-Code/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected	/Code/% Defects Injected To Date)]
-Code Review/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected	/Code Review/% Defects Injected To Date)]
-Compile/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected	/Compile/% Defects Injected To Date)]
-Test/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected	/Test/% Defects Injected To Date)]
-Postmortem/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected	/Postmortem/% Defects Injected To Date)]
+Planning/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected//	/Planning/% Defects Injected To Date)]
+Design/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected//	/Design/% Defects Injected To Date)]
+Design Review/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected//	/Design Review/% Defects Injected To Date)]
+Code/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected//	/Code/% Defects Injected To Date)]
+Code Review/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected//	/Code Review/% Defects Injected To Date)]
+Compile/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected//	/Compile/% Defects Injected To Date)]
+Test/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected//	/Test/% Defects Injected To Date)]
+Postmortem/Estimated Defects Injected==![(*	Normalized Estimated Defects Injected//	/Postmortem/% Defects Injected To Date)]
 
 
 
@@ -72,17 +72,17 @@ Postmortem/Estimated Defects Injected==![(*	Normalized Estimated Defects Injecte
 ==
 
 Estimated Defects Removed==![(+	Estimated Defects Injected)]
-Normalized Estimated Defects Removed==![(+	Normalized Estimated Defects Injected)]
+Normalized Estimated Defects Removed//==![(#=	Normalized Estimated Defects Injected//)]
 
-Planning/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed	/Planning/% Defects Removed To Date)]
-Design/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed	/Design/% Defects Removed To Date)]
-Design Review/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed	/Design Review/% Defects Removed To Date)]
-Code/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed	/Code/% Defects Removed To Date)]
-Code Review/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed	/Code Review/% Defects Removed To Date)]
-Compile/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed	/Compile/% Defects Removed To Date)]
-Test/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed	/Test/% Defects Removed To Date)]
-Postmortem/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed	/Postmortem/% Defects Removed To Date)]
-After Development/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed	/After Development/% Defects Removed To Date)]
+Planning/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed//	/Planning/% Defects Removed To Date)]
+Design/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed//	/Design/% Defects Removed To Date)]
+Design Review/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed//	/Design Review/% Defects Removed To Date)]
+Code/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed//	/Code/% Defects Removed To Date)]
+Code Review/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed//	/Code Review/% Defects Removed To Date)]
+Compile/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed//	/Compile/% Defects Removed To Date)]
+Test/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed//	/Test/% Defects Removed To Date)]
+Postmortem/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed//	/Postmortem/% Defects Removed To Date)]
+After Development/Estimated Defects Removed==![(*	Normalized Estimated Defects Removed//	/After Development/% Defects Removed To Date)]
 
 
 
@@ -133,7 +133,61 @@ Defects Removed per KLOC==![(/	Defects Removed	New & Changed KLOC)]
 == tags identifying new nodes and leaves in this process
 ==
 
-Design Review/node==1.0
-Design Review/leaf==1.0
-Code Review/node==1.0
-Code Review/leaf==1.0
+Design Review/node==TAG
+Design Review/leaf==TAG
+Code Review/node==TAG
+Code Review/leaf==TAG
+
+==
+== Local copies of To Date data
+==
+
+Test/Defects Removed per KLOC To Date==![(#=	/Test/Defects Removed per KLOC To Date)]
+Defects per KLOC To Date==![(#=	/Defects per KLOC To Date)]
+Yield To Date==![(#=	/Yield To Date)]
+Design/Time To Date==![(#=	/Design/Time To Date)]
+Design/% Time To Date==![(#=	/Design/% Time To Date)]
+Design Review/Time To Date==![(#=	/Design Review/Time To Date)]
+Design Review/% Time To Date==![(#=	/Design Review/% Time To Date)]
+Code/Time To Date==![(#=	/Code/Time To Date)]
+Code/% Time To Date==![(#=	/Code/% Time To Date)]
+Code Review/Time To Date==![(#=	/Code Review/Time To Date)]
+Code Review/% Time To Date==![(#=	/Code Review/% Time To Date)]
+Design/Defects Injected To Date==![(#=	/Design/Defects Injected To Date)]
+Design/% Defects Injected To Date==![(#=	/Design/% Defects Injected To Date)]
+Design Review/Defects Injected To Date==![(#=	/Design Review/Defects Injected To Date)]
+Design Review/% Defects Injected To Date==![(#=	/Design Review/% Defects Injected To Date)]
+Code/Defects Injected To Date==![(#=	/Code/Defects Injected To Date)]
+Code/% Defects Injected To Date==![(#=	/Code/% Defects Injected To Date)]
+Code Review/Defects Injected To Date==![(#=	/Code Review/Defects Injected To Date)]
+Code Review/% Defects Injected To Date==![(#=	/Code Review/% Defects Injected To Date)]
+Design/Defects Removed To Date==![(#=	/Design/Defects Removed To Date)]
+Design/% Defects Removed To Date==![(#=	/Design/% Defects Removed To Date)]
+Design Review/Defects Removed To Date==![(#=	/Design Review/Defects Removed To Date)]
+Design Review/% Defects Removed To Date==![(#=	/Design Review/% Defects Removed To Date)]
+Code/Defects Removed To Date==![(#=	/Code/Defects Removed To Date)]
+Code/% Defects Removed To Date==![(#=	/Code/% Defects Removed To Date)]
+Code Review/Defects Removed To Date==![(#=	/Code Review/Defects Removed To Date)]
+Code Review/% Defects Removed To Date==![(#=	/Code Review/% Defects Removed To Date)]
+Design Review/Defects Removed per Hour To Date==![(#=	/Design Review/Defects Removed per Hour To Date)]
+Code Review/Defects Removed per Hour To Date==![(#=	/Code Review/Defects Removed per Hour To Date)]
+Compile/Defects Removed per Hour To Date==![(#=	/Compile/Defects Removed per Hour To Date)]
+Test/Defects Removed per Hour To Date==![(#=	/Test/Defects Removed per Hour To Date)]
+Design Review/DRL To Date==![(#=	/Design Review/DRL To Date)]
+Code Review/DRL To Date==![(#=	/Code Review/DRL To Date)]
+Compile/DRL To Date==![(#=	/Compile/DRL To Date)]
+
+= We no longer need local copies of these to date numbers
+
+Design/Combined Time To Date=null
+Design/Combined % Time To Date=null
+Code/Combined Time To Date=null
+Code/Combined % Time To Date=null
+Design/Combined Defects Injected To Date=null
+Design/Combined % Defects Injected To Date=null
+Code/Combined Defects Injected To Date=null
+Code/Combined % Defects Injected To Date=null
+Design/Combined Defects Removed To Date=null
+Design/Combined % Defects Removed To Date=null
+Code/Combined Defects Removed To Date=null
+Code/Combined % Defects Removed To Date=null

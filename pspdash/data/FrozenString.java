@@ -64,7 +64,7 @@ public class FrozenString extends StringData implements FrozenData {
         this.data = data;
         this.prefix = prefix;
 
-        util.formerEditable    = value.editable;
+        util.formerEditable    = value.isEditable();
         util.currentSaveString = super.saveString();
         util.setFormer(value.saveString(), defaultVal);
     }

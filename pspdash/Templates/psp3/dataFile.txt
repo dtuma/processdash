@@ -39,10 +39,10 @@
 == a PSP3 process.
 ==
 
-psp3==1.0
-PSP3==1.0
-psp2.1==null
-PSP2.1==null
+psp3==TAG
+PSP3==TAG
+psp2.1=null
+PSP2.1=null
 
 
 == NEEDS WORK: how should (time/defect) estimates be made for HLD?
@@ -56,8 +56,9 @@ PSP2.1==null
 HLD/PSP Phase==20.0
 HLD Review/PSP Phase==25.0
 
-Normalized Estimated Time==![(/	Estimated Time	/Normalization %/Time/PSP3)]
-Normalized Estimated Defects Injected==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP3)]
+Normalized Estimated Time//==![(/	Estimated Time	/Normalization %/Time/PSP3)]
+Normalized Estimated Defects Injected//==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP3)]
+Normalized Estimated Defects Removed//==![(/	Estimated Defects Removed	/Normalization %/Defects Removed/PSP3)]
 
 = Estimated time
 
@@ -201,21 +202,21 @@ HLD Review/DRL==![(/	HLD Review/Defects Removed per Hour	Test/Defects Removed pe
 == need to be cancelled.
 ==
 
-Design/PSP Phase==null
-Design Review/PSP Phase==null
-Code/PSP Phase==null
-Code Review/PSP Phase==null
-Compile/PSP Phase==null
-Test/PSP Phase==null
+Design/PSP Phase=null
+Design Review/PSP Phase=null
+Code/PSP Phase=null
+Code Review/PSP Phase=null
+Compile/PSP Phase=null
+Test/PSP Phase=null
 
 ==
 == tags identifying new/different nodes and leaves in this process
 ==
 
-HLD/node==1.0
-HLD/leaf==1.0
-HLD Review/node==1.0
-HLD Review/leaf==1.0
+HLD/node==TAG
+HLD/leaf==TAG
+HLD Review/node==TAG
+HLD Review/leaf==TAG
 Design/leaf=null
 Design/node=null
 Design Review/leaf=null
@@ -228,3 +229,25 @@ Compile/leaf=null
 Compile/node=null
 Test/leaf=null
 Test/node=null
+
+
+FreezeFlag/.*(New )?Reused LOC==![(&&	Completed)]
+
+==
+== Local copies of To Date data
+==
+
+HLD/Time To Date==![(#=	/HLD/Time To Date)]
+HLD/% Time To Date==![(#=	/HLD/% Time To Date)]
+HLD Review/Time To Date==![(#=	/HLD Review/Time To Date)]
+HLD Review/% Time To Date==![(#=	/HLD Review/% Time To Date)]
+HLD/Defects Injected To Date==![(#=	/HLD/Defects Injected To Date)]
+HLD/% Defects Injected To Date==![(#=	/HLD/% Defects Injected To Date)]
+HLD Review/Defects Injected To Date==![(#=	/HLD Review/Defects Injected To Date)]
+HLD Review/% Defects Injected To Date==![(#=	/HLD Review/% Defects Injected To Date)]
+HLD/Defects Removed To Date==![(#=	/HLD/Defects Removed To Date)]
+HLD/% Defects Removed To Date==![(#=	/HLD/% Defects Removed To Date)]
+HLD Review/Defects Removed To Date==![(#=	/HLD Review/Defects Removed To Date)]
+HLD Review/% Defects Removed To Date==![(#=	/HLD Review/% Defects Removed To Date)]
+HLD Review/Defects Removed per Hour To Date==![(#=	/HLD Review/Defects Removed per Hour To Date)]
+HLD Review/DRL To Date==![(#=	/HLD Review/DRL To Date)]

@@ -57,7 +57,6 @@ import com.oroinc.text.perl.MalformedPerl5PatternException;
 public class DataRepository implements Repository {
 
     public static final String anonymousPrefix = "///Anonymous";
-    public static final DoubleData TAG = new DoubleData(1.0, false);
 
         /** a mapping of data names (Strings) to data values (DataElements) */
         Hashtable data = new Hashtable(8000, (float) 0.5);
@@ -370,16 +369,24 @@ public class DataRepository implements Repository {
 
                 String listenerName = (String) activeData.get(dl);
 
-                if (elements.get(CIRCULARITY_TOKEN) == null)
-                    elements.put(CIRCULARITY_TOKEN, CIRCULARITY_TOKEN);
-                else {
-                    if (listenerName != null) {
-                        System.err.println("Infinite recursion encountered while " +
-                                           "recalculating " + listenerName +
-                                           " - ABORTING");
-                        circularData.put(listenerName, Boolean.TRUE);
+                synchronized (elements) {
+                    if (notifications.get(dl) == null) return;
+
+                    Thread t = (Thread) elements.get(CIRCULARITY_TOKEN);
+
+                    if (t == null)
+                        elements.put(CIRCULARITY_TOKEN, Thread.currentThread());
+                    else if (t != Thread.currentThread())
+                        return;
+                    else {
+                        if (listenerName != null) {
+                            System.err.println("Infinite recursion encountered while " +
+                                               "recalculating " + listenerName +
+                                               " - ABORTING");
+                            circularData.put(listenerName, Boolean.TRUE);
+                        }
+                        return;
                     }
-                    return;
                 }
 
                 String name;
@@ -584,7 +591,7 @@ public class DataRepository implements Repository {
                 // This will realize the value if it is deferred
                 SaveableData value = element.getValue();
 
-                System.err.println("freezing " + dataName);
+                System.out.println("freezing " + dataName);
 
                 // Determine the prefix of the data element.
                 String prefix = "";
@@ -624,7 +631,7 @@ public class DataRepository implements Repository {
 
                 SaveableData value = element.getImmediateValue(), thawedValue;
                 if (value instanceof FrozenData) {
-                    System.err.println("thawing " + dataName);
+                    System.out.println("thawing " + dataName);
                     // Thaw the value.
                     thawedValue = ((FrozenData)value).thaw(defVal);
 
@@ -661,13 +668,14 @@ public class DataRepository implements Repository {
                 String freezeRegexp;
                 Set dataItems;
                 int currentState = FDS_GRANDFATHERED;
+                boolean observedFlagValue;
                 volatile boolean initializing;
                 Set tentativeFreezables;
 
                 public FrozenDataSet(String freezeFlagName) {
                     this.freezeFlagName = freezeFlagName;
 
-                    System.err.println("creating FrozenDataSet for " + freezeFlagName);
+                    //System.out.println("creating FrozenDataSet for " + freezeFlagName);
 
                     // Fetch the prefix and the regular expression.
                     int pos = freezeFlagName.indexOf(FREEZE_FLAG_TAG);
@@ -725,8 +733,7 @@ public class DataRepository implements Repository {
 
                 public void dataValueChanged(DataEvent e) {
                     if (! freezeFlagName.equals(e.getName())) return;
-                    boolean observedFlagValue = e.getValue().test();
-                    System.err.println(freezeFlagName + " = " + observedFlagValue);
+                    observedFlagValue = e.getValue().test();
                     addDataConsistencyObserver(this);
                 }
 
@@ -749,8 +756,7 @@ public class DataRepository implements Repository {
                  * </PRE>
                  */
                 public void dataIsConsistent() {
-                    boolean observedFlagValue = getSimpleValue(freezeFlagName).test();
-                    System.err.println(freezeFlagName + " =(final) "+ observedFlagValue);
+                    //System.out.println(freezeFlagName + " = "+ observedFlagValue);
                     synchronized (this) {
                         if (observedFlagValue == true) {
                             // data should be frozen or grandfathered.
@@ -804,11 +810,13 @@ public class DataRepository implements Repository {
                 public void dataAdded(DataEvent e) {
                     String dataName = e.getName();
                     try {
+                        if (isFreezeFlagElement(dataName))
+                            return;           // don't freeze freeze flags!
                         if (!ValueFactory.perl.match(freezeRegexp, dataName))
                             return;
                     } catch (MalformedPerl5PatternException m) {
                         //The user has given a bogus pattern!
-                        System.err.println("The regular expression for " + freezeFlagName +
+                        System.out.println("The regular expression for " + freezeFlagName +
                                            " is malformed.");
                         dispose();
                         return;
@@ -1418,7 +1426,10 @@ public class DataRepository implements Repository {
 
                     name = line.substring(0, equalsPosition);
                     value = line.substring(equalsPosition+1);
-                    dest.put(name, value);
+                    if (value.equals("null") || value.equals("=null"))
+                        dest.remove(name);
+                    else
+                        dest.put(name, value);
                 }
             }
             finally {
@@ -1562,6 +1573,7 @@ public class DataRepository implements Repository {
             dataFile.inheritsFrom =
                 loadDatafile(new FileInputStream(dataFile.file), values, true);
             boolean dataModified;
+            boolean registerDataNames = (dataPrefix.length() > 0);
 
             // perform any renaming operations that were requested in the datafile
             dataModified = performRenames(values);
@@ -1610,6 +1622,8 @@ public class DataRepository implements Repository {
                     if (d == null) {
                         if (o != null) d = add(name, o, dataFile, true);
                     } else {
+                                          // this prevents the putValue logic from
+                        d.datafile = null;  // marking the datafile as modified
                         putValue(name, o);
                         d.datafile = dataFile;
                     }
@@ -1618,7 +1632,8 @@ public class DataRepository implements Repository {
                     if (dataFile == realizeDeferredDataFor && o instanceof DeferredData)
                         dataRealizer.addElement(d);
 
-                    if (o instanceof DoubleData || o instanceof DeferredData)
+                    if (registerDataNames &&
+                        (o instanceof DoubleData || o instanceof DeferredData))
                         dataElementNameSet.add(localName);
                 }
 
@@ -1929,12 +1944,14 @@ public class DataRepository implements Repository {
             Collections.synchronizedSet(new HashSet());
 
         public void addDataConsistencyObserver(DataConsistencyObserver o) {
+            boolean callbackImmediately = false;
             synchronized (consistencyListeners) {
                 if (inconsistencyDepth == 0)
-                    o.dataIsConsistent();
+                    callbackImmediately = true;
                 else
                     consistencyListeners.add(o);
             }
+            if (callbackImmediately) o.dataIsConsistent();
         }
 
         public void startInconsistency() {
@@ -1943,14 +1960,34 @@ public class DataRepository implements Repository {
 
         public void finishInconsistency() {
             synchronized (consistencyListeners) {
-                if (--inconsistencyDepth == 0) {
-                    Iterator i = consistencyListeners.iterator();
-                    DataConsistencyObserver o;
-                    while (i.hasNext()) {
-                        o = (DataConsistencyObserver) i.next();
-                        o.dataIsConsistent();
-                    }
+                if (--inconsistencyDepth == 0 &&
+                    !consistencyListeners.isEmpty()) {
+                    ConsistencyNotifier notifier =
+                        new ConsistencyNotifier(consistencyListeners);
                     consistencyListeners.clear();
+                    notifier.start();
+                }
+            }
+        }
+
+        private class ConsistencyNotifier extends Thread {
+            private Set listenersToNotify;
+
+            public ConsistencyNotifier(Set listeners) {
+                listenersToNotify = new HashSet(listeners);
+            }
+
+            public void run() {
+                // give things a chance to settle down.
+                System.out.println("waiting for notifier at " + new java.util.Date());
+                dataNotifier.flush();
+                System.out.println("notifier done at " + new java.util.Date());
+
+                Iterator i = listenersToNotify.iterator();
+                DataConsistencyObserver o;
+                while (i.hasNext()) {
+                    o = (DataConsistencyObserver) i.next();
+                    o.dataIsConsistent();
                 }
             }
         }

@@ -39,8 +39,8 @@
 == a PSP0.1 process.
 ==
 
-psp0.1==1.0
-PSP0.1==1.0
+psp0.1==TAG
+PSP0.1==TAG
 psp0=null
 PSP0=null
 
@@ -49,18 +49,18 @@ PSP0=null
 == Automatically compute Estimated Time by phase.
 ==
 
-Normalized Estimated Time==![(/	Estimated Time	/Normalization %/Time/PSP0-2)]
+Normalized Estimated Time//==![(/	Estimated Time	/Normalization %/Time/PSP0-2)]
 
-Planning/Estimated Time==![(*	Normalized Estimated Time	/Planning/% Time To Date)]
-Design/Estimated Time==![(*	Normalized Estimated Time	/Design/% Time To Date)]
-Design Review/Estimated Time==![(*	Normalized Estimated Time	/Design Review/% Time To Date)]
+Planning/Estimated Time==![(*	Normalized Estimated Time//	/Planning/% Time To Date)]
+Design/Estimated Time==![(*	Normalized Estimated Time//	/Design/% Time To Date)]
+Design Review/Estimated Time==![(*	Normalized Estimated Time//	/Design Review/% Time To Date)]
 Design/Combined Estimated Time==![(+	Design/Estimated Time	Design Review/Estimated Time)]
-Code/Estimated Time==![(*	Normalized Estimated Time	/Code/% Time To Date)]
-Code Review/Estimated Time==![(*	Normalized Estimated Time	/Code Review/% Time To Date)]
+Code/Estimated Time==![(*	Normalized Estimated Time//	/Code/% Time To Date)]
+Code Review/Estimated Time==![(*	Normalized Estimated Time//	/Code Review/% Time To Date)]
 Code/Combined Estimated Time==![(+	Code/Estimated Time	Code Review/Estimated Time)]
-Compile/Estimated Time==![(*	Normalized Estimated Time	/Compile/% Time To Date)]
-Test/Estimated Time==![(*	Normalized Estimated Time	/Test/% Time To Date)]
-Postmortem/Estimated Time==![(*	Normalized Estimated Time	/Postmortem/% Time To Date)]
+Compile/Estimated Time==![(*	Normalized Estimated Time//	/Compile/% Time To Date)]
+Test/Estimated Time==![(*	Normalized Estimated Time//	/Test/% Time To Date)]
+Postmortem/Estimated Time==![(*	Normalized Estimated Time//	/Postmortem/% Time To Date)]
 PM/Estimated Time==![(+	Postmortem/Estimated Time)]
 
 
@@ -85,3 +85,20 @@ Added LOC==![(-	[(+	Total LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
 ==
 
 L[O]C=>~Total LOC
+
+
+==
+== Freeze flags for the entire project
+==
+
+FreezeFlag/.*(Base|Deleted|Modified|New & Changed|Total) LOC==![(&&	Completed)]
+FreezeFlag/(New )?Reused LOC==![(&&	Completed)]
+
+==
+== Local copies of To Date data
+==
+
+Reused LOC To Date==![(#=	/Reused LOC To Date)]
+New & Changed LOC To Date==![(#=	/New & Changed LOC To Date)]
+Total LOC To Date==![(#=	/Total LOC To Date)]
+New Reused LOC To Date==![(#=	/New Reused LOC To Date)]

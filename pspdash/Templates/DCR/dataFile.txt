@@ -38,8 +38,8 @@
 = a DCR process. 
 =
 
-DCR==1.0
-dcr==1.0
+DCR==TAG
+dcr==TAG
 
 
 =

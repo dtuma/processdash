@@ -38,9 +38,9 @@
 = a DCR process. 
 =
 
-INSPECTION==1.0
-Inspection==1.0
-inspection==1.0
+INSPECTION==TAG
+Inspection==TAG
+inspection==TAG
 
 
 =

@@ -39,10 +39,10 @@
 == a PSP2.1 process.
 ==
 
-psp2.1==1.0
-PSP2.1==1.0
-psp2==null
-PSP2==null
+psp2.1==TAG
+PSP2.1==TAG
+psp2=null
+PSP2=null
 
 
 
@@ -62,3 +62,12 @@ Estimated AFR==![(/	Estimated % Appraisal COQ	Estimated % Failure COQ)]
 ==
 
 (Base Additions|New Objects|Reused Objects)/([^0-9]+) (\d+)=>~$1/$3/$2
+
+
+==
+== Local copies of To Date data
+==
+
+% Appraisal COQ To Date==![(#=	/% Appraisal COQ To Date)]
+% Failure COQ To Date==![(#=	/% Failure COQ To Date)]
+AFR To Date==![(#=	/AFR To Date)]

@@ -3,16 +3,31 @@
 == a PSP for Engineers process. 
 ==
 
-pspForEng==1.0
-PSPFORENG==1.0
-node==1.0
+pspForEng==TAG
+PSPFORENG==TAG
+node==TAG
 
 
 = There is no place for students to enter size data for program 1A.
 = Therefore, we will calculate it on their behalf from data entered in
 = program 2A.
 
-1A/Reused LOC==![(-	2A/2A Reused LOC To Date	2A/Reused LOC)]
-1A/New & Changed LOC==![(-	2A/2A New & Changed LOC To Date	2A/2A New & Changed LOC)]
-1A/Total LOC==![(-	2A/2A Total LOC To Date	2A/Total LOC)]
-1A/New Reused LOC==![(-	2A/2A New Reused LOC To Date	2A/New Reused LOC)]
+1A/Reused LOC==![(-	2A/Reused LOC To Date	2A/Reused LOC)]
+1A/New & Changed LOC==![(-	2A/New & Changed LOC To Date	2A/New & Changed LOC)]
+1A/Total LOC==![(-	2A/Total LOC To Date	2A/Total LOC)]
+1A/New Reused LOC==![(-	2A/New Reused LOC To Date	2A/New Reused LOC)]
+
+
+==
+== Copy Project/Language metric to each new project
+==
+
+2A/Project/Language==![("=	1A/Project/Language)]
+3A/Project/Language==![("=	1A/Project/Language)]
+4A/Project/Language==![("=	1A/Project/Language)]
+5A/Project/Language==![("=	1A/Project/Language)]
+6A/Project/Language==![("=	1A/Project/Language)]
+7A/Project/Language==![("=	1A/Project/Language)]
+8A/Project/Language==![("=	1A/Project/Language)]
+9A/Project/Language==![("=	1A/Project/Language)]
+10A/Project/Language==![("=	1A/Project/Language)]

@@ -39,8 +39,8 @@
 = a SCR process. 
 =
 
-SCR==1.0
-scr==1.0
+SCR==TAG
+scr==TAG
 
 
 =

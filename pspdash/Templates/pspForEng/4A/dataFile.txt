@@ -2,6 +2,16 @@
 
 = Students must manually calculate LOC/Hr for program 4A.
 
-4A Estimated LOC per Hour=0.0
-4A LOC per Hour=0.0
-4A LOC per Hour To Date=0.0
+4A Estimated LOC per Hour=?NaN
+4A LOC per Hour=?NaN
+4A LOC per Hour To Date=?NaN
+
+
+= Numbers which are normally defaulted to 0, force students to enter
+
+Estimated Base LOC=?NaN
+Estimated Deleted LOC=?NaN
+Estimated Modified LOC=?NaN
+Base LOC=?NaN
+Deleted LOC=?NaN
+Modified LOC=?NaN
