@@ -103,6 +103,8 @@ public class CustomProcessPublisher {
         String scriptID = script.getDocumentElement().getAttribute("id");
         String scriptVers =
             script.getDocumentElement().getAttribute("version");
+        String scriptReqt =
+            script.getDocumentElement().getAttribute("requiresDashboard");
 
         Manifest mf = new Manifest();
         Attributes attrs = mf.getMainAttributes();
@@ -112,6 +114,8 @@ public class CustomProcessPublisher {
         attrs.putValue(DashPackage.ID_ATTRIBUTE, process.getProcessID());
         attrs.putValue(DashPackage.VERSION_ATTRIBUTE,
                        scriptVers + "." + System.currentTimeMillis());
+        if (scriptReqt != null)
+                attrs.putValue(DashPackage.REQUIRE_ATTRIBUTE, scriptReqt);
 
         FileOutputStream fos = new FileOutputStream(destFile);
         zip = new JarOutputStream(fos, mf);
