@@ -1,3 +1,14 @@
 /* stylesheet for help content when the PSP add-on is not installed */
+.sepnotice { display: block }
+sup { font-size: smaller }
+sub { font-size: smaller }
+
+/* Eventual content
 .ifpsp { display:none; color:white; font-size:0.1pt; margin:0pt }
 .unlesspsp { }
+*/
+
+/* Testing version */
+.ifpsp { background-color: #aaffaa }
+.unlesspsp { background-color: #ffaaaa }
+/* */
