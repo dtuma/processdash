@@ -2361,35 +2361,25 @@ public class DataRepository implements Repository {
         private void saveDatafile(DataFile datafile) {
             if (datafile == null || datafile.file == null) return;
 
-            synchronized(datafile) {
+            // this flag should stay false until we are absolutely certain
+            // that we have successfully saved the datafile.
+            boolean saveSuccessful = false;
+
+            // synchronize to prevent two different threads from trying to save
+            // the same datafile concurrently.
+            synchronized(datafile) { try {
                 // debug("saveDatafile");
 
-                String fileSep = System.getProperty("file.separator");
-
-                // Create temporary files
-                BufferedWriter out;
-
-                try {
-                    out = new BufferedWriter(new RobustFileWriter(datafile.file));
-                } catch (IOException e) {
-                    System.err.println("IOException " + e + " while opening " +
-                                       datafile.file.getPath() + "; save aborted");
-                    return;
-                }
-
+                Set valuesToSave = new TreeSet();
                 Map defaultValues = null;
 
-                // if the data file has an include statement, write it to the
-                // the two temporary output files.
+                // if the data file has an include statement, lookup the associated
+                // default values defined by the included file.
                 if (datafile.inheritsFrom != null) {
                     defaultValues = getIncludedFileDefinitions(datafile.inheritsFrom);
                     if (defaultValues == null)
                         System.err.println("No inherited definitions for " +
                                            datafile.inheritsFrom);
-                    try {
-                        out.write(includeTag + datafile.inheritsFrom);
-                        out.newLine();
-                    } catch (IOException e) {}
                 }
                 if (defaultValues == null)
                     defaultValues = new HashMap();
@@ -2397,13 +2387,10 @@ public class DataRepository implements Repository {
                 // make a set of all the data element names defined in defaultValues
                 Set defaultValueNames = new HashSet(defaultValues.keySet());
 
-                // If the data file has a prefix, write it as a comment to the
-                // two temporary output files.
-                if (datafile.prefix != null && datafile.prefix.length() > 0) try {
-                    out.write("= Data for " + datafile.prefix);
-                    out.newLine();
-                } catch (IOException e) {}
-
+                // optimistically mark the datafile as "clean" at the beginning of
+                // the save operation.  This way, if the datafile is modified
+                // during the save operation, the dirty changes will take effect,
+                // and the datafile will be saved again in the future.
                 datafile.dirtyCount = 0;
 
                 Iterator k = getKeys();
@@ -2424,45 +2411,37 @@ public class DataRepository implements Repository {
                         // don't realize the data if it is still deferred.
                         value = element.getImmediateValue();
                         if (value != null) {
-                            try {
-                                name = name.substring(prefixLength);
-                                defaultValueNames.remove(name);
+                            name = name.substring(prefixLength);
+                            defaultValueNames.remove(name);
 
-                                valStr = value.saveString();
-                                if (valStr == null || valStr.length() == 0) continue;
-                                if (!value.isEditable()) valStr = "=" + valStr;
-                                defaultVal = defaultValues.get(name);
-                                defaultValStr = null;
-                                if (defaultVal instanceof String)
-                                    defaultValStr = (String) defaultVal;
-                                else if (defaultVal instanceof SimpleData) {
-                                    defaultValStr = ((SimpleData) defaultVal).saveString();
-                                    if (!((SimpleData) defaultVal).isEditable())
-                                        defaultValStr = "=" + defaultValStr;
-                                } else if (defaultVal instanceof SearchFactory)
-                                    continue;
-                                else if
-                                    (defaultVal instanceof CompiledScript &&
-                                     value instanceof CompiledFunction &&
-                                     ((CompiledFunction) value).getScript() == defaultVal)
-                                    continue;
+                            valStr = value.saveString();
+                            if (valStr == null || valStr.length() == 0) continue;
+                            if (!value.isEditable()) valStr = "=" + valStr;
+                            defaultVal = defaultValues.get(name);
+                            defaultValStr = null;
+                            if (defaultVal instanceof String)
+                                defaultValStr = (String) defaultVal;
+                            else if (defaultVal instanceof SimpleData) {
+                                defaultValStr = ((SimpleData) defaultVal).saveString();
+                                if (!((SimpleData) defaultVal).isEditable())
+                                    defaultValStr = "=" + defaultValStr;
+                            } else if (defaultVal instanceof SearchFactory)
+                                continue;
+                            else if
+                                (defaultVal instanceof CompiledScript &&
+                                 value instanceof CompiledFunction &&
+                                 ((CompiledFunction) value).getScript() == defaultVal)
+                                continue;
 
-                                if (valStr.equals(defaultValStr))
-                                    continue;
+                            if (valStr.equals(defaultValStr))
+                                continue;
 
-                                out.write(name);
-                                out.write('=');
-                                out.write(valStr);
-                                out.newLine();
-                            } catch (IOException e) {
-                                System.err.println("IOException " + e + " while writing " +
-                                                   name + " to " + datafile.file.getPath());
-                            }
+                            valuesToSave.add(name + "=" + valStr);
                         }
                     }
                 }
                 k = defaultValueNames.iterator();
-                while (k.hasNext()) try {
+                while (k.hasNext()) {
                     name = (String) k.next();
                     defaultVal = defaultValues.get(name);
 
@@ -2476,12 +2455,46 @@ public class DataRepository implements Repository {
                             continue;
                     }
 
-                    out.write(name);
-                    out.write("=null");
-                    out.newLine();
+                    valuesToSave.add(name+"=null");
+                }
+
+
+                // Create temporary files
+                BufferedWriter out;
+
+                try {
+                    out = new BufferedWriter(new RobustFileWriter(datafile.file));
                 } catch (IOException e) {
-                    System.err.println("IOException " + e + " while writing " +
-                                       name + " to " + datafile.file.getPath());
+                    System.err.println("IOException " + e + " while opening " +
+                                       datafile.file.getPath() + "; save aborted");
+                    return;
+                }
+
+                try {
+                    // if the data file has an include statement, write it to the
+                    // the two temporary output files.
+                    if (datafile.inheritsFrom != null) {
+                        out.write(includeTag + datafile.inheritsFrom);
+                        out.newLine();
+                    }
+
+                    // If the data file has a prefix, write it as a comment to the
+                    // two temporary output files.
+                    if (datafile.prefix != null && datafile.prefix.length() > 0) {
+                        out.write("= Data for " + datafile.prefix);
+                        out.newLine();
+                    }
+
+                    k = valuesToSave.iterator();
+                    while (k.hasNext()) {
+                        out.write((String) k.next());
+                        out.newLine();
+                    }
+
+                } catch (IOException e) {
+                    System.err.println("IOException " + e + " while writing to " +
+                                       datafile.file.getPath() + "; save aborted");
+                    return;
                 }
 
                 try {
@@ -2489,14 +2502,18 @@ public class DataRepository implements Repository {
                     out.flush();
                     out.close();
 
+                    saveSuccessful = true;
+                    System.err.println("Saved " + datafile.file.getPath());
                 } catch (IOException e) {
                     System.err.println("IOException " + e + " while closing " +
                                        datafile.file.getPath());
                 }
 
-                System.err.println("Saved " + datafile.file.getPath());
                 // debug("saveDatafile done");
-            }
+            } finally {
+                if (!saveSuccessful)               // if we couldn't successfully save
+                    datafile.dirtyCount = MAX_DIRTY; // the datafile, mark it as dirty.
+            } }
         }
 
 
