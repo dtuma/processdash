@@ -176,8 +176,8 @@ public class probe extends TinyCGIBase {
         "<html><head><title>PROBE Wizard</title>\n"+
         "<link rel=stylesheet type='text/css' href='style.css'>\n"+
         "<script>function popup() {\n"+
-        "   var newWin = "+
-        "       window.open('','popup','width=430,height=330,dependent=1');\n"+
+        "   var newWin = window.open('','popup','width=450,height=330,"+
+                                              "dependent=1,scrollbars=1');\n"+
         "   newWin.focus();\n"+
         "}</script>\n"+
         "</head><body>";
@@ -206,12 +206,13 @@ public class probe extends TinyCGIBase {
 
     protected void printContinueButton(String prevPage, String nextPage) {
         out.print("<input type=hidden name="+NEXT_PAGE+" value="+nextPage+">");
-        out.print("<p align=right>");
+        out.print("<table width='100%'><tr><td width='100%' align=right>");
         if (prevPage != null)
             out.print("<input type=button name=back value='Back'"+
                       "       onClick='window.location=\"probe.class?"+
                               PAGE+"="+prevPage+"\";'>&nbsp;&nbsp;");
         out.print("<input type=submit name=continue value='Continue'>");
+        out.println("</td></tr></table>");
     }
 
 
@@ -253,7 +254,8 @@ public class probe extends TinyCGIBase {
                                     double estNCLOC) {
 
         out.print("<h2>Step 2: Size</h2><b>To create your final size "+
-                  "estimate, please choose from the following PROBE "+
+                  "estimate, <font color='#0000ff'>use your engineering "+
+                  "judgement</font> to choose from the following PROBE "+
                   "methods:</b><br><br>\n");
 
         // Calculate data for each of the PROBE methods for size.
@@ -280,8 +282,9 @@ public class probe extends TinyCGIBase {
                                     double estNCLOC) {
 
         out.print("<h2>Step 3: Time</h2><b>To create your time estimate,\n" +
-                  "please choose from the following PROBE methods:</b>" +
-                  "<br><br>\n");
+                  "<font color='#0000ff'>use your engineering "+
+                  "judgement</font> to choose from the following PROBE "+
+                  " methods:</b><br><br>\n");
 
         // Calculate data for each of the PROBE methods for time.
         ArrayList timeMethods = new ArrayList();

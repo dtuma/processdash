@@ -110,12 +110,15 @@ class Method implements Comparable {
 
         out.print("</td><td valign=middle>&nbsp;<br>");
 
+        String link = ("<a href='"+getMethodPurpose()+getMethodLetter()+
+                       "tut.htm' target='popup' onClick='popup();'>");
         Iterator i;
         if (errorMessages.size() != 0) {
 
             out.print("<i>You " +
                       (getRating() > CANNOT_CALCULATE ?"should not" :"cannot")+
-                      " use PROBE method "+getMethodName()+".\n");
+                      " use "+link+"PROBE method "+getMethodLetter()+"</a>"+
+                      " for "+getMethodPurpose()+".\n");
             i = errorMessages.iterator();
             while (i.hasNext())
                 out.println((String) i.next());
@@ -124,11 +127,11 @@ class Method implements Comparable {
         } else {
             if (isBest)
                 out.println("Your best option for estimating " +
-                            getMethodPurpose() + " could be PROBE method " +
-                            getMethodLetter() + ".");
+                            getMethodPurpose() + " could be "+link+
+                            "PROBE method " + getMethodLetter() + "</a>.");
             else
-                out.println("Your next best option is probably PROBE method " +
-                            getMethodLetter() + ".");
+                out.println("Your next best option is probably "+link+
+                            "PROBE method " + getMethodLetter() + "</a>.");
 
             i = observations.iterator();
             while (i.hasNext())
@@ -263,7 +266,9 @@ class Method implements Comparable {
         return Double.isNaN(d) || Double.isInfinite(d);
     }
 
-    public static final String BETA0 = "beta0";
-    public static final String BETA1 = "beta1";
+    public static final String BETA0 =
+        "<a href='params.htm' target='popup' onClick='popup();'>beta0</a>";
+    public static final String BETA1 =
+        "<a href='params.htm' target='popup' onClick='popup();'>beta1</a>";
     public static final String NBSP = "&nbsp;";
 }
