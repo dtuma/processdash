@@ -67,6 +67,11 @@ public class DefectDialog extends JDialog
 
     DefectDialog(PSPDashboard dash, String defectFilename,
                  PropertyKey defectPath) {
+        this(dash, defectFilename, defectPath, true);
+    }
+
+    DefectDialog(PSPDashboard dash, String defectFilename,
+                 PropertyKey defectPath, boolean guessDefaults) {
         super(dash, "Defect Dialog");
 
         parent = dash;
@@ -137,12 +142,16 @@ public class DefectDialog extends JDialog
 
 
         int prefixLength = defectPath.path().length() + 1;
-        String defaultRemovalPhase =
-            parent.currentPhase.path().substring(prefixLength);
+        String defaultRemovalPhase = null;
+        if (guessDefaults)
+            defaultRemovalPhase =
+                parent.currentPhase.path().substring(prefixLength);
         phase_removed = phaseComboBox(defectPath, defaultRemovalPhase);
 
-        String defaultInjectionPhase =
-            guessInjectionPhase(phase_removed, defaultRemovalPhase);
+        String defaultInjectionPhase = null;
+        if (guessDefaults)
+            defaultInjectionPhase =
+                guessInjectionPhase(phase_removed, defaultRemovalPhase);
         phase_injected = phaseComboBox(defectPath, defaultInjectionPhase);
 
         phase_injected.insertItemAt("Before Development", 0);
@@ -241,7 +250,7 @@ public class DefectDialog extends JDialog
 
     DefectDialog(PSPDashboard dash, String defectFilename,
                  PropertyKey defectPath, Defect defect) {
-        this(dash, defectFilename, defectPath);
+        this(dash, defectFilename, defectPath, false);
         stopTimingDefect();
         setValues(defect);
         setDirty(false);
