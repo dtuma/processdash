@@ -41,6 +41,7 @@ import java.text.NumberFormat;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -848,7 +849,7 @@ public class TaskScheduleDialog
             urlStr = url.getText();
             passwordStr = password.getText();
 
-            if (urlStr == null || urlStr.length() == 0) {
+            if (urlStr == null || urlStr.trim().length() == 0) {
                 errorMessage = "You must enter a URL.";
                 continue;
             }
@@ -857,7 +858,7 @@ public class TaskScheduleDialog
                 continue;
             }
             try {
-                u = new URL(urlStr + XML_QUERY_SUFFIX);
+                u = new URL(urlStr.trim() + XML_QUERY_SUFFIX);
             } catch (MalformedURLException mue) {
                 errorMessage = "That URL is invalid.";
                 continue;
@@ -866,8 +867,10 @@ public class TaskScheduleDialog
         }
 
         // fetch the specified schedule.
-        if (passwordStr != null && passwordStr.length() == 0)
-            passwordStr = null;
+        if (passwordStr != null) {
+            passwordStr = passwordStr.trim();
+            if (passwordStr.length() == 0) passwordStr = null;
+        }
         CachedObject importedSchedule =
             new CachedURLObject(dash.objectCache,
                                 EVTaskListCached.CACHED_OBJECT_TYPE,
@@ -893,6 +896,8 @@ public class TaskScheduleDialog
 
         // if there was any error, ask the user if they want to continue.
         if (errorMessage != null) {
+            errorMessage = CachedURLObject.translateMessage
+                (errorMessage, getImportErrorMessageMap());
             Object message = new Object[] {
                 "Couldn't open the schedule:",
                 "    " + errorMessage,
@@ -929,6 +934,19 @@ public class TaskScheduleDialog
     private static final String[] LOCAL_NAME_PROMPT = {
         "What name should be used to describe this schedule",
         "when it appears in the schedule list?" };
+    private static Map IMPORT_ERROR_MESSAGE_MAP = null;
+    private Map getImportErrorMessageMap() {
+        if (IMPORT_ERROR_MESSAGE_MAP == null) {
+            IMPORT_ERROR_MESSAGE_MAP = new HashMap();
+            IMPORT_ERROR_MESSAGE_MAP.put
+                (CachedURLObject.PASSWORD_MISSING,
+                 "You must supply a password to retrieve this item.");
+            IMPORT_ERROR_MESSAGE_MAP.put
+                (CachedURLObject.PASSWORD_INCORRECT,
+                 "The password you provided is not correct.");
+        }
+        return IMPORT_ERROR_MESSAGE_MAP;
+    }
 
     /** delete the currently selected task.
      *
