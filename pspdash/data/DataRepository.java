@@ -382,7 +382,7 @@ public class DataRepository implements Repository {
                         elements.put(CIRCULARITY_TOKEN, Thread.currentThread());
                     else if (t != Thread.currentThread()) {
                         //System.out.println("waiting for other thread...");
-                        try { elements.wait(); } catch (InterruptedException ie) {}
+                        try { elements.wait(1000); } catch (InterruptedException ie) {}
                         //System.out.println("waiting done.");
                         return;
                     } else {
@@ -522,8 +522,11 @@ public class DataRepository implements Repository {
 
             public void dataIsConsistent() {
                 // Perform all requested work.
+                MAX_DIRTY = Integer.MAX_VALUE;
                 freezeAll();
                 thawAll();
+                MAX_DIRTY = 10;
+                saveAllDatafiles();
             }
 
             /** Freeze all waiting items. */
@@ -1731,7 +1734,7 @@ public class DataRepository implements Repository {
         private Object OPENDATAFILE_ERROR_DEPTH_LOCK = new Object();
         private volatile int OPENDATAFILE_ERROR_DEPTH = 0;
 
-        private static final int MAX_DIRTY = 10;
+        private static volatile int MAX_DIRTY = 10;
 
 
         private void datafileModified(DataFile datafile) {
