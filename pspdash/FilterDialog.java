@@ -29,6 +29,7 @@ package pspdash;
 import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -52,8 +53,9 @@ public class FilterDialog extends JDialog implements ActionListener {
 
 
     public FilterDialog (PSPDashboard dash,
+                         Frame probeWindow,
                          ActionListener l) {
-        super (dash, "PROBE filter");
+        super (probeWindow, "PROBE filter");
 
         parent = dash;
         props = parent.props;

@@ -36,10 +36,6 @@ import java.util.*;
 
 public class ChartDialog extends JDialog {
 
-    PSPDashboard  parent;
-    PSPProperties props;
-    JCheckBox     incNonTemplate;
-
     DataCorrelator corr;
     Vector names, points;
     ChartCanvas chart;
@@ -47,14 +43,12 @@ public class ChartDialog extends JDialog {
     VTableModel tableModel;
 
 
-    public ChartDialog (PSPDashboard dash,
+    public ChartDialog (Frame parent,
                         DataCorrelator c,
                         String labelX,
                         String labelY) {
-        super (dash, "PROBE Chart");
+        super (parent, "PROBE Chart");
         corr = c;
-
-        parent = dash;
 
         names  = (corr == null) ? null : corr.getDataNames();
         points = (corr == null) ? null : corr.getDataPoints();
@@ -310,7 +304,7 @@ public class ChartDialog extends JDialog {
 
                                       // draw legend
             g.setColor (Color.blue);
-            String l1 = "Linear Correlation";
+            String l1 = "Linear Regression";
             g.drawString (l1, 5,
                           cBounds.y - 1 + cBounds.height - fm.getMaxDescent());
             g.setColor (Color.red);
