@@ -43,6 +43,7 @@ package org.zaval.tools.i18n.translator;
 
 import java.io.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.*;
 
@@ -118,6 +119,7 @@ implements TranslatorConstants
 
     private Vector tabOrder = new Vector();
     private String destZipFile;
+    private ActionListener saveListener;
 
     public Translator( SafeResourceBundle res )
     {
@@ -780,6 +782,7 @@ implements TranslatorConstants
        validate();
        isDirty = false;
        bundle = new BundleManager();
+       bundle.setSaveListener(saveListener);
        langStates = new Vector();
 
        closeMenu.disable();
@@ -972,6 +975,7 @@ implements TranslatorConstants
            bundle = bundle2;
            if (!advancedMode)
                bundle.getBundle().addLanguage(NATIVE_LANGUAGE);
+           bundle.setSaveListener(saveListener);
        }
     }
 
@@ -1748,6 +1752,12 @@ implements TranslatorConstants
     }
     public void setTranslationNeededTester(Comparator translationNeededTester) {
         this.translationNeededTester = translationNeededTester;
+    }
+
+    public void setSaveListener(ActionListener saveListener) {
+        this.saveListener = saveListener;
+        if (bundle != null)
+            bundle.setSaveListener(saveListener);
     }
 
 }

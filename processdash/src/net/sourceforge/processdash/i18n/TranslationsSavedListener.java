@@ -23,37 +23,17 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package org.zaval.tools.i18n.translator;
+package net.sourceforge.processdash.i18n;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Comparator;
-
-import javax.swing.AbstractAction;
 
 
-public class OpenTranslatorAction extends AbstractAction {
-
-    private String filename;
-    private Comparator filter;
-    private ActionListener saveListener;
-    
-    public OpenTranslatorAction(String filename, String displayName, 
-                                Comparator filter, 
-                                ActionListener saveListener) {
-        super(displayName);
-        this.filename = filename;
-        this.filter = filter;
-        this.saveListener = saveListener;
-    }
+public class TranslationsSavedListener implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
-        try {
-            Main.main(new String[] { filename});
-            Main.setFilter(filter);
-            Main.setSaveListener(saveListener);
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        }
+        String filename = e.getActionCommand();
+        System.out.println("saved translations: "+ filename);
     }
+
 }

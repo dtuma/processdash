@@ -43,6 +43,7 @@ package org.zaval.tools.i18n.translator;
 
 import java.io.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.*;
 import org.zaval.util.SafeResourceBundle;
 
@@ -73,5 +74,10 @@ public class Main
    static void setFilter(Comparator filter) {
        if (t != null)
            t.setTranslationNeededTester(filter);
+   }
+
+   static void setSaveListener(ActionListener saveListener) {
+      if (t != null)
+          t.setSaveListener(saveListener);
    }
 }
