@@ -29,8 +29,6 @@ package pspdash.data;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
-import netscape.security.PrivilegeManager;
-import netscape.security.ForbiddenTargetException;
 
 
 public class NSDataApplet extends DataApplet {
@@ -44,20 +42,10 @@ public class NSDataApplet extends DataApplet {
 
         try {
             mgr = new NSFieldManager(this);
-
-                                      // get permission for our applet to make
-            try {			// a socket connection
-                PrivilegeManager.enablePrivilege("UniversalConnect");
-            } catch (ForbiddenTargetException e) {
-                // don't automatically give up.  If the user is running over an
-                // http connection instead of the local hard drive, everything
-                // will still work.
-            }
-
             super.start();
 
-        } catch (Exception e) {	// creating the NSFieldManager could throw
-            printError(e);		// an exception
+        } catch (Exception e) {     // creating the NSFieldManager could throw
+            printError(e);            // an exception
         }
     }
 
