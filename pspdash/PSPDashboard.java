@@ -102,18 +102,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         // start the http server.
         try {
-            String template_directory =
-                Settings.getDir("templates.directory", true);
-            if (template_directory != null)
-                // if the user has specified a Templates directory,
-                // serve http requests out of that directory.
-                webServer = new TinyWebServer(template_directory, 2468);
-
-            else
-                // default behavior: if no Templates directory is
-                // specified, serve http requests out of the classpath.
-                webServer = new TinyWebServer(2468, TEMPLATES_CLASSPATH);
-
+            webServer = new TinyWebServer
+                (2468, TemplateLoader.getTemplateURLs());
             webServer.start();
             webServer.allowRemoteConnections
                 (Settings.getVal("http.allowRemote"));

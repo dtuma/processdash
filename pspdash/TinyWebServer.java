@@ -256,6 +256,7 @@ public class TinyWebServer extends Thread {
                 // System.out.println("connection opened.");
                 result.connect();
                 // System.out.println("connection connected.");
+                // System.out.println("Using URL: " + u);
                 return result;
             } catch (IOException ioe) { }
 
@@ -775,6 +776,19 @@ public class TinyWebServer extends Thread {
 
         roots = new URL[1];
         roots[0] = rootDir.toURL();
+
+        DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
+        serverSocket = new ServerSocket(port);
+    }
+
+    /**
+     * Run a tiny web server on the given port, serving up resources
+     * out of the given list of template search URLs.
+     */
+    public TinyWebServer(int port, URL [] roots) throws IOException
+    {
+        // this.port = port;
+        this.roots = roots;
 
         DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
         serverSocket = new ServerSocket(port);

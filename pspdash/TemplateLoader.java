@@ -43,6 +43,7 @@
 package pspdash;
 
 import pspdash.data.DataRepository;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.io.*;
 import java.util.*;
@@ -59,54 +60,33 @@ public class TemplateLoader {
     public static PSPProperties loadTemplates(DataRepository data) {
         PSPProperties templates = new PSPProperties(null);
 
-        String template_directory =
-            Settings.getDir("templates.directory", true);
+        URL[] roots = getTemplateURLs();
 
-        if (template_directory != null) {
-            /* If the user has specified a templates directory, search
-             * through it for process templates.
-             */
-            if (searchDirForTemplates(templates, template_directory, data))
-                data.addDatafileSearchDir(template_directory);
+        String templateDirURL;
+        for (int i=0;  i < roots.length;  i++) {
+            templateDirURL = roots[i].toString();
 
-        } else {
-            // search for process template directories in the classpath.
-            Enumeration templateDirs;
-            try {
-                templateDirs = TemplateLoader.class.getClassLoader()
-                    .getResources(TEMPLATE_DIR);
-            } catch (IOException ioe) {
-                debug("error when searching for Templates directories in " +
-                      "the classpath: " + ioe);
-                return templates;
-            }
+            if (templateDirURL.startsWith("file:/")) {
+                /* If the /Templates directory exists as a local file
+                 * somewhere, search through that directory for process
+                 * templates.
+                 */
 
-            String templateDirURL;
-            while (templateDirs.hasMoreElements()) {
-                templateDirURL = templateDirs.nextElement().toString();
+                // strip "file:" from the beginning of the url.
+                String dirname = templateDirURL.substring(5);
+                if (searchDirForTemplates(templates, dirname, data))
+                    data.addDatafileSearchDir(dirname);
 
-                if (templateDirURL.startsWith("file:/")) {
-                    /* If the /Templates directory exists as a local file
-                     * somewhere, search through that directory for process
-                     * templates.
-                     */
+            } else {
+                /* If the /Templates directory found is in a jar somewhere,
+                 * search through the jar for process templates.
+                 */
 
-                    // strip "file:/" from the beginning of the url.
-                    String dirname = templateDirURL.substring(6);
-                    if (searchDirForTemplates(templates, dirname, data))
-                        data.addDatafileSearchDir(dirname);
-
-                } else {
-                    /* If the /Templates directory found is in a jar somewhere,
-                     * search through the jar for process templates.
-                     */
-
-                    // Strip "jar:" from the beginning and the "!/Templates/"
-                    // from the end of the URL.
-                    String jarFileURL = templateDirURL.substring
-                        (4, templateDirURL.indexOf('!'));
-                    searchJarForTemplates(templates, jarFileURL, data);
-                }
+                // Strip "jar:" from the beginning and the "!/Templates/"
+                // from the end of the URL.
+                String jarFileURL = templateDirURL.substring
+                    (4, templateDirURL.indexOf('!'));
+                searchJarForTemplates(templates, jarFileURL, data);
             }
         }
 
@@ -148,7 +128,7 @@ public class TemplateLoader {
                                                    DataRepository data) {
         boolean foundTemplates = false;
         try {
-            // debug("searching for templates in " + jarURL);
+            debug("searching for templates in " + jarURL);
             ZipInputStream jarFile =
                 new ZipInputStream((new URL(jarURL)).openStream());
 
@@ -161,22 +141,23 @@ public class TemplateLoader {
                     continue;
 
                 if (filename.endsWith(TEMPLATE_SUFFIX)) {
-                    // debug("loading template: " + filename);
+                    debug("loading template: " + filename);
                     templates.load(jarFile, false);
                     foundTemplates = true;
                 } else if (filename.endsWith(DATAFILE_SUFFIX)) {
                     try {
-                        // debug("loading data: " + filename);
+                        debug("loading data: " + filename);
                         data.addGlobalDefinitions(jarFile, false);
                     } catch (Exception e) {
-                        debug("unable to load global process data from " +
-                              file.getName() + " in " + jarURL + ": " + e);
+                        System.out.println
+                            ("unable to load global process data from " +
+                             file.getName() + " in " + jarURL + ": " + e);
                     }
                 }
             }
 
         } catch (IOException ioe) {
-            debug("error looking for templates in " + jarURL);
+            System.out.println("error looking for templates in " + jarURL);
             ioe.printStackTrace(System.out);
         }
         return foundTemplates;
@@ -185,7 +166,7 @@ public class TemplateLoader {
     protected static boolean searchDirForTemplates(PSPProperties templates,
                                                    String directoryName,
                                                    DataRepository data) {
-        // debug("searching for templates in " + directoryName);
+        debug("searching for templates in " + directoryName);
         File[] process_templates = new File(directoryName).listFiles();
         if (process_templates == null) return false;
 
@@ -198,7 +179,7 @@ public class TemplateLoader {
             filename = f.getName().toLowerCase();
             if (filename.endsWith(TEMPLATE_SUFFIX)) {
                 try {
-                    // debug("loading template: " + f);
+                    debug("loading template: " + f);
                     templates.load(new FileInputStream(f));
                     foundTemplates = true;
                 } catch (IOException ioe) {
@@ -206,11 +187,12 @@ public class TemplateLoader {
                 }
             } else if (filename.endsWith(DATAFILE_SUFFIX)) {
                 try {
-                    // debug("loading data: " + f);
+                    debug("loading data: " + f);
                     data.addGlobalDefinitions(new FileInputStream(f), true);
                 } catch (Exception e) {
-                    debug("unable to load global process data from " + f +
-                          ": " + e);
+                    System.out.println
+                        ("unable to load global process data from " + f +
+                         ": " + e);
                 }
             }
         }
@@ -218,6 +200,124 @@ public class TemplateLoader {
     }
 
     protected static void debug(String msg) {
-        System.out.println("TemplateLoader: " + msg);
+        // System.out.println("TemplateLoader: " + msg);
+    }
+
+    /** Returns a list of URLs to templates, in logical search order.
+     *
+     * The URL search order is:<OL>
+     * <LI>Look first in the directory specified by the user setting
+     *     "templates.directory" (should end in "Templates").
+     * <LI>Next, look in any JAR files contained in that directory.
+     * <LI>Next, look in any JAR files contained in the parent of that
+     *     directory.
+     * <LI>If there is a Templates directory alongside the pspdash.jar file,
+     *     look there, first for the file, then for JARs containing the file.
+     * <LI>If there are any JAR files next to the pspdash.jar file, look in
+     *     them.
+     * <LI>Finally, look in the classpath (which includes the pspdash.jar
+     *     file).</OL>
+     */
+    public static URL[] getTemplateURLs() {
+        if (template_url_list != null) return template_url_list;
+
+        Vector result = new Vector();
+
+        addTemplateURLs(Settings.getDir("templates.directory", false), result);
+
+        addTemplateURLs(getBaseDir(), result);
+
+        try {
+            Enumeration e = TemplateLoader.class.getClassLoader()
+                .getResources(TEMPLATE_DIR);
+            while (e.hasMoreElements())
+                result.addElement(e.nextElement());
+        } catch (IOException ioe) {
+            System.err.println("An exception was encountered when searching " +
+                               "for process templates in the classpath:\n\t" +
+                               ioe);
+        }
+
+        int i = result.size();
+        URL[] roots = new URL[i];
+        debug("The template roots (in reverse order) are:");
+        while (i-- > 0) {
+            roots[i] = (URL) result.elementAt(i);
+            debug(roots[i].toString());
+        }
+
+        template_url_list = roots;
+        return roots;
+    }
+    private static URL[] template_url_list = null;
+    private static final String JARFILE_NAME = "pspdash.jar";
+    private static final String TEMPLATE_DIRNAME = "Templates";
+    private static final String SEP_TEMPL_DIR =
+        Settings.sep + TEMPLATE_DIRNAME.toLowerCase();
+
+    private static void addTemplateURLs(String directory, Vector v) {
+        // abort if directory is null or zero length.
+        if (directory == null || directory.length() == 0) return;
+
+        // If directory name ends with a path separator, remove it.
+        if (directory.endsWith(Settings.sep))
+            directory = directory.substring(0, directory.length() -
+                                            Settings.sep.length());
+
+        File parentDir, templateDir;
+
+        // Check to see if we were given the "Templates" directory, or its
+        // parent.
+        if (directory.toLowerCase().endsWith(SEP_TEMPL_DIR)) {
+            templateDir = new File(directory);
+            if (!templateDir.isDirectory()) return;
+            parentDir = templateDir.getParentFile(); // may return null
+
+        } else {
+            parentDir = new File(directory);
+            if (!parentDir.isDirectory()) return;
+            templateDir = new File(parentDir, TEMPLATE_DIRNAME);
+            if (!templateDir.isDirectory()) templateDir = null;
+        }
+
+        if (templateDir != null) try {
+            v.add(templateDir.toURL());
+        } catch (MalformedURLException mue) {}
+
+        scanDirForJarFiles(templateDir, v);
+        scanDirForJarFiles(parentDir, v);
+    }
+    private static void scanDirForJarFiles(File dir, Vector v) {
+        if (dir == null) return;
+
+        File[] dirContents = dir.listFiles();
+        String name;
+        for (int i=0;  i < dirContents.length;  i++) try {
+            name = dirContents[i].toURL().toString();
+            if (name.toLowerCase().endsWith(".jar") &&
+                ! name.toLowerCase().endsWith(JARFILE_NAME))
+                v.add(new URL("jar:" + name + "!/" + TEMPLATE_DIR));
+        } catch (MalformedURLException mue) {}
+    }
+    /** Figure out what directory contains the pspdash.jar file. */
+    private static String getBaseDir() {
+        URL u =
+            TemplateLoader.class.getResource("/pspdash/TemplateLoader.class");
+        if (u == null) return null;
+
+        String myURL = u.toString();
+        // we are expecting a URL like (Windows)
+        // jar:file:/D:/path/to/pspdash.jar!/pspdash/TemplateLoader.class
+        // or (Unix)
+        // jar:file:/usr/path/to/pspdash.jar!/pspdash/TemplateLoader.class
+        if (myURL.startsWith("jar:file:")) try {
+            String jarFileName = myURL.substring(9,myURL.indexOf("!/pspdash"));
+            File jarFile = new File(jarFileName);
+            if (jarFile.exists())
+                return jarFile.getParent();
+            else
+                return null;
+        } catch (IndexOutOfBoundsException ioobe) {}
+        return null;
     }
 }
