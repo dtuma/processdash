@@ -1,0 +1,38 @@
+= To Date % Time in Phase query
+
+title=Time in Phase To Date
+where=PSP To Date Data
+order=PSP To Date Data
+skipRowHdr=true
+
+d1==Planning/% Time To Date
+h1==Planning
+f1==100%
+
+d2==Design/% Time To Date
+h2==Design
+f2==100%
+
+d3==Design Review/% Time To Date
+h3==Design Review
+f3==100%
+
+d4==Code/% Time To Date
+h4==Code
+f4==100%
+
+d5==Code Review/% Time To Date
+h5==Code Review
+f5==100%
+
+d6==Compile/% Time To Date
+h6==Compile
+f6==100%
+
+d7==Test/% Time To Date
+h7==Test
+f7==100%
+
+d8==Postmortem/% Time To Date
+h8==Postmortem
+f8==100%
