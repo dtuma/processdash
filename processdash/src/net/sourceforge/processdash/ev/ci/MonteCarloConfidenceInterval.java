@@ -155,6 +155,12 @@ public class MonteCarloConfidenceInterval
             viability = NOMINAL * (1 - prob);
     }
 
+    public double getProbability(double highValue) {
+        int pos = samples.find(highValue);
+        double prob = ((double) pos) / samples.size();
+        return prob;
+    }
+
     public double getViability() {
         return viability;
     }
