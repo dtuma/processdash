@@ -37,38 +37,9 @@ class NSFieldManager implements HTMLFieldManager {
     Vector inputListeners = null;
     Repository data = null;
     String dataPath = null;
-    DelayedNotifier notifier = null;
+    NSDelayedNotifier notifier = null;
     boolean isRunning, unlocked;
 
-
-    private class DelayedNotifier extends Thread {
-        Vector itemsToNotify = new Vector();
-        public void run() {
-            while (true) {
-                try {
-                    synchronized (this) {
-                        // wait indefinitely until someone notifies us
-                        if (itemsToNotify.size() == 0) wait();
-                    }
-                    // then wait a tenth of a second more.
-                    sleep(100);
-                } catch (InterruptedException ie) {}
-
-                // finally, trigger userEvent() on all the registered fields.
-                while (itemsToNotify.size() > 0) {
-                    NSField f = (NSField) itemsToNotify.elementAt(0);
-                    itemsToNotify.removeElementAt(0);
-                    f.userEvent();
-                }
-            }
-        }
-        public synchronized void addField(NSField f) {
-            if (f != null) {
-                itemsToNotify.addElement(f);
-                notify();
-            }
-        }
-    }
 
 
     NSFieldManager(DataApplet a) throws Exception {
@@ -76,7 +47,7 @@ class NSFieldManager implements HTMLFieldManager {
         inputListeners = new Vector();
         unlocked = a.unlocked();
 
-        notifier = new DelayedNotifier();
+        notifier = new NSDelayedNotifier();
         notifier.setDaemon(true);
         notifier.start();
 
