@@ -156,8 +156,6 @@ Authors:
       <include name="pspdash/*.java"/>
       <include name="pspdash/data/**/*.java"/>
       <exclude name="pspdash/DashHelpBroker.java"/>
-      <exclude name="pspdash/AbstractLinearConfidenceInterval.java"/>
-      <exclude name="pspdash/LinearRegressionConfidenceInterval.java"/>
       <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ie.txt"/>

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -49,7 +49,8 @@ public class EVCalculatorData extends EVCalculator {
     public void recalculate() {
         resetData();
         scheduleStartDate = schedule.getStartDate();
-        reorderCompletedTasks = Settings.getBool("ev.sortCompletedTasks", true);
+        reorderCompletedTasks =
+            Settings.getBool("ev.sortCompletedTasks", true);
 
         pruneNodes(taskRoot, false);
         double levelOfEffort = calculateLevelOfEffort(taskRoot);
@@ -96,10 +97,14 @@ public class EVCalculatorData extends EVCalculator {
 
         recalculateTaskHierarchy(taskRoot);
 
+        // create confidence intervals for cost, time, and schedule
+        createCostConfidenceInterval();
+        createTimeErrConfidenceInterval();
+        createScheduleConfidenceInterval();
+
         schedule.getMetrics().recalcComplete(schedule);
         schedule.firePreparedEvents();
     }
-
 
     private boolean containsTaskOrdinals(EVTask task) {
         if (task.taskOrdinal > 0) return true;
@@ -309,7 +314,8 @@ public class EVCalculatorData extends EVCalculator {
             // been completed instantaneously when the schedule started
             if (task.actualNodeTime > 0 &&
                 !task.isLevelOfEffortTask() && !task.isUserPruned())
-                metrics.addTask(0, task.actualNodeTime, null, metrics.startDate());
+                metrics.addTask(0, task.actualNodeTime, null,
+                                metrics.startDate());
         }
     }
 
@@ -382,4 +388,72 @@ Value to recalculate
         return result;
     }
 
+
+
+    private void createCostConfidenceInterval() {
+        ConfidenceInterval costInterval = null;
+        if (completionDate == null) {
+            costInterval = new EVCostConfidenceInterval
+                (getConfidenceIntervalTasks());
+            double totalPlan = schedule.getMetrics().totalPlan();
+            double completedTasks = schedule.getMetrics().earnedValue();
+            double incompleteTime = totalPlan - completedTasks;
+            costInterval.setInput(incompleteTime);
+
+            if (!(costInterval.getViability() > ConfidenceInterval.ACCEPTABLE))
+                costInterval = null;
+        }
+
+        schedule.getMetrics().setCostConfidenceInterval(costInterval);
+    }
+
+    private List getConfidenceIntervalTasks() {
+        List result = new LinkedList(getEVLeaves());
+        addHistoricalTaskLiability(taskRoot, result);
+        return result;
+    }
+
+    private void addHistoricalTaskLiability(EVTask task, List tasks) {
+        if (task.actualNodeTime > 0 &&
+            !task.isLevelOfEffortTask() && !task.isUserPruned() &&
+            !tasks.contains(task))
+            tasks.add(task);
+        for (int i = 0;   i < task.getNumChildren();   i++)
+            addHistoricalTaskLiability(task.getChild(i), tasks);
+    }
+
+
+
+    private void createTimeErrConfidenceInterval() {
+        ConfidenceInterval timeErrInterval =
+            new EVTimeErrConfidenceInterval(schedule);
+        if (!(timeErrInterval.getViability() > ConfidenceInterval.ACCEPTABLE))
+            timeErrInterval = null;
+        schedule.getMetrics().setTimeErrConfidenceInterval(timeErrInterval);
+    }
+
+
+    private void createScheduleConfidenceInterval() {
+        try {
+            ConfidenceInterval costInterval =
+                schedule.getMetrics().getCostConfidenceInterval();
+            ConfidenceInterval timeErrInterval =
+                schedule.getMetrics().getTimeErrConfidenceInterval();
+
+            ConfidenceInterval completionDate = null;
+            if (costInterval != null && timeErrInterval != null) {
+                EVScheduleRandom sr = new EVScheduleRandom(schedule);
+                EVScheduleConfidenceIntervals ci =
+                    new EVScheduleConfidenceIntervals
+                        (sr, Collections.singletonList(sr));
+                completionDate = ci.getForecastDateInterval();
+            }
+
+            schedule.getMetrics().setDateConfidenceInterval(completionDate);
+        } catch (Exception e) {
+            schedule.getMetrics().setDateConfidenceInterval(null);
+            System.out.println("Error calculating schedule interval:");
+            e.printStackTrace();
+        }
+    }
 }

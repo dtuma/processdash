@@ -56,13 +56,24 @@ public class EVScheduleRollup extends EVSchedule {
 
     /** Clone an existing EVScheduleRollup.
      */
-    public EVScheduleRollup(EVScheduleRollup r) {
+    public EVScheduleRollup(EVScheduleRollup r, boolean supportFormatting) {
         super();
-        metrics = new EVMetricsRollup();
+        metrics = new EVMetricsRollup(supportFormatting);
 
         Iterator i = r.subSchedules.iterator();
         while (i.hasNext())
-            subSchedules.add(new EVSchedule((EVSchedule) i.next()));
+            subSchedules.add(((EVSchedule) i.next()).copy());
+    }
+
+
+    /** Create a rollup of several random schedules.
+     */
+    public EVScheduleRollup(EVScheduleRandom[] list) {
+        super();
+        metrics = new EVMetricsRollup();
+
+        for (int i = 0;   i < list.length;   i++)
+            addSchedule(list[i]);
     }
 
 
@@ -202,7 +213,7 @@ public class EVScheduleRollup extends EVSchedule {
 
     /** Sum period data from the given schedule into this schedule.
      */
-    private void addScheduleData(EVSchedule schedule) {
+    protected void addScheduleData(EVSchedule schedule) {
         schedule.calcIndividualValues();
 
         Iterator i = schedule.periods.iterator();
@@ -280,7 +291,7 @@ public class EVScheduleRollup extends EVSchedule {
 
         // Clone ourself so we can perform a "what-if" calculation without
         // screwing up our data.
-        EVScheduleRollup r = new EVScheduleRollup(this);
+        EVScheduleRollup r = new EVScheduleRollup(this, false);
         r.calcHypotheticalDates = false;
 
         // grow all the subschedules so they are plenty long enough.
@@ -294,13 +305,13 @@ public class EVScheduleRollup extends EVSchedule {
 
         // recalculate the data in the cloned rollup schedule.
         r.recalc();
-        return r.getPlannedCompletionDate(cumPlanTime, cumPlanTime);
+        return r.extrapolateWithinSchedule(cumPlanTime);
     }
 
     public static Period getSlice(EVSchedule src, Date start, Date end) {
         EVScheduleRollup r = null;
         if (src instanceof EVScheduleRollup)
-            r = new EVScheduleRollup((EVScheduleRollup) src);
+            r = new EVScheduleRollup((EVScheduleRollup) src, false);
         else {
             r = new EVScheduleRollup(new Vector());
             r.addSchedule(src);
@@ -391,6 +402,21 @@ public class EVScheduleRollup extends EVSchedule {
         ValueChartData result = new RollupValueChartData();
         result.recalc();
         return result;
+    }
+
+
+    public void recalcMetrics() {
+        ((EVMetricsRollup) metrics).reset(getEffectiveDate());
+
+        // add data in the EVMetrics objects.
+        Iterator i = subSchedules.iterator();
+        while (i.hasNext()) {
+            EVSchedule s = (EVSchedule) i.next();
+            ((EVMetricsRollup) metrics).addMetrics(s.getMetrics());
+        }
+
+        // fire events to indicate that our contents have changed.
+        getMetrics().recalcComplete(this);
     }
 
 }

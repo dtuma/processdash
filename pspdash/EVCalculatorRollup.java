@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,13 +21,16 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -65,6 +68,9 @@ public class EVCalculatorRollup extends EVCalculator {
 
         // adjust level of effort percentages
         calculateLevelOfEffort();
+
+        // Calculate confidence intervals, if possible.
+        createConfidenceIntervals();
 
         // Recalculate the rollup schedule.
         schedule.recalc();
@@ -156,5 +162,94 @@ public class EVCalculatorRollup extends EVCalculator {
 
         return evLeaves;
     }
+
+    private boolean allSchedulesHaveCostInterval() {
+        Iterator i = schedule.subSchedules.iterator();
+        while (i.hasNext()) {
+            EVSchedule s = (EVSchedule) i.next();
+            ConfidenceInterval ci = s.getMetrics().getCostConfidenceInterval();
+            if (ci == null)
+                return false;
+            if (!(ci.getViability() > ConfidenceInterval.ACCEPTABLE))
+                return false;
+        }
+        return true;
+    }
+
+    private void createConfidenceIntervals() {
+        if (!allSchedulesHaveCostInterval())
+            setNullIntervals();
+        else if (!allSchedulesHaveTimeErrInterval())
+            createCostInterval();
+        else
+            createBothIntervals();
+    }
+
+    private void setNullIntervals() {
+        schedule.getMetrics().setCostConfidenceInterval(null);
+        schedule.getMetrics().setTimeErrConfidenceInterval(null);
+        schedule.getMetrics().setDateConfidenceInterval(null);
+        ((EVMetricsRollup) schedule.getMetrics())
+            .setOptimizedDateConfidenceInterval(null);
+    }
+
+    private void createCostInterval() {
+        // System.out.println("Creating cost interval");
+        ConfidenceIntervalSum sum = new ConfidenceIntervalSum();
+        sum.acceptableError = 5 * 60;
+        Iterator i = schedule.subSchedules.iterator();
+        while (i.hasNext()) {
+            EVSchedule s = (EVSchedule) i.next();
+            sum.addInterval(s.getMetrics().getCostConfidenceInterval());
+        }
+        sum.intervalsComplete();
+        System.out.println("created " + sum.samples.size() + " cost samples");
+        sum.debugPrint(5);
+        schedule.getMetrics().setCostConfidenceInterval(sum);
+        schedule.getMetrics().setTimeErrConfidenceInterval(null);
+        schedule.getMetrics().setDateConfidenceInterval(null);
+        ((EVMetricsRollup) schedule.getMetrics())
+            .setOptimizedDateConfidenceInterval(null);
+    }
+
+    private static final boolean COST_ONLY = false;
+    private void createBothIntervals() {
+        if (COST_ONLY) { createCostInterval(); return; }
+
+        // System.out.println("Creating both intervals");
+        List subs = schedule.subSchedules;
+        EVScheduleRandom[] randSchedules = new EVScheduleRandom[subs.size()];
+        for (int i = 0;   i < randSchedules.length;   i++)
+            randSchedules[i] = new EVScheduleRandom((EVSchedule) subs.get(i));
+
+        EVScheduleRollup sr = new EVScheduleRollup(randSchedules);
+        sr.metrics = new EVMetricsRollupRandom(sr);
+        EVScheduleConfidenceIntervals ci = new EVScheduleConfidenceIntervals
+            (sr, Arrays.asList(randSchedules));
+
+        EVMetricsRollup metrics = (EVMetricsRollup) schedule.getMetrics();
+        metrics.setCostConfidenceInterval(ci.getCostInterval());
+        metrics.setTimeErrConfidenceInterval(null);
+        metrics.setDateConfidenceInterval(ci.getForecastDateInterval());
+        metrics.setOptimizedDateConfidenceInterval
+            (ci.getOptimizedForecastDateInterval());
+    }
+
+
+
+    private boolean allSchedulesHaveTimeErrInterval() {
+        Iterator i = schedule.subSchedules.iterator();
+        while (i.hasNext()) {
+            EVSchedule s = (EVSchedule) i.next();
+            ConfidenceInterval ci =
+                s.getMetrics().getTimeErrConfidenceInterval();
+            if (ci == null)
+                return false;
+            if (!(ci.getViability() > ConfidenceInterval.ACCEPTABLE))
+                return false;
+        }
+        return true;
+    }
+
 
 }

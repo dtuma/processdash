@@ -367,15 +367,20 @@ public class EVSchedule implements TableModel {
         // double-check to ensure that dates are increasing?
     }
 
+    public EVSchedule copy() { return new EVSchedule(this); }
     public EVSchedule(EVSchedule s) {
-        Iterator i = s.periods.iterator();
+        addAllPeriods(s.periods, periods);
+        directPercentage = s.directPercentage;
+    }
+    protected void addAllPeriods(List src, List dest) {
+        dest.clear();
+        Iterator i = src.iterator();
         Period p, prev = null;
         while (i.hasNext()) {
             p = (Period) ((Period) i.next()).clone();
             p.previous = prev; prev = p;
-            periods.add(p);
+            dest.add(p);
         }
-        directPercentage = s.directPercentage;
     }
 
     public EVSchedule(Element e) {
@@ -497,6 +502,7 @@ public class EVSchedule implements TableModel {
         Iterator i = periods.iterator();
         while (i.hasNext())
             ((Period) i.next()).saveToXML(result);
+        metrics.saveIntervalsToXML(result);
         result.append("</schedule>");
     }
 
@@ -603,6 +609,33 @@ public class EVSchedule implements TableModel {
             firstTimeThrough = false;
         }
     }
+
+    protected Date extrapolateWithinSchedule(double cumPlanTime) {
+        if (cumPlanTime < 0) return A_LONG_TIME_AGO;
+        if (Double.isNaN(cumPlanTime) || Double.isInfinite(cumPlanTime))
+            return NEVER;
+
+        Iterator i = periods.iterator();
+        i.next();
+        while (i.hasNext()) {
+            Period p = (Period) i.next();
+            if (p.cumPlanDirectTime < cumPlanTime)
+                continue;
+
+            double prevCumPlanTime = p.previous.cumPlanDirectTime;
+            double percent = (cumPlanTime - prevCumPlanTime) /
+                (p.cumPlanDirectTime - prevCumPlanTime);
+
+            long start = p.getBeginDate().getTime();
+            long end = p.endDate.getTime();
+            long duration = end - start;
+            long durationPercent = (long) (duration * percent);
+            return new Date(start + durationPercent);
+        }
+
+        return NEVER;
+    }
+
 
     public synchronized void saveCompletedTask(Date dateCompleted,
                                                double planValue) {

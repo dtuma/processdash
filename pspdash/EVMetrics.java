@@ -1,36 +1,39 @@
- // PSP Dashboard - Data Automation Tool for PSP-like processes
- // Copyright (C) 2003 Software Process Dashboard Initiative
- //
- // This program is free software; you can redistribute it and/or
- // modify it under the terms of the GNU General Public License
- // as published by the Free Software Foundation; either version 2
- // of the License, or (at your option) any later version.
- //
- // This program is distributed in the hope that it will be useful,
- // but WITHOUT ANY WARRANTY; without even the implied warranty of
- // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- // GNU General Public License for more details.
- //
- // You should have received a copy of the GNU General Public License
- // along with this program; if not, write to the Free Software
- // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- //
- // The author(s) may be contacted at:
- // OO-ALC/TISHD
- // Attn: PSP Dashboard Group
- // 6137 Wardleigh Road
- // Hill AFB, UT 84056-5843
- //
- // E-Mail POC:  processdash-devel@lists.sourceforge.net
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 2003 Software Process Dashboard Initiative
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+//
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.Map;
+import java.util.Hashtable;
 import java.util.MissingResourceException;
 import java.text.MessageFormat;
 import javax.swing.table.*;
@@ -79,12 +82,15 @@ public class EVMetrics implements TableModel {
 
     /** A confidence interval predicting the total cost of the tasks
      * which have not yet been completed (note that this <b>includes</b>
-     * time spent so far on the incomplete tasks).
-    protected ConfidenceInterval costInterval = null; */
+     * time spent so far on the incomplete tasks). */
+    protected ConfidenceInterval costInterval = null;
 
     /** A confidence interval predicting the ratio of actual direct time
-     * to planned direct time
-    protected ConfidenceInterval timeErrInterval = null; */
+     * to planned direct time */
+    protected ConfidenceInterval timeErrInterval = null;
+
+    /** A confidence interval predicting the forecast completion date. */
+    protected ConfidenceInterval completionDateInterval = null;
 
     /** A list of warnings/errors associated with this EVModel.
      *  the keys are the error messages; they may map to an EVTask
@@ -95,6 +101,17 @@ public class EVMetrics implements TableModel {
      * that they came from this EVMetrics object.
      */
     protected String errorQualifier = null;
+
+    public EVMetrics() {
+        this(true);
+    }
+
+    public EVMetrics(boolean supportFormatting) {
+        if (supportFormatting)
+            metrics = buildFormatters();
+        else
+            metrics = Collections.EMPTY_LIST;
+    }
 
     public void reset(Date start, Date current,
                       Date periodStart, Date periodEnd) {
@@ -191,6 +208,21 @@ public class EVMetrics implements TableModel {
             (earnedValue() < totalPlan() && forecastDate.before(currentDate)))
             useSimpleForecastDateFormula = true;
     }
+    public void setCostConfidenceInterval(ConfidenceInterval incompleteTaskCost) {
+        costInterval = incompleteTaskCost;
+    }
+    public ConfidenceInterval getCostConfidenceInterval() {
+        return costInterval;
+    }
+    public void setTimeErrConfidenceInterval(ConfidenceInterval timeError) {
+        timeErrInterval = timeError;
+    }
+    public ConfidenceInterval getTimeErrConfidenceInterval() {
+        return timeErrInterval;
+    }
+    public void setDateConfidenceInterval(ConfidenceInterval completionDate) {
+        completionDateInterval = completionDate;
+    }
 
 
     public double earnedValue() { return earnedValueTime; }
@@ -241,6 +273,20 @@ public class EVMetrics implements TableModel {
     public double independentForecastCost() {
         return totalPlan() / costPerformanceIndex();
     }
+    public double independentForecastCostLPI() {
+        if (costInterval == null)
+            return Double.NaN;
+        else
+//          return Math.max(actualTime + costInterval.getLPI(0.70),
+//                          totalScheduleActualTime);
+            return actualTime + costInterval.getLPI(0.70);
+    }
+    public double independentForecastCostUPI() {
+        if (costInterval == null)
+            return Double.NaN;
+        else
+            return actualTime + costInterval.getUPI(0.70);
+    }
 
     /** the number of minutes that have elapsed since the beginning of
          the project. */
@@ -270,6 +316,27 @@ public class EVMetrics implements TableModel {
         } else
             return forecastDate;
     }
+    public Date independentForecastDateLPI() {
+        if (completionDateInterval == null)
+            return null;
+        else
+            return convertToDate(completionDateInterval.getLPI(0.70));
+    }
+    public Date independentForecastDateUPI() {
+        if (completionDateInterval == null)
+            return null;
+        else
+            return convertToDate(completionDateInterval.getUPI(0.70));
+    }
+
+    protected Date convertToDate(double when) {
+        if (Double.isNaN(when) || Double.isInfinite(when))
+            return null;
+        else if (when == EVSchedule.NEVER.getTime())
+            return null;
+        else
+            return new Date((long) when);
+    }
 
     protected double calcDuration(Date s, Date e) {
         if (s == null || e == null) return Double.NaN;
@@ -289,8 +356,74 @@ public class EVMetrics implements TableModel {
 
 
     static Resources resources = Resources.getDashBundle("pspdash.EVMetrics");
+    static Map formatCaches = Collections.synchronizedMap(new HashMap());
 
     protected String getResourcePrefix() { return null; }
+
+    protected static class FormatResources implements Cloneable {
+        String metricName;
+        MessageFormat shortFormat, medFormat, fullFormat;
+        public Object clone() {
+            try {
+                return super.clone();
+            } catch (CloneNotSupportedException e) {
+                return null;
+            }
+        }
+        public void loadResources(String resourcePrefix, String key) {
+            if (metricName == null)
+                metricName = resources.getString(key + "_Name");
+            if (resourcePrefix != null)
+                key = resourcePrefix + key;
+            shortFormat = getFmt(key + "_Short_FMT",  shortFormat);
+            medFormat   = getFmt(key + "_Medium_FMT", medFormat);
+            fullFormat  = getFmt(key + "_Full_FMT",   fullFormat);
+        }
+        private MessageFormat getFmt(String key, MessageFormat defVal)
+        {
+            try {
+                return new MessageFormat(resources.getString(key));
+            } catch (MissingResourceException mre) {
+                if (defVal != null) return defVal;
+                throw mre;
+            }
+        }
+    }
+    protected FormatResources getFormatResources(String key) {
+        return getFormatResources(getResourcePrefix(), key);
+    }
+    protected static FormatResources getFormatResources(String prefix,
+                                                        String key)
+    {
+        String resourcePrefix = prefix;
+
+        Map cache = (Map) formatCaches.get(resourcePrefix);
+        if (cache == null) {
+            cache = Collections.synchronizedMap(new HashMap());
+            formatCaches.put(resourcePrefix, cache);
+        }
+
+        FormatResources result = (FormatResources) cache.get(key);
+        if (result == null) {
+            result = makeFormatter(prefix, key);
+            cache.put(key, result);
+        }
+        return result;
+    }
+
+    protected static FormatResources makeFormatter(String prefix, String key)
+    {
+        FormatResources result = null;
+        if (prefix == null) {
+            result = new FormatResources();
+        } else {
+            FormatResources base = getFormatResources(null, key);
+            result = (FormatResources) base.clone();
+        }
+        result.loadResources(prefix, key);
+        return result;
+    }
+
 
     protected abstract class MetricFormatter {
         String metricName;
@@ -298,17 +431,11 @@ public class EVMetrics implements TableModel {
         Object[] args = null;
 
         public MetricFormatter(String key) {
-            metricName = resources.getString(key + "_Name");
-            shortFormat = getFmt(key + "_Short_FMT");
-            medFormat = getFmt(key + "_Medium_FMT");
-            fullFormat = getFmt(key + "_Full_FMT");
-        }
-        private final MessageFormat getFmt(String key) {
-            if (getResourcePrefix() != null) try {
-                return new MessageFormat
-                    (resources.getString(getResourcePrefix() + key));
-            } catch (MissingResourceException mre) {}
-            return new MessageFormat(resources.getString(key));
+            FormatResources fmt = getFormatResources(key);
+            metricName = fmt.metricName;
+            shortFormat = fmt.shortFormat;
+            medFormat = fmt.medFormat;
+            fullFormat = fmt.fullFormat;
         }
 
         protected boolean isValid() { return args != null; }
@@ -384,7 +511,38 @@ public class EVMetrics implements TableModel {
         }
     }
 
-    protected ArrayList buildFormatters() {
+    protected abstract class CostRangeMetricFormatter extends MetricFormatter {
+        public CostRangeMetricFormatter(String key) { super(key); }
+        abstract double lpi();
+        abstract double upi();
+        protected void recalc() {
+            double lpi = lpi();
+            double upi = upi();
+            if (badDouble(lpi) || badDouble(upi))
+                args = null;
+            else
+                args = new Object[] { new Double(lpi/HOUR_MINUTES),
+                                      formatDuration(lpi, HOUR_MINUTES),
+                                      new Double(upi/HOUR_MINUTES),
+                                      formatDuration(upi, HOUR_MINUTES) };
+        }
+    }
+
+    protected abstract class DateRangeMetricFormatter extends MetricFormatter {
+        public DateRangeMetricFormatter(String key) { super(key); }
+        abstract Date lpi();
+        abstract Date upi();
+        protected void recalc() {
+            Date lpi = lpi();
+            Date upi = upi();
+            if (lpi == null || upi == null)
+                args = null;
+            else
+                args = new Object[] { lpi, upi };
+        }
+    }
+
+    protected List buildFormatters() {
         ArrayList result = new ArrayList();
         result.add(new CostMetricFormatter("Cost_Variance") {
                 double val() { return costVariance(); } } );
@@ -411,10 +569,16 @@ public class EVMetrics implements TableModel {
                 double val() { return improvementRatio(); } } );
         result.add(new CostMetricFormatter("Forecast_Cost") {
                 double val() { return independentForecastCost(); } } );
+        result.add(new CostRangeMetricFormatter("Forecast_Cost_Range") {
+                double lpi() { return independentForecastCostLPI(); }
+                double upi() { return independentForecastCostUPI(); } } );
         result.add(new DurationMetricFormatter("Forecast_Duration") {
                 double val() { return independentForecastDuration(); } } );
         result.add(new DateMetricFormatter("Forecast_Date") {
                 Date val() { return independentForecastDate(); } } );
+        result.add(new DateRangeMetricFormatter("Forecast_Date_Range") {
+                Date lpi() { return independentForecastDateLPI(); }
+                Date upi() { return independentForecastDateUPI(); } } );
         return result;
     }
 
@@ -555,7 +719,7 @@ public class EVMetrics implements TableModel {
     }
     public int getColumnCount() { return 4; }
 
-    protected ArrayList metrics = buildFormatters();
+    protected List metrics;
     protected ArrayList validMetrics = new ArrayList();
 
     public Object getValueAt(int row, int col) {
@@ -598,6 +762,7 @@ public class EVMetrics implements TableModel {
         }
     }
 
+
     public void saveToXML(StringBuffer result) {
         result
             .append( " tpt='").append(totalPlanTime)
@@ -609,6 +774,14 @@ public class EVMetrics implements TableModel {
             .append("' eff='").append(EVSchedule.saveDate(currentDate))
             .append("'");
     }
+    public void saveIntervalsToXML(StringBuffer result) {
+        if (costInterval instanceof AbstractConfidenceInterval)
+            ((AbstractConfidenceInterval) costInterval).saveToXML
+                ("costInterval", result);
+        if (timeErrInterval instanceof AbstractConfidenceInterval)
+            ((AbstractConfidenceInterval) timeErrInterval).saveToXML
+                ("timeErrInterval", result);
+    }
     public void loadFromXML(Element e) {
         totalPlanTime   = EVSchedule.getXMLNum(e, "tpt");
         earnedValueTime = EVSchedule.getXMLNum(e, "evt");
@@ -617,5 +790,11 @@ public class EVMetrics implements TableModel {
         indirectTime    = EVSchedule.getXMLNum(e, "it");
         startDate       = EVSchedule.getXMLDate(e, "start");
         currentDate     = EVSchedule.getXMLDate(e, "eff");
+
+        costInterval = AbstractConfidenceInterval.readFromXML
+            (e.getElementsByTagName("costInterval"));
+        costInterval.setInput(totalPlanTime - earnedValueTime);
+        timeErrInterval = AbstractConfidenceInterval.readFromXML
+            (e.getElementsByTagName("timeErrInterval"));
     }
 }
