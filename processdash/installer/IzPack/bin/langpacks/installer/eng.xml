@@ -138,7 +138,14 @@
 
     <!-- General installer strings -->
     <str id="installer.javaversion.title" txt="Can''t Install {0}"/>
-    <str id="installer.javaversion.info" txt="You need to upgrade your Java Runtime Environment!\n{0} {1} requires version {2} or\nhigher of the Java Runtime Environment.  You are currently\nrunning Java Runtime Environment version {3}.\n       To download an updated version of the Java Runtime\nEnvironment, visit   {4}\nThen run this installer program again."/>
+    <str id="installer.javaversion.info">
+You need to upgrade your Java Runtime Environment!
+{0} {1} requires version {2} or
+higher of the Java Runtime Environment.  You are currently
+running Java Runtime Environment version {3}.
+       To download an updated version of the Java Runtime
+Environment, visit   {4}
+Then run this installer program again.</str>
 
     <!-- Conditional License Panel strings -->
     <str id="LicencePanel.deselect.title" txt="Deselect Packages?"/>
@@ -150,8 +157,25 @@
     <str id="DataDirPanel.empty_datadir" txt="You must select a data directory."/>
 
     <!-- Shutdown Dashboard Panel strings -->
-    <str id="ShutdownDashboardPanel.info" txt="If you are running the Process Dashboard right now,\ninstalling new files can cause unpredictable errors.  It is\ntherefore imperative that you shut down the Dashboard if it\nis currently running.\n \nIf you are installing the Process Dashboard for the first\ntime, or if you are not currently running the Process\nDashboard, you can ignore this warning.\n \nOtherwise, shut down any currently running instances of the\nProcess Dashboard before you click the &quot;Next&quot; button."/>
-    <str id="ShutdownDashboardPanel.error.info" txt="This installer has detected that an instance\nof the Process Dashboard is currently running\non this machine.  You must shut it down before\nyou can proceed."/>
+    <str id="ShutdownDashboardPanel.info">
+If you are running the Process Dashboard right now,
+installing new files can cause unpredictable errors.  It is
+therefore imperative that you shut down the Dashboard if it
+is currently running.
+ 
+If you are installing the Process Dashboard for the first
+time, or if you are not currently running the Process
+Dashboard, you can ignore this warning.
+ 
+Otherwise, shut down any currently running instances of the
+Process Dashboard before you click the &quot;Next&quot; button.</str>
+
+    <str id="ShutdownDashboardPanel.error.info">
+This installer has detected that an instance
+of the Process Dashboard is currently running
+on this machine.  You must shut it down before
+you can proceed.</str>
+
     <str id="ShutdownDashboardPanel.error.title" txt="Process Dashboard Running"/>
 
     <!-- Package Downloader strings -->
