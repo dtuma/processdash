@@ -38,6 +38,8 @@ public class Browser {
     private static String defaultHost = "localhost";
     private static int defaultPort = PSPDashboard.DEFAULT_WEB_PORT;
 
+    public static final String BROWSER_LAUNCHER = "BrowserLauncher";
+
     public static void setDefaults(String host, int port) {
         defaultHost = host;
         defaultPort = port;
@@ -57,16 +59,28 @@ public class Browser {
      * Starts the browser for the current platform.
      * @param url The link to point the browser to.
      */
-    public static void launch(String url)
-    //        throws InterruptedException, IOException
+    public static void launch(String url) { launch(url, false); }
+    public static void openDoc(String url) { launch(url, true); }
+
+    private static void launch(String url, boolean document)
     {
         url = mapURL(url);
         String cmd = Settings.getFile("browser.command");
+        if (document && isWindows()) cmd = null;
 
         try {
             if (cmd != null) {
-                cmd = cmd + " " + url;
-                Runtime.getRuntime().exec(cmd);
+                if (BROWSER_LAUNCHER.equalsIgnoreCase(cmd))
+                    try {
+                        BrowserLauncher.openURL(url);
+                    } catch (IOException ble) {
+                        System.err.println(ble);
+                        throw ble;
+                    }
+                else {
+                    cmd = cmd + " " + url;
+                    Runtime.getRuntime().exec(cmd);
+                }
             } else if (isWindows()) {
                 cmd = ("rundll32 url.dll,FileProtocolHandler " +
                        maybeFixupURLForWindows(url));
@@ -226,6 +240,10 @@ public class Browser {
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.10  2002/09/15 21:00:47  tuma
+ * * Add special handling for the opening of documents on the Windows platform
+ * * To support Mac OS X, add additional support with BrowserLauncher
+ *
  * Revision 1.9  2002/08/10 01:45:35  tuma
  * Don't try to remap mailto: URLs.
  *
