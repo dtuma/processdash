@@ -26,7 +26,6 @@
 
 package pspdash;
 
-import java.net.URLEncoder;
 
 public class ScriptID {
 
@@ -94,17 +93,19 @@ public class ScriptID {
     }
 
     protected void viewScript (String theScript, String thePath) {
-        if (theScript != null) {
-            String url = encode(thePath) + "//" + theScript;
+        String url = getHref(theScript, thePath);
+        if (url != null)
             Browser.launch(url);
-        }
     }
 
-    protected String encode(String path) {
-        String result = URLEncoder.encode(path);
-        result = StringUtils.findAndReplace(result, "%2f", "/");
-        result = StringUtils.findAndReplace(result, "%2F", "/");
-        return result;
+    public String getHref() {
+        return getHref(scriptfile, datapath);
+    }
+
+    protected String getHref (String theScript, String thePath) {
+        if (theScript == null || thePath == null) return null;
+        String delim = (theScript.startsWith("/") ? "/" : "//");
+        return TinyWebServer.urlEncodePath(thePath) + delim + theScript;
     }
 
     protected String stripHash(String script) {
