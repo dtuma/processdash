@@ -245,8 +245,14 @@ public class ev extends CGIChartBase {
         super.writeContents();
     }
 
-    public void writeCombinedChart() {
-        // NOT YET IMPLEMENTED
+    public void writeCombinedChart() throws IOException {
+        // Create the data for the chart to draw.
+        xydata = evModel.getSchedule().getCombinedChartData();
+
+        // Alter the appearance of the chart.
+        maybeWriteParam("title", "Cost & Schedule");
+
+        super.writeContents();
     }
 
     /** Create a time series chart. */
