@@ -31,6 +31,7 @@ import java.io.*;
 import java.util.*;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.text.*;
 
 public class TinyWebServer extends Thread {
@@ -227,7 +228,7 @@ public class TinyWebServer extends Thread {
                 String initial_mime_type =
                     getMimeTypeFromName(conn.getURL().getFile());
                 if (SERVER_PARSED_MIME_TYPE.equals(initial_mime_type))
-                    servePreprocessedFile(conn);
+                    servePreprocessedFile(conn, null, 0);
                 else if (CGI_MIME_TYPE.equals(initial_mime_type))
                     serveCGI(conn);
                 else
@@ -333,32 +334,7 @@ public class TinyWebServer extends Thread {
             if (script == null)
                 sendError (500, "Internal Error", "Couldn't load script." );
 
-            // Create the environment for the cgi script.
-            HashMap env = new HashMap(DEFAULT_ENV);
-            env.put("SERVER_PROTOCOL", protocol);
-            env.put("REQUEST_METHOD", method);
-            env.put("PATH_INFO", id);
-            if (id != null && id.startsWith("/")) {
-                env.put("PATH_TRANSLATED", URLDecoder.decode(id));
-                env.put("SCRIPT_PATH", id + "//" + path);
-            } else {
-                env.put("PATH_TRANSLATED", data.getPath(id));
-                env.put("SCRIPT_PATH", "/" + id + "/" + path);
-            }
-            env.put("SCRIPT_NAME", "/" + path);
-            env.put("REQUEST_URI", uri);
-            env.put("QUERY_STRING", query);
-            if (clientSocket != null) {
-                env.put("REMOTE_PORT",
-                        Integer.toString(clientSocket.getPort()));
-                InetAddress addr = clientSocket.getInetAddress();
-                env.put("REMOTE_HOST", addr.getHostName());
-                env.put("REMOTE_ADDR", addr.getHostAddress());
-                addr = clientSocket.getLocalAddress();
-                env.put("SERVER_NAME", addr.getHostName());
-                env.put("SERVER_ADDR", addr.getHostAddress());
-            }
-            env.put(TinyCGI.TINY_WEB_SERVER, TinyWebServer.this);
+            Map env = buildEnvironment();
 
             // Parse the headers on the original http request and add to
             // the cgi script environment.
@@ -437,6 +413,40 @@ public class TinyWebServer extends Thread {
             outputStream.flush();
         }
 
+        /** Create an environment for use by a CGI script or a server
+         *  preprocessed file */
+        private HashMap buildEnvironment() {
+
+            // Create the environment for the cgi script.
+            HashMap env = new HashMap(DEFAULT_ENV);
+            env.put("SERVER_PROTOCOL", protocol);
+            env.put("REQUEST_METHOD", method);
+            env.put("PATH_INFO", id);
+            if (id != null && id.startsWith("/")) {
+                env.put("PATH_TRANSLATED", URLDecoder.decode(id));
+                env.put("SCRIPT_PATH", id + "//" + path);
+            } else {
+                if (data != null) env.put("PATH_TRANSLATED", data.getPath(id));
+                env.put("SCRIPT_PATH", "/" + id + "/" + path);
+            }
+            env.put("SCRIPT_NAME", "/" + path);
+            env.put("REQUEST_URI", uri);
+            env.put("QUERY_STRING", query);
+            if (clientSocket != null) {
+                env.put("REMOTE_PORT",
+                        Integer.toString(clientSocket.getPort()));
+                InetAddress addr = clientSocket.getInetAddress();
+                env.put("REMOTE_HOST", addr.getHostName());
+                env.put("REMOTE_ADDR", addr.getHostAddress());
+                addr = clientSocket.getLocalAddress();
+                env.put("SERVER_NAME", addr.getHostName());
+                env.put("SERVER_ADDR", addr.getHostAddress());
+            }
+            env.put(TinyCGI.TINY_WEB_SERVER, TinyWebServer.this);
+
+            return env;
+        }
+
         /** Get a TinyCGI script for a given uri path.
          * @param conn the URLConnection to the ".class" file for the script.
          *   TinyCGI scripts must be java classes in the root package (like
@@ -499,64 +509,139 @@ public class TinyWebServer extends Thread {
             if (mime_type == null)
                 mime_type = getDefaultMimeType(buffer, numBytes);
 
-            sendHeaders(200, "OK", mime_type, conn.getContentLength(),
-                        conn.getLastModified(), null);
-            out.flush();
+            if (mime_type.startsWith("text/html") &&
+                containsServerParseOverride(buffer, numBytes))
+                servePreprocessedFile(conn, buffer, numBytes);
 
-            do {
-                outputStream.write(buffer, 0, numBytes);
-            } while (-1 != (numBytes = content.read(buffer)));
-            outputStream.flush();
-            content.close();
+            else {
+                sendHeaders(200, "OK", mime_type, conn.getContentLength(),
+                            conn.getLastModified(), null);
+                out.flush();
+
+                do {
+                    outputStream.write(buffer, 0, numBytes);
+                } while (-1 != (numBytes = content.read(buffer)));
+                outputStream.flush();
+                content.close();
+            }
         }
+
+        private boolean containsServerParseOverride(byte[] buffer,
+                                                    int numBytes) {
+            String initialContents = new String(buffer, 0, numBytes);
+            return (initialContents.indexOf(SERVER_PARSE_OVERRIDE) != -1);
+        }
+        private static final String SERVER_PARSE_OVERRIDE =
+            "<!--#server-parsed";
 
 
         /** Serve up a server-parsed html file. */
-        private void servePreprocessedFile(URLConnection conn)
+        private void servePreprocessedFile(URLConnection conn,
+                                           byte [] extra, int numBytes)
             throws TinyWebThreadException, IOException
         {
             discardHeader();
-            String content = preprocessTextFile(conn).toString();
+            String content =
+                preprocessTextFile(conn, extra, numBytes).toString();
             sendHeaders(200, "OK", "text/html", content.length(), -1, null);
             out.write(content);
         }
 
-        private String preprocessTextFile(URLConnection conn)
+        private String preprocessTextFile(URLConnection conn,
+                                          byte [] extra, int numBytes)
             throws TinyWebThreadException, IOException
         {
-            // Slurp the entire file into a StringBuffer.
-            String content = new String(slurpContents(conn.getInputStream(),
-                                                      true));
+            byte[] rawContent = slurpContents(conn.getInputStream(), true);
+            if (extra != null && numBytes > 0) {
+                byte [] totalContent = new byte[numBytes + rawContent.length];
+                System.arraycopy(extra, 0, totalContent, 0, numBytes);
+                System.arraycopy(rawContent, 0, totalContent, numBytes,
+                                 rawContent.length);
+                rawContent = totalContent;
+            }
+            String content = new String(rawContent);
 
-            // Look for and process include directives.
+            // Look for and process directives.
             StringBuffer result = new StringBuffer();
-            String include, includedContent;
+            String directive, attrStr, generatedContent;
+            Map attributes, env = null;
             int beg, end;
-            while ((beg = content.indexOf(INCLUDE_START)) != -1) {
+            while ((beg = content.indexOf(DIRECTIVE_START)) != -1) {
                 result.append(content.substring(0, beg));
-                beg += INCLUDE_START.length();
-                end = content.indexOf(INCLUDE_END, beg);
-                include = content.substring(beg, end);
-                content = content.substring(end + INCLUDE_END.length());
+                beg += DIRECTIVE_START.length();
+                end = content.indexOf(' ', beg);
+                directive = content.substring(beg, end);
+                beg = end+1;
+                end = content.indexOf(DIRECTIVE_END, beg);
+                attrStr = content.substring(beg, end);
+                content = content.substring(end + DIRECTIVE_END.length());
+                attributes = parseDirectiveAttributes(attrStr);
 
-                include = parseIncludeDirective(include);
-                includedContent = new String(getRequest(uri, include, true));
-                result.append(includedContent);
+                if (INCLUDE_DIRECTIVE.equalsIgnoreCase(directive)) {
+                    generatedContent = processIncludeDirective(attributes);
+                } else if (ECHO_DIRECTIVE.equalsIgnoreCase(directive)) {
+                    if (env == null) env = buildEnvironment();
+                    generatedContent = processEchoDirective(env, attributes);
+                } else {
+                    generatedContent = "";
+                }
+                result.append(generatedContent);
             }
             result.append(content);
 
             return result.toString();
         }
 
-        private static final String INCLUDE_START = "<!--#include";
-        private static final String INCLUDE_END   = "-->";
+        private static final String DIRECTIVE_START = "<!--#";
+        private static final String DIRECTIVE_END   = "-->";
+        private static final String INCLUDE_DIRECTIVE = "include";
+        private static final String ECHO_DIRECTIVE    = "echo";
+
+        private String processIncludeDirective(Map attributes)
+            throws IOException
+        {
+            String include = (String) attributes.get("file");
+            if (include == null) return "";
+
+            return new String(getRequest(uri, include, true));
+        }
+
+        private String processEchoDirective(Map env, Map attributes) {
+            String varName = (String) attributes.get("var");
+            if (varName == null) return "";
+
+            Object obj = env.get(varName);
+            if (obj == null) return "(none)";
+
+            String result = obj.toString();
+            String encoding = (String) attributes.get("encoding");
+            if ("none".equalsIgnoreCase(encoding))
+                return result;
+            else if ("url".equalsIgnoreCase(encoding))
+                return URLEncoder.encode(result);
+            else
+                // default: entity encoding
+                return encodeHtmlEntities(result);
+        }
 
         /** Currently not very robust. */
-        private String parseIncludeDirective(String include) {
-            if (!include.startsWith(" file=\"") || !include.endsWith("\" "))
-                return null;
-            else
-                return include.substring(7, include.length() - 2);
+        private Map parseDirectiveAttributes(String directive) {
+            HashMap result = new HashMap();
+            if (directive == null) return result;
+            StringTokenizer tok = new StringTokenizer(directive);
+            String token, name, value;
+            int equalsPos;
+            while (tok.hasMoreTokens()) {
+                token = tok.nextToken();
+                equalsPos = token.indexOf('=');
+                if (equalsPos == -1) continue;
+                name = token.substring(0, equalsPos);
+                value = token.substring(equalsPos+1);
+                if (value.startsWith("\"") && value.endsWith("\""))
+                    value = value.substring(1, value.length() - 1);
+                result.put(name, value);
+            }
+            return result;
         }
 
         /** read and discard the rest of the request header from inputStream */
@@ -666,6 +751,16 @@ public class TinyWebServer extends Thread {
 
             return DEFAULT_TEXT_MIME_TYPE;
         }
+    }
+
+
+    /** Encode HTML entities in the given string, and return the result. */
+    public static String encodeHtmlEntities(String str) {
+        str = StringUtils.findAndReplace(str, "&",  "&amp;");
+        str = StringUtils.findAndReplace(str, "<",  "&lt;");
+        str = StringUtils.findAndReplace(str, ">",  "&gt;");
+        str = StringUtils.findAndReplace(str, "\"", "&quot;");
+        return str;
     }
 
     /** Utility routine: slurp an entire file from an InputStream. */
