@@ -37,6 +37,12 @@ public class pie extends pspdash.CGIChartBase {
         PiePlot plot = (PiePlot)chart.getPlot();
         if (parameters.get("skipWedgeLabels") != null)
             plot.setDrawWedgeLabels(false);
+        else if (parameters.get("wedgeLabelFontSize") != null) try {
+            float fontSize =
+                Float.parseFloat(getParameter("wedgeLabelFontSize"));
+            plot.setWedgeLabelFont
+                (plot.getWedgeLabelFont().deriveFont(fontSize));
+        } catch (Exception lfe) {}
         if (parameters.get("ellipse") != null)
             plot.setDrawCircle(false);
 
