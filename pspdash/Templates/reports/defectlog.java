@@ -55,7 +55,8 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
 
     private static final String END_TEXT =
         "</TABLE>" +
-        "<P><I>This view of the defect log is read-only. To add, edit, or " +
+        "<P><I>This view of the defect log is read-only. To add entries to " +
+        "the defect log, use the defect button on the dashboard. To edit or " +
         "delete defects, use the defect log editor (accessible from the " +
         "Configuration menu of the dashboard).</I>" +
         "</BODY></HTML>";
