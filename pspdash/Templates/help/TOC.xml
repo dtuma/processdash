@@ -11,6 +11,7 @@
       <tocitem target="GoalsOfPSPAndDashboard" text="The overall goals"/>
       <tocitem target="QuickStartPSP0" text="Quick start example: PSP0"/>
       <tocitem target="QuickStartPSP3" text="Quick start example: PSP3"/>
+      <tocitem target="Help" text="Getting help"/>
     </tocitem>
 
     <tocitem text="Planning">
@@ -21,11 +22,15 @@
     </tocitem>
 
     <tocitem text="Running the Dashboard">
+      <tocitem target="HierarchyMenus" text="Navigating the Hierarchy menus"/>
       <tocitem target="AccessingScripts" text="Accessing the online PSP scripts"/>
       <tocitem target="PlayPause" text="Using the Play/Pause button to time your work"/>
       <tocitem target="CompletionButton" text="Completing tasks with the completion button"/>
+      <tocitem target="UsingTimeLogEditor" text="Editing Time data" />
       <tocitem target="EnteringDefects" text="Entering Defects"/>
-      <tocitem target="HierarchyMenus" text="Navigating the Hierarchy menus"/>
+      <tocitem target="UsingDefectLogEditor" text="Editing Defect data"/>
+      <tocitem target="ConfigureMenu" text="The Configuration menu"/>
+    
     </tocitem>
 
     <tocitem text="Postmortem Analysis">

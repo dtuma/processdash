@@ -1,9 +1,64 @@
 <HTML>
-<TITLE>JavaHelp Project in progress...</TITLE>
+<TITLE>The play/pause button</TITLE>
 <BODY>
 
-<H1>Work in progress</H1>
-You are looking at the beginnings of a help system for the Process Dashboard.
+<H1>Using the play/pause button</H1>
+
+<P>The play/pause button gives access to the timer that is built into the 
+dashboard.</P>
+
+<img src="../../Images/ShowPlayPauseButton.jpg">
+
+<P>By using the dashboard timer, you can measure the amount of time spent in 
+the various phases of your development process.</P>
+
+<P>By default, the play/pause button shows a triangle when the timer <em>IS 
+NOT</em> running.  The intent is that the picture shows what will happen when 
+it is pressed (pressing the play button will cause the timer to start).  Once 
+pressed, the button image changes from the triangle to a pair of vertical 
+bars.  When the vertical bars are displayed, the timer <em>IS</em> running.  
+Again, the intent is to show what will happen when the button is pressed at 
+this point (pressing the pause button will cause the timer to pause).</P>
+
+<P><TABLE cellSpacing=0 cellPadding=0 width="100%" align=center border=0>
+ <TR>
+  <TD><img src="../../Images/DashboardStopped.jpg"></TD>
+  <TD><img src="../../Images/DashboardRunning.jpg"></TD>
+ </TR>
+ <TR>
+  <TD>Dashboard timer waiting to be started</TD>
+  <TD>Dashboard timer running</TD>
+ </TR>
+</TABLE></P>
+
+<P>If you would prefer to see the triangle when the timer <em>IS</em> 
+currently running (i.e. you would rather see the current state of the timer 
+on the button), you can override this default behavior by adding an entry to 
+the configuration file.  Adding the following line to the configuration file 
+will cause the play and pause symbols to reverse their meaning:</P>
+
+<pre>pauseButton.showCurrent=true</pre>
+
+<P>The configuration file is named "pspdash.ini" on Windows platforms, and 
+".pspdash" on all other platforms.  It is located in either the user's home 
+directory (default) or in the same directory as the pspdash.jar file.  For 
+more information about the configuration file see the <a 
+href="../AdvancedTopics/ConfigurationFile.html">configuration file</a> help 
+topic.</P>
+
+
+
+<!-- DISCLAIMER -->
+<P> </P>
+<HR>
+<P><TABLE cellSpacing=0 cellPadding=0 width="75%" align=center border=0>
+ <TR>
+  <TD><FONT size=2><EM>On-the-job use of this tool is not intended to replace 
+   formal PSP training. Engineers interested in using the PSP should complete 
+   a PSP training course taught by an SEI certified PSP Instructor.</EM></FONT>
+  </TD>
+ </TR>
+</TABLE></P>
 
 </BODY>
 </HTML>

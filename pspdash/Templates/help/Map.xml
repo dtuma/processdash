@@ -23,8 +23,11 @@
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
   <mapID target="PlayPause" url="Topics/Execution/PlayPause.html" />
   <mapID target="CompletionButton" url="Topics/Execution/CompletionButton.html" />
+  <mapID target="UsingTimeLogEditor" url="Topics/Execution/UsingTimeLogEditor.html" />
   <mapID target="EnteringDefects" url="Topics/Execution/EnteringDefects.html" />
+  <mapID target="UsingDefectLogEditor" url="Topics/Execution/UsingDefectLogEditor.html" />
   <mapID target="HierarchyMenus" url="Topics/Execution/HierarchyMenus.html" />
+  <mapID target="ConfigureMenu" url="Topics/Execution/ConfigureMenu.html" />
 
   <mapID target="PostmortemAnalysis" url="Topics/PostmortemAnalysis/PostmortemAnalysis.html" />
   <mapID target="DataChartsAndReports" url="Topics/PostmortemAnalysis/DataChartsAndReports.html" />
@@ -36,5 +39,7 @@
   <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
   <mapID target="CreatingNewProcesses" url="Topics/AdvancedTopics/CreatingNewProcesses.html" />
   <mapID target="ModifyingExistingProcesses" url="Topics/AdvancedTopics/ModifyingExistingProcesses.html" />
+  <mapID target="Exit" url="Topics/Execution/Exit.html" />
+  <mapID target="Help" url="Topics/Execution/UsingHelp.html" />
 
 </map>

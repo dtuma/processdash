@@ -1,5 +1,5 @@
 <HTML>
-<TITLE>JavaHelp Project in progress...</TITLE>
+<TITLE>The Configuration File</TITLE>
 <BODY>
 
 <H1>Configuration File</H1>
@@ -11,59 +11,59 @@ either the user's data directory (default)&nbsp;or in the same directory as the
 <STRONG><EM>not</EM></STRONG> found in the data directory).&nbsp; </P>
 <P>The most common settings and their usage are listed below:</P>
 <P>
-<TABLE cellSpacing=1 cellPadding=1 width="100%" align=center border=1>
+<TABLE cellSpacing=1 cellPadding=1 width="100%" align=left border=1>
   
   <TR>
     <TD><STRONG>Name</STRONG></TD>
     <TD><STRONG>Use / Format</STRONG></TD></TR>
   <TR>
-    <TD>stateFile</TD>
+    <TD><center>stateFile</center></TD>
     <TD>Location of data file used for hierarchy.<BR>
 		Filename format.  <BR>
 		Default: the 
 		dashboard data directory.</TD></TR>
   <TR>
-    <TD>browser.command</TD>
+    <TD><center>browser.command</center></TD>
     <TD>Command used to bring up HTML browser.<BR>
 		Command-line text.  <BR>
 		Default: uses the 
 		browser set up during the installation.</TD></TR>
   <TR>
-    <TD>templates.directory</TD>
+    <TD><center>templates.directory</center></TD>
     <TD>Directory containing templates.<BR>
 		Path name format.  <BR>
 		Default: uses the 
 		templates that come with the dashboard and additional templates in the 
 		same directory as the pspdash.jar file.</TD></TR>
   <TR>
-    <TD>dateFormat</TD>
+    <TD><center>dateFormat</center></TD>
     <TD>Display format for date fields.<BR>
 		Tab separated list, where the first element is used for display 
 		(other values can be used for entering dates in other formats).  
 		See the Java documentation for the DateFormatter class for date formats.<BR>
 		Default: the Java default for the DateFormatter class.</TD></TR>
   <TR>
-    <TD>dateTimeFormat</TD>
+    <TD><center>dateTimeFormat</center></TD>
     <TD>Display format for time and date fields.<BR>
 		See entry for dateFormat.</TD></TR>
   <TR>
-    <TD>defectDialog.autostart</TD>
+    <TD><center>defectDialog.autostart</center></TD>
     <TD>True to start timer when defect dialog starts.<BR>
 		true or false.  <BR>
 		Default: true.</TD></TR>
   <TR>
-    <TD>pauseButton.showCurrent</TD>
+    <TD><center>pauseButton.showCurrent</center></TD>
     <TD>Appearance of the pause / play button on the dashboard.<BR>
 		true - shows PLAY symbol while playing (current state)<BR>
 		false - shows PLAY symbol while paused (affect of button press).<BR>
 		Default: false.</TD></TR>
   <TR>
-    <TD>probeDialog.onlyCompleted</TD>
+    <TD><center>probeDialog.onlyCompleted</center></TD>
     <TD>Flag to set implicit filtering of data by the PROBE dialog.<BR>
 		true - PROBE only correlates data from completed projects.<BR>
 		Default: true.</TD></TR>
   <TR>
-    <TD>http.allowRemote</TD>
+    <TD><center>http.allowRemote</center></TD>
     <TD>Allow or deny remote http connections.<BR>
 		false - the dashboard rejects http connections unless they come from "localhost".  
 		This prevents other people from viewing your PSP data.<BR>  
@@ -74,6 +74,18 @@ either the user's data directory (default)&nbsp;or in the same directory as the
       
       </TABLE></P>
              
+
+<!-- DISCLAIMER -->
+<P> </P>
+<HR>
+<P><TABLE cellSpacing=0 cellPadding=0 width="75%" align=center border=0>
+ <TR>
+  <TD><FONT size=2><EM>On-the-job use of this tool is not intended to replace 
+   formal PSP training. Engineers interested in using the PSP should complete 
+   a PSP training course taught by an SEI certified PSP Instructor.</EM></FONT>
+  </TD>
+ </TR>
+</TABLE></P>
 
 </BODY>
 </HTML>
