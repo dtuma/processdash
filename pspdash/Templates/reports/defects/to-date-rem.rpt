@@ -1,7 +1,7 @@
 = To Date Defect Removal % by Phase query
 
 title=Defects Removed by Phase To Date
-hierarchyPath=/To Date/PSP/All
+=hierarchyPath=/To Date/PSP/All
 for=.
 skipRowHdr=true
 

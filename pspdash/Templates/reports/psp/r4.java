@@ -60,7 +60,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         "    .header { font-weight: bold; vertical-align:bottom }\n" +
         "    .footnote { font-size: small; font-style:italic }\n" +
         "</STYLE></HEAD>\n" +
-        "<BODY><H1>Report R4</H1>";
+        "<BODY><H1>%path%</H1><H2>Report R4</H2>";
 
     /** Generate CGI script output. */
     protected void writeContents() {
@@ -72,10 +72,12 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         initValues();
         DefectAnalyzer.run(getPSPProperties(), path, this);
 
-        out.println(StringUtils.findAndReplace(HEADER_TEXT, "%css%",
-                                               cssLinkHTML()));
+        String header = HEADER_TEXT;
+        header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
+        header = StringUtils.findAndReplace(header, "%path%", path);
+        out.println(header);
 
-        out.println("<H2>Table D23</H2>");
+        out.println("<H3>Table D23</H3>");
         out.println("<TABLE NAME=D23 BORDER><TR class=header><TD></TD>");
         out.println("<TD colspan=2>Number Injected</TD>");
         out.println("<TD colspan=2>Percentage Injected</TD>");
@@ -101,7 +103,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         out.println("</TABLE>");
 
 
-        out.println("<H2>Table D24</H2>");
+        out.println("<H3>Table D24</H3>");
         out.println("<TABLE NAME=D24 BORDER>");
         out.println("<TR class=header><TD>Defect Type</TD>");
         out.print("<TD VALIGN=bottom>Number of defects at Compile Entry</TD>");

@@ -1,7 +1,7 @@
 = To Date Defect Injection % by Phase query
 
 title=Defects Injected by Phase To Date
-hierarchyPath=/To Date/PSP/All
+=hierarchyPath=/To Date/PSP/All
 for=.
 skipRowHdr=true
 

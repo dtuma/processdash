@@ -37,7 +37,8 @@ TD.task   { text-align: left; white-space: nowrap }
 </head>
 <BODY>
 
-<H1>Report R3</H1>
+<H1><!--#echo var="PATH_TRANSLATED" --></H1>
+<H2>Report R3</H2>
 
 <TABLE NAME=D21 BORDER>
 <TR>

@@ -2,7 +2,7 @@
 = This report generates the data for the second part of report R3.
 =
 
-hierarchyPath=/To Date/PSP/All
+=hierarchyPath=/To Date/PSP/All
 for=.
 skipColHdr=1
 skipRowHdr=1

@@ -1,7 +1,7 @@
 = To Date % Time in Phase query
 
 title=Time in Phase To Date
-hierarchyPath=/To Date/PSP/All
+=hierarchyPath=/To Date/PSP/All
 for=.
 skipRowHdr=true
 

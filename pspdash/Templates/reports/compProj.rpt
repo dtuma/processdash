@@ -2,9 +2,7 @@
 = Find all completed projects, and order by completion date.
 =
 
-=for=PSP Project
-for=/To Date/PSP/All/Rollup_List
-=where=Completed
+for=[Rollup_List]
 order=Completed
 
 = default headers
