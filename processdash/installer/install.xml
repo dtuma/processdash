@@ -21,6 +21,7 @@
 
     <!-- The resources needed by the various panels -->
     <resources>
+        <res src="files/install.png" id="installer.langsel.img"/>
         <res src="files/DashInfo.html" id="HTMLInfoPanel.info"/>
         <res src="files/DashLicense.html" id="HTMLLicencePanel.licence"/>
         <res src="files/DataDir-windows.txt" id="DataDirPanel.dir.windows"/>
