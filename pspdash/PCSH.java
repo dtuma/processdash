@@ -74,7 +74,7 @@ class PCSH {
         if (DEFAULT_INSTANCE == null) try {
             Class c = Class.forName("pspdash.DashHelpBroker");
             DEFAULT_INSTANCE = (DashHelpProvider) c.newInstance();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             DEFAULT_INSTANCE = new SimpleHelpProvider();
         }
 
