@@ -120,7 +120,7 @@ public class CachedURLObject extends CachedObject {
 
             // check for errors.
             int status = ((HttpURLConnection) conn).getResponseCode();
-            if (status == 403)          // unauthorized?
+            if (status == 401 || status == 403)    // unauthorized?
                 errorMessage = (credential == null
                                 ? PASSWORD_MISSING : PASSWORD_INCORRECT);
             else if (status == 404)     // no such schedule?
@@ -173,7 +173,7 @@ public class CachedURLObject extends CachedObject {
 
 
 
-    public String translateMessage(String errorMessage, Map m) {
+    public static String translateMessage(String errorMessage, Map m) {
         String result = (String) m.get(errorMessage);
         return result == null ? errorMessage : result;
     }
