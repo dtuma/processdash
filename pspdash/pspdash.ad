@@ -140,7 +140,7 @@ hiddenData=PSP Project|PSP Phase|\\% Time|Started|Completed|.*\d+|.* To Date|DRL
 autoRealization=min
 
 
-timelog.updateInterval=5
+timelog.updateInterval=1
 
 
 #
