@@ -26,14 +26,18 @@
 
 import pspdash.*;
 import java.io.IOException;
+import java.util.Date;
 
 public class exportNow extends TinyCGIBase {
 
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
-        DashController.checkIP(env.get("REMOTE_ADDR"));
         DashController.exportData(getPrefix());
-        DashController.printNullDocument(out);
+
+        out.println("<HTML><HEAD><TITLE>Data Exported</TITLE></HEAD>");
+        out.println("<BODY><H1>Data Exported</H1>");
+        out.println("The data was exported at " + new Date());
+        out.println("</BODY></HTML>");
     }
 
 }
