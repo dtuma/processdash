@@ -144,7 +144,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     }
 
     private void addHelpMenu(JMenu menu) {
-        JMenu helpMenu = new JMenu(HELP_MENU);
+        JMenu helpMenu = new JMenu(resources.getString(HELP_MENU));
         menu.add(helpMenu);
 
         // workaround jre 1.3 bug...reference http://developer.java.sun.com/developer/bugParade/bugs/4280243.html
