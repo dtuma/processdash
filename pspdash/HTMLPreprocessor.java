@@ -69,109 +69,244 @@ public class HTMLPreprocessor {
     public String preprocess(String content) throws IOException {
         StringBuffer text = new StringBuffer(content);
 
-        processIfDirectives(text);
-        processForeachDirectives(text);
-        processEchoDirectives(text);
-        processIncludeDirectives(text);
+        numberBlocks(text, "foreach", "endfor", null, null);
+        numberBlocks(text, "if", "endif", "else", "elif");
 
+        DirectiveMatch dir;
+        int pos = 0;
+        while ((dir = new DirectiveMatch(text, "", pos, true)).matches()) {
+            if ("echo".equals(dir.directive))
+                processEchoDirective(dir);
+            else if ("include".equals(dir.directive))
+                processIncludeDirective(dir);
+            else if (blockMatch("foreach", dir.directive))
+                processForeachDirective(dir);
+            else if (blockMatch("if", dir.directive))
+                processIfDirective(dir);
+            else
+                dir.replace("");
+            pos = dir.end;
+        }
         return text.toString();
     }
 
 
-    /** process any include directives within the buffer */
-    private void processIncludeDirectives(StringBuffer text)
+    /** process an include directive within the buffer */
+    private void processIncludeDirective(DirectiveMatch include)
         throws IOException
     {
-        DirectiveMatch include;
-        while ((include = new DirectiveMatch(text, "include")).matches()) {
-            String file = include.getAttribute("file");
-            String uri = (String) env.get("REQUEST_URI");
-            include.replace(isNull(file) ? ""
-                            : new String(web.getRequest(uri, file, true)));
+        // what file do they want us to include?
+        String url = include.getAttribute("file");
+        if (isNull(url))
+            include.replace(""); // no file specified - delete this directive.
+        else {
+            // fetch the requested url (relative to the current url) and
+            // replace the include directive with its contents.
+            String context = (String) env.get("REQUEST_URI");
+            include.replace(new String(web.getRequest(context, url, true)));
         }
     }
 
 
-    /** process any echo directives within the buffer */
-    private void processEchoDirectives(StringBuffer text) {
-        DirectiveMatch echo;
+    /** process an echo directive within the buffer */
+    private void processEchoDirective(DirectiveMatch echo) {
         String var, value, encoding;
-        while ((echo = new DirectiveMatch(text, "echo")).matches()) {
-            value = echo.getAttribute("value");
 
-            if (isNull(value)) {
-                var = echo.getAttribute("var");
-                if (isNull(var)) var = echo.contents;
-                value = (isNull(var) ? "" : getString(var));
-            }
-            encoding = echo.getAttribute("encoding");
-            if ("none".equalsIgnoreCase(encoding))
-                ;
-            else if ("url".equalsIgnoreCase(encoding))
-                value = URLEncoder.encode(value);
-            else
-                // default: entity encoding
-                value = web.encodeHtmlEntities(value);
-            echo.replace(value);
+        // Was an explicit value specified? (This is used for performing
+        // encodings on strings, and is especially useful when the string
+        // in question came from interpolating a foreach statement.)
+        value = echo.getAttribute("value");
+
+        if (isNull(value)) {
+            // was a variable name specified? If so, look up the associated
+            // string value.
+            var = echo.getAttribute("var");
+            if (isNull(var)) var = echo.contents;
+            value = (isNull(var) ? "" : getString(var));
         }
+
+        // What encoding would they like?
+        encoding = echo.getAttribute("encoding");
+        if ("none".equalsIgnoreCase(encoding))
+            ; // perform no encoding.
+        else if ("url".equalsIgnoreCase(encoding))
+            // url encode the value
+            value = URLEncoder.encode(value);
+        else
+            // default: HTML entity encoding
+            value = web.encodeHtmlEntities(value);
+
+        // replace the echo directive with the resulting value.
+        echo.replace(value);
     }
 
 
-    /** process any foreach directives within the buffer */
-    private void processForeachDirectives(StringBuffer text) {
-        String loopIndex, listName, values;
+    /** process a foreach directive within the buffer */
+    private void processForeachDirective(DirectiveMatch foreach) {
+        StringBuffer text = foreach.buf;
+        String blockNum = blockNum("foreach", foreach.directive);
+        // find the matching endfor.
+        DirectiveMatch endfor = new DirectiveMatch
+            (text, blockNum + "endfor", foreach.end, true);
+
+        if (!endfor.matches()) {
+            // if the endfor is missing, delete this directive and abort.
+            foreach.replace("");
+            return;
+        }
+
+        // get the list of values that we should iterate over. This can be
+        // specified either as a list literal using the "values" attribute,
+        // or via a list variable using the "list" attribute.
+        String values = foreach.getAttribute("values");
         ListData list;
-        StringTokenizer tok;
-        DirectiveMatch foreach, endFor;
-
-        while ((endFor = new DirectiveMatch(text, "endfor")).matches()) {
-            foreach = new DirectiveMatch(text, "foreach", endFor.begin, false);
-            if (!foreach.matches()) break;
-
-            loopIndex = foreach.getAttribute("name");
-            values = foreach.getAttribute("values");
-            if (isNull(values)) {
-                listName = foreach.getAttribute("list");
-                list = getList(listName);
-            } else {
-                list = new ListData(values);
-            }
-
-            String loopContents = text.substring(foreach.end, endFor.begin);
-            StringBuffer replacement = new StringBuffer();
-            for (int i = 0;   i < list.size();   i++)
-                replacement.append
-                    (StringUtils.findAndReplace(loopContents,
-                                                loopIndex,
-                                                (String)list.get(i)));
-            text.replace(foreach.begin, endFor.end, replacement.toString());
+        if (isNull(values)) {
+            String listName = foreach.getAttribute("list");
+            list = getList(listName);
+        } else {
+            list = new ListData(values);
         }
+
+        // iterate over the list and calculate the resulting contents.
+        String loopIndex = foreach.getAttribute("name");
+        String loopContents = text.substring(foreach.end, endfor.begin);
+        StringBuffer replacement = new StringBuffer();
+        String iterResults;
+        for (int i = 0;   i < list.size();   i++) {
+            iterResults = StringUtils.findAndReplace
+                (loopContents, loopIndex, (String)list.get(i));
+            /*
+            iterResults = StringUtils.findAndReplace
+                (iterResults,
+                 DIRECTIVE_START + "0",
+                 DIRECTIVE_START + "0" + i + "-");
+            */
+            replacement.append(iterResults);
+        }
+
+        // replace the directive with the iterated contents.  Note
+        // that we explicitly replace the initial foreach tag with an
+        // empty string, so the overall processing loop (in the
+        // preprocess method) will process these iterated contents.
+        text.replace(foreach.end, endfor.end, replacement.toString());
+        foreach.replace("");
     }
 
 
-    /** process any if directives within the buffer */
-    private void processIfDirectives(StringBuffer text) {
-        String symbolName, value;
-        DirectiveMatch ifdir, endif;
+    /** process an if directive within the buffer */
+    private void processIfDirective(DirectiveMatch ifdir) {
+        processIfDirective(ifdir, blockNum("if", ifdir.directive));
+    }
+    private void processIfDirective(DirectiveMatch ifdir, String blockNum) {
+        StringBuffer text = ifdir.buf;
+        // find the matching endif.
+        DirectiveMatch endif = new DirectiveMatch
+            (text, blockNum + "endif", ifdir.end, true);
 
-        while ((endif = new DirectiveMatch(text, "endif")).matches()) {
-            ifdir = new DirectiveMatch(text, "if", endif.begin, false);
-            if (!ifdir.matches()) break;
+        if (!endif.matches()) {
+            // if the endif is missing, delete this directive and abort.
+            ifdir.replace(""); return;
+        }
 
-            symbolName = cleanup(ifdir.contents);
-            if (symbolName == null || symbolName.length() == 0) break;
+        // See if there was an elif or an else.
+        DirectiveMatch elsedir = new DirectiveMatch
+            (text, blockNum + "elif", ifdir.end, true);
+        if (!elsedir.matches() || elsedir.begin > endif.begin)
+            elsedir = new DirectiveMatch
+                (text, blockNum + "else", ifdir.end, true);
+        if (elsedir.matches() && elsedir.begin > endif.begin)
+            elsedir.begin = -1;
 
-            value = getString(symbolName);
-            if (value == null || value.length() == 0) {
-                text.replace(ifdir.begin, endif.end, "");
-            } else {
-                endif.replace("");
-                ifdir.replace("");
+        boolean test = false;
+        if (blockMatch("else", ifdir.directive))
+            test = true;
+        else {
+            boolean reverse = false;
+            String symbolName = cleanup(ifdir.contents);
+
+            if (symbolName.startsWith("not") &&
+                whitespacePos(symbolName) == 3) {
+                reverse = true;
+                symbolName = cleanup(symbolName.substring(4));
             }
+
+            if (!isNull(symbolName)) test = !isNull(getString(symbolName));
+            if (reverse)             test = !test;
+        }
+
+        if (test) {             // if the was test true,
+            endif.replace("");  // delete the endif
+            if (elsedir.matches()) // delete the entire else clause if present
+                text.replace(elsedir.begin, endif.begin, "");
+            ifdir.replace("");  // delete the if directive.
+        } else if (elsedir.matches()) {
+            // if the test was false, and there was an else clause, evaluate
+            // the else clause as its own if statement.
+            processIfDirective(elsedir, blockNum);
+            // then delete the "true" clause (the text between the if
+            // and the else)
+            text.replace(ifdir.end, elsedir.begin, "");
+            // finally, delete the if directive itself.
+            ifdir.replace("");
+        } else {
+            // if the test was false and there was no else clause, delete
+            // everything.
+            text.replace(ifdir.end, endif.end, "");
+            ifdir.replace("");
         }
     }
 
+    /** search for blocks created by matching start and end directives, and
+     * give them unique numerical prefixes so it will be easy to figure out
+     * which start directive goes with which end directive.  This handles
+     * nested blocks correctly.
+     */
+    private void numberBlocks(StringBuffer text,
+                              String blockStart, String blockFinish,
+                              String blockMid1, String blockMid2) {
+        DirectiveMatch start, finish, mid;
+        int blockNum = 0;
+        String prefix;
 
+        while ((finish = new DirectiveMatch(text, blockFinish)).matches()) {
+            start = new DirectiveMatch(text, blockStart, finish.begin, false);
+            if (!start.matches()) break;
+            prefix = "0" + blockNum++;
+
+            finish.rename(prefix + blockFinish);
+
+            int end = finish.begin;
+            if (!isNull(blockMid1))
+                end = renameDirectives(text, start.end, end,
+                                       blockMid1, prefix + blockMid1);
+            if (!isNull(blockMid2))
+                end = renameDirectives(text, start.end, end,
+                                       blockMid2, prefix + blockMid2);
+
+            start.rename(prefix + blockStart);
+        }
+    }
+
+    /** Find all directives with the given name in text, starting at
+     * position <code>from</code> and going to position <code>to</code>,
+     * and rename them to newname.
+     */
+    private int renameDirectives(StringBuffer text, int from, int to,
+                                 String name, String newName) {
+        DirectiveMatch dir;
+        int delta = newName.length() - name.length();
+
+        while ((dir = new DirectiveMatch(text, name, from, true)).matches() &&
+               dir.begin < to) {
+            dir.rename(newName);
+            from = dir.end;
+            to += delta;
+        }
+        return to;
+    }
+
+
+    /** trim whitespace and unimportant delimiters from t */
     private static String cleanup(String t) {
         t = t.trim();
         if (t.length() == 0) return t;
@@ -263,7 +398,7 @@ public class HTMLPreprocessor {
     private class DirectiveMatch {
         StringBuffer buf;
         public int begin, end;
-        public String contents;
+        public String directive, contents;
         private Map attributes = null;
 
         /** Find the first occurrence of the named directive in buf. */
@@ -274,6 +409,7 @@ public class HTMLPreprocessor {
         public DirectiveMatch(StringBuffer buf, String directive,
                               int pos, boolean after) {
             this.buf = buf;
+            this.directive = directive;
             String dirStart = DIRECTIVE_START + directive;
             if (after)
                 begin = StringUtils.indexOf(buf, dirStart, pos);
@@ -289,6 +425,16 @@ public class HTMLPreprocessor {
             }
             contents = buf.substring(begin + dirStart.length(), end);
             end += DIRECTIVE_END.length();
+
+            if (directive.length() == 0) {
+                StringTokenizer tok = new StringTokenizer(contents);
+                if (tok.hasMoreTokens())
+                    this.directive = tok.nextToken();
+                if (tok.hasMoreTokens())
+                    contents = tok.nextToken("\u0000");
+                else
+                    contents = "";
+            }
         }
 
         /** @return true if a directive was found */
@@ -297,6 +443,7 @@ public class HTMLPreprocessor {
         /** replace the directive found with the given text. */
         public void replace(String text) {
             buf.replace(begin, end, text);
+            end = begin + text.length();
         }
 
         /** parse the inner contents of the directive as a set of
@@ -313,9 +460,9 @@ public class HTMLPreprocessor {
          * attrName=attrValue pairs */
         private Map parseAttributes() {
             HashMap result = new HashMap();
-            if (contents == null || contents.length() == 0) return result;
+            if (isNull(contents)) return result;
             String attrs = contents, name, value;
-            int equalsPos;
+            int equalsPos, spacePos;
             while ((equalsPos = attrs.indexOf('=')) != -1) {
                 name = attrs.substring(0, equalsPos).trim();
                 attrs = attrs.substring(equalsPos+1).trim();
@@ -330,11 +477,16 @@ public class HTMLPreprocessor {
                         value = attrs.substring(1, endPos);
                         attrs = attrs.substring(endPos+1);
                     }
+                } else if (attrs.charAt(0) == '[') {
+                    endPos = attrs.indexOf(']', 1);
+                    if (endPos == -1) {
+                        value = attrs; attrs = "";
+                    } else {
+                        value = attrs.substring(0, endPos+1);
+                        attrs = attrs.substring(endPos+1);
+                    }
                 } else {
-                    endPos = attrs.indexOf(' ');
-                    if (endPos == -1) endPos = attrs.indexOf('\t');
-                    if (endPos == -1) endPos = attrs.indexOf('\r');
-                    if (endPos == -1) endPos = attrs.indexOf('\n');
+                    endPos = whitespacePos(attrs);
                     if (endPos == -1) endPos = attrs.length();
                     value = attrs.substring(0, endPos);
                     attrs = attrs.substring(endPos);
@@ -343,7 +495,16 @@ public class HTMLPreprocessor {
             }
             return result;
         }
+
+        public void rename(String newName) {
+            int from = begin + DIRECTIVE_START.length();
+            int to   = from + directive.length();
+            buf.replace(from, to, newName);
+            end = end + newName.length() - directive.length();
+            directive = newName;
+        }
     }
+
 
     private static class QueryParser extends TinyCGIBase {
         protected boolean supportQueryFiles() { return false; }
@@ -352,6 +513,20 @@ public class HTMLPreprocessor {
     /** @return true if t is null or the empty string */
     private boolean isNull(String t) {
         return (t == null || t.length() == 0);
+    }
+    private int whitespacePos(String t) {
+        int result = t.indexOf(' ');
+        if (result == -1) result = t.indexOf('\t');
+        if (result == -1) result = t.indexOf('\r');
+        if (result == -1) result = t.indexOf('\n');
+        return result;
+    }
+
+    private boolean blockMatch(String name, String directive) {
+        return (directive != null && directive.endsWith(name));
+    }
+    private String blockNum(String name, String directive) {
+        return directive.substring(0, directive.length() - name.length());
     }
 
     private static final String DIRECTIVE_START = "<!--#";
