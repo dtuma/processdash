@@ -31,8 +31,11 @@ import java.awt.Toolkit;
 
 public class DashHelpBroker extends DefaultHelpBroker implements HelpBroker {
 
+    private static DashHelpBroker DEFAULT_INSTANCE = null;
+
     DashHelpBroker() {
         super();
+        DEFAULT_INSTANCE = this;
     }
 
     // this wrapper class should allow me to set the icon on the top of the
@@ -44,6 +47,7 @@ public class DashHelpBroker extends DefaultHelpBroker implements HelpBroker {
         frame.setIconImage(Toolkit.getDefaultToolkit().createImage
             (getClass().getResource("icon32.gif")));
 
+        DEFAULT_INSTANCE = this;
 //      jsplit.setDividerLocation(0.25);
     }
 
@@ -56,4 +60,6 @@ public class DashHelpBroker extends DefaultHelpBroker implements HelpBroker {
 
 //      splitpane.setDividerLocation(0.25);
     }
+
+    public static DashHelpBroker getInstance() { return DEFAULT_INSTANCE; }
 }
