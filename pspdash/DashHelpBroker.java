@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This library is free software; you can redistribute it and/or
@@ -26,23 +26,29 @@
 
 package pspdash;
 
-import javax.help.*;
+
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.net.URL;
+import java.awt.Frame;
+import java.awt.Window;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
 
-class DashHelpBroker extends DefaultHelpBroker
-    implements HelpBroker, DashHelpProvider {
+import javax.help.CSH;
+import javax.help.DefaultHelpBroker;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
+import javax.help.HelpSetException;
 
-    /*
-     * The code in this class is duplicated (for classloader related
-     * reasons) in Templates/help/createBroker.java .  Changes made
-     * to this file should be propagated appropriately.
-     */
+public class DashHelpBroker extends DefaultHelpBroker
+    implements HelpBroker, DashHelpProvider, TinyCGI {
 
-    DashHelpBroker() throws HelpSetException {
+
+    public DashHelpBroker() throws HelpSetException {
         super();
 
         URL hsURL = null;
@@ -63,7 +69,16 @@ class DashHelpBroker extends DefaultHelpBroker
         super.setHelpSet(hs);
         initPresentation();
 
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        try {
+            Window w = getWindowPresentation().getHelpWindow();
+            if (w instanceof Frame)
+                ((Frame) w).setIconImage
+                    (DashboardIconFactory.getWindowIconImage());
+        } catch (Throwable t) {
+            // an old version of JavaHelp in the system classpath will
+            // cause this to fail.  It's no big deal - the window will
+            // just have a different icon.  Life goes on.
+        }
     }
 
 
@@ -94,5 +109,14 @@ class DashHelpBroker extends DefaultHelpBroker
     }
 
     private static final String HELPSET_PATH = "/help/PSPDash.hs";
+
+
+    public void service(InputStream in, OutputStream out, Map env)
+        throws IOException
+    {
+        PCSH.setHelpProvider(this);
+        out.write("Content-type: text/html\r\n\r\n".getBytes());
+        out.flush();
+    }
 
 }
