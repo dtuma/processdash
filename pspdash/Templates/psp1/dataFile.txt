@@ -113,10 +113,13 @@ Estimated New & Changed KLOC==![(/	Estimated New & Changed LOC	1000)]
 Base LOC=0.0
 Deleted LOC=0.0
 Modified LOC=0.0
-Added LOC==![(-	[(+	Total LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
-Reused LOC=0.0
+Base Additions LOC==![(+	~Base Additions/Actual LOC \d+)]
+New Objects LOC==![(+	~New Objects/Actual LOC \d+)]
+Reused LOC==![(+	~Reused Objects/Actual LOC \d+)]
+Object LOC==![(+	Base Additions LOC	New Objects LOC	Modified LOC)]
 New & Changed LOC==![(+	Added LOC	Modified LOC)]
-New Reused LOC=0.0
+Added LOC==![(-	[(+	Total LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
+New Reused LOC==![(+	~New Objects/Actual New Reused LOC \d+)]
 LOC=0.0
 Total LOC==![(+	LOC)]
 New & Changed KLOC==![(/	New & Changed LOC	1000)]
