@@ -31,7 +31,12 @@ import pspdash.data.*;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.net.URL;
+import java.net.URLEncoder;
 
 
 public class DataApplet extends Applet implements RepositoryClientListener {
@@ -43,13 +48,12 @@ public class DataApplet extends Applet implements RepositoryClientListener {
     static int ieVersion = -1;
     static int nsVersion = -1;
     String errorMsg = null;
-    String readOnlyColorString = "#aaaaaa";
     protected HTMLFieldManager mgr = null;
     AudioClip dataStoredSound = null;
     public static boolean debug = false;
 
 
-    protected DataApplet() {}
+    public DataApplet() {}
 
 
     protected void printError(Exception e) {
@@ -72,47 +76,100 @@ public class DataApplet extends Applet implements RepositoryClientListener {
 
     public void start() {
         debug("starting...");
+        readParameters();
         isRunning = true;
 
+        if (createFieldManager()) {
+            initData();
+            initSound();
+            if (isRunning && mgr != null)
+                mgr.initialize(data, (data == null ? errorMsg : dataPrefix));
+        } else
+            isRunning = false;
+    }
+
+
+    protected void readParameters() {
         requiredTag = getParameter("requiredTag");
         ieVersion = getIntParameter("ieVersion");
         nsVersion = getIntParameter("nsVersion");
         debug = getBoolParameter("debug", false);
         debug("url="+getDocumentBase()+", requiredTag="+requiredTag);
+    }
 
+    protected void initData() {
+        this.data = null;
         try {
-            data = new RepositoryClient(getDocumentBase(), requiredTag);
+            RepositoryClient data =
+                new RepositoryClient(getDocumentBase(), requiredTag);
             dataPrefix = data.getDataPath();
             data.addRepositoryClientListener(this);
-
-            String s;
-            if ((s = Settings.getVal("browser.readonly.color")) != null)
-                readOnlyColorString = s;
-            debug = Settings.getBool("dataApplet.debug", false);
-            if (!Settings.getBool("dataApplet.quiet", false)) {
-                String soundFile =
-                    (System.getProperty("java.version").startsWith("1.1")
-                     ? "/dataStored.au" : "/dataStored.wav");
-                dataStoredSound = getAudioClip(getCodeBase(), soundFile);
-            }
+            this.data = data;
 
         } catch (RemoteException e) {
             debug("got remote exception.");
-            data = null;
             errorMsg = "NO CONNECTION";
         } catch (ForbiddenException e) {
             debug("got forbidden exception.");
-            data = null;
             errorMsg = "No such project OR project/process mismatch";
         } catch (Exception e) {
             printError(e);
         }
-
-        if (!isRunning) return;
-
-        if (mgr != null)
-            mgr.initialize(data, (data == null ? errorMsg : dataPrefix));
     }
+
+    protected void initSound() {
+        if (Settings.getBool("dataApplet.quiet", false)) return;
+
+        String soundFile =
+            (System.getProperty("java.version").startsWith("1.1")
+             ? "/dataStored.au" : "/dataStored.wav");
+        dataStoredSound = getAudioClip(getCodeBase(), soundFile);
+    }
+
+    protected boolean createFieldManager() {
+        try {
+            if (mgr == null) maybeCreateDOMManager();
+            if (mgr == null) createNSManager();
+            return (mgr != null);
+        } catch (Throwable t) {
+            // creating or initializing the HTMLFieldManager in an unsupported
+            // browser could cause various exceptions or errors to be thrown.
+            System.out.println
+                ("Your current browser configuration appears to be incapable\n"
+                 + "of supporting the dashboard. The error encountered was:");
+            System.out.println(t);
+            t.printStackTrace();
+
+            redirectToProblemURL(t);
+            return false;
+        }
+    }
+
+    protected void maybeCreateDOMManager() {
+        // if the user disabled use of the DOMFieldManager, return.
+        if (getBoolParameter("disableDOM", false)) return;
+
+        // The DOM support only works in 1.4.2 and higher.
+        String javaVer = System.getProperty("java.version");
+        if (javaVer.compareTo("1.4.2") < 0) return;
+
+        try {
+            // Try to create a DOMFieldManager.
+            createFieldManager(".dom.DOMFieldManager");
+        } catch (Throwable e) {}
+    }
+
+    protected void createNSManager() throws Exception {
+        createFieldManager(".ns.NSFieldManager");
+    }
+
+    protected void createFieldManager(String className) throws Exception {
+        String packageName = DataApplet.class.getPackage().getName();
+        Class clz = Class.forName(packageName + className);
+        Constructor cstr = clz.getConstructor(new Class[] {DataApplet.class});
+        mgr = (HTMLFieldManager) cstr.newInstance(new Object[] { this });
+    }
+
 
     public void stop() {
         isRunning = false;
@@ -140,8 +197,6 @@ public class DataApplet extends Applet implements RepositoryClientListener {
             dataStoredSound.play();
     }
 
-
-    public String readOnlyColor() { return readOnlyColorString; }
 
     public int getIntParameter(String name) {
         try {
@@ -183,6 +238,35 @@ public class DataApplet extends Applet implements RepositoryClientListener {
         } catch (Exception ioe) {
             printError(ioe);
         }
+    }
+
+
+    public void notifyListener(Object id) {
+        debug("NSDataApplet.notifyListener("+id+")");
+        if (isRunning && mgr != null)
+            mgr.notifyListener(id);
+    }
+
+    private static final String PROBLEM_URL = "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";
+
+
+    protected void redirectToProblemURL(Throwable t) {
+        try {
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            PrintWriter w = new PrintWriter(buf);
+            t.printStackTrace(w);
+            w.flush();
+            String javaVersion = System.getProperty("java.vendor") +
+                " JRE " + System.getProperty("java.version") +
+                "; " + System.getProperty("os.name");
+            // DO NOT fix the deprecated statements on the next lines!
+            // This code needs to run in Java 1.1 JVMs.
+            String urlStr = PROBLEM_URL +
+                "?JAVA_VERSION=" + URLEncoder.encode(javaVersion) +
+                "&ERROR_MESSAGE=" + URLEncoder.encode(buf.toString());
+            URL url = new URL(getDocumentBase(), urlStr);
+            getAppletContext().showDocument(url, "_top");
+        } catch (IOException ioe) {}
     }
 
 }

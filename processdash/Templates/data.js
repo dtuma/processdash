@@ -481,7 +481,7 @@ function NSSetup() {
     if (debug) document.writeln("<p>creating applet.");
     document.writeln('<applet id=NSDataAppl name=NSDataAppl'+
 		            ' archive="/'+AppletName+'.jar" '+
-		            ' code=net.sourceforge.processdash.data.applet.DefaultDataApplet'+
+		            ' code=net.sourceforge.processdash.data.applet.DataApplet'+
 		            ' width=1 height=1 MAYSCRIPT>');
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
@@ -516,7 +516,7 @@ function ForcePlugInSetup() {
 	     'width="1" height="1" id="NSDataAppl" '+
   	     'codebase="http://java.sun.com/products/plugin/autodl/jinstall-1_4-windows-i586.cab#Version=1,4,0,0">'+
 	     '<param name=type value="application/x-java-applet;version=1.4">'+
-	     '<param name=CODE value="net.sourceforge.processdash.data.applet.DefaultDataApplet">'+
+	     '<param name=CODE value="net.sourceforge.processdash.data.applet.DataApplet">'+
 	     '<param name=ARCHIVE value="/'+AppletName+'.jar">'+
 	     '<param name=NAME value="NSDataAppl">'+
 	     '<param name=scriptable value="true">'+
