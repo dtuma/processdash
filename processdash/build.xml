@@ -256,6 +256,7 @@ Authors:
       <fileset dir=".">
         <include name="Templates/pspForEng/"/>
         <include name="Templates/pspForEng*"/>
+	<exclude name="Templates/pspForEng/userdata/"/>
 	<exclude name="Templates/pspForEng/repair.*"/>
       </fileset>
       <fileset dir="${build}" includes="net/**/PspForEngFilter.class"/>
