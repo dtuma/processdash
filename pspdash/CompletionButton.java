@@ -30,16 +30,19 @@ import javax.swing.JCheckBox;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.*;
+import java.util.ResourceBundle;
 import pspdash.data.DateData;
 
 class CompletionButton extends JCheckBox implements ActionListener {
     PSPDashboard parent = null;
     String dataName = null;
+    ResourceBundle resources;
 
     CompletionButton(PSPDashboard dash) {
         super();
         PCSH.enableHelp(this, "CompletionButton");
         parent = dash;
+        resources = Resources.getBundle("pspdash.Misc");
         setMargin (new Insets (0,2,0,2));
         addActionListener(this);
         GridBagConstraints g = new GridBagConstraints();
@@ -57,7 +60,7 @@ class CompletionButton extends JCheckBox implements ActionListener {
         if (d == null) {
             setEnabled(true);
             setSelected(false);
-            setToolTipText("Click to mark this phase completed");
+            setToolTipText(resources.getString("Completion_Button_Tooltip"));
         } else if (d instanceof DateData) {
             setEnabled(true);
             setSelected(true);
@@ -77,7 +80,7 @@ class CompletionButton extends JCheckBox implements ActionListener {
             }
         } else {
             parent.data.userPutValue(dataName, null);
-            setToolTipText("Click to mark this phase completed");
+            setToolTipText(resources.getString("Completion_Button_Tooltip"));
         }
     }
 
