@@ -102,7 +102,7 @@ public class EVScheduleRollup extends EVSchedule {
             calculateOptimizedPlanDate();
 
         // fire events to indicate that our contents have changed.
-        getMetrics().recalcComplete();
+        getMetrics().recalcComplete(this);
         firePreparedEvents();
     }
 

@@ -31,6 +31,8 @@ import pspdash.data.ResultSet;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
 import javax.swing.table.TableModel;
 
 import com.jrefinery.chart.*;
@@ -151,6 +153,20 @@ public class ev extends CGIChartBase {
 
         EVSchedule s = evModel.getSchedule();
         EVMetrics  m = s.getMetrics();
+
+        Map errors = m.getErrors();
+        if (errors != null && errors.size() > 0) {
+            out.print("<table border><tr><td bgcolor='#ff5050'>" +
+                      "<h2>Errors</h2><b>There are problems with this " +
+                      "earned value schedule:<ul>");
+            Iterator i = errors.keySet().iterator();
+            while (i.hasNext())
+                out.print("\n<li>" +
+                          TinyWebServer.encodeHtmlEntities((String) i.next()));
+            out.print("\n</ul>Until you correct these problems, calculations" +
+                      " may be incorrect.</b></td></tr></table>\n");
+        }
+
 
         out.print("<table name='STATS'>");
         for (int i = 0;   i < m.getRowCount();   i++)

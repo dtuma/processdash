@@ -39,6 +39,8 @@ import java.text.NumberFormat;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.EventObject;
+import java.util.Iterator;
+import java.util.Map;
 
 public class TaskScheduleDialog
     implements EVTask.Listener, EVTaskList.RecalcListener, EVSchedule.Listener
@@ -150,7 +152,17 @@ public class TaskScheduleDialog
         // if the task list is empty, open the add task dialog immediately.
         if (((EVTask) model.getRoot()).isLeaf())
             addTask();
+        else {
+            if (getErrors() != null)
+                SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            Map errors = getErrors();
+                            highlightErrors(errors);
+                            displayErrorDialog(errors);
+                        } } );
+        }
     }
+
 
     private boolean isRollup() { return model.isRollup(); }
 
@@ -311,6 +323,34 @@ public class TaskScheduleDialog
 
     public void show() { frame.show(); frame.toFront(); }
 
+    protected Map getErrors() {
+        return model.getSchedule().getMetrics().getErrors();
+    }
+
+    protected void highlightErrors(Map errors) {
+        if (errors == null || errors.size() == 0) return;
+        Iterator i = errors.values().iterator();
+        while (i.hasNext()) {
+            EVTask t = (EVTask) i.next();
+            treeTable.getTree().makeVisible(new TreePath(t.getPath()));
+        }
+    }
+
+    protected void displayErrorDialog(Map errors) {
+        if (errors == null || errors.size() == 0) return;
+        ErrorReporter err = new ErrorReporter
+            ("Problems with Task List / Schedule",
+             "There are problems with this earned value schedule:",
+             ERR_DIALOG_POST_MSG);
+        Iterator i = errors.keySet().iterator();
+        while (i.hasNext())
+            err.logError((String) i.next());
+        err.done();
+    }
+    private static final String[] ERR_DIALOG_POST_MSG = {
+             "Until you correct these problems, calculations",
+             "may be incorrect." };
+
 
     private Color mixColors(Color a, Color b, float r) {
         float s = 1.0f - r;
@@ -365,11 +405,44 @@ public class TaskScheduleDialog
         }
 
         class TaskTableRenderer extends ShadedTableCellRenderer {
+            private Font regular = null, bold = null;
             public TaskTableRenderer(Color sel, Color desel, Color fg) {
                 super(sel, desel, fg);
             }
             protected boolean useAltForeground(int row) {
                 return getTree().isExpanded(row);
+            }
+            private Font getFont(boolean bold, Component c) {
+                if (this.regular == null) {
+                    Font base = c.getFont();
+                    this.regular = base.deriveFont(Font.PLAIN);
+                    this.bold    = base.deriveFont(Font.BOLD);
+                }
+                return (bold ? this.bold : this.regular);
+            }
+            public Component getTableCellRendererComponent(JTable table,
+                                                           Object value,
+                                                           boolean isSelected,
+                                                           boolean hasFocus,
+                                                           int row,
+                                                           int column) {
+                Component result = super.getTableCellRendererComponent
+                    (table, value, isSelected, hasFocus, row, column);
+                String errorStr = null;
+
+                TreePath path = getTree().getPathForRow(row);
+                if (path != null)
+                    errorStr = ((EVTaskList) model).getErrorStringAt
+                        (path.getLastPathComponent(),
+                         convertColumnIndexToModel(column));
+
+                if (result instanceof JComponent)
+                    ((JComponent) result).setToolTipText(errorStr);
+                if (errorStr != null)
+                    result.setForeground(Color.red);
+                result.setFont(getFont(errorStr != null, result));
+
+                return result;
             }
         }
 
@@ -525,6 +598,9 @@ public class TaskScheduleDialog
         // rows may have changed to or from automatic rows, update the
         // buttons appropriately.
         enableScheduleButtons();
+
+        // highlight any errors in the EVModel if they exist.
+        highlightErrors(getErrors());
     }
 
     /** Display a dialog allowing the user to choose a hierarchy task,
@@ -737,6 +813,7 @@ public class TaskScheduleDialog
     protected void save() {
         model.save();
         setDirty(false);
+        displayErrorDialog(getErrors());
     }
 
     protected void configureEditor(JTable table) {

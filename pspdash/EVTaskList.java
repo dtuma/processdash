@@ -676,6 +676,15 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
+    /** If the given cell has an error, return it.  Otherwise return null */
+    public String getErrorStringAt(Object node, int column) {
+        EVTask n = (EVTask) node;
+        switch (column) {
+        case PLAN_TIME_COLUMN: return ((EVTask) node).getPlanTimeError();
+        default: return null;
+        }
+    }
+
     public TableModel getSimpleTableModel() {
         return new SimpleTableModel();
     }

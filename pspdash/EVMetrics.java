@@ -25,7 +25,10 @@
 
 package pspdash;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.text.MessageFormat;
 import javax.swing.table.*;
 import javax.swing.event.*;
@@ -62,12 +65,18 @@ public class EVMetrics implements TableModel {
     /** The end of the current time period in the schedule */
     protected Date periodEnd = null;
 
+    /** A list of warnings/errors associated with this EVModel.
+     *  the keys are the error messages; they may map to an EVTask
+     *  where the error was located. */
+    protected Map errors = null;
+
     public void reset(Date start, Date current,
                       Date periodStart, Date periodEnd) {
         totalPlanTime = earnedValueTime = actualTime = planTime = 0.0;
         startDate = start;
         currentDate = current;
         this.periodEnd = periodEnd;
+        errors = null;
         if (periodStart != null && periodEnd != null) {
             long periodElapsed = currentDate.getTime() - periodStart.getTime();
             long periodLength = periodEnd.getTime() - periodStart.getTime();
@@ -97,7 +106,11 @@ public class EVMetrics implements TableModel {
                 this.planTime += planTime * periodPercent;
         }
     }
-    public void recalcComplete() {
+    public void addError(String message, EVTask node) {
+        if (errors == null) errors = new HashMap();
+        errors.put(message, node);
+    }
+    public void recalcComplete(EVSchedule s) {
         fireTableChanged(new TableModelEvent(this, 0, getRowCount()-1));
     }
 
@@ -172,6 +185,13 @@ public class EVMetrics implements TableModel {
         double duration = independentForecastDuration();
         if (badDouble(duration)) return null;
         return new Date(s.getTime() + (long) (duration * MINUTE_MILLIS));
+    }
+
+    public Map getErrors() {
+        if (errors == null)
+            return null;
+        else
+            return Collections.unmodifiableMap(errors);
     }
 
 

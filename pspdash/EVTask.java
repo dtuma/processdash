@@ -39,6 +39,7 @@ import pspdash.data.DataListener;
 import pspdash.data.DataEvent;
 import pspdash.data.SimpleData;
 import pspdash.data.NumberData;
+import pspdash.data.NumberFunction;
 import pspdash.data.DoubleData;
 import pspdash.data.DateData;
 
@@ -47,6 +48,7 @@ public class EVTask implements DataListener {
     public static final String PLAN_TIME_DATA_NAME      = "Estimated Time";
     public static final String ACT_TIME_DATA_NAME       = "Time";
     public static final String DATE_COMPLETED_DATA_NAME = "Completed";
+    public static final String IGNORE_PLAN_TIME_NAME    = "Rollup Tag";
 
     public interface Listener {
         public void evNodeChanged(EVTask node);
@@ -57,9 +59,11 @@ public class EVTask implements DataListener {
 
     String name, fullName;
     double planTime,  cumPlanTime,  actualTime;  // expressed in minutes
-    double planValue, cumPlanValue, valueEarned; // expressed in minutes
+    double actualNodeTime, valueEarned;          // expressed in minutes
+    double topDownPlanTime, bottomUpPlanTime;    // expressed in minutes
     Date planDate, dateCompleted;
     boolean planTimeEditable, planTimeNull, dateCompletedEditable;
+    boolean ignorePlanTimeValue = false;
     Listener listener;
 
     DataRepository data;
@@ -68,8 +72,8 @@ public class EVTask implements DataListener {
     public EVTask(String rootName) {
         this.name = rootName;
         this.fullName = "";
-        planTime = planValue = cumPlanTime = cumPlanValue =
-            actualTime = valueEarned = 0;
+        planTime = cumPlanTime = actualTime = valueEarned =
+            topDownPlanTime = bottomUpPlanTime = actualNodeTime = 0;
         planDate = dateCompleted = null;
         listener = null;
         planTimeEditable = dateCompletedEditable = false;
@@ -121,13 +125,17 @@ public class EVTask implements DataListener {
         this.data = data;
         this.listener = listener;
 
-        setPlanTime(getValue(PLAN_TIME_DATA_NAME));
+        if (getValue(IGNORE_PLAN_TIME_NAME) != null)
+            ignorePlanTime();
+        else
+            setPlanTime(getValue(PLAN_TIME_DATA_NAME));
+
+        setActualTime(getValue(ACT_TIME_DATA_NAME));
 
         addChildrenFromHierarchy(fullName, key, data, hierarchy, listener);
 
         if (isLeaf()) {
             setActualDate(getValue(DATE_COMPLETED_DATA_NAME));
-            setActualTime(getValue(ACT_TIME_DATA_NAME));
         }
     }
 
@@ -162,7 +170,8 @@ public class EVTask implements DataListener {
         name = e.getAttribute("name");
         fullName = (parentName == null ? "" : parentName + "/" + name);
 
-        planTime = planValue = EVSchedule.getXMLNum(e, "pt");
+        planTime = EVSchedule.getXMLNum(e, "pt");
+        topDownPlanTime = bottomUpPlanTime = planTime;
         actualTime = EVSchedule.getXMLNum(e, "at");
         planDate = EVSchedule.getXMLDate(e, "pd");
         dateCompleted = EVSchedule.getXMLDate(e, "cd");
@@ -191,15 +200,25 @@ public class EVTask implements DataListener {
 
     protected void setPlanTime(SimpleData time) {
         if (time instanceof NumberData) {
-            planTime = ((NumberData) time).getDouble();
-            if (Double.isNaN(planTime) || Double.isInfinite(planTime))
-                planTime = 0.0;
-            planTimeEditable = time.isEditable();
+            if (!ignorePlanTimeValue) {
+                topDownPlanTime = ((NumberData) time).getDouble();
+                if (Double.isNaN(topDownPlanTime) ||
+                    Double.isInfinite(topDownPlanTime))
+                    topDownPlanTime = 0.0;
+                planTimeEditable = time.isEditable();
+            }
         } else {
             planTimeNull = (time == null);
-            planTime = 0;
+            topDownPlanTime = 0;
             planTimeEditable = true;
         }
+    }
+
+    protected void ignorePlanTime() {
+        ignorePlanTimeValue = true;
+        topDownPlanTime = 0;
+        planTimeNull = true;
+        planTimeEditable = false;
     }
 
     protected void setActualDate(SimpleData date) {
@@ -214,24 +233,43 @@ public class EVTask implements DataListener {
 
     protected void setActualTime(SimpleData time) {
         if (time instanceof NumberData) {
-            actualTime = ((NumberData) time).getDouble();
-            if (Double.isNaN(actualTime) || Double.isInfinite(actualTime))
-                actualTime = 0.0;
+            // look in the repository to see if this value is a simple
+            // number, or a calculation.  We aren't interested in
+            // calculations - just simple numbers.
+            String dataName =
+                data.createDataName(fullName, ACT_TIME_DATA_NAME);
+            Object val = data.getValue(dataName);
+            if (val != null &&
+                (!(val instanceof DoubleData) ||
+                 val instanceof NumberFunction)) return;
+
+            actualNodeTime = ((NumberData) time).getDouble();
+            if (Double.isNaN(actualNodeTime) ||
+                Double.isInfinite(actualNodeTime))
+                actualNodeTime = 0.0;
         } else {
-            actualTime = 0;
+            actualNodeTime = 0;
         }
     }
 
     public void setPlanTime(Object aValue) {
         if (plannedTimeIsEditable() && aValue instanceof String) {
-            // parse the value to obtain a number of minutes
-            long planTime = TimeLogEditor.parseTime((String) aValue);
-            if (planTime != -1) {
-                this.planTime = planTime;
-                // save those minutes to the data repository
+            if (((String) aValue).length() > 0) {
+                // parse the value to obtain a number of minutes
+                long planTime = TimeLogEditor.parseTime((String) aValue);
+                if (planTime != -1) {
+                    this.planTime = topDownPlanTime =
+                        bottomUpPlanTime = planTime;
+                    // save those minutes to the data repository
+                    data.putValue(data.createDataName(fullName,
+                                                      PLAN_TIME_DATA_NAME),
+                                  new DoubleData(planTime, true));
+                }
+            } else {
+                this.planTime = topDownPlanTime = bottomUpPlanTime;
                 data.putValue(data.createDataName(fullName,
                                                   PLAN_TIME_DATA_NAME),
-                              new DoubleData(planTime, true));
+                              null);
             }
         }
     }
@@ -260,8 +298,9 @@ public class EVTask implements DataListener {
     }
 
 
-    static String formatTime(double time) {
+    static String formatTime(double ttime) {
         // time is in minutes.
+        double time = Math.floor(ttime + 0.5); // round to the nearest minute
         int hours = (int) (time / 60);
         int minutes = (int) (time % 60);
         if (minutes < 10)
@@ -279,12 +318,20 @@ public class EVTask implements DataListener {
     public String getName() { return name; }
     public String getFullName() { return fullName; }
     public String getPlanTime() { return formatTime(planTime); }
+    public boolean hasPlanTimeError() {
+        return (Math.abs(planTime - bottomUpPlanTime) > 0.5);
+    }
+    public String getPlanTimeError() {
+        if (!hasPlanTimeError()) return null;
+        return "top-down/bottom-up mismatch (bottom-up = " +
+            formatTime(bottomUpPlanTime) + ")";
+    }
     public String getActualTime() { return formatTime(actualTime); }
     public String getPlanValue(double totalPlanTime) {
-        return formatPercent(planValue/totalPlanTime); }
+        return formatPercent(planTime/totalPlanTime); }
     public String getCumPlanTime() { return formatTime(cumPlanTime); }
     public String getCumPlanValue(double totalPlanTime) {
-        return formatPercent(cumPlanValue/totalPlanTime); }
+        return formatPercent(cumPlanTime/totalPlanTime); }
     public Date getPlanDate() { return planDate; }
     public Date getActualDate() { return dateCompleted; }
     public String getValueEarned(double totalPlanTime) {
@@ -320,6 +367,7 @@ public class EVTask implements DataListener {
 
     public void recalc(EVSchedule schedule, TimeLog log) {
         resetRootValues();
+        recalcPlanTimes();
         recalcPlanCumTime(0.0);
         recalcActualTimes();
         recalcDateCompleted();
@@ -336,7 +384,7 @@ public class EVTask implements DataListener {
                                     schedule.getPeriodStart(effDate),
                                     schedule.getPeriodEnd(effDate));
         recalcMetrics(schedule.getMetrics());
-        schedule.getMetrics().recalcComplete();
+        schedule.getMetrics().recalcComplete(schedule);
         schedule.firePreparedEvents();
     }
 
@@ -346,9 +394,28 @@ public class EVTask implements DataListener {
     }
 
     protected void resetRootValues() {
-        planTime = planValue = cumPlanTime = cumPlanValue =
-            actualTime = valueEarned = 0;
+        planTime = cumPlanTime = actualTime = valueEarned =
+            topDownPlanTime = bottomUpPlanTime = 0;
         planDate = dateCompleted = null;
+    }
+
+    public double recalcPlanTimes() {
+        if (isLeaf())
+            planTime = bottomUpPlanTime = topDownPlanTime;
+        else {
+            bottomUpPlanTime = 0;
+            for (int i = 0;   i < getNumChildren();   i++)
+                bottomUpPlanTime += getChild(i).recalcPlanTimes();
+
+            if (bottomUpPlanTime == 0 ||
+                (!planTimeNull && topDownPlanTime > 0))
+                planTime = topDownPlanTime;
+            else {
+                planTime = bottomUpPlanTime;
+                planTimeEditable = false;
+            }
+        }
+        return bottomUpPlanTime;
     }
 
     public double recalcPlanCumTime(double prevCumTime) {
@@ -361,20 +428,22 @@ public class EVTask implements DataListener {
             for (int i = 0;   i < getNumChildren();   i++)
                 cumPlanTime = getChild(i).recalcPlanCumTime(cumPlanTime);
 
+            /*
             // If we didn't really have a value for planTime, compute it
             // from our children.
             if (planTimeNull) {
                 planTime = cumPlanTime - prevCumTime;
                 planTimeEditable = false;
             }
+            */
         }
         return cumPlanTime;
     }
 
     public double recalcActualTimes() {
+        actualTime = actualNodeTime;
         if (!isLeaf()) {
             // for nonleaves, ask each of our children to recalc.
-            actualTime = 0;
             for (int i = 0;   i < getNumChildren();   i++)
                 actualTime += getChild(i).recalcActualTimes();
         }
@@ -382,11 +451,9 @@ public class EVTask implements DataListener {
     }
 
     public void recalcPlanValue() {
-        planValue = planTime;
-        cumPlanValue = cumPlanTime;
 
         if (isLeaf())
-            valueEarned = (dateCompleted == null ? 0 : planValue);
+            valueEarned = (dateCompleted == null ? 0 : planTime);
         else {
             valueEarned = 0;
             // for nonleaves, ask each of our children to recalc.
@@ -415,9 +482,9 @@ public class EVTask implements DataListener {
     public void recalcPlanDates(EVSchedule schedule) {
         if (isLeaf()) {
             planDate = schedule.getPlannedCompletionDate
-                (cumPlanTime, cumPlanValue);
+                (cumPlanTime, cumPlanTime);
             if (dateCompleted != null)
-                schedule.saveCompletedTask(dateCompleted, planValue);
+                schedule.saveCompletedTask(dateCompleted, planTime);
         } else {
             for (int i = getNumChildren();   i-- > 0;   )
                 getChild(i).recalcPlanDates(schedule);
@@ -428,9 +495,22 @@ public class EVTask implements DataListener {
     public void recalcMetrics(EVMetrics metrics) {
         if (isLeaf())
             metrics.addTask(planTime, actualTime, planDate, dateCompleted);
-        else
+        else {
             for (int i = getNumChildren();   i-- > 0;   )
                 getChild(i).recalcMetrics(metrics);
+            // if they logged time against a non-leaf node, it counts
+            // against their metrics right away.  Treat it as an
+            // imaginary task with no planned time, which should have
+            // been completed instantaneously when the schedule started
+            if (actualNodeTime > 0)
+                metrics.addTask(0, actualNodeTime, null, metrics.startDate());
+        }
+
+        if (hasPlanTimeError())
+            metrics.addError("The top-down estimate of " + getPlanTime() +
+                             " for task \"" + fullName + "\" does not " +
+                             "agree with the bottom-up estimate of " +
+                             formatTime(bottomUpPlanTime) + ".", this);
     }
 
 
@@ -465,7 +545,8 @@ public class EVTask implements DataListener {
         EVTask child;
 
         planTime = cumPlanTime = actualTime = 0.0;
-        planValue = cumPlanValue = valueEarned = 0.0;
+        topDownPlanTime = bottomUpPlanTime = 0.0;
+        valueEarned = 0.0;
         planDate = null;
         dateCompleted = EVSchedule.A_LONG_TIME_AGO;
 
@@ -476,9 +557,9 @@ public class EVTask implements DataListener {
             planTime += child.planTime;
             cumPlanTime += child.cumPlanTime;
             actualTime += child.actualTime;
-            planValue += child.planValue;
-            cumPlanValue += child.cumPlanValue;
             valueEarned += child.valueEarned;
+            topDownPlanTime += child.topDownPlanTime;
+            bottomUpPlanTime += child.bottomUpPlanTime;
 
             // rollup plan date should be the max of all the plan dates.
             planDate = EVScheduleRollup.maxDate(planDate, child.planDate);
