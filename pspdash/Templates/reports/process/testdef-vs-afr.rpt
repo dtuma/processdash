@@ -7,5 +7,5 @@ title=Test Defects vs. A/FR
 d1=AFR
 h1=Appraisal to Failure Ratio
 
-d2==![(*	1000	[(/	Test/Defects Removed	New & Changed LOC)])]
+d2==![(/	Test/Defects Removed	New & Changed LOC	0.001)]
 h2=Defects/KLOC
