@@ -1,34 +1,34 @@
 /* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
-== Copyright (C) 1999  United States Air Force
-== 
+== Copyright (C) 2003 Software Process Dashboard Initiative
+==
 == This program is free software; you can redistribute it and/or
 == modify it under the terms of the GNU General Public License
 == as published by the Free Software Foundation; either version 2
 == of the License, or (at your option) any later version.
-== 
+==
 == This program is distributed in the hope that it will be useful,
 == but WITHOUT ANY WARRANTY; without even the implied warranty of
 == MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 == GNU General Public License for more details.
-== 
+==
 == You should have received a copy of the GNU General Public License
 == along with this program; if not, write to the Free Software
 == Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-== 
+==
 == The author(s) may be contacted at:
 == OO-ALC/TISHD
 == Attn: PSP Dashboard Group
 == 6137 Wardleigh Road
 == Hill AFB, UT 84056-5843
-== 
-== E-Mail POC:  ken.raisor@hill.af.mil
+==
+== E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 =============================================================================
-== Title:	$Id$
-== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
-== Created:	Thu Jan  8 16:34:18 1998
+== Title:       $Id$
+== Author:      Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:     Thu Jan  8 16:34:18 1998
 ==
 == Description: This is the data file for an imported PSP2.1-like process.
 ==
@@ -54,17 +54,17 @@
  * automatically created;  these are not used by the import process.
  */
 
-#define makeEditable(Phase) 				\
- [Phase/Time] = ?0; 					\
- [Phase/Defects Injected] = ?0; 			\
- [Phase/Defects Removed] = ?0;  			\
- undefine([Phase/Estimated Time],			\
-	  [Phase/Estimated Defects Injected],		\
-	  [Phase/Estimated Defects Removed],		\
-	  [Phase/Estimated Defects Injected per Hour],	\
-	  [Phase/Estimated Defects Removed per Hour],	\
-	  [Phase/Estimated Defect Density],		\
-	  [Phase/Estimated DRL]);
+#define makeEditable(Phase)                             \
+ [Phase/Time] = ?0;                                     \
+ [Phase/Defects Injected] = ?0;                         \
+ [Phase/Defects Removed] = ?0;                          \
+ undefine([Phase/Estimated Time],                       \
+          [Phase/Estimated Defects Injected],           \
+          [Phase/Estimated Defects Removed],            \
+          [Phase/Estimated Defects Injected per Hour],  \
+          [Phase/Estimated Defects Removed per Hour],   \
+          [Phase/Estimated Defect Density],             \
+          [Phase/Estimated DRL]);
 
 FOR_EACH_PHASE(makeEditable);
 
@@ -74,13 +74,13 @@ FOR_EACH_PHASE(makeEditable);
  */
 
 undefine([Estimated Defects Injected], [Estimated Defects Removed],
-	 [Estimated Yield], [Estimated Defect Density],
+         [Estimated Yield], [Estimated Defect Density],
 
-	 [Estimated % Appraisal COQ], [Estimated % Failure COQ],
-	 [Estimated AFR],
+         [Estimated % Appraisal COQ], [Estimated % Failure COQ],
+         [Estimated AFR],
 
-	 [Before Development/Estimated Defects Injected],
-	 [After Development/Estimated Defects Removed]);
+         [Before Development/Estimated Defects Injected],
+         [After Development/Estimated Defects Removed]);
 
 
 /*
@@ -101,8 +101,8 @@ undefine([Estimated Defects Injected], [Estimated Defects Removed],
  * Calculate combined data for the simple review phases.
  */
 
-#define combine(Data) 							\
-   [Design/Combined Data] = [Design/Data] + [Design Review/Data];	\
+#define combine(Data)                                                   \
+   [Design/Combined Data] = [Design/Data] + [Design Review/Data];       \
    [Code/Combined Data]   = [Code/Data] + [Code Review/Data]
 
 combine(Time);
@@ -133,25 +133,10 @@ combine(Defects Removed);
 
 /*
  * The following data elements record which process was used to perform
- * this task, and grey out data elements which do not apply for that process.
+ * this task, and are used to hide data elements which do not apply for
+ * that process.
  */
 
 [PSP_Level] = 2.1;
 [Hide_HLD_Phases] = [PSP_Level] < 3;
-[FreezeFlag/HLD( Review)?/(Time|Defects Injected|Defects Removed)] =
-    [Hide_HLD_Phases];
 [Hide_Review_Phases] = [PSP_Level] < 2;
-[FreezeFlag/(Design|Code) Review/(Time|Defects Injected|Defects Removed)] =
-    [Hide_Review_Phases];
-
-
-/*
- * PSP3 data should start out frozen by default
- */
-
-HLD/Time==#?0.0?0.0
-HLD Review/Time==#?0.0?0.0
-HLD/Defects Injected==#?0.0?0.0
-HLD Review/Defects Injected==#?0.0?0.0
-HLD/Defects Removed==#?0.0?0.0
-HLD Review/Defects Removed==#?0.0?0.0
