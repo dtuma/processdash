@@ -99,6 +99,9 @@ class ActiveExpressionContext implements ExpressionContext, DataListener
     }
 
     public synchronized SimpleData get(String dataName) {
+        if (PREFIXVAR_NAME.equals(dataName))
+            return StringData.create(prefix);
+
         setNames(dataName);
 
         if (checkList != null)
