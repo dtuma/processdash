@@ -1325,6 +1325,10 @@ public class TinyWebServer extends Thread {
     }
 
 
+    void setRoots(URL [] roots) {
+        this.roots = roots;
+        clearClassLoaderCaches();
+    }
     public void setProps(PSPProperties props) {
         if (props == null)
             DEFAULT_ENV.remove(TinyCGI.PSP_PROPERTIES);
@@ -1359,8 +1363,12 @@ public class TinyWebServer extends Thread {
     private volatile boolean isRunning;
 
 
-    /** handle http requests. */
     public void run() {
+        acceptRequests(serverSocket);
+    }
+
+    /** handle http requests. */
+    protected void acceptRequests(ServerSocket serverSocket) {
         Socket clientSocket = null;
         TinyWebThread serverThread = null;
 
@@ -1382,22 +1390,53 @@ public class TinyWebServer extends Thread {
             serverThread.close();
         }
 
-        close();
+        close(serverSocket);
     }
+
+    private class SecondaryServerSocket extends Thread {
+        ServerSocket secondaryServerSocket;
+        public SecondaryServerSocket(int port) throws IOException {
+            // create a server socket that listens on the specified port.
+            // bind to the same inet address as the "main" server socket.
+            InetAddress listenAddress = serverSocket.getInetAddress();
+            secondaryServerSocket = new ServerSocket(port, 50, listenAddress);
+
+            setDaemon(true);
+        }
+        public void run() {
+            acceptRequests(secondaryServerSocket);
+            secondaryServerSocket = null;
+        }
+    }
+
+
+    /** Start listening for connections on an additional port */
+    public void addExtraPort(int port) throws IOException {
+        SecondaryServerSocket s = new SecondaryServerSocket(port);
+        secondaryServerSockets.add(s);
+        s.start();
+    }
+    private Vector secondaryServerSockets = new Vector();
+
 
 
     /** Stop the web server. */
     public void quit() {
         isRunning = false;
+        // interrupt the main server thread.
         this.interrupt();
-        close();
+        close(this.serverSocket);
+        // interrupt any secondary server threads.
+        Iterator i = secondaryServerSockets.iterator();
+        while (i.hasNext()) ((Thread) i.next()).interrupt();
+
+        this.serverSocket = null;
     }
 
-    public synchronized void close() {
+    public synchronized void close(ServerSocket serverSocket) {
         if (serverSocket != null) try {
             serverSocket.close();
         } catch (IOException e2) {}
-        serverSocket = null;
     }
 
     /** Run a web server on port 8000.  the first arg must name the
