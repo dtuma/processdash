@@ -40,6 +40,7 @@ JAR_CONTENTS=Templates/pspForEng.template Templates/pspForEng-template.xml \
 	$(DIR)/dataFile.txt \
 	$(DIR)/progData.txt \
 	$(DIR)/*A/*.* \
+	$(DIR)/10A2/*.* \
 	$(DIR)/R*/dataFile.txt \
 	$(DIR)/R*/dataFile2.txt
 pspForEng.jar: prog2A prog4A prog5A prog7A prog8A manifest dataFile.txt ../pspForEng.template

@@ -1,0 +1,7 @@
+#include <psp2.1/dataFile.txt>
+#include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
+
+= Consult our parent for the appropriate "To Date" subset.
+
+[PSP To Date Subset Prefix] = [../Rollup_Name];
