@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 import java.io.IOException;
+import pspdash.HTMLUtils;
 import pspdash.Resources;
 import pspdash.Translator;
 import pspdash.data.DataRepository;
@@ -43,12 +44,12 @@ public class table extends pspdash.TinyCGIBase {
 
         if (!includable) {
             out.println("<HTML><HEAD>");
-            if (title != null) out.println("<TITLE>" + title + "</TITLE>");
+            if (title != null) out.println("<TITLE>"+ esc(title) +"</TITLE>");
             out.println(cssLinkHTML());
 
             out.println("</HEAD><BODY>");
-            if (title != null) out.println("<H1>" + title + "</H1>");
-            if (head  != null) out.println("<P>"  + head  + "</P>");
+            if (title != null) out.println("<H1>" + esc(title) + "</H1>");
+            if (head  != null) out.println("<P>"  + esc(head)  + "</P>");
             out.println(parameters.containsKey("style") ?
                         "<TABLE>" : "<TABLE BORDER>");
         }
@@ -68,7 +69,7 @@ public class table extends pspdash.TinyCGIBase {
             out.println("<TR>");
             for (int col=firstCol;  col <= tableData.numCols();  col++) {
                 out.print("<TD" + getColAttributes(col) + ">");
-                out.print(tableData.format(row, col));
+                out.print(esc(tableData.format(row, col)));
                 out.println("</TD>");
             }
             out.println("</TR>");
@@ -76,7 +77,7 @@ public class table extends pspdash.TinyCGIBase {
 
         if (!includable) {
             out.println("</TABLE>");
-            if (foot != null) out.println("<P>" + foot + "</P>");
+            if (foot != null) out.println("<P>" + esc(foot) + "</P>");
             out.print("<P class='doNotPrint'><A HREF=\"excel.iqy\">" +
                       "<I>Export to Excel</I></A></P></BODY></HTML>");
         }
@@ -91,6 +92,10 @@ public class table extends pspdash.TinyCGIBase {
 
     protected String tr(String s) {
         return Translator.translate(s);
+    }
+
+    protected String esc(String s) {
+        return HTMLUtils.escapeEntities(s);
     }
 
 }
