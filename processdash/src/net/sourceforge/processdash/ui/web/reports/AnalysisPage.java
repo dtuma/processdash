@@ -33,6 +33,7 @@ import java.util.Map;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.compiler.Compiler;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
@@ -125,8 +126,7 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
     }
 
     protected String escData(String str) {
-        // FIXME: escape properly
-        return str;
+        return Compiler.escapeLiteral(str);
     }
 
     protected ListData getProcessList(String listName) {
