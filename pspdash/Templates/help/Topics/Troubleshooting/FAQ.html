@@ -34,6 +34,7 @@
  <LI><a href="FAQ.html#TimerUpdate">I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</A></LI>
  <LI><a href="FAQ.html#FrozenData">I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</A></LI>
  <LI><a href="FAQ.html#FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
+ <LI><a href="#PrototypicalData">What is &quot;Prototypical PSP Data?&quot;  I'm seeing it in some of the charts and reports.</A></LI>
  <LI><A HREF="#ExtDocFail">I click on a document hyperlink in a process script, but the document never opens.</A></LI>
  <li><a href="FAQ.html#ProcessTweak">I'd like to make a minor change to a process script someone else wrote.  Can I do that?</a></li>
 </ul>
@@ -318,6 +319,23 @@ greyed-out text.</P>
 certain steps are performed (e.g.  instead of performing a PROBE calculation,
 the PROBE tool should be used).  Green text is used to indicate this slight
 departure from the <i>true</i> PSP scripts and forms.</P>
+
+<P><HR><a name="PrototypicalData"></a><b>What is &quot;Prototypical PSP Data?&quot;  I'm seeing it in some of the charts and reports.</b>
+
+<P>When you first begin using the dashboard, you have no historical
+data.  As a result, previous versions of the dashboard would display
+&quot;#DIV/0!&quot; in the &quot;Plan&quot; column of your first
+project if it was based upon anything other than a PSP0 process.</P>
+
+<P>Beginning with version 1.6.2, the dashboard will detect that you
+have no historical data, and introduce an example dataset based upon
+industry data and best practices.  The dashboard uses this dataset to
+calculate the plan for your first PSP project.</P>
+
+<P>As soon as you complete at least one PSP project, this example
+dataset will disappear.  In the meantime, it may appear in various
+dashboard charts and reports.</P>
+
 
 <P><HR><a name="ExtDocFail"></a><b>I click on a document hyperlink in a 
 process script, but the document never opens.</b>

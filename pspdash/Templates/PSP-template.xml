@@ -260,7 +260,9 @@ This file contains the template definitions for the standard PSP processes.
   </template>
 
   <template name="PSP Data Rollup Prototype" imaginary="true" href="none"
-            dataFile="psp3/rollupData.txt" defineRollup="PSP"/>
+            dataFile="psp3/rollupData.txt"
+	    rollupDataFile="psp3/rollupData2.txt"
+	    defineRollup="PSP"/>
 
   <template name="Rollup PSP Data" ID="Rollup PSP Data"
 	    imaginaryUnless="pspProc"
