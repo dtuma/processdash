@@ -36,7 +36,6 @@ public class DataApplet extends java.applet.Applet {
     RepositoryClient data = null;
     String dataPrefix = null;
     String requiredTag = null;
-    String searchString = null;
     String errorMsg = null;
     String readOnlyColorString = "#aaaaaa";
     HTMLFieldManager mgr = null;
@@ -85,15 +84,11 @@ public class DataApplet extends java.applet.Applet {
         debug("starting...");
         isRunning = true;
 
-        searchString = getParameter("searchString");
-        if (searchString == null || searchString.length() == 0)
-            searchString = "none";
-
         requiredTag = getParameter("requiredTag");
-        debug("searchString="+searchString+", requiredTag="+requiredTag);
+        debug("url="+getDocumentBase()+", requiredTag="+requiredTag);
 
         try {
-            data = new RepositoryClient(searchString, requiredTag);
+            data = new RepositoryClient(getDocumentBase(), requiredTag);
             dataPrefix = data.getDataPath();
             watcher = new RepositoryWatcher();
             watcher.start();
