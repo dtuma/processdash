@@ -18,4 +18,5 @@ net/sourceforge/processdash/pspdash.ad
 net/sourceforge/processdash/pspdash.ad-comments
 net/sourceforge/processdash/state
 net/sourceforge/processdash/ui/icon32.gif
+net/sourceforge/processdash/ui/icon32.png
 net/sourceforge/processdash/ui/splash.png

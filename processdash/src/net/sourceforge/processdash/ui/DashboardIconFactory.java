@@ -39,7 +39,7 @@ public class DashboardIconFactory {
     public static Image getWindowIconImage() {
         if (windowIconImage == null)
             windowIconImage = Toolkit.getDefaultToolkit().createImage
-                (DashboardIconFactory.class.getResource("icon32.gif"));
+                (DashboardIconFactory.class.getResource("icon32.png"));
         return windowIconImage;
     }
 
