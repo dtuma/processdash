@@ -5,5 +5,5 @@ qf=../compProj.rpt
 title==% Postmortem Time
 units==%
 
-d1==![(*	Postmortem/% Time	100)]
+d1==Postmortem/% Time
 h1==%

@@ -4,5 +4,5 @@ qf=../compProj.rpt
 
 title=Appraisal Cost of Quality
 
-d1==![(*	100	% Appraisal COQ)]
+d1==% Appraisal COQ
 h1==Appraisal Cost %

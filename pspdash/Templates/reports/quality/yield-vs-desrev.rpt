@@ -4,8 +4,9 @@ qf=../compProj.rpt
 
 title=LOC Reviewed per Hour vs. Yield - Design Review
 
-d1==![(/	New & Changed LOC	Design Review/Time	0.016666)]
+d1==![(/	New & Changed LOC	Design Review/Time	0.016667)]
 h1==Design Review LOC/Hour
 
-d2==![(*	100	Yield)]
+d2==Yield
 h2=Yield
+f2==100%

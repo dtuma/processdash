@@ -4,8 +4,9 @@ qf=../compProj.rpt
 
 title=Productivity vs. Yield
 
-d1==![(*	Yield	100)]
+d1==Yield
 h1==Yield %
+f1==100%
 
-d2==![(/	New & Changed LOC	Time	0.016666)]
+d2==![(/	New & Changed LOC	Time	0.016667)]
 h2=Productivity(LOC/Hr)

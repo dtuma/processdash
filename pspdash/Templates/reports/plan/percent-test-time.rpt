@@ -5,5 +5,5 @@ qf=../compProj.rpt
 title==% Test Time
 units==%
 
-d1==![(*	Test/% Time	100)]
+d1==Test/% Time
 h1==%
