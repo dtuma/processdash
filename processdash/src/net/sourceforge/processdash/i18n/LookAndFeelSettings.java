@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.i18n;
 
 
-import java.util.Enumeration;
 import javax.swing.UIManager;
 
 
@@ -34,14 +33,19 @@ public class LookAndFeelSettings {
 
     public static void loadLocalizedSettings() {
         try {
-            Resources r = Resources.getDashBundle("LookAndFeelSettings");
-            Enumeration e = r.getKeys();
-            while (e.hasMoreElements()) {
-                String dest = (String) e.nextElement();
-                String src = r.getString(dest);
+            Resources r = Resources.getDashBundle("ProcessDashboard");
+            String[] settings = r.getStrings("Look_And_Feel_Changes_");
+            for (int i = 0;   i < settings.length;   i++) {
+                int pos = settings[i].indexOf('=');
+                if (pos == -1) continue;
+
+                String dest = settings[i].substring(0, pos);
+                String src = settings[i].substring(pos+1);
                 UIManager.put(dest, UIManager.get(src));
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
