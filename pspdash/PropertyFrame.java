@@ -179,7 +179,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         /* Create the tree. */
         tree = new JTree(treeModel);
         treeModel.fill (useProps);
-        //tree.expandRow (0);
+        tree.expandRow (0);
         tree.setShowsRootHandles (true);
         tree.setEditable(true);
         tree.setInvokesStopCellEditing(true);
@@ -443,7 +443,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     }
 
                                 // make sure root is expanded
-    public void expandRoot () { /* tree.expandRow (0); */ }
+    public void expandRoot () { tree.expandRow (0); }
 
     /** Construct a menu. */
     private JMenuBar constructMenuBar() {
@@ -986,8 +986,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 new DefaultMutableTreeNode (newCName (parent));
             treeModel.insertNodeInto(newNode, parent, newIndex);
             startEditingNode(newNode);
-            /*if ( ! tree.isExpanded (0))
-                tree.expandRow(0); */
+            if ( ! tree.isExpanded (0))
+                tree.expandRow(0);
 
             setDirty (true);
         }
@@ -1023,8 +1023,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 new DefaultMutableTreeNode (newCName (parent));
             treeModel.insertNodeInto(newNode, parent, newIndex);
             startEditingNode(newNode);
-            /*if ( ! tree.isExpanded (0))
-                tree.expandRow(0);*/
+            if ( ! tree.isExpanded (0))
+                tree.expandRow(0);
 
             /* recompute the template menu. */
             valueChanged(null);
@@ -1066,8 +1066,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 new DefaultMutableTreeNode (newCName (parent));
             treeModel.insertNodeInto(newNode, parent, newIndex);
             startEditingNode(newNode);
-            /*if ( ! tree.isExpanded (0))
-                tree.expandRow(0);*/
+            if ( ! tree.isExpanded (0))
+                tree.expandRow(0);
 
             setDirty (true);
         }
