@@ -29,11 +29,16 @@ import java.io.InputStream;
 import java.io.FileInputStream;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 public class Settings {
 
 
     private static Properties settings = null;
+    private static String homedir = null;
+    private static String settingsFile = null;
+
+    public static final String sep = System.getProperty("file.separator");
 
 
     public static void initialize(String settingsFile) {
@@ -42,27 +47,19 @@ public class Settings {
 
         String cwd  = System.getProperty("user.dir");
         String home = System.getProperty("user.home");
-        String sep  = System.getProperty("file.separator");
-        String homedir = home;
+        homedir = home;
+
         InputStream in;
 
-        // create application defaults.  First, create a set of defaults
-        // programmatically based on the current context.
+        // create application defaults.  First, get a set of common defaults.
         //
-        Properties defaults = new Properties();
-        defaults.put("taskFile", "~" + sep + "tasks");
-        defaults.put("stateFile", "~" + sep + "state");
-        defaults.put("browser.command", "netscape");
-        defaults.put("templates.URL.prefix", "file:");
-        defaults.put("templates.directory", "~" + sep + "Template");
-        defaults.put("dateFormat", "MM/dd/yyyy|MM dd yyyy|MMM dd, yyyy");
-        defaults.put("dateTimeFormat", "MMM dd, yyyy hh:mm:ss aaa|MMM dd, yyyy hh:mm:ss aaa z");
+        Properties defaults = defaultProperties();
 
         try {
             // now supplement the defaults by reading the system-wide settings file.
             // This file should be in the same directory as the Settings.class file.
             //
-            in = Class.forName("pspdash.Settings").getResourceAsStream("pspdash.ad");
+            in = Settings.class.getResourceAsStream("pspdash.ad");
 
             if (in != null) {
                 Properties systemDefaults = new Properties(defaults);
@@ -75,13 +72,16 @@ public class Settings {
 
         // finally, open the user's settings file and load those properties.  The
         // default search path for these user settings is:
-        //    * ".pspdash" in the current directory
-        //    * "pspdash.ini" in the current directory
-        //    * ".pspdash" in the user's home directory (specified by the system
-        //		property "user.home")
-        //    * "pspdash.ini" in the user's home directory.
+        //    * the current directory
+        //    * the user's home directory (specified by the system property
+        //          "user.home")
+        //
+        // on Windows systems, this will look for a file named "pspdash.ini".
+        // on all other platforms, it will look for a file named ".pspdash".
         //
         settings = new Properties(defaults);
+
+        String filename = getSettingsFilename();
 
         try {
             if (settingsFile != null && settingsFile.length() != 0)
@@ -89,44 +89,58 @@ public class Settings {
             else {
                 try {
                     homedir = cwd;
-                    in = new FileInputStream(settingsFile=(cwd + sep + ".pspdash"));
-                } catch (Exception e1) { try {
-                    in = new FileInputStream(settingsFile=(cwd + sep + "pspdash.ini"));
-                } catch (Exception e2) { try {
+                    in = new FileInputStream(settingsFile=(homedir + sep + filename));
+                } catch (Exception e1) {
                     homedir = home;
-                    in = new FileInputStream(settingsFile=(home + sep + ".pspdash"));
-                } catch (Exception e3) {
-                    in = new FileInputStream(settingsFile=(home + sep + "pspdash.ini"));
-                } } } }
+                    in = new FileInputStream(settingsFile=(homedir + sep + filename));
+                }
+            }
 
             settings.load(in);
             in.close();
 
         } catch (Exception e) {
-            System.err.println("could not read user preferences file from any of");
-            System.err.println("     " + cwd + sep + ".pspdash");
-            System.err.println("     " + cwd + sep + "pspdash.ini");
-            System.err.println("     " + home + sep + ".pspdash");
-            System.err.println("     " + home + sep + "pspdash.ini");
-            System.err.println("...using system-wide defaults.");
-        }
+            System.out.println("could not read user preferences file from any of");
+            System.out.println("     " + cwd + sep + filename);
+            System.out.println("     " + home + sep + filename);
+            System.out.println("...using system-wide defaults.");
 
-        String homeDirPrefix = "~" + sep;
-        Enumeration names = settings.propertyNames();
-        while (names.hasMoreElements()) {
-            String name = (String) names.nextElement();
-            String value = settings.getProperty(name);
-            if (value.startsWith(homeDirPrefix)) {
-                value = homedir + value.substring(1);
-                settings.put(name, value);
-            }
+            // what a brain-dead default home directory.  DONT use C:\WINDOWS as
+            // the user's home dir, no matter the cost.
+            if (homedir.toUpperCase().endsWith("WINDOWS"))
+                homedir = cwd;
+            settingsFile = homedir + sep + filename;
         }
+        Settings.settingsFile = settingsFile;
+    }
+    private static final String getSettingsFilename() {
+        if (System.getProperty("os.name").toUpperCase().startsWith("WIN"))
+            return "pspdash.ini";
+        else
+            return ".pspdash";
+    }
+    public static String getSettingsFileName() {
+        return settingsFile;
     }
 
 
+    /** Programmatically create a set of common defaults. */
+    private static Properties defaultProperties() {
+
+        Properties defaults = new Properties();
+
+        defaults.put("taskFile", "~/tasks");
+        defaults.put("stateFile", "~/state");
+        defaults.put("dateFormat", "MM/dd/yyyy|MM dd yyyy|MMM dd, yyyy");
+        defaults.put("dateTimeFormat",
+                     "MMM dd, yyyy hh:mm:ss aaa|MMM dd, yyyy hh:mm:ss aaa z");
+
+        return defaults;
+    }
+
     public static void initialize(Properties newSettings) {
         if (newSettings == null)
-            initialize("");
+            settings = defaultProperties();
         else
             settings = newSettings;
     }
@@ -139,6 +153,40 @@ public class Settings {
             return settings.getProperty(name);
     }
 
+    public static String getFile(String name) {
+        String val = getVal(name);
+        if (val == null) return null;
+
+        StringBuffer result = new StringBuffer();
+        StringTokenizer tok = new StringTokenizer(val, "~/", true);
+        String token;
+        while (tok.hasMoreTokens()) {
+            token = tok.nextToken();
+            if      (token.equals("~"))  result.append(homedir);
+            else if (token.equals("/"))  result.append(sep);
+            else                         result.append(token);
+        }
+
+        return result.toString();
+    }
+
+    public static String getDir(String name, boolean endWithSep) {
+        String result = getFile(name);
+        if (result == null) return null;
+
+        if (endWithSep)     // caller wants the value to end with a separator
+            if (result.endsWith(sep))
+                return result;
+            else
+                return result + sep;
+
+        else                // caller doesn't want the value to end with separator
+            if (result.endsWith(sep))
+                return result.substring(0, result.length() - 1);
+            else
+                return result;
+    }
+
     public static void set(String name, String value) {
         if (settings != null) settings.put(name, value);
     }
@@ -147,4 +195,3 @@ public class Settings {
         return settings;
     }
 }
-
