@@ -80,11 +80,13 @@ public class AutoUpdateManager {
 
     public static final String AUTO_UPDATE_SETTING = "autoUpdate";
     public static final String DISABLED = ".disabled";
+    public static final String REMIND = ".remind";
     public static final String LAST_CHECK = ".lastCheckDate";
     public static final String PROXY_USER = ".proxyUsername";
     public static final String PROXY_PASS = ".proxyPassword";
     public static final long CHECK_INTERVAL = 30L /*days*/ * 24L /*hours*/ *
         60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
+    private static final String BULLET = "\u2022";
 
     /** Read package information from the given manifest file. */
     public void addPackage(String filename, Manifest manifest) {
@@ -104,7 +106,8 @@ public class AutoUpdateManager {
 
         // Check to see if we've already checked for updates recently.
         String lastUpdate = Settings.getVal(AUTO_UPDATE_SETTING + LAST_CHECK);
-        if (lastUpdate != null) try {
+        String remind = Settings.getVal(AUTO_UPDATE_SETTING + REMIND);
+        if (remind == null && lastUpdate != null) try {
             long lastTime = Long.parseLong(lastUpdate);
             if (now < lastTime + CHECK_INTERVAL) {
                 debug("update check is recent.");
@@ -164,9 +167,11 @@ public class AutoUpdateManager {
         }
 
         // if we were able to perform the check, save the current date.
-        if (checkSuccessful)
+        if (checkSuccessful) {
             InternalSettings.set(AUTO_UPDATE_SETTING + LAST_CHECK,
                                  Long.toString(now));
+            InternalSettings.set(AUTO_UPDATE_SETTING + REMIND, null);
+        }
 
         // If we found any updates, inform the user.
         if (updatesFound > 0)
@@ -195,7 +200,7 @@ public class AutoUpdateManager {
         for (int i = packages.size();  i-- > 0; ) {
             pkg = (DashPackage) packages.get(i);
             if (pkg.updateAvailable)
-                message[pos++] = "\u2022 " + pkg.name;
+                message[pos++] = BULLET + " " + pkg.name;
         }
         message[pos++] =
             "Please visit http://processdash.sourceforge.net to download!";
@@ -203,13 +208,22 @@ public class AutoUpdateManager {
             ("Don't perform a monthly check for new releases.");
         message[pos] = disable;
 
-        JOptionPane.showMessageDialog
+        int choice = JOptionPane.showOptionDialog
             (parent, message, "Software Updates are Available",
-             JOptionPane.INFORMATION_MESSAGE);
+             JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
+             null, UPDATE_OPTIONS, UPDATE_OPTIONS[0]);
+        if (choice == 0)
+            Browser.launch(DOWNLOAD_URL);
+        else if (choice == 1)
+            InternalSettings.set(AUTO_UPDATE_SETTING + REMIND, "true");
 
         if (disable.isSelected())
             InternalSettings.set(AUTO_UPDATE_SETTING + DISABLED, "true");
     }
+    private static final String [] UPDATE_OPTIONS = {
+        "Visit website", "Remind me again", "Close this window" };
+    private static final String DOWNLOAD_URL =
+        "http://processdash.sourceforge.net/autoupdate.html";
 
 
     /** Display a dialog advising the user that the check failed. */
@@ -222,8 +236,8 @@ public class AutoUpdateManager {
         "The dashboard was unable to determine if any updates",
         "are available because it could not make a connection to",
         "the internet. This could either be because:",
-        "\u2022 You are not currently connected to the internet, or",
-        "\u2022 You connect to the internet via an HTTP proxy server",
+        BULLET + " You are not currently connected to the internet, or",
+        BULLET + " You connect to the internet via an HTTP proxy server",
         "    (which the update mechanism does not currently support).",
         "Sorry!" };
 
@@ -260,6 +274,10 @@ public class AutoUpdateManager {
         /** the local filename of the jarfile containing the package */
         public String filename;
 
+        /** the time we last successfully checked for an updated
+            version of this package */
+        long lastUpdateCheckTime = -1;
+
         /** Did the connection to the updateURL fail? */
         public boolean connectFailed = false;
 
@@ -289,6 +307,12 @@ public class AutoUpdateManager {
             if (id==null || name==null || version==null || updateURL==null)
                 throw new InvalidDashPackage();
 
+            String lastUpdate = Settings.getVal
+                (AUTO_UPDATE_SETTING + LAST_CHECK + "." + id);
+            if (lastUpdate != null) try {
+                lastUpdateCheckTime = Long.parseLong(lastUpdate);
+            } catch (NumberFormatException nfe) {}
+
             debug("Found a package!" +
                   "\n\tname = " + name +
                   "\n\tid = " + id +
@@ -299,13 +323,20 @@ public class AutoUpdateManager {
         /** Try to download the update information for this package. */
         public void getUpdateInfo() {
             try {
-                URL url = new URL(updateURL + "?id="+id + "&ver="+version);
+                long deltaTime =
+                    (lastUpdateCheckTime<0 ? -1 : now-lastUpdateCheckTime);
+                URL url = new URL(updateURL + "?id="+id + "&ver="+version +
+                                  "&time=" + deltaTime);
                 URLConnection conn = url.openConnection();
                 conn.setAllowUserInteraction(true);
                 int cl = conn.getContentLength();
 
                 // a content-length of -1 means that the connection failed.
                 connectFailed = (cl < 0);
+                if (!connectFailed)
+                    InternalSettings.set
+                        (AUTO_UPDATE_SETTING + LAST_CHECK + "." + id,
+                         Long.toString(lastUpdateCheckTime = now));
 
                 // a content-length of -1 or 0 automatically implies
                 // that no update is available.
