@@ -29,6 +29,7 @@ package net.sourceforge.processdash.ui.help;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.Window;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -75,8 +76,9 @@ public class DashHelpBroker extends DefaultHelpBroker
         initPresentation();
 
         WindowPresentation pres = getWindowPresentation();
-        Frame f = (Frame) pres.getHelpWindow();
-        f.setIconImage(DashboardIconFactory.getWindowIconImage());
+        Window w = pres.getHelpWindow();
+        if (w instanceof Frame)
+            ((Frame) w).setIconImage(DashboardIconFactory.getWindowIconImage());
     }
 
 
