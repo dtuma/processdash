@@ -28,6 +28,9 @@ package pspdash;
 import java.util.*;
 
 /** This class represents a schedule that has been rolled up from
+ *  several subschedules. (Note: at this time it only supports the
+ *  rollup of plain schedules - rollup of rollup schedules is
+ * forbidden.)
  */
 public class EVScheduleRollup extends EVSchedule {
 
@@ -47,7 +50,10 @@ public class EVScheduleRollup extends EVSchedule {
         Iterator i = evtasklists.iterator();
         while (i.hasNext()) {
             EVTaskList taskList = (EVTaskList) i.next();
-            subSchedules.add(taskList.getSchedule());
+            EVSchedule schedule = taskList.getSchedule();
+            subSchedules.add(schedule);
+            String errorQualifier = "[" + taskList.getRootName() + "] ";
+            schedule.getMetrics().setErrorQualifier(errorQualifier);
         }
     }
 
