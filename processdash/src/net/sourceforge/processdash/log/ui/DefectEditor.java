@@ -33,6 +33,9 @@ import java.util.*;
 import java.awt.event.*;
 import javax.swing.tree.*;
 
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
@@ -46,9 +49,6 @@ import net.sourceforge.processdash.ui.ConfigureButton;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.util.FormatUtil;
-import pspdash.InternalSettings;
-import pspdash.PSPDashboard;
-import pspdash.Settings;
 
 
 public class DefectEditor extends Component
@@ -60,7 +60,7 @@ public class DefectEditor extends Component
     protected JTree           tree;
     protected PropTreeModel   treeModel;
     protected DashHierarchy   useProps;
-    protected PSPDashboard    dashboard = null;
+    protected ProcessDashboard    dashboard = null;
     protected Hashtable       defectLogs = null;
     protected ValidatingTable table;
     protected JSplitPane      splitPane;
@@ -86,7 +86,7 @@ public class DefectEditor extends Component
 
 
                                 // constructor
-    public DefectEditor(PSPDashboard dash,
+    public DefectEditor(ProcessDashboard dash,
                         ConfigureButton button,
                         DashHierarchy props) {
         dashboard        = dash;
@@ -593,7 +593,7 @@ public class DefectEditor extends Component
 
     public static void rename(DashHierarchy oldProps, DashHierarchy newProps,
                               String oldPrefix, String newPrefix,
-                              PSPDashboard dashboard) {
+                              ProcessDashboard dashboard) {
         PropertyKey oldKey = PropertyKey.fromPath(oldPrefix);
         String oldLogName = oldProps.pget(oldKey).getDefectLog();
         if (oldLogName != null && oldLogName.length() > 0) {

@@ -34,12 +34,12 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Vector;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.*;
 import net.sourceforge.processdash.data.applet.*;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
-import pspdash.Settings;
 
 public class RepositoryServer extends Thread {
 

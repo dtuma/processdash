@@ -68,6 +68,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -87,7 +88,6 @@ import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.Settings;
 
 public class TaskScheduleDialog
     implements EVTask.Listener, EVTaskList.RecalcListener, EVSchedule.Listener

@@ -56,6 +56,9 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import net.sourceforge.processdash.FileBackupManager;
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataImporter;
@@ -73,9 +76,6 @@ import net.sourceforge.processdash.log.TimeLogEntry;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
 import net.sourceforge.processdash.util.RobustFileWriter;
-import pspdash.FileBackupManager;
-import pspdash.PSPDashboard;
-import pspdash.Settings;
 
 
 public class ImportExport extends JDialog implements ActionListener {
@@ -88,14 +88,14 @@ public class ImportExport extends JDialog implements ActionListener {
 
     static String FILE_SEP = null;
 
-    PSPDashboard  parent;
+    ProcessDashboard  parent;
     DashHierarchy props;
     SelectableHierarchyTree tree;
     int           operation = X_DATA;
 
 
 
-    public ImportExport (PSPDashboard dash) {
+    public ImportExport (ProcessDashboard dash) {
         super (dash, resource.getString("Export"));
         PCSH.enableHelpKey(this, "ExportingData");
 
@@ -234,7 +234,7 @@ public class ImportExport extends JDialog implements ActionListener {
         exportInteractively(this, parent, filter, dest);
     }
 
-    public static void exportInteractively(Object window, PSPDashboard parent,
+    public static void exportInteractively(Object window, ProcessDashboard parent,
                                            Vector filter, File dest) {
         ProgressDialog p = null;
         if (window instanceof Dialog)
@@ -252,8 +252,8 @@ public class ImportExport extends JDialog implements ActionListener {
     }
 
     public static class ExportTask implements Runnable {
-        PSPDashboard parent; Vector filter;  File dest;
-        public ExportTask(PSPDashboard p, Vector f, File d) {
+        ProcessDashboard parent; Vector filter;  File dest;
+        public ExportTask(ProcessDashboard p, Vector f, File d) {
             parent = p; filter = f;  dest = d; }
         public void run() { export(parent, filter, dest); }
     }
@@ -269,7 +269,7 @@ public class ImportExport extends JDialog implements ActionListener {
         return EVTaskList.MAIN_DATA_PREFIX + name;
     }
 
-    public static void export(PSPDashboard parent, Vector filter, File dest) {
+    public static void export(ProcessDashboard parent, Vector filter, File dest) {
         boolean fail = false;
         PrintWriter out = null;
         try {
@@ -328,10 +328,10 @@ public class ImportExport extends JDialog implements ActionListener {
         return n.replace('/', '_').replace(',', '_');
     }
 
-    public static void exportAll(PSPDashboard parent) {
+    public static void exportAll(ProcessDashboard parent) {
         exportAll(parent, Settings.getVal("export.data"));
     }
-    public static void exportAll(PSPDashboard parent, String userSetting) {
+    public static void exportAll(ProcessDashboard parent, String userSetting) {
 
         boolean foundWork = false;
         ProgressDialog p = new ProgressDialog(parent,
@@ -382,9 +382,9 @@ public class ImportExport extends JDialog implements ActionListener {
     public static final String EXPORT_DATANAME = DataImporter.EXPORT_DATANAME;
 
     private static class DailyExporterThread extends Thread {
-        private PSPDashboard parent;
+        private ProcessDashboard parent;
         private String propDirectory;
-        public DailyExporterThread(PSPDashboard p, String dir) {
+        public DailyExporterThread(ProcessDashboard p, String dir) {
             parent = p;
             propDirectory = dir;
             setDaemon(true);
@@ -410,7 +410,7 @@ public class ImportExport extends JDialog implements ActionListener {
     private static final long MILLIS_PER_HOUR =
         60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
 
-    public static void startAutoExporter(PSPDashboard parent, String propDir) {
+    public static void startAutoExporter(ProcessDashboard parent, String propDir) {
         new DailyExporterThread(parent, propDir);
     }
 }

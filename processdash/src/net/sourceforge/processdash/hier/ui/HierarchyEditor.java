@@ -49,10 +49,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import javax.swing.tree.*;
 
-import pspdash.InternalSettings;
-import pspdash.PSPDashboard;
-import pspdash.Settings;
 
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.*;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
@@ -71,7 +71,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     protected DashHierarchy templates;
     protected DashHierarchy readProps;
     protected DashHierarchy useProps;
-    protected PSPDashboard  dashboard = null;
+    protected ProcessDashboard  dashboard = null;
     protected ConfigureButton configureButton;
 
     static final Resources resource =
@@ -159,7 +159,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
 
                                 // constructor
-    public HierarchyEditor(PSPDashboard dash,
+    public HierarchyEditor(ProcessDashboard dash,
                          ConfigureButton button,
                          DashHierarchy props,
                          DashHierarchy templates) {
@@ -1153,8 +1153,8 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     /** MoveUpAction swaps the selected node with its preceeding sibling. */
     class MoveUpAction extends AbstractAction {
         public MoveUpAction() {
-            super(resource.getString("HierarchyMoveUp"), new ImageIcon(HierarchyEditor.class.getResource
-                                           ("block-up-arrow.gif")));
+            super(resource.getString("HierarchyMoveUp"), new ImageIcon
+                  (HierarchyEditor.class.getResource("block-up-arrow.gif")));
             putValue(Action.SHORT_DESCRIPTION, resource.getString("HierarchyMoveNodeUp"));
         }
 

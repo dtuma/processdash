@@ -37,6 +37,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.Icon;
 
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.Timer;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SaveableData;
@@ -48,14 +52,10 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.SoundClip;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
-import pspdash.InternalSettings;
-import pspdash.PSPDashboard;
-import pspdash.Settings;
-import pspdash.Timer;
 
 
 public class PauseButton extends DropDownButton implements ActionListener {
-    PSPDashboard parent = null;
+    ProcessDashboard parent = null;
     Icon pause_icon = null;
     Icon continue_icon = null;
     boolean showCurrent = false;
@@ -71,7 +71,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
     int refreshIntervalMillis = MILLIS_PER_MINUTE; // default: one minute
     private static final int FAST_REFRESH_INTERVAL = 5 * 1000;
 
-    public PauseButton(PSPDashboard dash) {
+    public PauseButton(ProcessDashboard dash) {
         super();
         PCSH.enableHelp(this, "PlayPause");
         PCSH.enableHelpKey(getMenu(), "PlayPause");
@@ -104,10 +104,11 @@ public class PauseButton extends DropDownButton implements ActionListener {
         activeRefreshTimer.start();
 
         // Load the audio clip
-        if (!"true".equalsIgnoreCase(Settings.getVal("pauseButton.quiet"))) {
-            timingSound = new SoundClip(getClass().getResource("timing.wav"));
-        } else
+        if (Settings.getBool("pauseButton.quiet", false)) {
             timingSound = new SoundClip(null);
+        } else {
+            timingSound = new SoundClip(getClass().getResource("timing.wav"));
+        }
 
         dash.getContentPane().add(this);
     }

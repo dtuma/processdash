@@ -26,7 +26,7 @@
 
 package net.sourceforge.processdash.ev.ci;
 
-import pspdash.Settings;
+import net.sourceforge.processdash.Settings;
 
 public class LinearRegressionConfidenceInterval
     extends AbstractLinearConfidenceInterval

@@ -30,12 +30,12 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.lang.Double;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.*;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.util.*;
 
-import pspdash.Settings;
 
 public class DataCorrelator {
 

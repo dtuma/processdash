@@ -29,11 +29,11 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVMetricsRollup;
 import net.sourceforge.processdash.ev.EVSchedule;
 
-import pspdash.Settings;
 
 import DistLib.uniform;
 

@@ -33,6 +33,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.ui.lib.JpegEncoder;
@@ -46,7 +47,6 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 
-import pspdash.Settings;
 
 
 

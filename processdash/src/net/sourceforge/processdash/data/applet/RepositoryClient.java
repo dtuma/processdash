@@ -25,7 +25,6 @@
 
 package net.sourceforge.processdash.data.applet;
 
-import pspdash.Settings;
 
 import java.io.*;
 import java.net.*;
@@ -35,6 +34,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.Properties;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.*;
 import net.sourceforge.processdash.data.repository.*;
 

@@ -31,8 +31,8 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.*;
 
-import pspdash.Settings;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;

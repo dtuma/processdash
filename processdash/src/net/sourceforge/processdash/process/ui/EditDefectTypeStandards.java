@@ -28,6 +28,7 @@ package net.sourceforge.processdash.process.ui;
 
 import java.io.IOException;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.DefectTypeStandard;
@@ -35,7 +36,6 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
-import pspdash.DashController;
 
 
 /** CGI script for editing defect type standards.

@@ -52,6 +52,8 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
 
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -72,8 +74,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import pspdash.DashController;
-import pspdash.Settings;
 
 
 /** CGI script for integrating external documents into the dashboard.

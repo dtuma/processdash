@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -49,7 +50,6 @@ import net.sourceforge.processdash.util.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import pspdash.DashController;
 
 
 

@@ -26,13 +26,13 @@
 
 package net.sourceforge.processdash.log;
 
-import pspdash.PSPDashboard;
 
 import java.io.*;
 import java.text.ParseException;
 import java.util.Hashtable;
 import java.util.Iterator;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -42,14 +42,14 @@ public class DefectLog {
     String defectLogFilename = null;
     String dataPrefix = null;
     DataRepository data = null;
-    PSPDashboard parent;
+    ProcessDashboard parent;
 
     public static final String DEF_INJ_SUFFIX = "/Defects Injected";
     public static final String DEF_REM_SUFFIX = "/Defects Removed";
 
 
     public DefectLog(String filename, String dataPath, DataRepository data,
-              PSPDashboard dash) {
+              ProcessDashboard dash) {
         defectLogFilename = filename;
         this.dataPrefix = dataPath + "/";
         this.data = data;

@@ -32,8 +32,8 @@ import java.util.Date;
 
 import javax.swing.SwingUtilities;
 
-import pspdash.DashController;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ui.ConsoleWindow;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 

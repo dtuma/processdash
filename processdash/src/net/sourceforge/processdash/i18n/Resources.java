@@ -32,9 +32,8 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-
 import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class Resources extends ResourceBundle {
 
@@ -81,7 +80,7 @@ public class Resources extends ResourceBundle {
 
     private static void initGlobalResources() {
         if (globalResources == null)
-            globalResources = getDashBundle("pspdash.Resources", null);
+            globalResources = getDashBundle("processdash.Resources", null);
     }
 
     public static Resources getGlobalBundle() {
@@ -104,9 +103,13 @@ public class Resources extends ResourceBundle {
             throw new ClassNotFoundException(name);
         }
         protected URL findResource(String name) {
-            if (name.startsWith("pspdash"))
+            if (name.startsWith("processdash"))
+                name = "resources" + name.substring(11);
+            else if (name.startsWith("/processdash"))
+                name = "/resources" + name.substring(12);
+            else if (name.startsWith("pspdash"))  // legacy - OK
                 name = "resources" + name.substring(7);
-            else if (name.startsWith("/pspdash"))
+            else if (name.startsWith("/pspdash")) // legacy - OK
                 name = "/resources" + name.substring(8);
             name = name.replace('$', '.');
             return findResourceImpl(name);

@@ -39,25 +39,26 @@ import javax.swing.event.DocumentListener;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.Timer;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.process.DefectTypeStandard;
+import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
 
 import java.util.*;
 
-import pspdash.PSPDashboard;
-import pspdash.Settings;
-import pspdash.Timer;
 
 public class DefectDialog extends JDialog
     implements ActionListener, DocumentListener, WindowListener
 {
-    PSPDashboard parent;
+    ProcessDashboard parent;
     String defectFilename;
     PropertyKey defectPath;
     DefectLog defectLog = null;
@@ -84,12 +85,12 @@ public class DefectDialog extends JDialog
     Resources resources = Resources.getDashBundle("pspdash.Defects");
 
 
-    DefectDialog(PSPDashboard dash, String defectFilename,
+    DefectDialog(ProcessDashboard dash, String defectFilename,
                  PropertyKey defectPath) {
         this(dash, defectFilename, defectPath, true);
     }
 
-    DefectDialog(PSPDashboard dash, String defectFilename,
+    DefectDialog(ProcessDashboard dash, String defectFilename,
                  PropertyKey defectPath, boolean guessDefaults) {
         super(dash);
         setTitle(resources.getString("Defect_Dialog_Window_Title"));
@@ -146,7 +147,7 @@ public class DefectDialog extends JDialog
         panel.add(fix_defect);
 
         fixDefectButton = new JButton
-            (new ImageIcon(getClass().getResource("defect.gif")));
+            (DashboardIconFactory.getDefectIcon());
         fixDefectButton.addActionListener(this);
         g.gridx = 2;   layout.setConstraints(fixDefectButton, g);
         panel.add(fixDefectButton);
@@ -293,7 +294,7 @@ public class DefectDialog extends JDialog
         setDirty(false);
     }
 
-    private DefectDialog(PSPDashboard dash, String defectFilename,
+    private DefectDialog(ProcessDashboard dash, String defectFilename,
                          PropertyKey defectPath, Defect defect) {
         this(dash, defectFilename, defectPath, false);
         stopTimingDefect();
@@ -302,7 +303,7 @@ public class DefectDialog extends JDialog
     }
 
     public static DefectDialog getDialogForDefect
-        (PSPDashboard dash, String defectFilename,
+        (ProcessDashboard dash, String defectFilename,
          PropertyKey defectPath, Defect defect)
     {
         DefectDialog result = null;

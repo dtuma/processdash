@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.data.applet;
 
 
-import pspdash.Settings;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -37,6 +36,7 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLEncoder;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.*;
 

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -39,7 +40,6 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.Settings;
 
 
 public class ProbeWizard extends TinyCGIBase {

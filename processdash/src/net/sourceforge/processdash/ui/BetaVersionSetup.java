@@ -30,8 +30,8 @@ import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
 
-import pspdash.PSPDashboard;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.util.*;
 
 
@@ -141,7 +141,7 @@ public class BetaVersionSetup {
 
 
     private static String getVersion() {
-        return PSPDashboard.getVersionNumber();
+        return ProcessDashboard.getVersionNumber();
     }
 
 }

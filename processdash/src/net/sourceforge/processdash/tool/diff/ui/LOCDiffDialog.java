@@ -55,15 +55,16 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.LOCDiff;
 import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.DashController;
 
 
 public class LOCDiffDialog extends TinyCGIBase
@@ -103,8 +104,7 @@ public class LOCDiffDialog extends TinyCGIBase
         this.webServer = webServer;
 
         frame = new JFrame("Compare Files/Directories");
-        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
-                           (LOCDiff.class.getResource("icon32.gif")));
+        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
 
         Box vBox = Box.createVerticalBox();
         Box hBox = Box.createHorizontalBox();

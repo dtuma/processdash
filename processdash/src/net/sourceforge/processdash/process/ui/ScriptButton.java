@@ -34,8 +34,8 @@ import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-import pspdash.PSPDashboard;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.*;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -46,7 +46,7 @@ import net.sourceforge.processdash.ui.lib.DropDownButton;
 // script when it is pressed.  A right click can activate a popup menu with
 // a selection of scripts.
 public class ScriptButton extends DropDownButton {
-    PSPDashboard parent = null;
+    ProcessDashboard parent = null;
     Icon enabled_icon = null;
     Icon disabled_icon = null;
     String scriptFilename = null;
@@ -56,7 +56,7 @@ public class ScriptButton extends DropDownButton {
 
     public static final String URL_PREFIX = "/";
 
-    public ScriptButton(PSPDashboard dash) {
+    public ScriptButton(ProcessDashboard dash) {
         super();
         PCSH.enableHelp(this, "AccessingScripts");
         PCSH.enableHelpKey(getMenu(), "AccessingScripts");

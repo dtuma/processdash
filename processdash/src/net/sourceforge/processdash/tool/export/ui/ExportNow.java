@@ -29,8 +29,8 @@ package net.sourceforge.processdash.tool.export.ui;
 import java.io.IOException;
 import java.util.Date;
 
-import pspdash.DashController;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 

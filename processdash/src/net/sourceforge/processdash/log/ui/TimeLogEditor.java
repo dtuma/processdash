@@ -45,6 +45,9 @@ import java.io.IOException;
 import javax.swing.tree.*;
 import javax.swing.text.JTextComponent;
 
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -58,9 +61,6 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
 import net.sourceforge.processdash.util.FormatUtil;
-import pspdash.InternalSettings;
-import pspdash.PSPDashboard;
-import pspdash.Settings;
 
 
 public class TimeLogEditor extends Object
@@ -71,7 +71,7 @@ public class TimeLogEditor extends Object
     protected JTree           tree;
     protected PropTreeModel   treeModel;
     protected DashHierarchy   useProps;
-    protected PSPDashboard    dashboard = null;
+    protected ProcessDashboard    dashboard = null;
     protected ValidatingTable table;
     protected JSplitPane      splitPane;
 
@@ -104,7 +104,7 @@ public class TimeLogEditor extends Object
 
 
                                 // constructor
-    public TimeLogEditor(PSPDashboard dash,
+    public TimeLogEditor(ProcessDashboard dash,
                          ConfigureButton button,
                          DashHierarchy props) {
         dashboard        = dash;

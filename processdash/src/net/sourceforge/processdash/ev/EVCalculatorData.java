@@ -34,8 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Iterator;
 
-import pspdash.Settings;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.ci.*;
 import net.sourceforge.processdash.log.TimeLog;
 import net.sourceforge.processdash.log.TimeLogEntry;

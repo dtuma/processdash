@@ -53,13 +53,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.help.PCSH;
-import pspdash.PSPDashboard;
 
 
 public class ScriptBrowser extends JDialog
@@ -70,7 +70,7 @@ public class ScriptBrowser extends JDialog
     protected JTree           tree;
     protected PropTreeModel   treeModel;
     protected DashHierarchy   useProps;
-    protected PSPDashboard    dashboard = null;
+    protected ProcessDashboard    dashboard = null;
     protected DefaultListModel scriptList = null;
     protected JButton         displayButton = null;
     protected JList           list;
@@ -90,7 +90,7 @@ public class ScriptBrowser extends JDialog
 
 
                                 // constructor
-    public ScriptBrowser(PSPDashboard dash, boolean showCurrent) {
+    public ScriptBrowser(ProcessDashboard dash, boolean showCurrent) {
         super(dash);
         setTitle(resources.getString("Script_Browser_Window_Title"));
 

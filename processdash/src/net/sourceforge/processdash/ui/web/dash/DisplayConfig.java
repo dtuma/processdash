@@ -28,11 +28,11 @@ package net.sourceforge.processdash.ui.web.dash;
 
 import java.io.IOException;
 
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
-import pspdash.DashController;
-import pspdash.PSPDashboard;
 
 
 /** CGI script to print out the DNS name of the web server.
@@ -67,7 +67,7 @@ public class DisplayConfig extends TinyCGIBase {
         out.println("</PRE></P>");
 
         out.print("<P>Your data is located in the directory:<PRE>     ");
-        out.println(PSPDashboard.getDefaultDirectory());
+        out.println(ProcessDashboard.getDefaultDirectory());
         out.println("</PRE></P>");
 
         out.println("</BODY></HTML>");

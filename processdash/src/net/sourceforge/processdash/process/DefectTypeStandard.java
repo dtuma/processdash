@@ -31,12 +31,12 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ui.OptionList;
-import pspdash.Settings;
 
 public class DefectTypeStandard extends OptionList {
 

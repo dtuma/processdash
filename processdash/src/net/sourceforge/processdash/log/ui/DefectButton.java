@@ -30,21 +30,21 @@ import java.awt.Insets;
 import java.awt.event.*;
 import javax.swing.*;
 
-import pspdash.PSPDashboard;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.*;
 
 public class DefectButton extends JButton implements ActionListener {
-    PSPDashboard parent = null;
+    ProcessDashboard parent = null;
     Icon enabled_icon = null;
     Icon disabled_icon = null;
     String defectLogFileName = null;
     PropertyKey defectPath = null;
 
-    public DefectButton(PSPDashboard dash) {
+    public DefectButton(ProcessDashboard dash) {
         super();
         PCSH.enableHelp(this, "EnteringDefects");
         try {

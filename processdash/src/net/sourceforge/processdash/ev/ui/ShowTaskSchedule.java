@@ -28,8 +28,8 @@ package net.sourceforge.processdash.ev.ui;
 
 import java.io.IOException;
 
-import pspdash.DashController;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 

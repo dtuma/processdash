@@ -25,7 +25,6 @@
 
 package net.sourceforge.processdash.hier;
 
-import pspdash.PSPDashboard;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -33,6 +32,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
@@ -41,9 +41,9 @@ import net.sourceforge.processdash.hier.ui.HierarchyEditor;
  */
 public class HierarchyAlterer implements ItemListener {
 
-    private PSPDashboard dashboard;
+    private ProcessDashboard dashboard;
 
-    public HierarchyAlterer(PSPDashboard dashboard) {
+    public HierarchyAlterer(ProcessDashboard dashboard) {
         this.dashboard = dashboard;
     }
 
@@ -82,7 +82,7 @@ public class HierarchyAlterer implements ItemListener {
      * illegally created. (e.g. adding new phases underneath a
      * structured process)
      */
-    public void addNode(PSPDashboard dash, String path)
+    public void addNode(ProcessDashboard dash, String path)
         throws HierarchyAlterationException
     {
         beginChanges();
@@ -93,7 +93,7 @@ public class HierarchyAlterer implements ItemListener {
         }
     }
 
-    private PropertyKey doAddNode(PSPDashboard dash, String path) {
+    private PropertyKey doAddNode(ProcessDashboard dash, String path) {
         StringTokenizer tok = new StringTokenizer(path, "/");
         PropertyKey key = PropertyKey.ROOT;
         while (tok.hasMoreTokens())
@@ -168,7 +168,7 @@ public class HierarchyAlterer implements ItemListener {
         }
     }
 
-    private void doDeleteNode(PSPDashboard dash, String path) {
+    private void doDeleteNode(ProcessDashboard dash, String path) {
         DashHierarchy props = dash.getHierarchy();
         PropertyKey node = props.findExistingKey(path);
         if (node == null) return;

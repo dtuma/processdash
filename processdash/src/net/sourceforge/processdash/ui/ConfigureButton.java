@@ -28,9 +28,9 @@ package net.sourceforge.processdash.ui;
 
 import javax.swing.*;
 
-import pspdash.PSPDashboard;
-import pspdash.Settings;
 
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.ui.*;
 import net.sourceforge.processdash.hier.ui.*;
 import net.sourceforge.processdash.i18n.*;
@@ -45,7 +45,7 @@ import java.util.Properties;
 
 
 public class ConfigureButton extends JMenuBar implements ActionListener {
-    PSPDashboard   parent       = null;
+    ProcessDashboard   parent       = null;
     HierarchyEditor  prop_frame   = null;
     //TaskScheduleDialog   task_frame   = null;
     TimeLogEditor  time_frame   = null;
@@ -99,7 +99,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
         { EXIT_PROGRAM,     null } };
 
 
-    public ConfigureButton(PSPDashboard dash) {
+    public ConfigureButton(ProcessDashboard dash) {
         super();
         parent = dash;
 
