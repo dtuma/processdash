@@ -2,8 +2,13 @@ package teamdash.wbs;
 
 import javax.swing.table.TableColumn;
 
+
+/** Encapsulates the logic necessary to create a TableColumn object for a
+ * DataColumn
+ */
 public class DataTableColumn extends TableColumn {
 
+    /** Create a DataTableColumn if we know the String ID of the column */
     public DataTableColumn(DataTableModel model, String columnID) {
         super();
 
@@ -16,6 +21,7 @@ public class DataTableColumn extends TableColumn {
         init(model, model.getColumn(columnIndex), columnIndex);
     }
 
+    /** Create a DataTableColumn for a given DataColumn */
     public DataTableColumn(DataTableModel model, DataColumn c) {
         super();
 
@@ -31,12 +37,23 @@ public class DataTableColumn extends TableColumn {
     }
 
     private void init(DataTableModel model, DataColumn c, int columnIndex) {
+        // set the index, header value, and identifier.
         setModelIndex(columnIndex);
         setHeaderValue(c.getColumnName());
         setIdentifier(c.getColumnID());
+
+        // install the column's preferred width
         int width = c.getPreferredWidth();
         if (width > 0)
             setPreferredWidth(width);
+
+        if (c instanceof CustomRenderedColumn)
+            // install the column's preferred renderer.
+            setCellRenderer(((CustomRenderedColumn) c).getCellRenderer());
+
+        if (c instanceof CustomEditedColumn)
+            // install the column's preferred editor.
+            setCellEditor(((CustomEditedColumn) c).getCellEditor());
     }
 
 }
