@@ -56,10 +56,10 @@
 ##
 
 PropertyKey<top><PSP3>=Prop[true][PSP3][psp3/script.htm][psp3/dataFile.txt][<PSP3cycle(-1)][0][4][PropertyKey<top/PSP3><Planning>][PropertyKey<top/PSP3><High Level Design>][PropertyKey<top/PSP3><High Level Design Review>][PropertyKey<top/PSP3><Postmortem>]
-PropertyKey<top/PSP3><Planning>=Prop[][][][][ME<>][0][0]
-PropertyKey<top/PSP3><High Level Design>=Prop[][][][][ME<>][0][0]
-PropertyKey<top/PSP3><High Level Design Review>=Prop[][][][][ME<>][0][0]
-PropertyKey<top/PSP3><Postmortem>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP3><Planning>=Prop[][][psp3/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP3><High Level Design>=Prop[][][psp3/hld.htm][][ME<>][0][0]
+PropertyKey<top/PSP3><High Level Design Review>=Prop[][][psp3/hldr.htm][][ME<>][0][0]
+PropertyKey<top/PSP3><Postmortem>=Prop[][][psp3/postmort.htm][][ME<>][0][0]
 
 
 ##
