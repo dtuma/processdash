@@ -254,6 +254,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         webServer.setProps(props);
 
         hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
+        hierarchy.cleanupCompletionFlags();
 
         if (!brokenData.isEmpty())
             displayBrokenDataWarning();

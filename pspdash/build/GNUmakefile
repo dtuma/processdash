@@ -32,6 +32,7 @@ BUILD_PLATFORM ?= CYGWIN
 
 # non-class Files that need to be a part of the distribution jar file
 NON_CLASS_FILES=continue.gif \
+		check.gif \
 		defect.gif \
 		defectd.gif \
 		icon32.gif \

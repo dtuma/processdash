@@ -26,9 +26,12 @@
 
 package pspdash;
 
+import java.awt.Toolkit;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
+import pspdash.data.DataEvent;
+import pspdash.data.DataListener;
 import pspdash.data.DateData;
 
 public class HierarchyButton implements ActionListener {
@@ -74,7 +77,7 @@ public class HierarchyButton implements ActionListener {
                 //debug("Getting child " + i + " of "+numChildren);
                 PropertyKey key = props.getChildKey (self, i);
                 //debug(" key:"+key.key()+": = "+props.getChildName (self, i));
-                menu.add(new MyMenuItem(key.name()));
+                menu.add(new MyMenuItem(key));
             }
 
             selectChild(props.getChildName(self, props.getSelectedChild(self)));
@@ -107,6 +110,9 @@ public class HierarchyButton implements ActionListener {
             child.delete();
             child = null;
             parent.hierarchy_menubar.remove(menu);
+            for (int i = menu.getItemCount();  i-- > 0; )
+                if (menu.getItem(i) instanceof MyMenuItem)
+                    ((MyMenuItem) menu.getItem(i)).delete();
             menu = null;
         }
     }
@@ -203,8 +209,12 @@ public class HierarchyButton implements ActionListener {
 
     private void markCompleted() {
           // mark this phase as completed in the data repository.
-        String dataName = parent.data.createDataName(self.path(), "Completed");
+        String dataName = getCompletedDataname(self);
         parent.data.putValue(dataName, new DateData());
+    }
+
+    private String getCompletedDataname(PropertyKey key) {
+        return parent.data.createDataName(key.path(), "Completed");
     }
 
 
@@ -288,11 +298,69 @@ public class HierarchyButton implements ActionListener {
     }
 
 
-    class MyMenuItem extends JMenuItem {
-        MyMenuItem(String text) {
-            super(text);
+    class MyMenuItem extends JMenuItem implements DataListener {
+        String dataname;
+        MyMenuItem(PropertyKey key) {
+            super(key.name());
             addActionListener(HierarchyButton.this);
+            setHorizontalTextPosition(SwingConstants.LEFT);
+            dataname = getCompletedDataname(key);
+            if (SHOW_CHECKMARKS) {
+                System.out.println("addDataListener("+dataname+")");
+                parent.data.addDataListener(dataname, this);
+            }
+        }
+        public void dataValueChanged(DataEvent e) {
+            if (e.getValue() != null && e.getValue().test())
+                setIcon(CHECKMARK_ICON);
+            else
+                setIcon(null);
+        }
+        public void dataValuesChanged(Vector v) {
+            for (int i = v.size();   i-- > 0; )
+                dataValueChanged((DataEvent) v.get(i));
+        }
+        public void delete() {
+            if (SHOW_CHECKMARKS) {
+                System.out.println("removeDataListener("+dataname+")");
+                parent.data.removeDataListener(dataname, this);
+            }
         }
     }
+    private static final String CHECKMARK_SETTING_NAME = "setting";
+    private static boolean SHOW_CHECKMARKS =
+        !"false".equalsIgnoreCase(Settings.getVal(CHECKMARK_SETTING_NAME));
 
+    private static final ImageIcon CHECKMARK_ICON =
+        new ImageIcon(HierarchyButton.class.getResource("check.gif"));
+
+
+    /** Scans the hierarchy tree and cleans up "garbage" completion flags
+     * that were left around by completion-button logic in v1.3
+     */
+    public void cleanupCompletionFlags() {
+        cleanupCompletionFlags(parent.getProperties(), PropertyKey.ROOT);
+    }
+    protected void cleanupCompletionFlags(PSPProperties props,
+                                          PropertyKey key) {
+        Prop val = props.pget(key);
+
+        // no need to cleanup flags defined in project-level datafiles
+        String dataFile = val.getDataFile();
+        if (dataFile != null && dataFile.length() > 0)
+            return;
+
+        // no need to cleanup flags for leaves of the hierarchy
+        int i = props.getNumChildren (key);
+        if (i == 0)
+            return;
+
+        // cleanup the flag for this node in the hierarchy
+        String flagName = getCompletedDataname(key);
+        parent.data.putValue(flagName, null);
+
+        // recurse through the hierarchy tree.
+        while (i-- > 0)
+            cleanupCompletionFlags(props, props.getChildKey (key, i));
+    }
 }
