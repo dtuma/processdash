@@ -38,8 +38,15 @@ public class setPath extends TinyCGIBase {
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
-        DashController.setPath(getPrefix());
-        if (parameters.get("start") != null)
+        boolean startTiming = (parameters.get("start") != null);
+        String phase = (String) parameters.get("phase");
+        if (DashController.setPath(getPrefix()) == false)
+            startTiming = false;
+        else if (phase != null) {
+            if (DashController.setPhase(phase) == false)
+                startTiming = false;
+        }
+        if (startTiming)
             DashController.startTiming();
         DashController.printNullDocument(out);
     }
