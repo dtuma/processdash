@@ -201,6 +201,8 @@ public class TaskScheduleDialog
             explodeTaskButton.setEnabled(false);
             result.add(explodeTaskButton);
             result.add(Box.createHorizontalGlue());
+        } else {
+            explodeTaskButton = null;
         }
 
         moveUpButton = new JButton
@@ -816,7 +818,8 @@ public class TaskScheduleDialog
                              .getNumChildren() > 0);
         }
         deleteTaskButton .setEnabled(enableDelete);
-        explodeTaskButton.setEnabled(enableExplode);
+        if (explodeTaskButton != null)
+            explodeTaskButton.setEnabled(enableExplode);
         moveUpButton     .setEnabled(enableUp);
         moveDownButton   .setEnabled(enableDown);
     }
