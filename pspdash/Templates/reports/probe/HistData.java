@@ -37,7 +37,7 @@ class HistData {
     ResultSet resultSet;
     String subsetPrefix;
     String xyURL;
-    double productivity;
+    double productivity, prodStddev;
 
     public HistData(DataRepository data, String prefix) {
         subsetPrefix = getSubsetPrefix(data, prefix);
@@ -74,17 +74,31 @@ class HistData {
 
     /** Returns "to date" productivity in LOC/hour. */
     public double getProductivity() { return productivity; }
+    public double getProdStddev()   { return prodStddev; }
 
     private void calcProductivity() {
         double loc = 0, hours = 0;
         double[] dataPoint;
-        Iterator i = getXYDataPoints(ACT_NC_LOC, ACT_TIME).iterator();
+        Vector v = getXYDataPoints(ACT_NC_LOC, ACT_TIME);
+        Iterator i = v.iterator();
         while (i.hasNext()) {
             dataPoint = (double[]) i.next();
             loc += dataPoint[0];
             hours += dataPoint[1];
         }
         productivity = loc / hours;
+
+        // Calculate the variance of productivity from the "To Date" value
+        double variance = 0, point;
+        i = v.iterator();
+        while (i.hasNext()) {
+            dataPoint = (double[]) i.next();
+            point = dataPoint[0] / dataPoint[1];
+            point = productivity - point;
+            variance += point * point;
+        }
+        variance = variance / (v.size() - 1);
+        prodStddev = Math.sqrt(variance);
     }
 
     private double asNumber(Object o) {

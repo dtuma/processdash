@@ -1,0 +1,4 @@
+/* use a different look and feel from the standard forms, to clue in the user
+   right away that these forms operate differently. */
+
+BODY { color: black; background-color: silver; ignore:"#d6d3ce" }

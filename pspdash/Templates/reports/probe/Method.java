@@ -221,7 +221,7 @@ class Method implements Comparable {
             // smaller than the projected value).
             double percent = Math.abs(beta0 / projection);
 
-            if (percent > 0.6) {
+            if (percent > 0.5) {
                 rating = SERIOUS_PROBLEM;
                 errorMessages.add
                     ("The value of " + BETA0 + " is supposed to be " +
