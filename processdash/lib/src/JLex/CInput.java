@@ -106,7 +106,8 @@ class CInput
 		m_line_index = 0;
 		return EOF;
 	      }
-	    m_line = (lineStr + "\n").toCharArray();
+	    m_line = (lineStr + System.getProperty("line.separator"))
+		.toCharArray();
 	    m_line_read=m_line.length;
 	    ++m_line_number;
 	    
