@@ -39,6 +39,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
     // values are arrays of integers.
     protected Map defectCounts;
     protected int[] totals;
+    protected boolean strict = true;
 
     public static final int INJ_DESIGN  = 0;
     public static final int INJ_CODE    = 1;
@@ -66,6 +67,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
 
         String path = getParameter("hierarchyPath");
         if (path == null) path = (String) env.get("PATH_TRANSLATED");
+        strict = (parameters.get("strict") != null);
 
         initValues();
         DefectAnalyzer.run(getPSPProperties(), path, this);
@@ -115,7 +117,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         printD24("Total", totals);
 
         out.println("</TABLE>");
-        if (parameters.get("strict") != null)
+        if (strict)
             out.println("<P><HR>" + FOOTNOTE);
         out.println("</BODY></HTML>");
     }
@@ -125,8 +127,12 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
 
     protected void printD23(String label, int [] row) {
         String dt = "";
-        if (!label.startsWith("Total"))
+        if (!label.startsWith("Total")) {
             dt = "type=" + URLEncoder.encode(label);
+            if (!strict && 0 == (row[INJ_DESIGN] + row[INJ_CODE] +
+                                 row[REM_COMPILE] + row[REM_TEST]))
+                return;
+        }
         out.println("<TR><TD><A HREF=\"../defectlog.class?" + dt +"\">" +
                     label + "</A></TD>");
         out.println("<TD>" + fc(dt, row, INJ_DESIGN) + "</TD>");
@@ -157,6 +163,10 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
 
 
     protected void printD24(String label, int [] row) {
+        if (!strict && 0 == (row[PRESENT_AT_COMP_ENTRY] +
+                             row[FOUND_IN_COMPILE]))
+            return;
+
         out.println("<TR><TD>" + label + "</TD>");
         out.println("<TD>" + fc(null, row, PRESENT_AT_COMP_ENTRY) + "</TD>");
         out.println("<TD>" + fc(null, row, FOUND_IN_COMPILE) + "</TD>");
@@ -174,14 +184,13 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
     private void initValues() {
         totals = emptyRow();
         defectCounts = new TreeMap();
-        if (parameters.get("strict") != null)
-            for (int i=PSP_DEFECT_TYPES.length; i-->0; )
-                getRow(PSP_DEFECT_TYPES[i]);
+        if (strict) {
+            DefectTypeStandard dts =
+                DefectTypeStandard.get(getPrefix(), getDataRepository());
+            for (int i=dts.options.size();  i-->0; )
+                getRow((String) dts.options.elementAt(i));
+        }
     }
-    /** list of defect types used by the PSP */
-    private static final String [] PSP_DEFECT_TYPES = {
-        "Documentation", "Syntax", "Build, package", "Assignment",
-        "Interface", "Checking", "Data", "Function", "System", "Environment" };
 
     /** Lookup the row for a defect type - create it if it doesn't exist. */
     private int[] getRow(String defectType) {
