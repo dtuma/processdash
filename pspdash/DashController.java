@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,13 +21,14 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
+import javax.swing.SwingUtilities;
 
 import pspdash.data.DataImporter;
 import pspdash.data.DataRepository;
@@ -60,17 +62,28 @@ public class DashController {
     }
 
     public static void raiseWindow() {
+        SwingUtilities.invokeLater(new Runnable() {
+                public void run() { raiseWindowImpl(); } } );
+    }
+
+    private static void raiseWindowImpl() {
         if (dash.getState() == dash.ICONIFIED)
             dash.setState(dash.NORMAL);
         dash.show();
         dash.toFront();
     }
 
-    public static void showTaskSchedule(String path) {
+    public static void showTaskSchedule(final String path) {
+        SwingUtilities.invokeLater(new Runnable() {
+                public void run() { showTaskScheduleImpl(path); } } );
+    }
+    private static void showTaskScheduleImpl(String path) {
+        String origPath = path;
+
         // if no path was given, just display a chooser dialog to the user.
         if (path == null || path.length() == 0) {
-            raiseWindow();
-            new ChooserOpener(null);
+            raiseWindowImpl();
+            new TaskScheduleChooser(dash);
             return;
         }
 
@@ -118,24 +131,20 @@ public class DashController {
             }
         }
 
+        // Discard any task lists which have prune the given task
+        i = taskLists.iterator();
+        while (i.hasNext()) {
+            String taskListName = (String) i.next();
+            if (EVTask.taskIsPruned(dash.data, taskListName, origPath))
+                i.remove();
+        }
+
         raiseWindow();
         if (taskLists.size() == 1)
             TaskScheduleChooser.open(dash, (String) taskLists.get(0));
         else
-            // open the chooser in a thread - it is likely to block by
-            // opening a modal dialog.
-            new ChooserOpener(taskLists);
-    }
-    private static class ChooserOpener extends Thread {
-        private List taskLists;
-        public ChooserOpener(List t) { taskLists = t; start(); }
-        public void run() {
-            if (taskLists == null)
-                new TaskScheduleChooser(dash);
-            else
-                new TaskScheduleChooser
-                    (dash, (String[]) taskLists.toArray(new String[0]));
-        }
+            new TaskScheduleChooser
+                (dash, (String[]) taskLists.toArray(new String[0]));
     }
 
     public static void exportData(String prefix) {
@@ -148,28 +157,50 @@ public class DashController {
             ImportExport.export(dash, filter, new File(filename.format()));
         }
     }
-    /*
-    private static class ExportStarter extends Thread {
-        String prefix, filename;
-        public ExportStarter(String p, String f) {
-            prefix = p;   filename = Settings.translateFile(f); }
-        public void run() {
-            Vector filter = new Vector();
-            filter.add(prefix);
-            ImportExport.exportInteractively
-                (dash, dash, filter, new File(filename));
-            raiseWindow();
-        }
+
+
+    public static void startTiming() {
+        SwingUtilities.invokeLater(new Runnable() {
+                public void run() { startTimingImpl(); } } );
     }
-    */
+    private static void startTimingImpl() { dash.pause_button.cont();  }
+
+    public static void stopTiming()  {
+        SwingUtilities.invokeLater(new Runnable() {
+                public void run() { stopTimingImpl(); } } );
+    }
+    private static void stopTimingImpl()  { dash.pause_button.pause(); }
 
 
-    public static void startTiming() { dash.pause_button.cont();  }
-    public static void stopTiming()  { dash.pause_button.pause(); }
-    public static boolean setPath(String path) {
+    private static boolean setPathSuccessful;
+    public static boolean setPath(final String path) {
+        if (SwingUtilities.isEventDispatchThread())
+            return setPathImpl(path);
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() { setPathSuccessful = setPathImpl(path); }});
+        } catch (Exception e) {
+            setPathSuccessful = false;
+        }
+        return setPathSuccessful;
+    }
+    private static boolean setPathImpl(String path) {
         return dash.pause_button.setPath(path);
     }
-    public static boolean setPhase(String phase) {
+
+    private static boolean setPhaseSuccessful;
+    public static boolean setPhase(final String phase) {
+        if (SwingUtilities.isEventDispatchThread())
+            return setPhaseImpl(phase);
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() { setPhaseSuccessful = setPhaseImpl(phase); }});
+        } catch (Exception e) {
+            setPhaseSuccessful = false;
+        }
+        return setPhaseSuccessful;
+    }
+    private static boolean setPhaseImpl(String phase) {
         return dash.pause_button.setPhase(phase);
     }
 
