@@ -872,7 +872,12 @@ public class wizard extends TinyCGIBase {
             key = key.getParent();
         }
         // check for unique name.
-        String fullName = nodeLocation + "/" + nodeName;
+        String fullName = null;
+        if (nodeLocation.endsWith("/"))
+            fullName = nodeLocation + nodeName;
+        else
+            fullName = nodeLocation + "/" + nodeName;
+
         key = hierarchy.findExistingKey(fullName);
         if (key != null) {
             showIndivNodePage
@@ -1004,8 +1009,13 @@ public class wizard extends TinyCGIBase {
         String localProjectName = null;
         if (prefixNamesTeamProjectStub())
             localProjectName = getPrefix();
-        else
-            localProjectName = getValue(NODE_LOCATION)+"/"+getValue(NODE_NAME);
+        else {
+            String location = getValue(NODE_LOCATION);
+            if (location.endsWith("/"))
+                localProjectName = location+getValue(NODE_NAME);
+            else
+                localProjectName = location+"/"+getValue(NODE_NAME);
+        }
         String indivInitials = getValue(IND_INITIALS);
         String scheduleName = getValue(IND_SCHEDULE);
 
@@ -1198,12 +1208,14 @@ public class wizard extends TinyCGIBase {
     }
 
     protected void showIndivSuccessPage(boolean joinSucceeded) {
-        String prefix = URLEncoder.encode(getPrefix());
+        String prefix = TinyWebServer.urlEncodePath(getPrefix());
+        String url = prefix + "/" + env.get("SCRIPT_NAME");
+        url = StringUtils.findAndReplace(url, "wizard.class", IND_SUCCESS_URL);
+
         if (joinSucceeded)
-            printRedirect(IND_SUCCESS_URL + "?hierarchyPath=" + prefix);
+            printRedirect(url);
         else
-            printRedirect(IND_SUCCESS_URL + "?schedProblem&hierarchyPath="+
-                          prefix);
+            printRedirect(url + "?schedProblem");
     }
 
 }
