@@ -27,6 +27,7 @@ package pspdash.data;
 
 import pspdash.ErrorReporter;
 import pspdash.PerlPool;
+import pspdash.EscapeString;
 
 import java.io.File;
 import java.io.InputStream;
@@ -1168,8 +1169,11 @@ public class DataRepository implements Repository {
                                 // value = ((DoubleData)sd).formatNumber(3);
                             } else if (sd != null)
                                 value = sd.toString();
-                            if (value != null)
+                            if (value != null) {
+                                if (name.indexOf(',') != -1)
+                                    name = EscapeString.escape(name, '\\', ",", "c");
                                 out.println(name + "," + value);
+                            }
                         }
                     } catch (Exception e) {
 //          System.err.println("Data error:"+e.toString()+" for:"+name);

@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import pspdash.EscapeString;
 import pspdash.RobustFileWriter;
 
 
@@ -172,6 +173,7 @@ public class DataImporter extends Thread {
             if (commaPos == -1) return; // this isn't a valid dump file.
 
             name = line.substring(1, commaPos);
+            name = EscapeString.unescape(name, '\\', ",", "c");
             value = line.substring(commaPos+1);
             defns.put(name, parseValue(value));
         }

@@ -44,6 +44,52 @@ public class EscapeString {
         return result.toString();
     }
 
+    public static String escape(String src, char escChar,
+                                String escapeChars, String escapeTransl) {
+        if (src == null || src.length() == 0 ||
+            escapeChars == null || escapeTransl == null)
+            return src;
+
+        StringBuffer result = new StringBuffer();
+        char c;
+        int pos;
+        for (int i = 0;   i < src.length();  i++) {
+            c = src.charAt(i);
+            if ((pos = escapeChars.indexOf(c)) != -1)
+                result.append(escChar).append(escapeTransl.charAt(pos));
+            else if (c == escChar)
+                result.append(escChar).append(escChar);
+            else
+                result.append(c);
+        }
+
+        return result.toString();
+    }
+
+    public static String unescape(String src, char escChar,
+                                  String escapeChars, String escapeTransl) {
+        if (src == null || src.indexOf(escChar) == -1 ||
+            escapeChars == null || escapeTransl == null)
+            return src;
+
+        StringBuffer result = new StringBuffer();
+        int pos, which;
+        char w;
+
+        while ((pos = src.indexOf(escChar)) != -1) {
+            result.append(src.substring(0, pos));
+            w = src.charAt(pos+1);
+            which = escapeTransl.indexOf(w);
+            result.append(which == -1 ? w : escapeChars.charAt(which));
+
+            src = src.substring(pos+2);
+        }
+
+        result.append(src);
+
+        return result.toString();
+    }
+
     // escapeChars contains all the characters to be 'escaped' (not incl escChar)
     public static String applyEscape (String src,
                                       char   escChar,
