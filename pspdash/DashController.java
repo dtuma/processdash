@@ -25,17 +25,21 @@
 
 package pspdash;
 
-import java.awt.FlowLayout;
-import java.awt.Toolkit;
-import java.awt.event.*;
-import java.util.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.URL;
+import java.net.ServerSocket;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Vector;
 
+import pspdash.data.DataImporter;
 import pspdash.data.DataRepository;
 import pspdash.data.SimpleData;
-import javax.swing.*;
 
 public class DashController {
 
@@ -186,10 +190,6 @@ public class DashController {
         return result;
     }
 
-    public static void changeHttpPort(int port) {
-        dash.changeHttpPort(port);
-    }
-
     public static boolean isHierarchyEditorOpen() {
         return dash.configure_button.isHierarchyEditorOpen();
     }
@@ -234,5 +234,63 @@ public class DashController {
     public static boolean loadNewTemplate(String jarfileName) {
         return dash.addTemplateJar(jarfileName);
     }
+
+    public static HierarchyAlterer getHierarchyAlterer() {
+        return new HierarchyAlterer(dash);
+    }
+    public static String getSettingsFileName() {
+        return InternalSettings.getSettingsFileName();
+    }
+    public static void addImportSetting(String prefix, String importDir) {
+        String importInstr = (prefix + "=>" + importDir);
+        String imports = Settings.getVal(IMPORT_DIRS);
+        if (imports == null)
+            InternalSettings.set(IMPORT_DIRS, importInstr);
+        else
+            InternalSettings.set(IMPORT_DIRS, imports + "|" + importInstr);
+        DataImporter.init(dash.data, importInstr);
+    }
+
+    public static void enableTeamSettings() {
+        // enable earned value rollups.
+        InternalSettings.set(EV_ROLLUP, "true");
+
+        // listen on a repeatable port.
+        String port = Settings.getVal(HTTP_PORT);
+        if (port == null) {
+            int portNum = getAvailablePort();
+            InternalSettings.set(HTTP_PORT, Integer.toString(portNum));
+            // start listening on that port.
+            dash.changeHttpPort(portNum);
+        }
+
+    }
+
+    private static int getAvailablePort() {
+        for (int i = 0;   i < PORT_PATTERNS.length;   i++)
+            for (int j = 2;   j < 10;   j++)
+                if (isPortAvailable(i*j))
+                    return i*j;
+        return 3000;
+    }
+
+    private static boolean isPortAvailable(int port) {
+        if (port < 1024) return false;
+        boolean successful = false;
+        try {
+            ServerSocket a = new ServerSocket(port-1);
+            ServerSocket b = new ServerSocket(port);
+            successful = true;
+            a.close();
+            b.close();
+        } catch (IOException ioe) {}
+        return successful;
+    }
+
+    private static final String IMPORT_DIRS = "import.directories";
+    private static final String EV_ROLLUP = "ev.enableRollup";
+    private static final String HTTP_PORT = "http.port";
+    private static final int[] PORT_PATTERNS = {
+        1000, 1111, 1001, 1010, 1100, 1011, 1101, 1110 };
 
 }
