@@ -27,6 +27,7 @@ package pspdash;
 
 import pspdash.data.DataRepository;
 import pspdash.data.DoubleData;
+import pspdash.data.ImmutableDoubleData;
 import pspdash.data.StringData;
 import java.net.*;
 import java.io.*;
@@ -402,6 +403,10 @@ public class TinyWebServer extends Thread {
                 if (clientSocket == null) {
                     errorEncountered = true;
                     return;
+                } else if (cgie instanceof TinyCGIException) {
+                    TinyCGIException tce = (TinyCGIException) cgie;
+                    sendError(tce.getStatus(), tce.getTitle(), tce.getText(),
+                              tce.getOtherHeaders());
                 } else {
                     StringWriter w = new StringWriter();
                     cgie.printStackTrace(new PrintWriter(w));
@@ -897,6 +902,62 @@ public class TinyWebServer extends Thread {
      */
     public static String calcCredential(String user, String password) {
         return "Basic " + Base64.encode(user + ":" + password);
+    }
+
+
+    /** Save a password setting in the data repository.
+     *
+     * Adjusts the password settings for the given prefix.
+     * Normally, adds the username/password pair to the password table,
+     *     or changes the existing password for that username.
+     * If user is null and password is non-null, discards all password
+     *     information and marks this node as "forbidden".
+     * If user is null and password is null, discards all password
+     *     information and marks this node as "unprotected".
+     */
+    public static void setPassword(DataRepository data, String prefix,
+                                   String user, String password) {
+        String dataName = data.createDataName(prefix,  "_Password_");
+
+        if (user == null) {
+            DoubleData val;
+            if (password == null)
+                val = ImmutableDoubleData.TRUE;
+            else
+                val = ImmutableDoubleData.FALSE;
+            data.putValue(dataName, val);
+            return;
+        }
+
+
+        Object val = data.getSimpleValue(dataName);
+        HashMap passwords = new HashMap();
+        if (val instanceof StringData) try {
+            StringTokenizer tok = new StringTokenizer
+                (((StringData) val).format(), ";");
+            while (tok.hasMoreTokens()) {
+                String credential = tok.nextToken();
+                int colonPos = credential.indexOf(':');
+                String credUser = credential.substring(0, colonPos);
+                String passHash = credential.substring(colonPos+1);
+                passwords.put(credUser, passHash);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+
+        MD5 md5 = new MD5();
+        md5.Init();
+        md5.Update(password);
+        passwords.put(user, md5.asHex());
+
+        StringBuffer passwordList = new StringBuffer();
+        Iterator i = passwords.entrySet().iterator();
+        Map.Entry e;
+        while (i.hasNext()) {
+            e = (Map.Entry) i.next();
+            passwordList.append(e.getKey()).append(":")
+                .append(e.getValue()).append(";");
+        }
+        data.putValue(dataName, StringData.create(passwordList.toString()));
     }
 
 
