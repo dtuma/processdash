@@ -26,6 +26,8 @@
 
 package pspdash;
 
+import pspdash.data.TagData;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.BorderLayout;
@@ -298,14 +300,14 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         // set the "node" tag on every node
         name = path + NODE_TAG;
         if (nodesAndLeaves.remove(name) == false)
-            dashboard.data.putValue(name, dashboard.data.TAG);
+            dashboard.data.putValue(name, TagData.getInstance());
 
         // set or unset the leaf tag, if applicable.
         int numChildren = useProps.getNumChildren(key);
         name = path + LEAF_TAG;
         if (numChildren == 0) {
             if (nodesAndLeaves.remove(name) == false)
-                dashboard.data.putValue(name, dashboard.data.TAG);
+                dashboard.data.putValue(name, TagData.getInstance());
         } else {
             while (numChildren-- > 0)
                                       // recursively process all children.
