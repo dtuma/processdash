@@ -42,6 +42,7 @@ class Prop
     protected PropertyKey children[] = null;
 
     protected static final char ESC_CHAR = '\\';
+    public static final String TEMPLATE_QUALIFIER = ":!*!:";
 
     //constructors
     public Prop () {
@@ -175,11 +176,18 @@ class Prop
     }
 
     public String uniqueChildName (String baseName) {
-        String aName = baseName;
+        String aName = unqualifiedName(baseName);
         int index = 1;
         while ( !isUniqueChildName (aName))
             aName = baseName + (index++);
         return aName;
+    }
+
+    public static String unqualifiedName(String name) {
+        if (name == null) return null;
+        int pos = name.indexOf(TEMPLATE_QUALIFIER);
+        if (pos == -1) return name;
+        return name.substring(pos + TEMPLATE_QUALIFIER.length());
     }
 
     public String toString () {
