@@ -45,10 +45,8 @@ public class FilterDialog extends JDialog implements ActionListener {
 
     PSPDashboard  parent;
     PSPProperties props;
-    JCheckBox     incNonTemplate;
-    JTree         tree;
+    SelectableHierarchyTree tree;
 
-    PropSelectTreeModel treeModel;
     ActionListener      l;
 
     Resources resources = Resources.getDashBundle("pspdash.PROBE");
@@ -65,14 +63,8 @@ public class FilterDialog extends JDialog implements ActionListener {
         props = parent.props;
         this.l = l;
 
-        /* Create the JTreeModel. */
-        treeModel = new PropSelectTreeModel
-            (new DefaultMutableTreeNode (new JCheckBox("root")),
-             props,
-             PropSelectTreeModel.NO_LEAVES);
-
-        /* Create the tree. */
-        tree = new SelectableTree (treeModel, new SelectableTreeCellRenderer());
+        /* Create the tree */
+        tree = new SelectableHierarchyTree(props);
 
         /* Put the Tree in a scroller. */
         JScrollPane sp = new JScrollPane
@@ -84,14 +76,6 @@ public class FilterDialog extends JDialog implements ActionListener {
         getContentPane().add(sp, "Center");
 
         Box mainBox = new Box(BoxLayout.Y_AXIS);
-        Box aBox = new Box(BoxLayout.X_AXIS);
-        aBox.add (Box.createHorizontalStrut(2));
-        incNonTemplate = new JCheckBox (resources.getString("Show_Leaf_Nodes"));
-        incNonTemplate.setActionCommand("leaves");
-        incNonTemplate.addActionListener(this);
-        aBox.add (incNonTemplate);
-        aBox.add (Box.createGlue());
-        mainBox.add (aBox);
         mainBox.add (Box.createVerticalStrut(2));
 
         Box buttonBox = new Box(BoxLayout.X_AXIS);
@@ -112,56 +96,22 @@ public class FilterDialog extends JDialog implements ActionListener {
         mainBox.add (Box.createVerticalStrut(2));
 
         getContentPane().add(mainBox, "South");
-        updateTree(incNonTemplate.isSelected());
         pack();
         show();
-    }
-
-    protected void updateTree(boolean isSelected) {
-        if (isSelected) {
-            treeModel.setFilterCriteria(treeModel.NO_FILTER);
-        } else {
-            treeModel.setFilterCriteria(treeModel.NO_LEAVES);
-        }
-
-        treeModel.nodeStructureChanged((TreeNode)treeModel.getRoot());
-        tree.repaint(tree.getVisibleRect());
-    }
-
-
-
-    protected void recursivelyAddSelectedToVector (DefaultMutableTreeNode dmn,
-                                                   Vector v) {
-        JCheckBox jcb = (JCheckBox)(dmn.getUserObject());
-        if (jcb.isSelected())
-            v.addElement (treeModel.getPropKey (props, dmn.getPath()).path());
-        else
-            for (int ii = 0; ii < treeModel.getChildCount(dmn); ii++) {
-                recursivelyAddSelectedToVector
-                    ((DefaultMutableTreeNode)treeModel.getChild (dmn, ii), v);
-            }
     }
 
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
 
-        if (cmd.equals("leaves")) {
-            updateTree(incNonTemplate.isSelected());
-        } else if (cmd.equals("close")) {
+        if (cmd.equals("close")) {
             setVisible(false);
         } else if (cmd.equals("applyFilter")) {
-            DefaultMutableTreeNode dmn;
-            Vector v = new Vector();
-            dmn = (DefaultMutableTreeNode)treeModel.getRoot();
-            for (int ii = 0; ii < treeModel.getChildCount(dmn); ii++) {
-                recursivelyAddSelectedToVector
-                    ((DefaultMutableTreeNode)treeModel.getChild (dmn, ii), v);
-            }
+            Vector v = tree.getSelectedPaths();
 
-//      System.out.println ("Selected nodes =");
-//      for (int jj = 0; jj < v.size(); jj++) {
-//      System.out.println ("  " + v.elementAt(jj));
-//      }
+//        System.out.println ("Selected nodes =");
+//        for (int jj = 0; jj < v.size(); jj++) {
+//        System.out.println ("  " + v.elementAt(jj));
+//        }
             if (l != null)
                 l.actionPerformed (new ActionEvent (v,
                                                     ActionEvent.ACTION_PERFORMED,
