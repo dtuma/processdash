@@ -43,6 +43,8 @@ class DOMSelectField extends DOMField {
         super(service, redrawer, element, ((HTMLSelectElement) element).getName(),
               data, dataPath);
 
+        /* getOptions fix - temporary
+
                                    // fill the optionList value with the various
         optionList = new Vector();  // OPTIONs that are a part of this SELECT tag.
         HTMLCollection formOptions = ((HTMLSelectElement) element).getOptions();
@@ -50,6 +52,7 @@ class DOMSelectField extends DOMField {
         int numOptions = formOptions.getLength();
         for (int optIdx = 0;   optIdx < numOptions;   optIdx++)
             optionList.addElement(getOptionValue(formOptions, optIdx));
+        */
     }
 
 
@@ -62,28 +65,34 @@ class DOMSelectField extends DOMField {
         variantValue = getSelection((HTMLSelectElement) element);
     }
     public void setReadOnly(boolean readOnly) {
-        //FIXME! ((HTMLSelectElement) element).setReadOnly(readOnly);
+        //Not in DOM??? ((HTMLSelectElement) element).setReadOnly(readOnly);
+        ((HTMLSelectElement) element).setTabIndex(readOnly ? -1 : 0);
     }
 
 
     public void setSelection(HTMLSelectElement element, String text) {
         if (element != null) {
+            element.setValue(text);
+            /*
             for (int idx = optionList.size();   idx-- > 0; )
                 if (text.equals((String)optionList.elementAt(idx))) {
                     element.setSelectedIndex(idx);
                     return;
                 }
+            */
         }
     }
 
     public String getSelection(HTMLSelectElement element) {
         if (element == null) return "";
-
+        return element.getValue();
+        /*
         int idx = element.getSelectedIndex();
         if (idx < 0 || idx >= optionList.size())
             return "";
 
         return (String) optionList.elementAt(idx);
+        */
     }
 
     private static String getOptionValue(HTMLCollection formOptions, int idx) {
