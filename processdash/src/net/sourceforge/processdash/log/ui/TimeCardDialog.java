@@ -314,21 +314,23 @@ public class TimeCardDialog {
         public void recalc(DashHierarchy props, TimeLog timeLog,
                            int month, int year) {
             TimeCardNode root = new TimeCardNode(props);
+            this.year = year;
+            this.month = month;
 
             Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.YEAR, this.year = year);
-            cal.set(Calendar.MONTH, this.month = month);
-            cal.set(Calendar.DAY_OF_MONTH, 1);
+            cal.clear();
+            cal.set(year, month, 1,     // year, month, day
+                    0, 0, 0);           // hour, minute, second
             Date from = cal.getTime();
             daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-            cal.set(Calendar.DAY_OF_MONTH, daysInMonth);
+            cal.add(Calendar.MONTH, 1);
             Date to = cal.getTime();
 
             for (int i=32;  i-- > 0; )
                 if (i >= daysInMonth)
                     dayNames[i] = null;
                 else {
-                    cal.set(Calendar.DAY_OF_MONTH, i+1);
+                    cal.set(year, month, i+1);
                     dayNames[i] = dayFormat.format(cal.getTime());
                 }
 
