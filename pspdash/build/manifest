@@ -1,2 +1,5 @@
 Main-Class: pspdash.PSPDashboard
-Class-Path: .
+Dash-Pkg-ID: pspdash
+Dash-Pkg-Version: 1.3
+Dash-Pkg-Name: Process Dashboard
+Dash-Pkg-URL: http://processdash.sourceforge.net/cgi-bin/update
