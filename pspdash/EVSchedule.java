@@ -40,6 +40,7 @@ import pspdash.data.ListData;
 public class EVSchedule implements TableModel {
 
     public static final Date NEVER = new Date(Long.MAX_VALUE);
+    public static final Date A_LONG_TIME_AGO = new Date(0);
 
     public interface Listener {
         public void evScheduleChanged();
@@ -68,7 +69,8 @@ public class EVSchedule implements TableModel {
             previous = null;
         }
 
-        public Date getBeginDate() { return previous.endDate; }
+        public Date getBeginDate() {
+            return previous == null ? A_LONG_TIME_AGO : previous.endDate; }
         public Date getEndDate() {
             if (ADJUST) return adjustDate(endDate, -ADJUSTMENT);
             else        return endDate;
@@ -324,7 +326,7 @@ public class EVSchedule implements TableModel {
         // value into the appropriate blocks in the schedule.
         Period p;
         Date result = null;
-        for (int i = 1;  i < periods.size();  i++) {
+        for (int i = 0;  i < periods.size();  i++) {
             p = get(i);
             if (p.cumPlanTime >= cumPlanTime) {
                 p.cumPlanValue = Math.max(p.cumPlanValue, cumPlanValue);
@@ -365,7 +367,7 @@ public class EVSchedule implements TableModel {
 
         boolean foundDate = false;
         Period p;
-        for (int i = periods.size();  i-- > 1; ) {
+        for (int i = periods.size();  i-- > 0; ) {
             p = get(i);
             // if this period ends *after* the task's completion date,
             // add the task's planValue to this period's cumPlanValue.
@@ -699,7 +701,12 @@ public class EVSchedule implements TableModel {
     private static final Double ZERO = new Double(0.0);
     private static final Double ONE_HUNDRED = new Double(100.0);
 
+
+    /** Base class for implementing XYDataSource funtionality.
+     */
     private class ChartData implements XYDataSource, TableModelListener {
+        boolean needsRecalc = true;
+        protected void recalc() {}
         /** Returns the number of series in the data source. */
         public int getSeriesCount() { return 2; }
         /** Returns the name of the specified series (zero-based). */
@@ -713,13 +720,14 @@ public class EVSchedule implements TableModel {
             return new Long(get(itemIndex).endDate.getTime()); }
         /** Returns the y-value for the specified series and item */
         public Number getYValue(int seriesIndex, int itemIndex) {
+            if (needsRecalc) { recalc(); needsRecalc = false; }
             if (itemIndex == -1) return null;
-            if (itemIndex == 0)  return ZERO;
+            //if (itemIndex == 0)  return ZERO;
             return getYVal(seriesIndex, itemIndex);
         }
         public Number getYVal(int seriesIndex, int itemIndex) { return ZERO; }
 
-
+        // support DataSourceChangeListener notification
         private ArrayList listenerList = null;
         public void addChangeListener(DataSourceChangeListener l) {
             if (listenerList == null) listenerList = new ArrayList();
@@ -747,10 +755,16 @@ public class EVSchedule implements TableModel {
             }
         }
 
-        // TableModelListener implementation:
-        public void tableChanged(TableModelEvent e) { fireChangeEvent(); }
+        // TableModelListener implementation
+        public void tableChanged(TableModelEvent e) {
+            needsRecalc = true;
+            fireChangeEvent();
+        }
     }
 
+
+    /** XYDataSource for charting plan vs actual direct hours.
+     */
     private class TimeChartData extends ChartData {
         public Number getYVal(int seriesIndex, int itemIndex) {
             Period p = get(itemIndex);
@@ -764,6 +778,9 @@ public class EVSchedule implements TableModel {
     }
     public XYDataSource getTimeChartData() { return new TimeChartData(); }
 
+
+    /** XYDataSource for charting plan vs actual earned value.
+     */
     private class ValueChartData extends ChartData implements RangeInfo {
         public Number getYVal(int seriesIndex, int itemIndex) {
             Period p = get(itemIndex);
@@ -779,8 +796,10 @@ public class EVSchedule implements TableModel {
     }
     public XYDataSource getValueChartData() { return new ValueChartData(); }
 
+
+    /** XYDataSource for charting cost and schedule on one chart.
+     */
     private class CombinedChartData extends ChartData {
-        public CombinedChartData() { super(); setTotPlanTime(); }
         public int getSeriesCount() { return 3; }
         public String getSeriesName(int seriesIndex) {
             switch (seriesIndex) {
@@ -804,9 +823,7 @@ public class EVSchedule implements TableModel {
             return ZERO;
         }
         private double totPlanTime;
-        private void setTotPlanTime() { totPlanTime=getLast().cumPlanTime; }
-        public void tableChanged(TableModelEvent e) {
-            setTotPlanTime(); super.tableChanged(e); }
+        protected void recalc() { totPlanTime = getLast().cumPlanTime; }
     }
     public XYDataSource getCombinedChartData() {
         return new CombinedChartData(); }
