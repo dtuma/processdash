@@ -31,6 +31,11 @@ public class showenv extends TinyCGIBase {
 
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
+        if (parameters.get("config") != null) {
+            out.println(InternalSettings.getSettingsFileName());
+            return;
+        }
+
         out.println("<HTML><HEAD><TITLE>User settings</TITLE></HEAD>");
         out.println("<BODY><H1>Your settings</H1>");
 
