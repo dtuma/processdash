@@ -148,11 +148,17 @@ public class DropDownButton extends Box {
 
     /** This object responds to events on the drop-down button. */
     private class DropDownListener extends MouseAdapter {
+        boolean pressHidPopup = false;
         public void mouseClicked(MouseEvent e) {
-            if (dropDownEnabled) menu.doClick(0);
+            if (dropDownEnabled && !pressHidPopup) menu.doClick(0);
         }
         public void mousePressed(MouseEvent e) {
             if (dropDownEnabled) menu.dispatchMouseEvent(e);
+            if (menu.isPopupMenuVisible())
+                pressHidPopup = false;
+            else
+                pressHidPopup = true;
+
         }
         public void mouseReleased(MouseEvent e) { }
     }
