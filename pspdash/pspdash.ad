@@ -93,9 +93,12 @@ http.allowRemote=false
 # names currently in use, override this definition and check the
 # combo box lists in the probe dialog.
 #
-hiddenData=dcr|DCR|Code InspectionCompleted|Code Review Comppleted|CodeCompleted|Compile Completed|Description 0|Description 1|Description 2|Description 3|Design InspectionCompleted|Design ReviewCompleted|DesignCompleted|DocumentationCompleted|HLDCompleted|HLDRCompleted|LOC 0|LOC 1|LOC 2|LOC 3|LOC 4|LOC 5|LOC 6|LOC 7|LOC 8|LOC 9|LOC 10|LOC 11|LOC 12|LOC 13|LOC 14|LOC 15|LOC 16|LOC 17|LOC 18|LOC 19|LOC 20|LOC 21|LOC 22|LOC 23|LOC 24|Methods 0|Methods 1|Methods 2|Methods 3|New Reused LOC 0|New Reused LOC 1|New Reused LOC 2|New Reused LOC 3|New Reused LOC 4|New Reused LOC 5|New Reused LOC 6|New Reused LOC 7|New Reused LOC 8|New Reused LOC 9|New Reused LOC 10|New Reused LOC 11|New Reused LOC 12|New Reused LOC 13|New Reused LOC 14|New Reused LOC 15|New Reused LOC 16|New Reused LOC 17|New Reused LOC 18|New Reused LOC 19|New Reused LOC 20|New Reused LOC 21|New Reused LOC 22|New Reused LOC 23|New Reused LOC 24|PlanningCompleted|PostmortemCompleted|Relative Size 0|Relative Size 1|Relative Size 2|Relative Size 3|SCR|SCRCYCLE|scr|scrcycle|Started|TestCompleted|Type 0|Type 1|Type 2|Type 3|Anonymous_Function0|Anonymous_Function1|Anonymous_Function2|Anonymous_Function3|Anonymous_Function4|Anonymous_Function5|Completed|New Reused? 0|New Reused? 1|New Reused? 2|New Reused? 3|New Reused? 4|New Reused? 5|New Reused? 6|New Reused? 7|New Reused? 8|New Reused? 9|New Reused? 10|New Reused? 11|New Reused? 12|New Reused? 13|New Reused? 14|New Reused? 15|New Reused? 16|New Reused? 17|New Reused? 18|New Reused? 19|New Reused? 20|New Reused? 21|New Reused? 22|New Reused? 23|New Reused? 24|ReassessCompleted
+hiddenData=PSP Project|PSP Phase|\\% Time|Started|Completed|.*\d+|.* To Date|DRL|Total Time|LOC|Owner|PSP To Date Data|.* per .*
+
+
+probe.dataList=simple
 
 chart.width=400
 chart.height=300
 chart.initGradColor=#ffffff
-chart.finalGradColor=#0000ff
+chart.finalGradColor=#7777ff
