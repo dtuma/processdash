@@ -54,8 +54,12 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static String FILE_SEP = null;
     static final String ANALYSIS_URL = "/To+Date/PSP/All//reports/index.htm";
     static final String ABOUT_URL    = "/help/Topics/Overview/about.htm";
+    static final String BUG_URL =
+        "http://sourceforge.net/tracker/?group_id=9858&atid=109858";
+    static final String FORUM_URL =
+        "http://sourceforge.net/forum/forum.php?forum_id=30752";
 
-                                  // menu labels
+                                    // menu labels
     static final String HIERARCHY_FRAME  = "Hierarchy";
     static final String TIME_LOG_FRAME   = "Time Log";
     static final String DEFECT_LOG_FRAME = "Defect Log";
@@ -63,10 +67,15 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static final String TASK_DIALOG      = "Task & Schedule";
     static final String DATA_ANALYSIS    = "Data Analysis";
     static final String IMPORT_EXPORT    = "Export";
-    static final String CONSOLE_WINDOW   = "Console Window";
-    static final String HELP_FRAME       = "Help";
-    static final String ABOUT_DIALOG     = "About";
+    static final String HELP_MENU        = "Help";
     static final String EXIT_PROGRAM     = "Exit";
+
+    static final String HELP_FRAME     = "Help Topics";
+    static final String HELP_SEARCH    = "Search";
+    static final String HELP_ABOUT     = "About Process Dashboard";
+    static final String HELP_BUG       = "Submit bug report";
+    static final String HELP_FORUM     = "Online discussion forum";
+    static final String HELP_CONSOLE   = "View debugging output";
 
                                   // menu labels & cmd text (see above)
     static final String [][] menuItems = {
@@ -77,9 +86,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         { TASK_DIALOG,      "TaskAndSchedule???" },
         { DATA_ANALYSIS,    "DataChartsAndReports" },
         { IMPORT_EXPORT,    "ExportingData" },
-        //{ CONSOLE_WINDOW,   null },
-        { HELP_FRAME,       null },
-        { ABOUT_DIALOG,     null },
+        { HELP_MENU,        null },
         { EXIT_PROGRAM,     null } };
 
 
@@ -98,9 +105,11 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         BetaVersionSetup.addSubmenu(menu);
 
         for (int ii = 0; ii < menuItems.length; ii++) {
-            menuItem = menu.add(new JMenuItem(menuItems[ii][0]));
-            menuItem.setActionCommand(menuItems[ii][0]);
-            menuItem.addActionListener(this);
+            s = menuItems[ii][0];
+            if (HELP_MENU.equals(s))
+                addHelpMenu(menu);
+            else
+                menu.add(makeMenuItem(s));
 
             // Can't get this to work, don't know why
             // if (menuItems[ii][1] != null)
@@ -112,6 +121,30 @@ class ConfigureButton extends JMenuBar implements ActionListener {
                                     // get needed system properties
         Properties prop = System.getProperties ();
         FILE_SEP = prop.getProperty ("file.separator");
+    }
+
+    private JMenuItem makeMenuItem(String text) {
+        JMenuItem result = new JMenuItem(text);
+        result.setActionCommand(text);
+        result.addActionListener(this);
+        return result;
+    }
+
+    private void addHelpMenu(JMenu menu) {
+        JMenu helpMenu = new JMenu(HELP_MENU);
+        menu.add(helpMenu);
+
+        // workaround jre 1.3 bug...reference http://developer.java.sun.com/developer/bugParade/bugs/4280243.html
+        helpMenu.enableInputMethods(false);
+
+        helpMenu.add(makeMenuItem(HELP_FRAME));
+        helpMenu.add(makeMenuItem(HELP_SEARCH));
+        helpMenu.add(makeMenuItem(HELP_ABOUT));
+        helpMenu.addSeparator();
+        helpMenu.add(makeMenuItem(HELP_BUG));
+        helpMenu.add(makeMenuItem(HELP_FORUM));
+        if ("true".equalsIgnoreCase(Settings.getVal("console.showMenuOption")))
+            helpMenu.add(makeMenuItem(HELP_CONSOLE));
     }
 
 
@@ -206,11 +239,17 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void startDataAnalysis() { Browser.launch(ANALYSIS_URL); }
 
-    public void showConsole() { parent.consoleWindow.show(); }
-
     public void startHelp() { PCSH.displayHelpTopic("QuickOverview"); }
 
+    public void startHelpSearch() { PCSH.displaySearchTab(); }
+
     public void startAboutDialog() { new AboutDialog(parent, ABOUT_URL); }
+
+    public void submitBug () { Browser.launch(BUG_URL); }
+
+    public void launchForum () { Browser.launch(FORUM_URL); }
+
+    public void showConsole () { ConsoleWindow.showInstalledConsole(); }
 
     public void exitProgram() { parent.exitProgram(); }
 
@@ -236,12 +275,18 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             startDataAnalysis ();
         } else if (cmd.equals(IMPORT_EXPORT)) {
             startImportExport ();
-        } else if (cmd.equals(CONSOLE_WINDOW)) {
-            showConsole ();
         } else if (cmd.equals(HELP_FRAME)) {
             startHelp ();
-        } else if (cmd.equals(ABOUT_DIALOG)) {
+        } else if (cmd.equals(HELP_SEARCH)) {
+            startHelpSearch ();
+        } else if (cmd.equals(HELP_ABOUT)) {
             startAboutDialog ();
+        } else if (cmd.equals(HELP_BUG)) {
+            submitBug ();
+        } else if (cmd.equals(HELP_FORUM)) {
+            launchForum ();
+        } else if (cmd.equals(HELP_CONSOLE)) {
+            showConsole ();
         } else if (cmd.equals(EXIT_PROGRAM)) {
             exitProgram ();
         }

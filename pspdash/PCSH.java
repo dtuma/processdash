@@ -59,8 +59,18 @@ class PCSH {
 
     public static void displayHelpTopic(String helpID) {
         DashHelpBroker help = getHelpBroker();
+        setActiveTab(help, "TOC");
         help.setCurrentID(helpID);
         help.setDisplayed(true);
+    }
+
+    public static void displaySearchTab() {
+        DashHelpBroker help = getHelpBroker();
+        setActiveTab(help, "Search");
+        help.setDisplayed(true);
+    }
+    private static void setActiveTab(DashHelpBroker help, String tab) {
+        try { help.setCurrentView(tab); } catch (Exception e) {}
     }
 
     //    public static void setHelpIDString(MenuItem comp, String helpID) {

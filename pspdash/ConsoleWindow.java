@@ -93,6 +93,10 @@ public class ConsoleWindow extends JFrame {
     public static ConsoleWindow getInstalledConsole() {
         return INSTALLED_CONSOLE_WINDOW;
     }
+    public static void showInstalledConsole() {
+        if (INSTALLED_CONSOLE_WINDOW != null)
+            INSTALLED_CONSOLE_WINDOW.show();
+    }
 
     // WARNING - doesn't correctly translate bytes to chars.
     private class ConsoleOutputStream extends OutputStream {
