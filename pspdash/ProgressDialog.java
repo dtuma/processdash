@@ -33,6 +33,8 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -40,8 +42,22 @@ import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 
 
-
+/** A useful class which displays a dialog box with a progress bar,
+ * then runs a sequence of tasks, updating the progress bar as each
+ * task completes.
+ *
+ * The tasks in question can be any object which implements Runnable.
+ * If, however, the task objects implement ProgressDialog.Task, they
+ * can provide a string to be displayed in the progress bar, and they
+ * can provide finer-grained progress completion data.
+ */
 public class ProgressDialog extends JDialog {
+
+    public interface Task extends Runnable {
+        String getMessage();
+        int getPercentComplete();
+        void addChangeListener(ChangeListener l);
+    }
 
     private Vector tasks = new Vector();
     private JLabel messageLabel = null;
@@ -67,15 +83,34 @@ public class ProgressDialog extends JDialog {
         setLocationRelativeTo(parent);
     }
 
+    /** Add a task for this dialog to perform.
+     *
+     * All tasks must be added <b>before</b> calling the
+     * <code>run()</code> method.
+     */
     public void addTask(Runnable r) { tasks.add(r); }
+
+    /** Request that a message be displayed when the dialog completes.
+     *
+     * By default, the completion message is <code>null</code>, which
+     * tells the progress dialog to automatically close upon
+     * completion.  If a non-null completion message is set, when the
+     * progress dialog finishes running it will not close automatically;
+     * instead, it will change the label to display the completion
+     * message, and replace the progress bar with a "Close" button.
+     */
     public void setCompletionMessage(String msg) { completionMessage = msg; }
 
+    /** Displays the dialog, and runs the tasks in the order they were
+     *  added.
+     */
     public void run() {
-        progressBar.setMaximum(tasks.size());
+        progressBar.setMaximum(tasks.size() * 100);
         WorkThread w = new WorkThread();
         w.start();
         show();         // this will block until the work thread finishes
     }
+
 
     public void finished() {
         if (completionMessage == null)
@@ -97,15 +132,35 @@ public class ProgressDialog extends JDialog {
         }
     }
 
-    private class WorkThread extends Thread {
+    private class WorkThread extends Thread implements ChangeListener {
+        private Runnable task;
+        private int i;
+
         public void run() {
-            Runnable task;
-            for (int i = 0;   i < tasks.size();   progressBar.setValue(++i))
+            for (i = 0;   i < tasks.size();   progressBar.setValue(++i*100))
                 try {
                     task = (Runnable) tasks.get(i);
+                    if (task instanceof Task) {
+                        String msg = ((Task) task).getMessage();
+                        progressBar.setString(msg);
+                        progressBar.setStringPainted(msg != null);
+
+                        ((Task) task).addChangeListener(this);
+                    }
                     task.run();
                 } catch (Throwable t) { }
             finished();
+        }
+
+        public void stateChanged(ChangeEvent e) {
+            try {
+                int percent = ((Task) task).getPercentComplete() % 100;
+                progressBar.setValue(i*100 + percent);
+
+                String msg = ((Task) task).getMessage();
+                progressBar.setStringPainted(msg != null);
+                progressBar.setString(msg);
+            } catch (Exception ex) {}
         }
     }
 }
