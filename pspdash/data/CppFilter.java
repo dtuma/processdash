@@ -124,11 +124,7 @@ public class CppFilter {
         } else if (line.startsWith(UNDEF_DIRECTIVE)) {
             processUndefDirective(line);        return "";
         } else if (line.startsWith(DEFINE_DIRECTIVE)) {
-            while (line.endsWith("\\")) {
-                // FIXME: rather than checking to see if the line ends
-                // with a \, we instead need to check for an odd number of
-                // slashes.  That is, "#define foo bar\\" should be treated
-                // as a one-line macro translating "foo" to "bar\".
+            while (newlineIsEscaped(line)) {
                 line = line.substring(0, line.length()-1);
                 String extra = in.readLine();
                 if (extra == null) {
@@ -143,6 +139,17 @@ public class CppFilter {
             return "";
         } else
             return expandMacros(line);
+    }
+    private boolean newlineIsEscaped(String s) {
+        if (!s.endsWith("\\")) return false;
+
+        int slashCount = 1;
+        for (int i = s.length()-1;   i-- > 0; )
+            if (s.charAt(i) == '\\')
+                slashCount++;
+            else
+                break;
+        return (slashCount & 1) == 1;
     }
 
     private static final String IF_DIRECTIVE     = "#if";
