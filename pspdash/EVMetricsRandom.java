@@ -36,6 +36,7 @@ import DistLib.uniform;
 public class EVMetricsRandom extends EVMetrics {
 
 
+    protected double randomDTPI;
     protected double randomForecastTotalCost;
     protected Date randomForecastDate;
 
@@ -43,12 +44,15 @@ public class EVMetricsRandom extends EVMetrics {
     public EVMetricsRandom(EVMetrics origMetrics) {
         super(false);
         this.costInterval = origMetrics.costInterval;
+        this.timeErrInterval = origMetrics.timeErrInterval;
         this.currentDate = origMetrics.currentDate;
         this.actualTime = origMetrics.actualTime;
     }
 
 
     public void randomize(EVSchedule s, uniform random) {
+        randomDTPI = 1 / timeErrInterval.getRandomValue(random);
+
         double randomIncompleteCost = costInterval.getRandomValue(random);
         randomForecastTotalCost = actualTime + randomIncompleteCost;
         recalcForecastDate(s);
@@ -57,7 +61,7 @@ public class EVMetricsRandom extends EVMetrics {
 
 
     protected void recalcForecastDate(EVSchedule s) {
-        forecastDate = s.getHypotheticalDate(independentForecastCost());
+        forecastDate = s.getHypotheticalDate(independentForecastCost(), true);
         if (forecastDate.compareTo(currentDate) < 0)
             forecastDate = currentDate;
     }
@@ -71,6 +75,11 @@ public class EVMetricsRandom extends EVMetrics {
 
     public Date independentForecastDate() {
         return randomForecastDate;
+    }
+
+
+    public double directTimePerformanceIndex() {
+        return randomDTPI;
     }
 
 }

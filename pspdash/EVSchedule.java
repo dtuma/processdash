@@ -382,6 +382,19 @@ public class EVSchedule implements TableModel {
             dest.add(p);
         }
     }
+    public void multiply(double planMultiplier) {
+        if (Double.isNaN(planMultiplier) || Double.isInfinite(planMultiplier))
+            return;
+        Iterator i = periods.iterator();
+        while (i.hasNext()) {
+            Period p = (Period) i.next();
+            p.planDirectTime *= planMultiplier;
+            p.cumPlanDirectTime *= planMultiplier;
+            p.planTotalTime *= planMultiplier;
+        }
+        defaultPlanDirectTime *= planMultiplier;
+        defaultPlanTotalTime *= planMultiplier;
+    }
 
     public EVSchedule(Element e) {
         metrics.loadFromXML(e);
@@ -531,12 +544,17 @@ public class EVSchedule implements TableModel {
      * before the given date. */
     public double getScheduledPlanTime(Date when) {
         double result = 0;
+        double auto = 0;
         long time = when.getTime();
         Period p;
         for (int i = 1;   i < periods.size();   i++) {
             p = get(i);
-            if (p != null && p.getEndDate().getTime() < time)
-                result += p.planDirectTime;
+            if (p != null && p.getEndDate().getTime() < time) {
+                if (p.automatic)
+                    result += auto;
+                else
+                    result += (auto = p.planDirectTime);
+            }
             else break;
         }
         return result;
@@ -561,9 +579,10 @@ public class EVSchedule implements TableModel {
      * plan time. Perform a "what-if" calculation - don't modify the
      * current schedule.
      */
-    public Date getHypotheticalDate(double cumPlanTime) {
+    public Date getHypotheticalDate(double cumPlanTime, boolean useDTPI) {
         EVSchedule s = new EVSchedule(this);
         s.cleanUp();
+        if (useDTPI) s.multiply(1 / metrics.directTimePerformanceIndex());
         return s.getPlannedCompletionDate(cumPlanTime, cumPlanTime);
     }
 

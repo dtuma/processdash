@@ -240,10 +240,7 @@ public class EVMetrics implements TableModel {
         }
 
         // perform the nonstandard calculations for forecast date.
-        double altSPI = totalSchedulePlanTime / totalScheduleActualTime;
-        if (badDouble(altSPI)) altSPI = 1.0;
-        forecastDate =
-            s.getHypotheticalDate(independentForecastCost() * altSPI);
+        forecastDate = s.getHypotheticalDate(independentForecastCost(), true);
         if (forecastDate == EVSchedule.NEVER)
             forecastDate = null;
 
@@ -299,6 +296,9 @@ public class EVMetrics implements TableModel {
     }
     public double schedulePerformanceIndex() {
         return earnedValue() / plan();
+    }
+    public double directTimePerformanceIndex() {
+        return totalSchedulePlanTime / totalScheduleActualTime;
     }
     public double percentComplete() {
         return earnedValue() / totalPlan();

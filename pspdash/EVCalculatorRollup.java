@@ -239,12 +239,19 @@ public class EVCalculatorRollup extends EVCalculator {
 
 
 
+    private static boolean RECENTER = true;
     private boolean allSchedulesHaveTimeErrInterval() {
         if (schedule.subSchedules.isEmpty())
             return false;
         Iterator i = schedule.subSchedules.iterator();
         while (i.hasNext()) {
             EVSchedule s = (EVSchedule) i.next();
+            // recenter the time error interval - wide intervals are
+            // of little consequence for rollups.  Bias causes bigger
+            // problems.
+            s.getMetrics().setTimeErrConfidenceInterval
+                (new EVTimeErrConfidenceInterval(s, RECENTER));
+
             ConfidenceInterval ci =
                 s.getMetrics().getTimeErrConfidenceInterval();
             if (ci == null)

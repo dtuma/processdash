@@ -39,19 +39,16 @@ public class EVScheduleRandom extends EVSchedule
 {
 
     protected Vector origPeriods = new Vector();
-    protected ConfidenceInterval cost;
-    protected ConfidenceInterval time;
     protected double origDefaultPlanDirectTime;
     protected double origDefaultPlanTotalTime;
     protected long lastPeriodEnd;
     protected long defaultPeriodLen;
     protected double lastPeriodCumPlanTime;
+    protected double currentMultiplier = 1.0;
 
     public EVScheduleRandom(EVSchedule s) {
         super(s);
         setEffectiveDate(s.getEffectiveDate());
-        this.cost = s.getMetrics().getCostConfidenceInterval();
-        this.time = s.getMetrics().getTimeErrConfidenceInterval();
         this.metrics = new EVMetricsRandom(s.getMetrics());
 
         preparePeriods(s.periods);
@@ -203,8 +200,7 @@ public class EVScheduleRandom extends EVSchedule
 
     public void randomize(uniform random) {
         addAllPeriods(origPeriods, periods);
-        double timeErrRatio = time.getRandomValue(random);
-        rewriteFuture(timeErrRatio);
+        currentMultiplier = 1.0;
         ((EVMetricsRandom) metrics).randomize(this, random);
     }
 
@@ -229,14 +225,26 @@ public class EVScheduleRandom extends EVSchedule
         defaultPlanTotalTime = origDefaultPlanTotalTime * timeErrRatio;
     }
 
+
+    public void multiply(double planMultiplier) {
+        if (currentMultiplier != planMultiplier) {
+            if (currentMultiplier != 1.0)
+                addAllPeriods(origPeriods, periods);
+            if (planMultiplier != 1.0)
+                rewriteFuture(planMultiplier);
+            currentMultiplier = planMultiplier;
+        }
+    }
+
     /** Return the date that the schedule would reach the given cumulative
      * plan time. Perform a "what-if" calculation - don't modify the
      * current schedule.
      */
-    public Date getHypotheticalDate(double cumPlanTime) {
+    public Date getHypotheticalDate(double cumPlanTime, boolean useDTPI) {
         if (Double.isNaN(cumPlanTime) || Double.isInfinite(cumPlanTime))
             return NEVER;
 
+        if (useDTPI) multiply(1 / metrics.directTimePerformanceIndex());
         if (cumPlanTime < lastPeriodCumPlanTime)
             return extrapolateWithinSchedule(cumPlanTime);
         else if (defaultPlanDirectTime > 0) {
@@ -251,7 +259,7 @@ public class EVScheduleRandom extends EVSchedule
 
     public synchronized Date getPlannedCompletionDate(double cumPlanTime,
                                                       double cumPlanValue) {
-        Date result = getHypotheticalDate(cumPlanTime);
+        Date result = getHypotheticalDate(cumPlanTime, false);
         if (NEVER.equals(result) || (result.getTime() <= lastPeriodEnd))
             return result;
 

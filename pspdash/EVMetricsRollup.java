@@ -118,7 +118,7 @@ public class EVMetricsRollup extends EVMetrics {
         // do nothing - it is already calculated.
     }
     protected void recalcOptimizedPlanDate(EVSchedule s) {
-        optimizedPlanDate = s.getHypotheticalDate(totalPlan());
+        optimizedPlanDate = s.getHypotheticalDate(totalPlan(), false);
         if (optimizedPlanDate == EVSchedule.NEVER)
             optimizedPlanDate = null;
     }

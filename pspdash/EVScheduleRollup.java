@@ -286,7 +286,7 @@ public class EVScheduleRollup extends EVSchedule {
 
 
 
-    public Date getHypotheticalDate(double cumPlanTime) {
+    public Date getHypotheticalDate(double cumPlanTime, boolean useDTPI) {
         if (!calcHypotheticalDates) return null;
 
         // Clone ourself so we can perform a "what-if" calculation without
@@ -300,6 +300,8 @@ public class EVScheduleRollup extends EVSchedule {
         while (i.hasNext()) {
             s = (EVSchedule) i.next();
             s.cleanUp();
+            if (useDTPI)
+                s.multiply(1 / s.getMetrics().directTimePerformanceIndex());
             s.getPlannedCompletionDate(cumPlanTime, cumPlanTime);
         }
 

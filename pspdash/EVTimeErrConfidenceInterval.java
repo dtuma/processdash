@@ -33,10 +33,27 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 
-public class EVTimeErrConfidenceInterval extends LognormalConfidenceInterval {
+public class EVTimeErrConfidenceInterval extends DelegatingConfidenceInterval {
 
 
-    public EVTimeErrConfidenceInterval(EVSchedule sched) {
+    public EVTimeErrConfidenceInterval(EVSchedule sched, boolean center) {
+        AbstractConfidenceInterval interval = null;
+        if (center)
+            // if it is more important to reduce the bias of the resulting
+            // interval, use the centered logarithmic approach. (This will
+            // ensure that the interval is centered around the appropriate
+            // value, at the expense of creating a wider confidence interval.)
+            interval = new LogCenteredConfidenceInterval();
+        else
+            // if it is more important to estimate the width of the confidence
+            // interval, use the parametric logarithmic approach.  (This will
+            // attempt to generate the most accurate interval possible,
+            // although it may center the interval around a number that
+            // is different from the one predicted by traditional/linear
+            // earned value extrapolations.)
+            interval = new LognormalConfidenceInterval();
+        delegate = interval;
+
         Date effDate = sched.getEffectiveDate();
 
         double plan, act, autoPlan = 0;
@@ -56,16 +73,10 @@ public class EVTimeErrConfidenceInterval extends LognormalConfidenceInterval {
                 else
                     autoPlan = plan;
 
-                addDataPoint(plan, act);
+                interval.addDataPoint(plan, act);
             }
         }
-        dataPointsComplete();
+        interval.dataPointsComplete();
     }
-
-
-    public EVTimeErrConfidenceInterval(Element xml) {
-        super(xml);
-    }
-
 
 }

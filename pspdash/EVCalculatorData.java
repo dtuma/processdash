@@ -426,7 +426,7 @@ Value to recalculate
 
     private void createTimeErrConfidenceInterval() {
         ConfidenceInterval timeErrInterval =
-            new EVTimeErrConfidenceInterval(schedule);
+            new EVTimeErrConfidenceInterval(schedule, false);
         if (!(timeErrInterval.getViability() > ConfidenceInterval.ACCEPTABLE))
             timeErrInterval = null;
         schedule.getMetrics().setTimeErrConfidenceInterval(timeErrInterval);

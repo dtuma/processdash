@@ -103,7 +103,7 @@ public class EVScheduleConfidenceIntervals
         cost.addSample(forecastCost-metrics.actualTime);
         date.addSample(getTime(metrics.independentForecastDate()));
         if (optimizedDate != null) {
-            Date optDate = schedule.getHypotheticalDate(forecastCost);
+            Date optDate = schedule.getHypotheticalDate(forecastCost, true);
             optimizedDate.addSample(getTime(optDate));
         }
     }
