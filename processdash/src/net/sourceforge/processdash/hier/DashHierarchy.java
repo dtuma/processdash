@@ -39,6 +39,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedWriter;
+import java.io.Reader;
 import java.io.Writer;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -322,13 +323,17 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     }
     public Vector load (InputStream propStream, boolean close)
         throws IOException {
+        return load(new InputStreamReader(propStream), close);
+    }
+    public Vector load (Reader reader, boolean close)
+        throws IOException {
 
         String line;
         Vector v = null;
         PropertyKey key;
         Prop val;
         int equalsPosition;
-        BufferedReader in = new BufferedReader(new InputStreamReader(propStream));
+        BufferedReader in = new BufferedReader(reader);
 
         while ((line = in.readLine()) != null) {
             if ((! line.startsWith ("#")) &&
