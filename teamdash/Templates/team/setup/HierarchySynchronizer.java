@@ -20,7 +20,6 @@ import pspdash.DashController;
 import pspdash.HierarchyAlterer;
 import pspdash.PSPProperties;
 import pspdash.PropertyKey;
-import pspdash.TinyCGIException;
 import pspdash.XMLUtils;
 import pspdash.HierarchyAlterer.HierarchyAlterationException;
 import pspdash.data.DataRepository;
@@ -105,8 +104,9 @@ public class HierarchySynchronizer {
             projectXML = doc.getDocumentElement();
         } catch (Exception e) {
             throw new IOException
-                ("Could not read the file containing the work breakdown " +
-                 "structure for this team project.");
+                ("The dashboard could not read the file containing the work " +
+                 "breakdown structure for this team project.  The file may "+
+                 "be corrupt.");
         }
     }
 
@@ -165,21 +165,19 @@ public class HierarchySynchronizer {
         out.write(String.valueOf(projectXML));
     }
 
-    public void sync() throws IOException {
+    public void sync() throws HierarchyAlterationException {
+        /*
         if (DashController.isHierarchyEditorOpen())
             throw new IOException("You must close the hierarchy editor "+
                                   "before you can synchronize this project.");
+                        */
 
         changes = new ArrayList();
         syncActions = buildSyncActions();
         initPhaseIDs();
         HierarchyAlterer alterer = DashController.getHierarchyAlterer();
 
-        try {
-            sync(alterer, projectPath, projectXML);
-        } catch (HierarchyAlterationException e) {
-            throw new TinyCGIException(500, e.getMessage());
-        }
+        sync(alterer, projectPath, projectXML);
     }
 
     private Map buildSyncActions() {
@@ -200,7 +198,7 @@ public class HierarchySynchronizer {
     private Map syncActions;
 
     private void sync(HierarchyAlterer alterer, String pathPrefix, Element node)
-        throws HierarchyAlterer.HierarchyAlterationException
+        throws HierarchyAlterationException
     {
         String type = node.getTagName();
         SyncNode s = (SyncNode) syncActions.get(type);
@@ -286,7 +284,7 @@ public class HierarchySynchronizer {
                     alterer.addTemplate(path, templateID);
                     syncData(path, node);
                 }
-                changes.add("Created '"+path+"' ("+templateID+")");
+                changes.add("Created '"+path+"'");
             } else if (templateID.equals(currentID)) {
                 // the node exists with the given name.  Just sync its data.
                 if (!whatIfMode)
@@ -391,7 +389,7 @@ public class HierarchySynchronizer {
                     alterer.addTemplate(path, templateID);
                     maybeSaveTimeValue(path, node);
                 }
-                changes.add("Created '"+path+"' ("+templateID+")");
+                changes.add("Created '"+path+"'");
             } else if (templateID.equals(currentID)) {
                 // the node exists with the given name.
                 if (!whatIfMode)
