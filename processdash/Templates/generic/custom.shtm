@@ -23,7 +23,7 @@
 // Hill AFB, UT 84056-5843
 // 
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
--->
+--><!--#resources bundle="Templates.Generic" -->
 
 <HTML>
 <HEAD>
@@ -31,7 +31,7 @@
 <STYLE>
    P  { margin-bottom: 0.6em; margin-top: 0.6em }
 </STYLE>
-<TITLE>Customize...</TITLE>
+<TITLE><!--#echo Customize_Title --></TITLE>
 <SCRIPT>
     var SILENT=true;
     function refreshParent () { window.opener.location.reload(); }
@@ -42,19 +42,19 @@
 
 <INPUT TYPE=hidden NAME=requiredTag VALUE="Generic Tag">
 
-<TABLE><TR><TD>Customize&nbsp;Project:&nbsp;</TD>
+<TABLE><TR><TD NOWRAP><!--#echo Customize_Header -->&nbsp;</TD>
     <TD><INPUT TYPE=text SIZE=30 NAME="Project//Name	sr==p"></TD></TR></TABLE>
 
 <TABLE><TR><TD><INPUT TYPE=checkbox NAME="Generic - Show Defects	s"></TD>
-    <TD>&nbsp;Display defect metrics</TD></TR></TABLE>
+    <TD>&nbsp;<!--#echo Customize_Show_Defects --></TD></TR></TABLE>
 
 <TABLE><TR><TD><INPUT TYPE=checkbox NAME="Generic - Show Size	s"></TD>
-    <TD>&nbsp;Display size metrics</TD></TR></TABLE>
+    <TD>&nbsp;<!--#echo Customize_Show_Size --></TD></TR></TABLE>
 
-<TABLE><TR><TD>Size&nbsp;unit&nbsp;of&nbsp;measurement:&nbsp;</TD>
+<TABLE><TR><TD NOWRAP><!--#echo Customize_Size_Units -->&nbsp;</TD>
     <TD><INPUT TYPE=text SIZE=15 NAME="Units	s"></TD></TR></TABLE>
 
-<INPUT TYPE="button" VALUE="OK" onClick="window.close();">
+<INPUT TYPE="button" onClick="window.close();" VALUE="<!--#echo OK -->">
 
 </FORM>
 

@@ -55,7 +55,7 @@
 
 [Generic - Show Defects] = "True";
 [Generic - Show Size]    = "True";
-[Units]                  = "Units";
+[Units]                  = "${/Templates:Generic.Default_Units}";
 
 
 /*

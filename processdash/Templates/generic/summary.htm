@@ -1,3 +1,4 @@
+<!--#server-parsed --><!--#resources bundle="Templates.Generic" -->
 <!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
@@ -28,10 +29,10 @@
 <HTML>
 <HEAD>
 <link rel=stylesheet type="text/css" href="/style.css">
-<TITLE>Project Planning Summary</TITLE>
+<TITLE><!--#echo Title --></TITLE>
 <SCRIPT>
     function openCustomizationWindow() {
-        window.open ('custom.htm', 'customize',
+        window.open ('custom.shtm', 'customize',
             'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=200');
     }
 </SCRIPT>
@@ -39,7 +40,7 @@
 <BODY>
 
 <H1>PATH_TRANSLATED</H1>
-<H2>Project Planning Summary</H2>
+<H2><!--#echo Title --></H2>
 
 <FORM NAME=PLAN>
 
@@ -47,7 +48,7 @@
 
 <TABLE>
 <TR>
-<TD>Project Owner</TD>
+<TD><!--#echo Summary.Project_Owner --></TD>
 <TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
 </TR>
 <TR>
@@ -60,14 +61,12 @@
 </TR>
 </TABLE>
 
-<INPUT CLASS=doNotPrint TYPE="button" VALUE="Customize..."
-       onClick="openCustomizationWindow();">
+<INPUT CLASS=doNotPrint TYPE="button" onClick="openCustomizationWindow();"
+       VALUE="<!--#echo Customize_Button -->">
 
 <!--friendlyHelpStart
-<P CLASS=doNotPrint><I>Did you realize that you can insert any phases you like
-between the "Planning" and "Postmortem" phases of this generic project? <A
-HREF="/help/Topics/Overview/ProcessScripts.html#generic">Click here</a> for
-more information.</I></P>
+<P CLASS=doNotPrint><I><!--#echo var="Friendly_Help_HTML" 
+	encoding="none" --></I></P>
 friendlyHelpEnd-->
 
 <P><TABLE>
@@ -76,12 +75,13 @@ friendlyHelpEnd-->
 <TD><B>Summary</B></TD>
 <TD ALIGN=CENTER><B>Plan</B></TD>
 <TD ALIGN=CENTER><B>Actual</B></TD>
-<TD ALIGN=CENTER><B>Est.Err.%</B></TD>
+<TD ALIGN=CENTER><B><!--#echo Estimating_Error_Percent --></B></TD>
 </TR>
 
 <!--sizeStart-->
 <TR>
-<TD>Productivity (/UNITS//Hr)</TD>
+<TD>Productivity (<!--#echo var="Productivity_Units_FMT"
+	arg0="'/UNITS/'" -->)</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Productivity"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Productivity"></TD>
 <TD></TD>
@@ -105,7 +105,7 @@ friendlyHelpEnd-->
 
 <!--sizeDefStart-->
 <TR>
-<TD>Defects//UNIT/</TD>
+<TD><!--#echo var="Defect_Density_Units_FMT" arg0="'/UNIT/'"  --></TD>
 <TD></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Defect Density"></TD>
 <TD></TD>
@@ -115,7 +115,7 @@ friendlyHelpEnd-->
 <!--sizeEnd-->
 
 <TR>
-<TD ALIGN=LEFT><B>Time in Phase (min.)</B></TD>
+<TD ALIGN=LEFT><B><!--#echo Summary.Time_In_Phase --></B></TD>
 <TD ALIGN=CENTER><B>Plan</B></TD>
 <TD ALIGN=CENTER><B>Actual</B></TD>
 <TD ALIGN=CENTER><B>Actual %</B></TD>
@@ -123,7 +123,7 @@ friendlyHelpEnd-->
 
 <!--PhaseStart-->
 <TR>
-<TD>&nbsp;&nbsp;/PHASE/</TD>
+<TD>&nbsp;&nbsp;/PHASE_NAME/</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="/PHASE//Estimated Time"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="/PHASE//Time"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="/PHASE//%/Time"></TD>
@@ -143,7 +143,7 @@ friendlyHelpEnd-->
 <TD ALIGN=CENTER></TD>
 <TD ALIGN=CENTER><B>Actual</B></TD>
 <TD ALIGN=CENTER><B>Actual %</B></TD>
-<TD ALIGN=CENTER><B>Inj/Hr</B></TD>
+<TD ALIGN=CENTER><B><!--#echo Injection_Rate --></B></TD>
 </TR>
 
 <TR>
@@ -156,7 +156,7 @@ friendlyHelpEnd-->
 
 <!--PhaseStart-->
 <TR>
-<TD>&nbsp;&nbsp;/PHASE/</TD>
+<TD>&nbsp;&nbsp;/PHASE_NAME/</TD>
 <TD></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="/PHASE//Defects Injected"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="/PHASE//%/Defects Injected"></TD>
@@ -177,12 +177,12 @@ friendlyHelpEnd-->
 <TD ALIGN=CENTER></TD>
 <TD ALIGN=CENTER><B>Actual</B></TD>
 <TD ALIGN=CENTER><B>Actual %</B></TD>
-<TD ALIGN=CENTER><B>Rem/Hr</B></TD>
+<TD ALIGN=CENTER><B><!--#echo Removal_Rate --></B></TD>
 </TR>
 
 <!--PhaseStart-->
 <TR>
-<TD>&nbsp;&nbsp;/PHASE/</TD>
+<TD>&nbsp;&nbsp;/PHASE_NAME/</TD>
 <TD></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="/PHASE//Defects Removed"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="/PHASE//%/Defects Removed"></TD>
@@ -212,10 +212,13 @@ friendlyHelpEnd-->
 </FORM>
 
 <span class="doNotPrint"><HR>
-View <A HREF="../reports/timelog.class">Time Recording Log</A> 
+<!--#echo Summary.View_Log_Begin -->
+<A HREF="../reports/timelog.class">Time Log</A>
 <!--defStart-->
-or <A HREF="../reports/defectlog.class">Defect Recording Log</A>
+<!--#echo Summary.View_Log_Separator -->
+<A HREF="../reports/defectlog.class">Defect Log</A>
 <!--defEnd-->
+<!--#echo Summary.View_Log_End -->
 </span>
 
 <SCRIPT LANGUAGE=JavaScript SRC="/data.js">

@@ -33,11 +33,16 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 
 
 public class GenericPlanSummaryForm extends TinyCGIBase {
+
+    private static Resources resources =
+        Resources.getDashBundle("Templates.Generic");
 
     public String[] staticPieces;
     public String[] dynamicPieces;
@@ -46,6 +51,7 @@ public class GenericPlanSummaryForm extends TinyCGIBase {
     private static final String BEGIN_CUT = "<!--PhaseStart-->";
     private static final String END_CUT   = "<!--PhaseEnd-->";
     private static final String PHASE_TAG = "/PHASE/";
+    private static final String PHASE_NAME_TAG = "/PHASE_NAME/";
     private static final String UNIT_TAG  = "/UNIT/";
     private static final String UNITS_TAG = "/UNITS/";
 
@@ -113,19 +119,18 @@ public class GenericPlanSummaryForm extends TinyCGIBase {
         d = data.getSimpleValue(prefix + "/" + SHOW_DEF_NAME);
         showDefects = (d != null && d.test());
         d = data.getSimpleValue(prefix + "/" + UNITS_NAME);
-        if (d == null) {
-            unit = "Unit"; units = "Units";
+        units = (d != null ? d.format() : null);
+        if (units == null || units.trim().length() == 0)
+            units = resources.getString("Default_Units");
+
+        int semicolonPos = units.indexOf(';');
+        if (semicolonPos > -1) {
+            unit  = units.substring(0, semicolonPos);
+            units = units.substring(semicolonPos+1);
+        } else if (units.endsWith("s")) {
+            unit = units.substring(0, units.length() - 1);
         } else {
-            units = d.format();
-            int semicolonPos = units.indexOf(';');
-            if (semicolonPos > -1) {
-                unit  = units.substring(0, semicolonPos);
-                units = units.substring(semicolonPos+1);
-            } else if (units.endsWith("s")) {
-                unit = units.substring(0, units.length() - 1);
-            } else {
-                unit = units;
-            }
+            unit = units;
         }
     }
 
@@ -139,6 +144,8 @@ public class GenericPlanSummaryForm extends TinyCGIBase {
         for (int i=0;  i < phaseList.length;  i++) {
             phaseName = phaseList[i];
             phaseText = replace(text, PHASE_TAG, phaseName);
+            phaseText = replace(phaseText, PHASE_NAME_TAG,
+                                Translator.translate(phaseName));
             printStaticPart(phaseText);
         }
     }
