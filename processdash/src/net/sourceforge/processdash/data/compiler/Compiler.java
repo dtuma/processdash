@@ -40,8 +40,10 @@ import net.sourceforge.processdash.data.compiler.analysis.DepthFirstAdapter;
 import net.sourceforge.processdash.data.compiler.lexer.Lexer;
 import net.sourceforge.processdash.data.compiler.node.*;
 import net.sourceforge.processdash.data.compiler.parser.Parser;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.ResourcePool;
+import net.sourceforge.processdash.util.StringMapper;
 
 
 public class Compiler extends DepthFirstAdapter {
@@ -52,6 +54,8 @@ public class Compiler extends DepthFirstAdapter {
         new ResourcePool("compilerPool") {
                 protected Object createNewResource() {
                     return new Compiler(); } };
+
+    private static final Resources resources = Resources.getGlobalBundle();
 
     public Compiler() {}
 
@@ -264,7 +268,10 @@ public class Compiler extends DepthFirstAdapter {
     public void caseTIdentifier(TIdentifier node) {
         add(new PushVariable(trimDelim(node))); }
     public void caseTStringLiteral(TStringLiteral node) {
-        add(new PushConstant(new ImmutableStringData(trimDelim(node)))); }
+        String stringVal = interpolateResources(trimDelim(node));
+        add(new PushConstant(new ImmutableStringData(stringVal))); }
+
+
     public void caseTDateLiteral(TDateLiteral node) {
         try {
             add(new PushConstant(new DateData(node.getText())));
@@ -311,6 +318,17 @@ public class Compiler extends DepthFirstAdapter {
 
     public static String escapeLiteral(String literal) {
         return EscapeString.escape(literal, '\\', "'\"[]");
+    }
+
+    public static final StringMapper ESCAPE_STRING_LITERAL =
+            new StringMapper() {
+                public String getString(String str) {
+                    return escapeLiteral(str);
+                }
+            };
+
+    private static String interpolateResources(String string) {
+        return resources.interpolate(string, ESCAPE_STRING_LITERAL);
     }
 }
 
