@@ -144,7 +144,7 @@ public class ListData implements SimpleData {
     // The following methods implement the SimpleData interface.
 
     public String toString() { return format(); }
-    private static final char DEFAULT_DELIM = '\u0001';
+    private static final char DEFAULT_DELIM = '\u0002';
     //private static final char DEFAULT_DELIM = ';';
     public synchronized String format() {
         if (stringVersion != null) return stringVersion;
