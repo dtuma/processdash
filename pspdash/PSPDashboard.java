@@ -205,15 +205,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
             }
         }catch (Exception e) { debug("open datafiles failed!"); };
 
-        configure_button = new ConfigureButton(this);
-        PCSH.enableHelpKey(this, "QuickOverview");
-        pause_button = new PauseButton(this);
-        defect_button = new DefectButton(this);
-        script_button = new ScriptButton(this);
-        getContentPane().add(hierarchy_menubar = new JMenuBar());
-        completion_button = new CompletionButton(this);
-        hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
-
         // open the global data file.
         try {
             data.openDatafile("", property_directory + "global.dat");
@@ -233,6 +224,15 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         webServer.setData(data);
         webServer.setProps(props);
+
+        configure_button = new ConfigureButton(this);
+        PCSH.enableHelpKey(this, "QuickOverview");
+        pause_button = new PauseButton(this);
+        defect_button = new DefectButton(this);
+        script_button = new ScriptButton(this);
+        getContentPane().add(hierarchy_menubar = new JMenuBar());
+        completion_button = new CompletionButton(this);
+        hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
 
         if (!brokenData.isEmpty())
             displayBrokenDataWarning();
