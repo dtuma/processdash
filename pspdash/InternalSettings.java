@@ -136,7 +136,10 @@ public class InternalSettings extends Settings {
         "into an appropriate OS-specific directory separator automatically.)";
 
     public static void set(String name, String value) {
-        settings.put(name, value);
+        if (value == null)
+            settings.remove(name);
+        else
+            settings.put(name, value);
         serializable = null;
 
         if (fsettings != null) try {
