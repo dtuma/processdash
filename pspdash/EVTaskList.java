@@ -381,7 +381,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     /** Set the value at a particular row/column */
     public void setValueAt(Object aValue, Object node, int column) {
-        System.out.println("setValueAt("+aValue+","+node+","+column+")");
+        //System.out.println("setValueAt("+aValue+","+node+","+column+")");
         EVTask n = (EVTask) node;
         switch (column) {
         case PLAN_TIME_COLUMN:      n.setPlanTime(aValue);   break;
