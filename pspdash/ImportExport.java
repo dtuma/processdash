@@ -36,6 +36,7 @@ import java.awt.Insets;
 import java.awt.event.*;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import javax.swing.*;
@@ -169,7 +170,7 @@ public class ImportExport extends JDialog implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
         FileDialog fd;
-        String lastFile;
+        String lastFile, lastDir;
         boolean fail = false;
 
         if (cmd.equals("leaves")) {
@@ -200,43 +201,10 @@ public class ImportExport extends JDialog implements ActionListener {
                 //fd.setDirectory ("");
                 fd.setFile ("dash.txt");
                 fd.show();
+                lastDir = fd.getDirectory();
                 lastFile = fd.getFile ();
-                if (lastFile != null) {
-                    JDialog working;
-                    working = new JDialog (parent, "Exporting...");
-                    working.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    JLabel lab = new JLabel ("Export in Progress.  Please Wait.");
-                    working.getContentPane().add(lab, "Center");
-                    working.pack();
-                    working.show();
-                    Thread.yield();
-
-                    String lastDir  = fd.getDirectory ();
-                    try {
-                        PrintWriter out =
-                            new PrintWriter (new BufferedWriter
-                                             (new FileWriter(lastDir + FILE_SEP + lastFile)));
-                        parent.data.dumpRepository(out, v);
-
-                        TimeLog tl = new TimeLog();
-                        try {
-                            TimeLogEntry tle;
-                            tl.read (parent.getTimeLog());
-                            Enumeration keys = tl.filter(PropertyKey.ROOT, null, null);
-                            while (keys.hasMoreElements()) {
-                                tle = (TimeLogEntry)keys.nextElement();
-                                if (Filter.matchesFilter (v, tle.key.path()))
-                                    out.println(tle.toAbbrevString());
-                            }
-                        } catch (IOException ioe) {}
-
-                        out.close();
-                    } catch (IOException ioe) {
-                        fail = true; System.out.println("IOException: " + e);
-                    };
-                    lab.setText ("Export Complete.");
-                    working.invalidate();
-                }
+                if (lastFile != null)
+                    exportInteractively(v, new File(lastDir, lastFile));
                 break;
             case X_LIST:
                 // Perform operation (filter TBD)
@@ -260,7 +228,7 @@ public class ImportExport extends JDialog implements ActionListener {
                     working.show();
                     Thread.yield();
 
-                    String lastDir  = fd.getDirectory ();
+                    lastDir  = fd.getDirectory ();
                     try {
                         PrintWriter out =
                             new PrintWriter (new BufferedWriter
@@ -278,4 +246,97 @@ public class ImportExport extends JDialog implements ActionListener {
         }
     }
 
+    public void exportInteractively(Vector filter, File dest) {
+        ProgressDialog p = new ProgressDialog(this, "Exporting",
+                                              "Exporting data...");
+        p.addTask(new ExportTask(parent, filter, dest));
+        p.setCompletionMessage("Export done.");
+        p.run();
+    }
+
+    public static class ExportTask implements Runnable {
+        PSPDashboard parent; Vector filter;  File dest;
+        public ExportTask(PSPDashboard p, Vector f, File d) {
+            parent = p; filter = f;  dest = d; }
+        public void run() { export(parent, filter, dest); }
+    }
+
+    public static void export(PSPDashboard parent, Vector filter, File dest) {
+        boolean fail = false;
+        PrintWriter out = null;
+        try {
+            out = new PrintWriter(new RobustFileWriter(dest));
+
+            parent.data.dumpRepository(out, filter);
+
+            TimeLog tl = new TimeLog();
+            TimeLogEntry tle;
+            tl.read (parent.getTimeLog());
+            Enumeration keys = tl.filter(PropertyKey.ROOT, null, null);
+            while (keys.hasMoreElements()) {
+                tle = (TimeLogEntry)keys.nextElement();
+                if (Filter.matchesFilter (filter, tle.key.path()))
+                    out.println(tle.toAbbrevString());
+            }
+        } catch (IOException ioe) {
+            fail = true; System.out.println("IOException: " + ioe);
+        }
+        out.close();
+        if (fail) dest.delete();
+    }
+
+    public static void exportAll(PSPDashboard parent, String userSetting) {
+        if (userSetting == null || userSetting.length() == 0) return;
+
+        ProgressDialog p = new ProgressDialog(parent, "Auto Exporting",
+                                              "Exporting data...");
+
+        StringTokenizer exportTaskTokens = new StringTokenizer(userSetting, "|");
+        while (exportTaskTokens.hasMoreTokens()) {
+            String exportTaskStr = exportTaskTokens.nextToken();
+            int pos = exportTaskStr.indexOf("=>");
+            if (pos == -1) continue;
+            String filename = Settings.translateFile(exportTaskStr.substring(0,pos));
+            Vector filter = new Vector();
+            StringTokenizer filterItems = new StringTokenizer
+                (exportTaskStr.substring(pos+2), ";");
+            while (filterItems.hasMoreTokens())
+                filter.add(filterItems.nextToken());
+            p.addTask(new ExportTask(parent, filter, new File(filename)));
+        }
+
+        p.run();
+        System.out.println("Completed user-scheduled data export.");
+    }
+
+    private static class DailyExporterThread extends Thread {
+        private PSPDashboard parent;
+        private String userSetting;
+        public DailyExporterThread(PSPDashboard p, String s) {
+            parent = p; userSetting = s;
+            setDaemon(true);
+            start();
+        }
+        public void run() { while (true) runOnce(); }
+
+        public void runOnce() {
+            try {
+                int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+                long timeToSleep = (24 - hour) * MILLIS_PER_HOUR;
+                sleep(timeToSleep);
+
+                // wake up sometime during the hour between midnight and 1AM,
+                // and export data.
+                exportAll(parent, userSetting);
+            } catch (InterruptedException ie) {}
+        }
+    }
+    private static final long MILLIS_PER_HOUR =
+        60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
+
+    public static void registerUserSetting
+        (PSPDashboard parent, String userSetting) {
+        if (userSetting == null || userSetting.length() == 0) return;
+        new DailyExporterThread(parent, userSetting);
+    }
 }
