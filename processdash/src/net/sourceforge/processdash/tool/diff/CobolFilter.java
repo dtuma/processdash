@@ -26,7 +26,7 @@
 package net.sourceforge.processdash.tool.diff;
 
 
-import pspdash.StringUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class CobolFilter extends AbstractLanguageFilter {

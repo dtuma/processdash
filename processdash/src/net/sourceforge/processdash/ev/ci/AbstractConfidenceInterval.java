@@ -30,10 +30,11 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+import net.sourceforge.processdash.util.XMLUtils;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import pspdash.XMLUtils;
 import DistLib.uniform;
 
 public abstract class AbstractConfidenceInterval implements ConfidenceInterval

@@ -38,8 +38,8 @@ import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.util.StringUtils;
 
-import pspdash.StringUtils;
 import pspdash.TimeLogEditor;
 import pspdash.TinyCGIBase;
 import pspdash.TinyCGIException;

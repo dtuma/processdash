@@ -26,9 +26,10 @@
 
 package net.sourceforge.processdash.ev.ci;
 
+import net.sourceforge.processdash.util.XMLUtils;
+
 import org.w3c.dom.Element;
 
-import pspdash.XMLUtils;
 
 
 public abstract class AbstractLinearConfidenceInterval

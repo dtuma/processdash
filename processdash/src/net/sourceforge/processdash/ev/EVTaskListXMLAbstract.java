@@ -33,10 +33,11 @@ import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.util.XMLUtils;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import pspdash.XMLUtils;
 import pspdash.data.DataRepository;
 import pspdash.data.StringData;
 import pspdash.data.SimpleData;

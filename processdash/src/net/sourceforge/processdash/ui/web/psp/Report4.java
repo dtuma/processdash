@@ -32,10 +32,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import net.sourceforge.processdash.util.StringUtils;
+
 import pspdash.Defect;
 import pspdash.DefectAnalyzer;
 import pspdash.DefectTypeStandard;
-import pspdash.StringUtils;
 import pspdash.TinyCGIBase;
 
 

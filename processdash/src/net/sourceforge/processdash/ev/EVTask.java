@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
+import net.sourceforge.processdash.util.XMLUtils;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -40,7 +42,6 @@ import pspdash.PSPProperties;
 import pspdash.PropertyKey;
 import pspdash.Resources;
 import pspdash.TimeLogEditor;
-import pspdash.XMLUtils;
 import pspdash.data.DataRepository;
 import pspdash.data.DataListener;
 import pspdash.data.DataEvent;

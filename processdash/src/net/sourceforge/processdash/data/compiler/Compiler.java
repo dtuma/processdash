@@ -35,7 +35,8 @@ import net.sourceforge.processdash.data.compiler.analysis.DepthFirstAdapter;
 import net.sourceforge.processdash.data.compiler.lexer.Lexer;
 import net.sourceforge.processdash.data.compiler.node.*;
 import net.sourceforge.processdash.data.compiler.parser.Parser;
-import pspdash.ResourcePool;
+import net.sourceforge.processdash.util.EscapeString;
+import net.sourceforge.processdash.util.ResourcePool;
 import pspdash.data.DateData;
 import pspdash.data.ImmutableDoubleData;
 import pspdash.data.ImmutableStringData;
@@ -309,7 +310,7 @@ public class Compiler extends DepthFirstAdapter {
     }
 
     public static String escapeLiteral(String literal) {
-        return pspdash.EscapeString.escape(literal, '\\', "'\"[]");
+        return EscapeString.escape(literal, '\\', "'\"[]");
     }
 }
 

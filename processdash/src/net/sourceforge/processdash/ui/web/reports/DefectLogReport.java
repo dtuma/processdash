@@ -29,10 +29,11 @@ package net.sourceforge.processdash.ui.web.reports;
 
 import java.util.HashSet;
 
+import net.sourceforge.processdash.util.StringUtils;
+
 import pspdash.DateFormatter;
 import pspdash.Defect;
 import pspdash.DefectAnalyzer;
-import pspdash.StringUtils;
 import pspdash.TinyCGIBase;
 
 

@@ -31,7 +31,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-import pspdash.HTMLUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
+
 import pspdash.data.DataRepository;
 import pspdash.data.DoubleData;
 import pspdash.data.ListData;

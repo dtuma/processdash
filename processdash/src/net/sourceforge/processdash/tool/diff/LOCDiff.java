@@ -35,10 +35,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import pspdash.ResourcePool;
+import net.sourceforge.processdash.util.ResourcePool;
+import net.sourceforge.processdash.util.StringUtils;
+
 import pspdash.Resources;
 import pspdash.Settings;
-import pspdash.StringUtils;
 import pspdash.TemplateLoader;
 import pspdash.TinyWebServer;
 

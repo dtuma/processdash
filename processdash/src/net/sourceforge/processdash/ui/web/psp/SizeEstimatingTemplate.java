@@ -29,7 +29,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import pspdash.StringUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
 import pspdash.TinyCGIBase;
 import pspdash.data.DataRepository;
 

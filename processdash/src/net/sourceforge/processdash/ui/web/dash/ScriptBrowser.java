@@ -29,7 +29,8 @@ package net.sourceforge.processdash.ui.web.dash;
 import java.io.IOException;
 import java.util.Vector;
 
-import pspdash.HTMLUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
+
 import pspdash.PSPProperties;
 import pspdash.PropertyKey;
 import pspdash.ScriptID;

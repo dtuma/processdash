@@ -30,7 +30,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import pspdash.StringUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
 
 
 public class ExcelReport extends pspdash.TinyCGIBase {

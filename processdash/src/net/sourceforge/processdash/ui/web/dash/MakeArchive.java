@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.ui.web.dash;
 
 
-import pspdash.StringUtils;
 import pspdash.TinyCGIBase;
 import pspdash.TinyCGIHighVolume;
 import pspdash.MimeHTMLArchiver;
@@ -43,6 +42,8 @@ import java.text.SimpleDateFormat;
 
 import java.util.Date;
 import java.util.Map;
+
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {

@@ -28,10 +28,11 @@ package net.sourceforge.processdash.ev.ci;
 
 import java.util.Arrays;
 
+import net.sourceforge.processdash.util.XMLUtils;
+
 import org.w3c.dom.Element;
 
 import pspdash.Settings;
-import pspdash.XMLUtils;
 import DistLib.chisquare;
 import DistLib.normal;
 import DistLib.uniform;

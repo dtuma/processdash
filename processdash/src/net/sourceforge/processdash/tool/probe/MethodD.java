@@ -28,7 +28,8 @@ package net.sourceforge.processdash.tool.probe;
 
 import java.io.PrintWriter;
 
-import pspdash.StringUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
 
 
 class MethodD extends Method {

@@ -31,7 +31,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
-import pspdash.HTMLUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
+
 import pspdash.Settings;
 import pspdash.TinyCGIBase;
 import pspdash.data.DataRepository;

@@ -29,11 +29,12 @@ package net.sourceforge.processdash.ui.web.dash;
 import java.io.IOException;
 import java.net.URLEncoder;
 
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
 import pspdash.DashController;
 import pspdash.DefectTypeStandard;
-import pspdash.HTMLUtils;
 import pspdash.Resources;
-import pspdash.StringUtils;
 import pspdash.TinyCGIBase;
 import pspdash.data.DataRepository;
 

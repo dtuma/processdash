@@ -32,9 +32,10 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import net.sourceforge.processdash.util.StringUtils;
+
 import pspdash.Resources;
 import pspdash.Settings;
-import pspdash.StringUtils;
 
 /** No-op implementation of the LanguageFilter interface.
  */

@@ -29,7 +29,7 @@ import java.util.List;
 
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
-import pspdash.EscapeString;
+import net.sourceforge.processdash.util.EscapeString;
 import pspdash.data.StringData;
 
 public class Esc extends AbstractFunction {

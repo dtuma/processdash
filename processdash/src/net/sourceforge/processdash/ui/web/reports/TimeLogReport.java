@@ -32,6 +32,8 @@ import pspdash.TimeLog;
 import java.io.IOException;
 import java.util.Enumeration;
 
+import net.sourceforge.processdash.util.StringUtils;
+
 
 public class TimeLogReport extends TinyCGIBase {
 
