@@ -74,8 +74,10 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
         defectLogs = new Hashtable ();
         reload ();
 
-        frame = new JFrame("DefectEditor");
-        frame.setTitle("DefectEditor");
+        frame = new JFrame("Defect Editor");
+        frame.setTitle("Defect Editor");
+        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
+                           (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("Center", panel);
         frame.setBackground(Color.lightGray);
 
@@ -90,7 +92,7 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
         tree.setEditable(false);
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
-        tree.setRowHeight(-1);	// Make tree ask for the height of each row.
+        tree.setRowHeight(-1);      // Make tree ask for the height of each row.
 
         /* Put the Tree in a scroller. */
         JScrollPane sp = new JScrollPane
@@ -119,7 +121,7 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
 
 
     boolean areEqual(String s1, String s2) {
-        return ((s1 == s2) ||	// handle null / identical strings first
+        return ((s1 == s2) ||       // handle null / identical strings first
                 (s1 != null) ? s1.equals (s2) : false);
     }
 
@@ -147,7 +149,7 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
 
 
     public void updateDefectLog (DefectLog dl, Defect d) {
-        updateDefectLog (dl);	// TBD - optimize?
+        updateDefectLog (dl);       // TBD - optimize?
     }
 
 
@@ -205,7 +207,7 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
             if (key != null) {
                 if ( !pk.key().equals(key.key()) &&
                     (!pk.isChildOf (key)))
-                    continue;		// this one filtered
+                    continue;             // this one filtered
             }
             dli = (DefectListID) defectLogs.get (pk);
             for (int ii = 0; ii < dli.defects.length; ii++) {
@@ -336,7 +338,7 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
     public void valueChanged (TreeSelectionEvent e) {
         TreePath tp = e.getNewLeadSelectionPath();
 
-        if (tp == null) {		// deselection
+        if (tp == null) {           // deselection
             tree.clearSelection();
             applyFilter ();
             return;
@@ -376,4 +378,3 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
     }
 
 }
-
