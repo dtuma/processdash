@@ -740,8 +740,11 @@ public class TinyWebServer extends Thread {
                 }
             }
 
-            if (preprocess)
+            if (preprocess) {
+                if (SERVER_PARSED_MIME_TYPE.equals(mime_type))
+                    mime_type = "text/html";
                 servePreprocessedFile(content, translate, mime_type);
+            }
 
             else if (translate && mime_type.startsWith("text/html"))
                 serveTranslatedFile(content, mime_type);
