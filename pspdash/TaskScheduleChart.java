@@ -26,7 +26,12 @@
 
 package pspdash;
 
+import java.awt.Component;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import com.jrefinery.chart.*;
 import com.jrefinery.chart.event.DataSourceChangeListener;
 import com.jrefinery.chart.event.DataSourceChangeEvent;
@@ -43,6 +48,7 @@ public class TaskScheduleChart extends JDialog {
         tabPane.addTab("Earned Value", buildValueChart());
         tabPane.addTab("Direct Hours", buildTimeChart());
         tabPane.addTab("Combined",     buildCombinedChart());
+        tabPane.addTab("Statistics",   buildStatsTable());
 
         getContentPane().add(tabPane);
         pack();
@@ -68,6 +74,57 @@ public class TaskScheduleChart extends JDialog {
         JFreeChartPanel panel = new JFreeChartPanel(chart);
         return panel;
     }
+
+    private Component buildStatsTable() {
+        EVMetrics m = parent.model.getSchedule().getMetrics();
+
+        JTable table = new JTable(m);
+        table.removeColumn(table.getColumnModel().getColumn(3));
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setPreferredSize(new Dimension(100, 100));
+
+        DescriptionPane descr =
+            new DescriptionPane(m, table.getSelectionModel());
+
+        Box result = Box.createVerticalBox();
+        result.add(scrollPane);
+        result.add(Box.createVerticalStrut(2));
+        result.add(descr);
+        return result;
+    }
+
+
+
+    private class DescriptionPane extends JTextArea
+        implements ListSelectionListener
+    {
+        EVMetrics metrics;
+        ListSelectionModel selectionModel;
+        public DescriptionPane(EVMetrics m, ListSelectionModel sm) {
+            super("Select a metric above for more information...");
+            setBackground(null);
+            setLineWrap(true); setWrapStyleWord(true); setEditable(false);
+            doResize();
+            metrics = m;
+            selectionModel = sm;
+            selectionModel.addListSelectionListener(this);
+        }
+
+        public void valueChanged(ListSelectionEvent e) {
+            String descr = (String) metrics.getValueAt
+                (selectionModel.getMinSelectionIndex(), EVMetrics.FULL);
+            setText(descr);
+            doResize();
+        }
+        private void doResize() {
+            Dimension d = getPreferredSize();
+            setMinimumSize(d);
+            d.width = 10000;
+            setMaximumSize(d);
+        }
+    }
+
+
 
     // We shouldn't need to have this class, but the JFreeChart code
     // has a bug.  When the data source is modified, it fails to

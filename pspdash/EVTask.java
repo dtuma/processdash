@@ -302,13 +302,15 @@ public class EVTask implements DataListener {
         schedule.prepForEvents();
         schedule.cleanUp();
         Date now = new Date();
-        schedule.getMetrics().reset(schedule.getStartDate(), now,
-                                    schedule.getPeriodStart(now),
-                                    schedule.getPeriodEnd(now));
         recalcPlanDates(schedule);
         for (int i = log.v.size();   i-- > 0;   )
             saveTimeLogInfo(schedule, (TimeLogEntry) log.v.get(i));
         schedule.setEffectiveDate(now);
+        schedule.getMetrics().reset(schedule.getStartDate(), now,
+                                    schedule.getPeriodStart(now),
+                                    schedule.getPeriodEnd(now));
+        recalcMetrics(schedule.getMetrics());
+        schedule.getMetrics().recalcComplete();
         schedule.firePreparedEvents();
     }
 
@@ -385,14 +387,21 @@ public class EVTask implements DataListener {
                 (cumPlanTime, cumPlanValue);
             if (dateCompleted != null)
                 schedule.saveCompletedTask(dateCompleted, planValue);
-            schedule.getMetrics().addTask
-                (planTime, actualTime, planDate, dateCompleted);
         } else {
             for (int i = getNumChildren();   i-- > 0;   )
                 getChild(i).recalcPlanDates(schedule);
             planDate = getChild(getNumChildren()-1).planDate;
         }
     }
+
+    public void recalcMetrics(EVMetrics metrics) {
+        if (isLeaf())
+            metrics.addTask(planTime, actualTime, planDate, dateCompleted);
+        else
+            for (int i = getNumChildren();   i-- > 0;   )
+                getChild(i).recalcMetrics(metrics);
+    }
+
 
     public boolean saveTimeLogInfo(EVSchedule schedule, TimeLogEntry e) {
         String entryPath = e.getPath();

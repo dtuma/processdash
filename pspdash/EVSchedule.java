@@ -797,7 +797,11 @@ public class EVSchedule implements TableModel {
 
     private abstract class ActualChartSeries implements ChartSeries {
         public String getSeriesName() { return "Actual"; }
-        public int getItemCount() { return effectivePeriod+1; }
+        public int getItemCount() {
+            int result = getRowCount()+1;
+            if (effectivePeriod < result) result = effectivePeriod+1;
+            return result;
+        }
         public Number getXValue(int itemIndex) {
             Date d;
             if (itemIndex < effectivePeriod)
@@ -937,7 +941,15 @@ public class EVSchedule implements TableModel {
         double mult;
         ActualValueSeries(double m) { mult = m; }
         public Number getYValue(int itemIndex) {
-            return new Double(get(itemIndex).cumEarnedValue * mult); } }
+            try {
+                return new Double(get(itemIndex).cumEarnedValue * mult);
+            } catch (NullPointerException npe) {
+                System.out.println("called with itemIndex=" + itemIndex +
+                                   " effectivePeriod=" + effectivePeriod +
+                                   " periods.size=" + periods.size());
+                return ZERO;
+            }
+        } };
 
 
     /** XYDataSource for charting plan vs actual earned value.
@@ -979,13 +991,14 @@ public class EVSchedule implements TableModel {
                     public String getSeriesName() { return "Actual Value"; } };
             series[2] = new ActualTimeSeries() {
                     public String getSeriesName() { return "Actual Time"; } };
+            recalc();
         }
         PlanValueSeries planValueSeries;
         ActualValueSeries actualValueSeries;
         protected void recalc() {
-            double totPlanTime = getLast().cumPlanTime;
-            planValueSeries.mult = totPlanTime / 60.0;
-            actualValueSeries.mult =  totPlanTime / 60.0;
+            double totPlanTime = getLast().cumPlanTime / 60.0;
+            planValueSeries.mult = totPlanTime;
+            actualValueSeries.mult =  totPlanTime;
         }
     }
     public XYDataSource getCombinedChartData() {

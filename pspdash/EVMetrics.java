@@ -96,6 +96,7 @@ public class EVMetrics implements TableModel {
                 this.planTime += planTime * periodPercent;
         }
     }
+    public void recalcComplete() { fireTableChanged(null); }
 
 
     public double earnedValue() { return earnedValueTime; }
@@ -457,7 +458,7 @@ public class EVMetrics implements TableModel {
 
     public String getColumnName(int columnIndex) {
         switch (columnIndex) {
-        case 0: return "Metric Name";
+        case 0: return "Metric";
         case 1: return "Value";
         case 2: return "Interpretation";
         case 3: default: return "Explanation";
@@ -492,6 +493,25 @@ public class EVMetrics implements TableModel {
     public Class getColumnClass(int columnIndex) { return String.class; }
     public boolean isCellEditable(int row, int col) { return false; }
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {}
-    public void addTableModelListener(TableModelListener l) {}
-    public void removeTableModelListener(TableModelListener l) {}
+
+    EventListenerList listenerList = new EventListenerList();
+    public void addTableModelListener(TableModelListener l) {
+        listenerList.add(TableModelListener.class, l);
+    }
+    public void removeTableModelListener(TableModelListener l) {
+        listenerList.remove(TableModelListener.class, l);
+    }
+    public void fireTableChanged(TableModelEvent e) {
+        Object [] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==TableModelListener.class) {
+                if (e == null)
+                    e = new TableModelEvent(this);
+                ((TableModelListener)listeners[i+1]).tableChanged(e);
+            }
+        }
+    }
+
 }
