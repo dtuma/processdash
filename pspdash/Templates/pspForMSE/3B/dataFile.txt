@@ -15,3 +15,7 @@ Estimated Modified LOC=?NaN
 Base LOC=?NaN
 Deleted LOC=?NaN
 Modified LOC=?NaN
+
+= Extra freeze flag
+
+FreezeFlag/3B LOC per Hour==![(&&	Completed)]
