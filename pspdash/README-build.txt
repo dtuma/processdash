@@ -1,33 +1,16 @@
 To build the PSP Dashboard, you will need:
 
-   * the Sun JDK, version 1.3
+   * the Sun JDK, version 1.3 or 1.4.  Set the environment variable
+     JAVA_HOME to the path to your JDK installation.
 
-   * (Windows only) the Microsoft Java SDK, version 4.0
+   * ant, available from http://jakarta.apache.org
 
-   * a full set of unix-style command line tools, including: 
-         cp rm mkdir find sh perl cpp "GNU make" 
-     For windows users, the best way to get all of these is to
-     download and install the cygwin toolset from
-     http://www.cygwin.com/
+   * (optional, Windows only) to compile support for internet explorer,
+     you must install the Microsoft Java SDK, version 4.0.  Ensure
+     that this JDK's "bin" directory is in your PATH.
 
-To compile, set the following environment variables:
-   JAVAC should contain the path(*) to the sun java compiler
-   JAR should contain the path(*) to the sun jar program
+   * (optional) to compile in support for context-sensitive help, you
+     must install JavaHelp from Sun.  Set the environment variable
+     JAVAHELP_HOME to point to the javahelp installation directory.
 
-If you are on windows, set the following environment variables:
-   MSJAVAC should contain the path(*) to the microsoft java compiler
-   MSCAB should contain the path(*) to the microsoft cabarc program
-
-If you are not compiling on Windows, set the environment variable:
-   BUILD_PLATFORM to something *other* than "CYGWIN".
-
-(*) IMPORTANT: for Windows users, the paths above need to be expressed
-    in cygwin path format instead of Windows path format.  See
-    ./GNUmakefile for examples.
-
-Then, from a cygwin bash shell on Windows or any shell on Unix,
-cd into the directory containing this file, and type
-
-   make all
-
-(unix users: you may need to type gmake to invoke GNU make.)
+Then simply run "ant" on the file "build.xml" in this directory.
