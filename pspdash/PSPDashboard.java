@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -285,7 +285,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         }
 
         brokenData.done();
-        TemplateLoader.templates.done();
+        TemplateLoader.showTemplateErrors();
     }
 
     private static final String FIRST_TIME_HELP_URL = "/help/first-use.htm";

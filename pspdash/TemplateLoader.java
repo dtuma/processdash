@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -331,8 +331,13 @@ public class TemplateLoader {
             root = doc.getDocumentElement();
         } catch (SAXException se) {
             String message = XMLUtils.exceptionMessage(se);
-            message = (message == null ? "" : ": " + message);
-            ErrorReporter.templates.logError("Error in " + filename + message);
+            ResourceBundle r = Resources.getBundle("pspdash.TemplateLoader");
+            if (message == null)
+                message = Resources.format(r, "Error_FMT", filename);
+            else
+                message = Resources.format(r, "Error_Message_FMT",
+                                           filename, message);
+            logTemplateError(message);
             return;
         }
 
@@ -724,6 +729,7 @@ public class TemplateLoader {
 
     private static Hashtable scriptMaps = new Hashtable();
 
+
     public static Vector getScriptIDs(String templateID, String path) {
         Vector scriptMap = (Vector) scriptMaps.get(templateID);
         if (scriptMap == null) return null;
@@ -733,5 +739,25 @@ public class TemplateLoader {
             result.addElement(new ScriptID((ScriptID) scriptMap.elementAt(i),
                                            path));
         return result;
+    }
+
+
+    /** Singleton object for reporting errors in template definition
+     *  files.
+     */
+    private static ErrorReporter errorReporter = null;
+    public synchronized static void logTemplateError(String error) {
+        if (errorReporter == null) {
+            ResourceBundle r = Resources.getBundle("pspdash.TemplateLoader");
+            errorReporter = new ErrorReporter
+                (r.getString("Error_Title"),
+                 StringUtils.split(r.getString("Error_Header"), "\n"),
+                 StringUtils.split(r.getString("Error_Footer"), "\n"));
+        }
+        errorReporter.logError(error);
+    }
+    public synchronized static void showTemplateErrors() {
+        if (errorReporter != null)
+            errorReporter.done();
     }
 }

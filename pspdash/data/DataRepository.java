@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,6 +28,7 @@ package pspdash.data;
 import pspdash.ErrorReporter;
 import pspdash.PerlPool;
 import pspdash.EscapeString;
+import pspdash.TemplateLoader;
 
 import java.io.File;
 import java.io.InputStream;
@@ -1969,11 +1970,11 @@ public class DataRepository implements Repository {
 
             } catch (ParserException pe) {
                 String message = "Could not parse " +filename+ "; " + pe.getMessage();
-                ErrorReporter.templates.logError(message);
+                TemplateLoader.logTemplateError(message);
                 throw new InvalidDatafileFormat(message);
             } catch (LexerException le) {
                 String message = "Could not parse " +filename+ "; " + le.getMessage();
-                ErrorReporter.templates.logError(message);
+                TemplateLoader.logTemplateError(message);
                 throw new InvalidDatafileFormat(message);
             } catch (LoadingException load) {
                 Exception root = load.getRoot();
