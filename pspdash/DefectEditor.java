@@ -314,6 +314,11 @@ public class DefectEditor extends Component
                             false, false, false});
         table.table.setRowSelectionAllowed (false);
         table.table.getSelectionModel().addListSelectionListener(this);
+        table.table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2)
+                    editButton.doClick();
+            } } );
 
         retPanel.add ("Center", table);
 
