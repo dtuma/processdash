@@ -696,7 +696,7 @@ public class HTMLPreprocessor {
             while (keys.hasMoreElements()) {
                 String key = (String) keys.nextElement();
                 String value = r.getString(key);
-                env.put(key, value);
+                params.put(key, value);
             }
         }
         resDir.replace("");
