@@ -45,6 +45,8 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
     protected ResultSet data = null;
     protected boolean chromeless = false;
 
+    private static Color INVISIBLE = new Color(1f, 1f, 1f, 0f);
+
     /** Write the CGI header. */
     protected void writeHeader() {
         out.print("Content-type: image/jpeg\r\n\r\n");
@@ -72,6 +74,8 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
         Color finalGradColor = getColorSetting("finalGradColor");
         chart.setChartBackgroundPaint(new GradientPaint
             (0, 0, initGradColor, width, height, finalGradColor));
+        if (parameters.get("hideOutline") != null)
+            chart.getPlot().setOutlinePaint(INVISIBLE);
 
         String title = getSetting("title");
         if (chromeless || title == null || title.length() == 0)
