@@ -93,6 +93,8 @@ public class Translator {
         TRANSLATOR = null;
         createCustomEngine();
         if (TRANSLATOR == null) createDefaultEngine();
+        //System.out.println("Translator is " +
+        //                   (TRANSLATOR == null ? "OFF" : "ON"));
     }
 
 
@@ -143,8 +145,11 @@ public class Translator {
 
     private static void createDefaultEngine() {
         try {
-            ResourceBundle r = Resources.getDashBundle(BUNDLE_NAME);
-            TRANSLATOR = new DefaultEngine(r);
+            ResourceBundle r = Resources.getDashBundle("Resources");
+            Locale l = r.getLocale();
+            String lang = l.getLanguage();
+            if (lang != null && lang.length() != 0)
+                TRANSLATOR = new DefaultEngine(r);
         } catch (Exception e) {
         }
     }
