@@ -492,7 +492,7 @@ public class WBSModel extends AbstractTableModel {
             Node n = wbsElements.item(i);
             if (n instanceof Element &&
                 WBSNode.ELEMENT_NAME.equals(((Element) n).getTagName()))
-                add(new WBSNode((Element) n));
+                add(new WBSNode(this, (Element) n));
         }
     }
 
