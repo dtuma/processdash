@@ -2,11 +2,11 @@
 // This datafile defines the prototype for the <!--#echo Full_Name --> process.
 //
 
-[<!--#echo Process_ID --> Tag] = tag;
+[PID Tag] = tag;
 <!--#if not USE_TO_DATE_DATA #-->
 undefine([Use_Rollup]);
-[/<!--#echo Process_ID -->/Project List] =
-    search("/", "<!--#echo Process_ID --> Rollup Eligible");
+[/PID/Project List] = search("/", "PID Rollup Eligible");
+[/PID/Full Project List] = setUnion([/PID/Project List], [/PSP/Project List]);
 <!--#endif-->
 
 /*
@@ -170,16 +170,16 @@ undefine([Use_Rollup]);
  * Calculate the number of defects injected / removed in development.
  */
 
-[Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Type ne 'AT' #--><!--#if Phase_Type ne 'PL' #--><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+[/PID/Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Type ne 'AT' #--><!--#if Phase_Type ne 'PL' #--><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
 
 [Total Development /Estimated Defects Injected] =
-    sumFor("Estimated Defects Injected", [Development_Phase_List]);
+    sumFor("Estimated Defects Injected", [/PID/Development_Phase_List]);
 [Total Development /Defects Injected] =
-    sumFor("Defects Injected", [Development_Phase_List]);
+    sumFor("Defects Injected", [/PID/Development_Phase_List]);
 [Total Development /Estimated Defects Removed] =
-    sumFor("Estimated Defects Removed", [Development_Phase_List]);
+    sumFor("Estimated Defects Removed", [/PID/Development_Phase_List]);
 [Total Development /Defects Removed] =
-    sumFor("Defects Removed", [Development_Phase_List]);
+    sumFor("Defects Removed", [/PID/Development_Phase_List]);
 
 // Calculate defect densities for development
 
@@ -195,7 +195,7 @@ undefine([Use_Rollup]);
  */
 
 <!--#foreach name=TYPE values=",MGMT,STRAT,PLAN,REQ,STP,REQINSP,HLD,ITP,HLDRINSP,DLD,DLDR,TD,DLDINSP,CODE,CR,COMP,CODEINSP,UT,PM,IT,ST,DOC,AT,PL," #-->
-[TYPE_Phase_List] = "<!--#foreach name=Phase list=Phase_List #--><!--#if Phase_Type eq 'TYPE' --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
+[/PID/TYPE_Phase_List] = "<!--#foreach name=Phase list=Phase_List #--><!--#if Phase_Type eq 'TYPE' --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 <!--#endfor-->
 
 
@@ -206,11 +206,11 @@ undefine([Use_Rollup]);
 
 <!--#foreach name=Estimated_ values=",Estimated ,," #-->
 [DLDR_vs_UT/Estimated_Defect Ratio] =
-      sumFor("Estimated_Defects Removed", [DLDR_Phase_List]) / 
-      sumFor("Estimated_Defects Removed", [UT_Phase_List]);
+      sumFor("Estimated_Defects Removed", [/PID/DLDR_Phase_List]) / 
+      sumFor("Estimated_Defects Removed", [/PID/UT_Phase_List]);
 [CR_vs_COMP/Estimated_Defect Ratio] =
-      sumFor("Estimated_Defects Removed", [CR_Phase_List]) / 
-      sumFor("Estimated_Defects Removed", [COMP_Phase_List]);
+      sumFor("Estimated_Defects Removed", [/PID/CR_Phase_List]) / 
+      sumFor("Estimated_Defects Removed", [/PID/COMP_Phase_List]);
 <!--#endfor-->
 
 
@@ -221,23 +221,23 @@ undefine([Use_Rollup]);
 
 <!--#foreach name=Estimated_ values=",Estimated ,," #-->
 [REQINSP_vs_REQ/Estimated_Time Ratio] =
-      sumFor("Estimated_Time", [REQINSP_Phase_List]) / 
-      sumFor("Estimated_Time", [REQ_Phase_List]);
+      sumFor("Estimated_Time", [/PID/REQINSP_Phase_List]) / 
+      sumFor("Estimated_Time", [/PID/REQ_Phase_List]);
 [HLDRINSP_vs_HLD/Estimated_Time Ratio] =
-      sumFor("Estimated_Time", [HLDRINSP_Phase_List]) / 
-      sumFor("Estimated_Time", [HLD_Phase_List]);
+      sumFor("Estimated_Time", [/PID/HLDRINSP_Phase_List]) / 
+      sumFor("Estimated_Time", [/PID/HLD_Phase_List]);
 [DLD_vs_CODE/Estimated_Time Ratio] =
-      sumFor("Estimated_Time", [DLD_Phase_List]) / 
-      sumFor("Estimated_Time", [CODE_Phase_List]);
+      sumFor("Estimated_Time", [/PID/DLD_Phase_List]) / 
+      sumFor("Estimated_Time", [/PID/CODE_Phase_List]);
 [DLDR_vs_DLD/Estimated_Time Ratio] =
-      sumFor("Estimated_Time", [DLDR_Phase_List]) / 
-      sumFor("Estimated_Time", [DLD_Phase_List]);
+      sumFor("Estimated_Time", [/PID/DLDR_Phase_List]) / 
+      sumFor("Estimated_Time", [/PID/DLD_Phase_List]);
 [CR_vs_CODE/Estimated_Time Ratio] =
-      sumFor("Estimated_Time", [CR_Phase_List]) / 
-      sumFor("Estimated_Time", [CODE_Phase_List]);
+      sumFor("Estimated_Time", [/PID/CR_Phase_List]) / 
+      sumFor("Estimated_Time", [/PID/CODE_Phase_List]);
 <!--#endfor-->
 
-[DRP_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Quality --><!--#if not Phase_Size_Metric || Phase_Size_Metric =~ ' (LOC|Lines)$' --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+[/PID/DRP_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Quality --><!--#if not Phase_Size_Metric || Phase_Size_Metric =~ ' (LOC|Lines)$' --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
 
 
 /*
@@ -246,12 +246,12 @@ undefine([Use_Rollup]);
 
 <!--#foreach name=Estimated_ values=",Estimated ,," -->
 
-[QP_Estimated_DLD_Time] = sumFor("Estimated_Time", [DLD_Phase_List]);
-[QP_Estimated_DLDR_Time] = sumFor("Estimated_Time", [DLDR_Phase_List]);
-[QP_Estimated_CODE_Time] = sumFor("Estimated_Time", [CODE_Phase_List]);
-[QP_Estimated_CR_Time] = sumFor("Estimated_Time", [CR_Phase_List]);
-[QP_Estimated_COMP_Def]= sumFor("Estimated_Defect Density", [COMP_Phase_List]);
-[QP_Estimated_UT_Def] = sumFor("Estimated_Defect Density", [UT_Phase_List]);
+[QP_Estimated_DLD_Time] = sumFor("Estimated_Time", [/PID/DLD_Phase_List]);
+[QP_Estimated_DLDR_Time] = sumFor("Estimated_Time", [/PID/DLDR_Phase_List]);
+[QP_Estimated_CODE_Time] = sumFor("Estimated_Time", [/PID/CODE_Phase_List]);
+[QP_Estimated_CR_Time] = sumFor("Estimated_Time", [/PID/CR_Phase_List]);
+[QP_Estimated_COMP_Def]= sumFor("Estimated_Defect Density", [/PID/COMP_Phase_List]);
+[QP_Estimated_UT_Def] = sumFor("Estimated_Defect Density", [/PID/UT_Phase_List]);
 
 [Estimated_Quality_Profile_1] = nvl([QP_Estimated_DLD_Time] /
     ([QP_Estimated_CODE_Time] * inherit("Target Design/Code Ratio")), 1);
@@ -279,4 +279,4 @@ undefine([Use_Rollup]);
 /*
  * Provide a hook for customized external document integration.
  */
-[FILES_XML] = "/<!--#echo Process_ID -->/files.xml";
+[FILES_XML] = "/PID/files.xml";
