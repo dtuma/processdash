@@ -55,6 +55,8 @@ public class WBSJTable extends JTable {
     /** The list of nodes that has been copied */
     private List copyList = null;
 
+    /** Should editing of WBS nodes be disabled? */
+    private boolean disableEditing = false;
 
     /** Create a JTable to display a WBS. Construct a default icon menu. */
     public WBSJTable(WBSModel model, Map iconMap) {
@@ -83,9 +85,9 @@ public class WBSJTable extends JTable {
     }
 
 
-    /** Change the highlighter for the renderer of this table */
-    public void setHighlighter(WBSNodeHighlighter h) {
-        renderer.setHighlighter(h);
+    public void setEditingEnabled(boolean enable) {
+        disableEditing = !enable;
+        editor.setEditingEnabled(enable);
     }
 
 
@@ -317,6 +319,9 @@ public class WBSJTable extends JTable {
             super(name, icon);
         }
         public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                return;
+
             // Get a "restart editing" event from the cell editor.
             EventObject restartEvent = editor.getRestartEditingEvent();
 
@@ -343,6 +348,8 @@ public class WBSJTable extends JTable {
         /** Start up an editing session. */
         public void restartEditing(int editingColumn, WBSNode editingNode,
                                    EventObject restartEvent) {
+            if (disableEditing)
+                return;
 
             if (editingFollowsSelection) {
                 // Begin editing the newly selected node.
@@ -434,6 +441,13 @@ public class WBSJTable extends JTable {
             this.editingFollowsSelection = true;
         }
 
+        public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                doAction(e);
+            else
+                super.actionPerformed(e);
+        }
+
         public void doAction(ActionEvent e) {
             System.out.println(getValue(NAME));
             ActionEvent event = new ActionEvent
@@ -450,6 +464,9 @@ public class WBSJTable extends JTable {
             super("Cut", IconFactory.getCutIcon());
         }
         public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                return;
+
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (rows == null || rows.length == 0) return;
@@ -480,6 +497,9 @@ public class WBSJTable extends JTable {
             super("Copy", IconFactory.getCopyIcon());
         }
         public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                return;
+
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (rows == null || rows.length == 0) return;
@@ -505,6 +525,9 @@ public class WBSJTable extends JTable {
             super("Paste", IconFactory.getPasteIcon());
         }
         public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                return;
+
             WBSNode beforeNode = getLocation();
             if (beforeNode == null) return;
             finalizeCut();
@@ -605,6 +628,9 @@ public class WBSJTable extends JTable {
             super("Delete", IconFactory.getDeleteIcon());
         }
         public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                return;
+
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (rows == null || rows.length == 0) return;
@@ -654,6 +680,9 @@ public class WBSJTable extends JTable {
         }
 
         public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                return;
+
             UndoList.stopCellEditing(WBSJTable.this);
 
             // get the name of the workflow to insert.
@@ -707,6 +736,9 @@ public class WBSJTable extends JTable {
             setCursor(getCursorToDisplay(e.getPoint()));
         }
         private Cursor getCursorToDisplay(Point p) {
+            if (disableEditing)
+                return null;
+
             int column = columnAtPoint(p);
             if (column != 0) return null;
             int row = rowAtPoint(p);

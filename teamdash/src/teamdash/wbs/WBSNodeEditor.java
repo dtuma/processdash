@@ -1,7 +1,6 @@
 
 package teamdash.wbs;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -62,6 +61,8 @@ public class WBSNodeEditor extends AbstractCellEditor
     /** An event we can use to restart an interrupted editing session */
     private EventObject editingRestartEvent = null;
 
+    /** Should editing of WBS nodes be disabled? */
+    private boolean disableEditing = false;
 
     /** Create a new WBSNodeEditor */
     public WBSNodeEditor(WBSJTable table, WBSModel wbsModel,
@@ -78,6 +79,13 @@ public class WBSNodeEditor extends AbstractCellEditor
         this.editorComponent = new EditorComponent();
     }
 
+
+    public void setEditingEnabled(boolean enable) {
+        disableEditing = !enable;
+    }
+    public boolean isEditingEnabled() {
+        return !disableEditing;
+    }
 
 
     ///////////////////////////////////////////////////////////////////
@@ -119,13 +127,14 @@ public class WBSNodeEditor extends AbstractCellEditor
 
         // When the user presses F2, we are inexplicably passed "null" for
         // the event.  We should return true in this case.
-        if (e == null) return true;
+        if (e == null)
+            return isEditingEnabled();
 
         // if the event is an instance of our "RestartEditingEvent", then
         // there is no question that editing should restart.
         if (e instanceof EditorComponent.RestartEditingEvent) {
             editingRestartEvent = e;
-            return true;
+            return isEditingEnabled();
         }
 
         // mouse drag, shift-click, and ctrl-click events are used to alter
@@ -159,7 +168,7 @@ public class WBSNodeEditor extends AbstractCellEditor
         case CLICKED_ICON:
         case CLICKED_TEXT:
             // if the user clicked on the icon or the node name, begin editing.
-            return true;
+            return isEditingEnabled();
         }
 
         // for other user events, don't start editing.
@@ -407,8 +416,8 @@ public class WBSNodeEditor extends AbstractCellEditor
         /** Constructs an EditorComponent object. */
         public EditorComponent() {
             setLayout(null);             // we'll handle our own layout.
-            setBackground(Color.white);  // draw a white background.
 
+            setBackground(table.getBackground());
             border = UIManager.getBorder("Table.focusCellHighlightBorder");
 
             // create the text field.  use a custom document to prevent
@@ -539,7 +548,8 @@ public class WBSNodeEditor extends AbstractCellEditor
         /** override to redirect focus to the text field */
         public void requestFocus() { textField.requestFocus(); }
 
-        /** override to set the text field's next focusable component, too */
+        /** override to set the text field's next focusable component, too
+         * @deprecated by JRE 1.4, but override still needed here */
         public void setNextFocusableComponent(Component aComponent) {
             textField.setNextFocusableComponent(aComponent);
             super.setNextFocusableComponent(aComponent);

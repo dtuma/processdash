@@ -6,6 +6,8 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.beans.PropertyEditor;
+import java.beans.PropertyEditorSupport;
 import java.io.File;
 import java.io.IOException;
 
@@ -74,13 +76,13 @@ public class WorkflowLibraryEditor {
                            " - " + (export ? "Export" : "Import") +
                            " Team Workflows";
         dialog = new JDialog(parent, title, true);
-        buildContents();
+        buildContents(export);
         dialog.setSize(800, 600);
         dialog.show();
     }
 
 
-    private void buildContents() {
+    private void buildContents(boolean export) {
         GridBagLayout layout = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         JPanel panel = new JPanel(layout);
@@ -89,18 +91,28 @@ public class WorkflowLibraryEditor {
         Insets insets0 = new Insets(0, 0, 0, 0);
         Insets insets10 = new Insets(10, 10, 10, 10);
 
-        workflowTable = WorkflowEditor.createWorkflowJTable(workflowModel, teamProject.getTeamProcess());
+        workflowTable = WorkflowEditor.createWorkflowJTable
+            (workflowModel, teamProject.getTeamProcess());
+        workflowTable.setEditingEnabled(false);
         JScrollPane sp = new JScrollPane(workflowTable);
         initConstraints(c, 0, 1, 2, 2, GridBagConstraints.BOTH, 2, 2, GridBagConstraints.CENTER);
         layout.setConstraints(sp, c);
         panel.add(sp);
 
-        libraryTable = WorkflowEditor.createWorkflowJTable(libraryModel, teamProject.getTeamProcess());
-        libraryTable.setBackground(Color.yellow.brighter().brighter());
+        libraryTable = WorkflowEditor.createWorkflowJTable
+            (libraryModel, teamProject.getTeamProcess());
+        libraryTable.setEditingEnabled(false);
+        libraryTable.setBackground(LIGHT_SEPIA);
         sp = new JScrollPane(libraryTable);
         initConstraints(c, 3, 1, 2, 2, GridBagConstraints.BOTH, 2, 2, GridBagConstraints.CENTER);
         layout.setConstraints(sp, c);
         panel.add(sp);
+
+        PropertyEditor e = new WorkflowNameSetPropertyEditor();
+        WorkflowSelectionModel wsm = new WorkflowSelectionModel(workflowTable, e);
+        workflowTable.setSelectionModel(wsm);
+        WorkflowSelectionModel lsm = new WorkflowSelectionModel(libraryTable, e);
+        libraryTable.setSelectionModel(lsm);
 
         addButton = new JButton("Add");
         initConstraints(c, 2, 1, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.SOUTH);
@@ -148,6 +160,8 @@ public class WorkflowLibraryEditor {
 
         dialog.setContentPane(panel);
     }
+    private static Color SEPIA = new Color(159, 141, 114);
+    private static Color LIGHT_SEPIA = new Color(232, 224, 205);
 
     private void initConstraints(GridBagConstraints c, int gridx, int gridy, int gridwidth, int gridheight, int fill, double weightx, double weighty, int anchor) {
         c.gridx = gridx;
@@ -328,5 +342,7 @@ public class WorkflowLibraryEditor {
     }
     static FileFilter FILE_FILTER = new WorkflowFileFilter();
 
-
+    private class WorkflowNameSetPropertyEditor extends PropertyEditorSupport {
+        public WorkflowNameSetPropertyEditor() {}
+    }
 }

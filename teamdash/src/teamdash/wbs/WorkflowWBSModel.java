@@ -1,7 +1,10 @@
 package teamdash.wbs;
 
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 
@@ -29,6 +32,46 @@ public class WorkflowWBSModel extends WBSModel {
     /** Workflows behave like software components for validation purposes. */
     public boolean isSoftwareComponent(String type) {
         return "Workflow".equals(type) || super.isSoftwareComponent(type);
+    }
+
+    /** Get the names of the workflows containing the given rows */
+    public Set getWorkflowsForRows(int[] rows) {
+        HashSet result = new HashSet();
+
+        List nodes = getNodesForRows(rows, true);
+        for (Iterator i = nodes.iterator(); i.hasNext();) {
+            WBSNode node = (WBSNode) i.next();
+            WBSNode workflowNode = getWorkflowParent(node);
+            if (workflowNode != null)
+                result.add(workflowNode.getName());
+        }
+
+        return result;
+    }
+
+    private WBSNode getWorkflowParent(WBSNode node) {
+        if (node == null)
+            return null;
+        else if (node.getIndentLevel() == 1)
+            return node;
+        else
+            return getWorkflowParent(getParent(node));
+    }
+
+    public List getNodesForWorkflows(Set selectedWorkflowNames) {
+        LinkedList result = new LinkedList();
+
+        int numRows = getRowCount();
+        boolean isIncluded = false;
+        for (int r = 1;   r < numRows;   r++) {
+            WBSNode node = getNodeForRow(r);
+            if (node.getIndentLevel() == 1)
+                isIncluded = selectedWorkflowNames.contains(node.getName());
+            if (isIncluded)
+                result.add(node);
+        }
+
+        return result;
     }
 
 //    public static void mergeWorkflows(WBSModel dest, WBSModel src) {
