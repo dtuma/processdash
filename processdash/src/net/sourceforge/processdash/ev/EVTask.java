@@ -166,7 +166,7 @@ public class EVTask implements DataListener {
 
     private static final Date COMPLETION_DATE_NA = EVSchedule.A_LONG_TIME_AGO;
 
-    static Resources resources = Resources.getDashBundle("TaskScheduleDialog");
+    static Resources resources = Resources.getDashBundle("EV");
 
     /** Creates an EVTask suitable for the root of an EVTaskList.  */
     public EVTask(String rootName) {
@@ -651,10 +651,10 @@ public class EVTask implements DataListener {
     }
     public String getPlanTimeError() {
         if (hasTopDownBottomUpError())
-            return resources.format("Mismatch_Error_FMT",
+            return resources.format("Task.Mismatch.Error_FMT",
                                     formatTime(bottomUpPlanTime));
         if (planTimeIsMissing())
-            return resources.getString("Plan_Time_Missing_Error");
+            return resources.getString("Task.Plan_Time_Missing.Error");
         return null;
     }
     public String getActualTime(double totalActualTime) {
@@ -943,10 +943,11 @@ public class EVTask implements DataListener {
         case 1:                 // this is a child of the root.
             if (containsNode(rootChildList, this) ||
                 containsNode(otherNodeList, this)) {
-                metrics.addError(resources.format
-                                 ("Duplicate_Task_Error_Msg_FMT", fullName),
-                                 this);
-                setTaskError(resources.getString("Duplicate_Task_Error"));
+                metrics.addError
+                    (resources.format
+                     ("Task.Duplicate_Task.Error_Msg_FMT", fullName),
+                     this);
+                setTaskError(resources.getString("Task.Duplicate_Task.Error"));
             } else
                 setTaskError(null);
             rootChildList.add(this);
@@ -956,24 +957,27 @@ public class EVTask implements DataListener {
             int pos = indexOfNode(rootChildList, this);
             if (pos != -1) {
                 EVTask t = (EVTask) rootChildList.get(pos);
-                metrics.addError(resources.format
-                                 ("Duplicate_Task_Error_Msg_FMT", t.fullName),
-                                 t);
-                t.setTaskError(resources.getString("Duplicate_Task_Error"));
+                metrics.addError
+                    (resources.format
+                     ("Task.Duplicate_Task.Error_Msg_FMT", t.fullName),
+                     t);
+                t.setTaskError(resources.getString
+                               ("Task.Duplicate_Task.Error"));
             }
             setTaskError(null);
             otherNodeList.add(this);
         }
 
         if (hasTopDownBottomUpError())
-            metrics.addError(resources.format("Mismatch_Error_Msg_FMT",
+            metrics.addError(resources.format("Task.Mismatch.Error_Msg_FMT",
                                               fullName,
                                               getPlanTime(),
                                               formatTime(bottomUpPlanTime)),
                              this);
         if (planTimeIsMissing())
             metrics.addError
-                (resources.format("Plan_Time_Missing_Error_Msg_FMT", fullName),
+                (resources.format("Task.Plan_Time_Missing.Error_Msg_FMT",
+                                  fullName),
                  this);
 
         for (int i = 0;   i < getNumChildren();   i++)
