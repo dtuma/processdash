@@ -28,10 +28,10 @@ node==TAG
 [Rollup_Name] = iff([Reset_To_Date_Data], [^], "/To Date/PSP/All");
 
 
-== Make *this* rollup sum projects from higher PSP processes. 
+== Make *this* rollup sum projects from higher PSP processes under this node.
 
-[Rollup_List] = filter([psp2] || [psp2.1] || [psp3],
-                       [/To Date/PSP/All/Rollup_List]);
+[Rollup_List] = filter(([psp2] || [psp2.1] || [psp3]) && [Completed],
+	               [Project_List]);
 
 == Since *this* is a fairly odd rollup, we don't want it to appear as
 == a rollup choice on plan summary forms.
