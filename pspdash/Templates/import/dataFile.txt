@@ -94,23 +94,6 @@ PM/Time==![(#=	Postmortem/Time)]
 Time==![(+	~(Planning|HLD|HLD Review|Design|Design Review|Code|Code Review|Compile|Test|Postmortem)/Time)]
 
 
-= Actual % Time.
-
-Planning/% Time==![(/	Planning/Time	Time)]
-HLD/% Time==![(/	HLD/Time	Time)]
-HLD Review/% Time==![(/	HLD Review/Time	Time)]
-Design/% Time==![(/	Design/Time	Time)]
-Design Review/% Time==![(/	Design Review/Time	Time)]
-Design/Combined % Time==![(/	Design/Combined Time	Time)]
-Code/% Time==![(/	Code/Time	Time)]
-Code Review/% Time==![(/	Code Review/Time	Time)]
-Code/Combined % Time==![(/	Code/Combined Time	Time)]
-Compile/% Time==![(/	Compile/Time	Time)]
-Test/% Time==![(/	Test/Time	Time)]
-Postmortem/% Time==![(/	Postmortem/Time	Time)]
-PM/% Time==![(/	PM/Time	Time)]
-
-
 ==
 == Data Elements to track defects injected
 ==
