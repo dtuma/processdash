@@ -28,6 +28,7 @@
   <mapID target="EnteringData" url="Topics/Planning/EnteringData.html" />
   <mapID target="UsingHierarchyEditor" url="Topics/Planning/UsingHierarchyEditor.html" />
   <mapID target="UsingProbeTool" url="Topics/Planning/UsingProbeTool.html" />
+  <mapID target="UsingProbeWizard" url="Topics/Planning/UsingProbeWizard.html" />
   <mapID target="UsingSizeEstimatingTemplate" url="Topics/Planning/UsingSizeEstimatingTemplate.html" />
   <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
   <mapID target="DataFreezing" url="Topics/Planning/DataFreezing.html" />
