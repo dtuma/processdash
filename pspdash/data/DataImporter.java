@@ -206,9 +206,17 @@ public class DataImporter extends Thread {
             return TagData.getInstance();
 
         // first, try to interpret the string as a number.
-        try {
-            return new DoubleData(value);
-        } catch (MalformedValueException mfe) {}
+        if ("0.0".equals(value))
+            return ImmutableDoubleData.READ_ONLY_ZERO;
+        if ("NaN".equals(value))
+            return ImmutableDoubleData.READ_ONLY_NAN;
+        if (value.length() > 0) switch (value.charAt(0)) {
+        case '0': case '1': case '2': case '3': case '4': case '5': case '6':
+        case '7': case '8': case '9': case '-': case '+': case '.': case ',':
+            try {
+                return new DoubleData(value);
+            } catch (MalformedValueException mfe) {}
+        }
 
         // next, try to interpret the string as a date.
         try {
