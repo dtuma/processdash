@@ -53,7 +53,7 @@ public class FilterDialog extends JDialog implements ActionListener {
 
     public FilterDialog (PSPDashboard dash,
                          ActionListener l) {
-        super (dash);
+        super (dash, "PROBE filter");
 
         parent = dash;
         props = parent.props;
@@ -93,6 +93,11 @@ public class FilterDialog extends JDialog implements ActionListener {
         JButton button;
         button = new JButton ("Apply");
         button.setActionCommand("applyFilter");
+        button.addActionListener(this);
+        buttonBox.add (button);
+        buttonBox.add (Box.createGlue());
+        button = new JButton ("Close");
+        button.setActionCommand("close");
         button.addActionListener(this);
         buttonBox.add (button);
 
@@ -136,6 +141,8 @@ public class FilterDialog extends JDialog implements ActionListener {
 
         if (cmd.equals("leaves")) {
             updateTree(incNonTemplate.isSelected());
+        } else if (cmd.equals("close")) {
+            setVisible(false);
         } else if (cmd.equals("applyFilter")) {
             DefaultMutableTreeNode dmn;
             Vector v = new Vector();
@@ -147,7 +154,7 @@ public class FilterDialog extends JDialog implements ActionListener {
 
 //      System.out.println ("Selected nodes =");
 //      for (int jj = 0; jj < v.size(); jj++) {
-//	System.out.println ("  " + v.elementAt(jj));
+//      System.out.println ("  " + v.elementAt(jj));
 //      }
             if (l != null)
                 l.actionPerformed (new ActionEvent (v,
