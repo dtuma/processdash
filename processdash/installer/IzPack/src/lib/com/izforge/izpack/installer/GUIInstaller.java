@@ -39,9 +39,11 @@ import java.io.DataInputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Method;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.TreeMap;
+import java.util.Vector;
 
 import javax.swing.GrayFilter;
 import javax.swing.ImageIcon;
@@ -95,14 +97,14 @@ public class GUIInstaller extends InstallerBase
                     // add the GUI install data
                     loadGUIInstallData();
 
-        // Checks the Java version
-        checkJavaVersion();
-
         // Sets up the GUI L&F
         loadLookAndFeel();
 
         // Loads the suitable langpack
         loadLangPack();
+
+        // Checks the Java version
+        checkJavaVersion();
 
         // create the resource manager (after the language selection!)
         ResourceManager.create (this.installdata);
@@ -137,22 +139,21 @@ public class GUIInstaller extends InstallerBase
         if (version.compareTo(required) < 0)
         {
             try {
-                String appName = installdata.info.getAppName();
-                String appVers = installdata.info.getAppVersion();
-                String vendorURL = System.getProperty("java.vendor.url");
-                String[] message = {
-                    "You need to upgrade your Java Runtime Environment!",
-                    appName+" "+appVers+" requires version "+required+" or",
-                    "higher of the Java Runtime Environment.  You are currently",
-                    "running Java Runtime Environment version "+version,
-                    "",
-                    "       To download an updated version of the Java Runtime",
-                    "Environment, visit   "+vendorURL,
-                    "Then run this installer program again."
+                String[] args = new String[] {
+                    installdata.info.getAppName(),
+                    installdata.info.getAppVersion(),
+                    required,
+                    version,
+                    System.getProperty("java.vendor.url")
                 };
+                String title = MessageFormat.format
+                    (installdata.langpack.getString("installer.javaversion.title"), args);
+                String[] message = split(MessageFormat.format
+                    (installdata.langpack.getString("installer.javaversion.info"), args));
                 JOptionPane.showMessageDialog(null, message,
-                    "Can't install "+appName, JOptionPane.ERROR_MESSAGE);
+                    title, JOptionPane.ERROR_MESSAGE);
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("Can't install !");
                 System.out.println("> The minimum Java version required is " +
                                    required);
@@ -161,6 +162,32 @@ public class GUIInstaller extends InstallerBase
             }
             System.exit(1);
         }
+    }
+    private String[] split(String s) {
+        Vector v = new Vector();
+        int nextIndex     = 0;
+        int currentIndex  = 0;
+
+        do
+        {
+            nextIndex = s.indexOf ("\\n", currentIndex);
+
+            if (nextIndex > -1)
+            {
+                v.addElement (s.substring (currentIndex, nextIndex));
+                currentIndex =  nextIndex + 2;
+            }
+            else
+            {
+                v.addElement (s.substring (currentIndex, s.length ()));
+            }
+        }
+        while (nextIndex > -1);
+
+        String[] result = new String[v.size()];
+        for (int i = 0;   i < v.size();   i++)
+            result[i] = (String) v.elementAt(i);
+        return result;
     }
 
 

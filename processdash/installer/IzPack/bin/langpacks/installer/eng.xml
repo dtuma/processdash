@@ -136,6 +136,10 @@
 
     <!-- Add your own panels specific strings here if you need -->
 
+    <!-- General installer strings -->
+    <str id="installer.javaversion.title" txt="Can''t Install {0}"/>
+    <str id="installer.javaversion.info" txt="You need to upgrade your Java Runtime Environment!\n{0} {1} requires version {2} or\nhigher of the Java Runtime Environment.  You are currently\nrunning Java Runtime Environment version {3}.\n       To download an updated version of the Java Runtime\nEnvironment, visit   {4}\nThen run this installer program again."/>
+
     <!-- Conditional License Panel strings -->
     <str id="LicencePanel.deselect.title" txt="Deselect Packages?"/>
     <str id="LicencePanel.deselect.message1" txt="You have indicated that you do not consent to this license\nagreement.  Would you like to remove the module(s)"/>
