@@ -678,13 +678,20 @@ public class TemplateLoader {
     public static String getPackageVersion(String packageID) {
         if (packageID == null) return null;
 
+        DashPackage pkg = getPackage(packageID);
+        return (pkg != null ? pkg.version : null);
+    }
+
+    /** Return the DashPackage object for an installed package, or null if
+     *  the package is not installed. */
+    public static DashPackage getPackage(String packageID) {
         // look through the packages for an exact match.
         Iterator i = dashPackages.iterator();
         DashPackage pkg;
         while (i.hasNext()) {
             pkg = (DashPackage) i.next();
             if (packageID.equals(pkg.id))
-                return pkg.version;
+                return pkg;
         }
 
         // look through the packages for a locale-specific match
@@ -692,7 +699,7 @@ public class TemplateLoader {
         while (i.hasNext()) {
             pkg = (DashPackage) i.next();
             if (pkg.id != null && pkg.id.startsWith(packageID + "_"))
-                return pkg.version;
+                return pkg;
         }
 
         return null;
