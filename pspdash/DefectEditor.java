@@ -48,6 +48,7 @@ public class DefectEditor extends Component
     protected PSPDashboard    dashboard = null;
     protected Hashtable       defectLogs = null;
     protected ValidatingTable table;
+    protected JSplitPane      splitPane;
     protected DataRepository  data;
     protected Vector          currentLog   = new Vector();
     protected JButton editButton, deleteButton, closeButton;
@@ -107,8 +108,8 @@ public class DefectEditor extends Component
         /* And show it. */
         panel.setLayout(new BorderLayout());
 //    panel.add("North", constructFilterPanel());
-        panel.add("Center", new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                                           sp, constructEditPanel()));
+        panel.add("Center", splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                                                       sp, constructEditPanel()));
 //    panel.add("South", constructControlPanel());
 
         frame.addWindowListener( new WindowAdapter() {
@@ -118,10 +119,12 @@ public class DefectEditor extends Component
         });
 
         setSelectedPhase(dash.getCurrentPhase());
+        loadCustomDimensions();
+        splitPane.setDividerLocation(dividerLocation);
 
         applyFilter();
         //frame.pack();
-        frame.setSize(new Dimension(800, 400));
+        frame.setSize(new Dimension(frameWidth, frameHeight));
         frame.show();
     }
 
@@ -197,6 +200,34 @@ public class DefectEditor extends Component
             reload();
             frame.show();
         }
+    }
+
+    public void quit() {
+        saveCustomDimensions();
+    }
+
+
+    private static final String DIMENSION_SETTING_NAME = "defectlog.dimensions";
+    private int frameWidth, frameHeight, dividerLocation = -1;
+    private void loadCustomDimensions() {
+        String setting = Settings.getVal(DIMENSION_SETTING_NAME);
+        if (setting != null && setting.length() > 0) try {
+            StringTokenizer tok = new StringTokenizer(setting, ",");
+            frameWidth = Integer.parseInt(tok.nextToken());
+            frameHeight = Integer.parseInt(tok.nextToken());
+            dividerLocation = Integer.parseInt(tok.nextToken());
+        } catch (Exception e) {}
+        if (dividerLocation == -1) {
+            frameWidth = 800; frameHeight = 400; dividerLocation = 300;
+        }
+    }
+    private void saveCustomDimensions() {
+        frameWidth = frame.getSize().width;
+        frameHeight = frame.getSize().height;
+        dividerLocation = splitPane.getDividerLocation();
+        InternalSettings.set
+            (DIMENSION_SETTING_NAME,
+             frameWidth + "," + frameHeight + "," + dividerLocation);
     }
 
     void applyFilter () {

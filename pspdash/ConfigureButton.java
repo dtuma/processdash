@@ -168,6 +168,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             prop_frame.confirmClose(false);
             prop_frame = null;
         }
+        if (defect_frame != null) {
+            defect_frame.quit();
+            defect_frame = null;
+        }
     }
 
     public void saveOrRevertTimeLog() {
