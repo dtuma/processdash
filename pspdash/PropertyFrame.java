@@ -209,9 +209,26 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         readProps.copy (useProps);
         setDirty (false);
 
+        if (pendingVector != null && pendingVector.size() > 0) {
+            createProgressDialog(pendingVector.size());
+
+            // do work in a different thread - otherwise we steal time from
+            // the awt event pump and nothing gets redrawn.
+            Thread t = new Thread() {
+                public void run() { savePendingVector(); }
+                };
+            t.start();
+
+            showProgressDialog();     // this call will block until complete.
+        }
+    }
+
+    public void savePendingVector() {
+
         if (pendingVector != null) {
             String dataDir = dashboard.getDirectory();
-            for (int i = 0; i < pendingVector.size(); i++)
+
+            for (int i = 0; i < pendingVector.size(); i++) {
                 if (pendingVector.elementAt (i) instanceof PendingDataChange) {
                     PendingDataChange p = (PendingDataChange)pendingVector.elementAt (i);
                     switch (p.changeType) {
@@ -234,10 +251,43 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                         break;
                     }
                 }
+                incrementProgressDialog();
+            }
             pendingVector.removeAllElements();
         }
+        closeProgressDialog();
 
         dashboard.refreshHierarchy();
+    }
+
+    private JDialog progressDialog = null;
+    private JProgressBar progressBar = null;
+
+    private void createProgressDialog(int size) {
+        progressDialog = new JDialog(frame, "Saving Changes", true);
+        progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        progressDialog.getContentPane().add
+            (new JLabel("Saving changes..."), BorderLayout.NORTH);
+        progressDialog.getContentPane().add
+            (progressBar = new JProgressBar(0, size), BorderLayout.CENTER);
+        progressDialog.pack();
+        progressDialog.setLocationRelativeTo(frame);
+    }
+
+    private void showProgressDialog() {
+        if (progressDialog != null) progressDialog.show();
+    }
+
+    private void incrementProgressDialog() {
+        if (progressBar != null)
+            progressBar.setValue(progressBar.getValue() + 1);
+    }
+
+    private void closeProgressDialog() {
+        if (progressDialog != null)
+            progressDialog.dispose();
+        progressDialog = null;
+        progressBar = null;
     }
 
     public void revertProperties () {
