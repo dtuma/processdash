@@ -25,9 +25,10 @@
 
 
 import pspdash.*;
+import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
 
-public class setPath extends TinyCGIBase {
+public class setPath extends TinyCGIBase implements Runnable {
 
     /** Write the CGI header. */
     protected void writeHeader() {
@@ -35,9 +36,22 @@ public class setPath extends TinyCGIBase {
         out.print("Expires: 0\r\n\r\n");
     }
 
+
+
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(this);
+        } catch (InterruptedException ie) {
+        } catch (InvocationTargetException ite) {
+            if (ite.getTargetException() instanceof IOException)
+                throw (IOException) ite.getTargetException();
+        }
+        DashController.printNullDocument(out);
+    }
+
+    public void run() {
         boolean startTiming = (parameters.get("start") != null);
         String phase = (String) parameters.get("phase");
         if (DashController.setPath(getPrefix()) == false)
@@ -48,7 +62,6 @@ public class setPath extends TinyCGIBase {
         }
         if (startTiming)
             DashController.startTiming();
-        DashController.printNullDocument(out);
     }
 
 }
