@@ -244,7 +244,7 @@ $(BIN_DOM)/pspdash/data/%.class: %.java
 	    -d $(BIN_DOM) \
 	    $(DOM_FILES)
 	cd $(BIN_DOM); $(JAR) cf DOMDataApplet.jar pspdash
-	cp $(BIN_DOM)/DOMDataApplet.jar //c/temp/pfeTest/Templates/DOMDataApplet14.jar
+#	cp $(BIN_DOM)/DOMDataApplet.jar /cygdrive/c/temp/pfeTest/Templates/DOMDataApplet14.jar
 
 
 clean:
