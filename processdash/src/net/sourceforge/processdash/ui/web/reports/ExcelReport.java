@@ -53,7 +53,7 @@ public class ExcelReport extends TinyCGIBase {
 
     protected void writeIQY() throws IOException {
         // write header
-        out.print("Content-type: application/octet-stream\r\n\r\n");
+        out.print("Content-type: text/x-ms-iqy\r\n\r\n");
 
         // write contents
         out.println("WEB");
