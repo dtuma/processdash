@@ -51,6 +51,12 @@ public class HTMLUtils {
         return result.toString();
     }
 
+    public static final StringMapper ESC_ENTITIES = new StringMapper() {
+        public String getString(String str) {
+            return escapeEntities(str);
+        }
+    };
+
     public static String unescapeEntities(String value) {
         value = StringUtils.findAndReplace(value, "&lt;",   "<");
         value = StringUtils.findAndReplace(value, "&gt;",   ">");
@@ -59,6 +65,12 @@ public class HTMLUtils {
         value = StringUtils.findAndReplace(value, "&amp;",  "&");
         return value;
     }
+
+    public static final StringMapper UNESC_ENTITIES = new StringMapper() {
+        public String getString(String str) {
+            return unescapeEntities(str);
+        }
+    };
 
     public static String urlEncode(String s) {
         try {

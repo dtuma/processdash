@@ -28,6 +28,7 @@ package net.sourceforge.processdash.util;
 
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.StringTokenizer;
 /**
     Just some utility methods for working with Strings.
@@ -347,5 +348,62 @@ public class StringUtils
         while (tok.hasMoreTokens())
             result.add(tok.nextToken());
         return (String[]) result.toArray(new String[0]);
+    }
+
+
+    public static final String VAR_START_PAT = "${";
+    public static final String VAR_END_PAT = "}";
+    public static String interpolate(StringMapper map, String s) {
+        int max_nesting = 1000;
+        while (max_nesting-- > 0) {
+            int beg = s.indexOf(VAR_START_PAT);
+            if (beg == -1) return s;
+
+            int end = s.indexOf(VAR_END_PAT, beg);
+            if (end == -1) return s;
+
+            String var = s.substring(beg+VAR_START_PAT.length(), end);
+            String replacement = map.getString(var);
+            s = s.substring(0, beg) + replacement +
+                s.substring(end+VAR_END_PAT.length());
+        }
+        throw new IllegalArgumentException
+            ("Infinite recursion when interpolating.");
+    }
+    public static String interpolate(Map map, String s) {
+        return interpolate(stringMapper(map), s);
+    }
+
+    public static StringMapper stringMapper(Map m) {
+        return new MapStringMapper(m);
+    }
+    private static final class MapStringMapper implements StringMapper {
+        private Map m;
+        public MapStringMapper(Map m) {
+            this.m = m;
+        }
+        public String getString(String str) {
+            str = (String) m.get(str);
+            return str == null ? "" :  str;
+        }
+    }
+
+    public static StringMapper concat(StringMapper outerMap,
+                                      StringMapper innerMap) {
+        return new ConcatStringMapper(outerMap, innerMap);
+    }
+
+    private static final class ConcatStringMapper implements StringMapper {
+
+        private StringMapper outerMap, innerMap;
+
+        public ConcatStringMapper(StringMapper outerMap, StringMapper innerMap) {
+            this.outerMap = outerMap;
+            this.innerMap = innerMap;
+        }
+
+        public String getString(String str) {
+            return outerMap.getString(innerMap.getString(str));
+        }
     }
 }
