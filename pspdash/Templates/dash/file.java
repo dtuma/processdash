@@ -162,6 +162,8 @@ public class file extends TinyCGIBase {
         Resources.getDashBundle("dash.file");
 
 
+    private boolean forceRedirect;
+
     protected void writeHeader() {}
 
     /** Generate CGI script output. */
@@ -169,6 +171,7 @@ public class file extends TinyCGIBase {
 
         // Read any form data posted to this script.
         parseFormData();
+        checkReferrer();
 
         // What file does the user want displayed?
         String filename = getParameter(FILE_PARAM);
@@ -202,6 +205,14 @@ public class file extends TinyCGIBase {
         if (result == null) {
             // if we could not locate the file because we need the user
             // to enter more information, display a form.
+            displayNeedInfoForm(filename, result, false, MISSING_INFO, file);
+            return;
+        }
+
+        if (!nameIsSafe(result)) {
+            // Don't open or create an unsafe file.
+            // FIXME: for the time being, reuse the "missing" message.
+            // Ultimately, need to create a distinct message.
             displayNeedInfoForm(filename, result, false, MISSING_INFO, file);
             return;
         }
@@ -302,15 +313,64 @@ public class file extends TinyCGIBase {
         redirectTo(filename, result);
     }
 
+    private void checkReferrer() {
+        forceRedirect = false;
+
+        String refererString = (String) env.get("HTTP_REFERER");
+        URL referer = null;
+        if (refererString != null) try {
+            referer = new URL(refererString);
+        } catch (Exception e) {}
+
+        if (getParameter(CONFIRM_PARAM) != null) {
+            String script = "/" + env.get("SCRIPT_NAME");
+            if (referer == null || !referer.getPath().endsWith(script))
+                // confirm param passed in by someone other than this script
+                useCaution();
+        }
+
+        if (referer == null) {
+            // user navigated directly to this doc, perhaps via a favorite
+            // OR referring URL is unparsable
+            useCaution();
+        }
+
+        if (!referer.getProtocol().equals("http") &&
+            !referer.getProtocol().equals("https")) {
+            // dashboard only speaks http, so referer was not the dashboard.
+            useCaution();
+        }
+
+        String currentHost = (String) env.get("HTTP_HOST");
+        if (currentHost != null) {
+            currentHost = currentHost.toLowerCase();
+            int pos = refererString.indexOf("://" + currentHost + "/");
+            if (pos != 4 && pos != 5)
+                // request originated from some other server/location
+                useCaution();
+        }
+    }
+
+    private void useCaution() {
+        parameters.remove(CONFIRM_PARAM);
+        forceRedirect = true;
+    }
+
     /** Send an HTTP REDIRECT message. */
-    private void redirectTo(String filename, File result) {
+    private void redirectTo(String filename, File result)
+        throws TinyCGIException
+    {
+        if (!nameIsSafe(result))
+            throw new TinyCGIException(403, "Forbidden");
+
         try {
             boolean remoteRequest = false;
             try {
                 DashController.checkIP(env.get("REMOTE_ADDR"));
             } catch (IOException ioe) { remoteRequest = true; }
 
-            if (remoteRequest || "redirect".equals(docOpenSetting))
+            if (remoteRequest || forceRedirect ||
+                "redirect".equals(docOpenSetting))
                 out.print("Location: " + result.toURL() + "\r\n\r\n");
             else {
                 // open the document using the Browser class.
@@ -637,7 +697,7 @@ public class file extends TinyCGIBase {
                     if (value.startsWith(File.separator))
                         value = value.substring(1);
                 }
-                if (! pathEqual(value, defaultValue)) {
+                if (! pathEqual(value, defaultValue) || val != null) {
                     // Save this user-specified value in the repository.
                     // (Default values are not saved to the repository.)
                     data.userPutValue(dataName, StringData.create(value));
