@@ -172,3 +172,9 @@ undefine([LOC per Hour To Date], [ESTIMATED Time To Date], [Time To Date],
 // We do not need these freeze flags any longer.
 
 undefine([FreezeFlag/.*Estimated.*], [FreezeFlag/.* To Date]);
+
+/*
+ * Use the "to date subset prefix" selected by our parent.
+ */
+
+[PSP To Date Subset Prefix] = [../PSP To Date Subset Prefix];
