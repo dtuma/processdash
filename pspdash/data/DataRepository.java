@@ -1192,10 +1192,8 @@ public class DataRepository implements Repository {
                                        "' in file '"+datafilePath+"' is malformed.");
                     o = new MalformedData(value);
                 }
-                if (o != null) {
-                    o.setEditable(fileEditable && dataEditable);
-                    //o.setDefined(dataDefined);
-                }
+                if (!fileEditable || !dataEditable)
+                    if (o != null) o.setEditable(false);
                 d = (DataElement)data.get(name);
                 if (d == null) {
                     if (o != null) d = add(name, o, dataFile, true);
