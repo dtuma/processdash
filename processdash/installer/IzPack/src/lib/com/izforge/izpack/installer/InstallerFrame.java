@@ -593,7 +593,7 @@ public class InstallerFrame extends JFrame
      */
     public void install(InstallListener listener)
     {
-        Unpacker unpacker = new Unpacker(installdata, listener);
+        Unpacker unpacker = new Unpacker(installdata, listener, langpack);
         unpacker.start();
     }
 

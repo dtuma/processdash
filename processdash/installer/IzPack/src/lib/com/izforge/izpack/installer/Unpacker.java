@@ -64,6 +64,9 @@ public class Unpacker extends Thread
     /**  The instances of the unpacker objects. */
     private static ArrayList instances = new ArrayList();
 
+    /** translations */
+    private LocaleDatabase langpack;
+
 
     /**
      *  The constructor.
@@ -71,12 +74,13 @@ public class Unpacker extends Thread
      * @param  idata     The installation data.
      * @param  listener  The installation listener.
      */
-    public Unpacker(InstallData idata, InstallListener listener)
+    public Unpacker(InstallData idata, InstallListener listener, LocaleDatabase langpack)
     {
         super("IzPack - Unpacker thread");
 
         this.idata = idata;
         this.listener = listener;
+        this.langpack = langpack;
 
         // Initialize the variable substitutor
         vs = new VariableSubstitutor(idata.getVariableValueMap());
@@ -391,7 +395,7 @@ public class Unpacker extends Thread
             if (packageLocation != null &&
                 !packageLocation.equalsIgnoreCase("internal")) {
                 PackageDownloader downloader = new PackageDownloader
-                    (packName, packageLocation);
+                    (packName, packageLocation, langpack);
                 in = downloader.getInputStream();
             } else {
                 // the packageLocation is either not specified, or was "internal".
@@ -401,12 +405,12 @@ public class Unpacker extends Thread
 
             if (in == null) {
                 String[] message = {
-                    "The package:",
+                    langpack.getString("PackageDownloader.error.info1"),
                     "        " + packName,
-                    "could not be downloaded, and was not installed."
+                    langpack.getString("PackageDownloader.error.info2")
                 };
                 JOptionPane.showMessageDialog(
-                    null, message, "Installation warning",
+                    null, message, langpack.getString("PackageDownloader.error.title"),
                     JOptionPane.WARNING_MESSAGE);
             }
         }

@@ -6,6 +6,8 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 
+import com.izforge.izpack.LocaleDatabase;
+
 public class PackageDownloader extends Thread {
 
     /** We want the user to be aware that something was downloaded.
@@ -26,9 +28,12 @@ public class PackageDownloader extends Thread {
 
     private InputStream inputStream;
 
-    public PackageDownloader(String packageName, String packageLocation)
+    private LocaleDatabase langpack;
+
+    public PackageDownloader(String packageName, String packageLocation, LocaleDatabase langpack)
     {
         this.packageName = packageName;
+        this.langpack = langpack;
 
         try {
             URL url = new URL(packageLocation);
@@ -52,10 +57,11 @@ public class PackageDownloader extends Thread {
     }
 
     private void buildDialog() {
-        dialog = new JDialog((Frame) null, "Downloading...", true);
+        dialog = new JDialog((Frame) null, langpack.getString("PackageDownloader.title"), true);
         dialog.getContentPane().setLayout(new GridLayout(2, 1, 10, 10));
 
-        String label = "Downloading '" + packageName + "'...";
+        String label = langpack.getString("PackageDownloader.info1")
+            + packageName + langpack.getString("PackageDownloader.info2");
         dialog.getContentPane().add(new JLabel(label));
 
         if (totalSize > 0) {
