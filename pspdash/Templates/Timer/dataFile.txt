@@ -65,10 +65,3 @@ Time==0.0
 =
 = Data Elements used by Design Inspection Report
 =
-
-
-=
-= Miscellaneous data elements
-=
-
-Started=@now
