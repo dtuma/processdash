@@ -157,8 +157,6 @@ Authors:
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
            classpathref="build.classpath">
       <include name="net/**/*.java"/>
-      <exclude
-          name="net/sourceforge/processdash/ui/help/DashHelpBroker*.java"/>
       <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ns.txt"/>
@@ -167,56 +165,16 @@ Authors:
 
 
 
-  <target name="javahelp-broker" if="javahelp.jhjar"
-          depends="compile,-javahelp-cgi-src" 
-          description="Compile the context-sensitive help support">
-    <javac srcdir="${src}" destdir="${build}" debug="${debug}">
-       <classpath>
-         <path refid="build.classpath"/>
-         <pathelement location="${javahelp.jhjar}"/>
-       </classpath>
-       <include name="net/sourceforge/processdash/ui/help/DashHelpBroker*.java"/>
-    </javac>
-  </target>
-
-  <target name="-javahelp-cgi-src" depends="-javahelp-cgi-src-depend"
-          if="javahelp.jhjar" unless="javahelp.cgi.src.upToDate">
-    <copy file="${processdash}/ui/help/DashHelpBroker.java"
-          tofile="${processdash}/ui/help/DashHelpBrokerCGI.java"/>
-    <replace file="${processdash}/ui/help/DashHelpBrokerCGI.java"
-          token="DashHelpBroker"
-	  value="DashHelpBrokerCGI"/>
-  </target>
-
-  <target name="-javahelp-cgi-src-depend">
-    <uptodate property="javahelp.cgi.src.upToDate"
-              srcfile="${processdash}/ui/help/DashHelpBroker.java"
-              targetfile="${processdash}/ui/help/DashHelpBrokerCGI.java"/>
-  </target>
-
-
-
-  <target name="javahelp-addon" depends="javahelp-broker" if="javahelp.jhjar"
+  <target name="javahelp-addon" depends="ant-tasks" if="javahelp.jhjar"
           description="Package up the add-on context-sensitive help support">
-    <!-- jar up the contents of the add-on -->
-    <jar destfile="${dist}/dashHelp.jar" duplicate="fail">
-      <!-- specify the manifest file contents -->
-      <manifest>
-        <attribute name="Dash-Pkg-ID" value="dashHelp"/>
-        <attribute name="Dash-Pkg-Version" value="1.0"/>
-        <attribute name="Dash-Pkg-Name"
-                   value="JavaHelp(TM) from Sun Microsystems"/>
-        <attribute name="Dash-Pkg-URL"
-                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
-      </manifest>
-
-      <!-- include the bootstrap cgi script -->
-      <fileset dir="${build}" includes="**/DashHelpBrokerCGI.class"/>
-      <fileset dir="." includes="Templates/help/createBroker.class.link"/>
-
+    <!-- zip up the contents of the add-on -->
+    <mergeJars destfile="${dist}/dashHelp.jar">
       <!-- include the contents of the javahelp distribution -->
-      <zipfileset src="${javahelp.jhjar}" excludes="META-INF/ meta-inf/"/>
-    </jar>
+      <jar location="${javahelp.jhjar}"/>
+      <!-- include the add-on package manifest -->
+      <zipfileset dir="${help}" includes="javaHelp-manifest.txt"
+          fullpath="META-INF/PDASH.MF"/>
+    </mergeJars>
   </target>
 
 
@@ -283,6 +241,11 @@ Authors:
       <arg file="${src}"/>
       <arg file="${compiler}/grammar.txt"/>
     </java>
+    <!-- fixup code to remove Eclipse warning -->
+    <replace file="${src}/net/sourceforge/processdash/data/compiler/lexer/Lexer.java">
+      <replacefilter token="this.gotoTable" value="Lexer.gotoTable"/>
+      <replacefilter token="this.accept" value="Lexer.accept"/>
+    </replace>
   </target>
 
   <target name="-parser-depend"
@@ -365,15 +328,14 @@ Authors:
     <taskdef name="cvszip"
         classname="net.sourceforge.processdash.CVSZip"
 	classpath="${libsrc}"/>
+    <taskdef name="mergeJars"
+        classname="net.sourceforge.processdash.MergeJars"
+	classpath="${libsrc}"/>
   </target>
 
 
 
-  <target name="optional" depends="javahelp-broker,NSDataApplet"/>
-
-
-
-  <target name="jar" depends="init,compile,optional,javahelp,l10n-tool,jarsurf-list"
+  <target name="jar" depends="init,compile,javahelp,l10n-tool,jarsurf-list"
           description="Make the jarfile for distribution">
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
@@ -393,7 +355,6 @@ Authors:
           <include name="Templates/"/>
           <include name="net/"/>
 	  <exclude name="**/*Test.class"/>
-          <exclude name="**/DashHelpBrokerCGI.class"/>
 	  <exclude name="net/**/PspForEngFilter.class"/>
       </fileset>
 
@@ -532,7 +493,6 @@ Authors:
     <delete quiet="true" dir="${compiler}/parser"/>
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
-    <delete quiet="true" file="${processdash}/ui/help/DashHelpBrokerCGI.java"/>
     <delete quiet="true" file="${i18n}/DefaultEngine*"/>
     <delete quiet="true" dir="${helpsearch}"/>
 

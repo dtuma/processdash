@@ -82,21 +82,15 @@ public class PCSH {
     }
 
     public static DashHelpProvider getHelpProvider() {
-        // first, attempt to create the help broker directly.  This
-        // will succeed only if the JavaHelp classes are in the system
-        // classpath.
+        // first, attempt to create the help broker using the default provider.
+        // This will succeed if the JavaHelp classes are in the system
+        // classpath, or if the JavaHelp add-on is installed.
         if (DEFAULT_INSTANCE == null) try {
-            Class c = Class.forName
-                ("net.sourceforge.processdash.ui.help.DashHelpBroker");
-            DEFAULT_INSTANCE = (DashHelpProvider) c.newInstance();
-        } catch (Throwable e) { }
+            DEFAULT_INSTANCE = new DashHelpBroker();
+        } catch (Throwable e) { e.printStackTrace(); }
 
-        // next, attempt to create a help broker via a JavaHelp add-on
-        if (DEFAULT_INSTANCE == null) try {
-            URL u = new URL(WebServer.DASHBOARD_PROTOCOL + ":/help/createBroker.class");
-            u.openConnection().connect();
-        } catch (Throwable e) { }
-
+        // If we were unable to create a JavaHelp-based broker, create a
+        // default browser-based provider instead.
         if (DEFAULT_INSTANCE == null) {
             DEFAULT_INSTANCE = new SimpleHelpProvider();
         }

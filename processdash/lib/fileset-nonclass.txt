@@ -15,6 +15,7 @@ net/sourceforge/processdash/process/nodeData.txt
 net/sourceforge/processdash/process/processData.txt
 net/sourceforge/processdash/process/rollupData.txt
 net/sourceforge/processdash/security/security.policy
+net/sourceforge/processdash/security/keystore
 net/sourceforge/processdash/pspdash.ad
 net/sourceforge/processdash/pspdash.ad-comments
 net/sourceforge/processdash/state

@@ -1,9 +1,15 @@
 
+keystore "keystore";
+
 grant codeBase "${process.dashboard.codebase.url}"  {
 	permission java.security.AllPermission;
 };
 
-grant {
+grant signedBy "processdash-full-permissions" {
+	permission java.security.AllPermission;
+};
+
+grant signedBy "sun-javahelp-permissions" {
     permission java.awt.AWTPermission "showWindowWithoutWarningBanner";
     permission java.lang.RuntimePermission "queuePrintJob";
 };

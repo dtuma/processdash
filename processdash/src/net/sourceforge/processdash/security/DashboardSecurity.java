@@ -52,13 +52,12 @@ public class DashboardSecurity {
             System.err.println("No security policy found - security manager not installed.");
             return;
         }
-
         String policyURLStr = policyURL.toString();
+
         String baseURLStr = policyURLStr;
         String packageName = "/" +
             DashboardSecurity.class.getPackage().getName().replace('.', '/');
-
-        int baseURLPos = policyURLStr.indexOf("/net/sourceforge/processdash/");
+        int baseURLPos = policyURLStr.indexOf(packageName);
         if (baseURLPos != -1)
             baseURLStr = policyURLStr.substring(0, baseURLPos+1);
 

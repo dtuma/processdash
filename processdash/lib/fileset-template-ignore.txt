@@ -10,6 +10,7 @@
 Templates/DCR.template
 Templates/help/createBroker.class.link
 Templates/help/help.config
+Templates/help/javaHelp-manifest.txt
 Templates/help/make*.xslt
 Templates/Import-template.xml
 Templates/import/
