@@ -41,6 +41,8 @@
  */
 package org.zaval.tools.i18n.translator;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -53,9 +55,14 @@ class BundleManager
 implements TranslatorConstants
 {
    private static final String BASE_PREFIX = "Templates/resources/";
+   private static final String TAG_FILENAME = "save-tags.txt";
+   private static Random random = new Random();
    private BundleSet set;
    private Map prefixes = null;
+   private Map zipTags = null;
    private String dontSaveLang = null;
+   private String saveRefLang = null;
+   private ActionListener saveListener = null;
    
    BundleManager()
    {
@@ -76,6 +83,7 @@ implements TranslatorConstants
    
    public void setBaseLang(String lang) {
        dontSaveLang = lang;
+       saveRefLang = lang;
    }
 
    String dirName(String fn)
@@ -197,19 +205,36 @@ implements TranslatorConstants
       ZipInputStream zipIn = new ZipInputStream(new FileInputStream(fullName));
       if (prefixes == null)
           prefixes = new TreeMap();
+      if (zipTags == null)
+          zipTags = new HashMap();
       
        ZipEntry file;
        String filename;
        while ((file = zipIn.getNextEntry()) != null) {           
            filename = file.getName();
-           if (!filename.toLowerCase().endsWith(RES_EXTENSION))
-               continue;
-           String prefix = pathToPrefix(filename);
-           prefixes.put(prefix, filename);
-           String fileLang = determineLanguage(filename);
-           readPropResource(zipIn, fileLang, prefix);
+           if (filename.equals(TAG_FILENAME))
+               readZipTag(fullName, zipIn);
+           else if (filename.toLowerCase().endsWith(RES_EXTENSION)) {
+               String prefix = pathToPrefix(filename);
+               prefixes.put(prefix, filename);
+               String fileLang = determineLanguage(filename);
+               readPropResource(zipIn, fileLang, prefix);
+           }
        }
        zipIn.close();
+   }
+   
+   private void readZipTag(String zipFileName, InputStream in) throws IOException {
+       StringBuffer tag = new StringBuffer();
+       BufferedReader lines = new BufferedReader(new InputStreamReader(in));
+       String line;
+       while ((line = lines.readLine()) != null)
+           tag.append(line).append('\n');
+       
+
+       if (zipTags == null)
+           zipTags = new HashMap();
+       zipTags.put(zipFileName, tag.toString());
    }
 
    private void oldreadResource( String fullName, String lang)
@@ -388,6 +413,10 @@ implements TranslatorConstants
           storeZip(fn, lang);
       else
          storeOther(fn, lang);
+      
+      if (saveListener != null)
+          saveListener.actionPerformed
+              (new ActionEvent(this, ActionEvent.ACTION_PERFORMED, fn));
    }
 
    private void storeProperties(String fn, LangItem lang) throws IOException {
@@ -419,18 +448,58 @@ implements TranslatorConstants
        
        ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(fn));
        storeLangInZip(lang, p, zipOut);
+       if (saveRefLang != null && !saveRefLang.equals(lang.getLangId()))
+           storeRefLangInZip(zipOut);
+       storeTagInZip(fn, zipOut);
+           
        zipOut.close();
    }
 
+   private void storeRefLangInZip(ZipOutputStream zipOut) throws IOException {
+       if (saveRefLang == null) return;
+       Properties p = set.getProperties(saveRefLang);
+       if (p.isEmpty()) return;
+       
+       zipOut.putNextEntry(new ZipEntry("ref.zip"));
+       
+       ZipOutputStream refZip = new ZipOutputStream(zipOut);
+       storeLangInZip(saveRefLang, p, refZip);
+       refZip.finish();
+       
+       zipOut.closeEntry();
+   }
+   
+   private void storeTagInZip(String zipFileName, ZipOutputStream zipOut) throws IOException {
+       zipOut.putNextEntry(new ZipEntry(TAG_FILENAME));
+       String oldTag = null;
+       if (zipTags != null)
+           oldTag = (String) zipTags.get(zipFileName);
+       Writer out = new OutputStreamWriter(zipOut);
+       if (oldTag != null) 
+           out.write(oldTag);
+       else
+           out.write("# This file facilitates revision tracking.\n");
+       String newTag = System.currentTimeMillis() + "-" + 
+           Math.abs(random.nextLong());
+       out.write(newTag);
+       out.write('\n');
+       out.flush();
+       zipOut.closeEntry();
+   }
+
    private void storeLangInZip(LangItem lang, Properties p, ZipOutputStream zipOut) throws IOException {
-    Iterator i = prefixes.entrySet().iterator();
+       storeLangInZip(lang.getLangId(), p, zipOut);
+   }
+   
+   private void storeLangInZip(String langID, Properties p, ZipOutputStream zipOut) throws IOException {
+       Iterator i = prefixes.entrySet().iterator();
        while (i.hasNext()) {
           Map.Entry e = (Map.Entry) i.next();
           String prefix = (String) e.getKey();
           String filename = (String) e.getValue();
           Properties filt = filterProperties(p, prefix);
           if (filt.isEmpty()) continue;
-          filename = dirName(filename) + purifyFileName(filename) + "_" + lang.getLangId() + RES_EXTENSION;
+          filename = dirName(filename) + purifyFileName(filename) + "_" + langID + RES_EXTENSION;
           if (filename.startsWith("/")) filename = filename.substring(1);
           zipOut.putNextEntry(new ZipEntry(filename));
           storeProperties(zipOut, filt);
@@ -496,6 +565,10 @@ implements TranslatorConstants
             f.write( 0x00 );
          }
          f.close();
+    }
+
+    public void setSaveListener(ActionListener saveListener) {
+        this.saveListener = saveListener;
     }
 
 }
