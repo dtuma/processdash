@@ -55,12 +55,18 @@ public class DashboardIconFactory {
         return result;
     }
 
+    private static Icon smallDownArrowIcon = null;
     public static Icon getSmallDownArrowIcon() {
-        return new SmallDownArrow();
+        if (smallDownArrowIcon == null)
+            smallDownArrowIcon = new SmallDownArrow();
+        return smallDownArrowIcon;
     }
 
+    private static Icon smallDisDownArrowIcon = null;
     public static Icon getSmallDisabledDownArrowIcon() {
-        return new SmallDisabledDownArrow();
+        if (smallDisDownArrowIcon == null)
+            smallDisDownArrowIcon = new SmallDisabledDownArrow();
+        return smallDisDownArrowIcon;
     }
 
     private static Icon loadNamedIcon(String name) {
