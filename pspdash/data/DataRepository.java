@@ -38,6 +38,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
 import java.util.Vector;
 import java.util.Stack;
 
@@ -772,6 +775,7 @@ public class DataRepository implements Repository {
 
 
     private static final String includeTag = "#include ";
+    private static final Hashtable includedFileCache = new Hashtable();
 
 
     private InputStream findDatafile(String path, File currentFile) throws
@@ -784,19 +788,19 @@ public class DataRepository implements Repository {
                                           // strip <> chars
             path = path.substring(1, path.length()-1);
 
-                                    // try locating the file in the classpath
-            result = DataRepository.class.getResourceAsStream
-                ("/Templates/" + path);
-            if (result != null) return result;
-
                                     // look in each search directory
                                     // until we find the named file
             for (Enumeration t = templateDirs.elements(); t.hasMoreElements(); )
                 if ((file = new File(((String)t.nextElement() + path))).exists())
                     return new FileInputStream(file);
 
-                                        // couldn't find the file in any search
-                                        // directory - give up.
+                                        // try locating the file in the classpath
+            result = DataRepository.class.getResourceAsStream
+                ("/Templates/" + path);
+            if (result != null) return result;
+
+                                    // couldn't find the file in any search
+                                    // directory - give up.
             throw new FileNotFoundException("<" + path + ">");
         }
 
@@ -822,7 +826,7 @@ public class DataRepository implements Repository {
     // call to loadDatafile is made, using the same Hashtable.  Return the
     // name of the include file, if one was found.
 
-    private String loadDatafile(InputStream datafile, Hashtable dest)
+    private String loadDatafile(InputStream datafile, Map dest)
         throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
         // Initialize data, file, and read buffer.
@@ -838,8 +842,31 @@ public class DataRepository implements Repository {
             // the file specified in the include statement.
             if (line != null && line.startsWith(includeTag)) {
                 inheritedDatafile = line.substring(includeTag.length()).trim();
-                                      // the null in the next line is a bug!
-                loadDatafile(findDatafile(inheritedDatafile, null), dest);
+
+                // Add proper exception handling in case someone is somehow using
+                // the deprecated include syntax.
+                if (inheritedDatafile.startsWith("\"")) {
+                    System.err.println("datafile #include directives with relative" +
+                                       " paths are no longer supported.");
+                    throw new InvalidDatafileFormat();
+                }
+
+                Map cachedIncludeFile =
+                    (Map) includedFileCache.get(inheritedDatafile);
+
+                if (cachedIncludeFile == null) {
+                    cachedIncludeFile = new HashMap();
+                    // the null in the next line is a bug! it has no effect on
+                    // #include <> statements, but effectively prevents #include ""
+                    // statements from working (in other words, include directives
+                    // relative to the current file.  Such directives are not
+                    // currently used by the dashboard, so nothing will break.)
+                    loadDatafile(findDatafile(inheritedDatafile, null),
+                                 cachedIncludeFile);
+                    cachedIncludeFile = Collections.unmodifiableMap(cachedIncludeFile);
+                    includedFileCache.put(inheritedDatafile, cachedIncludeFile);
+                }
+                dest.putAll(cachedIncludeFile);
                 line = in.readLine();
             }
 
@@ -970,21 +997,20 @@ public class DataRepository implements Repository {
             return;
         }
 
-        Hashtable defaultValues = new Hashtable();
+        Map defaultValues;
 
         // if the data file has an include statement, write it to the
         // the two temporary output files.
         if (datafile.inheritsFrom != null) {
-            try {
-                loadDatafile(findDatafile(datafile.inheritsFrom, datafile.file),
-                             defaultValues);
-            } catch (Exception e) {}
+            defaultValues = (Map) includedFileCache.get(datafile.inheritsFrom);
             try {
                 out.write(includeTag + datafile.inheritsFrom);
                 out.newLine();
                 backup.write(includeTag + datafile.inheritsFrom);
                 backup.newLine();
             } catch (IOException e) {}
+        } else {
+            defaultValues = new HashMap();
         }
 
         datafile.dirtyCount = 0;
