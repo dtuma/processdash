@@ -43,7 +43,10 @@ Owner="Enter your name
 
 PSP To Date Data==1.0
 
-#define sumUp(Name) Name To Date==![(+	~/.*/{Completed}{PSP Project}Name)]
+= Start To Date data as of noon GMT on January 1, 1970
+To Date As Of=@43200000
+
+#define sumUp(Name) Name To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Name)]
 #define phasePercent(Phase,Name) Phase/% Name To Date==![(/	Phase/Name To Date	Name To Date)]
 
 ==
@@ -80,8 +83,8 @@ sumUp(Code Review/Time)
 Code/Combined Time To Date==![(+	Code/Time To Date	Code Review/Time To Date)]
 sumUp(Compile/Time)
 sumUp(Test/Time)
-=Reassessment-Time To Date==![(+	~/.*/{Completed}{PSP Project}Reassessment/Time)]
-Postmortem/Time To Date==![(+	~/.*/{Completed}{PSP Project}Reassessment/Time	~/.*/{Completed}{PSP Project}Postmortem/Time)]
+=Reassessment-Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Reassessment/Time)]
+Postmortem/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Reassessment/Time	~/.*/{>	Completed	/To Date As Of}{PSP Project}Postmortem/Time)]
 Time To Date==![(+	~[^/]*/Time To Date)]
 
 == % Time To Date

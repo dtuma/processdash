@@ -43,6 +43,9 @@ Owner="Enter your name
 
 PSP To Date Data==1.0
 
+= Start To Date data as of noon GMT on January 1, 1970
+To Date As Of=@43200000
+
 
 
 
@@ -50,15 +53,15 @@ PSP To Date Data==1.0
 ==  Data Elements to track LOC to Date
 ==
 
-Base LOC To Date==![(+	~/.*/{Completed}{PSP Project}Base LOC)]
-Added LOC To Date==![(+	~/.*/{Completed}{PSP Project}Added LOC)]
-Deleted LOC To Date==![(+	~/.*/{Completed}{PSP Project}Deleted LOC)]
-Modified LOC To Date==![(+	~/.*/{Completed}{PSP Project}Modified LOC)]
-New & Changed LOC To Date==![(+	~/.*/{Completed}{PSP Project}New & Changed LOC)]
+Base LOC To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Base LOC)]
+Added LOC To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Added LOC)]
+Deleted LOC To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Deleted LOC)]
+Modified LOC To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Modified LOC)]
+New & Changed LOC To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}New & Changed LOC)]
 New & Changed KLOC To Date==![(/	New & Changed LOC To Date	1000)]
-New Reused LOC To Date==![(+	~/.*/{Completed}{PSP Project}New Reused LOC)]
-Reused LOC To Date==![(+	~/.*/{Completed}{PSP Project}Reused LOC)]
-Total LOC To Date==![(+	~/.*/{Completed}{PSP Project}Total LOC)]
+New Reused LOC To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}New Reused LOC)]
+Reused LOC To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Reused LOC)]
+Total LOC To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Total LOC)]
 KLOC To Date==![(/	LOC To Date	1000)]
 LOC per Hour To Date==![(/	New & Changed LOC To Date	Time To Date	0.0166667)]
 
@@ -67,21 +70,21 @@ LOC per Hour To Date==![(/	New & Changed LOC To Date	Time To Date	0.0166667)]
 == Data Elements to track Time to Date
 ==
 
-Estimated Time To Date==![(+	~/.*/{Completed}{PSP Project}Estimated Time)]
+Estimated Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Estimated Time)]
 
-Planning/Time To Date==![(+	~/.*/{Completed}{PSP Project}Planning/Time)]
-HLD/Time To Date==![(+	~/.*/{Completed}{PSP Project}HLD/Time)]
-HLD Review/Time To Date==![(+	~/.*/{Completed}{PSP Project}HLD Review/Time)]
-Design/Time To Date==![(+	~/.*/{Completed}{PSP Project}Design/Time)]
-Design Review/Time To Date==![(+	~/.*/{Completed}{PSP Project}Design Review/Time)]
+Planning/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Planning/Time)]
+HLD/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}HLD/Time)]
+HLD Review/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}HLD Review/Time)]
+Design/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Design/Time)]
+Design Review/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Design Review/Time)]
 Design/Combined Time To Date==![(+	Design/Time To Date	Design Review/Time To Date)]
-Code/Time To Date==![(+	~/.*/{Completed}{PSP Project}Code/Time)]
-Code Review/Time To Date==![(+	~/.*/{Completed}{PSP Project}Code Review/Time)]
+Code/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Code/Time)]
+Code Review/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Code Review/Time)]
 Code/Combined Time To Date==![(+	Code/Time To Date	Code Review/Time To Date)]
-Compile/Time To Date==![(+	~/.*/{Completed}{PSP Project}Compile/Time)]
-Test/Time To Date==![(+	~/.*/{Completed}{PSP Project}Test/Time)]
-=Reassessment-Time To Date==![(+	~/.*/{Completed}{PSP Project}Reassessment/Time)]
-Postmortem/Time To Date==![(+	~/.*/{Completed}{PSP Project}Reassessment/Time	~/.*/{Completed}{PSP Project}Postmortem/Time)]
+Compile/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Compile/Time)]
+Test/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Test/Time)]
+=Reassessment-Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Reassessment/Time)]
+Postmortem/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Reassessment/Time	~/.*/{>	Completed	/To Date As Of}{PSP Project}Postmortem/Time)]
 Time To Date==![(+	~[^/]*/Time To Date)]
 
 == % Time To Date
@@ -112,20 +115,20 @@ Normalization %/Time/PSP3==![(+	Normalization %/Time/PSP0-2	HLD/% Time To Date	H
 == Data Elements to track Defects Injected
 ==
 
-Before Development/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Before Development/Defects Injected)]
-Planning/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Planning/Defects Injected)]
-HLD/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}HLD/Defects Injected)]
-HLD Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}HLD Review/Defects Injected)]
-Design/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Design/Defects Injected)]
-Design Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Design Review/Defects Injected)]
+Before Development/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Before Development/Defects Injected)]
+Planning/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Planning/Defects Injected)]
+HLD/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}HLD/Defects Injected)]
+HLD Review/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}HLD Review/Defects Injected)]
+Design/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Design/Defects Injected)]
+Design Review/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Design Review/Defects Injected)]
 Design/Combined Defects Injected To Date==![(+	Design/Defects Injected To Date	Design Review/Defects Injected To Date)]
-Code/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Code/Defects Injected)]
-Code Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Code Review/Defects Injected)]
+Code/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Code/Defects Injected)]
+Code Review/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Code Review/Defects Injected)]
 Code/Combined Defects Injected To Date==![(+	Code/Defects Injected To Date	Code Review/Defects Injected To Date)]
-Compile/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Compile/Defects Injected)]
-Test/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Test/Defects Injected)]
-Reassessment/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Reassessment/Defects Injected)]
-Postmortem/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Postmortem/Defects Injected)]
+Compile/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Compile/Defects Injected)]
+Test/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Test/Defects Injected)]
+Reassessment/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Reassessment/Defects Injected)]
+Postmortem/Defects Injected To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Postmortem/Defects Injected)]
 Defects Injected To Date==![(+	~[^B][^/]*/Defects Injected To Date)]
 Defects Injected per KLOC To Date==![(/	Defects Injected To Date	New & Changed KLOC To Date)]
 Defects per KLOC To Date==![(/	Defects Injected To Date	New & Changed KLOC To Date)]
@@ -161,20 +164,20 @@ Normalization %/Defects Injected/PSP3==![(+	Normalization %/Defects Injected/PSP
 ==
 
 
-Planning/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Planning/Defects Removed)]
-HLD/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}HLD/Defects Removed)]
-HLD Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}HLD Review/Defects Removed)]
-Design/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Design/Defects Removed)]
-Design Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Design Review/Defects Removed)]
+Planning/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Planning/Defects Removed)]
+HLD/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}HLD/Defects Removed)]
+HLD Review/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}HLD Review/Defects Removed)]
+Design/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Design/Defects Removed)]
+Design Review/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Design Review/Defects Removed)]
 Design/Combined Defects Removed To Date==![(+	Design/Defects Removed To Date	Design Review/Defects Removed To Date)]
-Code/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Code/Defects Removed)]
-Code Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Code Review/Defects Removed)]
+Code/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Code/Defects Removed)]
+Code Review/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Code Review/Defects Removed)]
 Code/Combined Defects Removed To Date==![(+	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]
-Compile/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Compile/Defects Removed)]
-Test/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Test/Defects Removed)]
-Reassessment/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Reassessment/Defects Removed)]
-Postmortem/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Postmortem/Defects Removed)]
-After Development/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}After Development/Defects Removed)]
+Compile/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Compile/Defects Removed)]
+Test/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Test/Defects Removed)]
+Reassessment/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Reassessment/Defects Removed)]
+Postmortem/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Postmortem/Defects Removed)]
+After Development/Defects Removed To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}After Development/Defects Removed)]
 Defects Removed To Date==![(+	~[^/]*/Defects Removed To Date)]
 
 == % Defects Removed To Date
