@@ -97,7 +97,7 @@ public class WBSTest implements WindowListener {
     public WBSTest(String filename) {
         buildModel(filename);
         loadTeam();
-        DataTableModel data = new DataTableModel(model, teamList);
+        DataTableModel data = new DataTableModel(model, teamList, teamProcess);
 
         WBSTabPanel table = new WBSTabPanel(model, data, teamProcess);
 

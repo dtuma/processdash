@@ -1,20 +1,29 @@
 package teamdash.wbs.columns;
 
+import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.DataTableModel;
+import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
-public class WorkflowRateColumn extends AbstractNumericColumn {
+public class WorkflowRateColumn extends AbstractNumericColumn
+implements CalculatedDataColumn {
 
+    private DataTableModel dataModel;
     private WBSModel wbsModel;
+    private int percentageColumn = -1;
 
-    public WorkflowRateColumn(WBSModel wbsModel) {
-        this.wbsModel = wbsModel;
+    public WorkflowRateColumn(DataTableModel dataModel) {
+        this.dataModel = dataModel;
+        this.wbsModel = dataModel.getWBSModel();
         this.columnName = "Rate";
         this.columnID = "Workflow Rate";
+        this.dependentColumns = new String[] {
+            WorkflowPercentageColumn.COLUMN_ID };
     }
 
     public boolean isCellEditable(WBSNode node) {
-        return (wbsModel.isLeaf(node));
+        return TeamTimeColumn.isLeafTask(wbsModel, node);
     }
 
     public Object getValueAt(WBSNode node) {
@@ -32,6 +41,41 @@ public class WorkflowRateColumn extends AbstractNumericColumn {
     }
 
 
+    public boolean recalculate() {
+        recalc(wbsModel.getRoot());
+        return false;
+    }
+    private void recalc(WBSNode node) {
+        if (TeamTimeColumn.isLeafTask(wbsModel, node)) {
+            double baseRate = getValueForNode(node);
+            double baseProductivity = 1.0 / baseRate;
+            double percentage = NumericDataValue.parse
+                (dataModel.getValueAt(node, percentageColumn)) / 100.0;
+            double effectiveProductivity = percentage * baseProductivity;
+            double effectiveRate = 1.0 / effectiveProductivity;
+            if (Double.isNaN(effectiveRate) ||
+                Double.isInfinite(effectiveRate))
+                node.setAttribute(TeamTimeColumn.RATE_ATTR, null);
+            else
+                node.setNumericAttribute(TeamTimeColumn.RATE_ATTR, effectiveRate);
+        }
+
+        WBSNode[] children = wbsModel.getChildren(node);
+        for (int i = 0;   i < children.length;   i++)
+            recalc(children[i]);
+    }
+
+    public void storeDependentColumn(String ID, int columnNumber) {
+        if (WorkflowPercentageColumn.COLUMN_ID.equals(ID))
+            percentageColumn = columnNumber;
+    }
+
+    public void resetDependentColumns() {
+        percentageColumn = -1;
+    }
+
+
     private static final String ATTR_NAME = "Workflow Rate";
+
 
 }

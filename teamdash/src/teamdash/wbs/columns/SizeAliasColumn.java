@@ -8,7 +8,7 @@ import teamdash.wbs.WBSNode;
 public class SizeAliasColumn extends AbstractNumericColumn
 implements CalculatedDataColumn {
 
-    private static final NumericDataValue BLANK =
+    protected static final NumericDataValue BLANK =
         new NumericDataValue(0, false, true, null);
 
     DataTableModel dataModel;

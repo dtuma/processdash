@@ -15,8 +15,11 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 
 import teamdash.TeamMemberList;
+import teamdash.TeamProcess;
 import teamdash.wbs.columns.PhaseColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
+import teamdash.wbs.columns.TaskSizeColumn;
+import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamMemberColumnManager;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.TopDownBottomUpColumn;
@@ -26,6 +29,8 @@ public class DataTableModel extends AbstractTableModel {
 
     /** The wbs model which this is displaying data for */
     protected WBSModel wbsModel;
+    /** The team process in use
+    protected TeamProcess teamProcess;
     /** The list of columns in this data model */
     private ArrayList columns;
     /** A list of the calculated columns in the model */
@@ -41,7 +46,9 @@ public class DataTableModel extends AbstractTableModel {
     private TeamMemberColumnManager memberColumnManager;
 
 
-    public DataTableModel(WBSModel wbsModel, TeamMemberList teamList) {
+    public DataTableModel(WBSModel wbsModel, TeamMemberList teamList,
+                          TeamProcess teamProcess)
+    {
         this.wbsModel = wbsModel;
         wbsModel.addTableModelListener(new TableModelEventRepeater());
 
@@ -52,7 +59,7 @@ public class DataTableModel extends AbstractTableModel {
         recalcJanitorTimer.setRepeats(false);
         recalcJanitorTimer.setInitialDelay(3000);
 
-        buildDataColumns(teamList);
+        buildDataColumns(teamList, teamProcess);
         initializeColumnDependencies();
     }
 
@@ -138,10 +145,14 @@ public class DataTableModel extends AbstractTableModel {
         memberColumnManager.addToColumnModel(columnModel);
     }
 
-    protected void buildDataColumns(TeamMemberList teamList) {
+    protected void buildDataColumns(TeamMemberList teamList,
+                                    TeamProcess teamProcess)
+    {
 
         SizeTypeColumn.createSizeColumns(this);
         addDataColumn(new PhaseColumn());
+        addDataColumn(new TaskSizeColumn(this));
+        addDataColumn(new TaskSizeUnitsColumn(wbsModel, teamProcess));
         addDataColumn(new TeamTimeColumn(this));
         memberColumnManager = new TeamMemberColumnManager(this, teamList);
 

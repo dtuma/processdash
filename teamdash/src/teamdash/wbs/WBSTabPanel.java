@@ -26,7 +26,7 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import teamdash.*;
+import teamdash.TeamProcess;
 
 /** Class to display the WBS editor panel
  */
@@ -130,6 +130,14 @@ public class WBSTabPanel extends JPanel {
         result[1] = undoList.getRedoAction();
         return result;
     }
+
+
+    /** Get an action capable of inserting a workflow into the work breakdown
+     * 	structure */
+    public Action getInsertWorkflowAction(WBSModel workflows) {
+        return wbsTable.getInsertWorkflowAction(workflows);
+    }
+
 
 
     /** Create the JTables and perform necessary setup */

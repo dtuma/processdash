@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -12,8 +14,11 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import teamdash.TeamProject;
 
@@ -29,7 +34,8 @@ public class WBSEditor implements WindowListener {
 
         WBSModel model = teamProject.getWBS();
         DataTableModel data = new DataTableModel
-            (model, teamProject.getTeamMemberList());
+            (model, teamProject.getTeamMemberList(),
+             teamProject.getTeamProcess());
         WBSTabPanel table =
             new WBSTabPanel(model, data, teamProject.getTeamProcess());
 
@@ -49,13 +55,13 @@ public class WBSEditor implements WindowListener {
                      new String[] { "Time", WBSTabPanel.TEAM_MEMBER_TIMES_ID },
                      new String[] { "Team", "" });
 
-        table.addTab("Time Calc",
-                     new String[] { "Phase", "Size", "Size-Units", "Rate", "Hrs/Indiv", "# People", "Time" },
-                     new String[] { "Phase", "Size", "Units", "Rate", "Hrs/Indiv", "# People",
+        table.addTab("Task Time",
+                     new String[] { "Phase", "Task Size", "Task Size Units", "Rate", "Hrs/Indiv", "# People", "Time" },
+                     new String[] { "Phase", "Task Size", "Units", "Rate", "Hrs/Indiv", "# People",
                          "Time" });
 
         String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
-        table.addTab("Defects", s, s);
+        //table.addTab("Defects", s, s);
 
         teamTimePanel =
             new TeamTimePanel(teamProject.getTeamMemberList(), data);
@@ -63,7 +69,7 @@ public class WBSEditor implements WindowListener {
 
         frame = new JFrame
             (teamProject.getProjectName() + " - Work Breakdown Structure");
-        frame.setJMenuBar(buildMenuBar(table));
+        frame.setJMenuBar(buildMenuBar(table, teamProject.getWorkflows()));
         frame.getContentPane().add(table);
         frame.getContentPane().add(teamTimePanel, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -73,12 +79,13 @@ public class WBSEditor implements WindowListener {
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
-    private JMenuBar buildMenuBar(WBSTabPanel tabPanel) {
+    private JMenuBar buildMenuBar(WBSTabPanel tabPanel, WBSModel workflows) {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu());
         result.add(buildEditMenu(tabPanel.getEditingActions()));
-        result.add(buildWorkflowMenu());
+        result.add(buildWorkflowMenu
+            (workflows, tabPanel.getInsertWorkflowAction(workflows)));
         result.add(buildViewMenu());
 
         return result;
@@ -100,10 +107,14 @@ public class WBSEditor implements WindowListener {
 
         return result;
     }
-    private JMenu buildWorkflowMenu() {
+    private JMenu buildWorkflowMenu(WBSModel workflows,
+                                    Action insertWorkflowAction) {
         JMenu result = new JMenu("Workflow");
         result.setMnemonic('W');
         result.add(new WorkflowEditorAction());
+        // result.add(new DefineWorkflowAction());
+        result.addSeparator();
+        new WorkflowMenuBuilder(result, workflows, insertWorkflowAction);
         return result;
     }
     private JMenu buildViewMenu() {
@@ -142,24 +153,85 @@ public class WBSEditor implements WindowListener {
         }
     }
 
-    private class CloseAction extends AbstractAction {
+    private class CloseAction extends AbstractAction implements WindowListener {
         public CloseAction() {
             super("Close");
             putValue(MNEMONIC_KEY, new Integer('C'));
+            frame.addWindowListener(this);
         }
         public void actionPerformed(ActionEvent e) {
             teamProject.save();
             System.exit(0);
         }
+        public void windowOpened(WindowEvent e) {}
+        public void windowClosing(WindowEvent e) { actionPerformed(null); }
+        public void windowClosed(WindowEvent e) {}
+        public void windowIconified(WindowEvent e) {}
+        public void windowDeiconified(WindowEvent e) {}
+        public void windowActivated(WindowEvent e) {}
+        public void windowDeactivated(WindowEvent e) {}
     }
 
     private class WorkflowEditorAction extends AbstractAction {
+        private WorkflowEditor editor = null;
         public WorkflowEditorAction() {
             super("Edit Workflows");
             putValue(MNEMONIC_KEY, new Integer('E'));
         }
         public void actionPerformed(ActionEvent e) {
-            new WorkflowEditor(teamProject);
+            if (editor != null)
+                editor.show();
+            else
+                editor = new WorkflowEditor(teamProject);
+        }
+    }
+
+
+    private class WorkflowMenuBuilder implements TableModelListener {
+        private JMenu menu;
+        private int initialMenuLength;
+        private WBSModel workflows;
+        private Action insertWorkflowAction;
+        private ArrayList itemList;
+
+        public WorkflowMenuBuilder(JMenu menu, WBSModel workflows,
+                                   Action insertWorkflowAction) {
+            this.menu = menu;
+            this.initialMenuLength = menu.getItemCount();
+            this.workflows = workflows;
+            this.insertWorkflowAction = insertWorkflowAction;
+            this.itemList = new ArrayList();
+            rebuildMenu();
+            workflows.addTableModelListener(this);
+        }
+
+        private void rebuildMenu() {
+            ArrayList newList = new ArrayList();
+            WBSNode[] workflowItems =
+                workflows.getChildren(workflows.getRoot());
+            for (int i = 0;   i < workflowItems.length;   i++)
+                newList.add(workflowItems[i].getName());
+
+            synchronized (menu) {
+                if (newList.equals(itemList)) return;
+
+                while (menu.getItemCount() > initialMenuLength)
+                    menu.remove(initialMenuLength);
+                Iterator i = newList.iterator();
+                while (i.hasNext()) {
+                    String workflowItemName = (String) i.next();
+                    JMenuItem menuItem = new JMenuItem(insertWorkflowAction);
+                    menuItem.setActionCommand(workflowItemName);
+                    menuItem.setText(workflowItemName);
+                    menu.add(menuItem);
+                }
+
+                itemList = newList;
+            }
+        }
+
+        public void tableChanged(TableModelEvent e) {
+            rebuildMenu();
         }
     }
 

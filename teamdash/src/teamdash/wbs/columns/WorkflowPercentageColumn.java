@@ -13,11 +13,11 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn {
     public WorkflowPercentageColumn(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
         this.columnName = "%";
-        this.columnID = "Workflow Percentage";
+        this.columnID = COLUMN_ID;
     }
 
     public boolean isCellEditable(WBSNode node) {
-        return (wbsModel.isLeaf(node));
+        return TeamTimeColumn.isLeafTask(wbsModel, node);
     }
 
     public Object getValueAt(WBSNode node) {
@@ -35,21 +35,8 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn {
             node.setNumericAttribute(ATTR_NAME, value);
     }
 
-/*
-    public void setValueAt(Object aValue, WBSNode node) {
-        String s = (aValue == null ? "100" : String.valueOf(aValue));
-        s = s.trim();
-        //if (s.endsWith("%"))  s = s.substring(0, s.length()-1).trim();
-        try {
-            Number n = FORMATTER.parse(s);
-            if (n.doubleValue() > 0 && n.doubleValue() <= 1)
-                node.setAttribute(ATTR_NAME, n);
-        } catch (ParseException e) {}
-    }
-*/
-    private static final String ATTR_NAME = "Workflow Percentage";
-    //private static final NumberFormat FORMATTER =
-        //      NumberFormat.getPercentInstance();
 
+    private static final String ATTR_NAME = "Workflow Percentage";
+    static final String COLUMN_ID = ATTR_NAME;
 
 }

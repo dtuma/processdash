@@ -11,6 +11,9 @@ import teamdash.wbs.WBSNode;
 
 public class SizeTypeColumn extends AbstractDataColumn {
 
+    public static final String[] SIZE_UNITS = new String[] {
+            "LOC","Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
+
     private static final String ATTR_NAME = "Size Metric";
     static final Map SIZE_METRICS = buildMap();
 
@@ -78,30 +81,26 @@ public class SizeTypeColumn extends AbstractDataColumn {
         }
 
         // create aliasing columns
-        String[] sizeUnits = new String[] {
-            "LOC","Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Base", SizeAccountingColumnSet.getBaseID(""),
-             sizeUnits));
+             SIZE_UNITS));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Deleted", SizeAccountingColumnSet.getDeletedID(""),
-             sizeUnits));
+             SIZE_UNITS));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Modified", SizeAccountingColumnSet.getModifiedID(""),
-             sizeUnits));
+             SIZE_UNITS));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Added", SizeAccountingColumnSet.getAddedID(""),
-             sizeUnits));
+             SIZE_UNITS));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Reused", SizeAccountingColumnSet.getReusedID(""),
-             sizeUnits));
+             SIZE_UNITS));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "N&C", SizeAccountingColumnSet.getNCID(""),
-             sizeUnits));
+             SIZE_UNITS));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Total", SizeAccountingColumnSet.getTotalID(""),
-             sizeUnits));
+             SIZE_UNITS));
     }
-
-
 }

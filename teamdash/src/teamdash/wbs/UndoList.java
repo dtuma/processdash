@@ -64,7 +64,7 @@ public class UndoList {
     public synchronized void madeChange(String description) {
         if (currentlyCancelingEditors) return;
 
-        System.out.println("UndoList.madeChange("+description+")");
+        //System.out.println("UndoList.madeChange("+description+")");
         undoList.push(currentState);
         if (undoList.size() > MAX_LEVELS)
             undoList.remove(0);

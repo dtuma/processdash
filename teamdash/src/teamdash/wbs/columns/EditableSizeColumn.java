@@ -8,7 +8,7 @@ import teamdash.wbs.WBSNode;
 public class EditableSizeColumn extends AbstractNumericColumn
 implements CalculatedDataColumn {
 
-    private static final String ATTR_NAME = "Misc Size";
+    static final String ATTR_NAME = "Misc Size";
 
     DataTableModel dataModel;
     int newChangedColumn;

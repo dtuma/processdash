@@ -8,6 +8,7 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.IntList;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 /** This column manages the calculation and interrelationship of several
@@ -25,7 +26,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
     public TeamTimeColumn(DataTableModel m) {
         super(m, "Time", "Time");
-        this.dependentColumns = new String[] { "Size", "Size-Units" };
+        this.dependentColumns = new String[] { "Task Size", "Task Size Units" };
         this.teamMemberColumns = new IntList();
 
         // create and add our interrelated columns.
@@ -36,9 +37,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
 
     public void storeDependentColumn(String ID, int columnNumber) {
-        if ("Size".equals(ID))
+        if ("Task Size".equals(ID))
             sizeColumn = columnNumber;
-        else if ("Size-Units".equals(ID))
+        else if ("Task Size Units".equals(ID))
             unitsColumn = columnNumber;
         else if (!teamMemberColumns.contains(columnNumber))
             teamMemberColumns.add(columnNumber);
@@ -57,12 +58,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
         boolean needsAssigning = false;
         LeafNodeData leafData = getLeafNodeData(node);
-        if (leafData == null) { // not a leaf
-            if (!equal(result.value, sumIndivTimes(node)))
-                needsAssigning = true;
-        } else {
-            if (!leafData.isConnected())
-                needsAssigning = true;
+        if (leafData != null) { // a leaf task
+            needsAssigning = !leafData.isConnected();
+        } else if (wbsModel.isLeaf(node)) { // a leaf node which isn't a task
+            result.errorMessage = "You need to create tasks underneath this "
+                + node.getType().toLowerCase();
+            result.errorColor = Color.red;
+
+        } else { // not a leaf task
+            needsAssigning = !equal(result.value, sumIndivTimes(node));
         }
 
         if (needsAssigning) {
@@ -228,7 +232,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
      * necessary, or return the existing LeafNodeData object if one exists.
      * If the node is not a leaf, this will return null. */
     protected LeafNodeData getLeafNodeData(WBSNode node) {
-        if (!wbsModel.isLeaf(node)) {
+        if (!wbsModel.isLeaf(node) || !node.getType().endsWith("Task")) {
             node.setAttribute(DATA_ATTR_NAME, null);
             return null;
         }
@@ -300,8 +304,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             numPeople = (int) safe(node.getNumericAttribute(NUM_PEOPLE_ATTR));
             actualNumPeople = countPeople(individualTimes);
 
-            if (numPeople == 0)
-                numPeople = (actualNumPeople > 0 ? actualNumPeople : 1);
+            numPeople = Math.max(numPeople, 1);
+            numPeople = Math.max(numPeople, actualNumPeople);
         }
 
         void figureTeamTime() {
@@ -471,7 +475,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
         public boolean isCellEditable(WBSNode node) {
             // default behavior: only leaf nodes are editable.
-            return wbsModel.isLeaf(node);
+            return (getLeafNodeData(node) != null);
         }
 
         public Object getValueAt(WBSNode node) {
@@ -549,11 +553,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     }
 
 
+    public static boolean isLeafTask(WBSModel wbsModel, WBSNode node) {
+        return (wbsModel.isLeaf(node) && node.getType().endsWith("Task"));
+    }
+
 
     private static final String DATA_ATTR_NAME = "Time_Data";
-    private static final String RATE_ATTR = "Rate";
+    static final String RATE_ATTR = "Rate";
     private static final String TPP_ATTR  = "Time Per Person";
-    private static final String NUM_PEOPLE_ATTR = "# People";
+    static final String NUM_PEOPLE_ATTR = "# People";
     private static final NumericDataValue BLANK =
         new NumericDataValue(0, false, true, null);
 }

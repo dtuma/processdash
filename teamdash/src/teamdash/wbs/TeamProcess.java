@@ -36,16 +36,17 @@ public class TeamProcess {
         return result;
     }
 
+    private final String[] SIZE_UNITS = new String[] {
+            "LOC","Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
+
     public String getPhaseSizeMetric(String phase) {
         String type = getPhaseType(phase);
-        if (type.startsWith("REQ")) return null;
-        if (type.startsWith("HLD")) return null;
-        //if (type.startsWith("foo"))
-        String result =(String) phaseTypes.get(phase);
-        if (result == null && phase.endsWith(" Task"))
-            result = (String) phaseTypes.get
-                (phase.substring(0, phase.length()-5));
-        return result;
+        if (type == null) return SIZE_UNITS[0];
+        if (type.startsWith("DOC")) return SIZE_UNITS[1];
+        if (type.startsWith("REQ")) return SIZE_UNITS[2];
+        if (type.startsWith("HLD")) return SIZE_UNITS[3];
+        if (type.startsWith("DLD")) return SIZE_UNITS[4];
+        return SIZE_UNITS[0];
     }
 
     public Map getIconMap() {

@@ -172,6 +172,15 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return result;
     }
 
+    private WBSNode[] getDescendants(WBSNode node) {
+        int nodePos = wbsNodes.indexOf(node);
+        IntList descendantIndexes = getDescendantIndexes(node, nodePos);
+        WBSNode[] result = new WBSNode[descendantIndexes.size()];
+        for (int i = 0;   i < descendantIndexes.size();   i++)
+            result[i] = (WBSNode) wbsNodes.get(descendantIndexes.get(i));
+        return result;
+    }
+
     private int[] rows;
 
 
@@ -289,13 +298,18 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         return result;
     }
-    public IntList getRowsForNodes(List nodes) {
+
+    public int[] getRowsForNodes(List nodes) {
         IntList result = new IntList(nodes.size());
         Iterator i = nodes.iterator();
-        while (i.hasNext())
-            result.add(wbsNodes.indexOf(i.next()));
-        return result;
+        while (i.hasNext()) {
+            int pos = getRowForNode((WBSNode) i.next());
+            if (pos != -1) result.add(pos);
+        }
+        return result.getAsArray();
     }
+
+
 
     public synchronized int[] indentNodes(int[] rowNumbers, int delta) {
         if (delta == 0) return null;
@@ -441,13 +455,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             makeVisible(wbsNodes.indexOf(i.next()));
         fireTableDataChanged();
 
-        IntList result = new IntList(nodesToInsert.size());
-        i = nodesToInsert.iterator();
-        while (i.hasNext()) {
-            int pos = getRowForNode((WBSNode) i.next());
-            if (pos != -1) result.add(pos);
-        }
-        return result.getAsArray();
+        return getRowsForNodes(nodesToInsert);
     }
 
 
@@ -549,5 +557,83 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     public void restoreSnapshot(Object snapshot) {
         if (snapshot instanceof WBSModelSnapshot)
             ((WBSModelSnapshot) snapshot).restore();
+    }
+
+
+    public int[] insertWorkflow(int destRow,
+                                String workflowName, WBSModel workflows) {
+        // locate the destination node for insertion.
+        WBSNode destNode = getNodeForRow(destRow);
+        if (destNode == null) return null;
+        int destPos = wbsNodes.indexOf(destNode);
+        if (destPos == -1) return null;
+
+        // locate the workflow to be inserted.
+        WBSNode[] workflowItems = workflows.getChildren(workflows.getRoot());
+        WBSNode srcNode = null;
+        for (int i = 0;   i < workflowItems.length;   i++)
+            if (workflowName.equals(workflowItems[i].getName())) {
+                srcNode = workflowItems[i];
+                break;
+            }
+        if (srcNode == null) return null;
+
+        // calculate the list of nodes to insert.
+        ArrayList nodesToInsert =
+            calcInsertWorkflow(srcNode, destNode, workflows);
+        if (nodesToInsert == null || nodesToInsert.isEmpty()) return null;
+
+        // insert the nodes after the last descendant of the dest node.
+        IntList destDescendants = getDescendantIndexes(destNode, destPos);
+        int insertAfter = destPos;
+        if (destDescendants != null && destDescendants.size() > 0)
+            insertAfter = destDescendants.get(destDescendants.size() - 1);
+        wbsNodes.addAll(insertAfter + 1, nodesToInsert);
+
+        // make certain some of the inserted nodes are visible.
+        destNode.setExpanded(true);
+        recalcRows();
+        return getRowsForNodes(nodesToInsert);
+    }
+
+    private ArrayList calcInsertWorkflow(WBSNode srcNode, WBSNode destNode,
+                                         WBSModel workflows) {
+        ArrayList nodesToInsert = new ArrayList();
+
+        // calculate the difference in indentation level out
+        int srcIndentation = srcNode.getIndentLevel();
+        int destIndentation = destNode.getIndentLevel();
+        int indentDelta = destIndentation - srcIndentation;
+
+        // make a list of the names of the children of destNode.
+        WBSNode[] destChildren = getChildren(destNode);
+        ArrayList destChildNames = new ArrayList();
+        for (int i = 0;   i < destChildren.length;   i++)
+            destChildNames.add(destChildren[i].getName());
+
+        // iterate over each child of srcNode.
+        WBSNode[] srcChildren = workflows.getChildren(srcNode);
+        for (int i = 0;   i < srcChildren.length;   i++) {
+            WBSNode srcChild = srcChildren[i];
+            // we don't want to clobber any nodes that already exist in
+            // the destination, so we'll skip any children whose names
+            // already appear underneath destNode
+            if (destChildNames.contains(srcChild.getName())) continue;
+
+            // add the child to our insertion list.
+            appendWorkflowNode(nodesToInsert, srcChild, indentDelta);
+            // add all the descendants of the child to our insertion list.
+            WBSNode[] srcDescendants = workflows.getDescendants(srcChild);
+            for (int j = 0;   j < srcDescendants.length;   j++)
+                appendWorkflowNode(nodesToInsert, srcDescendants[j],
+                                   indentDelta);
+        }
+
+        return nodesToInsert;
+    }
+    private void appendWorkflowNode(List dest, WBSNode node, int indentDelta) {
+        node = (WBSNode) node.clone();
+        node.setIndentLevel(node.getIndentLevel() + indentDelta);
+        dest.add(node);
     }
 }

@@ -136,6 +136,13 @@ public class WBSJTable extends JTable {
             DELETE_ACTION };
     }
 
+    /** Return an action capable of inserting a workflow */
+    public Action getInsertWorkflowAction(WBSModel workflows) {
+        if (INSERT_WORKFLOW_ACTION == null)
+            INSERT_WORKFLOW_ACTION = new InsertWorkflowAction(workflows);
+        return INSERT_WORKFLOW_ACTION;
+    }
+
 
     /** */
     public void setSelectionModel(ListSelectionModel newModel) {
@@ -224,6 +231,8 @@ public class WBSJTable extends JTable {
         DEMOTE_ACTION.recalculateEnablement(selectedRows);
         INSERT_ACTION.recalculateEnablement(selectedRows);
         ENTER_ACTION.recalculateEnablement(selectedRows);
+        if (INSERT_WORKFLOW_ACTION != null)
+            INSERT_WORKFLOW_ACTION.recalculateEnablement(selectedRows);
     }
 
 
@@ -576,6 +585,7 @@ public class WBSJTable extends JTable {
     }
     final InsertAfterAction ENTER_ACTION = new InsertAfterAction();
 
+
     /** An action to perform a "delete" operation */
     private class DeleteAction extends AbstractAction {
         public DeleteAction() {
@@ -591,7 +601,7 @@ public class WBSJTable extends JTable {
             if (nodesToDelete == null || nodesToDelete.size() == 0) return;
             int size = nodesToDelete.size();
             String message = "Delete "+size+(size==1 ? " item":" items")+
-                " from the work breakdown structure?";
+                " from the "+selfName+"?";
             if (JOptionPane.showConfirmDialog
                 (WBSJTable.this, message, "Confirm Deletion",
                  JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION)
@@ -614,6 +624,42 @@ public class WBSJTable extends JTable {
         }
     }
     final DeleteAction DELETE_ACTION = new DeleteAction();
+    String selfName = "work breakdown structure";
+
+
+    /** An action to insert information from a workflow */
+    private class InsertWorkflowAction extends AbstractAction {
+        private WBSModel workflows;
+
+        public InsertWorkflowAction(WBSModel workflows) {
+            this.workflows = workflows;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            // get the name of the workflow to insert.
+            String workflowName = e.getActionCommand();
+            if (workflowName == null || workflowName.length() == 0) return;
+
+            // get a list of the currently selected rows.
+            int[] rows = getSelectedRows();
+            if (rows == null || rows.length == 0) return;
+            int destRow = rows[0];
+
+            // make the change
+            int[] newRowsToSelect =
+                wbsModel.insertWorkflow(destRow, workflowName, workflows);
+            if (newRowsToSelect != null) {
+                editor.stopCellEditing();
+                selectRows(newRowsToSelect);
+                UndoList.madeChange(WBSJTable.this, "Insert workflow");
+            }
+        }
+
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(selectedRows != null && selectedRows.length > 0);
+        }
+    }
+    private InsertWorkflowAction INSERT_WORKFLOW_ACTION = null;
 
 
     /** Recalculate enablement following changes in selection */
