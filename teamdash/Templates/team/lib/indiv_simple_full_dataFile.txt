@@ -84,7 +84,6 @@
  */
 undefine(
 <!--#foreach name=Phase list=Phase_List #-->
-    [<!--#echo Phase_Name -->/Estimated Defects Injected per Hour],
     [<!--#echo Phase_Name -->/Defects Injected per Hour],
     [<!--#echo Phase_Name -->/Estimated Defects Removed per Hour],
     [<!--#echo Phase_Name -->/Defects Removed per Hour],
