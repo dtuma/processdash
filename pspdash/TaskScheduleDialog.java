@@ -284,6 +284,7 @@ public class TaskScheduleDialog
                 public void actionPerformed(ActionEvent e) {
                     displayErrorDialog(getErrors()); }});
         errorButton.setBackground(Color.red);
+        errorButton.setFocusPainted(false);
         errorButton.setVisible(getErrors() != null);
         result.add(errorButton);
 
@@ -439,6 +440,7 @@ public class TaskScheduleDialog
             private Font getFont(boolean bold, Component c) {
                 if (this.regular == null) {
                     Font base = c.getFont();
+                    if (base == null) return null;
                     this.regular = base.deriveFont(Font.PLAIN);
                     this.bold    = base.deriveFont(Font.BOLD);
                 }
@@ -464,7 +466,8 @@ public class TaskScheduleDialog
                     ((JComponent) result).setToolTipText(errorStr);
                 if (errorStr != null)
                     result.setForeground(Color.red);
-                result.setFont(getFont(errorStr != null, result));
+                Font f = getFont(errorStr != null, result);
+                if (f != null) result.setFont(f);
 
                 return result;
             }
@@ -490,6 +493,7 @@ public class TaskScheduleDialog
         private Font getFont(boolean bold, Component c) {
             if (this.regular == null) {
                 Font base = c.getFont();
+                if (base == null) return null;
                 this.regular = base.deriveFont(Font.PLAIN);
                 this.bold    = base.deriveFont(Font.BOLD);
             }
@@ -541,7 +545,8 @@ public class TaskScheduleDialog
                 ((JComponent) result).setToolTipText(errorStr);
             if (errorStr != null)
                 result.setForeground(Color.red);
-            result.setFont(getFont(errorStr != null, result));
+            Font f = getFont(errorStr != null, result);
+            if (f != null) result.setFont(f);
 
             return result;
         }
