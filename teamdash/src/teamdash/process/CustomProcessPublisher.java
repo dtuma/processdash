@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import pspdash.AutoUpdateManager;
+import pspdash.DashPackage;
 import pspdash.HTMLPreprocessor;
 import pspdash.ProgressDialog;
 import pspdash.StringUtils;
@@ -107,10 +107,10 @@ public class CustomProcessPublisher {
         Manifest mf = new Manifest();
         Attributes attrs = mf.getMainAttributes();
         attrs.putValue("Manifest-Version", "1.0");
-        attrs.putValue(AutoUpdateManager.NAME_ATTRIBUTE,
+        attrs.putValue(DashPackage.NAME_ATTRIBUTE,
                        (String) parameters.get("Full_Name"));
-        attrs.putValue(AutoUpdateManager.ID_ATTRIBUTE, process.getProcessID());
-        attrs.putValue(AutoUpdateManager.VERSION_ATTRIBUTE,
+        attrs.putValue(DashPackage.ID_ATTRIBUTE, process.getProcessID());
+        attrs.putValue(DashPackage.VERSION_ATTRIBUTE,
                        scriptVers + "." + System.currentTimeMillis());
 
         FileOutputStream fos = new FileOutputStream(destFile);
