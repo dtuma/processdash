@@ -67,7 +67,7 @@ public class ProbeDialog extends JDialog implements
             data   = parent.data;
 
             boolean simpleProbeLists =
-                Settings.getVal("probe.dataList").equalsIgnoreCase("simple");
+                Settings.getVal("probeDialog.dataList").equalsIgnoreCase("simple");
             JPanel panel = new JPanel();
             GridBagLayout layout = new GridBagLayout();
             GridBagConstraints g = new GridBagConstraints();
