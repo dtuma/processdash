@@ -26,7 +26,7 @@
 package pspdash.data;
 
 
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Vector;
 import java.lang.Double;
 
@@ -77,7 +77,7 @@ public class DataCorrelator {
     }
 
     private void scanRepository() {
-        Enumeration keys = data.keys();
+        Iterator keys = data.getKeys();
         String name, xFullName, prefix, yFullName, completedFullName;
         int prefixPos;
         DoubleData x, y;
@@ -87,8 +87,8 @@ public class DataCorrelator {
         dataPoints = new Vector();
         dataNames = new Vector();
 
-        while (keys.hasMoreElements()) {
-            name = (String)keys.nextElement();
+        while (keys.hasNext()) {
+            name = (String)keys.next();
             if (name.endsWith(xName) && matchesFilter(name)) try {
                 prefix = name.substring(0, name.length() - xName.length());
                 xFullName = name;

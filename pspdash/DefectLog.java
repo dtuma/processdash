@@ -31,7 +31,7 @@ import pspdash.data.DataRepository;
 
 import java.io.*;
 import java.util.Hashtable;
-import java.util.Enumeration;
+import java.util.Iterator;
 
 
 public class DefectLog {
@@ -221,13 +221,13 @@ public class DefectLog {
             phaseData.increment(defects[i].phase_removed + defectRemovedSuffix);
         }
 
-        Enumeration dataNames = data.keys();
+        Iterator dataNames = data.getKeys();
         String name, subname;
         int prefixLength = dataPrefix.length();
         DoubleData val;
 
-        while (dataNames.hasMoreElements()) {
-            name = (String) dataNames.nextElement();
+        while (dataNames.hasNext()) {
+            name = (String) dataNames.next();
             if (name.startsWith(dataPrefix)) {
                 subname = name.substring(prefixLength);
                 if (subname.endsWith(defectInjectedSuffix) ||
@@ -239,9 +239,9 @@ public class DefectLog {
             }
         }
 
-        dataNames = phaseData.keys();
-        while (dataNames.hasMoreElements()) {
-            subname = (String) dataNames.nextElement();
+        dataNames = phaseData.keySet().iterator();
+        while (dataNames.hasNext()) {
+            subname = (String) dataNames.next();
             name = dataPrefix + subname;
             val = new DoubleData(phaseData.extractValue(subname));
             val.setEditable(false);

@@ -70,9 +70,9 @@ public class DataComboBox extends JComboBox implements ILessThan {
 
         String dataName;
         int sepLoc;
-        Enumeration dataNames = dr.keys();
-        while (dataNames.hasMoreElements()) {
-            dataName = (String) dataNames.nextElement();
+        Iterator dataNames = dr.getKeys();
+        while (dataNames.hasNext()) {
+            dataName = (String) dataNames.next();
 
                                       // ignore transient and anonymous data.
             if (dataName.indexOf("//") != -1) continue;
