@@ -61,4 +61,16 @@ public class DashController {
         dash.toFront();
     }
 
+    public static void startTiming() { dash.pause_button.cont();  }
+    public static void stopTiming()  { dash.pause_button.pause(); }
+    public static void setPath(String path) {
+        dash.pause_button.setPath(path);
+    }
+
+    public static void printNullDocument(PrintWriter out) {
+        out.println("<HTML><HEAD><SCRIPT>");
+        out.println("history.back();");
+        out.println("</SCRIPT></HEAD><BODY></BODY></HTML>");
+    }
+
 }

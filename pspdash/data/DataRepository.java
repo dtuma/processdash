@@ -377,9 +377,9 @@ public class DataRepository implements Repository {
                     if (t == null)
                         elements.put(CIRCULARITY_TOKEN, Thread.currentThread());
                     else if (t != Thread.currentThread()) {
-                        System.out.println("waiting for other thread...");
+                        //System.out.println("waiting for other thread...");
                         try { elements.wait(); } catch (InterruptedException ie) {}
-                        System.out.println("waiting done.");
+                        //System.out.println("waiting done.");
                         return;
                     } else {
                         if (listenerName != null) {

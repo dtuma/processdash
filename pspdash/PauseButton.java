@@ -138,18 +138,8 @@ public class PauseButton extends DropDownButton implements ActionListener {
 
         } else if (e.getSource() instanceof JMenuItem) {
             JMenuItem item = (JMenuItem) e.getSource();
-            pause();
-            if (parent.hierarchy.setPath(item.getText()))
-                cont();
-            else {
-                // They've gone and edited their hierarchy, and the
-                // requested node no longer exists! Beep to let them
-                // know there was a problem, then remove this item
-                // from the history list so they can't select it again
-                // in the future.
-                Toolkit.getDefaultToolkit().beep();
+            if (!setPath(item.getText()))
                 getMenu().remove(item);
-            }
         } else {
             if (paused) cont(); else pause();
         }
@@ -191,6 +181,21 @@ public class PauseButton extends DropDownButton implements ActionListener {
         }
 
         if (!paused) cont();
+    }
+
+    public boolean setPath(String path) {
+        if (parent.hierarchy.setPath(path))
+            return true;
+        else {
+            // They've gone and edited their hierarchy, and the
+            // requested node no longer exists! Beep to let them
+            // know there was a problem, then remove this item
+            // from the history list so they can't select it again
+            // in the future.
+            pause();
+            Toolkit.getDefaultToolkit().beep();
+            return false;
+        }
     }
 
     public void addToMenu(String path) {
