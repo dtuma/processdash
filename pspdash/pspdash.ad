@@ -91,7 +91,7 @@ defectDialog.phaseMap=HLD=>Design|Design=>Test
 # of data elements choices for correlating.
 #
 probeDialog.dataList=simple
-probeWizard.strictTimeMethods=false
+probeWizard.strictTimeMethods=true
 
 
 #
