@@ -25,14 +25,14 @@
 
 package net.sourceforge.processdash;
 
+import net.sourceforge.processdash.hier.DashHierarchy;
 import pspdash.ObjectCache;
-import pspdash.PSPProperties;
 import pspdash.TinyWebServer;
 import pspdash.data.DataRepository;
 
 public interface DashboardContext {
 
-    public PSPProperties getHierarchy();
+    public DashHierarchy getHierarchy();
 
     public DataRepository getData();
 

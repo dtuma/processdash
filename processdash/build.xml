@@ -151,7 +151,7 @@ Authors:
            classpathref="build.classpath">
       <include name="net/**/*.java"/>
       <include name="pspdash/**/*.java"/>
-      <exclude name="pspdash/DashHelpBroker*.java"/>
+      <exclude name="net/sourceforge/processdash/ui/help/DashHelpBroker*.java"/>
       <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ns.txt"/>
@@ -168,23 +168,23 @@ Authors:
          <path refid="build.classpath"/>
          <pathelement location="${javahelp.jhjar}"/>
        </classpath>
-       <include name="pspdash/DashHelpBroker*.java"/>
+       <include name="net/sourceforge/processdash/ui/help/DashHelpBroker*.java"/>
     </javac>
   </target>
 
   <target name="-javahelp-cgi-src" depends="-javahelp-cgi-src-depend"
           if="javahelp.jhjar" unless="javahelp.cgi.src.upToDate">
-    <copy file="${pspdash}/DashHelpBroker.java"
-          tofile="${pspdash}/DashHelpBrokerCGI.java"/>
-    <replace file="${pspdash}/DashHelpBrokerCGI.java"
+    <copy file="${processdash}/ui/help/DashHelpBroker.java"
+          tofile="${processdash}/ui/help/DashHelpBrokerCGI.java"/>
+    <replace file="${processdash}/ui/help/DashHelpBrokerCGI.java"
           token="DashHelpBroker"
 	  value="DashHelpBrokerCGI"/>
   </target>
 
   <target name="-javahelp-cgi-src-depend">
     <uptodate property="javahelp.cgi.src.upToDate"
-              srcfile="${pspdash}/DashHelpBroker.java"
-              targetfile="${pspdash}/DashHelpBrokerCGI.java"/>
+              srcfile="${processdash}/ui/help/DashHelpBroker.java"
+              targetfile="${processdash}/ui/help/DashHelpBrokerCGI.java"/>
   </target>
 
 
@@ -458,6 +458,7 @@ Authors:
     <delete quiet="true" dir="${compiler}/parser"/>
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
+    <delete quiet="true" file="${processdash}/ui/help/DashHelpBrokerCGI.java"/>
 
     <delete quiet="true" file="${dist}/pspdash.jar"/>
     <delete quiet="true" file="${dist}/dashHelp.jar"/>
