@@ -1,0 +1,41 @@
+
+<project default="jar" basedir=".">
+
+
+  <target name="jar">
+    <exec executable="perl" dir="Templates/team/setup">
+      <arg value="makeList.pl"/>
+    </exec>
+    <jar destfile="TeamTools.jar" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
+	<attribute name="Dash-Pkg-ID" value="teamTools"/>
+	<attribute name="Dash-Pkg-Version" value="1.7.0"/>
+	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
+	<attribute name="Dash-Pkg-URL"
+	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <!-- include the compiled files -->
+      <fileset dir="src/bin">
+        <include name="teamdash/**/*.class"/>
+        <include name="teamdash/**/*.png"/>
+        <include name="teamdash/**/*.gif"/>
+      </fileset>
+
+      <!-- include the templates and cgi scripts -->
+      <fileset dir=".">
+        <include name="Templates/team/lib/" />
+        <exclude name="Templates/team/lib/todo.txt" />
+        <include name="Templates/team/tools/*.class" />
+        <include name="Templates/team/tools/*.shtm" />
+        <include name="Templates/team/setup/*.class" />
+        <include name="Templates/team/setup/*.shtm" />
+        <include name="Templates/team/setup/filelist.txt" />
+      </fileset>
+
+    </jar>
+  </target>
+
+</project>
