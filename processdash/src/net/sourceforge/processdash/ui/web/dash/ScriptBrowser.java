@@ -29,12 +29,12 @@ package net.sourceforge.processdash.ui.web.dash;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.PSPProperties;
-import pspdash.PropertyKey;
 import pspdash.ScriptID;
-import pspdash.TinyCGIBase;
 import pspdash.TinyWebServer;
 
 
@@ -51,7 +51,7 @@ public class ScriptBrowser extends TinyCGIBase {
         String prefix = getPrefix();
         if (prefix == null) prefix = "";
 
-        PSPProperties props = getPSPProperties();
+        DashHierarchy props = getPSPProperties();
         PropertyKey key = props.findExistingKey(prefix);
 
         out.write("<HTML><HEAD>");
@@ -83,7 +83,7 @@ public class ScriptBrowser extends TinyCGIBase {
         out.write("</BODY></HTML>");
     }
 
-    protected void writeNode(PSPProperties props, PropertyKey node) {
+    protected void writeNode(DashHierarchy props, PropertyKey node) {
         boolean isLeaf = (props.getNumChildren(node) == 0);
         String prefix = TinyWebServer.urlEncodePath(node.path());
 

@@ -29,9 +29,10 @@ package net.sourceforge.processdash.ui.web.psp;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import pspdash.PSPProperties;
-import pspdash.PropertyKey;
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 
 
 public class CycleSummaryForm extends TinyCGIBase {
@@ -81,7 +82,7 @@ public class CycleSummaryForm extends TinyCGIBase {
     /** Get the list of PSP3 cycle names under the current PSP3 task. */
     private String[] getCycleList() {
         String prefix = (String) env.get("PATH_TRANSLATED");
-        PSPProperties props = getPSPProperties();
+        DashHierarchy props = getPSPProperties();
         PropertyKey self = props.findExistingKey(prefix);
         // WARNING: the "4" on the next line is a magic number which
         // depends on the structure of the PSP3 template.

@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.ui.web.dash;
 
 
-import pspdash.TinyCGIBase;
 import pspdash.TinyCGIHighVolume;
 import pspdash.MimeHTMLArchiver;
 
@@ -42,6 +41,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 

@@ -30,9 +30,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.TinyCGIBase;
 import pspdash.data.FormToHTML;
 
 

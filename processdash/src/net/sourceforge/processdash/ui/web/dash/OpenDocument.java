@@ -52,6 +52,9 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
 
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLDepthFirstIterator;
@@ -62,11 +65,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import pspdash.Browser;
 import pspdash.DashController;
-import pspdash.Resources;
 import pspdash.Settings;
-import pspdash.TinyCGIBase;
 import pspdash.TinyWebServer;
 import pspdash.data.DataRepository;
 import pspdash.data.InterpolatingFilter;

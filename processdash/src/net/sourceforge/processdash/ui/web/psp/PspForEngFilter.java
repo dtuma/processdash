@@ -34,7 +34,8 @@ import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 
 
 public class PspForEngFilter extends TinyCGIBase {

@@ -30,13 +30,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import net.sourceforge.processdash.log.Defect;
+import net.sourceforge.processdash.log.DefectAnalyzer;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
-import pspdash.Defect;
-import pspdash.DefectAnalyzer;
 import pspdash.DefectTypeStandard;
-import pspdash.TinyCGIBase;
 
 
 public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {

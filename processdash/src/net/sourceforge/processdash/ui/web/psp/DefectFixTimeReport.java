@@ -29,9 +29,10 @@ package net.sourceforge.processdash.ui.web.psp;
 
 import java.text.NumberFormat;
 
-import pspdash.Defect;
-import pspdash.DefectAnalyzer;
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.log.Defect;
+import net.sourceforge.processdash.log.DefectAnalyzer;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 
 
 public class DefectFixTimeReport extends TinyCGIBase implements DefectAnalyzer.Task {

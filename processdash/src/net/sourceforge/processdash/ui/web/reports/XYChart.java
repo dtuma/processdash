@@ -26,6 +26,9 @@
 package net.sourceforge.processdash.ui.web.reports;
 
 
+import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.ui.web.CGIChartBase;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
@@ -34,9 +37,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.StandardXYItemRenderer;
 import org.jfree.data.XYDataset;
 
-import pspdash.CGIChartBase;
-import pspdash.Translator;
-import pspdash.XYDataSourceTrendLine;
 import pspdash.data.DateData;
 
 

@@ -29,7 +29,8 @@ package net.sourceforge.processdash.ui.web.psp;
 
 import java.io.IOException;
 
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 import pspdash.TinyWebServer;
 import pspdash.data.DataRepository;
 import pspdash.data.SimpleData;

@@ -28,9 +28,10 @@ package net.sourceforge.processdash.ui.web.dash;
 
 import java.io.IOException;
 
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 import pspdash.DashController;
 import pspdash.PSPDashboard;
-import pspdash.TinyCGIBase;
 import pspdash.TinyWebServer;
 
 

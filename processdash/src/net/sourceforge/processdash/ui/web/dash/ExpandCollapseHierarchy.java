@@ -26,7 +26,7 @@
 package net.sourceforge.processdash.ui.web.dash;
 
 
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import pspdash.data.ImmutableDoubleData;
 
 

@@ -31,13 +31,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import net.sourceforge.processdash.log.Defect;
+import net.sourceforge.processdash.log.DefectAnalyzer;
+import net.sourceforge.processdash.ui.web.CGIChartBase;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 
-import pspdash.CGIChartBase;
-import pspdash.Defect;
-import pspdash.DefectAnalyzer;
 import pspdash.DefectTypeStandard;
 import pspdash.data.DoubleData;
 import pspdash.data.ResultSet;

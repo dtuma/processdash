@@ -29,9 +29,10 @@ package net.sourceforge.processdash.ui.web.dash;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import pspdash.PSPProperties;
-import pspdash.PropertyKey;
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 import pspdash.data.DataRepository;
 import pspdash.data.SimpleData;
 
@@ -91,7 +92,7 @@ public class GenericPlanSummaryForm extends TinyCGIBase {
     /** Get the list of phases under the current generic project. */
     private String[] getPhaseList() {
         String prefix = (String) env.get("PATH_TRANSLATED");
-        PSPProperties props = getPSPProperties();
+        DashHierarchy props = getPSPProperties();
         PropertyKey self = props.findExistingKey(prefix);
         int numPhases = props.getNumChildren (self);
         showFriendlyHelp = (numPhases == 2);

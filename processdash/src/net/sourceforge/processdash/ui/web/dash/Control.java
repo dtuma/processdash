@@ -32,9 +32,11 @@ import java.util.Date;
 
 import javax.swing.SwingUtilities;
 
-import pspdash.ConsoleWindow;
 import pspdash.DashController;
-import pspdash.TinyCGIBase;
+
+import net.sourceforge.processdash.ui.ConsoleWindow;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 
 
 public class Control extends TinyCGIBase {

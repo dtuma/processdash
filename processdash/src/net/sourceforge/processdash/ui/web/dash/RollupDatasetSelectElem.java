@@ -30,7 +30,8 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 import pspdash.data.DataEvent;
 import pspdash.data.DataListener;
 import pspdash.data.DataRepository;

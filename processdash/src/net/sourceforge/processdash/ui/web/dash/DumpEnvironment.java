@@ -30,7 +30,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 
 
 public class DumpEnvironment extends TinyCGIBase {

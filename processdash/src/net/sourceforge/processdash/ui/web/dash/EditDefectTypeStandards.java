@@ -28,13 +28,13 @@ package net.sourceforge.processdash.ui.web.dash;
 
 import java.io.IOException;
 
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import pspdash.DashController;
 import pspdash.DefectTypeStandard;
-import pspdash.Resources;
-import pspdash.TinyCGIBase;
 import pspdash.data.DataRepository;
 
 

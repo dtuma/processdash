@@ -31,9 +31,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import pspdash.Settings;
-import pspdash.TinyCGIBase;
 import pspdash.TinyWebServer;
 
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 
 

@@ -29,9 +29,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 
-import pspdash.TinyCGIBase;
 import pspdash.data.DataRepository;
 
 public class SizeEstimatingTemplate extends TinyCGIBase {

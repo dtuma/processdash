@@ -28,10 +28,13 @@ package net.sourceforge.processdash.ui.web.reports;
 
 
 import pspdash.*;
-import pspdash.TimeLog;
 import java.io.IOException;
 import java.util.Enumeration;
 
+import net.sourceforge.processdash.hier.*;
+import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.ui.web.*;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -79,7 +82,7 @@ public class TimeLogReport extends TinyCGIBase {
         TimeLog tl = new TimeLog();
         tl.readDefault();
 
-        PSPProperties props = getPSPProperties();
+        DashHierarchy props = getPSPProperties();
         Enumeration rows = tl.filter(props.findExistingKey(path), null, null);
         TimeLogEntry tle;
         String entryPath, phase;
@@ -95,7 +98,7 @@ public class TimeLogReport extends TinyCGIBase {
             out.println("<TD NOWRAP>" + entryPath + "</TD>");
             out.println("<TD>" + phase + "</TD>");
             out.println("<TD>" +
-                        DateFormatter.formatDateTime(tle.getStartTime()) +
+                        FormatUtil.formatDateTime(tle.getStartTime()) +
                         "</TD>");
             out.println("<TD>" + tle.getElapsedTime() + "</TD>");
             out.println("<TD>" + tle.getInterruptTime() + "</TD>");

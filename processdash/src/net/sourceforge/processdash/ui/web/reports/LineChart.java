@@ -26,11 +26,12 @@
 package net.sourceforge.processdash.ui.web.reports;
 
 
+import net.sourceforge.processdash.ui.web.CGIChartBase;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 
-import pspdash.CGIChartBase;
 
 
 public class LineChart extends CGIChartBase {

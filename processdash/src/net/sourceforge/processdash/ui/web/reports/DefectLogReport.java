@@ -29,12 +29,11 @@ package net.sourceforge.processdash.ui.web.reports;
 
 import java.util.HashSet;
 
+import net.sourceforge.processdash.log.Defect;
+import net.sourceforge.processdash.log.DefectAnalyzer;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.StringUtils;
-
-import pspdash.DateFormatter;
-import pspdash.Defect;
-import pspdash.DefectAnalyzer;
-import pspdash.TinyCGIBase;
 
 
 public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task {
@@ -131,7 +130,7 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
 
         out.println("<TR>");
         out.println("<TD NOWRAP>" + path + "</TD>");
-        out.println("<TD>" + DateFormatter.formatDate(d.date) + "</TD>");
+        out.println("<TD>" + FormatUtil.formatDate(d.date) + "</TD>");
         out.println("<TD>" + d.number + "</TD>");
         out.println("<TD>" + d.defect_type + "</TD>");
         out.println("<TD>" + d.phase_injected + "</TD>");

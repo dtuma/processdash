@@ -26,6 +26,8 @@
 package net.sourceforge.processdash.ui.web.reports;
 
 
+import net.sourceforge.processdash.ui.web.CGIChartBase;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PiePlot;
@@ -33,7 +35,6 @@ import org.jfree.data.CategoryDataset;
 import org.jfree.data.DatasetUtilities;
 import org.jfree.data.PieDataset;
 
-import pspdash.CGIChartBase;
 
 
 public class PieChart extends CGIChartBase {
