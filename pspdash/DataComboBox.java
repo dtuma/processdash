@@ -31,7 +31,8 @@ import javax.swing.*;
 import java.util.*;
 import java.io.*;
 import pspdash.data.DataRepository;
-import pspdash.data.DoubleData;
+import com.oroinc.text.perl.Perl5Util;
+import com.oroinc.text.perl.MalformedPerl5PatternException;
 
 public class DataComboBox extends JComboBox implements ILessThan {
 
@@ -43,6 +44,10 @@ public class DataComboBox extends JComboBox implements ILessThan {
         super();
         setEditable (true);
 
+        Iterator i = getAllDataNames(dr).iterator();
+        while (i.hasNext())
+            addItem((String) i.next());
+
         if (hiddenData == null) {
             hiddenData = new Vector();
             String hiddenText = Settings.getVal(settingName);
@@ -52,33 +57,42 @@ public class DataComboBox extends JComboBox implements ILessThan {
                     hiddenData.addElement (st.nextToken ());
             }
         }
-
-        String s;
-        int sepLoc;
-        Enumeration keys = dr.keys();
-        Vector v = new Vector();
-        while (keys.hasMoreElements()) {
-            s = (String)keys.nextElement();
-            sepLoc = s.lastIndexOf ("/");
-            if (sepLoc != -1)
-                s = s.substring (sepLoc + 1);
-            if (v.indexOf (s) == -1 && hiddenData.indexOf (s) == -1) {
-                v.addElement (s);
-            }
-        }
-
-        VectorQSort vqs = new VectorQSort (v, this);
-        vqs.sort();
-        v = vqs.getVector();
-
-        keys = v.elements();
-        while (keys.hasMoreElements()) {
-            addItem ((String)keys.nextElement());
-        }
     }
 
     public boolean lessThan(Object oFirst, Object oSecond) {
         return ((String)oFirst).compareTo ((String)oSecond) < 0;
+    }
+
+    public static Set getAllDataNames(DataRepository dr) {
+        Perl5Util perl = new Perl5Util();
+        Set result = new TreeSet();
+        String hiddenDataRE = "m\n^(" + Settings.getVal(settingName) + ")$\ni";
+
+        String dataName;
+        int sepLoc;
+        Enumeration dataNames = dr.keys();
+        while (dataNames.hasMoreElements()) {
+            dataName = (String) dataNames.nextElement();
+
+                                      // ignore transient and anonymous data.
+            if (dataName.indexOf("//") != -1) continue;
+
+                                      // get the name of the data element only.
+            sepLoc = dataName.lastIndexOf ("/");
+            if (sepLoc != -1)
+                dataName = dataName.substring (sepLoc + 1);
+
+            try {
+                if (!perl.match(hiddenDataRE, dataName))
+                    result.add(dataName);
+            } catch (MalformedPerl5PatternException mp5pe) {
+                System.err.println("The user setting, 'hiddenData', is not a valid " +
+                                   "regular expression.");
+                break;
+            }
+        }
+
+        return result;
     }
 
 }
