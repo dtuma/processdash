@@ -18,4 +18,12 @@
     </copy>
   </target>
 
+  <target name="javadoc" description="build javadoc">
+    <javadoc packagenames="teamdash.*"
+     sourcepath=".." 
+     destdir="../doc">
+     </javadoc>
+  </target>  
+
+
 </project>
