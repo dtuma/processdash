@@ -66,7 +66,7 @@ PropertyKey<top/PSP3><Postmortem>=Prop[][][][][ME<>][0][0]
 ## Template for a PSP3 cycle
 ##
 
-PropertyKey<top><PSP3cycle>=Prop[][PSP3cycle][psp3/develop.htm][psp3/dataFile.txt][<>PSP3][0][7][PropertyKey<top/PSP3cycle><Design>][PropertyKey<top/PSP3cycle><Design Review>][PropertyKey<top/PSP3cycle><Code>][PropertyKey<top/PSP3cycle><Code Review>][PropertyKey<top/PSP3cycle><Compile>][PropertyKey<top/PSP3cycle><Test>][PropertyKey<top/PSP3cycle><Reassessment>]
+PropertyKey<top><PSP3cycle>=Prop[][PSP3cycle][][psp3/cycleData.txt][<>PSP3][0][7][PropertyKey<top/PSP3cycle><Design>][PropertyKey<top/PSP3cycle><Design Review>][PropertyKey<top/PSP3cycle><Code>][PropertyKey<top/PSP3cycle><Code Review>][PropertyKey<top/PSP3cycle><Compile>][PropertyKey<top/PSP3cycle><Test>][PropertyKey<top/PSP3cycle><Reassessment>]
 PropertyKey<top/PSP3cycle><Design>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP3cycle><Design Review>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP3cycle><Code>=Prop[][][][][ME<>][0][0]
