@@ -25,35 +25,15 @@
 
 package pspdash;
 
-import javax.help.*;
-import java.awt.Toolkit;
-// import javax.swing.JSplitPane;
+import java.awt.Component;
 
-public class DashHelpBroker extends DefaultHelpBroker implements HelpBroker {
+interface DashHelpProvider {
 
-    DashHelpBroker() {
-        super();
-    }
+    public void enableHelpKey(Component comp, String id);
+    public void enableHelp(Component comp, String helpID);
+    public void enableHelpOnButton(Component comp, String helpID);
+    public void displayHelpTopic(String helpID);
+    public void displaySearchTab();
+    public String getHelpIDString(Component comp);
 
-    // this wrapper class should allow me to set the icon on the top of the
-    // helpset viewer to match the dashboard stopwatch icon
-    DashHelpBroker(HelpSet hs) {
-        super(hs);
-        initPresentation();
-
-        frame.setIconImage(Toolkit.getDefaultToolkit().createImage
-            (getClass().getResource("icon32.gif")));
-
-//      jsplit.setDividerLocation(0.25);
-    }
-
-    public void setHelpSet(HelpSet hs) {
-        super.setHelpSet(hs);
-        initPresentation();
-
-        frame.setIconImage(Toolkit.getDefaultToolkit().createImage
-            (getClass().getResource("icon32.gif")));
-
-//      splitpane.setDividerLocation(0.25);
-    }
 }

@@ -30,7 +30,7 @@ import java.awt.Component;
 import java.awt.MenuItem;
 import java.net.URL;
 import javax.swing.JFrame;
-import javax.help.*;
+//import javax.help.*;
 
 
 /** Wrapper to context-sensitive help functionality.
@@ -41,67 +41,46 @@ import javax.help.*;
 class PCSH {
 
     public static void enableHelpKey(JFrame frame, String id) {
-        getHelpBroker().enableHelpKey(frame.getRootPane(), id, null);
+        getHelpProvider().enableHelpKey(frame.getRootPane(), id);
     }
 
     public static void enableHelpKey(Component comp, String id) {
-        getHelpBroker().enableHelpKey(comp, id, null);
+        getHelpProvider().enableHelpKey(comp, id);
     }
 
     public static void enableHelp(Component comp, String helpID) {
-        getHelpBroker().enableHelp(comp, helpID, null);
+        getHelpProvider().enableHelp(comp, helpID);
     }
 
     public static void enableHelpOnButton(Component comp, String helpID) {
-        javax.help.CSH.setHelpIDString(comp, helpID);
-        getHelpBroker().enableHelpOnButton(comp, helpID, null);
+        getHelpProvider().enableHelpOnButton(comp, helpID);
     }
 
     public static void displayHelpTopic(String helpID) {
-        DashHelpBroker help = getHelpBroker();
-        setActiveTab(help, "TOC");
-        help.setCurrentID(helpID);
-        help.setDisplayed(true);
+        getHelpProvider().displayHelpTopic(helpID);
     }
 
     public static void displaySearchTab() {
-        DashHelpBroker help = getHelpBroker();
-        setActiveTab(help, "Search");
-        help.setDisplayed(true);
-    }
-    private static void setActiveTab(DashHelpBroker help, String tab) {
-        try { help.setCurrentView(tab); } catch (Exception e) {}
+        getHelpProvider().displaySearchTab();
     }
 
     public static String getHelpIDString(Component comp) {
-        return CSH.getHelpIDString(comp);
+        return getHelpProvider().getHelpIDString(comp);
     }
 
-    //    public static void setHelpIDString(MenuItem comp, String helpID) {
-    //        javax.help.CSH.setHelpIDString(comp, helpID);
-    //    }
+    private static DashHelpProvider DEFAULT_INSTANCE = null;
 
-    private static DashHelpBroker DEFAULT_INSTANCE = null;
-
-    public static DashHelpBroker getHelpBroker() {
+    public static DashHelpProvider getHelpProvider() {
         if (DEFAULT_INSTANCE == null) try {
-            URL hsURL = TemplateLoader.resolveURL(HELPSET_PATH);
-
-            HelpSet hs = new HelpSet(null,hsURL);
-            //System.out.println("Found help set at " + hsURL);
-
-            DEFAULT_INSTANCE = new DashHelpBroker(hs);
-
-            // set the size for the display
-            DEFAULT_INSTANCE.setSize(new Dimension(645,495));
+            Class c = Class.forName("pspdash.DashHelpBroker");
+            DEFAULT_INSTANCE = (DashHelpProvider) c.newInstance();
         } catch (Exception e) {
-            System.out.println("Error on help");
+            DEFAULT_INSTANCE = new SimpleHelpProvider();
         }
 
         return DEFAULT_INSTANCE;
     }
 
-    private static final String HELPSET_PATH = "/help/PSPDash.hs";
 
 
 }

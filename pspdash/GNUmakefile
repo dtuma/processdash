@@ -58,6 +58,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/dash/pspdiff.java \
 	Templates/dash/pspdiffDialog.java \
 	Templates/dash/selectRollup.java \
+	Templates/dash/teamStart.java \
 	Templates/reports/psp/r3c.java \
 	Templates/reports/psp/r4.java \
 	Templates/reports/psp/r5a.java \
@@ -219,12 +220,28 @@ $(CLASS_FILES) : %.class : $(BIN)/pspdash/%.class
 
 $(BIN)/pspdash/%.class: %.java
 	$(JAVAC) \
-	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar$(DS)build/jh.jar$(DS)build/jaxp.jar$(DS)build/crimson.jar' \
+	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar$(DS)build/jaxp.jar$(DS)build/crimson.jar' \
 	    -deprecation \
 	    -sourcepath $(SRC) \
 	    -d $(BIN) \
 	    *.java
 # $^
+
+#################################################################
+# To build the following file (and thus enable context-sensitive
+# help within the dashboard) you must have the javahelp classes
+# in the path specified by the CLASSPATH environment variable.
+#################################################################
+
+javahelp: DashHelpBroker.jav
+	cp DashHelpBroker.jav DashHelpBroker.java
+	$(JAVAC) \
+	    -classpath '$(CLASSPATH)$(DS)build' \
+	    -deprecation \
+	    -sourcepath $(SRC) \
+	    -d $(BIN) \
+	    DashHelpBroker.java
+
 
 DataSources.class: $(BIN)/com/jrefinery/chart/DataSources.class
 XYPlot.class: $(BIN)/com/jrefinery/chart/XYPlot.class

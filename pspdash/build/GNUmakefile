@@ -64,12 +64,12 @@ install: pspdash.jar
 
 # "no templates" version of the jar file.  A little nicer for playing with 
 # the HTML and/or CGI stuff at runtime.
-install-nt: $(INSTALLED_FILES) manifest perltools jfreechart templates jhelp FORCE
+install-nt: $(INSTALLED_FILES) manifest perltools jfreechart templates FORCE
 	$(JAR) cfm pspdash.jar manifest pspdash com javax
 
 
 # package everything up for distribution
-pspdash.jar: $(INSTALLED_FILES) manifest perltools jaxp crimson jfreechart templates jhelp FORCE
+pspdash.jar: $(INSTALLED_FILES) manifest perltools jaxp crimson jfreechart templates FORCE
 	$(JAR) cfm pspdash.jar manifest pspdash com Templates javax org
 	@if [ -d final ]; then cp pspdash.jar final ; fi
 
@@ -126,10 +126,10 @@ com/jrefinery/chart/%.class: ../Templates/reports/%.java
 	cd ..; $(MAKE) XYPlot.class PiePlot.class DataSources.class
 
 # unzip the JavaHelp jarfile
-jhelp: javax/help/JHelp.class
+#jhelp: javax/help/JHelp.class
 
-javax/help/JHelp.class: jh.jar
-	$(JAR) -xf jh.jar
+#javax/help/JHelp.class: jh.jar
+#	$(JAR) -xf jh.jar
 
 clean:
 	rm -f pspdash.jar *~
