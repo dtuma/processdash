@@ -32,7 +32,7 @@ public class showenv extends TinyCGIBase {
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
         if (parameters.get("config") != null) {
-            out.println(InternalSettings.getSettingsFileName());
+            out.print(InternalSettings.getSettingsFileName());
             return;
         }
 

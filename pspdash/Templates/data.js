@@ -509,21 +509,16 @@ function NSversion() {
 if (debug) document.writeln("Starting setup process.");
 
 
-if (MSIEversion() >= 4)
+if (MSIEversion() >= 4) // && is windows
   IEsetup();
-else if (NSversion() >= 4 && NSversion() < 6)
+else if (NSversion() >= 5) // Netscape 6 uses "5" as its major version number
+  top.location.pathname =
+    "/help/Topics/Troubleshooting/DataApplet/NS6.htm";
+else if (NSversion() >= 4)
   NSSetup();
-else {
-    document.write("<HR><CENTER>");
-    document.write("HTML Data support of the PSP Dashboard requires either ");
-    document.write("Microsoft Internet Explorer 4.0 (or later) or ");
-    document.write("Netscape Navigator 4.0-4.75.  To use these ");
-    document.write("features, please click on one of the icons below to ");
-    document.write("download the latest version.<P>");
-    document.write('<A HREF="http://www.microsoft.com/ie/logo.asp"><IMG SRC="http://www.microsoft.com/sitebuilder/graphics/ie4get_animated.gif" WIDTH="88" HEIGHT="31" BORDER="0" ALT="Get Microsoft Internet Explorer"></A>');
-    document.write("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-    document.write('<A HREF="http://home.netscape.com/comprod/mirror/index.html"><IMG SRC="http://home.netscape.com/comprod/mirror/images/now_anim_button.gif" ALT="Choose Netscape Now" HEIGHT=31 WIDTH=88 BORDER=0></A>');
-}
+else
+  top.location.pathname =
+    "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";
 
 
 if (debug) document.writeln("<p>done with data.js.");
