@@ -28,11 +28,12 @@ import pspdash.PSPDiff;
 import pspdash.HTMLUtils;
 import pspdash.LanguageFilter;
 import pspdash.TinyCGIBase;
+import pspdash.TinyCGIHighVolume;
 
 import java.io.IOException;
 
 
-public class pspdiff extends TinyCGIBase {
+public class pspdiff extends TinyCGIBase implements TinyCGIHighVolume {
 
     protected void writeContents() throws IOException {
         if (parameters.get("showOptions") != null)
