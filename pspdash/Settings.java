@@ -64,8 +64,12 @@ public class Settings {
             return settings.getProperty(name);
     }
 
+
     public static String getFile(String name) {
-        String val = getVal(name);
+        return translateFile(getVal(name));
+    }
+
+    public static String translateFile(String val) {
         if (val == null || homedir == null) return null;
 
         StringBuffer result = new StringBuffer();
