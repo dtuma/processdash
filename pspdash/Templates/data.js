@@ -213,7 +213,7 @@ function IEsetup() {
     document.writeln('<applet id=IEDataAppl'+
 		            ' codebase="/1/IE"' +
 		            ' code=pspdash.data.IEDataApplet'+
-		            ' width=0 height=0>');
+		            ' width=1 height=1>');
     document.writeln(IEparameterString);
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
@@ -412,7 +412,7 @@ function NSSetup() {
     document.writeln('<applet name=NSDataAppl'+
 		            ' codebase="/1/NS" '+
 		            ' code=pspdash.data.NSDataApplet'+
-		            ' width=0 height=0 MAYSCRIPT>');
+		            ' width=1 height=1 MAYSCRIPT>');
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
     document.writeln('</applet>');
