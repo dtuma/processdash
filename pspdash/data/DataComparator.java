@@ -36,6 +36,7 @@ public class DataComparator implements Comparator {
     /** Dates sort before numbers, which sort before strings, which
      *  sort before null values. */
     public int compare(Object o1, Object o2) {
+        o1 = scrub(o1);    o2 = scrub(o2);
         if (o1 instanceof DateData) {
             if (o2 instanceof DateData) {
                 DateData d1 = (DateData) o1, d2 = (DateData) o2;
@@ -62,12 +63,15 @@ public class DataComparator implements Comparator {
             } else
                 return (o2 == null) ? -1 : 1;
 
-        } else if (o1 == null) {
-            return (o2 == null) ? 0 : 1;
-
         } else
-            throw new ClassCastException("attempting to compare " + o1 +
-                                         " to " + o2);
+            return (o2 == null) ? 0 : 1;
+    }
+
+    private Object scrub(Object obj) {
+        if (obj instanceof NumberData) return obj;
+        if (obj instanceof DateData) return obj;
+        if (obj instanceof StringData) return obj;
+        return null;
     }
 
     public boolean equals(Object obj) {
