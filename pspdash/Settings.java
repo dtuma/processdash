@@ -77,6 +77,14 @@ public class Settings {
         return defaultValue;
     }
 
+    public static int getInt(String name, int defaultValue) {
+        String setting = getVal(name);
+        if (setting != null) try {
+            return Integer.parseInt(setting);
+        } catch (NumberFormatException nfe) {}
+        return defaultValue;
+    }
+
 
     public static String getFile(String name) {
         return translateFile(getVal(name));
