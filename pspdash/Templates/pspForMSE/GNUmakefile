@@ -37,6 +37,8 @@ all: pspForMSE.jar
 
 DIR=Templates/pspForMSE
 JAR_CONTENTS=Templates/pspForMSE.template \
+   Templates/PSP1_0_1.template \
+   Templates/psp1.0.1/*.* \
 	$(DIR)/dataFile.txt \
 	$(DIR)/2A/*.* \
 	$(DIR)/*B/*.* \
@@ -77,7 +79,7 @@ $(PROG_4B_FILES): 4B/% : ../psp1.0.1/%
 ######################################################################
 # Make needed copies of the size estimatating template class.
 
-SIZEEST_COPIES=$(addsuffix /sizeest.class,3B 4B 5B)
+SIZEEST_COPIES=$(addsuffix /sizeest.class,3B 4B)
 $(SIZEEST_COPIES): ../psp1/sizeest.class
 	cp $< $@
 
