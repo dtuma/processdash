@@ -88,19 +88,18 @@ public class StringUtils
 
         int findLength = find.length();
         int replaceStart;
-        String toReturn = "";
+        StringBuffer toReturn = new StringBuffer();
 
         replaceStart = text.indexOf(find);
         while (replaceStart != -1)
         {
-            toReturn += text.substring(0, replaceStart);
-            toReturn += replace;
-            text = text.substring(replaceStart, findLength);
+            toReturn.append(text.substring(0, replaceStart)).append(replace);
+            text = text.substring(replaceStart+findLength);
             replaceStart = text.indexOf(find);
         }
 
-        toReturn += text;
-        return toReturn;
+        toReturn.append(text);
+        return toReturn.toString();
 
     }
 
