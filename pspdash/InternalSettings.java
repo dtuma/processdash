@@ -135,6 +135,11 @@ public class InternalSettings extends Settings {
         "file, use a forward slash as a separator.  It will be translated " +
         "into an appropriate OS-specific directory separator automatically.)";
 
+    public static void set(String name, String value, String comment) {
+        fsettings.setComment(name, comment);
+        set(name, value);
+    }
+
     public static void set(String name, String value) {
         if (value == null)
             settings.remove(name);
