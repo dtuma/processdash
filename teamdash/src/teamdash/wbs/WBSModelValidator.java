@@ -39,11 +39,11 @@ public class WBSModelValidator implements TableModelListener {
         }
         node.setAttribute(NODE_TYPE_ERROR_ATTR_NAME, typeError);
 
-        /* node names cannot be empty.
+        // node names cannot be empty.
         String name = node.getName();
         String nameError = checkNodeName(name, type);
         node.setAttribute(NODE_NAME_ERROR_ATTR_NAME, nameError);
-        */
+
 
         WBSNode[] children = wbsModel.getChildren(node);
         if (children != null && children.length > 0) {
