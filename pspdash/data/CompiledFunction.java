@@ -42,6 +42,7 @@ class CompiledFunction implements SaveableData,
     protected ActiveExpressionContext context = null;
     protected ListStack stack = null;
     protected SimpleData value = UNCALCULATED_VALUE;
+    protected boolean currentlyCalculating = false;
 
     public CompiledFunction(String name, CompiledScript script,
                             DataRepository r, String prefix) {
@@ -58,7 +59,6 @@ class CompiledFunction implements SaveableData,
     }
 
     protected void recalc() {
-        if (name == null) return;
         boolean needsNotify = (value != UNCALCULATED_VALUE);
 
         if (context == null) synchronized(this) {
@@ -71,10 +71,18 @@ class CompiledFunction implements SaveableData,
         Object calculationInfo;
         synchronized (stack) {
             synchronized (context) {
+                if (currentlyCalculating) {
+                    System.err.println("Encountered recursively defined data "+
+                                       "when calculating "+name+" - ABORTING");
+                    return;             // break out of infinite loops.
+                }
+
                 context.startCalculation();
                 stack.clear();
                 try {
+                    currentlyCalculating = true;
                     script.run(stack, context);
+                    currentlyCalculating = false;
                     value = (SimpleData) stack.pop();
                     if (value != null)
                         value = (SimpleData) value.getEditable(false);
