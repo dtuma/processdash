@@ -207,7 +207,7 @@ abstract class DataList {
 
         public void dataAdded(DataEvent e) {
             try {
-                if (perl.match(re, e.getName())) {
+                if (perl.match(re, e.getNameCA())) {
                     dataList.put(e.getName(), new DataListValue(null)); // needed?
                     data.addActiveDataListener(e.getName(), this, customerName);
                 }
@@ -393,7 +393,7 @@ abstract class DataList {
             String dataName = e.getName();
             try {
                 synchronized (perl) {
-                    if (!perl.match(re, dataName))
+                    if (!perl.match(re, e.getNameCA()))
                         return;
 
                     // use pattern substitution to compute expression for conditional
