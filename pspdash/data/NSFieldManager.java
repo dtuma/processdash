@@ -44,6 +44,7 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
 
 
     NSFieldManager(DataApplet a) throws Exception {
+        //* */ debug("constructor starting");
         isRunning = true;
         inputListeners = new Vector();
         unlocked = a.unlocked();
@@ -69,18 +70,22 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
 
         if (window == null)
             throw new Exception("Javascript not available in this window.");
+
+        //* */ debug("constructor finished");
     }
 
 
 
     public void initialize(Repository data, String dataPath) {
-        debug("initializing...");
+        //* */ debug("initializing...");
         if (!isRunning) return; // abort if we have been terminated.
 
         this.data = data;
         this.dataPath = dataPath;
 
+        //* */ debug("get document...");
         JSObject document = (JSObject) window.getMember("document");
+        //* */ debug("get forms...");
         JSObject formList = (JSObject) document.getMember("forms");
 
         // Build an internal list of all the elements on the form. (This
@@ -89,13 +94,18 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
         // them.)
         Vector allElements = new Vector();
         if (formList != null) {
+            //* */ debug("get forms.length...");
             int numForms = intValue(formList.getMember("length"));
             for (int formIdx = 0;   formIdx < numForms; formIdx++) {
+                //* */ debug("get a form...");
                 JSObject form = (JSObject) formList.getSlot(formIdx);
+                //* */ debug("get elements...");
                 JSObject elementList = (JSObject) form.getMember("elements");
+                //* */ debug("get elements.length...");
                 int numElements = intValue(elementList.getMember("length"));
                 for (int elementIdx = 0;  elementIdx < numElements;  elementIdx++) {
                     if (!isRunning) return; // abort if we have been terminated
+                    //* */ debug("add an element...");
                     allElements.addElement(elementList.getSlot(elementIdx));
                 }
             }
@@ -108,7 +118,7 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
                 ((JSObject)allElements.elementAt(elemNum), elemNum);
         }
 
-        debug("initialization complete.");
+        //* */ debug("initialization complete.");
     }
 
 
@@ -117,7 +127,7 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
         if (!repositoryExists) data = null;
 
         try {
-            // debug("erasing listeners...");
+            //* */ debug("erasing listeners...");
             for (int i = inputListeners.size();   i-- > 0; )
                 destroyInputListener(i);
 
@@ -147,7 +157,7 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
 
         try {
             String elementType = (String)element.getMember("type");
-            // debug("Initializing a "+elementType+" element named "+element.getMember("name"));
+            //* */ debug("Initializing a "+elementType+" element named "+element.getMember("name"));
             if ("text".equalsIgnoreCase(elementType) ||
                 "hidden".equalsIgnoreCase(elementType) ||
                 "textarea".equalsIgnoreCase(elementType))
@@ -165,12 +175,15 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
             // etc.
 
             if (f != null) {
+                //* */ debug("storing element");
                 while (inputListeners.size() < pos+1)
                     inputListeners.addElement(null);
                 inputListeners.setElementAt(f, pos);
+                //* */ debug("setting element "+INDEX_ATTR);
                 element.setMember(INDEX_ATTR, Integer.toString(pos));
+                //* */ debug("customizing element");
                 if (unlocked) f.unlock();
-                if (f.i.isActive()) f.i.setChangeListener(this);
+                if (f.i != null && f.i.isActive()) f.i.setChangeListener(this);
             }
         } catch (Exception e) {
             printError(e);
@@ -179,13 +192,17 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
     private static final String INDEX_ATTR = "id";
 
 
-    public void notifyListener(Object element) {
-        // debug("notifyListener called");
+    public void notifyListener(Object element, Object id) {
+        //* */ Object elementName = ((JSObject) element).getMember("name");
+        //* */ debug("notifyListener called by an element named "+elementName);
         NSField f = null;
 
         int idx = -1;
         try {
-            Object pos = ((JSObject) element).getMember(INDEX_ATTR);
+            Object pos = id;
+            if (pos == null)
+                pos = ((JSObject) element).getMember(INDEX_ATTR);
+            //* */ debug(INDEX_ATTR + "=" + pos);
             idx = intValue(pos);
         } catch (Exception e) {
             printError(e);
@@ -194,6 +211,7 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
         if (idx >= 0 && idx < inputListeners.size())
             f = (NSField) inputListeners.elementAt(idx);
 
+        //* */ debug("field="+f);
         notifier.addField(f);
     }
 
@@ -214,6 +232,6 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
         e.printStackTrace(System.err);
     }
     private void debug(String s) {
-        // System.out.println("NSFieldManager."+s);
+        System.out.println("NSFieldManager."+s);
     }
 }
