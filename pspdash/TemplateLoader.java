@@ -30,6 +30,7 @@ import pspdash.data.DataRepository;
 import pspdash.data.compiler.Compiler;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLConnection;
 import java.io.*;
 import java.util.*;
@@ -75,6 +76,7 @@ public class TemplateLoader {
 
                 // strip "file:" from the beginning of the url.
                 String dirname = templateDirURL.substring(5);
+                dirname = URLDecoder.decode(dirname);
                 searchDirForTemplates(templates, dirname, data);
 
             } else {
@@ -426,6 +428,7 @@ public class TemplateLoader {
         // jar:file:/usr/path/to/pspdash.jar!/pspdash/TemplateLoader.class
         if (myURL.startsWith("jar:file:")) try {
             String jarFileName = myURL.substring(9,myURL.indexOf("!/pspdash"));
+            jarFileName = URLDecoder.decode(jarFileName);
             File jarFile = new File(jarFileName);
             if (jarFile.exists())
                 return jarFile.getParent();
