@@ -26,18 +26,8 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.awt.event.*;
-import java.net.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.tree.TreePath;
-
 import pspdash.CachedObject;
 import pspdash.ObjectCache;
-import pspdash.data.DataRepository;
-import pspdash.data.StringData;
-import pspdash.data.SimpleData;
 
 public class EVTaskListCached extends EVTaskListXMLAbstract {
 

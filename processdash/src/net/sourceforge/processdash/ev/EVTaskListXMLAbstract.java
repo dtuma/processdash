@@ -26,21 +26,10 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.awt.event.*;
-import java.net.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.tree.TreePath;
-
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import pspdash.data.DataRepository;
-import pspdash.data.StringData;
-import pspdash.data.SimpleData;
 
 public class EVTaskListXMLAbstract extends EVTaskList {
 

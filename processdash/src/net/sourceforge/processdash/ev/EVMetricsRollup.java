@@ -25,15 +25,14 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.TreeMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.text.MessageFormat;
+import java.util.TreeMap;
 
-import net.sourceforge.processdash.ev.ci.*;
+import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.TargetedConfidenceInterval;
 
 
 public class EVMetricsRollup extends EVMetrics {

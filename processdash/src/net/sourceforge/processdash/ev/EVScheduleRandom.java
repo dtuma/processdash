@@ -30,10 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import net.sourceforge.processdash.ev.EVSchedule.Period;
-import net.sourceforge.processdash.ev.ci.*;
-
-
+import net.sourceforge.processdash.ev.ci.EVScheduleConfidenceIntervals;
 import DistLib.uniform;
 
 public class EVScheduleRandom extends EVSchedule

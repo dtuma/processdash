@@ -26,19 +26,24 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.awt.event.*;
-import java.io.IOException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.UnsupportedEncodingException;
-import java.net.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EventObject;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
-import javax.swing.*;
 import javax.swing.Timer;
-import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
-import javax.swing.table.*;
+import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 
 import pspdash.AbstractTreeTableModel;
@@ -47,11 +52,6 @@ import pspdash.PSPProperties;
 import pspdash.Resources;
 import pspdash.TreeTableModel;
 import pspdash.data.DataRepository;
-import pspdash.data.DataComparator;
-import pspdash.data.DoubleData;
-import pspdash.data.StringData;
-import pspdash.data.SimpleData;
-import pspdash.data.ListData;
 
 public class EVTaskList extends AbstractTreeTableModel
     implements EVTask.Listener, ActionListener
