@@ -57,7 +57,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static final String BUG_URL =
         "http://sourceforge.net/tracker/?group_id=9858&atid=109858";
     static final String FORUM_URL =
-        "http://sourceforge.net/forum/forum.php?forum_id=30752";
+        "http://sourceforge.net/forum/forum.php?forum_id=30753";
 
                                     // menu labels
     static final String HIERARCHY_FRAME  = "Hierarchy";
@@ -74,7 +74,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static final String HELP_SEARCH    = "Search";
     static final String HELP_ABOUT     = "About Process Dashboard";
     static final String HELP_BUG       = "Submit bug report";
-    static final String HELP_FORUM     = "Online discussion forum";
+    static final String HELP_FORUM     = "Online help forum";
     static final String HELP_CONSOLE   = "View debugging output";
 
                                   // menu labels & cmd text (see above)
