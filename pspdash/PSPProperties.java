@@ -327,13 +327,29 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         Iterator i = entrySet().iterator();
         Map.Entry e;
         Prop val;
+        PropertyKey result = null, oneKey;
         while (i.hasNext()) {
             e = (Map.Entry) i.next();
             val = (Prop) e.getValue();
-            if (id.equals(val.getID()))
-                return (PropertyKey) e.getKey();
+            if (id.equals(val.getID())) {
+                oneKey = (PropertyKey) e.getKey();
+
+                if (// If this is the first match we've found,
+                    result == null ||
+
+                    // or if this node's name also matches the id (while our
+                    // previous result's name did not),
+                    id.equals(oneKey.name()) && !id.equals(result.name()) ||
+
+                    // or if this node's path is shorter than the previous result's
+                    // path (presumably because it is closer to the ROOT),
+                    result.path().length() > oneKey.path().length())
+
+                    // then save this key as our best result found so far.
+                    result = oneKey;
+            }
         }
-        return null;
+        return result;
 
         // This is NOT the correct way to do this, but this is how PropertyFrame
         // is currently doing it.  Fix it later.
