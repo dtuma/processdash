@@ -62,7 +62,8 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
     public static void registerTemplates(Element e,
                                          DataRepository data) {
         NodeList templates = e.getElementsByTagName(TEMPLATE_NODE_NAME);
-        for (int i = templates.getLength();  i-- > 0; )
+        int len = templates.getLength();
+        for (int i = 0;   i < len;   i++)
             registerTemplate((Element) templates.item(i), data);
     }
 

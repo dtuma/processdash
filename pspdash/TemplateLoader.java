@@ -589,7 +589,8 @@ public class TemplateLoader {
 
     private static void createScriptMaps(Element e) {
         NodeList templates = e.getElementsByTagName(TEMPLATE_NODE_NAME);
-        for (int i = templates.getLength();  i-- > 0; ) try {
+        int len = templates.getLength();
+        for (int i = 0;  i < len;   i++) try {
             Element template = (Element) templates.item(i);
             Map idMap = addScriptMaps
                 (template.getAttribute(ID_ATTR),
@@ -609,8 +610,9 @@ public class TemplateLoader {
 
         Element htmlPage;
         String htmlID, htmlName, htmlHref;
+        int htmlPagesLen = htmlPages.getLength();
 
-        for (int i=0;  i<htmlPages.getLength();  i++) try {
+        for (int i=0;  i<htmlPagesLen;  i++) try {
             htmlPage = (Element) htmlPages.item(i);
             htmlHref = htmlPage.getAttribute(HTML_HREF_ATTR);
             if (!hasValue(htmlHref)) {
@@ -644,7 +646,8 @@ public class TemplateLoader {
 
         if (node.hasChildNodes()) {
             NodeList children = node.getChildNodes();
-            for (int i=children.getLength();  i-- > 0; ) try {
+            int numChildren = children.getLength();
+            for (int i=0;   i < numChildren;   i++) try {
                 resolveScriptIDs((Element) children.item(i), idMap);
             } catch (ClassCastException cce) {}
         }
@@ -652,7 +655,8 @@ public class TemplateLoader {
 
     private static void generateDefaultScriptMaps(Element e) {
         NodeList templates = e.getElementsByTagName(TEMPLATE_NODE_NAME);
-        for (int i = templates.getLength();  i-- > 0; ) try {
+        int len = templates.getLength();
+        for (int i = 0;   i < len;   i++) try {
             Element template = (Element) templates.item(i);
             String ID = template.getAttribute(ID_ATTR);
             if (!hasValue(ID)) continue;

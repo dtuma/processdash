@@ -661,13 +661,7 @@ public class file extends TinyCGIBase {
             e = (new FileFinder("[" + metaName + "]", doc)).file;
             if (e != null) {
                 displayName = e.getAttribute("displayName");
-                if (e.hasChildNodes()) {
-                    StringBuffer buf = new StringBuffer();
-                    NodeList list = e.getChildNodes();
-                    for (int i=0;  i<list.getLength(); i++)
-                        buf.append(list.item(i).toString());
-                    commentText = buf.toString();
-                }
+                commentText = XMLUtils.getTextContents(e);
             }
         }
         public String getDisplayName() { return displayName; }

@@ -85,7 +85,8 @@ public abstract class CachedObject {
 
         // read and restore the local attributes.
         NodeList attrs = xml.getElementsByTagName("localAttr");
-        for (int i=0;   i < attrs.getLength();   i++) {
+        int len = attrs.getLength();
+        for (int i=0;   i < len;   i++) {
             Element attr = (Element) attrs.item(i);
             setLocalAttrImpl(attr.getAttribute("name"),
                              XMLUtils.getTextContents(attr));

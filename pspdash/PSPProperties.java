@@ -495,7 +495,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
 
         // Recursively add children.
         NodeList children = e.getChildNodes();
-        for (int i=0;   i < children.getLength();   i++) {
+        int len = children.getLength();
+        for (int i=0;   i < len;   i++) {
             Node n = children.item(i);
             if (n instanceof Element) {
                 val.addChild(loadXMLNode((Element) n, templates, key, templateKey),-1);

@@ -163,9 +163,10 @@ public class TemplateAutoData extends AutoData {
 
         // Iterate over the children of this element.
         NodeList children = node.getChildNodes();
+        int numChildren = children.getLength();
         ListData childList = newEmptyList();
         Node c; Element child;
-        for (int i=0;  i<children.getLength();  i++) {
+        for (int i=0;  i<numChildren;  i++) {
             c = children.item(i);
             if (c instanceof Element && isProcessNode((Element) c) &&
                 !noAutoDataNode((Element) c)) {
@@ -387,7 +388,7 @@ public class TemplateAutoData extends AutoData {
     private void writeObject(java.io.ObjectOutputStream out)
         throws IOException
     {
-        templateStr = template.toString();
+        templateStr = XMLUtils.getAsText(template);
         out.defaultWriteObject();
     }
     private void readObject(java.io.ObjectInputStream in)

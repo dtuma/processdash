@@ -219,7 +219,8 @@ public class EVTask implements DataListener {
         planTimeEditable = planTimeNull = planTimeUndefined = false;
 
         NodeList subTasks = e.getChildNodes();
-        for (int i=0;   i < subTasks.getLength();   i++) {
+        int len = subTasks.getLength();
+        for (int i=0;   i < len;   i++) {
             Node n = subTasks.item(i);
             if (n instanceof Element &&
                 "task".equals(((Element) n).getTagName()))
