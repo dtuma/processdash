@@ -140,7 +140,7 @@ Templates/reports/xy.class: $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)/com/j
 
 $(CGI_CLASSES) : %.class : %.java
 	$(JAVAC) \
-	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar' \
+	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar$(DS)build/jaxp.jar$(DS)build/crimson.jar' \
 	    -deprecation \
 	    -d $(dir $<) \
 	    $<
