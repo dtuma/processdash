@@ -1,3 +1,4 @@
+#include <psp1.1/dataFile.txt>
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -40,105 +41,51 @@
 
 psp2==1.0
 PSP2==1.0
+psp1.1==0.0
+PSP1.1==0.0
 
 
 
 ==
-== Data Elements to track Time.
+== Two new phases: Design Review and Code Review
 ==
 
 = Estimated Time
 
-Estimated Time=0.0
-Estimated Max Time=0.0
-Estimated Min Time=0.0
-
-Planning/Estimated Time==![(*	Estimated Time	/Planning/% Time To Date)]
-Design/Estimated Time==![(*	Estimated Time	/Design/% Time To Date)]
 Design Review/Estimated Time==![(*	Estimated Time	/Design Review/% Time To Date)]
-Code/Estimated Time==![(*	Estimated Time	/Code/% Time To Date)]
 Code Review/Estimated Time==![(*	Estimated Time	/Code Review/% Time To Date)]
-Compile/Estimated Time==![(*	Estimated Time	/Compile/% Time To Date)]
-Test/Estimated Time==![(*	Estimated Time	/Test/% Time To Date)]
-Postmortem/Estimated Time==![(*	Estimated Time	/Postmortem/% Time To Date)]
 
 = Actual Time
 
-Planning/Time==0.0
-Design/Time==0.0
 Design Review/Time==0.0
-Code/Time==0.0
 Code Review/Time==0.0
-Compile/Time==0.0
-Test/Time==0.0
-Postmortem/Time==0.0
-Time==![(+	~.*/Time)]
+Time==![(+	Planning/Time	Design/Time	Design Review/Time	Code/Time	Code Review/Time	Compile/Time	Test/Time	Postmortem/Time)]
 
 = Actual % Time.
 
-Planning/% Time==![(/	Planning/Time	Time)]
-Design/% Time==![(/	Design/Time	Time)]
 Design Review/% Time==![(/	Design Review/Time	Time)]
-Code/% Time==![(/	Code/Time	Time)]
 Code Review/% Time==![(/	Code Review/Time	Time)]
-Compile/% Time==![(/	Compile/Time	Time)]
-Test/% Time==![(/	Test/Time	Time)]
-Postmortem/% Time==![(/	Postmortem/Time	Time)]
+
+= Actual Defects Injected
+
+Design Review/Defects Injected==0.0
+Code Review/Defects Injected==0.0
+Defects Injected==![(+	Planning/Defects Injected	Design/Defects Injected	Design Review/Defects Injected	Code/Defects Injected	Code Review/Defects Injected	Compile/Defects Injected	Test/Defects Injected	Postmortem/Defects Injected)]
+
+= Actual Defects Removed
+
+Design Review/Defects Removed==0.0
+Code Review/Defects Removed==0.0
+Defects Removed==![(+	Planning/Defects Removed	Design/Defects Removed	Design Review/Defects Removed	Code/Defects Removed	Code Review/Defects Removed	Compile/Defects Removed	Test/Defects Removed	Postmortem/Defects Removed)]
 
 
 
 ==
-== Data Elements to track LOC.
+== Estimate "Defects Injected" from historical "To Date" data
 ==
 
-= Estimated LOC
-
-Estimated Base LOC=0.0
-Estimated Deleted LOC=0.0
-Estimated Modified LOC=0.0
-Estimated Base Additions LOC==![(+	~Base Additions/LOC \d+)]
-Estimated New Objects LOC==![(+	~New Objects/LOC \d+)]
-Estimated Reused LOC==![(+	~Reused Objects/LOC \d+)]
-Projected LOC==![(+	Estimated Base Additions LOC	Estimated New Objects LOC)]
-Estimated Object LOC==![(+	Projected LOC	Estimated Modified LOC)]
-Estimated New & Changed LOC=0.0
-Estimated Max New & Changed LOC=0.0
-Estimated Min New & Changed LOC=0.0
-Estimated Added LOC==![(-	Estimated New & Changed LOC	Estimated Modified LOC)]
-Estimated New Reused LOC==![(+	~New Objects/New Reused LOC \d+)]
-Estimated LOC==![(-	[(+	Estimated New & Changed LOC	Estimated Base LOC	Estimated Reused LOC)]	Estimated Deleted LOC	Estimated Modified LOC)]
-Estimated Max LOC=0.0
-Estimated Min LOC=0.0
-Estimated KLOC==![(/	Estimated LOC	1000)]
-
-Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated LOC)]
-Estimated % Reused==![(/	Estimated Reused LOC	Estimated LOC)]
-
-= Actual LOC
-
-Base LOC=0.0
-Deleted LOC=0.0
-Modified LOC=0.0
-Added LOC==![(-	[(+	LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
-Reused LOC=0.0
-New & Changed LOC==![(+	Added LOC	Modified LOC)]
-New Reused LOC=0.0
-LOC=0.0
-KLOC==![(/	LOC	1000)]
-
-% New Reused==![(/	New Reused LOC	LOC)]
-% Reused==![(/	Reused LOC	LOC)]
-
-
-
-==
-== Data Elements to track Defects Injected
-==
-
-= Estimated Defects Injected
-
-Estimated Defects Injected==![(*	KLOC	/Defects Injected per KLOC To Date)]
-Estimated Defects per KLOC==![(/	Estimated Defects Injected	Estimated KLOC)]
+Estimated Defects per KLOC==![(+	/Defects Injected per KLOC To Date)]
+Estimated Defects Injected==![(*	Estimated New & Changed KLOC	Estimated Defects per KLOC)]
 
 Before Development/Estimated Defects Injected==![(*	Estimated Defects Injected	/Before Development/% Defects Injected To Date)]
 Planning/Estimated Defects Injected==![(*	Estimated Defects Injected	/Planning/% Defects Injected To Date)]
@@ -150,27 +97,11 @@ Compile/Estimated Defects Injected==![(*	Estimated Defects Injected	/Compile/% D
 Test/Estimated Defects Injected==![(*	Estimated Defects Injected	/Test/% Defects Injected To Date)]
 Postmortem/Estimated Defects Injected==![(*	Estimated Defects Injected	/Postmortem/% Defects Injected To Date)]
 
-= Actual Defects Injected
-
-Before Development/Defects Injected==0.0
-Planning/Defects Injected==0.0
-Design/Defects Injected==0.0
-Design Review/Defects Injected==0.0
-Code/Defects Injected==0.0
-Code Review/Defects Injected==0.0
-Compile/Defects Injected==0.0
-Test/Defects Injected==0.0
-Postmortem/Defects Injected==0.0
-Defects Injected==![(-	~.*/Defects Injected	Before Development/Defects Injected)]
-Defects per KLOC==![(/	Defects Injected	KLOC)]
-
 
 
 ==
-== Data Elements to track Defects Removed
+== Estimate "Defects Removed" from historical "To Date" data
 ==
-
-= Estimated Defects Removed
 
 Estimated Defects Removed==![(+	Estimated Defects Injected)]
 
@@ -184,19 +115,6 @@ Test/Estimated Defects Removed==![(*	Estimated Defects Removed	/Test/% Defects R
 Postmortem/Estimated Defects Removed==![(*	Estimated Defects Removed	/Postmortem/% Defects Removed To Date)]
 After Development/Estimated Defects Removed==![(*	Estimated Defects Removed	/After Development/% Defects Removed To Date)]
 
-= Actual Defects Removed
-
-Planning/Defects Removed==0.0
-Design/Defects Removed==0.0
-Design Review/Defects Removed==0.0
-Code/Defects Removed==0.0
-Code Review/Defects Removed==0.0
-Compile/Defects Removed==0.0
-Test/Defects Removed==0.0
-Postmortem/Defects Removed==0.0
-After Development/Defects Removed==0.0
-Defects Removed==![(-	~.*/Defects Removed	After Development/Defects Removed)]
-
 
 
 ==
@@ -207,22 +125,12 @@ CPI==![(/	Estimated Time	Time)]
 
 = Calculations based on estimated data
 
-Design Review/Estimated Defects Removed per Hour==![(/	Design Review/Estimated Defects Removed	Design Review/Estimated Time)]
-Test/Estimated Defects Removed per KLOC==![(/	Test/Estimated Defects Removed	Estimated KLOC)]
-Estimated Yield==![(/	[(+	Planning/Estimated Defects Removed	Design/Estimated Defects Removed	Design Review/Estimated Defects Removed	Code/Estimated Defects Removed	Code Review/Estimated Defects Removed)]	[(+	Compile/Estimated Defects Removed	Test/Estimated Defects Removed	Postmortem/Estimated Defects Removed	After Development/Estimated Defects Removed)])]
-Estimated LOC per Hour==![(*	60	[(/	Estimated LOC	Estimated Time)])]
+Design Review/Estimated Defects Removed per Hour==![(*	60	[(/	Design Review/Estimated Defects Removed	Design Review/Estimated Time)])]
+Test/Estimated Defects Removed per KLOC==![(/	Test/Estimated Defects Removed	Estimated New & Changed KLOC)]
+Estimated Yield==![(/	[(+	Planning/Estimated Defects Removed	Design/Estimated Defects Removed	Design Review/Estimated Defects Removed	Code/Estimated Defects Removed	Code Review/Estimated Defects Removed)]	Estimated Defects Removed)]
 
 = Calculations based on actual data
 
-Design Review/Defects Removed per Hour==![(/	Design Review/Defects Removed	Design Review/Time)]
-Test/Defects Removed per KLOC==![(/	Test/Defects Removed	KLOC)]
-Yield==![(/	[(+	Planning/Defects Removed	Design/Defects Removed	Design Review/Defects Removed	Code/Defects Removed	Code Review/Defects Removed)]	[(+	Compile/Defects Removed	Test/Defects Removed	Postmortem/Defects Removed	After Development/Defects Removed)])]
-LOC per Hour==![(*	60	[(/	LOC	Time)])]
-
-
-
-==
-== Miscellaneous data elements
-==
-
-Started=@now
+Design Review/Defects Removed per Hour==![(*	60	[(/	Design Review/Defects Removed	Design Review/Time)])]
+Test/Defects Removed per KLOC==![(/	Test/Defects Removed	New & Changed KLOC)]
+Yield==![(/	[(+	Planning/Defects Removed	Design/Defects Removed	Design Review/Defects Removed	Code/Defects Removed	Code Review/Defects Removed)]	Defects Removed)]
