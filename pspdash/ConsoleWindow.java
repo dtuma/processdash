@@ -77,7 +77,7 @@ public class ConsoleWindow extends JFrame {
 
     public OutputStream getOutputStream() {
         if (outputStream == null)
-            outputStream = new ConsoleOutputStream();
+            outputStream = new ConsoleOutputStream(System.out);
         return outputStream;
     }
     public PrintStream getPrintStream() {
@@ -96,12 +96,16 @@ public class ConsoleWindow extends JFrame {
 
     // WARNING - doesn't correctly translate bytes to chars.
     private class ConsoleOutputStream extends OutputStream {
-        public void write(int b) {
+        OutputStream orig;
+        public ConsoleOutputStream(OutputStream o) { orig = o; }
+        public void write(int b) throws IOException {
+            orig.write(b);
             byte[] buf = new byte[1];
             buf[0] = (byte) b;
             textArea.append(new String(buf));
         }
-        public void write(byte[] b, int off, int len) {
+        public void write(byte[] b, int off, int len) throws IOException {
+            orig.write(b, off, len);
             textArea.append(new String(b, off, len));
         }
     }
