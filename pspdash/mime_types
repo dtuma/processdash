@@ -45,6 +45,7 @@
 .gz=application/gzip
 .htm=text/html; charset=iso-8859-1
 .html=text/html; charset=iso-8859-1
+.iqy=application/x-httpd-cgi
 .jar=application/octet-stream
 .jpe=image/jpeg
 .jpeg=image/jpeg
