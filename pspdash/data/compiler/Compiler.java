@@ -291,6 +291,10 @@ public class Compiler extends DepthFirstAdapter {
         if (len < 2) return "";
         return StringData.unescapeString(text.substring(1, len-1));
     }
+
+    public static String escapeLiteral(String literal) {
+        return pspdash.EscapeString.escape(literal, '\\', "'\"[]");
+    }
 }
 
 class FindLastExpression extends DepthFirstAdapter {
