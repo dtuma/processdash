@@ -5,11 +5,14 @@ qf=../compProj.rpt
 title=Defect Removal Leverage
 headerComment==(vs. Unit Test)
 
-d1==Design Review/DRL
-h1==Design Review
+h1==Test
+d1==1.0  /* [ignored but necessary] */
 
-d2==Code Review/DRL
-h2==Code Review
+h2==Compile
+d2==Compile/DRL
 
-d3==Compile/DRL
-h3==Compile
+h3==Code Rev.
+d3==Code Review/DRL
+
+h4==Des. Rev.
+d4==Design Review/DRL
