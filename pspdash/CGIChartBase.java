@@ -97,6 +97,17 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
             } catch (Exception lfe) {}
         }
 
+        if (parameters.get("hideTickLabels") != null||
+            parameters.get("hideXTickLabels") != null) {
+            Axis a = chart.getPlot().getAxis(Plot.HORIZONTAL_AXIS);
+            a.setShowTickLabels(false);
+        }
+        if (parameters.get("hideTickLabels") != null||
+            parameters.get("hideYTickLabels") != null) {
+            Axis a = chart.getPlot().getAxis(Plot.VERTICAL_AXIS);
+            a.setShowTickLabels(false);
+        }
+
         String axisFontSize = getSetting("axisLabelFontSize");
         if (axisFontSize != null) try {
             float fontSize = Float.parseFloat(axisFontSize);
