@@ -298,7 +298,7 @@ public class EVTask implements DataListener {
         }
     }
 
-    public void setPlanTime(Object aValue) {
+    public void userSetPlanTime(Object aValue) {
         if (plannedTimeIsEditable() && aValue instanceof String) {
             long planTime = -1;
 
@@ -330,7 +330,7 @@ public class EVTask implements DataListener {
             }
         }
     }
-    public void setActualDate(Object aValue) {
+    public void userSetActualDate(Object aValue) {
         if (completionDateIsEditable()) {
             String dataName =
                 data.createDataName(fullName, DATE_COMPLETED_DATA_NAME);
@@ -398,7 +398,8 @@ public class EVTask implements DataListener {
         return hasTopDownBottomUpError() || planTimeIsMissing();
     }
     private boolean hasTopDownBottomUpError() {
-        return (Math.abs(planTime - bottomUpPlanTime) > 0.5);
+        return (bottomUpPlanTime > 0) &&
+            (Math.abs(planTime - bottomUpPlanTime) > 0.5);
     }
     private boolean planTimeIsMissing() {
         return (planTimeEditable && (planTimeNull || planTimeUndefined));
@@ -468,13 +469,15 @@ public class EVTask implements DataListener {
         return result;
     }
     protected void getLeafTasks(List list) {
-        if (isLeaf())
+        if (isEVLeaf())
             list.add(this);
         else
             for (int i = 0;   i < getNumChildren();   i++)
                 getChild(i).getLeafTasks(list);
     }
-
+    public boolean isEVLeaf() {
+        return (isLeaf() || (planTime > 0 && bottomUpPlanTime == 0));
+    }
 
 
 
@@ -488,6 +491,7 @@ public class EVTask implements DataListener {
         schedule.prepForEvents();
         schedule.cleanUp();
         Date effDate = dateCompleted;
+        if (effDate == null) effDate = getTestingEffDate();
         if (effDate == null) effDate = new Date();
         recalcPlanDates(schedule);
         for (int i = log.v.size();   i-- > 0;   )
@@ -513,6 +517,16 @@ public class EVTask implements DataListener {
         checkForScheduleErrors(schedule.getMetrics(), schedule);
     }
 
+    public Date getTestingEffDate() {
+        String setting = Settings.getVal("ev.effectiveDate");
+        if (setting == null) return null;
+        try {
+            return new Date(Long.parseLong(setting));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     protected void resetRootValues() {
         planTime = cumPlanTime = actualTime = valueEarned =
             topDownPlanTime = bottomUpPlanTime = 0;
@@ -527,8 +541,9 @@ public class EVTask implements DataListener {
             for (int i = 0;   i < getNumChildren();   i++)
                 bottomUpPlanTime += getChild(i).recalcPlanTimes();
 
-            if (bottomUpPlanTime == 0 ||
-                (!planTimeNull && topDownPlanTime > 0))
+            if (bottomUpPlanTime == 0)
+                return (planTime = topDownPlanTime);
+            else if (!planTimeNull && topDownPlanTime > 0)
                 planTime = topDownPlanTime;
             else {
                 planTime = bottomUpPlanTime;
@@ -542,20 +557,18 @@ public class EVTask implements DataListener {
         if (isLeaf())
             // for leaves, add our plan time to the total.
             cumPlanTime = prevCumTime + planTime;
-        else {
+        else if (isEVLeaf()) {
+            // if we aren't a leaf, but we're an EVLeaf, our children can't
+            // help us. Figure out cum time ourselves, then tell them what it
+            // is so they can display the same thing.
+            cumPlanTime = prevCumTime + planTime;
+            for (int i = 0;   i < getNumChildren();   i++)
+                getChild(i).recalcPlanCumTime(cumPlanTime);
+        } else {
             // for nonleaves, ask each of our children to recalc.
             cumPlanTime = prevCumTime;
             for (int i = 0;   i < getNumChildren();   i++)
                 cumPlanTime = getChild(i).recalcPlanCumTime(cumPlanTime);
-
-            /*
-            // If we didn't really have a value for planTime, compute it
-            // from our children.
-            if (planTimeNull) {
-                planTime = cumPlanTime - prevCumTime;
-                planTimeEditable = false;
-            }
-            */
         }
         return cumPlanTime;
     }
@@ -574,7 +587,11 @@ public class EVTask implements DataListener {
 
         if (isLeaf())
             valueEarned = (dateCompleted == null ? 0 : planTime);
-        else {
+        else if (isEVLeaf()) {
+            valueEarned = (dateCompleted == null ? 0 : planTime);
+            for (int i = 0;   i < getNumChildren();   i++)
+                getChild(i).recalcPlanValue();
+        } else {
             valueEarned = 0;
             // for nonleaves, ask each of our children to recalc.
             for (int i = 0;   i < getNumChildren();   i++) {
@@ -600,17 +617,23 @@ public class EVTask implements DataListener {
     }
 
     public void recalcPlanDates(EVSchedule schedule) {
-        if (isLeaf()) {
+        if (isEVLeaf()) {
             planDate = schedule.getPlannedCompletionDate
                 (cumPlanTime, cumPlanTime);
             if (dateCompleted != null)
                 schedule.saveCompletedTask(dateCompleted, planTime);
+
+            if (!isLeaf())
+                for (int i = getNumChildren();   i-- > 0;   )
+                    getChild(i).recalcPlanDates(schedule);
+
         } else {
             for (int i = getNumChildren();   i-- > 0;   )
                 getChild(i).recalcPlanDates(schedule);
             planDate = getChild(getNumChildren()-1).planDate;
         }
     }
+
 
     public void checkForNodeErrors(EVMetrics metrics, int depth,
                                    List rootChildList,
@@ -678,7 +701,7 @@ public class EVTask implements DataListener {
     }
 
     public void recalcMetrics(EVMetrics metrics) {
-        if (isLeaf())
+        if (isEVLeaf())
             metrics.addTask(planTime, actualTime, planDate, dateCompleted);
         else {
             for (int i = getNumChildren();   i-- > 0;   )

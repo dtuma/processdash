@@ -537,8 +537,8 @@ public class EVTaskList extends AbstractTreeTableModel
         if (node == null) return;
         EVTask n = (EVTask) node;
         switch (column) {
-        case PLAN_TIME_COLUMN:      n.setPlanTime(aValue);   break;
-        case DATE_COMPLETE_COLUMN:  n.setActualDate(aValue); break;
+        case PLAN_TIME_COLUMN:      n.userSetPlanTime(aValue);   break;
+        case DATE_COMPLETE_COLUMN:  n.userSetActualDate(aValue); break;
         }
     }
 
@@ -558,7 +558,9 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     private class SimpleTableModel implements TableModel {
-        public int getRowCount() { return countRows((EVTask) root); }
+        private List rowList = ((EVTask) root).getLeafTasks();
+
+        public int getRowCount() { return rowList.size(); }
         public int getColumnCount() {
             return EVTaskList.this.getColumnCount(); }
         public String getColumnName(int columnIndex) {
@@ -576,44 +578,8 @@ public class EVTaskList extends AbstractTreeTableModel
         public void addTableModelListener(TableModelListener l) { }
         public void removeTableModelListener(TableModelListener l) { }
 
-        private int countRows(EVTask node) {
-            int result = 0;
-            if (node.isLeaf())
-                result = 1;
-            else
-                for (int i = node.getNumChildren();   i-- > 0; )
-                    result += countRows(node.getChild(i));
-            return result;
-        }
-
         private EVTask getRow(int row) {
-            RowFinder f = new RowFinder((EVTask) root, row);
-            return f.getResult();
-        }
-
-        private class RowFinder {
-            int rowToReturn, rowsSeen = 0;
-            EVTask result = null;
-            public RowFinder(EVTask node, int rowToReturn) {
-                this.rowToReturn = rowToReturn;
-                find(node);
-            }
-            public EVTask getResult() { return result; }
-            private void find(EVTask node) {
-                if (result != null)
-                    return;
-                else if (node.isLeaf()) {
-                    if (rowToReturn == rowsSeen) {
-                        result = node;
-                        return;
-                    } else
-                        rowsSeen++;
-                } else {
-                    for (int i = 0;  i < node.getNumChildren();  i++)
-                        if (result == null)
-                            find(node.getChild(i));
-                }
-            }
+            return (EVTask) rowList.get(row);
         }
     }
 
