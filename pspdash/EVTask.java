@@ -708,7 +708,7 @@ public class EVTask implements DataListener {
     }
 
 
-
+/*
     public void recalc(EVSchedule schedule, TimeLog log) {
         resetRootValues();
         recalcPlanTimes();
@@ -735,16 +735,17 @@ public class EVTask implements DataListener {
         schedule.getMetrics().recalcComplete(schedule);
         schedule.firePreparedEvents();
     }
-
+*/
     public void simpleRecalc(EVSchedule schedule) {
         recalcPlanTimes();
         recalcPlanCumTime(0.0);
         recalcPlanValue();
         checkForNodeErrors(schedule.getMetrics(), 0,
                            new ArrayList(), new ArrayList());
-        checkForScheduleErrors(schedule.getMetrics(), schedule);
+//      checkForScheduleErrors(schedule.getMetrics(), schedule);
     }
 
+/*
     public Date getTestingEffDate() {
         String setting = Settings.getVal("ev.effectiveDate");
         if (setting == null) return null;
@@ -760,6 +761,7 @@ public class EVTask implements DataListener {
             topDownPlanTime = bottomUpPlanTime = 0;
         planDate = dateCompleted = null;
     }
+*/
 
     public double recalcPlanTimes() {
         if (isLeaf())
@@ -801,6 +803,7 @@ public class EVTask implements DataListener {
         return cumPlanValue;
     }
 
+/*
     public double recalcActualTimes() {
         actualTime = actualNodeTime;
         if (!isLeaf()) {
@@ -810,6 +813,7 @@ public class EVTask implements DataListener {
         }
         return actualTime;
     }
+*/
 
     public void recalcPlanValue() {
 
@@ -854,6 +858,7 @@ public class EVTask implements DataListener {
         dateCompleted = result;
     }
 
+/*
     public void recalcPlanDates(EVSchedule schedule) {
         if (isEVLeaf()) {
             planDate = schedule.getPlannedCompletionDate
@@ -871,7 +876,7 @@ public class EVTask implements DataListener {
             planDate = getChild(getNumChildren()-1).planDate;
         }
     }
-
+*/
 
     public void checkForNodeErrors(EVMetrics metrics, int depth,
                                    List rootChildList,
@@ -922,6 +927,7 @@ public class EVTask implements DataListener {
                                            rootChildList, otherNodeList);
     }
 
+/*
     public void checkForScheduleErrors(EVMetrics metrics, EVSchedule sched) {
         EVSchedule.Period p = sched.get(0);
         if (p.actualDirectTime > 0.0)
@@ -953,7 +959,6 @@ public class EVTask implements DataListener {
         }
     }
 
-
     public boolean saveTimeLogInfo(EVSchedule schedule, TimeLogEntry e) {
         String entryPath = e.getPath();
         if (entryPath.equals(fullName)) {
@@ -973,7 +978,7 @@ public class EVTask implements DataListener {
 
         return false;
     }
-
+*/
 
     //
     // DataListener interface
