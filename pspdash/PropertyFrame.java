@@ -193,7 +193,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             tree.setCellEditor(new SelectingTreeEditor
                 (tree, (DefaultTreeCellRenderer) tree.getCellRenderer()));
         } catch (ClassCastException cce) {}
-        adjustMenu (false, true, false, null, null); // deselection case
+        adjustMenu (false, true, false, null, null, null); // deselection case
 
         /* Put the Tree in a scroller. */
         JScrollPane sp = new JScrollPane
@@ -547,7 +547,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                                boolean children,
                                boolean editable,
                                Vector  templateChildren,
-                               String  myID) {
+                               String  myID,
+                               String myPath) {
         addNodeMenu.setPopupMenuVisible (children || siblings);
         addNodeMenu.setEnabled(children || siblings);
         addNodeAboveMenuItem.setEnabled (siblings);
@@ -561,7 +562,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         updateTemplateMenu (templateChildren, myID);
 
-        pasteMenuItem.setEnabled(canPaste(myID, templateChildren, cutNode));
+        pasteMenuItem.setEnabled(canPaste(myID, myPath, templateChildren,
+                                          cutNode));
     }
 
     /**
@@ -576,7 +578,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             deleteMenuItem.setEnabled (false);
             moveUpMenuItem.setEnabled (false);
             moveDownMenuItem.setEnabled (false);
-            adjustMenu (false, true, false, null, null);
+            adjustMenu (false, true, false, null, null, null);
             return;
         }
         Object [] path = tp.getPath();
@@ -656,9 +658,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 }
             }
         }
-
+        String valID = val.getID();
+        if (valID == null) valID = "";
         adjustMenu (allowsSiblings, allowsChildren, editable,
-                    allowedChildren, val.getID());
+                    allowedChildren, valID, key.path());
     }
 
     private boolean templateIsMalleable(String templateName) {
@@ -1250,9 +1253,16 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             treeModel.nodeStructureChanged(node);
 
             // ensure that the newly pasted node is visible, and select it.
-            DefaultMutableTreeNode pastedNode =
-                (DefaultMutableTreeNode) node.getChildAt(newIndex);
-            tree.setSelectionPath(new TreePath(treeModel.getPathToRoot(pastedNode)));
+            try {
+                DefaultMutableTreeNode pastedNode =
+                    (DefaultMutableTreeNode) node.getChildAt(newIndex);
+                tree.setSelectionPath
+                    (new TreePath(treeModel.getPathToRoot(pastedNode)));
+            } catch (Exception ee) {
+                // We may get an ArrayIndexOutOfBoundsException if the node
+                // was pasted into its own parent.  Selecting the pasted node
+                // isn't a critical action - just abort.
+            }
 
             cutNode = null;
             pasteMenuItem.setEnabled(false);
@@ -1260,13 +1270,26 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         }
     }
 
-    private boolean canPaste(String parentID, Vector templateChildren,
+    private boolean canPaste(String parentID, String parentPath,
+                             Vector templateChildren,
                              DefaultMutableTreeNode cutNode) {
-        if (parentID == null || cutNode == null ||
+        if (parentID == null || parentPath == null || cutNode == null ||
             (templateChildren != null && templateChildren.size() == 0))
             return false;
 
         PropertyKey cutKey = treeModel.getPropKey (useProps, cutNode.getPath());
+
+        String cutPath = cutKey.path();
+                // disallow pasting a node into itself.
+        if (cutPath.equals(parentPath) ||
+                // disallow pasting a node into one of its descendants (would
+                // create an illegal recursive tree.
+            parentPath.startsWith(cutPath+"/") ||
+                // disallow pasting a node into its current parent (it
+                // already lives there!)
+            parentPath.equals(cutKey.getParent().path()))
+            return false;
+
         Prop cutProp = useProps.pget(cutKey);
         String cutID = cutProp.getID();
             /* match child with parent's allowed child list, if any */
