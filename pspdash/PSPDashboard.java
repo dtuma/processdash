@@ -206,6 +206,9 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         webServer.setData(data);
         webServer.setProps(props);
+
+        if (!brokenData.isEmpty())
+            displayBrokenDataWarning();
     }
 
     private static final String FIRST_TIME_HELP_URL = "/help/first-use.htm";
@@ -213,9 +216,36 @@ public class PSPDashboard extends JFrame implements WindowListener {
         new AboutDialog(null, "Welcome", FIRST_TIME_HELP_URL);
     }
 
+    private Vector brokenData = new Vector();
+    private void displayBrokenDataWarning() {
+        JList brokenList = new JList(brokenData);
+        BROKEN_DATA_WARNING[2] = new JScrollPane(brokenList);
+        //String [] brokenList = new String[brokenData.size()];
+        //        for (int i = brokenList.length;  i-- > 0; )
+        //brokenList[i] = BULLET + brokenData.elementAt(i);
+
+        JOptionPane.showMessageDialog(null, BROKEN_DATA_WARNING,
+                                      "Missing data files",
+                                      JOptionPane.ERROR_MESSAGE);
+    }
+    private static final String BULLET = "\u2022 ";
+    private static final Object[] BROKEN_DATA_WARNING = {
+        "Missing files are preventing the dashboard from opening the",
+        "data for the following projects/tasks:",
+        "",
+        "The most likely cause of this problem is that you created",
+        "the above projects/tasks based on an add-on process set,",
+        "then deleted the file containing that add-on process set.",
+        "The recommended course of action is to shut down the",
+        "dashboard, reinstall the add-on process set, then restart the",
+        "dashboard.  Until you do this, the data for these",
+        "projects/tasks will be inaccessible and/or incomplete."};
+
     public void openDatafile (String prefix, String dataFile) {
         try {
             data.openDatafile (prefix, property_directory + dataFile);
+        } catch (FileNotFoundException fnfe) {
+            brokenData.add(prefix);
         } catch (Exception exc) {
             System.err.println("when opening datafile, '" + dataFile +
                                "' for path '" + prefix +
