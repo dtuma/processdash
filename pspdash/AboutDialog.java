@@ -51,7 +51,7 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
             jep.setText(text);
         } else {
             try {
-                jep.setPage(text);
+                jep.setPage(Browser.mapURL(text));
             } catch (IOException ioe) {
                 System.err.println(ioe);
             }
