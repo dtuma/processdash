@@ -19,7 +19,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -63,21 +62,27 @@ public class WBSTabPanel extends JPanel {
      * @throws IllegalArgumentException if <code>columnNames</code> names
      *    a column which cannot be found
      */
-    public void addTab(String tabName, String[] columnNames)
-        throws IllegalArgumentException
+    public void addTab(String tabName, String columnIDs[],
+                       String[] columnNames) throws IllegalArgumentException
     {
 
-        AbstractTableModel tableModel =
-            (AbstractTableModel) dataTable.getModel();
+        DataTableModel tableModel = (DataTableModel) dataTable.getModel();
         TableColumnModel columnModel = new DefaultTableColumnModel();
 
         for (int i = 0;   i < columnNames.length;   i++) {
-            int columnIndex = tableModel.findColumn(columnNames[i]);
+            int columnIndex = tableModel.findColumn(columnIDs[i]);
+            if (columnIndex == -1)
+                columnIndex = tableModel.findColumn(columnNames[i]);
             if (columnIndex == -1)
                 throw new IllegalArgumentException
-                    ("No column named " + columnNames[i]);
+                    ("No column with ID " + columnIDs[i]);
+
             TableColumn tableColumn = new TableColumn(columnIndex);
-            tableColumn.setHeaderValue(columnNames[i]);
+            String name = columnNames[i];
+            if (name == null)
+                name = tableModel.getColumn(columnIndex).getColumnName();
+            tableColumn.setHeaderValue(name);
+            tableColumn.setIdentifier(columnIDs[i]);
             columnModel.addColumn(tableColumn);
         }
 

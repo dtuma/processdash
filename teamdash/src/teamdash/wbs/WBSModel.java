@@ -39,6 +39,19 @@ public class WBSModel extends AbstractTableModel {
         recalcRows();
     }
 
+    public int add(int beforeRow, WBSNode newNode) {
+        if (beforeRow < 1) beforeRow = 1;
+        if (beforeRow >= rows.length) {
+            add(newNode);
+            return rows.length - 1;
+        } else {
+            int beforePos = rows[beforeRow];
+            wbsNodes.add(beforePos, newNode);
+            recalcRows();
+            return beforeRow;
+        }
+    }
+
     public int size() { return wbsNodes.size(); }
 
     public WBSNode getRoot() {

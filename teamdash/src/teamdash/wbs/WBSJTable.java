@@ -19,6 +19,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 
@@ -123,6 +124,8 @@ public class WBSJTable extends JTable {
         // Map "Tab" and "Shift-Tab" to the demote/promote actions
         new ActionMapping(KeyEvent.VK_TAB, 0, "Demote", DEMOTE_ACTION);
         new ActionMapping(KeyEvent.VK_TAB, SHIFT, "Promote", PROMOTE_ACTION);
+        new ActionMapping(KeyEvent.VK_INSERT, 0, "Insert", INSERT_ACTION);
+        new ActionMapping(KeyEvent.VK_ENTER, 0, "Enter", ENTER_ACTION);
 
         // Java 1.3 doesn't handle the "auto restart editing" actions very
         // well, so if we're in a 1.3 JRE stop here.
@@ -174,6 +177,9 @@ public class WBSJTable extends JTable {
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, CTRL), "Paste");
         actionMap.put("Paste", PASTE_ACTION);
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Delete");
+        actionMap.put("Delete", DELETE_ACTION);
     }
 
 
@@ -226,6 +232,14 @@ public class WBSJTable extends JTable {
     /** Abstract class for an action that (1) stops editing, (2) does
      * something, then (3) restarts editing */
     private class RestartEditingAction extends AbstractAction {
+        /** Policy for editing restart.  If you want to resume editing
+         * the node that was being edited when our action was triggered,
+         * set this to false.  If you want to begin editing whatever cell is
+         * highlighted after our action completes, set this to true. */
+        protected boolean editingFollowsSelection = false;
+
+        protected int editingRow, editingColumn;
+
         public RestartEditingAction() { }
         public RestartEditingAction(String name) { super(name); }
         public void actionPerformed(ActionEvent e) {
@@ -234,7 +248,8 @@ public class WBSJTable extends JTable {
 
             // ask what column we're editing. (for our purposes, it's always
             // going to be column 0, but lets be more robust.)
-            int editingColumn = WBSJTable.this.editingColumn;
+            editingColumn = WBSJTable.this.editingColumn;
+            editingRow    = WBSJTable.this.editingRow;
 
             // find out what node is currently being edited.
             WBSNode editingNode = (WBSNode) editor.getCellEditorValue();
@@ -250,15 +265,38 @@ public class WBSJTable extends JTable {
         }
         public void doAction(ActionEvent e) {}
 
-        /** Resume editing the cell we used to be editing. */
+        /** Start up an editing session. */
         public void restartEditing(int editingColumn, WBSNode editingNode,
                                    EventObject restartEvent) {
-            if (editingNode != null) {
+
+            if (editingFollowsSelection) {
+                // Begin editing the newly selected node.
+                WBSJTable.this.grabFocus();
+                int rowToEdit = getSelectedRow();
+                int columnToEdit = getSelectedColumn();
+                editCellAt(rowToEdit, columnToEdit, restartEvent);
+
+            } else if (editingNode != null) {
+                // Resume editing the cell we used to be editing.
                 int editingRow = wbsModel.getRowForNode(editingNode);
                 if (editingRow > 0)
                     // start editing the node
                     editCellAt(editingRow, editingColumn, restartEvent);
             }
+        }
+
+        /** Convenience method to get the row selection. some actions we
+         * take may clear the selection;  to solve this, we generate a list
+         * containing the editing row. */
+        protected int[] getSelectedRows() {
+            int[] result = WBSJTable.this.getSelectedRows();
+
+            if ((result == null || result.length == 0) && editingRow != -1) {
+                result = new int[1];
+                result[0] = editingRow;
+            }
+
+            return result;
         }
     }
 
@@ -268,6 +306,7 @@ public class WBSJTable extends JTable {
     private class DemoteAction extends RestartEditingAction {
         public DemoteAction() { super("Demote"); }
         public void doAction(ActionEvent e) {
+            System.out.println("Demote");
             selectRows(wbsModel.indentNodes(getSelectedRows(), 1));
         }
     }
@@ -278,6 +317,7 @@ public class WBSJTable extends JTable {
     private class PromoteAction extends RestartEditingAction {
         public PromoteAction() { super("Promote"); }
         public void doAction(ActionEvent e) {
+            System.out.println("Promote");
             selectRows(wbsModel.indentNodes(getSelectedRows(), -1));
         }
     }
@@ -293,6 +333,7 @@ public class WBSJTable extends JTable {
             super();
             putValue(NAME, key);
             this.realAction = realAction;
+            this.editingFollowsSelection = true;
         }
 
         public void doAction(ActionEvent e) {
@@ -301,20 +342,6 @@ public class WBSJTable extends JTable {
                 (WBSJTable.this, e.getID(), e.getActionCommand(),
                  e.getModifiers());
             realAction.actionPerformed(event);
-        }
-
-        /** Override the restart editing method of RestartEditingAction.
-         * It was designed to resume editing of the previously edited node, if
-         * an editing session was previously active.  Since this class
-         * typically delegates to a navigation action, it instead unequivocally
-         * begins editing of whatever node is currently selected after the
-         * delgate action finishes. */
-        public void restartEditing(int editingColumn, WBSNode editingNode,
-                                   EventObject restartEvent) {
-            WBSJTable.this.grabFocus();
-            int rowToEdit = getSelectedRow();
-            int columnToEdit = getSelectedColumn();
-            editCellAt(rowToEdit, columnToEdit, restartEvent);
         }
     }
 
@@ -403,6 +430,83 @@ public class WBSJTable extends JTable {
         }
     }
     final PasteAction PASTE_ACTION = new PasteAction();
+
+
+    /** An action to perform an "insert node before" operation */
+    private class InsertAction extends RestartEditingAction {
+        // we inherit from DelegateActionRestartEditing because we want
+        // the editing to resume with the cell we designate, not the cell
+        // that was last edited.  We don't use the delegation mechanism
+        public InsertAction() { this("Insert"); }
+        public InsertAction(String name) {
+            super(name);
+            editingFollowsSelection = true;
+        }
+        public void doAction(ActionEvent e) {
+            int currentRow = getSelectedRow();
+            insertRowBefore(currentRow, currentRow);
+        }
+        protected void insertRowBefore(int row, int rowToCopy) {
+            if (row == -1) return;
+            if (row == 0) row = 1;
+            if (rowToCopy == 0) rowToCopy = 1;
+
+            WBSNode nodeToCopy = wbsModel.getNodeForRow(rowToCopy);
+            if (nodeToCopy == null) return;
+            if (cutList != null && cutList.contains(nodeToCopy)) cancelCut();
+            WBSNode newNode = new WBSNode
+                (wbsModel, "", nodeToCopy.getType(),
+                 nodeToCopy.getIndentLevel(), nodeToCopy.isExpanded());
+
+            row = wbsModel.add(row, newNode);
+            setRowSelectionInterval(row, row);
+            scrollRectToVisible(getCellRect(row, 0, true));
+        }
+    }
+    final InsertAction INSERT_ACTION = new InsertAction();
+
+
+    /** An action to perform an "insert node after" operation */
+    private class InsertAfterAction extends InsertAction {
+        public InsertAfterAction() { super("Insert After"); }
+        public void doAction(ActionEvent e) {
+            int currentRow = getSelectedRow();
+            insertRowBefore(currentRow+1, currentRow);
+        }
+    }
+    final InsertAfterAction ENTER_ACTION = new InsertAfterAction();
+
+    /** An action to perform a "delete" operation */
+    private class DeleteAction extends AbstractAction {
+        public DeleteAction() { super("Delete"); }
+        public void actionPerformed(ActionEvent e) {
+            // get a list of the currently selected rows.
+            int[] rows = getSelectedRows();
+            if (rows == null || rows.length == 0) return;
+
+            // verify that the user wants to cut the nodes.
+            List nodesToDelete = wbsModel.getNodesForRows(rows, true);
+            if (nodesToDelete == null || nodesToDelete.size() == 0) return;
+            int size = nodesToDelete.size();
+            String message = "Delete "+size+(size==1 ? " item":" items")+
+                " from the work breakdown structure?";
+            if (JOptionPane.showConfirmDialog
+                (WBSJTable.this, message, "Confirm Deletion",
+                 JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION)
+                 return;
+
+            // cancel the previous cut operation, if there was one.
+            cancelCut();
+
+            // delete the nodes.
+            wbsModel.deleteNodes(nodesToDelete);
+
+            int rowToSelect = Math.min(rows[0], wbsModel.getRowCount()-1);
+            setRowSelectionInterval(rowToSelect, rowToSelect);
+            scrollRectToVisible(getCellRect(rowToSelect, 0, true));
+        }
+    }
+    final DeleteAction DELETE_ACTION = new DeleteAction();
 
 
     // convenience declarations

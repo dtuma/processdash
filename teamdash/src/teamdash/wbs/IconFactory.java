@@ -1,18 +1,22 @@
 
 package teamdash.wbs;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.Map;
-import java.util.HashMap;
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.plaf.metal.MetalIconFactory;
-import java.awt.image.WritableRaster;
-import java.awt.image.RGBImageFilter;
-import java.awt.image.ImageProducer;
-import java.awt.image.FilteredImageSource;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageProducer;
+import java.awt.image.RGBImageFilter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.Icon;
+import javax.swing.plaf.metal.MetalIconFactory;
 
 public class IconFactory {
 

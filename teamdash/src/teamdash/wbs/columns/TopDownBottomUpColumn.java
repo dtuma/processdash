@@ -1,86 +1,88 @@
 
-package teamdash.wbs;
+package teamdash.wbs.columns;
 
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import java.text.NumberFormat;
+import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.DataTableModel;
+import teamdash.wbs.WBSModel;
+import teamdash.wbs.WBSNode;
 
-public class TopDownBottomUpColumn implements DataColumn, TableModelListener
+public class TopDownBottomUpColumn extends AbstractNumericColumn
+    implements CalculatedDataColumn
 {
+
 
     protected DataTableModel dataModel;
     protected WBSModel wbsModel;
-    protected String name;
+    protected String columnName;
+    protected String columnID;
     protected String topDownAttrName, bottomUpAttrName, inheritedAttrName;
-    protected double fuzzFactor = 0.05;
+    protected Pruner pruner = null;
+    protected boolean hideInheritedValues = false;
 
-    public TopDownBottomUpColumn(DataTableModel dataModel, String name) {
+    public TopDownBottomUpColumn(DataTableModel dataModel,
+                                     String name, String id) {
+        this(dataModel, name, id, null);
+    }
+    public TopDownBottomUpColumn(DataTableModel dataModel,
+                                 String name, String id, Pruner p) {
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
-        this.name = name;
-        topDownAttrName = name + " (Top Down)";
-        bottomUpAttrName = name + " (Bottom_Up)";
-        inheritedAttrName = name + " (Inherited_)";
-        recalc();
-        wbsModel.addTableModelListener(this);
+        this.columnName = name;
+        this.columnID = id;
+        this.pruner = p;
+
+        id = id.replace('_', '-');
+        topDownAttrName   = id + " (Top Down)";
+        bottomUpAttrName  = id + " (Bottom_Up)";
+        inheritedAttrName = id + " (Inherited_)";
+        recalculate();
+    }
+    protected void setPruner(Pruner p) {
+        pruner = p;
+        recalculate();
     }
 
-    protected String formatValue(double value) {
-        return FORMATTER.format(value);
-    }
-
-    protected double parseValue(Object aValue) {
-        if (aValue instanceof Number)
-            return ((Number) aValue).doubleValue();
-        if (aValue == null)
-            return 0;
-        try {
-            return Double.parseDouble(aValue.toString());
-        } catch (NumberFormatException nfe) { }
-
-        return Double.NaN;
-    }
-
-    public String getColumnName() { return name; }
+    public String getColumnName() { return columnName; }
+    public String getColumnID() { return columnID; }
 
     public Class getColumnClass() { return String.class; }
-
-    public boolean isCellEditable(int rowIndex) {
-        WBSNode node = wbsModel.getNodeForRow(rowIndex);
-        return isCellEditable(node);
-    }
 
     public boolean isCellEditable(WBSNode node) {
         if (node == null) return false;
 
-        if (shouldPrune(node)) return false;
+        if (node.getAttribute(inheritedAttrName) != null) return false;
+        if (shouldPrune(node)) {
+            System.out.println("pointA");
+            return false; }
+        /*
         if (node.getAttribute(topDownAttrName) != null) return true;
         if (node.getAttribute(bottomUpAttrName) != null) return true;
+        */
 
-        return false;
+        return true;
     }
 
-    public Object getValueAt(int rowIndex) {
-        WBSNode node = wbsModel.getNodeForRow(rowIndex);
-        double value = getValueForNode(node);
-        String result = formatValue(value);
+    protected boolean isCellVisible(WBSNode node) {
+        if (hideInheritedValues)
+            return node.getAttribute(inheritedAttrName) == null;
+        else
+            return true;
+    }
+
+
+    protected String getErrorAt(WBSNode node) {
         if (topDownBottomUpMismatch(node)) {
             String bottomUp =
                 formatValue(node.getNumericAttribute(bottomUpAttrName));
             String errMsg =
                 "top-down/bottom-up mismatch (bottom-up = " + bottomUp + ")";
-            return new ErrorValue(result, errMsg);
-        } else if (! isCellEditable(node)) {
-            return new ReadOnlyValue(result);
+            return errMsg;
         } else
-            return result;
+            return null;
     }
 
-    public void setValueAt(Object aValue, int rowIndex) {
+    public void setValueAt(Object aValue, WBSNode node) {
         System.out.println("setValueAt("+aValue+")");
-
-        // look up the node in question.
-        WBSNode node = wbsModel.getNodeForRow(rowIndex);
         if (node == null) return;
 
         if ("".equals(aValue))
@@ -106,11 +108,13 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
         }
 
         // recalculate the tree.
-        recalc();
-        fireRecalcEvent();
+        recalculate();
     }
 
-    protected void recalc() { recalc(wbsModel.getRoot()); }
+    public boolean recalculate() {
+        recalc(wbsModel.getRoot());
+        return true;
+    }
 
     protected double recalc(WBSNode node) {
         double topDownValue = node.getNumericAttribute(topDownAttrName);
@@ -159,7 +163,8 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
     }
 
     protected void setInheritedValue(WBSNode node, double value) {
-        //node.setAttribute(topDownAttrName, null);
+        if (Double.isNaN(value)) value = 0;
+
         node.setAttribute(bottomUpAttrName, null);
         node.setNumericAttribute(inheritedAttrName, value);
 
@@ -203,18 +208,29 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
      * nor their "bottom up" attribute set.  Instead, they will have
      * their "inherited" attribute set to the value of their nearest
      * ancestor.
-     *
-     * This method exists so subclasses can override it.
      */
-    protected boolean shouldPrune(WBSNode node) { return false; }
+    protected boolean shouldPrune(WBSNode node) {
+        if (pruner == null)
+            return false;
+        else
+            return pruner.shouldPrune(node);
+    }
 
     protected boolean topDownBottomUpMismatch(WBSNode node) {
+        // if this node is the descendant of a pruned node, it doesn't
+        // have any error.
+        if (node.getAttribute(inheritedAttrName) != null) return false;
+
+        // if this node has no top-down value, there is no mismatch.
         double topDownValue = node.getNumericAttribute(topDownAttrName);
         if (Double.isNaN(topDownValue)) return false;
 
+        // if this node's bottom up value matches the top down value, there
+        // is no mismatch.
         double bottomUpValue = node.getNumericAttribute(bottomUpAttrName);
         if (equal(topDownValue, bottomUpValue)) return false;
 
+        // we have a mismatch
         return true;
     }
 
@@ -249,9 +265,6 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
     }
 
 
-    protected boolean equal(double a, double b) {
-        return Math.abs(a - b) < fuzzFactor;
-    }
 
     protected double getValueForNode(WBSNode node) {
         if (node == null) return 0;
@@ -267,20 +280,10 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
         return value;
     }
 
-    public void tableChanged(TableModelEvent e) { recalc(); }
 
-    protected int myColumnIndex = -1;
-    public void fireRecalcEvent() {
-        if (myColumnIndex == -1)
-            myColumnIndex = dataModel.findColumn(name);
-        dataModel.fireTableChanged
-            (new TableModelEvent(dataModel, 0, Integer.MAX_VALUE,
-                                 myColumnIndex, TableModelEvent.UPDATE));
-    }
 
-    protected static final NumberFormat FORMATTER =
-        NumberFormat.getNumberInstance();
-        static {
-            FORMATTER.setMaximumFractionDigits(1);
-        }
+    public String[] getDependentColumnIDs() { return null; }
+    public String[] getAffectedColumnIDs()  { return null; }
+    public void storeDependentColumn(String ID, int columnNumber) { }
+    protected void setValueForNode(double value, WBSNode node) { /* unused */ }
 }

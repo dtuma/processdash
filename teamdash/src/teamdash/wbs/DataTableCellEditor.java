@@ -14,7 +14,10 @@ import javax.swing.JTextField;
  */
 class DataTableCellEditor extends DefaultCellEditor {
 
-    DataTableCellEditor() { super(new JTextField()); }
+    DataTableCellEditor() {
+        super(new JTextField());
+        // TODO: use a smaller font.
+    }
 
     public Component getTableCellEditorComponent(JTable table,
                                                  Object value,

@@ -1,7 +1,7 @@
-package teamdash.wbs;
+package teamdash.wbs.columns;
 
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import teamdash.wbs.DataTableModel;
+import teamdash.wbs.WBSModel;
 
 public class SizeMeasureColumn //implements DataColumn , TableModelListener
 {

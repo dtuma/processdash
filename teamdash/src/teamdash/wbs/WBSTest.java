@@ -1,22 +1,23 @@
 
 package teamdash.wbs;
 
+import java.awt.Color;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
-import javax.swing.*;
+import java.util.HashMap;
+import java.util.Map;
 
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
-import java.awt.Color;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-
-
-import pspdash.XMLUtils;
 import org.w3c.dom.Document;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
+import pspdash.XMLUtils;
 
 
 public class WBSTest implements WindowListener {
@@ -46,7 +47,13 @@ public class WBSTest implements WindowListener {
         { " K",  "General Document" },
         { " L",  "Task" },
         { "M",  "Software Component" },
-        { "N", null } };
+        { "N", "Task" } };
+    private static final String[] iconMenuItems = {
+        "Software Component",
+        "General Document",
+        "Requirements Document",
+        "High Level Design Document",
+        "Detailed Design Document" };
 
     private void buildModel(String filename) {
         if (filename != null) try {
@@ -78,7 +85,7 @@ public class WBSTest implements WindowListener {
 
         JFrame frame = new JFrame("WBSTest");
         frame.getContentPane().add(sp);
-        frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.show();
     }
@@ -88,19 +95,30 @@ public class WBSTest implements WindowListener {
         DataTableModel data = new DataTableModel(model);
 
         Map iconMap = buildIconMap();
-        WBSTabPanel table = new WBSTabPanel(model, data, iconMap);
-        table.addTab("Vowels", new String[] {"N&C LOC", "E", "I", "O", "U" });
-        table.addTab("First", new String[] {
-            "N&C LOC", "B", "C", "D", "E", "F", "G", "H", "I", "J" });
-        table.addTab("Last", new String[] {
-            "Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q" });
+        JMenu taskSubmenu = new JMenu("Tasks ");
+        taskSubmenu.add(new JMenuItem("PSP Task"));
+        taskSubmenu.add(new JMenuItem("Task"));
+        JMenu iconMenu = new JMenu();
+        iconMenu.add(taskSubmenu);
+        iconMenu.addSeparator();
+        for (int i = 0;   i < iconMenuItems.length;  i++)
+            iconMenu.add(new JMenuItem(iconMenuItems[i]));
+        WBSTabPanel table = new WBSTabPanel(model, data, iconMap, iconMenu);
+        table.addTab("Vowels", new String[] {"N&C LOC", "E", "I", "O", "U" },
+                    new String[] { "LOC", "Echo","India","Oscar","Uniform" });
+        String[] s = new String[] {
+            "Size-Units", "Base", "Deleted", "Modified",
+            "Added", "Reused", "N&C", "Total" };
+        table.addTab("Size-LOC", s, s);
+        s = new String[] { "Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q" };
+        table.addTab("Last", s, s);
 
         //JScrollPane sp = new JScrollPane(table);
 
         JFrame frame = new JFrame("WBSTest");
         frame.getContentPane().add(table);
         //frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
-        frame.setDefaultCloseOperation(frame.DISPOSE_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(this);
         frame.pack();
         frame.show();

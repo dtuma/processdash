@@ -9,12 +9,14 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -24,7 +26,10 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.table.TableCellEditor;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -200,6 +205,7 @@ public class WBSNodeEditor extends AbstractCellEditor
     /** Tell the editor to stop editing and save the current edited value.
      */
     public boolean stopCellEditing() {
+        //System.out.println("stopCellEditing");
 
         if (editingNode != null) {
             if (iconMenu.isPopupMenuVisible())
@@ -238,7 +244,7 @@ public class WBSNodeEditor extends AbstractCellEditor
      * make much sense.  Thus, we just redirect to stopCellEditing().
      */
     public void cancelCellEditing() {
-        System.out.println("cancelCellEditing called");
+        //System.out.println("cancelCellEditing called");
         stopCellEditing();
     }
 
@@ -387,6 +393,8 @@ public class WBSNodeEditor extends AbstractCellEditor
         Icon nodeIcon;
         /** The tool tip to display for the icon */
         String iconToolTip;
+        /** The border to draw */
+        Border border;
 
 
 
@@ -394,6 +402,8 @@ public class WBSNodeEditor extends AbstractCellEditor
         public EditorComponent() {
             setLayout(null);             // we'll handle our own layout.
             setBackground(Color.white);  // draw a white background.
+
+            border = UIManager.getBorder("Table.focusCellHighlightBorder");
 
             // create the text field.  use a custom document to prevent
             // the user from entering invalid characters, and use a large
@@ -416,6 +426,14 @@ public class WBSNodeEditor extends AbstractCellEditor
             // install the table's custom actions on the text field, so
             // they can be triggered even if editing is underway.
             table.installCustomActions(textField);
+
+            // install a focus traversal action on the text field.
+            textField.setFocusTraversalKeysEnabled(false);
+            textField.getInputMap().put
+                (KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.CTRL_MASK),
+                 "FocusNext");
+            textField.getActionMap().put("FocusNext",
+                                         new FocusNextComponentAction());
         }
 
         /** Update the editor based on the currently edited node. (However,
@@ -484,6 +502,9 @@ public class WBSNodeEditor extends AbstractCellEditor
 
             // call super.paint to paint the text field.
             super.paint(g);
+
+            // paint the border
+            border.paintBorder(this, g, 0, 0, getWidth(), getHeight());
 
             Dimension size = getSize();
 
@@ -611,7 +632,8 @@ public class WBSNodeEditor extends AbstractCellEditor
                 // grab the focus (must be deferred to avoid race conditions)
                 SwingUtilities.invokeLater(this);
             }
-            public void run() { textField.grabFocus(); }
+            //public void run() { textField.grabFocus(); }
+            public void run() { textField.requestFocus(); }
         }
     }
 
@@ -665,5 +687,11 @@ public class WBSNodeEditor extends AbstractCellEditor
     final IconMenuListener ICON_MENU_LISTENER = new IconMenuListener();
 
 
+    private final class FocusNextComponentAction extends AbstractAction {
+        public void actionPerformed(ActionEvent e) {
+            stopCellEditing();
+            table.transferFocus();
+        }
+    }
 
 }
