@@ -1,4 +1,4 @@
-<!--#server-parsed -->
+<!--#server-parsed --><!--#resources bundle="Templates.Import" -->
 <!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
@@ -29,7 +29,7 @@
 <HTML>
 <HEAD>
 <link rel=stylesheet type="text/css" href="../style.css">
-<TITLE>Import PSP Project Data</TITLE>
+<TITLE><!--#echo Title --></TITLE>
 <STYLE>
 TD.header {
     font-size: smaller;
@@ -42,7 +42,7 @@ TD.header {
 <BODY>
 
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
-<H2>Import PSP Project Data</H2>
+<H2><!--#echo Title --></H2>
 
 <FORM NAME=PLAN>
 
@@ -52,11 +52,11 @@ TD.header {
 
 <TABLE>
 <TR>
-<TD>Project Name</TD>
+<TD><!--#echo Project_Name --></TD>
 <TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="[Project//Name]sr==p"></TD>
 </TR>
 <TR>
-<TD>Project Owner</TD>
+<TD><!--#echo Summary.Project_Owner --></TD>
 <TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="[/Owner]s"></TD>
 </TR>
 <TR>
@@ -64,24 +64,24 @@ TD.header {
 <TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="[Completed]dmu"></TD><TD COLSPAN=6>&nbsp;Completed: <INPUT TYPE=checkbox NAME="[Completed]du"></TD>
 </TR>
 <TR>
-<TD>Language</TD>
+<TD><!--#echo Summary.Language --></TD>
 <TD COLSPAN=10><INPUT TYPE=text SIZE=15 NAME="[Project/Language]s"></TD>
 </TR>
 <TR>
-<TD>Process</TD>
+<TD><!--#echo Process --></TD>
 <TD COLSPAN=10><SELECT NAME="PSP_Level">
-<OPTION VALUE="0">PSP0
-<OPTION VALUE="0.1">PSP0.1
-<OPTION VALUE="1">PSP1
-<OPTION VALUE="1.1">PSP1.1
-<OPTION VALUE="2">PSP2
-<OPTION VALUE="2.1">PSP2.1
-<OPTION VALUE="3">PSP3
+<OPTION VALUE="0"><!--#echo PSP0_ -->
+<OPTION VALUE="0.1"><!--#echo PSP01_ -->
+<OPTION VALUE="1"><!--#echo PSP1_ -->
+<OPTION VALUE="1.1"><!--#echo PSP11_ -->
+<OPTION VALUE="2"><!--#echo PSP2_ -->
+<OPTION VALUE="2.1"><!--#echo PSP21_ -->
+<OPTION VALUE="3"><!--#echo PSP3_ -->
 </SELECT></TD>
 </TR>
 </TABLE>
 
-<BR><P><FONT SIZE="+2"><B>Project Data</B></FONT>
+<BR><P><FONT SIZE="+2"><B><!--#echo Project_Data --></B></FONT>
 
 <TABLE>
 
@@ -92,13 +92,13 @@ TD.header {
 </TR>
 
 <TR>
-<TD>Total Time</TD>
+<TD><!--#echo Total_Time --></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
 </TR>
 
 <TR>
-<TD>Object LOC (E)</TD>
+<TD>Estimated Object LOC</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Object LOC"></TD>
 <TD>&nbsp;</TD>
 </TR>
@@ -110,26 +110,26 @@ TD.header {
 </TR>
 
 <TR>
-<TD>Total LOC</TD>
+<TD><!--#echo Total_LOC --></TD>
 <TD></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Total LOC"></TD>
 </TR>
 
 <TR>
-<TD>Reused LOC</TD>
+<TD><!--#echo Reused_LOC --></TD>
 <TD></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Reused LOC"></TD>
 </TR>
 
 <TR>
-<TD>New Reused LOC</TD>
+<TD><!--#echo New_Reused_LOC --></TD>
 <TD></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="New Reused LOC"></TD>
 </TR>
 
 </TABLE></P>
 
-<BR><P><FONT SIZE="+2"><B>Phase Data</B></FONT>
+<BR><P><FONT SIZE="+2"><B><!--#echo Phase_Data --></B></FONT>
 
 <TABLE>
 
@@ -138,15 +138,15 @@ TD.header {
 <TD CLASS="header">Planning</TD>
 <!--#if not [Hide_HLD_Phases] -->
   <TD CLASS="header">HLD</TD>
-  <TD CLASS="header">HLD<BR>Review</TD>
+  <TD CLASS="header">HLD Review</TD>
 <!--#endif-->
 <TD CLASS="header">Design</TD>
 <!--#if not [Hide_Review_Phases] -->
-  <TD CLASS="header">Design<BR>Review</TD>
+  <TD CLASS="header">Design Review</TD>
 <!--#endif-->
 <TD CLASS="header">Code</TD>
 <!--#if not [Hide_Review_Phases] -->
-  <TD CLASS="header">Code<BR>Review</TD>
+  <TD CLASS="header">Code Review</TD>
 <!--#endif-->
 <TD CLASS="header">Compile</TD>
 <TD CLASS="header">Test</TD>
@@ -154,7 +154,7 @@ TD.header {
 </TR>
 
 <TR>
-<TD><B>Time</B></TD>
+<TD NOWRAP><B>Time</B></TD>
 <TD><INPUT TYPE=text SIZE=5 NAME="Planning/Time"></TD>
 <!--#if not [Hide_HLD_Phases] -->
   <TD><INPUT TYPE=text SIZE=5 NAME="HLD/Time"></TD>
@@ -174,7 +174,7 @@ TD.header {
 </TR>
 
 <TR>
-<TD><B>Defects Injected</B></TD>
+<TD NOWRAP><B>Defects Injected</B></TD>
 <TD><INPUT TYPE=text SIZE=5 NAME="Planning/Defects Injected"></TD>
 <!--#if not [Hide_HLD_Phases] -->
   <TD><INPUT TYPE=text SIZE=5 NAME="HLD/Defects Injected"></TD>
@@ -194,7 +194,7 @@ TD.header {
 </TR>
 
 <TR>
-<TD><B>Defects Removed</B></TD>
+<TD NOWRAP><B>Defects Removed</B></TD>
 <TD><INPUT TYPE=text SIZE=5 NAME="Planning/Defects Removed"></TD>
 <!--#if not [Hide_HLD_Phases] -->
   <TD><INPUT TYPE=text SIZE=5 NAME="HLD/Defects Removed"></TD>
