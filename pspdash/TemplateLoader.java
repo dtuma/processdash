@@ -66,7 +66,7 @@ public class TemplateLoader {
         URL[] roots = getTemplateURLs();
 
         String templateDirURL;
-        for (int i=0;  i < roots.length;  i++) {
+        for (int i=roots.length;   i-- > 0;  ) {
             templateDirURL = roots[i].toString();
 
             if (templateDirURL.startsWith("file:/")) {
