@@ -66,21 +66,16 @@ public class DataComboBox extends JComboBox implements ILessThan {
     public static Set getAllDataNames(DataRepository dr) {
         Perl5Util perl = new Perl5Util();
         Set result = new TreeSet();
-        String hiddenDataRE = "m\n^(" + Settings.getVal(settingName) + ")$\ni";
+        String hiddenDataRE = "m\n(" + Settings.getVal(settingName) + ")\ni";
 
         String dataName;
         int sepLoc;
-        Iterator dataNames = dr.getKeys();
+        Iterator dataNames = dr.getDataElementNameSet().iterator();
         while (dataNames.hasNext()) {
             dataName = (String) dataNames.next();
 
                                       // ignore transient and anonymous data.
             if (dataName.indexOf("//") != -1) continue;
-
-                                      // get the name of the data element only.
-            sepLoc = dataName.lastIndexOf ("/");
-            if (sepLoc != -1)
-                dataName = dataName.substring (sepLoc + 1);
 
             try {
                 if (!perl.match(hiddenDataRE, dataName))
