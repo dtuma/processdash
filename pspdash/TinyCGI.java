@@ -33,6 +33,12 @@ import java.util.Map;
 
 public interface TinyCGI {
 
+    /** Key for looking up the PSPProperties hierarchy in the environment. */
+    public static final String PSP_PROPERTIES = "PSP_PROPERTIES";
+
+    /** Key for looking up the data repository in the environment. */
+    public static final String DATA_REPOSITORY = "DATA_REPOSITORY";
+
     /**
      * Handle a cgi-like request within a TinyWebServer.
      *
