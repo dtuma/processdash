@@ -32,29 +32,45 @@ import java.awt.Insets;
 import java.awt.Dimension;
 import java.awt.BorderLayout;
 import java.awt.event.*;
+import java.text.NumberFormat;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import java.util.*;
 
-public class DefectDialog extends JDialog implements ActionListener {
+public class DefectDialog extends JDialog implements ActionListener,
+                                                     DocumentListener
+{
     PSPDashboard parent;
+    String defectFilename;
+    PropertyKey defectPath;
     DefectLog defectLog = null;
     Timer stopwatch = new Timer(false);
-    JButton defectTimerButton, OKButton, CancelButton;
+    JButton defectTimerButton, OKButton, CancelButton, fixDefectButton;
     Date date = null;
     String defectNumber = null;
     JLabel number;
-    JTextField fix_time, fix_defect;
+    JTextField fix_defect;
+    DecimalField fix_time;
     JTextArea description;
     JComboBox defect_type, phase_injected, phase_removed;
 
+    /** A stack of the defect dialogs that have been interrupted. */
+    private static Stack interruptedDialogs = new Stack();
+    /** The defect dialog which was timing most recently. */
+    private static DefectDialog activeDialog = null;
+    /** A timer object for refreshing the fix time field. */
+    private javax.swing.Timer activeRefreshTimer = null;
 
     DefectDialog(PSPDashboard dash, String defectFilename,
                  PropertyKey defectPath) {
         super(dash);
 
         parent = dash;
+        this.defectFilename = defectFilename;
+        this.defectPath = defectPath;
         defectLog = new DefectLog(defectFilename, defectPath.path(),
                                   dash.data, dash);
         date = new Date();
@@ -76,11 +92,12 @@ public class DefectDialog extends JDialog implements ActionListener {
         panel.add(number);
 
         c = new JLabel("Fix Defect");
-        g.gridx = 1;   layout.setConstraints(c, g);
+        g.gridx = 1;   g.gridwidth = 2; layout.setConstraints(c, g);
         panel.add(c);
 
                                 // second row
         g.gridy = 1;   g.insets = bottom_margin;   g.anchor = g.NORTHWEST;
+        g.gridwidth = 1;
         defect_type = DefectTypeStandard.get
             (defectPath.path(), dash.data).getAsComboBox();
 
@@ -88,8 +105,15 @@ public class DefectDialog extends JDialog implements ActionListener {
         panel.add(defect_type);
 
         fix_defect = new JTextField(5);
+        fix_defect.setMinimumSize(fix_defect.getPreferredSize());
         g.gridx = 1;   layout.setConstraints(fix_defect, g);
         panel.add(fix_defect);
+
+        fixDefectButton = new JButton
+            (new ImageIcon(getClass().getResource("defect.gif")));
+        fixDefectButton.addActionListener(this);
+        g.gridx = 2;   layout.setConstraints(fixDefectButton, g);
+        panel.add(fixDefectButton);
 
                                 // third row
         g.gridy = 2;   g.insets = small_margin;   g.anchor = g.WEST;
@@ -99,11 +123,12 @@ public class DefectDialog extends JDialog implements ActionListener {
         panel.add(c);
 
         c = new JLabel("Removed");
-        g.gridx = 1;   layout.setConstraints(c, g);
+        g.gridx = 1;   g.gridwidth = 2;   layout.setConstraints(c, g);
         panel.add(c);
 
                                 // fourth row
         g.gridy = 3;   g.insets = bottom_margin;   g.anchor = g.NORTHWEST;
+        g.gridwidth = 1;
 
         phase_injected = phaseComboBox(defectPath);
         phase_injected.insertItemAt("Before Development", 0);
@@ -112,11 +137,12 @@ public class DefectDialog extends JDialog implements ActionListener {
 
         phase_removed = phaseComboBox(defectPath);
         phase_removed.addItem("After Development");
-        g.gridx = 1;   layout.setConstraints(phase_removed, g);
+        g.gridx = 1; g.gridwidth = 2; layout.setConstraints(phase_removed, g);
         panel.add(phase_removed);
 
                                 // fifth row
         g.gridy = 4;   g.insets = small_margin;   g.anchor = g.WEST;
+        g.gridwidth = 1;
 
         c = new JLabel("Fix Time");
         g.gridx = 0;   layout.setConstraints(c, g);
@@ -125,18 +151,23 @@ public class DefectDialog extends JDialog implements ActionListener {
                                 // sixth row
         g.gridy = 5;   g.insets = bottom_margin;
 
-        fix_time = new JTextField(10);
+        NumberFormat nf = NumberFormat.getNumberInstance();
+        nf.setMaximumFractionDigits(1);
+        fix_time = new DecimalField(0.0, 10, nf);
+        fix_time.setMinimumSize(fix_time.getPreferredSize());
         g.anchor = g.NORTHWEST;   layout.setConstraints(fix_time, g);
         panel.add(fix_time);
+        fix_time.getDocument().addDocumentListener(this);
 
         defectTimerButton = new JButton("Start Fixing");
         defectTimerButton.addActionListener(this);
-        g.gridx = 1;   g.anchor = g.NORTH;
+        g.gridx = 1;   g.gridwidth = 2;   g.anchor = g.NORTH;
         layout.setConstraints(defectTimerButton, g);
         panel.add(defectTimerButton);
 
                                 // seventh row
         g.gridy = 6;   g.insets = small_margin;   g.anchor = g.WEST;
+        g.gridwidth = 1;
         c = new JLabel("Description");
         g.gridx = 0;   layout.setConstraints(c, g);
         panel.add(c);
@@ -144,6 +175,8 @@ public class DefectDialog extends JDialog implements ActionListener {
                                 // eighth row
         g.gridy = 7;   g.insets = bottom_margin;  g.fill = g.BOTH;
         description = new JTextArea();
+        description.setLineWrap(true);
+        description.setWrapStyleWord(true);
 
         JScrollPane scroller = new
             JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -159,7 +192,7 @@ public class DefectDialog extends JDialog implements ActionListener {
         textWrapper.setBorder(new BevelBorder(BevelBorder.LOWERED));
         textWrapper.add("Center", scroller);
 
-        g.gridwidth = 2;   layout.setConstraints(textWrapper, g);
+        g.gridwidth = 3;   layout.setConstraints(textWrapper, g);
         panel.add(textWrapper);
         g.gridwidth = 1;
 
@@ -174,11 +207,14 @@ public class DefectDialog extends JDialog implements ActionListener {
 
         CancelButton = new JButton("Cancel");
         CancelButton.addActionListener(this);
-        g.gridx = 1;   layout.setConstraints(CancelButton, g);
+        g.gridx = 1; g.gridwidth = 2; layout.setConstraints(CancelButton, g);
         panel.add(CancelButton);
+
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         getContentPane().add(panel);
         pack();
+        panel.setMinimumSize(panel.getPreferredSize());
         show();
 
         if ("true".equalsIgnoreCase(Settings.getVal("defectDialog.autostart")))
@@ -193,7 +229,7 @@ public class DefectDialog extends JDialog implements ActionListener {
     }
 
     public void save() {
-        stopTimingDefect();
+        refreshFixTimeFromStopwatch();
 
         Defect d = new Defect();
         d.date = date;
@@ -206,27 +242,36 @@ public class DefectDialog extends JDialog implements ActionListener {
         d.description = description.getText();
 
         defectLog.writeDefect(d);
+
+        defectNumber = d.number;
+        number.setText("Defect #" + d.number);
     }
 
     public void startTimingDefect() {
         stopwatch.start();
         defectTimerButton.setText("Stop Fixing");
+        if (activeRefreshTimer == null)
+            activeRefreshTimer = new javax.swing.Timer(6000, this);
+        activeRefreshTimer.start();
+
+        if (activeDialog != this) synchronized (interruptedDialogs) {
+            if (activeDialog != null && activeDialog.stopwatch.isRunning()) {
+                interruptedDialogs.push(activeDialog);
+                activeDialog.stopTimingDefect();
+            }
+
+            interruptedDialogs.remove(this); // it might not be there, that's OK
+            activeDialog = this;
+        }
     }
 
     public void stopTimingDefect() {
         stopwatch.stop();
         defectTimerButton.setText("Start Fixing");
+        if (activeRefreshTimer != null)
+            activeRefreshTimer.stop();
 
-        double time;
-        try {
-            time = Double.valueOf(fix_time.getText()).doubleValue();
-        } catch (NumberFormatException e) { time = 0.0; }
-        time += stopwatch.minutesElapsedDouble();
-        String timeStr = Double.toString(time);
-
-        fix_time.setText(timeStr.substring(0, timeStr.indexOf('.')+2));
-
-        stopwatch.reset();
+        refreshFixTimeFromStopwatch();
     }
 
     private void toggleDefect() {
@@ -236,6 +281,19 @@ public class DefectDialog extends JDialog implements ActionListener {
             startTimingDefect();
         else
             stopTimingDefect();
+    }
+
+    private void maybePopDialog() {
+        if (activeDialog == this)
+            if (interruptedDialogs.empty())
+                activeDialog = null;
+            else {
+                activeDialog = (DefectDialog) interruptedDialogs.pop();
+                activeDialog.toFront();
+
+                if (stopwatch.isRunning())
+                    activeDialog.startTimingDefect();
+            }
     }
 
     private void comboSelect(JComboBox cb, String item) {
@@ -277,6 +335,27 @@ public class DefectDialog extends JDialog implements ActionListener {
         phase_removed.hidePopup();
     }
 
+    private volatile boolean programmaticallyChangingFixTime = false;
+
+    private void fixTimeChanged() {
+        System.err.println("fixTimeChanged");
+        if (programmaticallyChangingFixTime) return;
+        System.err.println("fixTimeChanged - acting");
+        stopwatch.setElapsed((long) (fix_time.getValue() * 60.0));
+    }
+
+    private void refreshFixTimeFromStopwatch() {
+        programmaticallyChangingFixTime = true;
+        fix_time.setValue(stopwatch.minutesElapsedDouble());
+        programmaticallyChangingFixTime = false;
+    }
+
+    private void openFixDefectDialog() {
+        save();
+        DefectDialog d = new DefectDialog(parent, defectFilename, defectPath);
+        d.fix_defect.setText(defectNumber);
+    }
+
     public void setValues(Defect d) {
         date = d.date;
         defectNumber = d.number;
@@ -284,19 +363,39 @@ public class DefectDialog extends JDialog implements ActionListener {
         comboSelect(defect_type, d.defect_type);
         comboSelect(phase_injected, d.phase_injected);
         comboSelect(phase_removed, d.phase_removed);
-        fix_time.setText(d.fix_time);
+        fix_time.setText(d.fix_time); // will trigger fixTimeChanged
         fix_defect.setText(d.fix_defect);
         description.setText(d.description);
     }
 
+    public void dispose() {
+        hide_popups();
+        if (activeRefreshTimer != null) {
+            activeRefreshTimer.stop();
+            activeRefreshTimer.removeActionListener(this);
+            activeRefreshTimer = null;
+        }
+        super.dispose();
+    }
+
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == OKButton) {
-            save(); hide_popups(); dispose();
+        if (e.getSource() == activeRefreshTimer) {
+            refreshFixTimeFromStopwatch();
+        } else if (e.getSource() == OKButton) {
+            maybePopDialog(); save(); dispose();
         } else if (e.getSource() == CancelButton) {
-            hide_popups(); dispose();
+            maybePopDialog(); dispose();
         } else if (e.getSource() == defectTimerButton) {
             toggleDefect();
+        } else if (e.getSource() == fixDefectButton) {
+            openFixDefectDialog();
         }
     }
+
+    // Implementation of the DocumentListener interface
+
+    public void changedUpdate(DocumentEvent e) {}
+    public void insertUpdate(DocumentEvent e)  { fixTimeChanged(); }
+    public void removeUpdate(DocumentEvent e)  { fixTimeChanged(); }
 
 }
