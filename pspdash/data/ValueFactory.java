@@ -58,8 +58,8 @@ class ValueFactory {
     static final String datePattern = "m\n^@[-+]?[0-9]+$\n";
     static final String functionPattern = "m\n^!\\[\\(\n";
 
-    static final char FB = '\u0000';	// function begin
-    static final char FE = '\u0001';	// function end
+    static final char FB = '\u0000';    // function begin
+    static final char FE = '\u0001';    // function end
     static final String simpleFunction = FB + "([^" + FB + FE + "]+)" + FE;
 
     static Hashtable functionConstructors;
@@ -151,13 +151,17 @@ class ValueFactory {
 
         if ("null".equals(value))
             return null;
-        else
+        else try {
             switch (value.charAt(0)) {
             case '@': return new DateData(value);
             case '"': return new StringData(value);
             case '!': return parseFunction(name, value, r, prefix);
             default:  return new DoubleData(value);
-            }
+        } } catch (MalformedValueException mve) {
+            System.err.println("Malformed value: " + prefix + name +
+                               " = " + value);
+            throw mve;
+        }
 
     }
 
@@ -261,4 +265,3 @@ class ValueFactory {
 
 
 }
-
