@@ -13,7 +13,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
 
     public DataTableCellNumericRenderer() {
-        // TODO: use a smaller font.
         //this.setFont()
         setHorizontalAlignment(JTextField.RIGHT);
     }
