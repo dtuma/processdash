@@ -125,9 +125,8 @@ Authors:
     <mkdir dir="${build}"/>
     <mkdir dir="${build}/Templates"/>
     <!-- See whether this is running on Windows -->
-    <condition property="isWindows">
-      <os family="windows"/>
-    </condition>
+    <available property="hasMicrosoftJVC" file="jvc.exe"
+               filepath="${env.PATH}"/>
     <!-- Check to see if optional packages are present -->
     <available property="javahelp.jhindexerjar"
                file ="${env.JAVAHELP_HOME}/javahelp/bin/jhindexer.jar"
@@ -286,7 +285,7 @@ Authors:
 
 
 
-  <target name="IEDataApplet" depends="init" if="isWindows"
+  <target name="IEDataApplet" depends="init" if="hasMicrosoftJVC"
           description="Compile the data applet support for internet explorer">
     <mkdir dir="${ie.dir}"/>
     <javac srcdir="${src}" destdir="${ie.dir}" compiler="microsoft"
@@ -509,12 +508,11 @@ Authors:
   <!-- regenerate the "book.html" file -->
   <target name="-javahelp-book" depends="-javahelp-depend"
           unless="javahelp.upToDate">
-    <exec dir="${help}" executable="perl" failifexecutionfails="false">
-      <arg value="makeTOC.pl"/>
-    </exec>
-    <exec dir="${help}" executable="perl" failifexecutionfails="false">
-      <arg value="makeSkeleton.pl"/>
-    </exec>
+    <xslt in="${help}/TOC.xml" out="${help}/TOC.html"
+          style="${help}/makeTOC.xslt"/>
+    <xslt in="${help}/TOC.xml" out="${help}/Skeleton.html"
+          style="${help}/makeSkeleton.xslt"/>
+
     <java classpath="${lib}/DocSpider.jar" classname="DocSpider"
           fork="true" dir="${help}">
       <arg value="Skeleton.html"/>
