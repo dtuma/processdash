@@ -537,6 +537,17 @@ anything and will be discarded by the HTMLPreprocessor). -->
 
 </FORM>
 
+<HR>
+
+<!--#if not rollup -->
+<span class="doNotPrint">
+View <A HREF="../reports/timelog.class">Time Recording Log</A>
+<!--#if [Defects Removed] -->
+or <A HREF="../reports/defectlog.class">Defect Recording Log</A>
+<!--#endif [Defects Removed] -->
+</span>
+<!--#endif not rollup -->
+
 <SCRIPT SRC="/data.js">
 document.writeln("<P>Problem loading the data.js script!");
 </SCRIPT>
