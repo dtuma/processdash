@@ -124,9 +124,14 @@ Authors:
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
     <mkdir dir="${build}/Templates"/>
-    <!-- See whether this is running on Windows -->
-    <available property="hasMicrosoftJVC" file="jvc.exe"
-               filepath="${env.PATH}"/>
+    <!-- See whether the Microsoft java compiler is available -->
+    <available property="hasMicrosoftJVC" file="jvc.exe">
+        <filepath>
+            <pathelement path="${env.Path}"/>
+            <pathelement path="${env.PATH}"/>
+            <pathelement path="${env.path}"/>
+        </filepath>
+    </available>
     <!-- Check to see if optional packages are present -->
     <available property="javahelp.jhindexerjar"
                file ="${env.JAVAHELP_HOME}/javahelp/bin/jhindexer.jar"
