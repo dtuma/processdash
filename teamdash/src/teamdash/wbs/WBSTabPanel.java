@@ -23,6 +23,7 @@ import javax.swing.JToolBar;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
@@ -268,6 +269,11 @@ public class WBSTabPanel extends JPanel
      * table column model. */
     private final class TabListener implements ChangeListener {
         public void stateChanged(ChangeEvent e) {
+            TableCellEditor editor = wbsTable.getCellEditor();
+            if (editor != null) editor.stopCellEditing();
+            editor = dataTable.getCellEditor();
+            if (editor != null) editor.stopCellEditing();
+
             int whichTab = tabbedPane.getSelectedIndex();
             TableColumnModel newModel =
                 (TableColumnModel) tableColumnModels.get(whichTab);
