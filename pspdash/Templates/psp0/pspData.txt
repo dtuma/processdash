@@ -101,3 +101,18 @@
 [Quality_Profile_5] = iff([Design/Time], 
     [Design Review/Time]  / ([Design/Time] *
 			     inherit("Target Design Review/Design Ratio")), 1);
+
+/*
+ * Design and Code Review Yields
+ */
+
+[Design Review/% Phase Yield] = min(1.0, [Design Review/Defects Removed] /
+    (sumFor("Defects Injected", 
+            ",Planning,HLD,HLD Review,Design,Design Review,") -
+     sumFor("Defects Removed", ",Planning,HLD,HLD Review,Design,")));
+
+[Code Review/% Phase Yield] = min(1.0, [Code Review/Defects Removed] /
+    (sumFor("Defects Injected", 
+            ",Planning,HLD,HLD Review,Design,Design Review,Code,Code Review,")
+     - sumFor("Defects Removed",
+	      ",Planning,HLD,HLD Review,Design,Design Review,Code,")));
