@@ -126,6 +126,7 @@ public class DataSources {
                 while (iterator.hasNext()) {
                     Object category = iterator.next();
                     Number value = categoryData.getValue(seriesIndex, category);
+                    if (value == null) continue;
                     if (value.doubleValue()<minimum) {
                         minimum = value.doubleValue();
                     }
@@ -144,6 +145,7 @@ public class DataSources {
                 int itemCount = xyData.getItemCount(seriesIndex);
                 for (int itemIndex=0; itemIndex<itemCount; itemIndex++) {
                     Number value = xyData.getYValue(seriesIndex, itemIndex);
+                    if (value == null) continue;
                     if (value.doubleValue()<minimum) {
                         minimum = value.doubleValue();
                     }
@@ -177,6 +179,7 @@ public class DataSources {
                 while (iterator.hasNext()) {
                     Object category = iterator.next();
                     Number value = categoryData.getValue(seriesIndex, category);
+                    if (value == null) continue;
                     if (value.doubleValue()>maximum) {
                         maximum = value.doubleValue();
                     }
@@ -195,6 +198,7 @@ public class DataSources {
                 int itemCount = xyData.getItemCount(seriesIndex);
                 for (int itemIndex=0; itemIndex<itemCount; itemIndex++) {
                     Number value = xyData.getYValue(seriesIndex, itemIndex);
+                    if (value == null) continue;
                     if (value.doubleValue()>maximum) {
                         maximum = value.doubleValue();
                     }
