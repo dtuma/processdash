@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
@@ -83,22 +83,10 @@ abstract class DataInterpreter implements DataListener {
 
 
     public Boolean getBoolean() {
-                                  // null data elements are false.
-        if (value == null) return Boolean.FALSE;
-
-                                    // numerically zero elements are false.
-        if (value instanceof NumberData &&
-            ((NumberData)value).getDouble() == 0.0) return Boolean.FALSE;
-
-                                    // empty strings are false.
-        if (value instanceof StringData &&
-            ((StringData)value).getString().length() == 0) return Boolean.FALSE;
-
-                                    // empty lists are false.
-        if (value instanceof ListData &&
-            ((ListData)value).size() == 0) return Boolean.FALSE;
-
-        else return Boolean.TRUE;   // everything else is true.
+        if (value != null && value.test())
+            return Boolean.TRUE;
+        else
+            return Boolean.FALSE;
     }
 
     public String getString() {
