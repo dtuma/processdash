@@ -1,4 +1,5 @@
-// -*- mode: c++ -*-
+// -*- mode: c++ -*- <!--#server-parsed--><!--#resources file="data_js" -->
+// <!--#echo defaultEncoding="html,javaStr" -->
 /****************************************************************************
 // PSP Dashboard - Data Automation Tool for PSP-like processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
@@ -119,7 +120,7 @@ if (unlocked) {
   unlockURL = window.location.href.replace(/unlock/, "")
               .replace(/([?&])&/, "$1").replace(/[?&]$/, "");
   unlockHTML =
-    '<br><A HREF="javascript:gotoUnLockURL();">Lock read-only data</A>';
+    '<br><A HREF="javascript:gotoUnLockURL();"><!--#echo Lock_Message --></A>';
 } else {
   if (window.location.search == "") {
     unlockURL = window.location.href + "?unlock";
@@ -127,7 +128,7 @@ if (unlocked) {
     unlockURL = window.location.href + "&unlock";
   }
   unlockHTML = 
-    '<br><A HREF="javascript:displayUnlockWarning();">Unlock read-only data</A>';
+    '<br><A HREF="javascript:displayUnlockWarning();"><!--#echo Unlock_Message --></A>';
 }
 
 
@@ -136,29 +137,12 @@ if (unlocked) {
  */
 
 function displayUnlockWarning() {
-if (window.confirm
- ("The Process Dashboard automatically calculates many data elements\n" +
-  "for you.  Normally, these calculated data values are not editable.\n" +
-  "Choosing to unlock read-only data will make these elements editable,\n" +
-  "allowing you to override the calculated value with your own.\n\n" +
-
-  "Unlocking read-only data is useful for times when you intentionally\n" +
-  "want to override a calculation, but it is not without risk.  Once you\n" +
-  "have overridden a calculation, it will no longer automatically update\n" +
-  "in response to changes in related data items.  In addition, related\n" +
-  "calculations may no longer add up like you would normally expect.\n\n" +
-
-  "Are you sure you would like to unlock read-only data?"))
+if (window.confirm("<!--#echo var="Unlock_Warning" encoding="javaStr" -->"))
   displayDefaultMessage();
 }
 
 function displayDefaultMessage() {
-  window.alert
- ("After you have overridden a calculation with some value, you may\n" +
-  "decide that you want the old calculation back.  Just type\n" +
-  "        DEFAULT\n" +
-  "in the input field, and when you leave the field the old calculation\n" +
-  "will be restored.");
+  window.alert("<!--#echo var="DEFAULT_Message" encoding="javaStr" -->");
   gotoUnLockURL();
 }
 function gotoUnLockURL() {
@@ -178,8 +162,8 @@ function eesc(str) {
 }
 
 function writeExportHTML() {
-    document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;Export to: ");
-    document.writeln("<A HREF='/reports/form2html.class'>HTML</A>");
+    document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<!--#echo Export_To --> ");
+    document.writeln("<A HREF='/reports/form2html.class'><!--#echo Export_To_HTML --></A>");
     var url = eesc(window.location.pathname +
 		   window.location.hash +
 		   window.location.search);
@@ -187,11 +171,11 @@ function writeExportHTML() {
     url = eesc(url);
 	
     document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+ 
-		     "&fullPage'>Excel</A>");
+		     "&fullPage'><!--#echo Export_To_Excel --></A>");
 }
 
 function writeHelpLink() {
-  document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<A HREF='/help/Topics/Planning/EnteringData.html' TARGET='_blank'><I>Help...</I></A>");
+  document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<A HREF='/help/Topics/Planning/EnteringData.html' TARGET='_blank'><I><!--#echo Help_Dots --></I></A>");
 }
 
 function writeFooter() {
