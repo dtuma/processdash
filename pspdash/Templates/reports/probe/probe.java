@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 import pspdash.*;
 import pspdash.data.DataRepository;
@@ -44,19 +44,6 @@ import java.util.Map;
 
 
 public class probe extends TinyCGIBase {
-
-    protected void writeHeader() {}
-    protected void writeContents() {}
-    public void service(InputStream in, OutputStream out, Map env)
-        throws IOException
-    {
-        super.service(in, out, env);
-        if ("POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
-            doPost();
-        else
-            doGet();
-        this.out.flush();
-    }
 
     protected void doPost() throws IOException {
         parseFormData();
@@ -143,15 +130,21 @@ public class probe extends TinyCGIBase {
     protected static final String REPORT = "report";
 
 
-    protected void doGet() {
-        String page = getParameter(PAGE);
-        if (page == null) {
+    protected void doGet() throws IOException {
+        if (getParameter(PAGE) == null) {
             out.print("Location: intro.shtm\r\n\r\n");
-            return;
+        } else {
+            super.doGet();
         }
+    }
 
-        out.print("Content-type: text/html\r\n"+
-                  "Expires: 0\r\n\r\n");
+    protected void writeHeader() {
+        out.print("Expires: 0\r\n");
+        super.writeHeader();
+    }
+
+    protected void writeContents() throws IOException {
+        String page = getParameter(PAGE);
 
         // if report, print report and exit.
         if (REPORT.equals(page)) {
