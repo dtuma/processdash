@@ -62,7 +62,7 @@ public class ImportExport extends JDialog implements ActionListener {
 
 
     public ImportExport (PSPDashboard dash) {
-        super (dash);
+        super (dash, "Import/Export");
 
         parent = dash;
         props = parent.props;
