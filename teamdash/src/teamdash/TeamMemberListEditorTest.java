@@ -7,6 +7,8 @@ import java.io.IOException;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+/** Simple test editor for the team member list
+ */
 public class TeamMemberListEditorTest implements TableModelListener {
 
     private TeamMemberListEditor editor;
