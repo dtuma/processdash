@@ -352,25 +352,6 @@ public class EVSchedule implements TableModel {
         return (p == null ? null : p.endDate);
     }
 
-    /*
-    public Date getForecastCompletionDate() {
-        if (effectivePeriod == 0)
-            return null;
-
-        Period p = get(effectivePeriod);
-        long endDate = p.endDate.getTime();
-        double earnedValue = p.cumEarnedValue;
-        if (earnedValue == 0.0) return null;
-
-        p = get(0);
-        long elapsedTime = endDate - p.endDate.getTime();
-        if (elapsedTime == 0) return null;
-
-        double rate = earnedValue / elapsedTime;
-        long timeLeft = (long) ((1.0 - earnedValue) / rate);
-        return new Date(endDate + timeLeft);
-    }
-    */
 
     public synchronized Date getPlannedCompletionDate(double cumPlanTime,
                                                       double cumPlanValue) {
@@ -941,15 +922,7 @@ public class EVSchedule implements TableModel {
         double mult;
         ActualValueSeries(double m) { mult = m; }
         public Number getYValue(int itemIndex) {
-            try {
-                return new Double(get(itemIndex).cumEarnedValue * mult);
-            } catch (NullPointerException npe) {
-                System.out.println("called with itemIndex=" + itemIndex +
-                                   " effectivePeriod=" + effectivePeriod +
-                                   " periods.size=" + periods.size());
-                return ZERO;
-            }
-        } };
+            return new Double(get(itemIndex).cumEarnedValue * mult); } };
 
 
     /** XYDataSource for charting plan vs actual earned value.
