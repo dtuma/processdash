@@ -119,7 +119,9 @@ class MethodD extends Method {
     private static final String SCRIPT =
         "<script>\n"+
         "    var PURPOSEDoption = document.forms[0].PURPOSE.length - 1;\n"+
+        "    if (!(PURPOSEDoption > -1)) PURPOSEDoption = 0;\n"+
         "    function select_PURPOSED() {\n"+
+        "      if (document.forms[0].PURPOSE[PURPOSEDoption])\n"+
         "        document.forms[0].PURPOSE[PURPOSEDoption].checked = true;\n"+
         "    }\n"+
         "</script>\n";
