@@ -23,7 +23,10 @@
 //
 // E-Mail POC:  ken.raisor@hill.af.mil
 
+import pspdash.AbstractLanguageFilter;
 import pspdash.PSPDiff;
+import pspdash.HTMLUtils;
+import pspdash.LanguageFilter;
 import pspdash.TinyCGIBase;
 
 import java.io.IOException;
@@ -44,8 +47,10 @@ public class pspdiff extends TinyCGIBase {
     }
 
     protected void printOptions() throws IOException {
-        // FIXME.
-        out.println("<HTML><BODY>Not yet implemented.</BODY></HTML>");
+        out.println("<HTML><HEAD><TITLE>LOC Counting Options</TITLE></HEAD>" +
+                    "<BODY><H1>LOC Counting Options</H1>\n");
+        PSPDiff.printFiltersAndOptions(getTinyWebServer(), out);
+        out.println("</BODY></HTML>");
     }
 
     protected void compareFiles() throws IOException {
@@ -58,7 +63,7 @@ public class pspdiff extends TinyCGIBase {
                                    getParameter("FILEB"),
                                    getParameter("options"));
 
-        printHeader();
+        printHeader(diff);
         printMetrics(diff);
         out.println("<hr>");
         diff.displayHTMLRedlines(out);
@@ -82,8 +87,44 @@ public class pspdiff extends TinyCGIBase {
     }
 
     /** print the HTML header, and initial document info. */
-    protected void printHeader() {
-        out.println("<html><body>");
+    protected void printHeader(PSPDiff diff) throws IOException {
+        // print HTML header.
+        out.println("<html><head><title>LOC Differences</title><style>\n"+
+                    "    @media print { .doNotPrint { display: none } }\n"+
+                    "</style></head><body>");
+
+        // print page heading.
+        String filenameA = getParameter("FILEA");
+        String filenameB = getParameter("FILEB");
+        if (filenameA != null && filenameA.length() > 0 &&
+            filenameB != null && filenameB.length() > 0) {
+            out.print("<h1>diff &nbsp; ");
+            out.print(HTMLUtils.escapeEntities(filenameA));
+            out.print(" &nbsp; ");
+            out.print(HTMLUtils.escapeEntities(filenameB));
+            out.println("</h1>");
+        } else {
+            out.println("<h1>LOC Differences</h1>");
+        }
+
+        // print line describing the language filter in use
+        LanguageFilter filter = diff.getFilter();
+        out.print("<p><i>Using</i><tt><b> ");
+        out.print(AbstractLanguageFilter.getFilterName(filter));
+        out.print(" </b></tt><i>filter");
+        String options = getParameter("options");
+        if (options != null && options.length() > 0) {
+            out.print(" with options</i><tt><b> ");
+            out.print(options);
+            out.print(" </b></tt><i>");
+        }
+        out.println("</i></p>");
+
+        // print any caveats about this filter's operation.
+        out.println("<span class='doNotPrint'>");
+        out.flush();
+        filter.service(inStream, outStream, env);
+        out.println("</span>");
     }
 
     /** print out the resulting metrics. */

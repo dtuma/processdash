@@ -92,7 +92,7 @@ public class CobolFilter extends AbstractLanguageFilter {
         return true;
     }
 
-    protected String[][] getOptions() { return OPTIONS; }
+    public String[][] getOptions() { return OPTIONS; }
     protected String[][] OPTIONS = {
         { "+END", "Count </I><TT>END-</TT> <I>clauses as lines of code." },
         { "-END", ("Do not count </I><TT>END-</TT> <I>clauses as lines of "+

@@ -28,6 +28,7 @@ package pspdash;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -76,6 +77,7 @@ public class PSPDiff {
     public int getDeleted()  { return deleted;  }
     public int getModified() { return modified; }
     public int getTotal()    { return total;    }
+    public LanguageFilter getFilter() { return filter; }
 
     private void debug(String contents, String filename) {
         try {
@@ -373,6 +375,7 @@ public class PSPDiff {
 
     protected static void init(TinyWebServer web) {
         List filterNames = TemplateLoader.getLanguageFilters();
+        Collections.sort(filterNames);
         Iterator i = filterNames.iterator();
         String name = null;
         while (i.hasNext()) try {
@@ -423,6 +426,52 @@ public class PSPDiff {
         this.filter = resultFilter;
         this.pool = resultPool;
         return resultFilter;
+    }
+
+    public static void printFiltersAndOptions(TinyWebServer web,
+                                              PrintWriter out) {
+        if (languageFilters == null) init(web);
+
+        Iterator i = languageFilters.iterator();
+        String filterName;
+        ResourcePool   currentPool;
+        LanguageFilter currentFilter;
+        while (i.hasNext()) {
+            filterName = (String) i.next();
+            try {
+                currentPool = web.getCGIPool(filterName);
+                currentFilter = (LanguageFilter) currentPool.get();
+            } catch (Exception e) {
+                // This could be a null pointer exception, because there was
+                // no CGIPool for the given filter, or a class cast exception
+                // if the CGI script returned is not a LanguageFilter.
+                continue;
+            }
+            if (currentFilter == null) continue;
+
+            filterName = AbstractLanguageFilter.getFilterName(currentFilter);
+            out.print("<h2>");
+            out.print(filterName);
+            out.println("</h2><table border>");
+            printOption(out, "-lang=" + filterName,
+                        "Force the use of this language filter.");
+            String[][] options = currentFilter.getOptions();
+            if (options != null)
+                for (int j = 0;   j < options.length;   j++) {
+                    String[] option = options[j];
+                    if (option != null && option.length == 2)
+                        printOption(out, option[0], option[1]);
+                }
+            out.println("</table>");
+            currentPool.release(currentFilter);
+        }
+    }
+    private static void printOption(PrintWriter out, String opt, String text){
+        out.print("<tr><td align=center><tt>");
+        out.print(opt);
+        out.print("</tt></td>\n<td><i>");
+        out.print(text);
+        out.println("</i></td></tr>");
     }
 
     protected String stripComments(String str) {

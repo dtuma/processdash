@@ -30,6 +30,11 @@ public class DefaultFilter extends pspdash.AbstractLanguageFilter {
      *  particular file. */
     public int languageMatches(String filename, String contents,
                                String options) {
-        return 1; // this will set us up as the default, of last resort.
+        int result = super.languageMatches(null, null, options);
+
+            // this will set us up as the default, of last resort.
+        if (result == 0) result = 1;
+
+        return result;
     }
 }

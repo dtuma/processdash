@@ -58,7 +58,7 @@ public class CFilter extends AbstractLanguageFilter {
         }
     }
 
-    protected String[][] getOptions() { return OPTIONS; }
+    public String[][] getOptions() { return OPTIONS; }
     protected String[][] OPTIONS = {
         { "+{", ("Count a curly brace on a line by itself "+
                  "as a line of code.") },
