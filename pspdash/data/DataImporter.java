@@ -147,6 +147,8 @@ public class DataImporter extends Thread {
         if (f == null || f.getName() == null ||
             f.getName().startsWith(RobustFileWriter.OUT_PREFIX))
             return;
+        // only open text files for now.
+        if (!f.getName().endsWith(".txt")) return;
 
         Long prevModTime = (Long) modTimes.get(f);
         long modTime = f.lastModified();
@@ -200,6 +202,23 @@ public class DataImporter extends Thread {
                 // instructions - this would get us into an infinite
                 // import/export loop.
                 if (name.indexOf(EXPORT_DATANAME) != -1) continue;
+
+                // To the best of my knowledge, the DataImporter is
+                // currently only being used to import individual
+                // data, for the purpose of calculating team rollups.
+                // Rollups interact with this data in a fairly
+                // predictable way; for now, I'll take advantage of
+                // this predictable behavior by omitting data elements
+                // which I know cannot affect rollups.  This will
+                // significantly reduce the memory requirements of the
+                // team dashboard.  In particular, I:
+                //
+                // (1) won't import "To Date" data, and
+                if (name.endsWith(" To Date")) continue;
+                //
+                // (2) won't import data values that are zero or invalid.
+                if (value.equals("0.0") || value.equals("NaN") ||
+                    value.equals("Infinity")) continue;
 
                 defns.put(name, parseValue(value));
             }
