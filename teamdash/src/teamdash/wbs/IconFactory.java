@@ -18,14 +18,25 @@ import java.util.Map;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+/** Factory for icons used by the WBSEditor and its components.
+ */
 public class IconFactory {
 
     private static final Color DEFAULT_COLOR = new Color(204, 204, 255);
 
+    // This class is a singleton.
     private IconFactory() {}
+
+
+
+    // Icons to depict various type of nodes in the work breakdown structure
 
     public static Icon getProjectIcon() {
         return new ProjectIcon(DEFAULT_COLOR);
+    }
+
+    public static Object getWorkflowIcon() {
+        return new WorkflowIcon(DEFAULT_COLOR);
     }
 
     public static Icon getSoftwareComponentIcon() {
@@ -36,10 +47,86 @@ public class IconFactory {
         return new DocumentIcon(highlight);
     }
 
-    public static Object getWorkflowIcon() {
-        return new WorkflowIcon(DEFAULT_COLOR);
+    public static Icon getTaskIcon(Color fill) {
+        return new TaskIcon(fill);
     }
 
+    public static Icon getPSPTaskIcon(Color fill) {
+        return new PSPTaskIcon(fill);
+    }
+
+
+
+    // Icons used in toolbars and menus
+
+    public static Icon getUndoIcon() {
+        if (UNDO_ICON == null) UNDO_ICON = loadIconResource("undo.png");
+        return UNDO_ICON;
+    }
+    private static Icon UNDO_ICON = null;
+
+    public static Icon getRedoIcon() {
+        if (REDO_ICON == null) REDO_ICON = loadIconResource("redo.png");
+        return REDO_ICON;
+    }
+    private static Icon REDO_ICON = null;
+
+    public static Icon getPromoteIcon() {
+        if (PROMOTE_ICON == null) PROMOTE_ICON = loadIconResource("promote.png");
+        return PROMOTE_ICON;
+    }
+    private static Icon PROMOTE_ICON = null;
+
+    public static Icon getDemoteIcon() {
+        if (DEMOTE_ICON == null) DEMOTE_ICON = loadIconResource("demote.png");
+        return DEMOTE_ICON;
+    }
+    private static Icon DEMOTE_ICON = null;
+
+    public static Icon getCutIcon() {
+        if (CUT_ICON == null) CUT_ICON = loadIconResource("cut.gif");
+        return CUT_ICON;
+    }
+    private static Icon CUT_ICON = null;
+
+    public static Icon getCopyIcon() {
+        if (COPY_ICON == null) COPY_ICON = loadIconResource("copy.png");
+        return COPY_ICON;
+    }
+    private static Icon COPY_ICON = null;
+
+    public static Icon getPasteIcon() {
+        if (PASTE_ICON == null) PASTE_ICON = loadIconResource("paste.png");
+        return PASTE_ICON;
+    }
+    private static Icon PASTE_ICON = null;
+
+    public static Icon getDeleteIcon() {
+        if (DELETE_ICON == null) DELETE_ICON = loadIconResource("delete.png");
+        return DELETE_ICON;
+    }
+    private static Icon DELETE_ICON = null;
+
+
+
+    /** Convenience method for mixing colors.
+     * @param r the ratio to use when mixing; must be between 0.0 and 1.0 .
+     *   A value of 1.0 would return a color equivalent to color a.
+     *   A value of 0.0 would return a color equivalent to color b.
+     *   Other values linearly mix a and b together, yielding a color
+     *   equivalent to (r * a) + ((1-r) * b)
+     */
+    public static Color mixColors(Color a, Color b, float r) {
+        float s = 1.0f - r;
+        return new Color((a.getRed()   * r + b.getRed()   * s) / 255f,
+                         (a.getGreen() * r + b.getGreen() * s) / 255f,
+                         (a.getBlue()  * r + b.getBlue()  * s) / 255f);
+    }
+
+
+
+    /** Simple class to buffer an icon image for quick repainting.
+     */
     private static class BufferedIcon implements Icon {
         protected Image image = null;
         protected int width = 16, height = 16;
@@ -78,6 +165,12 @@ public class IconFactory {
         }
     }
 
+
+
+    /** Icon image representing a project.
+     *
+     * This draws a large square block.
+     */
     private static class ProjectIcon extends BufferedIcon {
 
         Color fillColor, highlight, shadow;
@@ -106,6 +199,58 @@ public class IconFactory {
     }
 
 
+
+    /** Icon image representing a common workflow.
+     *
+     * This draws four small boxes.
+     */
+    private static class WorkflowIcon extends PolygonIcon {
+
+        Color highlight, shadow;
+
+        public WorkflowIcon(Color fill) {
+            this.xPoints = new int[] { 1, 1, 7, 7 };
+            this.yPoints = new int[] { 1, 7, 7, 1 };
+            this.fillColor = fill;
+            this.highlight = mixColors(fill, Color.white, 0.3f);
+            this.shadow    = mixColors(fill, Color.black, 0.7f);
+        }
+
+        protected void doPaint(Component c, Graphics g) {
+            super.doPaint(c, g);
+            g.translate(6, 0);
+            super.doPaint(c, g);
+            g.translate(0, 6);
+            super.doPaint(c, g);
+            g.translate(-6, 0);
+            super.doPaint(c, g);
+            g.translate(0, -6);
+
+            g.setColor(Color.black);
+            g.drawLine(7, 0, 7, 0);
+            g.drawLine(0, 7, 0, 7);
+            g.drawLine(7, 14, 7, 14);
+            g.drawLine(14, 7, 14, 7);
+        }
+
+        protected void doHighlights(Component c, Graphics g) {
+            g.setColor(shadow);
+            drawHighlight(g, 1,  0, -1);
+            drawHighlight(g, 2, -1,  0);
+
+            g.setColor(highlight);
+            drawHighlight(g, 0, 1, 0);
+            drawHighlight(g, 3, 0, 1);
+        }
+
+    }
+
+
+
+    /** Icon image representing a software component.
+     *
+     * This draws a floppy disk.
+     */
     private static class SoftwareComponentIcon extends BufferedIcon {
 
         Color highlight;
@@ -146,6 +291,11 @@ public class IconFactory {
     }
 
 
+
+    /** Icon image representing a document
+     *
+     * This draws a page of paper.
+     */
     private static class DocumentIcon extends BufferedIcon {
 
         Color highlight;
@@ -194,6 +344,10 @@ public class IconFactory {
         }
     }
 
+
+
+    /** Generic icon to draw a polygon with 3D edge highlighting.
+     */
     private static class PolygonIcon extends BufferedIcon {
         int[] xPoints;
         int[] yPoints;
@@ -226,9 +380,11 @@ public class IconFactory {
     }
 
 
-    public static Icon getTaskIcon(Color fill) {
-        return new TaskIcon(fill);
-    }
+
+    /** Icon image representing a work breakdown structure task.
+     *
+     * This draws a parallelogram.
+     */
     private static class TaskIcon extends PolygonIcon {
 
         Color highlight, shadow;
@@ -255,9 +411,10 @@ public class IconFactory {
 
 
 
-    public static Icon getPSPTaskIcon(Color fill) {
-        return new PSPTaskIcon(fill);
-    }
+    /** Icon image representing a PSP task.
+     *
+     * This draws a pentagon.
+     */
     private static class PSPTaskIcon extends PolygonIcon {
 
         Color highlight, shadow;
@@ -287,99 +444,6 @@ public class IconFactory {
     }
 
 
-    private static class WorkflowIcon extends PolygonIcon {
-
-        Color highlight, shadow;
-
-        public WorkflowIcon(Color fill) {
-            this.xPoints = new int[] { 1, 1, 7, 7 };
-            this.yPoints = new int[] { 1, 7, 7, 1 };
-            this.fillColor = fill;
-            this.highlight = mixColors(fill, Color.white, 0.3f);
-            this.shadow    = mixColors(fill, Color.black, 0.7f);
-        }
-
-        protected void doPaint(Component c, Graphics g) {
-            super.doPaint(c, g);
-            g.translate(6, 0);
-            super.doPaint(c, g);
-            g.translate(0, 6);
-            super.doPaint(c, g);
-            g.translate(-6, 0);
-            super.doPaint(c, g);
-            g.translate(0, -6);
-
-            g.setColor(Color.black);
-            g.drawLine(7, 0, 7, 0);
-            g.drawLine(0, 7, 0, 7);
-            g.drawLine(7, 14, 7, 14);
-            g.drawLine(14, 7, 14, 7);
-        }
-
-        protected void doHighlights(Component c, Graphics g) {
-            g.setColor(shadow);
-            drawHighlight(g, 1,  0, -1);
-            drawHighlight(g, 2, -1,  0);
-
-            g.setColor(highlight);
-            drawHighlight(g, 0, 1, 0);
-            drawHighlight(g, 3, 0, 1);
-        }
-
-    }
-
-    private static Icon getIcon(String name) {
-        return new ImageIcon(IconFactory.class.getResource(name));
-    }
-
-    public static Icon getUndoIcon() {
-        if (UNDO_ICON == null) UNDO_ICON = getIcon("undo.png");
-        return UNDO_ICON;
-    }
-    public static Icon UNDO_ICON = null;
-
-    public static Icon getRedoIcon() {
-        if (REDO_ICON == null) REDO_ICON = getIcon("redo.png");
-        return REDO_ICON;
-    }
-    public static Icon REDO_ICON = null;
-
-    public static Icon getPromoteIcon() {
-        if (PROMOTE_ICON == null) PROMOTE_ICON = getIcon("promote.png");
-        return PROMOTE_ICON;
-    }
-    public static Icon PROMOTE_ICON = null;
-
-    public static Icon getDemoteIcon() {
-        if (DEMOTE_ICON == null) DEMOTE_ICON = getIcon("demote.png");
-        return DEMOTE_ICON;
-    }
-    public static Icon DEMOTE_ICON = null;
-
-    public static Icon getCutIcon() {
-        if (CUT_ICON == null) CUT_ICON = getIcon("cut.gif");
-        return CUT_ICON;
-    }
-    public static Icon CUT_ICON = null;
-
-    public static Icon getCopyIcon() {
-        if (COPY_ICON == null) COPY_ICON = getIcon("copy.png");
-        return COPY_ICON;
-    }
-    public static Icon COPY_ICON = null;
-
-    public static Icon getPasteIcon() {
-        if (PASTE_ICON == null) PASTE_ICON = getIcon("paste.png");
-        return PASTE_ICON;
-    }
-    public static Icon PASTE_ICON = null;
-
-    public static Icon getDeleteIcon() {
-        if (DELETE_ICON == null) DELETE_ICON = getIcon("delete.png");
-        return DELETE_ICON;
-    }
-    public static Icon DELETE_ICON = null;
-
 
 
     public static final int PHANTOM_ICON = 1;
@@ -392,6 +456,20 @@ public class IconFactory {
         MODIFIED_ICONS[2] = new HashMap();
     }
 
+    /** Create a modified version of an icon.
+     *
+     * @param i the icon to replicate
+     * @param modifierFlags a bitwise-or of any collection of the
+     * following flags:<ul>
+     * <li>{@link #PHANTOM_ICON} to create a whitened-out icon, indicative
+     *     of a cut operation
+     * <li>{@link #ERROR_ICON} to create a reddened icon, indicative of an
+     *     error condition.
+     * </ul>
+     * @return an icon which looks like the original, with the requested
+     *  filters applied. <b>Note:</b> this method will automatically cache
+     *  the icons it generates, and return a cached icon when appropriate.
+     */
     public static Icon getModifiedIcon(Icon i, int modifierFlags) {
         if (modifierFlags < 1 || modifierFlags > 3)
             return i;
@@ -410,6 +488,7 @@ public class IconFactory {
         return result;
     }
 
+    // filter for creating "error" icons.  Converts to red monochrome.
     private static RedFilter RED_FILTER = new RedFilter();
     private static class RedFilter extends RGBImageFilter {
         public RedFilter() { canFilterIndexColorModel = true; }
@@ -426,6 +505,8 @@ public class IconFactory {
         }
     }
 
+    // filter for creating "phantom" icons.  Mixes all colors
+    // half-and-half with white.
     private static PhantomFilter PHANTOM_FILTER = new PhantomFilter();
     private static class PhantomFilter extends RGBImageFilter {
         public PhantomFilter() { canFilterIndexColorModel = true; }
@@ -443,12 +524,11 @@ public class IconFactory {
         }
     }
 
-    public static Color mixColors(Color a, Color b, float r) {
-        float s = 1.0f - r;
-        return new Color((a.getRed()   * r + b.getRed()   * s) / 255f,
-                         (a.getGreen() * r + b.getGreen() * s) / 255f,
-                         (a.getBlue()  * r + b.getBlue()  * s) / 255f);
-    }
 
+
+    /** Fetch an icon from a file in the classpath. */
+    private static Icon loadIconResource(String name) {
+        return new ImageIcon(IconFactory.class.getResource(name));
+    }
 
 }
