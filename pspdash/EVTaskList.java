@@ -92,9 +92,12 @@ public class EVTaskList extends AbstractTreeTableModel
 
     protected void createErrorRootNode(String displayName,
                                        String errorMessage) {
+        if (displayName == null || displayName.length() == 0)
+            displayName = "Error";
         root = new EVTask(displayName);
-        ((EVTask) root).setTaskError(errorMessage);
         schedule = new EVSchedule(0.0);
+        ((EVTask) root).setTaskError(errorMessage);
+        schedule.getMetrics().addError(errorMessage, (EVTask) root);
     }
 
 
@@ -232,6 +235,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public boolean isEmpty() { return ((EVTask) root).isLeaf(); }
     public boolean isEditable() { return false; }
+    public String getRootName() { return ((EVTask) root).name; }
 
 
     public void save() { save(taskListName); }
