@@ -74,8 +74,7 @@ public class dtsEdit extends TinyCGIBase {
 
     /** Generate CGI script output. */
     protected void doGet() throws IOException {
-        out = new PrintWriter(new OutputStreamWriter(outStream, "UTF-8"));
-        out.print("Content-type: text/html; charset=utf-8\r\n\r\n");
+        writeHeader();
 
         String action = getParameter(ACTION);
         String name = getParameter(NAME);
