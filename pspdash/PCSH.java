@@ -60,6 +60,10 @@ public class PCSH {
         getHelpProvider().displayHelpTopic(helpID);
     }
 
+    public static boolean isSearchSupported() {
+        return !(getHelpProvider() instanceof SimpleHelpProvider);
+    }
+
     public static void displaySearchTab() {
         getHelpProvider().displaySearchTab();
     }
