@@ -38,6 +38,7 @@ public class TreeTableModelAdapter extends AbstractTableModel
 {
     JTree tree;
     TreeTableModel treeTableModel;
+    TreeModelListener listener;
 
     public TreeTableModelAdapter(TreeTableModel treeTableModel, JTree tree) {
         this.tree = tree;
@@ -58,7 +59,7 @@ public class TreeTableModelAdapter extends AbstractTableModel
         // tree changes. We use delayedFireTableDataChanged as we can
         // not be guaranteed the tree will have finished processing
         // the event before us.
-        treeTableModel.addTreeModelListener(new TreeModelListener() {
+        treeTableModel.addTreeModelListener(listener=new TreeModelListener() {
             public void treeNodesChanged(TreeModelEvent e) {
                 delayedFireTableDataChanged();
             }
@@ -75,6 +76,11 @@ public class TreeTableModelAdapter extends AbstractTableModel
                 delayedFireTableDataChanged();
             }
         });
+    }
+
+    public void dispose() {
+        if (treeTableModel != null)
+            treeTableModel.removeTreeModelListener(listener);
     }
 
     // Wrappers, implementing TableModel interface.

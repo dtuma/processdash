@@ -41,6 +41,7 @@ import java.util.EventObject;
 public class JTreeTable extends JTable {
     /** A subclass of JTree. */
     protected TreeTableCellRenderer tree;
+    protected TreeTableModelAdapter adapter;
 
     public JTreeTable(TreeTableModel treeTableModel) {
         super();
@@ -49,7 +50,8 @@ public class JTreeTable extends JTable {
         tree = new TreeTableCellRenderer(treeTableModel);
 
         // Install a tableModel representing the visible rows in the tree.
-        super.setModel(new TreeTableModelAdapter(treeTableModel, tree));
+        super.setModel
+            (adapter = new TreeTableModelAdapter(treeTableModel, tree));
 
         // Force the JTable and JTree to share their row selection models.
         ListToTreeSelectionModelWrapper selectionWrapper = new
@@ -73,6 +75,11 @@ public class JTreeTable extends JTable {
             // Metal looks better like this.
             setRowHeight(18);
         }
+    }
+
+    public void dispose() {
+        if (adapter != null)
+            adapter.dispose();
     }
 
     /**
