@@ -39,25 +39,38 @@ public class ResultSet {
     protected String suffix[];
     protected double multiplier[];
     protected Object[][] data;
+    boolean useRowFormats = false;
 
     /** Create a result set to store the given number of rows and columns
      * of data. */
     public ResultSet(int numRows, int numCols) {
+        this(numRows, numCols, false);
+    }
+
+    protected ResultSet(int numRows, int numCols, boolean useRowFormats) {
         // Add a header row and a header column
         data = new Object[numRows+1][numCols+1];
-        multiplier = new double[numCols+1];
-        prefix = new String[numCols+1];
-        suffix = new String[numCols+1];
-        for (int i=numCols;  i >= 0;  i--) setFormat(i, null);
+        this.useRowFormats = useRowFormats;
+        int numFormats = useRowFormats ? numRows : numCols;
+        multiplier = new double[numFormats+1];
+        prefix = new String[numFormats+1];
+        suffix = new String[numFormats+1];
+        for (int i=numFormats;  i >= 0;  i--) setFormat(i, null);
     }
 
     /** Return a new ResultSet which is the transposition of this one. */
     public ResultSet transpose() {
         int row = numRows(), col = numCols();
-        ResultSet result = new ResultSet(col, row);
+        ResultSet result = new ResultSet(col, row, !useRowFormats);
         for (;  row >= 0;  row--)
             for (col=numCols();  col >= 0;  col--)
                 result.data[col][row] = data[row][col];
+        for (int f=prefix.length;  f-- > 0; ) {
+            result.prefix[f]     = prefix[f];
+            result.suffix[f]     = suffix[f];
+            result.multiplier[f] = multiplier[f];
+        }
+
         return result;
     }
 
@@ -98,7 +111,8 @@ public class ResultSet {
         Object o = data[row][col];
         if (o instanceof NumberData && ((NumberData)o).isDefined())
             return new DoubleData
-                (((NumberData) o).getDouble() * multiplier[col], false);
+                (((NumberData) o).getDouble() *
+                 multiplier[useRowFormats ? row : col], false);
         else
             return (o instanceof SimpleData) ? (SimpleData) o : null;
     }
@@ -143,11 +157,14 @@ public class ResultSet {
         String result = d.format();
         if (result.startsWith("#") || result.startsWith("ERR")) return result;
 
-        return prefix[col] + result + suffix[col];
+        int fmt = useRowFormats ? row : col;
+        return prefix[fmt] + result + suffix[fmt];
     }
 
     /** Resort the result set by the data in the specified column.
      * @throws ArrayIndexOutOfBoundsException unless 1 <= col <= numCols().
+     * WARNING: do not use this routine on a transposed result set which
+     * uses row formats. The mapping of format to row will not be preserved.
      */
     public void sortBy(int col, boolean descending) {
         if (col < 1 || col > numCols())
@@ -406,13 +423,22 @@ public class ResultSet {
 
         for (int p=0;  p < prefixList.size();  p++) {
             // get the next prefix
-            prefix = (String) prefixList.get(p);
+            Object pfx = prefixList.get(p);
+            if (pfx instanceof String)
+                prefix = (String) pfx;
+            else if (pfx instanceof SimpleData)
+                prefix = ((SimpleData) pfx).format();
+            else
+                continue;
 
             // write the row headers into the result set.
             if (prefix.length() > baseLen && prefix.startsWith(basePrefix))
                 result.setRowName(p+1, prefix.substring(baseLen));
-            else
+            else {
                 result.setRowName(p+1, prefix);
+                if (!prefix.startsWith("/"))
+                    prefix = data.createDataName(basePrefix, prefix);
+            }
 
             // look up the data for this row.
             for (int d=0;  d < dataNames.length;  d++)
