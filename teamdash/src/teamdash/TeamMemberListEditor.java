@@ -1,178 +1,129 @@
-
 package teamdash;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.table.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
-public class TeamMemberListEditor extends JPanel {
+public class TeamMemberListEditor {
 
-    TeamMemberList teamMemberList;
+    TeamMemberList teamMemberList, orig;
+    JTable table;
+    JPanel buttons;
+    JFrame frame;
 
-    public TeamMemberListEditor() {
-        // create the table model
-        teamMemberList = new TeamMemberList();
+    public TeamMemberListEditor(TeamProject teamProject) {
+        this(teamProject.getTeamMemberList());
+    }
 
-        // create the table
-        JTable table = new JTable(teamMemberList);
+    public TeamMemberListEditor(TeamMemberList teamList) {
+        teamMemberList = new TeamMemberList(orig = teamList);
+        teamMemberList.maybeAddEmptyRow();
+        buildTable();
+        buildButtons();
+
+        frame = new JFrame("Team Members");
+        frame.getContentPane().add(new JScrollPane(table));
+        frame.getContentPane().add(buttons, BorderLayout.SOUTH);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(380, 200);
+        frame.show();
+    }
+
+    public void show() {
+        teamMemberList.maybeAddEmptyRow();
+        frame.show();
+        frame.toFront();
+    }
+
+    public void hide() {
+        frame.setVisible(false);
+    }
+
+    private boolean checkForErrors() {
+        Object[] errors = teamMemberList.getErrors();
+        if (errors == null) return true;
+
+        Object[] message = new Object[] {
+            "The team list cannot be saved because it contains errors:",
+            new JList(errors) };
+        JOptionPane.showMessageDialog
+            (frame, message, "Problems with Team List",
+             JOptionPane.ERROR_MESSAGE);
+        return false;
+    }
+
+    private boolean confirmDestructiveChanges(Object[] changes) {
+        if (changes == null) return true;
+
+        Object[] message = new Object[] {
+            "Your changes to the team list will require altering data in",
+            "the work breakdown structure:",
+            new JList(changes),
+            "You will not be able to undo these changes. Do you still",
+            "want to save?" };
+        return (JOptionPane.YES_OPTION ==
+                JOptionPane.showConfirmDialog
+                    (frame, message, "Verify changes to Team List",
+                     JOptionPane.YES_NO_OPTION));
+    }
+
+    public boolean save() {
+        if (table.isEditing())
+            table.getCellEditor().stopCellEditing();
+
+        if (!checkForErrors()) return false;
+
+        TeamMemberList.Delta[] irreversibleChanges =
+            orig.calculateDelta(teamMemberList);
+        if (!confirmDestructiveChanges(irreversibleChanges)) return false;
+
+        orig.publishChanges(irreversibleChanges);
+        orig.copyFrom(teamMemberList);
+        return true;
+    }
+
+    public void cancel() {
+        if (table.isEditing())
+            table.getCellEditor().stopCellEditing();
+        teamMemberList.copyFrom(orig);
+    }
+
+    private void buildTable() {
+        table = new JTable(teamMemberList);
 
         //Set up renderer and editor for the Color column.
-        ColorRenderer.setUpColorRenderer(table);
-        ColorEditor.setUpColorEditor(table);
+        ColorCellRenderer.setUpColorRenderer(table);
+        ColorCellEditor.setUpColorEditor(table);
 
-        JScrollPane scrollPane = new JScrollPane(table);
-        setLayout(new BorderLayout());
-        add(scrollPane, BorderLayout.CENTER);
+        // set preferred sizes for each column
+        table.getColumn("Name").setPreferredWidth(150);
+        table.getColumn("Initials").setPreferredWidth(55);
+        table.getColumn("Color").setPreferredWidth(55);
+        table.getColumn("Est Hours/Week").setPreferredWidth(100);
     }
 
-}
+    private void buildButtons() {
+        buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 
-
-
-class ColorRenderer extends JLabel implements TableCellRenderer {
-    Border unselectedBorder = null;
-    Border selectedBorder = null;
-    boolean isBordered = true;
-
-    public ColorRenderer(boolean isBordered) {
-        super(); //"foo");
-        this.isBordered = isBordered;
-        setOpaque(true); //MUST do this for background to show up.
-    }
-
-    private Border getSelectedBorder(JTable table) {
-        if (selectedBorder == null)
-            selectedBorder = BorderFactory.createMatteBorder
-                (2, 5, 2, 5, table.getSelectionBackground());
-        return selectedBorder;
-    }
-    private Border getUnselectedBorder(JTable table) {
-        if (unselectedBorder == null)
-            unselectedBorder = BorderFactory.createMatteBorder
-                (2,5,2,5, table.getBackground());
-        return unselectedBorder;
-    }
-
-    public Component getTableCellRendererComponent
-        (JTable table, Object color, boolean isSelected,
-         boolean hasFocus, int row, int column)
-    {
-        setBackground((Color) color);
-        setForeground(xorColor((Color) color));
-        if (isBordered)
-            setBorder(isSelected
-                      ? getSelectedBorder(table)
-                      : getUnselectedBorder(table));
-
-        return this;
-    }
-
-    private static HashMap XOR_COLORS = new HashMap();
-    private static Color xorColor(Color c) {
-        Color result = (Color) XOR_COLORS.get(c);
-        if (result == null) {
-            result = new Color(c.getRed() ^ 255,
-                               c.getGreen() ^ 255,
-                               c.getBlue() ^ 255);
-            XOR_COLORS.put(c, result);
-        }
-        return result;
-    }
-
-    static void setUpColorRenderer(JTable table) {
-        table.setDefaultRenderer(Color.class, new ColorRenderer(true));
-    }
-
-}
-
-
-
-
-/*
- * The editor button that brings up the dialog.
- * We extend DefaultCellEditor for convenience,
- * even though it mean we have to create a dummy
- * check box.  Another approach would be to copy
- * the implementation of TableCellEditor methods
- * from the source code for DefaultCellEditor.
- */
-class ColorEditor extends DefaultCellEditor {
-    Color currentColor = null;
-
-    public ColorEditor(JButton b) {
-        super(new JCheckBox()); //Unfortunately, the constructor
-                                //expects a check box, combo box,
-                                //or text field.
-        editorComponent = b;
-        setClickCountToStart(1); //This is usually 1 or 2.
-
-        //Must do this so that editing stops when appropriate.
-        b.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    fireEditingStopped();
-                }
-            });
-    }
-
-    protected void fireEditingStopped() {
-        super.fireEditingStopped();
-    }
-
-    public Object getCellEditorValue() {
-        return currentColor;
-    }
-
-    public Component getTableCellEditorComponent(JTable table,
-                                                 Object value,
-                                                 boolean isSelected,
-                                                 int row,
-                                                 int column) {
-        ((JButton)editorComponent).setText(value.toString());
-        currentColor = (Color)value;
-        return editorComponent;
-    }
-
-    //Set up the editor for the Color cells.
-    static void setUpColorEditor(JTable table) {
-        //First, set up the button that brings up the dialog.
-        final JButton button = new JButton("") {
-                public void setText(String s) {
-                    //Button never shows text -- only color.
-                }
-            };
-        button.setBackground(Color.white);
-        button.setBorderPainted(false);
-        button.setMargin(new Insets(0,0,0,0));
-
-        //Now create an editor to encapsulate the button, and
-        //set it up as the editor for all Color cells.
-        final ColorEditor colorEditor = new ColorEditor(button);
-        table.setDefaultEditor(Color.class, colorEditor);
-
-        //Set up the dialog that the button brings up.
-        final JColorChooser colorChooser = new JColorChooser();
-        ActionListener okListener = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                colorEditor.currentColor = colorChooser.getColor();
-            }
-        };
-        final JDialog dialog = JColorChooser.createDialog
-            (button, "Pick a Color", true, colorChooser, okListener, null);
-
-        //Here's the code that brings up the dialog.
+        JButton button = new JButton("Cancel");
         button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    button.setBackground(colorEditor.currentColor);
-                    colorChooser.setColor(colorEditor.currentColor);
-                    //Without the following line, the dialog comes up
-                    //in the middle of the screen.
-                    //dialog.setLocationRelativeTo(button);
-                    dialog.show();
-                }
-            });
+            public void actionPerformed(ActionEvent e) {
+                cancel(); hide(); } });
+        buttons.add(button);
+
+        button = new JButton("Save");
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (save()) hide(); } });
+        buttons.add(button);
     }
 }

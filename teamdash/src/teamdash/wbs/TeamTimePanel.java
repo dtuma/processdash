@@ -42,6 +42,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         recalc();
 
         dataModel.addTableModelListener(this);
+        teamList.addTableModelListener(this);
     }
 
     private void rebuildPanelContents() {
@@ -138,6 +139,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     }
 
     public void tableChanged(TableModelEvent e) {
+        if (e.getSource() == teamList)
+            rebuildPanelContents();
         recalc();
         repaint();
     }
@@ -163,9 +166,16 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
 
         public double recalc() {
+            if (columnNumber == -1) {
+                columnNumber = dataModel.findColumn
+                    (teamMember.getInitials()+"-Time");
+                if (columnNumber == -1) return 0;
+            }
             NumericDataValue totalTime =
                 (NumericDataValue) dataModel.getValueAt(0, columnNumber);
-            numWeeks = totalTime.value / getHoursPerWeek();
+            double time = 0;
+            if (totalTime != null) time = totalTime.value;
+            numWeeks = time / getHoursPerWeek();
             setToolTipText(teamMember.getName()+" - "+formatWeeks(numWeeks));
             return numWeeks;
         }

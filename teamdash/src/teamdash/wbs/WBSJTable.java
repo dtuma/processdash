@@ -610,6 +610,8 @@ public class WBSJTable extends JTable {
             // cancel the previous cut operation, if there was one.
             cancelCut();
 
+            if (isEditing()) editor.stopCellEditing();
+
             // delete the nodes.
             wbsModel.deleteNodes(nodesToDelete);
 

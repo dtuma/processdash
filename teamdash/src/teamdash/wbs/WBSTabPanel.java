@@ -26,11 +26,14 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import teamdash.TeamMemberList;
 import teamdash.TeamProcess;
 
 /** Class to display the WBS editor panel
  */
-public class WBSTabPanel extends JPanel {
+public class WBSTabPanel extends JPanel
+    implements TeamMemberList.InitialListener
+{
 
     public static final String TEAM_MEMBER_TIMES_ID = "TeamMemberTimes";
 
@@ -362,6 +365,10 @@ public class WBSTabPanel extends JPanel {
         }
         public void paint(Graphics g) {
         }
+    }
+
+    public void initialsChanged(String oldInitials, String newInitials) {
+        undoList.clear();
     }
 
 }

@@ -28,7 +28,7 @@ public class IconFactory {
     }
 
     public static Icon getSoftwareComponentIcon() {
-        return new BufferedIcon(MetalIconFactory.getTreeFloppyDriveIcon());
+        return MetalIconFactory.getTreeFloppyDriveIcon();
     }
 
     public static Icon getDocumentIcon(Color highlight) {

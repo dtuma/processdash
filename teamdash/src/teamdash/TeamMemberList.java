@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,6 +29,10 @@ public class TeamMemberList extends AbstractTableModel {
         NodeList nodes = e.getElementsByTagName(TeamMember.TAG_NAME);
         for (int i = 0;   i < nodes.getLength();   i++)
             teamMembers.add(new TeamMember((Element) nodes.item(i)));
+    }
+
+    public TeamMemberList(TeamMemberList list) {
+        this.teamMembers = copyTeamMemberList(list.teamMembers);
     }
 
     public static final int NAME_COLUMN = 0;
@@ -65,11 +70,11 @@ public class TeamMemberList extends AbstractTableModel {
     }
 
     public void setValueAt(Object aValue, int row, int column) {
-
-
         TeamMember m = get(row);
         switch (column) {
         case NAME_COLUMN:
+            m.setName((String) aValue);
+            if (autoNewRow) maybeAddEmptyRow(); /*
             Object currentVal = getValueAt(row, NAME_COLUMN);
             // if both values are empty, there is nothing to do.
             if (!hasValue(currentVal) && !hasValue(aValue)) break;
@@ -77,7 +82,7 @@ public class TeamMemberList extends AbstractTableModel {
             if (hasValue(aValue) && aValue.equals(currentVal)) break;
             m.setName((String) aValue);
             if (autoNewRow && hasValue(aValue) && (row + 1 == getRowCount()))
-                addNewRow();
+                addNewRow(); */
             break;
 
         case INITIALS_COLUMN: m.setInitials((String) aValue); break;
@@ -89,17 +94,36 @@ public class TeamMemberList extends AbstractTableModel {
         return (s instanceof String && ((String)s).trim().length() > 0);
     }
 
+    public void maybeAddEmptyRow() {
+        int rows = getRowCount();
+        if (hasValue(getValueAt(rows-1, NAME_COLUMN)))
+            addNewRow();
+    }
+
+
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         return true;
     }
 
     private void addNewRow() {
         int newRowNum = getRowCount();
-        Color c = Color.darkGray;
-        if (newRowNum < DEFAULT_COLORS.length)
-            c = Color.decode(DEFAULT_COLORS[newRowNum]);
+        Color c = getFirstUnusedColor();
         teamMembers.add(new TeamMember(null, null, c));
         fireTableRowsInserted(newRowNum, newRowNum);
+    }
+
+    private Color getFirstUnusedColor() {
+        HashSet usedColors = new HashSet();
+        Iterator i = teamMembers.iterator();
+        while (i.hasNext())
+            usedColors.add(((TeamMember) i.next()).getColor());
+
+        for (int j = 0;   j < DEFAULT_COLORS.length;   j++) {
+            Color c = Color.decode(DEFAULT_COLORS[j]);
+            if (!usedColors.contains(c)) return c;
+        }
+
+         return Color.darkGray;
     }
 
     public void getAsXML(Writer out) throws IOException {
@@ -141,5 +165,134 @@ public class TeamMemberList extends AbstractTableModel {
             if (!m.isEmpty()) result.add(m);
         }
         return result;
+    }
+
+    private ArrayList copyTeamMemberList(List list) {
+        ArrayList result = new ArrayList();
+        Iterator i = list.iterator();
+        while (i.hasNext())
+            result.add(((TeamMember) i.next()).clone());
+        return result;
+    }
+
+    public class Delta {
+        TeamMember before, after;
+        String description;
+        public Delta(TeamMember bef, TeamMember aft, String d) {
+            before = bef;   after = aft;   description = d;
+        }
+        public String toString() { return description; }
+    }
+    public Delta[] calculateDelta(TeamMemberList newMembers) {
+        ArrayList origList =  new ArrayList(this.teamMembers);
+        ArrayList newList =  new ArrayList(newMembers.teamMembers);
+        ArrayList deltas = new ArrayList();
+        for (int search = 0;   search < 2;   search++) {
+            Iterator i = origList.iterator();
+            while (i.hasNext()) {
+                TeamMember origMember = (TeamMember) i.next();
+                Delta d = findTeamMember(origMember, newList, search);
+                if (d != null) {
+                    i.remove();
+                    newList.remove(d.after);
+                    if (d.description.length() > 0) deltas.add(d);
+                }
+            }
+        }
+        if (origList.size() > 0) {
+            Iterator i = origList.iterator();
+            while (i.hasNext()) {
+                TeamMember t = (TeamMember) i.next();
+                deltas.add(new Delta(t, null, "Delete " + t.getName()));
+            }
+        }
+
+        if (deltas.size() == 0) return null;
+        return (Delta[]) deltas.toArray(new Delta[0]);
+    }
+    private Delta findTeamMember(TeamMember t, ArrayList l, int search) {
+        Iterator i = l.iterator();
+        while (i.hasNext()) {
+            TeamMember s = (TeamMember) i.next();
+            String diff = t.compareToMember(s, search == 1);
+            if (diff != null)
+                return new Delta(t, s, diff);
+        }
+        return null;
+    }
+
+    public void copyFrom(TeamMemberList newMembers) {
+        this.teamMembers = copyTeamMemberList(newMembers.getTeamMembers());
+        fireTableDataChanged();
+    }
+
+    private void addError(ArrayList errList, String err) {
+        if (!errList.contains(err)) errList.add(err);
+    }
+
+    public Object[] getErrors() {
+        HashSet names = new HashSet();
+        HashSet initials = new HashSet();
+        ArrayList errors = new ArrayList();
+        Iterator i = teamMembers.iterator();
+        while (i.hasNext()) {
+            TeamMember m = (TeamMember) i.next();
+            if (m.isEmpty()) continue;
+
+            String name = m.getName();
+            if (name == null)
+                addError(errors, "You must enter a name for each team member");
+            else if (names.contains(name))
+                addError(errors, "More than one team member is named '" +
+                         name + "'");
+            names.add(name);
+
+            String init = m.getInitials();
+            if (init == null)
+                addError(errors, "You must enter initials for each team member");
+            else if (initials.contains(init))
+                addError(errors, "More than one team member has the initials '"
+                         + init + "'");
+            initials.add(init);
+        }
+
+        if (errors.size() == 0) return null;
+        return errors.toArray();
+    }
+
+    public void publishChanges(Delta[] changes) {
+        if (changes == null || changes.length == 0)
+            return;
+        for (int i = changes.length;   i-- > 0; ) {
+            if (changes[i].before == null) continue;
+            if (changes[i].after == null) continue;
+            String initBefore = changes[i].before.getInitials();
+            String initAfter = changes[i].after.getInitials();
+            if (initBefore != null && initAfter != null &&
+                !initBefore.equals(initAfter))
+                fireInitialsChanged(initBefore, initAfter);
+        }
+    }
+
+    public interface InitialListener {
+        public void initialsChanged(String oldInitials, String newInitials);
+    }
+
+    private HashSet initialListeners = null;
+    public void addInitialListener(InitialListener l) {
+        if (l == null) return;
+        if (initialListeners == null) initialListeners = new HashSet();
+        initialListeners.add(l);
+    }
+    public void removeInitialListener(InitialListener l) {
+        if (initialListeners != null)
+            initialListeners.remove(l);
+    }
+
+    private void fireInitialsChanged(String initBefore, String initAfter) {
+        Iterator i = initialListeners.iterator();
+        while (i.hasNext())
+            ((InitialListener) i.next()).initialsChanged
+                (initBefore, initAfter);
     }
 }

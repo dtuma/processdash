@@ -20,6 +20,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import teamdash.TeamMemberListEditor;
 import teamdash.TeamProject;
 
 public class WBSEditor implements WindowListener {
@@ -38,6 +39,7 @@ public class WBSEditor implements WindowListener {
              teamProject.getTeamProcess());
         WBSTabPanel table =
             new WBSTabPanel(model, data, teamProject.getTeamProcess());
+        teamProject.getTeamMemberList().addInitialListener(table);
 
         table.addTab("Size",
                      new String[] { "Size", "Size-Units", "N&C-LOC", "N&C-Text Pages",
@@ -86,7 +88,7 @@ public class WBSEditor implements WindowListener {
         result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildWorkflowMenu
             (workflows, tabPanel.getInsertWorkflowAction(workflows)));
-        result.add(buildViewMenu());
+        result.add(buildTeamMenu());
 
         return result;
     }
@@ -117,9 +119,10 @@ public class WBSEditor implements WindowListener {
         new WorkflowMenuBuilder(result, workflows, insertWorkflowAction);
         return result;
     }
-    private JMenu buildViewMenu() {
-        JMenu result = new JMenu("View");
-        result.setMnemonic('V');
+    private JMenu buildTeamMenu() {
+        JMenu result = new JMenu("Team");
+        result.setMnemonic('T');
+        result.add(new ShowTeamMemberListEditorMenuItem());
         result.add(new ShowTeamTimePanelMenuItem());
         return result;
     }
@@ -232,6 +235,22 @@ public class WBSEditor implements WindowListener {
 
         public void tableChanged(TableModelEvent e) {
             rebuildMenu();
+        }
+    }
+
+
+
+    private class ShowTeamMemberListEditorMenuItem extends AbstractAction {
+        private TeamMemberListEditor editor = null;
+        public ShowTeamMemberListEditorMenuItem() {
+            super("Edit Team Member List");
+            putValue(MNEMONIC_KEY, new Integer('E'));
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (editor != null)
+                editor.show();
+            else
+                editor = new TeamMemberListEditor(teamProject);
         }
     }
 

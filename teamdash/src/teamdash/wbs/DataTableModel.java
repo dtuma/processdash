@@ -16,6 +16,7 @@ import javax.swing.table.TableColumnModel;
 
 import teamdash.TeamMemberList;
 import teamdash.TeamProcess;
+import teamdash.wbs.columns.NullDataColumn;
 import teamdash.wbs.columns.PhaseColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskSizeColumn;
@@ -135,6 +136,15 @@ public class DataTableModel extends AbstractTableModel {
 
     public void addDataColumn(DataColumn column) {
         columns.add(column);
+        // if the dependencies are already computed, update them.
+        if (dependencies != null)
+            initializeColumnDependencies();
+    }
+
+    public void removeDataColumn(DataColumn column) {
+        int pos = columns.indexOf(column);
+        if (pos == -1) return;
+        columns.set(pos, new NullDataColumn());
         // if the dependencies are already computed, update them.
         if (dependencies != null)
             initializeColumnDependencies();
@@ -335,6 +345,9 @@ public class DataTableModel extends AbstractTableModel {
                         (CalculatedDataColumn) dirtyColumns.iterator().next();
                     recalcColumn(c, waitingColumns);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                dirtyColumns.clear();
             } finally {
                 endChange();
             }

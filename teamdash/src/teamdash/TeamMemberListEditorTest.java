@@ -17,12 +17,9 @@ public class TeamMemberListEditorTest implements WindowListener {
     }
 
     public TeamMemberListEditorTest() {
-        JFrame f = new JFrame("Test");
-        f.getContentPane().add(editor = new TeamMemberListEditor());
-        //f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.addWindowListener(this);
-        f.pack();
-        f.show();
+        editor = new TeamMemberListEditor(new TeamMemberList());
+        editor.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        editor.frame.addWindowListener(this);
     }
 
     public void windowOpened(WindowEvent e) {}

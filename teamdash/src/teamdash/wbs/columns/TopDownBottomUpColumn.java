@@ -31,10 +31,9 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         this.pruner = p;
 
         id = id.replace('_', '-');
-        topDownAttrName   = id + " (Top Down)";
-        bottomUpAttrName  = id + " (Bottom_Up)";
-        inheritedAttrName = id + " (Inherited_)";
-        //recalculate();
+        topDownAttrName   = getTopDownAttrName(id);
+        bottomUpAttrName  = getBottomUpAttrName(id);
+        inheritedAttrName = getInheritedAttrName(id);
     }
     protected void setPruner(Pruner p) {
         pruner = p;
@@ -274,4 +273,14 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
 
     public void storeDependentColumn(String ID, int columnNumber) { }
+
+    protected static String getTopDownAttrName(String id) {
+        return id.replace('_', '-') + " (Top Down)";
+    }
+    protected static String getBottomUpAttrName(String id) {
+        return id.replace('_', '-') + " (Bottom_Up)";
+    }
+    protected static String getInheritedAttrName(String id) {
+        return id.replace('_', '-') + " (Inherited_)";
+    }
 }

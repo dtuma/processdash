@@ -143,4 +143,10 @@ public class UndoList {
             redo();
         }
     }
+    public void clear() {
+        undoList = new Stack();
+        redoList = null;
+        currentState = snapshotSource.getSnapshot();
+        refreshActions();
+    }
 }
