@@ -27,6 +27,11 @@ package net.sourceforge.processdash.net.http;
 
 import java.io.*;
 import java.net.*;
+import java.security.AccessControlException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -39,6 +44,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.net.cache.ObjectCache;
+import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -64,6 +70,8 @@ public class WebServer extends Thread {
     boolean allowRemoteConnections = false;
     private int port;
     private String startupTimestamp, startupTimestampHeader;
+    private InheritableThreadLocal effectiveClientSocket =
+        new InheritableThreadLocal();
 
     public static final String PROTOCOL = "HTTP/1.0";
     public static final String DEFAULT_TEXT_MIME_TYPE =
@@ -78,6 +86,30 @@ public class WebServer extends Thread {
     public static final String LINK_SUFFIX = ".link";
     public static final String LINK_MIME_TYPE = "text/x-server-shortcut";
     public static final String CGI_LINK_PREFIX = "class:";
+    public static final String DASHBOARD_PROTOCOL = "processdash";
+
+    public static final DashboardPermission SET_PASSWORD_PERMISSION =
+        new DashboardPermission("webServer.setPassword");
+    public static final DashboardPermission GET_SOCKET_PERMISSION =
+        new DashboardPermission("webServer.getSocket");
+    public static final DashboardPermission GET_CGI_POOL_PERMISSION =
+        new DashboardPermission("webServer.getCGIPool");
+    public static final DashboardPermission CREATE_PERMISSION =
+        new DashboardPermission("webServer.create");
+    public static final DashboardPermission SET_ROOTS_PERMISSION =
+        new DashboardPermission("webServer.setRoots");
+    public static final DashboardPermission SET_HIERARCHY_PERMISSION =
+        new DashboardPermission("webServer.setHierarchy");
+    public static final DashboardPermission SET_DATA_PERMISSION =
+        new DashboardPermission("webServer.setDataRepository");
+    public static final DashboardPermission SET_CACHE_PERMISSION =
+        new DashboardPermission("webServer.setCache");
+    public static final DashboardPermission SET_ALLOW_REMOTE_PERMISSION =
+        new DashboardPermission("webServer.setAllowRemoteConnections");
+    public static final DashboardPermission ADD_PORT_PERMISSION =
+        new DashboardPermission("webServer.addExtraPort");
+    public static final DashboardPermission QUIT_PERMISSION =
+        new DashboardPermission("webServer.quit");
 
     private static final DateFormat dateFormat =
                            // Tue, 05 Dec 2000 17:28:07 GMT
@@ -89,7 +121,7 @@ public class WebServer extends Thread {
     private static final String CRLF = "\r\n";
     private static final int SCAN_BUF_SIZE = 4096;
     private static final String DASH_CHARSET = HTTPUtils.DEFAULT_CHARSET;
-    private static final String HEADER_CHARSET = DASH_CHARSET;
+    static final String HEADER_CHARSET = DASH_CHARSET;
     private static String OUTPUT_CHARSET = DASH_CHARSET;
 
     static {
@@ -117,112 +149,21 @@ public class WebServer extends Thread {
         if (!url.startsWith("jar:")) return null;
         int pos = url.lastIndexOf("!/Templates");
         if (pos == -1) return null;
-        url = url.substring(0, pos+2);
+        url = url.substring(4, pos);
         synchronized (addOnLoaderMap) {
             ClassLoader result = (ClassLoader) addOnLoaderMap.get(url);
             if (result == null) try {
-                result = new AddOnClassLoader(url);
+                result = new URLClassLoader(new URL[] { new URL(url) });
                 addOnLoaderMap.put(url, result);
             } catch (Exception e) {}
             return result;
         }
     }
 
-    private class AddOnClassLoader extends ClassLoader {
-        URL base;
-        public AddOnClassLoader(String path) {
-            super();
-            init(path);
-        }
-        protected AddOnClassLoader(String path, ClassLoader parent) {
-            super(parent);
-            init(path);
-        }
-        private void init(String path) {
-            try {
-                base = new URL(path);
-            } catch (Exception e) {
-                base = null;
-            }
-        }
-        protected Class findClass(String name) throws ClassNotFoundException {
-            if (name.startsWith("Templates."))
-                throw new ClassNotFoundException(name);
-
-            try {
-                String filename = name.replace('.', '/') + ".class";
-                URL classURL = new URL(base, filename);
-                URLConnection conn = classURL.openConnection();
-                conn.connect();
-
-                byte [] defn = slurpContents(conn.getInputStream() , true);
-                Class result = defineClass(name, defn, 0, defn.length);
-                resolveClass(result);
-                return result;
-            } catch (Exception e) {
-                throw new ClassNotFoundException(name, e);
-            }
-        }
-        protected URL findResource(String name) {
-            try {
-                URL resourceURL = new URL(base, name);
-                URLConnection conn = resourceURL.openConnection();
-                conn.connect();
-                return resourceURL;
-            } catch (Exception e) {
-                return null;
-            }
-        }
-    }
-
-    private class CGILoader extends AddOnClassLoader {
-        public CGILoader(String path) {
-            super(path);
-        }
-        public CGILoader(String path, ClassLoader parent) {
-            super(path, parent);
-        }
-        public Class loadFromConnection(URLConnection conn)
-            throws IOException, ClassFormatError
-        {
-            // Get the class name for the CGI script.  This is equal
-            // to the name of the file, sans the ".class" extension.
-            String className = conn.getURL().getFile();
-            int beg = className.lastIndexOf('/');
-            int end = className.indexOf('.', beg);
-            className = className.substring(beg + 1, end);
-
-            // If we have already loaded this class, fetch and return it
-            Class result = findLoadedClass(className);
-            if (result != null)
-                return result;
-
-            // Read the class definition from the connection
-            byte [] defn = slurpContents(conn.getInputStream(), true);
-
-            synchronized (this) {
-                // check to see if someone else defined the class since
-                // we last checked.
-                result = findLoadedClass(className);
-                if (result != null) return result;
-
-                // Create a class from the definition read.
-                result = defineClass(className, defn, 0, defn.length);
-                resolveClass(result);
-            }
-            return result;
-        }
-        protected Class findClass(String name) throws ClassNotFoundException {
-            if (name.indexOf('.') != -1)
-                throw new ClassNotFoundException(name);
-            return super.findClass(name);
-        }
-    }
-
     public ResourcePool getCGIPool(String path) {
-        // REFACTOR: This method should not be exposed.
-        // Ideally, it should be removed and some other mechanism should
-        // be created instead.
+        // REFACTOR: This method should be removed and some other
+        // mechanism should be created instead.
+        GET_CGI_POOL_PERMISSION.checkPermission();
         return (ResourcePool) cgiCache.get(path);
     }
 
@@ -245,6 +186,7 @@ public class WebServer extends Thread {
 
         public TinyWebThread(Socket clientSocket) {
             try {
+                effectiveClientSocket.set(clientSocket);
                 this.clientSocket = clientSocket;
                 this.inputStream = clientSocket.getInputStream();
                 this.in = new BufferedReader
@@ -254,6 +196,8 @@ public class WebServer extends Thread {
                     (new OutputStreamWriter(outputStream, HEADER_CHARSET));
             } catch (IOException ioe) {
                 this.inputStream = null;
+            } finally {
+                effectiveClientSocket.set(null);
             }
         }
 
@@ -643,17 +587,25 @@ public class WebServer extends Thread {
             env.put("SCRIPT_NAME", "/" + path);
             env.put("REQUEST_URI", uri);
             env.put("QUERY_STRING", query);
-            if (clientSocket != null) {
+            Socket effectiveClientSocket = getEffectiveClientSocket();
+            if (effectiveClientSocket != null) {
                 env.put("REMOTE_PORT",
-                        Integer.toString(clientSocket.getPort()));
-                InetAddress addr = clientSocket.getInetAddress();
+                        Integer.toString(effectiveClientSocket.getPort()));
+                InetAddress addr = effectiveClientSocket.getInetAddress();
                 env.put("REMOTE_HOST", addr.getHostName());
                 env.put("REMOTE_ADDR", addr.getHostAddress());
-                addr = clientSocket.getLocalAddress();
+                addr = effectiveClientSocket.getLocalAddress();
                 env.put("SERVER_NAME", addr.getHostName());
                 env.put("SERVER_ADDR", addr.getHostAddress());
             }
             env.put(TinyCGI.TINY_WEB_SERVER, WebServer.this);
+        }
+
+        private Socket getEffectiveClientSocket() {
+            if (clientSocket != null)
+                return clientSocket;
+            else
+                return (Socket) effectiveClientSocket.get();
         }
 
         private class CGIPool extends ResourcePool {
@@ -678,7 +630,7 @@ public class WebServer extends Thread {
         /** Get an appropriate CGILoader for loading a class from the given
          * connection.
          */
-        private CGILoader getLoader(URLConnection conn) {
+        private ClassLoader getLoader(URLConnection conn) throws MalformedURLException {
             // All the cgi classes in a given directory are loaded by
             // a common classloader.  To find the classloader for this
             // class, we first extract the "directory" portion of the url
@@ -686,15 +638,16 @@ public class WebServer extends Thread {
             String path = conn.getURL().toExternalForm();
             int end = path.lastIndexOf('/');
             path = path.substring(0, end+1);
+            URL[] pathURL = new URL[] { new URL(path) };
 
             synchronized (cgiLoaderMap) {
-                CGILoader result = (CGILoader) cgiLoaderMap.get(path);
+                ClassLoader result = (ClassLoader) cgiLoaderMap.get(path);
                 if (result == null) {
                     ClassLoader parent = getParentClassLoader(path);
                     if (parent == null)
-                        result = new CGILoader(path);
+                        result = new URLClassLoader(pathURL);
                     else
-                        result = new CGILoader(path, parent);
+                        result = new URLClassLoader(pathURL, parent);
                     cgiLoaderMap.put(path, result);
                 }
                 return result;
@@ -716,12 +669,15 @@ public class WebServer extends Thread {
             synchronized (cgiCache) {
                 pool = (CGIPool) cgiCache.get(path);
                 if (pool == null) try {
-                    CGILoader cgiLoader = getLoader(conn);
+                    ClassLoader cgiLoader = getLoader(conn);
                     Class clz = null;
-                    if (className == null)
-                        clz = cgiLoader.loadFromConnection(conn);
-                    else
-                        clz = cgiLoader.loadClass(className);
+                    if (className == null) {
+                        className = conn.getURL().getFile();
+                        int beg = className.lastIndexOf('/');
+                        int end = className.indexOf('.', beg);
+                        className = className.substring(beg + 1, end);
+                    }
+                    clz = cgiLoader.loadClass(className);
                     pool = new CGIPool(path, clz);
                     cgiCache.put(path, pool);
                 } catch (Throwable t) {
@@ -936,8 +892,10 @@ public class WebServer extends Thread {
 
         /** ensure that requests are originating from the local machine. */
         private void checkIP() throws TinyWebThreadException, IOException {
+            Socket effectiveClientSocket = getEffectiveClientSocket();
+
             // unconditionally allow internal requests.
-            if (clientSocket == null) return;
+            if (effectiveClientSocket == null) return;
 
             // unconditionally serve up items in the root directory
             // (This includes "style.css", "DataApplet.*", "data.js")
@@ -946,7 +904,7 @@ public class WebServer extends Thread {
 
             // unconditionally serve requests that originate from the
             // local host.
-            InetAddress remoteIP = clientSocket.getInetAddress();
+            InetAddress remoteIP = effectiveClientSocket.getInetAddress();
             if (remoteIP.equals(LOOPBACK_ADDR) ||
                 remoteIP.equals(LOCAL_HOST_ADDR)) return;
 
@@ -1286,7 +1244,8 @@ public class WebServer extends Thread {
      */
     public static void setPassword(DataRepository data, String prefix,
                                    String user, String password) {
-        // REFACTOR this method should not be visible
+        SET_PASSWORD_PERMISSION.checkPermission();
+
         String dataName = DataRepository.createDataName(prefix,  "_Password_");
 
         if (user == null) {
@@ -1432,20 +1391,29 @@ public class WebServer extends Thread {
      * @param skipHeaders if true, the generated response headers are discarded
      * @return the response generated by performing the http request.
      */
-    public byte[] getRequest(String uri, boolean skipHeaders)
+    public byte[] getRequest(final String uri, boolean skipHeaders)
         throws IOException
     {
         if (internalRequestNesting > 50)
             throw new IOException("Infinite recursion - aborting.");
 
-        synchronized(this) { internalRequestNesting++; }
-        TinyWebThread t = new TinyWebThread(uri);
-        byte [] result = null;
+        byte[] result = null;
         try {
-            result = t.getOutput();
-        } finally {
-            synchronized(this) { internalRequestNesting--; }
-            if (t != null) t.dispose();
+            result = (byte[]) AccessController.doPrivileged
+                (new PrivilegedExceptionAction() {
+                    public Object run() throws Exception {
+                        return getRequestProtectedImpl(uri);
+                    }});
+        } catch (PrivilegedActionException e) {
+            if (e.getException() instanceof IOException)
+                throw (IOException) e.getException();
+            else if (e.getException() instanceof RuntimeException)
+                throw (RuntimeException) e.getException();
+            else {
+                IOException ioe = new IOException(e.getMessage());
+                ioe.initCause(e);
+                throw ioe;
+            }
         }
 
         if (!skipHeaders)
@@ -1456,6 +1424,18 @@ public class WebServer extends Thread {
             System.arraycopy(result, headerLen, contents, 0, contents.length);
             return contents;
         }
+    }
+    private byte[] getRequestProtectedImpl(String uri) throws IOException {
+        synchronized(this) { internalRequestNesting++; }
+        TinyWebThread t = new TinyWebThread(uri);
+        byte [] result = null;
+        try {
+            result = t.getOutput();
+        } finally {
+            synchronized(this) { internalRequestNesting--; }
+            if (t != null) t.dispose();
+        }
+        return result;
     }
     private volatile int internalRequestNesting = 0;
 
@@ -1496,9 +1476,17 @@ public class WebServer extends Thread {
      * Server-parsed HTML files are returned verbatim, and
      * cgi scripts are returned as binary streams.
      */
-    public byte[] getRawRequest(String uri)
+    public byte[] getRawRequest(final String uri)
         throws IOException
     {
+        return (byte[]) AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                return getRawRequestImpl(uri);
+            }
+        });
+    }
+
+    private byte[] getRawRequestImpl(String uri) {
         try {
             if (uri.startsWith("/"))
                 uri = uri.substring(1);
@@ -1574,14 +1562,19 @@ public class WebServer extends Thread {
     public int getPort()         { return port; }
     /** Return the socket we opened for data connections. */
     public ServerSocket getDataSocket() {
-        // REFACTOR should this be visible
+        GET_SOCKET_PERMISSION.checkPermission();
         return dataSocket;
     }
     /** Return the startup timestamp for this server. */
     public String getTimestamp() { return startupTimestamp; }
 
+    public static String getOutputCharset() {
+        return OUTPUT_CHARSET;
+    }
+
     private void init(int port, URL [] roots) throws IOException
     {
+        CREATE_PERMISSION.checkPermission();
         this.roots = roots;
         startupTimestamp = Long.toString((new Date()).getTime());
         startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
@@ -1616,8 +1609,11 @@ public class WebServer extends Thread {
 
             "test".getBytes(charsetName);
             OUTPUT_CHARSET = charsetName;
-            TinyCGIBase.setDefaultCharset(OUTPUT_CHARSET);
         } catch (UnsupportedEncodingException uee) {}
+
+        try {
+            DashboardURLStreamHandlerFactory.initialize(this);
+        } catch (Exception e) {}
     }
 
     /**
@@ -1669,41 +1665,43 @@ public class WebServer extends Thread {
      * out of the given list of template search URLs.
      */
     public WebServer(int port, URL [] roots) throws IOException {
-        // REFACTOR should this be visible?
         init(port, roots);
     }
 
 
     public void setRoots(URL [] roots) {
-        // REFACTOR this shouldn't be visible
+        SET_ROOTS_PERMISSION.checkPermission();
         this.roots = roots;
         clearClassLoaderCaches();
         writePackagesToDefaultEnv();
     }
+
     public void setProps(DashHierarchy props) {
-        // REFACTOR this shouldn't be visible
+        SET_HIERARCHY_PERMISSION.checkPermission();
         if (props == null)
             DEFAULT_ENV.remove(TinyCGI.PSP_PROPERTIES);
         else
             DEFAULT_ENV.put(TinyCGI.PSP_PROPERTIES, props);
     }
     public void setData(DataRepository data) {
-        // REFACTOR this shouldn't be visible
+        if (System.getSecurityManager() != null)
+            SET_DATA_PERMISSION.checkPermission();
         this.data = data;
         if (data == null)
             DEFAULT_ENV.remove(TinyCGI.DATA_REPOSITORY);
         else
             DEFAULT_ENV.put(TinyCGI.DATA_REPOSITORY, data);
     }
+
     public void setCache(ObjectCache cache) {
-        // REFACTOR this shouldn't be visible
+        SET_CACHE_PERMISSION.checkPermission();
         if (cache == null)
             DEFAULT_ENV.remove(TinyCGI.OBJECT_CACHE);
         else
             DEFAULT_ENV.put(TinyCGI.OBJECT_CACHE, cache);
     }
     public void allowRemoteConnections(String setting) {
-        // REFACTOR this shouldn't be visible
+        SET_ALLOW_REMOTE_PERMISSION.checkPermission();
         this.allowRemoteConnections = "true".equalsIgnoreCase(setting);
 
         /* in the future, if better remote host filtering is desired,
@@ -1768,7 +1766,7 @@ public class WebServer extends Thread {
 
     /** Start listening for connections on an additional port */
     public void addExtraPort(int port) throws IOException {
-        // REFACTOR this shouldn't be visible
+        ADD_PORT_PERMISSION.checkPermission();
         SecondaryServerSocket s = new SecondaryServerSocket(port);
         secondaryServerSockets.add(s);
         s.start();
@@ -1780,6 +1778,7 @@ public class WebServer extends Thread {
 
     /** Stop the web server. */
     public void quit() {
+        QUIT_PERMISSION.checkPermission();
         isRunning = false;
         // interrupt the main server thread.
         this.interrupt();
@@ -1796,19 +1795,4 @@ public class WebServer extends Thread {
             serverSocket.close();
         } catch (IOException e2) {}
     }
-
-    /** Run a web server on port 8000.  the first arg must name the
-     *  directory to serve
-    public static void main(String [] args) {
-        try {
-            InetAddress host = InetAddress.getLocalHost();
-            System.out.println("TinyWeb starting " +
-                               dateFormat.format(new Date()) + " on " +
-                               host);
-            (new TinyWebServer(args[0], 8000)).run();
-        } catch (IOException ioe) {
-            System.err.println(ioe);
-        }
-    }
-    */
 }

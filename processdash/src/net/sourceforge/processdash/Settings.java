@@ -25,10 +25,13 @@
 
 package net.sourceforge.processdash;
 
+import java.security.AccessControlException;
+import java.security.AccessController;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.util.FormatUtil;
 
 public class Settings {
@@ -54,6 +57,9 @@ public class Settings {
     }
 
     public static void initialize(Properties newSettings) {
+        if (settings != null)
+            checkPermission("initialize");
+
         if (newSettings == null)
             settings = defaultProperties();
         else
@@ -138,6 +144,13 @@ public class Settings {
             serializable = results;
         }
         return serializable;
+    }
+
+    protected static void checkPermission(String action) {
+        if (System.getSecurityManager() != null) {
+            DashboardPermission p = new DashboardPermission("settings."+action);
+            AccessController.checkPermission(p);
+        }
     }
 
 }

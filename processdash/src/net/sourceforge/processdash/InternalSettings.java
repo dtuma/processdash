@@ -27,14 +27,16 @@ package net.sourceforge.processdash;
 
 import java.io.InputStream;
 import java.io.FileInputStream;
+import java.security.AccessControlException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
+import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.util.*;
 
-// REFACTOR this should be protected from use - not public??
 public class InternalSettings extends Settings {
-
 
     private static FileProperties fsettings = null;
     private static String settingsFile = null;
@@ -42,6 +44,8 @@ public class InternalSettings extends Settings {
 
 
     public static void initialize(String settingsFile) {
+        checkPermission("initialize");
+
         if (settings != null)
             return;
 
@@ -131,6 +135,7 @@ public class InternalSettings extends Settings {
             return ".pspdash";
     }
     public static String getSettingsFileName() {
+        checkPermission("getFileName");
         return settingsFile;
     }
     private static final String PROPERTIES_FILE_HEADER =
@@ -140,27 +145,42 @@ public class InternalSettings extends Settings {
         "into an appropriate OS-specific directory separator automatically.)";
 
     public static void set(String name, String value, String comment) {
-        fsettings.setComment(name, comment);
-        set(name, value);
+        set0(name, value, comment);
     }
 
     public static void set(String name, String value) {
+        set0(name, value, null);
+    }
+
+    private static void set0(String name, String value, String comment) {
+        checkPermission("write."+name);
+
         if (value == null)
-            settings.remove(name);
-        else
-            settings.put(name, value);
+            fsettings.remove(name);
+
+        else {
+            fsettings.put(name, value);
+            if (comment != null)
+                fsettings.setComment(name, comment);
+        }
+
         serializable = null;
 
         saveSettings();
     }
 
     private static void saveSettings() {
-        if (fsettings != null) try {
-            fsettings.writeToFile();
-        } catch (Exception e) { }
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                if (fsettings != null) try {
+                    fsettings.writeToFile();
+                } catch (Exception e) { }
+                return null;
+            }});
     }
 
     static void loadLocaleSpecificDefaults(ResourceBundle resources) {
+        checkPermission("initialize");
         defaults.put("dateFormat", resources.getString("Date_Format"));
         defaults.put("dateTimeFormat", resources.getString("Date_Time_Format"));
         defaults.put("http.charset", resources.getString("HTTP_charset_"));

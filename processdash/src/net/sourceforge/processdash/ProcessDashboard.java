@@ -46,6 +46,8 @@ import net.sourceforge.processdash.net.cache.*;
 import net.sourceforge.processdash.net.http.*;
 import net.sourceforge.processdash.process.*;
 import net.sourceforge.processdash.process.ui.*;
+import net.sourceforge.processdash.security.DashboardPermission;
+import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.templates.*;
 import net.sourceforge.processdash.tool.export.*;
 import net.sourceforge.processdash.ui.*;
@@ -88,8 +90,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     static String default_directory = null;
     String propertiesFile     = DEFAULT_PROP_FILE;
     static final String TEMPLATES_FILE = "state";
-    // REFACTOR this should not be visible
-    public PropertyKey currentPhase  = null;
+    private PropertyKey currentPhase  = null;
     int httpServerPort = DEFAULT_WEB_PORT;
     private static String versionNumber;
 
@@ -478,7 +479,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     }
 
     public void exitProgram() {
-        // REFACTOR this should not be visible
+        new DashboardPermission("exitProgram").checkPermission();
+
         try {
             quit();
         } catch (Throwable t) {
@@ -552,7 +554,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     }
 
     public static void main(String args[]) {
-        //changeMenuFont();
+        DashboardSecurity.setupSecurityManager();
 
         ss = new SplashScreen(ProcessDashboard.class.getResource("ui/splash.png"));
         ss.displayFor(3000);      // show for at least 3 seconds.

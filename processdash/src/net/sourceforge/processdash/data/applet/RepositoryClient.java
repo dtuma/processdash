@@ -81,7 +81,9 @@ public class RepositoryClient extends Thread implements Repository {
 
             dataPath = (String) in.readObject();
             tagExists = in.readBoolean();
-            Settings.initialize((Properties) in.readObject());
+            try {
+                Settings.initialize((Properties) in.readObject());
+            } catch (Exception e) {}
 
             if (!tagExists)
                 throw new ForbiddenException();

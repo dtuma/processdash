@@ -1,0 +1,9 @@
+
+grant codeBase "${process.dashboard.codebase.url}"  {
+	permission java.security.AllPermission;
+};
+
+grant {
+    permission java.awt.AWTPermission "showWindowWithoutWarningBanner";
+    permission java.lang.RuntimePermission "queuePrintJob";
+};

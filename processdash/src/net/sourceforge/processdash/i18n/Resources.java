@@ -26,6 +26,8 @@
 package net.sourceforge.processdash.i18n;
 
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -162,7 +164,14 @@ public class Resources extends ResourceBundle implements StringMapper {
         return dialogIndicatorFormat.format(new Object[] { value });
     }
 
+    private static final ClassLoader RESOURCE_LOADER = makeResourceLoader();
     private static ClassLoader makeResourceLoader() {
+        return (ClassLoader) AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                return makeResourceLoader0();
+            }});
+    }
+    private static ClassLoader makeResourceLoader0() {
         try {
             Class.forName("org.w3c.dom.Element");
             return new MergingTemplateClassLoader();
@@ -170,7 +179,6 @@ public class Resources extends ResourceBundle implements StringMapper {
         System.out.println("XML classes unavailable - using safe loader");
         return new SafeTemplateClassLoader();
     }
-    private static final ClassLoader RESOURCE_LOADER = makeResourceLoader();
 
 
     private static final boolean TIME_LOADING = false;

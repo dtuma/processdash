@@ -44,6 +44,7 @@ import javax.help.HelpSet;
 import javax.help.HelpSetException;
 
 import net.sourceforge.processdash.net.http.TinyCGI;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 
@@ -58,8 +59,9 @@ public class DashHelpBroker extends DefaultHelpBroker
 
         URL hsURL = null;
         try {
-            hsURL = new URL(Browser.mapURL(HELPSET_PATH));
+            hsURL = new URL(WebServer.DASHBOARD_PROTOCOL + ":" + HELPSET_PATH);
         } catch (MalformedURLException mue) {
+            mue.printStackTrace();
             throw new HelpSetException("Couldn't create helpset url");
         }
 

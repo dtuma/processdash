@@ -175,7 +175,7 @@ public class DefectDialog extends JDialog
         int prefixLength = defectPath.path().length() + 1;
         String defaultRemovalPhase = null;
         if (guessDefaults) {
-            String phasePath = parent.currentPhase.path();
+            String phasePath = parent.getCurrentPhase().path();
             if (phasePath.length() > prefixLength)
                 defaultRemovalPhase = phasePath.substring(prefixLength);
         }
