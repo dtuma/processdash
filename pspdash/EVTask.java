@@ -381,7 +381,7 @@ public class EVTask implements DataListener {
             if (dateCompleted != null)
                 schedule.saveCompletedTask(dateCompleted, planValue);
         } else {
-            for (int i = 0;   i < getNumChildren();   i++)
+            for (int i = getNumChildren();   i-- > 0;   )
                 getChild(i).recalcPlanDates(schedule);
             planDate = getChild(getNumChildren()-1).planDate;
         }
