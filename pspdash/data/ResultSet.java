@@ -161,6 +161,13 @@ public class ResultSet {
     }
     private static NullDataListener NULL_LISTENER = new NullDataListener();
 
+    private static boolean forParamIsTagName(String forParam) {
+        if (forParam == null || forParam.length() == 0) return false;
+        if (forParam.charAt(0) == '/') return false;
+        if (forParam.charAt(0) == '[') return false;
+        return true;
+    }
+
     /** Based upon the given "for" parameter, return the name of a
      *  data element in the repository that will list all the appropriate
      *  prefixes. */
@@ -193,23 +200,27 @@ public class ResultSet {
     }
 
     private static class ResultSetSearchExpression {
-        String forParam, orderBy;
+        String forList, orderBy;
         String [] conditions;
         private int hashCode = -1;
-        ResultSetSearchExpression(String forParam,
+        private String expression = null;
+
+        ResultSetSearchExpression(DataRepository data,
+                                  String forParam,
+                                  String prefix,
                                   String [] conditions,
                                   String orderBy) {
-            this.forParam = forParam;
+            this.forList = getDataListName(data, forParam, prefix);
+            if (conditions != null) Arrays.sort(conditions);
             this.conditions = conditions;
             this.orderBy = orderBy;
         }
         public boolean equals(Object obj) {
             if (!(obj instanceof ResultSetSearchExpression)) return false;
             ResultSetSearchExpression that = (ResultSetSearchExpression) obj;
-            if (!compareStrings(this.forParam,  that.forParam))   return false;
-            if (!compareStrings(this.orderBy,   that.orderBy))    return false;
-            if (!compareArrays(this.conditions, that.conditions)) return false;
-            return true;
+            return (compareStrings(this.forList,   that.forList) &&
+                    compareStrings(this.orderBy,   that.orderBy) &&
+                    compareArrays(this.conditions, that.conditions));
         }
         private boolean compareStrings(String a, String b) {
             if (a == b) return true;
@@ -226,7 +237,7 @@ public class ResultSet {
         }
         public int hashCode() {
             if (hashCode == -1) {
-                int result = forParam.hashCode();
+                int result = forList.hashCode();
                 if (orderBy != null)
                     result = result ^ (orderBy.hashCode() << 1);
                 if (conditions != null)
@@ -236,44 +247,41 @@ public class ResultSet {
             }
             return hashCode;
         }
-    }
 
-    private static String buildExpression(DataRepository data,
-                                          String prefix,
-                                          String forParam,
-                                          String [] conditions,
-                                          String orderBy)
-    {
-        String dataListName = getDataListName(data, forParam, prefix);
-        StringBuffer expr = new StringBuffer();
-        expr.append("[").append(esc(dataListName)).append("]");
+        public String buildExpression() {
+            if (expression != null) return expression;
 
-        if (conditions != null && conditions.length > 0) {
-            StringBuffer condExpr = new StringBuffer();
-            String cond;
-            for (int i = conditions.length;   i-- > 0;  ) {
-                condExpr.append(" && ");
-                cond = conditions[i];
-                if (cond.indexOf('[') == -1)
-                    condExpr.append("[").append(esc(cond)).append("]");
-                else
-                    condExpr.append("(").append(cond).append(")");
+            StringBuffer expr = new StringBuffer();
+            expr.append("[").append(esc(forList)).append("]");
+
+            if (conditions != null && conditions.length > 0) {
+                StringBuffer condExpr = new StringBuffer();
+                String cond;
+                for (int i = conditions.length;   i-- > 0;  ) {
+                    condExpr.append(" && ");
+                    cond = conditions[i];
+                    if (cond.indexOf('[') == -1)
+                        condExpr.append("[").append(esc(cond)).append("]");
+                    else
+                        condExpr.append("(").append(cond).append(")");
+                }
+
+                cond = esc(condExpr.toString().substring(4));
+                expr.append(")").insert(0, "\", [_]), ")
+                    .insert(0, cond).insert(0, "filter(eval(\"");
             }
 
-            cond = esc(condExpr.toString().substring(4));
-            expr.append(")").insert(0, "\", [_]), ")
-                .insert(0, cond).insert(0, "filter(eval(\"");
-        }
+            if (orderBy != null && orderBy.length() > 0) {
+                expr.append(")").insert(0, "\", ").insert(0, esc(orderBy))
+                    .insert(0, "sort(\"");
+            }
 
-        if (orderBy != null && orderBy.length() > 0) {
-            expr.append(")").insert(0, "\", ").insert(0, esc(orderBy))
-                .insert(0, "sort(\"");
+            expression = expr.toString();
+            //System.out.println("expression is " + expression);
+            return expression;
         }
-
-        String expression = expr.toString();
-        //System.out.println("expression is " + expression);
-        return expression;
     }
+
 
     private static Map listNames = new Hashtable();
     private static int listNumber = 0;
@@ -281,28 +289,94 @@ public class ResultSet {
     private static ListData getList(DataRepository data, String forParam,
                                     String[] conditions, String orderBy,
                                     String basePrefix) {
+        // construct an applicable ResultSetSearchExpression.
         ResultSetSearchExpression rsse = new ResultSetSearchExpression
-            (forParam, conditions, orderBy);
-        String listName = (String) listNames.get(rsse);
+            (data, forParam, basePrefix, conditions, orderBy);
 
-        if (listName == null) {
-            int num;
-            synchronized(ResultSet.class) { num = listNumber++; }
-            listName = data.createDataName(FAKE_DATA_NAME, "List" + num);
-            String expression = buildExpression(data, basePrefix, forParam,
-                                                conditions, orderBy);
-
-            try {
-                data.putExpression(listName, "", expression);
-            } catch (MalformedValueException mve) {
-                System.err.println("malformed value!");
-                data.putValue(listName, new ListData());
+        // see if someone else has already generated a list name for
+        // our ResultSetSearchExpression.  If not, generate one.
+        String listName;
+        synchronized (listNames) {
+            listName = (String) listNames.get(rsse);
+            if (listName == null) {
+                int num = listNumber++;
+                listName = data.createDataName(FAKE_DATA_NAME, "List" + num);
+                listNames.put(rsse, listName);
             }
-            data.addDataListener(listName, NULL_LISTENER);
-            listNames.put(rsse, listName);
         }
 
-        return (ListData) data.getSimpleValue(listName);
+        // fetch the value of the named list.
+        ListData result = lookupList(data, listName);
+
+        // if the named list has no value yet, create the value and
+        // save it in the repository.
+        if (result == null) synchronized (listName) {
+            result = lookupList(data, listName);
+            if (result == null) {
+                String expression = rsse.buildExpression();
+
+                try {
+                    data.putExpression(listName, "", expression);
+                } catch (MalformedValueException mve) {
+                    System.err.println("malformed value!");
+                    data.putValue(listName, new ListData());
+                }
+                data.addDataListener(listName, NULL_LISTENER);
+                result = lookupList(data, listName);
+            }
+        }
+
+        return result;
+    }
+
+    private static ListData lookupList(DataRepository data, String name) {
+        SimpleData result = data.getSimpleValue(name);
+        if (result instanceof ListData)
+            return (ListData) result;
+        if (result instanceof StringData)
+            return ((StringData) result).asList();
+        return null;
+    }
+
+    private static ListData getFilteredList(DataRepository data,
+                                            String forParam,
+                                            String[] conditions,
+                                            String orderBy,
+                                            String basePrefix) {
+        ListData result;
+            // if the "for" parameter is missing or is simply ".", then
+            // return a list containing only one element - the base prefix.
+        if (forParam == null ||
+            forParam.length() == 0 ||
+            forParam.equals(".")) {
+            result = new ListData();
+            result.add(basePrefix);
+
+            // if the for parameter specifies a data list rather than
+            // a tag name, or if the base prefix is empty, return all the
+            // items in the list in question.
+        } else if (basePrefix == null || basePrefix.length() == 0 ||
+                   !forParamIsTagName(forParam)) {
+            result =
+                getList(data, forParam, conditions, orderBy, basePrefix);
+
+            // otherwise, get the appropriate prefix list, and create
+            // a filtered copy containing only those prefixes that
+            // start with the base prefix.
+        } else {
+            ListData fullPrefixList =
+                getList(data, forParam, conditions, orderBy, basePrefix);
+            result = new ListData();
+            String item;
+            for (int i = 0;   i < fullPrefixList.size();   i++) {
+                item = (String) fullPrefixList.get(i);
+                if (item.equals(basePrefix) ||
+                    item.startsWith(basePrefix + "/"))
+                    result.add(item);
+            }
+        }
+
+        return result;
     }
 
 
@@ -310,14 +384,9 @@ public class ResultSet {
     public static ResultSet get(DataRepository data, String forParam,
                                 String[] conditions, String orderBy,
                                 String[] dataNames, String basePrefix) {
-
-        ListData prefixList;
-        if (forParam == null || forParam.equals(".")) {
-            prefixList = new ListData();
-            prefixList.add(basePrefix);
-        } else
-            prefixList =
-                getList(data, forParam, conditions, orderBy, basePrefix);
+        // get the list of prefixes
+        ListData prefixList = getFilteredList(data, forParam, conditions,
+                                              orderBy, basePrefix);
 
         // Create a result set to return
         ResultSet result = new ResultSet(prefixList.size(), dataNames.length);
@@ -332,49 +401,44 @@ public class ResultSet {
         if (basePrefix == null) basePrefix = "";
         int baseLen = basePrefix.length();
         if (baseLen > 0) baseLen++; // remove / as well
-
-        String tempDataName =
-            data.createDataName(FAKE_DATA_NAME, "Temp" + result.hashCode());
-        boolean tempDataUsed = false;
         SimpleData value;
 
         for (int p=0;  p < prefixList.size();  p++) {
             // get the next prefix
             prefix = (String) prefixList.get(p);
-            if (baseLen > prefix.length())
-                result.setRowName(p+1, "");
-            else
+
+            // write the row headers into the result set.
+            if (prefix.length() > baseLen && prefix.startsWith(basePrefix))
                 result.setRowName(p+1, prefix.substring(baseLen));
+            else
+                result.setRowName(p+1, prefix);
 
             // look up the data for this row.
             for (int d=0;  d < dataNames.length;  d++)
-                if (dataNames[d].indexOf('[') != -1) {
-                    try {
-                        data.putExpression(tempDataName, prefix, dataNames[d]);
-                        tempDataUsed = true;
-                    } catch (MalformedValueException mve) { }
-                    result.setData(p+1, d+1,
-                                   data.getSimpleValue(tempDataName));
 
-                } else if (dataNames[d].startsWith("\"")) {
+                if (dataNames[d].startsWith("\"")) {
                     try {
                         result.setData(p+1, d+1, new StringData(dataNames[d]));
-                    } catch (MalformedValueException mve) {
-                        result.setData(p+1, d+1, null);
-                    }
+                    } catch (MalformedValueException mve) {}
+
+                } else if (dataNames[d].indexOf('[') != -1) {
+                    try {
+                        result.setData(p+1, d+1,
+                                       data.evaluate(dataNames[d], prefix));
+                    } catch (Exception e) {}
 
                 } else {
                     dataName = data.createDataName(prefix, dataNames[d]);
                     result.setData(p+1, d+1, data.getSimpleValue(dataName));
                 }
         }
-        if (tempDataUsed) data.removeValue(tempDataName);
         return result;
     }
 
 
 
-    /** Perform a query and return a result set. */
+    /** Perform a query and return a result set, using the old-style
+        mechanism. */
     public static ResultSet get(DataRepository data, String[] conditions,
                                 String orderBy, String[] dataNames,
                                 String basePrefix, Comparator nodeComparator) {
