@@ -38,7 +38,11 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
      *        you wanted it to display a location.
      */
     public AboutDialog(Frame parent, String text) {
-        super(parent, "About");
+        this(parent, "About", text);
+    }
+
+    public AboutDialog(Frame parent, String title, String text) {
+        super(parent, title);
         setSize(400, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
