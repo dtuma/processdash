@@ -40,6 +40,7 @@ MSCAB   ?= //c/java/ms/SDK4.0/bin/cabarc.exe
 JAVAC   ?= //C/java/sun/jdk1.2.2/bin/javac.exe
 JAVAC4  ?= //C/java/sun/jdk1.4/bin/javac.exe
 JAR     ?= //C/java/sun/jdk1.2.2/bin/jar.exe
+JAVA_HOME ?= c:/java/sun/jdk1.3
 
 SABLECC ?= java -cp ../build/sablecc.jar org.sablecc.sablecc.SableCC
 
@@ -222,10 +223,10 @@ NS: $(NS_CLASS_FILES)
 
 $(BIN_NS)/pspdash/data/%.class: %.java
 	mkdir -p $(BIN_NS)
-#	rm -rf $(BIN_NS)/pspdash $(BIN_NS)/DataApplet.jar
+	rm -rf $(BIN_NS)/pspdash $(BIN_NS)/DataApplet.jar
 	@echo "********** Compiling NSDataApplet..."
 	@$(JAVAC) \
-	    -classpath ../build/java40.jar \
+	    -classpath $(JAVA_HOME)/jre/lib/jaws.jar \
 	    -deprecation \
 	    -sourcepath $(SRC) \
 	    -d $(BIN_NS) \
