@@ -83,11 +83,12 @@ print OUT <<'HEADER';
 <HTML>
 <HEAD>
 <TITLE>Process Dashboard Users Manual</TITLE>
+<link rel=stylesheet type="text/css" href="style.css">
 <STYLE>
 BODY { color: black; background-color: white }
 .hideInBook { display: none }
+.sepnotice { display: none }
 </STYLE>
-<link rel=stylesheet type="text/css" href="style.css">
 </HEAD>
 <BODY>
 <H1 NO_NUMBER>Process Dashboard Users Manual</H1>
