@@ -37,6 +37,7 @@ all: pspForEng.jar
 
 DIR=Templates/pspForEng
 JAR_CONTENTS=Templates/pspForEng.template \
+	$(DIR)/index.htm $(DIR)/toc.htm \
 	$(DIR)/dataFile.txt \
 	$(DIR)/progData.txt \
 	$(DIR)/*A/*.* \
