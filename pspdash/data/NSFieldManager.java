@@ -31,7 +31,7 @@ import java.util.Vector;
 import netscape.javascript.JSObject;
 
 
-class NSFieldManager implements HTMLFieldManager {
+class NSFieldManager implements HTMLFieldManager, DataListener {
 
     JSObject window = null;
     Vector inputListeners = null;
@@ -39,6 +39,7 @@ class NSFieldManager implements HTMLFieldManager {
     String dataPath = null;
     NSDelayedNotifier notifier = null;
     boolean isRunning, unlocked;
+    private DataApplet applet = null;
 
 
 
@@ -46,6 +47,7 @@ class NSFieldManager implements HTMLFieldManager {
         isRunning = true;
         inputListeners = new Vector();
         unlocked = a.unlocked();
+        this.applet = a;
 
         notifier = new NSDelayedNotifier();
         notifier.setDaemon(true);
@@ -81,19 +83,29 @@ class NSFieldManager implements HTMLFieldManager {
         JSObject document = (JSObject) window.getMember("document");
         JSObject formList = (JSObject) document.getMember("forms");
 
-        int elemNum = 0;
+        // Build an internal list of all the elements on the form. (This
+        // is necessary because otherwise Netscape 6 has a nasty habit of
+        // reordering the list of elements in the form as we initialize
+        // them.)
+        Vector allElements = new Vector();
         if (formList != null) {
-            int numForms = ((Double)formList.getMember("length")).intValue();
+            int numForms = intValue(formList.getMember("length"));
             for (int formIdx = 0;   formIdx < numForms; formIdx++) {
                 JSObject form = (JSObject) formList.getSlot(formIdx);
                 JSObject elementList = (JSObject) form.getMember("elements");
-                int numElements = ((Double)elementList.getMember("length")).intValue();
+                int numElements = intValue(elementList.getMember("length"));
                 for (int elementIdx = 0;  elementIdx < numElements;  elementIdx++) {
                     if (!isRunning) return; // abort if we have been terminated
-                    reinititializeFormElement
-                        ((JSObject)elementList.getSlot(elementIdx), elemNum++);
+                    allElements.addElement(elementList.getSlot(elementIdx));
                 }
             }
+        }
+
+        // Now walk through our list of elements and initialize them.
+        for (int elemNum = 0;   elemNum < allElements.size();   elemNum++) {
+            if (!isRunning) return; // abort if we have been terminated
+            reinititializeFormElement
+                ((JSObject)allElements.elementAt(elemNum), elemNum);
         }
 
         debug("initialization complete.");
@@ -135,7 +147,7 @@ class NSFieldManager implements HTMLFieldManager {
 
         try {
             String elementType = (String)element.getMember("type");
-            // debug("Initializing a "+elementType+" element named ");
+            // debug("Initializing a "+elementType+" element named "+element.getMember("name"));
             if ("text".equalsIgnoreCase(elementType) ||
                 "hidden".equalsIgnoreCase(elementType) ||
                 "textarea".equalsIgnoreCase(elementType))
@@ -156,23 +168,45 @@ class NSFieldManager implements HTMLFieldManager {
                 while (inputListeners.size() < pos+1)
                     inputListeners.addElement(null);
                 inputListeners.setElementAt(f, pos);
-                element.setMember(INDEX_ATTR, new Integer(pos));
+                element.setMember(INDEX_ATTR, Integer.toString(pos));
                 if (unlocked) f.unlock();
+                if (f.i.isActive()) f.i.setChangeListener(this);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            printError(e);
+        }
     }
-    private static final String INDEX_ATTR = "dashIndex";
+    private static final String INDEX_ATTR = "id";
 
 
     public void notifyListener(Object element) {
-        // debug("notifyListener called by " + (String)element.getMember("name"));
+        // debug("notifyListener called");
         NSField f = null;
 
-        Object pos = ((JSObject) element).getMember(INDEX_ATTR);
-        if (pos instanceof Integer)
-            f = (NSField) inputListeners.elementAt(((Integer) pos).intValue());
+        int idx = -1;
+        try {
+            Object pos = ((JSObject) element).getMember(INDEX_ATTR);
+            idx = intValue(pos);
+        } catch (Exception e) {
+            printError(e);
+        }
+
+        if (idx >= 0 && idx < inputListeners.size())
+            f = (NSField) inputListeners.elementAt(idx);
 
         notifier.addField(f);
+    }
+
+    public void dataValuesChanged(Vector v) { dataValueChanged(null); }
+    public void dataValueChanged(DataEvent e) { applet.refreshPage(); }
+
+    public static int intValue(Object o) {
+        if (o == null) return -1;
+        if (o instanceof Number) return ((Number) o).intValue();
+        try {
+            return Integer.parseInt(o.toString());
+        } catch (Exception e) {}
+        return -1;
     }
 
     protected void printError(Exception e) {
