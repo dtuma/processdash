@@ -1,0 +1,8 @@
+
+<project default="compile" basedir=".">
+
+  <target name="compile">
+    <javac srcdir=".." destdir=".." includes="teamdash/*.java" excludes="teamdash/WBSTableModel.java" debug="true"/>
+  </target>
+
+</project>
