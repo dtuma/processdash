@@ -353,8 +353,12 @@ public class AutoUpdateManager {
 
             debug("File: " + filename);
 
-            if (id==null || name==null || version==null || updateURL==null)
+            if (id==null)
                 throw new InvalidDashPackage();
+            if (name==null)
+                name = id;
+            if (version==null)
+                version = "0";
 
             String lastUpdate = Settings.getVal
                 (AUTO_UPDATE_SETTING + LAST_CHECK + "." + id);
@@ -371,7 +375,10 @@ public class AutoUpdateManager {
 
         /** Try to download the update information for this package. */
         public void getUpdateInfo() {
-            try {
+            if (updateURL == null) {
+                connectFailed = updateAvailable = false;
+
+            } else try {
                 long deltaTime =
                     (lastUpdateCheckTime<0 ? -1 : now-lastUpdateCheckTime);
                 URL url = new URL(updateURL + "?id="+id + "&ver="+version +
@@ -446,6 +453,18 @@ public class AutoUpdateManager {
             "check for an updated version of ";
     }
 
+    public static String getPackageID(Manifest mf) {
+        if (mf == null) return null;
+        return mf.getMainAttributes().getValue(ID_ATTRIBUTE);
+    }
+
+    public static String getPackageVersion(Manifest mf) {
+        if (mf == null) return null;
+        String result = mf.getMainAttributes().getValue(VERSION_ATTRIBUTE);
+        if (result == null) result = "0";
+        return result;
+    }
+
     public static int compareVersions(String version1, String version2) {
         if (version1.equals(version2)) return 0;
 
@@ -468,7 +487,7 @@ public class AutoUpdateManager {
             result = -0.1;
         }
         try {
-            result += Integer.parseInt(num);
+            result += Long.parseLong(num);
         } catch (NumberFormatException nfe) {}
         return result;
     }
