@@ -469,9 +469,9 @@ public class TimeLogEditor extends Object
     public void filterThisWeek() {
         Date now = new Date();
         Calendar cal = Calendar.getInstance();
-        cal.setTime(now); cal.set(Calendar.DAY_OF_WEEK, 1);
+        cal.setTime(now); cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
         Date from = cal.getTime();
-        cal.setTime(now); cal.set(Calendar.DAY_OF_WEEK, 7);
+        cal.add(Calendar.DATE, 6);
         Date to = cal.getTime();
         setFilter(from, to);
     }

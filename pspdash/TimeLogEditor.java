@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -466,9 +466,9 @@ public class TimeLogEditor extends Object
     public void filterThisWeek() {
         Date now = new Date();
         Calendar cal = Calendar.getInstance();
-        cal.setTime(now); cal.set(cal.DAY_OF_WEEK, 1);
+        cal.setTime(now); cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
         Date from = cal.getTime();
-        cal.setTime(now); cal.set(cal.DAY_OF_WEEK, 7);
+        cal.add(Calendar.DATE, 6);
         Date to = cal.getTime();
         setFilter(from, to);
     }
