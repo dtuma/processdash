@@ -51,15 +51,19 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     ProbeDialog   probe_dialog = null;
 
     static String FILE_SEP = null;
+    static final String HELP_URL = ScriptButton.URL_PREFIX +"0/help/PSPDash.htm";
+    static final String ABOUT_URL = ScriptButton.URL_PREFIX + "0/about.html";
 
                                   // indices into menu labels
     static final int HIERARCHY_FRAME    = 0;
     static final int TIME_LOG_FRAME     = 1;
     static final int DEFECT_LOG_FRAME   = 2;
     static final int PROBE_DIALOG       = 3;
-    static final int TASK_DIALOG        = 4;
-    static final int IMPORT_EXPORT      = 5;
-    static final int FIRST_HISTORY_ITEM = 5;
+    //static final int TASK_DIALOG      = 4; // disabled
+    static final int IMPORT_EXPORT      = 4;
+    static final int HELP_FRAME         = 5;
+    static final int ABOUT_DIALOG       = 6;
+    static final int FIRST_HISTORY_ITEM = 6;
     static final int MAX_HISTORY_SIZE   = 0;
 
                                   // menu labels & cmd text (see above)
@@ -68,8 +72,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
          new String ("Time Log"),
          new String ("Defect Log"),
          new String ("PROBE"),
-         new String ("Task & Schedule"),
-         new String ("Import/Export")};
+         //     new String ("Task & Schedule"),
+         new String ("Import/Export"),
+         new String ("Help"),
+         new String ("About")};
 
     ConfigureButton(PSPDashboard dash) {
         super();
@@ -166,6 +172,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         }
     }
 
+    public void startHelp() { Browser.launch(HELP_URL); }
+
+    public void startAboutDialog() { new AboutDialog(parent, ABOUT_URL); }
+
     public void save() {
         if (task_frame != null)
             task_frame.save();
@@ -182,10 +192,14 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             startDefectLog();
         } else if (cmd.equals(menuLabels[PROBE_DIALOG])) {
             startProbeDialog ();
-        } else if (cmd.equals(menuLabels[TASK_DIALOG])) {
-            startTaskDialog ();
+//  } else if (cmd.equals(menuLabels[TASK_DIALOG])) {
+//    startTaskDialog ();
         } else if (cmd.equals(menuLabels[IMPORT_EXPORT])) {
             startImportExport ();
+        } else if (cmd.equals(menuLabels[HELP_FRAME])) {
+            startHelp ();
+        } else if (cmd.equals(menuLabels[ABOUT_DIALOG])) {
+            startAboutDialog ();
         }
     }
 
