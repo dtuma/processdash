@@ -7,7 +7,7 @@
     </pathconvert>
     <pathconvert property=".filelist" pathsep="," dirsep="/">
       <path>
-        <fileset dir="Templates/team/setup" includes="*.shtm,*.class" excludes="*sizeForm*"/>
+        <fileset dir="Templates/team/setup" includes="*.shtm,*.link" excludes="*sizeForm*"/>
       </path>
     </pathconvert>
     <property name="filelist" value="Templates/team/setup/filelist.txt"/>
@@ -16,6 +16,14 @@
   </target>
 
   <target name="jar" depends="filelist.txt">
+    <!-- Create a signed jarfile of cgi scripts -->  
+    <jar destfile="TeamProcessCGI.jar" duplicate="fail">
+      <fileset dir="bin" includes="teamdash/templates/setup/"/>
+    </jar>
+    <property environment="env"/>
+    <signjar jar="TeamProcessCGI.jar" alias="processdash-full-permissions"
+	storepass="${env.TDKSPW}"/>
+
     <jar destfile="TeamTools.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
@@ -32,20 +40,28 @@
         <include name="teamdash/**/*.class"/>
         <include name="teamdash/**/*.png"/>
         <include name="teamdash/**/*.gif"/>
+        <exclude name="teamdash/templates/setup/"/>
       </fileset>
 
-      <!-- include the templates and cgi scripts -->
+      <!-- include the templates -->
       <fileset dir=".">
         <include name="Templates/team/lib/" />
         <exclude name="Templates/team/lib/todo.txt" />
-        <include name="Templates/team/tools/*.class" />
+        <include name="Templates/team/tools/*.link" />
         <include name="Templates/team/tools/*.shtm" />
-        <include name="Templates/team/setup/*.class" />
+        <include name="Templates/team/setup/*.link" />
         <include name="Templates/team/setup/*.shtm" />
         <include name="Templates/team/setup/filelist.txt" />
       </fileset>
 
+      <!-- include the signed jarfile of cgi scripts -->
+      <zipfileset dir="." includes="TeamProcessCGI.jar"
+          fullpath="Templates/team/lib/TeamProcessCGI.jar"/>
+
     </jar>
+
+    <signjar jar="TeamTools.jar" alias="processdash-full-permissions"
+	storepass="${env.TDKSPW}"/>
   </target>
 
 </project>

@@ -141,8 +141,8 @@
     <!--#endfor-->
 
     <!-- Files for the size inventory form -->
-    <file in="/team/setup/sizeForm.class" encoding="binary" 
-          out="sizeForm.class"/>
+    <file in="/team/setup/sizeForm.class.link" encoding="none" 
+          out="sizeForm.class.link"/>
     <file in="/team/setup/sizeForm.shtm" encoding="html" 
           out="sizeForm.shtm"/>
 

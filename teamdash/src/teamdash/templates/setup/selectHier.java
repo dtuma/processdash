@@ -1,5 +1,6 @@
 
 
+package teamdash.templates.setup;
 import java.io.IOException;
 
 import net.sourceforge.processdash.hier.DashHierarchy;

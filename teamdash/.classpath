@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="**/CVS/*" kind="src" path="src"/>
-	<classpathentry excluding="**/CVS/*" output="Templates/team/tools" kind="src" path="Templates/team/tools"/>
-	<classpathentry excluding="**/CVS/*" output="Templates/team/setup" kind="src" path="Templates/team/setup"/>
+	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="/processdash"/>
 	<classpathentry kind="output" path="bin"/>

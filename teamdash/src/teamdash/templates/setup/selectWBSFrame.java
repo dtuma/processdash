@@ -1,4 +1,5 @@
 
+package teamdash.templates.setup;
 import net.sourceforge.processdash.net.http.WebServer;
 
 

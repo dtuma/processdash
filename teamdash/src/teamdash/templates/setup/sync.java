@@ -1,3 +1,4 @@
+package teamdash.templates.setup;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;

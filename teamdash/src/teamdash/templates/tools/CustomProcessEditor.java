@@ -1,4 +1,5 @@
 
+package teamdash.templates.tools;
 import java.io.IOException;
 
 import net.sourceforge.processdash.DashController;

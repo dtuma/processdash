@@ -1,4 +1,5 @@
 
+package teamdash.templates.setup;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 

@@ -1,3 +1,4 @@
+package teamdash.templates.setup;
 import java.io.IOException;
 
 import net.sourceforge.processdash.data.SimpleData;
