@@ -51,7 +51,10 @@ public class FormToHTML {
             type = getAttribute(attrs, "type");
             if ("text".equalsIgnoreCase(type))
                 end = replaceMatch(text, beg, end, data,
-                                   getAttribute(attrs, "name"), prefix);
+                                   getAttribute(attrs, "name"), prefix, false);
+            else if ("checkbox".equalsIgnoreCase(type))
+                end = replaceMatch(text, beg, end, data,
+                                   getAttribute(attrs, "name"), prefix, true);
             else {
                 text.delete(beg, end);
                 end = beg;
@@ -65,7 +68,8 @@ public class FormToHTML {
                (end2 = findTag(text, SELECT_END, end)) != -1 &&
                (end2 = findTagEnd(text, end2)) != -1)
             end = replaceMatch(text, beg, end2, data,
-                               getName(text, beg, end, SELECT_TAG), prefix);
+                               getName(text, beg, end, SELECT_TAG),
+                               prefix, false);
 
         // find and replace all the <TEXTAREA> tags.
         end = 0;
@@ -74,7 +78,8 @@ public class FormToHTML {
                (end2 = findTag(text, TEXTAREA_END, end)) != -1 &&
                (end2 = findTagEnd(text, end2)) != -1) {
             end = replaceMatch(text, beg, end2, data,
-                               getName(text, beg, end, TEXTAREA_TAG), prefix);
+                               getName(text, beg, end, TEXTAREA_TAG),
+                               prefix, false);
             text.insert(end, "</pre>");
             text.insert(beg, "<pre>");
             end += 11;
@@ -124,14 +129,17 @@ public class FormToHTML {
 
     protected static int replaceMatch(StringBuffer text, int beg, int end,
                                       DataRepository data,
-                                      String name, String prefix) {
+                                      String name, String prefix,
+                                      boolean checkmark) {
         // parse the name as an InputName
         InputName inputName = new InputName(name, prefix);
 
         // look up the appropriate value
         SimpleData value = data.getSimpleValue(inputName.name);
         String result = "";
-        if (value instanceof NumberData) {
+        if (checkmark)
+            result = (value != null && value.test() ? "*": "");
+        else if (value instanceof NumberData) {
             int numDigits = inputName.digitFlag();
             double val = ((NumberData) value).getDouble();
             if (inputName.hasFlag('%') || inputName.name.indexOf('%') != -1)
