@@ -50,7 +50,7 @@ public class DefectAnalyzer {
                            Task t) {
         String [] prefixes = ResultSet.getPrefixList
             (data, queryParameters, prefix);
-        for (int i = prefixes.length;   i-- > 0; )
+        for (int i = 0;   i < prefixes.length;   i++)
             run(props, prefixes[i], t);
     }
 
