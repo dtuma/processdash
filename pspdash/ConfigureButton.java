@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import java.io.File;
 
 class ConfigureButton extends JMenuBar implements ActionListener {
@@ -62,24 +63,26 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static final String FORUM_URL =
         "http://sourceforge.net/forum/forum.php?forum_id=30753";
 
-                                    // menu labels
+    ResourceBundle resources = Resources.getBundle("pspdash.ConfigureButton");
+
+                                  // menu labels
     static final String HIERARCHY_FRAME  = "Hierarchy";
-    static final String TIME_LOG_FRAME   = "Time Log";
-    static final String DEFECT_LOG_FRAME = "Defect Log";
+    static final String TIME_LOG_FRAME   = "Time_Log";
+    static final String DEFECT_LOG_FRAME = "Defect_Log";
     static final String PROBE_DIALOG     = "PROBE";
-    static final String TASK_DIALOG      = "Task & Schedule";
-    static final String DATA_ANALYSIS    = "Data Analysis";
+    static final String TASK_DIALOG      = "Task_&_Schedule";
+    static final String DATA_ANALYSIS    = "Data_Analysis";
     static final String IMPORT_EXPORT    = "Export";
     static final String HELP_MENU        = "Help";
     static final String EXIT_PROGRAM     = "Exit";
 
-    static final String HELP_FRAME     = "Help Topics";
+    static final String HELP_FRAME     = "Help_Topics";
     static final String HELP_SEARCH    = "Search";
-    static final String HELP_PRINT     = "Printable Users Manual";
-    static final String HELP_ABOUT     = "About Process Dashboard";
-    static final String HELP_BUG       = "Submit bug report";
-    static final String HELP_FORUM     = "Online help forum";
-    static final String HELP_CONSOLE   = "View debugging output";
+    static final String HELP_PRINT     = "Printable_Users_Manual";
+    static final String HELP_ABOUT     = "About_Process_Dashboard";
+    static final String HELP_BUG       = "Submit_bug_report";
+    static final String HELP_FORUM     = "Online_help_forum";
+    static final String HELP_CONSOLE   = "View_debugging_output";
 
                                   // menu labels & cmd text (see above)
     static final String [][] menuItems = {
@@ -99,7 +102,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         parent = dash;
 
         String    s;
-        JMenu     menu = new JMenu("C");
+        JMenu     menu = new JMenu(resources.getString("Main_Menu_Name"));
         JMenuItem menuItem;
         JMenuItem helpItem = null;
         add (menu);
@@ -134,7 +137,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     }
 
     private JMenuItem makeMenuItem(String text) {
-        JMenuItem result = new JMenuItem(text);
+        JMenuItem result = new JMenuItem(resources.getString(text));
         result.setActionCommand(text);
         result.addActionListener(this);
         return result;
@@ -262,7 +265,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void showPrintableManual() { Browser.launch(PRINT_URL); }
 
-    public void startAboutDialog() { new AboutDialog(parent, ABOUT_URL); }
+    public void startAboutDialog() {
+        new AboutDialog(parent, resources.getString("About_Process_Dashboard"),
+                        ABOUT_URL);
+    }
 
     public void submitBug () { Browser.launch(BUG_URL); }
 

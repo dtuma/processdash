@@ -57,6 +57,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     AutoUpdateManager aum = null;
     ConsoleWindow consoleWindow = new ConsoleWindow();
     ObjectCache objectCache;
+    ResourceBundle resources;
 
     boolean paused = true;
     String timeLogName        = "time.log";
@@ -80,7 +81,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
     PSPDashboard(String title) {
         super();
-        setTitle(title);
         setIconImage(Toolkit.getDefaultToolkit().createImage
                      (getClass().getResource("icon32.gif")));
         getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 2, 2));
@@ -103,8 +103,10 @@ public class PSPDashboard extends JFrame implements WindowListener {
             data.disableFreezing();
         aum = new AutoUpdateManager();
         templates = TemplateLoader.loadTemplates(data, aum);
+        resources = Resources.getBundle("pspdash.PSPDashboard");
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
         versionNumber = aum.getPackageVersion("pspdash");
+        setTitle(title != null ? title : resources.getString("Window_Title"));
 
         // start the http server.
         try {
@@ -283,44 +285,28 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
     private static final String FIRST_TIME_HELP_URL = "/help/first-use.htm";
     private void displayFirstTimeUserHelp() {
-        new AboutDialog(null, "Welcome", FIRST_TIME_HELP_URL);
+        new AboutDialog(null, resources.getString("Welcome_Dialog_Title"),
+                        FIRST_TIME_HELP_URL);
     }
+
 
     private static final String BULLET = "\u2022 ";
     private static final String COMPLETION_FLAG_SETTING =
         "internal.ranCompletionFlagCleanup";
 
-    private void displayCorruptStateFileWarning(String filename,
-                                                Exception e) {
-        CORRUPT_STATEFILE_WARNING[6] = "    " + filename;
-        CORRUPT_STATEFILE_WARNING[8] = "    " + e.getMessage();
+    private void displayCorruptStateFileWarning(String filename, Exception e) {
         int lineNum = -1;
         if (e instanceof SAXParseException)
             lineNum = ((SAXParseException) e).getLineNumber();
-        if (lineNum != -1)
-            CORRUPT_STATEFILE_WARNING[7] =
-                CORRUPT_STATEFILE_WARNING[7] + " on line " + lineNum + ":";
-        else
-            CORRUPT_STATEFILE_WARNING[7] =
-                CORRUPT_STATEFILE_WARNING[7] + ":";
 
-        JOptionPane.showMessageDialog(null, CORRUPT_STATEFILE_WARNING,
-                                      "Cannot read hierarchy file",
-                                      JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog
+            (null,
+             Resources.format("\n", resources, "Corrupt_Statefile_Warning_FMT",
+                              e.getLocalizedMessage(), filename,
+                              new Integer(lineNum)),
+             resources.getString("Corrupt_Statefile_Title"),
+             JOptionPane.ERROR_MESSAGE);
     }
-    private static final Object[] CORRUPT_STATEFILE_WARNING = {
-        "The dashboard was unable to open and read the file that",
-        "contains your hierarchy.  This problem could be caused by",
-        "insufficient file permissions, or by corrupt data in the",
-        "file itself.  This is a very serious problem; the dashboard",
-        "will not continue until the problem is corrected.  Please",
-        "examine the file:",
-        "",
-        "and correct the following error",
-        "",
-        "If you cannot correct this error, the only other course of",
-        "action is to rename or delete the file.  This effectively",
-        "will cause all your data to be lost." };
 
     public void openDatafile (String prefix, String dataFile) {
         try {
@@ -338,24 +324,18 @@ public class PSPDashboard extends JFrame implements WindowListener {
     private static void ensureJRE13() {
         String versionNum = System.getProperty("java.version");
         if (versionNum.startsWith("1.2")) {
-            //Class.forName("javax.sound.sampled.Clip") == null) {
+            ResourceBundle res = Resources.getBundle("pspdash.PSPDashboard");
             String vendorURL = System.getProperty("java.vendor.url");
-            JRE_REQ_MESSAGE[3] += versionNum + ".";
-            JRE_REQ_MESSAGE[5] += vendorURL;
-            JOptionPane.showMessageDialog(null, JRE_REQ_MESSAGE,
-                                          "JRE 1.3 Required",
-                                          JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog
+                (null,
+                 Resources.format("\n", res, "JRE_Requirement_Message_FMT",
+                                  versionNum, vendorURL),
+                 res.getString("JRE_Requirement_Title"),
+                 JOptionPane.ERROR_MESSAGE);
             Browser.launch(vendorURL);
             System.exit(0);
         }
     }
-    private static final String[] JRE_REQ_MESSAGE = {
-        "You need to upgrade your Java Runtime Environment!  This",
-        "version of the Process Dashboard requires version 1.3 or",
-        "higher of the Java Runtime Environment.  You are currently",
-        "running Java Runtime Environment version ",
-        "    To download an updated version of the Java Runtime",
-        "Environment, visit   " };
 
     boolean addTemplateJar(String jarfileName) {
         if (!TemplateLoader.addTemplateJar(data, templates, jarfileName, aum))
@@ -510,7 +490,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         ensureJRE13();
 
         PSPDashboard dash = new PSPDashboard
-            (args.length > 0 ? args[0] : "Process Dashboard");
+            (args.length > 0 ? args[0] : null);
         DashController.setDashboard(dash);
 
         dash.pack();

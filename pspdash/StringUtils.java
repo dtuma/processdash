@@ -26,8 +26,9 @@ To further contact the author please email jpmccar@gjt.org
 //package com.justinsbrain.gnu.util;
 package pspdash;
 
+import java.util.Arrays;
 import java.util.ArrayList;
-
+import java.util.StringTokenizer;
 /**
     Just some utility methods for working with Strings.
     @author Justin P. McCarthy
@@ -339,4 +340,12 @@ public class StringUtils
         }
     }
 
+
+    public static String[] split(String s, String delims) {
+        ArrayList result = new ArrayList();
+        StringTokenizer tok = new StringTokenizer(s, delims);
+        while (tok.hasMoreTokens())
+            result.add(tok.nextToken());
+        return (String[]) result.toArray(new String[0]);
+    }
 }

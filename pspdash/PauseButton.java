@@ -33,6 +33,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.StringTokenizer;
+import java.util.ResourceBundle;
 import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -53,8 +54,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
     String timeElementName = null;
     SoundClip timingSound = null;
     int maxNumHistoryItems = 10;
-    private static final String pause_string = "Stop";
-    private static final String continue_string = " Go ";
+    private String pause_string, continue_string, pause_tip, continue_tip;
 
     private javax.swing.Timer activeRefreshTimer = null;
     int refreshIntervalMillis = MILLIS_PER_MINUTE; // default: one minute
@@ -65,6 +65,12 @@ public class PauseButton extends DropDownButton implements ActionListener {
         PCSH.enableHelp(this, "PlayPause");
         PCSH.enableHelpKey(getMenu(), "PlayPause");
         loadUserSettings();
+
+        ResourceBundle res = Resources.getBundle("pspdash.PauseButton");
+        pause_string = res.getString("Pause_String");
+        pause_tip = res.getString("Pause_Tip");
+        continue_string = res.getString("Continue_String");
+        continue_tip = res.getString("Continue_Tip");
 
         try {
             pause_icon = new ImageIcon(getClass().getResource("pause.gif"));
@@ -104,8 +110,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
             getButton().setIcon
                 (showCurrent == paused ? pause_icon : continue_icon);
 
-        getButton().setToolTipText(paused ? "Paused. Press to continue."
-                                   : "Timing. Press to pause.");
+        getButton().setToolTipText(paused ? continue_tip : pause_tip);
     }
 
 
