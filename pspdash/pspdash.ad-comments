@@ -97,6 +97,11 @@ http.allowRemote=For data privacy reasons, http connections are rejected \
 	unless they originate from localhost.  To accept http connections \
 	from remote hosts, set this property to true.
 
+http.port=The port number where the dashboard should listen for incoming \
+	http connections.  If left unset, port 2468 will be used. (Note: \
+	the port one number less than this port - typically 2467 - must be \
+	available also, for incoming data connections.)
+
 probeDialog.dataList=If this property is set to "simple", the PROBE dialog \
 	will only display data elements relating to the standard PROBE \
 	methods A,B,C, and D. If this setting has any other value, PROBE will \
