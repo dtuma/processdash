@@ -117,7 +117,7 @@ var IEfieldNum = 0;             // start numbering elements with 0.
  */
 
 function IEsetupReadOnly(elem) {
-  if (elem.dataFld != null) {
+  if (elem.dataFld != null && IEDataAppl.readyState > 0) {
     if (elem.readOnly = (! IEDataAppl.isEditable(elem.dataFld))) {
       elem.style.backgroundColor = IEDataAppl.readOnlyColor();
       elem.tabIndex = -1;
