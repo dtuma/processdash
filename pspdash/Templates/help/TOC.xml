@@ -10,6 +10,8 @@
 
       <tocitem text="Quick start example: PSP1">
          <tocitem target="QuickStartPSP1" text="Quick start example: PSP1"/>
+         <tocitem target="QSCreatingTheProject" text="Step 1: Creating the project"/>
+         <tocitem target="QSPlanningTheProject" text="Step 2: Planning the project"/>
       </tocitem>
 
       <tocitem target="GoalsOfPSPAndDashboard" text="The overall goals of the PSP and the Process Dashboard"/>

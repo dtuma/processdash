@@ -2,22 +2,19 @@
 <!DOCTYPE map
   PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN"
          "http://java.sun.com/products/javahelp/map_1_0.dtd">
-
 <map version="1.0">
-
   <mapID target="DashIcon" url="Images/pspdash.gif" />
   <mapID target="TopLevelIcon" url="Images/toplevel.gif" />
-
   <mapID target="QuickOverview" url="Topics/Overview/QuickOverview.html" />
   <mapID target="HowToInstall" url="Topics/Overview/HowToInstall.html" />
   <mapID target="GoalsOfPSPAndDashboard" url="Topics/Overview/GoalsOfPSPAndDashboard.html" />
   <mapID target="QuickStartPSP1" url="Topics/Overview/QuickStartPSP1.html" />
-
+  <mapID target="QSCreatingTheProject" url="Topics/Overview/QSCreatingTheProject.html" />
+  <mapID target="QSPlanningTheProject" url="Topics/Overview/QSPlanningTheProject.html" />
   <mapID target="Planning" url="Topics/Planning/Planning.html" />
   <mapID target="EnteringData" url="Topics/Planning/EnteringData.html" />
   <mapID target="UsingHierarchyEditor" url="Topics/Planning/UsingHierarchyEditor.html" />
   <mapID target="UsingProbeTool" url="Topics/Planning/UsingProbeTool.html" />
-
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
   <mapID target="PlayPause" url="Topics/Execution/PlayPause.html" />
   <mapID target="CompletionButton" url="Topics/Execution/CompletionButton.html" />
@@ -26,19 +23,13 @@
   <mapID target="UsingDefectLogEditor" url="Topics/Execution/UsingDefectLogEditor.html" />
   <mapID target="HierarchyMenus" url="Topics/Execution/HierarchyMenus.html" />
   <mapID target="ConfigureMenu" url="Topics/Execution/ConfigureMenu.html" />
-
   <mapID target="PostmortemAnalysis" url="Topics/PostmortemAnalysis/PostmortemAnalysis.html" />
   <mapID target="DataChartsAndReports" url="Topics/PostmortemAnalysis/DataChartsAndReports.html" />
   <mapID target="ExportingData" url="Topics/PostmortemAnalysis/ExportingData.html" />
-
-  <mapID target="CommonProblems" url="Topics/Troubleshooting/CommonProblems.html" />
-  <mapID target="ErrorMessages" url="Topics/Troubleshooting/ErrorMessages.html" />
   <mapID target="FAQ" url="Topics/Troubleshooting/FAQ.html" />
-
   <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
-  <mapID target="CreatingNewProcesses" url="Topics/AdvancedTopics/CreatingNewProcesses.html" />
   <mapID target="ModifyingExistingProcesses" url="Topics/AdvancedTopics/ModifyingExistingProcesses.html" />
+  <mapID target="CreatingNewProcesses" url="Topics/AdvancedTopics/CreatingNewProcesses.html" />
   <mapID target="Help" url="Topics/Execution/UsingHelp.html" />
   <mapID target="GPL" url="Topics/Overview/gpl.htm" />
-
 </map>

@@ -15,3 +15,5 @@ batchEdit.pl
 text
 disclaimer
 uncap.pl
+help.config
+checkHelpFiles.pl
