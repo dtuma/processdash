@@ -151,7 +151,7 @@ public class Browser {
         return url;
     }
     private static final String[] badEndings = {
-        ".htm", ".html", ".htw", ".mht", ".cdf", ".mhtml", ".stm" };
+        ".htm", ".html", ".htw", ".mht", ".cdf", ".mhtml", ".stm", ".shtm" };
     private static String fixupURLForWindows(String url) {
         if (url.indexOf('?') == -1)
             return url + "?";
@@ -240,6 +240,9 @@ public class Browser {
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.11  2003/01/12 05:02:37  tuma
+ * Add ".shtm" to the list of bad endings, to address problems on Windows XP.
+ *
  * Revision 1.10  2002/09/15 21:00:47  tuma
  * * Add special handling for the opening of documents on the Windows platform
  * * To support Mac OS X, add additional support with BrowserLauncher
