@@ -21,9 +21,9 @@
 
 <input type=hidden name=requiredTag
 <!--#if indiv -->
-       VALUE="<!--#echo Process_ID --> IndivRoot Tag"
+       VALUE="<!--#echo Process_ID -->/IndivRoot Tag"
 <!--#else-->
-       VALUE="<!--#echo Process_ID --> TeamRoot Tag"
+       VALUE="<!--#echo Process_ID -->/TeamRoot Tag"
 <!--#endif-->
 >
 
@@ -140,7 +140,7 @@ document.writeln("<P>Problem loading the data.js script!");
 
 <!--#break disabledForNow -->
 <!--#if not indiv -->
-[!--#if [<!--#echo Process_ID --> TeamRoot Tag] --]
+[!--#if [<!--#echo Process_ID -->/TeamRoot Tag] --]
 
 <span style="display:none">
 <a href="rollup_plan_summary.shtm">Team project plan summary</a>
