@@ -7,7 +7,7 @@
    <title>Process Dashboard</title>
    <maps>
       <mapref location="Map.xml"/>
-      <homeID>Overview</homeID>
+      <homeID>QuickOverview</homeID>
    </maps>
    <view>
       <name>TOC</name>

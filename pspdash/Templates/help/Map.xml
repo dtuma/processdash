@@ -8,7 +8,6 @@
   <mapID target="DashIcon" url="Images/pspdash.gif" />
   <mapID target="TopLevelIcon" url="Images/toplevel.gif" />
 
-  <mapID target="Overview" url="Topics/Overview/Overview.html" />
   <mapID target="QuickOverview" url="Topics/Overview/QuickOverview.html" />
   <mapID target="HowToInstall" url="Topics/Overview/HowToInstall.html" />
   <mapID target="GoalsOfPSPAndDashboard" url="Topics/Overview/GoalsOfPSPAndDashboard.html" />

@@ -126,7 +126,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
             hb = hs.createHelpBroker();
 
-            CSH.setHelpIDString(helpItem ,"Overview");
+            CSH.setHelpIDString(helpItem ,"QuickOverview");
 
             ActionListener helper = new CSH.DisplayHelpFromSource(hb);
             helpItem.addActionListener(helper);
