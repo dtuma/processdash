@@ -32,7 +32,6 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.sound.sampled.*;
 import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -51,7 +50,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
     Timer stopwatch = null;
     PropertyKey currentPhase = null;
     String timeElementName = null;
-    Clip timingSound = null;
+    SoundClip timingSound = null;
     int maxNumHistoryItems = 10;
     private static final String pause_string = "Stop";
     private static final String continue_string = " Go ";
@@ -92,8 +91,9 @@ public class PauseButton extends DropDownButton implements ActionListener {
 
         // Load the audio clip
         if (!"true".equalsIgnoreCase(Settings.getVal("pauseButton.quiet"))) {
-            timingSound = loadAudioClip("timing.wav");
-        }
+            timingSound = new SoundClip(getClass().getResource("timing.wav"));
+        } else
+            timingSound = new SoundClip(null);
 
         // Load the user setting for history size
         String userSetting = Settings.getVal("pauseButton.historySize");
@@ -167,7 +167,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
         }
         updateAppearance();
 
-        playClip(timingSound);
+        timingSound.play();
     }
 
     public void setCurrentPhase(PropertyKey newCurrentPhase) {
@@ -391,28 +391,4 @@ public class PauseButton extends DropDownButton implements ActionListener {
         } catch (IOException ioe) {}
     }
 
-    private Clip loadAudioClip(String filename) {
-        Clip result = null;
-        try {
-            AudioInputStream soundFile = AudioSystem.getAudioInputStream
-                (getClass().getResource(filename));
-            AudioFormat soundFormat = soundFile.getFormat();
-            int bufferSize = (int) (soundFile.getFrameLength() *
-                                    soundFormat.getFrameSize());
-            DataLine.Info info = new DataLine.Info
-                (Clip.class, soundFile.getFormat(), bufferSize);
-            result = (Clip) AudioSystem.getLine(info);
-            result.open(soundFile);
-        } catch (Exception e) {
-            result = null;
-        }
-        return result;
-    }
-
-    private void playClip(Clip clip) {
-        if (clip != null) {
-            clip.setFramePosition(0);
-            clip.start();
-        }
-    }
 }
