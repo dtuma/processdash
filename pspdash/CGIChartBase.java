@@ -25,20 +25,22 @@
 
 package pspdash;
 
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+
+import com.sun.image.codec.jpeg.JPEGCodec;
+import com.sun.image.codec.jpeg.JPEGEncodeParam;
+import com.sun.image.codec.jpeg.JPEGImageEncoder;
+import com.jrefinery.chart.*;
+
 import pspdash.data.DataRepository;
 import pspdash.data.ResultSet;
 
-
-import java.awt.Color;
-import java.awt.GradientPaint;
-import java.awt.image.BufferedImage;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
-import com.sun.image.codec.jpeg.JPEGCodec;
-import com.sun.image.codec.jpeg.JPEGEncodeParam;
-import com.jrefinery.chart.*;
 
 
 public abstract class CGIChartBase extends pspdash.TinyCGIBase {
@@ -52,14 +54,17 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
         out.flush();
     }
 
-    /** Generate CGI chart output. */
-    protected void writeContents() throws IOException {
-
-        // get the data for display
+    /** create the data upon which this chart is based. */
+    protected void buildData() {
         massageParameters();
         String prefix = (String) env.get("PATH_TRANSLATED");
         data = ResultSet.get(getDataRepository(), parameters, prefix,
                              getPSPProperties());
+    }
+
+    /** Generate CGI chart output. */
+    protected void writeContents() throws IOException {
+        buildData();            // get the data for display
 
         chromeless = (parameters.get("chromeless") != null);
         JFreeChart chart = createChart();
@@ -84,12 +89,16 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
             } catch (Exception tfe) {}
         }
 
-        StandardLegend l = (StandardLegend) chart.getLegend();
-        String legendFontSize = getSetting("legendFontSize");
-        if (l != null && legendFontSize != null) try {
-            float fontSize = Float.parseFloat(legendFontSize);
-            l.setSeriesFont(l.getSeriesFont().deriveFont(fontSize));
-        } catch (Exception tfe) {}
+        if (chromeless || parameters.get("hideLegend") != null)
+            chart.setLegend(null);
+        else {
+            StandardLegend l = (StandardLegend) chart.getLegend();
+            String legendFontSize = getSetting("legendFontSize");
+            if (l != null && legendFontSize != null) try {
+                float fontSize = Float.parseFloat(legendFontSize);
+                l.setSeriesFont(l.getSeriesFont().deriveFont(fontSize));
+            } catch (Exception lfe) {}
+        }
 
         String axisFontSize = getSetting("axisLabelFontSize");
         if (axisFontSize != null) try {
@@ -100,11 +109,6 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
             a.setLabelFont(a.getLabelFont().deriveFont(fontSize));
         } catch (Exception afs) {}
 
-        if (parameters.get("chromeless") != null) {
-            chart.setLegend(null);
-            //chart.getPlot().getAxis(Plot.HORIZONTAL_AXIS).setLabel(null);
-            //chart.getPlot().getAxis(Plot.VERTICAL_AXIS).setLabel(null);
-        } //catch (AxisNotCompatibleException ance) {}
 
         BufferedImage img = new BufferedImage
             (width, height, BufferedImage.TYPE_INT_RGB);
@@ -139,6 +143,44 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
             return Color.decode(getParameter(name));
         } catch (Exception e) {}
         return Color.decode(Settings.getVal(SETTING_PREFIX +name));
+    }
+
+    protected void setupCategoryChart(JFreeChart chart) {
+
+        Axis horizAxis = chart.getPlot().getAxis(Plot.HORIZONTAL_AXIS);
+        Axis vertAxis  = chart.getPlot().getAxis(Plot.VERTICAL_AXIS);
+
+        if (!chromeless) {
+            String catAxisLabel = data.getColName(0);
+            if (catAxisLabel == null) catAxisLabel = "Project/Task";
+
+            String otherAxisLabel = null;
+            if (data.numCols() == 1) otherAxisLabel = data.getColName(1);
+            if (otherAxisLabel == null) otherAxisLabel = getSetting("units");
+            if (otherAxisLabel == null) otherAxisLabel = "Value";
+
+            String catLabels = getParameter("categoryLabels");
+
+            if (horizAxis instanceof HorizontalCategoryAxis) {
+                horizAxis.setLabel(catAxisLabel);
+                vertAxis.setLabel(otherAxisLabel);
+                if ("vertical".equalsIgnoreCase(catLabels))
+                    ((HorizontalCategoryAxis) horizAxis)
+                        .setVerticalCategoryLabels(true);
+                else if ("none".equalsIgnoreCase(catLabels))
+                    horizAxis.setShowTickLabels(false);
+            } else {
+                horizAxis.setLabel(otherAxisLabel);
+                vertAxis.setLabel(catAxisLabel);
+                if ("none".equalsIgnoreCase(catLabels))
+                    vertAxis.setShowTickLabels(false);
+            }
+        }
+
+        if (data.numCols() == 1) {
+            chart.setLegend(null);
+            chart.getPlot().setInsets(new Insets(5,2,2,5));
+        }
     }
 
     /** Optionally massage the parameters before the ResultSet is generated */
