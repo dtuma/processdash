@@ -36,9 +36,10 @@ import java.util.ResourceBundle;
 
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringMapper;
 import net.sourceforge.processdash.util.StringUtils;
 
-public class Resources extends ResourceBundle {
+public class Resources extends ResourceBundle implements StringMapper {
 
     private String bundleName;
     private String bundlePrefix;
@@ -71,7 +72,7 @@ public class Resources extends ResourceBundle {
         } catch (MissingResourceException mre) { }
 
         if (result instanceof String)
-            return interpolate((String) result, false);
+            return interpolate((String) result);
         else
             return result;
     }
@@ -111,31 +112,39 @@ public class Resources extends ResourceBundle {
 
     private static final String VAR_START_PAT = "${";
     private static final String VAR_END_PAT = "}";
-    public String interpolate(String s, boolean html) {
-        while (true) {
-            int beg = s.indexOf(VAR_START_PAT);
-            if (beg == -1) return s;
-
-            int end = s.indexOf(VAR_END_PAT, beg);
-            if (end == -1) return s;
-
-            String var = s.substring(beg+VAR_START_PAT.length(), end);
-            String replacement = getString(var);
-            if (html)
-                replacement = HTMLUtils.escapeEntities(replacement);
-            s = s.substring(0, beg) + replacement +
-                s.substring(end+VAR_END_PAT.length());
-        }
+    public String interpolate(String s) {
+        return interpolate(s, null);
+    }
+    public String interpolate(String s, StringMapper escape) {
+        if (escape == null)
+            return StringUtils.interpolate(this, s);
+        else
+            return StringUtils.interpolate
+                (StringUtils.concat(escape, this), s);
     }
 
     public Map asMap() {
         Map result = new HashMap();
-        Enumeration e = getKeys();
+
+        // add all the keys named by our parent.
+        if (parent != null) {
+            Enumeration e = parent.getKeys();
+            while (e.hasMoreElements()) {
+                String key = (String) e.nextElement();
+                String value = parent.getString(key);
+                result.put(key, value);
+            }
+        }
+
+        // add all the keys named by our delegate.  Override keys placed
+        // by the parent, if they exist.
+        Enumeration e = delegate.getKeys();
         while (e.hasMoreElements()) {
             String key = (String) e.nextElement();
             String value = getString(key);
             result.put(key, value);
         }
+
         return result;
     }
 

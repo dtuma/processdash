@@ -504,7 +504,7 @@ public class LOCDiffDialog extends TinyCGIBase
 
 
     private void intlWrite(BufferedWriter out, String text) throws IOException {
-        out.write(resources.interpolate(text, true));
+        out.write(resources.interpolate(text, HTMLUtils.ESC_ENTITIES));
     }
 
     private void displayDiffResults() throws IOException {

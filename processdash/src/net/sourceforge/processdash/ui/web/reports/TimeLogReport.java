@@ -35,6 +35,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.ui.web.*;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -73,7 +74,7 @@ public class TimeLogReport extends TinyCGIBase {
         String owner = For(getOwner());
 
         String header = START_TEXT;
-        header = resources.interpolate(header, true);
+        header = resources.interpolate(header, HTMLUtils.ESC_ENTITIES);
         header = StringUtils.findAndReplace(header, "%for owner%", owner);
         header = StringUtils.findAndReplace(header, "%for path%", title);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
@@ -109,7 +110,8 @@ public class TimeLogReport extends TinyCGIBase {
         out.println("</TABLE>");
 
         if (parameters.get("skipFooter") == null)
-            out.print(resources.interpolate(DISCLAIMER, true));
+            out.print(resources.interpolate(DISCLAIMER,
+                                            HTMLUtils.ESC_ENTITIES));
 
         out.println("</BODY></HTML>");
     }

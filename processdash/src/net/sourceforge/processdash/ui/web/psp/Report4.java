@@ -108,13 +108,14 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
         DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
                            path, parameters, this);
 
-        String header = resources.interpolate(HEADER_TEXT, true);
+        String header = resources.interpolate
+            (HEADER_TEXT, HTMLUtils.ESC_ENTITIES);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
         header = StringUtils.findAndReplace(header, "%path%", path);
         out.println(header);
 
         out.print
-            (Translator.translate(resources.interpolate(D23_HEADER, true)));
+            (Translator.translate(resources.interpolate(D23_HEADER, HTMLUtils.ESC_ENTITIES)));
 
         String defectLogParam = (String) env.get("QUERY_STRING");
         if (defectLogParam == null)
@@ -136,7 +137,7 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
         out.println("</TABLE>");
 
 
-        out.print(resources.interpolate(D24_HEADER, true));
+        out.print(resources.interpolate(D24_HEADER, HTMLUtils.ESC_ENTITIES));
 
         defectTypes = defectCounts.keySet().iterator();
         while (defectTypes.hasNext()) {
@@ -149,12 +150,12 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
         out.println("</TABLE>");
         out.println(resources.interpolate
                 ("<P class='doNotPrint'><A HREF=\"../excel.iqy\"><I>" +
-                 "${Export_to_Excel}</I></A></P>", true));
+                 "${Export_to_Excel}</I></A></P>", HTMLUtils.ESC_ENTITIES));
         if (strict) {
             String query = (String) env.get("QUERY_STRING");
             query = StringUtils.findAndReplace(query, "strict", "notstrict");
             String anchor = "<A HREF='r4.class?" + query + "'>";
-            String footnote = resources.interpolate(FOOTNOTE, false);
+            String footnote = resources.interpolate(FOOTNOTE);
             footnote = StringUtils.findAndReplace(footnote, "<A>", anchor);
             footnote = StringUtils.findAndReplace(footnote, "<a>", anchor);
             out.println("<P><HR>" + footnote);

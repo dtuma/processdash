@@ -33,6 +33,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 
@@ -149,6 +150,6 @@ public class DefectFixTimeReport extends TinyCGIBase implements DefectAnalyzer.T
     }
 
     protected void printRes(String txt) {
-        out.println(resources.interpolate(txt, true));
+        out.println(resources.interpolate(txt, HTMLUtils.ESC_ENTITIES));
     }
 }

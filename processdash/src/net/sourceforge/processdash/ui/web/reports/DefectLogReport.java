@@ -81,7 +81,8 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         String title = For(path);
         String owner = For(getOwner());
 
-        String header = resources.interpolate(HEADER_TEXT, true);
+        String header = resources.interpolate
+            (HEADER_TEXT, HTMLUtils.ESC_ENTITIES);
         header = StringUtils.findAndReplace(header, "%for owner%", owner);
         header = StringUtils.findAndReplace(header, "%for path%", title);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
@@ -104,7 +105,7 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
                             (resources.format("Filter.Removed_FMT", remFilt)));
             out.println("</UL><P>");
         }
-        out.print(resources.interpolate(START_TEXT, true));
+        out.print(resources.interpolate(START_TEXT, HTMLUtils.ESC_ENTITIES));
 
         String forParam = getParameter("for");
         if (forParam != null && forParam.length() > 0)
@@ -113,7 +114,7 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         else
             DefectAnalyzer.run(getPSPProperties(), path, this);
 
-        out.println(resources.interpolate(END_TEXT, true));
+        out.println(resources.interpolate(END_TEXT, HTMLUtils.ESC_ENTITIES));
     }
 
     private String For(String phrase) {
