@@ -47,9 +47,7 @@ import org.jfree.data.RangeInfo;
 import org.jfree.data.XYDataset;
 import org.jfree.ui.RectangleEdge;
 
-/**
- * @author vhaisltumad
- */
+
 public class RangeXYItemRenderer extends StandardXYItemRenderer {
 
     /** A working line (to save creating thousands of instances). */
