@@ -286,7 +286,6 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         PropertyKey key;
         Prop val;
         int equalsPosition;
-        String dataFile;
         BufferedReader in = new BufferedReader(new InputStreamReader(propStream));
 
         while ((line = in.readLine()) != null) {
@@ -295,20 +294,28 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
                 key = PropertyKey.valueOf (line.substring(0, equalsPosition));
                 val = Prop.valueOf (line.substring(equalsPosition+1));
                 put (key, val);
-                dataFile = val.getDataFile();
-                if (dataFile != null && dataFile.length() > 0) {
-                    if (v == null)
-                        v = new Vector();
-                    v.addElement (new String[] {key.path(), dataFile});
-                }
             }
         }
+
         if (close) in.close();
+
+        v = new Vector();
+        scanForDataFiles(v, PropertyKey.ROOT);
+        if (v.isEmpty()) v = null;
         return v;
     }
 
     public Vector load (String datafilePath) throws IOException {
         return load(new FileInputStream(datafilePath));
+    }
+
+    private void scanForDataFiles(Vector v, PropertyKey key) {
+        Prop val = pget(key);
+        String dataFile = val.getDataFile();
+        if (dataFile != null && dataFile.length() > 0)
+            v.addElement (new String[] {key.path(), dataFile});
+        for (int i = 0; i < getNumChildren (key); i++)
+            scanForDataFiles(v, getChildKey (key, i));
     }
 
 
