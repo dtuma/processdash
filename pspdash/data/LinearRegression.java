@@ -98,7 +98,7 @@ public class LinearRegression {
             term = newX - x_avg;
             term = 1.0 + (1.0 / n) + (term * term) / x_var;
 
-            stud_t = new StudentsT(n - 2).probability(p / 2.0);
+            stud_t = new StudentsT(n - 2).t(p / 2.0);
 
             range = stud_t * stddev * Math.sqrt(term);
         }
