@@ -45,6 +45,7 @@
      <indexitem text="sharing" target="TaskScheduleCollaboration.shareFinish"/>
      <indexitem text="sharing password" target="TaskScheduleCollaboration.sharePassword"/>
    </indexitem>
+   <indexitem text="level of effort tasks" target="TaskScheduleSteps.loe"/>
  </indexitem>
  <indexitem text="entering data" target="EnteringData"/>
  <indexitem text="exporting data" target="ExportingData">
@@ -127,7 +128,6 @@
  <indexitem text="timer process" target="ProcessScripts.timer"/>
  <indexitem text="troubleshooting" target="FAQ"/>
  <indexitem text="TSP" target="GoalsOfPSPAndDashboard.tsp"/>
- <indexitem text="upgrade" target="HowToInstall.upgrade"/>
  <indexitem text="web server" target="QuickOverview.webServer"/>
  <indexitem text="work breakdown structure" target="UsingHierarchyEditor"/>
 </index>

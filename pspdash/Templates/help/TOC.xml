@@ -23,8 +23,6 @@
         <tocitem image="PageIcon" target="GPL" text="GNU General Public License"/>
         <tocitem image="PageIcon" target="LGPL" text="GNU Lesser General Public License"/>
         <tocitem image="PageIcon" target="JRegex" text="JRegex"/>
-        <tocitem image="PageIcon" target="W3C" text="W3C"/>
-        <tocitem image="PageIcon" target="Apache" text="Apache"/>
         <tocitem image="PageIcon" target="SunBerkeley" text="Sun Microsystems"/>
         <tocitem image="PageIcon" target="VisualNumerics" text="Visual Numerics"/>
         <tocitem image="PageIcon" target="JpegEncoder" text="Jpeg Encoder"/>

@@ -25,8 +25,6 @@
   <mapID target="GPL" url="Topics/Overview/gpl.html" />
   <mapID target="LGPL" url="Topics/Overview/lgpl.html" />
   <mapID target="JRegex" url="Topics/Overview/License-jregex.html" />
-  <mapID target="W3C" url="Topics/Overview/License-W3C.html" />
-  <mapID target="Apache" url="Topics/Overview/License-ASF.html" />
   <mapID target="SunBerkeley" url="Topics/Overview/License-SunBerkeley.html" />
   <mapID target="VisualNumerics" url="Topics/Overview/License-Sfun.html" />
   <mapID target="JpegEncoder" url="Topics/Overview/License-Weeks.html" />
@@ -103,7 +101,6 @@
   <mapID target="PlayPause.sound" url="Topics/Execution/PlayPause.html#sound" />
   <mapID target="ProcessScripts.timer" url="Topics/Overview/ProcessScripts.html#timer" />
   <mapID target="GoalsOfPSPAndDashboard.tsp" url="Topics/Overview/GoalsOfPSPAndDashboard.html#tsp" />
-  <mapID target="HowToInstall.upgrade" url="Topics/Overview/HowToInstall.html#upgrade" />
   <mapID target="QuickOverview.webServer" url="Topics/Overview/QuickOverview.html#webServer" />
   <mapID target="CompletionButton.freeze" url="Topics/Planning/DataFreezing.html" />
   <mapID target="AccessingScripts.scriptIcons" url="Topics/Execution/AccessingScripts.html#scriptIcons" />
@@ -128,7 +125,7 @@
   <mapID target="TaskScheduleCollaboration.shareFinish" url="Topics/Planning/TaskScheduleCollaboration.html#shareFinish" />
   <mapID target="TaskScheduleCollaboration.createRollup" url="Topics/Planning/TaskScheduleCollaboration.html#createRollup" />
   <mapID target="TaskScheduleCollaboration.limitations" url="Topics/Planning/TaskScheduleCollaboration.html#limitations" />
-  <mapID target="UsingTaskSchedule.progress" url="Topics/Planning/UsingTaskSchedule.html#progress" />
+  <mapID target="UsingTaskSchedule.progress" url="Topics/Planning/TaskScheduleSteps.html#progress" />
   <mapID target="TaskScheduleRanges" url="Topics/Planning/TaskScheduleRanges.html" />
   <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
   <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />
