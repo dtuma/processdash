@@ -21,6 +21,7 @@
       <tocitem image="PageIcon" target="GoalsOfPSPAndDashboard" text="The overall goals of the PSP and the Process Dashboard"/>
       <tocitem image="PageIcon" target="Help" text="Getting help"/>
       <tocitem image="PageIcon" target="HowToInstall" text="Installation instructions"/>
+      <tocitem image="PageIcon" target="ChangeLog" text="Change history"/>
       <tocitem image="PageIcon" target="GPL" text="GNU Public License"/>
     </tocitem>
 

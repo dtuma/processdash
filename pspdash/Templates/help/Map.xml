@@ -22,6 +22,7 @@
   <mapID target="QSPostmortem" url="Topics/Overview/QSPostmortem.html" />
 
   <mapID target="ProcessScripts" url="Topics/Overview/ProcessScripts.html" />
+  <mapID target="ChangeLog" url="Topics/Overview/ChangeLog.html" />
   <mapID target="GPL" url="Topics/Overview/gpl.htm" />
 
   <mapID target="Planning" url="Topics/Planning/Planning.html" />
