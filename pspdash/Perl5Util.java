@@ -65,8 +65,8 @@ public class Perl5Util {
     private static Map cachedPatterns =
         Collections.synchronizedMap(new MRUCache());
 
-    private com.oroinc.text.perl.Perl5Util perl5 =
-        new com.oroinc.text.perl.Perl5Util();
+//*old*/ private com.oroinc.text.perl.Perl5Util perl5 =
+//*old*/     new com.oroinc.text.perl.Perl5Util();
 
     /** Determine which character was used in lieu of the slashes */
     private static char getSlashChar(String expression) {
