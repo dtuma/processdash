@@ -114,7 +114,7 @@ public class StringData implements SimpleData {
     public boolean isDefined() { return defined; }
     public void setDefined(boolean d) { defined = d; }
 
-    public void dispose() { value = null; }
+    public void dispose() {}
 
     public String format() { return getString(); }
     public SimpleData parse(String val) throws MalformedValueException {

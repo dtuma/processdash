@@ -124,7 +124,9 @@ public class ListData implements SimpleData {
     }
 
     public void dispose() {
-        clear();
+        // do nothing!  MANY ListData items are shared by many data
+        // elements.  just because one element no longer needs it, we
+        // don't have the right to unilaterally destroy the contents.
     }
 
     public void setImmutable() { immutable = true; }

@@ -72,9 +72,7 @@ public class DateData implements SimpleData {
         return result;
     }
 
-    public void dispose() {
-        value = null;
-    }
+    public void dispose() {}
 
     public static DateData create(String s) throws MalformedValueException {
         DateData result = new DateData();
