@@ -83,6 +83,12 @@ public class WBSJTable extends JTable {
     }
 
 
+    /** Change the highlighter for the renderer of this table */
+    public void setHighlighter(WBSNodeHighlighter h) {
+        renderer.setHighlighter(h);
+    }
+
+
     /** Return true if the given object is in the list of currently
      * cut nodes */
     public boolean isCutNode(Object node) {

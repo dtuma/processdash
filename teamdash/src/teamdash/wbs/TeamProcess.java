@@ -21,6 +21,11 @@ import teamdash.process.CustomProcess;
  */
 public class TeamProcess {
 
+    /** The name of the team process */
+    private String processName;
+    /** The version number of the team process */
+    private String processVersion;
+
     /** An immutable list of the names of the phases in this
      * process (Strings) */
     private List phases;
@@ -32,14 +37,23 @@ public class TeamProcess {
     private Map iconMap;
 
 
-
     /** Contruct a team process from information in the given XML element.
      */
     public TeamProcess(Element xml) {
+        loadProcessData(xml);
         buildPhases(xml);
         buildIcons();
     }
 
+
+    public String getProcessName() {
+        return processName;
+    }
+
+
+    public String getProcessVersion() {
+        return processVersion;
+    }
 
     /** Return a list of the phases in this process. */
     public List getPhases() {
@@ -82,6 +96,17 @@ public class TeamProcess {
         return buildMenu();
     }
 
+    /** Extract information about the name of this process from the xml.
+     */
+    private void loadProcessData(Element xml) {
+        if (xml != null) {
+            this.processName = xml.getAttribute("name");
+            this.processVersion = xml.getAttribute("version");
+        } else {
+            this.processName = "Unknown";
+            this.processVersion = "Unknown";
+        }
+    }
 
     /** Extract information about the phases in this process from the
      * given XML stream.  It should contain a process definition that

@@ -626,6 +626,14 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return DOCUMENT_TYPES.contains(type);
     }
 
+    /** Make this WBS be a copy of the given WBS.
+     */
+    public void copyFrom(WBSModel w) {
+        wbsNodes = (ArrayList) WBSNode.cloneNodeList(w.wbsNodes);
+        recalcRows(false);
+        fireTableDataChanged();
+    }
+
     protected void loadXML(Element e) {
         NodeList wbsElements = e.getChildNodes();
         int len = wbsElements.getLength();

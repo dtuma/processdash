@@ -2,7 +2,9 @@ package teamdash.wbs;
 
 import java.awt.BorderLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -30,7 +32,8 @@ public class WorkflowEditor {
         this.teamProject = teamProject;
         this.workflowModel = new WorkflowModel
             (teamProject.getWorkflows(), teamProject.getTeamProcess());
-        buildTable();
+        table = createWorkflowJTable
+            (workflowModel, teamProject.getTeamProcess());
         buildToolbar();
         frame = new JFrame(teamProject.getProjectName() +
                            " - Common Team Workflows");
@@ -51,11 +54,11 @@ public class WorkflowEditor {
     }
 
 
-    private void buildTable() {
+    public static WBSJTable createWorkflowJTable(WorkflowModel workflowModel, TeamProcess process) {
         // create the WBSJTable, then set its model to the workflow data model.
-        TeamProcess process = teamProject.getTeamProcess();
-        table = new WBSJTable(teamProject.getWorkflows(),
-                              process.getIconMap(), process.getNodeTypeMenu());
+        WBSJTable table = new WBSJTable
+            (workflowModel.getWBSModel(), process.getIconMap(),
+             process.getNodeTypeMenu());
         table.setModel(workflowModel);
         // reset the row height, for proper display of wbs node icons.
         table.setRowHeight(19);
@@ -95,21 +98,28 @@ public class WorkflowEditor {
         // customize the display of the "# People" column.
         col = table.getColumn("# People");
         col.setPreferredWidth(60);
-    }
 
+        return table;
+    }
 
     private void buildToolbar() {
         toolBar = new JToolBar();
         toolBar.setFloatable(false);
         toolBar.setMargin(new Insets(0,0,0,0));
 
-        Action[] editingActions = table.getEditingActions();
-        for (int i = 0; i < editingActions.length; i++)
-            if (editingActions[i].getValue(Action.SMALL_ICON) != null)
-                addToolbarButton(editingActions[i]);
+        addToolbarButtons(table.getEditingActions());
+        toolBar.addSeparator();
+        addToolbarButtons(getWorkflowActions());
     }
 
-    /** Add a button to the beginning of the internal tool bar */
+    /** Add one or more buttons to the internal tool bar */
+    private void addToolbarButtons(Action[] actions) {
+        for (int i = 0; i < actions.length; i++)
+            if (actions[i].getValue(Action.SMALL_ICON) != null)
+                addToolbarButton(actions[i]);
+    }
+
+    /** Add a button to the internal tool bar */
     private void addToolbarButton(Action a) {
         JButton button = new JButton(a);
         //button.setMargin(new Insets(0, 0, 0, 0));
@@ -119,6 +129,44 @@ public class WorkflowEditor {
         toolBar.add(button);
     }
 
+
+    private class ExportAction extends AbstractAction {
+        public ExportAction() {
+            super("Export...", IconFactory.getExportIcon());
+            super.putValue(SHORT_DESCRIPTION, "Export Workflows");
+        }
+        public void actionPerformed(ActionEvent e) {
+            try {
+                new WorkflowLibraryEditor(teamProject, frame, true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    final Action EXPORT = new ExportAction();
+
+
+
+    private class ImportAction extends AbstractAction {
+        public ImportAction() {
+            super("Import...", IconFactory.getImportIcon());
+            super.putValue(SHORT_DESCRIPTION, "Import Workflows");
+        }
+        public void actionPerformed(ActionEvent e) {
+            try {
+                new WorkflowLibraryEditor(teamProject, frame, false);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    final Action IMPORT = new ImportAction();
+
+
+
+    public Action[] getWorkflowActions() {
+        return new Action[] { IMPORT, EXPORT };
+    }
     /*
     private Set saveListeners = null;
     public void addSaveListener(SaveListener l) {

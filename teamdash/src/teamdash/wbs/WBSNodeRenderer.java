@@ -20,6 +20,8 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     private WBSModel wbsModel;
     /** A Map translating node types to their designated icons */
     private Map iconMap;
+    /** An optional highlighter to use for determining background color */
+    private WBSNodeHighlighter highlighter = null;
     /** The error message to display as a tooltip for the node's icon */
     private String iconToolTip;
     /** The error message to display as a tooltip for the node name */
@@ -37,6 +39,11 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         setIconTextGap(4);
     }
 
+    /** Change the highlighter for this renderer */
+    public void setHighlighter(WBSNodeHighlighter h) {
+        this.highlighter = h;
+    }
+
 
     // Implementation of TableCellRenderer interface
 
@@ -47,6 +54,10 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         WBSNode node = (WBSNode) value;
         String name = node.getName();
         if (name == null || name.trim().length() == 0) name = "( empty )";
+
+        // check to see if the node needs highlighting
+        if (highlighter != null)
+            super.setBackground(highlighter.getHighlightColor(wbsModel, node));
 
         // Call our superclass to perform the default renderer configuration
         Component result = super.getTableCellRendererComponent

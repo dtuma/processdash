@@ -299,8 +299,11 @@ public class WBSEditor implements WindowListener, SaveListener {
             ArrayList newList = new ArrayList();
             WBSNode[] workflowItems =
                 workflows.getChildren(workflows.getRoot());
-            for (int i = 0;   i < workflowItems.length;   i++)
-                newList.add(workflowItems[i].getName());
+            for (int i = 0;   i < workflowItems.length;   i++) {
+                String workflowName = workflowItems[i].getName();
+                if (!newList.contains(workflowName))
+                    newList.add(workflowName);
+            }
 
             synchronized (menu) {
                 if (newList.equals(itemList)) return;

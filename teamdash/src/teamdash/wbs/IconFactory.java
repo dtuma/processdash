@@ -107,6 +107,24 @@ public class IconFactory {
     }
     private static Icon DELETE_ICON = null;
 
+    public static Icon getImportIcon() {
+        if (IMPORT_ICON == null) IMPORT_ICON = loadIconResource("import.png");
+        return IMPORT_ICON;
+    }
+    private static Icon IMPORT_ICON = null;
+
+    public static Icon getExportIcon() {
+        if (EXPORT_ICON == null) EXPORT_ICON = loadIconResource("export.png");
+        return EXPORT_ICON;
+    }
+    private static Icon EXPORT_ICON = null;
+
+    public static Icon getOpenIcon() {
+        if (OPEN_ICON == null) OPEN_ICON = loadIconResource("open.png");
+        return OPEN_ICON;
+    }
+    private static Icon OPEN_ICON = null;
+
 
 
     /** Convenience method for mixing colors.
