@@ -121,7 +121,7 @@ public class HTMLPreprocessor {
             // was a variable name specified? If so, look up the associated
             // string value.
             var = echo.getAttribute("var");
-            if (isNull(var)) var = echo.contents;
+            if (isNull(var)) var = echo.contents.trim();
             value = (isNull(var) ? "" : getString(var));
         }
 
@@ -151,6 +151,8 @@ public class HTMLPreprocessor {
 
         if (!endfor.matches()) {
             // if the endfor is missing, delete this directive and abort.
+            System.err.println
+                ("foreach directive without matching endfor - aborting.");
             foreach.replace("");
             return;
         }
@@ -205,7 +207,10 @@ public class HTMLPreprocessor {
 
         if (!endif.matches()) {
             // if the endif is missing, delete this directive and abort.
-            ifdir.replace(""); return;
+            System.err.println
+                ("if directive within matching endif - aborting.");
+            ifdir.replace("");
+            return;
         }
 
         // See if there was an elif or an else.
