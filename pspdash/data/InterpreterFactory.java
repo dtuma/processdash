@@ -65,6 +65,8 @@ class InterpreterFactory {
         if (n.hasFlag('m')) optional = false;
         result.optional = optional;
 
+        if (n.hasFlag('u')) result.unlock();
+
         return result;
     }
 
