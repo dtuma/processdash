@@ -23,7 +23,8 @@ sumUp(Defects Removed);
 
 #endif
 
-[PATH/Completed] = maxDate("Completed", [PATH/Child_List]);
+[PATH/Completed] = maxDate
+    ("Completed", filter(indirect([_] &/ "node"), [PATH/Child_List]));
 
 /*
  * Should we calculate anything else? Like defect injection/removal rates,
