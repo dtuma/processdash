@@ -39,6 +39,7 @@ import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.util.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -80,13 +81,13 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     protected JMenuItem saveMenuItem;
     protected JMenuItem revertMenuItem;
     protected JMenuItem deleteMenuItem;
-    protected JMenuItem moveUpMenuItem;
-    protected JMenuItem moveDownMenuItem;
-    protected JMenuItem cutMenuItem;
-    protected JMenuItem pasteMenuItem;
-    protected JMenuItem addNodeAboveMenuItem;
-    protected JMenuItem addNodeBelowMenuItem;
-    protected JMenuItem addNodeChildMenuItem;
+    protected Action moveUpAction;
+    protected Action moveDownAction;
+    protected Action cutAction;
+    protected Action pasteAction;
+    protected Action addNodeAboveAction;
+    protected Action addNodeBelowAction;
+    protected Action addNodeChildAction;
 
     protected DefaultMutableTreeNode cutNode = null;
 
@@ -169,6 +170,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         frame.setTitle("Hierarchy Editor");
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
+        frame.getContentPane().add("North", buildToolBar());
         frame.getContentPane().add("Center", panel);
         frame.setJMenuBar(menuBar);
         frame.setBackground(Color.lightGray);
@@ -441,8 +443,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         configureButton = null;
         pendingVector = null;
         addTemplateMenu = addNodeMenu = null;
-        saveMenuItem = revertMenuItem = deleteMenuItem = addNodeAboveMenuItem =
-            addNodeBelowMenuItem = addNodeChildMenuItem = null;
+        saveMenuItem = revertMenuItem = deleteMenuItem = null;
+        moveUpAction = moveDownAction = cutAction = pasteAction =
+            addNodeAboveAction = addNodeBelowAction = addNodeChildAction = null;
     }
 
                                 // make sure root is expanded
@@ -493,41 +496,59 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         deleteMenuItem.addActionListener(new RemoveAction());
         deleteMenuItem.setEnabled (false);
 
-        moveUpMenuItem= menu.add(new JMenuItem("Move Up"));
-        moveUpMenuItem.addActionListener(new MoveUpAction());
-        moveUpMenuItem.setEnabled (false);
+        menu.add(moveUpAction = new MoveUpAction());
+        moveUpAction.setEnabled(false);
 
-        moveDownMenuItem = menu.add(new JMenuItem("Move Down"));
-        moveDownMenuItem.addActionListener(new MoveDownAction());
-        moveDownMenuItem.setEnabled (false);
+        menu.add(moveDownAction = new MoveDownAction());
+        moveDownAction.setEnabled(false);
 
-        cutMenuItem = menu.add(new JMenuItem("Cut"));
-        cutMenuItem.addActionListener(new CutAction());
-        cutMenuItem.setEnabled (false);
+        menu.add(cutAction = new CutAction());
+        cutAction.setEnabled(false);
 
-        pasteMenuItem = menu.add(new JMenuItem("Paste"));
-        pasteMenuItem.addActionListener(new PasteAction());
-        pasteMenuItem.setEnabled (false);
+        menu.add(pasteAction = new PasteAction());
+        pasteAction.setEnabled(false);
 
         menu.addSeparator();
 
         addNodeMenu = (JMenu) menu.add(new JMenu("Add Node"));
         addNodeMenu.setPopupMenuVisible (false);
 
-        addNodeAboveMenuItem = addNodeMenu.add(new JMenuItem("Above"));
-        addNodeAboveMenuItem.addActionListener(new InsertAction());
-
-        addNodeBelowMenuItem = addNodeMenu.add(new JMenuItem("Below"));
-        addNodeBelowMenuItem.addActionListener(new AddAction());
-
-        addNodeChildMenuItem = addNodeMenu.add(new JMenuItem("As Child"));
-        addNodeChildMenuItem.addActionListener(new AddChildAction());
+        addNodeMenu.add(addNodeAboveAction = new InsertAction());
+        addNodeMenu.add(addNodeBelowAction = new AddAction());
+        addNodeMenu.add(addNodeChildAction = new AddChildAction());
 
         addTemplateMenu = (JMenu) menu.add(new JMenu("Add Template"));
         addTemplateMenu.setPopupMenuVisible (false);
 
         return menuBar;
     }
+
+    private JToolBar buildToolBar() {
+        JToolBar result = new JToolBar();
+        result.setFloatable(false);
+        result.setMargin(new Insets(0,0,0,0));
+
+        addToolbarButton(result, cutAction);
+        addToolbarButton(result, pasteAction);
+        result.addSeparator();
+        addToolbarButton(result, moveUpAction);
+        addToolbarButton(result, moveDownAction);
+        result.addSeparator();
+        addToolbarButton(result, addNodeAboveAction);
+        addToolbarButton(result, addNodeBelowAction);
+        addToolbarButton(result, addNodeChildAction);
+
+        return result;
+    }
+
+    private void addToolbarButton(JToolBar toolBar, Action a) {
+        JButton button = new JButton(a);
+        button.setMargin(new Insets(1,1,1,1));
+        button.setFocusPainted(false);
+        button.setText(null);
+        toolBar.add(button);
+    }
+
 
     /**
      * Returns the TreeNode instance that is selected in the tree.
@@ -557,9 +578,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                                String myPath) {
         addNodeMenu.setPopupMenuVisible (children || siblings);
         addNodeMenu.setEnabled(children || siblings);
-        addNodeAboveMenuItem.setEnabled (siblings);
-        addNodeBelowMenuItem.setEnabled (siblings);
-        addNodeChildMenuItem.setEnabled (children);
+        addNodeAboveAction.setEnabled (siblings);
+        addNodeBelowAction.setEnabled (siblings);
+        addNodeChildAction.setEnabled (children);
         tree.setEditable(editable);
         if (templateChildren != null && templateChildren.size() == 0)
             addTemplateMenu.setPopupMenuVisible (false);
@@ -568,8 +589,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         updateTemplateMenu (templateChildren, myID);
 
-        pasteMenuItem.setEnabled(canPaste(myID, myPath, templateChildren,
-                                          cutNode));
+        pasteAction.setEnabled(canPaste(myID, myPath, templateChildren, cutNode));
     }
 
     /**
@@ -582,8 +602,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         if (tp == null) {           // deselection
             deleteMenuItem.setEnabled (false);
-            moveUpMenuItem.setEnabled (false);
-            moveDownMenuItem.setEnabled (false);
+            moveUpAction.setEnabled (false);
+            moveDownAction.setEnabled (false);
             adjustMenu (false, true, false, null, null, null);
             addTemplateMenu.setEnabled (false);
             return;
@@ -593,8 +613,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         DefaultMutableTreeNode node =
             (DefaultMutableTreeNode)tp.getLastPathComponent();
-        moveUpMenuItem.setEnabled(moveUpIsLegal(node));
-        moveDownMenuItem.setEnabled(moveDownIsLegal(node));
+        moveUpAction.setEnabled(moveUpIsLegal(node));
+        moveDownAction.setEnabled(moveDownIsLegal(node));
 
         // Place code to update selection-sensitive field(s) here.
         Prop val = useProps.pget (key);
@@ -629,7 +649,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             deletable =
                 status.startsWith("" + NO_MOVE_CHAR + NO_EDIT_CHAR + DELETE_OK_CHAR);
         deleteMenuItem.setEnabled (deletable);
-        cutMenuItem.setEnabled (deletable);
+        cutAction.setEnabled (deletable);
 
         String pStatus = useProps.pget(key.getParent()).getStatus();
         if ((pStatus != null) && (pStatus.indexOf(ALLOWED_CHILD) >= 0))
@@ -970,7 +990,14 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     /**
      * AddAction is used to add a new item after the selected item.
      */
-    class AddAction extends Object implements ActionListener {
+    class AddAction extends AbstractAction {
+
+        public AddAction() {
+            super("Below",
+                  new ImageIcon(PropertyFrame.class.getResource("ins-after.gif")));
+            putValue(Action.SHORT_DESCRIPTION, "Add Node Below");
+        }
+
         /**
          * Messaged when the user clicks on the "Add node above" menu item.
          * Determines the selection from the Tree and adds an item
@@ -1006,9 +1033,15 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     /**
      * AddChildAction is used to add a new item as a child of the selected item.
      */
-    class AddChildAction extends Object implements ActionListener {
+    class AddChildAction extends AbstractAction {
         /** Number of nodes that have been added. */
         public int               addCount;
+
+        public AddChildAction() {
+            super("As Child",
+                  new ImageIcon(PropertyFrame.class.getResource("ins-child.gif")));
+            putValue(Action.SHORT_DESCRIPTION, "Add Node As Child");
+        }
 
         /**
          * Messaged when the user clicks on the "Add node as child" menu item.
@@ -1045,9 +1078,15 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     /**
      * InsertAction is used to insert a new item before the selected item.
      */
-    class InsertAction extends Object implements ActionListener {
+    class InsertAction extends AbstractAction {
         /** Number of nodes that have been added. */
         public int               insertCount;
+
+        public InsertAction() {
+            super("Above",
+                  new ImageIcon(PropertyFrame.class.getResource("ins-before.gif")));
+            putValue(Action.SHORT_DESCRIPTION, "Add Node Above");
+        }
 
         /**
          * Messaged when the user clicks on the "Add node above" menu item.
@@ -1123,7 +1162,13 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     } // End of PropertyFrame.RemoveAction
 
     /** MoveUpAction swaps the selected node with its preceeding sibling. */
-    class MoveUpAction implements ActionListener {
+    class MoveUpAction extends AbstractAction {
+        public MoveUpAction() {
+            super("Move Up", new ImageIcon(PropertyFrame.class.getResource
+                                           ("block-up-arrow.gif")));
+            putValue(Action.SHORT_DESCRIPTION, "Move Node Up");
+        }
+
         public void actionPerformed(ActionEvent e) {
             DefaultMutableTreeNode node = getSelectedNode();
             moveUp(node);
@@ -1133,7 +1178,13 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     }
 
     /** MoveDownAction swaps the selected node with its following sibling. */
-    class MoveDownAction implements ActionListener {
+    class MoveDownAction extends AbstractAction {
+        public MoveDownAction() {
+            super("Move Down", new ImageIcon(PropertyFrame.class.getResource
+                                             ("block-down-arrow.gif")));
+            putValue(Action.SHORT_DESCRIPTION, "Move Node Down");
+        }
+
         public void actionPerformed(ActionEvent e) {
             DefaultMutableTreeNode node = getSelectedNode();
             if (node == null) return;
@@ -1200,7 +1251,12 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
 
     /** CutAction remembers the selected node for future paste operations. */
-    class CutAction implements ActionListener {
+    class CutAction extends AbstractAction {
+        public CutAction() {
+            super("Cut", new ImageIcon(PropertyFrame.class.getResource("cut.gif")));
+            putValue(Action.SHORT_DESCRIPTION, "Cut Node");
+        }
+
         public void actionPerformed(ActionEvent e) {
             DefaultMutableTreeNode node = getSelectedNode();
             if (node != null)
@@ -1211,7 +1267,13 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
     /** PasteAction moves the previously cut node to become a child of the
      *  currently selected node. */
-    class PasteAction implements ActionListener {
+    class PasteAction extends AbstractAction {
+        public PasteAction() {
+            super("Paste",
+                  new ImageIcon(PropertyFrame.class.getResource("paste.gif")));
+            putValue(Action.SHORT_DESCRIPTION, "Paste Node");
+        }
+
         public void actionPerformed(ActionEvent e) {
             if (cutNode == null) return;
 
@@ -1292,7 +1354,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             }
 
             cutNode = null;
-            pasteMenuItem.setEnabled(false);
+            pasteAction.setEnabled(false);
             setDirty(true);
         }
     }

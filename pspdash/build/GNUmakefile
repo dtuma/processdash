@@ -31,12 +31,16 @@ JAR ?= //C/java/sun/jdk1.2.2/bin/jar.exe
 BUILD_PLATFORM ?= CYGWIN
 
 # non-class Files that need to be a part of the distribution jar file
-NON_CLASS_FILES=continue.gif \
+NON_CLASS_FILES=block-up-arrow.gif block-down-arrow.gif \
+		continue.gif \
 		check.gif \
+		cut.gif \
 		defect.gif \
 		defectd.gif \
 		icon32.gif \
+		ins-after.gif ins-before.gif ins-child.gif \
 		mime_types \
+		paste.gif \
 		pause.gif \
 		pspdash.ad \
 		pspdash.ad-comments \
