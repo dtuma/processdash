@@ -32,7 +32,8 @@ public class WorkflowEditor {
             (teamProject.getWorkflows(), teamProject.getTeamProcess());
         buildTable();
         buildToolbar();
-        frame = new JFrame("Common Team Workflows");
+        frame = new JFrame(teamProject.getProjectName() +
+                           " - Common Team Workflows");
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -113,4 +114,17 @@ public class WorkflowEditor {
         button.setText(null);
         toolBar.add(button);
     }
+
+    /*
+    private Set saveListeners = null;
+    public void addSaveListener(SaveListener l) {
+        if (saveListeners == null)
+            saveListeners = new HashSet();
+        saveListeners.add(l);
+    }
+    public void removeSaveListener(SaveListener l) {
+        if (saveListeners != null)
+            saveListeners.remove(l);
+    }
+    */
 }

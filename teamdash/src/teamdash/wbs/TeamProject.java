@@ -2,15 +2,18 @@ package teamdash.wbs;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URL;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
 import pspdash.RobustFileWriter;
 import pspdash.XMLUtils;
 import teamdash.TeamMemberList;
 
 public class TeamProject {
 
+    private Element projectSettings;
     private String projectName;
     private File directory;
     private TeamMemberList teamList;
@@ -23,6 +26,7 @@ public class TeamProject {
     public TeamProject(File directory, String projectName) {
         this.projectName = projectName;
         this.directory = directory;
+        openProjectSettings();
         openTeamList();
         openTeamProcess();
         openWorkflows();
@@ -69,8 +73,23 @@ public class TeamProject {
             Document doc = XMLUtils.parse(new FileInputStream(file));
             return doc.getDocumentElement();
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
+        }
+    }
+
+    /** Open the file containing the project settings (written by the team
+     * project setup wizard) */
+    private void openProjectSettings() {
+        try {
+            projectSettings = openXML(new File(directory, SETTINGS_FILENAME));
+            String name = projectSettings.getAttribute("projectName");
+            if (XMLUtils.hasValue(name))
+                projectName = name;
+            else if (XMLUtils.hasValue
+                     (name = projectSettings.getAttribute("scheduleName")))
+                projectName = name;
+        } catch (Exception e) {
+            projectSettings = null;
         }
     }
 
@@ -80,14 +99,16 @@ public class TeamProject {
             Element xml = openXML(new File(directory, TEAM_LIST_FILENAME));
             if (xml != null) teamList = new TeamMemberList(xml);
         } catch (Exception e) {
-            e.printStackTrace();
         }
-        if (teamList == null)
+        if (teamList == null) {
+            System.out.println("No "+TEAM_LIST_FILENAME+
+                               " found; creating empty team list");
             teamList = new TeamMemberList();
+        }
     }
 
     /** Save the list of team members */
-    private void saveTeamList() {
+    void saveTeamList() {
         try {
             File f = new File(directory, TEAM_LIST_FILENAME);
             RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
@@ -101,12 +122,30 @@ public class TeamProject {
     /** Open the team process */
     private void openTeamProcess() {
         Element xml = null;
+
+        // first, try to open a file called "process.xml"
         try {
             xml = openXML(new File(directory, PROCESS_FILENAME));
-        } catch (Exception e) {
-            e.printStackTrace();
-            xml = null;
-        }
+        } catch (Exception e) { }
+
+        // if that fails, see if the project settings include a pointer to a
+        // process description.
+        if (xml == null && projectSettings != null) try {
+            String relativeTemplateLocation =
+                projectSettings.getAttribute("templatePath");
+            if (XMLUtils.hasValue(relativeTemplateLocation)) {
+                File templateJar =
+                    new File(directory, relativeTemplateLocation);
+                String jarURL = templateJar.toURL().toString();
+                String xmlURL = "jar:" + jarURL + "!/settings.xml";
+                Document doc = XMLUtils.parse((new URL(xmlURL)).openStream());
+                xml = doc.getDocumentElement();
+            }
+        } catch (Exception e) { }
+
+        // create a team process from the XML we found.  If we didn't find
+        // anything, xml will equal null and a default team process will be
+        // created instead.
         teamProcess = new TeamProcess(xml);
     }
 
@@ -119,14 +158,16 @@ public class TeamProject {
                 projectName = wbs.getRoot().getName();
             }
         } catch (Exception e) {
-            e.printStackTrace();
         }
-        if (wbs == null)
+        if (wbs == null) {
+            System.out.println("No "+WBS_FILENAME+
+                               " file found; creating default wbs");
             wbs = new WBSModel(projectName);
+        }
     }
 
     /** Save the work breakdown structure */
-    private void saveWBS() {
+    void saveWBS() {
         try {
             File f = new File(directory, WBS_FILENAME);
             RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
@@ -145,14 +186,16 @@ public class TeamProject {
             Element xml = openXML(new File(directory, FLOW_FILENAME));
             if (xml != null) workflows = new WorkflowWBSModel(xml);
         } catch (Exception e) {
-            e.printStackTrace();
         }
-        if (workflows == null)
+        if (workflows == null) {
+            System.out.println("No "+FLOW_FILENAME+
+                               " file found; creating default workflows");
             workflows = new WorkflowWBSModel("Common Workflows");
+        }
     }
 
     /** Save the common workflows */
-    private void saveWorkflows() {
+    void saveWorkflows() {
         try {
             File f = new File(directory, FLOW_FILENAME);
             RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
@@ -188,5 +231,6 @@ public class TeamProject {
     private static final String WBS_FILENAME = "wbs.xml";
     private static final String FLOW_FILENAME = "workflow.xml";
     private static final String PROCESS_FILENAME = "process.xml";
+    private static final String SETTINGS_FILENAME = "settings.xml";
 
 }

@@ -3,11 +3,15 @@ package teamdash.wbs;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import pspdash.RobustFileWriter;
 import pspdash.XMLUtils;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
+import teamdash.wbs.columns.SizeAccountingColumnSet;
+
 
 /** This class writes out an XML data file describing the work breakdown
  * structure.
@@ -16,41 +20,63 @@ import teamdash.wbs.columns.DirectSizeTypeColumn;
  * minimum necessary data needed to recreate the WBS in the WBSEditor. This
  * file, on the other hand, is designed to be read by logic which synchronizes
  * individual dashboard instances to the WBS.  It therefore contains only the
- * data elements needed by that logic. Even more important, the format is
+ * data elements needed by that logic.  Even more important, the format is
  * independent of the WBS implementation - it does not rely on any aspect of
  * the internal naming schemes of WBS column attributes.
  */
 public class WBSDataWriter {
 
+    /** The work breakdown structure */
     private WBSModel wbsModel;
+    /** Calculated data associated with the work breakdown structure */
     private DataTableModel dataModel;
+    /** The team process */
     private TeamProcess process;
+    /** The list of column numbers for each team member time column */
     private IntList teamMemberColumns;
+    /** The list of column numbers for each top-level size accounting column */
+    private int[] sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
+    /** This column number of the direct size units column */
+    private int directSizeUnitsColumn;
+    /** Maps XML tag names to objects capable of writing their attributes.
+     * 
+     * Each key should be an XML tag name returned by {@link #getTagNameForNode
+     * (WBSNode)}, and each value should be an object implementing
+     * {@link WBSDataWriter.AttributeWriter} */
+    private HashMap attributeWriters;
 
-    private static final String[] sizeColumnIDs = new String[] {
-        "Base", "Deleted", "Modified", "Added", "Reused", "N&C" };
-    private static final String[] sizeAttrNames = new String[] {
-        "sizeBase", "sizeDel", "sizeMod", "sizeAdd", "sizeReu", "sizeNC" };
-    private int[] sizeColumns = new int[sizeColumnIDs.length];
-    private int unitsColumn;
 
+
+    /** Create a new WBSDataWriter.
+     */
     public WBSDataWriter(WBSModel wbsModel, DataTableModel dataModel,
                          TeamProcess process) {
         this.wbsModel = wbsModel;
         this.dataModel = dataModel;
         this.process = process;
 
-        for (int i = 0;   i < sizeColumnIDs.length;   i++)
-            sizeColumns[i] = dataModel.findColumn(sizeColumnIDs[i]);
-        unitsColumn = dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
+        for (int i = 0;   i < SIZE_COLUMN_IDS.length;   i++)
+            sizeAccountingColumns[i] =
+                dataModel.findColumn(SIZE_COLUMN_IDS[i]);
+        directSizeUnitsColumn =
+            dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
+        attributeWriters = buildAttributeWriters();
     }
 
+
+
+    /** Write XML WBS data to the given file.
+     */
     public void write(File f) throws IOException {
         RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
         write(out);
         out.close();
     }
 
+
+
+    /** Write XML WBS data to the given writer.
+     */
     public void write(Writer out) throws IOException {
         // initialize
         teamMemberColumns = dataModel.getTeamMemberColumnIDs();
@@ -61,104 +87,159 @@ public class WBSDataWriter {
         write(out, wbsModel.getRoot(), 0);
     }
 
+
+
+    /** Write XML WBS data for a given node and its children.
+     */
     private void write(Writer out, WBSNode node, int depth)
         throws IOException {
 
-        String nodeType = translateType(node.getType());
+        // determine which XML tag to use
+        String tagName = getTagNameForNode(node);
 
+        // format the XML minimally - indent some number of spaces based
+        // on XML tag depth
         writeIndent(out, depth);
 
-        out.write("<" + nodeType);
+        // write the XML tag and the standard element attributes.
+        out.write("<" + tagName);
         writeAttr(out, NAME_ATTR, node.getName());
         writeAttr(out, ID_ATTR, node.getUniqueID());
 
-        // write node specific attributes
-        AttributeWriter aw = (AttributeWriter) ATTRIBUTE_WRITERS.get(nodeType);
+        // write attributes specific to this XML tag type
+        AttributeWriter aw = (AttributeWriter) attributeWriters.get(tagName);
         if (aw != null)
             aw.writeAttributes(out, node);
 
         WBSNode[] children = wbsModel.getChildren(node);
         if (children == null || children.length == 0) {
+            // if this node has no children, just close the XML tag.
             out.write("/>\n");
         } else {
+            // if this node has children, print them recursively.
             out.write(">\n");
             for (int i = 0;   i < children.length;   i++)
                 write(out, children[i], depth+1);
             writeIndent(out, depth);
-            out.write("</" + nodeType + ">\n");
+            out.write("</" + tagName + ">\n");
         }
     }
 
-    private String translateType(String type) {
+
+
+    /** Determine which XML tag should be used to represent the given node.
+     */
+    private String getTagNameForNode(WBSNode node) {
+        String type = node.getType();
         if ("Project".equals(type))
-            return PROJECT_TYPE;
+            return PROJECT_TAG;
         if ("Software Component".equals(type))
-            return SOFTWARE_TYPE;
+            return SOFTWARE_TAG;
         if (type.endsWith(" Document"))
-            return DOCUMENT_TYPE;
+            return DOCUMENT_TAG;
         if ("PSP Task".equals(type))
-            return PSP_TYPE;
+            return PSP_TAG;
         if (type.endsWith(" Task"))
-            return TASK_TYPE;
+            return TASK_TAG;
 
         // default value (better than nothing)
-        return TASK_TYPE;
+        return TASK_TAG;
     }
 
 
 
+    /** Convenience method: indent some number of spaces based on XML tag depth
+     */
     private void writeIndent(Writer out, int depth) throws IOException {
         for (int i = 0; i < depth; i++)
             out.write("\t");
     }
 
+
+
+    /** Convenience method for writing an integer XML attribute
+     */
     private void writeAttr(Writer out, String name, int value)
         throws IOException
     {
         writeAttr(out, name, Integer.toString(value));
     }
+
+
+
+    /** Convenience method for writing a string XML attribute
+     */
     private void writeAttr(Writer out, String name, String value)
         throws IOException
     {
-        if (value == null) return;
-        out.write(" ");
-        out.write(name);
-        out.write("='");
-        out.write(XMLUtils.escapeAttribute(value));
-        out.write("'");
+        if (value != null) {
+            out.write(" ");
+            out.write(name);
+            out.write("='");
+            out.write(XMLUtils.escapeAttribute(value));
+            out.write("'");
+        }
     }
 
 
-    private static final String NAME_ATTR = "name";
-    private static final String ID_ATTR = "id";
-    private static final String PHASE_NAME_ATTR = "phaseName";
-    private static final String PHASE_TYPE_ATTR = "phaseType";
-    private static final String TIME_ATTR = "time";
 
-    private static final String UNITS_ATTR = "sizeUnits";
+    /** Create AttributeWriter objects capable of writing XML attributes for
+     * specific output element types.
+     */
+    private HashMap buildAttributeWriters() {
+        HashMap result = new HashMap();
+        SizeAttributeWriter sw = new SizeAttributeWriter();
+        result.put(SOFTWARE_TAG, sw);
+        result.put(DOCUMENT_TAG, sw);
 
-
-    private static final String PROJECT_TYPE = "project";
-    private static final String SOFTWARE_TYPE = "component";
-    private static final String DOCUMENT_TYPE = "document";
-    private static final String PSP_TYPE = "psp";
-    private static final String TASK_TYPE = "task";
-
-
-    private final HashMap ATTRIBUTE_WRITERS = buildAttributeWriters();
+        result.put(TASK_TAG, new TaskAttributeWriter());
+        result.put(PSP_TAG, new PSPTaskAttributeWriter());
+        return result;
+    }
 
 
+
+    /** Interface for a tag-specific attribute writer */
     private interface AttributeWriter {
         public void writeAttributes(Writer out, WBSNode node)
             throws IOException;
     }
 
+
+
+    /** AttributeWriter which writes top-down size attributes.
+     */
     private class SizeAttributeWriter implements AttributeWriter {
         public void writeAttributes(Writer out, WBSNode node) throws IOException {
             maybeWriteSizeAttrs(out, node);
         }
+
+        /** Write out XML attributes for size if a top-down size has been entered
+         * for the given node.
+         */
+        private void maybeWriteSizeAttrs(Writer out, WBSNode node)
+            throws IOException
+        {
+            // check with the direct size units column to see if a top-down size
+            // has been entered for the given node.
+            Object units = dataModel.getValueAt(node, directSizeUnitsColumn);
+            if (units == null) return;
+
+            // write an XML attribute for the size units
+            writeAttr(out, UNITS_ATTR, String.valueOf(units));
+            // write out XML attributes for each size accounting number
+            for (int i = 0;   i < SIZE_ACCOUNTING_ATTRS.length;   i++){
+                Object size =
+                    dataModel.getValueAt(node, sizeAccountingColumns[i]);
+                writeAttr(out, SIZE_ACCOUNTING_ATTRS[i], formatSize(size));
+            }
+        }
     }
 
+
+
+    /** AttributeWriter which writes information about a non-PSP leaf task.
+     */
     private class TaskAttributeWriter implements AttributeWriter {
         public void writeAttributes(Writer out, WBSNode node) throws IOException {
             String nodeType = node.getType();
@@ -171,9 +252,30 @@ public class WBSDataWriter {
             writeAttr(out, PHASE_NAME_ATTR, phaseName);
             writeAttr(out, PHASE_TYPE_ATTR, phaseType);
             writeAttr(out, TIME_ATTR, getTeamMemberTimes(node));
+            maybeWriteQualitySize(out, phaseName, phaseType, node);
+        }
+
+        private void maybeWriteQualitySize(Writer out, String phase,
+                                           String phaseType, WBSNode node)
+            throws IOException
+        {
+            if (!QUALITY_PHASE_TYPES.contains(phaseType)) return;
+
+            String units = process.getPhaseSizeMetric(phase);
+            String colID = SizeAccountingColumnSet.getNCID(units);
+            int column = dataModel.findColumn(colID);
+            if (column == -1) return;
+
+            writeAttr(out, INSP_UNITS_ATTR, units);
+            writeAttr(out, INSP_SIZE_ATTR,
+                      formatSize(dataModel.getValueAt(node, column)));
         }
     }
 
+
+
+    /** AttributeWriter which writes information about a PSP task.
+     */
     private class PSPTaskAttributeWriter extends SizeAttributeWriter {
         public void writeAttributes(Writer out, WBSNode node) throws IOException {
             writeAttr(out, TIME_ATTR, getTeamMemberTimes(node));
@@ -182,17 +284,10 @@ public class WBSDataWriter {
     }
 
 
-    private HashMap buildAttributeWriters() {
-        HashMap result = new HashMap();
-        SizeAttributeWriter sw = new SizeAttributeWriter();
-        result.put(SOFTWARE_TYPE, sw);
-        result.put(DOCUMENT_TYPE, sw);
 
-        result.put(TASK_TYPE, new TaskAttributeWriter());
-        result.put(PSP_TYPE, new PSPTaskAttributeWriter());
-        return result;
-    }
-
+    /** Build an XML attribute value describing the time each team member plans
+     * to spend in the given node.
+     */
     private String getTeamMemberTimes(WBSNode node) {
         StringBuffer result = new StringBuffer();
         for (int i = 0;   i < teamMemberColumns.size();   i++) {
@@ -212,61 +307,50 @@ public class WBSDataWriter {
         return result.toString();
     }
 
-    /*
-    private final HashMap DATA_NODE_WRITERS = buildDataNodeWriters();
-
-    private interface DataNodeWriter {
-        public boolean hasDataNodes(WBSNode node);
-        public void writeData(Writer out, WBSNode node, int depth)
-            throws IOException;
-    }
-
-    private class SizeDataNodeWriter implements DataNodeWriter {
-        public boolean hasDataNodes(WBSNode node) {
-            return (dataModel.getValueAt(node, unitsColumn) != null);
-        }
-
-
-        public void writeData(Writer out, WBSNode node, int depth)
-            throws IOException
-        {
-            String units = String.valueOf
-                (dataModel.getValueAt(node, unitsColumn));
-            if ("null".equals(units)) return;
-
-            writeIndent(out, depth);
-            out.write("<" + SIZE_TAG);
-            out.write("/>\n");
-        }
-    */
 
 
 
-    private void maybeWriteSizeAttrs(Writer out, WBSNode node) throws IOException {
-        Object units = dataModel.getValueAt(node, unitsColumn);
-        if (units == null) return;
 
-        writeAttr(out, UNITS_ATTR, String.valueOf(units));
-        for (int i = 0;   i < sizeAttrNames.length;   i++){
-            Object size = dataModel.getValueAt(node, sizeColumns[i]);
-            writeAttr(out, sizeAttrNames[i], formatSize(size));
-        }
-    }
 
+    /** Format a size measurement so we can write it in an XML attribute.
+     */
     private String formatSize(Object size) {
         if (size == null) return "0";
-        String result = String.valueOf(size);
-        if (result.length() == 0) return "0";
-        return result;
+        double d = NumericDataValue.parse(size);
+        if (Double.isNaN(d) || Double.isInfinite(d)) d = 0;
+        return NumericDataValue.format(d);
     }
 
-    /*
-    private HashMap buildDataNodeWriters() {
-        HashMap result = new HashMap();
-        SizeDataNodeWriter w = new SizeDataNodeWriter();
-        result.put(SOFTWARE_TYPE, w);
-        result.put(PSP_TYPE, w);
-        result.put(DOCUMENT_TYPE, w);
-        return result;
-    }*/
+
+
+
+    // strings naming each XML tag we will output
+    private static final String PROJECT_TAG = "project";
+    private static final String SOFTWARE_TAG = "component";
+    private static final String DOCUMENT_TAG = "document";
+    private static final String PSP_TAG = "psp";
+    private static final String TASK_TAG = "task";
+
+    /** A list of column IDs for the top-level size accounting columns */
+    private static final String[] SIZE_COLUMN_IDS = new String[] {
+        "Base", "Deleted", "Modified", "Added", "Reused", "N&C" };
+    /** XML attribute names we will use to store data extracted from the
+     * size accounting columns listed on the previous line */
+    private static final String[] SIZE_ACCOUNTING_ATTRS = new String[] {
+        "sizeBase", "sizeDel", "sizeMod", "sizeAdd", "sizeReu", "sizeNC" };
+
+    // strings naming each XML attribute we will output
+    private static final String NAME_ATTR = "name";
+    private static final String ID_ATTR = "id";
+    private static final String PHASE_NAME_ATTR = "phaseName";
+    private static final String PHASE_TYPE_ATTR = "phaseType";
+    private static final String TIME_ATTR = "time";
+    private static final String UNITS_ATTR = "sizeUnits";
+    private static final String INSP_UNITS_ATTR = "inspUnits";
+    private static final String INSP_SIZE_ATTR = "inspSize";
+
+    /** A list of phase types for quality phases */
+    private static final List QUALITY_PHASE_TYPES = Arrays.asList(new String[] {
+            "REQINSP", "HLDRINSP", "CR", "CODEINSP", "DLDINSP", "DLDR" } );
+
 }

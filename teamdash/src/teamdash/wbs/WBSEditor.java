@@ -20,15 +20,21 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import teamdash.SaveListener;
 import teamdash.TeamMemberListEditor;
 
-public class WBSEditor implements WindowListener {
+public class WBSEditor implements WindowListener, SaveListener {
 
     TeamProject teamProject;
     JFrame frame;
     TeamTimePanel teamTimePanel;
     WBSDataWriter dataWriter;
     File dataDumpFile;
+    boolean exitOnClose = false;
+
+    private TeamMemberListEditor teamListEditor = null;
+    private WorkflowEditor workflowEditor = null;
+
 
     public WBSEditor(TeamProject teamProject, File dumpFile) {
         this.teamProject = teamProject;
@@ -79,8 +85,34 @@ public class WBSEditor implements WindowListener {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(this);
         frame.pack();
+    }
+
+    public void setExitOnClose(boolean exitOnClose) {
+        this.exitOnClose = exitOnClose;
+    }
+
+    public void show() {
         frame.show();
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    }
+
+    public void showTeamListEditor() {
+        if (teamListEditor != null)
+            teamListEditor.show();
+        else {
+            teamListEditor = new TeamMemberListEditor
+                (teamProject.getProjectName(), teamProject.getTeamMemberList());
+            teamListEditor.addSaveListener(this);
+        }
+    }
+
+    private void showWorkflowEditor() {
+        if (workflowEditor != null)
+            workflowEditor.show();
+        else {
+            workflowEditor = new WorkflowEditor(teamProject);
+            //workflowEditor.addSaveListener(this);
+        }
     }
 
     private JMenuBar buildMenuBar(WBSTabPanel tabPanel, WBSModel workflows) {
@@ -146,6 +178,8 @@ public class WBSEditor implements WindowListener {
     public void windowOpened(WindowEvent e) {}
     public void windowClosing(WindowEvent e) {
         save();
+        if (exitOnClose)
+            System.exit(0);
     }
     public void windowClosed(WindowEvent e) {}
     public void windowIconified(WindowEvent e) {}
@@ -161,7 +195,9 @@ public class WBSEditor implements WindowListener {
 
         File dir = new File(filename);
         File dumpFile = new File(dir, "projDump.xml");
-        new WBSEditor(new TeamProject(dir, "Team Project"), dumpFile);
+        WBSEditor w = new WBSEditor(new TeamProject(dir, "Team Project"), dumpFile);
+        w.setExitOnClose(true);
+        w.show();
     }
 
     private class SaveAction extends AbstractAction {
@@ -174,36 +210,28 @@ public class WBSEditor implements WindowListener {
         }
     }
 
-    private class CloseAction extends AbstractAction implements WindowListener {
+    private class CloseAction extends AbstractAction {
         public CloseAction() {
             super("Close");
             putValue(MNEMONIC_KEY, new Integer('C'));
-            frame.addWindowListener(this);
         }
+
         public void actionPerformed(ActionEvent e) {
             save();
-            System.exit(0);
+            if (exitOnClose)
+                System.exit(0);
+            else
+                frame.setVisible(false);
         }
-        public void windowOpened(WindowEvent e) {}
-        public void windowClosing(WindowEvent e) { actionPerformed(null); }
-        public void windowClosed(WindowEvent e) {}
-        public void windowIconified(WindowEvent e) {}
-        public void windowDeiconified(WindowEvent e) {}
-        public void windowActivated(WindowEvent e) {}
-        public void windowDeactivated(WindowEvent e) {}
     }
 
     private class WorkflowEditorAction extends AbstractAction {
-        private WorkflowEditor editor = null;
         public WorkflowEditorAction() {
             super("Edit Workflows");
             putValue(MNEMONIC_KEY, new Integer('E'));
         }
         public void actionPerformed(ActionEvent e) {
-            if (editor != null)
-                editor.show();
-            else
-                editor = new WorkflowEditor(teamProject);
+            showWorkflowEditor();
         }
     }
 
@@ -258,18 +286,15 @@ public class WBSEditor implements WindowListener {
 
 
 
+
+
     private class ShowTeamMemberListEditorMenuItem extends AbstractAction {
-        private TeamMemberListEditor editor = null;
         public ShowTeamMemberListEditorMenuItem() {
             super("Edit Team Member List");
             putValue(MNEMONIC_KEY, new Integer('E'));
         }
         public void actionPerformed(ActionEvent e) {
-            if (editor != null)
-                editor.show();
-            else
-                editor = new TeamMemberListEditor
-                    (teamProject.getTeamMemberList());
+            showTeamListEditor();
         }
     }
 
@@ -285,6 +310,13 @@ public class WBSEditor implements WindowListener {
             teamTimePanel.setVisible(getState());
             frame.invalidate();
         }
+    }
+
+    public void itemSaved(Object item) {
+        if (item == teamListEditor)
+            teamProject.saveTeamList();
+        else if (item == workflowEditor)
+            teamProject.saveWorkflows();
     }
 
 }

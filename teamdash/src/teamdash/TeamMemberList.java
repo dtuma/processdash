@@ -82,6 +82,7 @@ public class TeamMemberList extends AbstractTableModel {
     }
 
 
+
     /** Clone a List of team members. */
     private ArrayList copyTeamMemberList(List list) {
         ArrayList result = new ArrayList();
