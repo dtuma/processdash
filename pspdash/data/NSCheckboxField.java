@@ -32,13 +32,17 @@ import netscape.javascript.JSObject;
 
 class NSCheckboxField extends NSField {
 
-    private static Object HTML_TRUE = null;
+    // The values of these literals are an unending source of iritation.
+    // Each version of Netscape seems to want different values for true
+    // and false...Netscape 4.0 wanted Double(1) and Double(0), for example.
+    // As of 4.75, it appears that getMember("checked") will return
+    // Boolean.TRUE or Boolean.FALSE.  But setMember("checked", Boolean.FALSE)
+    // causes the box to become checked again...?!?  setMember("checked", null)
+    // unchecks the box.  So after much trial and error, these are the values
+    // that must be used for it to work... :-b
+    private static Object HTML_TRUE = Boolean.TRUE;
     private static Object HTML_FALSE = null;
 
-    static {
-        HTML_TRUE = new Double(1.0);
-        HTML_FALSE = new Double(0.0);
-    }
 
     public NSCheckboxField(JSObject element, Repository data, String dataPath) {
         super(element, data, dataPath);
@@ -51,11 +55,11 @@ class NSCheckboxField extends NSField {
 
     public void paint() {
         element.setMember
-            ("value", (Boolean.TRUE.equals(variantValue) ? HTML_TRUE : HTML_FALSE));
+            ("checked", (Boolean.TRUE.equals(variantValue) ? HTML_TRUE : HTML_FALSE));
     }
 
     public void parse() {
-        variantValue = new Boolean(HTML_TRUE.equals(element.getMember("value")));
+        variantValue = new Boolean(HTML_TRUE.equals(element.getMember("checked")));
     }
 
 }
