@@ -26,13 +26,25 @@
 package pspdash;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
 
-public abstract class CachedObject implements Serializable {
+import org.w3c.dom.*;
 
-    private transient ObjectCache objectCache = null;
+public abstract class CachedObject {
+
+    /** This interface allows an object cache to defer the loading of data.
+     */
+    public interface CachedDataProvider {
+        byte[] getData(CachedObject c);
+    }
+
+    private ObjectCache objectCache = null;
+    CachedDataProvider dataProvider = null;
     private int id;
     private String type;
     protected int challenge;
@@ -40,16 +52,18 @@ public abstract class CachedObject implements Serializable {
     protected HashMap localAttrs;
     protected byte[] data = null;
 
-    protected transient String errorMessage = null;
+    protected String errorMessage = null;
 
-    // for use only by the serialization mechanism!!!
-    protected CachedObject() {}
 
+    /** Create a new cached object of the given type, with the
+     *  next available ID. */
     public CachedObject(ObjectCache c, String type) {
         this(c, type, c.getNextID());
     }
 
-    public CachedObject(ObjectCache c, String type, int id) {
+    /** Create a new cached object with the given type and id.
+     */
+    protected CachedObject(ObjectCache c, String type, int id) {
         if (c == null) throw new NullPointerException("cache cannot be null");
 
         this.objectCache = c;
@@ -58,15 +72,78 @@ public abstract class CachedObject implements Serializable {
         this.challenge = (new Random()).nextInt();
     }
 
+    /** Deserialize a cached object from an XML stream.
+     */
+    public CachedObject(ObjectCache c, int id, Element xml,
+                        CachedDataProvider dataProvider) {
+        this.objectCache = c;
+        this.dataProvider = dataProvider;
+        this.id = id;
+        type = xml.getAttribute("type");
+        challenge = XMLUtils.getXMLInt(xml, "challenge");
+        refreshDate = XMLUtils.getXMLDate(xml, "refreshDate");
+
+        // read and restore the local attributes.
+        NodeList attrs = xml.getElementsByTagName("localAttr");
+        for (int i=0;   i < attrs.getLength();   i++) {
+            Element attr = (Element) attrs.item(i);
+            setLocalAttrImpl(attr.getAttribute("name"),
+                             XMLUtils.getTextContents(attr));
+        }
+    }
+
+    /** Serialize a cached object as XML.
+     */
+    protected void getAsXML(StringBuffer buf) {
+        buf.append("<cachedObject")
+            .append(" type='").append(XMLUtils.escapeAttribute(type))
+            .append("' challenge='").append(challenge)
+            .append("' classname='")
+            .append(XMLUtils.escapeAttribute(this.getClass().getName()));
+        if (refreshDate != null)
+            buf.append("' refreshDate='")
+                .append(XMLUtils.saveDate(refreshDate));
+        buf.append("'>\n");
+        if (localAttrs != null) {
+            Iterator i = localAttrs.entrySet().iterator();
+            while (i.hasNext()) {
+                Map.Entry e = (Map.Entry) i.next();
+                if (e.getValue() instanceof String)
+                    buf.append("  <localAttr type='String' name='")
+                        .append(XMLUtils.escapeAttribute((String) e.getKey()))
+                        .append("'>")
+                        .append(XMLUtils.escapeAttribute
+                                ((String) e.getValue()))
+                        .append("</localAttr>\n");
+            }
+        }
+
+        getXMLContent(buf);
+
+        buf.append("</cachedObject>\n");
+    }
+    public void getXMLContent(StringBuffer buf) {}
+
     public ObjectCache getCache()   { return objectCache;      }
     public int getID()              { return id;               }
     public String getType()         { return type;             }
     public Date getDate()           { return refreshDate;      }
     public String getErrorMessage() { return errorMessage;     }
-    public byte[] getBytes()        { return data;             }
+
+    public byte[] getBytes()        {
+        if (data == null && dataProvider != null)
+            synchronized (this) {
+                if (dataProvider != null) {
+                    data = dataProvider.getData(this);
+                    dataProvider = null;
+                }
+            }
+        return data;
+    }
     public String getString()       { return getString(null);  }
     public String getString(String encoding) {
         try {
+            getBytes();
             if (data == null) return null;
             if (encoding == null) return new String(data);
             return new String(data, encoding);
@@ -76,10 +153,14 @@ public abstract class CachedObject implements Serializable {
         if (localAttrs == null) return null;
         return localAttrs.get(name);
     }
-    public synchronized void setLocalAttr(String name, Object val) {
+    public synchronized void setLocalAttr(String name, String val) {
+        setLocalAttrImpl(name, val);
+        store();
+    }
+    public void setLocalAttrImpl(String name, String val) {
+        if (name == null) return;
         if (localAttrs == null) localAttrs = new HashMap();
         localAttrs.put(name, val);
-        store();
     }
 
 
@@ -93,20 +174,27 @@ public abstract class CachedObject implements Serializable {
         return !olderThanAge(maxAge) || refresh();
     }
 
+    /** refresh the object if it is older than maxAge days, but try not to
+     * take longer than maxWait milliseconds to do so.
+     * @return true if the object was already recent enough, or if the
+     *    refresh was successful.
+     */
+    public boolean refresh(double maxAge, long maxWait) {
+        // simple, no-op implementation, to be intelligently
+        // overridden in subclasses.
+        return refresh(maxAge);
+    }
+
     public void store(byte[] data) {
-        this.data = data;
+        synchronized (this) {
+            this.data = data;
+            this.dataProvider = null;
+        }
         store();
     }
 
     public void store() {
         objectCache.storeCachedObject(this);
-    }
-
-    void setCache(ObjectCache o) throws IllegalStateException {
-        if (objectCache == null)
-            objectCache = o;
-        else
-            throw new IllegalStateException("cache has already been set");
     }
 
     public boolean olderThanAge(double maxAge) {
@@ -122,4 +210,54 @@ public abstract class CachedObject implements Serializable {
     }
     private static final long DAY_MILLIS =
         24L /*hours*/ * 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*millis*/;
+
+    public static CachedObject openXML(ObjectCache c, int id, Element xml,
+                                       CachedDataProvider dataProvider) {
+        try {
+            // get the classname from the XML element.
+            String classname = xml.getAttribute("classname");
+
+            // look up the appropriate constructor for that class.
+            Constructor constructor = getConstructor(classname);
+            if (constructor == null) return null;
+
+            // build up the arg list for the constructor
+            Object[] args = new Object[4];
+            args[0] = c;
+            args[1] = new Integer(id);
+            args[2] = xml;
+            args[3] = dataProvider;
+
+            // invoke the constructor and return the result.
+            return (CachedObject) constructor.newInstance(args);
+
+        } catch (Exception e) {
+            System.err.println(e);
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static final Class[] CONSTRUCTOR_PARAMS = {
+        ObjectCache.class, Integer.TYPE, Element.class,
+        CachedDataProvider.class };
+    private static HashMap constructors = new HashMap();
+
+    private static Constructor getConstructor(String classname) {
+        Constructor result = (Constructor) constructors.get(classname);
+        if (result == null && !constructors.containsKey(classname)) try {
+            // lookup the class
+            Class c = Class.forName(classname);
+            // find the appropriate constructor
+            result = c.getConstructor(CONSTRUCTOR_PARAMS);
+            // save it in the cache
+            constructors.put(classname, result);
+        } catch (Exception e) {
+            System.err.println(e);
+            e.printStackTrace();
+            constructors.put(classname, null);
+        }
+
+        return result;
+    }
 }

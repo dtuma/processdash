@@ -30,6 +30,8 @@ import java.net.*;
 import java.util.Date;
 import java.util.Map;
 
+import org.w3c.dom.*;
+
 public class CachedURLObject extends CachedObject {
 
     public static final String PASSWORD_MISSING =
@@ -52,9 +54,6 @@ public class CachedURLObject extends CachedObject {
     protected URL url;
     protected String credential;
 
-    // for use only by the serialization mechanism!!!
-    protected CachedURLObject() {}
-
     public CachedURLObject(ObjectCache c, String type, URL u) {
         this(c, type, u, null, null);
     }
@@ -71,6 +70,31 @@ public class CachedURLObject extends CachedObject {
 
         // try to fetch the data.
         refresh();
+    }
+
+    /** Deserialize a cached URL object from an XML stream. */
+    public CachedURLObject(ObjectCache c, int id, Element xml,
+                           CachedDataProvider dataProvider) {
+        super(c, id, xml, dataProvider);
+
+        Element e = (Element) xml.getElementsByTagName("url").item(0);
+        try {
+            url = new URL(e.getAttribute("href"));
+        } catch (MalformedURLException mue) {
+            throw new IllegalArgumentException("Malformed or missing URL");
+        }
+        credential = e.getAttribute("credential");
+        if (!XMLUtils.hasValue(credential)) credential = null;
+    }
+
+    /** Serialize information to XML */
+    public void getXMLContent(StringBuffer buf) {
+        buf.append("  <url href='")
+            .append(XMLUtils.escapeAttribute(url.toString()));
+        if (credential != null)
+            buf.append("' credential='")
+                .append(XMLUtils.escapeAttribute(credential));
+        buf.append("'/>\n");
     }
 
     public boolean refresh() {
@@ -105,7 +129,11 @@ public class CachedURLObject extends CachedObject {
                 errorMessage = COULD_NOT_RETRIEVE;
             else {
                 InputStream in = conn.getInputStream();
-                data = TinyWebServer.slurpContents(in, true);
+                byte [] httpData = TinyWebServer.slurpContents(in, true);
+                synchronized (this) {
+                    data = httpData;
+                    dataProvider = null;
+                }
                 errorMessage = null;
                 refreshDate = new Date();
                 String owner = conn.getHeaderField(OWNER_HEADER_FIELD);
@@ -123,6 +151,19 @@ public class CachedURLObject extends CachedObject {
         }
         return false;
     }
+
+    public boolean refresh(double maxAge, long maxWait) {
+        if (!olderThanAge(maxAge))
+            return true;
+
+        if (Ping.ping(url.getHost(), maxWait))
+            return refresh();
+
+        errorMessage = NO_SUCH_HOST;
+        return false;
+    }
+
+
 
     public String translateMessage(String errorMessage, Map m) {
         String result = (String) m.get(errorMessage);

@@ -25,6 +25,7 @@
 
 package pspdash;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 import java.util.StringTokenizer;
@@ -43,6 +44,8 @@ import java.io.IOException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 
 public class XMLUtils {
@@ -112,6 +115,39 @@ public class XMLUtils {
         }
 
         return message;
+    }
+
+
+    public static String saveDate(Date d) { return "@" + d.getTime(); }
+    private static Date parseDate(String d) throws IllegalArgumentException {
+        if (!d.startsWith("@")) throw new IllegalArgumentException();
+        return new Date(Long.parseLong(d.substring(1)));
+    }
+    public static double getXMLNum(Element e, String attrName) {
+        try {
+            return Double.parseDouble(e.getAttribute(attrName));
+        } catch (Exception exc) { return 0; }
+    }
+    public static int getXMLInt(Element e, String attrName) {
+        try {
+            return Integer.parseInt(e.getAttribute(attrName));
+        } catch (Exception exc) { return -1; }
+    }
+    public static Date getXMLDate(Element e, String attrName) {
+        String s = e.getAttribute(attrName);
+        if (s == null || s.length() == 0) return null;
+        try {
+            return parseDate(s);
+        } catch (Exception exc) { return null; }
+    }
+    public static String getTextContents(Element e) {
+        if (!e.hasChildNodes()) return null;
+
+        StringBuffer buf = new StringBuffer();
+        NodeList list = e.getChildNodes();
+        for (int i=0;  i<list.getLength(); i++)
+            buf.append(list.item(i).toString());
+        return buf.toString();
     }
 
 }

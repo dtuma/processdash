@@ -26,9 +26,10 @@
 package pspdash;
 
 import java.io.*;
+import org.w3c.dom.*;
 
-
-public class FileObjectCache implements ObjectCache {
+public class FileObjectCache implements ObjectCache,
+                                        CachedObject.CachedDataProvider {
 
     protected static final String BACKUP_PREFIX =
         RobustFileWriter.BACKUP_PREFIX;
@@ -85,30 +86,29 @@ public class FileObjectCache implements ObjectCache {
             if (!f.isFile()) return null;
 
             fis = new FileInputStream(f);
-            ObjectInputStream in = new ObjectInputStream(fis);
-            CachedObject result = (CachedObject) in.readObject();
-            result.setCache(this);
+            Document d = XMLUtils.parse(fis);
+            Element docRoot = d.getDocumentElement();
+
+            CachedObject result =
+                CachedObject.openXML(this, id, docRoot, this);
             result.refresh(maxAge);
             return result;
 
-        } catch (ClassNotFoundException cnfe) {
-            System.err.println(cnfe);
-            cnfe.printStackTrace();
-        } catch (IllegalStateException ise) {
-            System.err.println(ise);
-            ise.printStackTrace();
-        } catch (IOException ioe) {
-            System.err.println(ioe);
-            ioe.printStackTrace();
+        } catch (Exception e) {
+            System.err.println(e);
+            e.printStackTrace();
         } finally {
             if (fis != null) try { fis.close(); } catch (Exception e) {}
         }
         return null;
     }
 
+
     /** Delete an object from the cache. */
     public synchronized void deleteCachedObject(int id) {
         File f = makeFile(id);
+        f.delete();
+        f = makeDataFile(id);
         f.delete();
     }
 
@@ -125,21 +125,58 @@ public class FileObjectCache implements ObjectCache {
             backup = makeBackupFile(id);
             f.renameTo(backup);
 
+            StringBuffer xml = new StringBuffer();
+            xml.append("<?xml version='1.0' encoding='UTF-8'?>\n");
+            obj.getAsXML(xml);
+
             fos = new FileOutputStream(f);
-            ObjectOutputStream out = new ObjectOutputStream(fos);
-            out.writeObject(obj);
+            OutputStreamWriter out = new OutputStreamWriter(fos, "UTF-8");
+            out.write(xml.toString());
             out.close();
             backup.delete();
+
+            if (obj.dataProvider == null) {
+                File df = makeDataFile(id);
+                df.delete();
+
+                byte[] data = obj.getBytes();
+                if (data != null) {
+                    fos = new FileOutputStream(df);
+                    fos.write(data);
+                    fos.close();
+                }
+            }
 
         } catch (IOException ioe) {
             if (fos != null) try { fos.close(); } catch (Exception e) {}
 
-            f.delete();
-            backup.renameTo(f);
+            if (backup.isFile()) {
+                f.delete();
+                backup.renameTo(f);
+            }
 
             System.err.println(ioe);
             ioe.printStackTrace();
         }
+    }
+
+
+    /** Implementation of the CachedObject.CachedDataProvider interface.
+     */
+    public byte[] getData(CachedObject c) {
+        FileInputStream fis = null;
+        byte[] results = null;
+        try {
+            File df = makeDataFile(c.getID());
+            if (!df.isFile()) return null;
+
+            fis = new FileInputStream(df);
+            results = TinyWebServer.slurpContents(fis, false);
+        } catch (IOException ioe) {
+        } finally {
+            if (fis != null) try { fis.close(); } catch (Exception e) {}
+        }
+        return results;
     }
 
 
@@ -203,6 +240,9 @@ public class FileObjectCache implements ObjectCache {
     protected File makeFile(int id) {
         return new File(directory, id + extension);
     }
+    protected File makeDataFile(int id) {
+        return new File(directory, id + "d" + extension);
+    }
     protected File makeBackupFile(int id) {
         return new File(directory, BACKUP_PREFIX + id + extension);
     }
@@ -212,6 +252,7 @@ public class FileObjectCache implements ObjectCache {
         public boolean accept(File dir, String name) {
             return
                 name.endsWith(extension) &&
+                !name.endsWith("d" + extension) &&
                 !name.startsWith(RobustFileWriter.BACKUP_PREFIX);
         }
     }
