@@ -63,13 +63,15 @@ public class WorkflowWBSModel extends WBSModel {
     public List getNodesForWorkflows(Collection selectedWorkflowNames) {
         LinkedList result = new LinkedList();
 
-        int numRows = getRowCount();
-        for (int r = 1;   r < numRows;   r++) {
-            WBSNode node = getNodeForRow(r);
-            if (node.getIndentLevel() == 1
-                    && selectedWorkflowNames.contains(node.getName())) {
-                result.add(node);
-                result.addAll(Arrays.asList(getDescendants(node)));
+        if (selectedWorkflowNames != null && !selectedWorkflowNames.isEmpty()) {
+            int numRows = getRowCount();
+            for (int r = 1;   r < numRows;   r++) {
+                WBSNode node = getNodeForRow(r);
+                if (node.getIndentLevel() == 1
+                        && selectedWorkflowNames.contains(node.getName())) {
+                    result.add(node);
+                    result.addAll(Arrays.asList(getDescendants(node)));
+                }
             }
         }
 

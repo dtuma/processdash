@@ -7,6 +7,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.beans.EventHandler;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorSupport;
@@ -34,6 +36,8 @@ import javax.swing.filechooser.FileFilter;
 public class WorkflowLibraryEditor {
 
 
+    private static final String DISCARD_IMPORT_MESSAGE = "Discard changes imported to the workflows in this team project?";
+    private static final String DISCARD_EXPORT_MESSAGE = "Discard changes exported to the workflow library?";
     /** The team project that these workflows belong to. */
     TeamProject teamProject;
 
@@ -144,9 +148,7 @@ public class WorkflowLibraryEditor {
         addButton.setText("Add");
         addButton.setMnemonic('A');
         addButton.setEnabled(false);
-        addButton.addActionListener
-            ((ActionListener) EventHandler.create
-                (ActionListener.class, this, "addWorkflowAction"));
+        addButton.addActionListener(createActionListener("addWorkflowAction"));
         initConstraints(c, 2, 1, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.SOUTH);
         c.insets = insets10;
         layout.setConstraints(addButton, c);
@@ -156,9 +158,7 @@ public class WorkflowLibraryEditor {
         addAllButton.setMnemonic('L');
         addAllButton.setIcon(export ? IconFactory.getRightArrowIcon() : IconFactory.getLeftArrowIcon());
         addAllButton.setHorizontalTextPosition(export ? SwingConstants.LEFT : SwingConstants.RIGHT);
-        addAllButton.addActionListener
-            ((ActionListener) EventHandler.create
-                (ActionListener.class, this, "addAllWorkflowsAction"));
+        addAllButton.addActionListener(createActionListener("addAllWorkflowsAction"));
         initConstraints(c, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.NORTH);
         c.insets = insets10;
         layout.setConstraints(addAllButton, c);
@@ -166,6 +166,8 @@ public class WorkflowLibraryEditor {
 
         openLibraryButton = new JButton(IconFactory.getOpenIcon());
         openLibraryButton.setToolTipText("Open Other Workflow Library...");
+        openLibraryButton.addActionListener
+            (createActionListener("openLibraryAction"));
         initConstraints(c, 4, 0, 1, 1, GridBagConstraints.NONE, 0, 0, GridBagConstraints.EAST);
         c.insets = insets0;
         layout.setConstraints(openLibraryButton, c);
@@ -185,10 +187,12 @@ public class WorkflowLibraryEditor {
         buttonPanel.add(Box.createHorizontalGlue());
 
         cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(createActionListener("cancelAction"));
         buttonPanel.add(cancelButton);
         buttonPanel.add(Box.createHorizontalStrut(10));
 
-        okButton = new JButton("OK");
+        okButton = new JButton(export ? "Export" : "Import");
+        okButton.addActionListener(createActionListener("okAction"));
         buttonPanel.add(okButton);
 
         initConstraints(c, 0, 3, 5, 1, GridBagConstraints.BOTH, 0, 0, GridBagConstraints.NORTH);
@@ -197,7 +201,13 @@ public class WorkflowLibraryEditor {
         panel.add(buttonPanel);
 
         dialog.setContentPane(panel);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                cancelAction();
+            }});
     }
+
     private static Color SEPIA = new Color(159, 141, 114);
     private static Color LIGHT_SEPIA = new Color(232, 224, 205);
 
@@ -210,6 +220,11 @@ public class WorkflowLibraryEditor {
         c.weightx = weightx;
         c.weighty = weighty;
         c.anchor = anchor;
+    }
+
+    private ActionListener createActionListener(String methodName) {
+        return (ActionListener) EventHandler.create
+            (ActionListener.class, this, methodName);
     }
 
     private WorkflowWBSModel getSourceWBSModel() {
@@ -237,6 +252,51 @@ public class WorkflowLibraryEditor {
             selectedWorkflowNames.setValue(selectedWorkflows);
             dirtyFlag = true;
         }
+    }
+
+    public void cancelAction() {
+        if (dirtyFlag == false || confirmCancel())
+            dialog.dispose();
+    }
+
+    private boolean confirmCancel() {
+        String message =
+            (export ? DISCARD_EXPORT_MESSAGE : DISCARD_IMPORT_MESSAGE);
+        int response = JOptionPane.showConfirmDialog
+            (dialog, message, "Discard Changes?", JOptionPane.YES_NO_OPTION);
+        return (response == JOptionPane.YES_OPTION);
+    }
+
+
+    public void okAction() {
+        if (export ? doExport() : doImport())
+            dialog.dispose();
+    }
+
+    public boolean doExport() {
+        try {
+            libraryFile.save();
+            return true;
+        } catch (IOException e) {
+            String message = "An unexpected error prevented the saving of" +
+                    " your changes to the workflow library.";
+            JOptionPane.showMessageDialog
+                (dialog, message, "Unexpected Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
+
+    public boolean doImport() {
+        teamProject.getWorkflows().copyFrom(workflows);
+        return true;
+    }
+
+    public void openLibraryAction() {
+        if (export && dirtyFlag && !confirmCancel())
+            return;
+        // FIXME
+        JOptionPane.showMessageDialog(dialog, "Not yet implemented");
     }
 
 

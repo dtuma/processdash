@@ -82,6 +82,8 @@ import org.w3c.dom.NodeList;
  */
 public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
+    public static final String WBS_MODEL_TAG = "wbsModel";
+
     /** The flat list of nodes in this work breakdown structure */
     private ArrayList wbsNodes;
 
@@ -652,10 +654,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public void getAsXML(Writer out) throws IOException {
-        out.write("<wbsModel>\n");
+        out.write("<" + WBS_MODEL_TAG + ">\n");
         for (int i = 0;   i < wbsNodes.size();   i++)
             ((WBSNode) wbsNodes.get(i)).getAsXML(out);
-        out.write("</wbsModel>\n");
+        out.write("</" + WBS_MODEL_TAG + ">\n");
     }
 
     /** This class takes a snapshot of the state of this wbs model, which

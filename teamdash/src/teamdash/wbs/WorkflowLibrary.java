@@ -74,7 +74,9 @@ public class WorkflowLibrary {
             if (WORKFLOW_LIBRARY_TAG.equals(xml.getTagName())) {
                 processName = xml.getAttribute(PROCESS_NAME_ATTR);
                 processVersion = xml.getAttribute(PROCESS_VERSION_ATTR);
-                workflows = new WorkflowWBSModel((Element) xml.getFirstChild());
+                Element wbsElement = (Element) xml.getElementsByTagName
+                    (WBSModel.WBS_MODEL_TAG).item(0);
+                workflows = new WorkflowWBSModel(wbsElement);
             }
         } catch (IOException ioe) {
             throw ioe;
@@ -89,7 +91,7 @@ public class WorkflowLibrary {
         try {
             RobustFileWriter out = new RobustFileWriter(file, "UTF-8");
             out.write("<" + WORKFLOW_LIBRARY_TAG + " ");
-            out.write(PROCESS_NAME_ATTR + "='" + XMLUtils.escapeAttribute(processName) + " ");
+            out.write(PROCESS_NAME_ATTR + "='" + XMLUtils.escapeAttribute(processName) + "' ");
             out.write(PROCESS_VERSION_ATTR + "='" + XMLUtils.escapeAttribute(processVersion) + "'>\n");
             workflows.getAsXML(out);
             out.write("</" + WORKFLOW_LIBRARY_TAG + ">");
