@@ -488,27 +488,6 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return DOCUMENT_TYPES.contains(type);
     }
 
-
-    public void addWBSNodeListener(WBSNodeListener l) {
-        listenerList.add(WBSNodeListener.class, l);
-    }
-
-    public void removeWBSNodeListener(WBSNodeListener l) {
-        listenerList.remove(WBSNodeListener.class, l);
-    }
-
-    public void fireNodeChanged(WBSNodeEvent e) {
-        // Guaranteed to return a non-null array
-        Object[] listeners = listenerList.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        for (int i = listeners.length-2; i>=0; i-=2) {
-            if (listeners[i]==WBSNodeListener.class) {
-                ((WBSNodeListener)listeners[i+1]).nodeChanged(e);
-            }
-        }
-    }
-
     protected void loadXML(Element e) {
         NodeList wbsElements = e.getChildNodes();
         int len = wbsElements.getLength();
