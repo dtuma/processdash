@@ -115,9 +115,6 @@ DATA_FILES=$(COMMON_FILES) \
 	DivisionFunction.java \
 	EqualsFunction.java \
 	FrozenData.java \
-	FrozenDate.java \
-	FrozenDouble.java \
-	FrozenString.java \
 	FrozenUtil.java \
 	GreaterThanFunction.java \
 	GreaterThanOrEqualsFunction.java \
