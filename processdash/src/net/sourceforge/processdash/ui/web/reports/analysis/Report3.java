@@ -91,12 +91,12 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
         out.println("<TABLE NAME=D21 BORDER>");
         out.println("<TR>");
-        printRes("<TD class=header colspan=4>${R3.Defect_Densities}</TD>");
+        printRes("<TD class=header colspan=4>${R3.D21.Defect_Densities}</TD>");
 
         if (failurePhases.size() > 0) {
             int colSpan = failurePhases.size() * 2;
             out.print("<TD class=header colspan=" + colSpan + ">");
-            out.print(resources.getHTML("R3.Phase_Defects"));
+            out.print(resources.getHTML("R3.D21.Phase_Defects"));
             out.println("</TD>");
         }
         out.println("</TR>");
