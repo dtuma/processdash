@@ -591,4 +591,33 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         orderedDump (out, PropertyKey.ROOT, filt);
     }
 
+    /** compare two strings for ordering within the tree.
+     * @param p1, p2 the names of two DATA ELEMENTS.
+     * most data element names will begin with some hierarchy path.
+     * This determines the initial hierarchy path of each data element, then
+     * returns
+     *    -1 if p1 is associated with an earlier node in the hierarchy than p2.
+     *    +1 if p2 is associated with an earlier node in the hierarchy than p1.
+     *     0 if both data elements are associated with the same hierarchy node.
+     */
+    public int comparePaths(String p1, String p2) {
+        if (p1.equals(p2)) return 0;
+        return comparePaths(p1, p2, PropertyKey.ROOT);
+    }
+    private int comparePaths(String p1, String p2, PropertyKey key) {
+        String path = key.path() + "/";
+        boolean match1, match2;
+        match1 = p1.startsWith(path);
+        match2 = p2.startsWith(path);
+        if (!match1 && !match2) return  0;
+        if ( match1 && !match2) return -1;
+        if (!match1 &&  match2) return  1;
+
+        int result;
+        for (int i = 0; i < getNumChildren (key); i++)
+            if ((result = comparePaths (p1, p2, getChildKey (key, i))) != 0)
+                return result;
+        return 0;
+    }
+
 }
