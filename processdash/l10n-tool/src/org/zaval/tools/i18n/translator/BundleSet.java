@@ -53,12 +53,12 @@ implements TranslatorConstants
     static final String BROKEN_FORMAT_SUFFIX = "!broken";
     public static final String FORMAT_SUFFIX = "_FMT";
     
-    private Vector items;
+    private TreeMap items;
     private Vector lng;
     
     BundleSet()
     {
-        items = new Vector();
+        items = new TreeMap(String.CASE_INSENSITIVE_ORDER);
         lng = new Vector();
     }
 
@@ -113,60 +113,36 @@ implements TranslatorConstants
     int getItemCount()
     {
         return items.size();
-    }
-
-    BundleItem getItem(int idx)
-    {
-        return (BundleItem)items.elementAt(idx);
-    }
+    }    
 
     BundleItem getItem(String key)
     {
-        int j = getItemIndex(key);
-        if(j<0) return null;
-        return getItem(j);
+    	return (BundleItem) items.get(key);
+    }
+    
+    Iterator iterator() {
+    	return items.values().iterator();
     }
 
-    int getItemIndex(String key)
+    void addKey(String key) 
     {
-        int j, k = getItemCount();
-        for(j=0;j<k;++j){
-            BundleItem bi = getItem(j);
-            if(bi.getId().equals(key)) return j;
-        }
-        return -1;
-    }
-
-    void addKey(String key)
-    {
-        int j, k = getItemCount(), q;
-        for(j=0;j<k;++j){
-            BundleItem bi = getItem(j);
-            q = bi.getId().compareTo(key);
-            if(q==0) return;
-            else if(q>0){
-                items.insertElementAt(new BundleItem(key), j);
-                return;
-            }
-        }
-        items.addElement(new BundleItem(key));
+    	if (!items.containsKey(key))
+    		items.put(key, new BundleItem(key));
     }
 
     void removeKey(String key)
     {
-        int j = getItemIndex(key);
-        if(j>=0) items.removeElementAt(j);
+    	items.remove(key);
     }
 
     void removeKeysBeginningWith(String key)
     {
-        for(int j=0;j<getItemCount();++j){
-            BundleItem bi = getItem(j);
-            if(bi.getId().startsWith(key)){
-                removeKey(bi.getId());
-                --j;
-            }
-        }
+    	Iterator i = items.keySet().iterator();
+    	while (i.hasNext()) {
+			String itemKey = (String) i.next();
+			if (itemKey.startsWith(key))
+				i.remove();
+		}
     }
 
     void updateValue(String key, String lang, String value)
@@ -222,8 +198,9 @@ implements TranslatorConstants
         lines.addElement("#");
         lines.addElement("");
  
-        for(int j=0;j<getItemCount();++j){
-           BundleItem bi = getItem(j);
+ 		Iterator i = items.values().iterator();
+ 		while (i.hasNext()) {
+		   BundleItem bi = (BundleItem) i.next();
            if(bi.getComment()!=null) lines.addElement("#" + bi.getComment());
            if(bi.getTranslation(lng)==null) continue;
            lines.addElement(makeLine(bi.getId(), bi.getTranslation(lng)));
@@ -251,8 +228,9 @@ implements TranslatorConstants
     }
     public Properties getProperties(String lng, BundleSet defaultTranslations) {
         Properties p = new PropertiesFile();
-        for(int j=0;j<getItemCount();++j){
-           BundleItem bi = getItem(j);
+        Iterator i = items.values().iterator();
+        while (i.hasNext()) {
+		   BundleItem bi = (BundleItem) i.next();
            String value = bi.getTranslation(lng); 
            if (value!=null && value.trim().length() != 0 &&
                !isDefaultValue(bi, defaultTranslations, lng)) {
@@ -308,4 +286,16 @@ implements TranslatorConstants
             }
         return key;
     }
+    
+    
+//    private static class ItemComparator implements Comparator {
+//
+//		private Comparator c = String.CASE_INSENSITIVE_ORDER;
+//
+//		public int compare(Object arg0, Object arg1) {
+//			BundleItem bi0 = (BundleItem) arg0;
+//			BundleItem bi1 = (BundleItem) arg1;
+//			return c.compare(bi0.getId(), bi1.getId());
+//		}
+//    }
 }

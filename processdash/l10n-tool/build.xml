@@ -21,7 +21,7 @@
         <!-- attribute name="Class-Path" value="."/ -->
       </manifest>
 
-      <fileset dir="${bin}"/>
+      <fileset dir="${bin}" excludes="*.properties"/>
       <zipfileset dir="images" prefix="org/zaval/images"/>
       <zipfileset dir="${src}" includes="*.properties"
           prefix="org/zaval/tools/i18n/translator"/>

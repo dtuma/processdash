@@ -44,8 +44,6 @@ package org.zaval.awt;
 import org.zaval.awt.peer.*;
 
 import java.awt.*;
-import java.awt.image.*;
-import java.util.*;
 
 public class SymTree
 extends Panel
@@ -78,6 +76,7 @@ implements ScrollArea, ScrollObject
     private Dimension  scrollInsets = new Dimension (10,0);
     private LevelTree  ltree=null;
     private ScrollLayout sl = new ScrollLayout();
+    private boolean validating = true;
 
     private static final int DELETE = 127;
     private static final int INSERT = 1025;
@@ -644,10 +643,18 @@ implements ScrollArea, ScrollObject
 
     private void validate2()
     {
-      resetVector();
-      if (checkScrolls()) invalidate();
-      validate();
-      repaint();
+      if (validating) {
+	      resetVector();
+	      if (checkScrolls()) invalidate();
+	      validate();
+	      repaint();
+      }
+    }
+    public void setValidating(boolean v) {
+    	if (validating != v) {
+    		validating = v;
+    		if (v) validate2();
+    	}
     }
 
     private int getIndex(TreeNode node)  {
@@ -1039,8 +1046,13 @@ implements ScrollArea, ScrollObject
        return false;
     }
 
-    public void expandAll() {
-      ltree.expandAll();
+    public void expandAll(String path) {
+      ltree.expandAll(path);
+      validate2();
+    }
+    public void collapseAll(String path) {
+      ltree.collapseAll(path);
+	  validate2();
     }
 
  // ========================================================================

@@ -43,20 +43,25 @@ package org.zaval.awt;
 
 import java.awt.*;
 import java.net.URL;
+import java.util.HashMap;
 
 public class ToolkitResolver
 implements ImageResolver
 {
    private Toolkit kit;
+   private HashMap cache;
 
    public ToolkitResolver()
    {
       kit=Toolkit.getDefaultToolkit();
+      cache=new HashMap();
    }
 
    public Image getImage(String str, Component listener)
    {
-      Image i = null;
+      Image i = (Image) cache.get(str);
+      if (i != null) return i;
+      
       MediaTracker track = new MediaTracker(listener);
       try{
          URL u = ToolkitResolver.class.getResource("/org/zaval/images/"+str);
@@ -69,15 +74,22 @@ implements ImageResolver
       catch(Exception e){
          i = null;
       }
+      cache.put(str, i);
       return i;
    }
 
    public Image getImage(String str)
    {
+   	   Image i = (Image) cache.get(str);
+	   if (i != null) return i;
+	   
        try{
           URL u = ToolkitResolver.class.getResource("/org/zaval/images/"+str);
-          if (u != null)
-              return kit.getImage(u);
+          if (u != null) {
+              i = kit.getImage(u);
+              cache.put(str, i);
+              return i;
+          }
        } catch (Exception e) {}
        return null;
    }

@@ -40,6 +40,7 @@ package org.zaval.tools.i18n.translator;
 
 import java.io.*;
 import java.util.*;
+
 import org.zaval.util.SafeResourceBundle;
 
 public class Split
@@ -65,9 +66,8 @@ public class Split
     {
        if(part){
            BundleSet set = bundle2.getBundle();
-           int items = set.getItemCount();
-           for(int i=0;i<items;++i){
-              BundleItem bi = set.getItem(i);
+           for (Iterator iter = set.iterator(); iter.hasNext();) {
+			  BundleItem bi = (BundleItem) iter.next();
               bundle.getBundle().addKey(bi.getId());
               Enumeration en= bi.getLanguages();
               while(en.hasMoreElements()){    
@@ -175,11 +175,10 @@ public class Split
           try{
              DataOutputStream out = new DataOutputStream(new FileOutputStream(filename));
              BundleSet set = bundle.getBundle();
-             int items = set.getItemCount();
              out.writeChar((char)0xFEFF);
              out.writeChars("<xml>\n");
-             for(int i=0;i<items;++i){
-                BundleItem bi = set.getItem(i);
+             for (Iterator iter = set.iterator(); iter.hasNext();) {
+				BundleItem bi = (BundleItem) iter.next();
                 Enumeration en= bi.getLanguages();
                 out.writeChars("\t<key name=\"" + bi.getId() + "\">\n");
                 while(en.hasMoreElements()){    
@@ -204,11 +203,10 @@ public class Split
           try{
              DataOutputStream out = new DataOutputStream(new FileOutputStream(filename));
              BundleSet set = bundle.getBundle();
-             int items = set.getItemCount();
              out.writeChar((char)0xFEFF);
              out.writeChars("#JRCE 1.3: do not modify this line\r\n\r\n");
-             for(int i=0;i<items;++i){
-                BundleItem bi = set.getItem(i);
+ 			 for (Iterator iter = set.iterator(); iter.hasNext();) {
+			   BundleItem bi = (BundleItem) iter.next();
                 Enumeration en= bi.getLanguages();
                 out.writeChars("KEY=\"" + bi.getId() + "\":\r\n");
                 while(en.hasMoreElements()){    

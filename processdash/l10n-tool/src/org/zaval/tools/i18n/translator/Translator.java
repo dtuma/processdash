@@ -418,8 +418,8 @@ implements TranslatorConstants
 
        if ( e.target == expandNodeMenu ) expand(tree.getSelectedNode());
        if ( e.target == collapseNodeMenu ) collapse(tree.getSelectedNode());
-       if ( e.target == expandTreeMenu ) expand(tree.getRootNode());
-       if ( e.target == collapseTreeMenu ) collapse(tree.getRootNode());
+       if ( e.target == expandTreeMenu ) tree.expandAll(null);
+       if ( e.target == collapseTreeMenu ) tree.collapseAll(null);
 
        if ( e.target == editCopyMenu){
           Component ccur = getFocusOwner();
@@ -964,9 +964,8 @@ implements TranslatorConstants
     {
        if(part){
            BundleSet set = bundle2.getBundle();
-           int items = set.getItemCount();
-           for(int i=0;i<items;++i){
-              BundleItem bi = set.getItem(i);
+           for (Iterator iter = set.iterator(); iter.hasNext();) {
+			BundleItem bi = (BundleItem) iter.next();
               bundle.getBundle().addKey(bi.getId());
               Enumeration en= bi.getLanguages();
               while(en.hasMoreElements()){
@@ -1312,8 +1311,9 @@ implements TranslatorConstants
         }
 
         /* Add all keys in tree view ... */
-        for (int i = 0; i < bundle.getBundle().getItemCount(); ++i ){
-           BundleItem bi = bundle.getBundle().getItem(i);
+        tree.setValidating(false);
+        for (Iterator iter = bundle.getBundle().iterator(); iter.hasNext();) {
+		   BundleItem bi = (BundleItem) iter.next();
            addToTree(bi.getId());
         }
         /* ... and make all keys closed by default */
@@ -1322,11 +1322,13 @@ implements TranslatorConstants
 
         /* ... find first key, open it and select */
         if(bundle.getBundle().getItemCount() > 0){
-           String id = bundle.getBundle().getItem(0).getId();
+		   BundleItem bi = (BundleItem) bundle.getBundle().iterator().next();
+           String id = bi.getId();
            tree.selectNodeAndOpen(id);
            wasSelectedKey = null;
            setTranslations();
         }
+        tree.setValidating(true);
 
         tree.requestFocus();
 
@@ -1347,22 +1349,14 @@ implements TranslatorConstants
     private void expand(TreeNode tn)
     {
        if(tn!=null){
-           TreeNode [] children = tree.enumChild(tn);
-           if(children != null)
-             for(int i = 0; i < children.length; i++)
-               expand(children[i]);
-           tree.openNode(tn.getText());
+           tree.expandAll(tn.getText());
        }
     }
 
     private void collapse(TreeNode tn)
     {
        if(tn!=null){
-           TreeNode [] children = tree.enumChild(tn);
-           if(children != null)
-             for(int i = 0; i < children.length; i++)
-               collapse(children[i]);
-           tree.closeNode(tn.getText());
+	 	  tree.collapseAll(tn.getText());
        }
     }
 
@@ -1535,11 +1529,10 @@ implements TranslatorConstants
              filename = openFileDialog1.getDirectory() + filename;
              DataOutputStream out = new DataOutputStream(new FileOutputStream(filename));
              BundleSet set = bundle.getBundle();
-             int items = set.getItemCount();
              out.writeChar((char)0xFEFF);
              out.writeChars("<xml>\n");
-             for(int i=0;i<items;++i){
-                BundleItem bi = set.getItem(i);
+             for (Iterator iter = set.iterator(); iter.hasNext();) {
+				BundleItem bi = (BundleItem) iter.next();
                 Enumeration en= bi.getLanguages();
                 out.writeChars("\t<key name=\"" + bi.getId() + "\">\n");
                 while(en.hasMoreElements()){
@@ -1579,11 +1572,10 @@ implements TranslatorConstants
              filename = openFileDialog1.getDirectory() + filename;
              DataOutputStream out = new DataOutputStream(new FileOutputStream(filename));
              BundleSet set = bundle.getBundle();
-             int items = set.getItemCount();
              out.writeChar((char)0xFEFF);
              out.writeChars("#JRCE 1.3: do not modify this line\r\n\r\n");
-             for(int i=0;i<items;++i){
-                BundleItem bi = set.getItem(i);
+			 for (Iterator iter = set.iterator(); iter.hasNext();) {
+			    BundleItem bi = (BundleItem) iter.next();
                 Enumeration en= bi.getLanguages();
                 out.writeChars("KEY=\"" + bi.getId() + "\":\r\n");
                 while(en.hasMoreElements()){

@@ -147,7 +147,7 @@ public class LevelTree
                 // invalid position
                 return;
         }
-        setResolver(rootNode,imgres);
+		rootNode.setResolver(imgres);
     }
 
     public TreeNode getRootNode() {
@@ -370,7 +370,7 @@ public class LevelTree
         {
             addSibling(newNode, rootNode);
         }
-        setResolver(newNode,imgres);
+		newNode.setResolver(imgres);
     }
 
     void addChild(TreeNode newNode, TreeNode relativeNode)
@@ -392,7 +392,7 @@ public class LevelTree
         }
 
         ++relativeNode.numberOfChildren;
-        setResolver(newNode,imgres);
+		newNode.setResolver(imgres);
     }
 
     protected void addBefore (
@@ -414,7 +414,7 @@ public class LevelTree
             if(whereNode.sibling!=null) newNode.sibling = whereNode.sibling;
             whereNode.sibling = newNode;
         }
-        setResolver(newNode,imgres);
+        newNode.setResolver(imgres);
         ++rel.numberOfChildren;
         newNode.parent = rel;
         newNode.setDepth(rel.getDepth()+1);
@@ -444,7 +444,7 @@ public class LevelTree
         newNode.setDepth(tempNode.getDepth());
         e.addElement(newNode);
         count++;
-        setResolver(newNode,imgres);
+		newNode.setResolver(imgres);
     }
 
     public TreeNode remove(String s)
@@ -820,14 +820,36 @@ public class LevelTree
 
     public void expandAll()
     {
+    	expandAll(null);	
+    }
+	public void expandAll(String path)
+    {
       recount();
       if (e == null) return;
       for (int i=0; i<e.size(); i++)
       {
         TreeNode tn = (TreeNode)e.elementAt(i);
-        tn.expand();
+		if (path == null || tn.text.startsWith(path))
+	        tn.expand();
       }
+	  resetVector();
     }
+
+	public void collapseAll() {
+		collapseAll(null);
+	}
+	public void collapseAll(String path)
+	{
+	  recount();
+	  if (e == null) return;
+	  for (int i=0; i<e.size(); i++)
+	  {
+		TreeNode tn = (TreeNode)e.elementAt(i);
+		if (path == null || tn.text.startsWith(path))
+			tn.collapse();
+	  }
+	  resetVector();
+	}
 
  // ========================================================================
 

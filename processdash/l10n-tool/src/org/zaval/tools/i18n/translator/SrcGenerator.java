@@ -62,27 +62,26 @@ class SrcGenerator
     {
         out.println("import java.util.*;\n\npublic class " +
             baseName(filename) + "\n{");
-        int j, k = set.getItemCount();
-        for(j=0;j<k;++j){
-            BundleItem bi =set.getItem(j);
+        for (Iterator iter = set.iterator(); iter.hasNext();) {
+			BundleItem bi = (BundleItem) iter.next();
             out.println("\tprivate String " + makeVarName(bi) + ";");
         }
         out.println();
-        for(j=0;j<k;++j){
-            BundleItem bi = set.getItem(j);
+		for (Iterator iter = set.iterator(); iter.hasNext();) {
+			BundleItem bi = (BundleItem) iter.next();
             out.println("\tpublic final String get" + makeFunName(bi) +
                 "()\t{ return " + makeVarName(bi) + ";}");
         }
         out.println();
-        for(j=0;j<k;++j){
-            BundleItem bi = set.getItem(j);
+		for (Iterator iter = set.iterator(); iter.hasNext();) {
+			BundleItem bi = (BundleItem) iter.next();
             out.println("\tpublic final void set" + makeFunName(bi) +
                 "(String what)\t{ this." + makeVarName(bi) + " = what;}");
         }
         out.println();
-        out.println("\tpublic void loadFromResource(ResourceBundle rs)\n\t{");
-        for(j=0;j<k;++j){
-            BundleItem bi =set.getItem(j);
+        out.println("\tpublic void loadFromResource(ResourceBundle rs)\n\t{");        
+		for (Iterator iter = set.iterator(); iter.hasNext();) {
+			BundleItem bi = (BundleItem) iter.next();
             out.println(
                 "\t\ttry{ set" + makeFunName(bi) + "(rs.getString(\"" + bi.getId() +
                 "\")); } catch(Exception error){ reportNoRc(\"" + bi.getId() +
