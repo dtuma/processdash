@@ -28,6 +28,8 @@ package net.sourceforge.processdash.ui.web.reports.analysis;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.data.ListData;
@@ -138,6 +140,14 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
             return ((StringData) val).asList();
         else
             return new ListData();
+    }
+
+    protected List getProcessListPlain(String name) {
+        ListData list = getProcessList(name);
+        List result = new LinkedList();
+        for (int i = 0;  i < list.size();   i++)
+            result.add(list.get(i));
+        return result;
     }
 
     protected String getProcessString(String stringName) {

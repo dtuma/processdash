@@ -32,9 +32,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Translator;
@@ -101,10 +99,10 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
     private void initValues() {
-        failurePhases = getList("Failure_Phase_List");
+        failurePhases = getProcessListPlain("Failure_Phase_List");
         sizeMetric = getProcessString("SIZE_METRIC_NAME");
 
-        injectionCategories = getList("Development_Phase_List");
+        injectionCategories = getProcessListPlain("Development_Phase_List");
         injectionCategories.add(TOTAL_CATEGORY_KEY);
 
         removalCategories = new LinkedList(failurePhases);
@@ -131,7 +129,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
     private void writeTableD21() throws IOException {
-        failurePhases = getList("Failure_Phase_List");
+        failurePhases = getProcessListPlain("Failure_Phase_List");
 
         // open table
         out.println("<TABLE NAME=D21 BORDER>");
@@ -358,22 +356,6 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
     }
     private static NumberFormat nf = NumberFormat.getInstance();
     static { nf.setMaximumFractionDigits(2); }
-
-
-    private List getList(String name) {
-        ListData list = null;
-        String dataName = DataRepository.createDataName(getPrefix(), name);
-        SimpleData val = getDataRepository().getSimpleValue(dataName);
-        if (val instanceof ListData)
-            list = (ListData) val;
-        else if (val instanceof StringData)
-            list = ((StringData) val).asList();
-
-        List result = new LinkedList();
-        for (int i = 0;  i < list.size();   i++)
-            result.add(list.get(i));
-        return result;
-    }
 
 
     private String getNumber(String prefix, String name) {
