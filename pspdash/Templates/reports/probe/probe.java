@@ -92,7 +92,13 @@ public class probe extends TinyCGIBase {
         // Save the chosen method
         data.putValue(base+"/Probe Method", StringData.create(method));
         // Save the value
-        data.putValue(base, e = getNum(qual, Method.FLD_ESTIMATE, mult));
+        e = getNum(qual, Method.FLD_ESTIMATE, mult);
+        if (e == N_A) {
+            parameters.put
+                (NEXT_PAGE, "size".equals(what) ? SIZE_PAGE : TIME_PAGE);
+            return;
+        }
+        data.putValue(base, e);
         // Save beta0 and beta1
         data.putValue(base+"/Beta0", getNum(qual, Method.FLD_BETA0, mult));
         data.putValue(base+"/Beta1", getNum(qual, Method.FLD_BETA1, mult));
@@ -225,6 +231,42 @@ public class probe extends TinyCGIBase {
     }
 
     protected void printEstObjLOC(String prefix, double estObjLOC) {
+
+        boolean planComplete = (getValue("Planning/Completed") != null);
+        boolean projectComplete = (getValue("Completed") != null);
+
+        if (planComplete || projectComplete) {
+            out.print("<h2>Step 1: Verify PROBE Readiness</h2>\n" +
+                      "<p>The PROBE process should be performed as part " +
+                      "of the \"Planning\" activities for a project.  You " +
+                      "have marked ");
+            if (planComplete) out.print("the planning phase ");
+            if (planComplete && projectComplete)
+                out.print("<b><u>and</u></b> ");
+            if (projectComplete) out.print("this project ");
+            out.print("complete, which indicates to the dashboard that " +
+                      "you should no longer be performing planning " +
+                      "activities like PROBE.  If you were to use the "+
+                      "PROBE wizard at this point, some of your data "+
+                      "calculations would be incorrect.\n" +
+                      "<p>Therefore, before you can use PROBE, you must "+
+                      "first");
+            if (planComplete) {
+                out.print(" mark the planning phase incomplete (using the "+
+                          "completion checkbox)");
+                if (projectComplete)
+                    out.print
+                        (" <b><u>and</u></b> ensure that this project is "+
+                         "not marked as complete on the Project Plan "+
+                         "Summary");
+            } else
+                out.print(" mark the project incomplete (on the Project Plan "+
+                          "Summary)");
+            out.print(".");
+            printContinueButton(null, null);
+            return;
+        }
+
         out.print("<h2>Step 1: Verify Estimated Object LOC</h2>\n");
 
         if (estObjLOC > 0) {
@@ -490,10 +532,16 @@ public class probe extends TinyCGIBase {
         double histDev = data.getProdStddev();
         // handle the case where they have only one historical data
         // point, by assuming a 30% variation in productivity.
-        if (histDev == 0) histDev = histProductivity * 0.30;
+        if (histDev == 0 || badDouble(histDev))
+            histDev = histProductivity * 0.30;
         double delta = estProductivity - histProductivity;
 
-        if (Math.abs(delta) > histDev) {
+        if (badDouble(histProductivity)) {
+            out.print("<p>This translates into a planned productivity of " +
+                      formatNumber(estProductivity)+" LOC/Hr.");
+            printContinueButton(TIME_PAGE, null);
+
+        } else if (Math.abs(delta) > histDev) {
             out.print("<p>This translates into a planned productivity of " +
                       formatNumber(estProductivity)+" LOC/Hr, which is much ");
             out.print(delta > 0 ? "higher" : "lower");
