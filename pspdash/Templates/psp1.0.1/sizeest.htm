@@ -207,8 +207,8 @@
 <TR><TD>&nbsp;</TD></TR>
 <TR>
 <TD colspan=4></TD>
-<TD class=rowHdr ALIGN="center"><B>SIZE</B></TD><TD></TD>
-<TD></TD><TD></TD>
+<TD class=rowHdr ALIGN="center"><B>SIZE</B></TD><TD class=rowHdr>&nbsp;</TD>
+<TD class=rowHdr ALIGN="center"><B>TIME</B></TD><TD></TD>
 </TR>
 
 <TR>
@@ -219,15 +219,15 @@
 </TR>
 <TR>
 <TD colspan=2>Regression Parameters: <span class=dash>(use probe tool)</span></TD>
-<TD colspan=2>&nbsp;<i>B</i><sub>0</sub> (size)&nbsp;</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Beta0"></TD>
-<TD></TD><TD></TD><TD></TD>
+<TD colspan=2>&nbsp;<i>B</i><sub>0</sub> (size and time)&nbsp;</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Beta0"></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time/Beta0"></TD><TD></TD>
 </TR>
 <TR>
 <TD colspan=2>Regression Parameters: <span class=dash>(use probe tool)</span></TD>
-<TD colspan=2>&nbsp;<i>B</i><sub>1</sub> (size)&nbsp;</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Beta1"></TD>
-<TD></TD><TD></TD><TD></TD>
+<TD colspan=2>&nbsp;<i>B</i><sub>1</sub> (size and time)&nbsp;</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Beta1"></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time/Beta1"></TD><TD></TD>
 </TR>
 <TR>
 <TD colspan=2>Estimated New &amp; Changed LOC (N): <span class=dash>(use probe tool)</span></TD>
@@ -247,37 +247,44 @@
 <TD></TD><TD></TD><TD></TD>
 </TR>
 <TR>
+<TD colspan=2>Estimated Total Development Time: <span class=dash>(use probe tool)</span></TD>
+<TD colspan=2>&nbsp;Time = <i>B</i><sub>0</sub> + <i>B</i><sub>1</sub> * E&nbsp;</td>
+<TD></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD></TD>
+</TR>
+<TR>
 <TD colspan=2>Prediction Range: <span class=dash>(use probe tool)</span></TD>
 <TD colspan=2>&nbsp;Range&nbsp;</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Range"></TD>
-<TD></TD><TD></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Range"></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time/Range"></TD><TD></TD>
 </TR>
 <TR>
 <TD colspan=2>Upper Prediction Interval: <span class=dash>(use probe tool)</span></TD>
 <TD colspan=2>&nbsp;UPI = N + Range&nbsp;</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max LOC"></TD>
-<TD></TD><TD></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max LOC"></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max Time"></TD><TD></TD>
 </TR>
 <TR>
 <TD colspan=2>Lower Prediction Interval: <span class=dash>(use probe tool)</span></TD>
 <TD colspan=2>&nbsp;LPI = N - Range&nbsp;</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min LOC"></TD>
-<TD></TD><TD></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min LOC"></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min Time"></TD><TD></TD>
 </TR>
 <TR>
 <TD colspan=4>Prediction Interval Percent:</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Interval Percent	%"></TD>
-<TD></TD><TD></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Interval Percent	%"></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time/Interval Percent	%"></TD><TD></TD>
 </TR>
 <TR>
 <TD colspan=4><span class=dash>PROBE Method Selected: (use probe tool)</span></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Probe Method	s"></TD>
-<TD></TD><TD></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Probe Method	s"></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time/Probe Method	s"></TD><TD></TD>
 </TR>
 <TR>
 <TD colspan=4><span class=dash>r<sup>2</sup>: (use probe tool)</span></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/R Squared"></TD>
-<TD></TD><TD></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/R Squared"></TD><TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time/R Squared"></TD><TD></TD>
 </TR>
 </TABLE>
 </FORM>
