@@ -323,6 +323,7 @@ public class file extends TinyCGIBase {
     private boolean copyFile(File template, String templateURL, File result) {
         if (template == result) return true;
         if (templateURL == null && !template.isFile()) return true;
+        if (!nameIsSafe(result)) return false;
         try {
             InputStream in = openInput(template, templateURL);
             // Should we read some flag in the file to decide whether
@@ -343,6 +344,18 @@ public class file extends TinyCGIBase {
         else
             return new FileInputStream(template);
     }
+
+    private boolean nameIsSafe(File file) {
+        if (file == null) return false;
+        String name = file.getName().toLowerCase();
+        for (int i = FORBIDDEN_SUFFIXES.length;   i-- > 0; )
+            if (name.endsWith(FORBIDDEN_SUFFIXES[i])) return false;
+        return true;
+    }
+    private static final String[] FORBIDDEN_SUFFIXES = {
+        ".jar", ".zip", ".class", ".com", ".exe", ".bat", ".cmd",
+        ".vbs", ".vbe", ".js", ".jse", ".wsf", ".wsh", ".pl" };
+
 
 
     /** Copy a file. */
