@@ -71,7 +71,9 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
     private static final String END_TEXT =
         "</TABLE>" +
         "<P class='doNotPrint'><A HREF=\"excel.iqy\"><I>" +
-        "${Export_to_Excel}</I></A></P>" +
+        "${Export_to_Excel}</I></A></P>" ;
+
+    private static final String DISCLAIMER =
         "<P class=doNotPrint><I>${Caveat}</I></P>" +
         "</BODY></HTML>";
 
@@ -119,6 +121,10 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
             DefectAnalyzer.run(getPSPProperties(), path, this);
 
         out.println(resources.interpolate(END_TEXT, HTMLUtils.ESC_ENTITIES));
+
+        if (getParameter("EXPORT") == null)
+            out.println(resources.interpolate(DISCLAIMER,
+                                              HTMLUtils.ESC_ENTITIES));
     }
 
     private String For(String phrase) {

@@ -60,9 +60,11 @@ public class TimeLogReport extends TinyCGIBase {
         "<TD>${Interrupt}</TD>\n" +
         "<TD>${Comment}</TD></TR>\n";
 
-    private static final String DISCLAIMER =
+    private static final String EXPORT_LINK =
         "<P class=doNotPrint><A HREF=\"excel.iqy\"><I>" +
-        "${Export_to_Excel}</I></A></P>"+
+        "${Export_to_Excel}</I></A></P>";
+
+    private static final String DISCLAIMER =
         "<P class=doNotPrint><I>${Caveat}</I></P>";
 
 
@@ -109,9 +111,13 @@ public class TimeLogReport extends TinyCGIBase {
         }
         out.println("</TABLE>");
 
-        if (parameters.get("skipFooter") == null)
-            out.print(resources.interpolate(DISCLAIMER,
+        if (parameters.get("skipFooter") == null) {
+            out.print(resources.interpolate(EXPORT_LINK,
                                             HTMLUtils.ESC_ENTITIES));
+            if (getParameter("EXPORT") == null)
+                out.print(resources.interpolate(DISCLAIMER,
+                                                HTMLUtils.ESC_ENTITIES));
+        }
 
         out.println("</BODY></HTML>");
     }
