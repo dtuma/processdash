@@ -217,24 +217,11 @@ public class HTMLPreprocessor {
         if (elsedir.matches() && elsedir.begin > endif.begin)
             elsedir.begin = -1;
 
-        boolean test = false;
-        if (blockMatch("else", ifdir.directive))
-            test = true;
-        else {
-            boolean reverse = false;
-            String symbolName = cleanup(ifdir.contents);
-
-            if (symbolName.startsWith("not") &&
-                whitespacePos(symbolName) == 3) {
-                reverse = true;
-                symbolName = cleanup(symbolName.substring(4));
-            }
-
-            if (!isNull(symbolName)) test = !isNull(getString(symbolName));
-            if (reverse)             test = !test;
-        }
-
-        if (test) {             // if the was test true,
+                                // if this is an else clause
+        if (blockMatch("else", ifdir.directive) ||
+                                // or if the test expression was true,
+            ifTest(cleanup(ifdir.contents)))
+        {
             endif.replace("");  // delete the endif
             if (elsedir.matches()) // delete the entire else clause if present
                 text.replace(elsedir.begin, endif.begin, "");
@@ -254,6 +241,28 @@ public class HTMLPreprocessor {
             text.replace(ifdir.end, endif.end, "");
             ifdir.replace("");
         }
+    }
+
+    Map cachedTestExpressions = new HashMap();
+    private boolean ifTest(String expression) {
+        Boolean result = (Boolean) cachedTestExpressions.get(expression);
+        if (result == null) {
+            boolean test = false;
+            boolean reverse = false;
+            String symbolName = expression;
+
+            if (symbolName.startsWith("not") &&
+                whitespacePos(symbolName) == 3) {
+                reverse = true;
+                symbolName = cleanup(symbolName.substring(4));
+            }
+
+            if (!isNull(symbolName)) test = !isNull(getString(symbolName));
+            if (reverse)             test = !test;
+            result = test ? Boolean.TRUE : Boolean.FALSE;
+            cachedTestExpressions.put(expression, result);
+        }
+        return result.booleanValue();
     }
 
     /** search for blocks created by matching start and end directives, and
