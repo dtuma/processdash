@@ -160,6 +160,8 @@ public class DataRepository implements Repository {
             String inheritsFrom = null;
             File file = null;
             int dirtyCount = 0;
+
+            public void invalidate() { file = null; }
         }
 
 
@@ -1702,10 +1704,27 @@ public class DataRepository implements Repository {
                 //
                 getID(dataPrefix);
                 // debug("openDatafile done");
+            } catch (Error e) {
+                if (OPENDATAFILE_ERROR_DEPTH > 10) {
+                    closeDatafile(dataPrefix);
+                    throw e;
+                }
+                synchronized (OPENDATAFILE_ERROR_DEPTH_LOCK) {
+                    OPENDATAFILE_ERROR_DEPTH++;
+                }
+                // Try again to open this datafile. Most errors are transient,
+                // caused by incredibly infrequent thread-related problems.
+                datafiles.remove(dataFile);
+                openDatafile(dataPrefix, datafilePath);
+                synchronized (OPENDATAFILE_ERROR_DEPTH_LOCK) {
+                    OPENDATAFILE_ERROR_DEPTH--;
+                }
             } finally {
                 finishInconsistency();
             }
         }
+        private Object OPENDATAFILE_ERROR_DEPTH_LOCK = new Object();
+        private volatile int OPENDATAFILE_ERROR_DEPTH = 0;
 
         private static final int MAX_DIRTY = 10;
 
