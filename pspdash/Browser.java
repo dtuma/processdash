@@ -81,7 +81,8 @@ public class Browser {
         else
             ERROR_MESSAGE[1] = "could not execute '" + cmd + "'";
 
-        ERROR_MESSAGE[3] = "             " + Settings.getSettingsFileName();
+        ERROR_MESSAGE[3] = "             " +
+            InternalSettings.getSettingsFileName();
         return ERROR_MESSAGE;
     }
     private static String[] ERROR_MESSAGE = {
@@ -204,6 +205,11 @@ public class Browser {
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.6  2001/03/06 23:58:10  tuma
+ * In anticipation of creating GUIs for editing user preferences, revamped
+ * the Settings class so it automatically saves changes out to the user's
+ * settings file, complete with embedded comments.
+ *
  * Revision 1.5  2001/02/08 17:55:48  tuma
  * disable auto-copy of OLEDB*.class files into trustlib directory; we're
  * going to do this with an InstallShield script.

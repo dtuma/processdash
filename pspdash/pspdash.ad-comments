@@ -1,0 +1,73 @@
+#############################################################################
+## PSP Dashboard - Data Automation Tool for PSP-like processes
+## Copyright (C) 1999  United States Air Force
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## as published by the Free Software Foundation; either version 2
+## of the License, or (at your option) any later version.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+## 
+## The author(s) may be contacted at:
+## OO-ALC/TISHD
+## Attn: PSP Dashboard Group
+## 6137 Wardleigh Road
+## Hill AFB, UT 84056-5843
+## 
+## E-Mail POC:  ken.raisor@hill.af.mil
+
+
+#
+# This file contains documentation for each user setting.  When saving
+# user preferences, the documentation string will be written out as a
+# comment immediately preceeding the particular setting.
+#
+
+browser.command=The command to execute to run an HTML browser for script \
+	files. If left unset, the default will be Netscape on non-windows \
+	platforms (netscape must be in your path), or the system default \
+	browser on Windows.
+
+browser.readonly.color=In Internet Explorer, read-only data elements on \
+	forms will be flagged with this background color.
+
+dateFormat=A list of recognized date formats, separated by the | character. \
+	The first format in the list will be used when displaying dates. \
+	For valid format syntax, see the documentation for \
+	java.text.SimpleDateFormat in the Sun Java Developer Kit.
+
+dateTimeFormat=A list of recognized date-time formats, separated by the | \
+	character. The first format in the list will be used when \
+	displaying date-times.  For valid format syntax, see the \
+	documentation for java.text.SimpleDateFormat in the Sun Java \
+	Developer Kit.
+
+defectDialog.autostart=If this property is set to "true", the defect dialog \
+	box will come up with the timer already running.  Any other value \
+	for this property means the user must manually press the "Start \
+	Timing" button to begin the timer for fixing the defect.
+
+hiddenData=Data names to be suppressed from user-visible data lists (by \
+	default).  This property should be a series of data name \
+	specifications, separated by the vertical bar character '|'.
+
+http.allowRemote=For data privacy reasons, http connections are rejected \
+	unless they originate from localhost.  To accept http connections \
+	from remote hosts, set this property to true.
+
+probeDialog.onlyCompleted=If this property is set to "true", the probe \
+	dialog box will automatically filter the list of data points so \
+	that it only contains tasks which are marked as completed.
+
+stateFile=The default location for the user's state file.
+
+templates.directory=The location of the system-wide template files. \
+	Leave this blank to pull templates from the classpath.

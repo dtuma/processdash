@@ -25,7 +25,7 @@
 
 package pspdash.data;
 
-import pspdash.Settings;
+import pspdash.InternalSettings;
 import java.net.*;
 import java.io.*;
 import java.util.Hashtable;
@@ -82,7 +82,7 @@ public class RepositoryServer extends Thread {
                              ((StringData)d).getString().length() == 0) d = null;
                     out.writeBoolean(d != null);
                 }
-                out.writeObject(Settings.getSettings());
+                out.writeObject(InternalSettings.getSettings());
                 out.flush();
 
             } catch (IOException e) { printError(e); }

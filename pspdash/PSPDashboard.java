@@ -93,7 +93,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         addWindowListener(this);
 
         // load app defaults and user settings.
-        Settings.initialize("");
+        InternalSettings.initialize("");
 
         // create the data repository.
         data = new DataRepository();

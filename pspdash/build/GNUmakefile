@@ -36,6 +36,7 @@ NON_CLASS_FILES=continue.gif \
 		mime_types \
 		pause.gif \
 		pspdash.ad \
+		pspdash.ad-comments \
 		script.gif \
 		scriptd.gif \
 		splash.gif \

@@ -25,107 +25,18 @@
 
 package pspdash;
 
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
 public class Settings {
 
-
-    private static Properties settings = null;
-    private static String homedir = null;
-    private static String settingsFile = null;
+    protected static Properties settings = null;
+    protected static String homedir = null;
 
     public static final String sep = System.getProperty("file.separator");
 
-
-    public static void initialize(String settingsFile) {
-        if (settings != null)
-            return;
-
-        String cwd  = System.getProperty("user.dir");
-        String home = System.getProperty("user.home");
-        homedir = home;
-
-        InputStream in;
-
-        // create application defaults.  First, get a set of common defaults.
-        //
-        Properties defaults = defaultProperties();
-
-        try {
-            // now supplement the defaults by reading the system-wide settings file.
-            // This file should be in the same directory as the Settings.class file.
-            //
-            in = Settings.class.getResourceAsStream("pspdash.ad");
-
-            if (in != null) {
-                Properties systemDefaults = new Properties(defaults);
-                systemDefaults.load(in);
-                in.close();
-                defaults = systemDefaults;
-            }
-
-        } catch (Exception e) { e.printStackTrace(); }
-
-        // finally, open the user's settings file and load those properties.  The
-        // default search path for these user settings is:
-        //    * the current directory
-        //    * the user's home directory (specified by the system property
-        //          "user.home")
-        //
-        // on Windows systems, this will look for a file named "pspdash.ini".
-        // on all other platforms, it will look for a file named ".pspdash".
-        //
-        settings = new Properties(defaults);
-
-        String filename = getSettingsFilename();
-
-        try {
-            if (settingsFile != null && settingsFile.length() != 0)
-                in = new FileInputStream(settingsFile);
-            else {
-                try {
-                    homedir = cwd;
-                    in = new FileInputStream(settingsFile=(homedir + sep + filename));
-                } catch (Exception e1) {
-                    homedir = home;
-                    in = new FileInputStream(settingsFile=(homedir + sep + filename));
-                }
-            }
-
-            settings.load(in);
-            in.close();
-
-        } catch (Exception e) {
-            System.out.println("could not read user preferences file from any of");
-            System.out.println("     " + cwd + sep + filename);
-            System.out.println("     " + home + sep + filename);
-            System.out.println("...using system-wide defaults.");
-
-            // what a brain-dead default home directory.  DONT use C:\WINDOWS as
-            // the user's home dir, no matter the cost.
-            if (homedir.toUpperCase().endsWith("WINDOWS"))
-                homedir = cwd;
-            settingsFile = homedir + sep + filename;
-        }
-        Settings.settingsFile = settingsFile;
-    }
-    private static final String getSettingsFilename() {
-        if (System.getProperty("os.name").toUpperCase().startsWith("WIN"))
-            return "pspdash.ini";
-        else
-            return ".pspdash";
-    }
-    public static String getSettingsFileName() {
-        return settingsFile;
-    }
-
-
     /** Programmatically create a set of common defaults. */
-    private static Properties defaultProperties() {
+    protected static Properties defaultProperties() {
 
         Properties defaults = new Properties();
 
@@ -155,7 +66,7 @@ public class Settings {
 
     public static String getFile(String name) {
         String val = getVal(name);
-        if (val == null) return null;
+        if (val == null || homedir == null) return null;
 
         StringBuffer result = new StringBuffer();
         StringTokenizer tok = new StringTokenizer(val, "~/", true);
@@ -185,13 +96,5 @@ public class Settings {
                 return result.substring(0, result.length() - 1);
             else
                 return result;
-    }
-
-    public static void set(String name, String value) {
-        if (settings != null) settings.put(name, value);
-    }
-
-    public static Properties getSettings() {
-        return settings;
     }
 }
