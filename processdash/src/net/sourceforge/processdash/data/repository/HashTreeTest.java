@@ -2,11 +2,14 @@ package net.sourceforge.processdash.data.repository;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Set;
 
 import junit.framework.TestCase;
 
 public class HashTreeTest extends TestCase {
+
+    private static final boolean SKIP_SLOW = false;
 
     private static final Object VALUE_2 = new Double(2);
     private static final String VALUE_1 = "special value";
@@ -21,6 +24,43 @@ public class HashTreeTest extends TestCase {
 
     protected void setUp() throws Exception {
         tree = new HashTree();
+    }
+
+    private void testCanon(String input, String output) {
+        assertEquals(output, HashTree.canonicalizeKey(input));
+    }
+    public void testCanonicalize() {
+        testCanon("..", "../");
+        testCanon("../", "../");
+        testCanon("a/..", "");
+        testCanon("a/../", "");
+        testCanon("a/b/../c/../..", "");
+        testCanon("a/b/../c/../../", "");
+        testCanon("../../../foo/bar/baz", "../../../foo/bar/baz");
+        testCanon("../../../foo/bar/baz/", "../../../foo/bar/baz/");
+        Random r = new Random();
+        for (int iter = 300; iter-- > 0; ) {
+            String a = "foo/";
+            int count = r.nextInt(20);
+            while (count-- > 0) {
+                int len = r.nextInt(10);
+                String b = "";
+                while (len-- > 0)
+                    b = NAMES[r.nextInt(5)] + "/" + b + "../";
+
+                if (r.nextBoolean())
+                    a =  b + a;
+                else
+                    a = a + b;
+            }
+            testCanon(a, "foo/");
+            testCanon(a + "qwerty", "foo/qwerty");
+            testCanon("../" + a, "../foo/");
+            testCanon("../../" + a, "../../foo/");
+            testCanon(a + "..", "");
+            testCanon(a + "../", "");
+        }
+
     }
 
     public void testSingleValue() {
@@ -60,6 +100,8 @@ public class HashTreeTest extends TestCase {
     }
 
     public void testLotsOfData() {
+        if (SKIP_SLOW) return;
+
         HashSet allNames = new HashSet();
         fillHash(allNames, "", 1);
         assertFalse(allNames.isEmpty());
@@ -87,6 +129,8 @@ public class HashTreeTest extends TestCase {
     }
 
     public void testGetAllKeys() {
+        if (SKIP_SLOW) return;
+
         HashSet allNames = new HashSet();
         fillHash(allNames, "", 1);
         assertFalse(allNames.isEmpty());
@@ -101,27 +145,33 @@ public class HashTreeTest extends TestCase {
     }
 
     public void testGetKeysEndingWith() {
+        if (SKIP_SLOW) return;
+
         HashSet allNames = new HashSet();
         fillHash(allNames, "", 1);
         assertFalse(allNames.isEmpty());
 
-        String terminal = NAMES[0];
-        String slashTerminal = "/" + terminal;
-        Iterator i = tree.getKeysEndingWith(terminal);
-        while (i.hasNext()) {
-            String name = (String) i.next();
-            assertTrue(allNames.contains(name));
-            assertTrue(name.endsWith(slashTerminal));
-            allNames.remove(name);
+        for (int i = 0; i < NAMES.length; i++) {
+            String terminal = NAMES[i];
+            String slashTerminal = "/" + terminal;
+            Iterator it = tree.getKeysEndingWith(terminal);
+            while (it.hasNext()) {
+                String name = (String) it.next();
+                assertTrue(allNames.contains(name));
+                assertTrue(name.endsWith(slashTerminal));
+                allNames.remove(name);
+            }
         }
-        i = allNames.iterator();
-        while (i.hasNext()) {
-            String name = (String) i.next();
-            assertFalse(name.endsWith(slashTerminal));
-        }
+        assertTrue(allNames.isEmpty());
 
-        i = tree.getKeysEndingWith("booga booga");
-        assertFalse(i.hasNext());
+//        i = allNames.iterator();
+//        while (i.hasNext()) {
+//            String name = (String) i.next();
+//            assertFalse(name.endsWith(slashTerminal));
+//        }
+
+        Iterator it = tree.getKeysEndingWith("booga booga");
+        assertFalse(it.hasNext());
     }
 
     /** This fills the HashTree with an unbalanced tree containing over 50,000
@@ -142,11 +192,11 @@ public class HashTreeTest extends TestCase {
     private static final String[] NAMES =
         {
             "EXPORT_FILENAME",
-            "foo",
+            "f",
             "bar ",
             "baz",
             "Qux",
-            "FOO",
+            "anon///ymous",
             "@!%",
             "Design/Time",
             "% Yield",

@@ -30,6 +30,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import net.sourceforge.processdash.util.IteratorFilter;
+
+
 // 77305 MB is the mem usage to beat.
 
 /** Implements a specialized hashtable.
@@ -45,7 +48,14 @@ import java.util.NoSuchElementException;
 public class HashTree {
 
     /** The character used to split apart key strings */
-    private static final char SEPARATOR = '/';
+    private static final char SEPARATOR_CHAR = '/';
+    private static final String SEPARATOR = "/";
+
+    /** The name used to refer to the parent of a context */
+    private static final String PARENT_NAME = "..";
+    private static final String PARENT_PREFIX = PARENT_NAME + SEPARATOR;
+    private static final String PARENT_COMPONENT =
+        SEPARATOR + PARENT_NAME + SEPARATOR;
 
     /** The default capacity of a HashTree node */
     private static final int DEFAULT_CAPACITY = 4;
@@ -94,12 +104,19 @@ public class HashTree {
     }
 
 
+
+    /** Get the root of the entire HashTree */
     public HashTree getRoot() {
         return root;
     }
+
+
+
+    /** Get the immediate parent of this node in the HashTree */
     public HashTree getParent() {
         return parent;
     }
+
 
 
     /** Returns the value to which the specified key is mapped in this
@@ -114,44 +131,45 @@ public class HashTree {
         if (key == null)
             return null;
 
-        synchronized (root) {
-            // if the key starts with a slash, it is absolute, relative to the
-            // root of the HashTree
-            if (key.startsWith("/"))
-                return root.getImpl(key.substring(1));
+        // if the key starts with a slash, it is absolute, relative to the
+        // root of the HashTree
+        if (key.startsWith(SEPARATOR))
+            return root.getImpl(canonicalizeKey(key.substring(1)));
 
-            // if the key is not absolute, call getImpl to lookup the relative
-            // reference.
-            else
-                return getImpl(key);
-        }
+        // remove ".." sequences from the key
+        key = canonicalizeKey(key);
+
+        // if the key starts with "../" it is relative to the parent context
+        if (key.startsWith(PARENT_PREFIX))
+            return (parent == null ? null
+                    : parent.get(key.substring(PARENT_PREFIX.length())));
+
+        // if the key is not absolute, call getImpl to lookup the relative
+        // reference.
+        else
+            return getImpl(key);
     }
-
 
 
     /** Returns the value to which the specified key is mapped in this
      * hashtree, when key is known to be a non-null, relative reference.
      */
-    protected Object getImpl(String key) {
+    protected synchronized Object getImpl(String key) {
+        if (key.length() == 0)
+            return this;
 
-        int slashPos = key.indexOf(SEPARATOR);
+        int slashPos = key.indexOf(SEPARATOR_CHAR);
         if (slashPos == -1)
             return contents.get(key);
 
         slashPos++;
         String subKey = key.substring(0, slashPos);
-        HashTree subHash;
-        if ("../".equals(subKey) && parent != null)
-            subHash = parent;
-        else
-            subHash = (HashTree) contents.get(subKey);
+        HashTree subHash = (HashTree) contents.get(subKey);
 
-        if (slashPos == key.length())
-            return subHash;
-        else if (subHash != null)
-            return subHash.getImpl(key.substring(slashPos));
-        else
+        if (subHash == null)
             return null;
+        else
+            return subHash.getImpl(key.substring(slashPos));
     }
 
 
@@ -163,27 +181,31 @@ public class HashTree {
     public Object remove(String key) {
         if (key == null) return null;
 
-        synchronized (root) {
-            // if the key starts with a slash, it is absolute, relative to the
-            // root of the HashTree
-            if (key.startsWith("/"))
-                return root.removeImpl(key.substring(1));
+        // if the key starts with a slash, it is absolute, relative to the
+        // root of the HashTree
+        if (key.startsWith(SEPARATOR))
+            return root.removeImpl(canonicalizeKey(key.substring(1)));
 
-            // if the key is not absolute, call removeImpl to look up the
-            // relative reference.
-            else
-                return removeImpl(key);
-        }
+        key = canonicalizeKey(key);
+
+        // if the key starts with "../" it is relative to the parent context
+        if (key.startsWith(PARENT_PREFIX))
+            return (parent == null ? null
+                    : parent.remove(key.substring(PARENT_PREFIX.length())));
+
+        // if the key is not absolute, call removeImpl to remove the
+        // relative reference.
+        else
+            return removeImpl(key);
     }
-
 
 
     /** Removes the key (and its corresponding value) from this hashtree,
      * when key is known to be a non-null, relative reference.
      */
-    protected Object removeImpl(String key) {
+    protected synchronized Object removeImpl(String key) {
 
-        int slashPos = key.indexOf(SEPARATOR);
+        int slashPos = key.indexOf(SEPARATOR_CHAR);
         if (slashPos == -1)
             return contents.remove(key);
 
@@ -196,16 +218,12 @@ public class HashTree {
         }
 
         String subKey = key.substring(0, slashPos);
-        HashTree subHash;
-        if ("../".equals(subKey) && parent != null)
-            subHash = parent;
-        else
-            subHash = (HashTree) contents.get(subKey);
+        HashTree subHash = (HashTree) contents.get(subKey);
 
-        if (subHash != null)
-            return subHash.removeImpl(key.substring(slashPos));
-        else
+        if (subHash == null)
             return null;
+        else
+            return subHash.removeImpl(key.substring(slashPos));
     }
 
 
@@ -219,34 +237,56 @@ public class HashTree {
         // check for error conditions.
         if (key == null)
             throw new NullPointerException
-                ("null keys are not allowed in HashTree objects");
-        else if (value == null)
+                ("Null keys are not allowed in HashTree objects");
+        if (value == null)
             throw new NullPointerException
-                ("null values not allowed in HashTree objects");
-        else if (key.endsWith("/") && !(value instanceof HashTree))
-            throw new IllegalArgumentException
-                ("key names a context, but value is not a HashTree");
+                ("Null values not allowed in HashTree objects");
 
-        synchronized (root) {
-            // if the key starts with a slash, it is absolute, relative to the
-            // root of the HashTree
-            if (key.startsWith("/"))
-                return root.putImpl(key.substring(1), value);
+        // if the key starts with a slash, it is absolute, relative to the
+        // root of the HashTree
+        if (key.startsWith(SEPARATOR))
+            return root.putImpl(canonicalizeKey(key.substring(1)), value);
 
-            // if the key is not absolute, call putImpl to work with the
-            // relative reference.
+        key = canonicalizeKey(key);
+
+        // if the key starts with "../" it is relative to the parent context
+        if (key.startsWith(PARENT_PREFIX)) {
+            if (parent == null)
+                throw new IllegalArgumentException
+                    ("No such parent exists for put operation");
             else
-                return putImpl(key, value);
+                return parent.put
+                    (key.substring(PARENT_PREFIX.length()), value);
         }
+
+        // if the key is not absolute, call putImpl to save the value to the
+        // relative reference.
+        else
+            return putImpl(key, value);
     }
+
+
+    /** Check put parameters for validity */
+    protected Object putImpl(String key, Object value) {
+        if (key.length() == 0)
+            throw new IllegalArgumentException
+                ("Cannot replace self using put operation");
+
+        if (key.endsWith(SEPARATOR) && !(value instanceof HashTree))
+            throw new IllegalArgumentException
+                ("Key names a context, but value is not a HashTree");
+
+        return putImpl2(key, value);
+    }
+
 
     /** Maps the specified key to the specified value in this
      * hashtree, where key is known to be a non-null, relative
      * reference.
      */
-    protected Object putImpl(String key, Object value) {
+    protected Object putImpl2(String key, Object value) {
 
-        int slashPos = key.indexOf(SEPARATOR);
+        int slashPos = key.indexOf(SEPARATOR_CHAR);
         if (slashPos == -1)
             return contents.put(key, value);
 
@@ -269,6 +309,8 @@ public class HashTree {
         return subHash.putImpl(key.substring(slashPos), value);
     }
 
+
+
     /*
     public void putAll(Map m) {
         synchronized (root) {
@@ -282,6 +324,21 @@ public class HashTree {
     }
     */
 
+
+
+    /** Associate an attribute value with this node in the HashTree
+     */
+    public synchronized void putAttribute(String name, Object value) {
+        if (attributes == null)
+            attributes = new HashMap(DEFAULT_ATTR_CAPACITY);
+        attributes.put(name, value);
+    }
+
+
+
+    /** Retrieve an attributes value previously stored on this node
+     * with the putAttribute method.
+     */
     public Object getAttribute(String name, boolean inherit) {
         Object result = null;
         synchronized (this) {
@@ -293,10 +350,31 @@ public class HashTree {
             return result;
     }
 
-    public synchronized void putAttribute(String name, Object value) {
-        if (attributes == null)
-            attributes = new HashMap(DEFAULT_ATTR_CAPACITY);
-        attributes.put(name, value);
+
+
+    /** Remove "../" sequences from the given key. */
+    static String canonicalizeKey(String key) {
+        if (key.equals(PARENT_NAME))
+            return PARENT_PREFIX;
+        if (key.endsWith(SEPARATOR+PARENT_NAME))
+            key = key + SEPARATOR;
+
+        int end = 0;
+        int pos, beg;
+        while (true) {
+            pos = key.indexOf(PARENT_COMPONENT, end);
+            if (pos == -1)
+                return key;
+
+            beg = key.lastIndexOf(SEPARATOR_CHAR, pos-1) + 1;
+            if (!key.regionMatches(beg, PARENT_NAME, 0, pos-beg)) {
+                key = (key.substring(0, beg) +
+                       key.substring(pos+PARENT_COMPONENT.length()));
+                end = Math.min(0,beg-1);
+            } else {
+                end = pos + PARENT_COMPONENT.length();
+            }
+        }
     }
 
 
@@ -308,20 +386,40 @@ public class HashTree {
     }
 
 
+
+    /** Return an iterator containing all the keys in this hashtree
+     * that end with the given string.
+     */
     public Iterator getKeysEndingWith(String terminalName) {
-        synchronized (root) {
-            return new HashTreeIterator
-                (this.keyClone(null, terminalName),
-                 (this == this.root ? "/" : ""));
-        }
+        if (terminalName == null || terminalName.indexOf(SEPARATOR_CHAR) == -1)
+            return getKeysEndingWithSimpleTerminal(terminalName);
+        else
+            return getKeysEndingWithComplexTerminal(terminalName);
     }
 
 
+    private HashTreeIterator getKeysEndingWithSimpleTerminal(String name) {
+        return new HashTreeIterator
+            (this.keyClone(null, name),
+             (this == this.root ? SEPARATOR : ""));
+    }
+
+
+    private Iterator getKeysEndingWithComplexTerminal(String name) {
+        int lastSlashPos = name.lastIndexOf(SEPARATOR_CHAR);
+        String finalTerminal = name.substring(lastSlashPos+1);
+        HashTreeIterator baseIterator =
+            getKeysEndingWithSimpleTerminal(finalTerminal);
+        return new HashTreeIteratorFilter(baseIterator, name);
+    }
+
 
     /** Return a copy of this hashtree, with all keys mapped to a bogus
-     * value. If the resulting hashtree is empty, returns null.
+     * value. if terminalName is not null, only keys whose final name
+     * component is equal to terminalName will be included.  If the resulting
+     * hashtree is empty, returns null.
      */
-    private HashTree keyClone(HashTree parent, String terminalName) {
+    private synchronized HashTree keyClone(HashTree parent, String terminalName) {
         int s = contents.size();
         if (s == 0) return null;
 
@@ -348,12 +446,22 @@ public class HashTree {
             return result;
     }
 
+
+    /** An iterator that returns all the keys in a given HashTree.
+     *
+     * This implementation assumes that there are no empty nodes in the
+     * given HashTree - that is, that if a node was empty, it would have
+     * been 'pruned' away before being given to the constructor of this
+     * class.
+     */
     private class HashTreeIterator implements Iterator {
-        /** this iterates over the entries in our "contents" field. */
+
+        /** this iterates over the entries in the "contents" field of the
+         * immediate HashTree node. */
         Iterator top;
 
         /** if the current item returned by the "top" iterator was a HashTree,
-         * this iterates over that hashtree. */
+         * this iterates over that HashTree. */
         Iterator sub;
 
         /** Append this prefix to all the values we return. */
@@ -375,6 +483,7 @@ public class HashTree {
          * words, returns true if next would return an element rather
          * than throwing an exception.)  */
         public boolean hasNext() {
+            // note: this works because no brancehs of the tree are empty
             return ((sub != null && sub.hasNext()) ||
                     (top != null && top.hasNext()));
         }
@@ -394,6 +503,8 @@ public class HashTree {
 
             if (e.getValue() instanceof HashTree) {
                 sub = new HashTreeIterator((HashTree) e.getValue(), subKey);
+                // this will return a value because no branches of the tree
+                // are empty
                 return sub.next();
 
             } else {
@@ -402,11 +513,41 @@ public class HashTree {
             }
         }
 
+
         /** This operation is not supported by this iterator. */
         public void remove() {
             throw new UnsupportedOperationException
                 ("HashTreeIterator does not support remove()");
         }
+    }
+
+
+    /** keyClone and HashTreeIterator together can return all keys ending
+     * with a particular, single terminal name component (e.g. "Foo").  But
+     * they cannot handle a more complex terminal name that is composed of
+     * multiple name components (e.g. "Foo/Bar/Baz"). To make up for this
+     * limitation, this class can sift through the results of a plain
+     * HashTreeIterator and return only the items which end with the
+     * complex terminal name.
+     */
+    private class HashTreeIteratorFilter extends IteratorFilter {
+
+        private String terminal, slashTerminal;
+
+        public HashTreeIteratorFilter(HashTreeIterator parent,
+                                      String terminal)
+        {
+            super(parent);
+            this.terminal = terminal;
+            this.slashTerminal = SEPARATOR + terminal;
+            init();
+        }
+
+        protected boolean includeInResults(Object o) {
+            String s = (String) o;
+            return s.equals(terminal) || s.endsWith(slashTerminal);
+        }
+
     }
 
 }
