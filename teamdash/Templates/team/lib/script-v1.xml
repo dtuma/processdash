@@ -26,6 +26,11 @@
     <!-- an empty, overwritable xml file for external document integration -->
     <file in="files.xml" encoding="none"/>
 
+    <!-- files for external document integration of provided templates -->
+    <file in="files2.xml" encoding="xml"/>
+    <file in="roles.rtf" encoding="binary"/>
+    <file in="goals.xls" encoding="binary"/>
+
     <!-- html pages for the individual project root node -->
     <file in="indiv_tools.htm" encoding="html" out="indiv_tools.shtm"/>
     <file in="project_parameters.htm" encoding="html" 

@@ -280,4 +280,4 @@ undefine([Use_Rollup]);
 /*
  * Provide a hook for customized external document integration.
  */
-[FILES_XML] = "/PID/files.xml";
+[FILES_XML] = ",/PID/files.xml,/PID/files2.xml,";

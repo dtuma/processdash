@@ -39,9 +39,19 @@
 
 <h3>Team Planning Tools</h3>
 
+<p><form action="../dash/file.class" method="POST">
+<input type=hidden name="file" value="Team Roles Matrix">
+<input type=submit name="submit" value="Edit Team Roles / Responsibilities">
+</form>
+
+<p><form action="../dash/file.class" method="POST">
+<input type=hidden name="file" value="Team Project Goals">
+<input type=submit name="submit" value="Edit Team Project Goals">
+</form>
+
 [!--#include file='setup/inclTeamTools.class' --]
 
-<p><form action="setup/sync.class" method="GET">
+<p><form action="setup/sync.class" method="POST">
 <input type=submit name="submit" value="Sync Work Breakdown Structure">
 </form>
 
