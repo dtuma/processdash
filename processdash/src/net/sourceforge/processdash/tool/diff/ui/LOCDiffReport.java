@@ -28,6 +28,7 @@ package net.sourceforge.processdash.tool.diff.ui;
 
 import java.io.IOException;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.TinyCGIHighVolume;
 import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.LanguageFilter;
@@ -38,6 +39,8 @@ import net.sourceforge.processdash.util.HTMLUtils;
 
 
 public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
+
+    static Resources resources = Resources.getDashBundle("LOCDiff");
 
     protected void writeContents() throws IOException {
         if (parameters.get("showOptions") != null)
@@ -52,8 +55,11 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
     }
 
     protected void printOptions() throws IOException {
-        out.println("<HTML><HEAD><TITLE>LOC Counting Options</TITLE></HEAD>" +
-                    "<BODY><H1>LOC Counting Options</H1>\n");
+        out.println("<HTML><HEAD><TITLE>" +
+                    resources.getString("Options_Title") +
+                    "</TITLE></HEAD><BODY><H1>" +
+                    resources.getString("Options_Title") +
+                    "</H1>\n");
         LOCDiff.printFiltersAndOptions(getTinyWebServer(), out);
         out.println("</BODY></HTML>");
     }
@@ -94,7 +100,9 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
     /** print the HTML header, and initial document info. */
     protected void printHeader(LOCDiff diff) throws IOException {
         // print HTML header.
-        out.println("<html><head><title>LOC Differences</title><style>\n"+
+        out.print("<html><head><title>");
+        out.print(resources.getString("Report.Title"));
+        out.println("</title><style>\n"+
                     "    @media print { .doNotPrint { display: none } }\n"+
                     "</style></head><body>");
 
@@ -103,26 +111,29 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
         String filenameB = getParameter("FILEB");
         if (filenameA != null && filenameA.length() > 0 &&
             filenameB != null && filenameB.length() > 0) {
-            out.print("<h1>diff &nbsp; ");
-            out.print(HTMLUtils.escapeEntities(filenameA));
-            out.print(" &nbsp; ");
-            out.print(HTMLUtils.escapeEntities(filenameB));
+            out.print("<h1>");
+            out.print(resources.format("Report.Diff_HTML_FMT",
+                                       HTMLUtils.escapeEntities(filenameA),
+                                       HTMLUtils.escapeEntities(filenameB)));
             out.println("</h1>");
         } else {
-            out.println("<h1>LOC Differences</h1>");
+            out.print("<h1>");
+            out.print(resources.getString("Report.Title"));
+            out.println("</h1>");
         }
 
         // print line describing the language filter in use
         LanguageFilter filter = diff.getFilter();
-        out.print("<p><i>Using</i><tt><b> ");
-        out.print(AbstractLanguageFilter.getFilterName(filter));
-        out.print(" </b></tt><i>filter");
+        String filterHTML = "</i><tt><b>"
+            + AbstractLanguageFilter.getFilterName(filter)
+            + "</b></tt><i>";
         String options = getParameter("options");
-        if (options != null && options.length() > 0) {
-            out.print(" with options</i><tt><b> ");
-            out.print(options);
-            out.print(" </b></tt><i>");
-        }
+        String key = "Report.Using_Filter_FMT";
+        if (options != null && options.length() > 0)
+            key = "Report.Using_Filter_Options_FMT";
+        out.print("<p><i>");
+        out.print(resources.format(key, filterHTML,
+                                   "</i><tt><b>"+options+"</b></tt><i>"));
         out.println("</i></p>");
 
         // print any caveats about this filter's operation.
@@ -135,19 +146,19 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
     /** print out the resulting metrics. */
     private void printMetrics(LOCDiff diff) {
         out.println("<table name=METRICS BORDER>");
-        printMetricsRow("Base",          diff.getBase());
-        printMetricsRow("Deleted",       diff.getDeleted());
-        printMetricsRow("Modified",      diff.getModified());
-        printMetricsRow("Added",         diff.getAdded());
-        printMetricsRow("New & Changed", diff.getAdded() + diff.getModified());
-        printMetricsRow("Total",         diff.getTotal());
+        printMetricsRow("Base",            diff.getBase());
+        printMetricsRow("Deleted",         diff.getDeleted());
+        printMetricsRow("Modified",        diff.getModified());
+        printMetricsRow("Added",           diff.getAdded());
+        printMetricsRow("New_And_Changed", diff.getAdded() + diff.getModified());
+        printMetricsRow("Total",           diff.getTotal());
         out.println("</table>");
     }
 
     /** print out one row of metrics */
-    protected void printMetricsRow(String header, int count) {
+    protected void printMetricsRow(String headerKey, int count) {
         out.print("<tr><td>");
-        out.print(header);
+        out.print(resources.getHTML("Report." + headerKey));
         out.print(":&nbsp;</td><td>");
         out.print(count);
         out.println("</td></tr>");

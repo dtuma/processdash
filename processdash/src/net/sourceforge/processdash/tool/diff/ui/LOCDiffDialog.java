@@ -36,7 +36,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -56,6 +55,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.LOCDiff;
@@ -69,6 +69,8 @@ import net.sourceforge.processdash.util.HTMLUtils;
 
 public class LOCDiffDialog extends TinyCGIBase
     implements ActionListener, Runnable {
+
+    static Resources resources = Resources.getDashBundle("LOCDiff");
 
     public LOCDiffDialog() {}
 
@@ -103,12 +105,12 @@ public class LOCDiffDialog extends TinyCGIBase
     public LOCDiffDialog(WebServer webServer) {
         this.webServer = webServer;
 
-        frame = new JFrame("Compare Files/Directories");
+        frame = new JFrame(resources.getString("Dialog.Window_Title"));
         frame.setIconImage(DashboardIconFactory.getWindowIconImage());
 
         Box vBox = Box.createVerticalBox();
         Box hBox = Box.createHorizontalBox();
-        hBox.add(new JLabel("Original file/directory (optional):"));
+        hBox.add(new JLabel(resources.getString("Dialog.File_A_Prompt")));
         hBox.add(Box.createHorizontalStrut(150));
         hBox.add(Box.createHorizontalGlue());
         vBox.add(hBox);
@@ -116,21 +118,21 @@ public class LOCDiffDialog extends TinyCGIBase
         hBox = Box.createHorizontalBox();
         hBox.add(fileA = new JTextField());
         dontStretchVertically(fileA);
-        hBox.add(browseA = new JButton("Browse..."));
+        hBox.add(browseA = new JButton(resources.getDlgString("Browse")));
         browseA.addActionListener(this);
         vBox.add(hBox);
 
         vBox.add(Box.createVerticalStrut(5));
         vBox.add(Box.createVerticalGlue());
         hBox = Box.createHorizontalBox();
-        hBox.add(new JLabel("Modified/new file/directory:"));
+        hBox.add(new JLabel(resources.getString("Dialog.File_B_Prompt")));
         hBox.add(Box.createHorizontalGlue());
         vBox.add(hBox);
 
         hBox = Box.createHorizontalBox();
         hBox.add(fileB = new JTextField());
         dontStretchVertically(fileB);
-        hBox.add(browseB = new JButton("Browse..."));
+        hBox.add(browseB = new JButton(resources.getDlgString("Browse")));
         browseB.addActionListener(this);
         vBox.add(hBox);
 
@@ -138,10 +140,10 @@ public class LOCDiffDialog extends TinyCGIBase
         vBox.add(Box.createVerticalGlue());
         hBox = Box.createHorizontalBox();
         hBox.add(Box.createHorizontalGlue());
-        hBox.add(compareButton = new JButton("Compare"));
+        hBox.add(compareButton = new JButton(resources.getString("Dialog.Compare")));
         compareButton.addActionListener(this);
         hBox.add(Box.createHorizontalGlue());
-        hBox.add(closeButton = new JButton("Close"));
+        hBox.add(closeButton = new JButton(resources.getString("Close")));
         closeButton.addActionListener(this);
         hBox.add(Box.createHorizontalGlue());
         vBox.add(hBox);
@@ -233,16 +235,18 @@ public class LOCDiffDialog extends TinyCGIBase
     public void compare() {
         if (!validateInput()) return;
 
-        workingDialog = new JDialog(frame, "Comparing...", true);
+        workingDialog = new JDialog
+            (frame, resources.getString("Dialog.Comparing"), true);
         Box vBox = Box.createVerticalBox();
-        vBox.add(currentTaskLabel = new JLabel("Starting..."));
+        vBox.add(currentTaskLabel = new JLabel
+            (resources.getString("Dialog.Starting")));
         Dimension d = currentTaskLabel.getPreferredSize();
         d.width = 200;
         currentTaskLabel.setPreferredSize(d);
         currentTaskLabel.setMinimumSize(d);
         currentTaskLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         vBox.add(Box.createVerticalStrut(3));
-        cancelButton = new JButton("Cancel");
+        cancelButton = new JButton(resources.getString("Cancel"));
         cancelButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         cancelButton.addActionListener(this);
         vBox.add(cancelButton);
@@ -309,7 +313,8 @@ public class LOCDiffDialog extends TinyCGIBase
         deletedTable = new StringBuffer();
         redlinesTempFile = File.createTempFile("diff", ".txt");
         redlinesTempFile.deleteOnExit();
-        redlinesOut = new PrintWriter(new FileWriter(redlinesTempFile));
+        redlinesOut = new PrintWriter(new OutputStreamWriter
+                (new FileOutputStream(redlinesTempFile), getDefaultCharset()));
         base = deleted = modified = added = total = 0;
     }
 
@@ -397,9 +402,16 @@ public class LOCDiffDialog extends TinyCGIBase
 
         StringBuffer fileTable;
         String label, htmlName;
-        if (fileA == null) { fileTable = addedTable; label = "Added"; }
-        else if (fileB == null) { fileTable = deletedTable; label = "Deleted";}
-        else { fileTable = modifiedTable; label = "Modified"; }
+        if (fileA == null) {
+            fileTable = addedTable;
+            label = resources.getHTML("Report.Added");
+        } else if (fileB == null) {
+            fileTable = deletedTable;
+            label = resources.getHTML("Report.Deleted");
+        } else {
+            fileTable = modifiedTable;
+            label = resources.getHTML("Report.Modified");
+        }
         htmlName = HTMLUtils.escapeEntities(filename);
 
         // Don't try to compare binary files.
@@ -407,7 +419,9 @@ public class LOCDiffDialog extends TinyCGIBase
             fileTable.append("<tr><td nowrap>").append(htmlName);
             if (fileTable == modifiedTable)
                 fileTable.append("</td><td></td><td></td><td></td><td>");
-            fileTable.append("</td><td></td><td>Binary</td></tr>\n");
+            fileTable.append("</td><td></td><td>")
+                .append(resources.getHTML("Report.Binary"))
+                .append("</td></tr>\n");
             return;
         }
 
@@ -434,15 +448,15 @@ public class LOCDiffDialog extends TinyCGIBase
         // add to the LOC table.
         fileTable.append("<tr><td nowrap><a href='#file")
             .append(counter).append("'>").append(htmlName).append("</a>");
-        if (fileTable == deletedTable)
+        if (fileTable != addedTable)
             fileTable.append("</td><td>").append(diff.getBase());
-        else if (fileTable == modifiedTable)
-            fileTable.append("</td><td>").append(diff.getBase())
-                .append("</td><td>").append(diff.getDeleted())
+        if (fileTable == modifiedTable)
+            fileTable.append("</td><td>").append(diff.getDeleted())
                 .append("</td><td>").append(diff.getModified())
                 .append("</td><td>").append(diff.getAdded());
-        fileTable.append("</td><td>").append(diff.getTotal())
-            .append("</td><td>")
+        if (fileTable != deletedTable)
+            fileTable.append("</td><td>").append(diff.getTotal());
+        fileTable.append("</td><td>")
             .append(AbstractLanguageFilter.getFilterName(diff.getFilter()))
             .append("</td></tr>\n");
 
@@ -480,7 +494,7 @@ public class LOCDiffDialog extends TinyCGIBase
         "            return;\n" +
         "        }\n" +
         "      }\n" +
-        "      window.defaultStatus = \"Metrics\";\n" +
+        "      window.defaultStatus = \"${Report.Metrics}\";\n" +
         "    }\n\n" +
         "    if (navigator.appName == \"Netscape\") {\n" +
         "        window.captureEvents(Event.MOUSEMOVE);\n" +
@@ -489,53 +503,74 @@ public class LOCDiffDialog extends TinyCGIBase
         "</SCRIPT>\n";
 
 
+    private void intlWrite(BufferedWriter out, String text) throws IOException {
+        out.write(resources.interpolate(text, true));
+    }
+
     private void displayDiffResults() throws IOException {
         File outFile = File.createTempFile("diff", ".htm");
         outFile.deleteOnExit();
         FileOutputStream outStream = new FileOutputStream(outFile);
-        BufferedWriter out =
-            new BufferedWriter(new OutputStreamWriter(outStream));
+        BufferedWriter out = new BufferedWriter
+            (new OutputStreamWriter(outStream, getDefaultCharset()));
 
-        out.write("<html><head><title>LOC Differences</title>\n" +
+        intlWrite(out,
+                  "<html><head><title>${Report.Title}</title>\n" +
+                  "<meta http-equiv=\"Content-Type\""+
+                  " content=\"text/html; charset=" +
+                  getDefaultCharset() + "\">\n" +
                   SCRIPT + "</head>\n" +
                   "<body bgcolor='#ffffff'>\n" +
-                  "<div onMouseOver=\"window.defaultStatus='Metrics'\">\n");
+                  "<div onMouseOver=\"window.defaultStatus=" +
+                  "'${Report.Metrics}'\">\n");
 
         if (addedTable.length() > 0) {
-            out.write("<table border><tr><th>Files Added:</th>"+
-                      "<th>Add</th><th>Type</th></tr>");
+            intlWrite(out,
+                      "<table border><tr>" +
+                      "<th>${Report.Added_Files}</th>"+
+                      "<th>${Report.Added_Abbr}</th>" +
+                      "<th>${Report.File_Type}</th></tr>");
             out.write(addedTable.toString());
             out.write("</table><br><br>");
         }
         if (modifiedTable.length() > 0) {
-            out.write("<table border><tr><th>Files Modified:</th>" +
-                      "<th>Base</th><th>Del</th><th>Mod</th><th>Add</th>" +
-                      "<th>Total</th><th>Type</th></tr>");
+            intlWrite(out,
+                      "<table border><tr>" +
+                      "<th>${Report.Modified_Files}</th>" +
+                      "<th>${Report.Base_Abbr}</th>" +
+                      "<th>${Report.Deleted_Abbr}</th>" +
+                      "<th>${Report.Modified_Abbr}</th>" +
+                      "<th>${Report.Added_Abbr}</th>" +
+                      "<th>${Report.Total_Abbr}</th>" +
+                      "<th>${Report.File_Type}</th></tr>");
             out.write(modifiedTable.toString());
             out.write("</table><br><br>");
         }
         if (deletedTable.length() > 0) {
-            out.write("<table border><tr><th>Files Deleted:</th>"+
-                      "<th>Del</th><th>Type</th></tr>");
+            intlWrite(out,
+                      "<table border><tr>" +
+                      "<th>${Report.Deleted_Files}</th>"+
+                      "<th>${Report.Deleted_Abbr}</th>" +
+                      "<th>${Report.File_Type}</th></tr>");
             out.write(deletedTable.toString());
             out.write("</table><br><br>");
         }
 
         out.write("<table name=METRICS BORDER>\n");
         if (modifiedTable.length() > 0 || deletedTable.length() > 0) {
-            out.write("<tr><td>Base:&nbsp;</td><td>");
+            intlWrite(out, "<tr><td>${Report.Base}:&nbsp;</td><td>");
             out.write(Long.toString(base));
-            out.write("</td></tr>\n<tr><td>Deleted:&nbsp;</td><td>");
+            intlWrite(out, "</td></tr>\n<tr><td>${Report.Deleted}:&nbsp;</td><td>");
             out.write(Long.toString(deleted));
-            out.write("</td></tr>\n<tr><td>Modified:&nbsp;</td><td>");
+            intlWrite(out, "</td></tr>\n<tr><td>${Report.Modified}:&nbsp;</td><td>");
             out.write(Long.toString(modified));
-            out.write("</td></tr>\n<tr><td>Added:&nbsp;</td><td>");
+            intlWrite(out, "</td></tr>\n<tr><td>${Report.Added}:&nbsp;</td><td>");
             out.write(Long.toString(added));
-            out.write("</td></tr>\n<tr><td>New & Changed:&nbsp;</td><td>");
+            intlWrite(out, "</td></tr>\n<tr><td>${Report.New_And_Changed}:&nbsp;</td><td>");
             out.write(Long.toString(added+modified));
             out.write("</td></tr>\n");
         }
-        out.write("<tr><td>Total:&nbsp;</td><td>");
+        intlWrite(out, "<tr><td>${Report.Total}:&nbsp;</td><td>");
         out.write(Long.toString(total));
         out.write("</td></tr>\n</table></div>");
 

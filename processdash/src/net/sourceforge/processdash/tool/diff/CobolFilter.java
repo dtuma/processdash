@@ -94,14 +94,11 @@ public class CobolFilter extends AbstractLanguageFilter {
 
     public String[][] getOptions() { return OPTIONS; }
     protected String[][] OPTIONS = {
-        { "+END", "Count </I><TT>END-</TT> <I>clauses as lines of code." },
-        { "-END", ("Do not count </I><TT>END-</TT> <I>clauses as lines of "+
-                   "code <B>(default)</B>.") },
-        { "+EXIT", "Count </I><TT>EXIT</TT> <I>statements as lines of code." },
-        { "-EXIT", ("Do not count </I><TT>EXIT</TT> <I>statements as lines "+
-                    "of code <B>(default)</B>.") },
-        { "+.", "Count a period on a line by itself as a line of code." },
-        { "-.", ("Do not count a period on a line by itself as a line of "+
-                 "code <B>(default)</B>.") }
+        { "+END",  resources.getString("Cobol.End_Count_HTML") },
+        { "-END",  resources.getString("Cobol.End_Ignore_HTML") },
+        { "+EXIT", resources.getString("Cobol.Exit_Count_HTML") },
+        { "-EXIT", resources.getString("Cobol.Exit_Ignore_HTML") },
+        { "+.",    resources.getString("Cobol.Period_Count_HTML") },
+        { "-.",    resources.getString("Cobol.Period_Ignore_HTML") }
     };
 }

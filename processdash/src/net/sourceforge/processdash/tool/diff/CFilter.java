@@ -60,10 +60,8 @@ public class CFilter extends AbstractLanguageFilter {
 
     public String[][] getOptions() { return OPTIONS; }
     protected String[][] OPTIONS = {
-        { "+{", ("Count a curly brace on a line by itself "+
-                 "as a line of code.") },
-        { "-{", ("Do not count a curly brace on a line by itself "+
-                 "as a line of code <b>(default)</b>.") }
+        { "+{", resources.getString("C.Braces_Count_HTML") },
+        { "-{", resources.getString("C.Braces_Ignore_HTML") }
     };
 
     protected int doubleCheckFileContents(String contents, int match) {

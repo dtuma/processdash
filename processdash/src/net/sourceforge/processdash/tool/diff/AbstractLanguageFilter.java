@@ -29,11 +29,13 @@ package net.sourceforge.processdash.tool.diff;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.StringTokenizer;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -41,7 +43,7 @@ import net.sourceforge.processdash.util.StringUtils;
  */
 public class AbstractLanguageFilter implements LanguageFilter {
 
-    static final Resources resource = Resources.getDashBundle("LOCDiff");
+    static final Resources resources = Resources.getDashBundle("LOCDiff");
 
     protected static final String COMMENT_START_STR =
         String.valueOf(COMMENT_START);
@@ -148,9 +150,15 @@ public class AbstractLanguageFilter implements LanguageFilter {
         out.write(CAVEAT_HTML);
     }
 
-    protected static final byte[] CAVEAT_HTML =
-        resource.getString("Caveat_HTML").getBytes();
-
+    protected static byte[] CAVEAT_HTML;
+    static {
+        try {
+            CAVEAT_HTML = resources.getString("Caveat_HTML")
+                .getBytes(TinyCGIBase.getDefaultCharset());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     public String[][] getOptions() { return null; }
