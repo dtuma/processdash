@@ -10,12 +10,12 @@ class CUtility
   /********************************************************
     Constants
     *******************************************************/
-  static final boolean DEBUG = true;
+  /*static final boolean DEBUG = true;
   static final boolean SLOW_DEBUG = true;
-  static final boolean DUMP_DEBUG = true;
-  /*static final boolean DEBUG = false;
+  static final boolean DUMP_DEBUG = true;*/
+  static final boolean DEBUG = false;
   static final boolean SLOW_DEBUG = false;
-  static final boolean DUMP_DEBUG = false;*/
+  static final boolean DUMP_DEBUG = false;
   static final boolean DESCENT_DEBUG = false;
   static final boolean OLD_DEBUG = false;
   static final boolean OLD_DUMP_DEBUG = false;
