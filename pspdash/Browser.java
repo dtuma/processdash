@@ -43,7 +43,8 @@ public class Browser {
         defaultPort = port;
     }
     public static String mapURL(String url) {
-        if (url.startsWith("http:/") || url.startsWith("file:/"))
+        if (url.startsWith("http:/") || url.startsWith("file:/") ||
+            url.startsWith("mailto:"))
             return url;
 
         if (!url.startsWith("/"))
@@ -225,6 +226,9 @@ public class Browser {
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.9  2002/08/10 01:45:35  tuma
+ * Don't try to remap mailto: URLs.
+ *
  * Revision 1.8  2002/02/16 05:02:36  tuma
  * Tweak to be able to launch file: URLs.  (Microsoft is so broken.)
  *
