@@ -119,6 +119,24 @@ class Prop
             selectedChild = 0;
     }
 
+    public void moveChildUp(int which) {
+                                  // error handling
+        if (children == null)
+            return;
+        if ((which < 1) || (which >= children.length))
+            return;
+
+        PropertyKey childA = children[which-1];
+        PropertyKey childB = children[which];
+        children[which-1] = childB;
+        children[which]   = childA;
+
+        if (selectedChild == which)
+            selectedChild--;
+        else if (selectedChild == (which-1))
+            selectedChild++;
+    }
+
 
     public String getDefectLog ()  { return defectLog; }
     public String getID ()         { return myID; }
