@@ -31,9 +31,6 @@
   <mapID target="UsingProbeTool" url="Topics/Planning/UsingProbeTool.html" />
   <mapID target="UsingProbeWizard" url="Topics/Planning/UsingProbeWizard.html" />
   <mapID target="UsingSizeEstimatingTemplate" url="Topics/Planning/UsingSizeEstimatingTemplate.html" />
-  <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
-  <mapID target="UsingTaskSchedule.chooser" url="Topics/Planning/UsingTaskSchedule.html#chooser" />
-  <mapID target="UsingTaskSchedule.chart" url="Topics/Planning/UsingTaskSchedule.html#chart" />
   <mapID target="DataFreezing" url="Topics/Planning/DataFreezing.html" />
 
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
@@ -109,6 +106,15 @@
 
   <mapID target="DefiningOwnProcesses" url="Topics/AdvancedTopics/ProcessDefinition/DefiningProcesses.html"/>
   <mapID target="DashboardFindsFiles" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html"/>
+  <mapID target="DashboardFindsFiles.sharing" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html#sharing"/>
   <mapID target="MultipleToDateData" url="Topics/AdvancedTopics/MultipleToDateData.html"/>
+  <mapID target="MultipleToDateData.filter" url="Topics/AdvancedTopics/MultipleToDateData.html#filter"/>
+  <mapID target="MissingFields" url="Topics/Planning/EnteringData.html#missing"/>
+  <mapID target="UnlockReadOnly" url="Topics/Planning/EnteringData.html#unlock"/>
+  <mapID target="ExportingFromForms" url="Topics/Planning/EnteringData.html#exporting"/>
+  <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
+  <mapID target="UsingTaskSchedule.progress" url="Topics/Planning/UsingTaskSchedule.html#progress" />
+  <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
+  <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />
 
 </map>
