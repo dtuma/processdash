@@ -105,8 +105,8 @@ public abstract class Packager
      * @return                Description of the Return Value
      * @exception  Exception  Description of the Exception
      */
-    public abstract ZipOutputStream addPack(int packNumber, String name, String targetOs,
-                                            boolean required, String description)
+    public abstract OutputStream addPack(int packNumber, String name, String id, String targetOs,
+                                         boolean required, String description)
         throws Exception;
 
 
