@@ -47,23 +47,19 @@ public class DataComboBox extends JComboBox implements ILessThan {
         Iterator i = getAllDataNames(dr).iterator();
         while (i.hasNext())
             addItem((String) i.next());
-
-        if (hiddenData == null) {
-            hiddenData = new Vector();
-            String hiddenText = Settings.getVal(settingName);
-            if (hiddenText != null) {
-                StringTokenizer st = new StringTokenizer (hiddenText, delim, false);
-                while (st.hasMoreElements())
-                    hiddenData.addElement (st.nextToken ());
-            }
-        }
     }
 
     public boolean lessThan(Object oFirst, Object oSecond) {
         return ((String)oFirst).compareTo ((String)oSecond) < 0;
     }
 
+    private static Set dataNameList = null;
+
+    public static void clearCachedNameList() { dataNameList = null; }
+
     public static Set getAllDataNames(DataRepository dr) {
+        if (dataNameList != null) return dataNameList;
+
         Perl5Util perl = new Perl5Util();
         Set result = new TreeSet();
         String hiddenDataRE = "m\n(" + Settings.getVal(settingName) + ")\ni";
@@ -87,6 +83,7 @@ public class DataComboBox extends JComboBox implements ILessThan {
             }
         }
 
+        dataNameList = result;
         return result;
     }
 
