@@ -1439,10 +1439,10 @@ public class DataRepository implements Repository {
             BufferedReader in = new BufferedReader(new InputStreamReader(datafile));
             String line, name, value;
             int equalsPosition;
-            CppFilter filtIn = null;
+            CppFilter filtIn = new CppFilter(in);
 
             try {
-                line = in.readLine();
+                line = filtIn.readLine();
 
                 // if the first line is an include statement, load the data from
                 // the file specified in the include statement.
@@ -1473,7 +1473,7 @@ public class DataRepository implements Repository {
                         includedFileCache.put(inheritedDatafile, cachedIncludeFile);
                     }
                     dest.putAll(cachedIncludeFile);
-                    line = in.readLine();
+                    line = filtIn.readLine();
                 }
 
                 filtIn = new CppFilter(in);
@@ -1497,7 +1497,7 @@ public class DataRepository implements Repository {
                 }
             }
             finally {
-                if (filtIn != null) filtIn.dispose();
+                filtIn.dispose();
                 if (close) in.close();
             }
 
