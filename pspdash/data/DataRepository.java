@@ -2084,9 +2084,9 @@ public class DataRepository implements Repository {
 
             public void run() {
                 // give things a chance to settle down.
-                System.out.println("waiting for notifier at " +new java.util.Date());
+                //System.out.println("waiting for notifier at " +new java.util.Date());
                 dataNotifier.flush();
-                System.out.println("notifier done at " + new java.util.Date());
+                //System.out.println("notifier done at " + new java.util.Date());
 
                 Iterator i = listenersToNotify.iterator();
                 DataConsistencyObserver o;
