@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.Vector;
 
 import pspdash.EscapeString;
 import pspdash.RobustFileWriter;
@@ -46,6 +47,7 @@ import pspdash.RobustFileWriter;
 public class DataImporter extends Thread {
 
     private static final long TIME_DELAY = 1 * 60 * 1000; // 10 minutes
+    private static Vector importers = new Vector();
 
     private DataRepository data;
     private String importPrefix;
@@ -66,6 +68,7 @@ public class DataImporter extends Thread {
             String prefix = massagePrefix(token.substring(0, separatorPos));
             String dir = token.substring(separatorPos+2);
             DataImporter i = new DataImporter(data, prefix, new File(dir));
+            importers.add(i);
         }
     }
 
@@ -74,6 +77,20 @@ public class DataImporter extends Thread {
         if (!p.startsWith("/"))
             p = "/" + p;
         return p;
+    }
+
+    public static void refreshPrefix(String prefix) {
+        prefix = massagePrefix(prefix);
+        Iterator i = importers.iterator();
+        DataImporter importer;
+        while (i.hasNext()) {
+            importer = (DataImporter) i.next();
+            if (importer.importPrefix.startsWith(prefix)) {
+                System.out.println("checking "+importer.importPrefix+
+                                   "=>"+importer.directory);
+                importer.checkFiles();
+            }
+        }
     }
 
     public DataImporter(DataRepository data, String prefix, File directory) {

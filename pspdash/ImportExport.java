@@ -30,6 +30,7 @@ import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FileDialog;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -250,8 +251,17 @@ public class ImportExport extends JDialog implements ActionListener {
     }
 
     public void exportInteractively(Vector filter, File dest) {
-        ProgressDialog p = new ProgressDialog(this, "Exporting",
-                                              "Exporting data...");
+        exportInteractively(this, parent, filter, dest);
+    }
+
+    public static void exportInteractively(Object window, PSPDashboard parent,
+                                           Vector filter, File dest) {
+        ProgressDialog p = null;
+        if (window instanceof Dialog)
+            p = new ProgressDialog((Dialog)window, "Exporting", "Exporting data...");
+        else if (window instanceof Frame)
+            p = new ProgressDialog((Frame)window, "Exporting", "Exporting data...");
+
         p.addTask(new ExportTask(parent, filter, dest));
         p.setCompletionMessage("Export done.");
         p.run();
@@ -321,35 +331,62 @@ public class ImportExport extends JDialog implements ActionListener {
         return n.replace('/', '_').replace(',', '_');
     }
 
+    public static void exportAll(PSPDashboard parent) {
+        exportAll(parent, Settings.getVal("export.data"));
+    }
     public static void exportAll(PSPDashboard parent, String userSetting) {
-        if (userSetting == null || userSetting.length() == 0) return;
 
+        boolean foundWork = false;
         ProgressDialog p = new ProgressDialog(parent, "Auto Exporting",
                                               "Exporting data...");
 
-        StringTokenizer exportTaskTokens = new StringTokenizer(userSetting, "|");
-        while (exportTaskTokens.hasMoreTokens()) {
-            String exportTaskStr = exportTaskTokens.nextToken();
-            int pos = exportTaskStr.indexOf("=>");
-            if (pos == -1) continue;
-            String filename = Settings.translateFile(exportTaskStr.substring(0,pos));
-            Vector filter = new Vector();
-            StringTokenizer filterItems = new StringTokenizer
-                (exportTaskStr.substring(pos+2), ";");
-            while (filterItems.hasMoreTokens())
-                filter.add(filterItems.nextToken());
-            p.addTask(new ExportTask(parent, filter, new File(filename)));
+        if (userSetting != null && userSetting.length() > 0) {
+            // parse the user setting to find data export instructions
+            StringTokenizer exportTaskTokens = new StringTokenizer(userSetting, "|");
+            while (exportTaskTokens.hasMoreTokens()) {
+                String exportTaskStr = exportTaskTokens.nextToken();
+                int pos = exportTaskStr.indexOf("=>");
+                if (pos == -1) continue;
+                String filename =
+                    Settings.translateFile(exportTaskStr.substring(0,pos));
+                Vector filter = new Vector();
+                StringTokenizer filterItems = new StringTokenizer
+                    (exportTaskStr.substring(pos+2), ";");
+                while (filterItems.hasMoreTokens())
+                    filter.add(filterItems.nextToken());
+                p.addTask(new ExportTask(parent, filter, new File(filename)));
+                foundWork = true;
+            }
         }
 
+        // Look for data export instructions in the data repository.
+        Iterator i = parent.data.getKeys();
+        String name;
+        SimpleData filename;
+        int pos;
+        while (i.hasNext()) {
+            name = (String) i.next();
+            pos = name.indexOf(EXPORT_DATANAME);
+            if (pos < 1) continue;
+            filename = parent.data.getSimpleValue(name);
+            if (filename == null || !filename.test()) continue;
+            Vector filter = new Vector();
+            filter.add(name.substring(0, pos-1));
+            String file_name = Settings.translateFile(filename.format());
+            p.addTask(new ExportTask(parent, filter, new File(file_name)));
+            foundWork = true;
+        }
+
+        if (!foundWork) return;
         p.run();
         System.out.println("Completed user-scheduled data export.");
     }
+    public static final String EXPORT_DATANAME = "EXPORT_FILE";
 
     private static class DailyExporterThread extends Thread {
         private PSPDashboard parent;
-        private String userSetting;
-        public DailyExporterThread(PSPDashboard p, String s) {
-            parent = p; userSetting = s;
+        public DailyExporterThread(PSPDashboard p) {
+            parent = p;
             setDaemon(true);
             start();
         }
@@ -363,16 +400,14 @@ public class ImportExport extends JDialog implements ActionListener {
 
                 // wake up sometime during the hour between midnight and 1AM,
                 // and export data.
-                exportAll(parent, userSetting);
+                exportAll(parent);
             } catch (InterruptedException ie) {}
         }
     }
     private static final long MILLIS_PER_HOUR =
         60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
 
-    public static void registerUserSetting
-        (PSPDashboard parent, String userSetting) {
-        if (userSetting == null || userSetting.length() == 0) return;
-        new DailyExporterThread(parent, userSetting);
+    public static void startAutoExporter(PSPDashboard parent) {
+        new DailyExporterThread(parent);
     }
 }

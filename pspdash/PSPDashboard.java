@@ -250,7 +250,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        ImportExport.registerUserSetting(this, Settings.getVal("export.data"));
+        ImportExport.startAutoExporter(this);
 
         webServer.setData(data);
         webServer.setProps(props);
@@ -424,7 +424,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         TaskScheduleChooser.closeAll();
         if (data != null)
             data.saveAllDatafiles();
-        ImportExport.exportAll(this, Settings.getVal("export.data"));
+        ImportExport.exportAll(this);
         if (hierarchy != null) {
             hierarchy.terminate();
             hierarchy = null;

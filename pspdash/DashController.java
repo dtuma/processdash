@@ -34,6 +34,7 @@ import java.net.InetAddress;
 import java.net.URL;
 
 import pspdash.data.DataRepository;
+import pspdash.data.SimpleData;
 import javax.swing.*;
 
 public class DashController {
@@ -130,6 +131,28 @@ public class DashController {
             else
                 new TaskScheduleChooser
                     (dash, (String[]) taskLists.toArray(new String[0]));
+        }
+    }
+
+    public static void exportData(String prefix) {
+        String dataName = dash.data.createDataName
+            (prefix, ImportExport.EXPORT_DATANAME);
+        SimpleData filename = dash.data.getSimpleValue(dataName);
+        if (filename != null && filename.test())
+            // run the exporter in a thread - it will block by opening
+            // a modal dialog.
+            new ExportStarter(prefix, filename.format());
+    }
+    private static class ExportStarter extends Thread {
+        String prefix, filename;
+        public ExportStarter(String p, String f) {
+            prefix = p;   filename = Settings.translateFile(f);   start(); }
+        public void run() {
+            Vector filter = new Vector();
+            filter.add(prefix);
+            ImportExport.exportInteractively
+                (dash, dash, filter, new File(filename));
+            raiseWindow();
         }
     }
 

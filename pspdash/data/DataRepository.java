@@ -1317,6 +1317,9 @@ public class DataRepository implements Repository {
                     oldValue = removedElement.getSimpleValue();
                     removedElement.getValue().dispose();
                 }
+                                        // notify any data listeners
+                removedElement.setValue(null);
+                dataNotifier.dataChanged(name, removedElement);
 
                                         // notify any repository listeners
                 if (!name.startsWith(anonymousPrefix))

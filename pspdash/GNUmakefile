@@ -42,6 +42,8 @@ CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
 CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/psp3/cyclesum.java \
 	Templates/generic/summary.java \
+	Templates/control/exportNow.java \
+	Templates/control/importNow.java \
 	Templates/control/raiseWindow.java \
 	Templates/control/setPath.java \
 	Templates/control/showenv.java \
@@ -66,6 +68,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/form2html.java \
 	Templates/reports/line.java \
 	Templates/reports/pie.java \
+	Templates/reports/radar.java \
 	Templates/reports/xy.java \
 	Templates/reports/table.java \
 	Templates/reports/hist.java \
@@ -89,7 +92,8 @@ SIZEEST_COPIES=Templates/psp1.1/sizeest.class \
 	Templates/psp3/sizeest.class
 
 JFREECHART_JAVA=Templates/reports/XYPlot.java \
-	Templates/reports/PiePlot.java
+	Templates/reports/PiePlot.java \
+	Templates/reports/RadarPlot.java
 JFREECHART_CLASSES=$(subst .java,.class,$(JFREECHART_JAVA))
 
 SCR_DCR_FILES=Templates/SCR.globalData \
@@ -143,6 +147,7 @@ $(SIZEEST_COPIES): Templates/psp1/sizeest.class
 
 
 Templates/reports/pie.class: $(BIN)/com/jrefinery/chart/PiePlot.class
+Templates/reports/radar.class: $(BIN)/com/jrefinery/chart/RadarPlot.class
 
 Templates/reports/xy.class: $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)/com/jrefinery/chart/DataSources.class
 
@@ -207,6 +212,7 @@ $(BIN)/pspdash/%.class: %.java
 DataSources.class: $(BIN)/com/jrefinery/chart/DataSources.class
 XYPlot.class: $(BIN)/com/jrefinery/chart/XYPlot.class
 PiePlot.class: $(BIN)/com/jrefinery/chart/PiePlot.class
+RadarPlot.class: $(BIN)/com/jrefinery/chart/RadarPlot.class
 
 $(BIN)/com/jrefinery/chart/%.class: Templates/reports/%.java
 	$(JAVAC) \
