@@ -63,6 +63,7 @@ implements TranslatorConstants
    private String dontSaveLang = null;
    private String saveRefLang = null;
    private ActionListener saveListener = null;
+   private BundleSet defaultTranslations = null;
    
    BundleManager()
    {
@@ -378,6 +379,8 @@ implements TranslatorConstants
    void store(String fileName)
    throws IOException
    {
+//    initDefaultTranslations();
+       
       int j, k = set.getLangCount();
       for(j=0;j<k;++j){
          LangItem lang = set.getLanguage(j);
@@ -421,7 +424,6 @@ implements TranslatorConstants
 
    private void storeProperties(String fn, LangItem lang) throws IOException {
        Properties p = set.getProperties(lang.getLangId());
-
        FileOutputStream out = new FileOutputStream(fn);
        storeProperties(out, p);
        out.close();
@@ -439,7 +441,7 @@ implements TranslatorConstants
    }
 
    private void storeZip(String fn, LangItem lang) throws IOException {
-       Properties p = set.getProperties(lang.getLangId());
+       Properties p = set.getProperties(lang.getLangId(), defaultTranslations);
        if (p.isEmpty()) {
            File f = new File (fn);
            f.delete();
@@ -536,8 +538,7 @@ implements TranslatorConstants
                 continue;
             name = name.substring(prefix.length());
             if (name.indexOf(TranslatorConstants.KEY_SEPARATOR) != -1)
-                continue;
-            
+                continue;            
             String value = (String) prop.getValue();
             if (value == null || value.trim().length() == 0) 
                 continue;
@@ -569,6 +570,18 @@ implements TranslatorConstants
 
     public void setSaveListener(ActionListener saveListener) {
         this.saveListener = saveListener;
+    }
+    
+
+
+    private void initDefaultTranslations() throws IOException {
+        String baseName = set.getLanguage(0).getLangFile();
+        if (baseName.endsWith(ZIP_EXTENSION) || baseName.endsWith(JAR_EXTENSION)) {
+            BundleManager mgr = new BundleManager();
+            mgr.readResource( baseName, "en");
+            defaultTranslations = mgr.getBundle();
+        } else
+            defaultTranslations = null;
     }
 
 }
