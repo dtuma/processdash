@@ -34,12 +34,9 @@ public class r3c extends TinyCGIBase implements DefectAnalyzer.Task {
 
     /** Generate CGI script output. */
     protected void writeContents() {
-
-        String path = getParameter("hierarchyPath");
-        if (path == null) path = (String) env.get("PATH_TRANSLATED");
-
         initValues();
-        DefectAnalyzer.run(getPSPProperties(), path, this);
+        DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
+                           getPrefix(), parameters, this);
 
         out.println("<TABLE NAME=D22 BORDER><TR>");
         out.println("<TD colspan=5 class=header>Defect Fix Times</TD></TR>");

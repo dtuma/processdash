@@ -50,11 +50,9 @@ public class r5a extends CGIChartBase implements DefectAnalyzer.Task {
 
     /** create the data upon which this chart is based. */
     protected void buildData() {
-        String path = getParameter("hierarchyPath");
-        if (path == null) path = (String) env.get("PATH_TRANSLATED");
-
         initValues();
-        DefectAnalyzer.run(getPSPProperties(), path, this);
+        DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
+                           getPrefix(), parameters, this);
 
         int numRows = defectCounts.size();
         data = new ResultSet(numRows, 1);

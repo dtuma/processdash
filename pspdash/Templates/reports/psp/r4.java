@@ -65,12 +65,12 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
     /** Generate CGI script output. */
     protected void writeContents() {
 
-        String path = getParameter("hierarchyPath");
-        if (path == null) path = (String) env.get("PATH_TRANSLATED");
+        String path = getPrefix();
         strict = (parameters.get("strict") != null);
 
         initValues();
-        DefectAnalyzer.run(getPSPProperties(), path, this);
+        DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
+                           path, parameters, this);
 
         String header = HEADER_TEXT;
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());

@@ -49,7 +49,7 @@ TD.task   { text-align: left; white-space: nowrap }
 <!--#include file="../table.class?qf=psp/r3b.rpt&includable&c1=task" -->
 </TABLE>
 
-<P><!--#include file="r3c.class" -->
+<P><!--#include file="r3c.class?qf=r3a.rpt" -->
 
 <P><A HREF="../excel.iqy"><I>Export to Excel</I></A>
 
