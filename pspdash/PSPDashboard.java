@@ -80,7 +80,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         System.err.println(msg);
     }
 
-    PSPDashboard(String title) {
+    public PSPDashboard(String title) {
         super();
         setIconImage(DashboardIconFactory.getWindowIconImage());
         getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 2, 2));
