@@ -210,7 +210,7 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
         "<template name='Rollup_Template_Name' ID='Rollup RID Data' "+
         "          dataFile='ROLLUP:RID' defineRollup='no'>" +
         "   <html ID='sum' title='Rollup_Summary_Name' " +
-        "         href='dash/summary.shtm?rollup'/>" +
+        "         href='reports/index.htm'/>" +
         "   <html ID='config' title='Edit_Filter_Name' " +
         "         href='dash/rollupFilter.shtm'/>" +
         "   <phase name='Rollup_Phase_Name'/>" +
@@ -280,10 +280,11 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
     protected static final String NO_DATAFILE = DashHierarchy.NO_DATAFILE;
     protected static final String DATA_EXTENT_ATTR = "autoData";
     protected static final String ID_ATTR   = DashHierarchy.ID_ATTR;
-    static final String NAME_ATTR = DashHierarchy.NAME_ATTR;
+    protected static final String NAME_ATTR = DashHierarchy.NAME_ATTR;
     protected static final String DEFINE_ROLLUP_ATTR = "defineRollup";
     protected static final String USES_ROLLUP_ATTR = "usesRollup";
     protected static final String ROLLUP_DATAFILE_ATTR = "rollupDataFile";
     protected static final String SIZE_METRIC_ATTR = "size";
+    protected static final String DEFECTLOG_ATTR = DashHierarchy.DEFECTLOG_ATTR;
 
 }
