@@ -80,18 +80,18 @@ public class sizeest extends pspdash.TinyCGIBase {
         "Base Additions/Methods #//#",
         "Base Additions/Relative Size #//#",
         "Base Additions/LOC #//#",
-        "Actual Base Additions/LOC #//#" };
+        "Base Additions/Actual LOC #//#" };
     private static final String [] newData = {
         "New Objects/Description #//#",
         "New Objects/Type #//#",
         "New Objects/Methods #//#",
         "New Objects/Relative Size #//#",
         "New Objects/LOC #//#",
-        "Actual New Objects/LOC #//#" };
+        "New Objects/Actual LOC #//#" };
     private static final String [] reusedData = {
         "Reused Objects/Description #//#",
         "Reused Objects/LOC #//#",
-        "Actual Reused Objects/LOC #//#" };
+        "Reused Objects/Actual LOC #//#" };
 
 
     /** Generate CGI script output.
@@ -103,11 +103,11 @@ public class sizeest extends pspdash.TinyCGIBase {
         if (needsInit || parameters.get("init") != null) init();
 
         out.write(partA);
-        writeTable(baseRow,   baseData,   "moreBase",   4, 0, 5);
+        writeTable(baseRow,   baseData,   "moreBase",   1, 0, 5);
         out.write(replaceNum(partB, uniqueNumber));
-        writeTable(newRow,    newData,    "moreNew",    4, 0, 5);
+        writeTable(newRow,    newData,    "moreNew",    1, 0, 5);
         out.write(replaceNum(partC, uniqueNumber));
-        writeTable(reusedRow, reusedData, "moreReused", 2, 0, 5);
+        writeTable(reusedRow, reusedData, "moreReused", 1, 0, 3);
         out.write(replaceNum(partD, uniqueNumber++));
     }
 
@@ -120,7 +120,7 @@ public class sizeest extends pspdash.TinyCGIBase {
      *    Occurrences of the text "#//#" will be replaced with the row number.
      * @param dataElements the names of the data elements that are being
      *    displayed in the table.
-     * @param blankRows the number of rows to display if there is no data.
+     * @param minRows the minimum number of rows to display.
      * @param padRows the number of blank rows to display after data
      * @param addRows the number of blank rows to add upon user request
      * @param queryArg a string which, if present in the query string,
@@ -129,7 +129,7 @@ public class sizeest extends pspdash.TinyCGIBase {
     protected void writeTable(String template,
                               String [] dataElements,
                               String queryArg,
-                              int blankRows, int padRows, int addRows) {
+                              int minRows, int padRows, int addRows) {
 
         String prefix = (String) env.get("PATH_TRANSLATED");
         String [] dataNames = new String[dataElements.length];
@@ -151,10 +151,11 @@ public class sizeest extends pspdash.TinyCGIBase {
 
         if (parameters.get(queryArg) != null)
             maxRow += addRows;
-        else if (maxRow == 0)
-            maxRow = blankRows;
         else
             maxRow += padRows;
+
+        if (maxRow < minRows)
+            maxRow = minRows;
 
         for (int rowNum = 0;  rowNum < maxRow;  rowNum++)
             out.print(replaceNum(template, rowNum));
