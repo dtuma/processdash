@@ -274,30 +274,23 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             // the mode of the individual times
             timePerPerson = getMode(individualTimes);
 
-            // if that worked, calculate the effective rate.
-            if (timePerPerson != 0) {
-                if (safe(size) != 0) {
-                    rate = size / timePerPerson;
-                    node.setNumericAttribute(RATE_ATTR, rate);
-                } else {
-                    rate = Double.NaN;
-                    //node.setAttribute(RATE_ATTR, null);
-                }
-
-            } else {
-                // next method: calculate time per person from rate and size.
+            // if that didn't work, calculate time per person from rate and
+            // size.
+            if (timePerPerson == 0) {
                 rate = node.getNumericAttribute(RATE_ATTR);
-                timePerPerson = size / rate;
-
-                // if that didn't work, revert to the last known good time
-                // per person
-                if (safe(timePerPerson) == 0) {
-                    timePerPerson = safe(node.getNumericAttribute(TPP_ATTR));
-                    rate = Double.NaN;
-                }
+                timePerPerson = safe(size / rate);
             }
 
+            // if that didn't work, revert to the last known good time
+            // per person
+            if (timePerPerson == 0)
+                timePerPerson = safe(node.getNumericAttribute(TPP_ATTR));
+
+            // save the value we came up with for time per person
             node.setNumericAttribute(TPP_ATTR, timePerPerson);
+
+            // possibly recalculate the effective rate.
+            recalculateRate();
         }
 
         void figureNumPeople() {
@@ -349,16 +342,46 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
         public void userSetSize(double value) {
             size = value;
-            if (safe(rate) != 0)
-                userSetTimePerPerson(size / rate);
+
+            double savedRate = node.getNumericAttribute(RATE_ATTR);
+            if (safe(savedRate) != 0 && safe(size) != 0)
+                // if there is a saved value for the rate, and the size value
+                // entered is meaningful, we should recalculate the time per
+                // person based upon that rate.
+                userSetTimePerPerson(size / savedRate);
+            else
+                // if there is no saved value for the rate, recalculate the
+                // effective rate based upon the new size.
+                recalculateRate();
         }
 
         protected void recalculateRate() {
-            if (safe(timePerPerson) == 0) return;
-            if (safe(size) == 0) return;
-            rate = size / timePerPerson;
-            node.setNumericAttribute(RATE_ATTR, rate);
-            dataModel.columnChanged(rateColumn);
+            // is there a saved value for rate?
+            double oldRate = node.getNumericAttribute(RATE_ATTR);
+
+            if (safe(size) == 0 && safe(timePerPerson) == 0) {
+                // if both the size and the time per person are missing,
+                // (which is often the case when workflows are first inserted
+                // into the hierarchy, if the size has not yet been entered),
+                // just keep and display the saved rate
+                rate = oldRate;
+
+            } else {
+                // calculate the current effective rate.  If the effective
+                // rate cannot be calculated, use NaN.
+                rate = size / timePerPerson;
+                if (safe(rate) == 0) rate = Double.NaN;
+
+                // if the current effective rate and the saved rate are not
+                // equal, it implies that someone has edited the time value to
+                // disagree with the saved rate.  In response, we'll erase the
+                // saved value, to prevent it from being used to recalculate
+                // time if the user edits size in the future.
+                if (!equal(rate, oldRate)) {
+                    node.setAttribute(RATE_ATTR, null);
+                    dataModel.columnChanged(rateColumn);
+                }
+            }
         }
 
         public void userSetRate(double value) {
@@ -368,6 +391,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 node.setAttribute(RATE_ATTR, null);
             } else {
                 rate = value;
+                node.setNumericAttribute(RATE_ATTR, rate);
                 userSetTimePerPerson(size / rate);
             }
         }
