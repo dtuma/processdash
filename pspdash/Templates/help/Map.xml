@@ -35,6 +35,6 @@
 
   <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
   <mapID target="CreatingNewProcesses" url="Topics/AdvancedTopics/CreatingNewProcesses.html" />
-  <mapID target="ModifytingExistingProcesses" url="Topics/AdvancedTopics/ModifytingExistingProcesses.html" />
+  <mapID target="ModifyingExistingProcesses" url="Topics/AdvancedTopics/ModifyingExistingProcesses.html" />
 
 </map>
