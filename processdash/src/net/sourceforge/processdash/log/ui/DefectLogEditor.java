@@ -402,7 +402,7 @@ public class DefectLogEditor extends Component
                 row [5] = dle.defect.fix_time;
                 row [6] = dle.defect.fix_defect;
                 row [7] = dle.defect.description;
-                row [8] = FormatUtil.formatDateTime (dle.defect.date);
+                row [8] = FormatUtil.formatDate (dle.defect.date);
                 model.addRow(row);
             }
         }

@@ -31,6 +31,7 @@ import java.util.Date;
 
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class TimeLogEntry {
 
@@ -78,7 +79,7 @@ public class TimeLogEntry {
         startPosition = s.indexOf (START, endPosition) + START.length();
         endPosition = s.indexOf (TAB, startPosition);
         tle.createTime = FormatUtil.parseDateTime(s.substring (startPosition,
-                                                                  endPosition));
+                                                               endPosition));
         if (tle.createTime == null)
             throw new IllegalArgumentException("Invalid Start Time");
 
@@ -114,7 +115,7 @@ public class TimeLogEntry {
 
     public String toString() {
         return (((key == null) ? "" : key.toString()) + TAB +
-                START + FormatUtil.formatDateTime(createTime) + TAB +
+                START + XMLUtils.saveDate(createTime) + TAB +
                 ELAPSED + minutesElapsed + TAB +
                 INTERRUPT + minutesInterrupt +
                 (comment == null ? "" : TAB + comment) + TERMINATOR);

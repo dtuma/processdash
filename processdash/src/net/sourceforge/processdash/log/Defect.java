@@ -30,11 +30,12 @@ import java.util.*;
 import java.text.*;
 
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class Defect {
     public Date date;
     public String number, defect_type, phase_injected, phase_removed,
-                  fix_time, fix_defect, description, dateStr;
+                  fix_time, fix_defect, description;
 
     public Defect() {}
 
@@ -49,7 +50,7 @@ public class Defect {
             fix_time = tok.nextToken();
             fix_defect = tok.nextToken();
             description = tok.nextToken();
-            date = FormatUtil.parseDate(dateStr = tok.nextToken());
+            date = FormatUtil.parseDate(tok.nextToken());
         } catch (NoSuchElementException e) {
             System.out.println("NoSuchElementException: " + e);
             throw new ParseException("Poor defect formatting", 0);
@@ -65,7 +66,8 @@ public class Defect {
 
     public String toString() {
         String tab = "\t";
-        if (date != null) dateStr = FormatUtil.formatDate(date);
+        String dateStr = "";
+        if (date != null) dateStr = XMLUtils.saveDate(date);
         return (token(number, false) + tab +
                 token(defect_type, false) + tab +
                 token(phase_injected, false) + tab +

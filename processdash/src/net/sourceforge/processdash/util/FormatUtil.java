@@ -77,8 +77,13 @@ public class FormatUtil {
         try {
             return DATE_FORMAT.parse(s);
         } catch (ParseException e) {
-            return null;
         }
+        try {
+            if (s != null && s.startsWith("@"))
+                return new Date(Long.parseLong(s.substring(1)));
+        } catch (IllegalArgumentException iae) {
+        }
+        return null;
     }
 
 
