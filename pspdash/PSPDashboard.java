@@ -126,6 +126,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         propertiesFile = Settings.getFile("stateFile");
         File prop_file = new File(propertiesFile);
         property_directory = prop_file.getParent() + Settings.sep;
+        DefectAnalyzer.setDataDirectory(property_directory);
 
         // determine if Lost Data Files are present in the pspdata directory
         // and take steps to repair them.
