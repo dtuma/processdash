@@ -109,7 +109,6 @@ public class Translator {
             TRANSLATOR = (TranslationEngine) c.newInstance();
 
         } catch (Exception e) {
-            e.printStackTrace();
             TRANSLATOR = null;
         }
     }
@@ -142,10 +141,8 @@ public class Translator {
     private static void createDefaultEngine() {
         try {
             ResourceBundle r = Resources.getDashBundle("pspdash.Translator");
-            if (r instanceof PropertyResourceBundle)
-                TRANSLATOR = new DefaultEngine(r);
+            TRANSLATOR = new DefaultEngine(r);
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
