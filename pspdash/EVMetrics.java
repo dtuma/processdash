@@ -184,18 +184,21 @@ public class EVMetrics implements TableModel {
     protected void recalcViability(EVSchedule s) {
         maybeRecalcComplete(s, costInterval);
         if (unviable(costInterval)) {
-            System.out.println("cost interval is not viable");
-            costInterval = null;}
+            // System.out.println("cost interval is not viable");
+            costInterval = null;
+        }
 
         maybeRecalcComplete(s, timeErrInterval);
         if (unviable(timeErrInterval)) {
-            System.out.println("time err interval is not viable");
-            timeErrInterval = null;}
+            // System.out.println("time err interval is not viable");
+            timeErrInterval = null;
+        }
 
         maybeRecalcComplete(s, completionDateInterval);
         if (unviable(completionDateInterval)) {
-            System.out.println("completion date interval is not viable");
-            completionDateInterval = null;}
+            // System.out.println("completion date interval is not viable");
+            completionDateInterval = null;
+        }
     }
     protected void recalcMetricsFormatters() {
         validMetrics.clear();
@@ -823,7 +826,8 @@ public class EVMetrics implements TableModel {
 
         costInterval = AbstractConfidenceInterval.readFromXML
             (e.getElementsByTagName("costInterval"));
-        costInterval.setInput(totalPlanTime - earnedValueTime);
+        if (costInterval != null)
+            costInterval.setInput(totalPlanTime - earnedValueTime);
         timeErrInterval = AbstractConfidenceInterval.readFromXML
             (e.getElementsByTagName("timeErrInterval"));
     }
