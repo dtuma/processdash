@@ -21,6 +21,7 @@ public class WBSEditor implements WindowListener {
     TeamProject teamProject;
     JFrame frame;
     TeamTimePanel teamTimePanel;
+    UndoList undoList;
 
     public WBSEditor(TeamProject teamProject) {
         this.teamProject = teamProject;
@@ -54,6 +55,8 @@ public class WBSEditor implements WindowListener {
         String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         table.addTab("Defects", s, s);
 
+        undoList = new UndoList(model);
+        undoList.setForComponent(table);
 
         teamTimePanel =
             new TeamTimePanel(teamProject.getTeamMemberList(), data);
@@ -88,6 +91,8 @@ public class WBSEditor implements WindowListener {
     }
     private JMenu buildEditMenu() {
         JMenu result = new JMenu("Edit");
+        result.add(undoList.getUndoAction());
+        result.add(undoList.getRedoAction());
         return result;
     }
     private JMenu buildWorkflowMenu() {

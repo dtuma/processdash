@@ -25,6 +25,7 @@ public class TeamMemberColumnManager {
         this.columnList = new ArrayList();
 
         createColumns();
+        // TODO: listen for changes in the team list and update!
     }
 
     private void createColumns() {

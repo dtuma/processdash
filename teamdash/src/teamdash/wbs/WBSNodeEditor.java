@@ -92,6 +92,7 @@ public class WBSNodeEditor extends AbstractCellEditor
         // record the current editing state
         rowNumber = row;
         editingNode = (WBSNode) value;
+        UndoList.addCellEditor(table, this);
         // update the contents/appearance of the editor component
         editorComponent.updateInfo();
         editorComponent.setText(editingNode.getName());
@@ -225,6 +226,7 @@ public class WBSNodeEditor extends AbstractCellEditor
                 // will be repainted.
                 wbsModel.fireTableRowsUpdated(rowNumber,
                                               wbsModel.getRowCount()-1);
+                UndoList.madeChange(table, "Rename WBS element");
             }
         }
 
@@ -682,6 +684,8 @@ public class WBSNodeEditor extends AbstractCellEditor
                                           wbsModel.getRowCount()-1);
             // update the icon.
             updateIconAppearance();
+
+            UndoList.madeChange(table, "Change type of WBS element");
         }
     }
     final IconMenuListener ICON_MENU_LISTENER = new IconMenuListener();

@@ -12,7 +12,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 
-public class WBSModel extends AbstractTableModel {
+public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
     private ArrayList wbsNodes;
     private WBSModelValidator validator;
@@ -517,5 +517,37 @@ public class WBSModel extends AbstractTableModel {
         for (int i = 0;   i < wbsNodes.size();   i++)
             ((WBSNode) wbsNodes.get(i)).getAsXML(out);
         out.write("</wbsModel>\n");
+    }
+
+    /** This class takes a snapshot of the state of this wbs model, which
+     * can be restored later.
+     *
+     * By wrapping the data in a private class with private access, we
+     * ensure that no one else has an opportunity to tamper with the ArrayList
+     * between the time the snapshot is created and the time it is restored.
+     */
+    private class WBSModelSnapshot {
+        private ArrayList wbsNodeList;
+        public WBSModelSnapshot() {
+            synchronized (WBSModel.this) {
+                wbsNodeList = (ArrayList) WBSNode.cloneNodeList(wbsNodes);
+            }
+        }
+        void restore() {
+            synchronized (WBSModel.this) {
+                wbsNodes = (ArrayList) WBSNode.cloneNodeList(wbsNodeList);
+                recalcRows(false);
+                fireTableDataChanged();
+            }
+        }
+    }
+
+    public Object getSnapshot() {
+        return new WBSModelSnapshot();
+    }
+
+    public void restoreSnapshot(Object snapshot) {
+        if (snapshot instanceof WBSModelSnapshot)
+            ((WBSModelSnapshot) snapshot).restore();
     }
 }

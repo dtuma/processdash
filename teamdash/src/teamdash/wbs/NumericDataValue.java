@@ -2,6 +2,7 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.text.NumberFormat;
+import java.text.ParseException;
 
 public class NumericDataValue {
 
@@ -35,7 +36,15 @@ public class NumericDataValue {
         this.errorMessage = error;
         this.expectedValue = expected;
     }
-
+    /*
+    public NumericDataValue(String value) {
+        System.out.println("In NumericDataValue(string)");
+        this.value = Double.NaN;
+        if (value != null && value.length() != 0) try {
+            this.value = FORMATTER.parse(value).doubleValue();
+        } catch (ParseException pe) {}
+    }
+    */
 
     public String toString() {
         return format(value);
@@ -58,8 +67,8 @@ public class NumericDataValue {
         if (aValue == null || "".equals(aValue))
             return 0;
         try {
-            return Double.parseDouble(aValue.toString());
-        } catch (NumberFormatException nfe) { }
+            return FORMATTER.parse(aValue.toString()).doubleValue();
+        } catch (ParseException nfe) { }
 
         return Double.NaN;
     }
@@ -67,8 +76,12 @@ public class NumericDataValue {
 
     protected static final NumberFormat FORMATTER =
         NumberFormat.getNumberInstance();
+    //protected static final NumberFormat NO_COMMA_FORMATTER =
+        //NumberFormat.getNumberInstance();
     static {
         FORMATTER.setMaximumFractionDigits(1);
+        //NO_COMMA_FORMATTER.setMaximumFractionDigits(1);
+        //NO_COMMA_FORMATTER.
     }
 
 }

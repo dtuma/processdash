@@ -310,6 +310,7 @@ public class WBSJTable extends JTable {
         public void doAction(ActionEvent e) {
             System.out.println("Demote");
             selectRows(wbsModel.indentNodes(getSelectedRows(), 1));
+            UndoList.madeChange(WBSJTable.this, "Demote");
         }
     }
     final DemoteAction DEMOTE_ACTION = new DemoteAction();
@@ -321,6 +322,7 @@ public class WBSJTable extends JTable {
         public void doAction(ActionEvent e) {
             System.out.println("Promote");
             selectRows(wbsModel.indentNodes(getSelectedRows(), -1));
+            UndoList.madeChange(WBSJTable.this, "Promote");
         }
     }
     final PromoteAction PROMOTE_ACTION = new PromoteAction();
@@ -424,11 +426,14 @@ public class WBSJTable extends JTable {
             List nodesToInsert = copyList;
             copyList = cutList = null;
             int[] rowsInserted = wbsModel.insertNodes(nodesToInsert, pos);
-            if (rowsInserted != null) {
+            selectRows(rowsInserted);
+
+            UndoList.madeChange(WBSJTable.this, "Paste WBS elements");
+/*            if (rowsInserted != null) {
                 clearSelection();
                 for (int i=rowsInserted.length;   i-- > 0; )
                     addRowSelectionInterval(rowsInserted[i], rowsInserted[i]);
-            }
+            }*/
         }
     }
     final PasteAction PASTE_ACTION = new PasteAction();
@@ -463,6 +468,8 @@ public class WBSJTable extends JTable {
             row = wbsModel.add(row, newNode);
             setRowSelectionInterval(row, row);
             scrollRectToVisible(getCellRect(row, 0, true));
+
+            UndoList.madeChange(WBSJTable.this, "Insert WBS element");
         }
     }
     final InsertAction INSERT_ACTION = new InsertAction();
@@ -506,6 +513,8 @@ public class WBSJTable extends JTable {
             int rowToSelect = Math.min(rows[0], wbsModel.getRowCount()-1);
             setRowSelectionInterval(rowToSelect, rowToSelect);
             scrollRectToVisible(getCellRect(rowToSelect, 0, true));
+
+            UndoList.madeChange(WBSJTable.this, "Delete WBS elements");
         }
     }
     final DeleteAction DELETE_ACTION = new DeleteAction();
