@@ -45,13 +45,25 @@ undefine([PSP0 Tag], [psp0], [PSP0]);
  * Automatically compute Estimated Time by phase.
  */
 
-[Normalized_Estimated_Time] ==
-        [Estimated Time] / [Normalization %/Time/PSP0-2 To Date];
+[Normalized_Estimated_Time] == [Estimated Time] / 
+	([Normalization %/Time/PSP0-2 To Date] -
+	 iff([Design Review/node], 0, [Design Review/%/Time To Date]) -
+	 iff([Code Review/node], 0, [Code Review/%/Time To Date]));
 
 #define estimateTime(Phase) \
 [Phase/Estimated Time] = [Normalized_Estimated_Time] * [Phase/%/Time To Date];
 
 FOR_EACH_PHASE(estimateTime);
+
+// only assign estimated time for review phases that exist in this project.
+[Design Review/Estimated Time] = 
+	iff([Design Review/node],
+	    [Normalized_Estimated_Time] * [Design Review/%/Time To Date],
+	    0);
+[Code Review/Estimated Time] =
+	iff([Code Review/node],
+	    [Normalized_Estimated_Time] * [Code Review/%/Time To Date],
+	    0);
 
 
 [Design/Combined Estimated Time] =
