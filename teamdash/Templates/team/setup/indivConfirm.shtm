@@ -12,30 +12,41 @@ TD.value { font-family: monospace }
 
 <img align="left" src="/Images/team.jpg" width=50 height=50>
 
-<h1><!--#echo var=PATH_TRANSLATED --></h1>
+<!--#if [setup//Node_Name] -->
+ <h1><!--#echo [setup//Node_Location] -->/<!--#echo [setup//Node_Name] --></h1>
+<!--#else-->
+ <h1><!--#echo var=PATH_TRANSLATED --></h1>
+<!--#endif-->
 
 <h2>Confirm Choices</h2>
 
 <form action='wizard.class' method='post'>
-<input type='hidden' name='page' value='teamConfirm'>
+<input type='hidden' name='page' value='indivConfirm'>
 
-<p>The process dashboard will create a team project using the settings
+<p>The process dashboard will join the team project using the settings
 below:</p>
 
 <table style="margin-left: 1cm">
 
-<tr><td class="label">Process:</td>
-    <td class="value"><!--#echo var=[setup//Process_Name] --></td></tr>
+<tr><td class="label">Team Project URL:</td>
+    <td class="value"><!--#echo [setup//Team_URL] --></td></tr>
 
 <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
 
-<tr><td class="label">Team Directory:</td>
-    <td class="value"><!--#echo var=[setup//Team_Dir] --></td></tr>
+<!--#if [setup//Node_Name] -->
+<tr><td class="label">Local Project Name:</td>
+    <td class="value"><!--#echo [setup//Node_Location] -->/<!--#echo [setup//Node_Name] --></td></tr>
+
+<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+<!--#endif-->
+
+<tr><td class="label">Your Initials:</td>
+    <td class="value"><!--#echo [setup//Indiv_Initials] --></td></tr>
 
 <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
 
 <tr><td class="label">Schedule Name:</td>
-    <td class="value"><!--#echo var=[setup//Team_Schedule] --></td></tr>
+    <td class="value"><!--#echo [setup//Indiv_Schedule] --></td></tr>
 
 </table>
 

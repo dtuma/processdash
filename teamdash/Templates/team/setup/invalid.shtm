@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>Team Project Setup Wizard</title>
-<link rel=stylesheet type='text/css' href='style.css'>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 <style>
 TD.label { font-weight: bold;   vertical-align: top;
            text-align: left;    padding-right: .5cm }
@@ -10,7 +10,7 @@ TD.value { font-family: monospace }
 </head>
 <body>
 
-<img align="left" src="team.jpg">
+<img align="left" src="/Images/team.jpg">
 
 <h1><!--#echo var=PATH_TRANSLATED --></h1>
 

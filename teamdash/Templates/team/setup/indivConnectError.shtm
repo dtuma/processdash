@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<!--#if [setup//Node_Name] -->
+ <h1><!--#echo [setup//Node_Location] -->/<!--#echo [setup//Node_Name] --></h1>
+<!--#else-->
+ <h1><!--#echo var=PATH_TRANSLATED --></h1>
+<!--#endif-->
+
+<h2>Unable to Contact Team Dashboard</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='indivShowConfirm'>
+
+<p>To join the team project, this wizard needs to communicate with the
+team dashboard. It was unable to contact the team dashboard at the
+URL you provided:</p>
+
+<PRE>    <!--#echo [setup//Team_URL] --></PRE>
+
+<p>Please ensure that you have entered the team project URL correctly,
+and contact your team leader to ensure that the team dashboard is
+currently running.</p>
+
+<p>After you address this problem, you can click the &quot;Retry&quot;
+button and the dashboard will try again.</p>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=cancel value='Cancel'
+       onClick='window.close();'>&nbsp;&nbsp;
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=retry value='Retry'>
+</td></tr></table>
+
+</form>
+</body>

@@ -4,3 +4,4 @@ DASHJAR = ../../../pspdash/build/pspdash.jar
 
 all:
 	$(JAVAC) -classpath ../$(DASHJAR) *.java
+	perl makeList.pl

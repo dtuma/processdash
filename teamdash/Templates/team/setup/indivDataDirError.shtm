@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<!--#if [setup//Node_Name] -->
+ <h1><!--#echo [setup//Node_Location] -->/<!--#echo [setup//Node_Name] --></h1>
+<!--#else-->
+ <h1><!--#echo var=PATH_TRANSLATED --></h1>
+<!--#endif-->
+
+<h2>Unable to Locate Team Data Directory</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='indivShowConfirm'>
+
+<p>According to the team dashboard, data for this project should be
+exported to the following directory:</p>
+
+<PRE>    <!--#echo [setup//Data_Directory] --></PRE>
+
+<p>Unfortunately, that directory doesn't appear to exist.  To resolve
+this problem, you may need to map a network drive.  Contact your team
+leader for more help.</p>
+
+<p>After you address this problem, you can click the &quot;Retry&quot;
+button and the dashboard will try again.</p>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=cancel value='Cancel'
+       onClick='window.close();'>&nbsp;&nbsp;
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=retry value='Retry'>
+</td></tr></table>
+
+</form>
+</body>

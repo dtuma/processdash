@@ -7,14 +7,18 @@
 
 <img align="left" src="/Images/team.jpg" width=50 height=50>
 
-<h1><!--#echo var=PATH_TRANSLATED --></h1>
+<!--#if [setup//Node_Name] -->
+ <h1><!--#echo [setup//Node_Location] -->/<!--#echo [setup//Node_Name] --></h1>
+<!--#else-->
+ <h1><!--#echo var=PATH_TRANSLATED --></h1>
+<!--#endif-->
 
 <h2>Close Hierarchy Editor</h2>
 
 <form action='wizard.class' method='post'>
-<input type='hidden' name='page' value='teamCloseHier'>
+<input type='hidden' name='page' value='indivShowConfirm'>
 
-<p>To create the team project, this wizard will need to modify your
+<p>To join the team project, this wizard will need to modify your
 hierarchy.  Unfortunately, this wizard cannot modify the hierarchy
 while the hierarchy editor is open.</p>
 

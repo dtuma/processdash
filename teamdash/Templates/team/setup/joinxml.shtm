@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<!--#foreach name="|" list=[file_sep] -->
+
+<join-team-project
+    Template_ID="<!--#echo var=[Team_Process_PID] encoding=xml -->/IndivRoot"
+
+    Team_Directory="<!--#echo var=[Team_Directory] encoding=xml -->"
+    Template_Path="<!--#echo var=[Team_Directory] encoding=xml -->|Templates|<!--#echo var=[Team_Process_PID] encoding=xml -->.zip"
+
+<!--#if [Team_Directory_UNC] -->
+    Team_Directory_UNC="<!--#echo var=[Team_Directory_UNC] encoding=xml -->"
+    Template_Path_UNC="<!--#echo var=[Team_Directory_UNC] encoding=xml -->|Templates|<!--#echo var=[Team_Process_PID] encoding=xml -->.zip"
+<!--#else-->
+    Team_Directory_UNC=""
+    Template_Path_UNC=""
+<!--#endif-->
+
+    Project_ID="<!--#echo var=[Project_ID] encoding=xml -->"
+    Continuation_URI="/<!--#echo var=[Team_Process_PID] encoding=xml -->/setup/wizard.class?page=indiv"
+
+/>
+
+<!--#endfor-->

@@ -1,11 +1,11 @@
 <html>
 <head>
 <title>Team Project Setup Wizard</title>
-<link rel=stylesheet type='text/css' href='style.css'>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 </head>
 <body>
 
-<img align="left" src="team.jpg" width=50 height=50>
+<img align="left" src="/Images/team.jpg" width=50 height=50>
 
 <h1><!--#echo var=PATH_TRANSLATED --></h1>
 
