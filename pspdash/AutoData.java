@@ -253,5 +253,6 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
     protected static final String DEFINE_ROLLUP_ATTR = "defineRollup";
     protected static final String USES_ROLLUP_ATTR = "usesRollup";
     protected static final String ROLLUP_DATAFILE_ATTR = "rollupDataFile";
+    protected static final String SIZE_METRIC_ATTR = "size";
 
 }
