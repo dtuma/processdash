@@ -13,12 +13,9 @@ you already know that \texttt{doc} contains this documentation :-)\\
 So let's go into \texttt{bin/}. The \texttt{icons/} directory contains some
 directories for your system, in case you would like an icon to launch a
 component of \IzPack. But the most important things you can see in \texttt{bin}
-are the \texttt{izpack-fe} and \texttt{compile} scripts (in both Unix* and
-Windows formats). \texttt{izpack-fe} will launch the GUI based frontend of
-\IzPack. It gives you the ability to prepare an installation XML file and
-compile it to generate your installer. \texttt{compile} is used to compile a
-ready-to-go XML installation file from a command-line context or from an
-external tool.\\
+are the texttt{compile} scripts (in both Unix* and Windows formats).
+\texttt{compile} is used to compile a ready-to-go XML installation file from
+a command-line context or from an external tool.\\
 
 \noindent
 \textit{Note : these scripts can be launched from anywhere on your system as the
@@ -39,18 +36,7 @@ $ java -jar install.jar
 \end{verbatim}
 
 There you are! The first command has produced the installer and the
-second one did launch it. You can do the same thing by using the
-frontend. You launch it with the \texttt{izpack-fe} script located in
-\texttt{bin/}.\\
-
-\fbox{\includegraphics[scale=0.30]{img/ch1-import.eps}}Like on
-the picture, import the file by selecting it from the \texttt{sample/}
-directory. Then you will be asked for a base path, just go one directory
-back and select \texttt{sample/}. The different fields of the frontend
-should be filled properly. To compile the installer, just go into the
-\textit{compile} menu and select a \textit{standard} kind of installer.
-It will ask you for an output file name, just enter install.jar. The
-building process should work just as smooth as in command-line mode.\\
+second one did launch it.
 
 % The IzPack Architecture
 \section{The \IzPack Architecture}
@@ -64,7 +50,6 @@ The compilation system (see figure \ref{comparch}) is quite modular.
 Indeed, you can use the compiler in 3 ways :
 \begin{itemize}
   \item from a command-line
-  \item from the GUI frontend
   \item from Jakarta Ant
 \end{itemize}\
 
@@ -72,7 +57,7 @@ Indeed, you can use the compiler in 3 ways :
 \caption{\label{comparch}
          \textit{The compiler architecture.}}
 \begin{center}
-\fbox{\includegraphics[scale=0.4]{img/ch1-comparch.eps}}
+\fbox{\includegraphics[scale=0.4]{img/ch1-comparch}}
 \end{center}
 \end{figure}
 
@@ -85,6 +70,17 @@ more (see figure \ref{archinstaller}).\\
 The compiler can generate different kinds of installers, but this information is
 not located inside the XML file as it is not were it should be. On the contrary,
 this is a compiler parameter.\\
+
+The compilation options for a command-line installer are the following:
+\begin{itemize}
+\item \texttt{-?}: gives a list of the available options.
+\item \texttt{-b}: specifies the base path, \textsl{ie} the one that will be
+used to resolve the relative paths. If your XML file contains absolute paths,
+specify it to an empty string (\texttt{-b ""}).
+\item \texttt{-k}: specifies the installer kind, for instance most users will
+want \texttt{standard} here.
+\item \texttt{-o}: specifies the resulting installer Jar file name.
+\end{itemize}\
 
 \subsection{How an Installer Works}
 
@@ -100,7 +96,7 @@ include it.\\
 \caption{\label{archinstaller}
          \textit{The installer architecture.}}
 \begin{center}
-\fbox{\includegraphics[scale=0.4]{img/ch1-compinside.eps}}
+\fbox{\includegraphics[scale=0.4]{img/ch1-compinside}}
 \end{center}
 \end{figure}
 
@@ -114,7 +110,7 @@ tag. This is a much cleaner approach.\\
 
 You might wonder how your files are packaged. They can be grouped in
 \textit{packs}. For instance, you can have one pack for the core files, one for
-the documentation, one for the source code and so one. In this way, your end-users
+the documentation, one for the source code and so on. In this way, your end-users
 will have the choice to install a pack or not (provided that the pack they don't
 want to install is not mandatory). Inside the jar file (which is a zip file), a
 sub directory contains the pack files. Each pack file contains the files that are
