@@ -20,7 +20,7 @@ import org.w3c.dom.*;
 public class wizard extends TinyCGIBase {
 
 
-    // The following three constants are copies of constants in the
+    // The following four constants are copies of constants in the
     // bootstrap script.  They must match the values in the bootstrap
     // script, so they should not be edited.
 
@@ -170,7 +170,7 @@ public class wizard extends TinyCGIBase {
         DataRepository data = getDataRepository();
         String prefix = getPrefix();
         if (prefix == null) prefix = "";
-        String dataName = data.createDataName(prefix, name);
+        String dataName = DataRepository.createDataName(prefix, name);
         data.putValue(dataName, dataValue);
     }
 
@@ -179,7 +179,7 @@ public class wizard extends TinyCGIBase {
         DataRepository data = getDataRepository();
         String prefix = getPrefix();
         if (prefix == null) prefix = "";
-        String dataName = data.createDataName(prefix, name);
+        String dataName = DataRepository.createDataName(prefix, name);
         SimpleData d = data.getSimpleValue(dataName);
         return (d == null ? null : d.format());
     }
@@ -401,7 +401,9 @@ public class wizard extends TinyCGIBase {
         // create the required team directories. This involves file IO
         // which could fail for various reasons, so we attempt to get
         // it out of the way first.
-        if (!createTeamDirs(teamDirectory, projectID))
+        if (!createTeamDirs(teamDirectory, projectID) ||
+            !writeTeamSettingsFile(teamPID, teamDirectory, teamSchedule,
+                                   projectID, processJarFile))
             // the error page will already have been displayed by now,
             // so just abort on failure.
             return;
@@ -452,6 +454,67 @@ public class wizard extends TinyCGIBase {
         printRedirect(TEAM_DIR_URL + "?errMsg=" + errMsg);
         return false;
     }
+
+    private boolean writeTeamSettingsFile(String teamPID,
+                                          String teamDirectory,
+                                          String teamSchedule,
+                                          String projectID,
+                                          String processJarFile)
+    {
+        File teamDir = new File(teamDirectory);
+        File dataDir = new File(teamDir, "data");
+        File projDataDir = new File(dataDir, projectID);
+        File settingsFile = new File(projDataDir, "settings.xml");
+
+        try {
+            Writer out = new OutputStreamWriter
+                (new FileOutputStream(settingsFile), "UTF-8");
+            // write XML header
+            out.write("<?xml version='1.0' encoding='UTF-8'?>\n");
+            // open XML tag
+            out.write("<project-settings\n");
+            // write the project name
+            String name = getPrefix();
+            if (name != null) {
+                int pos = name.lastIndexOf('/');
+                if (pos != -1) name = name.substring(pos+1);
+                out.write("    projectName='" +
+                          XMLUtils.escapeAttribute(name) + "'\n");
+            }
+            // write the project ID.
+            out.write("    projectID='" +
+                      XMLUtils.escapeAttribute(projectID) + "'\n");
+            // write the process ID.
+            int pos = teamPID.indexOf('/');
+            if (pos != -1) teamPID = teamPID.substring(0, pos);
+            out.write("    processID='" +
+                      XMLUtils.escapeAttribute(teamPID) + "'\n");
+            // write the relative path to the process jar file, if we know it
+            if (processJarFile != null) {
+                File jarFile = new File(processJarFile);
+                out.write("    templatePath='../../Templates/" +
+                          XMLUtils.escapeAttribute(jarFile.getName()) + "'\n");
+            }
+            // write the schedule name
+            out.write("    scheduleName='" +
+                      XMLUtils.escapeAttribute(teamSchedule) + "'\n");
+            // close the XML tag
+            out.write("/>\n");
+            out.close();
+            return true;
+
+        } catch (IOException ioe) {
+            String errMsg = "The team project setup wizard was unable to "+
+                "write the team project settings file '" + settingsFile +
+                "'. Please ensure that you have adequate file permissions " +
+                "to create this file, then click &quot;Next.&quot; " +
+                "Otherwise, enter a different team directory below.";
+            errMsg = URLEncoder.encode(errMsg);
+            printRedirect(TEAM_DIR_URL + "?errMsg=" + errMsg);
+            return false;
+        }
+    }
+
 
     protected boolean tryToCopyProcessJarfile(String jarFilename,
                                               String teamDirectory) {
