@@ -99,10 +99,13 @@ abstract class NSField extends HTMLField {
         if (i != null) i.userChangedValue(variantValue);
     }
 
+    private static final String PKG_PREFIX =
+        "net.sourceforge.processdash.data.applet.ns.";
     protected void debug(String msg) {
         if (DataApplet.debug)
-            // print this object's classname (minus "pspdash.data.") and the message
-            System.out.println(getClass().getName().substring(13) + ": " + msg);
+            // print this object's classname (minus package name) and the message
+            System.out.println
+                (getClass().getName().substring(PKG_PREFIX.length()) + ": " + msg);
     }
 
 }
