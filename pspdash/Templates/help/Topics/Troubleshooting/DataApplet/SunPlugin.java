@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 
@@ -52,9 +52,9 @@ public class IEDataApplet extends Applet {
             if (urlStr == null || urlStr.length() == 0)
                 urlStr = getDocumentBase().toString();
             if (urlStr.indexOf('?') == -1)
-                urlStr = urlStr + "?UsingJavaPlugIn";
+                urlStr = urlStr + "?ForceJavaPlugIn";
             else
-                urlStr = urlStr + "&UsingJavaPlugIn";
+                urlStr = urlStr + "&ForceJavaPlugIn";
 
             URL url = new URL(urlStr);
             getAppletContext().showDocument(url, "_self");
