@@ -55,7 +55,7 @@ public class DefectEditor extends Component
     protected JButton editButton, deleteButton, closeButton;
 //  protected UserWarning     warnUser;
 
-
+    ResourceBundle resources = Resources.getBundle("pspdash.DefectEditor");
 
     //
     // member functions
@@ -79,8 +79,7 @@ public class DefectEditor extends Component
         defectLogs = new Hashtable ();
         reload ();
 
-        frame = new JFrame("Defect Editor");
-        frame.setTitle("Defect Editor");
+        frame = new JFrame(resources.getString("Window_Title"));
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("Center", panel);
@@ -338,8 +337,9 @@ public class DefectEditor extends Component
                 // display a confirmation dialog
                 if (JOptionPane.showConfirmDialog
                     (frame,
-                     "Are you certain you want to delete defect #" + number + "?",
-                     "Confirm Defect Deletion", JOptionPane.YES_NO_OPTION) ==
+                     Resources.format(resources, "Confirm_Delete_Message_FMT", number),
+                     resources.getString("Confirm_Delete_Title"),
+                     JOptionPane.YES_NO_OPTION) ==
                     JOptionPane.YES_OPTION)
                     dle.dl.deleteDefect(number);
                 dlg = getDialogForDefect(dle);
@@ -367,24 +367,23 @@ public class DefectEditor extends Component
         JPanel  retPanel = new JPanel(false);
         JButton button;
 
+        String[] columns = new String[] {
+            "Project", "ID", "Type", "Injected", "Removed",
+            "Time", "Fix", "Description", "Date" };
+        String[] tooltips = new String[columns.length];
+        for (int i = columns.length;   i-- > 0; ) {
+            tooltips[i] = resources.getString(columns[i] + "_Tooltip");
+            columns[i]  = resources.getString(columns[i]);
+        }
+
         retPanel.setLayout(new BorderLayout());
         table = new ValidatingTable
-            (new Object[] {"Project",  "ID",          "Type",
-                           "Injected", "Removed",     "Time",
-                           "Fix",      "Description", "Date"},
+            (columns,
              null,
              new int[] {200, 25,  80,
                         100, 100, 40,
                         30,  200, 100},
-             new String[] {"The project that the defect is logged to",
-                           "The defect number of this defect",
-                           "The defect Type",
-                           "The phase in which the defect was injected",
-                           "The phase in which the defect was removed",
-                           "The fix time(minutes)",
-                           "The number of the related defect",
-                           "The (first part of the) defect description",
-                           "The date the defect was entered / edited"},
+             tooltips,
              null, null, 0, true, null,
              new boolean[] {false, false, false, // no columns editable
                             false, false, false,
@@ -402,7 +401,7 @@ public class DefectEditor extends Component
         JPanel btnPanel = new JPanel(false);
                                     // Should only be available if one
                                     // entry is selected
-        editButton = new JButton ("Edit");
+        editButton = new JButton (Resources.getString("Edit"));
         editButton.setActionCommand ("edit");
         editButton.addActionListener (this);
         editButton.setEnabled (false);
@@ -410,13 +409,13 @@ public class DefectEditor extends Component
 
                                     // Should only be available if one
                                     // entry is selected
-        deleteButton = new JButton ("Delete");
+        deleteButton = new JButton (Resources.getString("Delete"));
         deleteButton.setActionCommand ("delete");
         deleteButton.addActionListener (this);
         deleteButton.setEnabled (false);
         btnPanel.add (deleteButton);
 
-        closeButton = new JButton ("Close");
+        closeButton = new JButton (Resources.getString("Close"));
         closeButton.setActionCommand ("close");
         closeButton.addActionListener (this);
         btnPanel.add (closeButton);
