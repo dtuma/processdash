@@ -8,6 +8,7 @@
 **/.xvpics/
 **/SCR-*.htm
 Templates/DCR.template
+Templates/help/createBroker.class.link
 Templates/help/help.config
 Templates/help/make*.xslt
 Templates/Import-template.xml

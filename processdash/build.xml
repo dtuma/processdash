@@ -99,7 +99,6 @@ Authors:
   <property name="ns.jar" value="${build}/Templates/${applet.file}.jar"/>
   <property name="ie.dir" value="${build}/IE"/>
   <property name="ie.cab" value="${build}/Templates/${applet.file}.cab"/>
-  <property name="hb.dir" value="${build}/hb"/>
 
   <property name="jfreechart.jar" value="${lib}/jfreechart-0.9.13.jar"/>
   <property name="jcommon.jar"    value="${lib}/jcommon-0.8.8.jar"/>
@@ -151,7 +150,7 @@ Authors:
            classpathref="build.classpath">
       <include name="net/**/*.java"/>
       <include name="pspdash/**/*.java"/>
-      <exclude name="pspdash/DashHelpBroker.java"/>
+      <exclude name="pspdash/DashHelpBroker*.java"/>
       <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ns.txt"/>
@@ -160,32 +159,37 @@ Authors:
 
 
 
-  <target name="javahelp-broker" depends="compile" if="javahelp.jhjar"
-          description="Compile the built-in context-sensitive help support">
+  <target name="javahelp-broker" if="javahelp.jhjar"
+          depends="compile,-javahelp-cgi-src" 
+          description="Compile the context-sensitive help support">
     <javac srcdir="${src}" destdir="${build}" debug="${debug}">
        <classpath>
          <path refid="build.classpath"/>
          <pathelement location="${javahelp.jhjar}"/>
        </classpath>
-       <include name="pspdash/DashHelpBroker.java"/>
+       <include name="pspdash/DashHelpBroker*.java"/>
     </javac>
+  </target>
+
+  <target name="-javahelp-cgi-src" depends="-javahelp-cgi-src-depend"
+          if="javahelp.jhjar" unless="javahelp.cgi.src.upToDate">
+    <copy file="${pspdash}/DashHelpBroker.java"
+          tofile="${pspdash}/DashHelpBrokerCGI.java"/>
+    <replace file="${pspdash}/DashHelpBrokerCGI.java"
+          token="DashHelpBroker"
+	  value="DashHelpBrokerCGI"/>
+  </target>
+
+  <target name="-javahelp-cgi-src-depend">
+    <uptodate property="javahelp.cgi.src.upToDate"
+              srcfile="${pspdash}/DashHelpBroker.java"
+              targetfile="${pspdash}/DashHelpBrokerCGI.java"/>
   </target>
 
 
 
-  <target name="javahelp-addon" depends="compile" if="javahelp.jhjar"
-          description="Compile the add-on context-sensitive help support">
-    <!-- compile the bootstrap cgi script -->
-    <mkdir dir="${hb.dir}/Templates/help"/>
-    <javac srcdir="${templates}/help" destdir="${hb.dir}/Templates/help"
-           debug="${debug}">
-       <classpath>
-         <path refid="build.classpath"/>
-         <pathelement location="${javahelp.jhjar}"/>
-       </classpath>
-       <include name="createBroker.java"/>
-    </javac>
-
+  <target name="javahelp-addon" depends="javahelp-broker" if="javahelp.jhjar"
+          description="Package up the add-on context-sensitive help support">
     <!-- jar up the contents of the add-on -->
     <jar destfile="${dist}/dashHelp.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
@@ -199,8 +203,8 @@ Authors:
       </manifest>
 
       <!-- include the bootstrap cgi script -->
-      <fileset dir="${hb.dir}"
-               includes="Templates/help/createBroker.class"/>
+      <fileset dir="${build}" includes="**/DashHelpBrokerCGI.class"/>
+      <fileset dir="." includes="Templates/help/createBroker.class.link"/>
 
       <!-- include the contents of the javahelp distribution -->
       <zipfileset src="${javahelp.jhjar}" excludes="META-INF/ meta-inf/"/>
@@ -320,100 +324,13 @@ Authors:
   </target>
 
 
-  <property name="plug.path"
-            value="Templates/help/Topics/Troubleshooting/DataApplet"/>
-  <property name="plug.dir"     value="${plug.path}"/>
-  <property name="plug.destdir" value="${build}/${plug.path}"/>
-  <property name="plug.jar"     value="${plug.destdir}/SunPlugin.jar"/>
 
-  <!-- Compile sun plugin redirector applet -->
-  <target name="PluginRedirector" depends="init,-PluginRedirector-depend"
-          unless="PluginRedirector.upToDate"
-          description="Compile the applet which detects the sun plugin.">
-    <copy file="${plug.dir}/SunPlugin.java" overwrite="true"
-          tofile="${plug.dir}/IEDataApplet.java"/>
-    <delete quiet="true" dir="${plug.dir}/pspdash"/>
-    <javac srcdir="${plug.dir}" destdir="${plug.dir}" debug="${debug}"
-           classpathref="build.classpath" includes="IEDataApplet.java"/>
-    <mkdir dir="${plug.destdir}"/>
-    <jar destfile="${plug.jar}" basedir="${plug.dir}" includes="pspdash/"/>
-    <delete dir="${plug.dir}/pspdash"/>
-    <delete file="${plug.dir}/IEDataApplet.java"/>
-  </target>
-
-  <!-- See if the sun plugin redirector applet is up to date -->
-  <target name="-PluginRedirector-depend" depends="init">
-    <uptodate property="PluginRedirector.upToDate"
-              srcfile="${plug.dir}/SunPlugin.java"
-              targetfile="${plug.jar}"/>
-  </target>
-
-
-  <target name="cgi-scripts" depends="compile,jfreechart"
-          description="Compile the cgi scripts.">
-
-    <!-- compile the psp3 cycle summary form -->
-    <mkdir dir="${build}/Templates/psp3"/>
-    <javac srcdir="${templates}/psp3" destdir="${build}/Templates/psp3"
-           classpathref="build.classpath" debug="${debug}"
-           includes="cyclesum.java"/>
-
-    <!-- compile the generic plan summary form -->
-    <mkdir dir="${build}/Templates/generic"/>
-    <javac srcdir="${templates}/generic" destdir="${build}/Templates/generic"
-           classpathref="build.classpath" debug="${debug}"
-           includes="summary.java"/>
-
-    <!-- compile the cgi scripts in the "control" subdirectory -->
-    <mkdir dir="${build}/Templates/control"/>
-    <javac srcdir="${templates}/control" destdir="${build}/Templates/control"
-           classpathref="build.classpath" debug="${debug}"
-           includes="*.java"/>
-
-    <!-- compile the cgi scripts in the "dash" subdirectory -->
-    <mkdir dir="${build}/Templates/dash"/>
-    <javac srcdir="${templates}/dash" destdir="${build}/Templates/dash"
-           classpathref="build.classpath" debug="${debug}"
-           includes="*.java"/>
-
-    <!-- compile the cgi scripts in the "reports/psp" subdirectory -->
-    <mkdir dir="${build}/Templates/reports/psp"/>
-    <javac srcdir="${templates}/reports/psp"
-           destdir="${build}/Templates/reports/psp"
-           classpathref="build.classpath" debug="${debug}"
-           includes="*.java"/>
-
-    <!-- compile the probe wizard -->
-    <mkdir dir="${build}/Templates/reports/probe"/>
-    <javac srcdir="${templates}/reports/probe"
-           destdir="${build}/Templates/reports/probe" debug="${debug}"
-           classpathref="build.classpath" includes="*.java"/>
-
-    <!-- compile the cgi scripts in the "reports" subdirectory -->
-    <javac srcdir="${templates}/reports"
-           destdir="${build}/Templates/reports" debug="${debug}"
-           classpathref="build.classpath">
-      <include name="*.java"/>
-      <exclude name="RadarPlot.java"/>
-    </javac>
-
-    <!-- make a copy of the excel cgi script so the filename ends in .iqy -->
-    <copy file="${build}/Templates/reports/excel.class"
-          tofile="${build}/Templates/reports/excel.iqy"/>
-
-    <!-- compile the language filters in the base "Templates" directory -->
-    <javac srcdir="${templates}" destdir="${build}/Templates" debug="${debug}"
-           classpathref="build.classpath" includes="*Filter.java"/>
-
-  </target>
-
-  <target name="optional"
-     depends="javahelp-broker,NSDataApplet,PluginRedirector"/>
+  <target name="optional" depends="javahelp-broker,NSDataApplet"/>
 
 
 
   <target name="jar"
-          depends="init,compile,optional,jfreechart,cgi-scripts,javahelp"
+          depends="init,compile,optional,jfreechart,javahelp"
           description="Make the jarfile for distribution">
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
@@ -432,8 +349,8 @@ Authors:
           <include name="pspdash/"/>
           <include name="Templates/"/>
           <include name="net/"/>
-          <exclude name="Templates/reports/excel.class"/>
 	  <exclude name="**/*Test.class"/>
+          <exclude name="**/DashHelpBrokerCGI.class"/>
 	  <exclude name="net/**/PspForEngFilter.class"/>
       </fileset>
 
