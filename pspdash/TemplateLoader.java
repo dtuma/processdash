@@ -407,7 +407,7 @@ public class TemplateLoader {
             lname = name.toLowerCase();
             if ((lname.endsWith(".jar") || lname.endsWith(".zip"))) {
                 processTimestamp(dirContents[i]);
-                if (! lname.endsWith(JARFILE_NAME))
+                if (!isDashboardJarfile(dirContents[i]))
                     v.add(new URL("jar:" + name + "!/" + TEMPLATE_DIR));
             }
         } catch (MalformedURLException mue) {}
@@ -432,6 +432,17 @@ public class TemplateLoader {
                 return null;
         } catch (IndexOutOfBoundsException ioobe) {}
         return null;
+    }
+    private static boolean isDashboardJarfile(File f) {
+        try {
+            JarInputStream jarFile =
+                new JarInputStream(new FileInputStream(f));
+            String id = jarFile.getManifest().getMainAttributes()
+                .getValue("Dash-Pkg-ID");
+            return "pspdash".equals(id);
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     public static URL resolveURL(String url) {
