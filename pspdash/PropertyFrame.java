@@ -206,8 +206,15 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         useProps.addItemListener (this);
     }
 
+    PSPProperties oldProps = null;
+
     public void saveProperties () {
 
+        dashboard.releaseTimeLogEntry(null);
+        configureButton.saveOrRevertTimeLog();
+
+        oldProps = new PSPProperties(useProps.dataPath);
+        oldProps.copy(readProps);
         readProps.copy (useProps);
         setDirty (false);
 
@@ -224,6 +231,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 savePendingVector();
                 updateNodesAndLeaves();
                 closeProgressDialog();
+                configureButton.reloadHierarchy(useProps);
             }
             };
         t.start();
@@ -234,6 +242,12 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     public void savePendingVector() {
 
         if (pendingVector != null) {
+            TimeLog timelog = new TimeLog();
+            try {
+                timelog.read (dashboard.getTimeLog());
+            } catch (IOException ioe) {
+                // What should we do here??
+            }
             String dataDir = dashboard.getDirectory();
             dashboard.data.startInconsistency();
 
@@ -257,6 +271,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                             break;
 
                         case PendingDataChange.CHANGE:
+                            //DefectEditor.rename(oldProps,useProps,p.oldPrefix,p.newPrefix);
+                            timelog.rename (p.oldPrefix, p.newPrefix);
                             dashboard.data.renameData (p.oldPrefix, p.newPrefix);
                             break;
                         }
@@ -264,6 +280,11 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                     incrementProgressDialog();
                 }
                 pendingVector.removeAllElements();
+                try {
+                    timelog.save (dashboard.getTimeLog());
+                } catch (IOException ioe) {
+                    // What should we do here?
+                }
             } finally {
                 dashboard.data.finishInconsistency();
             }

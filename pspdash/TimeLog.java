@@ -153,6 +153,24 @@ public class TimeLog {
         backupFile.delete();
     }
 
+    public void rename (String oldPrefix, String newPrefix) {
+        String oldPrefixSlash = oldPrefix + "/", path, newPath;
+        int oldPrefixLen = oldPrefix.length();
+        TimeLogEntry tle;
+        PropertyKey newKey = PropertyKey.fromPath(newPrefix);
+
+        for (int i = v.size();  i-- > 0; ) {
+            tle = (TimeLogEntry) v.elementAt (i);
+            path = tle.key.path();
+            if (path.equals(oldPrefix))
+                tle.key = newKey;
+            else if (path.startsWith(oldPrefixSlash)) {
+                newPath = newPrefix + path.substring(oldPrefixLen);
+                tle.key = PropertyKey.fromPath(newPath);
+            }
+        }
+    }
+
     public long timeOf (PropertyKey k, boolean childrenAlso) {
         long         t = 0;
         TimeLogEntry tle;

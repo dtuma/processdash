@@ -155,6 +155,14 @@ public class DefectEditor extends Component
     }
 
 
+    public void reloadAll(PSPProperties newProps) {
+        useProps.copy(newProps);
+        treeModel.reload (useProps);
+        reload();
+        applyFilter();
+    }
+
+
     protected void reload () {
         PropertyKey pKey;
         Prop prop;
@@ -190,8 +198,18 @@ public class DefectEditor extends Component
     void applyFilter () {
         PropertyKey key = null;
         DefaultMutableTreeNode selected = getSelectedNode();
+        String extraPathFilter = null;
         if (selected != null) {
             key = treeModel.getPropKey (useProps, selected.getPath());
+            if (key != null) {
+                String selectedPath = key.path();
+                DefectLogID logid = useProps.defectLog(key, "unimportant");
+                if (logid != null && logid.path != key) {
+                    key = logid.path;
+                    String defectLogPath = key.path();
+                    extraPathFilter = selectedPath.substring(defectLogPath.length()+1);
+                }
+            }
         }
         // apply the filter and load the vector (and the table)
         VTableModel model = (VTableModel)table.table.getModel();
@@ -214,6 +232,10 @@ public class DefectEditor extends Component
             dli = (DefectListID) defectLogs.get (pk);
             for (int ii = 0; ii < dli.defects.length; ii++) {
                 dle = new DefectListEntry (dli, ii);
+                if (extraPathFilter != null &&
+                    !matchesExtraPath(dle.defect.phase_injected, extraPathFilter) &&
+                    !matchesExtraPath(dle.defect.phase_removed,  extraPathFilter))
+                    continue;
                 currentLog.addElement (dle);
                 row [0] = dle.pk.path();
                 row [1] = dle.defect.number;
@@ -229,6 +251,12 @@ public class DefectEditor extends Component
         }
         table.doResizeRepaint();
         maybeEnableButtons();
+    }
+
+    private boolean matchesExtraPath(String phase, String pathFilter) {
+        //if (pathFilter == null) return true;
+        if (phase == null) return false;
+        return (phase.equals(pathFilter) || phase.startsWith(pathFilter + "/"));
     }
 
     private DefectListEntry getSelectedDefect() {
@@ -392,6 +420,54 @@ public class DefectEditor extends Component
     public void valueChanged(ListSelectionEvent e) {
         maybeEnableButtons();
     }
+
+//    public static void rename(PSPProperties oldProps, PSPProperties newProps,
+//                              String oldPrefix, String newPrefix) {
+//      PropertyKey oldKey = PropertyKey.fromPath(oldPrefix);
+//      if (oldProps.pget(oldKey).getDefectLog() != null)
+//        // if the node addressed by oldProps owns its own defect log, we
+//        // don't need to worry.
+//        return;
+
+//      DefectLogID oldLog = useProps.defectLog(oldKey, dashboard.getDirectory());
+//      if (oldLog == null)
+//        // if the node addressed by oldProps doesn't have a defect log,
+//        // we don't need to worry.
+//        return;
+
+//      String logPath = oldLog.path.path();
+//      oldPrefix = oldPrefix.substring(logPath.length() + 1);
+
+//      PropertyKey newKey = PropertyKey.fromPath(newPrefix);
+//      DefectLogID newLog = useProps.defectLog(newKey, dashboard.getDirectory());
+//      if (newLog == null)
+//        // Should this ever happen???
+//        return;
+//      String newLogPath = newLog.path.path();
+//      newPrefix = newPrefix.substring(newLogPath.length() + 1);
+
+//      if (oldPrefix.equals(newPrefix))
+//        // if the name change was limited to nodes that are ancestors of
+//        // the node owning the defect log, we don't need to worry.
+//        return;
+
+//      if (!oldLog.filename.equals(newLog.filename)) {
+//        System.err.println("Eeek!");
+//        return;
+//      }
+
+//      DefectLog log = new DefectLog(newLog.filename, newPath, data, dashboard)
+
+//      if (!newPrefix.startsWith(logPath)) // this test is inadequate!
+//        return;
+
+//          if (logid != null && logid.path != key) {
+//            key = logid.path;
+//            String defectLogPath = key.path();
+//            extraPathFilter = selectedPath.substring(defectLogPath.length()+1);
+//          }
+
+//    }
 
     public class DefectListID {
         public PropertyKey pk;

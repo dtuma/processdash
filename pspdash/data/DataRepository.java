@@ -945,17 +945,42 @@ public class DataRepository implements Repository {
             }
         }
 
+        /** this renames data values in the global datafile. */
         private void remapDataNames(String oldPrefix, String newPrefix) {
-//  Eventually this needs to rename data values in the global datafile.
-//
-//      Enumeration dataNames = data.keys();
-//      String name;
-//      oldPrefix = oldPrefix + "/";
-//      while (dataNames.hasMoreElements()) {
-//        name = (String) dataNames.nextElement();
-//        if (name.startsWith(oldPrefix)) {
-//          putValue();}
-//      }
+
+            String name, newName;
+            DataElement element;
+            SaveableData value;
+
+            oldPrefix = oldPrefix + "/";
+            newPrefix = newPrefix + "/";
+            int oldPrefixLen = oldPrefix.length();
+            Iterator k = getKeys();
+            while (k.hasNext()) {
+                name = (String) k.next();
+                if (!name.startsWith(oldPrefix))
+                    continue;
+
+                element = (DataElement) data.get(name);
+                if (element.datafile == null ||
+                    element.datafile.prefix == null ||
+                    element.datafile.prefix.length() > 0)
+                    // only remap data which lives in the global datafile.
+                    continue;
+
+                value = element.getImmediateValue();
+
+                // At this point, we will not rename data elements unless they
+                // are SimpleData.  Non-simple data (e.g., functions, etc) needs
+                // to know its name and prefix, so it would be more complicated to
+                // move - but none of that stuff should be moving.
+                if (value instanceof SimpleData) {
+                    newName = newPrefix + name.substring(oldPrefixLen);
+                    System.out.println("renaming " + name + " to " + newName);
+                    putValue(newName, value.getSimpleValue());
+                    putValue(name, null);
+                }
+            }
         }
 
 

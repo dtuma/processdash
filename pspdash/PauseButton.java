@@ -350,9 +350,9 @@ public class PauseButton extends DropDownButton implements ActionListener {
     }
 
     public void maybeReleaseEntry(TimeLogEntry tle) {
-        if (tle != null &&
-            currentTimeLogEntry != null &&
-            currentTimeLogEntry.isSimilarTo(tle))
+        if (tle == null ||
+            (currentTimeLogEntry != null &&
+             currentTimeLogEntry.isSimilarTo(tle)))
             setCurrentPhase(null);
     }
 
