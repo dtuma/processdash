@@ -88,11 +88,15 @@ Authors:
   <property name="build"      value="build/out"/>
   <property name="lib"        value="${pspdash}/build"/>
 
-  <property name="applet.filename" value="DataApplet15"/>
+  <property name="applet.file" value="DataApplet15"/>
   <property name="ns.dir" value="${build}/NS"/>
-  <property name="ns.jar" value="${build}/Templates/${applet.filename}.jar"/>
+  <property name="ns.jar" value="${build}/Templates/${applet.file}.jar"/>
   <property name="ie.dir" value="${build}/IE"/>
-  <property name="ie.cab" value="${build}/Templates/${applet.filename}.cab"/>
+  <property name="ie.cab" value="${build}/Templates/${applet.file}.cab"/>
+  <property name="dom.dir" value="${build}/DOM"/>
+  <property name="dom.jar" value="${build}/Templates/DOM${applet.file}.jar"/>
+
+
 
   <property name="build.sysclasspath" value="ignore"/>
 
@@ -129,6 +133,8 @@ Authors:
     <available property="javahelp.jhalljar"
                file ="${env.JAVAHELP_HOME}/javahelp/lib/jhall.jar"
                value="${env.JAVAHELP_HOME}/javahelp/lib/jhall.jar"/>
+    <available property="commondom.support"
+               classname="com.sun.java.browser.dom.DOMService"/>
     <available property="nsobject.support"
                file="${java.home}/lib/jaws.jar"/>
   </target>
@@ -219,6 +225,21 @@ Authors:
 
 
 
+  <!-- Not yet used -->
+  <target name="DOMDataApplet" depends="init" if="commondom.support"
+          description="Compile the data applet support for the w3c DOM">
+    <mkdir dir="${dom.dir}"/>
+    <javac srcdir="${src}" destdir="${dom.dir}" debug="${debug}"
+           classpathref="build.classpath">
+      <includesfile name="${lib}/fileset-applet-only.txt"/>
+      <includesfile name="${lib}/fileset-applet-extra.txt"/>
+      <includesfile name="${lib}/fileset-dom.txt"/>
+    </javac>
+    <jar destfile="${dom.jar}" basedir="${dom.dir}" includes="pspdash/"/>
+  </target>
+
+
+
   <target name="NSDataApplet" depends="init" if="nsobject.support"
           description="Compile the data applet support for netscape">
     <mkdir dir="${ns.dir}"/>
@@ -249,6 +270,33 @@ Authors:
     </copy>
   </target>
 
+  <property name="plug.path" 
+            value="Templates/help/Topics/Troubleshooting/DataApplet"/>
+  <property name="plug.dir"     value="${pspdash}/${plug.path}"/>
+  <property name="plug.destdir" value="${build}/${plug.path}"/>
+  <property name="plug.jar"     value="${plug.destdir}/SunPlugin.jar"/>
+
+  <!-- Compile sun plugin redirector applet -->
+  <target name="PluginRedirector" depends="init,-PluginRedirector-depend"
+          unless="PluginRedirector.upToDate"
+          description="Compile the applet which detects the sun plugin.">
+    <copy file="${plug.dir}/SunPlugin.java" overwrite="true"
+          tofile="${plug.dir}/IEDataApplet.java"/>
+    <delete quiet="true" dir="${plug.dir}/pspdash"/>
+    <javac srcdir="${plug.dir}" destdir="${plug.dir}" debug="${debug}"
+           classpathref="build.classpath" includes="IEDataApplet.java"/>
+    <mkdir dir="${plug.destdir}"/>
+    <jar destfile="${plug.jar}" basedir="${plug.dir}" includes="pspdash/"/>
+    <delete dir="${plug.dir}/pspdash"/>
+    <delete file="${plug.dir}/IEDataApplet.java"/>
+  </target>
+
+  <!-- See if the sun plugin redirector applet is up to date -->
+  <target name="-PluginRedirector-depend" depends="init">
+    <uptodate property="PluginRedirector.upToDate"
+              srcfile="${plug.dir}/SunPlugin.java"
+	      targetfile="${plug.jar}"/>
+  </target>
 
 
   <target name="cgi-scripts" depends="compile,jfreechart"
@@ -325,7 +373,8 @@ Authors:
 
   </target>
 
-  <target name="optional" depends="javahelp-broker,NSDataApplet,IEDataApplet"/>
+  <target name="optional"
+     depends="javahelp-broker,NSDataApplet,IEDataApplet,PluginRedirector"/>
 
 
 
@@ -446,3 +495,32 @@ Authors:
     
 </project>
 
+<!--
+
+Still missing items:
+
+============================================================
+From pspdash/GNUmakefile:
+
+SCR_DCR_FILES=Templates/SCR.globalData \
+	Templates/SCR.template \
+	Templates/DCR.template \
+	Templates/Insp.template \
+	Templates/SCR/*.* \
+	Templates/SCRcycle/*.* \
+	Templates/DCR/*.* \
+	Templates/Inspection/*.*
+
+add-on-scripts: build/SCR-DCR.jar
+
+build/SCR-DCR.jar: Templates/SCR/manifest $(SCR_DCR_FILES)
+	$(JAR) cfm build/SCR-DCR.jar Templates/SCR/manifest $(SCR_DCR_FILES)
+
+DISABLED_WARNINGS=directory-index,img-alt,extension-attribute,extension-markup,attribute-delimiter
+
+weblint:
+	weblint -d $(DISABLED_WARNINGS) Templates | \
+	grep -v -f weblint-ignore
+
+
+-->
