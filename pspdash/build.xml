@@ -457,8 +457,12 @@ Authors:
       <!-- include the template files -->
       <fileset dir="${pspdash}">
         <include name="Templates/"/>
+	<exclude name="Templates/data.js"/> <!-- temp change -->
         <excludesfile name="${lib}/fileset-template-ignore.txt"/>
       </fileset>
+
+      <zipfileset dir="." includes="Templates/data2.js"
+               fullpath="Templates/data.js"/> <!-- temp change -->
 
       <!-- include the contents of the libraries we use -->
       <zipfileset src="${jcommon.jar}"/>
