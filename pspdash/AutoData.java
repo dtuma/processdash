@@ -167,7 +167,7 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
         Iterator i = orphans.iterator();
         while (i.hasNext()) {
             String rollupID = (String) i.next();
-            System.out.println("Generating rollup template: " + rollupID);
+            //System.out.println("Generating rollup template: " + rollupID);
             result.append(StringUtils.findAndReplace
                           (ROLLUP_TEMPLATE_XML, "RID",
                            XMLUtils.escapeAttribute(rollupID)));
