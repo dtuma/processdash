@@ -35,6 +35,8 @@ class CompiledFunction implements SaveableData,
 {
     private static final SimpleData UNCALCULATED_VALUE =
         new DoubleData(Double.NaN, false);
+    private static final SimpleData INVALIDATED_VALUE =
+        new DoubleData(Double.NaN, false);
 
     protected String name = null, prefix;
     protected CompiledScript script;
@@ -55,12 +57,13 @@ class CompiledFunction implements SaveableData,
     public CompiledScript getScript() { return script; }
 
     public void expressionContextChanged() {
-        recalc();
+        boolean needsNotify = (value != UNCALCULATED_VALUE);
+        value = INVALIDATED_VALUE;
+        if (needsNotify)
+            data.valueRecalculated(name, this);
     }
 
     protected void recalc() {
-        boolean needsNotify = (value != UNCALCULATED_VALUE);
-
         if (context == null) synchronized(this) {
             if (context == null)
                 context=new ActiveExpressionContext(name, prefix, data, this);
@@ -94,9 +97,6 @@ class CompiledFunction implements SaveableData,
             }
         }
 
-        if (needsNotify)
-            data.putValue(name, this);
-
         if (calculationInfo != null)
             context.performSubscriptions(calculationInfo);
     }
@@ -110,7 +110,7 @@ class CompiledFunction implements SaveableData,
     public String saveString() { return script.saveString(); }
 
     public SimpleData getSimpleValue() {
-        if (value == UNCALCULATED_VALUE)
+        if (value == INVALIDATED_VALUE || value == UNCALCULATED_VALUE)
             recalc();
 
         return value;
