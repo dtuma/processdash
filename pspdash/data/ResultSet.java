@@ -210,6 +210,7 @@ public class ResultSet {
                                   String prefix,
                                   String [] conditions,
                                   String orderBy) {
+            if (prefix == null) prefix = "";
             this.forList = getDataListName(data, forParam, prefix);
             if (conditions != null) Arrays.sort(conditions);
             this.conditions = conditions;
