@@ -2225,9 +2225,8 @@ public class DataRepository implements Repository {
                             dataRealizer.addElement(d);
 
                         if (registerDataNames &&
-                            // FIXME: this logic is broken now that CompiledScript
-                            // objects exist
-                            (o instanceof DoubleData || o instanceof DeferredData))
+                            (o instanceof DoubleData || o instanceof DeferredData ||
+                             o instanceof CompiledFunction))
                             dataElementNameSet.add(localName);
                     }
 
