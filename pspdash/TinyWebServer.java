@@ -25,6 +25,7 @@
 
 package pspdash;
 
+import pspdash.data.DataRepository;
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -36,6 +37,8 @@ public class TinyWebServer extends Thread {
     ServerSocket serverSocket = null;
     Vector serverThreads = new Vector();
     URL [] roots = null;
+    DataRepository data = null;
+    ClassLoader classLoader = null;
 
     public static final String PROTOCOL = "HTTP/1.0";
     public static final String DEFAULT_TEXT_MIME_TYPE =
@@ -51,7 +54,7 @@ public class TinyWebServer extends Thread {
         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
 
     private static final Properties mimeTypes = new Properties();
-    private static final Properties DEFAULT_ENV = new Properties();
+    private static final Hashtable DEFAULT_ENV = new Hashtable();
     private static final String CRLF = "\r\n";
 
     static {
@@ -59,6 +62,7 @@ public class TinyWebServer extends Thread {
             DEFAULT_ENV.put("SERVER_SOFTWARE", "PSPDASH");
             DEFAULT_ENV.put("SERVER_NAME", "localhost");
             DEFAULT_ENV.put("GATEWAY_INTERFACE", "CGI/1.1");
+            DEFAULT_ENV.put("SERVER_ADDR", "127.0.0.1");
             DEFAULT_ENV.put("PATH_INFO", "");
             DEFAULT_ENV.put("PATH_TRANSLATED", "");
             DEFAULT_ENV.put("REMOTE_HOST", "localhost");
@@ -79,7 +83,7 @@ public class TinyWebServer extends Thread {
         Writer out = null;
         boolean isRunning = false;
 
-        String method, protocol, id, path, query;
+        String uri, method, protocol, id, path, query;
 
         private class TinyWebThreadException extends Exception {};
 
@@ -129,10 +133,10 @@ public class TinyWebServer extends Thread {
         private void handleRequest() throws TinyWebThreadException {
             try {
                 // read and process the header line
-                String line = in.readLine();
+                String line = readLine(inputStream);
                 StringTokenizer tok = new StringTokenizer(line, " ");
                 method   = tok.nextToken();
-                path     = tok.nextToken();
+                uri      = tok.nextToken();
                 protocol = tok.nextToken();
 
                 // only accept localhost requests.
@@ -140,16 +144,16 @@ public class TinyWebServer extends Thread {
                     sendError(403, "Forbidden", "Not accepting " +
                                "requests from remote IP addresses ." );
 
-                // ensure path starts with a slash.
-                if (! path.startsWith("/"))
+                // ensure uri starts with a slash.
+                if (! uri.startsWith("/"))
                     sendError( 400, "Bad Request", "Bad filename." );
 
-                // extract the ID from the beginning of the path
-                int pos = path.indexOf('/', 1);
+                // extract the ID from the beginning of the uri
+                int pos = uri.indexOf('/', 1);
                 if (pos == -1)
                     sendError( 400, "Bad Request", "ID required." );
-                id = path.substring(1, pos);
-                path = path.substring(pos + 1);
+                id = uri.substring(1, pos);
+                path = uri.substring(pos + 1);
 
                 // extract the query string from the end.
                 pos = path.indexOf('?');
@@ -215,9 +219,142 @@ public class TinyWebServer extends Thread {
             return null;        // this line will never be reached.
         }
 
+        /** Handle a cgi-like http request. */
         private void serveCGI(URLConnection conn)
-            throws TinyWebThreadException { }
+            throws IOException, TinyWebThreadException
+        {
+            // get an instantiation of the cgi script object
+            TinyCGI script = (TinyCGI) cgiCache.get(path);
+            if (script == null) {
+                script = getScript(path);
+                if (script != null)
+                    cgiCache.put(path, script);
+                else {
+                    // if the attempt to get the uri as a cgi script
+                    // failed, serve it up as a regular binary file.
+                    servePlain(conn, DEFAULT_BINARY_MIME_TYPE);
+                    return;
+                }
+            }
 
+            // Create the environment for the cgi script.
+            HashMap env = new HashMap(DEFAULT_ENV);
+            env.put("SERVER_PROTOCOL", protocol);
+            env.put("REQUEST_METHOD", method);
+            env.put("PATH_INFO", id);
+            env.put("PATH_TRANSLATED", data.getPath(id));
+            env.put("SCRIPT_NAME", "/" + path);
+            env.put("REQUEST_URI", uri);
+            env.put("QUERY_STRING", query);
+            env.put("REMOTE_PORT", Integer.toString(clientSocket.getPort()));
+
+            // Parse the headers on the original http request and add to
+            // the cgi script environment.
+            String line, header;
+            StringBuffer text = new StringBuffer();
+            int pos;
+            while (null != (line = readLine(inputStream))) {
+                if (line.length() == 0) break;
+                header = parseHeader(line,text).toUpperCase().replace('-','_');
+
+                if (header.equals("CONTENT_TYPE") ||
+                    header.equals("CONTENT_LENGTH"))
+                    env.put(header, text.toString());
+                else
+                    env.put("HTTP_" + header, text.toString());
+            }
+
+            // Run the cgi script, and capture the results.
+            ByteArrayOutputStream cgiOut = new ByteArrayOutputStream();
+            try {
+                synchronized(script) {
+                    script.service(inputStream, cgiOut, env);
+                }
+            } catch (Exception cgie) {
+                StringWriter w = new StringWriter();
+                cgie.printStackTrace(new PrintWriter(w));
+                sendError(500, "CGI Error", "Error running script: " +
+                          "<PRE>" + w.toString() + "</PRE>");
+            }
+            String results = cgiOut.toString();
+
+            // Parse the headers generated by the cgi program.
+            String contentType = null, statusString = "OK";
+            StringBuffer otherHeaders = new StringBuffer();
+            int status = 200, end;
+            while (true) {
+                end = results.indexOf("\r\n");
+                if (end == -1) break; // should we throw an error instead?
+                line = results.substring(0, end);
+                results = results.substring(end+2);
+                if (end == 0) break; // empty line -> end of headers.
+
+                header = parseHeader(line, text);
+
+                if (header.toUpperCase().equals("STATUS")) {
+                    // header value is of the form nnn xxxxxxx (a 3-digit
+                    // status code, followed by an error string.
+                    statusString = text.toString();
+                    status = Integer.parseInt(statusString.substring(0, 3));
+                    statusString = statusString.substring(4);
+                }
+                else if (header.toUpperCase().equals("CONTENT-TYPE"))
+                    contentType = text.toString();
+                else {
+                    if (header.toUpperCase().equals("LOCATION"))
+                        status = 302;
+                    otherHeaders.append(header).append(": ")
+                        .append(text.toString()).append(CRLF);
+                }
+            }
+
+            // Success!! Send results back to the client.
+            sendHeaders(status, statusString, contentType, results.length(),
+                        -1, otherHeaders.toString());
+            outputStream.write(results.getBytes());
+            outputStream.flush();
+        }
+
+        /** Get a TinyCGI script for a given uri path.
+         * @param path the name of the TinyCGI class, underneath the Templates
+         *    package.  For example, a path of "foo/bar.class" would be
+         *    looked up as the class, "Templates.foo.bar".
+         * @return an instantiated TinyCGI script, or null on error.
+         */
+        private TinyCGI getScript(String path) {
+            try {
+                String className = "Templates." + path.replace('/', '.');
+                className = className.substring(0, className.length() - 6);
+                Class c = classLoader.loadClass(className);
+                return (TinyCGI) c.newInstance();
+            } catch (Throwable t) {}
+            return null;
+        }
+        private Hashtable cgiCache = new Hashtable();
+
+
+        /** Parse an HTTP header (of the form "Header: value").
+         *
+         *  @param line The HTTP header line.
+         *  @param value The value of the header found will be placed in
+         *               this StringBuffer.
+         *  @return The name of the header found.
+         */
+        private String parseHeader(String line, StringBuffer value) {
+            int len = line.length();
+            int pos = 0;
+            while (pos < len  &&  ": \t".indexOf(line.charAt(pos)) == -1)
+                pos++;
+            String result = line.substring(0, pos);
+            while (pos < len  &&  ": \t".indexOf(line.charAt(pos)) != -1)
+                pos++;
+            value.setLength(0);
+            value.append(line.substring(pos));
+            return result;
+        }
+
+
+        /** Serve a plain HTTP request */
         private void servePlain(URLConnection conn, String mime_type)
             throws TinyWebThreadException, IOException
         {
@@ -233,7 +370,7 @@ public class TinyWebServer extends Thread {
                 mime_type = getDefaultMimeType(buffer, numBytes);
 
             sendHeaders(200, "OK", mime_type, conn.getContentLength(),
-                        conn.getLastModified());
+                        conn.getLastModified(), null);
             out.flush();
 
             do {
@@ -242,12 +379,14 @@ public class TinyWebServer extends Thread {
             outputStream.flush();
         }
 
+
+        /** Serve up a server-parsed html file. */
         private void servePreprocessedFile(URLConnection conn)
             throws TinyWebThreadException, IOException
         {
             discardHeader();
             String content = preprocessTextFile(conn).toString();
-            sendHeaders(200, "OK", "text/html", content.length(), -1);
+            sendHeaders(200, "OK", "text/html", content.length(), -1, null);
             out.write(content);
         }
 
@@ -258,18 +397,27 @@ public class TinyWebServer extends Thread {
             if (nestingDepth > 25)
                 sendError(500, "Recursion error", "Include file recursion");
 
+            // Slurp the entire file into a StringBuffer.
             StringBuffer result = new StringBuffer();
             try {
-                BufferedReader in = new BufferedReader
+                BufferedReader file = new BufferedReader
                     (new InputStreamReader(conn.getInputStream()));
 
                 String line;
-                while ((line = in.readLine()) != null)
+                while ((line = file.readLine()) != null)
                     result.append(line).append("\n");
             } catch (IOException ioe) {
                 sendError( 500, "Internal Error", "Couldn't read file." );
             }
 
+            // Check to see if the file we just slurped is a server parsed
+            // file.  If not, just return its contents. (This check is
+            // necessary to keep from parsing included .html files).
+            if (! SERVER_PARSED_MIME_TYPE.equals
+                (getMimeTypeFromName(conn.getURL().getFile())))
+                return result;
+
+            // Look for and process include directives.
             String include, content = result.toString();
             result = new StringBuffer();
             StringBuffer includedContent;
@@ -304,41 +452,16 @@ public class TinyWebServer extends Thread {
                 return include.substring(7, include.length() - 2);
         }
 
+        /** read and discard the rest of the request header from inputStream */
         private void discardHeader() throws IOException {
-            // read the rest of the request header and discard it.
             String line;
-            while (null != (line = in.readLine()))
+            while (null != (line = readLine(inputStream)))
                 if (line.length() == 0)
                     break;
         }
 
 
-        private void serveCGIRequest(String method, String path,
-                                     String protocol, InputStream is)
-            throws TinyWebThreadException
-        {/*
-            try {
-                ObjectInputStream ois = new ObjectInputStream(is);
-                CGIProgram cgi = (CGIProgram) in.readObject();
-
-                Properties env = new Properties(DEFAULT_ENV);
-                env.put("SERVER_PROTOCOL", protocol);
-                env.put("REQUEST_METHOD", method);
-                env.put("SCRIPT_NAME", getFilename(path));
-
-                String line, lLine;
-                while (null != (line = in.readLine())) {
-                    if (line.length() == 0)
-                        break;
-                    lLine = line.toLowerCase();
-                    //else if (lLine.startsWith(""));
-                }
-
-            } catch (Exception e) {
-                sendError(500, "Internal Error", "Caught exception: " + e);
-                } */
-        }
-
+        /** ensure that requests are originating from the local machine. */
         private boolean checkIP() {
             byte[] remoteIP = clientSocket.getInetAddress().getAddress();
             return (remoteIP[0] == 127 &&
@@ -348,11 +471,21 @@ public class TinyWebServer extends Thread {
         }
 
 
+        /** Send an HTTP error page.
+         *
+         * @throws TinyWebThreadException automatically and unequivocally
+         *    after printing the error page.  (This greatly simplifies
+         *    TinyWebThread control logic.  Anytime an exception or
+         *    other error is found, just call this method;  an error page
+         *    will be generated, and then an exception will be thrown.
+         *    TinyWebThreadExceptions are caught in only one place, at
+         *    the top level run() method.)
+         */
         private void sendError(int status, String title, String text )
             throws TinyWebThreadException
         {
             try {
-                sendHeaders( status, title, "text/html", -1, -1);
+                sendHeaders( status, title, "text/html", -1, -1, null);
                 out.write("<HTML><HEAD><TITLE>" + status + " " + title +
                           "</TITLE></HEAD>\n<BODY BGCOLOR=\"#cc9999\"><H4>" +
                           status + " " + title + "</H4>\n" +
@@ -364,7 +497,7 @@ public class TinyWebServer extends Thread {
 
         private boolean headersSent = false;
         private void sendHeaders(int status, String title, String mimeType,
-                                  long length, long mod )
+                                  long length, long mod, String otherHeaders )
             throws IOException
         {
             if (headersSent) return;
@@ -384,7 +517,10 @@ public class TinyWebServer extends Thread {
                           dateFormat.format(new Date(mod)) + CRLF);
             if (length >= 0)
                 out.write("Content-Length: " + length + CRLF);
-            out.write("Connection: close" + CRLF + CRLF );
+            if (otherHeaders != null)
+                out.write(otherHeaders);
+            out.write("Connection: close" + CRLF + CRLF);
+            out.flush();
         }
 
         private String getMimeTypeFromName(String name) {
@@ -392,7 +528,16 @@ public class TinyWebServer extends Thread {
             int pos = name.lastIndexOf('.');
             if (pos >= 0) {
                 String suffix = name.substring(pos).toLowerCase();
-                return (String) mimeTypes.get(suffix);
+                if (suffix.equals(".class") &&
+                    name.indexOf("/IE/") == -1 &&
+                    name.indexOf("/NS/") == -1)
+                    // Eventually, we may want a better method of deciding
+                    // between cgi scripts and other class files.  Perhaps
+                    // a special ID (like 0) can flag an uninterpreted .class
+                    // file?
+                    return CGI_MIME_TYPE;
+                else
+                    return (String) mimeTypes.get(suffix);
             } else
                 return null;
         }
@@ -407,6 +552,30 @@ public class TinyWebServer extends Thread {
 
             return DEFAULT_TEXT_MIME_TYPE;
         }
+    }
+
+    /** Utility routine: readLine from an InputStream.
+     *
+     * This is needed because the only readLine method in the Java library
+     * is in the BufferedReader class.  A BufferedReader will likely grab
+     * more bytes than we necessarily want it to.
+     *
+     * Although this method is not performing any character encoding,
+     * Hopefully we're okay because we're just parsing plaintext HTTP headers.
+     */
+    static String readLine(InputStream in) throws IOException {
+        StringBuffer result = new StringBuffer();
+        int c;
+        while ((c = in.read()) != -1) {
+            if (c == '\n')
+                break;
+            else if (c == '\r')
+                ; //do nothing
+            else
+                result.append((char) c);
+        }
+
+        return result.toString();
     }
 
     /**
@@ -434,7 +603,9 @@ public class TinyWebServer extends Thread {
         while (i-- > 0)
             roots[i] = (URL) v.elementAt(i);
 
-        DEFAULT_ENV.put("SERVER_PORT", "" + port);
+        makeClassLoader();
+
+        DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
         serverSocket = new ServerSocket(port);
     }
 
@@ -452,9 +623,46 @@ public class TinyWebServer extends Thread {
         roots = new URL[1];
         roots[0] = rootDir.toURL();
 
-        DEFAULT_ENV.put("SERVER_PORT", "" + port);
+        makeClassLoader();
+
+        DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
         serverSocket = new ServerSocket(port);
     }
+
+
+    /** Create a class loader capable of loading cgi script classes. */
+    private void makeClassLoader() {
+        int i = this.roots.length;
+        URL [] roots = new URL[i];
+        while (i-- > 0) try {
+            String url = this.roots[i].toString();
+            // url will end with "Templates/"
+            url = url.substring(0, url.length() - 10);
+            if (url.startsWith("jar:"))
+                // strip initial "jar:" and final "!/"
+                url = url.substring(4, url.length() - 2);
+            roots[i] = new URL(url);
+        } catch (java.net.MalformedURLException mue) {
+            System.err.println("Caught MalformedURLException: " + mue);
+        }
+
+        classLoader = new URLClassLoader(roots);
+    }
+
+    public void setProps(PSPProperties props) {
+        if (props == null)
+            DEFAULT_ENV.remove(TinyCGI.PSP_PROPERTIES);
+        else
+            DEFAULT_ENV.put(TinyCGI.PSP_PROPERTIES, props);
+    }
+    public void setData(DataRepository data) {
+        this.data = data;
+        if (data == null)
+            DEFAULT_ENV.remove(TinyCGI.DATA_REPOSITORY);
+        else
+            DEFAULT_ENV.put(TinyCGI.DATA_REPOSITORY, data);
+    }
+
 
     private volatile boolean isRunning;
 
