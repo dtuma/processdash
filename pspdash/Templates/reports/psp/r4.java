@@ -1,5 +1,5 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 import pspdash.*;
@@ -141,7 +141,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
     protected static final String FOOTNOTE =
         "<P class=footnote><span class=doNotPrint>To reduce clutter, "+
         "and omit completely empty rows from the tables above, " +
-        "<A HREF='r4.class?%qs%'>click here</A></span></P>.";
+        "<A HREF='r4.class?%qs%'>click here</A>.</span></P>";
 
     protected void printD23(String param, String label, int [] row) {
         String dt = param;
@@ -172,12 +172,18 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
     /** format a percentage, calculated by dividing item n of row by item d */
     protected String fp(int num, int denom) {
         if (num == 0 || denom == 0) return NA;
-        int val = (100 * num) / denom;
-        return Integer.toString(val) + "%";
+        return PERCENT_FORMAT.format(((double) num) / denom);
+        //int val = (100 * num) / denom;
+        //return Integer.toString(val) + "%";
     }
     protected String fp(int [] row, int n) { return fp(row[n], totals[n]); }
     protected String fp(int [] row, int n, int d) { return fp(row[n],row[d]); }
     private static final String NA = "-";
+    private static final NumberFormat PERCENT_FORMAT =
+        NumberFormat.getPercentInstance();
+    static {
+        PERCENT_FORMAT.setMaximumFractionDigits(0);
+    }
 
 
     protected void printD24(String label, int [] row) {
