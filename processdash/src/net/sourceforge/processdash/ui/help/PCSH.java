@@ -95,8 +95,6 @@ public class PCSH {
         if (DEFAULT_INSTANCE == null) try {
             URL u = new URL(WebServer.DASHBOARD_PROTOCOL + ":/help/createBroker.class");
             u.openConnection().connect();
-            if (DEFAULT_INSTANCE != null)
-                System.out.println("cgi-based broker created.");
         } catch (Throwable e) { }
 
         if (DEFAULT_INSTANCE == null) {

@@ -52,7 +52,7 @@ public class HierarchyAlterer implements ItemListener {
     }
 
     private void beginChanges() throws HierarchyAlterationException {
-        if (dashboard.configure_button.isHierarchyEditorOpen())
+        if (dashboard.isHierarchyEditorOpen())
             throw new HierarchyAlterationException
                 ("The hierarchy editor is currently open.");
 

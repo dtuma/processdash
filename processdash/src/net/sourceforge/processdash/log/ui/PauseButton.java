@@ -204,7 +204,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
     }
 
     public boolean setPath(String path) {
-        if (parent.hierarchy.setPath(path))
+        if (parent.getHierarchyMenu().setPath(path))
             return true;
         else {
             // They've gone and edited their hierarchy, and the
@@ -219,7 +219,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
     }
 
     public boolean setPhase(String phase) {
-        if (parent.hierarchy.setPhase(phase))
+        if (parent.getHierarchyMenu().setPhase(phase))
             return true;
         else {
             // They have navigated to a new portion of the hierarchy,
@@ -367,7 +367,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
         //System.out.println("updating time to " + currentMinutes);
 
         if (stopwatch != null)
-            parent.hierarchy.workPerformed
+            parent.getHierarchyMenu().workPerformed
                 (new DateData(stopwatch.createTime, true));
     }
 

@@ -81,8 +81,8 @@ public class CompletionButton extends JCheckBox implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (isSelected()) {
-            if (! parent.hierarchy.selectNext()) {
-                parent.pause_button.pause(); // stop the timer if it is running.
+            if (! parent.getHierarchyMenu().selectNext()) {
+                parent.pauseTimer(); // stop the timer if it is running.
                 update();
             }
         } else {

@@ -49,7 +49,7 @@ import java.util.Locale;
 import java.util.Properties;
 
 
-public class ConfigureButton extends JMenuBar implements ActionListener {
+public class ConfigureButton extends JMenuBar implements ActionListener, HierarchyEditor.Listener {
     ProcessDashboard   parent       = null;
     HierarchyEditor  prop_frame   = null;
     //TaskScheduleDialog   task_frame   = null;
@@ -261,17 +261,19 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
         if (parent.getProperties() != null) {
             if (prop_frame != null)
                 prop_frame.show();
-            else
+            else {
                 prop_frame = new HierarchyEditor(parent,
                                                this,
                                                parent.getProperties(),
                                                parent.getTemplateProperties());
+                prop_frame.addHierarchyEditorListener(this);
+            }
         }
     }
 
-    public void removePropertyFrame () {
-        // REFACTOR this should not be visible
+    public void hierarchyEditorClosed(HierarchyEditor editor) {
         prop_frame = null;
+        editor.removeHierarchyEditorListener(this);
     }
 
     public boolean isHierarchyEditorOpen() {

@@ -61,6 +61,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.AutoData;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptNameResolver;
+import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -82,10 +83,18 @@ public class TemplateLoader {
     private static final String FILTER_SUFFIX2 = "filter.class.link";
     private static final String TEMPLATE_DIR = "Templates/";
 
+    public static final DashboardPermission LOAD_TEMPLATES_PERMISSION =
+        new DashboardPermission("templateLoader.loadTemplates");
+    public static final DashboardPermission ADD_TEMPLATE_JAR_PERMISSION =
+        new DashboardPermission("templateLoader.addTemplateJar");
+    private static final DashboardPermission GET_TEMPLATE_URLS_PERMISSION =
+        new DashboardPermission("templateLoader.getTemplateURLs");
+
     private static long templateTimestamp = 0;
 
     public static DashHierarchy loadTemplates(DataRepository data) {
-        // REFACTOR this should not be public
+        LOAD_TEMPLATES_PERMISSION.checkPermission();
+
         DashHierarchy templates = new DashHierarchy(null);
 
         template_url_list = null;
@@ -138,7 +147,8 @@ public class TemplateLoader {
     public static boolean addTemplateJar(DataRepository data,
                                   DashHierarchy templates,
                                   String jarfileName) {
-        // REFACTOR this should not be public
+        ADD_TEMPLATE_JAR_PERMISSION.checkPermission();
+
         try {
             // compute the "template url" of the jarfile.
             File jarfile = new File(jarfileName);
@@ -418,6 +428,8 @@ public class TemplateLoader {
      *     file).</OL>
      */
     public static URL[] getTemplateURLs() {
+        GET_TEMPLATE_URLS_PERMISSION.checkPermission();
+
         if (template_url_list != null) return template_url_list;
 
         Vector result = new Vector();

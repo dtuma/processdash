@@ -64,6 +64,11 @@ import net.sourceforge.processdash.ui.help.*;
 
 public class HierarchyEditor extends Object implements TreeModelListener, TreeSelectionListener, ItemListener
 {
+
+    public interface Listener {
+        public void hierarchyEditorClosed(HierarchyEditor editor);
+    };
+
     /** Class Attributes */
     protected JFrame        frame;
     protected JTree         tree;
@@ -392,7 +397,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         saveCustomDimensions();
         frame.setVisible(false);
         frame.dispose();
-        configureButton.removePropertyFrame();
+        fireHierarchyEditorClosed();
         frame = null;
         tree = null;
         treeModel = null;
@@ -1420,4 +1425,17 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         }
     }
 
+    private List listeners = new LinkedList();
+    public void addHierarchyEditorListener(Listener l) {
+        listeners.add(l);
+    }
+    public void removeHierarchyEditorListener(Listener l) {
+        listeners.remove(l);
+    }
+    private void fireHierarchyEditorClosed() {
+        for (Iterator i = listeners.iterator(); i.hasNext();) {
+            Listener l = (Listener) i.next();
+            l.hierarchyEditorClosed(this);
+        }
+    }
 }

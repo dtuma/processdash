@@ -60,15 +60,11 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class ProcessDashboard extends JFrame implements WindowListener, DashboardContext {
 
-//    GridBagLayout layout = null;
-    // REFACTOR this shouldn't be visible
-    public ConfigureButton configure_button = null;
-    // REFACTOR this shouldn't be visible
-    public PauseButton pause_button = null;
+    ConfigureButton configure_button = null;
+    PauseButton pause_button = null;
     ScriptButton script_button = null;
     DefectButton defect_button = null;
-    // REFACTOR this shouldn't be visible
-    public HierarchyMenu hierarchy = null;
+    HierarchyMenu hierarchy = null;
     CompletionButton completion_button = null;
     JMenuBar hierarchy_menubar = null;
 
@@ -417,6 +413,15 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             (this, hierarchy_menubar, PropertyKey.ROOT);
     }
 
+    public HierarchyMenu getHierarchyMenu() {
+        return hierarchy;
+    }
+
+
+    public void pauseTimer() {
+        pause_button.pause();
+    }
+
     public void setCurrentPhase(PropertyKey newPhase) {
         currentPhase = newPhase;
         pause_button.setCurrentPhase(newPhase);
@@ -428,6 +433,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     }
 
     public PropertyKey getCurrentPhase() { return currentPhase; }
+
+    public boolean isHierarchyEditorOpen() {
+        return configure_button.isHierarchyEditorOpen();
+    }
 
     public void addToTimeLogEditor (TimeLogEntry tle) {
         configure_button.addToTimeLogEditor (tle);
