@@ -140,6 +140,7 @@ import org.w3c.dom.*;
 public class file extends TinyCGIBase {
 
     public static final String FILE_PARAM = "file";
+    public static final String PAGE_COUNT_PARAM = "pageCount";
     public static final String FILE_XML_DATANAME = "FILES_XML";
 
     public static final String NAME_ATTR = "name";
@@ -277,7 +278,23 @@ public class file extends TinyCGIBase {
     /** Send an HTTP REDIRECT message. */
     private void redirectTo(String filename, File result) {
         try {
-            out.print("Location: " + result.toURL() + "\r\n\r\n");
+            if ("redirect".equals(docOpenSetting))
+                out.print("Location: " + result.toURL() + "\r\n\r\n");
+            else {
+                // open the document using the Browser class.
+                Browser.launch(result.toURL().toString());
+
+                // now print a null document which takes the user back to
+                // the original page they were viewing.
+                out.print("Content-type: text/html\r\n");
+                out.print("Expires: 0\r\n\r\n");
+                String pageCount = getParameter(PAGE_COUNT_PARAM);
+                int back = -1;
+                if (pageCount != null) back -= pageCount.length();
+                out.println("<HTML><HEAD><SCRIPT>");
+                out.print("history.go("+back+");");
+                out.println("</SCRIPT></HEAD><BODY></BODY></HTML>");
+            }
         } catch (MalformedURLException mue) {
             System.out.println("Exception: " + mue);
             displayNeedInfoForm(filename, result, false, null);
@@ -706,12 +723,20 @@ public class file extends TinyCGIBase {
             out.println("</td></tr>");
         }
         out.println("</table>");
-        out.print("<input type='hidden' name='" + FILE_PARAM + "' value='");
+        String pageCount = getParameter(PAGE_COUNT_PARAM);
+        pageCount = (pageCount == null ? "x" : pageCount + "x");
+        out.print("<input type='hidden' name='"+PAGE_COUNT_PARAM+"' value='");
+        out.print(pageCount);
+        out.print("'>\n" +
+                  "<input type='hidden' name='" + FILE_PARAM + "' value='");
         out.print(TinyWebServer.encodeHtmlEntities(filename));
         out.println("'>\n" +
                     "<input type='submit' name='OK' value='OK'>\n" +
                     "</form></body></html>");
     }
+
+    protected static String docOpenSetting =
+        Settings.getVal("extDoc.openMethod");
 
 
     /** an XML document describing the various files that can be served up
