@@ -40,7 +40,7 @@ import pspdash.data.DataRepository;
 import pspdash.data.StringData;
 import pspdash.data.SimpleData;
 
-public class EVTaskListCached extends EVTaskList {
+public class EVTaskListCached extends EVTaskListXMLAbstract {
 
     public static final String CACHED_OBJECT_TYPE = "pspdash.EVTaskListCached";
     public static final String LOCAL_NAME_ATTR = "LocalName";
@@ -60,41 +60,34 @@ public class EVTaskListCached extends EVTaskList {
         localName = taskListName.substring(slashPos+1);
         objectID = Integer.parseInt(taskListName.substring(6, slashPos));
 
-        cache.getCachedObject(objectID, 0);
+        object = cache.getCachedObject(objectID, 1);
         openXML();
     }
 
 
     private boolean openXML() {
         String xmlDoc = object.getString("UTF-8");
-        return openXML(xmlDoc, localName);
-    }
-
-    private boolean openXML(String xmlDoc, String displayName) {
-        if (xmlDoc.equals(xmlSource)) return true;
-
-        try {
-            Document doc = XMLUtils.parse(xmlDoc);
-            Element docRoot = doc.getDocumentElement();
-            root = new EVTask((Element) docRoot.getFirstChild());
-            schedule = new EVSchedule((Element) docRoot.getLastChild());
-            if (displayName != null)
-                ((EVTask) root).name = displayName;
-            ((EVTask) root).simpleRecalc();
-            totalPlanTime = schedule.getMetrics().totalPlan();
-            xmlSource = xmlDoc;
-            return true;
-        } catch (Exception e) {
-            System.err.println("Got exception: " +e);
-            e.printStackTrace();
-            return false;
+        String errorMessage = null;
+        if (object.olderThanAge(3)) {
+            errorMessage = object.getErrorMessage();
+            String errorPrefix = (object.olderThanAge(5)
+                                  ? "This schedule is out of date. "
+                                  : " Schedule may be out of date. ");
+            if (errorMessage == null)
+                errorMessage = errorPrefix;
+            else if (xmlDoc != null)
+                errorMessage = errorPrefix + errorMessage;
         }
+
+
+        return openXML(xmlDoc, localName, errorMessage);
     }
+
 
     public void recalc() {
         object.refresh(0);
+        openXML();
 
-        // FIXME
         super.recalc();
     }
 
