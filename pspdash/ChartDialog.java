@@ -51,7 +51,7 @@ public class ChartDialog extends JDialog {
                         DataCorrelator c,
                         String labelX,
                         String labelY) {
-        super (dash);
+        super (dash, "PROBE Chart");
         corr = c;
 
         parent = dash;
@@ -102,7 +102,19 @@ public class ChartDialog extends JDialog {
 
         getContentPane().add(jsp, "Center");
 
-        pack();
+        Box buttonBox = new Box(BoxLayout.X_AXIS);
+        buttonBox.add (Box.createGlue());
+        JButton button = new JButton ("Close");
+        button.setActionCommand("close");
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ChartDialog.this.setVisible(false);
+            } });
+        buttonBox.add (button);
+        buttonBox.add (Box.createGlue());
+        getContentPane().add(buttonBox, "South");
+
+        setSize(new Dimension(450, 600));
         show();
     }
 
