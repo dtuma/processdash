@@ -121,7 +121,17 @@ public class HTMLPreprocessor {
             // fetch the requested url (relative to the current url) and
             // replace the include directive with its contents.
             String context = (String) env.get("REQUEST_URI");
-            include.replace(new String(web.getRequest(context, url, true)));
+            String incText = new String(web.getRequest(context, url, true));
+            // does the page author want us to parse the included text
+            // for directives, or just insert it verbatim?
+            if (include.getAttribute("parse") != null) {
+                // parse the insertion.
+                include.replace("");
+                include.buf.insert(include.end, incText);
+            } else {
+                // insert it verbatim (default);
+                include.replace(incText);
+            }
         }
     }
 
@@ -484,13 +494,23 @@ public class HTMLPreprocessor {
                     whitespacePos(symbolName) == 3) {
                     reverse = true;
                     symbolName = cleanup(symbolName.substring(4));
+                } else if (symbolName.startsWith("!")) {
+                    reverse = true;
+                    symbolName = cleanup(symbolName.substring(1));
                 }
+                boolean checkDefined = false;
+                if (symbolName.startsWith("defined") &&
+                    whitespacePos(symbolName) == 7) {
+                    checkDefined = true;
+                    symbolName = cleanup(symbolName.substring(8));
+                }
+
                 if (volatileVariables.contains(symbolName))
                     containsVolatileVar = true;
 
                 if (!isNull(symbolName))
                     test = (symbolName.startsWith("[") ?
-                            testDataElem(symbolName) :
+                            testDataElem(symbolName, checkDefined) :
                             !isNull(getString(symbolName)));
                 if (reverse)
                     test = !test;
@@ -774,6 +794,8 @@ public class HTMLPreprocessor {
             name = trimDelim(name);
             SimpleData d = getSimpleValue(name);
             return (d == null ? "" : d.format());
+        } else if ("_UNIQUE_".equals(name)) {
+            return Long.toString(uniqueNumber++);
         } else {
                                 // try for an environment variable first.
             Object result = env.get(name);
@@ -787,6 +809,7 @@ public class HTMLPreprocessor {
             return "";
         }
     }
+    private static long uniqueNumber = System.currentTimeMillis();
 
     /** lookup a named value in the data repository. */
     private SimpleData getSimpleValue(String name) {
@@ -801,11 +824,19 @@ public class HTMLPreprocessor {
 
     /** look up a named data element and perform a test() on it. */
     private boolean testDataElem(String name) {
+        return testDataElem(name, false);
+    }
+    private boolean testDataElem(String name, boolean checkDefined) {
         if (name.startsWith("[")) {
             // listName names a data element
             name = trimDelim(name);
-            SimpleData d = getSimpleValue(name);
-            return (d == null ? false : d.test());
+            if (checkDefined) {
+                name = data.createDataName(prefix, name);
+                return (data.getValue(name) != null);
+            } else {
+                SimpleData d = getSimpleValue(name);
+                return (d == null ? false : d.test());
+            }
         }
         return false;
     }
