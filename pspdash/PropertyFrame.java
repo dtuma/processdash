@@ -77,6 +77,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     protected JMenuItem saveMenuItem;
     protected JMenuItem revertMenuItem;
     protected JMenuItem deleteMenuItem;
+    protected JMenuItem moveUpMenuItem;
+    protected JMenuItem moveDownMenuItem;
     protected JMenuItem addNodeAboveMenuItem;
     protected JMenuItem addNodeBelowMenuItem;
     protected JMenuItem addNodeChildMenuItem;
@@ -474,6 +476,14 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         deleteMenuItem.addActionListener(new RemoveAction());
         deleteMenuItem.setEnabled (false);
 
+        moveUpMenuItem= menu.add(new JMenuItem("Move Up"));
+        moveUpMenuItem.addActionListener(new MoveUpAction());
+        moveUpMenuItem.setEnabled (false);
+
+        moveDownMenuItem = menu.add(new JMenuItem("Move Down"));
+        moveDownMenuItem.addActionListener(new MoveDownAction());
+        moveDownMenuItem.setEnabled (false);
+
         menu.addSeparator();
 
         addNodeMenu = (JMenu) menu.add(new JMenu("Add Node"));
@@ -543,11 +553,18 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         if (tp == null) {           // deselection
             deleteMenuItem.setEnabled (false);
+            moveUpMenuItem.setEnabled (false);
+            moveDownMenuItem.setEnabled (false);
             adjustMenu (false, true, false, null, null);
             return;
         }
         Object [] path = tp.getPath();
         PropertyKey key = treeModel.getPropKey (useProps, path);
+
+        DefaultMutableTreeNode node =
+            (DefaultMutableTreeNode)tp.getLastPathComponent();
+        moveUpMenuItem.setEnabled(moveUpIsLegal(node));
+        moveDownMenuItem.setEnabled(moveDownIsLegal(node));
 
         // Place code to update selection-sensitive field(s) here.
         Prop val = useProps.pget (key);
@@ -1052,6 +1069,82 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 treeModel.removeNodeFromParent(lastItem);
         }
     } // End of PropertyFrame.RemoveAction
+
+    /** MoveUpAction swaps the selected node with its preceeding sibling. */
+    class MoveUpAction implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            DefaultMutableTreeNode node = getSelectedNode();
+            moveUp(node);
+            // make certain that the node is still selected when we're done.
+            tree.setSelectionPath(new TreePath(treeModel.getPathToRoot(node)));
+        }
+    }
+
+    /** MoveDownAction swaps the selected node with its following sibling. */
+    class MoveDownAction implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            DefaultMutableTreeNode node = getSelectedNode();
+            if (node == null) return;
+            moveUp(node.getNextSibling());
+            // make certain that node is still selected when we're done.
+            tree.setSelectionPath(new TreePath(treeModel.getPathToRoot(node)));
+        }
+    }
+
+    private boolean isMoveable(String status) {
+        if (status == null || status.length() == 0) return true;
+        return !(status.startsWith(NO_MOVE_CHAR + ""));
+    }
+    private boolean moveDownIsLegal(DefaultMutableTreeNode node) {
+        return (node != null && moveUpIsLegal(node.getNextSibling()));
+    }
+    private boolean moveUpIsLegal(DefaultMutableTreeNode node) {
+        if (node == null ||
+            node == (DefaultMutableTreeNode)treeModel.getRoot())
+            return false;
+
+        return moveUpIsLegal(treeModel.getPropKey (useProps, node.getPath()));
+    }
+    private boolean moveUpIsLegal(PropertyKey key) {
+        Prop prop = useProps.pget(key);
+        if (!isMoveable(prop.getStatus())) return false;
+
+        PropertyKey parentKey = key.getParent();
+        Prop parentProp = useProps.pget(parentKey);
+        int pos = -1;
+        for (int i=parentProp.getNumChildren();  i-- > 0; )
+            if (key.equals(parentProp.getChild(pos=i))) break;
+        if (pos < 1) return false;
+
+        PropertyKey siblingKey = parentProp.getChild(pos-1);
+        Prop siblingProp = useProps.pget(siblingKey);
+        return isMoveable(siblingProp.getStatus());
+    }
+
+    private void moveUp(DefaultMutableTreeNode node) {
+        if (node == null || node == (DefaultMutableTreeNode)treeModel.getRoot())
+            return;
+
+        // Check to make certain that the move is legal.
+        Object [] path = node.getPath();
+        PropertyKey key = treeModel.getPropKey (useProps, path);
+        if (!moveUpIsLegal(key)) return;
+
+        // First, make the change in the properties object.
+        DefaultMutableTreeNode parentNode=(DefaultMutableTreeNode)node.getParent();
+        int index = parentNode.getIndex(node);
+        PropertyKey parentKey = key.getParent();
+        Prop parentProp = useProps.pget(parentKey);
+        parentProp.moveChildUp(index);
+
+        // Next, make the change in the tree model.
+        treeModel.useTreeModelListener(false);
+        parentNode.insert(node, index-1);
+        treeModel.useTreeModelListener(true);
+        treeModel.nodeStructureChanged(parentNode);
+
+        setDirty(true);
+    }
 
     private void startEditingNode(TreeNode node) {
         final TreePath path = new TreePath(treeModel.getPathToRoot(node));
