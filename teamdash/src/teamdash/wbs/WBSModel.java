@@ -160,7 +160,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public WBSNode getNodeForRow(int row) {
-        if (row < 0 || row > rows.length) return null;
+        if (row < 0 || row >= rows.length) return null;
         return (WBSNode) wbsNodes.get(rows[row]);
     }
 
