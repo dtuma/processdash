@@ -68,6 +68,7 @@ A  { color: black; text-decoration: none }
   var activateLink = location.search;
   var foundLink = false;
   if (activateLink != "") {
+    activateLink = activateLink.substring(1);
     for (var i = helpTopics.length - 1;   i-- > 0; ) {
       if (activateLink == helpTopics[i][0]) {
         window.top.frames[1].location = helpTopics[i][1];
