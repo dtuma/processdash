@@ -60,6 +60,12 @@ public class ConsoleWindow extends JFrame {
                     textArea.setText(null); } });
         menubar.add(item);
 
+        item = new JMenuItem("Close");
+        item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    hide(); } });
+        menubar.add(item);
+
         textArea = new JTextArea();
         textArea.setEditable(false);
         textArea.setCaretColor(textArea.getBackground());
