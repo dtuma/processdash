@@ -44,7 +44,8 @@ public class timelog extends TinyCGIBase {
         "<TD>Phase</TD>\n" +
         "<TD>Start Time</TD>\n" +
         "<TD>Elapsed</TD>\n" +
-        "<TD>Interrupt</TD></TR>\n";
+        "<TD>Interrupt</TD>\n" +
+        "<TD>Comment</TD></TR>\n";
 
     private static final String DISCLAIMER =
         "<P class=doNotPrint><A HREF=\"excel.iqy\"><I>Export to" +
@@ -92,6 +93,8 @@ public class timelog extends TinyCGIBase {
                         "</TD>");
             out.println("<TD>" + tle.getElapsedTime() + "</TD>");
             out.println("<TD>" + tle.getInterruptTime() + "</TD>");
+            String comment = tle.getComment();
+            out.println("<TD>" + (comment == null ? "" : comment) + "</TD>");
             out.println("</TR>");
         }
         out.println("</TABLE>");

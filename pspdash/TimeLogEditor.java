@@ -439,7 +439,8 @@ public class TimeLogEditor extends Object
                 {tle.key.path(),
                  DateFormatter.formatDateTime (tle.createTime),
                  formatTime (tle.minutesElapsed),
-                 formatTime (tle.minutesInterrupt)};
+                 formatTime (tle.minutesInterrupt),
+                 tle.getComment()};
             model.addRow(row);
             tableContainsRows = true;
         }
@@ -580,6 +581,9 @@ public class TimeLogEditor extends Object
                 table.table.setValueAt (formatTime (tle.minutesInterrupt), row, col);
             } catch (Exception e) { rv = false; }
             break;
+        case 4:                     // comment (any string is fine)
+            tle.setComment(newValue);
+            break;
         }
         setTimes ();
         validateCell = null;
@@ -693,6 +697,7 @@ public class TimeLogEditor extends Object
             model.setValueAt(DateFormatter.formatDateTime(tle.createTime), row, 1);
             model.setValueAt(String.valueOf (tle.minutesElapsed), row, 2);
             model.setValueAt(String.valueOf (tle.minutesInterrupt), row, 3);
+            model.setValueAt(tle.getComment(), row, 4);
 
         } else {
             applyFilter(false);
@@ -756,7 +761,8 @@ public class TimeLogEditor extends Object
             {tle.key.path(),
              DateFormatter.formatDateTime (tle.createTime),
              String.valueOf (tle.minutesElapsed),
-             String.valueOf (tle.minutesInterrupt)};
+             String.valueOf (tle.minutesInterrupt),
+             null };                  // don't copy the comment.
         model.addRow(aRow);
         tableContainsRows = true;
         addButton.setEnabled(true);
@@ -803,6 +809,12 @@ public class TimeLogEditor extends Object
                     merged = true;
                     tle.minutesElapsed   += tle2.minutesElapsed;
                     tle.minutesInterrupt += tle2.minutesInterrupt;
+                    if (tle2.getComment() != null) {
+                        if (tle.getComment() == null)
+                            tle.setComment(tle2.getComment());
+                        else
+                            tle.setComment(tle.getComment() + "\n" + tle2.getComment());
+                    }
                     System.err.println("merging:"+tle+"+"+tle2);
                     tl.remove (tle2);
                     setDirty(true);
@@ -841,13 +853,14 @@ public class TimeLogEditor extends Object
 
         retPanel.setLayout(new BorderLayout());
         table = new ValidatingTable
-            (new Object[] {"Logged To", "Start T", "Delta", "Int"},
+            (new Object[] {"Logged To", "Start T", "Delta", "Int", "Comment"},
              null,
-             new int[] {250, 180, 45, 40},
+             new int[] {250, 180, 45, 40, 180 },
              new String[] {"What the time is logged to",
                            "The start time(minutes)",
                            "The elapsed time(minutes)",
-                           "The interrupt time(minutes)"},
+                           "The interrupt time(minutes)",
+                           "Comments" },
              null, this, 0, true, null, null);
         retPanel.add ("Center", table);
 

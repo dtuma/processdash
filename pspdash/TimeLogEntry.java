@@ -36,6 +36,7 @@ public class TimeLogEntry {
     Date        createTime;
     long        minutesElapsed;
     long        minutesInterrupt;
+    private String comment;
 
     private static final DateFormat df =
         DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
@@ -88,12 +89,23 @@ public class TimeLogEntry {
         }
 
         startPosition = s.indexOf (INTERRUPT, endPosition) + INTERRUPT.length();
+        endPosition = s.indexOf (TAB, startPosition);
         try {
-            tle.minutesInterrupt = Long.valueOf
-                (s.substring (startPosition)).longValue();
+            String minInterrupt;
+            if (endPosition == -1)
+                minInterrupt = s.substring (startPosition);
+            else
+                minInterrupt = s.substring (startPosition, endPosition);
+            tle.minutesInterrupt = Long.parseLong(minInterrupt);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid Interrupt Time");
         }
+
+        if (endPosition == -1)
+            tle.comment = null;
+        else
+            tle.comment = s.substring(endPosition+1);
+
         return tle;
     }
 
@@ -101,7 +113,16 @@ public class TimeLogEntry {
         return (((key == null) ? "" : key.toString()) + TAB +
                 START + DateFormatter.formatDateTime(createTime) + TAB +
                 ELAPSED + minutesElapsed + TAB +
-                INTERRUPT + minutesInterrupt + TERMINATOR);
+                INTERRUPT + minutesInterrupt +
+                (comment == null ? "" : TAB + comment) + TERMINATOR);
+    }
+
+    private String escComment(String s) {
+        return s.replace('\n', '');
+    }
+
+    private String unescComment(String s) {
+        return s.replace('', '\n');
     }
 
     public String toAbbrevString() {
@@ -129,5 +150,17 @@ public class TimeLogEntry {
     public Date getStartTime() { return createTime; }
     public long getElapsedTime() { return minutesElapsed; }
     public long getInterruptTime() { return minutesInterrupt; }
+    public String getComment() {
+        if (comment != null)
+            return comment.replace('', '\n');
+        else
+            return null;
+    }
+    public void setComment(String comment) {
+        if (comment == null || comment.trim().length() == 0)
+            this.comment = null;
+        else
+            this.comment = comment.replace('\t', ' ').replace('\n', '');
+    }
 
 }
