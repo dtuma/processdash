@@ -17,6 +17,16 @@
 	                [/<!--#echo Process_ID -->/Project List]);
 [Immediate_Subtask_List] = filter(chopPath() == [^], [Subtask_List]);
 
+/*
+ * Get a list of the phases immediately underneath this task.
+ */
+[Immediate_Phase_List] = filter(indirect([_] &/ "node"), [Child_List]);
+
+/*
+ * Redefine Estimated Time for user convenience purposes.
+ */
+[Estimated Time] = sumFor("Estimated Time",
+                          [Immediate_Subtask_List], [Immediate_Phase_List]);
 
 /*
  * Calculate the total time and defects for subtasks.
