@@ -77,7 +77,7 @@ public class TinyCGIBase implements TinyCGI {
                 continue;
             else if (equalsPos == -1)
                 parameters.put(URLDecoder.decode(param), Boolean.TRUE);
-            else {
+            else try {
                 name = URLDecoder.decode(param.substring(0, equalsPos));
                 val = param.substring(equalsPos+1);
                 // skip URL decoding if the value begins with "=".  This
@@ -93,6 +93,8 @@ public class TinyCGIBase implements TinyCGI {
                     parameters.put
                         (name, append((String[]) parameters.get(name), val));
                 }
+            } catch (Exception e) {
+                System.err.println("Malformed query parameter: " + param);
             }
         }
     }
@@ -109,14 +111,10 @@ public class TinyCGIBase implements TinyCGI {
     protected void parseInputFile(String filename) throws IOException {
         if (filename == null || filename.length() == 0) return;
 
-        if (nestingDepth > 50)
-            throw new IOException("Infinite recursion - aborting.");
-
         TinyWebServer t = getTinyWebServer();
         String origFilename = filename;
         String scriptPath = (String) env.get("SCRIPT_PATH");
         try {
-            nestingDepth++;
             if (!filename.startsWith("/")) {
                 URL context = new URL("http://localhost:2468" + scriptPath);
                 URL file = new URL(context, filename);
@@ -130,10 +128,8 @@ public class TinyCGIBase implements TinyCGI {
                                scriptPath +"')");
         } finally {
             env.put("SCRIPT_PATH", scriptPath);
-            nestingDepth--;
         }
     }
-    private int nestingDepth = 0;
 
     private String[] append(String [] array, String element) {
         String [] result;
