@@ -23,21 +23,25 @@
 // Hill AFB, UT 84056-5843
 // 
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
--->
+--><!--#resources bundle="Templates" -->
 
 <HTML>
 <HEAD>
 <link rel=stylesheet type="text/css" href="/style.css">
-<TITLE><!--#echo var="[Process_ID]" -->
-<!--#if rollup -->Rollup<!--#else-->Project<!--#endif-->
-Plan Summary</TITLE>
+<TITLE><!--#if rollup #-->
+    <!--#echo var="Rollup_Summary_Name_FMT" arg0="[Process_ID]" #-->
+<!--#else #-->
+    <!--#echo var="Plan_Summary_Name_FMT" arg0="[Process_ID]" #-->
+<!--#endif--></TITLE>
 </HEAD>
 <BODY>
 
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
-<H2><!--#echo var=[Process_ID] --> 
-<!--#if rollup -->Rollup<!--#else-->Project<!--#endif-->
-Plan Summary</H2>
+<H2><!--#if rollup #-->
+    <!--#echo var="Rollup_Summary_Name_FMT" arg0="[Process_ID]" #-->
+<!--#else #-->
+    <!--#echo var="Plan_Summary_Name_FMT" arg0="[Process_ID]" #-->
+<!--#endif--></H2>
 
 <FORM>
 
@@ -86,7 +90,7 @@ Plan Summary</H2>
 
 
 
-<H2>Overall Metrics</H2>
+<H2><!--#echo Overall_Metrics --></H2>
 
 <TABLE>
 
@@ -127,14 +131,14 @@ Plan Summary</H2>
 </TR>
 <!--#else-->
 <TR>
-<TD>Planned Time</TD>
+<TD><!--#echo Planned_Time --></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
 <TD></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time To Date"></TD>
 </TR>
 
 <TR>
-<TD>Actual Time</TD>
+<TD><!--#echo Actual_Time --></TD>
 <TD></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Time To Date"></TD>
@@ -142,7 +146,7 @@ Plan Summary</H2>
 <!--#endif-->
 
 <TR>
-<TD>CPI (Cost-Performance Index)</TD>
+<TD><!--#echo Cost_Performance_Index --></TD>
 <TD></TD>
 <!--#if rollup -->
 <TD><INPUT TYPE=text SIZE=7 NAME="CPI"></TD>
@@ -155,20 +159,20 @@ Plan Summary</H2>
 <!--#if defined [Defect Density] -->
 <!--#if defined [Last_Failure_Phase] -->
 <TR>
-<TD><!--#echo [Last_Failure_Phase] --> Defect Density</TD>
+<TD><!--#echo var="Simple_Defect_Density_FMT" arg0="[Last_Failure_Phase]" --></TD>
 <TD><INPUT TYPE=text SIZE=7
-    NAME="<!--#echo [Last_Failure_Phase] -->/Estimated Defect Density"></TD>
+    NAME="<!--#echo [Last_Failure_Phase] --><!--#echo value='/Estimated Defect Density' -->"></TD>
 <TD><INPUT TYPE=text SIZE=7
-    NAME="<!--#echo [Last_Failure_Phase] -->/Defect Density"></TD>
+    NAME="<!--#echo [Last_Failure_Phase] --><!--#echo value='/Defect Density' -->"></TD>
 <!--#if not rollup -->
 <TD><INPUT TYPE=text SIZE=7
-    NAME="<!--#echo [Last_Failure_Phase] -->/Defect Density To Date"></TD>
+    NAME="<!--#echo [Last_Failure_Phase] --><!--#echo value='/Defect Density To Date' -->"></TD>
 <!--#endif-->
 </TR>
 <!--#endif [Last_Failure_Phase] -->
 
 <TR>
-<TD>Total Defect Density</TD>
+<TD><!--#echo Total_Defect_Density --></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Defect Density"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Defect Density"></TD>
 <!--#if not rollup -->
@@ -190,7 +194,7 @@ Plan Summary</H2>
 
 <!--#if defined [% Appraisal COQ] -->
 <TR>
-<TD>% Appraisal COQ</TD>
+<TD><!--#echo Appraisal_COQ --></TD>
 <TD><INPUT TYPE=text SIZE=7
     MANUALFOR="8A" NAME="Estimated % Appraisal COQ	%"></TD>
 <TD><INPUT TYPE=text SIZE=7
@@ -204,7 +208,7 @@ Plan Summary</H2>
 
 <!--#if defined [% Failure COQ] -->
 <TR>
-<TD>% Failure COQ</TD>
+<TD><!--#echo Failure_COQ --></TD>
 <TD><INPUT TYPE=text SIZE=7
     MANUALFOR="8A" NAME="Estimated % Failure COQ	%"></TD>
 <TD><INPUT TYPE=text SIZE=7 MANUALFOR="8A" NAME="% Failure COQ	%"></TD>
@@ -216,7 +220,7 @@ Plan Summary</H2>
 
 <!--#if defined [% Appraisal COQ] -->
 <TR>
-<TD>COQ A/F Ratio</TD>
+<TD><!--#echo Appraisal_to_Failure_Ratio --></TD>
 <TD><INPUT TYPE=text SIZE=7 MANUALFOR="8A" NAME="Estimated AFR"></TD>
 <TD><INPUT TYPE=text SIZE=7 MANUALFOR="8A" NAME="AFR"></TD>
 <!--#if not rollup -->
@@ -249,14 +253,14 @@ Plan Summary</H2>
 
 <!--#if not rollup -->
 <TR>
-<TD>&nbsp;&nbsp;Size UPI (70%)</TD>
+<TD>&nbsp;&nbsp;<!--#echo Size_UPI --></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max Size"></TD>
 <TD></TD>
 <TD></TD>
 </TR>
 
 <TR>
-<TD>&nbsp;&nbsp;Size LPI (70%)</TD>
+<TD>&nbsp;&nbsp;<!--#echo Size_LPI --></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min Size"></TD>
 <TD></TD>
 <TD></TD>
@@ -271,7 +275,7 @@ Plan Summary</H2>
 <TABLE>
 
 <TR>
-<TD><B>Time in Phase (min.)</B></TD>
+<TD><B><!--#echo Time_In_Phase --></B></TD>
 <TD ALIGN=CENTER><B>Plan</B></TD>
 <TD ALIGN=CENTER><B>Actual</B></TD>
 <!--#if rollup -->
@@ -308,7 +312,7 @@ Plan Summary</H2>
 
 <!--#if not rollup -->
 <TR>
-<TD>&nbsp;&nbsp;Total Time UPI (70%)</TD>
+<TD>&nbsp;&nbsp;<!--#echo Time_UPI --></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max Time"></TD>
 <TD></TD>
 <TD></TD>
@@ -316,7 +320,7 @@ Plan Summary</H2>
 </TR>
 
 <TR>
-<TD>&nbsp;&nbsp;Total Time LPI (70%)</TD>
+<TD>&nbsp;&nbsp;<!--#echo Time_LPI --></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min Time"></TD>
 <TD></TD>
 <TD></TD>
@@ -445,7 +449,7 @@ Plan Summary</H2>
 
 
 <!--#if defined [Quality_Phase_List] -->
-<H2>Defect Removal Efficiency</H2>
+<H2><!--#echo Defect_Removal_Efficiency --></H2>
 
 <TABLE>
 
@@ -454,16 +458,18 @@ Plan Summary</H2>
 
 <!--#if defined [Defect Density]-->
     <TD <!--#if rollup -->COLSPAN=2<!--#else-->COLSPAN=3<!--#endif-->
-        ALIGN=CENTER VALIGN=BOTTOM><B>Defect Density</b><BR>(Def/KLOC)</TD>
+        ALIGN=CENTER VALIGN=BOTTOM><!--#echo var="Density_Header__HTML_FMT"
+	arg0="[AGGR_SIZE_METRIC_NAME_ABBR]" encoding="none" --></TD>
     <TD>&nbsp;</TD>
 <!--#endif [Defect Density]-->
 
 <TD <!--#if rollup -->COLSPAN=2<!--#else-->COLSPAN=3<!--#endif-->
-    ALIGN=CENTER><B>Defect Removal<br>Efficiency</b><BR>(Rem/Hr)</TD>
+    ALIGN=CENTER><!--#echo var="Removal_Rate_Header_HTML"
+    encoding="none" --></TD>
 <TD>&nbsp;</TD>
 <TD <!--#if rollup -->COLSPAN=2<!--#else-->COLSPAN=3<!--#endif-->
-    ALIGN=CENTER><B>Defect Removal<br>Leverage</b><BR>(vs.
-    <!--#echo [Last_Failure_Phase]-->)</TD>
+    ALIGN=CENTER><!--#echo var="Removal_Leverage_Header_HTML_FMT"
+	arg0="[Last_Failure_Phase]" encoding="none" --></TD>
 </TR>
 
 <TR>
@@ -541,10 +547,13 @@ anything and will be discarded by the HTMLPreprocessor). -->
 
 <!--#if not rollup -->
 <span class="doNotPrint">
-View <A HREF="../reports/timelog.class">Time Recording Log</A>
+<!--#echo View_Log_Begin -->
+<A HREF="../reports/timelog.class">Time Log</A>
 <!--#if defined [Defects Removed] -->
-or <A HREF="../reports/defectlog.class">Defect Recording Log</A>
+<!--#echo View_Log_Separator -->
+<A HREF="../reports/defectlog.class">Defect Log</A>
 <!--#endif [Defects Removed] -->
+<!--#echo View_Log_End -->
 </span>
 <!--#endif not rollup -->
 
