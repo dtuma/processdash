@@ -31,11 +31,19 @@ import java.util.Enumeration;
 
 public class dts extends TinyCGIBase {
 
+    private static final String NAME = "name";
+
     /** Generate CGI script output. */
     protected void writeContents() {
 
-        DefectTypeStandard defectTypeStandard =
-            DefectTypeStandard.get(getPrefix(), getDataRepository());
+        DefectTypeStandard defectTypeStandard = null;
+        if (parameters.get(NAME) != null)
+            defectTypeStandard = DefectTypeStandard.getByName
+                (getParameter(NAME), getDataRepository());
+        if (defectTypeStandard == null)
+            defectTypeStandard = DefectTypeStandard.get
+                (getPrefix(), getDataRepository());
+
         String name = defectTypeStandard.getName();
         String title = (name == null ? "" : " (" + name + ")");
 
