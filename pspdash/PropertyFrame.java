@@ -173,6 +173,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         tree.setShowsRootHandles (true);
         tree.setEditable(true);
         tree.setInvokesStopCellEditing(true);
+        tree.getSelectionModel().setSelectionMode
+            (TreeSelectionModel.SINGLE_TREE_SELECTION);
         treeModel.useTreeModelListener (true);
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
@@ -543,14 +545,36 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         int [] indices = e.getChildIndices();
         Object [] children = e.getChildren();
         PropertyKey parent = treeModel.getPropKey (useProps, path);
+        String previousName, newName;
+        int index;
 
         for (int i = 0; i < indices.length; i++) {
-            useProps.setChildKey (parent,
-                                  children [i].toString(),
-                                  indices[i]);
-            // Update node name or selection sensitive data here
+            previousName = useProps.getChildName(parent, indices[i]);
+            newName = children [i].toString();
+            index = indices[i];
+
+            if (newNameIsAcceptable(parent, newName)) {
+                useProps.setChildKey (parent, newName, index);
+                setDirty (true);
+            } else {
+                // Revert back to the old name.
+                treeModel.useTreeModelListener(false);
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+                    treeModel.getChild(e.getTreePath().getLastPathComponent(), index);
+                node.setUserObject(previousName);
+                treeModel.nodeChanged(node);
+                treeModel.useTreeModelListener(true);
+            }
         }
-        setDirty (true);
+    }
+
+    private boolean newNameIsAcceptable(PropertyKey parent, String newName) {
+        if (newName.indexOf('/') != -1)
+            return false;
+        else if (!useProps.pget(parent).isUniqueChildName(newName))
+            return false;
+        else
+            return true;
     }
 
     public void treeNodesInserted (TreeModelEvent e) {
@@ -708,10 +732,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         expandRoot ();
         treeModel.useTreeModelListener (true);
 
-        int numChildren = treeModel.getChildCount(destParent);
-        int [] children = new int[numChildren];
-        while (numChildren-- > 0) children[numChildren] = numChildren;
-        treeModel.nodesChanged(destParent, children);
+        treeModel.nodeStructureChanged(destParent);
 
         return (TreeNode) treeModel.getChild(destParent, newIndex);
     }
@@ -869,7 +890,6 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 valueChanged(null);
                 setDirty (true);
 
-                treeModel.nodeChanged(newNode);
                 startEditingNode(newNode);
             }
         }
@@ -892,9 +912,12 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     } // End of PropertyFrame.RemoveAction
 
     private void startEditingNode(TreeNode node) {
-        TreePath path = new TreePath(treeModel.getPathToRoot(node));
+        final TreePath path = new TreePath(treeModel.getPathToRoot(node));
         tree.setSelectionPath(path);
         if (tree.isEditable())
-            tree.startEditingAtPath(path);
+            SwingUtilities.invokeLater(new Runnable() {
+                TreePath thepath = path;
+                public void run() { tree.startEditingAtPath(thepath); }
+                });
     }
 }
