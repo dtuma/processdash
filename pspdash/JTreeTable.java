@@ -199,6 +199,14 @@ public class JTreeTable extends JTable {
             visibleRow = row;
             return this;
         }
+
+        /**
+         * Subclassed to fetch the tooltip for the visible row.
+         */
+        public String getToolTipText(MouseEvent event) {
+            event.translatePoint(0, visibleRow * getRowHeight());
+            return super.getToolTipText(event);
+        }
     }
 
 
