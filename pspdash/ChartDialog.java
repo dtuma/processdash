@@ -52,6 +52,7 @@ public class ChartDialog extends JDialog {
                         boolean showRegression,
                         boolean showAverage) {
         super (parent, "PROBE Chart");
+        PCSH.enableHelpKey(this, "UsingProbeTool.chart");
         corr = c;
 
         names  = (corr == null) ? null : corr.getDataNames();

@@ -62,6 +62,8 @@ public class PauseButton extends DropDownButton implements ActionListener {
 
     PauseButton(PSPDashboard dash) {
         super();
+        PCSH.enableHelp(this, "PlayPause");
+        PCSH.enableHelpKey(getMenu(), "PlayPause");
         showCurrent = "true".equalsIgnoreCase(Settings.getVal
                                               ("pauseButton.showCurrent"));
         try {

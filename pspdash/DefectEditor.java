@@ -82,6 +82,7 @@ public class DefectEditor extends Component
                            (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("Center", panel);
         frame.setBackground(Color.lightGray);
+        PCSH.enableHelpKey(frame, "UsingDefectLogEditor");
 
         /* Create the JTreeModel. */
         treeModel = new PropTreeModel (new DefaultMutableTreeNode ("root"), null);

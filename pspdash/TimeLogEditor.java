@@ -111,6 +111,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                            (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("Center", panel);
         frame.setBackground(Color.lightGray);
+        PCSH.enableHelpKey(frame, "UsingTimeLogEditor");
 
         /* Create the JTreeModel. */
         treeModel = new PropTreeModel (new DefaultMutableTreeNode ("root"), null);

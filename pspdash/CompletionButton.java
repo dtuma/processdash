@@ -38,6 +38,7 @@ class CompletionButton extends JCheckBox implements ActionListener {
 
     CompletionButton(PSPDashboard dash) {
         super();
+        PCSH.enableHelp(this, "CompletionButton");
         parent = dash;
         setMargin (new Insets (0,2,0,2));
         addActionListener(this);

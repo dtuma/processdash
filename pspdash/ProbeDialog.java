@@ -66,6 +66,7 @@ public class ProbeDialog extends JFrame implements
 
         ProbeDialog(PSPDashboard dash) {
             super("PROBE");
+            PCSH.enableHelpKey(this, "UsingProbeTool");
             setIconImage(dash.getIconImage());
 
             parent = dash;

@@ -164,6 +164,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         frame.getContentPane().add("Center", panel);
         frame.setJMenuBar(menuBar);
         frame.setBackground(Color.lightGray);
+        PCSH.enableHelpKey(frame, "UsingHierarchyEditor");
 
         /* Create the JTreeModel. */
         treeModel = new PropTreeModel (new DefaultMutableTreeNode ("root"), this);

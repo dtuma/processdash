@@ -56,6 +56,7 @@ public class FilterDialog extends JDialog implements ActionListener {
                          Frame probeWindow,
                          ActionListener l) {
         super (probeWindow, "PROBE filter");
+        PCSH.enableHelpKey(this, "UsingProbeTool.filter");
 
         parent = dash;
         props = parent.props;

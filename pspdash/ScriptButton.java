@@ -50,6 +50,8 @@ class ScriptButton extends DropDownButton {
 
     ScriptButton(PSPDashboard dash) {
         super();
+        PCSH.enableHelp(this, "AccessingScripts");
+        PCSH.enableHelpKey(getMenu(), "AccessingScripts");
         try {
             enabled_icon = new ImageIcon(getClass().getResource("script.gif"));
             disabled_icon = new ImageIcon(getClass().getResource("scriptd.gif"));

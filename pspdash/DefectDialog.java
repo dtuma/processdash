@@ -73,6 +73,7 @@ public class DefectDialog extends JDialog
     DefectDialog(PSPDashboard dash, String defectFilename,
                  PropertyKey defectPath, boolean guessDefaults) {
         super(dash, "Defect Dialog");
+        PCSH.enableHelpKey(this, "EnteringDefects");
 
         parent = dash;
         this.defectFilename = defectFilename;

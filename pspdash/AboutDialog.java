@@ -72,11 +72,7 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
             String url = e.getURL().toString();
             if (url.startsWith("http://help/"))
-                try {
-                    DashHelpBroker help = DashHelpBroker.getInstance();
-                    help.setCurrentID(url.substring(12));
-                    help.setDisplayed(true);
-                } catch (Exception ex) {}
+                PCSH.displayHelpTopic(url.substring(12));
             else
                 Browser.launch(url);
         }

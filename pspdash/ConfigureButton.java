@@ -33,7 +33,6 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Dimension;
 import java.awt.event.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -41,9 +40,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Properties;
-import javax.help.*;
 import java.io.File;
-import java.net.URL;
 
 class ConfigureButton extends JMenuBar implements ActionListener {
     PSPDashboard   parent       = null;
@@ -53,40 +50,36 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     DefectEditor   defect_frame = null;
     ImportExport   impexp_frame = null;
     ProbeDialog    probe_dialog = null;
-    HelpSet        hs           = null;
-    DashHelpBroker hb           = null;
 
     static String FILE_SEP = null;
     static final String ANALYSIS_URL = "/reports/index.htm";
-// static final String HELP_URL    = "/help/PSPDash.htm";
     static final String ABOUT_URL    = "/help/Topics/Overview/about.htm";
 
-                                  // indices into menu labels
-    static final int HIERARCHY_FRAME    = 0;
-    static final int TIME_LOG_FRAME     = 1;
-    static final int DEFECT_LOG_FRAME   = 2;
-    static final int PROBE_DIALOG       = 3;
-    //static final int TASK_DIALOG      = 4; // disabled
-    static final int DATA_ANALYSIS      = 4;
-    static final int IMPORT_EXPORT      = 5;
-    static final int HELP_FRAME         = 6;
-    static final int ABOUT_DIALOG       = 7;
-    static final int EXIT_PROGRAM       = 8;
-    static final int FIRST_HISTORY_ITEM = 8;
-    static final int MAX_HISTORY_SIZE   = 0;
+                                  // menu labels
+    static final String HIERARCHY_FRAME  = "Hierarchy";
+    static final String TIME_LOG_FRAME   = "Time Log";
+    static final String DEFECT_LOG_FRAME = "Defect Log";
+    static final String PROBE_DIALOG     = "PROBE";
+    static final String TASK_DIALOG      = "Task & Schedule";
+    static final String DATA_ANALYSIS    = "Data Analysis";
+    static final String IMPORT_EXPORT    = "Export";
+    static final String HELP_FRAME       = "Help";
+    static final String ABOUT_DIALOG     = "About";
+    static final String EXIT_PROGRAM     = "Exit";
 
                                   // menu labels & cmd text (see above)
-    static final String [] menuLabels =
-        {new String ("Hierarchy"),
-         new String ("Time Log"),
-         new String ("Defect Log"),
-         new String ("PROBE"),
-         //     new String ("Task & Schedule"),
-         new String ("Data Analysis"),
-         new String ("Export"),
-         new String ("Help"),
-         new String ("About"),
-         new String ("Exit")};
+    static final String [][] menuItems = {
+        { HIERARCHY_FRAME,  "UsingHierarchyEditor" },
+        { TIME_LOG_FRAME,   "UsingTimeLogEditor" },
+        { DEFECT_LOG_FRAME, "UsingDefectLogEditor" },
+        { PROBE_DIALOG,     "UsingProbeTool" },
+        //{ TASK_DIALOG, "TaskAndSchedule???" }, // disabled
+        { DATA_ANALYSIS,    "DataChartsAndReports" },
+        { IMPORT_EXPORT,    "ExportingData" },
+        { HELP_FRAME,       null },
+        { ABOUT_DIALOG,     null },
+        { EXIT_PROGRAM,     null } };
+
 
     ConfigureButton(PSPDashboard dash) {
         super();
@@ -98,49 +91,25 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         JMenuItem helpItem = null;
         add (menu);
 
-        for (int ii = 0; ii < menuLabels.length; ii++) {
-            if (ii != HELP_FRAME) {
-                menuItem = menu.add(new JMenuItem(menuLabels[ii]));
-                menuItem.setActionCommand(menuLabels[ii]);
-                menuItem.addActionListener(this);
-            } else {
-                helpItem = new JMenuItem(menuLabels[HELP_FRAME]);
-                menu.add(helpItem);
-            }
-        }
+        PCSH.enableHelpKey(this, "ConfigureMenu");
 
-        //popup.addSeparator();
-        //add history elements here? (up to MAX_HISTORY_SIZE)
+        for (int ii = 0; ii < menuItems.length; ii++) {
+            menuItem = menu.add(new JMenuItem(menuItems[ii][0]));
+            menuItem.setActionCommand(menuItems[ii][0]);
+            menuItem.addActionListener(this);
+
+            // Can't get this to work, don't know why
+            // if (menuItems[ii][1] != null)
+            //   PCSH.enableHelp(menuItem, menuItems[ii][1]);
+        }
 
         dash.getContentPane().add(this);
 
                                     // get needed system properties
         Properties prop = System.getProperties ();
         FILE_SEP = prop.getProperty ("file.separator");
-
-        // add help listener
-        try {
-            URL hsURL = TemplateLoader.resolveURL(HELPSET_PATH);
-
-            hs = new HelpSet(null,hsURL);
-            //System.out.println("Found help set at " + hsURL);
-
-            hb = new DashHelpBroker(hs);
-
-            // set the size for the display
-            hb.setSize(new Dimension(645,495));
-
-            CSH.setHelpIDString(helpItem ,"QuickOverview");
-
-            ActionListener helper = new CSH.DisplayHelpFromSource(hb);
-            helpItem.addActionListener(helper);
-
-        } catch (Exception e) {
-            System.out.println("Error on help");
-        }
     }
 
-    private static final String HELPSET_PATH = "/help/PSPDash.hs";
 
     public void quit () {
         if (time_frame != null) {
@@ -164,10 +133,6 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         if (defect_frame != null)
             defect_frame.reloadAll(newProps);
     }
-
-//  public void setHistoryItem(String label, String dest) {
-//    update history portion of popup menu here (save where?????)
-//  }
 
     protected void startPropertyFrame () {
         if (parent.getProperties() != null) {
@@ -228,6 +193,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             time_frame.addRow (tle);
     }
 
+
     public void startTaskDialog() {
         if (parent.getProperties() != null) {
             if (task_frame != null)
@@ -241,7 +207,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void startDataAnalysis() { Browser.launch(ANALYSIS_URL); }
 
-// public void startHelp() { Browser.launch(HELP_URL); }
+    public void startHelp() { PCSH.displayHelpTopic("QuickOverview"); }
 
     public void startAboutDialog() { new AboutDialog(parent, ABOUT_URL); }
 
@@ -255,25 +221,25 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
 
-        if (cmd.equals(menuLabels[HIERARCHY_FRAME])) {
+        if (cmd.equals(HIERARCHY_FRAME)) {
             startPropertyFrame ();
-        } else if (cmd.equals(menuLabels[TIME_LOG_FRAME])) {
+        } else if (cmd.equals(TIME_LOG_FRAME)) {
             startTimeLog();
-        } else if (cmd.equals(menuLabels[DEFECT_LOG_FRAME])) {
+        } else if (cmd.equals(DEFECT_LOG_FRAME)) {
             startDefectLog();
-        } else if (cmd.equals(menuLabels[PROBE_DIALOG])) {
+        } else if (cmd.equals(PROBE_DIALOG)) {
             startProbeDialog ();
-//  } else if (cmd.equals(menuLabels[TASK_DIALOG])) {
-//    startTaskDialog ();
-        } else if (cmd.equals(menuLabels[DATA_ANALYSIS])) {
+        } else if (cmd.equals(TASK_DIALOG)) {
+            startTaskDialog ();
+        } else if (cmd.equals(DATA_ANALYSIS)) {
             startDataAnalysis ();
-        } else if (cmd.equals(menuLabels[IMPORT_EXPORT])) {
+        } else if (cmd.equals(IMPORT_EXPORT)) {
             startImportExport ();
-//  } else if (cmd.equals(menuLabels[HELP_FRAME])) {
-//    startHelp ();
-        } else if (cmd.equals(menuLabels[ABOUT_DIALOG])) {
+        } else if (cmd.equals(HELP_FRAME)) {
+            startHelp ();
+        } else if (cmd.equals(ABOUT_DIALOG)) {
             startAboutDialog ();
-        } else if (cmd.equals(menuLabels[EXIT_PROGRAM])) {
+        } else if (cmd.equals(EXIT_PROGRAM)) {
             exitProgram ();
         }
     }

@@ -63,6 +63,8 @@ public class HierarchyButton implements ActionListener {
             //debug("Processing children:"+numChildren);
 
             menu = new JMenu();
+            PCSH.enableHelpKey(parent.hierarchy_menubar, "HierarchyMenus");
+            //PCSH.enableHelpKey(menu, "HierarchyMenus");
 
             parent.hierarchy_menubar.add(menu);
             parent.hierarchy_menubar.invalidate();

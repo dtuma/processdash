@@ -39,6 +39,7 @@ public class DefectButton extends JButton implements ActionListener {
 
     DefectButton(PSPDashboard dash) {
         super();
+        PCSH.enableHelp(this, "EnteringDefects");
         try {
             enabled_icon = new ImageIcon(getClass().getResource("defect.gif"));
             disabled_icon = new ImageIcon(getClass().getResource("defectd.gif"));
