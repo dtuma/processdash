@@ -44,6 +44,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import java.awt.event.*;
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -176,7 +177,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
             Class jrc = Class.forName
                 ("org.zaval.tools.i18n.translator.OpenTranslatorAction");
             Constructor cstr = jrc.getConstructor
-                (new Class[] { String.class, String.class });
+                (new Class[] { String.class, String.class, Comparator.class });
 
             // get the name of the dashboard jar file
             String jarfilename = getDashboardJarFileName();
@@ -184,8 +185,9 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
 
             // create an instance of the action
             String displayName = resources.getString("Localization_Tool");
+            TranslationFilter filter = new TranslationFilter();
             Action a = (Action) cstr.newInstance
-                (new String[] { jarfilename, displayName });
+                (new Object[] { jarfilename, displayName, filter });
             toolMenu.add(a);
 
         } catch (Throwable t) {}
