@@ -25,6 +25,7 @@
 
 package pspdash;
 
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -117,7 +118,12 @@ public class Settings {
     public static Properties getSettings() {
         if (serializable == null) {
             Properties results = new Properties(defaults);
-            results.putAll(settings);
+            Enumeration keys = settings.keys();
+            while (keys.hasMoreElements()) {
+                Object key = keys.nextElement();
+                Object value = settings.get(key);
+                results.put(key, value);
+            }
             serializable = results;
         }
         return serializable;
