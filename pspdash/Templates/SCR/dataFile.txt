@@ -42,6 +42,7 @@
 //[PSP Project] == TAG;
 [SCR] == TAG;
 [scr] == TAG;
+[node] = TAG;
 
 
 // Sum up overall data from the cycles
@@ -58,3 +59,7 @@ sumForCycles(Estimated Defects Injected);
 sumForCycles(Defects Injected);
 sumForCycles(Estimated Defects Removed);
 sumForCycles(Defects Removed);
+
+
+// Freeze flags for planned data
+[FreezeFlag/.*Estimated.*] = [Planning/Completed] or [Completed];

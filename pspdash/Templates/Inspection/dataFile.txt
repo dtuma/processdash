@@ -1,3 +1,4 @@
+/* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -31,52 +32,14 @@
 ==
 == Description: This is the data file for an Inspection process. 
 ==
+*/
 
+/*
+ * The following elements identify the data in this file as belonging to
+ * a Inspection process. 
+ */
 
-=
-= The following elements identify the data in this file as belonging to
-= a DCR process. 
-=
-
-INSPECTION==TAG
-Inspection==TAG
-inspection==TAG
-
-
-=
-= Data Elements to track Time.
-=
-
-Planning/Estimated Time=0.0
-Design Inspection/Estimated Time=0.0
-Code Inspection/Estimated Time=0.0
-Postmortem/Estimated Time=0.0
-Estimated Time==![(+	~.*/Estimated Time)]
-
-Planning/Time==0.0
-Design Inspection/Time==0.0
-Code Inspection/Time==0.0
-Postmortem/Time==0.0
-Time==![(+	~.*/Time)]
-
-
-=
-= Data Elements to track defects injected
-=
-
-
-=
-= Data Elements to track defects removed
-=
-
-
-=
-= Data Elements used by Design Inspection Report
-=
-
-
-=
-= Miscellaneous data elements
-=
-
-Started=@now
+[INSPECTION] = TAG;
+[Inspection] = TAG;
+[inspection] = TAG;
+[node] = TAG;

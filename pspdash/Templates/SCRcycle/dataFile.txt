@@ -43,6 +43,9 @@
 
 [SCRCYCLE] = TAG;
 [scrcycle] = TAG;
+[node] = TAG;
+[PSP Rollup Eligible] = TAG;	/* do we really want to do this? */
+
 
 
 /*
