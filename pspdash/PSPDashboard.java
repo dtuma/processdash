@@ -130,6 +130,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
         DefectAnalyzer.setDataDirectory(property_directory);
         TimeLog.setDefaultFilename(getTimeLog());
 
+        BetaVersionSetup.runSetup(property_directory);
+
         // ensure that we have exclusive control of the data in the
         // property_directory
         //
@@ -478,7 +480,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         ensureJRE13();
 
-        PSPDashboard dash = new PSPDashboard("Process Dashboard");
+        PSPDashboard dash = new PSPDashboard
+            (args.length > 0 ? args[0] : "Process Dashboard");
         DashController.setDashboard(dash);
 
         dash.pack();

@@ -37,6 +37,7 @@ import javax.swing.*;
  */
 public class ConsoleWindow extends JFrame {
 
+    private static ConsoleWindow INSTALLED_CONSOLE_WINDOW = null;
     JTextArea textArea;
     ConsoleOutputStream outputStream = null;
     PrintStream printStream = null;
@@ -87,6 +88,10 @@ public class ConsoleWindow extends JFrame {
     public void install() {
         System.setOut(getPrintStream());
         System.setErr(getPrintStream());
+        INSTALLED_CONSOLE_WINDOW = this;
+    }
+    public static ConsoleWindow getInstalledConsole() {
+        return INSTALLED_CONSOLE_WINDOW;
     }
 
     // WARNING - doesn't correctly translate bytes to chars.

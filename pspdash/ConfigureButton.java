@@ -77,7 +77,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         { TASK_DIALOG,      "TaskAndSchedule???" },
         { DATA_ANALYSIS,    "DataChartsAndReports" },
         { IMPORT_EXPORT,    "ExportingData" },
-        { CONSOLE_WINDOW,   null },
+        //{ CONSOLE_WINDOW,   null },
         { HELP_FRAME,       null },
         { ABOUT_DIALOG,     null },
         { EXIT_PROGRAM,     null } };
@@ -94,6 +94,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         add (menu);
 
         PCSH.enableHelpKey(this, "ConfigureMenu");
+
+        BetaVersionSetup.addSubmenu(menu);
 
         for (int ii = 0; ii < menuItems.length; ii++) {
             menuItem = menu.add(new JMenuItem(menuItems[ii][0]));
