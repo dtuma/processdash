@@ -61,6 +61,79 @@ public class DashController {
         dash.toFront();
     }
 
+    public static void showTaskSchedule(String path) {
+        // if no path was given, just display a chooser dialog to the user.
+        if (path == null || path.length() == 0) {
+            raiseWindow();
+            new ChooserOpener(null);
+            return;
+        }
+
+        // chop trailing "/" if it is present.
+        if (path.endsWith("/")) path = path.substring(0, path.length()-1);
+
+        // Make a list of data name prefixes that could indicate the
+        // name of the task list for this path.
+        ArrayList prefixList = new ArrayList();
+        while (path != null) {
+            prefixList.add(path);
+            path = DataRepository.chopPath(path);
+        }
+        String[] prefixes = (String[]) prefixList.toArray(new String[0]);
+
+        // Search the data repository for elements that begin with any of
+        // the prefixes we just contructed.
+        String dataName, prefix, ord_pref = "/"+EVTaskList.TASK_ORDINAL_PREFIX;
+        Iterator i = dash.data.getKeys();
+        ArrayList taskLists = new ArrayList();
+
+    DATA_ELEMENT_SEARCH:
+        while (i.hasNext()) {
+            dataName = (String) i.next();
+            for (int j = prefixes.length;  j-- > 0; ) {
+                prefix = prefixes[j];
+
+                if (!dataName.startsWith(prefix))
+                    // if the dataname doesn't start with this prefix, it
+                    // won't start with any of the others either.  Go to the
+                    // next data element.
+                    continue DATA_ELEMENT_SEARCH;
+
+                if (!dataName.regionMatches(prefix.length(), ord_pref,
+                                            0, ord_pref.length()))
+                    // If the prefix isn't followed by the ordinal tag
+                    // "/TST_", try the next prefix.
+                    continue;
+
+                // we've found a match! Compute the resulting task list
+                // name and add it to our list.
+                dataName = dataName.substring
+                    (prefix.length() + ord_pref.length());
+                taskLists.add(dataName);
+            }
+        }
+
+        raiseWindow();
+        if (taskLists.size() == 1)
+            TaskScheduleChooser.open(dash, (String) taskLists.get(0));
+        else
+            // open the chooser in a thread - it is likely to block by
+            // opening a modal dialog.
+            new ChooserOpener(taskLists);
+    }
+    private static class ChooserOpener extends Thread {
+        private List taskLists;
+        public ChooserOpener(List t) { taskLists = t; start(); }
+        public void run() {
+            if (taskLists == null)
+                new TaskScheduleChooser(dash);
+            else
+                new TaskScheduleChooser
+                    (dash, (String[]) taskLists.toArray(new String[0]));
+        }
+    }
+
+
     public static void startTiming() { dash.pause_button.cont();  }
     public static void stopTiming()  { dash.pause_button.pause(); }
     public static boolean setPath(String path) {
