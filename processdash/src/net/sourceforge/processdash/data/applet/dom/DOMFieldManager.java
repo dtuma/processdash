@@ -224,7 +224,7 @@ public class DOMFieldManager implements HTMLFieldManager, DataListener {
     }
 
 
-    public void notifyListener(Object id) {
+    public void notifyListener(Object id, Object value) {
         debug("notifyListener called by id="+id);
         DOMField f = null;
 
@@ -267,5 +267,15 @@ public class DOMFieldManager implements HTMLFieldManager, DataListener {
     private void debug(String s) {
         if (DataApplet.debug)
             System.out.println("DOMFieldManager: "+s);
+    }
+
+
+    public void registerElement(String elementID, Object elementName, Object elementType) {
+    }
+
+
+
+    public String getDataNotification() {
+        return null;
     }
 }

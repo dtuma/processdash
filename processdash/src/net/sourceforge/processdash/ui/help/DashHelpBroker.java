@@ -41,10 +41,10 @@ import javax.help.HelpBroker;
 import javax.help.HelpSet;
 import javax.help.HelpSetException;
 
+import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 
-import pspdash.TinyCGI;
 
 
 public class DashHelpBroker extends DefaultHelpBroker

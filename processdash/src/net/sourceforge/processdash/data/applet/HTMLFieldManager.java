@@ -40,13 +40,17 @@ public interface HTMLFieldManager {
 
     public void initialize(Repository data, String dataPath);
 
+    public void registerElement(String elementID, Object elementName, Object elementType);
+
+    public String getDataNotification();
+
 
     /**
      * Notify the data repository that the user has edited a value.
      * @param id a unique ID assigned to the HTML input element
      **/
 
-    public void notifyListener(Object elementID);
+    public void notifyListener(Object elementID, Object elementValue);
 
 
     /**

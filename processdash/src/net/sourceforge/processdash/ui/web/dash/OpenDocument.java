@@ -59,6 +59,7 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.InterpolatingFilter;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -73,7 +74,6 @@ import org.xml.sax.SAXException;
 
 import pspdash.DashController;
 import pspdash.Settings;
-import pspdash.TinyWebServer;
 
 
 /** CGI script for integrating external documents into the dashboard.
@@ -785,14 +785,14 @@ public class OpenDocument extends TinyCGIBase {
             if (!XMLUtils.hasValue(displayName)) displayName = varName;
             if (displayName.startsWith("/"))
                 displayName = displayName.substring(1);
-            out.print(TinyWebServer.encodeHtmlEntities(displayName));
+            out.print(WebServer.encodeHtmlEntities(displayName));
             out.print("&nbsp;</td><td valign='top'>" +
                       "<input size='40' type='text' name='");
-            out.print(TinyWebServer.encodeHtmlEntities(varName));
+            out.print(WebServer.encodeHtmlEntities(varName));
             String value = pathVar.getValue();
             if (value != null) {
                 out.print("' value='");
-                out.print(TinyWebServer.encodeHtmlEntities(value));
+                out.print(WebServer.encodeHtmlEntities(value));
             }
             out.print("'>");
             String comment = pathVar.getCommentText();
@@ -813,7 +813,7 @@ public class OpenDocument extends TinyCGIBase {
         out.print(pageCount);
         out.print("'>\n" +
                   "<input type='hidden' name='" + FILE_PARAM + "' value='");
-        out.print(TinyWebServer.encodeHtmlEntities(filename));
+        out.print(WebServer.encodeHtmlEntities(filename));
         out.print("'>\n"+
                   "<input type='submit' name='OK' value='OK'>\n" +
                   "</form></body></html>\n");

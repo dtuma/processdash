@@ -37,6 +37,7 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLEncoder;
 
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.*;
 
 
@@ -84,11 +85,14 @@ public class DataApplet extends Applet implements RepositoryClientListener {
         if (createFieldManager()) {
             initData();
             initSound();
-            if (isRunning && mgr != null)
+            if (isRunning && mgr != null) {
                 mgr.initialize(data, (data == null ? errorMsg : dataPrefix));
+                registerFields();
+            }
         } else
             isRunning = false;
     }
+
 
 
 
@@ -132,6 +136,7 @@ public class DataApplet extends Applet implements RepositoryClientListener {
 
     protected boolean createFieldManager() {
         try {
+            createJSManager();
             if (mgr == null) maybeCreateDOMManager();
             if (mgr == null) createNSManager();
             return (mgr != null);
@@ -165,6 +170,10 @@ public class DataApplet extends Applet implements RepositoryClientListener {
 
     protected void createNSManager() throws Exception {
         createFieldManager("ns.NSFieldManager");
+    }
+
+    protected void createJSManager() throws Exception {
+        createFieldManager("js.JSFieldManager");
     }
 
     protected void createFieldManager(String className) throws Exception {
@@ -245,10 +254,46 @@ public class DataApplet extends Applet implements RepositoryClientListener {
     }
 
 
-    public void notifyListener(Object id) {
-        debug("NSDataApplet.notifyListener("+id+")");
+//    private Vector earlyRegistrations = new Vector();
+//    private boolean
+//
+//    public void registerElement(Object elementID, Object elementName, Object elementType) {
+//        debug("registerElement("+elementID+")");
+//        if (isRunning && mgr != null)
+//            mgr.registerElement(elementID, elementName, elementType);
+//        else {
+//            earlyRegistrations.addElement(elementID);
+//            earlyRegistrations.addElement(elementName);
+//            earlyRegistrations.addElement(elementType);
+//        }
+//    }
+
+
+    private void registerFields() {
+        for (int i = 0;   true;   i++) {
+            String id = getParameter("field_id"+i);
+            if (id == null) break;
+            String name = StringData.unescapeString
+                (getParameter("field_name"+i));
+            String type = getParameter("field_type"+i);
+            mgr.registerElement(id, name, type);
+        }
+    }
+
+
+    public void notifyListener(Object id, Object value) {
+        debug("notifyListener("+id+")");
         if (isRunning && mgr != null)
-            mgr.notifyListener(id);
+            mgr.notifyListener(String.valueOf(id), value);
+    }
+
+    public String getDataNotification() {
+//        debug("getDataNotification");
+//        if (isRunning == false) return null;
+        if (mgr == null)
+            return "none";
+        else
+            return mgr.getDataNotification();
     }
 
     private static final String PROBLEM_URL = "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";

@@ -28,11 +28,11 @@ package net.sourceforge.processdash.ui.web.dash;
 
 import java.io.IOException;
 
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 import pspdash.DashController;
 import pspdash.PSPDashboard;
-import pspdash.TinyWebServer;
 
 
 /** CGI script to print out the DNS name of the web server.
@@ -51,7 +51,7 @@ public class DisplayConfig extends TinyCGIBase {
     }
 
     private void printServerName() {
-        out.print(TinyWebServer.getHostName());
+        out.print(WebServer.getHostName());
     }
 
     private void printConfigFile() {

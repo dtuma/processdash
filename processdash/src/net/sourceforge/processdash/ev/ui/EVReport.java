@@ -37,6 +37,8 @@ import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -46,8 +48,6 @@ import org.jfree.chart.Legend;
 import org.jfree.data.XYDataset;
 
 import pspdash.CachedURLObject;
-import pspdash.TinyCGIException;
-import pspdash.TinyWebServer;
 
 
 /** CGI script for reporting earned value data in HTML.
@@ -214,7 +214,7 @@ public class EVReport extends CGIChartBase {
      *  and including img tags referencing charts.
      */
     public void writeHTML() {
-        String taskListHTML = TinyWebServer.encodeHtmlEntities(taskListName);
+        String taskListHTML = WebServer.encodeHtmlEntities(taskListName);
         String taskListURL = HTMLUtils.urlEncode(taskListName);
 
         out.print(StringUtils.findAndReplace
@@ -233,7 +233,7 @@ public class EVReport extends CGIChartBase {
             Iterator i = errors.keySet().iterator();
             while (i.hasNext())
                 out.print("\n<li>" +
-                          TinyWebServer.encodeHtmlEntities((String) i.next()));
+                          WebServer.encodeHtmlEntities((String) i.next()));
             out.print("\n</ul>Until you correct these problems, calculations" +
                       " may be incorrect.</b></td></tr></table>\n");
         }
@@ -495,7 +495,7 @@ public class EVReport extends CGIChartBase {
         if (text instanceof Date)
             text = EVSchedule.formatDate((Date) text);
 
-        return TinyWebServer.encodeHtmlEntities(text.toString());
+        return WebServer.encodeHtmlEntities(text.toString());
     }
 
     /** encode a snippet of text with appropriate HTML entities */
@@ -503,6 +503,6 @@ public class EVReport extends CGIChartBase {
         if (text == null)
             return "";
         else
-            return TinyWebServer.encodeHtmlEntities(text);
+            return WebServer.encodeHtmlEntities(text);
     }
 }

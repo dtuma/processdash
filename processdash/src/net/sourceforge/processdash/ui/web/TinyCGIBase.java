@@ -28,8 +28,6 @@ package net.sourceforge.processdash.ui.web;
 
 import pspdash.MultipartRequest;
 import pspdash.ObjectCache;
-import pspdash.TinyCGI;
-import pspdash.TinyWebServer;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,6 +36,8 @@ import java.util.*;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.net.http.TinyCGI;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 public class TinyCGIBase implements TinyCGI {
@@ -194,7 +194,7 @@ public class TinyCGIBase implements TinyCGI {
     protected void parseInputFile(String filename) throws IOException {
         if (filename == null || filename.length() == 0) return;
 
-        TinyWebServer t = getTinyWebServer();
+        WebServer t = getTinyWebServer();
         String origFilename = filename;
         String scriptPath = (String) env.get("SCRIPT_PATH");
         try {
@@ -254,8 +254,8 @@ public class TinyCGIBase implements TinyCGI {
         return (DataRepository) env.get(DATA_REPOSITORY);
     }
     /** Get the tiny web server that is running this request. */
-    protected TinyWebServer getTinyWebServer() {
-        return (TinyWebServer) env.get(TINY_WEB_SERVER);
+    protected WebServer getTinyWebServer() {
+        return (WebServer) env.get(TINY_WEB_SERVER);
     }
     /** Get the PSPProperties object */
     protected DashHierarchy getPSPProperties() {

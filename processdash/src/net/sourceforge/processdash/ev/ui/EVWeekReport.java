@@ -40,11 +40,11 @@ import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
+import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 
-import pspdash.TinyCGIException;
-import pspdash.TinyWebServer;
 
 
 /** CGI script for displaying tasks due in the previous/next week
@@ -154,7 +154,7 @@ public class EVWeekReport extends TinyCGIBase {
          * Okay, we have all the data we need.  Lets generate the HTML.
          */
 
-        String taskListHTML = TinyWebServer.encodeHtmlEntities(taskListName);
+        String taskListHTML = WebServer.encodeHtmlEntities(taskListName);
         out.print(StringUtils.findAndReplace
                   (HEADER_HTML, TASK_LIST_VAR, taskListHTML));
 
@@ -171,7 +171,7 @@ public class EVWeekReport extends TinyCGIBase {
             Iterator i = errors.keySet().iterator();
             while (i.hasNext())
                 out.print("\n<li>" +
-                          TinyWebServer.encodeHtmlEntities((String) i.next()));
+                          WebServer.encodeHtmlEntities((String) i.next()));
             out.print("\n</ul>Until you correct these problems, calculations" +
                       " may be incorrect.</b></td></tr></table>\n");
         }
@@ -386,6 +386,6 @@ public class EVWeekReport extends TinyCGIBase {
         if (text instanceof Date)
             text = EVSchedule.formatDate((Date) text);
 
-        return TinyWebServer.encodeHtmlEntities(text.toString());
+        return WebServer.encodeHtmlEntities(text.toString());
     }
 }

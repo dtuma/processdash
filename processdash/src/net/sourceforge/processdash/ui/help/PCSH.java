@@ -29,7 +29,8 @@ import java.awt.Component;
 
 import javax.swing.JFrame;
 
-import pspdash.TinyWebServer;
+import net.sourceforge.processdash.net.http.WebServer;
+
 
 
 /** Wrapper to context-sensitive help functionality.
@@ -72,7 +73,7 @@ public class PCSH {
     }
 
     private static DashHelpProvider DEFAULT_INSTANCE = null;
-    private static TinyWebServer WEB_SERVER = null;
+    private static WebServer WEB_SERVER = null;
 
     public static void setHelpProvider(DashHelpProvider p) {
         if (DEFAULT_INSTANCE == null ||
@@ -80,7 +81,7 @@ public class PCSH {
             DEFAULT_INSTANCE = p;
     }
 
-    public static void setWebServer(TinyWebServer w) {
+    public static void setWebServer(WebServer w) {
         // REFACTOR this shouldn't be visible?
         WEB_SERVER = w;
     }

@@ -209,7 +209,7 @@ public class NSFieldManager implements HTMLFieldManager, DataListener {
     }
 
 
-    public void notifyListener(Object id) {
+    public void notifyListener(Object id, Object value) {
         debug("notifyListener called by an element with id "+id);
         NSField f = null;
 
@@ -251,5 +251,14 @@ public class NSFieldManager implements HTMLFieldManager, DataListener {
     private void debug(String s) {
         if (DataApplet.debug)
             System.out.println("NSFieldManager: "+s);
+    }
+
+    public void registerElement(String elementID, Object elementName, Object elementType) {
+    }
+
+
+
+    public String getDataNotification() {
+        return null;
     }
 }

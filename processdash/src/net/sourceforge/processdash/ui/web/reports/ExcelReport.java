@@ -31,8 +31,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import pspdash.Settings;
-import pspdash.TinyWebServer;
 
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -128,7 +128,7 @@ public class ExcelReport extends TinyCGIBase {
         return uri;
     }
     private String getURL() {
-        String host = TinyWebServer.getHostName();
+        String host = WebServer.getHostName();
         String port = (String) env.get("SERVER_PORT");
         return "http://" + host + ":" + port + getURI();
     }

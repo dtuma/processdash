@@ -31,9 +31,9 @@ import java.io.IOException;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
-import pspdash.TinyWebServer;
 
 
 public class HistoricalDataReport extends TinyCGIBase {
@@ -54,7 +54,7 @@ public class HistoricalDataReport extends TinyCGIBase {
             subsetPrefix = DEFAULT_PREFIX;
 
         out.print("Location: ");
-        out.print(TinyWebServer.urlEncodePath(subsetPrefix));
+        out.print(WebServer.urlEncodePath(subsetPrefix));
         out.print(DEST_URL);
         out.print("\r\n\r\n");
     }

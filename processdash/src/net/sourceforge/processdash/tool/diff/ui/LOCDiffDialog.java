@@ -55,6 +55,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.LOCDiff;
 import net.sourceforge.processdash.ui.Browser;
@@ -63,7 +64,6 @@ import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 import pspdash.DashController;
-import pspdash.TinyWebServer;
 
 
 public class LOCDiffDialog extends TinyCGIBase
@@ -85,7 +85,7 @@ public class LOCDiffDialog extends TinyCGIBase
     }
 
     protected JFrame frame;
-    protected TinyWebServer webServer;
+    protected WebServer webServer;
     protected JTextField fileA, fileB;
     protected JButton browseA, browseB, compareButton, closeButton;
     protected JButton cancelButton = null;
@@ -99,7 +99,7 @@ public class LOCDiffDialog extends TinyCGIBase
 
 
 
-    public LOCDiffDialog(TinyWebServer webServer) {
+    public LOCDiffDialog(WebServer webServer) {
         this.webServer = webServer;
 
         frame = new JFrame("Compare Files/Directories");
@@ -465,7 +465,7 @@ public class LOCDiffDialog extends TinyCGIBase
         String results = "";
         if (f != null && f.isFile()) try {
             FileInputStream in = new FileInputStream(f);
-            results = new String(TinyWebServer.slurpContents(in, true));
+            results = new String(WebServer.slurpContents(in, true));
         } catch (IOException e) { }
         return results;
     }

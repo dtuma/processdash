@@ -31,11 +31,11 @@ import java.util.Vector;
 
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 import pspdash.ScriptID;
-import pspdash.TinyWebServer;
 
 
 public class ScriptBrowser extends TinyCGIBase {
@@ -85,7 +85,7 @@ public class ScriptBrowser extends TinyCGIBase {
 
     protected void writeNode(DashHierarchy props, PropertyKey node) {
         boolean isLeaf = (props.getNumChildren(node) == 0);
-        String prefix = TinyWebServer.urlEncodePath(node.path());
+        String prefix = WebServer.urlEncodePath(node.path());
 
         out.write(isLeaf ? LEAF_IMAGE : NODE_IMAGE);
         out.write("&nbsp;<A HREF='");

@@ -36,12 +36,12 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.ResourcePool;
 import net.sourceforge.processdash.util.StringUtils;
 
 import pspdash.Settings;
 import pspdash.TemplateLoader;
-import pspdash.TinyWebServer;
 
 public class LOCDiff {
 
@@ -53,7 +53,7 @@ public class LOCDiff {
     boolean ignoreComments = true;
     LanguageFilter filter; ResourcePool pool;
 
-    public LOCDiff(TinyWebServer web,
+    public LOCDiff(WebServer web,
                    String fileAStr, String fileBStr,
                    String fileBName, String options) {
 
@@ -388,7 +388,7 @@ public class LOCDiff {
 
     static List languageFilters = null;
 
-    protected static void init(TinyWebServer web) {
+    protected static void init(WebServer web) {
         List filterNames = TemplateLoader.getLanguageFilters();
         Collections.sort(filterNames);
         Iterator i = filterNames.iterator();
@@ -416,7 +416,7 @@ public class LOCDiff {
         return Settings.getVal(settingName);
     }
 
-    protected LanguageFilter getFilter(TinyWebServer web, String filename,
+    protected LanguageFilter getFilter(WebServer web, String filename,
                                        String contents, String options) {
         if (languageFilters == null) init(web);
 
@@ -460,7 +460,7 @@ public class LOCDiff {
         return resultFilter;
     }
 
-    public static void printFiltersAndOptions(TinyWebServer web,
+    public static void printFiltersAndOptions(WebServer web,
                                               PrintWriter out) {
         if (languageFilters == null) init(web);
 

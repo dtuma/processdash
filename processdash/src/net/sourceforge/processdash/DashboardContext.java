@@ -27,8 +27,8 @@ package net.sourceforge.processdash;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.net.http.WebServer;
 import pspdash.ObjectCache;
-import pspdash.TinyWebServer;
 
 public interface DashboardContext {
 
@@ -38,5 +38,5 @@ public interface DashboardContext {
 
     public ObjectCache getCache();
 
-    public TinyWebServer getWebServer();
+    public WebServer getWebServer();
 }

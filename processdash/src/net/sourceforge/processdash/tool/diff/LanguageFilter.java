@@ -31,7 +31,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
-import pspdash.TinyCGI;
+import net.sourceforge.processdash.net.http.TinyCGI;
+
 
 /** The LanguageFilter interface supports the generation of LOC counts
  *  and redlines in custom programming languages.

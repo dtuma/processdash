@@ -63,6 +63,7 @@ import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -70,7 +71,6 @@ import net.sourceforge.processdash.util.Base64;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import pspdash.ObjectCache;
-import pspdash.TinyWebServer;
 
 
 /**
@@ -84,7 +84,7 @@ public class TaskScheduleCollaborationWizard {
     private DataRepository data;
     private DashHierarchy hierarchy;
     private ObjectCache cache;
-    private TinyWebServer webServer;
+    private WebServer webServer;
     private String taskListName;
     private String rollupTaskListName = null;
     private Stack previousPanes = new Stack();
@@ -516,7 +516,7 @@ public class TaskScheduleCollaborationWizard {
             String username = (action == PUBLISH ? "guest" : "EV");
             if (NO_PASSWORD.equals(password))
                 username = password = null;
-            TinyWebServer.setPassword(data, getPrefix(action),
+            WebServer.setPassword(data, getPrefix(action),
                                       username, password);
         }
 
@@ -1025,8 +1025,8 @@ public class TaskScheduleCollaborationWizard {
 
         public String getTaskListURL() {
             String prefix = getPrefix(action);
-            prefix = TinyWebServer.urlEncodePath(prefix);
-            String host = TinyWebServer.getHostName();
+            prefix = WebServer.urlEncodePath(prefix);
+            String host = WebServer.getHostName();
             int port = webServer.getPort();
             return "http://" + host + ":" + port + prefix + EV_URL;
         }
