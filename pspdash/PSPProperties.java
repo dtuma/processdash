@@ -141,6 +141,10 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         return val;
     }
 
+    public String getID (PropertyKey key) {
+        return pget (key).getID();
+    }
+
     public int getNumChildren (PropertyKey key) {
         return pget (key).getNumChildren();
     }
