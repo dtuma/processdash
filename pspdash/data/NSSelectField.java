@@ -44,7 +44,7 @@ class NSSelectField extends NSField {
         optionList = new Vector();  // OPTIONs that are a part of this SELECT tag.
         formOptions = (JSObject) element.getMember("options");
         JSObject option;
-        int numOptions = ((Double)formOptions.getMember("length")).intValue();
+        int numOptions = NSFieldManager.intValue(formOptions.getMember("length"));
         for (int optIdx = 0;   optIdx < numOptions;   optIdx++)
             optionList.addElement(getOptionValue(formOptions, optIdx));
 
@@ -69,8 +69,8 @@ class NSSelectField extends NSField {
     public String getSelection() {
         if (element == null) return "";
 
-        int idx = ((Double) element.getMember("selectedIndex")).intValue();
-        if (idx >= optionList.size())
+        int idx = NSFieldManager.intValue(element.getMember("selectedIndex"));
+        if (idx == -1 || idx >= optionList.size())
             return "";
 
         return (String) optionList.elementAt(idx);
