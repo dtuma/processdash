@@ -31,29 +31,7 @@ public class line extends pspdash.CGIChartBase {
     /** Create a  line chart. */
     public JFreeChart createChart() {
         JFreeChart chart = JFreeChart.createLineChart(data.catDataSource());
-
-        if (!chromeless) {
-            String label = getSetting("xLabel");
-            if (label == null) label = getSetting("h0");
-            if (label == null) label = "Project/Task";
-            HorizontalCategoryAxis hAxis = (HorizontalCategoryAxis)
-                chart.getPlot().getAxis(Plot.HORIZONTAL_AXIS);
-            hAxis.setLabel(label);
-            String catLabels = getParameter("categoryLabels");
-            if ("vertical".equalsIgnoreCase(catLabels))
-                hAxis.setVerticalCategoryLabels(true);
-            else if ("none".equalsIgnoreCase(catLabels))
-                hAxis.setShowTickLabels(false);
-
-            label = getSetting("yLabel");
-            if (label == null && data.numCols() == 1)
-                label = data.getColName(1);
-            if (label == null) label = getSetting("units");
-            if (label == null) label = "Value";
-            chart.getPlot().getAxis(Plot.VERTICAL_AXIS).setLabel(label);
-        }
-
-        if (data.numCols() == 1) chart.setLegend(null);
+        setupCategoryChart(chart);
 
         return chart;
     }
