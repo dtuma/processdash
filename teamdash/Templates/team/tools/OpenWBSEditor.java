@@ -50,7 +50,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private WBSEditor getEditor(String directory) {
         WBSEditor result = (WBSEditor) editors.get(directory);
-        if (result == null) {
+        if (result == null || result.isDisposed()) {
             result = makeEditorForPath(directory);
             editors.put(directory, result);
         }
