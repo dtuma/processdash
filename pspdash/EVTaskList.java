@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.*;
 import javax.swing.tree.TreePath;
 
@@ -385,6 +386,70 @@ public class EVTaskList extends AbstractTreeTableModel
         switch (column) {
         case PLAN_TIME_COLUMN:      n.setPlanTime(aValue);   break;
         case DATE_COMPLETE_COLUMN:  n.setActualDate(aValue); break;
+        }
+    }
+
+    public TableModel getSimpleTableModel() {
+        return new SimpleTableModel();
+    }
+
+    private class SimpleTableModel implements TableModel {
+        public int getRowCount() { return countRows((EVTask) root); }
+        public int getColumnCount() {
+            return EVTaskList.this.getColumnCount(); }
+        public String getColumnName(int columnIndex) {
+            return EVTaskList.this.getColumnName(columnIndex); }
+        public Class getColumnClass(int columnIndex) {
+            return EVTaskList.this.getColumnClass(columnIndex); }
+        public boolean isCellEditable(int row, int columnIndex) {
+            return EVTaskList.this.isCellEditable(getRow(row), columnIndex); }
+        public Object getValueAt(int row, int columnIndex) {
+            return (columnIndex == 0 ?
+                    getRow(row).getFullName() :
+                    EVTaskList.this.getValueAt(getRow(row), columnIndex)); }
+        public void setValueAt(Object aValue, int row, int columnIndex) {
+            EVTaskList.this.setValueAt(aValue, getRow(row), columnIndex); }
+        public void addTableModelListener(TableModelListener l) { }
+        public void removeTableModelListener(TableModelListener l) { }
+
+        private int countRows(EVTask node) {
+            int result = 0;
+            if (node.isLeaf())
+                result = 1;
+            else
+                for (int i = node.getNumChildren();   i-- > 0; )
+                    result += countRows(node.getChild(i));
+            return result;
+        }
+
+        private EVTask getRow(int row) {
+            RowFinder f = new RowFinder((EVTask) root, row);
+            return f.getResult();
+        }
+
+        private class RowFinder {
+            int rowToReturn, rowsSeen = 0;
+            EVTask result = null;
+            public RowFinder(EVTask node, int rowToReturn) {
+                this.rowToReturn = rowToReturn;
+                find(node);
+            }
+            public EVTask getResult() { return result; }
+            private void find(EVTask node) {
+                if (result != null)
+                    return;
+                else if (node.isLeaf()) {
+                    if (rowToReturn == rowsSeen) {
+                        result = node;
+                        return;
+                    } else
+                        rowsSeen++;
+                } else {
+                    for (int i = 0;  i < node.getNumChildren();  i++)
+                        if (result == null)
+                            find(node.getChild(i));
+                }
+            }
         }
     }
 
