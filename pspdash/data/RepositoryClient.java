@@ -159,7 +159,7 @@ public class RepositoryClient extends Thread implements Repository {
 
         synchronized (this) {
             cleanup();
-            notifyAllListeners();
+            fireRepositoryClientStopping();
         }
     }
 
@@ -171,7 +171,7 @@ public class RepositoryClient extends Thread implements Repository {
         cleanup();
 
         // debug("notifyAllListeners.");
-        notifyAllListeners();
+        fireRepositoryClientStopping();
 
         // debug("quit done.");
     }
@@ -184,7 +184,7 @@ public class RepositoryClient extends Thread implements Repository {
         repositoryClientListeners.removeElement(l);
     }
 
-    private void notifyAllListeners() {
+    private void fireRepositoryClientStopping() {
         Vector l = repositoryClientListeners;
         repositoryClientListeners = new Vector();
 
@@ -194,6 +194,19 @@ public class RepositoryClient extends Thread implements Repository {
             } catch (Throwable t) {}
         }
     }
+
+    private void fireRepositoryClientStoredData(String name) {
+        Vector l = repositoryClientListeners;
+
+        for (int i = l.size();  i-- > 0; ) {
+            try {
+                RepositoryClientListener cl =
+                    (RepositoryClientListener) l.elementAt(i);
+                cl.repositoryClientStoredData(name);
+            } catch (Throwable t) {}
+        }
+    }
+
 
     public void putValue(String name, SaveableData value)
         throws RemoteException {
@@ -213,6 +226,7 @@ public class RepositoryClient extends Thread implements Repository {
                 printError(e);
                 throw new RemoteException();
             }
+            fireRepositoryClientStoredData(name);
     }
 
     public void removeValue(String name) throws RemoteException {

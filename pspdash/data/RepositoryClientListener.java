@@ -27,6 +27,8 @@ package pspdash.data;
 
 public interface RepositoryClientListener {
 
+    public void repositoryClientStoredData(String name);
+
     public void repositoryClientStopping();
 
 }

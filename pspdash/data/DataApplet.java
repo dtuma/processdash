@@ -28,6 +28,7 @@ package pspdash.data;
 
 import pspdash.Settings;
 import java.applet.Applet;
+import java.applet.AudioClip;
 import java.net.URL;
 
 
@@ -44,6 +45,7 @@ public class DataApplet extends java.applet.Applet
     String errorMsg = null;
     String readOnlyColorString = "#aaaaaa";
     HTMLFieldManager mgr = null;
+    AudioClip dataStoredSound = null;
     public static boolean debug = false;
 
 
@@ -87,6 +89,8 @@ public class DataApplet extends java.applet.Applet
             if ((s = Settings.getVal("browser.readonly.color")) != null)
                 readOnlyColorString = s;
             debug = Settings.getBool("dataApplet.debug", false);
+            if (!Settings.getBool("pauseButton.quiet", false))
+                dataStoredSound = getAudioClip(getCodeBase(), "/dataStored.au");
 
         } catch (RemoteException e) {
             debug("got remote exception.");
@@ -126,6 +130,12 @@ public class DataApplet extends java.applet.Applet
 
         dataPrefix = errorMsg = requiredTag = null;
         debug("stop complete.");
+    }
+
+
+    public void repositoryClientStoredData(String name) {
+        if (dataStoredSound != null)
+            dataStoredSound.play();
     }
 
 
@@ -172,5 +182,7 @@ public class DataApplet extends java.applet.Applet
             printError(ioe);
         }
     }
+
+
 
 }

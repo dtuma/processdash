@@ -278,6 +278,7 @@ Authors:
       <includesfile name="${lib}/fileset-applet-extra.txt"/>
       <includesfile name="${lib}/fileset-ns.txt"/>
     </javac>
+    <copy file="${pspdash}/timing.wav" todir="${ns.dir}/pspdash"/>
     <jar destfile="${ns.jar}" basedir="${ns.dir}" includes="pspdash/"/>
   </target>
 
@@ -298,6 +299,7 @@ Authors:
       <includesfile name="${lib}/fileset-applet-extra.txt"/>
       <includesfile name="${lib}/fileset-ie.txt"/>
     </javac>
+    <copy file="${pspdash}/timing.wav" todir="${ie.dir}/pspdash"/>
     <cab cabfile="${ie.cab}" basedir="${ie.dir}" includes="pspdash/"
          excludes="pspdash/data/OLEDB*Wrapper.class"/>
     <copy todir="${build}/pspdash/data">
