@@ -5,9 +5,3 @@
 = find all completed projects
 
 qf=../compProj.rpt
-
-= default headers 
-
-h1=Defects/KLOC
-units=Defects/KLOC
-headerComment=(Defects/KLOC)

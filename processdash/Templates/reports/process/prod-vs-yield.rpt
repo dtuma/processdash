@@ -2,11 +2,8 @@
 
 qf=../compProj.rpt
 
-title=Productivity vs. Yield
 
 d1==Yield
-h1==Yield %
 f1==100%
 
 d2==Productivity
-h2=Productivity(LOC/Hr)

@@ -2,8 +2,6 @@
 
 qf=../compProj.rpt
 
-title=Total Cost of Quality
 
 d1==% COQ
-h1==Total Cost of Quality %
 f1==100%

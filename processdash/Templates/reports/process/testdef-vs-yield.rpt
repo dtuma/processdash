@@ -2,11 +2,8 @@
 
 qf=../compProj.rpt
 
-title=Test Defects vs. Yield
 
 d1=Yield
-h1==Yield %
 f1==100%
 
 d2==Test/Defect Density
-h2=Defects/KLOC

@@ -2,11 +2,8 @@
 
 qf=../compProj.rpt
 
-title=Yield vs. A/FR
 
 d1=AFR
-h1==Appraisal to Failure Ratio
 
 d2=Yield
-h2==Yield %
 f2==100%

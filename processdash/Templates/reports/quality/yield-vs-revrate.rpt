@@ -2,10 +2,8 @@
 
 qf=../compProj.rpt
 
-title=Combined Review Rate vs. Process Yield
 
 d1==[New & Changed LOC] * 60 / ([Design Review/Time] + [Code Review/Time])
-h1==Design and Code Review LOC/Hour
 
 d2==Yield
 f2==100%

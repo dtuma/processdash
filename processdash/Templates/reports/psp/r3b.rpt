@@ -7,7 +7,6 @@ for=.
 skipColHdr=1
 skipRowHdr=1
 
-d1=="Totals
 d2==New & Changed LOC
 d3==Defects Removed
 d4==Defects per KLOC

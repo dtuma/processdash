@@ -2,9 +2,6 @@
 
 qf=../compProj.rpt
 
-title==% Compile + Test Time
-units==%
 
 d1==[Compile/%/Time] + [Test/%/Time]
-h1==%
 f1==100%

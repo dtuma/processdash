@@ -2,10 +2,6 @@
 
 qf=defects.rpt
 
-title=Compile vs. Test Defects
-
-h1=Compile Defects/KLOC
 d1==Compile/Defect Density
 
-h2=Test Defects/KLOC
 d2==Test/Defect Density
