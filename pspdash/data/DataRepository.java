@@ -1545,14 +1545,20 @@ public class DataRepository implements Repository {
         }
 
         public void userPutValue(String name, SaveableData value) {
+            String aliasName = getAliasedName(name);
+            putValue(aliasName, value);
+        }
+
+        public String getAliasedName(String name) {
             DataElement d = (DataElement) data.get(name);
             String aliasName = null;
             if (d != null && d.getValue() instanceof AliasedData)
                 aliasName = ((AliasedData) d.getValue()).getAliasedDataName();
+
             if (aliasName != null)
-                userPutValue(aliasName, value);
+                return getAliasedName(aliasName);
             else
-                putValue(name, value);
+                return name;
         }
 
         public void restoreDefaultValue(String name) {
