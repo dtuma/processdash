@@ -78,8 +78,21 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
 
 
         public int getRWStatus() {
-            return (super.isEditable() ? OSPRW.OSPRW_READWRITE
-                                       : OSPRW.OSPRW_READONLY);
+            // Internet Explorer expects that the RWStatus of a field is
+            // static.  This means that it reads the RWStatus of a field
+            // once (typically in response to the datasetComplete or
+            // datasetChanged event), then never checks again.  When the
+            // value of a field changes, IE requeries to get the new value,
+            // but does not requery to see if the editability has changed.
+            // As a result, IE causes problems when data is initially
+            // read-only, then changes to become editable (e.g., thawing a
+            // data element).
+            //
+            // To get around this IE deficiency, we tell the IE data binding
+            // logic that everything is editable; then we handle editability
+            // ourselves, in both JavaScript and in the DataInterpreter logic.
+
+            return OSPRW.OSPRW_READWRITE;
         }
 
 
@@ -233,7 +246,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
     public boolean isEditable(String fieldName) {
         for (int i = fields.length; i-- != 0; )
             if (fields[i].fieldName.equals(fieldName))
-                return (fields[i].getRWStatus() != OSPRW.OSPRW_READONLY);
+                return fields[i].isEditable();
         debug("IEFieldManager couldn't find "+fieldName);
         return true;
     }
