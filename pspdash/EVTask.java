@@ -110,6 +110,19 @@ public class EVTask implements DataListener {
         return pos;
     }
 
+    /** Replace a child task of this EVTask
+     * WARNING: no checks are performed on the parameters. This method
+     * is <b>only</b> meant to be called when recalculations on a child
+     * caused a replacement object to be created (rather than just
+     * mutations within the existing object).  This method should <b>NOT</b>
+     * be used to replace one task with an entirely different task - use
+     * remove() and add() for that.
+     */
+    void replace(int pos, EVTask newChild) {
+        children.set(pos, newChild);
+        newChild.parent = this;
+    }
+
     public void moveUp(int childPos) {
         if (childPos > 0 && childPos < children.size()) {
             Object a = children.get(childPos-1);

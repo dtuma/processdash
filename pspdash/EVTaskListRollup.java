@@ -126,10 +126,20 @@ public class EVTaskListRollup extends EVTaskList {
     }
 
     public void recalc() {
+        EVTaskList taskList;
+
         // Recalculate all the subschedules.
-        Iterator i = evTaskLists.iterator();
-        while (i.hasNext())
-            ((EVTaskList) i.next()).recalc();
+        for (int i = evTaskLists.size();   i-- > 0; ) {
+            taskList = (EVTaskList) evTaskLists.get(i);
+            taskList.recalc();
+
+            // Some types of task lists perform a recalc by completely
+            // replacing their root task and schedule. Give them the
+            // benefit of the doubt and make certain that we are using
+            // the correct root and schedule
+            ((EVTask) root).replace(i, (EVTask) taskList.root);
+            ((EVScheduleRollup) schedule).replaceSchedule(i, taskList);
+        }
 
         // Recalculate the root node.
         ((EVTask) root).recalcRollupNode();
@@ -153,9 +163,7 @@ public class EVTaskListRollup extends EVTaskList {
         EVTask newTask = (EVTask) taskList.root;
         if (((EVTask) root).add(newTask)) {
             evTaskLists.add(taskList);
-            String errorQualifier = "[" + taskList.getRootName() + "] ";
-            taskList.schedule.getMetrics().setErrorQualifier(errorQualifier);
-            ((EVScheduleRollup) schedule).addSchedule(taskList.schedule);
+            ((EVScheduleRollup) schedule).addSchedule(taskList);
             return newTask;
         } else
             return null;

@@ -48,13 +48,8 @@ public class EVScheduleRollup extends EVSchedule {
         metrics = new EVMetricsRollup();
 
         Iterator i = evtasklists.iterator();
-        while (i.hasNext()) {
-            EVTaskList taskList = (EVTaskList) i.next();
-            EVSchedule schedule = taskList.getSchedule();
-            subSchedules.add(schedule);
-            String errorQualifier = "[" + taskList.getRootName() + "] ";
-            schedule.getMetrics().setErrorQualifier(errorQualifier);
-        }
+        while (i.hasNext())
+            addSchedule((EVTaskList) i.next());
     }
 
 
@@ -72,7 +67,13 @@ public class EVScheduleRollup extends EVSchedule {
 
     /** Add an additional subschedule to this EVScheduleRollup.
      */
-    public synchronized void addSchedule(EVSchedule schedule) {
+    public synchronized void addSchedule(EVTaskList taskList) {
+        EVSchedule schedule = taskList.getSchedule();
+        addSchedule(schedule);
+        String errorQualifier = "[" + taskList.getRootName() + "] ";
+        schedule.getMetrics().setErrorQualifier(errorQualifier);
+    }
+    private synchronized void addSchedule(EVSchedule schedule) {
         subSchedules.add(schedule);
     }
 
@@ -81,6 +82,23 @@ public class EVScheduleRollup extends EVSchedule {
      */
     public synchronized void removeSchedule(EVSchedule schedule) {
         subSchedules.remove(schedule);
+    }
+
+    /** Replace a child schedule of this EVScheduleRollup.
+     * WARNING: no checks are performed on the parameters. This method
+     * is <b>only</b> meant to be called when recalculations on a
+     * child caused a replacement object to be created (rather than
+     * just mutations within the existing object).  This method should
+     * <b>NOT</b> be used to replace one schedule with an entirely
+     * different schedule - use removeSchedule() and addSchedule() for that.
+     */
+    public synchronized void replaceSchedule(int pos, EVTaskList taskList) {
+        EVSchedule schedule = taskList.getSchedule();
+        if (schedule == subSchedules.get(pos)) return;
+
+        subSchedules.set(pos, schedule);
+        String errorQualifier = "[" + taskList.getRootName() + "] ";
+        schedule.getMetrics().setErrorQualifier(errorQualifier);
     }
 
 
