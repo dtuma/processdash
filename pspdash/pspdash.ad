@@ -1,28 +1,28 @@
 #############################################################################
 ## PSP Dashboard - Data Automation Tool for PSP-like processes
-## Copyright (C) 1999  United States Air Force
-## 
+## Copyright (C) 2003 Software Process Dashboard Initiative
+##
 ## This program is free software; you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License
 ## as published by the Free Software Foundation; either version 2
 ## of the License, or (at your option) any later version.
-## 
+##
 ## This program is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU General Public License
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-## 
+##
 ## The author(s) may be contacted at:
 ## OO-ALC/TISHD
 ## Attn: PSP Dashboard Group
 ## 6137 Wardleigh Road
 ## Hill AFB, UT 84056-5843
-## 
-## E-Mail POC:  ken.raisor@hill.af.mil
+##
+## E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 # When specifying names of files or directories within this file, use a
 # forward slash as a separator.  It will be translated into an appropriate
@@ -102,7 +102,7 @@ http.allowRemote=false
 #
 # The following property lists automatic data import directories.
 # It should be a list of prefix/directory pairs; the pairs should be
-# separated from each other by "|" characters.  Each pair should be of 
+# separated from each other by "|" characters.  Each pair should be of
 # the form "prefix=>directory/path"; each pair is interpreted to mean
 # "watch directory/path for files, and import them into the dashboard
 # with a name beginning with "/prefix/".
@@ -152,5 +152,6 @@ chart.width=400
 chart.height=300
 chart.initGradColor=#ffffff
 chart.finalGradColor=#7777ff
+chart.3d=true
 
 backup.enabled=false
