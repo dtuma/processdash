@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -38,9 +38,23 @@ public class PropertyKey implements Comparable {
     private Integer myHashCode = null;
 
     public boolean equals (Object obj) {
-        if (obj instanceof PropertyKey)
-            return key().equals (((PropertyKey)obj).key());
-        else
+        if (this == obj)
+            // simple optimization - check if the objects are the same object
+            return true;
+
+        else if (obj instanceof PropertyKey) {
+            PropertyKey that = (PropertyKey) obj;
+
+            // quick optimization using cached hash codes
+            if (this.myHashCode != null &&
+                that.myHashCode != null &&
+                !this.myHashCode.equals(that.myHashCode))
+                return false;
+
+            return this.myParent.equals(that.myParent) &&
+                this.myName.equals(that.myName);
+
+        } else
             return false;
     }
 
