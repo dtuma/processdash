@@ -32,7 +32,7 @@ import java.util.StringTokenizer;
 public class HTMLUtils {
 
     public static String escapeEntities(String value) {
-        StringTokenizer tok = new StringTokenizer(value, "<>&'\"", true);
+        StringTokenizer tok = new StringTokenizer(value, "<>&\"", true);
         StringBuffer result = new StringBuffer();
         String token;
         while (tok.hasMoreTokens()) {
@@ -40,7 +40,6 @@ public class HTMLUtils {
             if      ("<".equals(token))  result.append("&lt;");
             else if (">".equals(token))  result.append("&gt;");
             else if ("&".equals(token))  result.append("&amp;");
-            else if ("'".equals(token))  result.append("&apos;");
             else if ("\"".equals(token)) result.append("&quot;");
             else                         result.append(token);
         }

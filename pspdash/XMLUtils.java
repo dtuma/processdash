@@ -90,7 +90,8 @@ public class XMLUtils {
     }
 
     public static String escapeAttribute(String value) {
-        return HTMLUtils.escapeEntities(value);
+        return StringUtils.findAndReplace
+            (HTMLUtils.escapeEntities(value), "'", "&apos;");
     }
 
     public static boolean hasValue(String val) {
