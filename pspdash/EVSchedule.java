@@ -30,6 +30,9 @@ import java.text.DateFormat;
 import javax.swing.table.*;
 import javax.swing.event.*;
 
+import com.jrefinery.chart.XYDataSource;
+import com.jrefinery.chart.event.DataSourceChangeListener;
+
 import pspdash.data.ListData;
 
 public class EVSchedule implements TableModel {
@@ -532,7 +535,7 @@ public class EVSchedule implements TableModel {
 
     static String formatTime(double time) { return EVTask.formatTime(time); }
     static String formatPercent(double p) { return EVTask.formatPercent(p); }
-    static String formatDate(Date d) {
+    public static String formatDate(Date d) {
         if (d == null)
             return "";
         else if (d == NEVER)
@@ -565,14 +568,14 @@ public class EVSchedule implements TableModel {
         "Cumulative Actual Direct Time (hours:minutes)",
         "Actual Cumulative Earned Value" };
 
-    protected static final int FROM_COLUMN           = 0;
-    protected static final int TO_COLUMN             = 1;
-    protected static final int PLAN_TIME_COLUMN      = 2;
-    protected static final int PLAN_CUM_TIME_COLUMN  = 3;
-    protected static final int PLAN_CUM_VALUE_COLUMN = 4;
-    protected static final int TIME_COLUMN           = 5;
-    protected static final int CUM_TIME_COLUMN       = 6;
-    protected static final int CUM_VALUE_COLUMN      = 7;
+    public static final int FROM_COLUMN           = 0;
+    public static final int TO_COLUMN             = 1;
+    public static final int PLAN_TIME_COLUMN      = 2;
+    public static final int PLAN_CUM_TIME_COLUMN  = 3;
+    public static final int PLAN_CUM_VALUE_COLUMN = 4;
+    public static final int TIME_COLUMN           = 5;
+    public static final int CUM_TIME_COLUMN       = 6;
+    public static final int CUM_VALUE_COLUMN      = 7;
 
     public static Class[] colTypes = {
         Date.class,             // From
@@ -648,4 +651,63 @@ public class EVSchedule implements TableModel {
         if (listener != null)
             listener.evScheduleChanged();
     }
+
+
+    ///////////////////////////////////////////////////////////////////////
+    // The methods/classes below assist in the generation of JFreeCharts
+    // based on EVSchedules.
+    //////////////////////////////////////////////////////////////////////
+
+    private static Double ZERO = new Double(0.0);
+
+    private class ChartData implements XYDataSource {
+        /** Returns the number of series in the data source. */
+        public int getSeriesCount() { return 2; }
+        /** Returns the name of the specified series (zero-based). */
+        public String getSeriesName(int seriesIndex) {
+            return (seriesIndex == 0 ? "Plan" : "Actual"); }
+        /* The following methods are not applicable for us */
+        public void addChangeListener(DataSourceChangeListener listener) {}
+        public void removeChangeListener(DataSourceChangeListener listener) {}
+        /** Returns the number of items in the specified series */
+        public int getItemCount(int seriesIndex) { return getRowCount()+1; }
+
+        /** Returns the x-value for the specified series and item */
+        public Number getXValue(int seriesIndex, int itemIndex) {
+            return new Long(get(itemIndex).endDate.getTime()); }
+        /** Returns the y-value for the specified series and item */
+        public Number getYValue(int seriesIndex, int itemIndex) {
+            if (itemIndex == -1) return null;
+            if (itemIndex == 0)  return ZERO;
+            return getYVal(seriesIndex, itemIndex);
+        }
+        public Number getYVal(int seriesIndex, int itemIndex) { return ZERO; }
+    }
+
+    private class TimeChartData extends ChartData {
+        public Number getYVal(int seriesIndex, int itemIndex) {
+            Period p = get(itemIndex);
+            if (seriesIndex == 1 &&
+                System.currentTimeMillis() < p.getBeginDate().getTime())
+                return null;
+
+            double result = (seriesIndex==0 ? p.cumPlanTime : p.cumActualTime);
+            return new Double(result / 60.0);
+        }
+    }
+    public XYDataSource getTimeChartData() { return new TimeChartData(); }
+
+    private class ValueChartData extends ChartData {
+        public Number getYVal(int seriesIndex, int itemIndex) {
+            Period p = get(itemIndex);
+            if (seriesIndex == 1 &&
+                System.currentTimeMillis() < p.getBeginDate().getTime())
+                return null;
+
+            double result=(seriesIndex==0 ? p.cumPlanValue : p.cumEarnedValue);
+            return new Double(result * 100.0);
+        }
+    }
+    public XYDataSource getValueChartData() { return new ValueChartData(); }
+
 }
