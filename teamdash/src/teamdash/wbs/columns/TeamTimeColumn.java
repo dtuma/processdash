@@ -7,12 +7,16 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.table.TableCellRenderer;
+
 import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ErrorValue;
 import teamdash.wbs.IntList;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReadOnlyValue;
+import teamdash.wbs.ItalicCellRenderer;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -69,9 +73,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         if (leafData != null) { // a leaf task
             needsAssigning = !leafData.isConnected();
         } else if (wbsModel.isLeaf(node)) { // a leaf node which isn't a task
-            result.errorMessage = "You need to create tasks underneath this "
-                + node.getType().toLowerCase();
-            result.errorColor = Color.red;
+            if (safe(result.value) != 0) {
+                result.errorMessage =
+                    "You need to create tasks underneath this "
+                    + node.getType().toLowerCase();
+                result.errorColor = Color.red;
+            }
 
         } else { // not a leaf task
             needsAssigning = !equal(result.value, sumIndivTimes(node));
@@ -393,11 +400,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             }
         }
 
+        public boolean isRateCalculated() {
+            return (safe(rate) != 0 && node.getAttribute(RATE_ATTR) == null);
+        }
+
         public void userSetRate(double value) {
             if (safe(value) == 0) {
                 // the user is zeroing or blanking out the rate field.
-                rate = Double.NaN;
                 node.setAttribute(RATE_ATTR, null);
+                recalculateRate();
             } else {
                 rate = value;
                 node.setNumericAttribute(RATE_ATTR, rate);
@@ -553,19 +564,33 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
 
     /** A column representing the rate at which a task is performed */
-    private class RateColumn extends DependentColumn {
+    private class RateColumn extends DependentColumn
+        implements CustomRenderedColumn
+    {
         public RateColumn() {
             super("Rate");
             this.preferredWidth = 60;
         }
         protected Object getValueAtLeaf(LeafNodeData nodeData) {
-            return new NumericDataValue(nodeData.rate);
+            if (nodeData.isRateCalculated())
+                return new NumericDataValue(nodeData.rate, true, false,
+                                            EFFECTIVE_RATE_MESSAGE);
+            else
+                return new NumericDataValue(nodeData.rate);
         }
         protected void setValueAtLeaf(double value, LeafNodeData nodeData) {
-            nodeData.userSetRate(value);
+            if (!equal(value, nodeData.rate))
+                nodeData.userSetRate(value);
+        }
+        public TableCellRenderer getCellRenderer() {
+            return RATE_RENDERER;
         }
     }
 
+    private static final String EFFECTIVE_RATE_MESSAGE =
+        "Effective (calculated) rate";
+    private static final TableCellRenderer RATE_RENDERER =
+        new ItalicCellRenderer(EFFECTIVE_RATE_MESSAGE);
 
 
     /** A column representing the task time per individual */
