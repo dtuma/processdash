@@ -30,6 +30,7 @@ import pspdash.data.compiler.CompilationException;
 import pspdash.data.compiler.Compiler;
 
 import pspdash.data.compiler.node.ASearchDeclaration;
+import pspdash.data.compiler.node.ASimpleSearchDeclaration;
 import pspdash.data.compiler.node.TIdentifier;
 import pspdash.data.compiler.node.PValue;
 import pspdash.data.compiler.analysis.DepthFirstAdapter;
@@ -40,22 +41,35 @@ class SearchFactory {
     protected String start, tag, saveString;
 
     public SearchFactory(ASearchDeclaration decl) {
+        this(decl.getExpression(),
+             Compiler.trimDelim(decl.getStart()),
+             Compiler.trimDelim(decl.getTag()));
+    }
+
+    public SearchFactory(ASimpleSearchDeclaration decl) {
+        this(null,
+             Compiler.trimDelim(decl.getStart()),
+             Compiler.trimDelim(decl.getTag()));
+    }
+
+
+    private SearchFactory(PValue expression, String start, String tag) {
         // determine the expression to evaluate.
-        this.expression = decl.getExpression();
+        this.expression = expression;
 
         // determine the starting prefix.
-        this.start = Compiler.trimDelim(decl.getStart());
+        this.start = start;
         if (this.start.equals(".") || this.start.equals("./"))
             this.start = "";
 
         // determine the tag we are looking for.
-        this.tag = Compiler.trimDelim(decl.getTag());
+        this.tag = tag;
     }
 
     public SearchFunction buildFor(String name, DataRepository data,
                                    String prefix) {
         CompiledScript script = null;
-        try {
+        if (expression != null) try {
             // normalize "unvarying" references - that is,
             // references marked with braces like [{this}]
             PValue expr = (PValue) expression.clone();
@@ -64,12 +78,11 @@ class SearchFactory {
             // compile the expression into a script.
             script = Compiler.compile(expr);
             script = Compiler.exprAndDefined(script, tag);
-
-            return new SearchFunction(name, data.createDataName(prefix, start),
-                                      tag, script, data, prefix);
         } catch (CompilationException ce) {
             return null;
         }
+        return new SearchFunction(name, data.createDataName(prefix, start),
+                                  tag, script, data, prefix);
     }
 
     private class NormalizeReferences extends DepthFirstAdapter {

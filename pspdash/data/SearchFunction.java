@@ -103,24 +103,34 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
         String dataPrefix = getTagPrefix(dataName);
         if (dataPrefix == null) return;
 
-        // This data element matches the tag. Now see if it matches
-        // the expression.
-        String condName = getAnonymousConditionName(dataPrefix);
-        SaveableData condition = new CompiledFunction
-            (condName, script, data, dataPrefix);
-        data.putValue(condName, condition);
+        // If we got this far, this data element matches the start and the tag.
 
-        // Keep a list of the conditions we're watching.
-        condList.add(condName);
-
-        // If the condition evaluates to true, add this prefix to our value.
-        if (test(condition.getSimpleValue())) {
+        if (script == null) {
+            // We don't have a script - all elements should be implicitly
+            // added.
             value.setAdd(dataPrefix);
             doNotify();
-        }
 
-        // Listen for changes to this condition expression.
-        data.addActiveDataListener(condName, this, name);
+        } else {
+            // We need to see if this element matches the expression.
+            String condName = getAnonymousConditionName(dataPrefix);
+            SaveableData condition = new CompiledFunction
+                (condName, script, data, dataPrefix);
+            data.putValue(condName, condition);
+
+            // Keep a list of the conditions we're watching.
+            condList.add(condName);
+
+            // If the condition evaluates to true, add this prefix to our
+            // value.
+            if (test(condition.getSimpleValue())) {
+                value.setAdd(dataPrefix);
+                doNotify();
+            }
+
+            // Listen for changes to this condition expression.
+            data.addActiveDataListener(condName, this, name);
+        }
     }
 
     public void dataRemoved(DataEvent e) {
@@ -206,7 +216,8 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
     public void dispose() {
         if (data == null) return;
         data.removeRepositoryListener(this);
-        data.deleteDataListener(this);
+        if (script != null)
+            data.deleteDataListener(this);
         condList = null;
         data = null;
         name = prefix = start = tag = null;

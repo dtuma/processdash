@@ -69,6 +69,7 @@ import pspdash.data.compiler.analysis.DepthFirstAdapter;
 import pspdash.data.compiler.lexer.Lexer;
 import pspdash.data.compiler.lexer.LexerException;
 import pspdash.data.compiler.node.ASearchDeclaration;
+import pspdash.data.compiler.node.ASimpleSearchDeclaration;
 import pspdash.data.compiler.node.AIncludeDeclaration;
 import pspdash.data.compiler.node.ANewStyleDeclaration;
 import pspdash.data.compiler.node.AOldStyleDeclaration;
@@ -1387,6 +1388,12 @@ public class DataRepository implements Repository {
 
 
         public SaveableData getInheritableValue(String prefix, String name) {
+            return getInheritableValue(new StringBuffer(prefix), name);
+        }
+
+        public SaveableData getInheritableValue(StringBuffer prefix_, String name)
+        {
+            String prefix = prefix_.toString();
             String dataName = prefix + "/" + name;
             SaveableData result = getValue(dataName);
             int pos;
@@ -1399,6 +1406,7 @@ public class DataRepository implements Repository {
                 dataName = prefix + "/" + name;
                 result = getValue(dataName);
             }
+            if (result != null) prefix_.setLength(prefix.length());
             return result;
         }
 
@@ -1618,6 +1626,11 @@ public class DataRepository implements Repository {
             }
 
             public void caseASearchDeclaration(ASearchDeclaration node) {
+                dest.put(Compiler.trimDelim(node.getIdentifier()),
+                         new SearchFactory(node));
+            }
+
+            public void caseASimpleSearchDeclaration(ASimpleSearchDeclaration node) {
                 dest.put(Compiler.trimDelim(node.getIdentifier()),
                          new SearchFactory(node));
             }

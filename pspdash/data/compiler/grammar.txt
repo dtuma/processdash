@@ -144,6 +144,8 @@ Productions
     {search} identifier assignop search l_par
          [start]:string_literal [c1]:comma [tag]:string_literal [c2]:comma
          [expression]:value r_par semicolon |
+    {simple_search} identifier assignop search l_par [start]:string_literal
+         [c1]:comma [tag]:string_literal r_par semicolon |
     {undefine} undefine l_par identifier_list r_par semicolon |
     {include} include_directive;
 
