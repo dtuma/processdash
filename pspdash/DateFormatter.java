@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 //
 // This package formats and parses Dates per the dateFormat & dateTimeFormat
@@ -137,14 +137,16 @@ public class DateFormatter {
         return null;
     }
 
-    static {
+    static void init() {
         StringTokenizer st;
         String DOString = Settings.getVal("dateFormat");
         st = new StringTokenizer (DOString, delim, false);
+        dateOnlyFormats.removeAllElements();
         while (st.hasMoreElements())
             dateOnlyFormats.addElement (st.nextToken ());
         String DTString = Settings.getVal("dateTimeFormat");
         st = new StringTokenizer (DTString, delim, false);
+        dateTimeFormats.removeAllElements();
         while (st.hasMoreElements())
             dateTimeFormats.addElement (st.nextToken ());
         sdf.setTimeZone(TimeZone.getDefault());
@@ -152,6 +154,10 @@ public class DateFormatter {
             defaultDateTimeFormats[i].setTimeZone(TimeZone.getDefault());
         for (int i=defaultDateFormats.length;  i-- > 0; )
             defaultDateFormats[i].setTimeZone(TimeZone.getDefault());
+    }
+
+    static {
+        init();
     }
 
 }

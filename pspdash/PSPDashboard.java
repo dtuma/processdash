@@ -25,6 +25,7 @@
 
 package pspdash;
 
+import java.awt.Font;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.*;
@@ -32,6 +33,7 @@ import java.util.*;
 import java.io.*;
 import java.net.URL;
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -105,6 +107,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
         aum = new AutoUpdateManager();
         templates = TemplateLoader.loadTemplates(data, aum);
         resources = Resources.getBundle("pspdash.PSPDashboard");
+        InternalSettings.loadLocaleSpecificDefaults(resources);
+        DateFormatter.init();
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
         versionNumber = aum.getPackageVersion("pspdash");
         setTitle(title != null ? title : resources.getString("Window_Title"));
@@ -497,7 +501,24 @@ public class PSPDashboard extends JFrame implements WindowListener {
         ss = null;
     }
 
+    private static final String[] MENU_FONT_KEYS = {
+        "MenuBar.font", "Menu.font", "MenuItem.font", "PopupMenu.font",
+        "CheckBoxMenuItem.font", "RadioButtonMenuItem.font",
+        "ToolBar.font", "MenuItem.acceleratorFont" };
+
+    private static void changeMenuFont() {
+        try {
+            Font f = (FontUIResource) UIManager.get(MENU_FONT_KEYS[0]);
+            f = f.deriveFont(Font.PLAIN);
+            f = new FontUIResource(f);
+            for (int i = 0;   i < MENU_FONT_KEYS.length;   i++)
+                UIManager.put(MENU_FONT_KEYS[i], f);
+        } catch (Exception e) {}
+    }
+
     public static void main(String args[]) {
+        //changeMenuFont();
+
         ss = new SplashScreen(PSPDashboard.class.getResource("splash.png"));
         ss.displayFor(3000);      // show for at least 3 seconds.
 

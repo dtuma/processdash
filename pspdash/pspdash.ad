@@ -53,17 +53,6 @@ stateFile=./state
 
 
 #
-# Default formats for date and time.
-#
-# Each of the properties below should be a series of date format
-# specifications, separated by the vertical bar character '|'.
-# For valid date format syntax, see the documentation for java.text.DateFormat
-#
-dateFormat=MM/dd/yyyy|MM dd yyyy|MMM dd, yyyy
-dateTimeFormat=MMM dd, yyyy hh:mm:ss aaa|MMM dd, yyyy hh:mm:ss aaa z
-
-
-#
 # If the following property is set to "true", the defect dialog box
 # will come up with the timer already running.  Any other value for
 # this property means the user must manually press the "Start Timing"

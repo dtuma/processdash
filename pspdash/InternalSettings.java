@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.FileInputStream;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 
 class InternalSettings extends Settings {
@@ -156,6 +157,11 @@ class InternalSettings extends Settings {
         if (fsettings != null) try {
             fsettings.writeToFile();
         } catch (Exception e) { }
+    }
+
+    static void loadLocaleSpecificDefaults(ResourceBundle resources) {
+        defaults.put("dateFormat", resources.getString("Date_Format"));
+        defaults.put("dateTimeFormat", resources.getString("Date_Time_Format"));
     }
 
 }
