@@ -36,7 +36,9 @@ class FunctionCall implements Instruction {
 
     public static final Instruction PUSH_STACK_MARKER = new Instruction() {
             public void execute(Stack s, ExpressionContext c) {
-                s.push(STACK_MARKER); }};
+                s.push(STACK_MARKER); }
+            public String toString() {
+                return "push FUNCTION-CALL-STACK-MARKER"; } };
 
     private String functionName;
     private Function f = null;
