@@ -67,6 +67,20 @@ combine(Defects Removed);
 
 
 /*
+ * Generate estimated phase times.  Although these don't appear on the
+ * plan summary, they help the earned value task and schedule
+ * functionality to work as expected for PSP0 projects.
+ */
+
+[Planning/Estimated Time]   = 0.05 * [Estimated Time];
+[Design/Estimated Time]     = 0.25 * [Estimated Time];
+[Code/Estimated Time]       = 0.50 * [Estimated Time];
+[Compile/Estimated Time]    = 0.05 * [Estimated Time];
+[Test/Estimated Time]       = 0.10 * [Estimated Time];
+[Postmortem/Estimated Time] = 0.05 * [Estimated Time];
+
+
+/*
  * Alias Postmortem data to PM
  */
 
