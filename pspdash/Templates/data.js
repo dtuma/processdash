@@ -1,7 +1,7 @@
 // -*- mode: c++ -*-
 /****************************************************************************
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 // 
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 ****************************************************************************/
 
 
@@ -539,16 +539,20 @@ function isWindows() {
   return ( (agt.indexOf("win")!=-1) || (agt.indexOf("16bit")!=-1) )
 }
 
-function lookForToken(token) {
+function lookForToken(token, persist) {
     if (window.location.search.indexOf(token) != -1) {
-	document.cookie = ("DataApplet="+token+"; path=/");
+        var ckie = "DataApplet=" + token + "; path=/";
+	if (persist) {
+	    ckie = ckie + "; expires=Wednesday, 31-Dec-08 23:00:00 GMT";
+        }
+	document.cookie = ckie;
 	return true;
     }
     return (document.cookie.indexOf("DataApplet="+token) != -1);
 }
 
-function usingPlugIn() { return lookForToken("UsingJavaPlugIn"); }
-function forcePlugIn() { return lookForToken("ForceJavaPlugIn"); }
+function usingPlugIn() { return lookForToken("UsingJavaPlugIn", false); }
+function forcePlugIn() { return lookForToken("ForceJavaPlugIn", true);  }
 
 
 /***********************************************************************
