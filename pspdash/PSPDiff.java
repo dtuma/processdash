@@ -47,6 +47,9 @@ public class PSPDiff {
                    String fileAStr, String fileBStr,
                    String fileBName, String options) {
 
+        if (options == null)
+            options = getDefaultOptions(fileBName);
+
         // Get an appropriate instance of LanguageFilter.
         filter = getFilter(web, fileBName, fileBStr, options);
         // FIXME - throw a meaningful exception if getFilter returns null
@@ -390,6 +393,18 @@ public class PSPDiff {
             e.printStackTrace();
         }
         languageFilters = filterNames;
+    }
+
+    protected String getDefaultOptions(String fileName) {
+        if (fileName == null) return null;
+
+        String suffix = "";
+        int dotPos = fileName.lastIndexOf('.');
+        if (dotPos != -1)
+            suffix = fileName.substring(dotPos).toLowerCase();
+
+        String settingName = "pspdiff.options"+suffix;
+        return Settings.getVal(settingName);
     }
 
     protected LanguageFilter getFilter(TinyWebServer web, String filename,
