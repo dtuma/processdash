@@ -2,16 +2,16 @@
 = This report generates the data for the second part of report R3.
 =
 
-where=PSP To Date Data
-order=PSP To Date Data
+hierarchyPath=/To Date/PSP/All
+for=.
 skipColHdr=1
 skipRowHdr=1
 
 d1=="Totals
-d2==New & Changed LOC To Date
-d3==Defects Removed To Date
-d4==Defects per KLOC To Date
-d5==Compile/Defects Removed To Date
-d6==![(/	Compile/Defects Removed To Date	New & Changed KLOC To Date)]
-d7==Test/Defects Removed To Date
-d8==![(/	Test/Defects Removed To Date	New & Changed KLOC To Date)]
+d2==New & Changed LOC
+d3==Defects Removed
+d4==Defects per KLOC
+d5==Compile/Defects Removed
+d6==Compile/Defect Density
+d7==Test/Defects Removed
+d8==Test/Defect Density

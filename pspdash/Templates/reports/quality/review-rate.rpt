@@ -4,7 +4,7 @@ qf=../compProj.rpt
 
 title=LOC Reviewed per Hour
 
-d1==![(/	New & Changed LOC	[(+	Design Review/Time	Code Review/Time)]	0.016666)]
+d1==[New & Changed LOC] * 60 / ([Design Review/Time] + [Code Review/Time])
 h1==Both
 
 d2==Code Review/Appraisal Rate

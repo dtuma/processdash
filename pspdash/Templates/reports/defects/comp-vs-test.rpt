@@ -3,7 +3,6 @@
 qf=defects.rpt
 
 title=Compile vs. Test Defects
-order=PSP Project
 
 h1=Compile Defects/KLOC
 d1==Compile/Defect Density

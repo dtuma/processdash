@@ -5,6 +5,6 @@ qf=../compProj.rpt
 title==% Plan + Postmortem Time
 units==%
 
-d1==![(+	Planning/%/Time	PM/%/Time)]
+d1==[Planning/%/Time] + [PM/%/Time]
 h1==%
 f1==100%

@@ -6,5 +6,5 @@ title=Actual Development Time
 units=Hours
 headerComment==(Hours)
 
-d1==![(/	Time	60)]
+d1==[Time] / 60
 h1=Hours
