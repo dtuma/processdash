@@ -54,7 +54,7 @@ public class EVSchedule implements TableModel {
     private static final long WEEK_MILLIS = 7 * DAY_MILLIS;
     private static final long MIDNIGHT = DAY_MILLIS - ADJUSTMENT;
 
-    public class Period {
+    public class Period implements Cloneable {
         Period previous;
         Date endDate;
         double planTime, cumPlanTime, cumPlanValue,
@@ -210,6 +210,12 @@ public class EVSchedule implements TableModel {
                 if (previous != null) previous.clearAutomaticFlag();
             }
         }
+
+        public Object clone() {
+            try {
+                return super.clone();
+            } catch (CloneNotSupportedException ncse) { return null; }
+        }
     }
 
     Vector periods = new Vector();
@@ -254,6 +260,18 @@ public class EVSchedule implements TableModel {
         recalcCumPlanTimes();
         // double-check to ensure that dates are increasing?
     }
+
+    public EVSchedule(EVSchedule s) {
+        Iterator i = s.periods.iterator();
+        Period p, prev = null;
+        while (i.hasNext()) {
+            p = (Period) ((Period) i.next()).clone();
+            p.previous = prev; prev = p;
+            periods.add(p);
+        }
+    }
+
+
 
     protected synchronized void add(Period p) {
         p.previous = getLast();
