@@ -40,13 +40,13 @@ scripts or add-on process sets, or even against just a hierarchy of task
 names that are not associated with a particular process in the dashboard.  
 The Task &amp; Schedule tool is completely process independent.</p>
 
-<P>The Task &amp; Schedule window combines the PSP Task Planning Template 
-(table C47) and the Schedule Planning Template (table C49) into one window.  
-The top portion of the window gives a view of the task schedule on a task by 
-task basis and tracks metrics about each task.  The bottom portion of the 
-window is concerned with actual calendar time.  The time for the schedule is 
-broken out into time periods (e.g. weeks) and the columns track metrics about 
-each time period.</p>
+<P>The Task &amp; Schedule window combines a project task list and a
+simple project schedule into one window.  The top portion of the
+window gives a view of the task schedule on a task by task basis and
+tracks metrics about each task.  The bottom portion of the window is
+concerned with actual calendar time.  The time for the schedule is
+broken out into time periods (e.g. weeks) and the columns track
+metrics about each time period.</p>
 
 <p><center><img src="../../Images/TaskSchedule.png"></center></p>
 
@@ -106,22 +106,51 @@ this task has earned.  <i>Remember that earned value measures are not counted
 until the task is marked as complete.</i></p>
 
 
-<p><b>Note:</b> The original PSP task template described in
-<i>A&nbsp;Discipline for Software Engineering</i> contains two columns
-that are normally not displayed by the dashboard.  (They really only
-exist in the PSP template to help you perform the calculations
-manually; when the computer is performing the calculations, they don't
-provide much value and simply take up space.)  If you wish, you can
-display them by adding a "ev.showCumulativeTaskData" setting to your
-<a href="../AdvancedTopics/ConfigurationFile.html">configuration
-file</a>.  It would cause the following two columns to appear: 
+<p><b>Note:</b> The columns listed above are sufficient for most
+simple planning.  As a result, the task list will usually only display
+the columns listed above.  For advanced planning, however, some
+additional information must also be displayed.  Therefore, the
+following columns will automatically appear if: <ul>
+<li>You manually prune subtasks out of your hierarchical task list
+<li>You logged time to any of the tasks in your task list before
+    the starting date of your schedule
+<li>You completed any of the tasks in your task list before the
+    starting date of your schedule
+</ul></p>
 
-<p><b>Cumulative Planned Time (CPT):</b> This is the amount of time for the 
-given task, including all tasks that are before it in the task list.</p>
+<p><b>Planned Direct Time (PDT):</b> The &quot;Planned Time&quot;
+column (described above) displays the <u>total</u> amount of time you
+plan to spend on a task, no matter when that time gets spent.  In
+contrast, the &quot;Planned Direct Time&quot; column displays the
+amount of effort you plan to spend as part of <u>this schedule</u>.</p>
 
-<p><b>Cumulative Planned Value (CPV):</b> This is the Planned Value analog of 
-the CPT column.  It shows the amount of planned value for the given task 
-including all tasks that are before it in the task list.</p>
+<p>An example can help illustrate the difference.  Imagine that one of
+the tasks on your task list is to write a large software module. It
+might have subtasks for requirements, design, implementation, and
+formal testing.  The total amount of time needed to complete all of
+these subtasks would be displayed in the &quot;Planned Time&quot;
+column.  Now suppose you already completed requirements and design,
+and started on the implementation, as part of an earlier project
+iteration.  Furthermore, you don't plan to begin formal testing until
+the next project iteration.  The &quot;Planned Direct Time&quot; for
+requirements, design, and formal testing would be zero, since you
+don't intend to spend any time on them during the current project
+phase.  Also, since you already performed some of the work for the
+implementation task, only the remaining portion of its planned time
+would appear in the &quot;Planned Direct Time&quot; column.</p>
+
+<p>The &quot;Planned Direct Time&quot; column will only be displayed
+if it differs from the &quot;Planned Time&quot; column for at least
+one task in your task list.  When it appears, you will note that the
+&quot;plan value&quot; for a task is based on its planned direct time,
+not its planned time.</p>
+
+<p><b>Actual Direct Time (DTime):</b> The &quot;Actual Time&quot;
+column displays the <u>total</u> amount of time you have spend on a
+task to date, no matter when that time was spent.  In contrast, the
+&quot;Actual Direct Time&quot; column displays the amount of effort
+you have spent as part of <u>this schedule</u>.</p>
+
 
 
 <h2>Columns in the Schedule List</h2>
@@ -132,10 +161,12 @@ including all tasks that are before it in the task list.</p>
 schedule.  The schedule can start anytime and can be of just about any length 
 (one week in duration, one day, one month, etc.).</p>
 
-<p><b>To:</b> This is the ending date for a portion of your work schedule.  
-Using the From and To fields, you can break your schedule up into managable 
-time chunks.  The Task &amp; Schedule tool defaults to using time periods of 
-one week in length.</p>
+<p><b>To:</b> This is the ending date for a portion of your work
+schedule.  Using the From and To fields, you can break your schedule
+up into managable time chunks.  The Task &amp; Schedule tool defaults
+to using time periods of one week in length, but you can edit the To
+field to create time periods of any length (e.g. months, days, or even
+hours).</p>
 
 <p><b>Planned Direct Time (PT):</b> This is the amount of time that will be 
 applied to the tasks in the task list during the calendar time period 
@@ -192,8 +223,8 @@ list.</p>
 
 <p>Changes made in the hierarchy automatically get reflected into the 
 schedule, because the schedule is basically a listing of the tasks/projects 
-in the dashboard.  However, if you delete a task in the Task &amp; Schedule 
-tool, it does <i>NOT</i> get deleted from the task hierarchy of the process 
+in the dashboard.  However, if you remove a task in the Task &amp; Schedule 
+tool, it does <i>NOT</i> get removed from the task hierarchy of the process 
 dashboard (as defined using the <a href="UsingHierarchyEditor">Hierarchy 
 Editor</a>).  All you will have done is removed the task from the schedule, 
 not deleted it entirely from the dashboard.  Deletion of tasks or projects 
@@ -202,32 +233,36 @@ href="UsingHierarchyEditor.html">Hierarchy Editor</a>.</p>
 
 <h3>Editing the task list</h3>
 
-<p>Once you have added tasks to the task list, you can use the Remove Task 
-button to remove them, and the Move Task Up/Down buttons to alter their 
-relative order. Note that these options are only available for the 
-<U>top-level</U> tasks. (Top-level tasks are the tasks that you explicitly 
-added using the Add Task button; in the task list, they appear as immediate 
-children of the root of the tree.) At this time it is not possible to remove 
-sub-tasks from your task list or change their relative order. If you want to 
-do either of these things, you have two choices:</P> 
+<p>Once you have added tasks to the task list, you can use the Remove
+Task button to remove them.  If you remove a <U>top-level</U> task, it
+will be removed from the task list entirely.  (Top-level tasks are the
+tasks that you explicitly added using the Add Task button; in the task
+list, they appear as immediate children of the root of the tree.)  If
+you remove a <u>child</u> of a top-level task, it will be
+&quot;pruned&quot; out of the task list hierarchy, along with all of
+its children.  You can highlight any pruned task (including children
+of a pruned task) and click the Restore Task button to add it back to
+the task list.</p>
 
-<ul>
- <li>Make the changes in the hierarchy editor (for example, moving nodes up 
-   or down to change the relative ordering of tasks)</li>
- <li>Use the Explode Task button to replace a hierarchically organized
-   task with the corresponding flat list of tasks, then remove or rearrange
-   the tasks in that flat list.</li>
-</ul>
-
-<p>You should generally try to put the tasks in chronological order (the 
-first task in the list should be the one you plan to work on first, and so 
-on).</p>
+<p>The planned completion dates displayed in the task list are based
+upon the order you plan to complete the tasks.  It is unlikely that
+you plan to complete the tasks in the order they appear in the
+hierarchy.  Therefore, there are two ways to indicate the planned
+order of tasks.  First, you can change the relative order of top-level
+tasks by highlighting them and using the Move Task Up/Down buttons.
+For more fine-grained control, check the Flat View checkbox.  This
+will replace the hierarchical view of the task list with a flat view
+of the &quot;leaf&quot; tasks that have not yet been completed.  You
+can then use the Move Task Up/Down buttons to reorder these tasks.
+You should generally try to put the tasks in chronological order (the
+first task in the list should be the one you plan to work on first,
+and so on).</p>
 
 <H2>Step 2: Estimate task time </H2>
 
 <P>Once tasks are added to the task list, the dashboard will look up 
 information like the planned time, actual time, etc. from the appropriate 
-Project Plan Summary forms (if applicable) , and display it in the 
+Project Plan Summary forms (if applicable), and display it in the 
 appropriate boxes. You can click on any value with a yellow background and 
 edit it, and the change will appear immediately on the associated Project 
 Plan Summary form.  Similarly, if you edit one of these values on a Project 
@@ -369,16 +404,13 @@ parent's.  To correct this error, do one of the following:<ul>
 <li>Highlight the planned time for the parent, and delete it.
 </ul></P>
 
-<P><B>Calendar starts too late:</B> If some of the tasks in your task list 
-were completed <I>before</I>the start of the first time period in your 
-schedule, or if you have logged time to some of the tasks in your task list 
-<I>before</I>the start of the first time period in your schedule, then some 
-of the earned value calculations will be incorrect. You can easily spot this 
-problem because the "Actual" lines for the "Earned Value" and/or "Direct 
-Hours" charts will not start at zero.</P>
+<P><B>Missing time estimates:</b> Earned value forecasts and calculations
+make heavy use of the the planned times for the tasks in your task list.
+If you forget to estimate the planned time for a task in your task list,
+these forecasts will be underestimated.</p>
 
-<P>The dashboard automatically checks for some of these errors, and
-displays an warning if they are found. If errors are present, they
+<P>The dashboard automatically checks for <i>some</i> of these errors,
+and displays an warning if they are found. If errors are present, they
 will be highlighted with red text. If you hover the mouse over the red
 text, a tool tip will provide a short description of the problem. For
 a more complete explanation of the problem, click the red "Errors"
