@@ -108,14 +108,14 @@ org/w3c/dom/Document.class: crimson.jar
 	$(JAR) -xf crimson.jar
 
 # unzip the JFreeChart jarfile.
-jfreechart: com/jrefinery/chart/JFreeChart.class com/jrefinery/chart/XYPlot.class com/jrefinery/chart/PiePlot.class
+jfreechart: com/jrefinery/chart/JFreeChart.class com/jrefinery/chart/XYPlot.class com/jrefinery/chart/PiePlot.class com/jrefinery/chart/DataSources.class
 
 com/jrefinery/chart/JFreeChart.class: jfreechart.jar
 	$(JAR) -xf jfreechart.jar
-	rm -rf com/jrefinery/util com/jrefinery/chart/ui com/jrefinery/chart/XYPlot.class com/jrefinery/chart/PiePlot.class
+	rm -rf com/jrefinery/util com/jrefinery/chart/ui com/jrefinery/chart/XYPlot.class com/jrefinery/chart/PiePlot.class com/jrefinery/chart/DataSources.class
 
 com/jrefinery/chart/%.class: ../Templates/reports/%.java
-	cd ..; $(MAKE) XYPlot.class PiePlot.class
+	cd ..; $(MAKE) XYPlot.class PiePlot.class DataSources.class
 
 # unzip the JavaHelp jarfile
 jhelp: javax/help/JHelp.class
