@@ -29,6 +29,7 @@
   <mapID target="UsingHierarchyEditor" url="Topics/Planning/UsingHierarchyEditor.html" />
   <mapID target="UsingProbeTool" url="Topics/Planning/UsingProbeTool.html" />
   <mapID target="UsingSizeEstimatingTemplate" url="Topics/Planning/UsingSizeEstimatingTemplate.html" />
+  <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
 
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
   <mapID target="PlayPause" url="Topics/Execution/PlayPause.html" />
