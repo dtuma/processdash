@@ -45,6 +45,8 @@ public class DataTableModel extends AbstractTableModel {
     /** Object which manages columns for team members */
     private TeamMemberColumnManager memberColumnManager;
 
+    /** Should editing be disabled? */
+    private boolean disableEditing = false;
 
     public DataTableModel(WBSModel wbsModel, TeamMemberList teamList,
                           TeamProcess teamProcess)
@@ -61,6 +63,10 @@ public class DataTableModel extends AbstractTableModel {
 
         buildDataColumns(teamList, teamProcess);
         initializeColumnDependencies();
+    }
+
+    public void setEditingEnabled(boolean enabled) {
+        disableEditing = !enabled;
     }
 
     private void initializeColumnDependencies() {
@@ -299,6 +305,8 @@ public class DataTableModel extends AbstractTableModel {
         return isCellEditable(wbsModel.getNodeForRow(rowIndex), columnIndex);
     }
     public boolean isCellEditable(WBSNode node, int columnIndex) {
+        if (disableEditing && columnIndex != 0) return false;
+
         DataColumn column = getColumn(columnIndex);
         if (node == null || column == null) return false;
 
