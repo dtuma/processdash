@@ -13,6 +13,6 @@ node==1.0
 = program 2A.
 
 1A/Reused LOC==![(-	2A/2A Reused LOC To Date	2A/Reused LOC)]
-1A/New & Changed LOC==![(-	2A/2A New & Changed LOC To Date	2A/New & Changed LOC)]
+1A/New & Changed LOC==![(-	2A/2A New & Changed LOC To Date	2A/2A New & Changed LOC)]
 1A/Total LOC==![(-	2A/2A Total LOC To Date	2A/Total LOC)]
 1A/New Reused LOC==![(-	2A/2A New Reused LOC To Date	2A/New Reused LOC)]
