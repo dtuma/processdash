@@ -225,7 +225,9 @@ public class HierarchyButton implements ActionListener {
 
             // if that item is past the end of our list, we cannot perform
             // selectNext. Return false.
-        if (sel == numChildren) { markCompleted(); return false; }
+        if (sel == numChildren) { /*markCompleted(); return false; */
+            return true;
+        }
 
             // select the next item on our menu.
         selectChild(props.getChildName (self, sel));
