@@ -55,6 +55,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/psp/r4.java \
 	Templates/reports/psp/r5a.java \
 	Templates/reports/psp/r5b.java \
+	Templates/reports/timecard.java \
 	Templates/reports/timelog.java \
 	Templates/reports/defectlog.java \
 	Templates/reports/dts.java \
@@ -67,6 +68,11 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/xy.java \
 	Templates/reports/table.java \
 	Templates/reports/hist.java \
+	Templates/reports/probe/probe.java \
+	Templates/reports/probe/HistData.java \
+	Templates/reports/probe/Method.java \
+	Templates/reports/probe/AveragingMethod.java \
+	Templates/reports/probe/RegressionMethod.java \
 	Templates/CFilter.java \
 	Templates/CobolFilter.java \
 	Templates/SQLFilter.java \
@@ -143,6 +149,7 @@ $(CGI_CLASSES) : %.class : %.java
 	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar$(DS)build/jaxp.jar$(DS)build/crimson.jar' \
 	    -deprecation \
 	    -d $(dir $<) \
+	    -sourcepath '$(SRC)$(DS)$(dir $<)' \
 	    $<
 
 add-on-scripts: build/SCR-DCR.jar

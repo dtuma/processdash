@@ -27,6 +27,7 @@ import com.jrefinery.chart.*;
 import java.awt.Color;
 import java.awt.BasicStroke;
 import pspdash.data.DateData;
+import pspdash.XYDataSourceLineWrapper;
 
 public class xy extends pspdash.CGIChartBase {
 
@@ -45,8 +46,18 @@ public class xy extends pspdash.CGIChartBase {
              data.getData(1,1) instanceof DateData) ||
             parameters.get("xDate") != null)
             chart = JFreeChart.createTimeSeriesChart(data.xyDataSource());
-        else
-            chart = JFreeChart.createXYChart(data.xyDataSource());
+        else {
+            XYDataSource src = data.xyDataSource();
+            String trendLine = getParameter("trend");
+            if ("none".equalsIgnoreCase(trendLine))
+                ;
+            else if ("average".equalsIgnoreCase(trendLine))
+                src = XYDataSourceLineWrapper.addAverageLine(src);
+            else
+                src = XYDataSourceLineWrapper.addRegressionLine(src);
+
+            chart = JFreeChart.createXYChart(src);
+        }
 
         if (!chromeless) {
             String label = data.getColName(1);
