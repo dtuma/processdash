@@ -5,7 +5,64 @@
 <BODY>
 
 <H1>Exporting your data</H1>
-This help topic has not yet been implemented.
+<P>Presently the dashboard provides two methods of exporting data to other 
+applications.</p>
+
+<h2>Creating an ASCII flat file</h2>
+<P>You can create an ASCII file of your data by choosing Export from the "C" 
+menu.  Doing so will bring up the following tool:</p>
+
+<P><img src="../../Images/ExportTool-Data.png"></p>
+
+<P>The Export tool presents the project hierarchy in a pane on the left, and 
+options to export either your process data or the hierarchy list.</p>
+
+<h3>Exporting data</h3>
+<P>If you choose to export your data, only the process nodes that have actually measured data will be written to a file in the following format:</p>
+
+<pre>/complete/path/to/data/item,&lt;value&gt;</pre>
+
+<P>For example   <B><EM>[more to come]</em></b>
+
+<h3>Exporting the Hierarchy list</h3>
+<P>If you choose to export the hierarchy list, the entire hierarchy tree will 
+be written to a file.  The file will have the form of one entry per line in 
+the following format:</p>
+
+<pre>/complete/path/to/data/item</pre>
+
+<h2>Exporting data to Excel (PC only)</h2>
+<p>Many of the reporting forms in the dashboard have links that say "Export 
+to Excel...".  When this link is clicked, an Excel sheet will come up that 
+contains the data from that form.</p>
+
+<P>There is a subtle difference between the way that this export is handled 
+in Netscape versus the way it is handled in Internet Explorer.</p>
+
+<ul>
+ <li>In Netscape, the sheet will have static data elements that contain the 
+   values of the process variables at the instant that the export was 
+   done.</li>
+ <li>In Internet Explorer, the sheet will be a linked spreadsheet.  Excel 
+   will connect to the dashboard and retrieve the data items.  Excel will 
+   typically also display a floating "External data" toolbar, which can be 
+   used to refresh the data (as long as the dashboard is still running).  By 
+   clicking the "Data Range Properties" button on this floating toolbar, 
+   Excel can be configured to refresh the data automatically whenever the 
+   spreadsheet is opened.</li>
+</ul>
+
+<P>The "Export to Excel..." option will appear on 
+<UL>
+ <li>tables that are displayed by clicking on a graphical chart (see <a 
+   href="DataChartsAndReports.html">Data Charts and Reports</a></li>
+ <li>the table that is displayed when you click on the "historical data" link 
+   from a PSP1.0 or higher process script</li>
+ <li>the HTML time log</li>
+ <li>the HTML defect log</li>
+ <li>the R3 report</li>
+ <li>the R4 report</li>
+</ul>
 
 <!-- DISCLAIMER -->
 
