@@ -51,7 +51,7 @@ import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.util.FormatUtil;
 
 
-public class DefectEditor extends Component
+public class DefectLogEditor extends Component
     implements TreeSelectionListener, ListSelectionListener, ActionListener,
                DashHierarchy.Listener
 {
@@ -86,7 +86,7 @@ public class DefectEditor extends Component
 
 
                                 // constructor
-    public DefectEditor(ProcessDashboard dash,
+    public DefectLogEditor(ProcessDashboard dash,
                         ConfigureButton button,
                         DashHierarchy props) {
         dashboard        = dash;

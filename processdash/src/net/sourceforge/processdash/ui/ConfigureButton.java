@@ -50,7 +50,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
     //TaskScheduleDialog   task_frame   = null;
     TimeLogEditor  time_frame   = null;
     // REFACTOR this shouldn't be visible
-    public DefectEditor   defect_frame = null;
+    public DefectLogEditor   defect_frame = null;
     ImportExport   impexp_frame = null;
     ProbeDialog    probe_dialog = null;
     TaskScheduleChooser task_chooser = null;
@@ -233,7 +233,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
                 defect_frame.setSelectedPhase(parent.getCurrentPhase());
                 defect_frame.showIt();
             } else
-                defect_frame = new DefectEditor(parent,
+                defect_frame = new DefectLogEditor(parent,
                                                 this,
                                                 parent.getProperties());
         }

@@ -300,7 +300,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
                             break;
 
                         case PendingDataChange.CHANGE:
-                            DefectEditor.rename
+                            DefectLogEditor.rename
                                 (oldProps, useProps, p.oldPrefix, p.newPrefix, dashboard);
                             timelog.rename (p.oldPrefix, p.newPrefix);
                             dashboard.getData().renameData (p.oldPrefix, p.newPrefix);
