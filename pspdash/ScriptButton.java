@@ -50,7 +50,7 @@ class ScriptButton extends JButton {
     Point popupOrigin;
     int menuIndex;  // keeps track of the last menu item selected, -1 if none.
 
-    public static final String URL_PREFIX = "http://localhost:2468/";
+    public static final String URL_PREFIX = "/";
 
     ScriptButton(PSPDashboard dash) {
         super();
