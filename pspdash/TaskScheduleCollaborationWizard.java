@@ -196,6 +196,7 @@ public class TaskScheduleCollaborationWizard {
 
             publishButton = newJButton();
             publishButton.setText("Publish");
+            publishButton.setBackground(null);
             buttonBox.add(publishButton);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -217,6 +218,7 @@ public class TaskScheduleCollaborationWizard {
 
             shareButton = newJButton();
             shareButton.setText("Share");
+            shareButton.setBackground(null);
             shareButton.setEnabled(!isRollup);
             buttonBox.add(shareButton);
             oConst = new GridBagConstraints();
@@ -240,6 +242,7 @@ public class TaskScheduleCollaborationWizard {
 
             rollupButton = newJButton();
             rollupButton.setText("Rollup");
+            rollupButton.setBackground(null);
             rollupButton.setEnabled(!isRollup);
             buttonBox.add(rollupButton);
             oConst = new GridBagConstraints();
@@ -263,6 +266,7 @@ public class TaskScheduleCollaborationWizard {
 
             cancelButton = newJButton();
             cancelButton.setText("Cancel");
+            cancelButton.setBackground(null);
             buttonBox.add(cancelButton);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
