@@ -110,6 +110,7 @@ public class wizard extends TinyCGIBase {
     private static final String NODE_NAME = "setup//Node_Name";
     private static final String NODE_LOCATION = "setup//Node_Location";
     private static final String IND_INITIALS = "setup//Indiv_Initials";
+    private static final String IND_FULLNAME = "/Owner";
     private static final String IND_SCHEDULE = "setup//Indiv_Schedule";
     private static final String DATA_DIR = "setup//Data_Directory";
 
@@ -903,14 +904,36 @@ public class wizard extends TinyCGIBase {
 
     /** Handle values posted from the individual initials page */
     protected void handleIndivInitialsPage() {
+        String error = "";
+
         String initials = getParameter("initials");
         if (initials == null || initials.trim().length() == 0) {
-            printRedirect(IND_INITIALS_URL + "?missing");
+            error += "&missing";
+        } else {
+            initials = initials.trim();
+            for (int i = initials.length();   i-- > 0; ) {
+                char c = initials.charAt(i);
+                if (c >= 'A' && c <= 'Z') continue;
+                if (c >= 'a' && c <= 'z') continue;
+                error += "&non_alpha";
+                break;
+            }
+        }
+
+        String fullname = getParameter("fullname");
+        if (fullname == null || fullname.trim().length() == 0 ||
+            fullname.equals("Enter your name")) {
+            error += "&name_missing";
+        }
+
+        if (error.length() > 0) {
+            printRedirect(IND_INITIALS_URL + "?err" + error);
             return;
         }
 
-        initials = initials.trim();
         putValue(IND_INITIALS, initials);
+        fullname = fullname.trim();
+        putValue(IND_FULLNAME, fullname);
 
         showIndivSchedulePage();
     }

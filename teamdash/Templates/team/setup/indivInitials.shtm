@@ -17,7 +17,7 @@
  <h1><!--#echo var=PATH_TRANSLATED --></h1>
 <!--#endif-->
 
-<h2>Enter Your Initials</h2>
+<h2>Enter Your Name and Initials</h2>
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='indivInitials'>
@@ -30,11 +30,31 @@ their initials.  Please enter your initials in the space below.</p>
 <table width='100%'><tr><td width='100%' class=error>You must enter your
 initials!</td></tr></table>
 
+<!--#elif non_alpha -->
+
+<table width='100%'><tr><td width='100%' class=error>Please use only the
+letters 'a' through 'z' when entering your initials.</td></tr></table>
+
 <!--#endif-->
 
 <table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Your Initials:&nbsp;</td>
 <td><input type=text name=initials
            value="<!--#echo [setup//Indiv_Initials] -->"
+           size=10></td></tr></table>
+
+<p>Your name is also important for team project planning purposes.  Please
+enter/edit your name in the space below.</p>
+
+<!--#if name_missing -->
+
+<table width='100%'><tr><td width='100%' class=error>You must enter your
+name!</td></tr></table>
+
+<!--#endif-->
+
+<table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Your Initials:&nbsp;</td>
+<td><input type=text name=fullname
+           value="<!--#echo [/Owner] -->"
            size=10></td></tr></table>
 
 <br><br>
