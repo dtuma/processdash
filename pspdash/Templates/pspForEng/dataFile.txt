@@ -63,3 +63,9 @@ calc1Afrom2A(New Reused LOC)
 [1A_Program_Name] =
     index(0, filter(indirect([_] &/ "PSPFORENG_1A_TAG"), [Project_List]));
 [Project/Language] = indirect([1A_Program_Name] &/ "Project/Language");
+
+==
+== Set a password to allow instructors to view student data remotely.
+==
+
+[_Password_] = "instructor:5f4dcc3b5aa765d61d8327deb882cf99";
