@@ -53,9 +53,11 @@ public class OptionList {
             beg = oneOption.indexOf('(');
             if (beg != -1) {
                 end = oneOption.indexOf(')', beg);
-                oneComment = oneOption.substring(beg+1, end);
-                oneOption = oneOption.substring(0, beg).trim();
-                comments.put(oneOption, oneComment);
+                if (end != -1) {
+                    oneComment = oneOption.substring(beg+1, end);
+                    oneOption = oneOption.substring(0, beg).trim();
+                    comments.put(oneOption, oneComment);
+                }
             }
             this.options.add(oneOption);
         }
