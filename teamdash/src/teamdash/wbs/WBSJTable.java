@@ -1,10 +1,14 @@
 
 package teamdash.wbs;
 
+import java.awt.Cursor;
 import java.awt.Event;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.util.Arrays;
 import java.util.EventObject;
 import java.util.HashSet;
@@ -75,6 +79,7 @@ public class WBSJTable extends JTable {
         installCustomActions(this);
         installTableActions();
         getSelectionModel().addListSelectionListener(SELECTION_LISTENER);
+        addMouseMotionListener(MOTION_LISTENER);
     }
 
 
@@ -682,6 +687,49 @@ public class WBSJTable extends JTable {
         }
     }
     final SelectionListener SELECTION_LISTENER = new SelectionListener();
+
+
+
+    /** Display a hand cursor when the mouse is over a node icon */
+    private final class MotionListener implements MouseMotionListener {
+        private Cursor handCursor =
+            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+        private Cursor textCursor =
+            Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR);
+        public void mouseDragged(MouseEvent e) {}
+        public void mouseMoved(MouseEvent e) {
+            setCursor(getCursorToDisplay(e.getPoint()));
+        }
+        private Cursor getCursorToDisplay(Point p) {
+            int column = columnAtPoint(p);
+            if (column != 0) return null;
+            int row = rowAtPoint(p);
+            if (!wbsModel.isCellEditable(row, column)) return null;
+
+            // find the node that the cursor is over.
+            WBSNode overNode = wbsModel.getNodeForRow(row);
+            if (overNode == null) return null;
+
+            // calculate x relative to the table cell origin.
+            Rectangle r = getCellRect(row, column, true);
+            int ourXPos = p.x - r.x;
+
+            // translate the x position according to the indentation level of
+            // clicked node, and determine which part of the node was clicked.
+            int indentLevel = overNode.getIndentLevel();
+            int xDelta = ourXPos - indentLevel * WBSNodeRenderer.ICON_HORIZ_SPACING;
+            if (xDelta <= 0)
+                return null;
+            else if (xDelta < WBSNodeRenderer.ICON_HORIZ_SPACING)
+                return (wbsModel.isNodeTypeEditable(overNode)
+                        ? handCursor : null);
+            else if (xDelta > WBSNodeRenderer.ICON_HORIZ_SPACING + 4)
+                return textCursor;
+            else
+                return null;
+        }
+    }
+    final MotionListener MOTION_LISTENER = new MotionListener();
 
 
 

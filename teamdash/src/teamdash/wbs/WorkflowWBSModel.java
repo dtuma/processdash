@@ -10,12 +10,17 @@ public class WorkflowWBSModel extends WBSModel {
     public WorkflowWBSModel(String name) { super(name); }
     public WorkflowWBSModel(Element e)   { super(e);    }
 
-    /** Nodes at indentation level 1 are defined workflows. */
+    /* Nodes at indentation level 1 are defined workflows. */
     public String filterNodeType(WBSNode node) {
         if (node.getIndentLevel() == 1)
             return "Workflow";
         else
             return super.filterNodeType(node);
+    }
+
+    /* Nodes at indentation level 1 are defined workflows. */
+    public boolean isNodeTypeEditable(WBSNode node) {
+        return (node.getIndentLevel() > 1);
     }
 
     /** Workflows behave like software components for validation purposes. */

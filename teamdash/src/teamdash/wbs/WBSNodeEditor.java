@@ -3,6 +3,7 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -384,7 +385,7 @@ public class WBSNodeEditor extends AbstractCellEditor
         /** A text field where the user can edit the node name. */
         JTextField textField;
         /** A component which can and listen for mouse events on the icon */
-        JComponent iconListener;
+        IconListener iconListener;
 
         /** The indentation level of the edited node */
         int indentationLevel = 0;
@@ -451,17 +452,16 @@ public class WBSNodeEditor extends AbstractCellEditor
             isLeaf           = wbsModel.isLeaf(editingNode);
             Object iconObj   = WBSNodeRenderer.getIconForNode
                 (table, iconMap, editingNode, wbsModel);
+            nodeTypeEditable = wbsModel.isNodeTypeEditable(editingNode);
             if (iconObj instanceof ErrorValue) {
                 iconToolTip = ((ErrorValue) iconObj).error;
                 nodeIcon = (Icon) ((ErrorValue) iconObj).value;
-                nodeTypeEditable = true;
             } else {
                 iconToolTip = wbsModel.filterNodeType(editingNode);
                 nodeIcon = (Icon) iconObj;
-                nodeTypeEditable = editingNode.getType().equals(iconToolTip);
             }
             iconListener.setToolTipText(iconToolTip);
-            iconMenu.setEnabled(nodeTypeEditable);
+            iconListener.setMenuEnabled(nodeTypeEditable);
         }
 
         /** set the text to be displayed for the node */
@@ -556,8 +556,13 @@ public class WBSNodeEditor extends AbstractCellEditor
         {
             /** did the last mouse press hide the popup menu? */
             boolean pressHidPopup = false;
+            Cursor handCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+            Cursor defaultCursor = Cursor.getDefaultCursor();
 
-            public IconListener() { addMouseListener(this); }
+            public IconListener() {
+                addMouseListener(this);
+                setCursor(handCursor);
+            }
             public void paint(Graphics g) { /* invisible */}
 
             // implementation of java.awt.event.MouseListener interface
@@ -574,6 +579,11 @@ public class WBSNodeEditor extends AbstractCellEditor
             public void mouseReleased(MouseEvent e) { }
             public void mouseEntered(MouseEvent e) { }
             public void mouseExited(MouseEvent e) { }
+
+            public void setMenuEnabled(boolean enable) {
+                iconMenu.setEnabled(enable);
+                setCursor(enable ? handCursor : defaultCursor);
+            }
         }
 
 

@@ -326,6 +326,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         return rowIndex != 0;
     }
+    public boolean isNodeTypeEditable(WBSNode node) {
+        return node.getIndentLevel() > 0;
+    }
     public Object getValueAt(int row, int column) {
         return getNodeForRow(row);
     }
