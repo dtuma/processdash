@@ -58,48 +58,59 @@ reused objects section of the form, so we will skip that section as well.</P>
 &amp; changed LOC via the PROBE tool.  The PROBE tool is accessed from the 
 "C" menu.</P>
 
-<p><img src="../../Images/QSProbeBefore.jpg"></p>
+<p><img src="../../Images/QSProbeBefore.png"></p>
 
 <P>The PROBE script gives several ways to calculate an estimate.  We would 
 like to know if we can use linear regression, i.e. do our data correlate 
-well?  The PROBE tool can tell us at a glance.  Since we don't have any real 
-Object LOC data yet, we can't use size estimating procedure 4A and we choose 
-to try and correlate Estimated New &amp; Changed LOC with actual New &amp; 
-Changed LOC via procedure 4B.  After picking those choices from the pulldown 
-boxes, we see immediately that our data does not correlate well enough to use 
-the Linear Regression method.  The PROBE tool shows the correlation measure 
-(r<sup>2</sup>) in red because its value is less than 0.5.  Also the 
-probability of finding this correlation by chance alone (p) is also in red 
-because it is greater than 50%.  This means we will have to use method 4C.  
-The PROBE tool helps here as well.  The right hand column of numbers shows 
-data for method 4C, the averaging method.  It has already set 
-<i>B</i><sub>0</sub> to 0.0, and has done the calculation of 
-<i>B</i><sub>1</sub> for you.</p>
+well?  The PROBE tool can tell us at a glance. The top pulldown control has 
+all the standard PROBE methods available.  When it first appears, the PROBE 
+dialog has already chosen "PROBE Method A for Size", and we can see already 
+that our data do not correlate by the r<sup>2</sup> and p values shown in 
+red.  That makes sense, since method A requires historical data for estimated 
+object LOC, which we don't have by the time we do Program 5A. We can quickly 
+check the other PROBE methods just by choosing a method in the pulldown.</p>
 
-<P>Moving forward with method 4C, we need to enter our estimated object LOC 
+<P>When we try method B, the numbers don't look much better, so we're force 
+to use method C.  The dashboard provides two method C's for size: C1 and C2.  
+These are very analogous to the different C methods that are available in the 
+standard PSP estimating procedure for Time estimation.  C1 needs to have 
+historical data for estimated object LOC, so that won't be usable.  We will 
+use C2.</p>
+
+<P>The right hand column of numbers shows data for method C2, the averaging 
+method.  It has already set <i>B</i><sub>0</sub> to 0.0, and has done the 
+calculation of <i>B</i><sub>1</sub> for you.</p>
+
+<P>Moving forward with method C1, we need to enter our estimated object LOC 
 from the Size Estimating Template into the PROBE tool.  Entering 164.3 into 
 the estimate blank gives us the following screen.</p>
 
-<p><img src="../../Images/QSProbeAfter.jpg"></p>
+<p><img src="../../Images/QSProbeAfter.png"></p>
 
-<P>Our projected New &amp; Changed LOC for this project should be 120.39.  We 
-can then use the PROBE tool to attempt a correlation between Estimated New 
-&amp; Changed LOC and total development time by choosing time from the second 
-pull down box.  Again, our data doesn't correlate strong enough to use the 
-linear regression method, so we will use the data from the Average column, 
-337.69 minutes.</p>
+<P>Our projected New &amp; Changed LOC for this project should be 120.39.
+
+<P>We can now use the PROBE tool to attempt a correlation between Estimated New 
+&amp; Changed LOC and total development time.  Again, we can investigate the 
+different methods to see if our data correlates.  Again, our data does not 
+correlate well enough to use methods A or B, so we are left with the C 
+methods.  C2 is the correct choice again because we don't have estimates of 
+object LOC to use as a basis.</p>
+
+<p><img src="../../Images/QSProbeAfterTime.png"></p>
+
+<P>Our projected Time estimated for this project should be 337.69 minutes.</p> 
 
 <P>Both of these numbers get placed on the Size Estimating Template.  Since 
 we didn't do a linear regression, we can skip the UPI and LPI entries.  After 
 our planning efforts on this form it looks like the following:</p>
 
-<p><img src="../../Images/QSSizeEstimatingTemplateDone.jpg"></p>
+<p><img src="../../Images/QSSizeEstimatingTemplateDone.png"></p>
 
 <P>When we bring up the Project Plan Summary, we see that the planning data 
 is all entered automatically.  Time to click the little done button on the 
 dashboard and move on into design!</p>
 
-<p><img src="../../Images/QSFinishPlanning.jpg"></p>
+<p><img src="../../Images/QSFinishPlanning.png"></p>
 
 <P>Note also that when the dashboard moves into a new phase while the timer 
 is running, a little "clicking" noise is made.  This little bit of feedback 
