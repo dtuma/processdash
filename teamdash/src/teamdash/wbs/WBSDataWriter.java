@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import pspdash.RobustFileWriter;
 import pspdash.XMLUtils;
+import teamdash.wbs.columns.DirectSizeTypeColumn;
 
 /** This class writes out an XML data file describing the work breakdown
  * structure.
@@ -26,11 +27,22 @@ public class WBSDataWriter {
     private TeamProcess process;
     private IntList teamMemberColumns;
 
+    private static final String[] sizeColumnIDs = new String[] {
+        "Base", "Deleted", "Modified", "Added", "Reused", "N&C" };
+    private static final String[] sizeAttrNames = new String[] {
+        "sizeBase", "sizeDel", "sizeMod", "sizeAdd", "sizeReu", "sizeNC" };
+    private int[] sizeColumns = new int[sizeColumnIDs.length];
+    private int unitsColumn;
+
     public WBSDataWriter(WBSModel wbsModel, DataTableModel dataModel,
                          TeamProcess process) {
         this.wbsModel = wbsModel;
         this.dataModel = dataModel;
         this.process = process;
+
+        for (int i = 0;   i < sizeColumnIDs.length;   i++)
+            sizeColumns[i] = dataModel.findColumn(sizeColumnIDs[i]);
+        unitsColumn = dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
     }
 
     public void write(File f) throws IOException {
@@ -61,11 +73,9 @@ public class WBSDataWriter {
         writeAttr(out, ID_ATTR, node.getUniqueID());
 
         // write node specific attributes
-        AttributeWriter w = (AttributeWriter) ATTRIBUTE_WRITERS.get(nodeType);
-        if (w != null)
-            w.writeAttributes(out, node);
-
-        // todo: write node specific data.
+        AttributeWriter aw = (AttributeWriter) ATTRIBUTE_WRITERS.get(nodeType);
+        if (aw != null)
+            aw.writeAttributes(out, node);
 
         WBSNode[] children = wbsModel.getChildren(node);
         if (children == null || children.length == 0) {
@@ -121,10 +131,11 @@ public class WBSDataWriter {
 
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
-    //private static final String TYPE_ATTR = "type";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";
     private static final String TIME_ATTR = "time";
+
+    private static final String UNITS_ATTR = "sizeUnits";
 
 
     private static final String PROJECT_TYPE = "project";
@@ -142,6 +153,12 @@ public class WBSDataWriter {
             throws IOException;
     }
 
+    private class SizeAttributeWriter implements AttributeWriter {
+        public void writeAttributes(Writer out, WBSNode node) throws IOException {
+            maybeWriteSizeAttrs(out, node);
+        }
+    }
+
     private class TaskAttributeWriter implements AttributeWriter {
         public void writeAttributes(Writer out, WBSNode node) throws IOException {
             String nodeType = node.getType();
@@ -157,15 +174,20 @@ public class WBSDataWriter {
         }
     }
 
-    private class PSPTaskAttributeWriter implements AttributeWriter {
+    private class PSPTaskAttributeWriter extends SizeAttributeWriter {
         public void writeAttributes(Writer out, WBSNode node) throws IOException {
             writeAttr(out, TIME_ATTR, getTeamMemberTimes(node));
+            super.writeAttributes(out, node);
         }
     }
 
 
     private HashMap buildAttributeWriters() {
         HashMap result = new HashMap();
+        SizeAttributeWriter sw = new SizeAttributeWriter();
+        result.put(SOFTWARE_TYPE, sw);
+        result.put(DOCUMENT_TYPE, sw);
+
         result.put(TASK_TYPE, new TaskAttributeWriter());
         result.put(PSP_TYPE, new PSPTaskAttributeWriter());
         return result;
@@ -190,4 +212,61 @@ public class WBSDataWriter {
         return result.toString();
     }
 
+    /*
+    private final HashMap DATA_NODE_WRITERS = buildDataNodeWriters();
+
+    private interface DataNodeWriter {
+        public boolean hasDataNodes(WBSNode node);
+        public void writeData(Writer out, WBSNode node, int depth)
+            throws IOException;
+    }
+
+    private class SizeDataNodeWriter implements DataNodeWriter {
+        public boolean hasDataNodes(WBSNode node) {
+            return (dataModel.getValueAt(node, unitsColumn) != null);
+        }
+
+
+        public void writeData(Writer out, WBSNode node, int depth)
+            throws IOException
+        {
+            String units = String.valueOf
+                (dataModel.getValueAt(node, unitsColumn));
+            if ("null".equals(units)) return;
+
+            writeIndent(out, depth);
+            out.write("<" + SIZE_TAG);
+            out.write("/>\n");
+        }
+    */
+
+
+
+    private void maybeWriteSizeAttrs(Writer out, WBSNode node) throws IOException {
+        Object units = dataModel.getValueAt(node, unitsColumn);
+        if (units == null) return;
+
+        writeAttr(out, UNITS_ATTR, String.valueOf(units));
+        for (int i = 0;   i < sizeAttrNames.length;   i++){
+            Object size = dataModel.getValueAt(node, sizeColumns[i]);
+            writeAttr(out, sizeAttrNames[i], formatSize(size));
+        }
+    }
+
+    private String formatSize(Object size) {
+        if (size == null) return "0";
+        String result = String.valueOf(size);
+        if (result.length() == 0) return "0";
+        return result;
+    }
+
+    /*
+    private HashMap buildDataNodeWriters() {
+        HashMap result = new HashMap();
+        SizeDataNodeWriter w = new SizeDataNodeWriter();
+        result.put(SOFTWARE_TYPE, w);
+        result.put(PSP_TYPE, w);
+        result.put(DOCUMENT_TYPE, w);
+        return result;
+    }*/
 }

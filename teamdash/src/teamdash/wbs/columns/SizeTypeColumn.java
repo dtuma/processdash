@@ -64,6 +64,7 @@ public class SizeTypeColumn extends AbstractDataColumn {
 
 
 
+
     private static Map buildMap() {
         Map sizeMetrics = new HashMap();
         sizeMetrics.put("Project", "LOC");
@@ -82,8 +83,9 @@ public class SizeTypeColumn extends AbstractDataColumn {
      * to the given data model.
      */
     public static void createSizeColumns(DataTableModel dataModel) {
-        // create the size type column.
+        // create the size type columns.
         dataModel.addDataColumn(new SizeTypeColumn(dataModel));
+        dataModel.addDataColumn(new DirectSizeTypeColumn(dataModel));
 
         // create an editable size column.
         dataModel.addDataColumn(new EditableSizeColumn(dataModel));

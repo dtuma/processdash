@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -23,6 +24,8 @@ import pspdash.TinyCGIException;
 import pspdash.XMLUtils;
 import pspdash.HierarchyAlterer.HierarchyAlterationException;
 import pspdash.data.DataRepository;
+import pspdash.data.DoubleData;
+import pspdash.data.SimpleData;
 
 public class HierarchySynchronizer {
 
@@ -32,7 +35,7 @@ public class HierarchySynchronizer {
     private DataRepository data;
     private String projectPath;
     private String processID;
-    private String initials;
+    private String initials, initialsPattern;
     private Element projectXML;
     private ArrayList changes;
 
@@ -55,11 +58,12 @@ public class HierarchySynchronizer {
         this.data = data;
 
         if (initials == null) { // team
-            this.initials = SYNC_TEAM;
+            this.initials = this.initialsPattern = SYNC_TEAM;
             this.readOnlyNodeID = processID + "/TeamNode";
             this.taskNodeID = null;
         } else { // individual
             this.initials = initials;
+            this.initialsPattern = "," + initials + "=";
             this.readOnlyNodeID = processID + "/IndivReadOnlyNode";
             this.taskNodeID = processID + "/IndivEmptyNode";
         }
@@ -151,7 +155,7 @@ public class HierarchySynchronizer {
         // if the task so far is prunable, check to see if the current
         // individual is assigned to it.
         String time = e.getAttribute(TIME_ATTR);
-        if (time != null && time.indexOf("," + initials + "=") != -1)
+        if (time != null && time.indexOf(initialsPattern) != -1)
             prunable = false;
 
         return (prunable ? PRUNE : DONT_PRUNE);
@@ -187,7 +191,7 @@ public class HierarchySynchronizer {
 
         if (!isTeam()) {
             result.put(TASK_TYPE, new SyncTaskNode());
-            result.put(PSP_TYPE, new SyncSimpleNode("PSP2.1", " Task"));
+            result.put(PSP_TYPE, new SyncPSPTaskNode());
         }
 
         return result;
@@ -221,6 +225,8 @@ public class HierarchySynchronizer {
         PROJECT_TYPE, SOFTWARE_TYPE, DOCUMENT_TYPE, PSP_TYPE, TASK_TYPE });
 
     private static final String WBS_ID_DATA_NAME = "WBS_Unique_ID";
+    private static final String EST_TIME_DATA_NAME = "Estimated Time";
+
 
     private class SyncNode {
 
@@ -276,23 +282,29 @@ public class HierarchySynchronizer {
             String path = getPath(pathPrefix, node);
             String currentID = getIDForPath(path);
             if (currentID == null) {
-                if (!whatIfMode)
+                if (!whatIfMode) {
                     alterer.addTemplate(path, templateID);
+                    syncData(path, node);
+                }
                 changes.add("Created '"+path+"' ("+templateID+")");
             } else if (templateID.equals(currentID)) {
-                // nothing needs to be done. the node exists with the given name.
+                // the node exists with the given name.  Just sync its data.
+                if (!whatIfMode)
+                    syncData(path, node);
             } else {
                 // there is a problem.
                 changes.add("Could not create '"+path+"' - existing node is in the way");
                 return false;
             }
-            syncData(pathPrefix, node);
 
             syncChildren(alterer, pathPrefix, node);
             return true;
         }
-        public void syncData(String pathPrefix, Element node) {
+        public void syncData(String path, Element node) {
              String nodeID = node.getAttribute(ID_ATTR);
+             try {
+                 putData(path, WBS_ID_DATA_NAME, new DoubleData(nodeID));
+            } catch (Exception e) {}
         }
 
         public String getName(Element node) {
@@ -301,6 +313,40 @@ public class HierarchySynchronizer {
                 result = result + suffix;
             return result;
         }
+
+        protected void maybeSaveTimeValue(String path, Element node) {
+            double time = parseTime(node);
+            if (time == 0) return;
+
+            SimpleData d = getData(path, EST_TIME_DATA_NAME);
+            if (d == null || !d.test())
+                putData(path, EST_TIME_DATA_NAME, new DoubleData(time * 60));
+        }
+
+        protected double parseTime(Element node) {
+            String timeAttr = node.getAttribute(TIME_ATTR);
+            if (timeAttr == null) return 0;
+            int beg = timeAttr.indexOf(initialsPattern);
+            if (beg == -1) return 0;
+            beg += initialsPattern.length();
+            int end = timeAttr.indexOf(',', beg);
+            if (end == -1) return 0;
+            try {
+                return Double.parseDouble(timeAttr.substring(beg, end));
+            } catch (Exception e) {}
+
+            return 0;
+        }
+    }
+
+    private SimpleData getData(String dataPrefix, String name) {
+        String dataName = DataRepository.createDataName(dataPrefix, name);
+        return data.getSimpleValue(dataName);
+    }
+
+    protected void putData(String dataPrefix, String name, SimpleData value) {
+        String dataName = DataRepository.createDataName(dataPrefix, name);
+        data.userPutValue(dataName, value);
     }
 
     private HashMap phaseIDs;
@@ -341,11 +387,15 @@ public class HierarchySynchronizer {
             path = path + "/" + phaseName;
             String currentID = getIDForPath(path);
             if (currentID == null) {
-                if (!whatIfMode)
+                if (!whatIfMode) {
                     alterer.addTemplate(path, templateID);
+                    maybeSaveTimeValue(path, node);
+                }
                 changes.add("Created '"+path+"' ("+templateID+")");
             } else if (templateID.equals(currentID)) {
-                // nothing needs to be done. the node exists with the given name.
+                // the node exists with the given name.
+                if (!whatIfMode)
+                    maybeSaveTimeValue(path, node);
             } else {
                 // there is a problem.
                 changes.add("Could not create '"+path+"' - existing node is in the way");
@@ -355,6 +405,54 @@ public class HierarchySynchronizer {
             return true;
         }
     }
+
+    private class SyncPSPTaskNode extends SyncSimpleNode {
+        public SyncPSPTaskNode() {
+            super("PSP2.1", " Task");
+        }
+
+        public void syncData(String path, Element node) {
+            super.syncData(path, node);
+            maybeSaveTimeValue(path, node);
+            maybeSaveSizeData(path, node);
+        }
+
+        private void maybeSaveSizeData(String path, Element node) {
+            // ensure that this node has size data.
+            if (!"LOC".equals(node.getAttribute("sizeUnits")))
+                return;
+
+            // check to see if any size data exists for this PSP2.1 project.
+            for (int i = 0;   i < sizeDataNames.length;   i++) {
+                SimpleData d = getData(path, sizeDataNames[i]);
+                if (d != null && d.test()) return;
+            }
+
+            // save the size data to the project.
+            for (int i = 0;   i < sizeAttrNames.length;   i++)
+                putNumber(path, sizeDataNames[i],
+                          node.getAttribute(sizeAttrNames[i]));
+        }
+
+        private void putNumber(String path, String name, String value) {
+            try {
+                if (value == null || value.length() == 0)
+                    value = "0";
+                putData(path, name, new DoubleData(value));
+            } catch (Exception e) {}
+        }
+    }
+
+    private static final String[] sizeAttrNames = new String[] {
+        "sizeBase", "sizeDel", "sizeMod", "sizeAdd", "sizeReu", "sizeNC" };
+    private static final String[] sizeDataNames = new String[] {
+        "Estimated Base LOC",
+        "Estimated Deleted LOC",
+        "Estimated Modified LOC",
+        "New Objects/0/LOC",
+        "Reused Objects/0/LOC",
+        "Estimated New & Changed LOC" };
+
 
     private boolean isPhaseName(String name) {
         return phaseIDs.containsKey(name);
@@ -366,6 +464,40 @@ public class HierarchySynchronizer {
 
         String actualID = hierarchy.getID(key);
         return (actualID == null ? "" : actualID);
+    }
+
+    private static final String[] docSizeUnits = {
+        "Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
+    private static final String[] constructionPhaseTypes = {
+        "STP", "ITP", "TD", "MGMT", "STRAT", "PLAN", "REQ", "HLD", "DLD",
+        "DLDR", "CODE", "CR", "COMP", "DOC" };
+
+    private double constrPhaseTotal, constrPhasePersonal;
+    private void sumUpConstructionPhases(Element node) {
+        String attr = node.getAttribute(TIME_ATTR);
+        if (attr != null && attr.length() != 0)
+            addTimeData(attr);
+        NodeList children = node.getChildNodes();
+        int len = children.getLength();
+        Node child;
+        for (int i = 0;   i < len;   i++) {
+            child = (Node) children.item(i);
+            if (child instanceof Element)
+                sumUpConstructionPhases((Element) child);
+        }
+    }
+    private void addTimeData(String attr) {
+        StringTokenizer tok = new StringTokenizer(attr, ",");
+        while (tok.hasMoreTokens()) try {
+            String time = tok.nextToken();
+            int pos = time.indexOf('=');
+            if (pos == -1) continue;
+            String who = time.substring(0, pos);
+            double amount = Double.parseDouble(time.substring(pos+1));
+            constrPhaseTotal += amount;
+            if (initials.equals(who))
+                constrPhasePersonal += amount;
+        } catch (NumberFormatException nfe) {}
     }
 
 }

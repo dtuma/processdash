@@ -103,7 +103,7 @@ public class sync extends TinyCGIBase {
 
     private static final String TEAM_ROOT = "/TeamRoot";
     private static final String INDIV_ROOT = "/IndivRoot";
-    private static final String TEAMDIR_DATA_NAME = "Team_Directory";
+    private static final String TEAMDIR_DATA_NAME = "Team_Data_Directory";
     private static final String INITIALS_DATA_NAME = "Indiv_Initials";
     private static final String FULLCOPY_DATA_NAME = "Sync_Full_WBS";
     private static final String HIER_FILENAME = "projDump.xml";
