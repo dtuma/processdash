@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.sound.sampled.*;
 import javax.swing.JButton;
 import javax.swing.ImageIcon;
 import pspdash.data.SaveableData;
@@ -47,6 +48,7 @@ public class PauseButton extends JButton implements ActionListener {
     Timer stopwatch = null;
     PropertyKey currentPhase = null;
     String timeElementName = null;
+    Clip timingSound = null;
     private static final String pause_string = "Stop";
     private static final String continue_string = " Go ";
 
@@ -67,7 +69,7 @@ public class PauseButton extends JButton implements ActionListener {
         parent = dash;
         addActionListener(this);
 
-        int refreshIntervalMillis = 5 * MILLIS_PER_MINUTE;
+        int refreshIntervalMillis = MILLIS_PER_MINUTE; // default: one minute
 
         String refreshInterval = Settings.getVal("timelog.updateInterval");
         if (refreshInterval != null) try {
@@ -79,11 +81,11 @@ public class PauseButton extends JButton implements ActionListener {
             new javax.swing.Timer(refreshIntervalMillis, this);
         activeRefreshTimer.start();
 
-        // GridBagConstraints g = new GridBagConstraints();
-        // g.gridx = 0;
-        // g.gridy = 0;
-        // g.fill = g.BOTH;
-        // dash.layout.setConstraints(this, g);
+        // Load the audio clip
+        if (!"true".equalsIgnoreCase(Settings.getVal("pauseButton.quiet"))) {
+            timingSound = loadAudioClip("timing.wav");
+        }
+
         dash.getContentPane().add(this);
     }
 
@@ -103,12 +105,20 @@ public class PauseButton extends JButton implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == activeRefreshTimer) {
             saveCurrentTimeLogEntry();
+
+            // Possibly commit the current row.  If a user clicks
+            // pause, then goes home for the evening, and comes back
+            // the next day and starts working on the same activity,
+            // it really isn't meaningful to log 15 hours of interrupt
+            // time.  So if the interrupt time passes some "critical
+            // point", just commit the current row.
             if (paused && stopwatch != null) {
                 long interruptMinutes = stopwatch.minutesInterrupt();
                 if (interruptMinutes > 5 &&
                     interruptMinutes > (0.25 * elapsedMinutes))
                     releaseCurrentTimeLogEntry();
             }
+
         } else {
             if (paused) cont(); else pause();
         }
@@ -131,11 +141,14 @@ public class PauseButton extends JButton implements ActionListener {
             stopwatch.start();
         }
         updateAppearance();
+
+        playClip(timingSound);
     }
 
     public void setCurrentPhase(PropertyKey newCurrentPhase) {
+        boolean needCleanup = (entryHasBeenSaved > 1);
         releaseCurrentTimeLogEntry();
-        if (entryHasBeenSaved > 1)
+        if (needCleanup)
             cleanupTimeLog();
 
         if (newCurrentPhase != null) {
@@ -174,24 +187,25 @@ public class PauseButton extends JButton implements ActionListener {
      *  already exist.
      */
     private synchronized void updateCurrentTimeLogEntry() {
-        if (currentTimeLogEntry == null) {
-            if (stopwatch == null) return;
+        if (stopwatch == null) return;
 
-            double previousElapsedMinutes = elapsedMinutes;
-            elapsedMinutes = stopwatch.minutesElapsedDouble();
-            if (elapsedMinutes < 1.0 && !WRITE_ZERO) return;
+        double previousElapsedMinutes = elapsedMinutes;
+        elapsedMinutes = stopwatch.minutesElapsedDouble();
+        long roundedElapsedMinutes = (long) (elapsedMinutes + 0.5);
+
+        if (currentTimeLogEntry == null) {
+            if (roundedElapsedMinutes == 0 && !WRITE_ZERO) return;
             if (previousElapsedMinutes == elapsedMinutes) return;
 
             currentTimeLogEntry = new TimeLogEntry
                 (currentPhase,
                  stopwatch.createTime,
-                 (long) elapsedMinutes,
+                 roundedElapsedMinutes,
                  stopwatch.minutesInterrupt());
             entryHasBeenSaved = 0;
 
         } else {
-            elapsedMinutes = stopwatch.minutesElapsedDouble();
-            currentTimeLogEntry.minutesElapsed  = (long) elapsedMinutes;
+            currentTimeLogEntry.minutesElapsed  = roundedElapsedMinutes;
             currentTimeLogEntry.minutesInterrupt= stopwatch.minutesInterrupt();
         }
     }
@@ -234,13 +248,12 @@ public class PauseButton extends JButton implements ActionListener {
             - savedElapsedMinutes;
                                 // Calculate the amount of time in this phase,
                                 // INCLUDING the current time log entry.
-        double currentTime = previousTime + elapsedMinutes;
-                                // Round to the nearest minute.
-        long currentMinutes = (long) (currentTime + 0.5);
+        long currentMinutes =
+            (long) (previousTime + currentTimeLogEntry.minutesElapsed);
         savedElapsedMinutes = currentMinutes - previousTime;
         parent.data.putValue(timeElementName,
                              new DoubleData(currentMinutes, false));
-        System.out.println("updating time to " + currentMinutes);
+        //System.out.println("updating time to " + currentMinutes);
 
         parent.hierarchy.workPerformed
                   (new DateData(stopwatch.createTime, true));
@@ -249,7 +262,7 @@ public class PauseButton extends JButton implements ActionListener {
     private void releaseCurrentTimeLogEntry() {
         saveCurrentTimeLogEntry();
 
-        stopwatch = null;
+        stopwatch = (paused ? null : new Timer());
         currentTimeLogEntry = null;
         entryHasBeenSaved = 0;
         savedElapsedMinutes = elapsedMinutes = 0.0;
@@ -268,7 +281,34 @@ public class PauseButton extends JButton implements ActionListener {
             TimeLog log = new TimeLog();
             log.read(timeLogFilename);
             log.save(timeLogFilename);
+            if (entryHasBeenSaved > 0)
+                entryHasBeenSaved = 1;
             System.err.println("Cleaned up time log.");
         } catch (IOException ioe) {}
+    }
+
+    private Clip loadAudioClip(String filename) {
+        Clip result = null;
+        try {
+            AudioInputStream soundFile = AudioSystem.getAudioInputStream
+                (getClass().getResource(filename));
+            AudioFormat soundFormat = soundFile.getFormat();
+            int bufferSize = (int) (soundFile.getFrameLength() *
+                                    soundFormat.getFrameSize());
+            DataLine.Info info = new DataLine.Info
+                (Clip.class, soundFile.getFormat(), bufferSize);
+            result = (Clip) AudioSystem.getLine(info);
+            result.open(soundFile);
+        } catch (Exception e) {
+            result = null;
+        }
+        return result;
+    }
+
+    private void playClip(Clip clip) {
+        if (clip != null) {
+            clip.setFramePosition(0);
+            clip.start();
+        }
     }
 }
