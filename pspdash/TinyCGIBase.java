@@ -51,8 +51,10 @@ public class TinyCGIBase implements TinyCGI {
         this.env = env;
         parameters.clear();
         parseInput((String) env.get("QUERY_STRING"));
-        writeHeader();
-        writeContents();
+        if ("POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
+            doPost();
+        else
+            doGet();
         this.out.flush();
     }
 
@@ -287,6 +289,20 @@ public class TinyCGIBase implements TinyCGI {
      * child classes that DO NOT want query parameter support should
      * override this method to return false. */
     protected boolean supportQueryFiles() { return true; }
+
+
+    /** Handle an HTTP POST request */
+    protected void doPost() throws IOException {
+        writeHeader();
+        writeContents();
+    }
+
+
+    /** Handle an HTTP GET request */
+    protected void doGet() throws IOException {
+        writeHeader();
+        writeContents();
+    }
 
 
     /** Write a standard CGI header.
