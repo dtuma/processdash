@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="Shift_JIS" standalone="yes"?>
+
+<langpack>
+
+    <str id="pack.pdash.name">Process Dashboard</str>
+    <str id="pack.pdash.description">アプリケーションProcess Dashboardの本体。
+
+Process DashboardはGNU一般公的使用許諾の下で配布されています。</str>
+
+
+    <str id="pack.pspProc.name">PSP(SM) Processes</str>
+    <str id="pack.pspProc.description">PSP(パーソナルソフトウェアプロセス)で使われているテンプレート、スクリプト、帳票。
+
+このモジュールは、Watts S. Humphrey氏の著作、A Discipline for Software Engineering(Copyright (c) 1995 by Addison-Wesley)に記述されているテンプレートやスクリプト、その他の資料を参考に作られています。これらテンプレートなどについては、出版社の許可を得てプログラムに組み込んでいます。
+
+このモジュールをダウンロードしインストールする際は、Addison-Wesley社の定める使用許諾契約に同意していただく必要があります。</str>
+
+
+    <str id="pack.pspForEng.name">PSP(SM) for Engineers</str>
+    <str id="pack.pspForEng.description">SEIのPersonal Software Process(SM)コースを受講している方の支援。
+
+このモジュールは、Watts S. Humphrey氏の著作、A Discipline for Software Engineering(Copyright (c) 1995 by Addison-Wesley)に記述されているテンプレートやスクリプト、その他の資料を参考に作られています。これらテンプレートなどについては、出版社の許可を得てプログラムに組み込んでいます。
+
+このモジュールをダウンロードしインストールする際は、Addison-Wesley社の定める使用許諾契約に同意していただく必要があります。</str>
+
+
+    <str id="pack.javaHelp.name">JavaHelp(TM) Help Browser</str>
+    <str id="pack.javaHelp.description">Sun Microsystems社製のヘルプブラウザ。
+
+このモジュールはProcess Dashboardの機能上特に必要とされるものではありません。このモジュールをインストールすることで、全文検索などが利用できるようになり、よりヘルプを読みやすくすることができます。
+
+このモジュールはオープンソースではなく、著作権はSun Microsystems社にあります。このモジュールをダウンロードしインストールする際は、Sun Microsystems社の定める使用許諾契約に同意していただく必要があります。</str>
+
+
+    <str id="CondHTMLLicencePanel0.header">あなたがインストールすることを選んだ{0,choice,1#モジュール|2#モジュール}:
+          {1}
+
+出版社は、ダウンロードもしくはインストールする前に以下の使用許諾契約に同意することを条件に、{0,choice,1#このモジュール|2#これらのモジュール}の使用を認めています:</str>
+
+
+    <str id="CondHTMLLicencePanel1.header">Sun Microsystems社のソフトウェアJavaHelp(TM)のインストールが選択されました。この追加モジュールをダウンロードしインストールするには、以下の使用許諾契約に同意する必要があります。</str>
+
+
+</langpack>
+
