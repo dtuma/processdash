@@ -38,7 +38,11 @@ abstract class DataInterpreter implements DataListener {
     SimpleData value = null;
                                   // if this value is true, this element should
                                   // always be reported as read-only, even if the
-    boolean readOnly = false;	// underlying data element is editable.
+    boolean readOnly = false;     // underlying data element is editable.
+
+    /** If this value is true, then this data element is optional, and null
+     *  values shouldn't be flagged with "?????". */
+    boolean optional = false;
     boolean receivedEvent = false;
     protected boolean noConnection = false;
     HTMLField consumer = null;
@@ -79,12 +83,15 @@ abstract class DataInterpreter implements DataListener {
         if (value instanceof StringData &&
             ((StringData)value).getString().length() == 0) return Boolean.FALSE;
 
-        else return Boolean.TRUE;	// everything else is true.
+        else return Boolean.TRUE;   // everything else is true.
     }
 
     public String getString() {
         if (noConnection) return "NO CONNECTION";
-        return (value == null ? "" : value.format());
+        if (value == null || value instanceof UndefinedData)
+            return (optional ? "" : "?????");
+        else
+            return value.format();
     }
 
 
@@ -114,7 +121,7 @@ abstract class DataInterpreter implements DataListener {
 
     public void userChangedValue(Object newValue) {
 
-        if (!isEditable()) {	// if this data is read-only,
+        if (!isEditable()) {        // if this data is read-only,
                             // restore its old value in case the user messed it up.
             if (consumer != null) consumer.repositoryChangedValue();
 
@@ -141,9 +148,9 @@ abstract class DataInterpreter implements DataListener {
             }
                                       // This could be a MalformedValueException
                                       // (from the setString call) or RemoteException
-        } catch (Exception e) {	// (from the putValue call).
-            value = lastValue;	// restore original value of element.
-            if (consumer != null)	// restore the HTMLField to the old value.
+        } catch (Exception e) {     // (from the putValue call).
+            value = lastValue;        // restore original value of element.
+            if (consumer != null)     // restore the HTMLField to the old value.
                 consumer.repositoryChangedValue();
         }
     }

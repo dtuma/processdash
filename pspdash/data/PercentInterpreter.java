@@ -36,12 +36,13 @@ class PercentInterpreter extends DoubleInterpreter {
 
 
     public String getString() {
-        if (value instanceof DoubleData) {
+        if (value instanceof DoubleData &&
+            !(value instanceof UndefinedData)) {
             String result = DoubleData.formatNumber
                 (((DoubleData) value).value * 100.0, numDigits);
             return (result.startsWith("ERR")) ? result : result + "%";
         } else
-            return "";
+            return super.getString();
     }
 
     public void setString(String s) throws MalformedValueException {

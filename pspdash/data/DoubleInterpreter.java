@@ -55,10 +55,11 @@ class DoubleInterpreter extends DataInterpreter {
 
 
     public String getString() {
-        if (value instanceof DoubleData)
+        if (value instanceof DoubleData &&
+            !(value instanceof UndefinedData))
             return ((DoubleData) value).formatNumber(numDigits);
         else
-            return "";
+            return super.getString();
     }
 
 }

@@ -48,14 +48,23 @@ class InterpreterFactory {
 
         boolean readOnly = n.hasFlag('r');
 
+        DataInterpreter result = null;
+
         if (n.hasFlag('s'))
-            return new StringInterpreter(r, n.name, readOnly);
+            result = new StringInterpreter(r, n.name, readOnly);
         else if (n.hasFlag('%'))
-            return new PercentInterpreter(r, n.name, n.digitFlag(), readOnly);
+            result = new PercentInterpreter(r, n.name, n.digitFlag(), readOnly);
         else if (n.hasFlag('d'))
-            return new DateInterpreter(r, n.name, readOnly);
+            result = new DateInterpreter(r, n.name, readOnly);
         else
-            return new DoubleInterpreter(r, n.name, n.digitFlag(), readOnly);
+            result = new DoubleInterpreter(r, n.name, n.digitFlag(), readOnly);
+
+        boolean optional = !(result instanceof DoubleInterpreter);
+        if (n.hasFlag('o')) optional = true;
+        if (n.hasFlag('m')) optional = false;
+        result.optional = optional;
+
+        return result;
     }
 
 
@@ -76,9 +85,9 @@ class InterpreterFactory {
         while ((pos = defaultValue.indexOf('=')) != -1) {
             val.append(defaultValue.substring(0, pos));
             switch (defaultValue.charAt(pos+1)) {
-            case '#':	val.append(digits); break;
-            case 'p':	val.append(prefix); break;
-            case 'n':	val.append(name); break;
+            case '#': val.append(digits); break;
+            case 'p': val.append(prefix); break;
+            case 'n': val.append(name); break;
             };
             defaultValue = defaultValue.substring(pos+2);
         }
