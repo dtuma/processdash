@@ -71,6 +71,14 @@ defectDialog.autostart=If this property is set to "true", the defect dialog \
 	for this property means the user must manually press the "Start \
 	Timing" button to begin the timer for fixing the defect.
 
+excel.exportMethod=The method to use for exporting data into Excel. If this \
+	is set to "mime", tables will be exported to Excel using a mime-type. \
+	If this is set to "iqy", tables will be exported using a Microsoft \
+	Internet Web Query (.IQY) file.  Set this to "none" if you don't \
+	have Excel and don't care to see the "Export to Excel" link \
+	underneath tables.  If left unset, the export method will be icy \
+	if your browser is Internet Explorer, and mime otherwise.
+
 hiddenData=Data names to be suppressed from user-visible data lists (by \
 	default).  This property should be a series of regular expressions \
 	matching data names, separated by the vertical bar character '|'.
