@@ -208,6 +208,19 @@ public class HierarchyButton implements ActionListener {
     }
 
 
+    // When the user completes the last task in a series (e.g. Postmortem or
+    // Reassessment), what should we do next?
+    //
+    // Set this variable to true to enable an odometer-style rollover -
+    // that is, when completing the <b>last</b> task in the <b>last</b>
+    // hierarchy menu, ask the second-to-last menu to increment (and so-on,
+    // recursively up the list of menus).
+    //
+    // If this variable is set to false, the dashboard will instead leave
+    // the hierarchy menus alone, and just stop the timer if it is running.
+    public static final boolean ODOMETER_STYLE = false;
+
+
 
     public boolean selectNext() {
 
@@ -219,15 +232,17 @@ public class HierarchyButton implements ActionListener {
             // cannot perform selectNext.  Return false.
         if (child == null) { markCompleted(); return false; }
 
+            // if odometer-style rollover is disabled, and our child has
+            // children, we shouldn't rollover.  Return false.
+        if (!ODOMETER_STYLE && child.numChildren != 0) { return false; }
+
             // calculate the number position of the next item to be selected.
         PSPProperties props = parent.getProperties ();
         int sel = props.getSelectedChild (self) + 1;
 
             // if that item is past the end of our list, we cannot perform
             // selectNext. Return false.
-        if (sel == numChildren) { /*markCompleted(); return false; */
-            return true;
-        }
+        if (sel == numChildren) { /*markCompleted();*/ return false; }
 
             // select the next item on our menu.
         selectChild(props.getChildName (self, sel));
