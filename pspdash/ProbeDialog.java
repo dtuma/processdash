@@ -509,7 +509,6 @@ public class ProbeDialog extends JFrame implements
                 else
                     chartDlg.show();
             } else if (cmd.equals("close")) {
-                if (false)               // V1.4-BETA SEED DEFECT
                 close();
             } else if (cmd.equals("applyFilter")) { // response from filter dlg
                 theFilter = (Vector)e.getSource();
