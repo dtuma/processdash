@@ -36,29 +36,40 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 
 
 public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
-    private static final String TOTAL_CATEGORY_KEY = "TOTAL_CATEGORY_KEY";
-    private int TOTAL_INJ, TOTAL_REM;
 
+    private static final String PATH_TO_REPORTS = "";
+    private static final String TOTAL_CATEGORY_KEY = "TOTAL_CATEGORY_KEY";
+
+
+    // variables used to hold/collect data during a run
+    private String [] projects;
+    private String sizeMetric;
+    private List failurePhases;
     private List injectionCategories, removalCategories;
     protected int [][] count  = null;
     protected float [][] time = null;
+    private int TOTAL_INJ, TOTAL_REM;
 
 
     protected void writeHTML() throws IOException {
+        initValues();
         writeHTMLHeader();
         writeTableD21();
         writeTableD22();
         writeHTMLFooter();
     }
+
 
     private void writeHTMLHeader() {
         out.print
@@ -68,6 +79,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
              "TD        { text-align: center }\n" +
              "TD.header { font-weight: bold;  font-size: large }\n" +
              "TD.task   { text-align: left; white-space: nowrap }\n" +
+             "TD.subcat { text-align: right; white-space: nowrap }\n" +
              "</style>\n" +
              "<title>");
         out.print(resources.getHTML("R3.Title"));
@@ -79,17 +91,52 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         out.print("</H2>\n");
     }
 
+
     protected void writeHTMLFooter() {
-        out.print("<P><A HREF=\"../excel.iqy\"><I>");
+        out.print("<P><A HREF=\"" + PATH_TO_REPORTS + "excel.iqy\"><I>");
         out.print(resources.getHTML("Export_to_Excel"));
         out.println("</I></A>");
         out.println("</BODY></HTML>");
     }
 
-    private void writeTableD21() throws IOException {
-        List failurePhases = getList("Failure_Phase_List");
 
+    private void initValues() {
+        failurePhases = getList("Failure_Phase_List");
+        sizeMetric = getProcessString("SIZE_METRIC_NAME");
+
+        injectionCategories = getList("Development_Phase_List");
+        injectionCategories.add(TOTAL_CATEGORY_KEY);
+
+        removalCategories = new LinkedList(failurePhases);
+        removalCategories.add(TOTAL_CATEGORY_KEY);
+
+        int injLen = injectionCategories.size();
+        int remLen = removalCategories.size();
+        count = new int[injLen][remLen];
+        time = new float[injLen][remLen];
+
+        for (int inj=0;  inj<injLen;  inj++)
+            for (int rem=0;  rem<remLen;  rem++)
+                time[inj][rem] = count[inj][rem] = 0;
+
+        TOTAL_INJ = injLen-1;
+        TOTAL_REM = remLen-1;
+
+        HashMap m = new HashMap();
+        m.put("for", "[Rollup_List]");
+        m.put("order", "Completed");
+        projects = ResultSet.getPrefixList
+            (getDataRepository(), m, getPrefix());
+    }
+
+
+    private void writeTableD21() throws IOException {
+        failurePhases = getList("Failure_Phase_List");
+
+        // open table
         out.println("<TABLE NAME=D21 BORDER>");
+
+        // write top-level headers
         out.println("<TR>");
         printRes("<TD class=header colspan=4>${R3.D21.Defect_Densities}</TD>");
 
@@ -101,81 +148,83 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         }
         out.println("</TR>");
 
-        String script = (String) env.get("SCRIPT_NAME");
-        int pos = script.indexOf("reports/");
-        script = script.substring(pos+8) + "?type=";
-        String argStart = "qf=" + HTMLUtils.urlEncode(script);
+        // write column headers
+        writeTableD21ColHeaders();
 
-        String fullURI = (String) env.get("REQUEST_URI");
-        int slashPos = fullURI.indexOf("//");
+        // write data for each project
+        for (int i = 0;   i < projects.length;   i++)
+            writeTableD21Row(projects[i]);
 
-        String tableURL = fullURI.substring(0, slashPos+2) +
-            "reports/table.class?includable&" + argStart;
-        out.print(new String(getRequest(tableURL+D21_DATA_ROWS+"&c0=task", true), "UTF-8"));
-        out.print(new String(getRequest(tableURL+D21_TOTAL_ROW+"&c1=task", true), "UTF-8"));
+        // write a total row
+        writeTableD21Row(null);
+
+        // close the table
         out.println("</TABLE>");
     }
 
 
-    private static final String D21_DATA_ROWS = "D21Rows";
-    public void writeD21RowsArgs() {
-        out.println("qf=compProj.rpt");
-        writeD21Args(1);
-    }
+    private void writeTableD21ColHeaders() {
+        out.println("<TR>");
+        printRes("<TD class='task'>${Project/Task}</TD>");
 
-    private static final String D21_TOTAL_ROW = "D21TotalRow";
-    public void writeD21TotalRowArgs() {
-        out.println("for=.");
-        out.println("skipColHdr=1");
-        out.println("skipRowHdr=1");
-        out.print("d1=\"");
-        out.println(resources.getString("Totals"));
-        writeD21Args(2);
-    }
-
-    private void writeD21Args(int col) {
-        List failurePhases = getList("Failure_Phase_List");
-
-        String sizeMetric = getProcessString("SIZE_METRIC_NAME");
-        String displayName = Translator.translate(sizeMetric);
-        out.println("d"+col+"="+sizeMetric);
-        out.println("h"+col+"="+displayName);
-        col++;
-
-        out.println("d"+col+"=Defects Removed");
-        out.println("h"+col+"=" + resources.getString("Defects.Total_Title"));
-        col++;
+        String sizeLabel = Translator.translate(sizeMetric);
+        out.println("<TD>" + HTMLUtils.escapeEntities(sizeLabel) + "</TD>");
+        printRes("<TD>${Defects.Total_Title}</TD>");
 
         String aggrSizeLabel = getAggrSizeLabel();
-        String aggrDensityLabel = resources.format
+        String densityLabel = resources.format
             ("Defects.Density_Units_FMT", aggrSizeLabel);
-        out.println("d"+col+"=Defect Density");
-        out.println("h"+col+"=" + aggrDensityLabel);
-        col++;
+        out.println("<TD>" + HTMLUtils.escapeEntities(densityLabel) + "</TD>");
 
         for (int i = 0;   i < failurePhases.size();   i++) {
             String phase = (String) failurePhases.get(i);
             String phaseName = Translator.translate(phase);
-            out.println("d"+col+"=" + phase + "/Defects Removed");
-            out.print("h"+col+"=");
-            out.println(resources.format("R3.D21.Found_FMT", phaseName));
-            col++;
+            String heading = resources.format("R3.D21.Found_FMT", phaseName);
+            out.println("<TD>" + HTMLUtils.escapeEntities(heading) + "</TD>");
 
-            out.println("d"+col+"=" + phase + "/Defect Density");
-            out.print("h"+col+"=");
-            out.println(resources.format("R3.D21.Density_FMT", phaseName,
-                                         aggrSizeLabel));
-            col++;
+            heading = resources.format("R3.D21.Density_FMT", phaseName,
+                                       aggrSizeLabel);
+            out.println("<TD>" + HTMLUtils.escapeEntities(heading) + "</TD>");
         }
+        out.println("</TR>");
     }
 
+
+    private void writeTableD21Row(String project) {
+        out.println("<TR>");
+        out.print("<TD class='task'>");
+        if (project == null)
+            out.print(resources.getString("Totals"));
+        else
+            out.print(HTMLUtils.escapeEntities(project));
+        out.println("</TD>");
+
+        out.println("<TD>" + getNumber(project, sizeMetric) + "</TD>");
+        String defectCount = getNumber(project, "Defects Removed");
+        String defCountHTML = getDefectCountHTML
+            (project, defectCount, null, null);
+        out.println("<TD>" + defCountHTML + "</TD>");
+        out.println("<TD>" + getNumber(project, "Defect Density") + "</TD>");
+
+        for (int i = 0;   i < failurePhases.size();   i++) {
+            String phase = (String) failurePhases.get(i);
+
+            defectCount = getNumber(project, phase + "/Defects Removed");
+            defCountHTML = getDefectCountHTML
+                (project, defectCount, null, phase);
+            out.println("<TD>" + defCountHTML + "</TD>");
+
+            out.println("<TD>" + getNumber(project, phase + "/Defect Density")
+                        + "</TD>");
+        }
+        out.println("</TR>");
+    }
+
+
     protected void writeTableD22() {
-        initD22Values();
-        HashMap m = new HashMap();
-        m.put("for", "[Rollup_List]");
-        m.put("order", "Completed");
-        DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
-                           getPrefix(), m, this);
+        for (int i = 0;   i < projects.length;   i++)
+            DefectAnalyzer.run(getPSPProperties(), projects[i], this);
+
         eliminateEmptyValues();
         if (count == null) return;
 
@@ -213,7 +262,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
             out.println("</TD>");
 
             // write total fix times
-            printRes("<TD ALIGN=right NOWRAP>${R3.D22.Total_Fix_Time}</TD>");
+            printRes("<TD class='subcat'>${R3.D22.Total_Fix_Time}</TD>");
             for (int r = 0;   r < removalCategories.size();   r++) {
                 if (removalCategories.get(r) != null)
                     out.println("<TD>" + time(i, r) + "</TD>");
@@ -221,7 +270,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
             out.println("</TR>");
 
             // write total defect count
-            printRes("<TR><TD ALIGN=right NOWRAP>${R3.D22.Total_Defects}</TD>");
+            printRes("<TR><TD class='subcat'>${R3.D22.Total_Defects}</TD>");
             for (int r = 0;   r < removalCategories.size();   r++) {
                 if (removalCategories.get(r) != null)
                     out.println("<TD>" + count(i, r) + "</TD>");
@@ -229,7 +278,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
             out.println("</TR>");
 
             // write average fix times
-            printRes("<TR><TD ALIGN=right NOWRAP>${R3.D22.Average_Fix_Time}</TD>");
+            printRes("<TR><TD class='subcat'>${R3.D22.Average_Fix_Time}</TD>");
             for (int r = 0;   r < removalCategories.size();   r++) {
                 if (removalCategories.get(r) != null)
                     out.println("<TD>" + avgTime(i, r) + "</TD>");
@@ -239,6 +288,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
         out.println("</TABLE></BODY></HTML>");
     }
+
 
     private void eliminateEmptyValues() {
         if (count[TOTAL_INJ][TOTAL_REM] == 0) {
@@ -258,51 +308,6 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         }
     }
 
-    private void initD22Values() {
-        injectionCategories = getD22List("Development_Phase_List");
-        removalCategories = getD22List("Failure_Phase_List");
-        int injLen = injectionCategories.size();
-        int remLen = removalCategories.size();
-        count = new int[injLen][remLen];
-        time = new float[injLen][remLen];
-
-        for (int inj=0;  inj<injLen;  inj++)
-            for (int rem=0;  rem<remLen;  rem++)
-                time[inj][rem] = count[inj][rem] = 0;
-
-        TOTAL_INJ = injLen-1;
-        TOTAL_REM = remLen-1;
-    }
-
-    private List getD22List(String name) {
-        List result = getList(name);
-        result.add(TOTAL_CATEGORY_KEY);
-        return result;
-    }
-
-    private static final String NA = resources.getString("R3.D22.NA");
-    protected String count(int i, int r) {
-        return getDefectCountHTML
-            (count[i][r],
-             (String) injectionCategories.get(i),
-             (String) removalCategories.get(r));
-    }
-    protected String time(int i, int r) {
-        return (time[i][r] == 0 ? NA : nf.format(time[i][r]));
-    }
-    protected String avgTime(int i, int r) {
-        return (count[i][r] == 0 ? NA : nf.format(time[i][r] / count[i][r]));
-    }
-    private static NumberFormat nf = NumberFormat.getInstance();
-    static { nf.setMaximumFractionDigits(2); }
-
-    private String cleanPhase(String phase) {
-        int slashPos = phase.lastIndexOf('/');
-        if (slashPos == -1)
-            return phase;
-        else
-            return phase.substring(slashPos+1);
-    }
 
     public void analyze(String path, Defect d) {
         int inj = injectionCategories.indexOf(cleanPhase(d.phase_injected));
@@ -329,6 +334,32 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
     }
 
 
+    private String cleanPhase(String phase) {
+        int slashPos = phase.lastIndexOf('/');
+        if (slashPos == -1)
+            return phase;
+        else
+            return phase.substring(slashPos+1);
+    }
+
+
+    private static final String NA = resources.getString("R3.D22.NA");
+    protected String count(int i, int r) {
+        return getDefectCountHTML
+            (count[i][r],
+             (String) injectionCategories.get(i),
+             (String) removalCategories.get(r));
+    }
+    protected String time(int i, int r) {
+        return (time[i][r] == 0 ? NA : nf.format(time[i][r]));
+    }
+    protected String avgTime(int i, int r) {
+        return (count[i][r] == 0 ? NA : nf.format(time[i][r] / count[i][r]));
+    }
+    private static NumberFormat nf = NumberFormat.getInstance();
+    static { nf.setMaximumFractionDigits(2); }
+
+
     private List getList(String name) {
         ListData list = null;
         String dataName = DataRepository.createDataName(getPrefix(), name);
@@ -344,9 +375,22 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         return result;
     }
 
+
+    private String getNumber(String prefix, String name) {
+        if (prefix == null) prefix = getPrefix();
+        String dataName = DataRepository.createDataName(prefix, name);
+        SimpleData val = getDataRepository().getSimpleValue(dataName);
+        if (val == null)
+            return NA;
+        else
+            return val.format();
+    }
+
+
     protected void printRes(String txt) {
         out.println(resources.interpolate(txt, HTMLUtils.ESC_ENTITIES));
     }
+
 
     protected void printResPhaseOrTotal(String resKey, String arg) {
         if (arg == TOTAL_CATEGORY_KEY) {
@@ -359,12 +403,25 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         }
     }
 
+
     protected String getDefectCountHTML(int count, String inj, String rem) {
-        if (count == 0)
-            return NA;
+        String text = (count == 0 ? NA : Integer.toString(count));
+        return getDefectCountHTML(null, text, inj, rem);
+    }
+
+
+    protected String getDefectCountHTML(String path, String count,
+                                        String inj, String rem) {
+        if (count == NA || "0".equals(count)) return count;
 
         StringBuffer html = new StringBuffer();
-        html.append("<a href=\"defectLog.class?");
+        html.append("<a href=\"");
+        if (path != null)
+            html.append(WebServer.urlEncodePath(path))
+                .append("//reports/").append("defectlog.class?");
+        else
+            html.append(PATH_TO_REPORTS + "defectlog.class?qf=compProj.rpt&");
+
         if (inj != null && inj != TOTAL_CATEGORY_KEY) {
             html.append("inj=")
                 .append(HTMLUtils.urlEncode(inj));
@@ -374,7 +431,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         if (rem != null && rem != TOTAL_CATEGORY_KEY)
             html.append("rem=")
                 .append(HTMLUtils.urlEncode(rem));
-        html.append("\">").append(Integer.toString(count)).append("</a>");
+        html.append("\">").append(count).append("</a>");
         return html.toString();
     }
 }
