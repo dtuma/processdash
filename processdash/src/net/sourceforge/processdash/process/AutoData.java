@@ -210,7 +210,7 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
         "<template name='Rollup_Template_Name' ID='Rollup RID Data' "+
         "          dataFile='ROLLUP:RID' defineRollup='no'>" +
         "   <html ID='sum' title='Rollup_Summary_Name' " +
-        "         href='reports/index.htm'/>" +
+        "         href='reports/analysis/index.htm'/>" +
         "   <html ID='config' title='Edit_Filter_Name' " +
         "         href='dash/rollupFilter.shtm'/>" +
         "   <phase name='Rollup_Phase_Name'/>" +

@@ -267,7 +267,8 @@ This file contains the template definitions for the standard PSP processes.
   <template name="Rollup PSP Data" ID="Rollup PSP Data"
 	    imaginaryUnless="pspProc"
             dataFile="ROLLUP:PSP" defineRollup="no">
-    <html ID="sum" title="PSP Rollup Data Analysis" href="reports/index.htm"/>
+    <html ID="sum" title="PSP Rollup Data Analysis"
+                   href="reports/analysis/index.htm"/>
     <html ID="sum" title="PSP Rollup Project Summary" inPackage="pspProc"
                    href="psp3/rollsum.htm"/>
     <html ID="config" title="Edit Data Rollup Filter"

@@ -115,12 +115,15 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
 
     private void writeHTMLFooter() {
         out.println(resources.interpolate
-                ("<P class='doNotPrint'><A HREF=\"../excel.iqy\"><I>" +
+                ("<P class='doNotPrint'><A HREF=\"" +
+                 PATH_TO_REPORTS+"excel.iqy\"><I>" +
                  "${Export_to_Excel}</I></A></P>", HTMLUtils.ESC_ENTITIES));
         if (strict) {
             String query = (String) env.get("QUERY_STRING");
             query = StringUtils.findAndReplace(query, "strict", "notstrict");
-            String anchor = "<A HREF='r4.class?" + query + "'>";
+            String script = (String) env.get("SCRIPT_NAME");
+            script = script.substring(script.lastIndexOf('/')+1);
+            String anchor = "<A HREF='" + script + "?" + query + "'>";
             String footnote = resources.interpolate(FOOTNOTE);
             footnote = StringUtils.findAndReplace(footnote, "<A>", anchor);
             footnote = StringUtils.findAndReplace(footnote, "<a>", anchor);
@@ -138,9 +141,9 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
         String defectLogParam = (String) env.get("QUERY_STRING");
         if (defectLogParam == null)
             defectLogParam = "";
-        else
+        else if (PATH_TO_REPORTS.length() > 0)
             defectLogParam = StringUtils.findAndReplace
-                (defectLogParam, "qf=../", "qf=");
+                (defectLogParam, "qf="+PATH_TO_REPORTS, "qf=");
 
         Iterator defectTypes = defectCounts.keySet().iterator();
         String defectType;
@@ -208,7 +211,8 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
                     isEmptyRow(row, remCategories))
                 return;
         }
-        out.println("<TR><TD><A HREF=\"../defectlog.class?" + dt +"\">" +
+        out.println("<TR><TD><A HREF=\"" + PATH_TO_REPORTS +
+                    "defectlog.class?" + dt +"\">" +
                     HTMLUtils.escapeEntities(label) +
                     "</A></TD>");
 
@@ -276,8 +280,8 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
         int col = categories.indexOf(cat);
         if (row[col] == 0) return NA;
         if (dt == null) return Integer.toString(row[col]);
-        return "<A HREF=\"../defectlog.class?" + cat.getFilter() + "&" + dt
-            +"\">" + row[col] + "</A>";
+        return "<A HREF=\"" + PATH_TO_REPORTS + "defectlog.class?"
+            + cat.getFilter() + "&" + dt + "\">" + row[col] + "</A>";
     }
     /** format a percentage, calculated by dividing item n of row by item d */
     protected String fp(int num, int denom) {

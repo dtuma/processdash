@@ -86,7 +86,7 @@ public class DefectAnalysisPage extends AnalysisPage {
 
     private void writeDefaultArgs() {
         String aggrSize = getAggrSizeLabel();
-        out.println("qf=compProj.rpt");
+        out.println("qf="+PATH_TO_REPORTS+"compProj.rpt");
         out.print("h1=");
         out.println(resources.format("Defects.Density_Header_FMT", aggrSize));
         out.print("units=");
@@ -149,7 +149,7 @@ public class DefectAnalysisPage extends AnalysisPage {
         ListData allPhases = getProcessList("Phase_List");
         ListData developmentPhases = getProcessList(listName);
 
-        out.println("qf=compProj.rpt");
+        out.println("qf="+PATH_TO_REPORTS+"compProj.rpt");
         out.print("title=");
         out.println(resources.getString(titleKey));
         out.print("units=");
@@ -171,7 +171,7 @@ public class DefectAnalysisPage extends AnalysisPage {
     public void writeRemRateArgs() {
         ListData qualityPhases = getProcessList("Quality_Phase_List");
 
-        out.println("qf=compProj.rpt");
+        out.println("qf="+PATH_TO_REPORTS+"compProj.rpt");
         out.print("title=");
         out.println(resources.getString("Defects.Removal_Rate.Title"));
         out.print("units=");
@@ -195,7 +195,7 @@ public class DefectAnalysisPage extends AnalysisPage {
         String lastFailurePhase = Translator.translate
             ((String) qualityPhases.get(qualityPhases.size()-1));
 
-        out.println("qf=compProj.rpt");
+        out.println("qf="+PATH_TO_REPORTS+"compProj.rpt");
         out.print("title=");
         out.println(resources.getString("Defects.Leverage.Title"));
         out.print("headerComment=");

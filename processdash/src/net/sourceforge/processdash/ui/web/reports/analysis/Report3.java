@@ -46,7 +46,6 @@ import net.sourceforge.processdash.util.HTMLUtils;
 public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
-    private static final String PATH_TO_REPORTS = "";
     private static final String TOTAL_CATEGORY_KEY = "TOTAL_CATEGORY_KEY";
 
 
@@ -400,7 +399,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         html.append("<a href=\"");
         if (path != null)
             html.append(WebServer.urlEncodePath(path))
-                .append("//reports/").append("defectlog.class?");
+                .append("//reports/defectlog.class?");
         else
             html.append(PATH_TO_REPORTS + "defectlog.class?qf=compProj.rpt&");
 

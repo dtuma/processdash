@@ -62,7 +62,8 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
 
 
     static String FILE_SEP = null;
-    static final String ANALYSIS_URL = "/To+Date/PSP/All//reports/index.htm";
+    static final String ANALYSIS_URL =
+        "/To+Date/PSP/All//reports/analysis/index.htm";
     static final String ABOUT_URL    = "/help/Topics/Overview/about.htm";
     static final String PRINT_URL    = "/help/book.html";
     static final String BUG_URL =

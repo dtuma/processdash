@@ -47,13 +47,13 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
 
-    protected static Resources resources =
-        Resources.getTemplateBundle("reports/reports");
+    protected static Resources resources = Resources.getDashBundle("Analysis");
 
 
     protected static final String LINE_CHART = "line";
     protected static final String XY_CHART   = "xy";
     protected static final String PIE_CHART  = "pie";
+    protected static final String PATH_TO_REPORTS = "../";
 
 
     protected static final String PAGE_HEADER = "<html><head>\n"
@@ -178,8 +178,8 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
 
     protected void writeChartHTML(String chartType, String chartKey, String extraArgs) {
         String script = (String) env.get("SCRIPT_NAME");
-        int pos = script.lastIndexOf('/');
-        script = script.substring(pos+1) + "?type=" + chartKey;
+        int pos = script.lastIndexOf("/reports/");
+        script = script.substring(pos+9) + "?type=" + chartKey;
         if (extraArgs != null)
             script = script + "&" + extraArgs;
         String args = "qf=" + HTMLUtils.urlEncode(script);
@@ -192,11 +192,11 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
             args = args + "&chart=" + chartType;
         }
 
-        out.write("<a href=\"");
+        out.write("<a href=\"" + PATH_TO_REPORTS);
         out.write(fullURL);
         out.write("?");
         out.write(args);
-        out.write("\"><img src=\"");
+        out.write("\"><img src=\"" + PATH_TO_REPORTS);
         out.write(chartType);
         out.write(".class?");
         out.write(args);
@@ -204,7 +204,7 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
     }
 
     protected void writeSimpleChartArgs(String title, String label, String comments, String dataElem) {
-        out.println("qf=compProj.rpt");
+        out.println("qf="+PATH_TO_REPORTS+"compProj.rpt");
         out.print("title=");
         out.println(interpolate(title));
         out.print("d1=");
@@ -249,7 +249,7 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
     }
 
     protected void writeSimpleXYChartArgs(String title, String labelX, String dataX, String labelY, String dataY) {
-        out.println("qf=compProj.rpt");
+        out.println("qf="+PATH_TO_REPORTS+"compProj.rpt");
         out.print("title=");
         out.println(interpolate(title));
         out.print("d1=");

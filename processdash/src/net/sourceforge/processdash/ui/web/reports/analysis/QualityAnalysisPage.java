@@ -105,7 +105,7 @@ public class QualityAnalysisPage extends AnalysisPage {
 
     private static final String REVIEW_RATE_CHART = "ReviewRate";
     public void writeReviewRateArgs() {
-        out.println("qf=compProj.rpt");
+        out.println("qf="+PATH_TO_REPORTS+"compProj.rpt");
         out.print("title=");
         out.println(resources.format
                     ("Quality.Review_Rate_Title_FMT", getSizeAbbrLabel()));
@@ -197,7 +197,7 @@ public class QualityAnalysisPage extends AnalysisPage {
     private static final String COMBINED_REV_RATE_VS_PROC_YIELD = "CombRateVsYield";
     public void writeCombRateVsYieldArgs() {
         String sizeAbbr = getSizeAbbrLabel();
-        out.println("qf=compProj.rpt");
+        out.println("qf="+PATH_TO_REPORTS+"compProj.rpt");
         out.print("title=");
         out.println(resources.getString
                     ("Quality.Combined_Review_Rate_Vs_Yield_Title"));
