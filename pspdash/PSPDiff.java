@@ -45,6 +45,7 @@ public class PSPDiff {
 
         // Get an appropriate instance of LanguageFilter.
         filter = getFilter(web, fileBName, fileBStr, options);
+        // FIXME - throw a meaningful exception if getFilter returns null
 
         // call flagComments on each file.
         StringBuffer fileA=new StringBuffer(), fileB=new StringBuffer();
@@ -117,9 +118,10 @@ public class PSPDiff {
 
         private String getWhite() {
             if (w == null) {
-                String result = canonicalizeWhitespace(s);
+                String result = s;
                 if (hasComments && ignoreComments)
                     result = stripComments(result);
+                result = canonicalizeWhitespace(result);
                 w = result;
             }
             return w;
@@ -313,14 +315,10 @@ public class PSPDiff {
         boolean inComment = false;
         int commentStart, commentEnd;
 
-        FileWriter fos = null;
-        try {fos= new FileWriter("c:\\temp\\break");} catch (Exception e) {}
-
         while (tok.hasMoreTokens()) {
             token = tok.nextToken();
             if (token.equals(GOOD_LINE_ENDING)) {
                 result.add(line);
-                try {fos.write(line); }  catch (Exception e) {}
                 line = "";
             } else {
                 line = token;
@@ -336,7 +334,6 @@ public class PSPDiff {
         }
         if (line.length() > 0) result.add(line);
 
-        try { fos.close(); }catch (Exception e) {}
         return result;
     }
 
