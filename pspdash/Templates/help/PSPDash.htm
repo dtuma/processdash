@@ -1,0 +1,2066 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./PSPDash_files/filelist.xml">
+<title>Process Dashboard Users Manual</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Ken Raisor &amp; David Tuma</o:Author>
+  <o:LastAuthor>David Tuma</o:LastAuthor>
+  <o:Revision>2</o:Revision>
+  <o:TotalTime>30</o:TotalTime>
+  <o:Created>2001-02-05T19:01:00Z</o:Created>
+  <o:LastSaved>2001-02-05T19:01:00Z</o:LastSaved>
+  <o:Pages>7</o:Pages>
+  <o:Words>2705</o:Words>
+  <o:Characters>15420</o:Characters>
+  <o:Company> </o:Company>
+  <o:Lines>128</o:Lines>
+  <o:Paragraphs>30</o:Paragraphs>
+  <o:CharactersWithSpaces>18936</o:CharactersWithSpaces>
+  <o:Version>9.3821</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:DoNotHyphenateCaps/>
+  <w:DrawingGridHorizontalSpacing>0 pt</w:DrawingGridHorizontalSpacing>
+  <w:DrawingGridVerticalSpacing>0 pt</w:DrawingGridVerticalSpacing>
+  <w:DisplayHorizontalDrawingGridEvery>0</w:DisplayHorizontalDrawingGridEvery>
+  <w:DisplayVerticalDrawingGridEvery>0</w:DisplayVerticalDrawingGridEvery>
+  <w:UseMarginsForDrawingGridOrigin/>
+  <w:DrawingGridHorizontalOrigin>0 pt</w:DrawingGridHorizontalOrigin>
+  <w:DrawingGridVerticalOrigin>0 pt</w:DrawingGridVerticalOrigin>
+  <w:DoNotShadeFormData/>
+  <w:Compatibility>
+   <w:FootnoteLayoutLikeWW8/>
+   <w:ShapeLayoutLikeWW8/>
+   <w:AlignTablesRowByRow/>
+   <w:ForgetLastTabAlignment/>
+   <w:LayoutRawTableWidth/>
+   <w:LayoutTableRowsApart/>
+  </w:Compatibility>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;
+	mso-font-charset:2;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:0 268435456 0 0 -2147483648 0;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:.3in;
+	text-indent:-.3in;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	mso-list:l1 level1 lfo2;
+	tab-stops:list .3in;
+	font-size:14.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	mso-font-kerning:14.0pt;
+	mso-bidi-font-weight:normal;}
+h2
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:.4in;
+	text-indent:-.4in;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	mso-list:l1 level2 lfo2;
+	tab-stops:list .4in;
+	font-size:12.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	mso-bidi-font-weight:normal;
+	font-style:italic;
+	mso-bidi-font-style:normal;}
+h3
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:.5in;
+	text-indent:-.5in;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:3;
+	mso-list:l1 level3 lfo2;
+	tab-stops:list .5in;
+	font-size:12.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	font-weight:normal;}
+h4
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:.6in;
+	text-indent:-.6in;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:4;
+	mso-list:l1 level4 lfo2;
+	tab-stops:list .6in;
+	font-size:11.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:Arial;
+	mso-bidi-font-family:"Times New Roman";
+	layout-grid-mode:line;
+	mso-bidi-font-weight:normal;}
+h5
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:.7in;
+	text-indent:-.7in;
+	mso-pagination:widow-orphan;
+	mso-outline-level:5;
+	mso-list:l1 level5 lfo2;
+	tab-stops:list .7in;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	font-weight:normal;}
+h6
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:.8in;
+	text-indent:-.8in;
+	mso-pagination:widow-orphan;
+	mso-outline-level:6;
+	mso-list:l1 level6 lfo2;
+	tab-stops:list .8in;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	font-weight:normal;
+	font-style:italic;
+	mso-bidi-font-style:normal;}
+p.MsoHeading7, li.MsoHeading7, div.MsoHeading7
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:.9in;
+	text-indent:-.9in;
+	mso-pagination:widow-orphan;
+	mso-outline-level:7;
+	mso-list:l1 level7 lfo2;
+	tab-stops:list .9in;
+	font-size:10.0pt;
+	font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	mso-bidi-font-family:"Times New Roman";}
+p.MsoHeading8, li.MsoHeading8, div.MsoHeading8
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:1.0in;
+	text-indent:-1.0in;
+	mso-pagination:widow-orphan;
+	mso-outline-level:8;
+	mso-list:l1 level8 lfo2;
+	tab-stops:list 1.0in;
+	font-size:10.0pt;
+	font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	mso-bidi-font-family:"Times New Roman";
+	font-style:italic;
+	mso-bidi-font-style:normal;}
+p.MsoHeading9, li.MsoHeading9, div.MsoHeading9
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:1.1in;
+	text-indent:-1.1in;
+	mso-pagination:widow-orphan;
+	mso-outline-level:9;
+	mso-list:l1 level9 lfo2;
+	tab-stops:list 1.1in;
+	font-size:9.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	mso-bidi-font-family:"Times New Roman";
+	font-weight:bold;
+	mso-bidi-font-weight:normal;
+	font-style:italic;
+	mso-bidi-font-style:normal;}
+p.MsoBodyText, li.MsoBodyText, div.MsoBodyText
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	layout-grid-mode:line;
+	text-decoration:underline;
+	text-underline:single;}
+p.MsoBodyTextIndent, li.MsoBodyTextIndent, div.MsoBodyTextIndent
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:130.5pt;
+	margin-bottom:.0001pt;
+	text-indent:-130.5pt;
+	mso-pagination:widow-orphan;
+	tab-stops:130.5pt;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	layout-grid-mode:line;}
+p.MsoBodyText2, li.MsoBodyText2, div.MsoBodyText2
+	{margin:0in;
+	margin-bottom:.0001pt;
+	text-align:justify;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	layout-grid-mode:line;}
+p.MsoBodyTextIndent2, li.MsoBodyTextIndent2, div.MsoBodyTextIndent2
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:1.0in;
+	margin-bottom:.0001pt;
+	text-indent:-1.0in;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	layout-grid-mode:line;}
+p.MsoBodyTextIndent3, li.MsoBodyTextIndent3, div.MsoBodyTextIndent3
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:1.5in;
+	margin-bottom:.0001pt;
+	text-indent:-1.5in;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	layout-grid-mode:line;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+ /* Page Definitions */
+@page
+	{mso-page-border-surround-header:no;
+	mso-page-border-surround-footer:no;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:1.0in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:69934824;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-1483828514 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l0:level1
+	{mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l0:level2
+	{mso-level-number-format:alpha-lower;
+	mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l1
+	{mso-list-id:388312404;
+	mso-list-template-ids:-2007191574;}
+@list l1:level1
+	{mso-level-style-link:"Heading 1";
+	mso-level-text:%1;
+	mso-level-tab-stop:.3in;
+	mso-level-number-position:left;
+	margin-left:.3in;
+	text-indent:-.3in;}
+@list l1:level2
+	{mso-level-style-link:"Heading 2";
+	mso-level-text:"%1\.%2";
+	mso-level-tab-stop:.4in;
+	mso-level-number-position:left;
+	margin-left:.4in;
+	text-indent:-.4in;}
+@list l1:level3
+	{mso-level-style-link:"Heading 3";
+	mso-level-text:"%1\.%2\.%3";
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	margin-left:.5in;
+	text-indent:-.5in;}
+@list l1:level4
+	{mso-level-style-link:"Heading 4";
+	mso-level-text:"%1\.%2\.%3\.%4";
+	mso-level-tab-stop:.6in;
+	mso-level-number-position:left;
+	margin-left:.6in;
+	text-indent:-.6in;}
+@list l1:level5
+	{mso-level-style-link:"Heading 5";
+	mso-level-text:"%1\.%2\.%3\.%4\.%5";
+	mso-level-tab-stop:.7in;
+	mso-level-number-position:left;
+	margin-left:.7in;
+	text-indent:-.7in;}
+@list l1:level6
+	{mso-level-style-link:"Heading 6";
+	mso-level-text:"%1\.%2\.%3\.%4\.%5\.%6";
+	mso-level-tab-stop:.8in;
+	mso-level-number-position:left;
+	margin-left:.8in;
+	text-indent:-.8in;}
+@list l1:level7
+	{mso-level-style-link:"Heading 7";
+	mso-level-text:"%1\.%2\.%3\.%4\.%5\.%6\.%7";
+	mso-level-tab-stop:.9in;
+	mso-level-number-position:left;
+	margin-left:.9in;
+	text-indent:-.9in;}
+@list l1:level8
+	{mso-level-style-link:"Heading 8";
+	mso-level-text:"%1\.%2\.%3\.%4\.%5\.%6\.%7\.%8";
+	mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	margin-left:1.0in;
+	text-indent:-1.0in;}
+@list l1:level9
+	{mso-level-style-link:"Heading 9";
+	mso-level-text:"%1\.%2\.%3\.%4\.%5\.%6\.%7\.%8\.%9";
+	mso-level-tab-stop:1.1in;
+	mso-level-number-position:left;
+	margin-left:1.1in;
+	text-indent:-1.1in;}
+@list l2
+	{mso-list-id:583078165;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-36558004 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l2:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l2:level2
+	{mso-level-number-format:bullet;
+	mso-level-text:o;
+	mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:"Courier New";
+	mso-bidi-font-family:"Times New Roman";}
+@list l3
+	{mso-list-id:583152232;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-255424616 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l3:level1
+	{mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l4
+	{mso-list-id:850145695;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1813149876 67698703 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l4:level1
+	{mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l5
+	{mso-list-id:853804528;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-255424616 67698689 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l5:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.75in;
+	mso-level-number-position:left;
+	margin-left:.75in;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l6
+	{mso-list-id:1028483122;
+	mso-list-type:simple;
+	mso-list-template-ids:67698703;}
+@list l6:level1
+	{mso-level-tab-stop:.25in;
+	mso-level-number-position:left;
+	margin-left:.25in;
+	text-indent:-.25in;}
+@list l7
+	{mso-list-id:1067921198;
+	mso-list-type:hybrid;
+	mso-list-template-ids:2056525356 67698703 67698689 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l7:level1
+	{mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l7:level2
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l8
+	{mso-list-id:1363435516;
+	mso-list-type:hybrid;
+	mso-list-template-ids:404506896 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l8:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.25in;
+	mso-level-number-position:left;
+	margin-left:.25in;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l9
+	{mso-list-id:1510565059;
+	mso-list-type:simple;
+	mso-list-template-ids:67698703;}
+@list l9:level1
+	{mso-level-tab-stop:.25in;
+	mso-level-number-position:left;
+	margin-left:.25in;
+	text-indent:-.25in;}
+@list l10
+	{mso-list-id:1775590101;
+	mso-list-type:simple;
+	mso-list-template-ids:-209413864;}
+@list l10:level1
+	{mso-level-text:"%1\)";
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.5in;}
+@list l11
+	{mso-list-id:1913814566;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-1686101578 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l11:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l12
+	{mso-list-id:1991330104;
+	mso-list-type:hybrid;
+	mso-list-template-ids:1813149876 67698689 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l12:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	font-family:Symbol;}
+@list l13
+	{mso-list-id:2049865857;
+	mso-list-type:hybrid;
+	mso-list-template-ids:2002160882 67698703 67698713 67698689 67698703 67698713 67698715 67698703 67698713 67698715;}
+@list l13:level1
+	{mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l13:level2
+	{mso-level-number-format:alpha-lower;
+	mso-level-tab-stop:1.0in;
+	mso-level-number-position:left;
+	text-indent:-.25in;}
+@list l13:level3
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:117.0pt;
+	mso-level-number-position:left;
+	margin-left:117.0pt;
+	text-indent:-.25in;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext="edit" spidmax="2050"/>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext="edit">
+  <o:idmap v:ext="edit" data="1"/>
+ </o:shapelayout></xml><![endif]-->
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<h1><![if !supportLists]><span style='layout-grid-mode:line'>1<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>T<a
+name="_Ref505994522"></a>he Dashboard GUI<o:p></o:p></span></h1>
+
+<p class=MsoNormal style='text-align:justify'><span style='layout-grid-mode:
+line'>The dashboard GUI consists of a minimal frame surrounding the following
+items:<o:p></o:p></span></p>
+
+<ul style='margin-top:0in' type=disc>
+ <li class=MsoNormal style='text-align:justify;mso-list:l11 level1 lfo14;
+     tab-stops:list .5in'><span style='layout-grid-mode:line'>The <a
+     href="#_Configuration_Menu">Configuration Menu</a><o:p></o:p></span></li>
+ <li class=MsoNormal style='text-align:justify;mso-list:l11 level1 lfo14;
+     tab-stops:list .5in'><span style='layout-grid-mode:line'>The <a
+     href="#_Play/Pause_Button">Play/Pause Button</a> <o:p></o:p></span></li>
+ <li class=MsoNormal style='text-align:justify;mso-list:l11 level1 lfo14;
+     tab-stops:list .5in'><span style='layout-grid-mode:line'>The <a
+     href="#_Defect_Button">Defect Button</a> <o:p></o:p></span></li>
+ <li class=MsoNormal style='text-align:justify;mso-list:l11 level1 lfo14;
+     tab-stops:list .5in'><span style='layout-grid-mode:line'>The <a
+     href="#_Script_Button">Script Button</a> <o:p></o:p></span></li>
+ <li class=MsoNormal style='text-align:justify;mso-list:l11 level1 lfo14;
+     tab-stops:list .5in'><span style='layout-grid-mode:line'>The <a
+     href="#_Hierarchy_Buttons">Hierarchy Menus</a> <o:p></o:p></span></li>
+ <li class=MsoNormal style='text-align:justify;mso-list:l11 level1 lfo14;
+     tab-stops:list .5in'><span style='layout-grid-mode:line'>The <a
+     href="#_Completion_Button">Completion Checkbox</a><o:p></o:p></span></li>
+</ul>
+
+<p class=MsoNormal style='text-align:justify'><span style='layout-grid-mode:
+line'>The dashboard resizes itself (when button layout changes) to maintain as
+small a profile as possible. The term &quot;hierarchy&quot; is used throughout
+this document to refer to the work-breakdown structure defined in the <a
+href="#_Hierarchy_Editor">Hierarchy Editor</a> and navigated with the <a
+href="#_Hierarchy_Menus">Hierarchy Menus</a>.<o:p></o:p></span></p>
+
+<h2><a name="_Ref506002699"></a><a name="_Configuration_Menu"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref506002699'><span style='layout-grid-mode:line'>1.1<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='mso-bookmark:_Ref506002699'><span
+style='layout-grid-mode:line'>Configuration Menu</span></span><span
+style='layout-grid-mode:line'><o:p></o:p></span></h2>
+
+<p class=MsoBodyText2>The Configuration Menu appears as a &quot;C&quot; on the
+dashboard, and contains several important options that allow you to <a
+href="#_Hierarchy_Editor">edit your work breakdown structure</a> or your <a
+href="#_Time_Log">time</a> and <a href="#_Defect_Editor">defect</a> logs.<span
+style="mso-spacerun: yes">  </span>Items in this menu also provide access to a <a
+href="#_PROBE">PROBE tool</a>, an import/export tool, and this help document.</p>
+
+<h3><a name="_Ref505993628"></a><a name="_Ref505994333"></a><a
+name="_Hierarchy_Editor"></a><![if !supportLists]><span style='mso-bookmark:
+_Ref505993628'><span style='mso-bookmark:_Ref505994333'><span style='layout-grid-mode:
+line'>1.1.1<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span></span><![endif]><span style='mso-bookmark:_Ref505993628'><span
+style='mso-bookmark:_Ref505994333'><span style='layout-grid-mode:line'>Hierarchy</span></span></span><span
+style='mso-bookmark:_Ref505994333'><span style='layout-grid-mode:line'> Editor</span></span><span
+style='layout-grid-mode:line'><o:p></o:p></span></h3>
+
+<p class=MsoBodyText2>The Hierarchy Editor window has a tree view of the
+work-breakdown structure nodes / tasks defined on the dashboard. Node names
+(excluding most template sub-nodes) may be edited by triple clicking on the
+node name in the tree view window.</p>
+
+<p class=MsoBodyText2>The File menu allows the user to Save, Revert, or Close
+the window. Closing the window does not cause unsaved changes to be lost. The
+changes are lost ONLY if &quot;Revert&quot; is selected, or if the dashboard is
+closed before &quot;Save&quot; has been selected.</p>
+
+<p class=MsoNormal style='text-align:justify'><span style='layout-grid-mode:
+line'>The Edit menu options allow the user to Delete nodes, Add Nodes (above
+the currently selected node, below the currently selected node, or as a child
+of the currently selected node), and Add Templates. The availability of these
+options is dependent upon the node currently selected. For example, when a template
+node or sub-node is selected, neither nodes nor templates may be added. See
+section <span style='mso-field-code:"REF _Ref506003803 \\r \\h"'>2<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000E0000005F005200650066003500300036003000300033003800300033000000</w:data>
+</xml><![endif]--></span> (<a href="#_Templates">Templates</a>) for information
+on exceptions to this.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-align:justify'><span style='layout-grid-mode:
+line'>The Add Templates option is a submenu containing defined processes (e.g.
+PSP2.1) that you can use to perform a task.<span style="mso-spacerun: yes"> 
+</span>If this submenu is empty, see the <a href="#_Troubleshooting">Troubleshooting</a>
+section at the end of this document.<o:p></o:p></span></p>
+
+<h3><a name="_Time_Log"></a><![if !supportLists]><span style='layout-grid-mode:
+line'>1.1.2<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Time Log<o:p></o:p></span></h3>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>The Time Log window has
+a set of <a href="#_Filter_Controls">filter controls</a>, a <a
+href="#_Tree_View">tree view</a> of the nodes in the hierarchy, a <a
+href="#_Table_View">table view</a> of the current time log entries, and a set
+of <a href="#_Control_Buttons">control buttons</a>.<o:p></o:p></span></p>
+
+<h4><a name="_Ref505994407"></a><a name="_Filter_Controls"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref505994407'>1.1.2.1<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bookmark:_Ref505994407'>Filter
+Controls</span></h4>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Edit the “from” and / or
+the “to” date(s) and click on the “Apply Filter” button to apply the date
+filter to the tree view and to the table view.<o:p></o:p></span></p>
+
+<h4><a name="_Ref505994417"></a><a name="_Tree_View"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref505994417'>1.1.2.2<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bookmark:_Ref505994417'>Tree View</span></h4>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>The time spent on a task
+/ collection of tasks is displayed to the right of the displayed name (this
+time includes a rollup of any time assigned to child nodes). The displayed time
+is also subject to the time filter applied by the Filter Controls. Selecting a
+node filters the Table View to display only the time entries assigned to that
+node and its children.<o:p></o:p></span></p>
+
+<h4><a name="_Ref505994430"></a><a name="_Table_View"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref505994430'>1.1.2.3<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bookmark:_Ref505994430'>Table View</span></h4>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>The time entries are
+displayed in table format. These entries are editable, but changes are not
+permanently saved until you click the “Apply” button. Delta and Interrupt times
+are displayed in “HH:MM” format. The “Logged To” column must equate to an
+existing node name to be accepted. To change time and date display formats, see
+section <span style='mso-field-code:"REF _Ref505994548 \\r \\h &#1; \\* MERGEFORMAT"'>5<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000E0000005F005200650066003500300035003900390034003500340038000000</w:data>
+</xml><![endif]--></span>.<o:p></o:p></span></p>
+
+<h4><a name="_Ref505994437"></a><a name="_Control_Buttons"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref505994437'>1.1.2.4<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='mso-bookmark:_Ref505994437'>Control
+Buttons</span></h4>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>The Add button adds a
+new time entry field for the user to edit / complete. The Delete button deletes
+the currently selected log entry. The Reload button causes the time log to
+revert to its state as of the last time it was saved. The Apply button saves
+the (edited) time log.<span style="mso-spacerun: yes">  </span>(Note: if the
+Apply button is never pressed, any outstanding changes will currently be lost
+when the dashboard is shut down.)<o:p></o:p></span></p>
+
+<h3><a name="_Defect_Editor"></a><![if !supportLists]>1.1.3<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><![endif]>Defect
+Editor</h3>
+
+<p class=MsoNormal>The Defect Editor allows you to edit defects and uses a
+layout similar to the time log editor.</p>
+
+<h3><a name="_PROBE"></a><![if !supportLists]>1.1.4<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><![endif]>PROBE</h3>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Performs correlation for
+making estimate projections based on existing historical data. Typical entries
+for the &quot;Correlate&quot; and &quot;with&quot; fields are &quot;Estimated
+LOC&quot; and &quot;LOC&quot;. Then enter the estimate and range to get the
+projection, and upper and lower prediction intervals. Colored parameters
+indicate that linear regression estimates may not be appropriate (use with
+caution).<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l8 level1 lfo5;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol;
+layout-grid-mode:line'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Use the
+&quot;Correlate&quot; and &quot;with&quot; fields to enter the data pair (x and
+y) you want to correlate - some of the common pairs are displayed in the table
+below.<span style="mso-spacerun: yes">  </span>There are <i>many</i> other
+pairs - use whatever works for you. <o:p></o:p></span></p>
+
+<table border=1 cellspacing=0 cellpadding=0 style='margin-left:.7in;border-collapse:
+ collapse;border:none;mso-border-alt:solid windowtext .5pt;mso-padding-alt:
+ 0in 5.4pt 0in 5.4pt'>
+ <tr>
+  <td width=162 valign=top style='width:121.5pt;border:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b><span style='layout-grid-mode:line'>PROBE method<o:p></o:p></span></b></p>
+  </td>
+  <td width=228 valign=top style='width:171.0pt;border:solid windowtext .5pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b><span style='layout-grid-mode:line'>Correlate<o:p></o:p></span></b></p>
+  </td>
+  <td width=84 valign=top style='width:63.0pt;border:solid windowtext .5pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b><span style='layout-grid-mode:line'>With<o:p></o:p></span></b></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=162 valign=top style='width:121.5pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Method A for Size<o:p></o:p></span></p>
+  </td>
+  <td width=228 valign=top style='width:171.0pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Estimated Object LOC<o:p></o:p></span></p>
+  </td>
+  <td width=84 valign=top style='width:63.0pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>LOC<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=162 valign=top style='width:121.5pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Method A for Time<o:p></o:p></span></p>
+  </td>
+  <td width=228 valign=top style='width:171.0pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Estimated Object LOC<o:p></o:p></span></p>
+  </td>
+  <td width=84 valign=top style='width:63.0pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Time<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=162 valign=top style='width:121.5pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Method B / C for Size<o:p></o:p></span></p>
+  </td>
+  <td width=228 valign=top style='width:171.0pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Estimated New &amp;
+  Changed LOC<o:p></o:p></span></p>
+  </td>
+  <td width=84 valign=top style='width:63.0pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>LOC<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=162 valign=top style='width:121.5pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Method B / C for Time<o:p></o:p></span></p>
+  </td>
+  <td width=228 valign=top style='width:171.0pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Estimated New &amp;
+  Changed LOC<o:p></o:p></span></p>
+  </td>
+  <td width=84 valign=top style='width:63.0pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Time<o:p></o:p></span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l8 level1 lfo5;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol;
+layout-grid-mode:line'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Use the
+&quot;Estimate&quot; field to enter the estimated value (corresponding to the
+&quot;Correlate&quot; field).<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l8 level1 lfo5;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol;
+layout-grid-mode:line'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Use the &quot;%
+range&quot; field to enter the confidence value desired (e.g., &quot;70&quot;
+or &quot;90&quot; to get range / UPI / LPI data).<span style="mso-spacerun:
+yes">  </span>These four fields are <b><u>required</u></b>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l8 level1 lfo5;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol;
+layout-grid-mode:line'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>There are two
+columns beneath the data fields.<span style="mso-spacerun: yes">  </span>The
+left hand column provides a linear regression solution to the estimate.<span
+style="mso-spacerun: yes">  </span>The r-squared (correlation) and p
+(significance - percent chance that correlation is accidental) values are color
+coded to help indicate how reliable the estimate is.<span style="mso-spacerun:
+yes">  </span>The colors are: red (very bad), yellow/orange (bad), blue (good),
+and black (very good).<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l8 level1 lfo5;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol;
+layout-grid-mode:line'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>The right hand
+column is the basic average estimate, corresponding to PROBE method C (Beta0 =
+0).<span style="mso-spacerun: yes">  </span>Use this column if the results in
+the left hand column are suspect.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l8 level1 lfo5;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol;
+layout-grid-mode:line'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>By default, PROBE
+filters out projects which have not been marked complete with the <a
+href="#_Completion_Checkbox">completion checkbox</a>.<span style="mso-spacerun:
+yes">  </span>To change this behavior, see section <span style='mso-field-code:
+"REF _Ref505994548 \\r \\h &#1; \\* MERGEFORMAT"'>5<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000E0000005F005200650066003500300035003900390034003500340038000000</w:data>
+</xml><![endif]--></span>.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l8 level1 lfo5;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol;
+layout-grid-mode:line'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>The
+&quot;filter&quot; button provides a method to exclude unfinished projects
+and/or outliers from the calculations.<span style="mso-spacerun: yes"> 
+</span>This button brings up a dialog with a tree view of your current
+projects.<span style="mso-spacerun: yes">  </span>Check/uncheck projects/subprojects
+to include/exclude items from the calculations.<span style="mso-spacerun:
+yes">  </span>Press the &quot;Apply&quot; button to see the effect on the PROBE
+estimate.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l8 level1 lfo5;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol;
+layout-grid-mode:line'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>The
+&quot;Chart&quot; button provides a scatter plot (and table list) of the data
+points, as well as the lines corresponding to both the &quot;Linear
+Regression&quot; and &quot;Average&quot; estimates.<span style="mso-spacerun:
+yes">  </span>The Chart and filter dialogs work well together to determine
+probable outliers.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.25in;text-indent:-.25in;mso-list:l8 level1 lfo5;
+tab-stops:list .25in'><![if !supportLists]><span style='font-family:Symbol;
+layout-grid-mode:line'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Use the appropriate
+projection as your final, adjusted estimate.<o:p></o:p></span></p>
+
+<h2><a name="_Ref506002734"></a><a name="_Play/Pause_Button"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref506002734'><span style='layout-grid-mode:line'>1.2<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='mso-bookmark:_Ref506002734'><span
+style='layout-grid-mode:line'>Play/Pause Button</span></span><span
+style='layout-grid-mode:line'><o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Press the play / pause
+button to start or stop recording time for the currently selected hierarchy. By
+default, the button graphic displays the action to be taken (e.g., the
+&quot;Play&quot; triangle is pressed to start recording), but this may be
+reversed by the user (see section <span style='mso-field-code:"REF _Ref505994548 \\r \\h"'>5<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000E0000005F005200650066003500300035003900390034003500340038000000</w:data>
+</xml><![endif]--></span> – <a href="#_Settings">Settings</a>).<o:p></o:p></span></p>
+
+<h2><a name="_Ref506002750"></a><a name="_Defect_Button"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref506002750'><span style='layout-grid-mode:line'>1.3<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='mso-bookmark:_Ref506002750'><span
+style='layout-grid-mode:line'>Defect Button</span></span><span
+style='layout-grid-mode:line'><o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Press this button
+(indicated by a picture of a bug), to bring up a defect recording dialog. This
+dialog allows the selection of an error type, related fix defect, phase
+injected, phase removed, fix time, and a description of the defect. Select OK
+to save the defect into the defect log. The Stop Fixing / Start Fixing button
+acts as a timer. By default, the dialog comes up timing, so that the user may
+then fix the error, document the fix in the dialog and click OK (the time
+elapsed is automatically entered into the Fix Time box). To change the default,
+see section <span style='mso-field-code:"REF _Ref505994548 \\r \\h"'>5<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000E0000005F005200650066003500300035003900390034003500340038000000</w:data>
+</xml><![endif]--></span> – <a href="#_Settings">Settings</a>.<o:p></o:p></span></p>
+
+<h2><a name="_Ref506002754"></a><a name="_Script_Button"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref506002754'><span style='layout-grid-mode:line'>1.4<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='mso-bookmark:_Ref506002754'><span
+style='layout-grid-mode:line'>Script Button</span></span><span
+style='layout-grid-mode:line'><o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>This button brings up
+the scripts and forms associated with the currently selected hierarchy node in
+an HTML browser. A right-click on this button provides a popup list of
+available scripts – the top entry in this list is the script that will be
+opened by a left-click.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>New processes, scripts,
+and forms can be created for use with the dashboard; see section <span
+style='mso-field-code:"REF _Ref506003803 \\r \\h"'>2<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000E0000005F005200650066003500300036003000300033003800300033000000</w:data>
+</xml><![endif]--></span> (<u><span style='color:blue'><a href="#_Templates">Templates</a></span></u>)
+for information.<o:p></o:p></span></p>
+
+<h2><a name="_Ref505993647"></a><a name="_Hierarchy_Buttons"></a><a
+name="_Hierarchy_Menus"></a><![if !supportLists]><span style='mso-bookmark:
+_Ref505993647'><span style='layout-grid-mode:line'>1.5<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='mso-bookmark:_Ref505993647'><span
+style='layout-grid-mode:line'>Hierarchy </span></span><span style='layout-grid-mode:
+line'>Menus<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>The hierarchy button(s)
+allow the user to select a hierarchy node. From left to right, these buttons
+track the hierarchy of the currently selected node.<o:p></o:p></span></p>
+
+<h2><a name="_Ref505999295"></a><a name="_Ref505995939"></a><a
+name="_Completion_Button"></a><a name="_Completion_Checkbox"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref505999295'><span style='mso-bookmark:_Ref505995939'><span
+style='layout-grid-mode:line'>1.6<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span></span><![endif]><span style='mso-bookmark:_Ref505999295'><span
+style='mso-bookmark:_Ref505995939'><span style='layout-grid-mode:line'>Completion
+</span></span><span style='layout-grid-mode:line'>Checkbox<o:p></o:p></span></span></h2>
+
+<p class=MsoNormal><span style='mso-bookmark:_Ref505999295'><span
+style='layout-grid-mode:line'>This checkbox tags the currently selected
+hierarchy node as completed (with the current date/time), and changes the
+currently selected node to the next node in the hierarchy.<o:p></o:p></span></span></p>
+
+<h1><span style='mso-bookmark:_Ref505999295'><a name="_Ref506003803"></a><a
+name="_Templates"></a><![if !supportLists]><span style='mso-bookmark:_Ref506003803'><span
+style='layout-grid-mode:line'>2<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='mso-bookmark:_Ref506003803'><span
+style='layout-grid-mode:line'>Templates</span></span></span><span
+style='layout-grid-mode:line'><o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>A template consists of
+entries in the “state” file in the designated template directory (see section <span
+style='mso-field-code:"REF _Ref505994548 \\r \\h"'>5<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000E0000005F005200650066003500300035003900390034003500340038000000</w:data>
+</xml><![endif]--></span> – <a href="#_Settings">Settings</a> for information
+on setting this directory), and (possibly) a collection of scripts and data
+files.<o:p></o:p></span></p>
+
+<h1><![if !supportLists]><span style='layout-grid-mode:line'>3<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Scripts<o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>A script is an HTML file
+that defines the process to be used for given template. These files may contain
+data (see section <span style='mso-field-code:"REF _Ref505999455 \\r \\h &#1; \\* MERGEFORMAT"'>4.3<!--[if gte mso 9]><xml>
+ <w:data>08D0C9EA79F9BACE118C8200AA004BA90B02000000080000000E0000005F005200650066003500300035003900390039003400350035000000</w:data>
+</xml><![endif]--></span>), instructions and links. All scripts and forms must
+put the “data.js” script at the bottom.<o:p></o:p></span></p>
+
+<h1><![if !supportLists]><span style='layout-grid-mode:line'>4<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Data<o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Data is expressed as a
+name / value pair. The value may be expressed as a constant or as a formula.
+Available data formats are string, number, and date. As tabs are used as
+separators, data names may not contain tabs. Data is accessed via leaf name or
+by hierarchy + leaf name. A double slash (//) may be used in an html file to
+indicate a value or formula that should NOT be saved to the persistent data
+file(s).<o:p></o:p></span></p>
+
+<h2><![if !supportLists]><span style='layout-grid-mode:line'>4.1<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Formulas<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Data file formula
+format.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent>Expression ::=<span style='mso-tab-count:1'>      </span>&lt;name&gt;=!&lt;formula&gt;<br>
+&lt;name&gt;==&lt;read-only value&gt;<br>
+&lt;name&gt;=&lt;editable value&gt;</p>
+
+<p class=MsoBodyTextIndent><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoBodyTextIndent>&lt;formula&gt; :=<span style='mso-tab-count:1'>      </span>[(&lt;op&gt;<span
+style='mso-tab-count:1'>      </span>&lt;valuelist&gt;)]</p>
+
+<p class=MsoBodyTextIndent><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoBodyTextIndent>&lt;op&gt; ::=<span style='mso-tab-count:1'>      </span>+<br>
+-<br>
+*<br>
+/</p>
+
+<p class=MsoBodyTextIndent><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoBodyTextIndent>&lt;valuelist&gt; ::=<span style='mso-tab-count:
+1'>      </span>&lt;formula&gt;<br>
+&lt;value&gt;<span style='mso-tab-count:1'>      </span>&lt;valuelist&gt;<br>
+&lt;value&gt;</p>
+
+<p class=MsoBodyTextIndent><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoBodyTextIndent>&lt;value&gt; ::=<span style='mso-tab-count:1'>      </span>&lt;name&gt;<br>
+/&lt;name&gt;<br>
+&lt;pattern name&gt;<br>
+&lt;numeric constant&gt;<br>
+\d+<br>
+.+</p>
+
+<p class=MsoBodyTextIndent><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoBodyTextIndent>&lt;pattern name&gt; ::=<span style='mso-tab-count:
+1'>      </span>~.*/&lt;name&gt;<br>
+~&lt;name&gt;<br>
+???</p>
+
+<h2><![if !supportLists]><span style='layout-grid-mode:line'>4.2<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Data File<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Needs ID or Tag field
+and “Started” field. Comment character is ‘=’ in leftmost column.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h2><a name="_Ref505999455"><![if !supportLists]><span style='layout-grid-mode:
+line'>4.3<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>HTML File</span></a><span
+style='layout-grid-mode:line'><o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>HTML scripts and forms
+can include active elements on the page which are tied to process data.<span
+style="mso-spacerun: yes">  </span>To accomplish this, simply<o:p></o:p></span></p>
+
+<ul style='margin-top:0in' type=disc>
+ <li class=MsoNormal style='mso-list:l2 level1 lfo11;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>Create a &lt;FORM&gt; on the HTML page<o:p></o:p></span></li>
+ <li class=MsoNormal style='mso-list:l2 level1 lfo11;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>In the form, add &lt;INPUT&gt; tags;<span
+     style="mso-spacerun: yes">  </span>the NAME of the tag specifies which
+     piece of process data should be tied to the input tag.<o:p></o:p></span></li>
+ <li class=MsoNormal style='mso-list:l2 level1 lfo11;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>Add the following text to the bottom of the
+     HTML page:<br>
+     <span style='mso-tab-count:1'>                </span>&lt;SCRIPT
+     SRC=&quot;/0/data.js&quot;&gt;&lt;/SCRIPT&gt;<br>
+     This “breathes life” into the &lt;FORM&gt; and causes the form elements to
+     be tied to process data.<o:p></o:p></span></li>
+</ul>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Look at the forms and
+scripts which come with the dashboard for examples.<span style="mso-spacerun:
+yes">  </span>The syntax below gives some additional information about the NAME
+attribute;<span style="mso-spacerun: yes">  </span>in particular, after specifying
+the name of the process data element, you can insert a tab character followed
+by flags which control the display of the data.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>&lt;INPUT TYPE=<b
+style='mso-bidi-font-weight:normal'><i style='mso-bidi-font-style:normal'>{fType}</i></b><span
+style="mso-spacerun: yes">  </span>SIZE=<b style='mso-bidi-font-weight:normal'><i
+style='mso-bidi-font-style:normal'>{width}</i></b><span style="mso-spacerun:
+yes">  </span>NAME=“<b style='mso-bidi-font-weight:normal'><i style='mso-bidi-font-style:
+normal'>{dName}<span style='mso-tab-count:1'>                </span>{dType}{flags}{expression}</i></b>”&gt;&lt;/INPUT&gt;<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent2>{fType} ::=<span style='mso-tab-count:1'>            </span>text<br>
+checkbox</p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>{width} ::=<span
+style='mso-tab-count:1'>                </span>an integer giving the field
+width<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>{dName} ::=<span
+style='mso-tab-count:1'>                </span>data name, corresponds to name
+used in data file<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>(optional field – if
+omitted, value is assumed to be an integer.)<o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent2>{dType} ::=<span style='mso-tab-count:1'>           </span>d<span
+style="mso-spacerun: yes">  </span>(value is a date)<br>
+s<span style="mso-spacerun: yes">  </span>(value is a string)<br>
+#<span style="mso-spacerun: yes">  </span>(a number)<br>
+% (floating point value is displayed as a percent)</p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>(optional field – if
+omitted, value’s editability is determined by the datafile)<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>{flags} ::=<span
+style='mso-tab-count:1'>                </span>r (display this value read-only)<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>(optional field –
+provides a default value for this element if it doesn’t already exist in the
+datafile)<o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent3>{expression} ::=<span style='mso-tab-count:1'>                    </span>==p<br>
+=!&lt;formula&gt;<br>
+???</p>
+
+<h1><a name="_Ref505994548"></a><a name="_Settings"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref505994548'><span style='layout-grid-mode:line'>5<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='mso-bookmark:_Ref505994548'><span
+style='layout-grid-mode:line'>Settings</span></span><span style='layout-grid-mode:
+line'><o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Settings may be made in
+several places. Defaults are set in the code to allow operation even if no
+setting files can be found. The dashboard then attempts to read a system level
+settings file (pspdash.ad). The dashboard then attempts to read the local
+settings file (</span><u><span style='font-family:"Courier New";layout-grid-mode:
+line'>pspdash.ini</span></u><span style='layout-grid-mode:line'> on Windows or </span><u><span
+style='font-family:"Courier New";layout-grid-mode:line'>.pspdash</span></u><span
+style='layout-grid-mode:line'> on other platforms). The dashboard searches for
+this settings file in the current directory, then in the user’s home directory
+(as specified by Java).<span style="mso-spacerun: yes">  </span>The following
+settings may appear in the settings file<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=638 style='width:6.65in;
+ border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt;
+ mso-padding-alt:0in 5.4pt 0in 5.4pt'>
+ <tr>
+  <td width=169 valign=top style='width:126.9pt;border:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+  style='layout-grid-mode:line'>Name<o:p></o:p></span></b></p>
+  </td>
+  <td width=162 valign=top style='width:121.5pt;border:solid windowtext .5pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+  style='layout-grid-mode:line'>Use<o:p></o:p></span></b></p>
+  </td>
+  <td width=307 valign=top style='width:3.2in;border:solid windowtext .5pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b style='mso-bidi-font-weight:normal'><span
+  style='layout-grid-mode:line'>Format<o:p></o:p></span></b></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=169 valign=top style='width:126.9pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>stateFile<o:p></o:p></span></p>
+  </td>
+  <td width=162 valign=top style='width:121.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Location of data file
+  used for hierarchy<o:p></o:p></span></p>
+  </td>
+  <td width=307 valign=top style='width:3.2in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Filename format<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=169 valign=top style='width:126.9pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>browser.command<o:p></o:p></span></p>
+  </td>
+  <td width=162 valign=top style='width:121.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Command used to bring
+  up HTML browser<o:p></o:p></span></p>
+  </td>
+  <td width=307 valign=top style='width:3.2in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Command-line text<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=169 valign=top style='width:126.9pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>templates.directory<o:p></o:p></span></p>
+  </td>
+  <td width=162 valign=top style='width:121.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Directory containing
+  templates<o:p></o:p></span></p>
+  </td>
+  <td width=307 valign=top style='width:3.2in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Path name format.<span
+  style="mso-spacerun: yes">  </span>Leave this blank to pull templates from
+  the classpath.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=169 valign=top style='width:126.9pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>dateFormat<o:p></o:p></span></p>
+  </td>
+  <td width=162 valign=top style='width:121.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Date only display
+  format and data parse format(s)<o:p></o:p></span></p>
+  </td>
+  <td width=307 valign=top style='width:3.2in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>TAB separated list,
+  first element is used for display. See Java DateFormatter class documentation
+  class for additional format info.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=169 valign=top style='width:126.9pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>dateTimeFormat<o:p></o:p></span></p>
+  </td>
+  <td width=162 valign=top style='width:121.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>As dateFormat, plus
+  time<o:p></o:p></span></p>
+  </td>
+  <td width=307 valign=top style='width:3.2in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>See dateFormat<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=169 valign=top style='width:126.9pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>defectDialog.autostart<o:p></o:p></span></p>
+  </td>
+  <td width=162 valign=top style='width:121.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Determines if the
+  timer will be running when the defect dialog appears.<o:p></o:p></span></p>
+  </td>
+  <td width=307 valign=top style='width:3.2in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>true or false<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=169 valign=top style='width:126.9pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>pauseButton.showCurrent<o:p></o:p></span></p>
+  </td>
+  <td width=162 valign=top style='width:121.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Appearance of the
+  pause / play button on the dashboard.<o:p></o:p></span></p>
+  </td>
+  <td width=307 valign=top style='width:3.2in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>true — shows PLAY
+  symbol while playing (current state)<o:p></o:p></span></p>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>false — shows PLAY
+  symbol while paused (affect of button press)<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=169 valign=top style='width:126.9pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>probeDialog.onlyCompleted<o:p></o:p></span></p>
+  </td>
+  <td width=162 valign=top style='width:121.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>implicit filtering
+  performed by PROBE dialog<o:p></o:p></span></p>
+  </td>
+  <td width=307 valign=top style='width:3.2in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>true – PROBE only
+  correlates data from completed projects<o:p></o:p></span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h1><![if !supportLists]>6<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><![endif]>Known Bugs</h1>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>#<span style='mso-tab-count:
+1'>              </span><span style='mso-tab-count:1'>                </span>Number
+of defect<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Name<span
+style='mso-tab-count:1'>      </span><span style='mso-tab-count:1'>                </span>A
+short descriptive title<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Description<span
+style='mso-tab-count:1'>                </span>Defect description, including
+comments on when fixed or why not fixed<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Pri.<span
+style='mso-tab-count:1'>          </span><span style='mso-tab-count:1'>                </span>Defect
+Priority (1 highest, 5 lowest)<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Entered<span
+style='mso-tab-count:1'>  </span><span style='mso-tab-count:1'>                </span>Date
+defect was entered<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Status<span
+style='mso-tab-count:1'>     </span><span style='mso-tab-count:1'>                </span>Open<span
+style='mso-tab-count:1'>                </span>Defect is still pending<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><span style='mso-tab-count:
+1'>                </span><span style='mso-tab-count:1'>                </span>Fixed<span
+style='mso-tab-count:1'>                </span>Defect has been fixed (see
+Description for fix date)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in;text-indent:.5in'><span
+style='layout-grid-mode:line'>Cancel<span style='mso-tab-count:1'>                </span>Defect
+has been cancelled (see Description for reason)<o:p></o:p></span></p>
+
+<table border=1 cellspacing=0 cellpadding=0 style='border-collapse:collapse;
+ border:none;mso-border-alt:solid windowtext .5pt;mso-padding-alt:0in 5.4pt 0in 5.4pt'>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>#<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border:solid windowtext .5pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Name<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border:solid windowtext .5pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Description<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border:solid windowtext .5pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Pri<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border:solid windowtext .5pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Entered<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border:solid windowtext .5pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Status<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>1<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Dash jump<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>UX-dashboard sometimes
+  jumps when new Hierarchy is selected. Possibly a Swing / AWT conflict?<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>4<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>4/15/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Open<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>2<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Time Log Editor reload<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Time Log Editor needs
+  to reload tree as well as time entries on “Reload”. Workaround — stop/start
+  dashboard<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>3<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>4/15/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Open<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>3<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Time Log Editor width</span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>The width of the Time
+  Log Editor ~ incorrect when it comes up.<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>3<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>4/15/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Open<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>4<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>T&amp;S Incomplete<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>The Task and Schedule
+  Planning Template is incomplete<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>4<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>4/15/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Open<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>5<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Defect Editor<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>A defect log viewer /
+  editor / analyzer would be useful. Currently allows viewing / minimal
+  editing.<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>2<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>11/1/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Fixed<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>6<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Time Log Editor
+  doesn’t come up on the PC<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>The ‘t’ button no
+  longer brings up the Time Log. Fixed 5/27/1998. Removed popup menu (PC only –
+  it wasn’t working anyway). Time log editor (etc) can now be brought up on the
+  PC by SHIFT-MB1.<span style="mso-spacerun: yes">  </span>Added tool tip to
+  remind user of the key combinations<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>1<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>4/15/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Fixed<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>7<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Make dashboard Always
+  On Top<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Make dashboard Always
+  On Top (at least for PC). Need to careful about side effects.<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>3<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>5/28/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Open<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>8<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>PC Time<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Clock time on the PC
+  appears to be *consistently* 6 hours off. may be caused by the Java routines
+  getting GMT instead of the local<o:p></o:p></span></p>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>time(?).<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>3<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>6/8/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Open?<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>9<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Time Entry Crashes<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Last time entry is
+  lost if crash occurs. Alleviate this by saving the current time entry (if any
+  active) to a temporary file at regular intervals (1 to 5 minutes), deleting
+  the file when the time entry is saved. On startup, check for the existence of
+  this file and add the time log entry if it exists (deleting the file).<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>2<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>7/14/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Fixed<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>10<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>State file crashes<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Occasional SEVERE
+  errors *can* cause the state file to be corrupted <i style='mso-bidi-font-style:
+  normal'>/ </i>emptied. After writing the state file to disk (typically at
+  program exit), copy it to a backup file. On program entry, compare the two
+  files. If the backup exists and is different from the “original”, allow the
+  user to compare the two (this could be a challenge) and select the desired
+  state tree. Not easily reproducible.<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>4<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>7/14/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Fixed<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>11<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Probe variable names<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>In Probe, the dialog
+  expects the user to type in the variable names. This is not reasonable.
+  Provide a list of options for the user to select from (in addition).<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>2<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>11/1/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Fixed<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>12<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Probe data filtering<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Probe needs a method
+  of allowing the user to select / filter projects used in calculations.<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>2<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>11/1/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Fixed<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=31 valign=top style='width:23.4pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>13<o:p></o:p></span></p>
+  </td>
+  <td width=90 valign=top style='width:67.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Probe methods B &amp;
+  C<o:p></o:p></span></p>
+  </td>
+  <td width=366 valign=top style='width:274.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Add calculation of
+  probe methods B &amp; C to the probe dialog.<o:p></o:p></span></p>
+  </td>
+  <td width=30 valign=top style='width:22.5pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>3<o:p></o:p></span></p>
+  </td>
+  <td width=72 valign=top style='width:.75in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>11/1/1998<o:p></o:p></span></p>
+  </td>
+  <td width=49 valign=top style='width:36.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='layout-grid-mode:line'>Fixed<o:p></o:p></span></p>
+  </td>
+ </tr>
+</table>
+
+<h1><![if !supportLists]><span style='layout-grid-mode:line'>7<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><![endif]><span style='layout-grid-mode:line'>Installation (PC)<o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>Pre-requisites:<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='layout-grid-mode:line'>JRE:
+(Java Run-time Environment v1.3)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='layout-grid-mode:line'>Internet
+Explorer 4.0 or higher (preferred) or Netscape 4.xx (4.75 preferred)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='layout-grid-mode:line'>pspdash-install.zip<o:p></o:p></span></p>
+
+<p class=MsoNormal style='text-indent:.5in'><span style='layout-grid-mode:line'>dashboard
+shortcut<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>To Install:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<ol style='margin-top:0in' start=1 type=1>
+ <li class=MsoNormal style='mso-list:l13 level1 lfo10;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>Install Sun's Java Runtime Environment.<o:p></o:p></span></li>
+ <ol style='margin-top:0in' start=1 type=a>
+  <li class=MsoNormal style='mso-list:l13 level2 lfo10;tab-stops:list 1.0in'><span
+      style='layout-grid-mode:line'>Download and install JRE 1.3 from <a
+      href="http://java.sun.com/j2se/1.3/jre">Sun’s website</a>.<o:p></o:p></span></li>
+  <li class=MsoNormal style='mso-list:l13 level2 lfo10;tab-stops:list 1.0in'><span
+      style='layout-grid-mode:line'><span style="mso-spacerun:
+      yes"> </span>Install the files into </span><u><span style='font-size:
+      8.0pt;mso-bidi-font-size:10.0pt;font-family:"Courier New";layout-grid-mode:
+      line'>C:\Program Files\JavaSoft\JRE\1.3</span></u><span style='layout-grid-mode:
+      line'> directory.<o:p></o:p></span></li>
+ </ol>
+ <li class=MsoNormal style='margin-top:6.0pt;mso-list:l13 level1 lfo10;
+     tab-stops:list .5in'><span style='layout-grid-mode:line'>On Windows, the
+     dashboard will attempt to use your default browser.<span
+     style="mso-spacerun: yes">  </span>The dashboard works best with Internet
+     Explorer 4.0 or later, but also works with Netscape 4.75.<span
+     style="mso-spacerun: yes">  </span>(Unfortunately, Netscape 6 is <b>NOT</b>
+     currently compatible with the dashboard.)<span style="mso-spacerun: yes"> 
+     </span>If one of these products is already your default browser, you don’t
+     need to customize.<span style="mso-spacerun: yes">  </span>Otherwise,<o:p></o:p></span></li>
+ <ol style='margin-top:0in' start=1 type=a>
+  <li class=MsoNormal style='mso-list:l13 level2 lfo10;tab-stops:list 1.0in'><span
+      style='layout-grid-mode:line'>Download and install an appropriate
+      browser.<span style="mso-spacerun: yes">  </span><a
+      href="http://www.microsoft.com/windows/ie/default.htm">Internet Explorer
+      4.0 or higher</a> is preferred, but <a
+      href="http://home.netscape.com/download/archive.html">Netscape 4.75</a>
+      will also work.<span style="mso-spacerun: yes">  </span>If you are a Netscape
+      6.0 user, note that multiple versions of Netscape can coexist on your
+      system, so you can install Netscape 4.75 and still keep 6.0 for your
+      default browser.<o:p></o:p></span></li>
+  <li class=MsoNormal style='mso-list:l13 level2 lfo10;tab-stops:list 1.0in'><span
+      style='layout-grid-mode:line'>Edit the &quot;pspdash.ini&quot; file.<span
+      style="mso-spacerun: yes">  </span>If you unzipped the dashboard as
+      specified in step 2, this file will be </span><u><span style='font-size:
+      8.0pt;mso-bidi-font-size:10.0pt;font-family:"Courier New";layout-grid-mode:
+      line'>C:\Program Files\PSPDashboard\pspdash.ini</span></u><span
+      style='layout-grid-mode:line'>.<span style="mso-spacerun: yes">  
+      </span>Add a line of the form:<br>
+      </span><span style='font-size:7.0pt;mso-bidi-font-size:10.0pt;font-family:
+      "Courier New";layout-grid-mode:line'>browser.command=C:/Program
+      Files/Netscape/Communicator/Program/Netscape.exe</span><span
+      style='layout-grid-mode:line'><br>
+      (Of course, alter the command line as applicable, depending on where you
+      installed IE or Netscape.)<o:p></o:p></span></li>
+ </ol>
+ <li class=MsoNormal style='margin-top:6.0pt;mso-list:l13 level1 lfo10;
+     tab-stops:list .5in'><span style='layout-grid-mode:line'>Unzip the
+     pspdash-install.zip file into the </span><u><span style='font-size:8.0pt;
+     mso-bidi-font-size:10.0pt;font-family:"Courier New";layout-grid-mode:line'>C:\Program
+     Files\PSPDashboard</span></u><span style='layout-grid-mode:line'>
+     directory<o:p></o:p></span></li>
+ <li class=MsoNormal style='mso-list:l13 level1 lfo10;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>Open a Windows Explorer (note, this is <i>Windows</i>
+     Explorer, not <i>Internet</i> Explorer).<o:p></o:p></span></li>
+ <li class=MsoNormal style='mso-list:l13 level1 lfo10;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>Highlight the directory<span
+     style="mso-spacerun: yes">  </span></span><u><span style='font-size:8.0pt;
+     mso-bidi-font-size:10.0pt;font-family:"Courier New";layout-grid-mode:line'>C:\Program
+     Files\PSPDashboard\pspdash</span></u><span style='layout-grid-mode:line'>,
+     and choose “Cut” from the “Edit” menu.<span style="mso-spacerun: yes"> 
+     </span>Then navigate to the </span><u><span style='font-size:8.0pt;
+     mso-bidi-font-size:10.0pt;font-family:"Courier New";layout-grid-mode:line'>C:\Windows\Java\Trustlib</span></u><span
+     style='layout-grid-mode:line'> directory (or </span><u><span
+     style='font-size:8.0pt;mso-bidi-font-size:10.0pt;font-family:"Courier New";
+     layout-grid-mode:line'>C:\WINNT\Java\Trustlib</span></u><span
+     style='layout-grid-mode:line'> for NT/2000) and choose “Paste” from the
+     Edit Menu.<o:p></o:p></span></li>
+ <li class=MsoNormal style='mso-list:l13 level1 lfo10;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>Right click on the file </span><u><span
+     style='font-size:8.0pt;mso-bidi-font-size:10.0pt;font-family:"Courier New";
+     layout-grid-mode:line'>C:\Program Files\PSPDashboard\pspdash.jar</span></u><span
+     style='layout-grid-mode:line'> and choose “Create Shortcut”.<span
+     style="mso-spacerun: yes">  </span>Rename the shortcut to “PSPDashboard”,
+     and then drag the shortcut to your desktop.<o:p></o:p></span></li>
+</ol>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>To use:<o:p></o:p></span></p>
+
+<ol style='margin-top:0in' start=1 type=1>
+ <li class=MsoNormal style='mso-list:l7 level1 lfo12;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>Doubleclick the shortcut you created in step
+     6 above.<span style="mso-spacerun: yes">  </span>A small narrow window
+     should open in the top left corner of your screen. Read the </span><u><span
+     style='font-size:8.0pt;mso-bidi-font-size:10.0pt;font-family:"Courier New";
+     layout-grid-mode:line'>C:\Program Files\PSPDashboard\HowToUse.txt </span></u><span
+     style='layout-grid-mode:line'>and </span><u><span style='font-size:8.0pt;
+     mso-bidi-font-size:10.0pt;font-family:"Courier New";layout-grid-mode:line'>C:\Program
+     Files\PSPDashboard \Dashboard Tool Overview.ppt</span></u><span
+     style='layout-grid-mode:line'> files.<o:p></o:p></span></li>
+</ol>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h1><a name="_Ref506004340"></a><a name="_Troubleshooting"></a><![if !supportLists]><span
+style='mso-bookmark:_Ref506004340'><span style='layout-grid-mode:line'>8<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span style='mso-bookmark:_Ref506004340'><span
+style='layout-grid-mode:line'>Troubleshooting</span></span><span
+style='layout-grid-mode:line'><o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'>If the dashboard doesn’t
+start or if there are no entries in the Hierarchy Editor’s “Edit -&gt; Add
+Template” menu, then JRE 1.3 is not completely setup on your machine. <span
+style="mso-spacerun: yes"> </span>To workaround this problem:<o:p></o:p></span></p>
+
+<ol style='margin-top:0in' start=1 type=1>
+ <li class=MsoNormal style='mso-list:l0 level1 lfo13;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>Right click on the icon you use to run the
+     dashboard, and choose “Properties”<o:p></o:p></span></li>
+ <li class=MsoNormal style='mso-list:l0 level1 lfo13;tab-stops:list .5in'><span
+     style='layout-grid-mode:line'>Click the “Shortcut” tab, and edit the
+     “Target” field to read<br>
+     </span><span style='font-size:7.0pt;mso-bidi-font-size:10.0pt;font-family:
+     "Courier New"'>&quot;C:\Program</span> <span style='font-size:7.0pt;
+     mso-bidi-font-size:10.0pt;font-family:"Courier New"'>Files\JavaSoft\JRE\1.3\bin\javaw.exe&quot;</span>
+     <span style='font-size:7.0pt;mso-bidi-font-size:10.0pt;font-family:"Courier New"'>-jar</span>
+     <span style='font-size:7.0pt;mso-bidi-font-size:10.0pt;font-family:"Courier New"'>&quot;C:\Program</span>
+     <span style='font-size:7.0pt;mso-bidi-font-size:10.0pt;font-family:"Courier New"'>Files\PSPDashboard\pspdash.jar&quot;</span><span
+     style='layout-grid-mode:line'><o:p></o:p></span></li>
+</ol>
+
+<p class=MsoNormal><span style='layout-grid-mode:line'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+</div>
+
+</body>
+
+</html>
