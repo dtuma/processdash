@@ -132,6 +132,9 @@ pauseButton.showCurrent=If this property is set to "true", the Play/Pause \
 	effect of a click (i.e., while paused, it will display the PLAY \
 	symbol).
 
+pauseButton.quiet=If this property is set to "true", the Play/Pause button \
+	will not provide any audible feedback.
+
 probeDialog.dataList=If this property is set to "simple", the PROBE dialog \
 	will only display data elements relating to the standard PROBE \
 	methods A,B,C, and D. If this setting has any other value, PROBE will \
