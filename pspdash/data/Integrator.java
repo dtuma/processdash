@@ -70,13 +70,24 @@ public class Integrator {
     public static double integrate(GenericFunction func,
                                    double low, double high,
                                    double acceptable_error) {
+        if (Double.isNaN(low)  || Double.isInfinite(low) ||
+            Double.isNaN(high) || Double.isInfinite(high) ||
+            Double.isNaN(acceptable_error) || acceptable_error == 0.0)
+            return Double.NaN;
 
-        double previous_value, current_value, difference;
+        double previous_value, current_value=0.0, difference;
         int intervals = DEFAULT_INITIAL_INTERVALS;
 
         previous_value = simpson(func, low, high, intervals);
 
-        while (true) {
+        /* Don't allow the loop below to run forever. At most, run through
+         * The loop 32 times.  (This number is safe, because after 31
+         * iterations through the loop, intervals will exceed
+         * Integer.MAX_VALUE).
+         */
+        int iter = 32;
+
+        while (iter-- > 0) {
             intervals *= 2;
             current_value = simpson(func, low, high, intervals);
             difference    = current_value - previous_value;
