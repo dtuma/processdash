@@ -1610,6 +1610,10 @@ public class WebServer extends Thread {
 
         String charsetName = Settings.getVal("http.charset");
         if (charsetName != null && charsetName.length() > 0) try {
+            if ("auto".equals(charsetName))
+                charsetName =
+                    (Translator.isTranslating() ? "UTF-8" : "ISO-8859-1");
+
             "test".getBytes(charsetName);
             OUTPUT_CHARSET = charsetName;
             TinyCGIBase.setDefaultCharset(OUTPUT_CHARSET);
