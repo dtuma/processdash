@@ -283,7 +283,8 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener,
 
     public SimpleData getSimpleValue() {
         valueQueried = true;
-        if (externalValue == null) externalValue = new ListData(value);
+        if (externalValue == null && value != null)
+            externalValue = new ListData(value);
         return externalValue;
     }
 
