@@ -86,6 +86,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
         // create the data repository.
         data = new DataRepository();
         data.setRealizationPolicy(Settings.getVal("autoRealization"));
+        if ("true".equalsIgnoreCase(Settings.getVal("dataFreezing.disabled")))
+            data.disableFreezing();
         aum = new AutoUpdateManager();
         templates = TemplateLoader.loadTemplates(data, aum);
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());

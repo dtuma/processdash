@@ -72,6 +72,9 @@ browser.command=The command to execute to run an HTML browser for script \
 browser.readonly.color=In Internet Explorer, read-only data elements on \
 	forms will be flagged with this background color.
 
+dataFreezing.disabled=If this is property is set to "true", the data \
+	freezing/thawing mechanism will be disabled.
+
 dateFormat=A list of recognized date formats, separated by the | character. \
 	The first format in the list will be used when displaying dates. \
 	For valid format syntax, see the documentation for \
