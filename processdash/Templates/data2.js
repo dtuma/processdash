@@ -272,7 +272,7 @@ function NSchangeNotifyElem(elem) {
   else
       value = elem.value;
 
-  var url = "http://" + self.location.host + "/dash/editForm" +
+  var url = "http://" + self.location.host + "/dash/formEdit" +
       "?s=" + sessionID + 
       "&c=" + changeCoupon +
       "&f=" + getElemNum(elem.id) +
@@ -402,7 +402,7 @@ function setSessionID(id) {
 function getListenURL() {
     anticipateAcknowledge();
     uniqueID++;
-    var uri = "/dash/listen?"+uniqueID+"&s="+sessionID+"&c="+changeCoupon;
+    var uri = "/dash/formListen?"+uniqueID+"&s="+sessionID+"&c="+changeCoupon;
     var url = "http://" + self.location.host + uri;
     return url;
 }
@@ -480,7 +480,7 @@ function getRegistrationURL() {
     var uri = urlEncode(window.location.pathname +
 		        window.location.hash +
 		        window.location.search);
-    return '/dash/register?uri=' + uri + '&' + NSparameterString;
+    return '/dash/formRegister?uri=' + uri + '&' + NSparameterString;
 }
 
 function reregister() {
