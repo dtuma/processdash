@@ -40,6 +40,7 @@ public class TinyWebServer extends Thread {
     DataRepository data = null;
     ClassLoader classLoader = null;
     Hashtable cgiCache = new Hashtable();
+    boolean allowRemoteConnections = false;
 
     public static final String PROTOCOL = "HTTP/1.0";
     public static final String DEFAULT_TEXT_MIME_TYPE =
@@ -141,7 +142,8 @@ public class TinyWebServer extends Thread {
                 protocol = tok.nextToken();
 
                 // only accept localhost requests.
-                if (! checkIP())
+                if (! allowRemoteConnections &&
+                    ! checkIP())
                     sendError(403, "Forbidden", "Not accepting " +
                                "requests from remote IP addresses ." );
 
@@ -671,6 +673,9 @@ public class TinyWebServer extends Thread {
             DEFAULT_ENV.remove(TinyCGI.DATA_REPOSITORY);
         else
             DEFAULT_ENV.put(TinyCGI.DATA_REPOSITORY, data);
+    }
+    public void allowRemoteConnections(boolean flag) {
+        this.allowRemoteConnections = flag;
     }
 
 
