@@ -89,6 +89,8 @@ public class HTMLPreprocessor {
                 processIfDirective(dir);
             else if ("incr".equals(dir.directive))
                 processIncrDirective(dir);
+            else if ("break".equals(dir.directive))
+                processBreakDirective(dir);
             else
                 dir.replace("");
             pos = dir.end;
@@ -314,8 +316,12 @@ public class HTMLPreprocessor {
                 if (incrVariables.contains(symbolName))
                     containsIncrementedVar = true;
 
-                if (!isNull(symbolName)) test = !isNull(getString(symbolName));
-                if (reverse)             test = !test;
+                if (!isNull(symbolName))
+                    test = (symbolName.startsWith("[") ?
+                            testDataElem(symbolName) :
+                            !isNull(getString(symbolName)));
+                if (reverse)
+                    test = !test;
             }
             result = test ? Boolean.TRUE : Boolean.FALSE;
             if (!containsIncrementedVar)
@@ -408,6 +414,22 @@ public class HTMLPreprocessor {
         incrVariables.add(varName);
 
         incrDir.replace("");
+    }
+
+    /** process a break directive within the buffer */
+    private void processBreakDirective(DirectiveMatch breakDir) {
+        String label = cleanup(breakDir.contents);
+        DirectiveMatch breakEnd = new DirectiveMatch
+            (breakDir.buf, "endbreak "+label, breakDir.end, true);
+
+        if (!breakEnd.matches()) {
+            // if the endbreak is missing, delete this directive and abort.
+            System.err.println
+                ("break directive without matching endbreak - aborting.");
+            breakDir.replace("");
+            return;
+        }
+        breakDir.buf.replace(breakDir.begin, breakEnd.end, "");
     }
 
     /** search for blocks created by matching start and end directives, and
@@ -555,6 +577,17 @@ public class HTMLPreprocessor {
         return str.substring(1, str.length() - 1);
     }
 
+    /** look up a named data element and perform a test() on it. */
+    private boolean testDataElem(String name) {
+        if (name.startsWith("[")) {
+            // listName names a data element
+            name = trimDelim(name);
+            SimpleData d = getSimpleValue(name);
+            return (d == null ? false : d.test());
+        }
+        return false;
+    }
+
     /** Class which can locate and parse directives of the form <!--#foo -->
      */
     private class DirectiveMatch {
@@ -587,6 +620,13 @@ public class HTMLPreprocessor {
             }
             contents = buf.substring(begin + dirStart.length(), end);
             end += DIRECTIVE_END.length();
+
+            if (contents.endsWith("#")) {
+                contents = contents.substring(0, contents.length()-1);
+                while (end < buf.length() &&
+                       Character.isWhitespace(buf.charAt(end)))
+                    end++;
+            }
 
             if (directive.length() == 0) {
                 StringTokenizer tok = new StringTokenizer(contents);
