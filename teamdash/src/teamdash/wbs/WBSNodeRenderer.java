@@ -44,10 +44,12 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
          boolean hasFocus, int row, int column)
     {
         WBSNode node = (WBSNode) value;
+        String name = node.getName();
+        if (name == null || name.trim().length() == 0) name = "( empty )";
 
         // Call our superclass to perform the default renderer configuration
         Component result = super.getTableCellRendererComponent
-            (table, node.getName(), isSelected, hasFocus, row, column);
+            (table, name, isSelected, hasFocus, row, column);
 
         // set up the expansion icon
         expansionIcon.indentationLevel = node.getIndentLevel();
