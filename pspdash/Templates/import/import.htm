@@ -1,0 +1,178 @@
+<!--
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 1999  United States Air Force
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// 
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+// 
+// E-Mail POC:  ken.raisor@hill.af.mil
+-->
+
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="../style.css">
+<TITLE>Import PSP Project Data</TITLE>
+<STYLE>
+TD.header {
+    font-size: smaller;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: bottom
+}
+</STYLE>
+</HEAD>
+<BODY>
+
+<H1>Import PSP Project Data</H1>
+
+<FORM NAME=PLAN>
+
+<INPUT TYPE=hidden NAME=requiredTag VALUE=psp_import>
+
+<TABLE>
+<TR>
+<TD>Project Name</TD>
+<TD><INPUT TYPE=text SIZE=50 NAME="Project//Name	sr==p"></TD>
+</TR>
+<TR>
+<TD>Project Owner</TD>
+<TD><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
+</TR>
+<TR>
+<TD>Completion Date</TD>
+<TD><INPUT TYPE=text SIZE=25 NAME="Completed	dm"> Completed: <INPUT TYPE=checkbox NAME="Completed	d"></TD>
+</TR>
+<TR>
+<TD>Language</TD>
+<TD><INPUT TYPE=text SIZE=15 NAME="Project/Language	s"></TD>
+</TR>
+<TR>
+<TD>Process</TD>
+<TD><SELECT NAME="PSP_Level">
+<OPTION VALUE="0">PSP0
+<OPTION VALUE="0.1">PSP0.1
+<OPTION VALUE="1">PSP1
+<OPTION VALUE="1.1">PSP1.1
+<OPTION VALUE="2">PSP2
+<OPTION VALUE="2.1">PSP2.1
+<OPTION VALUE="3">PSP3
+</SELECT></TD>
+</TR>
+</TABLE>
+<P>
+
+<H2>Project Data</H2>
+<TABLE>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+</TR>
+
+<TR>
+<TD>Total Time</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+</TR>
+
+<TR>
+<TD>Object LOC (E)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Object LOC"></TD>
+<TD>&nbsp;</TD>
+</TR>
+
+<TR>
+<TD>New & Changed LOC</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New & Changed LOC"></TD>
+</TR>
+
+</TABLE>
+
+
+<H2>Phase Data</H2>
+<TABLE>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD CLASS="header">Planning</TD>
+<TD CLASS="header">HLD</TD>
+<TD CLASS="header">HLD<BR>Review</TD>
+<TD CLASS="header">Design</TD>
+<TD CLASS="header">Design<BR>Review</TD>
+<TD CLASS="header">Code</TD>
+<TD CLASS="header">Code<BR>Review</TD>
+<TD CLASS="header">Compile</TD>
+<TD CLASS="header">Test</TD>
+<TD CLASS="header">Postmortem</TD>
+</TR>
+
+<TR>
+<TD><B>Time</B></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Planning/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="HLD/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="HLD Review/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Design/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Design Review/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Code/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Code Review/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Compile/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Test/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Postmortem/Time"></TD>
+</TR>
+
+<TR>
+<TD><B>Defects Injected</B></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Planning/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="HLD/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="HLD Review/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Design/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Design Review/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Code/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Code Review/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Compile/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Test/Defects Injected"></TD>
+<TD>&nbsp;</TD>
+</TR>
+
+<TR>
+<TD><B>Defects Removed</B></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Planning/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="HLD/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="HLD Review/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Design/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Design Review/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Code/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Code Review/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Compile/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Test/Defects Removed"></TD>
+<TD>&nbsp;</TD>
+</TR>
+
+</TABLE>
+</FORM>
+
+<SCRIPT LANGUAGE=JavaScript SRC="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</SCRIPT>
+
+</BODY>
+</HTML>
