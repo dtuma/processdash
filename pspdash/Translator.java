@@ -25,80 +25,184 @@
 
 package pspdash;
 
+import java.io.Reader;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.*;
 
 public class Translator {
 
-    private static boolean IS_TRANSLATING = false;
-    public static final boolean isTranslating() { return IS_TRANSLATING; }
+    /** The translation engine in use */
+    private static TranslationEngine TRANSLATOR = null;
 
-    private static Resources translations;
-    private static Set keys;
 
-    public static void init() {
-        translations = null;
-        keys = null;
-        IS_TRANSLATING = false;
-
-        try {
-            translations = Resources.getDashBundle("pspdash.Translator");
-            keys = new HashSet();
-            /* new TreeSet(new Comparator() {
-                    public int compare(Object o1, Object o2) {
-                        String s1 = (String) o1;
-                        String s2 = (String) o2;
-                        int result = s2.length() - s1.length();
-                        if (result != 0) return result;
-                        return s1.compareTo(s2);
-                    }
-                    public boolean equals(Object obj) { return this == obj; }
-                    }); */
-            Enumeration e = translations.getKeys();
-            while (e.hasMoreElements())
-                keys.add(e.nextElement());
-        } catch (MissingResourceException mre) {
-        }
-        IS_TRANSLATING = !keys.isEmpty();
+    /** Returns true if a translation engine is operating.
+     */
+    public static final boolean isTranslating() {
+        return TRANSLATOR != null;
     }
 
+
+    /** Translate a string.
+     *
+     * The string can contain HTML markup, which will not be translated.
+     * If no tranlation engine is operating, the original string will
+     * be returned unchanged.
+     *
+     * @param s the string to translate
+     * @return a translated version of the string.
+     */
     public static final String translate(String s) {
-        if (IS_TRANSLATING || keys == null || s == null) return s;
-
-        // try a naiive approach - is the string itself a key?
-        if (keys.contains(s))
-            return translations.getString(s);
-
-        /* Disabled for now - doesn't work properly.  Probably need regexps.
-        // optimistically assume that we won't find anything to translate.
-        Iterator i = keys.iterator();
-        while (i.hasNext()) {
-            String key = (String) i.next();
-            if (s.indexOf(key) != -1)
-                // if we find something to translate, bite the bullet
-                // and translate the string.
-                return reallyTranslate(s, key, i);
+        try{
+            if (TRANSLATOR == null || s == null)
+                return s;
+            else
+                return TRANSLATOR.translateString(s);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return s;
         }
-        */
-
-        // our optimism was rewarded - there were no translatable
-        // strings in the input!
-        return s;
     }
 
-    private static final String reallyTranslate(String s, String key,
-                                                Iterator i)
-    {
-        StringBuffer buf = new StringBuffer(s);
-        StringUtils.findAndReplace(buf, key, translations.getString(key));
+    /** Translate the contents of a stream on-the-fly.
+     *
+     * The stream can contain HTML markup, which will not be translated.
+     * If no tranlation engine is operating, the original stream will
+     * be returned unchanged.
+     *
+     * @param s the stream to translate
+     * @return a stream which returns a translated version of the original
+     *     contents.
+     */
+    public static final Reader translate(Reader s) {
+        if (TRANSLATOR == null || s == null)
+            return s;
+        else
+            return TRANSLATOR.translateStream(s);
+    }
 
-        while (i.hasNext()) {
-            key = (String) i.next();
-            if (StringUtils.indexOf(buf, key) != -1)
-                StringUtils.findAndReplace
-                    (buf, key, translations.getString(key));
+
+
+
+    static void init() {
+        TRANSLATOR = null;
+        createCustomEngine();
+        if (TRANSLATOR == null) createDefaultEngine();
+    }
+
+
+    private static void createCustomEngine() {
+        try {
+            URL u = getCustomEngineClassURL();
+            System.out.println("custom engine url="+u);
+            if (u == null) return;
+
+            String path = u.toString();
+            int pos = path.lastIndexOf('/');
+            String className = path.substring(pos+1, path.length()-6);
+            path = path.substring(0, pos+1);
+
+            URL[] classPath = new URL[1];
+            classPath[0] = new URL(path);
+            URLClassLoader cl = new URLClassLoader(classPath);
+            Class c = cl.loadClass(className);
+            TRANSLATOR = (TranslationEngine) c.newInstance();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            TRANSLATOR = null;
+        }
+    }
+
+    private static URL getCustomEngineClassURL() {
+        Locale l = Locale.getDefault();
+        String language = l.getLanguage();
+        String country = l.getCountry();
+        URL result;
+
+        if (language != null && language.length() != 0) {
+            if (country != null && country.length() != 0) {
+                result = findTemplateClass("_" + language + "_" + country);
+                if (result != null) return result;
+            }
+            result = findTemplateClass("_" + language);
+            if (result != null) return result;
+        }
+        result = findTemplateClass("");
+        return result;
+    }
+
+
+    private static URL findTemplateClass(String qualifiers) {
+        String resName = "resources/Translator" + qualifiers + ".class";
+        return TemplateLoader.resolveURL(resName);
+    }
+
+
+    private static void createDefaultEngine() {
+        try {
+            ResourceBundle r = Resources.getDashBundle("pspdash.Translator");
+            if (r instanceof PropertyResourceBundle)
+                TRANSLATOR = new DefaultEngine(r);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String unpackKey(String dictTerm) {
+        StringBuffer result = new StringBuffer();
+        StringTokenizer tok = new StringTokenizer(dictTerm, "_ ");
+        result.append(tok.nextToken());
+        while (tok.hasMoreTokens())
+            result.append(" ").append(tok.nextToken());
+        return result.toString();
+    }
+
+
+
+
+    /** Default simple translation engine
+     *
+     * This engine translates verbatim words and phrases based upon
+     * mappings found in a resource bundle.  It cannot translate streams,
+     * and it does not find translatable words/phrases that are substrings
+     * of a string to translate.
+     */
+    public static class DefaultEngine implements TranslationEngine {
+
+        private Map translations;
+
+        public DefaultEngine(ResourceBundle r) {
+            translations = new HashMap();
+            Enumeration e = r.getKeys();
+            while (e.hasMoreElements()) {
+                String key = (String) e.nextElement();
+                String text = unpackKey(key);
+                String replacement = r.getString(key);
+                translations.put(text, replacement);
+                translations.put(text.toLowerCase(), replacement);
+            }
         }
 
-        return buf.toString();
+
+        public String translateString(String s) {
+            if (s == null) return null;
+
+            String result = (String) translations.get(s);
+            if (result != null) return result;
+
+            result = (String) translations.get(s.toLowerCase());
+            if (result != null) return result;
+
+            return s;
+        }
+
+
+        public Reader translateStream(Reader r) {
+            // the default engine does not attempt stream translation.
+            return r;
+        }
+
     }
 
 }
