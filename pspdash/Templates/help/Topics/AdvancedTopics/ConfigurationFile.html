@@ -207,6 +207,24 @@ the # character.</p>
  </li>
  <br>
 
+ <li><strong>ev.showCumulativeTaskData</strong><br>
+
+    The original PSP task template described in <i>A&nbsp;Discipline
+    for Software Engineering</i> contains two columns that are
+    normally not displayed by the dashboard.  (These columns really
+    only exist in the PSP template to help you perform the
+    calculations manually; when the computer is performing the
+    calculations, they don't provide much value and simply take up
+    space.  If you wish, you can display them by setting this
+    to true.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>ev.showCumulativeTaskData=true</td></tr>
+   </table>
+ </li>
+ <br>
+
  <li><strong>excel.exportMethod</strong><br>
    The method to use for exporting data into Excel. If this is set to "mime", 
    data will be exported to Excel using mime types; in practical terms, this
@@ -229,10 +247,34 @@ the # character.</p>
    If true, the dashboard will allow connections from other machines.<br>
    If false, the dashboard will reject all HTTP connections unless they come 
    from "localhost".<br>
+   Note that password settings (such as those set on shared/published
+   earned value schedules) establish exceptions that override this setting.
+   Thus, if you have set this to true, setting a password will deny 
+   connection attempts that do not correctly identify the password.
+   Conversely, you can leave this set to false, and setting a password
+   will allow connection attempts that correctly supply the password.
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Example:</td><td>http.allowRemote=true</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>http.hostname</strong><br>
+   Most of the time, you interact with the dashboard web server by viewing
+   a web page that begins with "http://localhost".  This works fine when
+   the dashboard and the web browser are both running on the same computer.
+   Sometimes, though, it is desirable to construct a URL for other people
+   to use (for example, when publishing or sharing an earned value schedule).
+   The dashboard will ascertain the name of your computer and use that to
+   construct the URL; this process should work 99% of the time. If, however,
+   the dashboard deduces an incorrect name for your computer, you can use
+   this setting to override the built-in name deduction logic.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>hostname</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>none</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>hostname.mycompany.com</td></tr>
    </table>
  </li>
  <br>
