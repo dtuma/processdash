@@ -164,6 +164,8 @@ public class EVCalculatorRollup extends EVCalculator {
     }
 
     private boolean allSchedulesHaveCostInterval() {
+        if (schedule.subSchedules.isEmpty())
+            return false;
         Iterator i = schedule.subSchedules.iterator();
         while (i.hasNext()) {
             EVSchedule s = (EVSchedule) i.next();
@@ -194,7 +196,7 @@ public class EVCalculatorRollup extends EVCalculator {
     }
 
     private void createCostInterval() {
-         System.out.println("Creating cost interval");
+        // System.out.println("Creating cost interval");
         ConfidenceIntervalSum sum = new ConfidenceIntervalSum();
         sum.acceptableError = 5 * 60;
         Iterator i = schedule.subSchedules.iterator();
@@ -203,7 +205,7 @@ public class EVCalculatorRollup extends EVCalculator {
             sum.addInterval(s.getMetrics().getCostConfidenceInterval());
         }
         sum.intervalsComplete();
-        System.out.println("created " + sum.samples.size() + " cost samples");
+        // System.out.println("created " + sum.samples.size() + " cost samples");
         sum.debugPrint(5);
         schedule.getMetrics().setCostConfidenceInterval(sum);
         schedule.getMetrics().setTimeErrConfidenceInterval(null);
@@ -216,7 +218,7 @@ public class EVCalculatorRollup extends EVCalculator {
     private void createBothIntervals() {
         if (COST_ONLY) { createCostInterval(); return; }
 
-         System.out.println("Creating both intervals");
+        // System.out.println("Creating both intervals");
         List subs = schedule.subSchedules;
         EVScheduleRandom[] randSchedules = new EVScheduleRandom[subs.size()];
         for (int i = 0;   i < randSchedules.length;   i++)
@@ -238,6 +240,8 @@ public class EVCalculatorRollup extends EVCalculator {
 
 
     private boolean allSchedulesHaveTimeErrInterval() {
+        if (schedule.subSchedules.isEmpty())
+            return false;
         Iterator i = schedule.subSchedules.iterator();
         while (i.hasNext()) {
             EVSchedule s = (EVSchedule) i.next();
