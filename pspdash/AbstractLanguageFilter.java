@@ -234,7 +234,7 @@ public class AbstractLanguageFilter implements LanguageFilter {
         String settingName = "pspdiff.suffix." +
             getFilterName(this).toLowerCase();
         return buildArrayFromUserSetting
-            (settingName, "", getDefaultFilenameEndings());
+            (settingName, " \t", getDefaultFilenameEndings());
     }
 
 
