@@ -55,6 +55,15 @@ autoUpdate.lastCheckDate=This is the last date when the dashboard was able \
 	to successfully check for updated versions of the dashboard software \
 	and add-on process sets.  (Measured in milliseconds since Jan 1, 1970.)
 
+autoUpdate.proxyPassword=When running in the context of an auto-redirecting \
+	HTTP proxy server, use this password to authenticate.
+
+autoUpdate.proxyUsername=When running in the context of an auto-redirecting \
+	HTTP proxy server, use this username to authenticate.
+
+autoUpdate.remind=Remind the user about available software updates the next \
+	time the dashboard starts, even if a check has been performed recently.
+
 browser.command=The command to execute to run an HTML browser for script \
 	files. If left unset, the default will be Netscape on non-windows \
 	platforms (netscape must be in your path), or the system default \
