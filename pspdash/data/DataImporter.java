@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,6 +40,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import pspdash.DefectImporter;
 import pspdash.EscapeString;
 import pspdash.RobustFileWriter;
 
@@ -165,6 +167,7 @@ public class DataImporter extends Thread {
         String prefix = (String) prefixes.get(f);
         if (prefix == null) return;
         data.closeDatafile(prefix);
+        DefectImporter.closeDefects(prefix);
     }
 
 
@@ -183,13 +186,13 @@ public class DataImporter extends Thread {
     {
         try {
             BufferedReader in =
-                new BufferedReader(new InputStreamReader(inputStream));
+                new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             Map defns = new HashMap();
 
             String line, name, value;
             int commaPos;
             while ((line = in.readLine()) != null) {
-                if (line.startsWith("!")) break;
+                if (line.startsWith("!") || line.startsWith("<!--")) break;
 
                 commaPos = line.indexOf(',');
                 if (commaPos == -1) return; // this isn't a valid dump file.
@@ -222,6 +225,12 @@ public class DataImporter extends Thread {
 
                 defns.put(name, parseValue(value));
             }
+
+            while (line != null && !line.startsWith("<!--"))
+                line = in.readLine();
+            if (line != null)
+                DefectImporter.importDefects(in, prefix);
+
 
             // Protect this data from being viewed via external http requests.
             defns.put("_Password_", ImmutableDoubleData.READ_ONLY_ZERO);

@@ -216,8 +216,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
     protected void writeTableD22() {
-        for (int i = 0;   i < projects.length;   i++)
-            DefectAnalyzer.run(getPSPProperties(), projects[i], this);
+        DefectAnalyzer.run(getPSPProperties(), getDataRepository(), projects, this);
 
         eliminateEmptyValues();
         if (count == null) return;

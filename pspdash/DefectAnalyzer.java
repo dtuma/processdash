@@ -50,8 +50,13 @@ public class DefectAnalyzer {
                            Task t) {
         String [] prefixes = ResultSet.getPrefixList
             (data, queryParameters, prefix);
+        run(props, data, prefixes, t);
+    }
+
+    public static void run(PSPProperties props, DataRepository data, String[] prefixes, Task t) {
         for (int i = 0;   i < prefixes.length;   i++)
             run(props, prefixes[i], t);
+        DefectImporter.run(props, data, prefixes, t);
     }
 
     /** Perform some analysis task on all the defects under a given node

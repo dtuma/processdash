@@ -25,31 +25,24 @@
 
 package pspdash;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Date;
-import java.util.List;
-import java.util.Stack;
-import java.util.StringTokenizer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.Transformer;
-
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
+import javax.xml.transform.TransformerFactory;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 
 public class XMLUtils {
@@ -84,6 +77,20 @@ public class XMLUtils {
         try {
             builder = (DocumentBuilder) builderPool.get();
             result = builder.parse(in);
+        } finally {
+            if (builder != null) builderPool.release(builder);
+        }
+        return result;
+    }
+
+    public static Document parse(java.io.Reader in)
+        throws SAXException, IOException
+    {
+        DocumentBuilder builder = null;
+        Document result = null;
+        try {
+            builder = (DocumentBuilder) builderPool.get();
+            result = builder.parse(new InputSource(in));
         } finally {
             if (builder != null) builderPool.release(builder);
         }
