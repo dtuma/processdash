@@ -52,9 +52,9 @@ abstract class NSField extends HTMLField {
     }
 
 
-    abstract public void paint();	// update the Html element with variantValue.
-    abstract public void parse();	// update variantValue from the HTML element.
-    abstract public void fetch();	// update variantValue from DataInterpreter i.
+    abstract public void paint(); // update the Html element with variantValue.
+    abstract public void parse(); // update variantValue from the HTML element.
+    abstract public void fetch(); // update variantValue from DataInterpreter i.
 
 
     private static Object EDITABLE = new Double(1.0);
@@ -69,6 +69,11 @@ abstract class NSField extends HTMLField {
 
     public void repositoryChangedValue() {
         fetch();
+        redraw();
+    }
+
+    public void unlock() {
+        super.unlock();
         redraw();
     }
 
