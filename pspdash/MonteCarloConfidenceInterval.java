@@ -33,7 +33,8 @@ import DistLib.uniform;
 
 /** Construct a confidence interval using a Monte Carlo simulation
  */
-public class MonteCarloConfidenceInterval implements ConfidenceInterval
+public class MonteCarloConfidenceInterval
+    implements ConfidenceInterval, TargetedConfidenceInterval
 {
 
     protected DoubleList samples = null;
