@@ -416,12 +416,20 @@
       <param name="panel-dir" value="HTMLLicencePanel"/>
     </antcall>
     <antcall target="compile.panel">
+      <param name="panel" value="CondHTMLLicencePanel"/>
+      <param name="panel-dir" value="CondHTMLLicencePanel"/>
+    </antcall>
+    <antcall target="compile.panel">
       <param name="panel" value="HTMLInfoPanel"/>
       <param name="panel-dir" value="HTMLInfoPanel"/>
     </antcall>
     <antcall target="compile.panel">
       <param name="panel" value="TargetPanel"/>
       <param name="panel-dir" value="TargetPanel"/>
+    </antcall>
+    <antcall target="compile.panel">
+      <param name="panel" value="DataDirPanel"/>
+      <param name="panel-dir" value="DataDirPanel"/>
     </antcall>
     <antcall target="compile.panel">
       <param name="panel" value="XInfoPanel"/>
@@ -434,6 +442,10 @@
     <antcall target="compile.panel">
       <param name="panel" value="ShortcutPanel"/>
       <param name="panel-dir" value="ShortcutPanel"/>
+    </antcall>
+    <antcall target="compile.panel">
+      <param name="panel" value="ShutdownDashboardPanel"/>
+      <param name="panel-dir" value="ShutdownDashboardPanel"/>
     </antcall>
     <antcall target="compile.panel">
       <param name="panel" value="UserInputPanel" />
