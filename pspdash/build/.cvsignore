@@ -1,2 +1,2 @@
 com javax META-INF pspdash Templates *.lnk
-pspdash.jar SCR-DCR.jar pspForEng.jar IE NS
+pspdash.jar SCR-DCR.jar pspForEng.jar importPSP.jar IE NS
