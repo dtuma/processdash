@@ -1,0 +1,72 @@
+#include <psp2.1/dataFile.txt>
+=============================================================================
+== PSP Dashboard - Data Automation Tool for PSP-like processes
+== Copyright (C) 1999  United States Air Force
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 2
+== of the License, or (at your option) any later version.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, write to the Free Software
+== Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+== 
+== The author(s) may be contacted at:
+== OO-ALC/TISHD
+== Attn: PSP Dashboard Group
+== 6137 Wardleigh Road
+== Hill AFB, UT 84056-5843
+== 
+== E-Mail POC:  ken.raisor@hill.af.mil
+
+=============================================================================
+== Title:	$Id$
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Fri Jan 30 16:08:52 1998
+==
+== Description: This is the data file for a PSP3 cycle.
+==
+
+
+==
+== The following elements identify the data in this file as belonging to
+== a PSP3 cycle.
+==
+
+psp3cycle==1.0
+PSP3cycle==1.0
+psp2.1==0.0
+PSP2.1==0.0
+PSP Project==0.0
+
+
+==
+== New phases: Design/Code Inspection, Reassessment.  No estimations needed.
+== 
+
+Reassessment/PSP Phase==70.0
+
+= Actual time
+
+Reassessment/Time==0.0
+Time==![(+	~.*/Time)]
+
+= Actual % Time.
+
+Reassessment/% Time==![(/	Reassessment/Time	Time)]
+
+= Actual Defects Injected
+
+Reassessment/Defects Injected==0.0
+Defects Injected==![(+	~.*/Defects Injected)]
+
+= Actual Defects Removed
+
+Reassessment/Defects Removed==0.0
+Defects Removed==![(+	~.*/Defects Removed)]
