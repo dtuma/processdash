@@ -73,6 +73,10 @@ class PCSH {
         try { help.setCurrentView(tab); } catch (Exception e) {}
     }
 
+    public static String getHelpIDString(Component comp) {
+        return CSH.getHelpIDString(comp);
+    }
+
     //    public static void setHelpIDString(MenuItem comp, String helpID) {
     //        javax.help.CSH.setHelpIDString(comp, helpID);
     //    }
