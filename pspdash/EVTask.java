@@ -438,6 +438,7 @@ public class EVTask implements DataListener {
                                     schedule.getPeriodEnd(effDate));
         checkForNodeErrors(schedule.getMetrics(), 0,
                            new ArrayList(), new ArrayList());
+        checkForScheduleErrors(schedule.getMetrics(), schedule);
         recalcMetrics(schedule.getMetrics());
         schedule.getMetrics().recalcComplete(schedule);
         schedule.firePreparedEvents();
@@ -579,6 +580,22 @@ public class EVTask implements DataListener {
         for (int i = 0;   i < getNumChildren();   i++)
             getChild(i).checkForNodeErrors(metrics, depth+1,
                                            rootChildList, otherNodeList);
+    }
+
+    public void checkForScheduleErrors(EVMetrics metrics, EVSchedule sched) {
+        EVSchedule.Period p = sched.get(0);
+        if (p.actualTime > 0.0)
+            metrics.addError("You have logged time to some of the tasks " +
+                             "in your task list before the start of the " +
+                             "first time period in your schedule. (Consider "+
+                             "modifying the schedule to begin earlier.)",
+                             this);
+        if (p.cumEarnedValue > 0.0)
+            metrics.addError("Some of the tasks in your task list were " +
+                             "completed before the start of the " +
+                             "first time period in your schedule. (Consider "+
+                             "modifying the schedule to begin earlier.)",
+                             this);
     }
 
     public void recalcMetrics(EVMetrics metrics) {
