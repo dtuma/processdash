@@ -4,6 +4,7 @@ DASHJAR = ../../../pspdash/build/pspdash.jar
 
 all:
 	$(JAVAC) -classpath $(DASHJAR) *.java
+	cd setup; make
 
 jar:
 	cd ../..; $(JAR) cf TeamProcessEditor.jar Templates\\team
