@@ -240,7 +240,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
                     // Are they trying to log time against some node which performs
                     // roll up only?  This is bad - don't allow it.
-                    if (!(pt instanceof DoubleData) || pt instanceof NumberFunction) {
+                    if (pt != null &&
+                        (!(pt instanceof DoubleData) || pt instanceof NumberFunction)) {
                         System.err.println("Error in TimeLogEditor: time must be logged " +
                                            "to phases (i.e. leaves of the hierarchy).");
                         continue;
@@ -883,6 +884,11 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     public void reloadAll(PSPProperties newProps) {
         useProps.copy(newProps);
         treeModel.reload (useProps);
+
+        DefaultMutableTreeNode selNode = getSelectedNode();
+        selectedNodeHasNoChildren =
+            (selNode != null && selNode.getChildCount() == 0);
+
         reload();
     }
 
