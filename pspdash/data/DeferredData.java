@@ -47,6 +47,7 @@ public class DeferredData implements SaveableData {
 
     public SaveableData realize() throws MalformedValueException {
         if (o == null) {
+            //System.out.println("Realizing " + name);
             o = ValueFactory.create(name, value, data, prefix);
             if (!editable)
                 o.setEditable(false);
