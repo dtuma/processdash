@@ -153,6 +153,8 @@ public class EVTaskListRollup extends EVTaskList {
         EVTask newTask = (EVTask) taskList.root;
         if (((EVTask) root).add(newTask)) {
             evTaskLists.add(taskList);
+            String errorQualifier = "[" + taskList.getRootName() + "] ";
+            taskList.schedule.getMetrics().setErrorQualifier(errorQualifier);
             ((EVScheduleRollup) schedule).addSchedule(taskList.schedule);
             return newTask;
         } else
