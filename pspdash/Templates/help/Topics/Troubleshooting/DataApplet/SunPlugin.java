@@ -37,11 +37,27 @@ public class IEDataApplet extends Applet {
         "/help/Topics/Troubleshooting/DataApplet/SunPlugin.htm";
 
     public IEDataApplet() { }
-    public void start() {
+    public void oldstart() {
         try {
             URL u = new URL(getDocumentBase(), PAGE_URL);
             System.out.println("URL=" + u);
             getAppletContext().showDocument(u, "_top");
+        } catch (IOException ioe) {
+            System.out.println(ioe);
+        }
+    }
+    public void start() {
+        try {
+            String urlStr = getParameter("docURL");
+            if (urlStr == null || urlStr.length() == 0)
+                urlStr = getDocumentBase().toString();
+            if (urlStr.indexOf('?') == -1)
+                urlStr = urlStr + "?UsingJavaPlugIn";
+            else
+                urlStr = urlStr + "&UsingJavaPlugIn";
+
+            URL url = new URL(urlStr);
+            getAppletContext().showDocument(url, "_self");
         } catch (IOException ioe) {
             System.out.println(ioe);
         }
