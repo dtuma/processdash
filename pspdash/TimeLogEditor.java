@@ -37,6 +37,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.util.*;
+import java.text.NumberFormat;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -78,6 +79,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     JButton    revertButton = null;
     JButton    saveButton   = null;
     JButton    addButton    = null;
+    JComboBox  formatChoice = null;
     TimeCardDialog timeCardDialog = null;
 
     static final long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
@@ -283,33 +285,76 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         return String.valueOf (t / 60) + ":" + String.valueOf (min);
     }
 
-    public long setTimes (Object node, Hashtable times) {
+    private static final String[] TIME_FORMATS = {
+        "Hrs:Mins", "Hours", "% of parent", "% of total" };
+    private static final int FORMAT_HOURS_MINUTES = 0;
+    private static final int FORMAT_HOURS = 1;
+    private static final int FORMAT_PERCENT_PARENT = 2;
+    private static final int FORMAT_PERCENT_TOTAL = 3;
+    protected int timeFormat = FORMAT_HOURS_MINUTES;
+
+    private static NumberFormat percentFormatter =
+        NumberFormat.getPercentInstance();
+    private static NumberFormat decimalFormatter =
+        NumberFormat.getNumberInstance();
+    static { decimalFormatter.setMaximumFractionDigits(2); }
+
+    protected String formatTime(long t, long parentTime, long totalTime) {
+        switch (timeFormat) {
+        case FORMAT_HOURS:
+            return decimalFormatter.format( (double) t / 60.0);
+
+        case FORMAT_PERCENT_PARENT:
+            return (parentTime == 0 ? "0%" :
+                    percentFormatter.format( (double) t / (double) parentTime));
+
+        case FORMAT_PERCENT_TOTAL:
+            return (totalTime == 0 ? "0%" :
+                    percentFormatter.format( (double) t / (double) totalTime));
+
+        case FORMAT_HOURS_MINUTES: default:
+            return formatTime(t);
+        }
+    }
+
+    public long collectTime(Object node, Hashtable timesIn, Hashtable timesOut) {
         long t = 0;                 // time for this node
 
                                     // recursively compute total time for each
                                     // child and add total time for this node.
         for (int i = 0; i < treeModel.getChildCount (node); i++) {
-            t += setTimes (treeModel.getChild (node, i), times);
+            t += collectTime(treeModel.getChild (node, i), timesIn, timesOut);
         }
 
                                     // fetch and add time spent in this node
         Object [] path = treeModel.getPathToRoot((TreeNode) node);
-        Long l = (Long) times.get(treeModel.getPropKey (useProps, path));
+        Long l = (Long) timesIn.get(treeModel.getPropKey (useProps, path));
         if (l != null)
             t += l.longValue();
 
-                                      // display the time next to the node name
-                                      // in the tree display
+        timesOut.put(node, new Long(t));
+
+        return t;
+    }
+
+    public void setTimes (Object node, Hashtable times,
+                          long parentTime, long totalTime) {
+
+        long t = ((Long) times.get(node)).longValue();
+
+                                    // display the time next to the node name
+                                    // in the tree display
         String s = (String) ((DefaultMutableTreeNode)node).getUserObject();
         int index = s.lastIndexOf ("=");
-        if (index < 0)
-            s = s + " = " + formatTime (t);
-        else
-            s = s.substring (0, index) + "= " + formatTime (t);
+        if (index > 0)
+            s = s.substring (0, index-1);
+        s = s + " = " + formatTime (t, parentTime, totalTime);
         ((DefaultMutableTreeNode)node).setUserObject(s);
         treeModel.nodeChanged((TreeNode) node);
 
-        return t;
+        for (int i = 0; i < treeModel.getChildCount (node); i++) {
+            setTimes (treeModel.getChild (node, i), times, t, totalTime);
+        }
     }
 
     public void setTimes () {
@@ -320,7 +365,10 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         if (td != null)             // need to add a day so search is inclusive
             td = new Date (td.getTime() + DAY_IN_MILLIS);
 
-        setTimes (treeModel.getRoot(), tl.getTimes(fd, td));
+        Hashtable nodeTimes = new Hashtable();
+        long totalTime =
+            collectTime(treeModel.getRoot(), tl.getTimes(fd, td), nodeTimes);
+        setTimes(treeModel.getRoot(), nodeTimes, totalTime, totalTime);
 
         //treeModel.nodeStructureChanged((TreeNode)treeModel.getRoot());
         tree.repaint(tree.getVisibleRect());
@@ -513,6 +561,15 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         JButton btn;
         Insets insets = new Insets(0, 2, 0, 2);
         JLabel  label;
+
+        label = new JLabel ("Time Format: ");
+        retPanel.add(label);
+        formatChoice = new JComboBox(TIME_FORMATS);
+        retPanel.add(formatChoice);
+        formatChoice.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                timeFormat = formatChoice.getSelectedIndex(); setTimes(); }} );
+        retPanel.add(new JLabel("          "));
 
         label = new JLabel ("Filter: ");
         retPanel.add (label);
