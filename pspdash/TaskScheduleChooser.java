@@ -159,6 +159,7 @@ public class TaskScheduleChooser
         this.dash = dash;
 
         dialog = new JDialog();
+        PCSH.enableHelpKey(dialog, "UsingTaskSchedule.chooser");
         dialog.setTitle("Open/Create Task & Schedule");
         dialog.getContentPane().add
             (new JLabel("Choose a task & schedule template:"),

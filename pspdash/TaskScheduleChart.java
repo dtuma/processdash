@@ -49,6 +49,7 @@ public class TaskScheduleChart extends JFrame
 
     public TaskScheduleChart(TaskScheduleDialog parent) {
         super("EV Chart - " + parent.taskListName);
+        PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         setIconImage(parent.frame.getIconImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         taskList = parent.model;
