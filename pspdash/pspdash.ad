@@ -117,7 +117,7 @@ http.allowRemote=false
 # names currently in use, override this definition and check the
 # combo box lists in the probe dialog.
 #
-hiddenData=^(PSP Project|LOC|SCR|DCR|SCRCYCLE|TIMER|PSPFORENG|GENERIC|INSPECTION|Project/Language|Estimated KLOC|KLOC)$|Total Time|Started|Completed|\d|To Date|Owner| per |/Estimated Defects|/Estimated Time|/Estimated DRL|leaf|node|/Combined|^Cycles|Defect Type Standard|FreezeFlag|^Generic - Show|^Normalized|^PM/|New & Changed KLOC|PSP Phase|GENERICPHASE
+hiddenData=^(PSP Project|LOC|SCR|DCR|SCRCYCLE|TIMER|PSPFORENG|GENERIC|INSPECTION|Project/Language|Estimated KLOC|KLOC)$|Total Time|\\d|To Date| per |/Estimated Defects|/Estimated Time|/Estimated DRL|/Combined|^Cycles|Defect Type Standard|FreezeFlag|^Generic - Show|^PM/|New & Changed KLOC|PSP Phase|GENERICPHASE|//|node$|leaf$
 
 
 #
