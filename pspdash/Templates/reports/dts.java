@@ -56,6 +56,15 @@ public class dts extends TinyCGIBase {
             out.println("    <TD VALIGN=baseline>" + description +
                         "</TD></TR>");
         }
-        out.println("</TABLE></BODY></HTML>");
+        out.println("</TABLE>");
+        if ("PSP - text".equals(name) || "PSP - numbers".equals(name))
+            out.println(COPYRIGHT_NOTICE);
+        out.println("</BODY></HTML>");
     }
+
+    private static final String COPYRIGHT_NOTICE =
+        "<HR><FONT SIZE='-1'><I>Adapted from\n" +
+        "<a href='/help/Topics/Overview/disc-eng.html'>A&nbsp;Discipline\n" +
+        "for Software Engineering</a>, copyright &copy;&nbsp;1995\n" +
+        "Addison-Wesley. Used by permission.</I></FONT>\n";
 }
