@@ -172,7 +172,14 @@ public class TinyCGIBase implements TinyCGI {
     /** get the effective prefix, set via the URL */
     protected String getPrefix() {
         String result = (String) parameters.get("hierarchyPath");
-        if (result == null) result = (String) env.get("PATH_TRANSLATED");
+        if (result == null)
+            result = (String) env.get("PATH_TRANSLATED");
+        else if (!result.startsWith("/")) {
+            String prefix = (String) env.get("PATH_TRANSLATED");
+            if (prefix == null)
+                prefix = "";
+            result = prefix + "/" + result;
+        }
         return result;
     }
     /** Does this CGI script want to support query parameter files?
