@@ -3,13 +3,14 @@ package teamdash.wbs;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
 import pspdash.XMLUtils;
 
 /** This class represents a node in the work breakdown structure hierarchy.
@@ -202,6 +203,16 @@ public class WBSNode implements Cloneable {
         }
     }
 
+
+
+    /** Make a deep copy of a list of WBSNodes */
+    public static List cloneNodeList(List nodesToCopy) {
+        List result = new ArrayList();
+        Iterator i = nodesToCopy.iterator();
+        while (i.hasNext())
+            result.add(((WBSNode) i.next()).clone());
+        return result;
+    }
 
 
     // constants used in creating/parsing XML
