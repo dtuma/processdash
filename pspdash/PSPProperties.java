@@ -375,6 +375,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     public static final String TEMPLATE_NODE_NAME = "template";
     public static final String HTML_NODE_NAME = "html";
     public static final String ID_ATTR = "ID";
+    public static final String NO_DATAFILE = "none";
 
     public static final String XML_HEADER =
         "<?xml version='1.0'?>";
@@ -412,7 +413,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         PropertyKey templateKey = null;
         Prop val = new Prop();
         val.setDefectLog(e.getAttribute(DEFECTLOG_ATTR));
-        val.setDataFile(e.getAttribute(DATAFILE_ATTR));
+        String datafile = e.getAttribute(DATAFILE_ATTR);
+        if (!NO_DATAFILE.equals(datafile)) val.setDataFile(datafile);
 
         if (templates != null) {
             // We are reading the user's state file.
