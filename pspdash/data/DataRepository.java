@@ -459,12 +459,17 @@ public class DataRepository implements Repository {
 
         public DataRepository() {
             includedFileCache.put("<dataFile.txt>", globalDataDefinitions);
-            dataServer = new RepositoryServer(this);
             dataRealizer = new DataRealizer();
             dataNotifier = new DataNotifier();
-            dataServer.start();
             dataRealizer.start();
             dataNotifier.start();
+        }
+
+        public void startServer(int port) {
+            if (dataServer == null) {
+                dataServer = new RepositoryServer(this, port);
+                dataServer.start();
+            }
         }
 
         public void saveAllDatafiles() {
@@ -485,7 +490,8 @@ public class DataRepository implements Repository {
             } catch (InterruptedException e) {}
 
             saveAllDatafiles();
-            dataServer.quit();
+            if (dataServer != null)
+                dataServer.quit();
         }
 
 
@@ -1549,7 +1555,8 @@ public class DataRepository implements Repository {
                 IDPathMap.put(ID, newPrefix);
             }
 
-            dataServer.deletePrefix(oldPrefix);
+            if (dataServer != null)
+                dataServer.deletePrefix(oldPrefix);
         }
 
 }
