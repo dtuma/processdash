@@ -31,8 +31,8 @@ E-Mail POC:  ken.raisor@hill.af.mil
 
 <dashboard-process-template>
 
-  <template name="SCR" ID="SCR" defectLog="true" 
-            dataFile="SCR/dataFile.txt" htmlID="top"
+  <template name="SCR" ID="SCR" defectLog="true" defineRollup="no"
+            dataFile="SCR/dataFile.txt" htmlID="top" imaginary="true"
             constraints="{SCRcycle(-2)">
     <html ID="sum"  title="SCR Project Summary"    href="SCR/summary.htm"/>
     <html ID="top"  title="SCR Process Script"     href="SCR/script.htm"/>
@@ -44,8 +44,9 @@ E-Mail POC:  ken.raisor@hill.af.mil
     <phase name="CPT&amp;E"/>
   </template>
 
-  <template name="SCRcycle" ID="SCRcycle" htmlID="top"
-            dataFile="SCRcycle/dataFile.txt" constraints="{}SCR">
+  <template name="SCRcycle" ID="SCRcycle" htmlID="top" defineRollup="no"
+            dataFile="SCRcycle/dataFile.txt"  imaginary="true"
+            constraints="{}SCR">
     <html ID="sum"  title="SCR Cycle Summary"    href="SCRcycle/summary.htm"/>
     <html ID="top"  title="SCR Cycle Script"     href="SCRcycle/script.htm"/>
 

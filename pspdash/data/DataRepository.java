@@ -1957,6 +1957,12 @@ public class DataRepository implements Repository {
         public String getRollupDatafileName(String rollupID) {
             return "ROLLUP:" + rollupID;
         }
+        public String isRollupDatafileName(String dataFile) {
+            if (dataFile != null && dataFile.startsWith("ROLLUP:"))
+                return dataFile.substring("ROLLUP:".length());
+            else
+                return null;
+        }
 
         public String getAliasDatafileName(String rollupID) {
             return "ROLLUP-ALIAS:" + rollupID;

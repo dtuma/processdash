@@ -48,7 +48,8 @@ that are shipped with the dashboard
     <phase name="Postmortem" type="pm"/>
   </template>
 
-  <template name="Generic Phase" ID="Generic Phase" defineRollup="no"
+  <template name="Generic Phase" ID="Generic Phase"
+            defineRollup="no" href="none"
             dataFile="generic/phaseData.txt" constraints="{}Generic" />
 
 </dashboard-process-template>

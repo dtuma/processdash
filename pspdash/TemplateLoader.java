@@ -89,10 +89,28 @@ public class TemplateLoader {
             }
         }
 
+        generateRollupTemplates(templates, data);
+
         createProcessRoot(templates);
 
         return templates;
     }
+
+
+    /** Dynamically create templates for any orphaned data rollups.
+     */
+    protected static void generateRollupTemplates(PSPProperties templates,
+                                                  DataRepository data) {
+        String rollupXML = AutoData.generateRollupTemplateXML();
+        if (rollupXML == null) return;
+
+        ByteArrayInputStream in =
+            new ByteArrayInputStream(rollupXML.getBytes());
+        try {
+            loadXMLProcessTemplate(templates, data, in, true);
+        } catch (IOException ioe) {}
+    }
+
 
     /**
      * The templates hierarchy needs a root.  However, that root cannot
@@ -277,6 +295,8 @@ public class TemplateLoader {
         } catch (SAXException se) {
             // Can this happen?
         }
+
+        generateDefaultScriptMaps(root);
     }
 
     protected static void debug(String msg) {
@@ -478,7 +498,8 @@ public class TemplateLoader {
         return scriptFile;
     }
     private static void maybeAddScriptID(Vector v, String scriptFile) {
-        if (v == null || !Prop.hasValue(scriptFile))
+        if (v == null || !Prop.hasValue(scriptFile) ||
+            "none".equals(scriptFile))
             return;
         int hashPos = scriptFile.indexOf('#');
         if (hashPos != -1) scriptFile = scriptFile.substring(0, hashPos);
@@ -549,6 +570,30 @@ public class TemplateLoader {
                 resolveScriptIDs((Element) children.item(i), idMap);
             } catch (ClassCastException cce) {}
         }
+    }
+
+    private static void generateDefaultScriptMaps(Element e) {
+        NodeList templates = e.getElementsByTagName(TEMPLATE_NODE_NAME);
+        for (int i = templates.getLength();  i-- > 0; ) try {
+            Element template = (Element) templates.item(i);
+            String ID = template.getAttribute(ID_ATTR);
+            if (!hasValue(ID)) continue;
+            if (hasValue(template.getAttribute(HTML_HREF_ATTR))) continue;
+
+            // if there is no script ID for this element, and it
+            // hasn't specifically requested otherwise, give it a
+            // default href.
+            Vector v = (Vector) scriptMaps.get(ID);
+            if (v == null)
+                scriptMaps.put(ID, (v = new Vector()));
+
+            if (v.size() == 0) {
+                v.addElement(new ScriptID("dash/summary.shtm", null,
+                                          ID + " Plan Summary Form"));
+                //System.out.println("adding default HTML form for "+ID);
+            }
+
+        } catch (ClassCastException cce) {}
     }
 
     private static boolean hasValue(String v) {

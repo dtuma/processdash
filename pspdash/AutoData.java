@@ -43,6 +43,9 @@ import org.w3c.dom.NodeList;
  */
 public abstract class AutoData implements DefinitionFactory, Serializable {
 
+    static HashSet rollupsDefined = new HashSet();
+    static HashSet rollupsUsed    = new HashSet();
+
 
     /** Create and register AutoData objects for all the templates in
      *the XML document.
@@ -135,10 +138,53 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
             DefinitionFactory aliasResult = rollupResult.getAliasAutoData();
             data.registerDefaultData(aliasResult, null, imaginaryFilename);
 
-            // FIXME: Also need to create templates for letting the
-            // user define additional rollups
+            // Keep track of the rollups we have created.
+            rollupsDefined.add(definesRollup);
         }
+
+        // Keep track of the rollups that have been used by templates.
+        String isRollupTemplate = data.isRollupDatafileName(dataFile);
+        if (isRollupTemplate != null) rollupsUsed.add(isRollupTemplate);
     }
+
+
+    /** This routine identifies "orphaned" data rollups, and creates
+     *  XML templates that the user can use to instantiate those rollups.
+     *  ("orphaned" data rollups are rollups that have been defined,
+     *  but which are not referenced by any template.)
+     *  @return null if there are no orphaned data rollups; otherwise
+     *     returns XML text for the dynamically generated templates.
+     */
+    public static String generateRollupTemplateXML() {
+        HashSet orphans = new HashSet(rollupsDefined);
+        orphans.removeAll(rollupsUsed);
+
+        if (orphans.isEmpty()) return null;
+
+        StringBuffer result = new StringBuffer();
+        result.append("<?xml version='1.0'?><dashboard-process-template>");
+
+        Iterator i = orphans.iterator();
+        while (i.hasNext()) {
+            String rollupID = (String) i.next();
+            System.out.println("Generating rollup template: " + rollupID);
+            result.append(StringUtils.findAndReplace
+                          (ROLLUP_TEMPLATE_XML, "RID",
+                           XMLUtils.escapeAttribute(rollupID)));
+        }
+        result.append("</dashboard-process-template>");
+
+        return result.toString();
+    }
+    private static final String ROLLUP_TEMPLATE_XML =
+        "<template name='Rollup RID Data' ID='Rollup RID Data' "+
+        "          dataFile='ROLLUP:RID' defineRollup='no'>" +
+        "   <html ID='sum' title='RID Rollup Project Summary' " +
+        "         href='dash/summary.shtm?rollup'/>" +
+        "   <html ID='config' title='Edit Data Rollup Filter' " +
+        "         href='dash/rollupFilter.shtm'/>" +
+        "   <phase name='Analyze Rollup Data'/>" +
+        "</template>";
 
 
     /** Get the contents of a file as a string.  The file is loaded from the

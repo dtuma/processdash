@@ -52,10 +52,10 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Postmortem" htmlID="pm"          type="pm"/>
   </template>
 
-  <template name="Design Review" ID="Design Review" dataFile="none"
+  <template name="Design Review" ID="Design Review" dataFile="none" href="none"
             constraints="MED{}PSP0}PSP0.1}PSP1}PSP1.1}PSP0.1-PFE-2A}PSP1-PFE-4A}PSP1.1-PFE-5A}PSP0.1-MSE-2A}PSP1-MSE-3B" />
 
-  <template name="Code Review" ID="Code Review" dataFile="none"
+  <template name="Code Review" ID="Code Review" dataFile="none" href="none"
             constraints="MED{}PSP0}PSP0.1}PSP1}PSP1.1}PSP0.1-PFE-2A}PSP1-PFE-4A}PSP1.1-PFE-5A}PSP0.1-MSE-2A}PSP1-MSE-3B" />
 
   <template name="PSP0.1" ID="PSP0.1" defectLog="true" usesRollup="PSP"
@@ -214,7 +214,7 @@ This file contains the template definitions for the standard PSP processes.
   </template>
 
   <template name="PSP3cycle" ID="PSP3cycle" defineRollup="no"
-            dataFile="psp3/cycleData.txt" htmlID="top"
+            dataFile="psp3/cycleData.txt" href="none"
             constraints="{Design Inspection(2){Code Inspection(-2)}PSP3">
     <phase name="Design"        type="dld"/>
     <phase name="Design Review" type="dldr"/>
@@ -225,7 +225,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Reassessment"  type="pm"/>
   </template>
 
-  <template name="PSP Data Rollup Prototype" imaginary="true"
+  <template name="PSP Data Rollup Prototype" imaginary="true" href="none"
             dataFile="psp3/rollupData.txt" defineRollup="PSP"/>
 
   <template name="Rollup PSP Data" ID="Rollup PSP Data"
