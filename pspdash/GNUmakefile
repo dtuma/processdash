@@ -59,6 +59,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/table.java
 CGI_CLASSES=$(subst .java,.class,$(CGI_JAVA))
 SIZEEST_COPIES=Templates/psp1.1/sizeest.class \
+	Templates/psp1.0.1/sizeest.class \
 	Templates/psp2/sizeest.class \
 	Templates/psp2.1/sizeest.class \
 	Templates/psp3/sizeest.class

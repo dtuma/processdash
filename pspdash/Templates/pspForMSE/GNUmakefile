@@ -65,12 +65,12 @@ $(PROG_3B_FILES): 3B/% : ../psp1/%
 
 
 ######################################################################
-# Build the files for program 4B, from 5B (the PSP1.0.1 process)
+# Build the files for program 4B, from PSP1.0.1
 
-PSP101_FILES=$(notdir $(wildcard 5B/*.*htm))
+PSP101_FILES=$(notdir $(wildcard ../psp1.0.1/*.*htm))
 PROG_4B_FILES=$(addprefix 4B/,$(PSP101_FILES))
 prog4B: $(PROG_4B_FILES) 4B/sizeest.class
-$(PROG_4B_FILES): 4B/% : 5B/%
+$(PROG_4B_FILES): 4B/% : ../psp1.0.1/%
 	$(PERL) -p filter cut4B $< > $@
 
 
@@ -84,4 +84,4 @@ $(SIZEEST_COPIES): ../psp1/sizeest.class
 # Other miscellaneous targets
 
 clean:
-	rm -f *~ *B/*~ *A/*~ 3B/*.*htm 4B/*.*htm *A/*.*htm *B/sizeest.class pspForMSE.jar
+	rm -f *~ *B/*~ *A/*~ *B/*.*htm *A/*.*htm *B/sizeest.class pspForMSE.jar
