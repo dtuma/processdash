@@ -26,9 +26,99 @@
 package pspdash.data;
 
 
-public interface FrozenData {
+public class FrozenData implements SaveableData {
 
-    /** Frozen data can be thawed. */
-    public SaveableData thaw(String defaultVal);
+    public static final SaveableData DEFAULT = new DoubleData(0);
 
+    SimpleData value;
+    FrozenUtil util;
+    String name, prefix;
+    DataRepository data;
+
+    SaveableData o = null;
+
+    /** This constructor is called by ValueFactory when opening a datafile
+     * that contains a frozen element.
+     */
+    public FrozenData(String name, String s, DataRepository data,
+                      String prefix) throws MalformedValueException
+    {
+        this.name = name;
+        this.data = data;
+        this.prefix = prefix;
+        this.util = new FrozenUtil(s);
+        try {
+            value = (SimpleData) ValueFactory.createQuickly
+                (name, util.currentSaveString, data, prefix);
+        } catch (MalformedValueException mve) {
+            value = new MalformedData(util.currentSaveString);
+        }
+        if (value != null) value.setEditable(false);
+    }
+
+    /** This constructor is called by the DataFreezer to freeze a live
+     * data element.
+     */
+    public FrozenData(String name, SaveableData thawedVal,
+                      DataRepository data, String prefix, String defaultVal) {
+        this.name = name;
+        this.data = data;
+        this.prefix = prefix;
+        this.util = new FrozenUtil();
+
+        if (thawedVal == null) {
+            value = null;
+            util.formerEditable = true;
+            util.setFormer("null", defaultVal);
+        } else {
+            value = thawedVal.getEditable(false).getSimpleValue();
+            util.formerEditable = thawedVal.isEditable();
+            util.setFormer(thawedVal.saveString(), defaultVal);
+        }
+        if (value == null)
+            util.currentSaveString = "null";
+        else {
+            util.currentSaveString = value.saveString();
+            value.setEditable(false);
+        }
+    }
+
+    /** This method is called by the DataFreezer to thaw a frozen data
+     * element.
+     */
+    public SaveableData thaw() {
+        if (o == null) {
+            String value = util.getFormer();
+            if (value == null)
+                o = DEFAULT;
+            else try {
+                o = ValueFactory.createQuickly(name, value, data, prefix);
+                if (o != null) o.setEditable(util.formerEditable);
+            } catch (MalformedValueException mve) {
+                o = new MalformedData(value);
+            }
+        }
+
+        return o;
+    }
+
+    public String getPrefix() { return prefix; }
+
+    public boolean isEditable() { return false; }
+    public void setEditable(boolean e) {}
+    public SaveableData getEditable(boolean editable) { return this; }
+    public boolean isDefined() {
+        return (value == null || value.isDefined());
+    }
+    public void setDefined(boolean d) {}
+    public String saveString()  { return util.buildSaveString(); }
+    public SimpleData getSimpleValue() { return value; }
+
+    public void dispose() {
+        value = null;
+        name = prefix = null;
+        util = null;
+        data = null;
+        o = null;
+    }
 }

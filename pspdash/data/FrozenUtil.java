@@ -80,17 +80,10 @@ class FrozenUtil {
             formerSaveString = former;
     }
 
-    public String getFormer(String defaultVal) {
-        if (formerSaveString.equals(DEFAULT)) {
-            if (defaultVal == null)
-                return "null";
-            else if (defaultVal.startsWith("=")) {
-                formerEditable = false;
-                defaultVal = defaultVal.substring(1);
-            }
-            return defaultVal;
-
-        } else
+    public String getFormer() {
+        if (formerSaveString.equals(DEFAULT))
+            return null;
+        else
             return formerSaveString;
     }
 

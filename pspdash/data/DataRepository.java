@@ -710,22 +710,12 @@ public class DataRepository implements Repository {
                 // Lookup the default value of this data element.
                 String defVal = lookupDefaultValue(dataName, element);
 
+                // Don't freeze null data elements when there is no default value.
+                if (value == null && defVal == null) return;
+
                 // Create the frozen version of the value.
-                SaveableData frozenValue = null;
-                if (value instanceof DoubleData)
-                    frozenValue = new FrozenDouble
-                        (dataName, (DoubleData)value, DataRepository.this, prefix, defVal);
-                else if (value instanceof DateData)
-                    frozenValue = new FrozenDate
-                        (dataName, (DateData)value, DataRepository.this, prefix, defVal);
-                else if (value instanceof StringData)
-                    frozenValue = new FrozenString
-                        (dataName, (StringData)value, DataRepository.this, prefix, defVal);
-                else
-                    // Eeek! This should hopefully never happen. It would mean there is
-                    // a new basic form of data that no one told us about! Probably the
-                    // best thing to do is keep our hands off and do nothing.
-                    return;
+                SaveableData frozenValue = new FrozenData
+                    (dataName, value, DataRepository.this, prefix, defVal);
 
                 // Save the frozen value to the repository.
                 putValue(dataName, frozenValue);
@@ -736,13 +726,16 @@ public class DataRepository implements Repository {
                 DataElement element = (DataElement) data.get(dataName);
                 if (element == null) return;
 
-                String defVal = lookupDefaultValue(dataName, element);
-
                 SaveableData value = element.getImmediateValue(), thawedValue;
                 if (value instanceof FrozenData) {
                     //System.out.println("thawing " + dataName);
                     // Thaw the value.
-                    thawedValue = ((FrozenData)value).thaw(defVal);
+                    FrozenData fd = (FrozenData) value;
+                    thawedValue = fd.thaw();
+                    if (thawedValue == FrozenData.DEFAULT)
+                        thawedValue = instantiateValue
+                            (dataName, fd.getPrefix(),
+                             lookupDefaultValueObject(dataName, element), false);
 
                     // Save the thawed value to the repository.
                     putValue(dataName, thawedValue);
@@ -842,7 +835,7 @@ public class DataRepository implements Repository {
 
                 public void dataValueChanged(DataEvent e) {
                     if (! freezeFlagName.equals(e.getName())) return;
-                    observedFlagValue = e.getValue().test();
+                    observedFlagValue = (e.getValue() != null && e.getValue().test());
                     addDataConsistencyObserver(this);
                 }
 
@@ -952,9 +945,9 @@ public class DataRepository implements Repository {
             }
         }
         private static final String FREEZE_FLAG_TAG = "/FreezeFlag/";
-        private static int FDS_FROZEN = 0;
-        private static int FDS_GRANDFATHERED = 1;
-        private static int FDS_THAWED = 2;
+        private static final int FDS_FROZEN = 0;
+        private static final int FDS_GRANDFATHERED = 1;
+        private static final int FDS_THAWED = 2;
 
         DataFreezer dataFreezer;
 
@@ -1702,7 +1695,7 @@ public class DataRepository implements Repository {
         }
 
 
-        String lookupDefaultValue(String dataName, DataElement element) {
+        Object lookupDefaultValueObject(String dataName, DataElement element) {
             // if the user didn't bother to look up the data element, look
             // it up for them.
             if (element == null) element = (DataElement)data.get(dataName);
@@ -1720,6 +1713,10 @@ public class DataRepository implements Repository {
             int prefixLength = datafile.prefix.length() + 1;
             String nameWithinDataFile = dataName.substring(prefixLength);
             Object defaultVal = defaultValues.get(nameWithinDataFile);
+            return defaultVal;
+        }
+        String lookupDefaultValue(String dataName, DataElement element) {
+            Object defaultVal = lookupDefaultValueObject(dataName, element);
             if (defaultVal == null) return null;
             if (defaultVal instanceof String) return (String) defaultVal;
             if (defaultVal instanceof SimpleData)
@@ -1728,6 +1725,7 @@ public class DataRepository implements Repository {
                 return ((CompiledScript) defaultVal).saveString();
             return null;
         }
+
 
 
         private InputStream findDatafile(String path, File currentFile) throws
@@ -1981,18 +1979,46 @@ public class DataRepository implements Repository {
             loadDatafile(null, datafile, globalDataDefinitions, close);
         }
 
+        private SaveableData instantiateValue(String name, String dataPrefix,
+                                              Object valueObj, boolean readOnly) {
+
+            SaveableData o = null;
+
+            if (valueObj instanceof SimpleData) {
+                o = (SimpleData) valueObj;
+                if (readOnly) o = o.getEditable(false);
+
+            } else if (valueObj instanceof CompiledScript) {
+                o = new CompiledFunction(name, (CompiledScript) valueObj,
+                                         this, dataPrefix);
+
+            } else if (valueObj instanceof SearchFactory) {
+                o = ((SearchFactory) valueObj).buildFor(name, this, dataPrefix);
+
+            } else if (valueObj instanceof String) {
+                String value = (String) valueObj;
+                if (value.startsWith("=")) {
+                    readOnly = true;
+                    value = value.substring(1);
+                }
+
+                try {
+                    o = ValueFactory.createQuickly(name, value, this, dataPrefix);
+                } catch (MalformedValueException mfe) {
+                    o = new MalformedData(value);
+                }
+                if (readOnly && o != null) o.setEditable(false);
+            }
+
+            return o;
+        }
+
         private void putGlobalValue(String name, Object valueObj) {
             DataElement e = (DataElement) data.get(name);
             if (e != null && e.getImmediateValue() != null)
                 return;                 // don't overwrite existing values?
 
-            SaveableData o = null;
-            if (valueObj instanceof SimpleData)
-                o = (SimpleData) valueObj;
-            else if (valueObj instanceof CompiledScript)
-                o = new CompiledFunction(name, (CompiledScript) valueObj, this, "");
-            else if (valueObj instanceof SearchFactory)
-                o = ((SearchFactory) valueObj).buildFor(name, this, "");
+            SaveableData o = instantiateValue(name, "", valueObj, false);
 
             if (o != null) {
                 globalDataDefinitions.put(name.substring(1), valueObj);
@@ -2183,36 +2209,16 @@ public class DataRepository implements Repository {
                         localName = (String) defn.getKey();
                         valueObj = defn.getValue();
                         name = createDataName(dataPrefix, localName);
-                        o = null;
+                        o = instantiateValue(name, dataPrefix, valueObj, !fileEditable);
 
-                        if (valueObj instanceof SimpleData) {
-                            o = (SimpleData) valueObj;
-                            if (!fileEditable) o = o.getEditable(false);
-                        } else if (valueObj instanceof CompiledScript) {
-                            o = new CompiledFunction(name, (CompiledScript) valueObj,
-                                                     this, dataPrefix);
-                        } else if (valueObj instanceof SearchFactory) {
-                            o = ((SearchFactory) valueObj).buildFor(name, this, dataPrefix);
-                        } else if (valueObj != null) {
-                            value = (String) valueObj;
-                            if (value.startsWith("=")) {
-                                dataEditable = false;
-                                value = value.substring(1);
-                            } else
-                                dataEditable = true;
+                        // is anyone still using this functionality???
+                        if (valueObj instanceof String &&
+                            "@now".equalsIgnoreCase((String) valueObj))
+                            dataModified = true;
 
-                            if (value.equalsIgnoreCase("@now"))
-                                dataModified = true;
-                            try {
-                                o = ValueFactory.createQuickly(name, value, this, dataPrefix);
-                            } catch (MalformedValueException mfe) {
-                                System.err.println("Data value for '"+name+"' in file '"+
-                                                   datafilePath+"' is malformed.");
-                                o = new MalformedData(value);
-                            }
-                            if (!fileEditable || !dataEditable)
-                                if (o != null) o.setEditable(false);
-                        }
+                        if (o instanceof MalformedData)
+                            System.err.println("Data value for '"+name+"' in file '"+
+                                               datafilePath+"' is malformed.");
 
                         d = (DataElement)data.get(name);
                         if (d == null) {
