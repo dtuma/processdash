@@ -174,6 +174,7 @@ IE: $(IE_CLASS_FILES)
 
 $(BIN_IE)/pspdash/data/%.class: %.java
 	mkdir -p $(BIN_IE)
+	mkdir -p $(BIN_DATA)/pspdash/data
 #	rm -rf $(BIN_IE)/pspdash $(BIN_IE)/DataApplet.cab
 	$(MSJAVAC) \
 	    /cp:p $(SRC) \
