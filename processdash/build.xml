@@ -91,9 +91,12 @@ Authors:
   <property name="processdash" value="${src}/net/sourceforge/processdash"/>
   <property name="data"       value="${processdash}/data"/>
   <property name="compiler"   value="${data}/compiler"/>
+  <property name="i18n"       value="${processdash}/i18n"/>
   <property name="templates"  value="Templates"/>
+  <property name="resources"  value="${templates}/resources"/>
   <property name="help"       value="${templates}/help"/>
   <property name="helpsearch" value="${help}/JavaHelpSearch"/>
+  <property name="libsrc"     value="${lib}/src"/>
 
   <property name="ns.dir" value="${build}/NS"/>
   <property name="ns.jar" value="${build}/Templates/${applet.file}.jar"/>
@@ -142,7 +145,7 @@ Authors:
 
 
 
-  <target name="compile" depends="init,parser"
+  <target name="compile" depends="init,parser,translator"
         description="Compile the main dashboard classes" >
 
     <!-- Compile the java code from ${src} into ${build} -->
@@ -285,6 +288,28 @@ Authors:
 
 
 
+  <target name="translator" depends="ant-tasks,-translator-depend"
+          description="Regenerate source code for the default translation engine if necessary."
+	  unless="translator.upToDate">
+    <i18n-generateTranslator
+        classname="net.sourceforge.processdash.i18n.DefaultEngine"
+	destdir="src"
+	dir="${resources}" includes="Resources.properties"/>
+  </target>
+
+  <target name="-translator-depend"
+          description="Check to see if the source code for the default translation engine needs regenerating.">
+    <uptodate property="translator.upToDate"
+              targetfile="${i18n}/DefaultEngine.java">
+      <srcfiles dir=".">
+        <include name="${resources}/Resources.properties"/>
+        <include name="lib/src/net/sourceforge/processdash/i18n/GenerateTranslatorTemplate.lex"/>
+      </srcfiles>
+    </uptodate>
+  </target>
+
+
+
   <target name="NSDataApplet" depends="init" if="nsobject.support"
         description="Compile the data applet support for netscape and W3C dom">
     <mkdir dir="${ns.dir}"/>
@@ -301,6 +326,17 @@ Authors:
       <includesfile name="${lib}/fileset-ns.txt"/>
     </javac>
     <jar destfile="${ns.jar}" basedir="${ns.dir}" includes="net/"/>
+  </target>
+
+  <target name="ant-tasks">
+    <javac srcdir="${libsrc}" destdir="${libsrc}" debug="true"
+           includeAntRuntime="yes"/>
+    <taskdef name="i18n-orphans"
+        classname="net.sourceforge.processdash.i18n.OrphanedResources"
+	classpath="${libsrc}"/>
+    <taskdef name="i18n-generateTranslator"
+        classname="net.sourceforge.processdash.i18n.GenerateTranslator"
+	classpath="${libsrc}"/>
   </target>
 
 
@@ -430,15 +466,8 @@ Authors:
   </target>
 
 
-  <target name="check-res">
-    <taskdef name="rescheck"
-        classname="net.sourceforge.processdash.OrphanedResources"
-	classpath="../../misc/workspace/dash-ant/bin"/>
-    <rescheck dir="Templates">
-      <include name="**/*.properties"/>
-      <exclude name="resources/LookAndFeelSettings_*.properties"/>
-      <exclude name="resources/Translator_*.properties"/>
-    </rescheck>
+  <target name="check-res" depends="ant-tasks">
+    <i18n-orphans dir="Templates" includes="**/*.properties"/>
   </target>
 
   <!-- =================================================================== -->
@@ -451,12 +480,14 @@ Authors:
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
     <delete quiet="true" file="${processdash}/ui/help/DashHelpBrokerCGI.java"/>
+    <delete quiet="true" file="${i18n}/DefaultEngine*"/>
     <delete quiet="true" dir="${helpsearch}"/>
 
     <delete quiet="true" file="${dist}/pspdash.jar"/>
     <delete quiet="true" file="${dist}/dashHelp.jar"/>
     <delete quiet="true" file="${dist}/importPSP.jar"/>
     <delete quiet="true" file="${dist}/pspForEng.jar"/>
+    <delete><fileset dir="${libsrc}" includes="**/*.class"/></delete>
   </target>
 
   <target name="dist"

@@ -26,6 +26,7 @@
 package net.sourceforge.processdash.i18n;
 
 import java.io.Reader;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -51,7 +52,7 @@ public class Translator {
     /** Translate a string.
      *
      * The string can contain HTML markup, which will not be translated.
-     * If no tranlation engine is operating, the original string will
+     * If no translation engine is operating, the original string will
      * be returned unchanged.
      *
      * @param s the string to translate
@@ -72,7 +73,7 @@ public class Translator {
     /** Translate the contents of a stream on-the-fly.
      *
      * The stream can contain HTML markup, which will not be translated.
-     * If no tranlation engine is operating, the original stream will
+     * If no translation engine is operating, the original stream will
      * be returned unchanged.
      *
      * @param s the stream to translate
@@ -112,7 +113,14 @@ public class Translator {
             classPath[0] = new URL(path);
             URLClassLoader cl = new URLClassLoader(classPath);
             Class c = cl.loadClass(className);
-            TRANSLATOR = (TranslationEngine) c.newInstance();
+            try {
+                Constructor cstr = c.getConstructor(new Class[] { Map.class });
+                Resources r = Resources.getDashBundle("Resources");
+                TRANSLATOR = (TranslationEngine) cstr.newInstance
+                    (new Object[] { r.asMap() });
+            } catch (Exception e) {
+                TRANSLATOR = (TranslationEngine) c.newInstance();
+            }
 
         } catch (Exception e) {
             TRANSLATOR = null;
@@ -145,69 +153,15 @@ public class Translator {
 
     private static void createDefaultEngine() {
         try {
-            ResourceBundle r = Resources.getDashBundle("Resources");
+            Resources r = Resources.getDashBundle("Resources");
             Locale l = r.getLocale();
             String lang = l.getLanguage();
-            if (lang != null && lang.length() != 0)
-                TRANSLATOR = new DefaultEngine(r);
+            if (lang != null && lang.length() != 0) {
+                TRANSLATOR = new DefaultEngine(r.asMap());
+                System.out.println("Created default translation engine.");
+            }
         } catch (Exception e) {
         }
-    }
-
-    public static String unpackKey(String dictTerm) {
-        StringBuffer result = new StringBuffer();
-        StringTokenizer tok = new StringTokenizer(dictTerm, "_ ");
-        result.append(tok.nextToken());
-        while (tok.hasMoreTokens())
-            result.append(" ").append(tok.nextToken());
-        return result.toString();
-    }
-
-
-
-
-    /** Default simple translation engine
-     *
-     * This engine translates verbatim words and phrases based upon
-     * mappings found in a resource bundle.  It cannot translate streams,
-     * and it does not find translatable words/phrases that are substrings
-     * of a string to translate.
-     */
-    public static class DefaultEngine implements TranslationEngine {
-
-        private Map translations;
-
-        public DefaultEngine(ResourceBundle r) {
-            translations = new HashMap();
-            Enumeration e = r.getKeys();
-            while (e.hasMoreElements()) {
-                String key = (String) e.nextElement();
-                String text = unpackKey(key);
-                String replacement = r.getString(key);
-                translations.put(text, replacement);
-                translations.put(text.toLowerCase(), replacement);
-            }
-        }
-
-
-        public String translateString(String s) {
-            if (s == null) return null;
-
-            String result = (String) translations.get(s);
-            if (result != null) return result;
-
-            result = (String) translations.get(s.toLowerCase());
-            if (result != null) return result;
-
-            return s;
-        }
-
-
-        public Reader translateStream(Reader r) {
-            // the default engine does not attempt stream translation.
-            return r;
-        }
-
     }
 
 }
