@@ -275,6 +275,33 @@ public class EVScheduleRollup extends EVSchedule {
         return r.getPlannedCompletionDate(cumPlanTime, cumPlanTime);
     }
 
+    public static Period getSlice(EVSchedule src, Date start, Date end) {
+        EVScheduleRollup r = null;
+        if (src instanceof EVScheduleRollup)
+            r = new EVScheduleRollup((EVScheduleRollup) src);
+        else {
+            r = new EVScheduleRollup(new Vector());
+            r.addSchedule(src);
+        }
+        EVSchedule dud = new EVSchedule(start, end, 0);
+        r.addSchedule(dud);
+        r.optimizedPlanTimeNeeded = false;
+        r.recalc();
+
+        Period result = dud.get(1), p;
+        for (int i = 0;   i < r.periods.size();   i++) {
+            p = r.get(i);
+            if (start.compareTo(p.endDate) >= 0) continue;
+            if (end.compareTo(p.getBeginDate()) <= 0) break;
+            r.addPeriodData(p, result, 1.0);
+            result.cumPlanTime    = p.cumPlanTime;
+            result.cumPlanValue   = p.cumPlanValue;
+            result.cumActualTime  = p.cumActualTime;
+            result.cumEarnedValue = p.cumEarnedValue;
+        }
+        return result;
+    }
+
 
     public void saveActualTaskInfo(Date when, double planValue,
                                    double actualTime) { }

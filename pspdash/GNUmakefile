@@ -66,6 +66,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/bar.java \
 	Templates/reports/excel.java \
 	Templates/reports/ev.java \
+	Templates/reports/week.java \
 	Templates/reports/form2html.java \
 	Templates/reports/line.java \
 	Templates/reports/pie.java \

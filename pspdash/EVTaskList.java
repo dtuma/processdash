@@ -612,15 +612,15 @@ public class EVTaskList extends AbstractTreeTableModel
         "Actual Completion Date",
         "Actual Earned Value" };
 
-    protected static final int TASK_COLUMN           = 0;
-    protected static final int PLAN_TIME_COLUMN      = 1;
-    protected static final int ACT_TIME_COLUMN       = 2;
-    protected static final int PLAN_VALUE_COLUMN     = 3;
-    protected static final int PLAN_CUM_TIME_COLUMN  = 4;
-    protected static final int PLAN_CUM_VALUE_COLUMN = 5;
-    protected static final int PLAN_DATE_COLUMN      = 6;
-    protected static final int DATE_COMPLETE_COLUMN  = 7;
-    protected static final int VALUE_EARNED_COLUMN   = 8;
+    public static final int TASK_COLUMN           = 0;
+    public static final int PLAN_TIME_COLUMN      = 1;
+    public static final int ACT_TIME_COLUMN       = 2;
+    public static final int PLAN_VALUE_COLUMN     = 3;
+    public static final int PLAN_CUM_TIME_COLUMN  = 4;
+    public static final int PLAN_CUM_VALUE_COLUMN = 5;
+    public static final int PLAN_DATE_COLUMN      = 6;
+    public static final int DATE_COMPLETE_COLUMN  = 7;
+    public static final int VALUE_EARNED_COLUMN   = 8;
 
     /** Types of the columns in the TreeTableModel. */
     static protected Class[]  colTypes = {

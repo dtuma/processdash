@@ -54,7 +54,7 @@ public class EVSchedule implements TableModel {
     private static final long HOUR_MILLIS =
         60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
     private static final long DAY_MILLIS = 24L /*hours*/ * HOUR_MILLIS;
-    static final long WEEK_MILLIS = 7 * DAY_MILLIS;
+    public static final long WEEK_MILLIS = 7 * DAY_MILLIS;
     private static final long MIDNIGHT = DAY_MILLIS - ADJUSTMENT;
 
     public class Period implements Cloneable {
@@ -243,6 +243,10 @@ public class EVSchedule implements TableModel {
          * rarely contain any real data. Don't expect them to contain
          * anything useful unless you put it there. */
         double planValue = 0, earnedValue = 0;
+        public String getPlanValue(double totalPlanTime) {
+            return formatPercent(planValue/totalPlanTime); }
+        public String getEarnedValue(double totalPlanTime) {
+            return formatPercent(earnedValue/totalPlanTime); }
     }
 
     Vector periods = new Vector();
@@ -258,7 +262,7 @@ public class EVSchedule implements TableModel {
         add(new Period(begin, 0.0));
         add(new Period(end, 20 * 60));
     }
-    private Date truncDate(Date d) {
+    private static Date truncDate(Date d) {
         Calendar c = Calendar.getInstance();
         c.setTime(d);
         c.set(c.HOUR_OF_DAY, 0); c.set(c.MINUTE, 0);
@@ -722,8 +726,10 @@ public class EVSchedule implements TableModel {
         prevNumRows = -1;
     }
 
-    static String formatTime(double time) { return EVTask.formatTime(time); }
-    static String formatPercent(double p) { return EVTask.formatPercent(p); }
+    public static String formatTime(double time) {
+        return EVTask.formatTime(time); }
+    public static String formatPercent(double p) {
+        return EVTask.formatPercent(p); }
     public static String formatDate(Date d) {
         if (d == null)
             return "";

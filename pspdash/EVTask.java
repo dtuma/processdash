@@ -308,6 +308,9 @@ public class EVTask implements DataListener {
 
     protected static NumberFormat percentFormatter =
         NumberFormat.getPercentInstance();
+    static {
+        percentFormatter.setMaximumFractionDigits(1);
+    }
     static String formatPercent(double percent) {
         if (Double.isNaN(percent) || Double.isInfinite(percent))
             percent = 0;

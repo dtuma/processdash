@@ -30,6 +30,7 @@ import pspdash.data.ResultSet;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -42,9 +43,11 @@ import com.jrefinery.chart.*;
 public class ev extends CGIChartBase {
 
     public static final String CHART_PARAM = "chart";
+    public static final String TABLE_PARAM = "table";
     public static final String TIME_CHART = "time";
     public static final String VALUE_CHART = "value";
     public static final String COMBINED_CHART = "combined";
+
 
     private static final int MED = EVMetrics.MEDIUM;
 
@@ -97,9 +100,18 @@ public class ev extends CGIChartBase {
         getEVModel();
 
         String chartType = getParameter(CHART_PARAM);
-        if (chartType == null)
-            writeHTML();
-        else if (TIME_CHART.equals(chartType))
+        if (chartType == null) {
+            String tableType = getParameter(TABLE_PARAM);
+            if (tableType == null)
+                writeHTML();
+            else if (TIME_CHART.equals(tableType))
+                writeTimeTable();
+            else if (VALUE_CHART.equals(tableType))
+                writeValueTable();
+            else if (COMBINED_CHART.equals(tableType))
+                writeCombinedTable();
+
+        } else if (TIME_CHART.equals(chartType))
             writeTimeChart();
         else if (VALUE_CHART.equals(chartType))
             writeValueChart();
@@ -218,7 +230,10 @@ public class ev extends CGIChartBase {
         "<img src='ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
     static final String FOOTER_HTML =
         "<p class='doNotPrint'><a href=\"../reports/excel.iqy\">" +
-        "<i>Export to Excel</i></a></body></html>";
+        "<i>Export text to Excel</i></a>&nbsp; &nbsp; &nbsp; &nbsp;" +
+        "<a href='ev.xls'><i>Export charts to Excel</i></a>&nbsp; &nbsp; "+
+        "&nbsp; &nbsp;<a href='week.class'><i>Show Weekly View</i></a>" +
+        "</body></html>";
 
     /** Generate an HTML table based on a TableModel.
      *
@@ -308,6 +323,56 @@ public class ev extends CGIChartBase {
     public JFreeChart createChart() {
         JFreeChart chart = JFreeChart.createTimeSeriesChart(xydata);
         return chart;
+    }
+
+    public void writeTimeTable() {
+        writeChartData(evModel.getSchedule().getTimeChartData());
+    }
+
+    public void writeValueTable() {
+        writeChartData(evModel.getSchedule().getValueChartData());
+    }
+
+    public void writeCombinedTable() {
+        writeChartData(evModel.getSchedule().getCombinedChartData());
+    }
+
+    /** Display excel-based data for drawing a chart */
+    protected void writeChartData(XYDataSource xydata) {
+        // First, print the table header.
+        out.print("<html><body><table border>\n");
+        int seriesCount = xydata.getSeriesCount();
+        if (parameters.get("nohdr") == null) {
+            out.print("<tr><td>Date</td>");
+            for (int i = 0;  i < seriesCount;   i++)
+                out.print("<td>" + xydata.getSeriesName(i) + "</td>");
+            out.println("</tr>");
+        }
+
+        DateFormat f = DateFormat.getDateTimeInstance
+            (DateFormat.MEDIUM, DateFormat.SHORT);
+        for (int series = 0;  series < seriesCount;   series++) {
+            int itemCount = xydata.getItemCount(series);
+            for (int item = 0;   item < itemCount;   item++) {
+                // print the date for the data item.
+                out.print("<tr><td>");
+                out.print(f.format(new Date
+                    (xydata.getXValue(series,item).longValue())));
+                out.print("</td>");
+
+                // tab to the appropriate column
+                for (int i=0;  i<series;  i++)   out.print("<td></td>");
+                // print out the Y value for the data item.
+                out.print("<td>");
+                out.print(xydata.getYValue(series,item));
+                out.print("</td>");
+                // finish out the table row.
+                for (int i=series+1;  i<seriesCount;  i++)
+                    out.print("<td></td>");
+                out.println("</tr>");
+            }
+        }
+        out.println("</table></body></html>");
     }
 
     /** translate an object to appropriate HTML */
