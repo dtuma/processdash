@@ -45,7 +45,7 @@ public class pspdiff extends TinyCGIBase {
 
     protected void printOptions() throws IOException {
         // FIXME.
-        out.println("<HTML><BODY></BODY></HTML>");
+        out.println("<HTML><BODY>Not yet implemented.</BODY></HTML>");
     }
 
     protected void compareFiles() throws IOException {
