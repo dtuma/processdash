@@ -385,11 +385,17 @@ public class TemplateLoader {
         if (directory.toLowerCase().endsWith(SEP_TEMPL_DIR)) {
             templateDir = new File(directory);
             if (!templateDir.isDirectory()) return;
+            try {
+                templateDir = templateDir.getCanonicalFile();
+            } catch (IOException ioe) {}
             parentDir = templateDir.getParentFile(); // may return null
 
         } else {
             parentDir = new File(directory);
             if (!parentDir.isDirectory()) return;
+            try {
+                parentDir = parentDir.getCanonicalFile();
+            } catch (IOException ioe) {}
             templateDir = new File(parentDir, TEMPLATE_DIRNAME);
             if (!templateDir.isDirectory()) templateDir = null;
         }
