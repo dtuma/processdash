@@ -95,9 +95,16 @@ public class TinyWebServer extends Thread {
             // Read the class definition from the connection
             byte [] defn = slurpContents(conn.getInputStream(), true);
 
-            // Create a class from the definition read.
-            result = defineClass(className, defn, 0, defn.length);
-            resolveClass(result);
+            synchronized (this) {
+                // check to see if someone else defined the class since
+                // we last checked.
+                result = findLoadedClass(className);
+                if (result != null) return result;
+
+                // Create a class from the definition read.
+                result = defineClass(className, defn, 0, defn.length);
+                resolveClass(result);
+            }
             return result;
         }
     }
