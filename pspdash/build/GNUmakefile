@@ -64,6 +64,7 @@ install-nt: $(INSTALLED_FILES) manifest perltools jfreechart templates jhelp FOR
 # package everything up for distribution
 pspdash.jar: $(INSTALLED_FILES) manifest perltools jaxp crimson jfreechart templates jhelp FORCE
 	$(JAR) cfm pspdash.jar manifest pspdash com Templates javax org
+	@if [ -d final ]; then cp pspdash.jar final ; fi
 
 
 # make a local copy of the contents of the templates directory, without
