@@ -838,8 +838,7 @@ public class TimeLogEditor extends Object
     protected void summarizeWarning() {
         if (JOptionPane.showConfirmDialog
             (frame,
-             StringUtils.split(resources.getString
-                               ("Summarization_Warning_Message"), "\n"),
+             Resources.getStrings(resources, "Summarization_Warning_Message"),
              resources.getString("Summarization_Warning_Title"),
              JOptionPane.OK_CANCEL_OPTION,
              JOptionPane.WARNING_MESSAGE)

@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -221,8 +221,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
         // open all the datafiles that were specified in the properties file.
         brokenData = new ErrorReporter
             (resources.getString("Broken_Data_Title"),
-             split(resources.getString("Broken_Data_Header")),
-             split(resources.getString("Broken_Data_Footer")));
+             Resources.getStrings(resources, "Broken_Data_Header"),
+             Resources.getStrings(resources, "Broken_Data_Footer"));
         data.startInconsistency();
         try {
             if (v != null) {
@@ -490,10 +490,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
     public static String getVersionNumber() { return versionNumber; }
 
     static SplashScreen ss = null;
-
-    private static final String[] split(String s) {
-        return StringUtils.split(s, "\n");
-    }
 
     public static void dropSplashScreen() {
         if (ss != null) ss.okayToDispose();

@@ -592,8 +592,7 @@ public class DefectDialog extends JDialog
             if (option.equalsIgnoreCase(removed)) {
                 JOptionPane.showMessageDialog
                     (this,
-                     StringUtils.split(resources.getString
-                                       ("Sequence_Error_Message"), "\n"),
+                     Resources.getStrings(resources, "Sequence_Error_Message"),
                      resources.getString("Sequence_Error_Title"),
                      JOptionPane.ERROR_MESSAGE);
                 return false;

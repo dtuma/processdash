@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -434,8 +434,8 @@ public class TaskScheduleDialog
         if (errors == null || errors.size() == 0) return;
         ErrorReporter err = new ErrorReporter
             (resources.getString("Error_Dialog_Title"),
-             StringUtils.split(resources.getString("Error_Dialog_Head"), "\n"),
-             StringUtils.split(resources.getString("Error_Dialog_Foot"), "\n"));
+             Resources.getStrings(resources, "Error_Dialog_Head"),
+             Resources.getStrings(resources, "Error_Dialog_Foot"));
         Iterator i = errors.keySet().iterator();
         while (i.hasNext())
             err.logError((String) i.next());
@@ -1189,8 +1189,8 @@ public class TaskScheduleDialog
         do {
             localName = (String) JOptionPane.showInputDialog
                 (frame,
-                 StringUtils.split(resources.getString
-                                   ("Imported_Schedule_Name_Prompt"), "\n"),
+                 Resources.getStrings(resources,
+                                      "Imported_Schedule_Name_Prompt"),
                  resources.getString("Imported_Schedule_Name_Dialog_Title"),
                  JOptionPane.PLAIN_MESSAGE, null, null, localName);
             if (localName != null)

@@ -337,11 +337,13 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
     private void incrementProgressDialog() {
         if (progressBar != null)
+            // Need to use SwingUtilities.invokeAndWait();
             progressBar.setValue(progressBar.getValue() + 1);
     }
 
     private void closeProgressDialog() {
         if (progressDialog != null)
+            // Need to use SwingUtilities.invokeAndWait();
             progressDialog.dispose();
         progressDialog = null;
         progressBar = null;
@@ -772,16 +774,12 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         else if (!newName.equals(new String(newName.getBytes()))) {
             JOptionPane.showMessageDialog
                 (frame,
-                 StringUtils.split(resource.getString("HierarchyUnicodeError"), "\n"),
+                 Resources.getStrings(resource, "HierarchyUnicodeError"),
                  resource.getString("InvalidName"), JOptionPane.ERROR_MESSAGE);
             return false;
         } else
             return true;
     }
-    private static final String[] UNICODE_ERROR_MESSAGE = {
-        "Sorry, the dashboard currently does not support the",
-        "use of extended unicode characters in hierarchy",
-        "names. (This will be fixed in a future release.)" };
 
 
     public void treeNodesInserted (TreeModelEvent e) {

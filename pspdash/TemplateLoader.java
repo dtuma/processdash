@@ -751,8 +751,8 @@ public class TemplateLoader {
             ResourceBundle r = Resources.getBundle("pspdash.Templates");
             errorReporter = new ErrorReporter
                 (r.getString("Error_Title"),
-                 StringUtils.split(r.getString("Error_Header"), "\n"),
-                 StringUtils.split(r.getString("Error_Footer"), "\n"));
+                 Resources.getStrings(r, "Error_Header"),
+                 Resources.getStrings(r, "Error_Footer"));
         }
         errorReporter.logError(error);
     }
