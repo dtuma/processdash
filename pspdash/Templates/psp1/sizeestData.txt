@@ -33,14 +33,14 @@
  * Dynamic lists of user-entered data.
  */
 
-[Est_Base_Additions]     = search("Base Additions", "LOC", 1);
-[Est_New_Objects]        = search("New Objects",    "LOC", 1);
-[Est_Reused_Objects]     = search("Reused Objects", "LOC", 1);
+[Est_Base_Additions]     = search("Base Additions", "LOC");
+[Est_New_Objects]        = search("New Objects",    "LOC");
+[Est_Reused_Objects]     = search("Reused Objects", "LOC");
 [Est_New_Reused_Objects] = search("New Objects",    "LOC", [New Reused?]);
 
-[Base_Additions]     = search("Base Additions", "Actual LOC", 1);
-[New_Objects]        = search("New Objects",    "Actual LOC", 1);
-[Reused_Objects]     = search("Reused Objects", "Actual LOC", 1);
+[Base_Additions]     = search("Base Additions", "Actual LOC");
+[New_Objects]        = search("New Objects",    "Actual LOC");
+[Reused_Objects]     = search("Reused Objects", "Actual LOC");
 [New_Reused_Objects] = search("New Objects",    "Actual LOC",
                               [Actual New Reused?]);
 

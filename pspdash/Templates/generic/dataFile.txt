@@ -45,7 +45,7 @@
 
 // Recalculate the list of phases dynamically.
 
-[Dynamic_Phases] = search(".", "Generic Phase Tag", 1);
+[Dynamic_Phases] = search(".", "Generic Phase Tag");
 [Phase_List] = [Dynamic_Phases] & ",Planning,Postmortem,";
 [Child_List] = [Phase_List];
 

@@ -85,7 +85,7 @@
 
 // Sum up estimated time by phase from cycles
 
-[PSP3_Cycles] = search(".", "PSP3cycle Tag", 1);
+[PSP3_Cycles] = search(".", "PSP3cycle Tag");
 
 #define sumUp(Phase)							      \
   [Phase/Estimated Time] = sumFor("Phase/Estimated Time", [PSP3_Cycles]);     \

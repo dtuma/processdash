@@ -46,7 +46,7 @@
 
 // Sum up overall data from the cycles
 
-[SCR_Cycles] = search(".", "SCRcycle Tag", 1);
+[SCR_Cycles] = search(".", "SCRcycle Tag");
 [Child_List] = ",Planning,Design,Design Review,Postmortem,CPT&E," & [SCR_Cycles];
 
 #define sumForCycles(Data) \
