@@ -140,6 +140,13 @@ public class TinyCGIBase implements TinyCGI {
         return result;
     }
 
+    protected String cssLinkHTML() {
+        String style = (String) parameters.get("style");
+        if (style == null)
+            style = "/0/style.css";
+        return "<LINK REL='stylesheet' TYPE='text/css' HREF='" + style + "'>";
+    }
+
 
     /** Get the data repository servicing this request. */
     protected DataRepository getDataRepository() {
