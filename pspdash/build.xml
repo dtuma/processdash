@@ -107,11 +107,6 @@ Authors:
     <pathelement location="${lib}/jfreechart.jar"/>
   </path>
 
-  <path id="build.perl.classpath">
-    <path refid="build.classpath"/>
-    <pathelement location="${lib}/PerlTools.jar"/>
-  </path>
-
 
 
   <target name="init">
@@ -147,10 +142,6 @@ Authors:
 
   <target name="compile" depends="init,parser"
         description="Compile the main dashboard classes" >
-
-    <!-- javac srcdir="${src}" destdir="${build}" debug="${debug}"
-           classpathref="build.perl.classpath"
-           includes="pspdash/Perl5Util.java"/ -->
 
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
@@ -211,6 +202,28 @@ Authors:
 
       <!-- include the contents of the javahelp distribution -->
       <zipfileset src="${javahelp.jhjar}" excludes="META-INF/ meta-inf/"/>
+    </jar>
+  </target>
+
+
+
+  <target name="import-addon">
+    <jar destfile="${build}/importPSP.jar" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="importPSP"/>
+        <attribute name="Dash-Pkg-Version" value="1.2"/>
+        <attribute name="Dash-Pkg-Name"
+                   value="PSP(SM) Data Import Add-on Process Set"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <fileset dir="${pspdash}">
+        <include name="Templates/Import-template.xml"/>
+        <include name="Templates/import/dataFile.txt"/>
+        <include name="Templates/import/import.htm"/>
+      </fileset>
     </jar>
   </target>
 
@@ -546,7 +559,7 @@ Authors:
     <delete quiet="true" dir="${compiler}/analysis"/>
   </target>
 
-  <target name="dist" depends="javahelp-addon,jar"/>
+  <target name="dist" depends="javahelp-addon,import-addon,jar"/>
 
 </project>
 
