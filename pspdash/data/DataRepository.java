@@ -70,6 +70,9 @@ import pspdash.RobustFileWriter;
 import pspdash.data.compiler.CompilationException;
 import pspdash.data.compiler.CompiledScript;
 import pspdash.data.compiler.Compiler;
+import pspdash.data.compiler.ExpressionContext;
+import pspdash.data.compiler.ExecutionException;
+import pspdash.data.compiler.ListStack;
 import pspdash.data.compiler.analysis.DepthFirstAdapter;
 import pspdash.data.compiler.lexer.Lexer;
 import pspdash.data.compiler.lexer.LexerException;
@@ -1560,6 +1563,37 @@ public class DataRepository implements Repository {
             // the simple value and store it in the repository.
             putValue(name, ValueFactory.create(null, value, null, null));
         }
+
+
+        public SimpleData evaluate(String expression)
+            throws CompilationException, ExecutionException {
+            return evaluate(expression, "");
+        }
+
+        public SimpleData evaluate(String expression, String prefix)
+            throws CompilationException, ExecutionException {
+            return evaluate(Compiler.compile(expression), prefix);
+        }
+
+        public SimpleData evaluate(CompiledScript script, String prefix)
+            throws ExecutionException
+        {
+            ListStack stack = new ListStack();
+            ExpressionContext context = new SimpleExpressionContext(prefix);
+            script.run(stack, context);
+            SimpleData value = (SimpleData) stack.pop();
+            if (value != null)
+                value = (SimpleData) value.getEditable(false);
+            return value;
+        }
+
+        private class SimpleExpressionContext implements ExpressionContext {
+            private String prefix;
+            public SimpleExpressionContext(String p) { prefix = p; }
+            public SimpleData get(String dataName) {
+                return getSimpleValue(createDataName(prefix, dataName)); }
+        }
+
 
         public void putExpression(String name, String prefix, String expression)
             throws MalformedValueException
