@@ -41,8 +41,10 @@ public class TranslationFilter implements Comparator {
     }
 
     public int compare(Object key, Object value) {
-        if (keyNeedsNoTranslation((String) key) ||
-            valueNeedsNoTranslation((String) value))
+        if (keyNeedsTranslation((String) key))
+            return NEEDS_TRANSLATION;
+        else if (keyNeedsNoTranslation((String) key) ||
+                 valueNeedsNoTranslation((String) value))
             return NEEDS_NO_TRANSLATION;
         else
             return NEEDS_TRANSLATION;
@@ -53,6 +55,15 @@ public class TranslationFilter implements Comparator {
         if (key.indexOf("__") != -1) return true;
         return false;
     }
+
+    private boolean keyNeedsTranslation(String key) {
+        if (key.startsWith("(Resources)"))
+            return true;
+        if (key.startsWith("org"))
+            return true;
+        return false;
+    }
+
 
     private boolean valueNeedsNoTranslation(String value) {
         if (value == null)
