@@ -202,10 +202,14 @@ public class ScriptBrowser extends JDialog
         Vector scripts = useProps.getScriptIDs(key);
         if (scripts == null || scripts.size() == 0) return;
 
-        for (int i=0;  i < scripts.size();  i++)
-            scriptList.addElement(scripts.elementAt(i));
+        ScriptID script, defaultScript = (ScriptID) scripts.elementAt(0);
 
-        list.getSelectionModel().addSelectionInterval(0, 0);
+        for (int i=1;  i < scripts.size();  i++) {
+            script = (ScriptID) scripts.elementAt(i);
+            scriptList.addElement(script);
+            if (defaultScript.getScript().equals(script.getScript()))
+                list.getSelectionModel().addSelectionInterval(i-1, i-1);
+        }
     }
 
 }

@@ -28,7 +28,6 @@ package pspdash.data;
 import com.jrefinery.chart.CategoryDataSource;
 import com.jrefinery.chart.XYDataSource;
 import com.jrefinery.chart.event.DataSourceChangeListener;
-import pspdash.PSPProperties;
 
 import java.util.*;
 
@@ -157,7 +156,7 @@ public class ResultSet {
     /** Perform a query and return a result set. */
     public static ResultSet get(DataRepository data, String[] conditions,
                                 String orderBy, String[] dataNames,
-                                String basePrefix, PSPProperties props) {
+                                String basePrefix, Comparator nodeComparator) {
 
         // Construct a regular expression for searching the repository.
         StringBuffer re =  new StringBuffer("~(.*/)?");
@@ -170,7 +169,7 @@ public class ResultSet {
         // Find data elements that match the regular expression.
         if (basePrefix == null) basePrefix = "";
         SortedList list = SortedList.getInstance
-            (data, re.toString(), basePrefix, FAKE_DATA_NAME, props);
+            (data, re.toString(), basePrefix, FAKE_DATA_NAME, nodeComparator);
         String [] prefixes = list.getNames();
 
         // Create a result set to return
@@ -238,7 +237,7 @@ public class ResultSet {
      *  the queryParameters Map contains the instructions for performing
      * the query */
     public static ResultSet get(DataRepository data, Map queryParameters,
-                                String prefix, PSPProperties props) {
+                                String prefix, Comparator nodeComparator) {
         // orderBy dataElement name is stored in the "order" parameter
         String orderBy = (String) queryParameters.get("order");
 
@@ -260,7 +259,7 @@ public class ResultSet {
 
         // fetch the results.
         ResultSet result =
-            get(data, conditions, orderBy, dataNames, prefix, props);
+            get(data, conditions, orderBy, dataNames, prefix, nodeComparator);
 
         // parameters "h0", "h1", etc specify overridden column headers
         String colHeader;

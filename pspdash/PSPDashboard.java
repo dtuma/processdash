@@ -109,6 +109,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
             webServer.allowRemoteConnections
                 (Settings.getVal("http.allowRemote"));
             Browser.setDefaults("localhost", webServer.getPort());
+            ScriptID.setNameResolver(new ScriptNameResolver(webServer));
         } catch (IOException ioe) {
             System.err.println("Couldn't start web server: " + ioe);
         }
@@ -163,6 +164,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
                 } catch (SAXException se1) {
                     se = se1;
                     props.load(propertiesFile);
+                    props.runV1_4Hack();
                     props.saveXML(propertiesFile, null);
                     props.clear();
                     v = props.loadXML(propertiesFile, templates);

@@ -225,4 +225,7 @@ class Prop
         return val;
     }
 
+    public static boolean hasValue(String val) {
+        return (val != null && val.length() != 0);
+    }
 }

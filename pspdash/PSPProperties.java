@@ -25,6 +25,7 @@
 
 package pspdash;
 
+import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -53,7 +54,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class PSPProperties extends Hashtable implements ItemSelectable {
+public class PSPProperties extends Hashtable implements ItemSelectable,
+                                                        Comparator {
 
     protected EventListenerList ell = new EventListenerList();
     protected int nextDataFileNumber  = 0;
@@ -374,8 +376,9 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
 
         // Determine the template node which this node should be modeled after.
         PropertyKey templateKey = null;
-        String id = e.getAttribute(TEMPLATE_ATTR);
-        boolean idSet = (id != null && id.length() > 0);
+        String id = getChildIDFromTemplate(nodeName, templates, parentTemplate);
+        if (id == null) id = e.getAttribute(TEMPLATE_ATTR);
+        boolean idSet = Prop.hasValue(id);
         if (idSet) {
             templateKey = templates.getByID(id);
             if (templateKey == null) templateKey = INVALID_TEMPLATE;
@@ -423,6 +426,20 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         return key;
     }
 
+    private String getChildIDFromTemplate(String nodeName,
+                                          PSPProperties templates,
+                                          PropertyKey parentTemplate) {
+        if (parentTemplate == null || parentTemplate == INVALID_TEMPLATE)
+            return null;
+        PropertyKey templateKey = new PropertyKey(parentTemplate, nodeName);
+        Prop template = (Prop) templates.get(templateKey);
+        if (template != null && template.hasValue(template.getID()))
+            return template.getID();
+        else
+            return null;
+    }
+
+
 
     public Vector loadXML (String filename, PSPProperties templates)
         throws IOException, SAXException
@@ -444,6 +461,31 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
             v.addElement (new String[] {key.path(), dataFile});
         for (int i = 0; i < getNumChildren (key); i++)
             scanForDataFiles(v, getChildKey (key, i));
+    }
+
+    void runV1_4Hack() {
+        Hashtable brokenIDs = new Hashtable();
+        brokenIDs.put("pspForEng/2A/script.htm", "PSP0.1-PFE-2A");
+        brokenIDs.put("pspForEng/4A/script.htm", "PSP1-PFE-4A");
+        brokenIDs.put("pspForEng/5A/script.htm", "PSP1.1-PFE-5A");
+        brokenIDs.put("pspForEng/7A/script.htm", "PSP2-PFE-7A");
+        brokenIDs.put("pspForEng/8A/script.htm", "PSP2.1-PFE-8A");
+        brokenIDs.put("pspForMSE/2A/script.htm", "PSP0.1-MSE-2A");
+        brokenIDs.put("pspForMSE/3B/script.htm", "PSP1-MSE-3B");
+        brokenIDs.put("pspForMSE/4B/script.htm", "PSP1.0.1-MSE-4B");
+
+        PropertyKey key;
+        Prop        value;
+        String      s;
+        Enumeration keys = keys();
+        while (keys.hasMoreElements()) {
+            key = (PropertyKey)keys.nextElement();
+            value = (Prop)get (key);
+            if (! Prop.hasValue(value.getID())) continue;
+            if (! Prop.hasValue(s = value.getScriptFile ())) continue;
+            s = (String) brokenIDs.get(s);
+            if (s != null) value.setID(s);
+        }
     }
 
     private void maybePrintAttribute(Writer out, String attr, String val)
@@ -750,34 +792,32 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
     // gets all the applicable script IDs for the script button
     // based on the current phase.
     public Vector getScriptIDs(PropertyKey key) {
-        Vector v = new Vector();    Prop val;    String scriptFile;
+        Vector v = new Vector();    Prop val;    String scriptFile, templateID;
         PropertyKey tempKey = key;
         PropertyKey parentKey = null;
+        ScriptID defaultScript = null;
 
-        // First add the key and the key's ancestors (parents)
+        // Find and add all applicable scripts.
         while (tempKey != null) {
             val = pget(tempKey);
-            scriptFile = val.getScriptFile();
-            if (scriptFile != null && scriptFile.length() != 0)
-                v.addElement(new ScriptID(scriptFile, datapath(tempKey), tempKey.path()));
-            if (parentKey == null && hasDataFile(val))
-                parentKey = tempKey;
+
+            if (defaultScript == null) {
+                scriptFile = val.getScriptFile();
+                if (scriptFile != null && scriptFile.length() != 0)
+                    defaultScript = new ScriptID(scriptFile, datapath(tempKey), null);
+            }
+
+            if (Prop.hasValue(templateID = val.getID()))
+                v.addAll(TemplateLoader.getScriptIDs(templateID, datapath(tempKey)));
+
             tempKey = tempKey.getParent();
         }
 
-        if (parentKey == null) return v;
+        if (defaultScript == null && v.size() > 0)
+            defaultScript = (ScriptID) v.elementAt(0);
+        if (defaultScript != null)
+            v.insertElementAt(defaultScript, 0);
 
-        // Then add all the parent's children, except the key.
-        int numChildren = getNumChildren(parentKey);
-        for (int index = 0; index < numChildren; index++) {
-            tempKey = getChildKey(parentKey, index);
-            if (tempKey.equals(key))
-                continue;
-            val = pget(tempKey);
-            scriptFile = val.getScriptFile();
-            if (scriptFile != null && scriptFile.length() != 0)
-                v.addElement(new ScriptID(scriptFile, datapath(tempKey), tempKey.path()));
-        }
         return v;
     }
 
@@ -798,6 +838,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
     public void orderedDump (PrintWriter out, Vector filt) {
         orderedDump (out, PropertyKey.ROOT, filt);
     }
+
+
 
     /** compare two strings for ordering within the tree.
      * @param p1, p2 the names of two DATA ELEMENTS.
@@ -826,6 +868,9 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
             if ((result = comparePaths (p1, p2, getChildKey (key, i))) != 0)
                 return result;
         return 0;
+    }
+    public int compare(Object o1, Object o2) {
+        return comparePaths((String) o1, (String) o2);
     }
 
 }

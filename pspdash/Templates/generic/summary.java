@@ -194,6 +194,7 @@ public class summary extends pspdash.TinyCGIBase {
     /** find and replace occurrences of a string within buf */
     protected String replace(String template, String text, String replacement)
     {
+        if (replacement == null) return template;
         int pos, len = text.length();
         StringBuffer buf = new StringBuffer(template);
         while ((pos = buf.toString().indexOf(text)) != -1)

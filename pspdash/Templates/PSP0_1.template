@@ -55,7 +55,7 @@
 ## Template for a PSP0.1 project.
 ##
 
-PropertyKey<top><PSP0.1>=Prop[true][PSP0.1][psp0.1/script.htm][psp0.1/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP0.1><Planning>][PropertyKey<top/PSP0.1><Design>][PropertyKey<top/PSP0.1><Code>][PropertyKey<top/PSP0.1><Compile>][PropertyKey<top/PSP0.1><Test>][PropertyKey<top/PSP0.1><Postmortem>]
+PropertyKey<top><PSP0.1>=Prop[true][PSP0.1][psp0.1/summary.htm;psp0.1/script.htm][psp0.1/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP0.1><Planning>][PropertyKey<top/PSP0.1><Design>][PropertyKey<top/PSP0.1><Code>][PropertyKey<top/PSP0.1><Compile>][PropertyKey<top/PSP0.1><Test>][PropertyKey<top/PSP0.1><Postmortem>]
 PropertyKey<top/PSP0.1><Planning>=Prop[][][psp0.1/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP0.1><Design>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP0.1><Code>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]

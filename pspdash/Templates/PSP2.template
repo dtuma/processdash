@@ -55,7 +55,7 @@
 ## Template for a PSP2 project.
 ##
 
-PropertyKey<top><PSP2>=Prop[true][PSP2][psp2/script.htm][psp2/dataFile.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP2><Planning>][PropertyKey<top/PSP2><Design>][PropertyKey<top/PSP2><Design Review>][PropertyKey<top/PSP2><Code>][PropertyKey<top/PSP2><Code Review>][PropertyKey<top/PSP2><Compile>][PropertyKey<top/PSP2><Test>][PropertyKey<top/PSP2><Postmortem>]
+PropertyKey<top><PSP2>=Prop[true][PSP2][psp2/summary.htm;psp2/sizeest.class;psp2/script.htm][psp2/dataFile.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP2><Planning>][PropertyKey<top/PSP2><Design>][PropertyKey<top/PSP2><Design Review>][PropertyKey<top/PSP2><Code>][PropertyKey<top/PSP2><Code Review>][PropertyKey<top/PSP2><Compile>][PropertyKey<top/PSP2><Test>][PropertyKey<top/PSP2><Postmortem>]
 PropertyKey<top/PSP2><Planning>=Prop[][][psp2/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP2><Design>=Prop[][][psp2/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP2><Design Review>=Prop[][][psp2/develop.htm][][ME<>][0][0]

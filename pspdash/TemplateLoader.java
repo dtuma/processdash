@@ -147,7 +147,7 @@ public class TemplateLoader {
 
                 if (filename.endsWith(TEMPLATE_SUFFIX)) {
                     debug("loading template: " + filename);
-                    templates.load(jarFile, false);
+                    loadProcessTemplate(templates, jarFile, false);
                     foundTemplates = true;
                 } else if (filename.endsWith(DATAFILE_SUFFIX)) {
                     try {
@@ -185,7 +185,8 @@ public class TemplateLoader {
             if (filename.endsWith(TEMPLATE_SUFFIX)) {
                 try {
                     debug("loading template: " + f);
-                    templates.load(new FileInputStream(f));
+                    loadProcessTemplate
+                        (templates, new FileInputStream(f), true);
                     foundTemplates = true;
                 } catch (IOException ioe) {
                     debug("unable to load process template: " + f);
@@ -202,6 +203,17 @@ public class TemplateLoader {
             }
         }
         return foundTemplates;
+    }
+
+    private static void loadProcessTemplate(PSPProperties templates,
+                                            InputStream in, boolean close)
+        throws IOException
+    {
+        PSPProperties template = new PSPProperties(null);
+        template.load(in, close);
+        createScriptMaps(template);
+
+        templates.putAll(template);
     }
 
     protected static void debug(String msg) {
@@ -345,5 +357,63 @@ public class TemplateLoader {
         } catch (IOException ioe) { }
 
         return null;
+    }
+
+    private static void createScriptMaps(PSPProperties templates) {
+        Enumeration nodes = templates.keys();
+        PropertyKey key;
+        while (nodes.hasMoreElements()) {
+            key = (PropertyKey) nodes.nextElement();
+            if (key.getParent().equals(PropertyKey.ROOT))
+                addScriptMaps(templates, key, null, null);
+        }
+    }
+    private static void addScriptMaps(PSPProperties templates,
+                                      PropertyKey key, String ID,
+                                      Vector v) {
+        Prop val = (Prop) templates.get(key);
+        if (val == null) return;
+        if (val.hasValue(val.getID())) {
+            ID = val.getID();
+            v = (Vector) scriptMaps.get(ID);
+            if (v == null)
+                scriptMaps.put(ID, (v = new Vector()));
+        }
+
+        val.setScriptFile(processScriptFlag(v, val.getScriptFile()));
+
+        for (int i = 0;   i < val.getNumChildren();   i++)
+            addScriptMaps(templates, val.getChild(i), ID, v);
+    }
+    private static String processScriptFlag(Vector v, String scriptFlag) {
+        if (v == null || !Prop.hasValue(scriptFlag))
+            return scriptFlag;
+        StringTokenizer tok = new StringTokenizer(scriptFlag, ";");
+        String scriptFile = "";
+        while (tok.hasMoreTokens()) {
+            scriptFile = tok.nextToken();
+            maybeAddScriptID(v, scriptFile);
+        }
+        return scriptFile;
+    }
+    private static void maybeAddScriptID(Vector v, String scriptFile) {
+        if (v == null || !Prop.hasValue(scriptFile))
+            return;
+        for (int i = v.size();  i-- > 0;  )
+            if (scriptFile.equals(((ScriptID) v.elementAt(i)).getScript()))
+                return;
+        v.addElement(new ScriptID(scriptFile, null, null));
+    }
+    private static Hashtable scriptMaps = new Hashtable();
+
+    public static Vector getScriptIDs(String templateID, String path) {
+        Vector scriptMap = (Vector) scriptMaps.get(templateID);
+        if (scriptMap == null) return null;
+
+        Vector result = new Vector();
+        for (int i = 0;   i < scriptMap.size();   i++)
+            result.addElement(new ScriptID((ScriptID) scriptMap.elementAt(i),
+                                           path));
+        return result;
     }
 }

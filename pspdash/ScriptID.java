@@ -30,14 +30,24 @@ import java.net.URLEncoder;
 
 public class ScriptID {
 
-    protected String scriptfile = null;
-    protected String datapath   = null;
-    protected String username   = null;
+    protected String scriptfile  = null;
+    protected String datapath    = null;
+    protected String displayname = null;
 
     public ScriptID (String script, String path, String name) {
         scriptfile = script;
         datapath = path;
-        username   = name;
+        displayname = name;
+    }
+
+    public ScriptID (ScriptID base, String path) {
+        scriptfile = base.scriptfile;
+        datapath = path;
+        displayname = base.displayname;
+    }
+
+    public ScriptID getForPath(String path) {
+        return new ScriptID(this, path);
     }
 
     public void setScript (String script) {
@@ -48,8 +58,8 @@ public class ScriptID {
         datapath = path;
     }
 
-    public void setUserName (String name) {
-        username = name;
+    public void setDisplayName (String name) {
+        displayname = name;
     }
 
     public String getScript () {
@@ -60,12 +70,16 @@ public class ScriptID {
         return datapath;
     }
 
-    public String getUserName () {
-        return username;
+    public String getDisplayName () {
+        if (displayname == null && nameResolver != null)
+            displayname = nameResolver.lookup(scriptfile);
+        if (displayname == null)
+            displayname = scriptfile;
+        return displayname;
     }
 
     public String toString() {
-        return username;
+        return getDisplayName();
     }
 
     public void display() {
@@ -85,4 +99,12 @@ public class ScriptID {
         result = StringUtils.findAndReplace(result, "%2F", "/");
         return result;
     }
+
+    public interface NameResolver {
+        public String lookup(String name);
+    }
+
+    private static NameResolver nameResolver = null;
+    public static void setNameResolver(NameResolver r) { nameResolver = r; }
+
 }

@@ -4,7 +4,7 @@
 #         [selected][numChildren(N)][child0]...[childN-1]
 #
 
-PropertyKey<top><PSP for MSE>=Prop[][][][pspForMSE/dataFile.txt][][0][8][PropertyKey<top/PSP for MSE><1B>][PropertyKey<top/PSP for MSE><2A>][PropertyKey<top/PSP for MSE><2B>][PropertyKey<top/PSP for MSE><3B>][PropertyKey<top/PSP for MSE><4B>][PropertyKey<top/PSP for MSE><5B>][PropertyKey<top/PSP for MSE><R4>][PropertyKey<top/PSP for MSE><6B>]
+PropertyKey<top><PSP for MSE>=Prop[][pspForMSE][][pspForMSE/dataFile.txt][][0][8][PropertyKey<top/PSP for MSE><1B>][PropertyKey<top/PSP for MSE><2A>][PropertyKey<top/PSP for MSE><2B>][PropertyKey<top/PSP for MSE><3B>][PropertyKey<top/PSP for MSE><4B>][PropertyKey<top/PSP for MSE><5B>][PropertyKey<top/PSP for MSE><R4>][PropertyKey<top/PSP for MSE><6B>]
 
 
 # Program 1B
@@ -20,7 +20,7 @@ PropertyKey<top/PSP for MSE/1B><Postmortem>=Prop[][][psp0/summary.htm][][ME<>][0
 
 # Program 2A
 
-PropertyKey<top/PSP for MSE><2A>=Prop[true][PSP0.1][pspForMSE/2A/script.htm][pspForMSE/2A/dataFile.txt][ME<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for MSE/2A><Planning>][PropertyKey<top/PSP for MSE/2A><Design>][PropertyKey<top/PSP for MSE/2A><Code>][PropertyKey<top/PSP for MSE/2A><Compile>][PropertyKey<top/PSP for MSE/2A><Test>][PropertyKey<top/PSP for MSE/2A><Postmortem>]
+PropertyKey<top/PSP for MSE><2A>=Prop[true][PSP0.1-MSE-2A][pspForMSE/2A/script.htm][pspForMSE/2A/dataFile.txt][ME<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for MSE/2A><Planning>][PropertyKey<top/PSP for MSE/2A><Design>][PropertyKey<top/PSP for MSE/2A><Code>][PropertyKey<top/PSP for MSE/2A><Compile>][PropertyKey<top/PSP for MSE/2A><Test>][PropertyKey<top/PSP for MSE/2A><Postmortem>]
 PropertyKey<top/PSP for MSE/2A><Planning>=Prop[][][pspForMSE/2A/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP for MSE/2A><Design>=Prop[][][pspForMSE/2A/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP for MSE/2A><Code>=Prop[][][pspForMSE/2A/develop.htm][][ME<>][0][0]
@@ -42,7 +42,7 @@ PropertyKey<top/PSP for MSE/2B><Postmortem>=Prop[][][psp0.1/postmort.htm][][ME<>
 
 # Program 3B
 
-PropertyKey<top/PSP for MSE><3B>=Prop[true][PSP1][pspForMSE/3B/script.htm][pspForMSE/3B/dataFile.txt][ME<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for MSE/3B><Planning>][PropertyKey<top/PSP for MSE/3B><Design>][PropertyKey<top/PSP for MSE/3B><Code>][PropertyKey<top/PSP for MSE/3B><Compile>][PropertyKey<top/PSP for MSE/3B><Test>][PropertyKey<top/PSP for MSE/3B><Postmortem>]
+PropertyKey<top/PSP for MSE><3B>=Prop[true][PSP1-MSE-3B][pspForMSE/3B/script.htm][pspForMSE/3B/dataFile.txt][ME<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for MSE/3B><Planning>][PropertyKey<top/PSP for MSE/3B><Design>][PropertyKey<top/PSP for MSE/3B><Code>][PropertyKey<top/PSP for MSE/3B><Compile>][PropertyKey<top/PSP for MSE/3B><Test>][PropertyKey<top/PSP for MSE/3B><Postmortem>]
 PropertyKey<top/PSP for MSE/3B><Planning>=Prop[][][pspForMSE/3B/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP for MSE/3B><Design>=Prop[][][pspForMSE/3B/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP for MSE/3B><Code>=Prop[][][pspForMSE/3B/develop.htm][][ME<>][0][0]
@@ -53,7 +53,7 @@ PropertyKey<top/PSP for MSE/3B><Postmortem>=Prop[][][pspForMSE/3B/postmort.htm][
 
 # Program 4B
 
-PropertyKey<top/PSP for MSE><4B>=Prop[true][PSP1.0.1][pspForMSE/4B/script.htm][pspForMSE/4B/dataFile.txt][ME<Design Inspection(2)<Code Inspection(-3)][0][8][PropertyKey<top/PSP for MSE/4B><Planning>][PropertyKey<top/PSP for MSE/4B><Design>][PropertyKey<top/PSP for MSE/4B><Design Review>][PropertyKey<top/PSP for MSE/4B><Code>][PropertyKey<top/PSP for MSE/4B><Code Review>][PropertyKey<top/PSP for MSE/4B><Compile>][PropertyKey<top/PSP for MSE/4B><Test>][PropertyKey<top/PSP for MSE/4B><Postmortem>]
+PropertyKey<top/PSP for MSE><4B>=Prop[true][PSP1.0.1-MSE-4B][pspForMSE/4B/script.htm][pspForMSE/4B/dataFile.txt][ME<Design Inspection(2)<Code Inspection(-3)][0][8][PropertyKey<top/PSP for MSE/4B><Planning>][PropertyKey<top/PSP for MSE/4B><Design>][PropertyKey<top/PSP for MSE/4B><Design Review>][PropertyKey<top/PSP for MSE/4B><Code>][PropertyKey<top/PSP for MSE/4B><Code Review>][PropertyKey<top/PSP for MSE/4B><Compile>][PropertyKey<top/PSP for MSE/4B><Test>][PropertyKey<top/PSP for MSE/4B><Postmortem>]
 PropertyKey<top/PSP for MSE/4B><Planning>=Prop[][][pspForMSE/4B/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP for MSE/4B><Design>=Prop[][][pspForMSE/4B/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP for MSE/4B><Design Review>=Prop[][][pspForMSE/4B/develop.htm][][ME<>][0][0]

@@ -38,6 +38,8 @@ public class sizeest extends pspdash.TinyCGIBase {
     private static final String NEW_CUT   = "<!--NewObjects-->";
     private static final String REUSE_CUT = "<!--ReusedObjects-->";
     private static final String CUT_END   = "<!--end-->";
+    private static final String PAGE_TITLE =
+        "\n<TITLE>Size Estimating Template</TITLE>\n";
 
     private void init() throws IOException {
         try {

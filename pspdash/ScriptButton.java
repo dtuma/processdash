@@ -83,10 +83,12 @@ class ScriptButton extends DropDownButton {
         // populate the popup menu with items for each script.
         if (paths != null) for (int i = 0;  i < paths.size();  i++) {
             id = (ScriptID) paths.elementAt (i);
-            getMenu().add(new ScriptMenuItem(id.getUserName(), id));
+            getMenu().add(new ScriptMenuItem(id));
+            if (i == 0) getMenu().addSeparator();
         }
 
-        getMenu().addSeparator();
+        if (paths.size() > 0)
+            getMenu().addSeparator();
         getMenu().add(moreItem);
     }
 
@@ -95,8 +97,8 @@ class ScriptButton extends DropDownButton {
     public class ScriptMenuItem extends JMenuItem implements ActionListener {
         ScriptID id;
 
-        public ScriptMenuItem(String text, ScriptID id) {
-            super(text);
+        public ScriptMenuItem(ScriptID id) {
+            super(id.getDisplayName());
             this.id = id;
             addActionListener(this);
         }

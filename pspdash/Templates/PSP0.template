@@ -55,7 +55,7 @@
 ## Template for a PSP0 project.
 ##
 
-PropertyKey<top><PSP0>=Prop[true][PSP0][psp0/script.htm][psp0/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP0><Planning>][PropertyKey<top/PSP0><Design>][PropertyKey<top/PSP0><Code>][PropertyKey<top/PSP0><Compile>][PropertyKey<top/PSP0><Test>][PropertyKey<top/PSP0><Postmortem>]
+PropertyKey<top><PSP0>=Prop[true][PSP0][psp0/summary.htm;psp0/script.htm][psp0/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP0><Planning>][PropertyKey<top/PSP0><Design>][PropertyKey<top/PSP0><Code>][PropertyKey<top/PSP0><Compile>][PropertyKey<top/PSP0><Test>][PropertyKey<top/PSP0><Postmortem>]
 PropertyKey<top/PSP0><Planning>=Prop[][][psp0/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP0><Design>=Prop[][][psp0/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP0><Code>=Prop[][][psp0/develop.htm][][ME<>][0][0]
@@ -67,5 +67,5 @@ PropertyKey<top/PSP0><Postmortem>=Prop[][][psp0/summary.htm][][ME<>][0][0]
 ## Templates for optional review phases
 ##
 
-PropertyKey<top><Design Review>=Prop[][Design Review][][][MED<>PSP0>PSP0.1>PSP1>PSP1.1][0][0]
-PropertyKey<top><Code Review>=Prop[][Code Review][][][MED<>PSP0>PSP0.1>PSP1>PSP1.1][0][0]
+PropertyKey<top><Design Review>=Prop[][Design Review][][][MED<>PSP0>PSP0.1>PSP1>PSP1.1>PSP0.1-PFE-2A>PSP1-PFE-4A>PSP1.1-PFE-5A>PSP0.1-MSE-2A>PSP1-MSE-3B][0][0]
+PropertyKey<top><Code Review>=Prop[][Code Review][][][MED<>PSP0>PSP0.1>PSP1>PSP1.1>PSP0.1-PFE-2A>PSP1-PFE-4A>PSP1.1-PFE-5A>PSP0.1-MSE-2A>PSP1-MSE-3B][0][0]
