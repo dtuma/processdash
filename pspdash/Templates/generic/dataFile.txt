@@ -1,0 +1,87 @@
+=============================================================================
+== PSP Dashboard - Data Automation Tool for PSP-like processes
+== Copyright (C) 1999  United States Air Force
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 2
+== of the License, or (at your option) any later version.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, write to the Free Software
+== Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+== 
+== The author(s) may be contacted at:
+== OO-ALC/TISHD
+== Attn: PSP Dashboard Group
+== 6137 Wardleigh Road
+== Hill AFB, UT 84056-5843
+== 
+== E-Mail POC:  ken.raisor@hill.af.mil
+
+=============================================================================
+== Title:	$Id$
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Thu Jan  8 16:34:18 1998
+==
+== Description: This is the data file for a generic process. 
+==
+
+
+==
+== The following elements identify the data in this file as belonging to
+== a generic process. 
+==
+
+generic==1.0
+GENERIC==1.0
+
+
+==
+== Data Elements to track Time.
+==
+
+Estimated Time=0.0
+Time==![(+	~.*/Time)]
+Time Estimating Error==![(/	[(-	Time	Estimated Time)]	Estimated Time)]
+
+==
+== Data Elements to track defects
+==
+
+Generic - Show Defects=1.0
+Before Development/Defects Injected==0.0
+After Development/Defects Removed=0.0
+Defects Injected==![(-	~.*/Defects Injected	Before Development/Defects Injected)]
+Defects Removed==![(+	~.*/Defects Removed)]
+
+= Various defect ratios
+
+Before Development/% Defects Injected==![(/	Before Development/Defects Injected	Defects Injected)]
+After Development/% Defects Removed==![(/	After Development/Defects Removed	Defects Removed)]
+
+Before Development/Defect Injection Density==![(/	Before Development/Defects Injected	Size)]
+After Development/Defect Density==![(/	After Development/Defects Removed	Size)]
+Defect Density==![(/	Defects Removed	Size)]
+
+Before Development/Defects Injected per Hour==![(/	Before Development/Defects Injected	Time	0.016667)]
+After Development/Defects Removed per Hour==![(/	After Development/Defects Removed	Time	0.016667)]
+Defects Injected per Hour==![(/	Defects Injected	Time	0.016667)]
+Defects Removed per Hour==![(/	Defects Removed	Time	0.016667)]
+
+==
+== Data Elements to track size
+==
+
+Generic - Show Size=1.0
+Estimated Size=0.0
+Size=0.0
+Size Estimating Error==![(/	[(-	Size	Estimated Size)]	Estimated Size)]
+Units="Units
+Estimated Productivity==![(/	Estimated Size	Estimated Time	0.016667)]
+Productivity==![(/	Size	Time	0.016667)]
