@@ -34,6 +34,11 @@ foreach $line (@map) {
       $ID = $1;
       $file = $2;
 
+      # while here, check to see that the file exists
+      if (! -f $file) {
+         print "$file found in Map.xml, but the file does not exist\n";
+      }
+
       # skip graphics files
       if ($file =~ m/\.gif$/) {
          next;

@@ -3,7 +3,36 @@
 <BODY>
 
 <H1>Entering process data</H1>
-This help topic has not yet been implemented.
+<P>There are two main ways of entering data into the Process Dashboard.  The 
+first is through various input tools and dialogs provided by the dashboard 
+(e.g. the <a href="UsingProbeTool.html">PROBE tool</a>, the <a 
+href="../Execution/EnteringDefects.html">defect dialog</a>, etc.).</p>
+
+<p>The second is through the various PSP forms.  The forms are provided 
+through a web interface.  See the <a 
+href="../Execution/AccessingScripts.html">Accessing Process Scripts</a> help 
+topic for more info on how to access the scripts.</p>
+
+<h2>The nature of the script files</h2>
+<P>The script files themselves are implemented via static and sometimes 
+dynamic HTML pages.  The dashboard software actually contains a very small 
+HTTP server embedded within it.  This server allows communication between the 
+HTML pages and the process data that is tracked by the dashboard.</P>
+
+<P>The HTML pages are "live" at all times.  To process data, you merely need 
+to click on the appropriate data entry elements and type in the data.  Once 
+you pick anywhere else on the page (to signal that you are finished entering 
+information), the dashboard will automatically pick up your data -- no need 
+to press any kind of "submit data" button.</P>
+
+<P>Many times there will be greyed-out data boxes.  These are data elements 
+that are computed automatically by the dashboard.  They are not directly 
+editable, but rather they will update when other data elements that they are 
+related to get updated.</p>
+
+<P>To find out more information about the different process scripts that are 
+available, see the <a href="../Overview/ProcessScripts.html">process scripts</a> help 
+topic.</P>
 
 
 <!-- DISCLAIMER -->

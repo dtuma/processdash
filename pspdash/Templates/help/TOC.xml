@@ -7,6 +7,7 @@
   <tocitem image="TopLevelIcon" target="QuickOverview" text="Process Dashboard Help">
     <tocitem text="Overview">
       <tocitem target="QuickOverview" text="Quick overview of the Dashboard" />
+      <tocitem target="ProcessScripts" text="The process scripts" />
 
       <tocitem text="Quick start example: PSP1">
          <tocitem target="QuickStartPSP1" text="Quick start example: PSP1"/>
@@ -51,6 +52,7 @@
 
     <tocitem text="Advanced Topics">
       <tocitem target="ConfigurationFile" text="The configuration file"/>
+      <tocitem target="AddOnProcessSets" text="Adding add-on process sets"/>
 
 <!-- 
       <tocitem target="ModifyingExistingProcesses" text="Modifying the existing processes"/>
