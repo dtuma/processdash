@@ -30,14 +30,19 @@ import java.io.IOException;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 
 /** CGI script to print out the DNS name of the web server.
  */
 public class DisplayConfig extends TinyCGIBase {
+
+    private static final Resources resources =
+        Resources.getDashBundle("ProcessDashboard.ConfigScript");
 
     protected void writeContents() throws IOException {
         if (parameters.containsKey("serverName"))
@@ -59,18 +64,24 @@ public class DisplayConfig extends TinyCGIBase {
     }
 
     private void printUserConfig() {
-        out.println("<HTML><HEAD><TITLE>User settings</TITLE></HEAD>");
-        out.println("<BODY><H1>Your settings</H1>");
+        printRes("<HTML><HEAD><TITLE>${Title}</TITLE></HEAD>");
+        printRes("<BODY><H1>${Header}</H1>");
 
-        out.print("<P>Your configuration file is:<PRE>     ");
+        printRes("<P>${Config_File_Header}");
+        out.print("<PRE>     ");
         out.println(DashController.getSettingsFileName());
         out.println("</PRE></P>");
 
-        out.print("<P>Your data is located in the directory:<PRE>     ");
+        printRes("<P>${Data_Dir_Header}");
+        out.print("<PRE>     ");
         out.println(ProcessDashboard.getDefaultDirectory());
         out.println("</PRE></P>");
 
         out.println("</BODY></HTML>");
+    }
+
+    private void printRes(String text) {
+        out.println(resources.interpolate(text, HTMLUtils.ESC_ENTITIES));
     }
 
 }
