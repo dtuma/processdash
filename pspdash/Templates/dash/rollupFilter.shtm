@@ -27,7 +27,7 @@
 
 <HTML>
 <HEAD>
-<link rel=stylesheet type="text/css" href="../style.css">
+<link rel=stylesheet type="text/css" href="/style.css">
 <TITLE>Edit Data Rollup Filter</TITLE>
 
 <SCRIPT>

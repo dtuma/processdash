@@ -27,7 +27,7 @@
 
 <HTML>
 <HEAD>
-<link rel=stylesheet type="text/css" href="../style.css">
+<link rel=stylesheet type="text/css" href="/style.css">
 <TITLE><!--#echo var="[Process_ID]" -->
 <!--#if rollup -->Rollup<!--#else-->Project<!--#endif-->
 Plan Summary</TITLE>

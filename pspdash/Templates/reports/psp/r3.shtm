@@ -27,7 +27,7 @@
 
 <HTML>
 <head>
-<link rel=stylesheet type="text/css" href="/0/style.css">
+<link rel=stylesheet type="text/css" href="/style.css">
 <style>
 TD        { text-align: center }
 TD.header { font-weight: bold;  font-size: large }
