@@ -25,7 +25,7 @@ import teamdash.wbs.columns.TopDownBottomUpColumn;
 public class DataTableModel extends AbstractTableModel {
 
     /** The wbs model which this is displaying data for */
-    private WBSModel wbsModel;
+    protected WBSModel wbsModel;
     /** The list of columns in this data model */
     private ArrayList columns;
     /** A list of the calculated columns in the model */
@@ -39,6 +39,7 @@ public class DataTableModel extends AbstractTableModel {
     private Timer recalcJanitorTimer;
     /** Object which manages columns for team members */
     private TeamMemberColumnManager memberColumnManager;
+
 
     public DataTableModel(WBSModel wbsModel, TeamMemberList teamList) {
         this.wbsModel = wbsModel;
@@ -137,7 +138,7 @@ public class DataTableModel extends AbstractTableModel {
         memberColumnManager.addToColumnModel(columnModel);
     }
 
-    private void buildDataColumns(TeamMemberList teamList) {
+    protected void buildDataColumns(TeamMemberList teamList) {
 
         SizeTypeColumn.createSizeColumns(this);
         addDataColumn(new PhaseColumn());

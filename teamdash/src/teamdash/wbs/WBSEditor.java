@@ -12,7 +12,6 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JSeparator;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -51,9 +50,9 @@ public class WBSEditor implements WindowListener {
                      new String[] { "Team", "" });
 
         table.addTab("Time Calc",
-                     new String[] { "Phase", "Size", "Size-Units", "Rate", "Hrs/Indiv", "# People", "Time", "111-Time", "222-Time", "333-Time" },
+                     new String[] { "Phase", "Size", "Size-Units", "Rate", "Hrs/Indiv", "# People", "Time" },
                      new String[] { "Phase", "Size", "Units", "Rate", "Hrs/Indiv", "# People",
-                         "Time", "111", "222", "333" });
+                         "Time" });
 
         String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         table.addTab("Defects", s, s);
@@ -71,6 +70,7 @@ public class WBSEditor implements WindowListener {
         frame.addWindowListener(this);
         frame.pack();
         frame.show();
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     private JMenuBar buildMenuBar(WBSTabPanel tabPanel) {
@@ -85,24 +85,30 @@ public class WBSEditor implements WindowListener {
     }
     private JMenu buildFileMenu() {
         JMenu result = new JMenu("File");
+        result.setMnemonic('F');
         result.add(new SaveAction());
         result.add(new CloseAction());
         return result;
     }
     private JMenu buildEditMenu(Action[] editingActions) {
         JMenu result = new JMenu("Edit");
-        for (int i = 0;   i < editingActions.length;   i++)
+        result.setMnemonic('E');
+        for (int i = 0;   i < editingActions.length;   i++) {
             result.add(editingActions[i]);
+            if (i == 1) result.addSeparator();
+        }
 
-        result.add(new JSeparator(), 2);
         return result;
     }
     private JMenu buildWorkflowMenu() {
         JMenu result = new JMenu("Workflow");
+        result.setMnemonic('W');
+        result.add(new WorkflowEditorAction());
         return result;
     }
     private JMenu buildViewMenu() {
         JMenu result = new JMenu("View");
+        result.setMnemonic('V');
         result.add(new ShowTeamTimePanelMenuItem());
         return result;
     }
@@ -127,24 +133,42 @@ public class WBSEditor implements WindowListener {
     }
 
     private class SaveAction extends AbstractAction {
-        public SaveAction() { super("Save"); }
+        public SaveAction() {
+            super("Save");
+            putValue(MNEMONIC_KEY, new Integer('S'));
+        }
         public void actionPerformed(ActionEvent e) {
             teamProject.save();
         }
     }
 
     private class CloseAction extends AbstractAction {
-        public CloseAction() { super("Close"); }
+        public CloseAction() {
+            super("Close");
+            putValue(MNEMONIC_KEY, new Integer('C'));
+        }
         public void actionPerformed(ActionEvent e) {
             teamProject.save();
             System.exit(0);
         }
     }
 
+    private class WorkflowEditorAction extends AbstractAction {
+        public WorkflowEditorAction() {
+            super("Edit Workflows");
+            putValue(MNEMONIC_KEY, new Integer('E'));
+        }
+        public void actionPerformed(ActionEvent e) {
+            new WorkflowEditor(teamProject);
+        }
+    }
+
+
     private class ShowTeamTimePanelMenuItem extends JCheckBoxMenuItem
     implements ChangeListener {
         public ShowTeamTimePanelMenuItem() {
             super("Show Bottom Up Time Panel");
+            setMnemonic('B');
             addChangeListener(this);
         }
         public void stateChanged(ChangeEvent e) {

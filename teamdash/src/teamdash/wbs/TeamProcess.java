@@ -18,12 +18,10 @@ public class TeamProcess {
     private List phases;
     private Map phaseTypes;
     private Map iconMap;
-    private JMenu nodeTypeMenu;
 
     public TeamProcess() {
         buildPhases();
         buildIcons();
-        buildMenu();
     }
 
     public List getPhases() {
@@ -38,12 +36,24 @@ public class TeamProcess {
         return result;
     }
 
+    public String getPhaseSizeMetric(String phase) {
+        String type = getPhaseType(phase);
+        if (type.startsWith("REQ")) return null;
+        if (type.startsWith("HLD")) return null;
+        //if (type.startsWith("foo"))
+        String result =(String) phaseTypes.get(phase);
+        if (result == null && phase.endsWith(" Task"))
+            result = (String) phaseTypes.get
+                (phase.substring(0, phase.length()-5));
+        return result;
+    }
+
     public Map getIconMap() {
         return iconMap;
     }
 
     public JMenu getNodeTypeMenu() {
-        return nodeTypeMenu;
+        return buildMenu();
     }
 
     private void buildPhases() {
@@ -67,7 +77,6 @@ public class TeamProcess {
         iconMap.put("Project", IconFactory.getProjectIcon());
         iconMap.put(SW_COMP, IconFactory.getSoftwareComponentIcon());
         iconMap.put(GEN_DOC, IconFactory.getDocumentIcon(Color.white));
-        //iconMap.put("Task", IconFactory.getTaskIcon(c));
         iconMap.put("PSP Task", IconFactory.getPSPTaskIcon(c));
         iconMap.put(null, IconFactory.getTaskIcon(c));
 
@@ -167,10 +176,10 @@ public class TeamProcess {
         return (w - a) / (b - a);
     }
 
-    private void buildMenu() {
+    private JMenu buildMenu() {
         JMenu taskSubmenu = new JMenu("Tasks");
 
-        nodeTypeMenu = new JMenu();
+        JMenu nodeTypeMenu = new JMenu();
         nodeTypeMenu.add(taskSubmenu);
         nodeTypeMenu.addSeparator();
         for (int j = 0; j < iconMenuItems.length; j++)
@@ -186,6 +195,8 @@ public class TeamProcess {
             }
             taskSubmenu.add(new JMenuItem(i.next() + " Task"));
         }
+
+        return nodeTypeMenu;
     }
 
     private static final String[] iconMenuItems =

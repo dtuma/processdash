@@ -16,6 +16,7 @@ public class TeamProject {
     private TeamMemberList teamList;
     private TeamProcess teamProcess;
     private WBSModel wbs;
+    private WBSModel workflows;
 
 
     /** Create or open a team project */
@@ -24,6 +25,7 @@ public class TeamProject {
         this.directory = directory;
         openTeamList();
         openTeamProcess();
+        openWorkflows();
         openWBS();
     }
 
@@ -31,6 +33,7 @@ public class TeamProject {
     public void save() {
         saveTeamList();
         saveWBS();
+        saveWorkflows();
     }
 
     /** Return the name of the project */
@@ -51,6 +54,11 @@ public class TeamProject {
     /** Get the work breakdown structure for this project */
     public WBSModel getWBS() {
         return wbs;
+    }
+
+    /** Get the common workflows for this project */
+    public WBSModel getWorkflows() {
+        return workflows;
     }
 
 
@@ -123,6 +131,33 @@ public class TeamProject {
 
 
 
+    /** Open the file containing the common workflows */
+    private void openWorkflows() {
+        try {
+            Element xml = openXML(new File(directory, FLOW_FILENAME));
+            if (xml != null) workflows = new WBSModel(xml);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (workflows == null)
+            workflows = new WBSModel("Common Workflows");
+    }
+
+    /** Save the common workflows */
+    private void saveWorkflows() {
+        try {
+            File f = new File(directory, FLOW_FILENAME);
+            RobustFileWriter out = new RobustFileWriter(f);
+            workflows.getAsXML(out);
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
     private static final String TEAM_LIST_FILENAME = "team.xml";
     private static final String WBS_FILENAME = "wbs.xml";
+    private static final String FLOW_FILENAME = "workflow.xml";
 }
