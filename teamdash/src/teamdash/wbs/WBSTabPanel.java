@@ -40,12 +40,12 @@ public class WBSTabPanel extends JPanel {
     GridBagLayout layout;
 
 
-        /** Create a WBSTabPanel */
+    /** Create a WBSTabPanel */
     public WBSTabPanel(WBSModel wbs, DataTableModel data, Map iconMap) {
         setOpaque(false);
         setLayout(layout = new GridBagLayout());
 
-                // build the components to display in this panel
+        // build the components to display in this panel
         makeTables(wbs, data, iconMap);
         makeSplitter();
         makeScrollPane();
@@ -53,12 +53,12 @@ public class WBSTabPanel extends JPanel {
     }
 
 
-        /** Add a tab to the tab panel
-         * @param tabName The name to display on the tab
-         * @param columnNames The columns to display when this tab is selected
-         * @throws IllegalArgumentException if <code>columnNames</code> names
-         *    a column which cannot be found
-         */
+    /** Add a tab to the tab panel
+     * @param tabName The name to display on the tab
+     * @param columnNames The columns to display when this tab is selected
+     * @throws IllegalArgumentException if <code>columnNames</code> names
+     *    a column which cannot be found
+     */
     public void addTab(String tabName, String[] columnNames)
         throws IllegalArgumentException
     {
@@ -77,7 +77,7 @@ public class WBSTabPanel extends JPanel {
             columnModel.addColumn(tableColumn);
         }
 
-                // add the newly created table model to the tableColumnModels list
+        // add the newly created table model to the tableColumnModels list
         tableColumnModels.add(columnModel);
         // add the new tab. (Note: the addition of the first tab triggers
         // an automatic tab selection event, which will effectively install
@@ -86,24 +86,24 @@ public class WBSTabPanel extends JPanel {
     }
 
 
-        /** Create the JTables and perform necessary setup */
+    /** Create the JTables and perform necessary setup */
     private void makeTables(WBSModel wbs, DataTableModel data, Map iconMap) {
         // create the WBS table to display the hierarchy
         wbsTable = new WBSJTable(wbs, iconMap);
         // create the table to display hierarchy data
         dataTable = new DataJTable(data);
         // link the tables together so they have the same scrolling behavior,
-                // selection model, and row height.
+        // selection model, and row height.
         wbsTable.setScrollableDelegate(dataTable);
         wbsTable.setSelectionModel(dataTable.getSelectionModel());
         dataTable.setRowHeight(wbsTable.getRowHeight());
     }
 
 
-        /** Create and install the splitter component. */
+    /** Create and install the splitter component. */
     private void makeSplitter() {
         splitPane =
-                new MagicSplitter(JSplitPane.HORIZONTAL_SPLIT, false, 70, 70);
+            new MagicSplitter(JSplitPane.HORIZONTAL_SPLIT, false, 70, 70);
         splitPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         splitPane.setDividerLocation(205);
         splitPane.addPropertyChangeListener
@@ -131,7 +131,7 @@ public class WBSTabPanel extends JPanel {
         // remove the borders from the scroll pane
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         if (System.getProperty("java.version").startsWith("1.3"))
-                // need to add an explicit border for the scroll bar in Java 1.3
+            // need to add an explicit border for the scroll bar in Java 1.3
             scrollPane.getVerticalScrollBar().setBorder
                 (BorderFactory.createMatteBorder(0, 0, 0, 1, Color.darkGray));
 
@@ -140,7 +140,7 @@ public class WBSTabPanel extends JPanel {
         // don't paint over the splitter bar when we repaint.
         scrollPane.setOpaque(false);
 
-                // add the scroll pane to the panel
+        // add the scroll pane to the panel
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = c.gridy = 0;
         c.weightx = c.weighty = 1.0;
@@ -152,10 +152,10 @@ public class WBSTabPanel extends JPanel {
     }
 
 
-        /** Since JTables aren't used to being put in the "row header view" of
-         * a scroll pane, we have to place it in a panel that provides some
-         * guidance about how the table should lay itself out
-         */
+    /** Since JTables aren't used to being put in the "row header view" of
+     * a scroll pane, we have to place it in a panel that provides some
+     * guidance about how the table should lay itself out
+     */
     private Component wrapWBSTable(JTable t) {
         JPanel result = new JPanel();
         result.setOpaque(false);
@@ -163,9 +163,9 @@ public class WBSTabPanel extends JPanel {
         GridBagLayout layout = new GridBagLayout();
         result.setLayout(layout);
 
-                // add the table to the grid in the top left position.  The table's
-                // preferred width will drive the preferred width of the JPanel, so
-                // we don't have to worry about "fill" modes.
+        // add the table to the grid in the top left position.  The table's
+        // preferred width will drive the preferred width of the JPanel, so
+        // we don't have to worry about "fill" modes.
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = c.gridy = 0;
         c.insets.left = c.insets.top = c.insets.bottom = 0;
@@ -174,10 +174,10 @@ public class WBSTabPanel extends JPanel {
         result.add(t);
         layout.setConstraints(t, c);
 
-                // add an invisible component below the table that grows to absorb
-                // the remaining space.  This ensures that the JPanel will be as tall
-                // as the viewport view, and that the table will be top-justified
-                // within the panel.
+        // add an invisible component below the table that grows to absorb
+        // the remaining space.  This ensures that the JPanel will be as tall
+        // as the viewport view, and that the table will be top-justified
+        // within the panel.
         JComponent filler = new EmptyComponent(new Dimension(0, 0));
         c.gridy = 1;
         c.weightx = c.weighty = 1.0;
@@ -189,7 +189,7 @@ public class WBSTabPanel extends JPanel {
     }
 
 
-        /** Create and install the tabbed pane component. */
+    /** Create and install the tabbed pane component. */
     private void makeTabbedPane() {
         tabbedPane = new JTabbedPane();
 
@@ -218,18 +218,18 @@ public class WBSTabPanel extends JPanel {
     }
 
 
-        /** This component displays a splitter bar (along the lines of JSplitPane)
-         * but doesn't display anything on either side of the bar. Instead, these
-         * areas are transparent, allowing other components to show through.
-         */
+    /** This component displays a splitter bar (along the lines of JSplitPane)
+     * but doesn't display anything on either side of the bar. Instead, these
+     * areas are transparent, allowing other components to show through.
+     */
     private final class MagicSplitter extends JSplitPane {
         public MagicSplitter(int newOrientation, boolean newContinuousLayout,
-                                                 int firstCompMinSize, int secondCompMinSize) {
+                             int firstCompMinSize, int secondCompMinSize) {
             super(newOrientation, newContinuousLayout,
                   new EmptyComponent(new Dimension(firstCompMinSize,
-                                                                                                   firstCompMinSize)),
+                                                   firstCompMinSize)),
                   new EmptyComponent(new Dimension(secondCompMinSize,
-                                                                                   secondCompMinSize)));
+                                                   secondCompMinSize)));
             setOpaque(false);
         }
         /** Limit contains() to the area owned by the splitter bar.  This
@@ -244,37 +244,37 @@ public class WBSTabPanel extends JPanel {
     }
 
 
-        /** Listen for changes in the position of the divider, and resize other
-         * objects in this panel appropriately
+    /** Listen for changes in the position of the divider, and resize other
+     * objects in this panel appropriately
      */
-         private final class DividerListener implements PropertyChangeListener {
-         public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                 // get the new location of the divider.
-             int dividerLocation = ((Number) evt.getNewValue()).intValue();
+    private final class DividerListener implements PropertyChangeListener {
+        public void propertyChange(java.beans.PropertyChangeEvent evt) {
+            // get the new location of the divider.
+            int dividerLocation = ((Number) evt.getNewValue()).intValue();
 
-             // resize the wbsTable to fit on the left side of the divider
-             TableColumn col = wbsTable.getColumnModel().getColumn(0);
-             col.setMaxWidth(dividerLocation - 5);
-             col.setMinWidth(dividerLocation - 5);
-             col.setPreferredWidth(dividerLocation - 5);
+            // resize the wbsTable to fit on the left side of the divider
+            TableColumn col = wbsTable.getColumnModel().getColumn(0);
+            col.setMaxWidth(dividerLocation - 5);
+            col.setMinWidth(dividerLocation - 5);
+            col.setPreferredWidth(dividerLocation - 5);
 
-                         // resize the tabbed pane to fit on the right side of the divider.
-             GridBagConstraints c = new GridBagConstraints();
-             c.gridx = c.gridy = 0;
-             c.weightx = c.weighty = 1.0;
-             c.fill = GridBagConstraints.BOTH;
-             c.insets.left = dividerLocation + 10;
-             c.insets.top = c.insets.bottom = c.insets.right = 0;
-             layout.setConstraints(tabbedPane, c);
+            // resize the tabbed pane to fit on the right side of the divider.
+            GridBagConstraints c = new GridBagConstraints();
+            c.gridx = c.gridy = 0;
+            c.weightx = c.weighty = 1.0;
+            c.fill = GridBagConstraints.BOTH;
+            c.insets.left = dividerLocation + 10;
+            c.insets.top = c.insets.bottom = c.insets.right = 0;
+            layout.setConstraints(tabbedPane, c);
 
-             // revalidate the layout of the tabbed panel.
-             WBSTabPanel.this.revalidate();
-         }
+            // revalidate the layout of the tabbed panel.
+            WBSTabPanel.this.revalidate();
+        }
     }
 
 
-        /** Display an invisible component with a certain minimum/preferred size.
-        */
+    /** Display an invisible component with a certain minimum/preferred size.
+    */
     private final class EmptyComponent extends JComponent {
         private Dimension d, m;
         public EmptyComponent(Dimension d) {
