@@ -336,7 +336,8 @@ public class AutoUpdateManager {
                 if (!connectFailed)
                     InternalSettings.set
                         (AUTO_UPDATE_SETTING + LAST_CHECK + "." + id,
-                         Long.toString(lastUpdateCheckTime = now));
+                         Long.toString(lastUpdateCheckTime = now),
+                         COMMENT_START + "\"" + name + "\"");
 
                 // a content-length of -1 or 0 automatically implies
                 // that no update is available.
@@ -366,6 +367,9 @@ public class AutoUpdateManager {
         private static final String VERSION_ATTRIBUTE = "Dash-Pkg-Version";
         private static final String NAME_ATTRIBUTE    = "Dash-Pkg-Name";
         private static final String URL_ATTRIBUTE     = "Dash-Pkg-URL";
+        private static final String COMMENT_START =
+            "The last date when the dashboard was able to successfully " +
+            "check for an updated version of ";
     }
 
     private void debug(String msg) {
