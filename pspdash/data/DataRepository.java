@@ -984,10 +984,12 @@ public class DataRepository implements Repository {
         public void saveAllDatafiles() {
             DataFile datafile;
 
-            for (int i = datafiles.size();   i-- != 0; ) {
+            for (int i = datafiles.size();   i-- != 0; ) try {
                 datafile = (DataFile)datafiles.elementAt(i);
                 if (datafile.dirtyCount > 0)
                     saveDatafile(datafile);
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
             }
         }
 
@@ -999,9 +1001,11 @@ public class DataRepository implements Repository {
             try {
                 long start = System.currentTimeMillis();
                 // wait up to 6 seconds total for both of the threads to die.
-                dataFreezer.join(6000);
+                dataFreezer.join(4000);
                 long elapsed = System.currentTimeMillis() - start;
-                dataRealizer.join(6000 - elapsed);
+                long wait = 6000 - elapsed;
+                if (wait < 0) wait = 1000;
+                dataRealizer.join(wait);
             } catch (InterruptedException e) {}
 
             saveAllDatafiles();
