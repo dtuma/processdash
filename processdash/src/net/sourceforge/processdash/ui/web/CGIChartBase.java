@@ -26,6 +26,8 @@
 package net.sourceforge.processdash.ui.web;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Insets;
@@ -163,6 +165,7 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
         BufferedImage img = new BufferedImage
             (width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = img.createGraphics();
+        maybeAdjustFontSizes(chart, g2, width);
         chart.draw(g2, new Rectangle2D.Double(0, 0, width, height));
         g2.dispose();
 
@@ -172,6 +175,37 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
         outStream.flush();
         outStream.close();
     }
+
+    protected void maybeAdjustFontSizes(JFreeChart chart,
+                                        Graphics2D g, int width) {
+        // if the chart has no title, do nothing.
+        if (chart.getTitle() == null) return;
+        String title = chart.getTitle().getText();
+        if (title == null || title.length() == 0) return;
+
+        // compute the width needed to draw the title.
+        Font f = chart.getTitle().getFont();
+        Font sf = getFontSizeToFit(g, f, title, (int)(width * 0.85));
+        if (f != sf)
+            chart.getTitle().setFont(sf);
+    }
+
+    protected Font getFontSizeToFit(Graphics2D g, Font baseFont,
+                                    String text, int width) {
+        FontMetrics m = g.getFontMetrics(baseFont);
+        int currentWidth = m.stringWidth(text);
+        Font result = baseFont;
+
+        int maxIter = 100;
+        while (currentWidth > width && maxIter-- > 0) {
+            result = result.deriveFont(result.getSize2D() * 0.95f);
+            m = g.getFontMetrics(result);
+            currentWidth = m.stringWidth(text);
+        }
+
+        return result;
+    }
+
     public static final String SETTING_PREFIX = "chart.";
 
     protected String getSetting(String name) {
