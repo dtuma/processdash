@@ -88,7 +88,8 @@ public class PauseButton extends DropDownButton implements ActionListener {
 
         activeRefreshTimer =
             new javax.swing.Timer(refreshIntervalMillis, this);
-        activeRefreshTimer.setInitialDelay(MILLIS_PER_MINUTE + 1000);
+        activeRefreshTimer.setInitialDelay
+            (Math.min(MILLIS_PER_MINUTE, refreshIntervalMillis) + 1000);
         activeRefreshTimer.start();
 
         // Load the audio clip
@@ -409,6 +410,14 @@ public class PauseButton extends DropDownButton implements ActionListener {
             refreshIntervalMillis = (int)
                 (Double.parseDouble(refreshInterval) * MILLIS_PER_MINUTE);
         } catch (NumberFormatException nfe) {}
+
+        // Load time multiplier setting
+        double multiplier = 1.0;
+        String mult = Settings.getVal("timer.multiplier");
+        if (mult != null) try {
+            multiplier = Double.parseDouble(mult);
+        } catch (NumberFormatException nfe) {}
+        refreshIntervalMillis = (int) (refreshIntervalMillis / multiplier);
 
         // Load the user setting for history size
         String historySize = Settings.getVal("pauseButton.historySize");

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -34,15 +34,26 @@ public class Timer {
     private Date stopTime = null;
     private long elapsedTime = 0;        // represented in seconds
     private long interruptTime = 0;      // represented in seconds
+    private double multiplier = 1.0;
 
     Timer(boolean running) {
         createTime = new Date();
         if (running) { startTime = createTime; }
+        initMultiplier();
     }
 
     Timer() {
         createTime = new Date();
         startTime = createTime;
+        initMultiplier();
+    }
+
+    private void initMultiplier() {
+        multiplier = 1.0;
+        String mult = Settings.getVal("timer.multiplier");
+        if (mult != null) try {
+            multiplier = Double.parseDouble(mult);
+        } catch (NumberFormatException nfe) {}
     }
 
     public void start() {
@@ -88,19 +99,19 @@ public class Timer {
     public void setElapsed(long seconds) {
         if (isRunning()) {
             stop();
-            elapsedTime = seconds;
+            elapsedTime = (long) (seconds / multiplier);
             start();
         } else
-            elapsedTime = seconds;
+            elapsedTime = (long) (seconds / multiplier);
     }
 
     public double minutesElapsedDouble() {
         if (startTime == null) {
-            return (double)elapsedTime / 60.0;
+            return (double)elapsedTime * multiplier / 60.0;
         } else {
             Date now = new Date();
             return (double)(((now.getTime() - startTime.getTime()) / 1000) +
-                           elapsedTime) / 60.0;
+                           elapsedTime) * multiplier / 60.0;
         }
     }
 
@@ -110,16 +121,16 @@ public class Timer {
 
     public double runningMinutesInterrupt() {
         if (startTime != null) {
-            return (double)interruptTime / 60.0;
+            return (double)interruptTime * multiplier / 60.0;
         } else {
             Date now = new Date();
             return (double)(((now.getTime() - stopTime.getTime()) / 1000) +
-                            interruptTime) / 60.0;
+                            interruptTime) * multiplier / 60.0;
         }
     }
 
     public double minutesInterruptDouble() {
-        return (double)interruptTime / 60.0;
+        return (double)interruptTime * multiplier / 60.0;
     }
 
     public long minutesInterrupt() {
