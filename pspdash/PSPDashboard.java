@@ -68,6 +68,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     static final String TEMPLATES_FILE = "state";
     PropertyKey currentPhase  = null;
     int httpServerPort = DEFAULT_WEB_PORT;
+    private static String versionNumber;
 
     private static final String TEMPLATES_CLASSPATH = "Templates/";
     public static final int DEFAULT_WEB_PORT = 2468;
@@ -103,6 +104,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         aum = new AutoUpdateManager();
         templates = TemplateLoader.loadTemplates(data, aum);
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
+        versionNumber = aum.getPackageVersion("pspdash");
 
         // start the http server.
         try {
@@ -355,6 +357,23 @@ public class PSPDashboard extends JFrame implements WindowListener {
         "    To download an updated version of the Java Runtime",
         "Environment, visit   " };
 
+    public boolean addTemplateJar(String jarfileName) {
+        if (!TemplateLoader.addTemplateJar(data, templates, jarfileName, aum))
+            return false;
+
+        URL [] templateRoots = TemplateLoader.getTemplateURLs();
+        data.setDatafileSearchURLs(templateRoots);
+        webServer.setRoots(templateRoots);
+        return true;
+    }
+
+    public void changeHttpPort(int newPort) {
+        try {
+            webServer.addExtraPort(newPort);
+            Browser.setDefaults("localhost", newPort);
+            data.startSecondServer(webServer.getDataSocket());
+        } catch (IOException ioe) {}
+    }
 
     public void refreshHierarchy() {
         hierarchy.delete();
@@ -474,6 +493,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         save();
     }
+
+    public static String getVersionNumber() { return versionNumber; }
 
     static SplashScreen ss = null;
 
