@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2004 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -43,7 +43,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.util.ClientHttpRequest;
 
 
-public class TranslationSharer {
+public class TranslationSharer implements Runnable {
 
 
     private static final String SHARE_ENABLED_SETTING = "translations.share";
@@ -59,16 +59,23 @@ public class TranslationSharer {
     private static final Resources resources =
         Resources.getDashBundle("ProcessDashboard.Translation.Sharing");
 
+    private String filename;
 
     public void maybeShareTranslations(String filename) {
-        if (shouldShareTranslations())
-            try {
-                postTranslations(filename);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+        if (shouldShareTranslations()) {
+            this.filename = filename;
+            Thread t = new Thread(this);
+            t.start();
+        }
     }
 
+    public void run() {
+        try {
+            postTranslations(filename);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
     private void postTranslations(String filename) throws Exception {
         ClientHttpRequest request = new ClientHttpRequest(POST_URL);
