@@ -34,35 +34,55 @@ public class table extends pspdash.TinyCGIBase {
         String style = (String) parameters.get("style");
         String units = (String) parameters.get("units");
 
-        out.println("<HTML><HEAD>");
-        if (title != null) out.println("<TITLE>" + title + "</TITLE>");
-        if (style != null)
-            out.println("<LINK REL='stylesheet' TYPE='text/css' HREF='" +
-                        style + "'>");
+        boolean skipRowHdr = (parameters.get("skipRowHdr") != null);
+        boolean skipColHdr = (parameters.get("skipColHdr") != null);
+        boolean includable = (parameters.get("includable") != null);
 
-        out.println("</HEAD><BODY>");
-        if (title != null) out.println("<H1>" + title + "</H1>");
-        if (units != null) out.println("<P>(" + units + ")</P>");
-        out.println(style == null ? "<TABLE BORDER>" : "<TABLE>");
+        if (!includable) {
+            out.println("<HTML><HEAD>");
+            if (title != null) out.println("<TITLE>" + title + "</TITLE>");
+            if (style != null)
+                out.println("<LINK REL='stylesheet' TYPE='text/css' HREF='" +
+                            style + "'>");
+
+            out.println("</HEAD><BODY>");
+            if (title != null) out.println("<H1>" + title + "</H1>");
+            if (units != null) out.println("<P>(" + units + ")</P>");
+            out.println(style == null ? "<TABLE BORDER>" : "<TABLE>");
+        }
 
         // get the data
         if (parameters.get("h0") == null) parameters.put("h0", "Project/Task");
-        String prefix = (String) env.get("PATH_TRANSLATED");
+        String prefix = (String) parameters.get("hierarchyPath");
+        if (prefix == null) prefix = (String) env.get("PATH_TRANSLATED");
         ResultSet tableData =
             ResultSet.get(getDataRepository(), parameters, prefix,
                           getPSPProperties());
+        if (parameters.get("transpose") != null)
+            tableData = tableData.transpose();
 
         // print the table
-        for (int row=0;  row <= tableData.numRows();  row++) {
+        int firstRow = (skipColHdr ? 1 : 0);
+        int firstCol = (skipRowHdr ? 1 : 0);
+        for (int row=firstRow;  row <= tableData.numRows();  row++) {
             out.println("<TR>");
-            for (int col=0;  col <= tableData.numCols();  col++) {
-                out.print("<TD>");
+            for (int col=firstCol;  col <= tableData.numCols();  col++) {
+                out.print("<TD" + getColAttributes(col) + ">");
                 out.print(tableData.format(row, col));
                 out.println("</TD>");
             }
             out.println("</TR>");
         }
-        out.println("</TABLE></BODY></HTML>");
+
+        if (!includable)
+            out.println("</TABLE></BODY></HTML>");
+    }
+
+    private String getColAttributes(int col) {
+        String cssClass = (String) parameters.get("c" + col);
+        if (cssClass == null) cssClass = (String) parameters.get("c");
+        if (cssClass == null) return "";
+        return " class='" + cssClass + "'";
     }
 
 }
