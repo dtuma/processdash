@@ -97,11 +97,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     }
 
     private static final Resources resources =
-        Resources.getDashBundle("Defects");
-
-    protected String getHTML(String key) {
-        return HTMLUtils.escapeEntities(resources.getString(key));
-    }
+        Resources.getDashBundle("Defects.Standard");
 
     protected void writeHTMLHeader() {
         String title = resources.getString("Page_Title");
@@ -133,15 +129,15 @@ public class EditDefectTypeStandards extends TinyCGIBase {
 
         writeHTMLHeader();
         out.print("<p>");
-        out.println(getHTML("Welcome_Prompt"));
+        out.println(resources.getHTML("Welcome_Prompt"));
         out.println("<ul>");
         out.print("<li><a href=\"dtsEdit.class?"+ACTION+"="+CREATE+"\">");
-        out.print(getHTML("Create_Option"));
+        out.print(resources.getHTML("Create_Option"));
         out.println("</a></li>");
 
         if (standards.length > 0) {
             out.print("<li>");
-            out.print(getHTML("Manage_Option"));
+            out.print(resources.getHTML("Manage_Option"));
             out.println("<table>");
 
             for (int i = 0;   i < standards.length;   i++) {
@@ -159,7 +155,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
                         String opt = OPTIONS[o];
                         out.print("<td><a href='dtsEdit.class?"+ACTION+"="+opt+
                                   "&"+NAME+"="+urlName+"'>");
-                        out.print(getHTML(opt));
+                        out.print(resources.getHTML(opt));
                         out.print("</a></td>");
                     }
                 }
@@ -174,7 +170,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
         throws IOException
     {
         out.print("<p><b>");
-        out.print(getHTML("Name_Prompt"));
+        out.print(resources.getHTML("Name_Prompt"));
         out.print("</b>&nbsp;");
 
         if (!editable)
@@ -194,11 +190,11 @@ public class EditDefectTypeStandards extends TinyCGIBase {
                 (standardName, getDataRepository());
 
         out.print("<p>");
-        out.println(getHTML("Edit_Instructions"));
+        out.println(resources.getHTML("Edit_Instructions"));
         out.print("<br><textarea name='"+CONTENTS+"' rows=12 cols=80>");
 
         if (defectTypeStandard == null) {
-            out.print(getHTML("Sample_Defect_Type"));
+            out.print(resources.getHTML("Sample_Defect_Type"));
         } else {
             String type, description;
             for (int i=0;  i<defectTypeStandard.options.size();  i++) {
@@ -223,18 +219,18 @@ public class EditDefectTypeStandards extends TinyCGIBase {
 
         writeHTMLHeader();
         out.print("<h2>");
-        out.print(getHTML(headerKey));
+        out.print(resources.getHTML(headerKey));
         out.println("</h2>");
         out.println("<form action='dtsEdit.class' method='POST'>");
         showName(nameToDisplay, nameEditable);
         showEditBox(realName);
 
         out.print("<p><input type=submit name='"+SAVE+"' value='");
-        out.print(HTMLUtils.escapeEntities(resources.getString("Save")));
+        out.print(resources.getHTML("Save"));
         out.print("'>&nbsp;");
 
         out.print("<input type=submit name='cancel' value='");
-        out.print(HTMLUtils.escapeEntities(resources.getString("Cancel")));
+        out.print(resources.getHTML("Cancel"));
         out.print("'>");
         out.print("</form></body></html>");
     }
@@ -264,18 +260,18 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     protected void deleteExisting(String standardName) throws IOException {
         writeHTMLHeader();
         out.print("<h2>");
-        out.print(getHTML("Delete_Existing"));
+        out.print(resources.getHTML("Delete_Existing"));
         out.println("</h2><p>");
-        out.print(getHTML("Delete_Existing_Prompt"));
+        out.print(resources.getHTML("Delete_Existing_Prompt"));
         out.println("<form action='dtsEdit.class' method='POST'>");
         showName(standardName, false);
 
         out.print("<p><input type=submit name='"+SAVE+"' value='");
-        out.print(HTMLUtils.escapeEntities(resources.getString("OK")));
+        out.print(resources.getHTML("OK"));
         out.print("'>&nbsp;");
 
         out.print("<input type=submit name='cancel' value='");
-        out.print(HTMLUtils.escapeEntities(resources.getString("Cancel")));
+        out.print(resources.getHTML("Cancel"));
         out.print("'>");
         out.print("</form></body></html>");
     }
@@ -283,18 +279,18 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     protected void setDefault(String standardName) throws IOException {
         writeHTMLHeader();
         out.print("<h2>");
-        out.print(getHTML("Set_As_Default"));
+        out.print(resources.getHTML("Set_As_Default"));
         out.println("</h2><p>");
-        out.print(getHTML("Set_As_Default_Prompt"));
+        out.print(resources.getHTML("Set_As_Default_Prompt"));
         out.println("<form action='dtsEdit.class' method='POST'>");
         showName(standardName, false);
 
         out.print("<p><input type=submit name='"+SET_DEFAULT+"' value='");
-        out.print(HTMLUtils.escapeEntities(resources.getString("OK")));
+        out.print(resources.getHTML("OK"));
         out.print("'>&nbsp;");
 
         out.print("<input type=submit name='cancel' value='");
-        out.print(HTMLUtils.escapeEntities(resources.getString("Cancel")));
+        out.print(resources.getHTML("Cancel"));
         out.print("'>");
         out.print("</form></body></html>");
     }

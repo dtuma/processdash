@@ -99,7 +99,7 @@ public class DefectLogEditor extends Component
         defectLogs = new Hashtable ();
         reload ();
 
-        frame = new JFrame(resources.getString("Defect_Log_Window_Title"));
+        frame = new JFrame(resources.getString("Log.Window_Title"));
         frame.setIconImage(DashboardIconFactory.getWindowIconImage());
         frame.getContentPane().add("Center", panel);
         frame.setBackground(Color.lightGray);
@@ -149,11 +149,12 @@ public class DefectLogEditor extends Component
         sp.getViewport().add(tree);
 
         /* Create the type standard selection widget */
-        inheritTypeSelection = resources.getString("Inherit_Type");
-        typeSelectionTooltip = resources.getString("Type_Selector_Tooltip");
+        inheritTypeSelection = resources.getString("Log.Inherit_Type");
+        typeSelectionTooltip = resources.getString("Log.Type_Selector_Tooltip");
 
         JPanel selectorPanel = new JPanel(false);
-        JLabel typeLabel = new JLabel(resources.getString("Type_Selector_Label"));
+        JLabel typeLabel = new JLabel
+            (resources.getString("Log.Type_Selector_Label"));
         typeLabel.setToolTipText(typeSelectionTooltip);
         selectorPanel.add(typeLabel);
 
@@ -163,8 +164,9 @@ public class DefectLogEditor extends Component
         dtsSelector.addActionListener (this);
         selectorPanel.add(dtsSelector);
 
-        dtsEditButton = new JButton(resources.getString("Edit_Types_Button"));
-        dtsEditButton.setToolTipText(resources.getString("Edit_Types_Tooltip"));
+        dtsEditButton = new JButton(resources.getString("Log.Edit_Types_Button"));
+        dtsEditButton.setToolTipText
+            (resources.getString("Log.Edit_Types_Tooltip"));
         dtsEditButton.setActionCommand ("dtsEdit");
         dtsEditButton.addActionListener (this);
         selectorPanel.add(dtsEditButton);
@@ -203,7 +205,7 @@ public class DefectLogEditor extends Component
             dtsSelector.addItem("\t" + selectedType);
             dtsSelector.setForeground(Color.red);
             dtsSelector.setToolTipText
-                (resources.getString("Nonexistent_Type_Tooltip"));
+                (resources.getString("Log.Nonexistent_Type_Tooltip"));
         } else {
             dtsSelector.setForeground(Color.black);
             dtsSelector.setToolTipText(typeSelectionTooltip);
@@ -453,8 +455,8 @@ public class DefectLogEditor extends Component
                 // display a confirmation dialog
                 if (JOptionPane.showConfirmDialog
                     (frame,
-                     resources.format("Confirm_Delete_Message_FMT", number),
-                     resources.getString("Confirm_Delete_Title"),
+                     resources.format("Log.Confirm_Delete_Message_FMT", number),
+                     resources.getString("Log.Confirm_Delete_Title"),
                      JOptionPane.YES_NO_OPTION) ==
                     JOptionPane.YES_OPTION)
                     dle.dl.deleteDefect(number);

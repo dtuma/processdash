@@ -82,7 +82,7 @@ public class DefectDialog extends JDialog
     /** A timer object for refreshing the fix time field. */
     private javax.swing.Timer activeRefreshTimer = null;
 
-    Resources resources = Resources.getDashBundle("Defects");
+    Resources resources = Resources.getDashBundle("Defects.Editor");
 
 
     DefectDialog(ProcessDashboard dash, String defectFilename,
@@ -93,7 +93,7 @@ public class DefectDialog extends JDialog
     DefectDialog(ProcessDashboard dash, String defectFilename,
                  PropertyKey defectPath, boolean guessDefaults) {
         super(dash);
-        setTitle(resources.getString("Defect_Dialog_Window_Title"));
+        setTitle(resources.getString("Window_Title"));
         PCSH.enableHelpKey(this, "EnteringDefects");
 
         parent = dash;

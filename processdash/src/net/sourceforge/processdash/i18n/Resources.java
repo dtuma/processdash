@@ -33,6 +33,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class Resources extends ResourceBundle {
@@ -81,6 +82,10 @@ public class Resources extends ResourceBundle {
         if (result == null)
             result = addDialogIndicator(getString(key));
         return result;
+    }
+
+    public String getHTML(String key) {
+        return HTMLUtils.escapeEntities(getString(key));
     }
 
 
