@@ -1,0 +1,6 @@
+You have chosen to install the following {0,choice,1#module|2#modules}:
+          {1}
+
+{0,choice,1#This module incorporates|2#These modules incorporate} templates, scripts, and other materials from the book by Watts S. Humphrey, A Discipline for Software Engineering.  Copyright (c) 1995 by Addison-Wesley.  These materials are reproduced with the permission of the publisher.
+
+The publisher has granted this permission on the condition that users consent to the following license agreement before downloading or installing {0,choice,1#this module|2#these modules}:

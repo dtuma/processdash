@@ -1,0 +1,151 @@
+<installation version="1.0">
+
+    <info>
+        <appname>Process Dashboard</appname>
+        <appversion>@version@</appversion>
+        <authors>
+            <author email="ken_raisor@users.sourceforge.net" name="Ken Raisor"/>
+            <author email="rickreynolds@users.sourceforge.net" name="Rick Reynolds"/>
+            <author email="tuma@users.sourceforge.net" name="David Tuma"/>
+        </authors>
+        <url>http://processdash.sourceforge.net</url>
+	<javaversion>1.4</javaversion>
+    </info>
+
+    <guiprefs height="480" resizable="yes" width="640"/>
+
+    <!-- only English is currently supported :-(  -->
+    <locale>
+        <langpack iso3="eng"/>
+    </locale>
+
+    <!-- The resources needed by the various panels -->
+    <resources>
+        <res src="files/DashInfo.html" id="HTMLInfoPanel.info"/>
+        <res src="files/DashLicense.html" id="HTMLLicencePanel.licence"/>
+        <res src="files/DataDir-windows.txt" id="DataDirPanel.dir.windows"/>
+        <res src="files/WebInstallers.txt" id="WebInstallers.url"/>
+        <res src="files/shortcutSpec.xml" id="shortcutSpec.xml"/>
+        <res src="files/AWHeader.txt" id="CondHTMLLicencePanel0.header"/>
+        <res src="files/AWLicense.html" id="CondHTMLLicencePanel0.licence"/>
+        <res src="files/AWLicense-list.txt" id="CondHTMLLicencePanel0.packList"/>
+        <res src="files/JHHeader.txt" id="CondHTMLLicencePanel1.header"/>
+        <res src="files/JHLicense.html" id="CondHTMLLicencePanel1.licence"/>
+        <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
+        <!-- additional resources -->
+    </resources>
+
+    <!-- The panels to display -->
+    <panels>
+        <panel classname="HelloPanel"/>
+        <panel classname="HTMLInfoPanel"/>
+        <panel classname="HTMLLicencePanel"/>
+        <panel classname="TargetPanel"/>
+        <panel classname="DataDirPanel"/>
+        <panel classname="PacksPanel"/>
+        <panel classname="CondHTMLLicencePanel"/>
+        <panel classname="CondHTMLLicencePanel"/>
+        <panel classname="ShutdownDashboardPanel"/>
+        <panel classname="InstallPanel"/>
+        <panel classname="ShortcutPanel"/>
+        <panel classname="FinishPanel"/>
+    </panels>
+    
+    <!-- The native libraries to add -->
+    <native type="izpack" name="ShellLink.dll"/>
+
+    <!-- The list of packages the user can install -->
+    <packs>
+        <pack name="Process Dashboard" id="pdash" required="yes">
+            <description>The core Process Dashboard application.
+
+The Process Dashboard is distributed under the terms of the GNU General Public License.</description>
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/pspdash.jar"/>
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../src/net/sourceforge/processdash/ui/icon32.ico"/>
+            <file targetdir="$INSTALL_PATH/Uninstaller" override="true"
+	          src="files/regInst.exe" os="windows"/>
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="files/regInst.exe" os="windows"/>
+
+            <file targetdir="$DATA_PATH" src="files/run-dash.sh"
+	          override="false"/>
+            <parsable targetfile="$DATA_PATH/run-dash.sh"/>
+            <executable targetfile="$DATA_PATH/run-dash.sh" stage="never">
+	        <os family="unix"/>
+	    </executable>
+
+            <executable targetfile="$INSTALL_PATH/regInst.exe"
+	         stage="postinstall">
+                <os family="windows"/>
+		<args>
+		    <arg value="-reg"/>
+		    <arg value="Process Dashboard"/>
+		    <arg value="Process Dashboard"/>
+		    <arg value="@version@"/>
+		    <arg value="$INSTALL_PATH\Uninstaller\uninstaller.jar"/>
+		    <arg value="$INSTALL_PATH"/>
+		    <arg value="$DATA_PATH"/>
+		</args>
+	    </executable>
+
+            <executable targetfile="$INSTALL_PATH/Uninstaller/regInst.exe"
+	          stage="uninstall">
+	        <os family="windows"/>
+		<args>
+		    <arg value="-unreg"/>
+		    <arg value="Process Dashboard"/>
+		</args>
+	    </executable>
+        </pack>
+	
+        <pack name="PSP(SM) Processes" id="pspProc" required="no"
+	      excludeIf="pspForEng">
+            <description>Templates, scripts, and forms supporting the Personal Software Process(SM).
+
+This module incorporates templates, scripts, and other materials from the book by Watts S. Humphrey, A Discipline for Software Engineering.  Copyright (c) 1995 by Addison-Wesley.  These materials are reproduced with the permission of the publisher.
+
+Addison-Wesley requires that you consent to an additional license agreement to download and install this module.</description>
+
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/pspProc.jar" />
+        </pack>
+
+        <pack name="PSP(SM) for Engineers" id="pspForEng" required="no"
+              includeIf="pspForEng">
+            <description>Support for students taking the SEI's Personal Software Process(SM) course.
+
+This module incorporates templates, scripts, and other materials from the book by Watts S. Humphrey, A Discipline for Software Engineering.  Copyright (c) 1995 by Addison-Wesley.  These materials are reproduced with the permission of the publisher.
+
+Addison-Wesley requires that you consent to an additional license agreement to download and install this module.</description>
+
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/pspProc.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/pspForEng.jar" />
+		  
+            <!-- copy the pspForEng data files into the data directory. -->
+            <fileset targetdir="$DATA_PATH" override="false"
+                  dir="../Templates/pspForEng/userdata">
+                <include name="*.dat"/>
+                <include name="*.def"/>
+                <include name="state"/>
+                <include name="time.log"/>
+            </fileset>
+        </pack>
+
+        <pack name="JavaHelp(TM) Help Browser" id="javaHelp" required="no">
+            <description>Help browser from Sun Microsystems.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced browsing of the Process Dashboard help documentation, including full-text search capabilities.
+
+The contents of this module are copyrighted by Sun Microsystems and are not open source.  Sun Microsystems requires that you consent to an additional license agreement to download and install this module.</description>
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/dashHelp.jar"/>
+        </pack>
+	
+        <!-- additional packs -->
+
+    </packs>
+</installation>

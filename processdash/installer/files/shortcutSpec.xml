@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<shortcuts>
+
+  <programGroup defaultName="Process Dashboard" location="applications"/>
+  
+  <shortcut
+     name="Process Dashboard"
+     programGroup="yes"
+     desktop="yes"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     target="javaw"
+     commandLine="-jar &quot;$INSTALL_PATH\pspdash.jar&quot;"
+     workingDirectory="$DATA_PATH"
+     description="Process Dashboard"
+     iconFile="$INSTALL_PATH\icon32.ico"
+     iconIndex="0"
+     initialState="normal"/>
+
+   <shortcut
+     name="Uninstall Process Dashboard"
+     programGroup="yes"
+     desktop="no"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     target="javaw"
+     commandLine="-jar &quot;$INSTALL_PATH\Uninstaller\uninstaller.jar&quot;"
+     description="Process Dashboard Uninstaller"/>
+  
+</shortcuts>

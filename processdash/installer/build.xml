@@ -1,0 +1,225 @@
+<?xml version="1.0"?>
+
+
+<!-- ===================================================================
+
+PSP Dashboard - Data Automation Tool for PSP-like processes
+Copyright (C) 2003 Software Process Dashboard Initiative
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+The author(s) may be contacted at:
+OO-ALC/TISHD
+Attn: PSP Dashboard Group
+6137 Wardleigh Road
+Hill AFB, UT 84056-5843
+
+E-Mail POC:  processdash-devel@lists.sourceforge.net
+
+========================================================================
+
+   Build file for Process Dashboard Installer
+
+Notes:
+   This is a build file for use with the Jakarta Ant build tool.
+
+
+Prerequisites:
+
+   * jakarta-ant from http://jakarta.apache.org
+
+
+Build Instructions:
+   To build, run
+
+     ant <target>
+
+   on the directory where this file is located with the target you want.
+
+
+Most useful targets:
+
+Authors:
+  David Tuma
+
+   $Id$
+
+==================================================================== -->
+
+
+<project default="dist" basedir=".">
+
+    <property name="processdash" value=".."/>
+    <property file="${processdash}/lib/version.properties"/>
+    <property name="dist" value="dist"/>
+
+    <property name="version" value="${dashboard-version}"/>
+    <property name="jreInstDir" value="c:\download\java\_"/>
+    <property name="jreInstExe" value="j2re-1_4_2-windows-i586.exe"/>
+
+    <!-- the the IZPACK home directory -->
+    <property name="izpack.dir" value="IzPack"/>
+    <property name="izpack.jar" value="${izpack.dir}/lib/compiler.jar"/>
+
+
+
+    <target name="init" depends="-izpack-compile">
+        <!-- create the dist directory if it doesn't exist -->
+        <mkdir dir="${dist}"/>
+        <!-- Allows us to use the IzPack Ant task -->
+        <taskdef name="izpack" classpath="${izpack.jar}"
+            classname="com.izforge.izpack.ant.IzPackTask"/>
+    </target>
+
+    <target name="-izpack-compile" depends="-izpack-depend"
+            description="Recompile the IzPack code"
+            unless="izpack.upToDate">
+        <ant antfile="${izpack.dir}/src/build.xml" inheritAll="false"/>
+    </target>
+    <target name="-izpack-depend">
+        <uptodate property="izpack.upToDate" targetfile="${izpack.jar}">
+            <srcfiles dir="${izpack.dir}" includes="src/lib/"/>
+        </uptodate>
+    </target>
+
+
+
+    <target name="install.xml"
+            description="Create an install.xml file to feed to IzPack">
+        <!-- filter the install.xml file based on the flags given -->
+	<property name="install.flags" value=""/>
+        <xslt in="install.xml" out="${install.file}" style="filter.xslt">
+            <param name="flags" expression="${install.flags}"/>
+        </xslt>
+
+        <!-- configure the version number of the dashboard -->
+        <replace file="${install.file}" token="@version@"
+	         value="${dashboard.version}"/>
+
+        <!-- possibly insert additional resource definitions -->
+        <property name="additional.resources" value=""/>
+        <replace file="${install.file}"
+	         token="&lt;!-- additional resources --&gt;"
+	         value="${additional.resources}"/>
+
+        <!-- possibly insert additional pack definitions -->
+        <property name="additional.packs" value=""/>
+        <replace file="${install.file}"
+	         token="&lt;!-- additional packs --&gt;"
+	         value="${additional.packs}"/>
+    </target>
+
+
+
+    <target name="install-reg.xml"
+            description="Create an install.xml file for a regular installer">
+        <antcall target="install.xml">
+            <param name="install.file" value="install-reg.xml"/>
+            <param name="install.flags" value=" "/>
+	</antcall>
+    </target>
+
+    <target name="web" depends="init,install-reg.xml"
+            description="Create a web-based installer for the dashboard">
+        <izpack input="install-reg.xml"
+	    output="${dist}/pdash-install-${version}.jar"
+            installerType="web-kunststoff"
+            basedir="." izPackDir="${izpack.dir}/"/>
+        <move todir="${dist}">
+            <fileset dir="." includes="webpack-*.obj"/>
+        </move>
+    </target>
+
+    <target name="offline" depends="init,install-reg.xml"
+            description="Create an offline installer for the dashboard">
+        <izpack input="install-reg.xml"
+	    output="${dist}/pdash-install-offline-${version}.jar"
+            installerType="standard-kunststoff"
+            basedir="." izPackDir="${izpack.dir}/"/>
+    </target>
+
+    <target name="instructor" depends="init"
+            description="Create an installation CD for PSP instructors">
+        <antcall target="install-CD">
+            <param name="install.flags" value="pspForEng"/>
+	    <param name="qualifier" value="instr"/>
+	</antcall>
+    </target>
+
+
+    <target name="install-CD" depends="init"
+            description="Create an installation CD for the dashboard">
+        <available file="${jreInstDir}/${jreInstExe}" property="have.JREinst"/>
+	<fail unless="have.JREinst" 
+            message="No JRE installer found at '${jreInstDir}/${jreInstExe}'"/>
+
+        <antcall target="install.xml">
+            <param name="install.file" value="install-cd.xml"/>
+	</antcall>
+
+        <izpack input="install-cd.xml"
+	    output="${dist}/pdash-install-${qualifier}-${version}.jar"
+            installerType="standard-kunststoff"
+            basedir="." izPackDir="${izpack.dir}/"/>
+        
+	<echo file="cd-config.ini">1.4
+${jreInstExe}
+pdash-install-${qualifier}-${version}.jar
+</echo>
+
+	<zip destfile="${dist}/pdash-${qualifier}-cd-${version}.zip">
+	    <fileset dir="files" includes="setup.exe autorun.inf"/>
+	    <zipfileset dir="."
+	        includes="cd-config.ini"
+		fullpath="data/config.ini"/>
+	    <zipfileset dir="${dist}"
+	        includes="pdash-install-${qualifier}-${version}.jar"
+		prefix="data"/>
+	    <zipfileset dir="${jreInstDir}"
+	        includes="${jreInstExe}"
+		prefix="data"/>
+	</zip>
+
+	<delete file="install-cd.xml"/>
+	<delete file="cd-config.ini"/>
+	<delete file="${dist}/pdash-install-${qualifier}-${version}.jar"/>
+    </target>
+
+
+    <target name="compile" depends="clean,web,offline,instructor">
+      <delete quiet="true" file="install-reg.xml"/>
+    </target>
+
+    <target name="dist" depends="rebuild,compile"/>
+
+    <target name="rebuild">
+        <ant dir=".." inheritAll="false"/>
+	<available file="../dist/pspProc.jar" property="have.pspProc.jar"/>
+	<fail unless="have.pspProc.jar" message="pspProc.jar is missing"/>
+	<available file="../dist/pspForEng.jar" property="have.pspForEng.jar"/>
+	<fail unless="have.pspForEng.jar" message="pspForEng.jar is missing"/>
+	<available file="../dist/pspdash.jar" property="have.pspdash.jar"/>
+	<fail unless="have.pspdash.jar" message="pspdash.jar is missing"/>
+    </target>
+
+
+
+    <target name="clean">
+        <delete quiet="true" dir="${dist}"/>
+        <delete quiet="true" file="install-reg.xml"/>
+        <delete quiet="true" file="install-cd.xml"/>
+    </target>
+
+</project>
