@@ -47,10 +47,11 @@ public class timelog extends TinyCGIBase {
         "<TD>Interrupt</TD></TR>\n";
 
     private static final String DISCLAIMER =
-        "<P><I>This view of the time log is read-only. To add entries to " +
-        "the time log, use the play/pause button on the dashboard. To edit " +
-        "or delete time log entries, use the time log editor (accessible " +
-        "from the Configuration menu of the dashboard).</I>";
+        "<P class=doNotPrint><I>This view of the time log is read-only. To " +
+        "add entries to the time log, use the play/pause button on the " +
+        "dashboard. To edit or delete time log entries, use the time log " +
+        "editor (accessible from the Configuration menu of the " +
+        "dashboard).</I></P>";
 
 
     /** Generate CGI script output. */
