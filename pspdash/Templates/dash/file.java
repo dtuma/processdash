@@ -181,7 +181,7 @@ public class file extends TinyCGIBase {
             // user for them before continuing.
             pathVariables = metaPathVariables;
             pathVariableNames = metaPathVariableNames;
-            displayNeedInfoForm(filename, null, false, file);
+            displayNeedInfoForm(filename, null, false, MISSING_META, file);
             return;
         }
 
@@ -195,7 +195,7 @@ public class file extends TinyCGIBase {
         if (result == null) {
             // if we could not locate the file because we need the user
             // to enter more information, display a form.
-            displayNeedInfoForm(filename, result, false, file);
+            displayNeedInfoForm(filename, result, false, MISSING_INFO, file);
             return;
         }
 
@@ -204,8 +204,9 @@ public class file extends TinyCGIBase {
                 // if the file does not exist, display the form to
                 // confirm with the user that they really want the
                 // file autocreated.  This additionally gives them an
-                // opportunity to override the default location.
-                displayNeedInfoForm(filename, result, false, true, file);
+                // opportunity to override the current default location.
+                displayNeedInfoForm(filename, result, false,
+                                    CREATE_CONFIRM, file);
                 return;
             }
 
@@ -237,7 +238,7 @@ public class file extends TinyCGIBase {
             // user for them before continuing.
             pathVariables = metaPathVariables;
             pathVariableNames = metaPathVariableNames;
-            displayNeedInfoForm(filename, null, true, file);
+            displayNeedInfoForm(filename, null, true, MISSING_META, file);
             return;
         }
 
@@ -245,7 +246,7 @@ public class file extends TinyCGIBase {
             // if there was no template information, go back and display a
             // form for the original document.
             restorePathInfo();
-            displayNeedInfoForm(filename, result, false, file);
+            displayNeedInfoForm(filename, result, false, CANNOT_LOCATE, file);
             return;
         }
 
@@ -264,7 +265,7 @@ public class file extends TinyCGIBase {
         if (template == null || (templateURL == null && !template.exists())) {
             // if we could not locate the template because we need the user
             // to enter more information, display a form.
-            displayNeedInfoForm(filename, template, true, file);
+            displayNeedInfoForm(filename, template, true, MISSING_INFO, file);
             return;
         }
 
@@ -314,7 +315,7 @@ public class file extends TinyCGIBase {
             }
         } catch (MalformedURLException mue) {
             System.out.println("Exception: " + mue);
-            displayNeedInfoForm(filename, result, false, null);
+            displayNeedInfoForm(filename, result, false, CANNOT_LOCATE, null);
         }
     }
 
@@ -690,16 +691,12 @@ public class file extends TinyCGIBase {
      * information from the user.
      */
     private void displayNeedInfoForm(String filename, File file,
-                                     boolean isTemplate, Element e) {
-        displayNeedInfoForm(filename, file, isTemplate, false, e);
-    }
-    private void displayNeedInfoForm(String filename, File file,
                                      boolean isTemplate,
-                                     boolean createConfirm, Element e) {
+                                     int reason, Element e) {
         out.print("Content-type: text/html\r\n\r\n" +
                   "<html><head><title>Enter File Information</title></head>\n"+
                   "<body><h1>Enter File Information</h1>\n");
-        if (file != null && !createConfirm) {
+        if (file != null && reason != CREATE_CONFIRM) {
             out.print("The dashboard tried to find the ");
             out.print(isTemplate ? "<b>template</b>" : "file");
             out.print(" in the following location: <PRE>        ");
@@ -707,7 +704,7 @@ public class file extends TinyCGIBase {
             out.println("</PRE>but no such file exists.<P>");
         }
         out.print("Please provide the following information to ");
-        out.print(createConfirm ? "create" : "help locate");
+        out.print(reason == CREATE_CONFIRM ? "create" : "help locate");
         out.print(" the '");
         out.print(filename);
         out.println(isTemplate ? "' template." : "'.");
@@ -746,6 +743,9 @@ public class file extends TinyCGIBase {
             out.println("</td></tr>");
         }
         out.println("</table>");
+        if (! (isTemplate == false && reason == MISSING_META) )
+            out.print("<input type='hidden' name='"+CONFIRM_PARAM+"' "+
+                      "value='1'>\n");
         String pageCount = getParameter(PAGE_COUNT_PARAM);
         pageCount = (pageCount == null ? "x" : pageCount + "x");
         out.print("<input type='hidden' name='"+PAGE_COUNT_PARAM+"' value='");
@@ -753,11 +753,15 @@ public class file extends TinyCGIBase {
         out.print("'>\n" +
                   "<input type='hidden' name='" + FILE_PARAM + "' value='");
         out.print(TinyWebServer.encodeHtmlEntities(filename));
-        out.print("'>\n" +
-                  "<input type='hidden' name='"+CONFIRM_PARAM+"' value='1'>\n"+
+        out.print("'>\n"+
                   "<input type='submit' name='OK' value='OK'>\n" +
                   "</form></body></html>\n");
     }
+    private static final int MISSING_META = 0;
+    private static final int MISSING_INFO = 1;
+    private static final int CANNOT_LOCATE = 2;
+    private static final int CREATE_CONFIRM = 3;
+
 
     protected static String docOpenSetting =
         Settings.getVal("extDoc.openMethod");
