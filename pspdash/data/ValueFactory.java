@@ -149,22 +149,22 @@ class ValueFactory {
         (String name, String value, DataRepository r, String prefix)
         throws MalformedValueException {
 
-        if ("null".equals(value))
-            return null;
-        else try {
-            switch (value.charAt(0)) {
-            case '@': return new DateData(value);
-            case '"': return new StringData(value);
-            case '!': return parseFunction(name, value, r, prefix);
-            default:  return new DoubleData(value);
-        } } catch (MalformedValueException mve) {
-            System.err.println("Malformed value: " + prefix + name +
-                               " = " + value);
-            throw mve;
-        }
-
+        if (value.charAt(0) == '!') {
+            try {
+                return parseFunction(name, value, r, prefix);
+            } catch (MalformedValueException mve) {
+                System.err.println("Malformed value: " + name + " = " + value);
+                throw mve;
+            }
+        } else
+            return createQuickly(name, value, r, prefix);
     }
 
+    private static char flagChar(String s, int pos) {
+        char result = s.charAt(pos);
+        if (result == '?') result = s.charAt(pos+1);
+        return result;
+    }
 
 
     public static SaveableData createQuickly
@@ -187,9 +187,7 @@ class ValueFactory {
         if ("null".equals(value))
             return null;
         else {
-            char c = value.charAt(0);
-            if (c == '?') c = value.charAt(1);
-            switch (c) {
+            switch (flagChar(value, 0)) {
             case '@': return new DateData(value);
             case '"': return new StringData(value);
             default:  return new DoubleData(value);
@@ -202,7 +200,12 @@ class ValueFactory {
     public static SimpleData createFrozen
         (String name, String value, DataRepository r, String prefix)
         throws MalformedValueException {
-        return null;
+
+        switch (flagChar(value, 1)) {
+        case '@': return new FrozenDate(name, value, r, prefix);
+        case '"': return new FrozenString(name, value, r, prefix);
+        default:  return new FrozenDouble(name, value, r, prefix);
+        }
     }
 
 

@@ -102,6 +102,10 @@ DATA_FILES=$(COMMON_FILES) \
 	DeferredData.java \
 	DivisionFunction.java \
 	EqualsFunction.java \
+	FrozenDate.java \
+	FrozenDouble.java \
+	FrozenString.java \
+	FrozenUtil.java \
 	GreaterThanFunction.java \
 	GreaterThanOrEqualsFunction.java \
 	IfList.java \
