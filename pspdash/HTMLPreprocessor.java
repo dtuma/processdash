@@ -238,7 +238,7 @@ public class HTMLPreprocessor {
         if (!endif.matches()) {
             // if the endif is missing, delete this directive and abort.
             System.err.println
-                ("if directive within matching endif - aborting.");
+                ("if directive without matching endif - aborting.");
             ifdir.replace("");
             return;
         }
@@ -429,7 +429,8 @@ public class HTMLPreprocessor {
             breakDir.replace("");
             return;
         }
-        breakDir.buf.replace(breakDir.begin, breakEnd.end, "");
+        breakDir.buf.replace(breakDir.end, breakEnd.end, "");
+        breakDir.replace("");
     }
 
     /** search for blocks created by matching start and end directives, and
