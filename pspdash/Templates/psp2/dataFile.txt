@@ -47,20 +47,6 @@ PSP1.1==0.0
 
 
 ==
-== Two new phases: Design Review and Code Review
-==
-
-= Estimated Time
-
-Design Review/Estimated Time==![(*	Estimated Time	/Design Review/% Time To Date)]
-Code Review/Estimated Time==![(*	Estimated Time	/Code Review/% Time To Date)]
-
-
-
-
-
-
-==
 == Estimate "Defects Injected" from historical "To Date" data
 ==
 
