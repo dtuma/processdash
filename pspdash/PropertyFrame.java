@@ -742,10 +742,21 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             previousName = useProps.getChildName(parent, indices[i]);
             newName = children [i].toString();
             index = indices[i];
+            String newNameTrimmed = newName.trim();
 
-            if (newNameIsAcceptable(parent, newName)) {
+            if (!newName.equals(newNameTrimmed)) {
+                // Use the trimmed name
+                treeModel.useTreeModelListener(false);
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+                    treeModel.getChild(e.getTreePath().getLastPathComponent(), index);
+                node.setUserObject(newNameTrimmed);
+                treeModel.nodeChanged(node);
+                treeModel.useTreeModelListener(true);
+
+            } else if (newNameIsAcceptable(parent, newName)) {
                 useProps.setChildKey (parent, newName, index);
                 setDirty (true);
+
             } else {
                 // Revert back to the old name.
                 treeModel.useTreeModelListener(false);
