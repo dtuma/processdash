@@ -30,6 +30,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.lang.Double;
 
+import pspdash.Settings;
 
 public class DataCorrelator {
 
@@ -77,9 +78,10 @@ public class DataCorrelator {
 
     private void scanRepository() {
         Enumeration keys = data.keys();
-        String name, xFullName, prefix, yFullName;
+        String name, xFullName, prefix, yFullName, completedFullName;
         int prefixPos;
         DoubleData x, y;
+        DateData completed;
         double[] dataPoint;
 
         dataPoints = new Vector();
@@ -91,20 +93,31 @@ public class DataCorrelator {
                 prefix = name.substring(0, name.length() - xName.length());
                 xFullName = name;
                 yFullName = prefix + yName;
+                completedFullName = prefix + "Completed";
 
                 y = (DoubleData) data.getValue(yFullName);
                 x = (DoubleData) data.getValue(xFullName);
+                completed = (DateData) data.getValue(completedFullName);
 
-                if (x != null && y != null) {
-                    if ( !( Double.isNaN(x.getDouble()) || Double.isNaN(y.getDouble()) ) ) {
-                        dataPoint = new double[] {x.getDouble(), y.getDouble()};
-                        dataPoints.addElement(dataPoint);
+                if (x != null && !Double.isNaN(x.getDouble()) &&
+                    y != null && !Double.isNaN(y.getDouble()) &&
+                    (completed != null || onlyCompleted() == false)) {
 
-                        dataNames.addElement(prefix);
-                    }
+                    dataPoint = new double[] {x.getDouble(), y.getDouble()};
+                    dataPoints.addElement(dataPoint);
+                    dataNames.addElement(prefix);
                 }
             } catch (Exception e) {};
         }
+    }
+
+    private static Boolean onlyCompleted = null;
+    private static boolean onlyCompleted() {
+        if (onlyCompleted == null)
+            onlyCompleted =
+                new Boolean(Settings.getVal("probeDialog.onlyCompleted"));
+
+        return onlyCompleted.booleanValue();
     }
 
 }
