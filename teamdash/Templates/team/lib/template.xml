@@ -98,6 +98,59 @@
 
 
 
+<!--#break simplifyingData -->
+* 
+* <!--======================================================================
+*     The template for a "full" node/task on the individual side.  A "full"
+*     node contains all the phases underneath by default; these phases
+*     can be manually deleted as necessary, and reinserted later if needed.
+*  =======================================================================-->
+* 
+*   <template
+*       name="PID-Indiv:!*!:Subtask"
+*       ID="PID/IndivFullNode"
+*       <!--#if USE_TO_DATE_DATA #-->
+*           usesRollup="PID"
+*       <!--#else#-->
+*           defineRollup="no"
+*       <!--#endif#-->
+*       defectLog="true"
+*       dataFile="PID/indiv_full_dataFile.txt"
+*       size="New &amp; Changed LOC"
+*       constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
+*       >
+* 
+*     <html ID="sump" href="PID/plan_summary.shtm"
+*         title="<!--#echo Full_Name --> Project Plan Summary"/>
+*     <!-- html ID="sumq" href="PID/quality_summary.shtm"
+*         title="<!--#echo Full_Name --> Project Quality Summary"/ -->
+*     <html ID="top" href="PID/script.htm"
+*         title="<!--#echo Full_Name --> Process Script"/>
+* 
+* <!--#foreach name=Phase list=Phase_List -->
+* 
+* <!-- #break GTACS_disabled -->
+*     <html ID="Phase_script"
+*         title="<!--#echo Phase_Long_Name --> Script"
+*         href="PID/Phase_script.htm"/>
+* <!-- #endbreak GTACS_disabled -->
+*     <phase name="Sub_tasks /<!--#echo Phase_Name -->" imaginary="true"/>
+*     <phase name="<!--#echo Phase_Name -->"
+*         type="<!--#echo Phase_Type -->"
+*         <!--#if Phase_Size_Metric --> 
+*             size="<!--#echo Phase_Size_Metric -->"
+*         <!--#endif-->
+* 	constraints="ED{}"
+*         htmlID="Phase_script"/>
+* 
+* <!--#endfor-->
+* 
+*   </template>
+* 
+<!--#endbreak simplifyingData -->
+
+
+
 
 <!--======================================================================
     The template for a "full" node/task on the individual side.  A "full"
@@ -121,24 +174,23 @@
 
     <html ID="sump" href="PID/plan_summary.shtm"
         title="<!--#echo Full_Name --> Project Plan Summary"/>
-    <!-- html ID="sumq" href="PID/quality_summary.shtm"
-        title="<!--#echo Full_Name --> Project Quality Summary"/ -->
     <html ID="top" href="PID/script.htm"
         title="<!--#echo Full_Name --> Process Script"/>
 
 <!--#foreach name=Phase list=Phase_List -->
 
+<!--#break GTACS_disabled -->
     <html ID="Phase_script"
         title="<!--#echo Phase_Long_Name --> Script"
         href="PID/Phase_script.htm"/>
-    <phase name="Sub_tasks /<!--#echo Phase_Name -->" imaginary="true"/>
+<!--#endbreak GTACS_disabled -->
     <phase name="<!--#echo Phase_Name -->"
         type="<!--#echo Phase_Type -->"
         <!--#if Phase_Size_Metric --> 
             size="<!--#echo Phase_Size_Metric -->"
         <!--#endif-->
 	constraints="ED{}"
-        htmlID="Phase_script"/>
+        GTACS_disabled_htmlID="Phase_script"/>
 
 <!--#endfor-->
 
@@ -147,6 +199,7 @@
 
 
 
+<!-- #break GTACS_disabled -->
 <!--======================================================================
     The template for a "simple" node/task on the individual side.  A
     simple node initially contains no phases; they must be added
@@ -171,7 +224,7 @@
         title="<!--#echo Full_Name --> Process Script"/>
 
   </template>
-
+<!-- #endbreak GTACS_disabled -->
 
 
 
@@ -197,8 +250,6 @@
 
     <html ID="sump" href="PID/plan_summary.shtm"
         title="<!--#echo Full_Name --> Project Plan Summary"/>
-    <!-- html ID="sumq" href="PID/quality_summary.shtm"
-        title="<!--#echo Full_Name --> Project Quality Summary"/ -->
     <html ID="top" href="PID/script.htm"
         title="<!--#echo Full_Name --> Process Script"/>
 
@@ -219,7 +270,7 @@
       ID="PID/PHASE/Phase"
       dataFile="none"
       href="PID/Phase_script.htm"
-      constraints="ED{}PID/TeamRoot}PID/TeamNode}PID/TeamTask}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode" />
+      constraints="ED{}PID/TeamRoot}PID/TeamNode}PID/TeamTask}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode}PID/IndivReadOnlyNode" />
 
 <!--#endfor-->
 
