@@ -50,15 +50,17 @@ public class ProbeDialog extends JFrame implements
         ChartDialog  chartDlg  = null;
 
         JButton filterButton, chartButton, closeButton;
-        JComboBox yName, xName;
+        JComboBox method, yName, xName;
         JTextField estimate, percent;
-        JLabel beta0, beta1, rSquared, significance, variance, stddev;
+        JLabel label, beta0, beta1, rSquared, significance, variance, stddev;
         JLabel estimateLabel, percentLabel, projection, range, upi, lpi;
         JLabel Cbeta0, Cbeta1, Cprojection;
         String initialValue;
+        JPanel regressionBox, averageBox;
 
         DataCorrelator  corr;
         Vector          theFilter = null;
+        boolean showRegression, showAverage;
 
 
         ProbeDialog(PSPDashboard dash) {
@@ -68,8 +70,6 @@ public class ProbeDialog extends JFrame implements
             parent = dash;
             data   = parent.data;
 
-            boolean simpleProbeLists =
-                Settings.getVal("probeDialog.dataList").equalsIgnoreCase("simple");
             JPanel panel = new JPanel();
             GridBagLayout layout = new GridBagLayout();
             GridBagConstraints g = new GridBagConstraints();
@@ -81,17 +81,27 @@ public class ProbeDialog extends JFrame implements
             Insets left_margin = new Insets(0, 20, 0, 0);
             Insets no_margin = new Insets(0, 0, 0, 0);
 
-                                    // first row
+
             g.gridy = 0;   g.insets = no_margin;
 
-            c = new JLabel("Correlate");    g.gridx = 0;   g.gridwidth = 1;
-            g.weightx = 0;   g.anchor = g.EAST;   g.fill = g.NONE;
+            c = label = new JLabel("Method:");   g.gridx = 0;   g.gridwidth = 1;
+            g.weightx = 0;   g.anchor = g.CENTER;   g.fill = g.NONE;
             layout.setConstraints(c, g);   panel.add(c);
 
-            if (!simpleProbeLists) xName = new DataComboBox(data);
-            else (xName = new JComboBox(simpleXData)).setEditable(true);
-            g.gridx = 1;   g.gridwidth = 4;
-            g.weightx = 0;   g.anchor = g.WEST;   g.fill = g.HORIZONTAL;
+            method = new JComboBox(PROBE_METHODS);   g.gridx = 1;  g.gridwidth = 3;
+            g.weightx = 0;   g.fill = g.HORIZONTAL;
+            layout.setConstraints(method, g);   panel.add(method);
+            method.addActionListener(this);
+
+
+            g.gridy++;              // next row
+
+            c = new JLabel("Correlate");    g.gridx = 0;   g.gridwidth = 1;
+            g.weightx = 0;   g.fill = g.NONE;
+            layout.setConstraints(c, g);   panel.add(c);
+
+            xName = new DataComboBox(data);
+            g.gridx = 1;  g.gridwidth = 3;  g.weightx = 0;  g.fill = g.HORIZONTAL;
             layout.setConstraints(xName, g);   panel.add(xName);
             xName.setToolTipText
                 ("The independent variable in the correlation, i.e. x");
@@ -102,12 +112,11 @@ public class ProbeDialog extends JFrame implements
             g.gridy++;              // new row
 
             c = new JLabel("with");    g.gridx = 0;   g.gridwidth = 1;
-            g.weightx = 0;   g.anchor = g.CENTER;   g.fill = g.NONE;
+            g.weightx = 0;   g.fill = g.NONE;
             layout.setConstraints(c, g);   panel.add(c);
 
-            if (!simpleProbeLists) yName = new DataComboBox(data);
-            else (yName = new JComboBox(simpleYData)).setEditable(true);
-            g.gridx = 1;   g.gridwidth = 4;
+            yName = new DataComboBox(data);
+            g.gridx = 1;   g.gridwidth = 3;
             g.weightx = 0;   g.anchor = g.WEST;   g.fill = g.HORIZONTAL;
             layout.setConstraints(yName, g);   panel.add(yName);
             yName.setToolTipText
@@ -149,7 +158,7 @@ public class ProbeDialog extends JFrame implements
 
 
             g.gridy++;              // new row: blank space
-            c = new JLabel(" ");   g.gridx = 0;   g.gridwidth = 5;
+            c = new JLabel(" ");   g.gridx = 0;   g.gridwidth = 4;
             layout.setConstraints(c, g);   panel.add(c);
 
 
@@ -172,6 +181,7 @@ public class ProbeDialog extends JFrame implements
             g.gridx = 0;   g.gridwidth = 2;   g.gridheight = 5;
             g.insets = left_margin;
             layout.setConstraints(box, g);   panel.add(box);
+            regressionBox = box;
 
             rSquared.setToolTipText
                 ("The measure of how well these data elements correlate.");
@@ -186,6 +196,7 @@ public class ProbeDialog extends JFrame implements
             box.add(Cbeta1 = new JLabel());
             g.gridx = 2;  g.gridwidth = 2;   g.gridheight = 1;
             layout.setConstraints(box, g);   panel.add(box);
+            averageBox = box;
 
 
             g.gridy++;              //new row: blank space
@@ -221,7 +232,7 @@ public class ProbeDialog extends JFrame implements
                     public void windowClosing(WindowEvent e) {
                         ProbeDialog.this.close();
                     } });
-            correlate();
+            method.setSelectedIndex(0);
             show();
         }
 
@@ -229,10 +240,26 @@ public class ProbeDialog extends JFrame implements
             return DoubleData.formatNumber(value, numDecimalPoints);
         }
 
-        private static final String[] simpleXData = {
-            "Estimated Object LOC", "Estimated New & Changed LOC" };
-        private static final String[] simpleYData = {
-            "New & Changed LOC", "Time" };
+        private static final String EST_OBJ_LOC = "Estimated Object LOC";
+        private static final String EST_NC_LOC  = "Estimated New & Changed LOC";
+        private static final String ACT_NC_LOC  = "New & Changed LOC";
+        private static final String ACT_TIME    = "Time";
+
+        private static final String[] PROBE_METHODS = {
+            "PROBE Method A for Size", "PROBE Method A for Time",
+            "PROBE Method B for Size", "PROBE Method B for Time",
+            "PROBE Method C for Size", "PROBE Method C for Time",
+            "-Custom-" };
+        private static final boolean [] PROBE_SHOW_REGRESSION = {
+            true, true, true, true, false, false };
+        private static final String[] PROBE_X = {
+            EST_OBJ_LOC, EST_OBJ_LOC,
+            EST_NC_LOC,  EST_NC_LOC,
+            EST_NC_LOC,  EST_NC_LOC };
+        private static final String[] PROBE_Y = {
+            ACT_NC_LOC, ACT_TIME,
+            ACT_NC_LOC, ACT_TIME,
+            ACT_NC_LOC, ACT_TIME };
 
 
         private void setAFields (boolean enableFields,
@@ -290,10 +317,23 @@ public class ProbeDialog extends JFrame implements
             Cprojection.setEnabled(enableFields);     Cprojection.invalidate();
         }
 
+        private void doDisable(JComponent c) {
+            for (int i = c.getComponentCount();  i-- > 0; ) {
+                c.getComponent(i).setEnabled(true);
+                c.getComponent(i).setForeground(Color.lightGray);
+            }
+        }
+        private void doEnable(JComponent c) {
+            for (int i = c.getComponentCount();  i-- > 0; )
+                c.getComponent(i).setForeground(label.getForeground());
+        }
+
         private void correlate() {
             String x_name = (String)xName.getSelectedItem();
             String y_name = (String)yName.getSelectedItem();
             boolean enableFields = false;
+            if (showRegression) doEnable(regressionBox);
+            if (showAverage)    doEnable(averageBox);
 
             if (x_name == null || x_name.length() == 0 ||
                 y_name == null || y_name.length() == 0) {
@@ -352,6 +392,9 @@ public class ProbeDialog extends JFrame implements
 
             if (chartDlg != null)
                 chartDlg.updateDialog (corr, x_name, y_name);
+
+            if (!showRegression) doDisable(regressionBox);
+            if (!showAverage)    doDisable(averageBox);
         }
 
         private void findRange() {
@@ -396,9 +439,13 @@ public class ProbeDialog extends JFrame implements
                             format((corr.r.y_avg / corr.r.x_avg) * est, 2));
             }
 
+            if (!showRegression) doDisable(regressionBox);
+            if (!showAverage)    doDisable(averageBox);
+
             pack();
         }
 
+        private boolean programaticallyChangingXY = false;
         public void close() {
             if (filterDlg != null) filterDlg.setVisible(false);
             if (chartDlg != null) chartDlg.setVisible(false);
@@ -411,13 +458,13 @@ public class ProbeDialog extends JFrame implements
                 //Bring up a dialog here that allows filtering of data used.
                 //(at least by template'd node)
                 if (filterDlg == null)
-                    filterDlg = new FilterDialog (parent, this);
+                    filterDlg = new FilterDialog (parent, this, this);
                 else
                     filterDlg.show();
             } else if (cmd.equals("chart")) {
                 //Bring up a dialog here that shows the data used.
                 if (chartDlg == null)
-                    chartDlg = new ChartDialog (parent,
+                    chartDlg = new ChartDialog (this,
                                                 corr,
                                                 (String)xName.getSelectedItem(),
                                                 (String)yName.getSelectedItem());
@@ -428,10 +475,25 @@ public class ProbeDialog extends JFrame implements
             } else if (cmd.equals("applyFilter")) { // response from filter dlg
                 theFilter = (Vector)e.getSource();
                 correlate();
-            } else if (e.getSource() == xName || e.getSource() == yName) {
+            } else if (e.getSource() == method) {
+                int index = method.getSelectedIndex();
+                if (index < PROBE_X.length) {
+                    programaticallyChangingXY = true;
+                    xName.setSelectedItem(PROBE_X[index]);
+                    yName.setSelectedItem(PROBE_Y[index]);
+                    programaticallyChangingXY = false;
+                    showRegression = PROBE_SHOW_REGRESSION[index];
+                    showAverage = !showRegression;
+                } else
+                    showRegression = showAverage = true;
                 correlate();
             } else if (e.getSource() == estimate || e.getSource() == percent) {
                 findRange();
+            } else if (!programaticallyChangingXY &&
+                       (e.getSource() == xName || e.getSource() == yName)) {
+                method.setSelectedIndex(PROBE_METHODS.length - 1);
+                showRegression = showAverage = true;
+                correlate();
             }
         }
 
