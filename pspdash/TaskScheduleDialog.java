@@ -294,7 +294,7 @@ public class TaskScheduleDialog
         collaborateButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     showCollaborationWizard(); }});
-        box.add(collaborateButton);
+        //box.add(collaborateButton);
 
         box.add(Box.createHorizontalGlue());
 
@@ -1134,7 +1134,8 @@ public class TaskScheduleDialog
     private static final String COLLAB_WIZARD_URL = "//dash/evCollab.class";
     public void showCollaborationWizard() {
         if (saveOrCancel(true))
-            new TaskScheduleCollaborationWizard(dash.data, taskListName);
+            new TaskScheduleCollaborationWizard
+                (dash.data, dash.webServer, taskListName);
     }
 
     public void showChart() {

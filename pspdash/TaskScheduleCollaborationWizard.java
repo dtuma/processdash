@@ -28,7 +28,14 @@ package pspdash;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URLEncoder;
+import java.net.UnknownHostException;
+import java.text.MessageFormat;
+import java.util.Stack;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.border.*;
 
 import pspdash.data.DataRepository;
@@ -44,11 +51,14 @@ public class TaskScheduleCollaborationWizard {
     private boolean isRollup;
     private JFrame frame;
     private DataRepository data;
+    private TinyWebServer webServer;
     private String taskListName;
+    private Stack previousPanes = new Stack();
 
     /** Create and display a collaboration wizard.
      */
     public TaskScheduleCollaborationWizard(DataRepository data,
+                                           TinyWebServer webServer,
                                            String taskListName) {
         // check input parameters
         if (EVTaskListData.validName(taskListName) &&
@@ -65,9 +75,10 @@ public class TaskScheduleCollaborationWizard {
             throw new IllegalArgumentException
                 ("No local task list by that name");
 
+        // Save the parameters into our data structure
         this.data = data;
+        this.webServer = webServer;
         this.taskListName = taskListName;
-
 
         // Create the frame and set an appropriate icon
         frame = new JFrame("Task and Schedule Collaboration Wizard");
@@ -90,13 +101,25 @@ public class TaskScheduleCollaborationWizard {
     private void closeWizard() {
         frame.setVisible(false);
         frame.dispose();
+        previousPanes.clear();
     }
 
     private void setPanel(JPanel panel) {
+        setPanel(panel, true);
+    }
+
+    private void setPanel(JPanel panel, boolean pushCurrent) {
         frame.setVisible(false);
+        if (pushCurrent)
+            previousPanes.push(frame.getContentPane().getComponent(0));
         frame.getContentPane().removeAll();
         frame.getContentPane().add(panel);
         frame.setVisible(true);
+    }
+
+    private void backPanel() {
+        if (previousPanes.empty()) return;
+        setPanel((JPanel) previousPanes.pop(), false);
     }
 
     private void showPublishScreen() {
@@ -159,7 +182,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =0;
             oConst.weightx =1.0;
             oConst.weighty =1.0;
-            oConst.fill =1;
+            oConst.fill =GridBagConstraints.BOTH;
             oLayout.setConstraints(publishButton, oConst);
 
             filler1 = new JLabel();
@@ -169,7 +192,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridx =0;
             oConst.gridy =1;
             oConst.weighty =1.0;
-            oConst.fill =3;
+            oConst.fill =GridBagConstraints.VERTICAL;
             oLayout.setConstraints(filler1, oConst);
 
             shareButton = newJButton();
@@ -180,7 +203,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =2;
             oConst.weightx =1.0;
             oConst.weighty =1.0;
-            oConst.fill =1;
+            oConst.fill =GridBagConstraints.BOTH;
             oLayout.setConstraints(shareButton, oConst);
 
             filler2 = new JLabel();
@@ -191,7 +214,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =3;
             oConst.weightx =1.0;
             oConst.weighty =1.0;
-            oConst.fill =1;
+            oConst.fill =GridBagConstraints.BOTH;
             oLayout.setConstraints(filler2, oConst);
 
             rollupButton = newJButton();
@@ -202,7 +225,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =4;
             oConst.weightx =1.0;
             oConst.weighty =1.0;
-            oConst.fill =1;
+            oConst.fill =GridBagConstraints.BOTH;
             oLayout.setConstraints(rollupButton, oConst);
 
             filler3 = new JLabel();
@@ -213,7 +236,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =5;
             oConst.weightx =1.0;
             oConst.weighty =1.0;
-            oConst.fill =1;
+            oConst.fill =GridBagConstraints.BOTH;
             oLayout.setConstraints(filler3, oConst);
 
             cancelButton = newJButton();
@@ -224,7 +247,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =6;
             oConst.weightx =1.0;
             oConst.weighty =1.0;
-            oConst.fill =1;
+            oConst.fill =GridBagConstraints.BOTH;
             oLayout.setConstraints(cancelButton, oConst);
 
             return buttonBox;
@@ -244,8 +267,8 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =0;
             oConst.weightx =1.0;
             oConst.gridwidth =2;
-            oConst.fill =2;
-            oConst.anchor =17;
+            oConst.fill =GridBagConstraints.HORIZONTAL;
+            oConst.anchor =GridBagConstraints.WEST;
             oConst.insets.top =10;
             oConst.insets.left =10;
             oConst.insets.right =10;
@@ -259,7 +282,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridx =0;
             oConst.gridy =1;
             oConst.gridwidth =2;
-            oConst.anchor =17;
+            oConst.anchor =GridBagConstraints.WEST;
             oConst.insets.left =10;
             oConst.insets.bottom =10;
             oLayout.setConstraints(prompt, oConst);
@@ -272,7 +295,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.weightx =1.0;
             oConst.weighty =1.0;
             oConst.gridheight =2;
-            oConst.fill =1;
+            oConst.fill =GridBagConstraints.BOTH;
             oConst.insets.left =10;
             oConst.insets.right =10;
             oConst.insets.bottom =10;
@@ -289,7 +312,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =2;
             oConst.weightx =1.0;
             oConst.weighty =1.0;
-            oConst.fill =1;
+            oConst.fill =GridBagConstraints.BOTH;
             oConst.insets.right =10;
             oConst.insets.bottom =10;
             oLayout.setConstraints(image, oConst);
@@ -306,7 +329,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =3;
             oConst.weightx =1.0;
             oConst.weighty =1.0;
-            oConst.fill =1;
+            oConst.fill =GridBagConstraints.BOTH;
             oConst.insets.right =10;
             oConst.insets.bottom =10;
             oLayout.setConstraints(explanation, oConst);
@@ -396,12 +419,12 @@ public class TaskScheduleCollaborationWizard {
 
     private class PasswordScreen extends JPanel implements ActionListener {
         public JLabel taskListName;
-        public JLabel prompt;
+        public JTextArea prompt;
         public JRadioButton reqPasswordOption;
         public JLabel passPrompt;
         public JTextField password;
         public JRadioButton noPasswordOption;
-        public JButton okButton;
+        public JButton backButton, nextButton, cancelButton;
         public JLabel filler;
         public ButtonGroup buttonGroup;
         public int action;
@@ -436,6 +459,29 @@ public class TaskScheduleCollaborationWizard {
                                       username, password);
         }
 
+        public JPanel BuildbuttonBox() {
+            JPanel buttonBox = new JPanel();
+            FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
+            buttonBox.setLayout(oLayout);
+
+            backButton = new JButton("<Back");
+            backButton.addActionListener(this);
+            buttonBox.add(backButton);
+
+            nextButton = new JButton("Next>");
+            nextButton.addActionListener(this);
+            buttonBox.add(nextButton);
+
+            JLabel filler = new JLabel("  ");
+            buttonBox.add(filler);
+
+            cancelButton = new JButton("Cancel");
+            cancelButton.addActionListener(this);
+            buttonBox.add(cancelButton);
+
+            return buttonBox;
+        }
+
         void BuildFrame() {
             Container oPanel = this;
             GridBagLayout oLayout = new GridBagLayout();
@@ -449,25 +495,33 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridy =0;
             oConst.weightx =1.0;
             oConst.gridwidth =2;
-            oConst.fill =2;
-            oConst.anchor =17;
+            oConst.fill =GridBagConstraints.HORIZONTAL;
+            oConst.anchor =GridBagConstraints.WEST;
             oConst.insets.top =10;
             oConst.insets.left =10;
             oConst.insets.right =10;
             oLayout.setConstraints(taskListName, oConst);
 
-            prompt = new JLabel();
+            prompt = new JTextArea("", 2, 10);
             prompt.setText("Please configure the permissions for "+
                            (action == PUBLISH ? "publishing" : "sharing") +
                            " this schedule: ");
+            prompt.setBackground(null);
+            prompt.setLineWrap(true);
+            prompt.setWrapStyleWord(true);
+            prompt.setEditable(false);
             oPanel.add(prompt);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
             oConst.gridy =1;
+            oConst.weightx =1.0;
+            oConst.weighty =0.0;
+            oConst.fill =GridBagConstraints.BOTH;
             oConst.gridwidth =2;
-            oConst.anchor =17;
+            oConst.anchor =GridBagConstraints.WEST;
             oConst.insets.top =10;
             oConst.insets.left =10;
+            oConst.insets.right =10;
             oLayout.setConstraints(prompt, oConst);
 
             buttonGroup = new ButtonGroup();
@@ -479,7 +533,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridx =0;
             oConst.gridy =2;
             oConst.gridwidth =2;
-            oConst.anchor =17;
+            oConst.anchor =GridBagConstraints.WEST;
             oConst.insets.top =10;
             oConst.insets.left =20;
             oLayout.setConstraints(reqPasswordOption, oConst);
@@ -490,7 +544,7 @@ public class TaskScheduleCollaborationWizard {
             oConst = new GridBagConstraints();
             oConst.gridx =0;
             oConst.gridy =3;
-            oConst.anchor =17;
+            oConst.anchor =GridBagConstraints.WEST;
             oConst.insets.left =50;
             oConst.insets.right =10;
             oLayout.setConstraints(passPrompt, oConst);
@@ -501,7 +555,7 @@ public class TaskScheduleCollaborationWizard {
             oConst = new GridBagConstraints();
             oConst.gridx =1;
             oConst.gridy =3;
-            oConst.anchor =17;
+            oConst.anchor =GridBagConstraints.WEST;
             oLayout.setConstraints(password, oConst);
 
             noPasswordOption = new JRadioButton();
@@ -512,32 +566,35 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridx =0;
             oConst.gridy =4;
             oConst.gridwidth =2;
-            oConst.anchor =17;
+            oConst.anchor =GridBagConstraints.WEST;
             oConst.insets.top =10;
             oConst.insets.left =20;
             oLayout.setConstraints(noPasswordOption, oConst);
-
-            okButton = new JButton();
-            okButton.addActionListener(this);
-            okButton.setText("OK");
-            oPanel.add(okButton);
-            oConst = new GridBagConstraints();
-            oConst.gridx =0;
-            oConst.gridy =5;
-            oConst.gridwidth =2;
-            oConst.insets.top =20;
-            oConst.insets.bottom =10;
-            oLayout.setConstraints(okButton, oConst);
 
             filler = new JLabel();
             filler.setText("");
             oPanel.add(filler);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
-            oConst.gridy =6;
+            oConst.gridy =5;
             oConst.weighty =1.0;
-            oConst.fill =3;
+            oConst.fill =GridBagConstraints.VERTICAL;
             oLayout.setConstraints(filler, oConst);
+
+            JPanel buttonBox = BuildbuttonBox();
+            oPanel.add(buttonBox);
+            oConst = new GridBagConstraints();
+            oConst.gridx =0;
+            oConst.gridy =6;
+            oConst.gridwidth =2;
+            oConst.anchor =GridBagConstraints.EAST;
+            oConst.insets.top =20;
+            oConst.insets.bottom =10;
+            oConst.insets.left =10;
+            oConst.insets.right =10;
+            oLayout.setConstraints(buttonBox, oConst);
+
+            prompt.setFont(passPrompt.getFont());
 
             String currentPassword = getPassword();
             if (NO_PASSWORD.equals(currentPassword))
@@ -556,9 +613,13 @@ public class TaskScheduleCollaborationWizard {
 
         public void actionPerformed(ActionEvent e) {
             Object source = e.getSource();
-            if (source != okButton) return;
+            if (source == cancelButton) {
+                closeWizard(); return;
+            } else if (source == backButton) {
+                backPanel(); return;
+            } else if (source != nextButton) return;
 
-            // they clicked the OK button. check to ensure their inputs
+            // they clicked the next button. check to ensure their inputs
             // are valid; process them if so.
             if (noPasswordOption.isSelected()) {
                 setPassword(NO_PASSWORD);
@@ -584,11 +645,41 @@ public class TaskScheduleCollaborationWizard {
         "Please enter a password, or select",
         "the \"Don't require a password\" option." };
 
-    private class ResultsScreen extends JPanel {
+    private class ResultsScreen extends JPanel
+        implements ActionListener, HyperlinkListener
+    {
         public JLabel taskListName;
         public JEditorPane resultsMessage;
-        public JButton okButton;
+        public JButton backButton, finishButton, cancelButton;
         public JLabel filler;
+        public int action;
+        public String password;
+
+        public JPanel BuildbuttonBox() {
+            JPanel buttonBox = new JPanel();
+            FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
+            buttonBox.setLayout(oLayout);
+
+            backButton = new JButton("<Back");
+            backButton.addActionListener(this);
+            buttonBox.add(backButton);
+
+            finishButton = new JButton("Finish");
+            finishButton.addActionListener(this);
+            buttonBox.add(finishButton);
+
+            /*
+            JLabel filler = new JLabel("  ");
+            buttonBox.add(filler);
+
+            cancelButton = new JButton("Cancel");
+            cancelButton.setEnabled(false);
+            cancelButton.addActionListener(this);
+            buttonBox.add(cancelButton);
+            */
+
+            return buttonBox;
+        }
 
         void BuildFrame() {
             Container oPanel = this;
@@ -596,36 +687,42 @@ public class TaskScheduleCollaborationWizard {
             oPanel.setLayout(oLayout);
             GridBagConstraints oConst;
             taskListName = new JLabel();
-            taskListName.setText("Name of Task List");
+            taskListName.setText(getTaskNameText());
             oPanel.add(taskListName);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
             oConst.gridy =0;
             oConst.weightx =1.0;
             oConst.gridwidth =2;
-            oConst.fill =2;
-            oConst.anchor =17;
+            oConst.fill =GridBagConstraints.HORIZONTAL;
+            oConst.anchor =GridBagConstraints.WEST;
             oConst.insets.top =10;
             oConst.insets.left =10;
             oConst.insets.right =10;
             oLayout.setConstraints(taskListName, oConst);
 
             resultsMessage = new JEditorPane();
-            oPanel.add(resultsMessage);
+            resultsMessage.setContentType("text/html");
+            resultsMessage.setEditable(false);
+            resultsMessage.setBackground(null);
+            resultsMessage.addHyperlinkListener(this);
+
+            JScrollPane sp = new JScrollPane(resultsMessage);
+            oPanel.add(sp);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
             oConst.gridy =1;
             oConst.weightx =1.0;
+            oConst.weighty =1.0;
             oConst.gridwidth =2;
-            oConst.fill =2;
+            oConst.fill =GridBagConstraints.BOTH;
             oConst.insets.top =10;
             oConst.insets.left =10;
             oConst.insets.right =10;
-            oLayout.setConstraints(resultsMessage, oConst);
+            oLayout.setConstraints(sp, oConst);
 
-            okButton = new JButton();
-            okButton.setText("OK");
-            oPanel.add(okButton);
+            JPanel buttonBox = BuildbuttonBox();
+            oPanel.add(buttonBox);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
             oConst.gridy =2;
@@ -634,28 +731,116 @@ public class TaskScheduleCollaborationWizard {
             oConst.insets.left =10;
             oConst.insets.right =10;
             oConst.insets.bottom =10;
-            oLayout.setConstraints(okButton, oConst);
-
-            filler = new JLabel();
-            filler.setText("");
-            oPanel.add(filler);
-            oConst = new GridBagConstraints();
-            oConst.gridx =0;
-            oConst.gridy =3;
-            oConst.weightx =1.0;
-            oConst.weighty =1.0;
-            oConst.gridwidth =2;
-            oConst.fill =1;
-            oLayout.setConstraints(filler, oConst);
+            oLayout.setConstraints(buttonBox, oConst);
 
         }
 
 
         public ResultsScreen(int action, String password) {
+            this.action = action;
+            this.password = password;
             BuildFrame();
+            setText();
         }
 
+        public void setText() {
+            // Get the template for the message
+            String messageTemplate = getText(resultURL[action]);
+
+            // Construct the arguments for the message template
+            Object[] args = new Object[7];
+
+            // args 0 and 1 hold the name of the task list (html-encoded
+            // and URL-encoded, respectively).
+            String name = TaskScheduleCollaborationWizard.this.taskListName;
+            args[0] = HTMLUtils.escapeEntities(name);
+            args[1] = urlEncode(name);
+
+            // args 2 and 3 hold the URL of the task list (html-encoded
+            // and URL-encoded, respectively).
+            String url = getTaskListURL();
+            args[2] = HTMLUtils.escapeEntities(url);
+            args[3] = urlEncode(url);
+
+            // arg 4 holds the integer 1 if this item is password-protected.
+            args[4] = new Integer(password == NO_PASSWORD ? 0 : 1);
+
+            // args 5 and 6 hold the password (html-encoded and
+            // URL-encoded, respectively).
+            args[5] = HTMLUtils.escapeEntities(password);
+            args[6] = urlEncode(password);
+
+            // construct the message and display it.
+            String message = MessageFormat.format(messageTemplate, args);
+            resultsMessage.setText(message);
+            resultsMessage.setCaretPosition(0);
+        }
+
+        public String getTaskListURL() {
+            String prefix = getPrefix(action);
+            prefix = TinyWebServer.urlEncodePath(prefix);
+            String host;
+            try {
+                host = InetAddress.getLocalHost().getHostName();
+            } catch (UnknownHostException uhe) {
+                host = "localhost";
+            }
+            int port = webServer.getPort();
+            return "http://" + host + ":" + port + prefix + EV_URL;
+        }
+
+        // we'll pass the following arguments to the message format:
+        //   0 - the name of the schedule (html-encoded)
+        //   1 - the name of the schedule (url-encoded)
+        //   2 - the URL of the schedule (html-encoded)
+        //   3 - the URL of the schedule (url-encoded)
+        //   4 - 0 if no password is required, 1 otherwise
+        //   5 - the password for the schedule (html-encoded)
+        //   6 - the password for the schedule (url-encoded)
+        // if the password is not required, params 5 and 6 will be empty
+        // strings.
+
+        /**
+         * Launch a browser when you click on a link
+         */
+        public void hyperlinkUpdate(HyperlinkEvent e) {
+            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                String url = e.getURL().toString();
+                Browser.launch(url);
+            }
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Object source = e.getSource();
+            if (source == finishButton || source == cancelButton) {
+                closeWizard(); return;
+            } else if (source == backButton) {
+                backPanel(); return;
+            }
+        }
     }
 
+    private static final String[] resultURL = {
+        "/Templates/dash/ev-publish-results.htm",
+        "/Templates/dash/ev-share-results.htm",
+        "/Templates/dash/ev-rollup-results.htm" };
+    private static final String EV_URL =
+        "//reports/ev.class";
+
+    private static String getText(String resourceName) {
+        try {
+            return new String
+                (TinyWebServer.slurpContents
+                 (TaskScheduleCollaborationWizard.class.getResourceAsStream(resourceName), true));
+        } catch (IOException ioe) {
+            return "";
+        }
+    }
+
+    private static String urlEncode(String str) {
+        str = URLEncoder.encode(str);
+        str = StringUtils.findAndReplace(str, "+", "%20");
+        return str;
+    }
 
 }
