@@ -892,6 +892,13 @@ public class TinyWebServer extends Thread {
         return null;
     }
 
+    /** Calculate the user credential that would work for an http
+     * Authorization field.
+     */
+    public static String calcCredential(String user, String password) {
+        return "Basic " + Base64.encode(user + ":" + password);
+    }
+
 
     /** Encode HTML entities in the given string, and return the result. */
     public static String encodeHtmlEntities(String str) {
