@@ -4,7 +4,7 @@ opendir(DIR, ".");
 @allfiles = readdir(DIR);
 closedir(DIR);
 
-@files = grep(/\.shtm$/ || /\.class$/, @allfiles);
+@files = grep((/\.shtm$/ || /\.class$/) && !/sizeForm/, @allfiles);
 
 open(OUT, ">filelist.txt");
 print OUT "<!--#set var='Wizard_File_List' value='LIST=,",
