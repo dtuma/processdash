@@ -682,8 +682,11 @@ public class WBSNodeEditor extends AbstractCellEditor
             String oldType = editingNode.getType();
             String nodeName = editorComponent.getText();
             nodeName = (nodeName == null ? "" : nodeName.trim());
-            if (nodeName.length() == 0 || oldType.equals(nodeName + " Task")) {
-                nodeName = type.substring(0, type.length() - 5);
+            if (nodeName.length() == 0 || oldType.equals(nodeName) ||
+                oldType.equals(nodeName + " Task")) {
+                nodeName = type;
+                if (nodeName.endsWith(" Task"))
+                    nodeName = nodeName.substring(0, nodeName.length() - 5);
                 editorComponent.setText(nodeName);
                 editingNode.setName(nodeName);
             }
