@@ -80,8 +80,9 @@ public class table extends pspdash.TinyCGIBase {
         if (!includable) {
             out.println("</TABLE>");
             if (foot != null) out.println("<P>" + foot + "</P>");
-            out.print("<P class='doNotPrint'><A HREF=\"excel.iqy\">" +
-                      "<I>Export to Excel</I></A>");
+            if (!parameters.containsKey("EXPORT"))
+                out.print("<P class='doNotPrint'><A HREF=\"excel.iqy\">" +
+                          "<I>Export to Excel</I></A>");
             out.println("</BODY></HTML>");
         }
     }
