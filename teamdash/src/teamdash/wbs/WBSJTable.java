@@ -312,6 +312,8 @@ public class WBSJTable extends JTable {
         protected boolean editingFollowsSelection = false;
 
         protected int editingRow, editingColumn;
+        protected EventObject restartEvent;
+        protected WBSNode editingNode;
 
         public RestartEditingAction() { }
         public RestartEditingAction(String name) { super(name); }
@@ -323,7 +325,7 @@ public class WBSJTable extends JTable {
                 return;
 
             // Get a "restart editing" event from the cell editor.
-            EventObject restartEvent = editor.getRestartEditingEvent();
+            restartEvent = editor.getRestartEditingEvent();
 
             // ask what column we're editing. (for our purposes, it's always
             // going to be column 0, but lets be more robust.)
@@ -331,7 +333,7 @@ public class WBSJTable extends JTable {
             editingRow    = WBSJTable.this.editingRow;
 
             // find out what node is currently being edited.
-            WBSNode editingNode = (WBSNode) editor.getCellEditorValue();
+            editingNode = (WBSNode) editor.getCellEditorValue();
 
             // stop the current editing session.
             if (editingNode != null) editor.stopCellEditing();
@@ -343,6 +345,7 @@ public class WBSJTable extends JTable {
             // restart editing.
             restartEditing(editingColumn, editingNode, restartEvent);
         }
+
         public void doAction(ActionEvent e) {}
 
         /** Start up an editing session. */
@@ -355,7 +358,7 @@ public class WBSJTable extends JTable {
                 // Begin editing the newly selected node.
                 WBSJTable.this.grabFocus();
                 int rowToEdit = getSelectedRow();
-                int columnToEdit = getSelectedColumn();
+                int columnToEdit = editingColumn; //getSelectedColumn();
                 editCellAt(rowToEdit, columnToEdit, restartEvent);
 
             } else if (editingNode != null) {
