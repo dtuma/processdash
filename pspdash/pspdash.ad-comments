@@ -126,6 +126,12 @@ http.port=The port number where the dashboard should listen for incoming \
 	the port one number less than this port - typically 2467 - must be \
 	available also, for incoming data connections.)
 
+pauseButton.showCurrent=If this property is set to "true", the Play/Pause \
+	button will display the current state (i.e., while paused, it will \
+	display the PAUSE symbol).  Otherwise, the button will display the \
+	effect of a click (i.e., while paused, it will display the PLAY \
+	symbol).
+
 probeDialog.dataList=If this property is set to "simple", the PROBE dialog \
 	will only display data elements relating to the standard PROBE \
 	methods A,B,C, and D. If this setting has any other value, PROBE will \
@@ -139,3 +145,7 @@ stateFile=The default location for the user's state file.
 
 templates.directory=The location of the system-wide template files. \
 	Leave this blank to pull templates from the classpath.
+
+timelog.updateInterval=The dashboard saves the current time log entry \
+	periodically.  This setting specifies the number of minutes it \
+	should wait between saves.

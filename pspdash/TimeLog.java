@@ -41,6 +41,12 @@ import java.util.Vector;
 
 public class TimeLog {
 
+    /** When a line in the time log file begins with this flag, it is
+     *  considered to be a replacement for the preceeding line in the
+     *  file.
+     */
+    public static final String CONTINUATION_FLAG = "*";
+
     static final long MILLI_PER_MINUTE = 60000; // 60 sec/min * 1000 milli/sec
     static private String defaultTimeLogFile = null;
 
@@ -73,6 +79,10 @@ public class TimeLog {
         v.removeAllElements();
         while ((line = in.readLine()) != null) {
             try {
+                if (line.startsWith(CONTINUATION_FLAG)) {
+                    line = line.substring(CONTINUATION_FLAG.length());
+                    v.remove(v.size() - 1);
+                }
                 tle = TimeLogEntry.valueOf(line);
                 v.addElement (tle);
             } catch (IllegalArgumentException iae) { }
@@ -84,6 +94,24 @@ public class TimeLog {
     public TimeLogEntry add (TimeLogEntry tle) {
         v.addElement (tle);
         return tle;
+    }
+
+    /** @return the TimeLogEntry that was replaced. */
+    public TimeLogEntry addOrUpdate (TimeLogEntry tle) {
+        // search through the time log for an entry with the same create
+        // date and path as tle.  If we find one, replace it with tle.
+        TimeLogEntry anEntry;
+        for (int i = v.size();  i-- > 0; ) {
+            anEntry = (TimeLogEntry) v.elementAt(i);
+            if (tle != null && anEntry != null &&
+                tle.isSimilarTo(anEntry)) {
+                v.setElementAt(tle, i);
+                return anEntry;
+            }
+        }
+        // The time log doesn't contain an entry matching tle.  Add tle to the log.
+        add(tle);
+        return null;
     }
 
     public void remove (TimeLogEntry tle) {

@@ -233,6 +233,10 @@ public class PSPDashboard extends JFrame implements WindowListener {
         configure_button.addToTimeLogEditor (tle);
     }
 
+    public void releaseTimeLogEntry (TimeLogEntry tle) {
+        pause_button.maybeReleaseEntry(tle);
+    }
+
     public void save() {
         try {
             props.save(propertiesFile, "properties file");

@@ -114,6 +114,17 @@ public class TimeLogEntry {
         return (comp == 0 ? createTime.before (o.createTime) : comp < 0);
     }
 
+    public boolean isSimilarTo(TimeLogEntry o) {
+        if (o == this) return true;
+
+        long timeDifference = o.createTime.getTime() - createTime.getTime();
+        if (-2000 < timeDifference && timeDifference < 2000)
+            if (o.getPath().equals(getPath()))
+                return true;
+
+        return false;
+    }
+
     public String getPath() { return (key == null) ? "" : key.path(); }
     public Date getStartTime() { return createTime; }
     public long getElapsedTime() { return minutesElapsed; }

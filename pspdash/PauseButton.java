@@ -46,8 +46,11 @@ public class PauseButton extends JButton implements ActionListener {
     boolean paused = true;
     Timer stopwatch = null;
     PropertyKey currentPhase = null;
+    String timeElementName = null;
     private static final String pause_string = "Stop";
     private static final String continue_string = " Go ";
+
+    private javax.swing.Timer activeRefreshTimer = null;
 
     PauseButton(PSPDashboard dash) {
         super();
@@ -63,6 +66,19 @@ public class PauseButton extends JButton implements ActionListener {
         setMargin (new Insets (1,2,1,2));
         parent = dash;
         addActionListener(this);
+
+        int refreshIntervalMillis = 5 * MILLIS_PER_MINUTE;
+
+        String refreshInterval = Settings.getVal("timelog.updateInterval");
+        if (refreshInterval != null) try {
+            refreshIntervalMillis = (int)
+                (Double.parseDouble(refreshInterval) * MILLIS_PER_MINUTE);
+        } catch (NumberFormatException nfe) {}
+
+        activeRefreshTimer =
+            new javax.swing.Timer(refreshIntervalMillis, this);
+        activeRefreshTimer.start();
+
         // GridBagConstraints g = new GridBagConstraints();
         // g.gridx = 0;
         // g.gridy = 0;
@@ -71,9 +87,11 @@ public class PauseButton extends JButton implements ActionListener {
         dash.getContentPane().add(this);
     }
 
+    private static final int MILLIS_PER_MINUTE = 60 * 1000;
+
     private void updateAppearance() {
         if (pause_icon == null)
-            setText(pause_string);
+            setText(showCurrent == paused ? pause_string : continue_string);
         else
             setIcon(showCurrent == paused ? pause_icon : continue_icon);
 
@@ -83,13 +101,25 @@ public class PauseButton extends JButton implements ActionListener {
 
 
     public void actionPerformed(ActionEvent e) {
-        if (paused) cont(); else pause();
+        if (e.getSource() == activeRefreshTimer) {
+            saveCurrentTimeLogEntry();
+            if (paused && stopwatch != null) {
+                long interruptMinutes = stopwatch.minutesInterrupt();
+                if (interruptMinutes > 5 &&
+                    interruptMinutes > (0.25 * elapsedMinutes))
+                    releaseCurrentTimeLogEntry();
+            }
+        } else {
+            if (paused) cont(); else pause();
+        }
     }
 
     public void pause() {
         paused = true;
-        if (stopwatch != null)
+        if (stopwatch != null) {
             stopwatch.stop();
+            saveCurrentTimeLogEntry();
+        }
         updateAppearance();
     }
 
@@ -104,56 +134,141 @@ public class PauseButton extends JButton implements ActionListener {
     }
 
     public void setCurrentPhase(PropertyKey newCurrentPhase) {
-        if (stopwatch != null) {
-            stopwatch.stop();
-            String timeLogFilename = parent.getTimeLog();
+        releaseCurrentTimeLogEntry();
+        if (entryHasBeenSaved > 1)
+            cleanupTimeLog();
 
-                                // If there is a time log, and
-            if (timeLogFilename != null && timeLogFilename.length() != 0 &&
-                                // at least one minute has elapsed, or
-                (stopwatch.minutesElapsed() > 0 ||
-                                // the user has requested zero-duration time
-                                // log entries to be saved,
-                 "true".equalsIgnoreCase
-                 (Settings.getVal("timeLog.writeZero")))) try {
-
-                                // write an entry to the time log.
-                FileOutputStream timeLogFile =
-                    new FileOutputStream(timeLogFilename, true);
-                TimeLogEntry tle = new TimeLogEntry
-                    (currentPhase,
-                     stopwatch.createTime,
-                     stopwatch.minutesElapsed(),
-                     stopwatch.minutesInterrupt());
-                String log_msg = tle.toString();
-                parent.addToTimeLogEditor (tle);
-                                // write to the time log.
-                timeLogFile.write(log_msg.getBytes());
-                timeLogFile.close();
-
-                String timeName = currentPhase.path() + "/Time";
-
-                SaveableData d = parent.data.getValue(timeName);
-                DoubleData time;
-                if ((d != null) && (d instanceof DoubleData))
-                    time = new DoubleData(((DoubleData)d).getDouble() +
-                                          stopwatch.minutesElapsed());
-                else
-                    time = new DoubleData(stopwatch.minutesElapsed());
-                time.setEditable(false);
-                parent.data.putValue(timeName, time);
-
-                parent.hierarchy.workPerformed
-                    (new DateData(stopwatch.createTime, true));
-            } catch (IOException e) {
-                System.err.println("Couldn't update time log " +
-                                   timeLogFilename);
-                e.printStackTrace();
-            }
-            stopwatch = null;
+        if (newCurrentPhase != null) {
+            currentPhase = newCurrentPhase;
+            timeElementName = currentPhase.path() + "/Time";
         }
 
-        currentPhase = newCurrentPhase;
         if (!paused) cont();
+    }
+
+    private static boolean WRITE_ZERO =
+        "true".equalsIgnoreCase(Settings.getVal("timeLog.writeZero"));
+
+    /** The time log entry for the current activity. */
+    TimeLogEntry currentTimeLogEntry = null;
+
+    /** How many times has the current time log entry been saved to the time
+     *  log file? */
+    int entryHasBeenSaved = 0;
+
+    /** How much elapsed stopwatch time has been saved to the data
+     *  repository?  Note: since we round items off when adding them
+     *  to the repository, this value will rarely ever equal
+     *  elapsedMinutes.
+     */
+    double savedElapsedMinutes = 0.0;
+
+    /** How many minutes are currently on the stopwatch? (We need to
+     *  keep track of this separately, because the TimeLogEntry only
+     *  keeps information accurate to a minute.
+     */
+    double elapsedMinutes = 0.0;
+
+    /** Update the current time log entry with information from the
+     *  stopwatch. Creates the current time log entry if it doesn't
+     *  already exist.
+     */
+    private synchronized void updateCurrentTimeLogEntry() {
+        if (currentTimeLogEntry == null) {
+            if (stopwatch == null) return;
+
+            double previousElapsedMinutes = elapsedMinutes;
+            elapsedMinutes = stopwatch.minutesElapsedDouble();
+            if (elapsedMinutes < 1.0 && !WRITE_ZERO) return;
+            if (previousElapsedMinutes == elapsedMinutes) return;
+
+            currentTimeLogEntry = new TimeLogEntry
+                (currentPhase,
+                 stopwatch.createTime,
+                 (long) elapsedMinutes,
+                 stopwatch.minutesInterrupt());
+            entryHasBeenSaved = 0;
+
+        } else {
+            elapsedMinutes = stopwatch.minutesElapsedDouble();
+            currentTimeLogEntry.minutesElapsed  = (long) elapsedMinutes;
+            currentTimeLogEntry.minutesInterrupt= stopwatch.minutesInterrupt();
+        }
+    }
+
+    /** Write the current time log entry out to the file.
+     *  Create a current time log entry if it doesn't exist.
+     */
+    private synchronized void saveCurrentTimeLogEntry() {
+        updateCurrentTimeLogEntry();
+
+        if (currentTimeLogEntry == null) return;  // nothing to save.
+
+        String timeLogFilename = parent.getTimeLog();
+        if (timeLogFilename != null || timeLogFilename.length() != 0) try {
+                                // write an entry to the time log.
+            String log_msg = currentTimeLogEntry.toString();
+            FileOutputStream timeLogFile =
+                new FileOutputStream(timeLogFilename, true);
+
+            if (entryHasBeenSaved > 0)
+                log_msg = TimeLog.CONTINUATION_FLAG + log_msg;
+
+            parent.addToTimeLogEditor (currentTimeLogEntry);
+            timeLogFile.write(log_msg.getBytes());
+            timeLogFile.close();
+            entryHasBeenSaved++;
+
+            if (entryHasBeenSaved > 30)
+                cleanupTimeLog();
+        } catch (IOException ioe) {
+            System.err.println("Couldn't update time log " + timeLogFilename);
+            ioe.printStackTrace();
+        }
+
+        // Need to make changes to the data elements.
+        SaveableData d = parent.data.getValue(timeElementName);
+                                // Calculate the amount of time in this phase,
+                                // NOT COUNTING the current time log entry.
+        double previousTime = (d == null ? 0.0 : ((DoubleData) d).getDouble())
+            - savedElapsedMinutes;
+                                // Calculate the amount of time in this phase,
+                                // INCLUDING the current time log entry.
+        double currentTime = previousTime + elapsedMinutes;
+                                // Round to the nearest minute.
+        long currentMinutes = (long) (currentTime + 0.5);
+        savedElapsedMinutes = currentMinutes - previousTime;
+        parent.data.putValue(timeElementName,
+                             new DoubleData(currentMinutes, false));
+        System.out.println("updating time to " + currentMinutes);
+
+        parent.hierarchy.workPerformed
+                  (new DateData(stopwatch.createTime, true));
+    }
+
+    private void releaseCurrentTimeLogEntry() {
+        saveCurrentTimeLogEntry();
+
+        stopwatch = null;
+        currentTimeLogEntry = null;
+        entryHasBeenSaved = 0;
+        savedElapsedMinutes = elapsedMinutes = 0.0;
+    }
+
+    public void maybeReleaseEntry(TimeLogEntry tle) {
+        if (tle != null &&
+            currentTimeLogEntry != null &&
+            currentTimeLogEntry.isSimilarTo(tle))
+            setCurrentPhase(null);
+    }
+
+    private void cleanupTimeLog() {
+        String timeLogFilename = parent.getTimeLog();
+        if (timeLogFilename != null || timeLogFilename.length() != 0) try {
+            TimeLog log = new TimeLog();
+            log.read(timeLogFilename);
+            log.save(timeLogFilename);
+            System.err.println("Cleaned up time log.");
+        } catch (IOException ioe) {}
     }
 }

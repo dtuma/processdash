@@ -139,6 +139,10 @@ hiddenData=PSP Project|PSP Phase|\\% Time|Started|Completed|.*\d+|.* To Date|DRL
 #
 autoRealization=min
 
+
+timelog.updateInterval=5
+
+
 #
 # Default defect type standard.
 #

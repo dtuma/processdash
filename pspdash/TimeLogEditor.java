@@ -367,14 +367,21 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                              String     newValue) {
         if (validateCell != null)
             return false;
-        // FIXME: if the newValue is identical to the old value, don't set the
-        // dirty flag.
         boolean rv = true;
         TimeLogEntry tle;
         try {
             tle = (TimeLogEntry)currentLog.elementAt (row);
-        } catch (Exception e) { return false; }
-        validateCell = "" + row + "," + col;
+            validateCell = "" + row + "," + col;
+
+            // tell the PauseButton (via the dashboard) to release this time
+            // log entry, if it is currently "holding" it.
+            dashboard.releaseTimeLogEntry(tle);
+
+            tle = (TimeLogEntry) currentLog.elementAt (row);
+        } catch (Exception e) {
+            validateCell = null;
+            return false;
+        }
         switch (col) {
         case 0:                     //Logged To (key) (must exist in hierarchy)
             PropertyKey key = useProps.findExistingKey (newValue);
@@ -460,19 +467,42 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         return retPanel;
     }
 
+    /** Add or update a row in the time log.
+     * @param tle a time log entry that was created or modified elsewhere.
+     */
     public void addRow (TimeLogEntry tle) {
+        TimeLogEntry oldEntry = tl.addOrUpdate(tle);
+        if (oldEntry != null) {
+            int row = currentLog.indexOf(oldEntry);
+
+            if (row == -1)            // oldEntry is not in the list of currently
+                return;                 // visible entries. No redraw is necessary.
+
+            currentLog.set(row, tle);
+            VTableModel model = (VTableModel)table.table.getModel();
+            model.setValueAt(tle.key.path(), row, 0);
+            model.setValueAt(DateFormatter.formatDateTime(tle.createTime), row, 1);
+            model.setValueAt(String.valueOf (tle.minutesElapsed), row, 2);
+            model.setValueAt(String.valueOf (tle.minutesInterrupt), row, 3);
+
+        } else {
+            applyFilter(false);
+        }
+        setTimes();
+
+        /*
         Object aRow[] = new Object[]
-            {tle.key.path(),
-             DateFormatter.formatDateTime (tle.createTime),
-             String.valueOf (tle.minutesElapsed),
-             String.valueOf (tle.minutesInterrupt)};
+            {,
+             ,
+             ,
+             };
 
         ((VTableModel)table.table.getModel()).addRow(aRow);
         tableContainsRows = true;
         addButton.setEnabled(true);
         currentLog.addElement (tl.add (tle));
         setDirty(true);
-        setTimes ();
+        */
     }
 
     public void addRow () {
@@ -538,6 +568,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             aTable.editingStopped (new ChangeEvent("Deleting row: Stop edit"));
 
         TimeLogEntry tle = (TimeLogEntry)currentLog.elementAt (rowBasedOn);
+        dashboard.releaseTimeLogEntry(tle);
         model.removeRow (rowBasedOn);
         try {
             currentLog.removeElementAt (rowBasedOn);
