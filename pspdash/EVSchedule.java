@@ -44,6 +44,8 @@ public class EVSchedule implements TableModel {
 
     public static final Date NEVER = new Date(Long.MAX_VALUE);
     public static final Date A_LONG_TIME_AGO = new Date(0);
+    static ResourceBundle resources =
+        ResourceBundle.getBundle("pspdash.TaskScheduleDialog");
 
     public interface Listener {
         public void evScheduleChanged();
@@ -951,37 +953,34 @@ public class EVSchedule implements TableModel {
         if (d == null)
             return "";
         else if (d == NEVER)
-            return "never";
+            return NEVER_STRING;
         else
             return dateFormatter.format(d);
     }
     private static DateFormat dateFormatter =
         DateFormat.getDateInstance(DateFormat.MEDIUM);
+    private static final String NEVER_STRING =
+        resources.getString("Date_Never");
 
 
     ///
     /// Table model
     ///
 
+    private static final String[] COLUMN_KEYS = {
+        "From", "To", "PT", "PDT", "CPT", "CPV", "Time", "PctI",
+        "DTime", "CT", "EV" };
+
     protected static final int DATE_W = 80; // width for date columns
     protected static final int TIME_W = 50; // width for time columns
     protected static final int PCT_W  = 40; // width for percentage columns
-    public static final String[] colNames = {
-        "From", "To",   "PT",   "PDT",  "CPT",  "CPV", "Time", "%I",  "DTime", "CT",   "EV" };
-    public static final int[] colWidths = {
-         DATE_W, DATE_W, TIME_W, TIME_W, TIME_W, PCT_W, TIME_W, PCT_W, TIME_W,  TIME_W, PCT_W };
-    public static final String[] TOOL_TIPS = {
-        null,
-        null,
-        "Planned Time (hours:minutes)",
-        "Planned Direct Time (hours:minutes)",
-        "Cumulative Planned Direct Time (hours:minutes)",
-        "Cumulative Planned Value",
-        "Actual Time (hours:minutes)",
-        "Actual Percent Indirect Time",
-        "Actual Direct Time (hours:minutes)",
-        "Cumulative Actual Direct Time (hours:minutes)",
-        "Actual Cumulative Earned Value" };
+    public static final String[] colNames =
+        Resources.getStrings(resources, "Schedule_Column_Name_", COLUMN_KEYS);
+    public static final int[] colWidths =
+        Resources.getInts(resources, "Schedule_Column_Width_", COLUMN_KEYS);
+    public static final String[] TOOL_TIPS =
+        Resources.getStrings(resources, "Schedule_Column_Tooltip_",
+                             COLUMN_KEYS);
 
     public static final int FROM_COLUMN           = 0;
     public static final int TO_COLUMN             = 1;
@@ -1124,15 +1123,18 @@ public class EVSchedule implements TableModel {
         Number getYValue(int itemIndex);
     }
 
+    private static final String PLAN_LABEL = resources.getString("Plan_Label");
     private abstract class PlanChartSeries implements ChartSeries {
-        public String getSeriesName() { return "Plan"; }
+        public String getSeriesName() { return PLAN_LABEL; }
         public int getItemCount() { return getRowCount()+1; }
         public Number getXValue(int itemIndex) {
             return new Long(get(itemIndex).endDate.getTime()); }
     }
 
+    private static final String ACTUAL_LABEL =
+        resources.getString("Actual_Label");
     private abstract class ActualChartSeries implements ChartSeries {
-        public String getSeriesName() { return "Actual"; }
+        public String getSeriesName() { return ACTUAL_LABEL; }
         public int getItemCount() {
             int result = getRowCount()+1;
             if (effectivePeriod < result) result = effectivePeriod+1;
@@ -1148,11 +1150,13 @@ public class EVSchedule implements TableModel {
         }
     }
 
+    private static final String FORECAST_LABEL =
+        resources.getString("Forecast_Label");
     protected class ForecastChartSeries implements ChartSeries {
         Number currentYVal, forecastYVal;
         Number currentXVal, forecastXVal;
         int itemCount = 2;
-        public String getSeriesName() { return "Forecast"; }
+        public String getSeriesName() { return FORECAST_LABEL; }
         public int getItemCount() { return itemCount; }
         public Number getXValue(int itemIndex) {
             return (itemIndex == 0 ? currentXVal : forecastXVal);
@@ -1328,6 +1332,13 @@ public class EVSchedule implements TableModel {
         return result;
     }
 
+    private static final String PLAN_VALUE_LABEL =
+        resources.getString("Plan_Value_Label");
+    private static final String ACTUAL_VALUE_LABEL =
+        resources.getString("Actual_Value_Label");
+    private static final String ACTUAL_TIME_LABEL =
+        resources.getString("Actual_Time_Label");
+
 
     /** XYDataSource for charting cost and schedule on one chart.
      */
@@ -1335,11 +1346,14 @@ public class EVSchedule implements TableModel {
         public CombinedChartData() {
             series = new ChartSeries[3];
             series[0] = new PlanValueSeries(1.0 / 60.0) {
-                    public String getSeriesName() { return "Plan Value"; } };
+                    public String getSeriesName() {
+                        return PLAN_VALUE_LABEL; } };
             series[1] = new ActualValueSeries(1.0 / 60.0) {
-                    public String getSeriesName() { return "Actual Value"; } };
+                    public String getSeriesName() {
+                        return ACTUAL_VALUE_LABEL; } };
             series[2] = new ActualTimeSeries() {
-                    public String getSeriesName() { return "Actual Time"; } };
+                    public String getSeriesName() {
+                        return ACTUAL_TIME_LABEL; } };
         }
     }
     public XYDataSource getCombinedChartData() {
