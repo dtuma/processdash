@@ -43,9 +43,11 @@
 package pspdash;
 
 import java.awt.FlowLayout;
+import java.awt.Toolkit;
 import java.awt.event.*;
 import java.util.*;
 import java.io.*;
+import java.net.URL;
 
 import pspdash.data.DataRepository;
 import javax.swing.*;
@@ -64,17 +66,19 @@ public class PSPDashboard extends JFrame implements WindowListener {
     PSPProperties props;
     PSPProperties templates = new PSPProperties(null);
     DataRepository data = null;
+    TinyWebServer webServer = null;
 
     boolean paused = true;
     String timeLogName        = "time.log";
-    String defaultPropFile    = "state";
+    static final String DEFAULT_PROP_FILE = "state";
     String starting_dir       = "";
     String property_directory = null;
-    String propertiesFile     = defaultPropFile;
+    String propertiesFile     = DEFAULT_PROP_FILE;
     String template_directory = null;
-    String templatesFile      = "state";
+    static final String TEMPLATES_FILE = "state";
     PropertyKey currentPhase  = null;
 
+    private static final String TEMPLATES_CLASSPATH = "/Templates";
 
     private void debug(String msg) {
         System.err.print("PSPDashboard: ");
@@ -84,21 +88,42 @@ public class PSPDashboard extends JFrame implements WindowListener {
     PSPDashboard(String title) {
         super();
         setTitle(title);
+        setIconImage(Toolkit.getDefaultToolkit().createImage
+                     (getClass().getResource("icon32.gif")));
         getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 2, 2));
         addWindowListener(this);
 
+        // load app defaults and user settings.
         Settings.initialize("");
-        data = new DataRepository();
 
-        propertiesFile = Settings.getVal("stateFile");
-        template_directory = (Settings.getVal("templates.directory") +
-                              System.getProperty("file.separator"));
+        // create the data repository.
+        data = new DataRepository();
+        template_directory = Settings.getDir("templates.directory", true);
         data.addDatafileSearchDir(template_directory);
 
-        //open & load the properties for the application
+        // start the http server.
+        try {
+            if (template_directory != null)
+                // if the user has specified a Templates directory,
+                // serve http requests out of that directory.
+                webServer = new TinyWebServer(template_directory, 2468);
+
+            else
+                // default behavior: if no Templates directory is
+                // specified, serve http requests out of the classpath.
+                webServer = new TinyWebServer(2468, TEMPLATES_CLASSPATH);
+
+            webServer.start();
+        } catch (IOException ioe) {
+            System.err.println("Couldn't start web server: " + ioe);
+        }
+
+        //open & load the User's hierarchical work breakdown structure,
+        //henceforth referred to as "properties"
+        //
+        propertiesFile = Settings.getFile("stateFile");
         File prop_file = new File(propertiesFile);
-        property_directory = (prop_file.getParent() +
-                              System.getProperty("file.separator"));
+        property_directory = prop_file.getParent() + Settings.sep;
 
         // determine if Lost Data Files are present in the pspdata directory
         // and take steps to repair them.
@@ -107,36 +132,55 @@ public class PSPDashboard extends JFrame implements WindowListener {
         if (lostPSPFiles.repair(this)==false) {
 
             // if the lost data files could not be repaired, exit the dashboard
-            System.err.println("Dashboard was terminated due to user request. " +
-                               "The following bad data files were found in the "+
-                               "psp data directory:\n" +
-                               lostPSPFiles.printOut());
+            System.err.println
+                ("Dashboard was terminated due to user request. " +
+                 "The following bad data files were found in the "+
+                 "psp data directory:\n" + lostPSPFiles.printOut());
             System.exit(0);
         }
 
+        // open and load the properties file.
         props = new PSPProperties(property_directory);
         Vector v = null;
         try {
+            // try to load the user's existing properties file.
             v = props.load(propertiesFile);
-        } catch (Exception e) { /*debug("read failed!");*/
-            try {
-                v = props.load(getClass().getResourceAsStream(defaultPropFile));
-            } catch (Exception e2) { debug("read default props failed!");};
-        };
+        } catch (Exception e) { try {
+            // apparently, the user doesn't already have a properties file.
+            // read the default properties file, which simply contains
+            // nodes for "Project" and "Non Project".
+            v = props.load(getClass().getResourceAsStream(DEFAULT_PROP_FILE));
+        } catch (Exception e2) {
+            // this is a serious problem that should never happen if the
+            // dashboard is installed correctly.
+            debug("read default props failed!");
+        } }
 
+        try {
+            if (null == getClass().getResourceAsStream("/Templates/data.js"))
+                debug("Having trouble finding resources...are you using JRE 1.3?");
+        } catch (Exception resTestExcp) {
+            debug("Having trouble finding resources...are you using JRE 1.3?");
+        }
+
+        // open all the datafiles that were specified in the properties file.
         try {
             if (v != null) {
                 String a[];
                 for (int i = 0; i < v.size(); i++) {
                     a = (String[])v.elementAt (i);
-                    openDataFile (a[0], /* property_directory + */ a[1]);
+                    openDatafile(a[0], a[1]);
                 }
             }
-        }catch (Exception e) { /*debug("open datafiles failed!");*/ };
+        }catch (Exception e) { debug("open datafiles failed!"); };
 
         try {
-            templates.load(template_directory+templatesFile);
-        } catch (Exception e) { /*debug("template read failed!");*/};
+            if (template_directory != null)
+                templates.load(template_directory + TEMPLATES_FILE);
+            else
+                templates.load(getClass().getResourceAsStream
+                               (TEMPLATES_CLASSPATH + "/" + TEMPLATES_FILE));
+        } catch (Exception e) { debug("template read failed!"); };
 
         configure_button = new ConfigureButton(this);
         pause_button = new PauseButton(this);
@@ -146,29 +190,30 @@ public class PSPDashboard extends JFrame implements WindowListener {
         completion_button = new CompletionButton(this);
         hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
 
+        // open the global data file.
         try {
-            data.openDatafile ("", property_directory + "global.dat");
+            data.openDatafile("", property_directory + "global.dat");
         } catch (FileNotFoundException exc) {
+            // if the user doesn't have a global data file, create one
+            // for them from the default template.
             PropertyFrame.createDataFile (property_directory + "global.dat",
                                           "dataFile.txt");
-            try {
-                data.openDatafile ("", property_directory + "global.dat");
-            } catch (Exception exc2) {
-                System.err.println("failed to open global data file.. "+exc2);
-                exc2.printStackTrace(System.err);
-            }
+            openDatafile("", "global.dat");
+
         } catch (Exception exc) {
-            System.err.println("when opening datafiles, caught exception "+exc);
+            System.err.println
+                ("when generating default datafile, caught exception "+exc);
             exc.printStackTrace(System.err);
         }
     }
 
-    public void openDataFile (String prefix, String dataFile) {
+    public void openDatafile (String prefix, String dataFile) {
         try {
-//debug("openDatafile " + prefix + ", " + property_directory + dataFile);
             data.openDatafile (prefix, property_directory + dataFile);
         } catch (Exception exc) {
-            System.err.println("when opening datafile, caught exception "+exc);
+            System.err.println("when opening datafile, '" + dataFile +
+                               "' for path '" + prefix +
+                               "', caught exception " + exc);
             exc.printStackTrace(System.err);
         }
     }
@@ -194,11 +239,11 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
     public void save() {
         try {
-            props.save(propertiesFile,
-                       "properties file");
+            props.save(propertiesFile, "properties file");
         } catch (Exception e) { debug("prop write failed."); }
         if (configure_button != null)
             configure_button.save();
+        // shouldn't there be something here for the time and defect log, too?
     }
 
     public String getTimeLog() {
@@ -247,21 +292,30 @@ public class PSPDashboard extends JFrame implements WindowListener {
             hierarchy.terminate();
             hierarchy = null;
         }
+        if (webServer != null) {
+            webServer.quit();
+            webServer = null;
+        }
+        if (data != null) {
+            data.finalize();
+            data = null;
+        }
 
         save();
     }
 
-    protected void finalize() {
-        quit();
-    }
-
     public static void main(String args[]) {
-        System.runFinalizersOnExit(true);
+        SplashScreen ss = new SplashScreen
+            (PSPDashboard.class.getResource("splash.gif"));
+        ss.displayFor(3000);      // show for at least 3 seconds.
 
-        PSPDashboard dash = new PSPDashboard("PSP Dashboard");
+        PSPDashboard dash = new PSPDashboard("Process Dashboard");
 
         dash.pack();
         dash.show();
+
+        ss.okayToDispose();
+        ss = null;
     }
 
 }
