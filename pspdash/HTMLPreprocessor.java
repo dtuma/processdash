@@ -120,7 +120,8 @@ public class HTMLPreprocessor {
             // fetch the requested url (relative to the current url) and
             // replace the include directive with its contents.
             String context = (String) env.get("REQUEST_URI");
-            String incText = new String(web.getRequest(context, url, true));
+            String incText = new String
+                (web.getRequest(context, url, true), "UTF-8");
             // does the page author want us to parse the included text
             // for directives, or just insert it verbatim?
             if (include.getAttribute("parse") != null) {

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 import pspdash.PSPProperties;
@@ -47,7 +47,7 @@ public class cyclesum extends pspdash.TinyCGIBase {
         try {
             String uri = (String) env.get("SCRIPT_NAME");
             uri = uri.substring(0, uri.length() - 6) + ".htm";
-            String text = new String(getRequest(uri, true));
+            String text = new String(getRequest(uri, true), "UTF-8");
 
             ArrayList staticList  = new ArrayList();
             ArrayList dynamicList = new ArrayList();

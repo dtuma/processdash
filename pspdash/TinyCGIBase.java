@@ -194,7 +194,7 @@ public class TinyCGIBase implements TinyCGI {
                 filename = file.getFile();
             }
             env.put("SCRIPT_PATH", filename);
-            parseInput(new String(t.getRequest(filename, true)));
+            parseInput(new String(t.getRequest(filename, true), "UTF-8"));
         } catch (IOException ioe) {
             System.out.println("Couldn't read file: " + filename);
             System.out.println("(Specified as '" + origFilename + "' from '" +

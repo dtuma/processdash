@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -68,7 +68,7 @@ public class excel extends pspdash.TinyCGIBase {
 
         // write contents
         byte [] contents = getTinyWebServer().getRequest(getURI(), true);
-        String results = new String(contents);
+        String results = new String(contents, "UTF-8");
         int beginPos = results.indexOf("<TABLE");
         int endPos   = results.lastIndexOf("/TABLE");
         if (endPos != -1) endPos = results.indexOf('>', endPos);
