@@ -106,7 +106,7 @@ public class TinyCGIBase implements TinyCGI {
     }
 
     /* Read name=value pairs from the given URI. If the URI is not
-     * absolute (e.g. "/0/reports/foo"), it is interpreted relative
+     * absolute (e.g. "/reports/foo"), it is interpreted relative
      * to the current request. */
     protected void parseInputFile(String filename) throws IOException {
         if (filename == null || filename.length() == 0) return;
@@ -143,7 +143,7 @@ public class TinyCGIBase implements TinyCGI {
     protected String cssLinkHTML() {
         String style = (String) parameters.get("style");
         if (style == null)
-            style = "/0/style.css";
+            style = "/style.css";
         return "<LINK REL='stylesheet' TYPE='text/css' HREF='" + style + "'>";
     }
 

@@ -30,6 +30,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.text.*;
 
 public class TinyWebServer extends Thread {
@@ -213,23 +214,10 @@ public class TinyWebServer extends Thread {
                     sendError(403, "Forbidden", "Not accepting " +
                                "requests from remote IP addresses ." );
 
-                // ensure uri starts with a slash.
-                if (! uri.startsWith("/"))
-                    sendError( 400, "Bad Request", "Bad filename." );
-
-                // extract the ID from the beginning of the uri
-                int pos = uri.indexOf('/', 1);
-                if (pos == -1)
-                    sendError( 400, "Bad Request", "ID required." );
-                id = uri.substring(1, pos);
-                path = uri.substring(pos + 1);
-
-                // extract the query string from the end.
-                pos = path.indexOf('?');
-                if (pos != -1) {
-                    query = path.substring(pos + 1);
-                    path = path.substring(0, pos);
-                }
+                // break the uri into hierarchy path, file path, and
+                // query string; place the results in the appropriate
+                // object-global variables.
+                parseURI(uri);
 
                 // open the requested file
                 URLConnection conn = resolveURL(path);
@@ -248,6 +236,52 @@ public class TinyWebServer extends Thread {
                 sendError( 400, "Bad Request", "No request found." );
             } catch (IOException ioe) {
                 sendError( 500, "Internal Error", "IO Exception." );
+            }
+        }
+
+        /** Break the URI into hierarchy path, file path, and query string.
+         *
+         * The results are placed into the object-global variables
+         * "id", "path", and "query".
+         *
+         * URIs of the following forms are recognized (all may have
+         * query strings appended): <PRE>
+         *     /#####/regular/path
+         *     /regular/path
+         *     //regular/path
+         *     /hierarchy/path//regular/path
+         * </PRE> */
+        private void parseURI(String uri) throws TinyWebThreadException {
+
+            // ensure uri starts with a slash.
+            if (! uri.startsWith("/"))
+                sendError( 400, "Bad Request", "Bad filename." );
+
+            int pos = uri.indexOf("//");
+            if (pos >= 0) {
+                id = URLDecoder.decode(uri.substring(0, pos));
+                path = uri.substring(pos+2);
+            } else try {
+                pos = uri.indexOf('/', 1);
+                id = uri.substring(1, pos);
+                Integer.parseInt(id);
+                path = uri.substring(pos + 1);
+            } catch (Exception e) {
+                /* This block will be reached if the uri did not contain a
+                 * second '/' character, or if the text between the initial
+                 * and the second slash was not a number.  In these cases,
+                 * we treat the uri as a simple file path, with no hierarchy
+                 * path information.
+                 */
+                id = "";
+                path = uri.substring(1);
+            }
+
+            // extract the query string from the end.
+            pos = path.indexOf('?');
+            if (pos != -1) {
+                query = path.substring(pos + 1);
+                path = path.substring(0, pos);
             }
         }
 
@@ -303,9 +337,14 @@ public class TinyWebServer extends Thread {
             env.put("SERVER_PROTOCOL", protocol);
             env.put("REQUEST_METHOD", method);
             env.put("PATH_INFO", id);
-            env.put("PATH_TRANSLATED", data.getPath(id));
+            if (id != null && id.startsWith("/")) {
+                env.put("PATH_TRANSLATED", id);
+                env.put("SCRIPT_PATH", id + "//" + path);
+            } else {
+                env.put("PATH_TRANSLATED", data.getPath(id));
+                env.put("SCRIPT_PATH", "/" + id + "/" + path);
+            }
             env.put("SCRIPT_NAME", "/" + path);
-            env.put("SCRIPT_PATH", "/" + id + "/" + path);
             env.put("REQUEST_URI", uri);
             env.put("QUERY_STRING", query);
             if (clientSocket != null) {

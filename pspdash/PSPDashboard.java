@@ -198,8 +198,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         webServer.setProps(props);
     }
 
-    private static final String FIRST_TIME_HELP_URL =
-        ScriptButton.URL_PREFIX + "0/help/first-use.htm";
+    private static final String FIRST_TIME_HELP_URL = "/help/first-use.htm";
     private void displayFirstTimeUserHelp() {
         new AboutDialog(null, "Welcome", FIRST_TIME_HELP_URL);
     }

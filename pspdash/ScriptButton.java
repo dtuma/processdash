@@ -32,6 +32,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.*;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Vector;
 
 // The scriptButton class activates a browser loaded with the current phase's
@@ -114,9 +115,16 @@ class ScriptButton extends JButton {
 
     protected void viewScript (String theScript, String thePath) {
         if (theScript != null) {
-            String url = URL_PREFIX + parent.data.getID(thePath) + "/" + theScript;
+            String url = encode(thePath) + "//" + theScript;
             Browser.launch(url);
         }
+    }
+
+    protected String encode(String path) {
+        String result = URLEncoder.encode(path);
+        result = StringUtils.findAndReplace(result, "%2f", "/");
+        result = StringUtils.findAndReplace(result, "%2F", "/");
+        return result;
     }
 
     // JMenuIndexItem is an extended JMenuItem class that adds a data member

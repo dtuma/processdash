@@ -53,7 +53,7 @@ import javax.swing.JOptionPane;
 public class ConcurrencyLock {
 
     public static final String LOCK_FILE_NAME = "dashlock.txt";
-    public static final String RAISE_URL = "/0/control/raiseWindow.class";
+    public static final String RAISE_URL = "/control/raiseWindow.class";
 
     File lockFile = null;
 
