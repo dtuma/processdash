@@ -138,6 +138,7 @@ public class WorkflowEditor {
         public void actionPerformed(ActionEvent e) {
             try {
                 new WorkflowLibraryEditor(teamProject, frame, true);
+            } catch (WorkflowLibraryEditor.UserCancelledException uce) {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -155,6 +156,7 @@ public class WorkflowEditor {
         public void actionPerformed(ActionEvent e) {
             try {
                 new WorkflowLibraryEditor(teamProject, frame, false);
+            } catch (WorkflowLibraryEditor.UserCancelledException uce) {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

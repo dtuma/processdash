@@ -20,7 +20,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
 
@@ -113,14 +117,24 @@ public class WorkflowLibraryEditor {
         workflowTable.setSelectionModel(wsm);
         WorkflowSelectionModel lsm = new WorkflowSelectionModel(libraryTable, e);
         libraryTable.setSelectionModel(lsm);
+        new SelectionListener(wsm, lsm, export);
 
-        addButton = new JButton("Add");
+        addButton = new JButton("Overwrite");
+        addButton.setIcon(export ? IconFactory.getRightArrowIcon() : IconFactory.getLeftArrowIcon());
+        addButton.setHorizontalTextPosition(export ? SwingConstants.LEFT : SwingConstants.RIGHT);
+        addButton.setMinimumSize(addButton.getPreferredSize());
+        addButton.setText("Add");
+        addButton.setMnemonic('A');
+        addButton.setEnabled(false);
         initConstraints(c, 2, 1, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.SOUTH);
         c.insets = insets10;
         layout.setConstraints(addButton, c);
         panel.add(addButton);
 
         addAllButton = new JButton("Add All");
+        addAllButton.setMnemonic('L');
+        addAllButton.setIcon(export ? IconFactory.getRightArrowIcon() : IconFactory.getLeftArrowIcon());
+        addAllButton.setHorizontalTextPosition(export ? SwingConstants.LEFT : SwingConstants.RIGHT);
         initConstraints(c, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.NORTH);
         c.insets = insets10;
         layout.setConstraints(addAllButton, c);
@@ -344,5 +358,25 @@ public class WorkflowLibraryEditor {
 
     private class WorkflowNameSetPropertyEditor extends PropertyEditorSupport {
         public WorkflowNameSetPropertyEditor() {}
+    }
+
+    private class SelectionListener implements ListSelectionListener {
+
+        private ListSelectionModel source;
+        private ListSelectionModel dest;
+
+        public SelectionListener(ListSelectionModel a, ListSelectionModel b, boolean forward) {
+            this.source = forward ? a : b;
+            this.dest   = forward ? b : a;
+            a.addListSelectionListener(this);
+            b.addListSelectionListener(this);
+        }
+
+        public void valueChanged(ListSelectionEvent e) {
+            addButton.setEnabled(!source.isSelectionEmpty());
+            addButton.setText(dest.isSelectionEmpty() ? "Add" : "Overwrite");
+            addButton.setMnemonic(dest.isSelectionEmpty() ? 'A' : 'O');
+        }
+
     }
 }

@@ -125,6 +125,12 @@ public class IconFactory {
     }
     private static Icon OPEN_ICON = null;
 
+    public static Icon getLeftArrowIcon() {
+        return getPromoteIcon();
+    }
+    public static Icon getRightArrowIcon() {
+        return getDemoteIcon();
+    }
 
 
     /** Convenience method for mixing colors.
