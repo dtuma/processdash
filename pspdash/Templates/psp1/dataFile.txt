@@ -65,6 +65,12 @@ Estimated Total LOC==![(-	[(+	Estimated New & Changed LOC	Estimated Base LOC	Est
 Estimated Max LOC=0.0
 Estimated Min LOC=0.0
 Estimated New & Changed KLOC==![(/	Estimated New & Changed LOC	1000)]
+Estimated New & Changed LOC/Beta0=0.0
+Estimated New & Changed LOC/Beta1=0.0
+Estimated Total LOC/Range=0.0
+Estimated New & Changed LOC/Interval Percent=0.0
+Estimated New & Changed LOC/Probe Method=0.0
+Estimated New & Changed LOC/R Squared=0.0
 
 = Actual LOC
 

@@ -51,6 +51,13 @@ PSP1=null
 Estimated Max Time=0.0
 Estimated Min Time=0.0
 
+Estimated Time/Beta0=0.0
+Estimated Time/Beta1=0.0
+Estimated Time/Range=0.0
+Estimated Time/Interval Percent=0.0
+Estimated Time/Probe Method=0.0
+Estimated Time/R Squared=0.0
+
 Estimated % Reused==![(/	Estimated Reused LOC	Estimated Total LOC)]
 Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated New & Changed LOC)]
 
