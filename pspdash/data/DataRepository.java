@@ -38,11 +38,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
 import java.util.Vector;
 import java.util.Stack;
+import com.oroinc.text.perl.MalformedPerl5PatternException;
 
 
 public class DataRepository implements Repository {
@@ -186,6 +188,10 @@ public class DataRepository implements Repository {
             public SimpleData getSimpleValue() {
                 if (deferred) realize();
                 return value.getSimpleValue();
+            }
+
+            public SaveableData getImmediateValue() {
+                return value;
             }
 
             public synchronized void setValue(SaveableData d) {
@@ -715,9 +721,9 @@ public class DataRepository implements Repository {
 
                 SimpleData oldValue;
 
-                if (removedElement.getValue() == null)
+                if (removedElement.getImmediateValue() == null)
                     oldValue = null;
-                else if (removedElement.getValue() instanceof DeferredData)
+                else if (removedElement.getImmediateValue() instanceof DeferredData)
                     oldValue = null;
                 else {
                     oldValue = removedElement.getSimpleValue();
@@ -817,6 +823,24 @@ public class DataRepository implements Repository {
                 return null;
             else
                 return d.getSimpleValue();
+        }
+
+
+
+        public SaveableData getInheritableValue(String prefix, String name) {
+            String dataName = prefix + "/" + name;
+            SaveableData result = getValue(dataName);
+            int pos;
+            while (result == null && prefix.length() > 0) {
+                pos = prefix.lastIndexOf('/');
+                if (pos == -1)
+                    prefix = "";
+                else
+                    prefix = prefix.substring(0, pos);
+                dataName = prefix + "/" + name;
+                result = getValue(dataName);
+            }
+            return result;
         }
 
 
@@ -996,6 +1020,118 @@ public class DataRepository implements Repository {
             loadDatafile(datafile, globalDataDefinitions, close);
         }
 
+        /** Perform renaming operations found in the values map.
+         *
+         * A simple renaming operation is a mapping whose value begins
+         * with "<=".  The key is the new name for the data, and the rest
+         * of the value is the original name.  So the following lines in a
+         * datafile: <pre>
+         *    foo="bar
+         *    baz=<=foo
+         * </pre> would be equivalent to the single line `baz="bar'.
+         * Simple renaming operations are correctly transitive, so <pre>
+         *   foo=1
+         *   bar=<=foo
+         *   baz=<=bar
+         * </pre> is equivalent to `baz=1'. This will work correctly, no matter
+         * what order the lines appear in.
+         *
+         * Pattern match renaming operations are mappings whose value
+         * begins with >~.  The key is a pattern to match, and the value
+         * is the substitution expression.  So <pre>
+         *    foo 1="one
+         *    foo 2="two
+         *    foo ([0-9])+=>~$1/foo
+         * </pre> would be equivalent to the lines <pre>
+         *    1/foo="one
+         *    2/foo="two
+         * </pre> The pattern must match the original name of the element - not
+         * any renamed variant.  Therefore, pattern match renaming operations
+         * <b>cannot</b> be chained.  A pattern match operation <b>can</b> be
+         * the <b>first</b> renaming operation in a transitive chain, but will
+         * neverbe used as the second or subsequent operations in a chain.
+         *
+         * Finally, renaming operations can influence dataFiles below them in
+         * the datafile inheritance chain.  This is, in fact, the #1 reason for
+         * the renaming mechanism.  It allows a process datafile to rename
+         * elements that appear in end-user project datafiles.
+         *
+         * @return true if any renames took place.
+         */
+        private boolean performRenames(Hashtable values)
+         throws InvalidDatafileFormat {
+            boolean dataWasRenamed = false;
+            Hashtable renamingOperations = new Hashtable(),
+                patternRenamingOperations = new Hashtable();
+
+            // Perform a pass through the value map looking for renaming operations.
+            Iterator i = values.entrySet().iterator();
+            String name, value;
+            Map.Entry e;
+            while (i.hasNext()) {
+                e = (Map.Entry) i.next();
+                name = (String) e.getKey();
+                value = (String) e.getValue();
+
+                if (value.startsWith(SIMPLE_RENAME_PREFIX)) {
+                    renamingOperations.put
+                        (name, value.substring(SIMPLE_RENAME_PREFIX.length()));
+                    i.remove();
+                } else if (value.startsWith(PATTERN_RENAME_PREFIX)) {
+                    patternRenamingOperations.put
+                        (name, value.substring(PATTERN_RENAME_PREFIX.length()));
+                    i.remove();
+                }
+            }
+
+            // For each pattern-style renaming operation, find data names that
+            // match the pattern and add the corresponding renaming operation to
+            // the regular naming operation list.
+            i = patternRenamingOperations.entrySet().iterator();
+            String re;
+            while (i.hasNext()) {
+                e = (Map.Entry) i.next();
+                name = (String) e.getKey();
+                value = (String) e.getValue();
+
+                re = "s\n^" + name + "$\n" + value + "\n";
+                // scan the value map for matching names.
+                Enumeration valueNames = values.keys();
+                String valueName, valueRename;
+                while (valueNames.hasMoreElements()) {
+                    valueName = (String) valueNames.nextElement();
+                    try {
+                        valueRename = ValueFactory.perl.substitute(re, valueName);
+                        if (!valueName.equals(valueRename))
+                            renamingOperations.put(valueRename, valueName);
+                    } catch (MalformedPerl5PatternException mpe) {
+                        System.err.println("Malformed renaming operation '" + name +
+                                           "=" + PATTERN_RENAME_PREFIX + value + "'");
+                        throw new InvalidDatafileFormat();
+                    }
+                }
+            }
+
+            // Now perform the renaming operations.
+            String oldName, newName;
+            i = renamingOperations.entrySet().iterator();
+            while (!renamingOperations.isEmpty()) {
+                newName = (String) renamingOperations.keySet().iterator().next();
+                oldName = (String) renamingOperations.remove(newName);
+                value   = (String) values.remove(oldName);
+                while (value == null &&
+                       (oldName = (String) renamingOperations.remove(oldName)) != null)
+                    value = (String) values.remove(oldName);
+
+                if (value != null) {
+                    values.put(newName, value);
+                    dataWasRenamed = true;
+                }
+            }
+            return dataWasRenamed;
+        }
+        private static final String SIMPLE_RENAME_PREFIX = "<=";
+        private static final String PATTERN_RENAME_PREFIX = ">~";
 
 
         public void openDatafile(String dataPrefix, String datafilePath)
@@ -1009,6 +1145,10 @@ public class DataRepository implements Repository {
             dataFile.file = new File(datafilePath);
             dataFile.inheritsFrom =
                 loadDatafile(new FileInputStream(dataFile.file), values, true);
+            boolean dataModified;
+
+            // perform any renaming operations that were requested in the datafile
+            dataModified = performRenames(values);
 
                                     // only add the datafile element if the
                                     // loadDatafile process was successful
@@ -1019,7 +1159,6 @@ public class DataRepository implements Repository {
 
             boolean fileEditable = dataFile.file.canWrite();
             boolean dataEditable = true;
-            boolean dataModified = false;
 
             String name, value;
             SaveableData o;
@@ -1049,9 +1188,9 @@ public class DataRepository implements Repository {
                 if (!fileEditable || !dataEditable)
                     if (o != null) o.setEditable(false);
                 d = (DataElement)data.get(name);
-                if (d == null)
-                    d = add(name, o, dataFile, true);
-                else {
+                if (d == null) {
+                    if (o != null) d = add(name, o, dataFile, true);
+                } else {
                     putValue(name, o);
                     d.datafile = dataFile;
                 }
@@ -1126,6 +1265,13 @@ public class DataRepository implements Repository {
                     defaultValues = new HashMap();
                 }
 
+                // If the data file has a prefix, write it as a comment to the
+                // two temporary output files.
+                if (datafile.prefix != null && datafile.prefix.length() > 0) try {
+                    out.write   ("= Data for " + datafile.prefix); out.newLine();
+                    backup.write("= Data for " + datafile.prefix); backup.newLine();
+                } catch (IOException e) {}
+
                 datafile.dirtyCount = 0;
 
                 Enumeration k = data.keys();
@@ -1142,7 +1288,8 @@ public class DataRepository implements Repository {
                     // Make a quick check on the element and datafile validity
                     // before taking the time to get the value
                     if ((element != null) && (element.datafile == datafile)) {
-                        value = element.getValue();
+                        // don't realize the data if it is still deferred.
+                        value = element.getImmediateValue();
                         if (value != null) {
                             try {
                                 name = name.substring(prefixLength);
