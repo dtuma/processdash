@@ -30,6 +30,7 @@ package pspdash.data;
 
 import pspdash.Settings;
 import java.util.Vector;
+import java.lang.reflect.Constructor;
 import com.ms.osp.*;
 
 public class IEDataApplet extends DataApplet {
@@ -79,6 +80,7 @@ public class IEDataApplet extends DataApplet {
             com.ms.com.ComLib.release(myDSL);
 
         myDSL = new OLEDBDSLWrapper(listener);
+        //myDSL = wrapListener(listener);
     }
 
 
@@ -109,4 +111,18 @@ public class IEDataApplet extends DataApplet {
     protected void debug(String msg) {
         // System.out.println("IEDataApplet: " + msg);
     }
+
+
+    private DataSourceListener wrapListener(DataSourceListener listener) {
+        try {
+            Class wrapperClass = Class.forName("pspdash.data.OLEDBDSLWrapper");
+            Constructor c = wrapperClass.getDeclaredConstructor(CONSTRUCTOR_ARGS);
+            Object[] constructor_args = { listener };
+            return (DataSourceListener) c.newInstance(constructor_args);
+        } catch (Throwable e) {
+            OLEDBAlertWindow.display();
+            return null;
+        }
+    }
+    private static final Class[] CONSTRUCTOR_ARGS = { DataSourceListener.class };
 }

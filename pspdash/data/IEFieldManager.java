@@ -27,6 +27,7 @@
 package pspdash.data;
 
 
+import java.lang.reflect.Constructor;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -238,6 +239,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
     public void addOLEDBSimpleProviderListener(OLEDBSimpleProviderListener l) {
         debug("addOLEDBSimpleProviderListener");
         listener = new OLEDBListenerWrapper(l);
+        // listener = wrapListener(l);
     }
 
     public void removeOLEDBSimpleProviderListener(OLEDBSimpleProviderListener l){
@@ -259,4 +261,21 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
     public void stopTransfer() {}
 
     private void debug(String s) { /*System.out.println("IEFieldManager."+s);*/}
+
+
+    private OLEDBSimpleProviderListener wrapListener
+        (OLEDBSimpleProviderListener listener)
+    {
+        try {
+            Class wrapperClass = Class.forName("pspdash.data.OLEDBListenerWrapper");
+            Constructor c = wrapperClass.getDeclaredConstructor(CONSTRUCTOR_ARGS);
+            Object[] constructor_args = { listener };
+            return (OLEDBSimpleProviderListener) c.newInstance(constructor_args);
+        } catch (Throwable e) {
+            OLEDBAlertWindow.display();
+            return null;
+        }
+    }
+    private static final Class[] CONSTRUCTOR_ARGS = {
+        OLEDBSimpleProviderListener.class };
 }
