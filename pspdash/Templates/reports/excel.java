@@ -42,7 +42,9 @@ public class excel extends pspdash.TinyCGIBase {
 
         out.println("WEB");
         out.println("1");
-        out.print("http://localhost:2468/0/reports/table.class?");
+        String host = (String) env.get("SERVER_NAME");
+        String port = (String) env.get("SERVER_PORT");
+        out.print("http://" + host + ":" + port + "/0/reports/table.class?");
         out.println(queryString);
     }
 
