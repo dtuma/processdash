@@ -51,11 +51,11 @@ all: data pspdash
 
 
 install: all
-	cd build; $(MAKE) install
+	cd build; $(MAKE)
 
 
 build: FORCE
-	cd build; $(MAKE) default
+	cd build; $(MAKE)
 
 
 data: FORCE
