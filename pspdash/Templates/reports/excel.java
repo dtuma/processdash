@@ -45,11 +45,17 @@ public class excel extends pspdash.TinyCGIBase {
             String port = (String) env.get("SERVER_PORT");
             hostPort = host + ":" + port;
         }
-        String uri = (String) env.get("REQUEST_URI");
-        uri = StringUtils.findAndReplace(uri, "/excel.iqy",   "/table.class");
-        uri = StringUtils.findAndReplace(uri, "/excel.class", "/table.class");
-        if (uri.indexOf('?') == -1) uri = uri + "?qf=export.rpt";
-        out.println("http://" + hostPort + uri);
+        String url, uri = (String) env.get("REQUEST_URI");
+        if (uri.indexOf('?') == -1) {
+            url = (String) env.get("HTTP_REFERER");
+            if (url == null)
+                url = "http://" + hostPort + uri + "?qf=export.rpt";
+        } else {
+            uri=StringUtils.findAndReplace(uri,"/excel.iqy",  "/table.class");
+            uri=StringUtils.findAndReplace(uri,"/excel.class","/table.class");
+            url = "http://" + hostPort + uri;
+        }
+        out.println(url);
     }
 
 }
