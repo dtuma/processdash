@@ -693,8 +693,12 @@ public class TemplateLoader {
                 scriptMaps.put(ID, (v = new Vector()));
 
             if (v.size() == 0) {
+                String planSummaryName = Resources.format
+                    (Resources.getBundle("pspdash.AutoData"),
+                     "Plan_Summary_Name_FMT", ID);
                 v.addElement(new ScriptID("dash/summary.shtm", null,
-                                          ID + " Plan Summary Form"));
+                                          planSummaryName));
+
                 //System.out.println("adding default HTML form for "+ID);
             }
 

@@ -182,7 +182,7 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
                 (xml, "RID", XMLUtils.escapeAttribute(rollupID));
 
             replaceRollupResource(xml, "Rollup_Template_Name", rollupID);
-            replaceRollupResource(xml, "Project_Summary_Name", rollupID);
+            replaceRollupResource(xml, "Rollup_Summary_Name", rollupID);
             replaceRollupResource(xml, "Edit_Filter_Name", rollupID);
             replaceRollupResource(xml, "Rollup_Phase_Name", rollupID);
 
@@ -204,7 +204,7 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
     private static final String ROLLUP_TEMPLATE_XML =
         "<template name='Rollup_Template_Name' ID='Rollup RID Data' "+
         "          dataFile='ROLLUP:RID' defineRollup='no'>" +
-        "   <html ID='sum' title='Project_Summary_Name' " +
+        "   <html ID='sum' title='Rollup_Summary_Name' " +
         "         href='dash/summary.shtm?rollup'/>" +
         "   <html ID='config' title='Edit_Filter_Name' " +
         "         href='dash/rollupFilter.shtm'/>" +
