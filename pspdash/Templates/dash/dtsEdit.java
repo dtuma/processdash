@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -112,7 +112,6 @@ public class dtsEdit extends TinyCGIBase {
     protected void showListOfDefinedStandards() throws IOException {
         DataRepository data = getDataRepository();
         String[] standards = DefectTypeStandard.getDefinedStandards(data);
-        Arrays.sort(standards, String.CASE_INSENSITIVE_ORDER);
 
         String defaultName = DefectTypeStandard.get("", data).getName();
 
