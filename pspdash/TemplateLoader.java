@@ -296,11 +296,12 @@ public class TemplateLoader {
         if (dir == null) return;
 
         File[] dirContents = dir.listFiles();
-        String name;
+        String name, lname;
         for (int i=0;  i < dirContents.length;  i++) try {
             name = dirContents[i].toURL().toString();
-            if (name.toLowerCase().endsWith(".jar") &&
-                ! name.toLowerCase().endsWith(JARFILE_NAME))
+            lname = name.toLowerCase();
+            if ((lname.endsWith(".jar") || lname.endsWith(".zip")) &&
+                ! lname.endsWith(JARFILE_NAME))
                 v.add(new URL("jar:" + name + "!/" + TEMPLATE_DIR));
         } catch (MalformedURLException mue) {}
     }
