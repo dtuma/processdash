@@ -326,14 +326,15 @@ public class EVTask implements DataListener {
         recalcPlanValue();
         schedule.prepForEvents();
         schedule.cleanUp();
-        Date now = new Date();
+        Date effDate = dateCompleted;
+        if (effDate == null) effDate = new Date();
         recalcPlanDates(schedule);
         for (int i = log.v.size();   i-- > 0;   )
             saveTimeLogInfo(schedule, (TimeLogEntry) log.v.get(i));
-        schedule.setEffectiveDate(now);
-        schedule.getMetrics().reset(schedule.getStartDate(), now,
-                                    schedule.getPeriodStart(now),
-                                    schedule.getPeriodEnd(now));
+        schedule.setEffectiveDate(effDate);
+        schedule.getMetrics().reset(schedule.getStartDate(), effDate,
+                                    schedule.getPeriodStart(effDate),
+                                    schedule.getPeriodEnd(effDate));
         recalcMetrics(schedule.getMetrics());
         schedule.getMetrics().recalcComplete();
         schedule.firePreparedEvents();
