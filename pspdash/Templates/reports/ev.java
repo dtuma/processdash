@@ -44,6 +44,7 @@ public class ev extends CGIChartBase {
 
     public static final String CHART_PARAM = "chart";
     public static final String TABLE_PARAM = "table";
+    public static final String XML_PARAM = "xml";
     public static final String TIME_CHART = "time";
     public static final String VALUE_CHART = "value";
     public static final String COMBINED_CHART = "combined";
@@ -57,9 +58,13 @@ public class ev extends CGIChartBase {
      */
     protected void writeHeader() {
         drawingChart = (parameters.get(CHART_PARAM) != null);
+        if (parameters.get(XML_PARAM) != null) return;
 
         out.print("Content-type: ");
-        out.print(drawingChart ? "image/jpeg" : "text/html");
+        if (drawingChart)
+            out.print("image/jpeg");
+        else
+            out.print("text/html");
         out.print("\r\n\r\n");
 
         // flush in case writeContents wants to use outStream instead of out.
@@ -102,9 +107,12 @@ public class ev extends CGIChartBase {
         String chartType = getParameter(CHART_PARAM);
         if (chartType == null) {
             String tableType = getParameter(TABLE_PARAM);
-            if (tableType == null)
-                writeHTML();
-            else if (TIME_CHART.equals(tableType))
+            if (tableType == null) {
+                if (parameters.get(XML_PARAM) != null)
+                    writeXML();
+                else
+                    writeHTML();
+            } else if (TIME_CHART.equals(tableType))
                 writeTimeTable();
             else if (VALUE_CHART.equals(tableType))
                 writeValueTable();
@@ -130,6 +138,10 @@ public class ev extends CGIChartBase {
         }
         taskListName = taskListName.substring(1);
 
+        // strip the "publishing prefix" if it is present.
+        if (taskListName.startsWith("ev /"))
+            taskListName = taskListName.substring(4);
+
         long now = System.currentTimeMillis();
 
         synchronized (getClass()) {
@@ -150,6 +162,25 @@ public class ev extends CGIChartBase {
             }
         }
     }
+
+    /** Generate a page of XML data for the Task and Schedule templates.
+     */
+    public void writeXML() throws IOException {
+        if (evModel.isEmpty()) {
+            out.print("Status: 404 Not Found\r\n\r\n");
+            out.flush();
+        } else {
+            outStream.write("Content-type: application/xml\r\n\r\n"
+                            .getBytes());
+            outStream.write(XML_HEADER.getBytes("UTF-8"));
+            outStream.write(evModel.getAsXML().getBytes("UTF-8"));
+            outStream.flush();
+        }
+    }
+    private static final String XML_HEADER =
+        "<?xml version='1.0' encoding='UTF-8'?>";
+
+
 
     /** Generate a page of HTML displaying the Task and Schedule templates,
      *  and including img tags referencing charts.
