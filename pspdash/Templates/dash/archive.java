@@ -33,6 +33,8 @@ public class archive extends TinyCGIBase {
         throws IOException
     {
         super.service(in, out, env);
+        if ("POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
+            parseFormData();
 
         if (parameters.containsKey("run")) {
             writeArchiveHeader();
@@ -127,6 +129,8 @@ public class archive extends TinyCGIBase {
         // uri of the referer.
         if ((uri.indexOf('?') == -1) && (referer != null)) {
             try {
+                if (referer.endsWith("?"))
+                    referer = referer.substring(0, referer.length()-1);
                 return (new URL(referer)).getFile();
             } catch (MalformedURLException mue) {}
         }
@@ -349,10 +353,10 @@ public class archive extends TinyCGIBase {
                         subURI = (String) i.next();
                         URL u = new URL(baseURL, subURI);
 
-                        /*if (subURI.startsWith("../") ||
-                            subURI.startsWith("./")) */
-                            StringUtils.findAndReplace
-                                (html, subURI, u.toString());
+                        StringUtils.findAndReplace
+                            (html, "'"+subURI+"'", "'"+u.toString()+"'");
+                        StringUtils.findAndReplace
+                            (html, "\""+subURI+"\"", "\""+u.toString()+"\"");
 
                     } catch (Exception e) {}
             }
