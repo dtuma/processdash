@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash.data;
 
@@ -174,6 +174,8 @@ public class RepositoryClient extends Thread implements Repository {
 
     public void putValue(String name, SaveableData value)
         throws RemoteException {
+            PrintWriter out = null;
+            synchronized (this) { out = this.out; }
             if (out == null)
                 throw new RemoteException();
 
@@ -191,6 +193,8 @@ public class RepositoryClient extends Thread implements Repository {
     }
 
     public void removeValue(String name) throws RemoteException {
+        PrintWriter out = null;
+        synchronized (this) { out = this.out; }
         if (out == null)
             throw new RemoteException();
 
@@ -209,6 +213,8 @@ public class RepositoryClient extends Thread implements Repository {
 
     public void maybeCreateValue(String name, String value, String prefix)
         throws RemoteException {
+        PrintWriter out = null;
+        synchronized (this) { out = this.out; }
         if (out == null)
             throw new RemoteException();
 
@@ -229,6 +235,8 @@ public class RepositoryClient extends Thread implements Repository {
 
     public void addDataListener(String name, DataListener dl)
         throws RemoteException {
+        PrintWriter out = null;
+        synchronized (this) { out = this.out; }
         if (out == null)
             throw new RemoteException();
 
@@ -270,6 +278,8 @@ public class RepositoryClient extends Thread implements Repository {
 
     public void removeDataListener(String name, DataListener dl)
         throws RemoteException {
+        PrintWriter out = null;
+        synchronized (this) { out = this.out; }
         if (out == null)
             throw new RemoteException();
 
@@ -303,6 +313,8 @@ public class RepositoryClient extends Thread implements Repository {
     }
 
     boolean writeLogMessage(String message) {
+        PrintWriter out = null;
+        synchronized (this) { out = this.out; }
         if (out == null) return false;
         try {
             message = message.replace('\n', '\u0001');
@@ -322,6 +334,9 @@ public class RepositoryClient extends Thread implements Repository {
 
     public Vector listDataNames(String prefix) throws RemoteException {
         synchronized(dataNameListLock) {
+            PrintWriter out = null;
+            synchronized (this) { out = this.out; }
+            if (out == null) throw new RemoteException();
             dataNameList = null;
 
             try {
