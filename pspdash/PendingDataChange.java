@@ -26,9 +26,13 @@
 package pspdash;
 
 public class PendingDataChange {
-    public static final int CREATE = 0;	// also copy file
+    public static final int CREATE = 0;   // also copy file
     public static final int DELETE = 1;
     public static final int CHANGE = 2;
+
+    public static final int NOT_MERGED = 0;
+    public static final int MERGED = 1;
+    public static final int CANCELLED = 2;
 
     public String srcFile;
     public String destFile;
@@ -48,17 +52,23 @@ public class PendingDataChange {
         changeType = typeOfChange;
     }
 
+    /** Create a pending data change for the creation of a new datafile.
+     */
     public PendingDataChange (String src,
                               String dest,
                               String newPre) {
         this (src, dest, newPre, null, CREATE);
     }
 
+    /** Create a pending data change for the renaming of a datafile.
+     */
     public PendingDataChange (String newPre,
                               String oldPre) {
         this (null, null, newPre, oldPre, CHANGE);
     }
 
+    /** Create a pending data change for the deletion of a datafile.
+     */
     public PendingDataChange (String pre) {
         this (null, null, null, pre, DELETE);
     }
@@ -70,5 +80,45 @@ public class PendingDataChange {
                 ", changeType='"+(changeType == CREATE ? "CREATE" :
                                   (changeType == DELETE ? "DELETE" : "CHANGE"))
                 +"']");
+    }
+
+
+    /** Try to merge this change with a new change.
+     * @return NOT_MERGED if the merge could not be made; MERGED if the
+     * merge was successful; or CANCELLED if the two changes cancel each
+     * other out */
+    public int mergeChange(PendingDataChange newChange) {
+        if (newChange == null)
+            return MERGED;    // nothing to do!
+
+        if (newChange.changeType == CREATE || this.changeType == DELETE)
+            return NOT_MERGED; // we can't merge with a subsequently created item.
+
+        // we can only merge if our "newPrefix" equals the "oldPrefix" of
+        // the new change.
+        if (!newChange.oldPrefix.equals(this.newPrefix))
+            return NOT_MERGED;
+
+        if (newChange.changeType == CHANGE) {
+            this.newPrefix = newChange.newPrefix;
+            if (this.changeType == CHANGE && this.oldPrefix.equals(this.newPrefix))
+                return CANCELLED;
+            else
+                return MERGED;
+        }
+
+        if (newChange.changeType == DELETE) {
+
+            if (this.changeType == CREATE)
+                return CANCELLED;
+
+            else if (this.changeType == CHANGE) {
+                this.newPrefix = null;
+                this.changeType = DELETE;
+                return MERGED;
+            }
+        }
+
+        return NOT_MERGED;
     }
 }
