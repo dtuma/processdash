@@ -28,6 +28,8 @@ package pspdash;
 
 import java.awt.event.*;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.Timer;
@@ -55,6 +57,7 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final String EST_HOURS_DATA_NAME = "Planned Hours";
     public static final String TASK_LISTS_DATA_NAME = "Task Lists";
     public static final String XML_DATA_NAME = "XML Task List";
+    public static final String XML_SAVE_NAME = "XML Saved List";
 
 
     protected String taskListName;
@@ -67,8 +70,19 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     /**
-     * @param taskListName the name of the task list. This will be a simple
-     *    string, not containing any '/' characters.
+     * @param taskListName the name of the task list. This will be one of:
+     *   for plain task lists: a simple string, not containing any '/'
+     *      characters (e.g. "My Tasks").
+     *
+     *   for XML task lists: a data name pointing to the data element in
+     *      the repository where the XML can be found. (e.g.
+     *      "/Imported/298243029/Task-Schedule/My Tasks").
+     *
+     *   for URL task lists: an encoded URL indicating where the XML task
+     *      list can be downloaded, and what password to use.  In the
+     *      URL, '/' chars have been replaced with '|'. Also, a trailing
+     *      '|!' and user credential may have been appended. (e.g.
+     *      "http:||host:2468|ev+|My Tasks||reports|ev.class?xml|Basic A1209C")
      */
     public EVTaskList(String taskListName,
                       DataRepository data,
@@ -88,6 +102,7 @@ public class EVTaskList extends AbstractTreeTableModel
             recalcTimer.setRepeats(false);
         }
 
+        if (openURL(data, taskListName)) return;
         if (openXML(data, taskListName)) return;
 
         root = new EVTask(taskListName);
@@ -167,12 +182,101 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
+    private boolean openURL(DataRepository data, String taskListName) {
+        if (!taskListName.startsWith("http:||")) return false;
+        String xmlDoc = null, error = null, url = taskListName;
+        String saveName =
+            data.createDataName("/" + taskListName, XML_SAVE_NAME);
+
+        // Retrieve the password, if it is present.
+        String credential = null;
+        int credentialPos = url.indexOf("|!");
+        if (credentialPos != -1) {
+            credential = url.substring(credentialPos + 2);
+            url = url.substring(0, credentialPos);
+        }
+
+        /*
+        // Retrieve the friendly name, if it is present.
+        String friendlyName = null;
+        int namePos = url.indexOf("|~");
+        if (namePos != -1) {
+            friendlyName = url.substring(namePos + 2);
+            url = url.substring(0, namePos);
+        }*/
+
+        // translate the taskListName into a URL.
+        url = url.replace('|', '/');
+        URL u = null;
+
+        // first try to connect to the given URL and fetch the XML doc.
+        try {
+            u = new URL(url);
+            URLConnection conn = u.openConnection();
+            if (credential != null)
+                conn.setRequestProperty("Authorization", credential);
+            conn.connect();
+
+            // check for errors.
+            int status = ((HttpURLConnection) conn).getResponseCode();
+            if (status == 403)          // unauthorized?
+                error = "You don't have the correct password to connect "+
+                    "to your coworker's schedule.";
+
+            else if (status == 404)     // no such schedule?
+                error = "Your coworker doesn't have a schedule by this name. "+
+                    "(They may have renamed the schedule?)";
+
+            else if (status != 200)     // some other problem?
+                error = "Couldn't retrieve this schedule from your " +
+                    "coworker's computer.";
+
+            // retrieve the xml document and use it to create the task list.
+            if (error == null) {
+                xmlDoc = new String
+                    (TinyWebServer.slurpContents(conn.getInputStream(), true));
+                if (openXML(xmlDoc, null)) {
+                    data.putValue(saveName, StringData.create(xmlDoc));
+                    return true;
+                }
+            }
+
+        } catch (MalformedURLException mue) {
+            error = "The url '" + url + "' is malformed.";
+        } catch (UnknownHostException uhe) {
+            error = "Couldn't find your coworker's computer" +
+                (u == null ? "." : ", '" + u.getHost() + "'.");
+        } catch (ConnectException ce) {
+            error = "Couldn't connect to your coworker's computer. " +
+                "(They may not have their dashboard running?)";
+        } catch (IOException ioe) {
+            error = "There was a problem connecting to your " +
+                "coworker's computer.";
+        }
+
+        // if that fails, look for a cached value of the XML in the data
+        // repository
+        SimpleData value = data.getSimpleValue(saveName);
+        if (value instanceof StringData) {
+            xmlDoc = value.format();
+            if (openXML(xmlDoc, null)) return true;
+            // fixme - possibly check the effective date of the cached
+            // schedule, and display a warning if it is really old?
+        }
+
+        // if that fails, create an "invalid task list".
+        return false;
+    }
+
     private boolean openXML(DataRepository data, String taskListName) {
         String dataName = data.createDataName(taskListName, XML_DATA_NAME);
         SimpleData value = data.getSimpleValue(dataName);
         if (!(value instanceof StringData))
             return false;
         String xmlDoc = value.format();
+        return openXML(xmlDoc, cleanupName(taskListName));
+    }
+    private boolean openXML(String xmlDoc, String displayName) {
         if (xmlDoc.equals(xmlSource)) return true;
 
         try {
@@ -180,7 +284,8 @@ public class EVTaskList extends AbstractTreeTableModel
             Element docRoot = doc.getDocumentElement();
             root = new EVTask((Element) docRoot.getFirstChild());
             schedule = new EVSchedule((Element) docRoot.getLastChild());
-            ((EVTask) root).name = cleanupName(taskListName);
+            if (displayName != null)
+                ((EVTask) root).name = displayName;
             ((EVTask) root).simpleRecalc();
             totalPlanTime = schedule.getMetrics().totalPlan();
             xmlSource = xmlDoc;
@@ -275,7 +380,11 @@ public class EVTaskList extends AbstractTreeTableModel
         schedule.saveToXML(result);
         result.append("</EVModel>");
         //System.out.print(result.toString());
-        return result.toString();
+        try {
+            return new String(result.toString().getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException uee) { // can't happen?
+            return result.toString();
+        }
     }
 
 
@@ -327,6 +436,8 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
 
+
+    public boolean isEmpty() { return ((EVTask) root).isLeaf(); }
 
     public boolean isRollup() {
         return evTaskLists != null;
@@ -720,6 +831,7 @@ public class EVTaskList extends AbstractTreeTableModel
     public String getErrorStringAt(Object node, int column) {
         EVTask n = (EVTask) node;
         switch (column) {
+        case TASK_COLUMN: return ((EVTask) node).getTaskError();
         case PLAN_TIME_COLUMN: return ((EVTask) node).getPlanTimeError();
         default: return null;
         }
