@@ -486,7 +486,13 @@ Plan Summary</H2>
 <!-- the ugly stunt I'm pulling on the next line (with improperly
 nested if and for blocks) is is taking advantage of currently relaxed
 logic in the HTMLPreprocessor class and is *not* guaranteed to work
-indefinitely.  (Don't try this at home!) -->
+indefinitely.  (Don't try this at home!) 
+     Basically, it has the effect of textually replacing the string "4"
+with the string "6" in the block below (making the INPUT elements a little
+wider).  The if/endif pair are enclosing only the foreach tag, so if this
+is NOT a rollup, the foreach tag will be deleted entirely and the text
+replacement will not occur.  (The matching endfor tag will no longer match
+anything and will be discarded by the HTMLPreprocessor). -->
 <!--#if rollup--><!--#foreach name=4 values=6 --><!--#endif-->
 
 <!--#foreach name=QPhase list=[Quality_Phase_List] -->
