@@ -53,7 +53,7 @@ public class TinyCGIBase implements TinyCGI {
     protected Map env = null;
     protected Map parameters = new HashMap();
     protected Interpolator interpolator = null;
-    protected String charset = DEFAULT_CHARSET;
+    protected String charset = getDefaultCharset();
 
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
