@@ -87,7 +87,7 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
                 out.println("<LI>Injected in &quot;" + injFilt + "&quot;");
             if (remFilt != null)
                 out.println("<LI>Removed in &quot;" + remFilt + "&quot;");
-            out.println("</UL>");
+            out.println("</UL><P>");
         }
         out.print(START_TEXT);
 
