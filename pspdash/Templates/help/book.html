@@ -31,181 +31,187 @@
 <STYLE>
 BODY { color: black; background-color: white }
 .hideInBook { display: none }
+
+
 </STYLE>
 </HEAD>
-<BODY><a name="doc0_top"></a><div class="INITIAL_STATUS">
+<BODY><a name="doc0_top"></a><div>
 
 <H1 NO_NUMBER>Process Dashboard Users Manual</H1>
 <H2 NO_NUMBER>Table of Contents</h2>
 </div>
 <table cellpadding=2 cellspacing=0 border=0>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>1.</b>&nbsp;</td><td colspan=9><a href="#para_1_">Quick Overview</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.1.</b>&nbsp;</td><td colspan=8><a href="#para_1_1_">A quick look at the tool</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.2.</b>&nbsp;</td><td colspan=8><a href="#para_1_2_">The dashboard and the web browser</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.3.</b>&nbsp;</td><td colspan=8><a href="#para_1_3_">The process scripts</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_1_">The "generic" process script</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_2_">The "timer" process script</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.3.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_3_">Custom process scripts</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.3.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_4_">Custom process vs Generic process?</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.4.</b>&nbsp;</td><td colspan=8><a href="#para_1_4_">Quick start example: a PSP1.1 project</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_1_">Step 1: Create a project in the dashboard</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_2_">Step 2: Planning the project</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_3_">Step 3: Designing the program</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_4_">Step 4: Writing the code</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_5_">Step 5: Compiling the program</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_6_">Step 6: Testing the program</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.7.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_7_">Step 7: Postmortem</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.5.</b>&nbsp;</td><td colspan=8><a href="#para_1_5_">Overall goals</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_1_">What is the PSP(SM)?</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_2_">What is the TSP(SM)?</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_3_">Why build a tool?</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.6.</b>&nbsp;</td><td colspan=8><a href="#para_1_6_">Using help</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_1_">The Table of Contents view</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_2_">The Index view</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_3_">The Search Engine view</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_4_">The navigation buttons</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_5_">The print buttons</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_6_">Context sensitive help</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.7.</b>&nbsp;</td><td colspan=8><a href="#para_1_7_">How To Install</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_1_">System Requirements</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_2_">Installation Instructions:</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_3_">Add-on Process Sets</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_4_">Upgrade to New Version</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_5_">Simple Windows Installation</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_6_">Custom Windows Installation</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.7.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_7_">Linux / Unix Installation</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.8.</b>&nbsp;</td><td colspan=8><a href="#para_1_8_">Change History</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_1_">Features new in version 1.4</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_2_">Features new in version 1.3.1 (released August 14, 2001)</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_3_">Features new in version 1.3 (released July 16, 2001)</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_4_">Features new in version 1.2 (released April 20, 2001)</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_5_">Features new in version 1.1 (released February 9, 2001)</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.9.</b>&nbsp;</td><td colspan=8><a href="#para_1_9_">GNU General Public License</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_1_">Table of Contents</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_2_">GNU GENERAL PUBLIC LICENSE</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_3_">Preamble</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_4_">TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_5_">END OF TERMS AND CONDITIONS</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_6_">How to Apply These Terms to Your New Programs</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>2.</b>&nbsp;</td><td colspan=9><a href="#para_2_">Planning your project</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.1.</b>&nbsp;</td><td colspan=8><a href="#para_2_1_">Entering process data</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.1.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_1_">The nature of the dashboard forms</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.1.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_2_">Frozen Calculations</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.1.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_3_">Read-only data fields</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.1.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_4_">Exporting form data</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.2.</b>&nbsp;</td><td colspan=8><a href="#para_2_2_">Using the hierarchy editor</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_1_">The File menu</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_2_">The Edit menu and toolbar</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_3_">Process templates</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_4_">Processes PSP0 - PSP1.1</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_5_">The PSP3 process</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.3.</b>&nbsp;</td><td colspan=8><a href="#para_2_3_">Using the Size Estimating Template</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_1_">Base Program LOC</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_2_">Object LOC</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.3.2.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_1_">Base Additions</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.3.2.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_2_">New Objects</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.3.2.3.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_3_">Reused Objects</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.3.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_3_">Performing the size/time estimation</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.3.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_4_">Entering Actual data during Postmortem</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.4.</b>&nbsp;</td><td colspan=8><a href="#para_2_4_">Using the PROBE Wizard</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_1_">PROBE Wizard Step 1</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_2_">PROBE Wizard Step 2</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_3_">PROBE Wizard Step 3</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_4_">PROBE Wizard Step 4</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_5_">PROBE Wizard Step 5</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.6.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_6_">A sanity check</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.5.</b>&nbsp;</td><td colspan=8><a href="#para_2_5_">Using the PROBE tool</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_1_">Filtering your data set</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_2_">Measures of correlation</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.5.2.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_5_2_1_">The correlation measurement</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.5.2.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_5_2_2_">The significance measurement</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_3_">Making a projection</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_4_">Visualizing the data</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.6.</b>&nbsp;</td><td colspan=8><a href="#para_2_6_">Using the Task &amp; Schedule Tool</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.7.</b>&nbsp;</td><td colspan=8><a href="#para_2_7_">Creating a schedule step by step</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_1_">Step 1: Add tasks to the task list</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_1_1_">The relationship between the Hierarchy Editor and the Task &amp; Schedule tool</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.1.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_1_2_">Editing the task list</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_2_">Step 2: Estimate task time</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_3_">Step 3: Estimate calendar time</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_4_">Step 4: Track your progress</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_5_">The Save Button</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.6.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_6_">Potential mistakes</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.7.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_7_">Task &amp; Schedule Collaboration</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.7.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_7_1_">Publishing Schedules</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.7.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_7_2_">Rolling Up Schedules</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td></td><td><b>2.7.7.2.1.</b>&nbsp;</td><td colspan=5><a href="#para_2_7_7_2_1_">Sharing Schedules</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td></td><td><b>2.7.7.2.2.</b>&nbsp;</td><td colspan=5><a href="#para_2_7_7_2_2_">Creating a Roll-up Schedule</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.7.3.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_7_3_">Constraints and Limitations</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.8.</b>&nbsp;</td><td colspan=8><a href="#para_2_8_">Data Freezing</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.8.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_8_1_">The gory details</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>3.</b>&nbsp;</td><td colspan=9><a href="#para_3_">Running the dashboard</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.1.</b>&nbsp;</td><td colspan=8><a href="#para_3_1_">Navigating the hierarchy menus</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.2.</b>&nbsp;</td><td colspan=8><a href="#para_3_2_">Accessing the Process Scripts</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_1_">The script button pull-down</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_2_">The timing icons</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_3_">External documents</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_4_">Entering data into the forms</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.3.</b>&nbsp;</td><td colspan=8><a href="#para_3_3_">Using the play/pause button</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_3_1_">The play/pause button pull-down control</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.4.</b>&nbsp;</td><td colspan=8><a href="#para_3_4_">Using the completion checkbox</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_4_1_">Marking a phase complete vs marking the project complete</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>3.4.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_3_4_1_1_">Why should I bother marking the phases/projects complete?</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.5.</b>&nbsp;</td><td colspan=8><a href="#para_3_5_">Using the time log editor</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_1_">Project hierarchy</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_2_">Date filter</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_3_">Time entries</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_4_">Control buttons</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.6.</b>&nbsp;</td><td colspan=8><a href="#para_3_6_">Entering defects</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_1_">Defect type</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_2_">"fix defects"</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_3_">Phase injected and phase removed</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_4_">Timing the defect fix</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.5.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_5_">Entering a description</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.6.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_6_">Fixing multiple defects at a time</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.7.</b>&nbsp;</td><td colspan=8><a href="#para_3_7_">Using the Defect Log Editor</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.8.</b>&nbsp;</td><td colspan=8><a href="#para_3_8_">The "C" (configure) menu</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>4.</b>&nbsp;</td><td colspan=9><a href="#para_4_">Postmortem analysis</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>4.1.</b>&nbsp;</td><td colspan=8><a href="#para_4_1_">Counting LOC</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>4.2.</b>&nbsp;</td><td colspan=8><a href="#para_4_2_">Data charts and reports</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_1_">The Project Plan Summary</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_2_">Marking your project complete</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_3_">The Time Log and Defect Log</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_4_">Graphical charts</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>4.3.</b>&nbsp;</td><td colspan=8><a href="#para_4_3_">Exporting your data</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_4_3_1_">Creating an ASCII flat file</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>4.3.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_4_3_1_1_">Exporting data</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>4.3.1.2.</b>&nbsp;</td><td colspan=6><a href="#para_4_3_1_2_">Exporting the Hierarchy list</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_4_3_2_">Exporting data to Excel (PC only)</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>5.</b>&nbsp;</td><td colspan=9><a href="#para_5_">Frequently Asked Questions</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>5.1.</b>&nbsp;</td><td colspan=8><a href="#para_5_1_">Installation issues</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>5.2.</b>&nbsp;</td><td colspan=8><a href="#para_5_2_">Online forms</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>5.3.</b>&nbsp;</td><td colspan=8><a href="#para_5_3_">Files</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>5.4.</b>&nbsp;</td><td colspan=8><a href="#para_5_4_">Other questions</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>6.</b>&nbsp;</td><td colspan=9><a href="#para_6_">Advanced Topics</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.1.</b>&nbsp;</td><td colspan=8><a href="#para_6_1_">Configuration File</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.2.</b>&nbsp;</td><td colspan=8><a href="#para_6_2_">Using Multiple "To Date" Data Sets</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_1_">Creating Multiple "To Date" Data Sets</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_2_">Customizing "To Date" Data Sets</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_3_">Viewing Rolled Up Data</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_4_">Using Alternate "To Date" Data Sets</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.3.</b>&nbsp;</td><td colspan=8><a href="#para_6_3_">Making a change to a script</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.4.</b>&nbsp;</td><td colspan=8><a href="#para_6_4_">How the Dashboard finds process files</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_4_1_">Sharing changes with team members</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_4_2_">Some files are only read at start up</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.5.</b>&nbsp;</td><td colspan=8><a href="#para_6_5_">Defining your own processes for use in the Process Dashboard</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_1_">Step 1: Identify your process structure</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_2_">Step 2: Create an XML definition for your process</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_3_">Step 3: Save your XML process descriptor</a></td></tr>
-<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_4_">Step 4: Restart the dashboard</a></td></tr>
- <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td></tr>
+<tr><td><b>1.</b>&nbsp;</td><td colspan=9><a href="#para_1_">Quick Overview</a></td></tr>
+<tr><td></td><td><b>1.1.</b>&nbsp;</td><td colspan=8><a href="#para_1_1_">A quick look at the tool</a></td></tr>
+<tr><td></td><td><b>1.2.</b>&nbsp;</td><td colspan=8><a href="#para_1_2_">The dashboard and the web browser</a></td></tr>
+<tr><td></td><td><b>1.3.</b>&nbsp;</td><td colspan=8><a href="#para_1_3_">The process scripts</a></td></tr>
+<tr><td></td><td></td><td><b>1.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_1_">The "generic" process script</a></td></tr>
+<tr><td></td><td></td><td><b>1.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_2_">The "timer" process script</a></td></tr>
+<tr><td></td><td></td><td><b>1.3.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_3_">Custom process scripts</a></td></tr>
+<tr><td></td><td></td><td><b>1.3.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_4_">Custom process vs Generic process?</a></td></tr>
+<tr><td></td><td><b>1.4.</b>&nbsp;</td><td colspan=8><a href="#para_1_4_">Quick start example: a PSP1.1 project</a></td></tr>
+<tr><td></td><td></td><td><b>1.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_1_">Step 1: Create a project in the dashboard</a></td></tr>
+<tr><td></td><td></td><td><b>1.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_2_">Step 2: Planning the project</a></td></tr>
+<tr><td></td><td></td><td><b>1.4.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_3_">Step 3: Designing the program</a></td></tr>
+<tr><td></td><td></td><td><b>1.4.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_4_">Step 4: Writing the code</a></td></tr>
+<tr><td></td><td></td><td><b>1.4.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_5_">Step 5: Compiling the program</a></td></tr>
+<tr><td></td><td></td><td><b>1.4.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_6_">Step 6: Testing the program</a></td></tr>
+<tr><td></td><td></td><td><b>1.4.7.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_7_">Step 7: Postmortem</a></td></tr>
+<tr><td></td><td><b>1.5.</b>&nbsp;</td><td colspan=8><a href="#para_1_5_">Overall goals</a></td></tr>
+<tr><td></td><td></td><td><b>1.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_1_">What is the PSP(SM)?</a></td></tr>
+<tr><td></td><td></td><td><b>1.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_2_">What is the TSP(SM)?</a></td></tr>
+<tr><td></td><td></td><td><b>1.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_3_">Why build a tool?</a></td></tr>
+<tr><td></td><td><b>1.6.</b>&nbsp;</td><td colspan=8><a href="#para_1_6_">Using help</a></td></tr>
+<tr><td></td><td></td><td><b>1.6.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_1_">The Table of Contents view</a></td></tr>
+<tr><td></td><td></td><td><b>1.6.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_2_">The Index view</a></td></tr>
+<tr><td></td><td></td><td><b>1.6.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_3_">The Search Engine view</a></td></tr>
+<tr><td></td><td></td><td><b>1.6.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_4_">The navigation buttons</a></td></tr>
+<tr><td></td><td></td><td><b>1.6.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_5_">The print buttons</a></td></tr>
+<tr><td></td><td></td><td><b>1.6.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_6_">Context sensitive help</a></td></tr>
+<tr><td></td><td><b>1.7.</b>&nbsp;</td><td colspan=8><a href="#para_1_7_">How To Install</a></td></tr>
+<tr><td></td><td></td><td><b>1.7.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_1_">System Requirements</a></td></tr>
+<tr><td></td><td></td><td><b>1.7.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_2_">Installation Instructions:</a></td></tr>
+<tr><td></td><td></td><td><b>1.7.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_3_">Add-on Process Sets</a></td></tr>
+<tr><td></td><td></td><td><b>1.7.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_4_">Upgrade to New Version</a></td></tr>
+<tr><td></td><td></td><td><b>1.7.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_5_">Simple Windows Installation</a></td></tr>
+<tr><td></td><td></td><td><b>1.7.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_6_">Custom Windows Installation</a></td></tr>
+<tr><td></td><td></td><td><b>1.7.7.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_7_">Linux / Unix Installation</a></td></tr>
+<tr><td></td><td><b>1.8.</b>&nbsp;</td><td colspan=8><a href="#para_1_8_">Change History</a></td></tr>
+<tr><td></td><td></td><td><b>1.8.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_1_">Features new in version 1.5</a></td></tr>
+<tr><td></td><td></td><td><b>1.8.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_2_">Features new in version 1.4 (released February 22, 2002)</a></td></tr>
+<tr><td></td><td></td><td><b>1.8.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_3_">Features new in version 1.3.1 (released August 14, 2001)</a></td></tr>
+<tr><td></td><td></td><td><b>1.8.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_4_">Features new in version 1.3 (released July 16, 2001)</a></td></tr>
+<tr><td></td><td></td><td><b>1.8.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_5_">Features new in version 1.2 (released April 20, 2001)</a></td></tr>
+<tr><td></td><td></td><td><b>1.8.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_6_">Features new in version 1.1 (released February 9, 2001)</a></td></tr>
+<tr><td></td><td><b>1.9.</b>&nbsp;</td><td colspan=8><a href="#para_1_9_">GNU General Public License</a></td></tr>
+<tr><td></td><td></td><td><b>1.9.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_1_">Table of Contents</a></td></tr>
+<tr><td></td><td></td><td><b>1.9.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_2_">GNU GENERAL PUBLIC LICENSE</a></td></tr>
+<tr><td></td><td></td><td><b>1.9.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_3_">Preamble</a></td></tr>
+<tr><td></td><td></td><td><b>1.9.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_4_">TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION</a></td></tr>
+<tr><td></td><td></td><td><b>1.9.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_5_">END OF TERMS AND CONDITIONS</a></td></tr>
+<tr><td></td><td></td><td><b>1.9.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_6_">How to Apply These Terms to Your New Programs</a></td></tr>
+<tr><td><b>2.</b>&nbsp;</td><td colspan=9><a href="#para_2_">Planning your project</a></td></tr>
+<tr><td></td><td><b>2.1.</b>&nbsp;</td><td colspan=8><a href="#para_2_1_">Entering process data</a></td></tr>
+<tr><td></td><td></td><td><b>2.1.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_1_">The nature of the dashboard forms</a></td></tr>
+<tr><td></td><td></td><td><b>2.1.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_2_">Frozen Calculations</a></td></tr>
+<tr><td></td><td></td><td><b>2.1.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_3_">Read-only data fields</a></td></tr>
+<tr><td></td><td></td><td><b>2.1.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_4_">Exporting form data</a></td></tr>
+<tr><td></td><td><b>2.2.</b>&nbsp;</td><td colspan=8><a href="#para_2_2_">Using the hierarchy editor</a></td></tr>
+<tr><td></td><td></td><td><b>2.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_1_">The File menu</a></td></tr>
+<tr><td></td><td></td><td><b>2.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_2_">The Edit menu and toolbar</a></td></tr>
+<tr><td></td><td></td><td><b>2.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_3_">Process templates</a></td></tr>
+<tr><td></td><td></td><td><b>2.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_4_">Processes PSP0 - PSP1.1</a></td></tr>
+<tr><td></td><td></td><td><b>2.2.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_5_">The PSP3 process</a></td></tr>
+<tr><td></td><td><b>2.3.</b>&nbsp;</td><td colspan=8><a href="#para_2_3_">Using the Size Estimating Template</a></td></tr>
+<tr><td></td><td></td><td><b>2.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_1_">Base Program LOC</a></td></tr>
+<tr><td></td><td></td><td><b>2.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_2_">Object LOC</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.3.2.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_1_">Base Additions</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.3.2.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_2_">New Objects</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.3.2.3.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_3_">Reused Objects</a></td></tr>
+<tr><td></td><td></td><td><b>2.3.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_3_">Performing the size/time estimation</a></td></tr>
+<tr><td></td><td></td><td><b>2.3.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_4_">Entering Actual data during Postmortem</a></td></tr>
+<tr><td></td><td><b>2.4.</b>&nbsp;</td><td colspan=8><a href="#para_2_4_">Using the PROBE Wizard</a></td></tr>
+<tr><td></td><td></td><td><b>2.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_1_">PROBE Wizard Step 1</a></td></tr>
+<tr><td></td><td></td><td><b>2.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_2_">PROBE Wizard Step 2</a></td></tr>
+<tr><td></td><td></td><td><b>2.4.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_3_">PROBE Wizard Step 3</a></td></tr>
+<tr><td></td><td></td><td><b>2.4.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_4_">PROBE Wizard Step 4</a></td></tr>
+<tr><td></td><td></td><td><b>2.4.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_5_">PROBE Wizard Step 5</a></td></tr>
+<tr><td></td><td></td><td><b>2.4.6.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_6_">A sanity check</a></td></tr>
+<tr><td></td><td><b>2.5.</b>&nbsp;</td><td colspan=8><a href="#para_2_5_">Using the PROBE tool</a></td></tr>
+<tr><td></td><td></td><td><b>2.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_1_">Filtering your data set</a></td></tr>
+<tr><td></td><td></td><td><b>2.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_2_">Measures of correlation</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.5.2.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_5_2_1_">The correlation measurement</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.5.2.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_5_2_2_">The significance measurement</a></td></tr>
+<tr><td></td><td></td><td><b>2.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_3_">Making a projection</a></td></tr>
+<tr><td></td><td></td><td><b>2.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_4_">Visualizing the data</a></td></tr>
+<tr><td></td><td><b>2.6.</b>&nbsp;</td><td colspan=8><a href="#para_2_6_">Using the Task &amp; Schedule Tool</a></td></tr>
+<tr><td></td><td></td><td><b>2.6.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_6_1_">Columns in the Task List</a></td></tr>
+<tr><td></td><td></td><td><b>2.6.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_6_2_">Columns in the Schedule List</a></td></tr>
+<tr><td></td><td><b>2.7.</b>&nbsp;</td><td colspan=8><a href="#para_2_7_">Creating a schedule step by step</a></td></tr>
+<tr><td></td><td></td><td><b>2.7.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_1_">Step 1: Add tasks to the task list</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.7.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_1_1_">The relationship between the Hierarchy Editor and the Task &amp; Schedule tool</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.7.1.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_1_2_">Editing the task list</a></td></tr>
+<tr><td></td><td></td><td><b>2.7.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_2_">Step 2: Estimate task time</a></td></tr>
+<tr><td></td><td></td><td><b>2.7.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_3_">Step 3: Estimate calendar time</a></td></tr>
+<tr><td></td><td></td><td><b>2.7.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_4_">Step 4: Track your progress</a></td></tr>
+<tr><td></td><td></td><td><b>2.7.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_5_">The Save Button</a></td></tr>
+<tr><td></td><td></td><td><b>2.7.6.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_6_">The Collaborate Button</a></td></tr>
+<tr><td></td><td></td><td><b>2.7.7.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_7_">Potential mistakes</a></td></tr>
+<tr><td></td><td></td><td><b>2.7.8.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_8_">Task &amp; Schedule Collaboration</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.7.8.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_8_1_">Publishing Schedules</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.7.8.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_8_2_">Rolling Up Schedules</a></td></tr>
+<tr><td></td><td></td><td></td><td></td><td><b>2.7.8.2.1.</b>&nbsp;</td><td colspan=5><a href="#para_2_7_8_2_1_">Sharing Schedules</a></td></tr>
+<tr><td></td><td></td><td></td><td></td><td><b>2.7.8.2.2.</b>&nbsp;</td><td colspan=5><a href="#para_2_7_8_2_2_">Creating a Roll-up Schedule</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>2.7.8.3.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_8_3_">Constraints and Limitations</a></td></tr>
+<tr><td></td><td><b>2.8.</b>&nbsp;</td><td colspan=8><a href="#para_2_8_">Data Freezing</a></td></tr>
+<tr><td></td><td></td><td><b>2.8.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_8_1_">The gory details</a></td></tr>
+<tr><td><b>3.</b>&nbsp;</td><td colspan=9><a href="#para_3_">Running the dashboard</a></td></tr>
+<tr><td></td><td><b>3.1.</b>&nbsp;</td><td colspan=8><a href="#para_3_1_">Navigating the hierarchy menus</a></td></tr>
+<tr><td></td><td><b>3.2.</b>&nbsp;</td><td colspan=8><a href="#para_3_2_">Accessing the Process Scripts</a></td></tr>
+<tr><td></td><td></td><td><b>3.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_1_">The script button pull-down</a></td></tr>
+<tr><td></td><td></td><td><b>3.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_2_">The timing icons</a></td></tr>
+<tr><td></td><td></td><td><b>3.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_3_">External documents</a></td></tr>
+<tr><td></td><td></td><td><b>3.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_4_">Entering data into the forms</a></td></tr>
+<tr><td></td><td><b>3.3.</b>&nbsp;</td><td colspan=8><a href="#para_3_3_">Using the play/pause button</a></td></tr>
+<tr><td></td><td></td><td><b>3.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_3_1_">The play/pause button pull-down control</a></td></tr>
+<tr><td></td><td><b>3.4.</b>&nbsp;</td><td colspan=8><a href="#para_3_4_">Using the completion checkbox</a></td></tr>
+<tr><td></td><td></td><td><b>3.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_4_1_">Marking a phase complete vs marking the project complete</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>3.4.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_3_4_1_1_">Why should I bother marking the phases/projects complete?</a></td></tr>
+<tr><td></td><td><b>3.5.</b>&nbsp;</td><td colspan=8><a href="#para_3_5_">Using the time log editor</a></td></tr>
+<tr><td></td><td></td><td><b>3.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_1_">Project hierarchy</a></td></tr>
+<tr><td></td><td></td><td><b>3.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_2_">Date filter</a></td></tr>
+<tr><td></td><td></td><td><b>3.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_3_">Time entries</a></td></tr>
+<tr><td></td><td></td><td><b>3.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_4_">Control buttons</a></td></tr>
+<tr><td></td><td><b>3.6.</b>&nbsp;</td><td colspan=8><a href="#para_3_6_">Entering defects</a></td></tr>
+<tr><td></td><td></td><td><b>3.6.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_1_">Defect type</a></td></tr>
+<tr><td></td><td></td><td><b>3.6.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_2_">"fix defects"</a></td></tr>
+<tr><td></td><td></td><td><b>3.6.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_3_">Phase injected and phase removed</a></td></tr>
+<tr><td></td><td></td><td><b>3.6.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_4_">Timing the defect fix</a></td></tr>
+<tr><td></td><td></td><td><b>3.6.5.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_5_">Entering a description</a></td></tr>
+<tr><td></td><td></td><td><b>3.6.6.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_6_">Fixing multiple defects at a time</a></td></tr>
+<tr><td></td><td><b>3.7.</b>&nbsp;</td><td colspan=8><a href="#para_3_7_">Using the Defect Log Editor</a></td></tr>
+<tr><td></td><td><b>3.8.</b>&nbsp;</td><td colspan=8><a href="#para_3_8_">The "C" (configure) menu</a></td></tr>
+<tr><td><b>4.</b>&nbsp;</td><td colspan=9><a href="#para_4_">Postmortem analysis</a></td></tr>
+<tr><td></td><td><b>4.1.</b>&nbsp;</td><td colspan=8><a href="#para_4_1_">Counting LOC</a></td></tr>
+<tr><td></td><td><b>4.2.</b>&nbsp;</td><td colspan=8><a href="#para_4_2_">Data charts and reports</a></td></tr>
+<tr><td></td><td></td><td><b>4.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_1_">The Project Plan Summary</a></td></tr>
+<tr><td></td><td></td><td><b>4.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_2_">Marking your project complete</a></td></tr>
+<tr><td></td><td></td><td><b>4.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_3_">The Time Log and Defect Log</a></td></tr>
+<tr><td></td><td></td><td><b>4.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_4_">Graphical charts</a></td></tr>
+<tr><td></td><td><b>4.3.</b>&nbsp;</td><td colspan=8><a href="#para_4_3_">Exporting your data</a></td></tr>
+<tr><td></td><td></td><td><b>4.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_4_3_1_">Creating an ASCII flat file</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>4.3.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_4_3_1_1_">Exporting data</a></td></tr>
+<tr><td></td><td></td><td></td><td><b>4.3.1.2.</b>&nbsp;</td><td colspan=6><a href="#para_4_3_1_2_">Exporting the Hierarchy list</a></td></tr>
+<tr><td></td><td></td><td><b>4.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_4_3_2_">Exporting data to Excel (PC only)</a></td></tr>
+<tr><td><b>5.</b>&nbsp;</td><td colspan=9><a href="#para_5_">Frequently Asked Questions</a></td></tr>
+<tr><td></td><td><b>5.1.</b>&nbsp;</td><td colspan=8><a href="#para_5_1_">Installation issues</a></td></tr>
+<tr><td></td><td><b>5.2.</b>&nbsp;</td><td colspan=8><a href="#para_5_2_">Online forms</a></td></tr>
+<tr><td></td><td><b>5.3.</b>&nbsp;</td><td colspan=8><a href="#para_5_3_">Files</a></td></tr>
+<tr><td></td><td><b>5.4.</b>&nbsp;</td><td colspan=8><a href="#para_5_4_">Other questions</a></td></tr>
+<tr><td><b>6.</b>&nbsp;</td><td colspan=9><a href="#para_6_">Advanced Topics</a></td></tr>
+<tr><td></td><td><b>6.1.</b>&nbsp;</td><td colspan=8><a href="#para_6_1_">Configuration File</a></td></tr>
+<tr><td></td><td><b>6.2.</b>&nbsp;</td><td colspan=8><a href="#para_6_2_">Using Multiple "To Date" Data Sets</a></td></tr>
+<tr><td></td><td></td><td><b>6.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_1_">Creating Multiple "To Date" Data Sets</a></td></tr>
+<tr><td></td><td></td><td><b>6.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_2_">Customizing "To Date" Data Sets</a></td></tr>
+<tr><td></td><td></td><td><b>6.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_3_">Viewing Rolled Up Data</a></td></tr>
+<tr><td></td><td></td><td><b>6.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_4_">Using Alternate "To Date" Data Sets</a></td></tr>
+<tr><td></td><td><b>6.3.</b>&nbsp;</td><td colspan=8><a href="#para_6_3_">Making a change to a script</a></td></tr>
+<tr><td></td><td><b>6.4.</b>&nbsp;</td><td colspan=8><a href="#para_6_4_">How the Dashboard finds process files</a></td></tr>
+<tr><td></td><td></td><td><b>6.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_4_1_">Sharing changes with team members</a></td></tr>
+<tr><td></td><td></td><td><b>6.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_4_2_">Some files are only read at start up</a></td></tr>
+<tr><td></td><td><b>6.5.</b>&nbsp;</td><td colspan=8><a href="#para_6_5_">Defining your own processes for use in the Process Dashboard</a></td></tr>
+<tr><td></td><td></td><td><b>6.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_1_">Step 1: Identify your process structure</a></td></tr>
+<tr><td></td><td></td><td><b>6.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_2_">Step 2: Create an XML definition for your process</a></td></tr>
+<tr><td></td><td></td><td><b>6.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_3_">Step 3: Save your XML process descriptor</a></td></tr>
+<tr><td></td><td></td><td><b>6.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_4_">Step 4: Restart the dashboard</a></td></tr>
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td></tr>
 </table>
-<div class="INITIAL_STATUS">
+<div>
 
 
 <HR>
 </div>
-<a name="doc1_top"></a><div class="INITIAL_STATUS">
+<a name="doc1_top"></a><div>
 
 
 <H1><a name="para_1_"></a>1. Quick Overview</H1>
@@ -282,10 +288,10 @@ is running.</P>
 </div>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc2_top"></a><div class="INITIAL_STATUS">
+<a name="doc2_top"></a><div>
 
 
 <H2><a name="para_1_3_"></a>1.3. The process scripts</h2>
@@ -479,10 +485,10 @@ process when you feel you've confidently identified its phases.</P>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc3_top"></a><div class="INITIAL_STATUS">
+<a name="doc3_top"></a><div>
 
 
 <H2><a name="para_1_4_"></a>1.4. Quick start example: a PSP1.1 project</H2>
@@ -540,10 +546,10 @@ you won't have any historical data in the dashboard. Therefore:
 </div>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc4_top"></a><div class="INITIAL_STATUS">
+<a name="doc4_top"></a><div>
 
 
 <h3><a name="para_1_4_1_"></a>1.4.1. Step 1: Create a project in the dashboard</h3>
@@ -596,10 +602,10 @@ menu.<p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc5_top"></a><div class="INITIAL_STATUS">
+<a name="doc5_top"></a><div>
 
 
 <h3><a name="para_1_4_2_"></a>1.4.2. Step 2: Planning the project</h3>
@@ -706,10 +712,10 @@ assures us that the timer is still running.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc6_top"></a><div class="INITIAL_STATUS">
+<a name="doc6_top"></a><div>
 
 
 <h3><a name="para_1_4_3_"></a>1.4.3. Step 3: Designing the program</h3>
@@ -756,10 +762,10 @@ clicking the completion checkbox again.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc7_top"></a><div class="INITIAL_STATUS">
+<a name="doc7_top"></a><div>
 
 
 <h3><a name="para_1_4_4_"></a>1.4.4. Step 4: Writing the code</h3>
@@ -789,10 +795,10 @@ next phase, so no defects were entered here.  Let's move on to compilation!</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc8_top"></a><div class="INITIAL_STATUS">
+<a name="doc8_top"></a><div>
 
 
 <h3><a name="para_1_4_5_"></a>1.4.5. Step 5: Compiling the program</h3>
@@ -839,10 +845,10 @@ into the testing phase.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc9_top"></a><div class="INITIAL_STATUS">
+<a name="doc9_top"></a><div>
 
 
 <h3><a name="para_1_4_6_"></a>1.4.6. Step 6: Testing the program</h3>
@@ -898,10 +904,10 @@ into Postmortem.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc10_top"></a><div class="INITIAL_STATUS">
+<a name="doc10_top"></a><div>
 
 
 <h3><a name="para_1_4_7_"></a>1.4.7. Step 7: Postmortem</h3>
@@ -974,10 +980,10 @@ Charts</a> help topic.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc11_top"></a><div class="INITIAL_STATUS">
+<a name="doc11_top"></a><div>
 
 
 <H2><a name="para_1_5_"></a>1.5. Overall goals</H2>
@@ -1073,6 +1079,7 @@ web site: <u>http://processdash.sourceforge.net</u>.</P>
 <u>http://www.sei.cmu.edu/tsp</u>, maintained by Carnegie Mellon 
 University.</P>
 
+<div class="hideInBook">
 <!-- SPECIAL DISCLAIMER -->
 <P> </P>
 <HR>
@@ -1091,12 +1098,13 @@ University.</P>
   </TD>
  </TR>
 </TABLE></P>
+</div>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc12_top"></a><div class="INITIAL_STATUS">
+<a name="doc12_top"></a><div>
 
 
 <H2><a name="para_1_6_"></a>1.6. Using help</H2>
@@ -1161,10 +1169,10 @@ tool.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc13_top"></a><div class="INITIAL_STATUS">
+<a name="doc13_top"></a><div>
 
 
 <H2><a name="para_1_7_"></a>1.7. How To Install</H2>
@@ -1390,15 +1398,35 @@ cd ~/path/to/your/personal/data/directory<br>
 
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc14_top"></a><div class="INITIAL_STATUS">
+<a name="doc14_top"></a><div>
 
 
 <H2><a name="para_1_8_"></a>1.8. Change History</H2>
 
-<h3><a name="para_1_8_1_"></a>1.8.1. Features new in version 1.4</h3>
+<h3><a name="para_1_8_1_"></a>1.8.1. Features new in version 1.5</h3>
+<ul>
+ <li>The dashboard is now compatible with version 1.4 and higher of
+   the Java Runtime Environment.</li>
+
+ <li>The task and schedule planning tool now contains built-in support
+   for collaboration! You can share your schedules with your
+   co-workers, your manager, and/or your customer, and keep them
+   up-to-date on your progress.  If you are working on a project with
+   other people, you can roll up your individual schedules to create
+   an earned value schedule for the project.</li>
+
+ <li>The task and schedule planning tool helps you to avoid several
+   common planning mistakes.</li>
+
+ <li>Numerous user interface enhancements make the hierarchy editor,
+   the time log editor, and the defect log editor easier to use.</li>
+
+</ul>
+
+<h3><a name="para_1_8_2_"></a>1.8.2. Features new in version 1.4 (released February 22, 2002)</h3>
 <ul>
  <li>Creating custom processes has never been easier - now you can create  
    your own process definitions for use with the dashboard by writing a simple 
@@ -1470,7 +1498,7 @@ cd ~/path/to/your/personal/data/directory<br>
    help forum.</li>
 </ul>
 
-<h3><a name="para_1_8_2_"></a>1.8.2. Features new in version 1.3.1 (released August 14, 2001)</h3>
+<h3><a name="para_1_8_3_"></a>1.8.3. Features new in version 1.3.1 (released August 14, 2001)</h3>
 
 <ul>
  <li>Version 1.3.1 was released to address a high-priority bug present in 
@@ -1478,7 +1506,7 @@ cd ~/path/to/your/personal/data/directory<br>
    release.</li>
 </ul>
 
-<h3><a name="para_1_8_3_"></a>1.8.3. Features new in version 1.3 (released July 16, 2001)</h3>
+<h3><a name="para_1_8_4_"></a>1.8.4. Features new in version 1.3 (released July 16, 2001)</h3>
 
 <ul>
  <li>The dashboard now includes greatly enhanced online help! Improved help 
@@ -1550,7 +1578,7 @@ cd ~/path/to/your/personal/data/directory<br>
    dashboard from within their programming environments.</li>
 </ul>
 
-<h3><a name="para_1_8_4_"></a>1.8.4. Features new in version 1.2 (released April 20, 2001)</h3>
+<h3><a name="para_1_8_5_"></a>1.8.5. Features new in version 1.2 (released April 20, 2001)</h3>
 
 <ul>
  <li>The dashboard now includes support for ALL the standard PSP processes 
@@ -1587,7 +1615,7 @@ cd ~/path/to/your/personal/data/directory<br>
    process separately.</li>
 </ul>
 
-<h3><a name="para_1_8_5_"></a>1.8.5. Features new in version 1.1 (released February 9, 2001)</h3>
+<h3><a name="para_1_8_6_"></a>1.8.6. Features new in version 1.1 (released February 9, 2001)</h3>
 
 <ul>
  <li>Version 1.1 contained enhancements that made the tool significantly 
@@ -1595,10 +1623,10 @@ cd ~/path/to/your/personal/data/directory<br>
 </ul>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc15_top"></a><div class="INITIAL_STATUS">
+<a name="doc15_top"></a><div>
 
 <H2><a name="para_1_9_"></a>1.9. GNU General Public License</H2>
 
@@ -2089,11 +2117,11 @@ Updated:
 <!-- hhmts end -->
 <HR>
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 <HR>
 </div>
-<a name="doc16_top"></a><div class="INITIAL_STATUS">
+<a name="doc16_top"></a><div>
 
 
 <H1><a name="para_2_"></a>2. Planning your project</H1>
@@ -2139,10 +2167,10 @@ create a schedule and track your progress against it using earned value.</P>
 </div>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc17_top"></a><div class="INITIAL_STATUS">
+<a name="doc17_top"></a><div>
 
 
 <H2><a name="para_2_1_"></a>2.1. Entering process data</H2>
@@ -2277,10 +2305,10 @@ not be imported back into the Process Dashboard. To change a data value in
 the Process Dashboard, you must make the change in a dashboard form.</p>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc18_top"></a><div class="INITIAL_STATUS">
+<a name="doc18_top"></a><div>
 
 
 
@@ -2444,10 +2472,10 @@ you would like in this manner.</p>
 <p><center><img src="Images/HierarchyEditorShowPSP3WithCycle.png"></center></p>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc19_top"></a><div class="INITIAL_STATUS">
+<a name="doc19_top"></a><div>
 
 
 <H2><a name="para_2_3_"></a>2.3. Using the Size Estimating Template</H2>
@@ -2598,10 +2626,10 @@ form.</p>
 
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc20_top"></a><div class="INITIAL_STATUS">
+<a name="doc20_top"></a><div>
 
 
 <H2><a name="para_2_4_"></a>2.4. Using the PROBE Wizard</H2>
@@ -2772,10 +2800,10 @@ estimates you chose for size and time will still appear on the Size
 Estimating Template.</p>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc21_top"></a><div class="INITIAL_STATUS">
+<a name="doc21_top"></a><div>
 
 
 <H2><a name="para_2_5_"></a>2.5. Using the PROBE tool</H2>
@@ -2915,10 +2943,10 @@ third columns show the data values for the X and Y axes respectively.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc22_top"></a><div class="INITIAL_STATUS">
+<a name="doc22_top"></a><div>
 
 
 <H2><a name="para_2_6_"></a>2.6. Using the Task &amp; Schedule Tool</H2>
@@ -2969,6 +2997,8 @@ each time period.</p>
 with the various columns in the task and schedule planning templates, you can 
 hover the pointer over the column headings and a tool tip will tell you what 
 the abbreviated heading stands for.</p>
+
+<h3><a name="para_2_6_1_"></a>2.6.1. Columns in the Task List</h3>
 
 <P>While this help topic won't get into all the details of earned value 
 tracking, briefly here are the items that are shown in the upper window:</p>
@@ -3035,6 +3065,8 @@ given task, including all tasks that are before it in the task list.</p>
 the CPT column.  It shows the amount of planned value for the given task 
 including all tasks that are before it in the task list.</p>
 
+
+<h3><a name="para_2_6_2_"></a>2.6.2. Columns in the Schedule List</h3>
 
 <p>Briefly, here are the items that are shown in the bottom window:</p>
 
@@ -3224,10 +3256,6 @@ for access to earned value charts and numerical analyses:</P>
 <P>If you prefer, you can view this information in HTML, and even export it 
 Excel, by clicking the Report button.</p>
 
-<p>The Collaborate button provides access to the 
-<a href="#doc23_top">task &amp; schedule collaboration
-features</a> of the dashboard.
-
 <H3><a name="para_2_7_5_"></a>2.7.5. The Save Button</H3>
 
 <p>If you edit the schedule or the list of tasks, you will need to click the 
@@ -3235,9 +3263,15 @@ Save button to save your changes. If you edit yellow-background values in the
 task list, however, those changes will be saved transparently; pressing the 
 save button is not necessary.</p>
 
+<H3><a name="para_2_7_6_"></a>2.7.6. The Collaborate Button</H3>
+
+<p>The Collaborate button provides access to the 
+<a href="#doc23_top">task &amp; schedule collaboration
+features</a> of the dashboard.
+
 <HR>
 
-<H3><a name="para_2_7_6_"></a>2.7.6. Potential mistakes</H3>
+<H3><a name="para_2_7_7_"></a>2.7.7. Potential mistakes</H3>
 
 <P>Be careful to avoid making the following mistakes when creating a 
 schedule:</P>
@@ -3288,13 +3322,13 @@ a more complete explanation of the problem, click the red "Errors"
 button that appears at the bottom of the task &amp; schedule window.
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc23_top"></a><div class="INITIAL_STATUS">
+<a name="doc23_top"></a><div>
 
 
-<H3><a name="para_2_7_7_"></a>2.7.7. Task &amp; Schedule Collaboration</H3>
+<H3><a name="para_2_7_8_"></a>2.7.8. Task &amp; Schedule Collaboration</H3>
 
 <P>The <a href="#doc22_top">task and schedule tool</a>
 contains built-in support for collaboration; just click the
@@ -3319,7 +3353,7 @@ section below for more information.</p>
 
 <hr>
 
-<h4><a name="para_2_7_7_1_"></a>2.7.7.1. <a name="doc23_publishing"></a>Publishing Schedules</h4>
+<h4><a name="para_2_7_8_1_"></a>2.7.8.1. <a name="doc23_publishing"></a>Publishing Schedules</h4>
 
 <p>Publishing a schedule opens up permissions so other people can view
 the HTML earned value report. This is a great way to:</p>
@@ -3364,7 +3398,7 @@ see the <a href="#doc23_limitations">limitations</a> section below.</p>
 
 <hr>
 
-<h4><a name="para_2_7_7_2_"></a>2.7.7.2. <a name="doc23_rollup"></a>Rolling Up Schedules</h4>
+<h4><a name="para_2_7_8_2_"></a>2.7.8.2. <a name="doc23_rollup"></a>Rolling Up Schedules</h4>
 
 <p>When two or more people are working on a project together, it is
 very helpful to roll up each person's individual schedule to create a
@@ -3393,7 +3427,7 @@ must &quot;<a href="#doc23_sharing">share</a>&quot; their schedule. Then,
 someone must create a master &quot;<a href="#doc23_createRollup">roll-up</a>&quot;
 schedule.</p>
 
-<h5><a name="para_2_7_7_2_1_"></a>2.7.7.2.1. <a name="doc23_sharing"></a>Sharing Schedules</h5>
+<h5><a name="para_2_7_8_2_1_"></a>2.7.8.2.1. <a name="doc23_sharing"></a>Sharing Schedules</h5>
 
 <p><a name="doc23_sharePassword"></a>To share your schedule, open it and
 click on the Collaborate button. Then, click the Share button. The
@@ -3424,7 +3458,7 @@ changing the password settings. You will once again be given the final
 screen with the URL/password, and the hyperlink you can use to email
 that information.</p>
 
-<h5><a name="para_2_7_7_2_2_"></a>2.7.7.2.2. <a name="doc23_createRollup"></a>Creating a Roll-up Schedule</h5>
+<h5><a name="para_2_7_8_2_2_"></a>2.7.8.2.2. <a name="doc23_createRollup"></a>Creating a Roll-up Schedule</h5>
 
 <p>One person on the team should create a master schedule which
 roll-ups all of the individual schedules to the team level. Since that
@@ -3506,7 +3540,7 @@ Wizard&quot; from a rollup schedule.</p>
 
 <hr>
 
-<h4><a name="para_2_7_7_3_"></a>2.7.7.3. <a name="doc23_limitations"></a>Constraints and Limitations</h4>
+<h4><a name="para_2_7_8_3_"></a>2.7.8.3. <a name="doc23_limitations"></a>Constraints and Limitations</h4>
 
 To understand the constraints of these collaboration features, it is
 helpful to understand how the features work.
@@ -3556,10 +3590,10 @@ and use it to set the "http.hostname" setting in your
 <a href="#doc40_top">configuration file</a>.
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc24_top"></a><div class="INITIAL_STATUS">
+<a name="doc24_top"></a><div>
 
 
 <H2><a name="para_2_8_"></a>2.8. Data Freezing</H2>
@@ -3637,11 +3671,11 @@ there, see the <a href="#doc40_top">configuration file</a> help
 topic.</p>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 <HR>
 </div>
-<a name="doc25_top"></a><div class="INITIAL_STATUS">
+<a name="doc25_top"></a><div>
 
 
 <H1><a name="para_3_"></a>3. Running the dashboard</H1>
@@ -3678,10 +3712,10 @@ measured quickly, easily, and accurately.</p>
 </div>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc26_top"></a><div class="INITIAL_STATUS">
+<a name="doc26_top"></a><div>
 
 
 <H2><a name="para_3_1_"></a>3.1. Navigating the hierarchy menus</H2>
@@ -3746,10 +3780,10 @@ item complete with the <A HREF="#doc29_top">completion checkbox</A>.)</P>
 <p><center><img src="Images/HierarchyMenus4.png"></center></P>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc27_top"></a><div class="INITIAL_STATUS">
+<a name="doc27_top"></a><div>
 
 
 <H2><a name="para_3_2_"></a>3.2. Accessing the Process Scripts</H2>
@@ -3833,10 +3867,10 @@ the <A HREF="#doc17_top">Entering data</A> help topic.</P>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc28_top"></a><div class="INITIAL_STATUS">
+<a name="doc28_top"></a><div>
 
 
 <H2><a name="para_3_3_"></a>3.3. Using the play/pause button</H2>
@@ -3926,10 +3960,10 @@ several unrelated activities, you can quickly jump to a recent activity and
 log time there by using the pull-down menu.</P>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc29_top"></a><div class="INITIAL_STATUS">
+<a name="doc29_top"></a><div>
 
 
 <H2><a name="para_3_4_"></a>3.4. Using the completion checkbox</H2>
@@ -3986,10 +4020,10 @@ the right of completed tasks.</p>
 <p><center><img src="Images/HierarchyMenus4.png"></center></p>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc30_top"></a><div class="INITIAL_STATUS">
+<a name="doc30_top"></a><div>
 
 
 <H2><a name="para_3_5_"></a>3.5. Using the time log editor</H2>
@@ -4089,10 +4123,10 @@ checkbox, and you can change the display time format using the pulldown.</p>
 minutes.</p>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc31_top"></a><div class="INITIAL_STATUS">
+<a name="doc31_top"></a><div>
 
 
 <H2><a name="para_3_6_"></a>3.6. Entering defects</H2>
@@ -4198,10 +4232,10 @@ back to the front as the currently active defect, it will be clear what you
 were working on.</P>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc32_top"></a><div class="INITIAL_STATUS">
+<a name="doc32_top"></a><div>
 
 
 <H2><a name="para_3_7_"></a>3.7. Using the Defect Log Editor</H2>
@@ -4227,10 +4261,10 @@ this dialog.  For help using the defect entry dialog please see the <a href="#do
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc33_top"></a><div class="INITIAL_STATUS">
+<a name="doc33_top"></a><div>
 
 
 <H2><a name="para_3_8_"></a>3.8. The "C" (configure) menu</H2>
@@ -4271,7 +4305,7 @@ to give you complete control of your PSP data.</P>
   <li><a href="#doc12_search">Search</a> brings up this help viewer 
    with the Search pane selected.</li>
   <li><u>Printable Users Manual</u> displays a printer-friendly version of
-   the Process Dashboard User's Manual.</li>
+   the Process Dashboard Users Manual.</li>
   <li><u>About Process Dashboard</u> displays the "about" screen.</li>
   <li><a name="doc33_bugreport"></a><u>Submit bug report</u> will bring up your web 
    browser pointed to our website where you can submit any bug you might find 
@@ -4285,11 +4319,11 @@ to give you complete control of your PSP data.</P>
 </ul>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 <HR>
 </div>
-<a name="doc34_top"></a><div class="INITIAL_STATUS">
+<a name="doc34_top"></a><div>
 
 
 <H1><a name="para_4_"></a>4. Postmortem analysis</H1>
@@ -4339,10 +4373,10 @@ and on the Size Estimating Template (for PSP levels 1 through 3).</p>
 
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc35_top"></a><div class="INITIAL_STATUS">
+<a name="doc35_top"></a><div>
 
 
 <H2><a name="para_4_1_"></a>4.1. Counting LOC</H2>
@@ -4377,10 +4411,10 @@ the <I>Process Authoring Manual</I> when it becomes available on our
 website.</P>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc36_top"></a><div class="INITIAL_STATUS">
+<a name="doc36_top"></a><div>
 
 
 <H2><a name="para_4_2_"></a>4.2. Data charts and reports</H2>
@@ -4452,10 +4486,10 @@ that chart.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc37_top"></a><div class="INITIAL_STATUS">
+<a name="doc37_top"></a><div>
 
 
 <H2><a name="para_4_3_"></a>4.3. Exporting your data</H2>
@@ -4543,11 +4577,11 @@ in Netscape versus the way it is handled in Internet Explorer.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 <HR>
 </div>
-<a name="doc38_top"></a><div class="INITIAL_STATUS">
+<a name="doc38_top"></a><div>
 
 
 <H1><a name="para_5_"></a>5. Frequently Asked Questions</H1>
@@ -4592,6 +4626,7 @@ in Netscape versus the way it is handled in Internet Explorer.</p>
 <ul>
  <LI><a href="#doc38_HideFinished">Can I hide my finished projects from the hierarchy browser (and other screens)?  They are starting to pile up and are taking up a lot of space.</a></li>
  <LI><a href="#doc38_OutlierProject">I have a project in my hierarchy that doesn't have much to do with my current development habits.  Can I mark it as an "outlier" so that it doesn't corrupt the Planning and PROBE estimates?</a></li>
+ <LI><a href="#doc38_WebServerWorms">Since the dashboard has a web server in it, do I have to worry about internet worms and viruses attacking my machine?</a></LI>
  <LI><a href="#doc38_DCRSCR">What happened to the DCR and SCR processes?</A></LI>
  <LI><a href="#doc38_Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</A></LI>
  <LI><A HREF="#doc38_TeamSupport">Does the Process Dashboard support teams?</A></LI>
@@ -4987,6 +5022,37 @@ calculations only use completed projects for their data sets.  The drawback
 with this approach is that you will lose the accurate completion date for the 
 project that you mark incomplete.</p>
 
+<P><HR><a name="doc38_WebServerWorms"></a><b>Since the dashboard has a web server in it, do I have to worry about internet worms and viruses attacking my machine?</b>
+
+<P>A good question! The short answer: the web server built into the
+dashboard is NOT susceptible to any existing worms or viruses.</P>
+
+<P>The longer answer: the web server in the dashboard is custom code,
+written from scratch specifically for the dashboard. Because it shares
+no common code with any other web server, viruses and worms which have
+been written to attack other web servers (such as Microsoft's IIS web
+server) will not affect it in any way.</P>
+
+<P>We cannot guarantee that the dashboard web-server code is
+defect-free, and impervious to attacks by hackers. But those hackers
+would have to write a virus or worm to specifically target the
+dashboard. The dashboard currently has less than 10000 users
+worldwide, so I would imagine it to be a fairly unlikely target.</P>
+
+<P>Fortunately, because the dashboard is written in Java rather than
+C/C++, it is not susceptible to many common hacking techniques like
+buffer overruns (a common worm infection strategy). This means that
+even if a hacker was interested in writing an attack targeted at the
+dashboard, the worst thing they could probably do is to crash your
+running dashboard program.</P>
+
+<P>If this information doesn't allay your concerns, you can use the
+"http.allowRemote" setting to make it impossible for other computers
+to connect to the dashboard. See the 
+<a href="#doc40_top">configuration
+file</a> help topic for more information.</P>
+
+
 <P><HR><a name="doc38_DCRSCR"></a><b>What happened to the DCR and SCR processes?</b>
 
 <P>The DCR and SCR processes were shipped with version 1.1 of the
@@ -5054,11 +5120,11 @@ menu.  This will open your web browser pointed right to the bug form.</p>
 <em>processdash-devel@lists.sourceforge.net</em></p>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 <HR>
 </div>
-<a name="doc39_top"></a><div class="INITIAL_STATUS">
+<a name="doc39_top"></a><div>
 
 
 <H1><a name="para_6_"></a>6. Advanced Topics</H1>
@@ -5085,10 +5151,10 @@ how to create your own processes for use in the Dashboard.</p>
 </div>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc40_top"></a><div class="INITIAL_STATUS">
+<a name="doc40_top"></a><div>
 
 
 <H2><a name="para_6_1_"></a>6.1. Configuration File</H2>
@@ -5294,6 +5360,24 @@ the # character.</p>
  </li>
  <br>
 
+ <li><strong>ev.showCumulativeTaskData</strong><br>
+
+    The original PSP task template described in <i>A&nbsp;Discipline
+    for Software Engineering</i> contains two columns that are
+    normally not displayed by the dashboard.  (These columns really
+    only exist in the PSP template to help you perform the
+    calculations manually; when the computer is performing the
+    calculations, they don't provide much value and simply take up
+    space.  If you wish, you can display them by setting this
+    to true.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>ev.showCumulativeTaskData=true</td></tr>
+   </table>
+ </li>
+ <br>
+
  <li><strong>excel.exportMethod</strong><br>
    The method to use for exporting data into Excel. If this is set to "mime", 
    data will be exported to Excel using mime types; in practical terms, this
@@ -5321,9 +5405,13 @@ the # character.</p>
    Thus, if you have set this to true, setting a password will deny 
    connection attempts that do not correctly identify the password.
    Conversely, you can leave this set to false, and setting a password
-   will allow connection attempts that correctly supply the password.
+   will allow connection attempts that correctly supply the password.<br>
+   If you <i>never</i> want other people to be able to connect to your
+   dashboard (whether they know a password or not), set this parameter
+   to <code>"never"</code>. This will make it impossible for other
+   computers to see your dashboard.<br>
    <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i>, <i>false</i>, or <i>never</i>.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Example:</td><td>http.allowRemote=true</td></tr>
    </table>
@@ -5526,10 +5614,10 @@ the # character.</p>
 <!-- DISCLAIMER -->
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc41_top"></a><div class="INITIAL_STATUS">
+<a name="doc41_top"></a><div>
 
 
 <H2><a name="para_6_2_"></a>6.2. Using Multiple "To Date" Data Sets</H2>
@@ -5647,10 +5735,10 @@ complete when you alter the drop-down, the data in the "Plan" and/or "To
 Date" columns will not recalculate.</p>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc42_top"></a><div class="INITIAL_STATUS">
+<a name="doc42_top"></a><div>
 
 
 <a name="doc42_OverwritingScript"></a><h2><a name="para_6_3_"></a>6.3. Making a change to a script</h2>
@@ -5677,7 +5765,15 @@ analyzer perhaps).</p>
  <li>Save the current version of the HTML file to the psp2.1 subdirectory. 
    This can be done by choosing &quot;File
    <img src="Images/rarrow.png">
-   Save As...&quot; from within your web browser.</li>
+   Save As...&quot; from within your web browser. <ul>
+   <li>Give the file the same name that appears in the URL - in this
+      instance, we would save the file as "develop.htm".  (Note: if the
+      URL contains a "?" or "#", just use the filename that appears
+      before the "?" or "#".)
+   <li>If your web browser has a feature to save "html only", use it.</li>
+   </ul>
+
+</li>
  <li>Edit it to your heart's content using the HTML editor of your choice.</li>
 </ol>
 
@@ -5759,10 +5855,10 @@ people will have to shut down and restart their dashboard to see your
 changes.</p>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </div>
-<a name="doc43_top"></a><div class="INITIAL_STATUS">
+<a name="doc43_top"></a><div>
 
 
 <H2><a name="para_6_5_"></a>6.5. Defining your own processes for use in the Process Dashboard</H2>
@@ -5972,7 +6068,7 @@ you will automatically have:</P>
 when it becomes available.</P>
 
 </div>
-<div class="INITIAL_STATUS">
+<div>
 
 </BODY>
 </HTML>
