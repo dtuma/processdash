@@ -31,6 +31,22 @@
 # comment immediately preceeding the particular setting.
 #
 
+autoRealization=Policy for auto-realization of data. To save time and \
+	memory, formulas are not immediately calculated when the dashboard \
+	opens.  Instead, they are calculated (realized) at some later time. \
+	This realization always occurs automatically when their value must \
+	be displayed for the first time on a chart, form, or report.  In \
+	addition, a background process runs when the the dashboard starts, \
+	and slowly calculates formulas.  If this setting has the value \
+	"full", all data will be automatically realized by this background \
+	process.  If this setting has the value "min", only global (e.g. \
+	"To Date" data is auto-realized (the default). If this setting has \
+	the value "none", no data will be auto-realized.  If you are on a \
+	slow computer, and you notice irritating delays the first time you \
+	view a chart, form, or report, try using the "full" option.  If \
+	you experience irritating delays when saving edits to the hierarchy, \
+	try using the "min" or "none" options.
+
 browser.command=The command to execute to run an HTML browser for script \
 	files. If left unset, the default will be Netscape on non-windows \
 	platforms (netscape must be in your path), or the system default \
@@ -56,12 +72,17 @@ defectDialog.autostart=If this property is set to "true", the defect dialog \
 	Timing" button to begin the timer for fixing the defect.
 
 hiddenData=Data names to be suppressed from user-visible data lists (by \
-	default).  This property should be a series of data name \
-	specifications, separated by the vertical bar character '|'.
+	default).  This property should be a series of regular expressions \
+	matching data names, separated by the vertical bar character '|'.
 
 http.allowRemote=For data privacy reasons, http connections are rejected \
 	unless they originate from localhost.  To accept http connections \
 	from remote hosts, set this property to true.
+
+probeDialog.dataList=If this property is set to "simple", the PROBE dialog \
+	will only display data elements relating to the standard PROBE \
+	methods A,B,C, and D. If this setting has any other value, PROBE will \
+	display an exhaustive list of data element choices for correlating.
 
 probeDialog.onlyCompleted=If this property is set to "true", the probe \
 	dialog box will automatically filter the list of data points so \
