@@ -487,6 +487,9 @@ Authors:
         <include name="**/*.htm"/>
         <include name="*.xml"/>
         <include name="PSPDash.hs"/>
+        <exclude name="TOC.html"/>
+        <exclude name="Skeleton.html"/>
+        <exclude name="book.html"/>
       </srcfiles>
     </uptodate>
   </target>
