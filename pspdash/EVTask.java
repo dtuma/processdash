@@ -581,7 +581,7 @@ public class EVTask implements DataListener {
     static String formatPercent(double percent) {
         if (Double.isNaN(percent) || Double.isInfinite(percent))
             percent = 0;
-        if (true || percent > 0.99 || percent < -0.99)
+        if (percent > 0.99 || percent < -0.99)
             return intPercentFormatter.format(percent);
         else
             return percentFormatter.format(percent);
