@@ -83,7 +83,7 @@ public class DataComboBox extends JComboBox implements ILessThan {
             }
         }
 
-        dataNameList = result;
+        dataNameList = Collections.unmodifiableSet(result);
         return result;
     }
 

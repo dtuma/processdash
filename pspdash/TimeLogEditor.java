@@ -446,7 +446,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             validateCell = null;
             return false;
         }
-        switch (table.table.getColumnModel().getColumn(col).getModelIndex()) {
+        switch (table.table.convertColumnIndexToModel(col)) {
         case 0:                     //Logged To (key) (must exist in hierarchy)
             PropertyKey key = useProps.findExistingKey (newValue);
             if (key == null || key.equals(tle.key) ||
