@@ -86,6 +86,7 @@ IE:
 	    /d $(BIN_IE) \
 	    IEDataApplet.java \
 	    IEFieldManager.java \
+	    UndefinedDouble.java \
 	    OLEDBAlertWindow.java \
 	    ../Settings.java \
 	    ../DateFormatter.java
@@ -110,6 +111,7 @@ NS:
 	    -deprecation \
 	    -sourcepath $(SRC) \
 	    -d $(BIN_NS) \
+	    UndefinedDouble.java \
 	    NSDataApplet.java
 	cd $(BIN_NS); $(JAR) cf DataApplet.jar pspdash
 
