@@ -29,17 +29,20 @@ package pspdash;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.sound.sampled.*;
 import javax.swing.JButton;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.ImageIcon;
 import pspdash.data.SaveableData;
 import pspdash.data.DateData;
 import pspdash.data.DoubleData;
 
 
-public class PauseButton extends JButton implements ActionListener {
+public class PauseButton extends DropDownButton implements ActionListener {
     PSPDashboard parent = null;
     ImageIcon pause_icon = null;
     ImageIcon continue_icon = null;
@@ -49,6 +52,7 @@ public class PauseButton extends JButton implements ActionListener {
     PropertyKey currentPhase = null;
     String timeElementName = null;
     Clip timingSound = null;
+    int maxNumHistoryItems = 10;
     private static final String pause_string = "Stop";
     private static final String continue_string = " Go ";
 
@@ -65,9 +69,11 @@ public class PauseButton extends JButton implements ActionListener {
             pause_icon = continue_icon = null;
         }
         updateAppearance();
-        setMargin (new Insets (1,2,1,2));
+        getButton().setMargin(new Insets(1,2,1,2));
+        getButton().setFocusPainted(false);
+        getButton().addActionListener(this);
+        setRunFirstMenuOption(false);
         parent = dash;
-        addActionListener(this);
 
         int refreshIntervalMillis = MILLIS_PER_MINUTE; // default: one minute
 
@@ -86,6 +92,14 @@ public class PauseButton extends JButton implements ActionListener {
             timingSound = loadAudioClip("timing.wav");
         }
 
+        // Load the user setting for history size
+        String userSetting = Settings.getVal("pauseButton.historySize");
+        if (userSetting != null) try {
+            maxNumHistoryItems = Integer.parseInt(userSetting);
+            if (maxNumHistoryItems < 1)
+                maxNumHistoryItems = 10;
+        } catch (NumberFormatException nfe) {}
+
         dash.getContentPane().add(this);
     }
 
@@ -93,12 +107,14 @@ public class PauseButton extends JButton implements ActionListener {
 
     private void updateAppearance() {
         if (pause_icon == null)
-            setText(showCurrent == paused ? pause_string : continue_string);
+            getButton().setText
+                (showCurrent == paused ? pause_string : continue_string);
         else
-            setIcon(showCurrent == paused ? pause_icon : continue_icon);
+            getButton().setIcon
+                (showCurrent == paused ? pause_icon : continue_icon);
 
-        setToolTipText(paused ? "Paused. Press to continue."
-                              : "Timing. Press to pause.");
+        getButton().setToolTipText(paused ? "Paused. Press to continue."
+                                   : "Timing. Press to pause.");
     }
 
 
@@ -119,6 +135,20 @@ public class PauseButton extends JButton implements ActionListener {
                     releaseCurrentTimeLogEntry();
             }
 
+        } else if (e.getSource() instanceof JMenuItem) {
+            JMenuItem item = (JMenuItem) e.getSource();
+            pause();
+            if (parent.hierarchy.setPath(item.getText()))
+                cont();
+            else {
+                // They've gone and edited their hierarchy, and the
+                // requested node no longer exists! Beep to let them
+                // know there was a problem, then remove this item
+                // from the history list so they can't select it again
+                // in the future.
+                Toolkit.getDefaultToolkit().beep();
+                getMenu().remove(item);
+            }
         } else {
             if (paused) cont(); else pause();
         }
@@ -146,6 +176,9 @@ public class PauseButton extends JButton implements ActionListener {
     }
 
     public void setCurrentPhase(PropertyKey newCurrentPhase) {
+        if (currentTimeLogEntry != null)
+            addToMenu(currentPhase.path());
+
         boolean needCleanup = (entryHasBeenSaved > 1);
         releaseCurrentTimeLogEntry();
         if (needCleanup)
@@ -157,6 +190,32 @@ public class PauseButton extends JButton implements ActionListener {
         }
 
         if (!paused) cont();
+    }
+
+    public void addToMenu(String path) {
+        JMenu menu = getMenu();
+        JMenuItem itemToAdd = null, oneItem;
+
+        // if the menu already contains a menu item for this path, remove
+        // that menu item.
+        for (int i = menu.getItemCount();  i-- > 0; ) {
+            oneItem = menu.getItem(i);
+            if (oneItem != null && path.equals(oneItem.getText())) {
+                itemToAdd = oneItem;
+                menu.remove(i);
+                break;
+            }
+        }
+
+        if (itemToAdd == null) {
+            itemToAdd = new JMenuItem(path);
+            itemToAdd.addActionListener(this);
+        }
+
+        menu.insert(itemToAdd, 0);
+
+        while (menu.getItemCount() > maxNumHistoryItems)
+            menu.remove(maxNumHistoryItems);
     }
 
     private static boolean WRITE_ZERO =
