@@ -181,6 +181,10 @@ function writeExportHTML() {
 		     "&fullPage'>Excel</A>");
 }
 
+function writeHelpLink() {
+  document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<A HREF='/help/Topics/Planning/EnteringData.html' TARGET='_blank'><I>Help...</I></A>");
+}
+
 
 
 /***********************************************************************
@@ -314,6 +318,7 @@ function IEsetup() {
     if (!SILENT) {
 	document.write(unlockHTML);
 	writeExportHTML();
+	writeHelpLink();
     }
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
@@ -520,6 +525,7 @@ function NSSetup() {
     if (!SILENT) {
 	document.write(unlockHTML);
 	writeExportHTML();
+	writeHelpLink();
     }
   }
 }
