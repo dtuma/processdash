@@ -40,6 +40,7 @@ import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.MultipartRequest;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class TinyCGIBase implements TinyCGI {
 
@@ -60,7 +61,8 @@ public class TinyCGIBase implements TinyCGI {
         this.out = new PrintWriter(new OutputStreamWriter(outStream, charset));
         this.env = env;
         parameters.clear();
-        parseInput((String) env.get("QUERY_STRING"));
+        parseInput((String) env.get("SCRIPT_PATH"),
+                   (String) env.get("QUERY_STRING"));
         if ("POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
             doPost();
         else
@@ -77,11 +79,18 @@ public class TinyCGIBase implements TinyCGI {
      * "name=foo&name=bar" would result in a 2-element string array
      * being placed in the map under the key "name_ALL".)
      */
-    protected void parseInput(String query) throws IOException {
+    protected void parseInput(String context, String query) throws IOException {
         // REFACTOR this should be a static method in some utility class
         if (query == null || query.length() == 0) return;
 
-        String delim = (query.indexOf('\n') == -1) ? "&" : "\r\n";
+        String delim = "&";
+        boolean urlDecode = true;
+        boolean interpolate = false;
+        if (query.indexOf('\n') != -1) {
+            delim = "\r\n";
+            urlDecode = false;
+            interpolate = true;
+        }
         StringTokenizer params = new StringTokenizer(query, delim);
         String param, name, val;
         int equalsPos;
@@ -99,17 +108,24 @@ public class TinyCGIBase implements TinyCGI {
                 // saves us from having to URL-encode complex expressions
                 // in query files.
                 if (val.startsWith("=")) val = val.substring(1);
-                else val = HTMLUtils.urlDecode(val);
+                else if (urlDecode) val = HTMLUtils.urlDecode(val);
+
                 if (supportQueryFiles() && QUERY_FILE_PARAM.equals(name))
-                    parseInputFile(val);
-                else
+                    parseInputFile(context, val);
+                else if (supportQueryFiles() && RESOURCE_FILE_PARAM.equals(name))
+                    parseResourceFile(context, val);
+                else {
+                    if (interpolate)
+                        val = StringUtils.interpolate(parameters, val);
                     putParam(name, val);
+                }
             } catch (Exception e) {
                 System.err.println("Malformed query parameter: " + param);
             }
         }
     }
     public static final String QUERY_FILE_PARAM = "qf";
+    public static final String RESOURCE_FILE_PARAM = "rf";
 
     private void putParam(String name, String val) {
         parameters.put(name, val);
@@ -127,7 +143,9 @@ public class TinyCGIBase implements TinyCGI {
 
         byte [] messageBody = new byte[length];
         int bytesRead = inStream.read(messageBody);
-        parseInput(new String(messageBody, 0, bytesRead));
+        parseInput((String) env.get("SCRIPT_PATH"),
+                   // FIXME: does this handle character sets correctly?
+                   new String(messageBody, 0, bytesRead));
     }
 
     /* Read name=value pairs, and uploaded files, from multipart form data.
@@ -192,20 +210,15 @@ public class TinyCGIBase implements TinyCGI {
     /* Read name=value pairs from the given URI. If the URI is not
      * absolute (e.g. "/reports/foo"), it is interpreted relative
      * to the current request. */
-    protected void parseInputFile(String filename) throws IOException {
+    protected void parseInputFile(String scriptPath, String filename) throws IOException {
         if (filename == null || filename.length() == 0) return;
 
         WebServer t = getTinyWebServer();
         String origFilename = filename;
-        String scriptPath = (String) env.get("SCRIPT_PATH");
         try {
-            if (!filename.startsWith("/")) {
-                URL context = new URL("http://unimportant" + scriptPath);
-                URL file = new URL(context, filename);
-                filename = file.getFile();
-            }
-            env.put("SCRIPT_PATH", filename);
-            parseInput(new String(t.getRequest(filename, true), "UTF-8"));
+            filename = resolveRelativeURI(scriptPath, filename);
+            parseInput(filename,
+                       new String(t.getRequest(filename, true), "UTF-8"));
 
             // now try looking for a companion resource bundle, and load
             // values from it as well.
@@ -215,16 +228,11 @@ public class TinyCGIBase implements TinyCGI {
                 if (pos != -1)
                     bundleName = bundleName.substring(pos+1);
                 pos = bundleName.lastIndexOf('.');
-                if (pos != -1)
+                if (pos != -1 && bundleName.indexOf('/', pos) == -1)
                     bundleName = bundleName.substring(0, pos);
 
                 Resources bundle = Resources.getTemplateBundle(bundleName);
-                Enumeration keys = bundle.getKeys();
-                while (keys.hasMoreElements()) {
-                    String key = (String) keys.nextElement();
-                    String val = bundle.getString(key);
-                    parameters.put(key, val);
-                }
+                parameters.putAll(bundle.asMap());
             } catch (Exception e) {
                 // it is not an error if no companion bundle was found.
             }
@@ -233,8 +241,28 @@ public class TinyCGIBase implements TinyCGI {
             System.out.println("Couldn't read file: " + filename);
             System.out.println("(Specified as '" + origFilename + "' from '" +
                                scriptPath +"')");
-        } finally {
-            env.put("SCRIPT_PATH", scriptPath);
+        }
+    }
+
+    protected void parseResourceFile(String context, String filename)
+            throws IOException
+    {
+        String bundleName = resolveRelativeURI(context, filename);
+
+        int pos = bundleName.indexOf("//");
+        if (pos != -1)
+            bundleName = bundleName.substring(pos+1);
+        pos = bundleName.lastIndexOf('.');
+        if (pos != -1 && bundleName.indexOf('/', pos) == -1)
+            bundleName = bundleName.substring(0, pos);
+
+        try {
+            Resources bundle = Resources.getTemplateBundle(bundleName);
+            parameters.putAll(bundle.asMap());
+        } catch (MissingResourceException mre) {
+            System.out.println("Couldn't find resource file: " + bundleName);
+            System.out.println("(Specified as '" + filename + "' from '" +
+                               context +"')");
         }
     }
 
