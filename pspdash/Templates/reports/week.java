@@ -235,6 +235,8 @@ public class week extends TinyCGIBase {
             out.println("</td></tr>\n</table>");
         }
 
+        if (!parameters.containsKey("EXPORT"))
+            out.print(EXPORT_HTML);
         out.print(FOOTER_HTML);
     }
 
@@ -345,9 +347,11 @@ public class week extends TinyCGIBase {
                            " vertical-align:bottom } </style>\n"+
         "</head><body><h1>Weekly Tasks - %taskListName%</h1>\n";
 
-    static final String FOOTER_HTML =
-        "<p class='doNotPrint'><a href=\"excel.iqy?uri=week.class&fullPage\">" +
-        "<i>Export to Excel</i></a></body></html>";
+    static final String EXPORT_HTML =
+        "<p class='doNotPrint'>" +
+        "<a href=\"excel.iqy?uri=week.class&fullPage\">" +
+        "<i>Export to Excel</i></a>";
+    static final String FOOTER_HTML = "</body></html>";
 
 
     private String formatTime(double time) {

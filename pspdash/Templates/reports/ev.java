@@ -240,7 +240,9 @@ public class ev extends CGIChartBase {
         out.print("<h2>Schedule Template</h2>\n");
         writeHTMLTable("SCHEDULE", s, s.toolTips);
 
-        out.print(FOOTER_HTML1);
+        out.print("<p class='doNotPrint'>");
+        if (!parameters.containsKey("EXPORT"))
+            out.print(EXPORT_HTML);
         if (getDataRepository().getValue("/Enable_EV_Week_form") != null)
             out.print(OPT_FOOTER_HTML);
         out.print(FOOTER_HTML2);
@@ -279,12 +281,13 @@ public class ev extends CGIChartBase {
         "&width=320&hideLegend'><br>\n";
     static final String COMBINED_CHARTS_HTML =
         "<img src='ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
-    static final String FOOTER_HTML1 =
-        "<p class='doNotPrint'><a href=\"../reports/excel.iqy\">" +
-        "<i>Export text to Excel</i></a>&nbsp; &nbsp; &nbsp; &nbsp;" +
-        "<a href='ev.xls'><i>Export charts to Excel</i></a>";
-    static final String OPT_FOOTER_HTML = "&nbsp; &nbsp; "+
-        "&nbsp; &nbsp;<a href='week.class'><i>Show Weekly View</i></a>";
+    static final String EXPORT_HTML =
+        "<a href=\"../reports/excel.iqy\"><i>Export text to Excel</i></a>" +
+        "&nbsp; &nbsp; &nbsp; &nbsp;" +
+        "<a href='ev.xls'><i>Export charts to Excel</i></a>" +
+        "&nbsp; &nbsp; &nbsp; &nbsp;";
+    static final String OPT_FOOTER_HTML =
+        "<a href='week.class'><i>Show Weekly View</i></a>";
     static final String FOOTER_HTML2 = "</body></html>";
 
     /** Generate an HTML table based on a TableModel.
