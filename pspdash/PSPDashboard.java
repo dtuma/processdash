@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -111,7 +111,11 @@ public class PSPDashboard extends JFrame implements WindowListener {
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
         versionNumber = TemplateLoader.getPackageVersion("pspdash");
         System.out.println("Process Dashboard version " + versionNumber);
-        setTitle(title != null ? title : resources.getString("Window_Title"));
+        if (title == null || title.length() == 0)
+            title = Settings.getVal("window.title");
+        if (title == null || title.length() == 0)
+            title = resources.getString("Window_Title");
+        setTitle(title);
 
         // start the http server.
         try {
