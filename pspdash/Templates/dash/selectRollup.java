@@ -69,12 +69,13 @@ import java.util.StringTokenizer;
 public class selectRollup extends TinyCGIBase {
 
     protected void writeContents() throws IOException {
-        DataRepository data = getDataRepository();
+        DataRepository data = getDataRepository();   if (data == null) return;
         init(data);
 
         // get the [Use_Rollup] data element for the current
         // project. If it is null, return immediately.
-        String useRollupName = data.createDataName(getPrefix(), "Use_Rollup");
+        String prefix = getPrefix();   if (prefix == null) return;
+        String useRollupName = data.createDataName(prefix, "Use_Rollup");
         ListData rollupIDs = getList(data, useRollupName);
         if (rollupIDs == null) return;
 
