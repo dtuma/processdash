@@ -1,12 +1,17 @@
 
 package teamdash.wbs;
 
-import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.Font;
 import java.awt.Component;
-import java.awt.Color;
 
+import javax.swing.DefaultCellEditor;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+
+/** Default cell editor for the data table.
+ *
+ * This class simply unwraps {@link ErrorValue} objects and passes them to the
+ * DefaultCellEditor.
+ */
 class DataTableCellEditor extends DefaultCellEditor {
 
     DataTableCellEditor() { super(new JTextField()); }
