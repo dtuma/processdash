@@ -80,6 +80,8 @@ class ValueFactory {
         { ">=", "GreaterThanOrEqualsFunction" },
         { "!=", "NotEqualsFunction" },
         { "<>", "NotEqualsFunction" },
+        { "#=", "NumberAliasFunction" },
+        { "\"=","StringAliasFunction" },
     };
 
 
@@ -190,6 +192,7 @@ class ValueFactory {
             switch (flagChar(value, 0)) {
             case '@': return new DateData(value);
             case '"': return new StringData(value);
+            case 'T': return TagData.getInstance();
             default:  return new DoubleData(value);
             }
         }
