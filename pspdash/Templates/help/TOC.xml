@@ -31,7 +31,7 @@
       <tocitem image="PageIcon" target="UsingProbeTool" text="Using the PROBE Tool"/>
     </tocitem>
 
-    <tocitem image="BookIcon" text="Running the Dashboard">
+    <tocitem image="BookIcon" target="Execution" text="Running the Dashboard">
       <tocitem image="PageIcon" target="HierarchyMenus" text="Navigating the Hierarchy menus"/>
       <tocitem image="PageIcon" target="AccessingScripts" text="Accessing the online PSP scripts"/>
       <tocitem image="PageIcon" target="PlayPause" text="Using the Play/Pause button to time your work"/>
@@ -48,11 +48,11 @@
       <tocitem image="PageIcon" target="ExportingData" text="Exporting your data"/>
     </tocitem>
 
-    <tocitem image="BookIcon" text="TroubleShooting">
+    <tocitem image="BookIcon" target="FAQ" text="TroubleShooting">
       <tocitem image="PageIcon" target="FAQ" text="FAQ - Frequently Asked Questions"/>
     </tocitem>
 
-    <tocitem image="BookIcon" text="Advanced Topics">
+    <tocitem image="BookIcon" target="ConfigurationFile" text="Advanced Topics">
       <tocitem image="PageIcon" target="ConfigurationFile" text="The configuration file"/>
     </tocitem>
 
