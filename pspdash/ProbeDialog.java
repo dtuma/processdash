@@ -31,6 +31,7 @@ import pspdash.data.DataRepository;
 import pspdash.data.DataCorrelator;
 import java.awt.Color;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -40,7 +41,7 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import java.util.*;
 
-public class ProbeDialog extends JDialog implements
+public class ProbeDialog extends JFrame implements
     ActionListener, FocusListener {
         PSPDashboard parent;
         DataRepository data;
@@ -48,7 +49,7 @@ public class ProbeDialog extends JDialog implements
         FilterDialog filterDlg = null;
         ChartDialog  chartDlg  = null;
 
-        JButton filterButton, chartButton;
+        JButton filterButton, chartButton, closeButton;
         JComboBox yName, xName;
         JTextField estimate, percent;
         JLabel beta0, beta1, rSquared, significance, variance, stddev;
@@ -61,7 +62,8 @@ public class ProbeDialog extends JDialog implements
 
 
         ProbeDialog(PSPDashboard dash) {
-            super(dash, "PROBE");
+            super("PROBE");
+            setIconImage(dash.getIconImage());
 
             parent = dash;
             data   = parent.data;
@@ -114,13 +116,9 @@ public class ProbeDialog extends JDialog implements
             yName.addFocusListener(this);
 
 
-            g.gridy++;              // new row: button + blank space
-            filterButton = new JButton ("Filter...");
-            filterButton.setActionCommand("filter");
-            filterButton.addActionListener(this);
-            g.gridx = 0;   g.gridwidth = 1;
-            layout.setConstraints(filterButton, g);   panel.add(filterButton);
-            c = new JLabel(" ");   g.gridx = 1;   g.gridwidth = 4;
+            g.gridy++;              // new row: blank space
+
+            c = new JLabel(" ");   g.gridx = 0;   g.gridwidth = 4;
             layout.setConstraints(c, g);   panel.add(c);
 
 
@@ -133,6 +131,7 @@ public class ProbeDialog extends JDialog implements
 
             estimate = new JTextField(7);   g.gridx = 1;   g.gridwidth = 1;
             g.anchor = g.WEST;
+            estimate.setMinimumSize(estimate.getPreferredSize());
             layout.setConstraints(estimate, g);   panel.add(estimate);
             estimate.addActionListener(this);
             estimate.addFocusListener(this);
@@ -143,6 +142,7 @@ public class ProbeDialog extends JDialog implements
 
             percent = new JTextField("70", 7);   g.gridx = 3;   g.gridwidth = 1;
             g.anchor = g.WEST;
+            percent.setMinimumSize(percent.getPreferredSize());
             layout.setConstraints(percent, g);   panel.add(percent);
             percent.addActionListener(this);
             percent.addFocusListener(this);
@@ -153,106 +153,74 @@ public class ProbeDialog extends JDialog implements
             layout.setConstraints(c, g);   panel.add(c);
 
 
-            g.gridy++;              // new row: blank space
-            c = new JLabel("L. Regression");
-            g.gridx = 0;   g.gridwidth = 2;   g.insets = left_margin;
-            layout.setConstraints(c, g);   panel.add(c);
-
-            c = new JLabel("Average");      g.gridx = 2;   g.gridwidth = 2;
-            layout.setConstraints(c, g);   panel.add(c);
-
-
-                                    // new row: blank space
-            c = new JLabel(" ");   g.gridx = 0;   g.gridy++;  g.gridwidth = 5;
-            layout.setConstraints(c, g);   panel.add(c);
-
-
-            g.gridy++;              //new row
+            g.gridy++;
             g.fill = g.HORIZONTAL;
 
-            projection = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(projection, g);   panel.add(projection);
+            JPanel box = new JPanel();
+            box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+            box.setBorder(BorderFactory.createTitledBorder("L. Regression"));
+            box.add(projection = new JLabel());
+            box.add(beta0 = new JLabel());
+            box.add(beta1 = new JLabel());
+            box.add(rSquared = new JLabel());
+            box.add(significance = new JLabel());
+            box.add(variance = new JLabel());
+            box.add(stddev = new JLabel());
+            box.add(range = new JLabel());
+            box.add(upi = new JLabel());
+            box.add(lpi = new JLabel());
+            g.gridx = 0;   g.gridwidth = 2;   g.gridheight = 5;
+            g.insets = left_margin;
+            layout.setConstraints(box, g);   panel.add(box);
 
-            Cprojection = new JLabel();   g.gridx = 2;   g.gridwidth = 2;
-            layout.setConstraints(Cprojection, g);   panel.add(Cprojection);
-
-
-            g.gridy++;              //new row
-
-            beta0 = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(beta0, g);   panel.add(beta0);
-
-            Cbeta0 = new JLabel();  g.gridx = 2;   g.gridwidth = 2;
-            layout.setConstraints(Cbeta0, g);   panel.add(Cbeta0);
-
-
-            g.gridy++;              //new row
-
-            beta1 = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(beta1, g);   panel.add(beta1);
-
-            Cbeta1 = new JLabel();  g.gridx = 2;   g.gridwidth = 2;
-            layout.setConstraints(Cbeta1, g);   panel.add(Cbeta1);
-
-
-            g.gridy++;              //new row
-
-            rSquared = new JLabel();        g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(rSquared, g);   panel.add(rSquared);
             rSquared.setToolTipText
                 ("The measure of how well these data elements correlate.");
-
-
-            g.gridy++;              //new row
-
-            significance = new JLabel();    g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(significance, g);  panel.add(significance);
             significance.setToolTipText
                 ("the probability that this correlation could occur by chance.");
 
-
-            g.gridy++;              //new row
-
-            variance = new JLabel();        g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(variance, g);   panel.add(variance);
-
-
-            g.gridy++;              // new row
-
-            stddev = new JLabel();  g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(stddev, g);   panel.add(stddev);
+            box = new JPanel();
+            box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+            box.setBorder(BorderFactory.createTitledBorder("Average"));
+            box.add(Cprojection = new JLabel());
+            box.add(Cbeta0 = new JLabel());
+            box.add(Cbeta1 = new JLabel());
+            g.gridx = 2;  g.gridwidth = 2;   g.gridheight = 1;
+            layout.setConstraints(box, g);   panel.add(box);
 
 
-            g.gridy++;              // new row
+            g.gridy++;              //new row: blank space
+            c = new JLabel(" ");   g.gridx = 2;   g.gridwidth = 2;
+            g.weighty = 1;
+            layout.setConstraints(c, g);   panel.add(c);
 
-            range = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(range, g);   panel.add(range);
+            g.gridy++;              //new row: filter button
+            g.fill = g.HORIZONTAL;  g.weighty = 0;
+
+            filterButton = new JButton ("Filter...");
+            filterButton.setActionCommand("filter");
+            filterButton.addActionListener(this);
+            layout.setConstraints(filterButton, g);   panel.add(filterButton);
+
+            g.gridy++;              //new row: chart button
 
             chartButton = new JButton ("Chart...");
             chartButton.setActionCommand("chart");
             chartButton.addActionListener(this);
-            g.gridx = 2;   g.gridwidth = 2;
             layout.setConstraints(chartButton, g);   panel.add(chartButton);
 
+            g.gridy++;              //new row: close button
 
-            g.gridy++;              // new row
-
-            upi = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(upi, g); panel.add(upi);
-
-
-            g.gridy++;              // new row
-
-            lpi = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
-            layout.setConstraints(lpi, g); panel.add(lpi);
+            closeButton = new JButton ("Close");
+            closeButton.setActionCommand("close");
+            closeButton.addActionListener(this);
+            layout.setConstraints(closeButton, g);   panel.add(closeButton);
 
 
             getContentPane().add(panel);
             addWindowListener(new WindowAdapter() {
-                public void windowClosing(WindowEvent e) {
-                    ProbeDialog.this.setVisible(false);
-                }
-            });
+                    public void windowClosing(WindowEvent e) {
+                        ProbeDialog.this.close();
+                    } });
             correlate();
             show();
         }
@@ -431,6 +399,12 @@ public class ProbeDialog extends JDialog implements
             pack();
         }
 
+        public void close() {
+            if (filterDlg != null) filterDlg.setVisible(false);
+            if (chartDlg != null) chartDlg.setVisible(false);
+            setVisible(false);
+        }
+
         public void actionPerformed(ActionEvent e) {
             String cmd = e.getActionCommand();
             if (cmd.equals("filter")) {
@@ -449,6 +423,8 @@ public class ProbeDialog extends JDialog implements
                                                 (String)yName.getSelectedItem());
                 else
                     chartDlg.show();
+            } else if (cmd.equals("close")) {
+                close();
             } else if (cmd.equals("applyFilter")) { // response from filter dlg
                 theFilter = (Vector)e.getSource();
                 correlate();
