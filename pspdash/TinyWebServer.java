@@ -1043,7 +1043,7 @@ public class TinyWebServer extends Thread {
      * If user is null and password is null, discards all password
      *     information and marks this node as "unprotected".
      */
-    public static void setPassword(DataRepository data, String prefix,
+    static void setPassword(DataRepository data, String prefix,
                                    String user, String password) {
         String dataName = data.createDataName(prefix,  "_Password_");
 
@@ -1300,7 +1300,7 @@ public class TinyWebServer extends Thread {
     /** Return the number of the port this server is listening on. */
     public int getPort()         { return port; }
     /** Return the socket we opened for data connections. */
-    public ServerSocket getDataSocket() { return dataSocket; }
+    ServerSocket getDataSocket() { return dataSocket; }
     /** Return the startup timestamp for this server. */
     public String getTimestamp() { return startupTimestamp; }
 
@@ -1340,7 +1340,7 @@ public class TinyWebServer extends Thread {
      * idea, since it allows html pages, etc to be JAR-ed up and
      * invisible to the user.
      */
-    public TinyWebServer(int port, String path) throws IOException
+    TinyWebServer(int port, String path) throws IOException
     {
         if (path == null || path.length() == 0)
             throw new IOException("Path must be specified");
@@ -1363,7 +1363,7 @@ public class TinyWebServer extends Thread {
      * Run a tiny web server on the given port, serving up files out
      * of the given directory.
      */
-    public TinyWebServer(String directoryToServe, int port)
+    TinyWebServer(String directoryToServe, int port)
         throws IOException
     {
         File rootDir = new File(directoryToServe);
@@ -1380,7 +1380,7 @@ public class TinyWebServer extends Thread {
      * Run a tiny web server on the given port, serving up resources
      * out of the given list of template search URLs.
      */
-    public TinyWebServer(int port, URL [] roots) throws IOException {
+    TinyWebServer(int port, URL [] roots) throws IOException {
         init(port, roots);
     }
 
@@ -1389,26 +1389,26 @@ public class TinyWebServer extends Thread {
         this.roots = roots;
         clearClassLoaderCaches();
     }
-    public void setProps(PSPProperties props) {
+    void setProps(PSPProperties props) {
         if (props == null)
             DEFAULT_ENV.remove(TinyCGI.PSP_PROPERTIES);
         else
             DEFAULT_ENV.put(TinyCGI.PSP_PROPERTIES, props);
     }
-    public void setData(DataRepository data) {
+    void setData(DataRepository data) {
         this.data = data;
         if (data == null)
             DEFAULT_ENV.remove(TinyCGI.DATA_REPOSITORY);
         else
             DEFAULT_ENV.put(TinyCGI.DATA_REPOSITORY, data);
     }
-    public void setCache(ObjectCache cache) {
+    void setCache(ObjectCache cache) {
         if (cache == null)
             DEFAULT_ENV.remove(TinyCGI.OBJECT_CACHE);
         else
             DEFAULT_ENV.put(TinyCGI.OBJECT_CACHE, cache);
     }
-    public void allowRemoteConnections(String setting) {
+    void allowRemoteConnections(String setting) {
         this.allowRemoteConnections = "true".equalsIgnoreCase(setting);
 
         /* in the future, if better remote host filtering is desired,
@@ -1472,7 +1472,7 @@ public class TinyWebServer extends Thread {
 
 
     /** Start listening for connections on an additional port */
-    public void addExtraPort(int port) throws IOException {
+    void addExtraPort(int port) throws IOException {
         SecondaryServerSocket s = new SecondaryServerSocket(port);
         secondaryServerSockets.add(s);
         s.start();
@@ -1494,14 +1494,14 @@ public class TinyWebServer extends Thread {
         this.serverSocket = null;
     }
 
-    public synchronized void close(ServerSocket serverSocket) {
+    private synchronized void close(ServerSocket serverSocket) {
         if (serverSocket != null) try {
             serverSocket.close();
         } catch (IOException e2) {}
     }
 
     /** Run a web server on port 8000.  the first arg must name the
-     *  directory to serve */
+     *  directory to serve
     public static void main(String [] args) {
         try {
             InetAddress host = InetAddress.getLocalHost();
@@ -1513,5 +1513,5 @@ public class TinyWebServer extends Thread {
             System.err.println(ioe);
         }
     }
-
+    */
 }
