@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<!DOCTYPE map
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN"
+         "http://java.sun.com/products/javahelp/map_1_0.dtd">
+
+<map version="1.0">
+
+  <mapID target="DashIcon" url="Images/pspdash.gif" />
+  <mapID target="TopLevelIcon" url="Images/toplevel.gif" />
+
+  <mapID target="Overview" url="Topics/Overview/Overview.html" />
+  <mapID target="QuickOverview" url="Topics/Overview/QuickOverview.html" />
+  <mapID target="HowToInstall" url="Topics/Overview/HowToInstall.html" />
+  <mapID target="GoalsOfPSPAndDashboard" url="Topics/Overview/GoalsOfPSPAndDashboard.html" />
+  <mapID target="QuickStartPSP0" url="Topics/Overview/QuickStartPSP0.html" />
+  <mapID target="QuickStartPSP3" url="Topics/Overview/QuickStartPSP3.html" />
+
+  <mapID target="Planning" url="Topics/Planning/Planning.html" />
+  <mapID target="EnteringData" url="Topics/Planning/EnteringData.html" />
+  <mapID target="UsingHierarchyEditor" url="Topics/Planning/UsingHierarchyEditor.html" />
+  <mapID target="UsingProbeTool" url="Topics/Planning/UsingProbeTool.html" />
+
+  <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
+  <mapID target="PlayPause" url="Topics/Execution/PlayPause.html" />
+  <mapID target="CompletionButton" url="Topics/Execution/CompletionButton.html" />
+  <mapID target="EnteringDefects" url="Topics/Execution/EnteringDefects.html" />
+  <mapID target="HierarchyMenus" url="Topics/Execution/HierarchyMenus.html" />
+
+  <mapID target="PostmortemAnalysis" url="Topics/PostmortemAnalysis/PostmortemAnalysis.html" />
+  <mapID target="DataChartsAndReports" url="Topics/PostmortemAnalysis/DataChartsAndReports.html" />
+  <mapID target="ExportingData" url="Topics/PostmortemAnalysis/ExportingData.html" />
+
+  <mapID target="CommonProblems" url="Topics/Troubleshooting/CommonProblems.html" />
+  <mapID target="ErrorMessages" url="Topics/Troubleshooting/ErrorMessages.html" />
+
+  <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
+  <mapID target="CreatingNewProcesses" url="Topics/AdvancedTopics/CreatingNewProcesses.html" />
+  <mapID target="ModifytingExistingProcesses" url="Topics/AdvancedTopics/ModifytingExistingProcesses.html" />
+
+</map>

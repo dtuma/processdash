@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<!DOCTYPE toc
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 1.0//EN"
+         "http://java.sun.com/products/javahelp/toc_1_0.dtd">
+
+<toc version="1.0">
+  <tocitem image="TopLevelIcon" target="Overview" text="Process Dashboard Help">
+    <tocitem text="Overview">
+      <tocitem target="Overview" text="Overview of the Dashboard"/>
+      <tocitem target="HowToInstall" text="Installation instructions"/>
+      <tocitem target="GoalsOfPSPAndDashboard" text="The overall goals"/>
+      <tocitem target="QuickStartPSP0" text="Quick start example: PSP0"/>
+      <tocitem target="QuickStartPSP3" text="Quick start example: PSP3"/>
+    </tocitem>
+
+    <tocitem text="Planning">
+      <tocitem target="Planning" text="Why you should plan"/>
+      <tocitem target="EnteringData" text="Entering data into the dashboard"/>
+      <tocitem target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
+      <tocitem target="UsingProbeTool" text="Using the PROBE Tool"/>
+    </tocitem>
+
+    <tocitem text="Running the Dashboard">
+      <tocitem target="AccessingScripts" text="Accessing the online PSP scripts"/>
+      <tocitem target="PlayPause" text="Using the Play/Pause button to time your work"/>
+      <tocitem target="CompletionButton" text="Completing tasks with the completion button"/>
+      <tocitem target="EnteringDefects" text="Entering Defects"/>
+      <tocitem target="HierarchyMenus" text="Navigating the Hierarchy menus"/>
+    </tocitem>
+
+    <tocitem text="Postmortem Analysis">
+      <tocitem target="PostmortemAnalysis" text="Why you should have a postmortem"/>
+      <tocitem target="DataChartsAndReports" text="Creating reports and charts"/>
+      <tocitem target="ExportingData" text="Exporting your data to MS Excel"/>
+    </tocitem>
+
+    <tocitem text="TroubleShooting">
+      <tocitem target="CommonProblems" text="Common problems you may run into"/>
+      <tocitem target="ErrorMessages" text="Error messages"/>
+    </tocitem>
+
+    <tocitem text="Advanced Topics">
+      <tocitem target="ConfigurationFile" text="The configuration file"/>
+      <tocitem target="ModifyingExistingProcesses" text="Modifying the existing processes"/>
+      <tocitem target="CreatingNewProcesses" text="Creating your own processes"/>
+    </tocitem>
+
+  </tocitem>
+</toc>
