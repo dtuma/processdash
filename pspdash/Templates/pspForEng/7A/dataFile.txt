@@ -50,7 +50,6 @@ Code/Estimated Defects Removed=?NaN
 Code Review/Estimated Defects Removed=?NaN
 Compile/Estimated Defects Removed=?NaN
 Test/Estimated Defects Removed=?NaN
-After Development/Estimated Defects Removed=?NaN
 Estimated Defects Removed=?NaN
 
 = Students must manually calculate defect removal efficiency metrics for 7A.
