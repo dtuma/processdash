@@ -144,9 +144,9 @@ Authors:
   <target name="compile" depends="init,parser"
         description="Compile the main dashboard classes" >
 
-    <javac srcdir="${src}" destdir="${build}" debug="${debug}"
+    <!-- javac srcdir="${src}" destdir="${build}" debug="${debug}"
            classpathref="build.perl.classpath"
-	   includes="pspdash/Perl5Util.java"/>
+	   includes="pspdash/Perl5Util.java"/ -->
 
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
@@ -412,7 +412,7 @@ Authors:
 	<exclude name="META-INF/"/>
       </zipfileset>
 
-      <zipfileset src="${lib}/PerlTools.jar" excludes="META-INF/ meta-inf/"/>
+      <!-- zipfileset src="${lib}/PerlTools.jar" excludes="META-INF/ meta-inf/"/ -->
       <zipfileset src="${lib}/jregex.jar"    excludes="META-INF/ meta-inf/"/>
       <zipfileset src="${lib}/jaxp.jar"      excludes="META-INF/ meta-inf/"/>
       <zipfileset src="${lib}/crimson.jar"   excludes="META-INF/ meta-inf/"/>
@@ -441,7 +441,8 @@ Authors:
     </pathconvert>
     <pathconvert property=".jhfilelist" pathsep=":" dirsep="/">
       <path>
-        <fileset dir="${help}" includes="Topics/**/*.html"/>
+        <fileset dir="${help}" includes="Topics/**/*.html"
+	 excludes="Topics/Overview/disc-eng.html"/>
       </path>
     </pathconvert>
     <echo message="${.jhfilelist}" file="${help}/help.config"/>
@@ -462,7 +463,20 @@ Authors:
   <!-- regenerate the "book.html" file -->
   <target name="-javahelp-book" depends="-javahelp-depend"
           unless="javahelp.upToDate">
-    <echo message="TODO: rebuild book.html"/>
+    <exec dir="${help}" executable="perl" failifexecutionfails="false">
+      <arg value="makeTOC.pl"/>
+    </exec>
+    <exec dir="${help}" executable="perl" failifexecutionfails="false">
+      <arg value="makeSkeleton.pl"/>
+    </exec>
+    <java classpath="${lib}/DocSpider.jar" classname="DocSpider"
+          fork="true" dir="${help}">
+      <arg value="Skeleton.html"/>
+      <arg value="book.html"/>
+      <arg value="none"/>
+      <arg value="-nostatus"/>
+    </java>
+    <delete file="${help}/Skeleton.html"/>
   </target>
 
   <!-- check to see if help needs updating -->
