@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -71,6 +71,22 @@ public class EVTaskListRollup extends EVTaskList {
             ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
     }
 
+    /** For unit testing purposes only! */
+    EVTaskListRollup(String taskListName, List taskLists) {
+        super(taskListName, taskListName, false);
+        evTaskLists = new Vector(taskLists);
+        Iterator i = taskLists.iterator();
+        int count = 0;
+        while (i.hasNext()) {
+            EVTaskList taskList = (EVTaskList) i.next();
+            EVTask taskListRoot = (EVTask) taskList.root;
+            //taskListRoot.fullName = "task list " + count++;
+            ((EVTask) root).add(taskListRoot);
+        }
+        schedule = new EVScheduleRollup(evTaskLists);
+        calculator = new EVCalculatorRollup
+            ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
+    }
 
     private void addTaskListsFromData(DataRepository data,
                                       PSPProperties hierarchy,
