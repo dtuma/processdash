@@ -222,7 +222,7 @@ public class Win_Shortcut extends Shortcut
  /*--------------------------------------------------------------------------*/
     public boolean supported ()
     {
-        return (true);
+        return shortcut != null;
     }
  /*--------------------------------------------------------------------------*/
  /**
