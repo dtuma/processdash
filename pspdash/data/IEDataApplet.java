@@ -29,6 +29,8 @@ package pspdash.data;
 
 
 import pspdash.Settings;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Vector;
 import java.lang.reflect.Constructor;
 import com.ms.osp.*;
@@ -44,18 +46,29 @@ public class IEDataApplet extends DataApplet {
 
 
     public void start() {
+        try {
 
-        /*
-         * The first order of business is to create our IEFieldManager. That way,
-         * if IE asks us for it while we are doing other things, it will exist.
-         */
-        mgr = new IEFieldManager(this);
-        browserGotManager = false;
+            /*
+             * The first order of business is to create our
+             * IEFieldManager. That way, if IE asks us for it while we are
+             * doing other things, it will exist.
+             */
+            mgr = new IEFieldManager(this);
+            browserGotManager = false;
 
-        super.start();              // initiate top-level DataApplet start().
+            super.start();              // initiate top-level DataApplet start().
 
-        // if (!browserGotManager)
-        notifyListeners();
+            // if (!browserGotManager)
+            notifyListeners();
+
+        } catch (Throwable t) {
+            System.out.println
+                ("The Microsoft Java Virtual Machine in your installation of\n"+
+                 "Internet Explorer appears to be incapable of supporting\n"+
+                 "the dashboard. The dashboard will attempt to use the Sun\n"+
+                 "Java Plug-in instead.");
+            redirectAndForcePlugin();
+        }
     }
 
 
@@ -125,4 +138,21 @@ public class IEDataApplet extends DataApplet {
         }
     }
     private static final Class[] CONSTRUCTOR_ARGS = { DataSourceListener.class };
+
+    private void redirectAndForcePlugin() {
+          try {
+              String urlStr = getParameter("docURL");
+              if (urlStr == null || urlStr.length() == 0)
+                  urlStr = getDocumentBase().toString();
+              if (urlStr.indexOf('?') == -1)
+                  urlStr = urlStr + "?ForceJavaPlugIn";
+              else
+                  urlStr = urlStr + "&ForceJavaPlugIn";
+
+              URL url = new URL(urlStr);
+              getAppletContext().showDocument(url, "_self");
+          } catch (IOException ioe) {
+              System.out.println(ioe);
+          }
+    }
 }
