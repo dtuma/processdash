@@ -44,14 +44,18 @@ public class expand extends pspdash.TinyCGIBase {
             getDataRepository().userPutValue(elem, expand);
 
         String referer = (String) env.get("HTTP_REFERER");
+        // if there is a hash fragment on the referer url, remove it.
+        int pos = referer.lastIndexOf('#');
+        if (pos != -1) referer = referer.substring(0, pos);
+
         String dest;
-        int pos = referer.lastIndexOf("expRel=");
+        pos = referer.lastIndexOf("expRel=");
         if (pos != -1 && referer.indexOf('&', pos) == -1)
             dest = referer.substring(0, pos) + "expRel=" + uniqueNumber++;
         else
             dest = referer + (referer.indexOf('?') == -1 ? "?" : "&") +
                 "expRel=" + uniqueNumber++;
-        out.print("Location: " + dest + "\r\n\r\n");
+        out.print("Location: " + dest + "#exp_"+elem.hashCode() + "\r\n\r\n");
     }
 
     protected void writeContents() {}
