@@ -89,6 +89,7 @@ public class ErrorReporter {
         errorList.append("</table></body></html>");
         JEditorPane jep = new JEditorPane("text/html", errorList.toString());
         jep.setEditable(false);
+        jep.setCaretPosition(0);
         JScrollPane scrollPane = new JScrollPane(jep);
         scrollPane.setPreferredSize(new java.awt.Dimension(200, 200));
 
