@@ -348,9 +348,12 @@ public class TinyWebServer extends Thread {
                 return resolveURL(url.substring(1));
 
             try {
-                URLConnection result = (new URL(base, url)).openConnection();
-                result.connect();
-                return result;
+                URL u = checkSafeURL(new URL(base, url));
+                if (u != null) {
+                    URLConnection result = u.openConnection();
+                    result.connect();
+                    return result;
+                }
             } catch (IOException a) { }
 
             sendError(404, "Not Found", "File '" + url + "' not found.");
@@ -880,11 +883,33 @@ public class TinyWebServer extends Thread {
         }
     }
 
+    private URL checkSafeURL(URL u) {
+        String urlString = u.toString();
+
+        // File URLs pointing to directories typically end with a slash
+        // automatically (although this isn't a documented behavior).
+        if (urlString.endsWith("/"))
+            return null;
+
+        for (int i = 0;  i < roots.length;  i++)
+            if (urlString.startsWith(roots[i].toString()))
+                return u;
+
+        return null;
+    }
+
     private URLConnection resolveURL(String url) {
         URL u;
         URLConnection result;
         for (int i = 0;  i < roots.length;  i++) try {
             u = new URL(roots[i], url);
+
+            // don't accept resolved URLs that aren't a child of the root!
+            String urlStr = u.toString();
+            if (!urlStr.startsWith(roots[i].toString()) ||
+                urlStr.endsWith("/"))
+                continue;
+
             // System.out.println("trying url: " + u);
             result = u.openConnection();
             // System.out.println("connection opened.");
