@@ -55,5 +55,5 @@
 ## Template for an imported PSP project.
 ##
 
-PropertyKey<top><Import PSP Data>=Prop[][Import PSP Data][import/import.htm][import/dataFile.txt][][0][1][PropertyKey<top/Import PSP Data><Data Entry>]
+PropertyKey<top><Import PSP Data>=Prop[][Import PSP Data][import/import.htm][import/dataFile.txt][<][0][1][PropertyKey<top/Import PSP Data><Data Entry>]
 PropertyKey<top/Import PSP Data><Data Entry>=Prop[][][][][ME<>][0][0]
