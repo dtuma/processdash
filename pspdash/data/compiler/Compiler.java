@@ -27,6 +27,8 @@ package pspdash.data.compiler;
 
 import java.io.PushbackReader;
 import java.io.StringReader;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import pspdash.ResourcePool;
@@ -80,11 +82,26 @@ public class Compiler extends DepthFirstAdapter {
         return result;
     }
 
+    private static Map scriptCache =
+        Collections.synchronizedMap(new HashMap());
 
     public static CompiledScript compile(String expression)
         throws CompilationException
     {
-        return compile(compileVal(expression));
+        Object result = scriptCache.get(expression);
+        if (result instanceof CompiledScript)
+            return (CompiledScript) result;
+        if (result instanceof CompilationException)
+            throw (CompilationException) result;
+
+        try {
+            result = compile(compileVal(expression));
+            scriptCache.put(expression, result);
+            return (CompiledScript) result;
+        } catch (CompilationException e) {
+            scriptCache.put(expression, e);
+            throw e;
+        }
     }
 
 

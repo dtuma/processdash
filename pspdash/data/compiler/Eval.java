@@ -26,19 +26,10 @@
 package pspdash.data.compiler;
 
 import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
-import pspdash.data.DoubleData;
-import pspdash.data.ListData;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Eval extends AbstractFunction {
-
-    private static Map scriptCache =
-        Collections.synchronizedMap(new HashMap());
 
     /** Perform a procedure call.
      *
@@ -52,19 +43,7 @@ public class Eval extends AbstractFunction {
 
         String prefix = asString(getArg(arguments, 1));
 
-        CompiledScript script = (CompiledScript) scriptCache.get(expression);
-        if (script == null) {
-            if (scriptCache.containsKey(expression))
-                return null;
-
-            else try {
-                script = Compiler.compile(expression);
-                scriptCache.put(expression, script);
-            } catch (CompilationException e) {
-                scriptCache.put(expression, null);
-                return null;
-            }
-        }
+        CompiledScript script = Compiler.compile(expression);
 
         try {
             Stack stack = new ListStack();
