@@ -394,7 +394,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     public static final String NO_DATAFILE = "none";
 
     public static final String XML_HEADER =
-        "<?xml version='1.0'?>";
+        "<?xml version='1.0' encoding='UTF-8'?>";
     public static final String XML_DTD =
         "<!DOCTYPE node [\n" +
         "    <!ELEMENT node (node*)>\n" +
@@ -623,7 +623,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     }
 
     public void saveXML(String filename, String comment) throws IOException {
-        BufferedWriter out = new BufferedWriter(new RobustFileWriter(filename));
+        BufferedWriter out = new BufferedWriter
+            (new RobustFileWriter(filename, "UTF-8"));
         out.write(XML_HEADER);
         out.newLine();    out.newLine();
 
