@@ -38,6 +38,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
+import java.awt.GridLayout;
 import java.util.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -651,10 +652,12 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                     if (endIndex < 0)
                         endIndex = sDebug.length();
                     childID = sDebug.substring (0, endIndex);
+                    PropertyKey childKey = templates.getByID(childID);
                                          // if there isn't already a child with this name
                                          // or if the given template is rename-able,
-                    if (val.isUniqueChildName(childID) ||
-                        templateIsMalleable(childID))
+                    if (childKey == null ||
+                        (val.isUniqueChildName(Prop.unqualifiedName(childKey.name())) ||
+                         templateIsMalleable(childKey)))
                                          // then it's okay to allow adding this template.
                         allowedChildren.addElement (childID);
 //        System.out.println("Allowing Template " +
@@ -668,9 +671,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                     allowedChildren, valID, key.path());
     }
 
-    private boolean templateIsMalleable(String templateName) {
-        PropertyKey templateKey = new PropertyKey (PropertyKey.ROOT,
-                                                   templateName);
+    private boolean templateIsMalleable(PropertyKey templateKey) {
+        if (templateKey == null) return false;
         String status = templates.pget(templateKey).getStatus();
         if (status == null) return true;
         if (status.startsWith(NO_MOVE_CHAR + "" + NO_EDIT_CHAR) ||
@@ -684,6 +686,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                                    String id) {
         Prop      p;
         int       idx;
+        JMenu     addTemplateMenu = this.addTemplateMenu;
         JMenuItem menuItem;
         String    val;
         PropertyKey tKey = PropertyKey.ROOT;
@@ -715,12 +718,15 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                     continue;
             }
             val = templates.getChildName (tKey, ii);
+            String display = Prop.unqualifiedName(val);
 //      System.out.println("Update: passed " + val);
             enableMenu = true;
-            menuItem = addTemplateMenu.add(new JMenuItem(val));
+            if (addTemplateMenu.getItemCount() > 18)
+                addTemplateMenu = (JMenu) addTemplateMenu.add(new JMenu("More..."), 0);
+            menuItem = addTemplateMenu.add(new JMenuItem(display));
             menuItem.addActionListener(new AddTemplateAction(val));
         }
-        addTemplateMenu.setEnabled(enableMenu);
+        this.addTemplateMenu.setEnabled(enableMenu);
     }
 
     /**
