@@ -504,7 +504,7 @@ public class DefectLogEditor extends Component
         table = new ValidatingTable
             (resources.getStrings("Columns.", columns, ".Name"),
              null,
-             resources.getInts("Columns.", columns, ".Width"),
+             resources.getInts("Columns.", columns, ".Width_"),
              resources.getStrings("Columns.", columns, ".Tooltip"),
              null, null, 0, true, null,
              new boolean[] {false, false, false, // no columns editable

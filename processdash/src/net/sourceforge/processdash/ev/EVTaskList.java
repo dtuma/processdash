@@ -470,7 +470,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected static String[] colNames =
         resources.getStrings("TaskList.Columns.", COLUMN_KEYS, ".Name");
     public static int[] colWidths =
-        resources.getInts("TaskList.Columns.", COLUMN_KEYS, ".Width");
+        resources.getInts("TaskList.Columns.", COLUMN_KEYS, ".Width_");
     public static String[] toolTips =
         resources.getStrings("TaskList.Columns.", COLUMN_KEYS, ".Tooltip");
 

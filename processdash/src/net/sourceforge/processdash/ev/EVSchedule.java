@@ -1051,7 +1051,7 @@ public class EVSchedule implements TableModel {
     public static final String[] colNames =
         resources.getStrings("Schedule.Columns.", COLUMN_KEYS, ".Name");
     public static final int[] colWidths =
-        resources.getInts("Schedule.Columns.", COLUMN_KEYS, ".Width");
+        resources.getInts("Schedule.Columns.", COLUMN_KEYS, ".Width_");
     public static final String[] TOOL_TIPS =
         resources.getStrings("Schedule.Columns.", COLUMN_KEYS, ".Tooltip");
 

@@ -52,7 +52,7 @@ public class TimeLogReport extends TinyCGIBase {
         "</STYLE></HEAD>\n" +
         "<BODY><H1>${Title}%for path%</H1>\n" +
         "<TABLE BORDER><TR class=header>\n" +
-        "<TD>${Project__Task}</TD>\n" +
+        "<TD>${Project}</TD>\n" +
         "<TD>${Phase}</TD>\n" +
         "<TD>${Start_Time}</TD>\n" +
         "<TD>${Elapsed}</TD>\n" +

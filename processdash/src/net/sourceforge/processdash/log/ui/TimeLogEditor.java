@@ -855,7 +855,7 @@ public class TimeLogEditor extends Object
         table = new ValidatingTable
             (resources.getStrings("Columns.", COLUMN_KEYS, ".Name"),
              null,
-             resources.getInts("Columns.", COLUMN_KEYS, ".Width"),
+             resources.getInts("Columns.", COLUMN_KEYS, ".Width_"),
              resources.getStrings("Columns.", COLUMN_KEYS, ".Tooltip"),
              null, this, 0, true, null, null);
         retPanel.add ("Center", table);
