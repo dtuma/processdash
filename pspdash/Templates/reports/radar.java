@@ -43,9 +43,9 @@ public class radar extends pspdash.CGIChartBase {
                            data.catDataSource(), plot);
         chart.setLegend(null);
 
+        if (parameters.get("skipAxisLabels") != null)
+            ((RadarPlot) plot).setDrawAxisLabels(false);
         /*
-        if (parameters.get("skipWedgeLabels") != null)
-            plot.setDrawWedgeLabels(false);
         if (parameters.get("ellipse") != null)
             plot.setDrawCircle(false);
         String interiorSpacing = getParameter("interiorSpacing");

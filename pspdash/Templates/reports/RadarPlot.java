@@ -98,6 +98,9 @@ public class RadarPlot extends Plot {
     /** The color to use to draw the data polygon */
     protected Paint radarSeriesPaint;
 
+    /** Whether or not axis labels should be drawn */
+    protected boolean drawAxisLabels = true;
+
     /**
      * Constructs a new radar chart, using default attributes as required.
      */
@@ -369,6 +372,10 @@ public class RadarPlot extends Plot {
 
     }
 
+    public void setDrawAxisLabels(boolean draw) {
+        drawAxisLabels = draw;
+    }
+
     /**
      * Returns the dataset for the plot, cast as a CategoryDataSource.
      * <P>
@@ -486,11 +493,14 @@ public class RadarPlot extends Plot {
                                      (float)(deltaY*value));
                 }
 
-                // draw the label
-                double labelX = centerX + deltaX*(1+axisLabelGapPercent);
-                double labelY = centerY + deltaY*(1+axisLabelGapPercent);
-                String label = data.getSeriesName(axisNumber);
-                drawLabel(g2, radarArea, label, axisNumber, labelX, labelY);
+                if (drawAxisLabels) {
+                    // draw the label
+                    double labelX = centerX + deltaX*(1+axisLabelGapPercent);
+                    double labelY = centerY + deltaY*(1+axisLabelGapPercent);
+                    String label = data.getSeriesName(axisNumber);
+                    drawLabel(g2, radarArea, label, axisNumber, labelX,
+                              labelY);
+                }
 
             }
             gridShape.closePath();
