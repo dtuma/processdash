@@ -53,6 +53,7 @@ import javax.swing.tree.*;
 import javax.swing.text.JTextComponent;
 import pspdash.data.DataRepository;
 import pspdash.data.NumberData;
+import pspdash.data.NumberFunction;
 import pspdash.data.DoubleData;
 
 
@@ -74,9 +75,13 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     TimeLog    tl           = new TimeLog();
     Vector     currentLog   = new Vector();
     String     validateCell = null;
+    JButton    revertButton = null;
+    JButton    saveButton   = null;
+    JButton    addButton    = null;
 
     static final long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
 
+    boolean tableContainsRows = false;
 
     //
     // member functions
@@ -135,18 +140,53 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
         frame.addWindowListener( new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                frame.setVisible (false);
+                confirmClose(true);
             }
         });
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         applyFilter(false);
         cancelPostedChanges();
-        frame.pack();
+        setDirty(false);
+        frame.setSize(new Dimension(800, 400));
         frame.show();
     }
 
 
+    private static final Object CONFIRM_CLOSE_MSG =
+        "Do you want to save the changes you made to the time log?";
+    public void confirmClose(boolean showCancel) {
+        if (isDirty())
+            switch (JOptionPane.showConfirmDialog
+                    (frame, CONFIRM_CLOSE_MSG, "Save Changes?",
+                     showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
+                                : JOptionPane.YES_NO_OPTION)) {
+            case JOptionPane.CLOSED_OPTION:
+            case JOptionPane.CANCEL_OPTION:
+                return;                 // do nothing and abort.
+
+            case JOptionPane.YES_OPTION:
+                save();                 // save changes.
+                break;
+
+            case JOptionPane.NO_OPTION:
+                reload();               // revert changes.
+            }
+
+        frame.setVisible (false);   // close the time log window.
+    }
+
+    protected boolean dirtyFlag = false;
+    protected boolean isDirty() { return dirtyFlag; }
+    protected void setDirty (boolean isDirty) {
+        dirtyFlag = isDirty;
+        saveButton.setEnabled(isDirty);
+        revertButton.setEnabled(isDirty);
+    }
+
+
     void postTimeChange (PropertyKey key, long deltaMinutes) {
+        setDirty(true);
         //log the change for future action
         if (deltaMinutes == 0) // if no change, return
             return;
@@ -177,35 +217,29 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             // Get the posted changes (keys) and loop through them all
             Enumeration keys = postedChanges.keys();
             while (keys.hasMoreElements ()) {
-                PropertyKey k = (PropertyKey)keys.nextElement ();
-
                 // Store the change's key information into k, and data into l.
-                // Remove the change from the posted changes.
-                l = ((Long)postedChanges.remove (k)).longValue();
+                PropertyKey k = (PropertyKey)keys.nextElement ();
+                l = ((Long)postedChanges.get (k)).longValue();
                 if (l != 0) {
-                    thePath = k.path();
+                    thePath = k.path() + "/Time";
 
                     // Extract the data from the data repository that corresponds
                     // to the change we are currently applying.
-                    NumberData pt = (NumberData)data.getValue (thePath + "/Time");
+                    NumberData pt = (NumberData)data.getValue (thePath);
 
-                    l += (long)pt.getInteger ();
-
-                    // If the data is editable, make the change.
-                    if (pt.isEditable ()) {
-                        data.putValue (thePath + "/Time", new DoubleData (l));
+                    // Are they trying to log time against some node which performs
+                    // roll up only?  This is bad - don't allow it.
+                    if (pt instanceof NumberFunction) {
+                        System.err.println("Error in TimeLogEditor: time must be logged " +
+                                           "to phases (i.e. leaves of the hierarchy).");
+                        continue;
                     }
 
-                    else {
-                        // The data repository does not seem to keep track of the edit
-                        // status, so change the data anyway.
-                        pt.setEditable(true);
+                    if (pt != null)
+                        l += (long)pt.getInteger ();
 
-                        // Apply the change to the proper place in the data repository,
-                        // and restore the edit status.
-                        data.putValue (thePath + "/Time", new DoubleData (l));
-                        pt.setEditable(false);
-                    }
+                    // Save the new value into the data repository.
+                    data.putValue(thePath, new DoubleData(l, false));
                 }
             }
         }
@@ -264,6 +298,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         else
             s = s.substring (0, index) + "= " + formatTime (t);
         ((DefaultMutableTreeNode)node).setUserObject(s);
+        treeModel.nodeChanged((TreeNode) node);
 
         return t;
     }
@@ -278,7 +313,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
         setTimes (treeModel.getRoot(), tl.getTimes(fd, td));
 
-        treeModel.nodeStructureChanged((TreeNode)treeModel.getRoot());
+        //treeModel.nodeStructureChanged((TreeNode)treeModel.getRoot());
         tree.repaint(tree.getVisibleRect());
     }
 
@@ -305,6 +340,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         Enumeration filt = tl.filter (key, fd, td);
         currentLog.removeAllElements();
         model.setNumRows (0);
+        tableContainsRows = false;
         while (filt.hasMoreElements()) {
             tle = (TimeLogEntry)filt.nextElement();
             currentLog.addElement (tle);
@@ -314,6 +350,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                  formatTime (tle.minutesElapsed),
                  formatTime (tle.minutesInterrupt)};
             model.addRow(row);
+            tableContainsRows = true;
         }
         table.doResizeRepaint();
         if (resetTimes)
@@ -336,7 +373,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         switch (col) {
         case 0:                     //Logged To (key) (must exist in hierarchy)
             PropertyKey key = useProps.findExistingKey (newValue);
-            if (key == null) {
+            if (key == null || useProps.getNumChildren(key) > 0) {
                 rv = false;
                 table.table.setValueAt (tle.key.path(), row, col);
             } else {
@@ -428,7 +465,9 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
              String.valueOf (tle.minutesInterrupt)};
 
         ((VTableModel)table.table.getModel()).addRow(aRow);
+        tableContainsRows = true;
         currentLog.addElement (tl.add (tle));
+        setDirty(true);
         setTimes ();
     }
 
@@ -438,6 +477,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         TimeLogEntry tle = null;
         int rowBasedOn;
         DefaultMutableTreeNode selected;
+        PropertyKey key;
 
                             // try to base new row on the selected table row
         if ((rowBasedOn = aTable.getSelectedRow()) != -1)
@@ -448,11 +488,12 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             aTable.editingStopped (new ChangeEvent("Adding row: Stop edit"));
 
                               // else try to base new row on current tree selection
-        else if ((selected = getSelectedNode()) != null) {
-            PropertyKey key = treeModel.getPropKey(useProps, selected.getPath());
+        else if ((selected = getSelectedNode()) != null &&
+                 (key = treeModel.getPropKey(useProps, selected.getPath())) != null
+                 && (useProps.getNumChildren(key) == 0))
             tle = new TimeLogEntry (key, new Date(), 0, 0);
 
-        } else              // else try to base new row on last row of table
+        else              // else try to base new row on last row of table
             rowBasedOn = currentLog.size() - 1;
 
 
@@ -474,7 +515,9 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
              String.valueOf (tle.minutesElapsed),
              String.valueOf (tle.minutesInterrupt)};
         model.addRow(aRow);
+        tableContainsRows = true;
         currentLog.addElement (tl.add (tle));
+        setDirty(true);
         setTimes ();
         postTimeChange (tle.key, tle.minutesElapsed);
     }
@@ -495,6 +538,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             currentLog.removeElementAt (rowBasedOn);
         } catch (Exception e) {}
         tl.remove (tle);
+        setDirty(true);
         setTimes ();
         postTimeChange (tle.key, - tle.minutesElapsed);
     }
@@ -513,6 +557,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                     tle.minutesInterrupt += tle2.minutesInterrupt;
                     System.err.println("merging:"+tle+"+"+tle2);
                     tl.remove (tle2);
+                    setDirty(true);
                     try {                 // make sure that we only merge once
                         currentLog.removeElementAt (j);
                     } catch (Exception e) {}
@@ -547,7 +592,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         retPanel.add ("Center", table);
 
         JPanel btnPanel = new JPanel(false);
-        button = new JButton ("Add");
+        addButton = button = new JButton ("Add");
         button.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) { addRow(); }
         });
@@ -572,17 +617,28 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
     private JPanel constructControlPanel () {
         JPanel  retPanel = new JPanel(false);
-        JButton button;
 
-        button = new JButton ("Reload");
-        retPanel.add (button);
-        button.addActionListener (new ReloadAction ());
+        revertButton = new JButton ("Revert");
+        retPanel.add (revertButton);
+        revertButton.addActionListener (new ReloadAction ());
 
-        button = new JButton ("Apply");
-        retPanel.add (button);
-        button.addActionListener (new SaveAction ());
+        saveButton = new JButton ("Save");
+        retPanel.add (saveButton);
+        saveButton.addActionListener (new SaveAction ());
 
         return retPanel;
+    }
+
+    public void save() {
+        //if editing, stop edits
+        if (table.table.isEditing())
+            table.table.editingStopped
+                (new ChangeEvent("Saving Data: Stop edit"));
+        try {                     // save the time log
+            tl.save (dashboard.getTimeLog());
+        } catch (IOException ioe) {}
+        applyPostedChanges ();
+        setDirty(false);
     }
 
     public void reload() {
@@ -591,6 +647,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         } catch (IOException ioe) {}
         applyFilter(true);
         cancelPostedChanges ();
+        setDirty(false);
     }
 
     public void show() {
@@ -633,6 +690,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
         Prop val = useProps.pget (key);
         applyFilter (false);
+
+        addButton.setEnabled(tableContainsRows || val.getNumChildren() == 0);
     }
 
 
@@ -695,16 +754,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     // SaveAction responds to user clicking Save button.
     //
     class SaveAction extends Object implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            //if editing, stop edits
-            if (table.table.isEditing())
-                table.table.editingStopped
-                    (new ChangeEvent("Saving Data: Stop edit"));
-            try {                     // save the time log
-                tl.save (dashboard.getTimeLog());
-            } catch (IOException ioe) {}
-            applyPostedChanges ();
-        }
+        public void actionPerformed(ActionEvent e) { save(); }
     } // End of TimeLogEditor.SaveAction
 
 
