@@ -2453,13 +2453,15 @@ public class DataRepository implements Repository {
             return l.iterator();
         }
 
+        protected boolean saveDisabled = false;
+
         // saveDataFile - saves a set of data to the appropriate data file.  In
         // order to minimize data loss, data is first written to two temporary
         // files, out and backup.  Once this is successful, out is renamed to
         // the actual datafile.  Once the rename is successful, backup is
         // deleted.
         private void saveDatafile(DataFile datafile) {
-            if (datafile == null || datafile.file == null) return;
+            if (datafile == null || datafile.file == null || saveDisabled) return;
 
             // this flag should stay false until we are absolutely certain
             // that we have successfully saved the datafile.
