@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 import java.io.File;
@@ -39,11 +39,6 @@ public class LostDataFiles implements FilenameFilter {
                                                  // is lost
     private static String rejectFilter[] = {"tasks", "time.log"};
                                      // an exception to acceptFilter
-    private static String warnMsg =
-                             "\nThe above files are corrupt.  Running the\n" +
-                             "dashboard may cause data to become\n" +
-                             "UNRETRIEVABLE!  Do you wish to run the\n" +
-                             "dashboard and RISK LOSING DATA?\n";
 
     private String lostFiles[]; // contains the list of lost data files
 
@@ -111,11 +106,15 @@ public class LostDataFiles implements FilenameFilter {
             parent.dropSplashScreen();
 
             // Create an instance of the InfoDialog
-            response = JOptionPane.showConfirmDialog(parent ,
-                                                     this.printOut() + warnMsg,
-                                                     "CORRUPT DATA FOUND!",
-                                                     JOptionPane.YES_NO_OPTION,
-                                                     JOptionPane.ERROR_MESSAGE);
+            Resources r = Resources.getDashBundle("pspdash.PSPDashboard");
+            response = JOptionPane.showConfirmDialog
+                (parent,
+                 this.printOut() + "\n" + r.getString("Lost_Data_Message"),
+                 r.getString("Lost_Data_Title"),
+                 JOptionPane.YES_NO_OPTION,
+                 JOptionPane.ERROR_MESSAGE);
+
+
             if ((response == JOptionPane.NO_OPTION)||
                 (response == JOptionPane.CLOSED_OPTION)) {
                 return (false);
