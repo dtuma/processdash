@@ -47,10 +47,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     public void storeDependentColumn(String ID, int columnNumber) {
         if ("Task Size".equals(ID))
             sizeColumn = columnNumber;
-        else if ("Task Size Units".equals(ID))
+        else if ("Task Size Units".equals(ID)) {
             unitsColumn = columnNumber;
-        else if (!teamMemberColumns.contains(columnNumber))
-            teamMemberColumns.add(columnNumber);
+            teamMemberColumns = dataModel.getTeamMemberColumnIDs();
+        }
     }
 
 
