@@ -47,8 +47,9 @@ public class TaskScheduleChooser
 
     protected PSPDashboard dash;
     protected JDialog dialog = null;
-    protected JList list;
-    protected JButton newButton, cancelButton, okayButton;
+    protected JList list = null;
+    protected JButton newButton, renameButton, deleteButton,
+        cancelButton, okayButton;
 
     TaskScheduleChooser(PSPDashboard dash) {
         this(dash, EVTaskList.findTaskLists(dash.data));
@@ -61,38 +62,58 @@ public class TaskScheduleChooser
     }
 
 
-    private static final String DEFAULT_MSG =
-        "Choose a name for the new task & schedule template:";
     public void displayNewTemplateDialog(PSPDashboard dash) {
         if (dialog != null) dialog.dispose();
 
+        String taskName = getTemplateName
+            (dash, "Create New Schedule",
+             "Choose a name for the new task & schedule template:");
+
+        open(dash, taskName);
+    }
+
+    protected String getTemplateName(Component parent,
+                                     String title, String prompt) {
+
         String taskName = "";
-        Object message = DEFAULT_MSG;
+        Object message = prompt;
         while (true) {
             taskName = (String) JOptionPane.showInputDialog
-                (dash, message, "Create New Schedule",
+                (parent, message, title,
                  JOptionPane.PLAIN_MESSAGE, null, null, taskName);
 
 
-            if (taskName == null) return; // user cancelled input
+            if (taskName == null) return null; // user cancelled input
 
             taskName = taskName.trim();
 
             if (taskName.length() == 0)
                 message = new String[] {
-                    "Please enter a name for the new task &",
-                    "schedule template, or click cancel:" };
+                    "Please enter a template name, or click cancel.", prompt };
 
             else if (taskName.indexOf('/') != -1)
                 message = new String[] {
                     "The template name cannot contain the '/' character.",
-                    DEFAULT_MSG };
+                    prompt };
+
+            else if (templateExists(taskName))
+                message = new String[] {
+                    "There is already a template with the name '" +
+                    taskName + "'.",
+                    prompt };
 
             else
                 break;
         }
+        return taskName;
+    }
 
-        open(dash, taskName);
+    private boolean templateExists(String taskListName) {
+        String [] taskLists = EVTaskList.findTaskLists(dash.data);
+        for (int i = taskLists.length;   i-- > 0; )
+            if (taskListName.equals(taskLists[i]))
+                return true;
+        return false;
     }
 
     public void displayChooseTemplateDialog(PSPDashboard dash,
@@ -117,6 +138,14 @@ public class TaskScheduleChooser
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
         buttons.add(newButton = new JButton("New..."));
         newButton.addActionListener(this);
+
+        buttons.add(renameButton = new JButton("Rename..."));
+        renameButton.addActionListener(this);
+        renameButton.setEnabled(false);
+
+        buttons.add(deleteButton = new JButton("Delete..."));
+        deleteButton.addActionListener(this);
+        deleteButton.setEnabled(false);
 
         buttons.add(cancelButton = new JButton("Cancel"));
         cancelButton.addActionListener(this);
@@ -151,7 +180,10 @@ public class TaskScheduleChooser
 
 
     public void valueChanged(ListSelectionEvent e) {
-        okayButton.setEnabled(!list.getSelectionModel().isSelectionEmpty());
+        boolean itemSelected = !list.getSelectionModel().isSelectionEmpty();
+        renameButton.setEnabled(itemSelected);
+        deleteButton.setEnabled(itemSelected);
+        okayButton.setEnabled(itemSelected);
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -159,6 +191,10 @@ public class TaskScheduleChooser
             openSelectedTaskList();
         else if (e.getSource() == newButton)
             displayNewTemplateDialog(dash);
+        else if (e.getSource() == renameButton)
+            renameSelectedTaskList();
+        else if (e.getSource() == deleteButton)
+            deleteSelectedTaskList();
         else if (e.getSource() == cancelButton)
             dialog.dispose();
     }
@@ -166,6 +202,48 @@ public class TaskScheduleChooser
     protected void openSelectedTaskList() {
         open(dash, (String) list.getSelectedValue());
         if (dialog != null) dialog.dispose();
+    }
+
+    protected void renameSelectedTaskList() {
+        String taskListName = (String) list.getSelectedValue();
+        if (taskListName == null) return;
+
+        String newName = getTemplateName
+            (dialog, "Rename Schedule",
+             "Choose a new name for the task & schedule template '" +
+             taskListName + "':");
+
+        if (newName != null) {
+            EVTaskList taskList =
+                new EVTaskList(taskListName, dash.data, dash.props, false);
+            taskList.save(newName);
+            refreshList();
+            dialog.toFront();
+        }
+    }
+
+    protected void deleteSelectedTaskList() {
+        String taskListName = (String) list.getSelectedValue();
+        if (taskListName == null) return;
+
+        String message = "Are you certain you want to delete the task" +
+            " & schedule template '" + taskListName + "'?";
+        if (JOptionPane.showConfirmDialog(dialog,
+                                          message,
+                                          "Confirm Schedule Deletion",
+                                          JOptionPane.YES_NO_OPTION,
+                                          JOptionPane.QUESTION_MESSAGE)
+            == JOptionPane.YES_OPTION) {
+            EVTaskList taskList =
+                new EVTaskList(taskListName, dash.data, dash.props, false);
+            taskList.save(null);
+            refreshList();
+            dialog.toFront();
+        }
+    }
+
+    protected void refreshList() {
+        list.setListData(EVTaskList.findTaskLists(dash.data));
     }
 
     public static void closeAll() {

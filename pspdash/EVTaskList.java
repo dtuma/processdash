@@ -129,18 +129,20 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         // Now, save the data to the repository.
-        globalPrefix = MAIN_DATA_PREFIX + newName;
-        ordinalPrefix = TASK_ORDINAL_PREFIX + newName;
-        EVTask r = (EVTask) root;
-        for (int j = r.getNumChildren();  j-- > 0;  ) {
-            dataName = data.createDataName(r.getChild(j).getFullName(),
-                                           ordinalPrefix);
-            data.putValue(dataName, new DoubleData(j, false));
+        if (newName != null) {
+            globalPrefix = MAIN_DATA_PREFIX + newName;
+            ordinalPrefix = TASK_ORDINAL_PREFIX + newName;
+            EVTask r = (EVTask) root;
+            for (int j = r.getNumChildren();  j-- > 0;  ) {
+                dataName = data.createDataName(r.getChild(j).getFullName(),
+                                               ordinalPrefix);
+                data.putValue(dataName, new DoubleData(j, false));
+                oldNames.remove(dataName);
+            }
+            dataName = data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
+            data.putValue(dataName, schedule.getSaveList());
             oldNames.remove(dataName);
         }
-        dataName = data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
-        data.putValue(dataName, schedule.getSaveList());
-        oldNames.remove(dataName);
 
         // Finally, delete any old unused data elements.
         i = oldNames.iterator();
