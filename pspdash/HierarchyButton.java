@@ -109,9 +109,37 @@ public class HierarchyButton implements ActionListener {
         }
     }
 
+    public boolean setPath(String path) {
+        if (path == null || path.length() == 0) return true;
+
+        // remove the / from the beginning, if it is present.
+        if (path.charAt(0) == '/')
+            path = path.substring(1);
+
+        String childName, rest;
+        int slashPos = path.indexOf('/');
+
+        if (slashPos == -1) {
+            childName = path;
+            rest = null;
+        } else {
+            childName = path.substring(0, slashPos);
+            rest = path.substring(slashPos+1);
+        }
+
+        if (selectChild(childName))
+            return child.setPath(rest);
+        else
+            return false;
+    }
 
 
-    void selectChild(String name) {
+    /** Select the child with the given name.
+     *
+     * @return true if the selection was successful, false if no child
+     * with the given name exists.
+     */
+    boolean selectChild(String name) {
         //debug("selectChild.name = " + self + name);
 
         PSPProperties props = parent.getProperties ();
@@ -123,8 +151,11 @@ public class HierarchyButton implements ActionListener {
                 break;
             }
 
+        if (i == numChildren) // didn't find the named child?
+            return false;
+
         if ((child != null) && (props.getSelectedChild (self) == sel))
-            return;
+            return true;
 
         //debug("deleting old child");
         if (child != null) child.delete();
@@ -135,6 +166,7 @@ public class HierarchyButton implements ActionListener {
 
         //debug("creating new child"+sel);
         child = new HierarchyButton (parent, new PropertyKey (self, name));
+        return true;
     }
 
     public void workPerformed(DateData d) {
@@ -207,8 +239,8 @@ public class HierarchyButton implements ActionListener {
 
 //     public void selectFirst() {
 //       if (child != null) {
-//   	selectChild(parent.getProperties().getChildName(self, 0));
-//   	child.selectFirst();
+//      selectChild(parent.getProperties().getChildName(self, 0));
+//      child.selectFirst();
 //       }
 //     }
 
