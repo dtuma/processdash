@@ -82,7 +82,7 @@ public class NSDataApplet extends DataApplet {
 
     public void notifyListener(Object id) {
         debug("NSDataApplet.notifyListener("+id+")");
-        if (mgr != null)
+        if (isRunning && mgr != null)
             mgr.notifyListener(id);
     }
 
