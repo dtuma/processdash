@@ -30,18 +30,20 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.Enumeration;
+import java.util.Vector;
 import java.util.StringTokenizer;
 
 public class FlexibleDateFormat extends SimpleDateFormat {
 
-    private LinkedList formatList;
-    private LinkedList timeOnlyList;
+    // NOTE: For full applet support, this class needs to run in JRE1.1
+
+    private Vector formatList;
+    private Vector timeOnlyList;
 
     public FlexibleDateFormat(String formats) {
-        formatList = new LinkedList();
-        timeOnlyList = new LinkedList();
+        formatList = new Vector();
+        timeOnlyList = new Vector();
         if (formats != null)
             addFormats(formats);
         addDefaultFormats();
@@ -54,9 +56,9 @@ public class FlexibleDateFormat extends SimpleDateFormat {
     }
 
     public void addFormat(String format) {
-        if (formatList.isEmpty())
+        if (formatList.size() == 0)
             applyPattern(format);
-        formatList.add(new SimpleDateFormat(format));
+        formatList.addElement(new SimpleDateFormat(format));
     }
 
     private void addDefaultFormats() {
@@ -65,24 +67,24 @@ public class FlexibleDateFormat extends SimpleDateFormat {
 
         // add all date instances
         for (int i = 0; i < FMT.length; i++)
-            formatList.add(DateFormat.getDateInstance(FMT[i]));
+            formatList.addElement(DateFormat.getDateInstance(FMT[i]));
 
         // add all date/time instances
         for (int i = 0; i < FMT.length; i++)
             for (int j = 0; i < FMT.length; i++)
-                formatList.add(DateFormat.getDateTimeInstance(FMT[i], FMT[j]));
+                formatList.addElement(DateFormat.getDateTimeInstance(FMT[i], FMT[j]));
 
         // add all time instances
         for (int i = 0; i < FMT.length; i++)
-            timeOnlyList.add(DateFormat.getTimeInstance(FMT[i]));
+            timeOnlyList.addElement(DateFormat.getTimeInstance(FMT[i]));
     }
 
 
     public void setLenient(boolean lenient) {
         super.setLenient(lenient);
-        Iterator i = formatList.iterator();
-        while (i.hasNext()) {
-            DateFormat fmt = (DateFormat) i.next();
+        Enumeration e = formatList.elements();
+        while (e.hasMoreElements()) {
+            DateFormat fmt = (DateFormat) e.nextElement();
             fmt.setLenient(lenient);
         }
     }
@@ -93,17 +95,17 @@ public class FlexibleDateFormat extends SimpleDateFormat {
         Date result = super.parse(text, pos);
         if (result != null) return result;
 
-        Iterator i = formatList.iterator();
-        while (i.hasNext()) {
-            DateFormat fmt = (DateFormat) i.next();
+        Enumeration e = formatList.elements();
+        while (e.hasMoreElements()) {
+            DateFormat fmt = (DateFormat) e.nextElement();
             pos.setIndex(startPos);
             result = fmt.parse(text, pos);
             if (result != null) return result;
         }
 
-        i = timeOnlyList.iterator();
-        while (i.hasNext()) {
-            DateFormat fmt = (DateFormat) i.next();
+        e = timeOnlyList.elements();
+        while (e.hasMoreElements()) {
+            DateFormat fmt = (DateFormat) e.nextElement();
             pos.setIndex(startPos);
             result = fmt.parse(text, pos);
             if (result != null) return fixupDate(result);
