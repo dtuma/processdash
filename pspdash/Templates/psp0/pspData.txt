@@ -78,3 +78,26 @@
 [Test/Cumulative Defect Removal %] =
     [Compile/Cumulative Defect Removal %] +
     [Test/Defects Removed] / [Defects Removed];
+
+/*
+ * Calculations for the quality profile
+ */
+
+[Quality_Profile_1] = iff([Code/Time], 
+    [Design/Time] / ([Code/Time] * inherit("Target Design/Code Ratio")), 1);
+
+[Quality_Profile_2] = iff([Code/Time],
+    [Code Review/Time] / ([Code/Time] *
+			  inherit("Target Code Review/Code Ratio")), 1);
+
+[Quality_Profile_3] = iff([Compile/Defects Removed] and [Size], 
+    2 / (1 + [Compile/Defect Density] /
+	 inherit("Target Compile Defect Density")), 1);
+
+[Quality_Profile_4] = iff([Test/Defects Removed] and [Size],
+    2 / (1 + [Test/Defect Density] /
+	 inherit("Target Test Defect Density")), 1);
+
+[Quality_Profile_5] = iff([Design/Time], 
+    [Design Review/Time]  / ([Design/Time] *
+			     inherit("Target Design Review/Design Ratio")), 1);
