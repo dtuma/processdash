@@ -146,18 +146,7 @@ DATA_FILES=$(COMMON_FILES) \
 	SubtractionFunction.java \
 	SumList.java \
 	ValueFactory.java \
-	compiler/Compiler.java \
-	compiler/Count.java \
-	compiler/Defined.java \
-	compiler/Iff.java \
-	compiler/Indirect.java \
-	compiler/LogicOperators.java \
-	compiler/MathOperators.java \
-	compiler/Max.java \
-	compiler/Min.java \
-	compiler/RelationalOperators.java \
-	compiler/StringOperators.java \
-	compiler/Sumfor.java \
+	$(wildcard compiler/*.java) \
 	compiler/parser/Parser.java
 
 IE_CLASSES=$(subst .java,.class,$(IE_FILES))
