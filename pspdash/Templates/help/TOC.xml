@@ -49,7 +49,7 @@
     <tocitem text="Postmortem Analysis">
       <tocitem target="PostmortemAnalysis" text="Why you should have a postmortem"/>
       <tocitem target="DataChartsAndReports" text="Creating reports and charts"/>
-      <tocitem target="ExportingData" text="Exporting your data to MS Excel"/>
+      <tocitem target="ExportingData" text="Exporting your data"/>
     </tocitem>
 
     <tocitem text="TroubleShooting">
