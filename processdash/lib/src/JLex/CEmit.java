@@ -1,7 +1,11 @@
 
 package JLex;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.Enumeration;
+import java.util.zip.GZIPOutputStream;
 
 
 /***************************************************************
@@ -14,6 +18,7 @@ class CEmit
     **************************************************************/
   private CSpec m_spec;
   private java.io.PrintWriter m_outstream;
+  private File resourceDir;
 
   /***************************************************************
     Constants: Anchor Types
@@ -34,9 +39,11 @@ class CEmit
     **************************************************************/
   CEmit
     (
+     File resourceDir
      )
       {
 	reset();
+	this.resourceDir = resourceDir;
       }
 
   /***************************************************************
@@ -229,22 +236,22 @@ class CEmit
 	  }
 	  
 	  /* Constants */
-	  m_outstream.println("\tprivate final int YY_BUFFER_SIZE = 512;");
+	  m_outstream.println("\tprivate static final int YY_BUFFER_SIZE = 512;");
 
-	  m_outstream.println("\tprivate final int YY_F = -1;");
-	  m_outstream.println("\tprivate final int YY_NO_STATE = -1;");
+	  m_outstream.println("\tprivate static final int YY_F = -1;");
+	  m_outstream.println("\tprivate static final int YY_NO_STATE = -1;");
 
-	  m_outstream.println("\tprivate final int YY_NOT_ACCEPT = 0;");
-	  m_outstream.println("\tprivate final int YY_START = 1;");
-	  m_outstream.println("\tprivate final int YY_END = 2;");
-	  m_outstream.println("\tprivate final int YY_NO_ANCHOR = 4;");
+	  m_outstream.println("\tprivate static final int YY_NOT_ACCEPT = 0;");
+	  m_outstream.println("\tprivate static final int YY_START = 1;");
+	  m_outstream.println("\tprivate static final int YY_END = 2;");
+	  m_outstream.println("\tprivate static final int YY_NO_ANCHOR = 4;");
 
 	  // internal
-	  m_outstream.println("\tprivate final int YY_BOL = "+m_spec.BOL+";");
-	  m_outstream.println("\tprivate final int YY_EOF = "+m_spec.EOF+";");
+	  m_outstream.println("\tprivate static final int YY_BOL = "+m_spec.BOL+";");
+	  m_outstream.println("\tprivate static final int YY_EOF = "+m_spec.EOF+";");
 	  // external
 	  if (m_spec.m_integer_type || true == m_spec.m_yyeof)
-	    m_outstream.println("\tpublic final int YYEOF = -1;");
+	    m_outstream.println("\tpublic static final int YYEOF = -1;");
 	  
           /* User specified class code. */
 	  if (null != m_spec.m_class_code)
@@ -301,7 +308,7 @@ class CEmit
 
 	  m_outstream.println("\t\tthis ();");	  
 	  m_outstream.println("\t\tif (null == reader) {");
-	  m_outstream.println("\t\t\tthrow (new Error(\"Error: Bad input "
+	  m_outstream.println("\t\t\tthrow (new NullPointerException(\"Error: Bad input "
 				 + "stream initializer.\"));");
 	  m_outstream.println("\t\t}");
 	  m_outstream.println("\t\tyy_reader = new java.io.BufferedReader(reader);");
@@ -332,7 +339,7 @@ class CEmit
 	  
 	  m_outstream.println("\t\tthis ();");	  
 	  m_outstream.println("\t\tif (null == instream) {");
-	  m_outstream.println("\t\t\tthrow (new Error(\"Error: Bad input "
+	  m_outstream.println("\t\t\tthrow (new NullPointerException(\"Error: Bad input "
 				 + "stream initializer.\"));");
 	  m_outstream.println("\t\t}");
 	  m_outstream.println("\t\tyy_reader = new java.io.BufferedReader(new java.io.InputStreamReader(instream));");
@@ -341,7 +348,8 @@ class CEmit
 
 
 	  /* Function: third, private constructor - only for internal use */
-	  m_outstream.print("\tprivate ");
+	  // TUMA - make public
+	  m_outstream.print("\tpublic ");
           m_outstream.print(new String(m_spec.m_class_name));
 	  m_outstream.print(" ()");
 	  
@@ -358,6 +366,8 @@ class CEmit
 	      m_outstream.println(" {");
 	    }
 	  
+	  m_outstream.println("\t\tif (unpackResourceFailed) throw "+
+			      "new NullPointerException();");
 	  m_outstream.println("\t\tyy_buffer = new char[YY_BUFFER_SIZE];");
 	  m_outstream.println("\t\tyy_buffer_read = 0;");
 	  m_outstream.println("\t\tyy_buffer_index = 0;");
@@ -415,7 +425,7 @@ class CEmit
 		  CUtility.ASSERT(null != state);
 		}
 	      
-	      m_outstream.println("\tprivate final int " 
+	      m_outstream.println("\tprivate static final int " 
 				     + state 
 				     + " = " 
 				     + (m_spec.m_states.get(state)).toString() 
@@ -423,7 +433,7 @@ class CEmit
 	      /*++index;*/
 	    }
 
-	  m_outstream.println("\tprivate final int yy_state_dtrans[] = {");
+	  m_outstream.println("\tprivate static final int yy_state_dtrans[] = {");
 	  for (index = 0; index < m_spec.m_state_dtrans.length; ++index)
 	    {
 	      m_outstream.print("\t\t" + m_spec.m_state_dtrans[index]);
@@ -509,31 +519,18 @@ class CEmit
 	m_outstream.println("\t\t}");
 	m_outstream.println();
 
-	m_outstream.println("\t\tif (0 != yy_buffer_start) {");
-	m_outstream.println("\t\t\ti = yy_buffer_start;");
-	m_outstream.println("\t\t\tj = 0;");
-	m_outstream.println("\t\t\twhile (i < yy_buffer_read) {");
-	m_outstream.println("\t\t\t\tyy_buffer[j] = yy_buffer[i];");
-	m_outstream.println("\t\t\t\t++i;");
-	m_outstream.println("\t\t\t\t++j;");
-	m_outstream.println("\t\t\t}");
-	m_outstream.println("\t\t\tyy_buffer_end = yy_buffer_end - yy_buffer_start;");
-	m_outstream.println("\t\t\tyy_buffer_start = 0;");
-	m_outstream.println("\t\t\tyy_buffer_read = j;");
-	m_outstream.println("\t\t\tyy_buffer_index = j;");
-	m_outstream.println("\t\t\tnext_read = yy_reader.read(yy_buffer,");
-	m_outstream.println("\t\t\t\t\tyy_buffer_read,");
-	m_outstream.println("\t\t\t\t\tyy_buffer.length - yy_buffer_read);");
-	m_outstream.println("\t\t\tif (-1 == next_read) {");
-	m_outstream.println("\t\t\t\treturn YY_EOF;");
-	m_outstream.println("\t\t\t}");
-	m_outstream.println("\t\t\tyy_buffer_read = yy_buffer_read + next_read;");
-	m_outstream.println("\t\t}");
-	m_outstream.println();
-
 	m_outstream.println("\t\twhile (yy_buffer_index >= yy_buffer_read) {");
 	m_outstream.println("\t\t\tif (yy_buffer_index >= yy_buffer.length) {");
-	m_outstream.println("\t\t\t\tyy_buffer = yy_double(yy_buffer);");
+	m_outstream.println("\t\t\t\tif (yy_buffer_start == 0) {");
+	m_outstream.println("\t\t\t\t\tyy_buffer = yy_double(yy_buffer);");
+	m_outstream.println("\t\t\t\t} else {");
+	m_outstream.println("\t\t\t\t\tj = yy_buffer_read - yy_buffer_start;");
+	m_outstream.println("\t\t\t\t\tSystem.arraycopy(yy_buffer, yy_buffer_start, yy_buffer, 0, j);");
+	m_outstream.println("\t\t\t\t\tyy_buffer_end = yy_buffer_end - yy_buffer_start;");
+	m_outstream.println("\t\t\t\t\tyy_buffer_start = 0;");
+	m_outstream.println("\t\t\t\t\tyy_buffer_read = j;");
+	m_outstream.println("\t\t\t\t\tyy_buffer_index = j;");
+	m_outstream.println("\t\t\t\t}");
 	m_outstream.println("\t\t\t}");
 	m_outstream.println("\t\t\tnext_read = yy_reader.read(yy_buffer,");
 	m_outstream.println("\t\t\t\t\tyy_buffer_read,");
@@ -622,16 +619,15 @@ class CEmit
 	m_outstream.println("\t\tint i;");
 	m_outstream.println("\t\tchar newbuf[];");
 	m_outstream.println("\t\tnewbuf = new char[2*buf.length];");
-	m_outstream.println("\t\tfor (i = 0; i < buf.length; ++i) {");
-	m_outstream.println("\t\t\tnewbuf[i] = buf[i];");
-	m_outstream.println("\t\t}");
+	m_outstream.println("\t\tSystem.arraycopy(buf, 0, newbuf, 0, buf.length);");
 	m_outstream.println("\t\treturn newbuf;");
 	m_outstream.println("\t}");
 
 	/* Function: yy_error */
-	m_outstream.println("\tprivate final int YY_E_INTERNAL = 0;");
-	m_outstream.println("\tprivate final int YY_E_MATCH = 1;");
-	m_outstream.println("\tprivate java.lang.String yy_error_string[] = {");
+	m_outstream.println("\tprivate static final int YY_E_INTERNAL = 0;");
+	m_outstream.println("\tprivate static final int YY_E_MATCH = 1;");
+	m_outstream.println("\tprivate static final java.lang.String "+
+			    "yy_error_string[] = {");
 	m_outstream.println("\t\t\"Error: Internal error.\\n\",");
 	m_outstream.println("\t\t\"Error: Unmatched input.\\n\"");
 	m_outstream.println("\t};");
@@ -653,51 +649,24 @@ class CEmit
 	m_outstream.println("\t\treturn yy_acpt[current];");
 	m_outstream.println("\t}");*/
 
-
-	// Function: private int [][] unpackFromString(int size1, int size2, String st)
-	// Added 6/24/98 Raimondas Lencevicius
-	// May be made more efficient by replacing String operations
-	// Assumes correctly formed input String. Performs no error checking
-	m_outstream.println("\tprivate int[][] unpackFromString"+
-			    "(int size1, int size2, String st) {");
-	m_outstream.println("\t\tint colonIndex = -1;");
-	m_outstream.println("\t\tString lengthString;");
-	m_outstream.println("\t\tint sequenceLength = 0;");
-	m_outstream.println("\t\tint sequenceInteger = 0;");
-	m_outstream.println();
-	m_outstream.println("\t\tint commaIndex;");
-	m_outstream.println("\t\tString workString;");
-	m_outstream.println();
-	m_outstream.println("\t\tint res[][] = new int[size1][size2];");
-	m_outstream.println("\t\tfor (int i= 0; i < size1; i++) {");
-	m_outstream.println("\t\t\tfor (int j= 0; j < size2; j++) {");
-	m_outstream.println("\t\t\t\tif (sequenceLength != 0) {");
-	m_outstream.println("\t\t\t\t\tres[i][j] = sequenceInteger;");
-	m_outstream.println("\t\t\t\t\tsequenceLength--;");
-	m_outstream.println("\t\t\t\t\tcontinue;");
-	m_outstream.println("\t\t\t\t}");
-	m_outstream.println("\t\t\t\tcommaIndex = st.indexOf(',');");
-	m_outstream.println("\t\t\t\tworkString = (commaIndex==-1) ? st :");
-	m_outstream.println("\t\t\t\t\tst.substring(0, commaIndex);");
-	m_outstream.println("\t\t\t\tst = st.substring(commaIndex+1);");  
-	m_outstream.println("\t\t\t\tcolonIndex = workString.indexOf(':');");
-	m_outstream.println("\t\t\t\tif (colonIndex == -1) {");
-	m_outstream.println("\t\t\t\t\tres[i][j]=Integer.parseInt(workString);");
-	m_outstream.println("\t\t\t\t\tcontinue;");
-	m_outstream.println("\t\t\t\t}");
-	m_outstream.println("\t\t\t\tlengthString =");
-	m_outstream.println("\t\t\t\t\tworkString.substring(colonIndex+1);");
-	m_outstream.println("\t\t\t\tsequenceLength="+
-			    "Integer.parseInt(lengthString);");
-	m_outstream.println("\t\t\t\tworkString="+
-			    "workString.substring(0,colonIndex);");
-	m_outstream.println("\t\t\t\tsequenceInteger="+
-			    "Integer.parseInt(workString);");
-	m_outstream.println("\t\t\t\tres[i][j] = sequenceInteger;");
-	m_outstream.println("\t\t\t\tsequenceLength--;");
-	m_outstream.println("\t\t\t}");
+	m_outstream.println("\tprivate static boolean unpackResourceFailed "+
+			    "= false;");
+	m_outstream.println("\tprivate static Object unpackResource"+
+			    "(String name) {");
+	m_outstream.println("\t\ttry {");
+	m_outstream.println("\t\t\tjava.io.ObjectInputStream ois = "+
+			    "new java.io.ObjectInputStream ");
+	m_outstream.print("\t\t\t\t(new java.util.zip.GZIPInputStream(");
+	m_outstream.print(new String(m_spec.m_class_name));
+	m_outstream.print(".class.getResourceAsStream(\"" +
+                          new String(m_spec.m_class_name)+
+                          "_\"+name+\".dat\")));");
+	m_outstream.println("");
+	m_outstream.println("\t\t\treturn ois.readObject();");
+	m_outstream.println("\t\t} catch (Exception e) {");
+	m_outstream.println("\t\t\tunpackResourceFailed = true;");
+	m_outstream.println("\t\t\treturn null;");
 	m_outstream.println("\t\t}");
-	m_outstream.println("\t\treturn res;");
 	m_outstream.println("\t}");
       }
 
@@ -721,7 +690,7 @@ class CEmit
 	if (true == m_spec.m_public) {
 	  m_outstream.print("public ");
 	}
-	m_outstream.print("class ");
+	m_outstream.print("final class ");
 	m_outstream.print(new String(m_spec.m_class_name,0,
 					  m_spec.m_class_name.length));
         if (m_spec.m_implements_name.length > 0) {
@@ -755,13 +724,13 @@ class CEmit
 	    CUtility.ASSERT(null != m_outstream);
 	  }
 
-	m_outstream.println("\tprivate int yy_acpt[] = {");
+	// TUMA: Modified to use serialize_resource
 	size = m_spec.m_accept_vector.size();
+	byte yy_acpt[] = new byte[size];
 	for (elem = 0; elem < size; ++elem)
 	  {
 	    accept = (CAccept) m_spec.m_accept_vector.elementAt(elem);
 	    
-	    m_outstream.print("\t\t/* "+elem+" */ ");
 	    if (null != accept)
 	      {
 		is_start = (0 != (m_spec.m_anchor_array[elem] & CSpec.START));
@@ -769,48 +738,44 @@ class CEmit
 		
 		if (is_start && true == is_end)
 		  {
-		    m_outstream.print("YY_START | YY_END");
+		    yy_acpt[elem] = 3; // YY_START | YY_END
 		  }
 		else if (is_start)
 		  {
-		    m_outstream.print("YY_START");
+		    yy_acpt[elem] = 1; // YY_START
 		  }
 		else if (is_end)
 		  {
-		    m_outstream.print("YY_END");
+		    yy_acpt[elem] = 2; // YY_END
 		  }
 		else
 		  {
-		    m_outstream.print("YY_NO_ANCHOR");
+		    yy_acpt[elem] = 4; // YY_NO_ANCHOR
 		  }
 	      }
 	    else 
 	      {
-		m_outstream.print("YY_NOT_ACCEPT");
+		yy_acpt[elem] = 0; // YY_NOT_ACCEPT
 	      }
-	    
-	    if (elem < size - 1)
-	      {
-		m_outstream.print(",");
-	      }
-	    
-	    m_outstream.println();
 	  }
-	m_outstream.println("\t};");
+	serialize_object_resource(yy_acpt, "acpt");
+	m_outstream.println("\tprivate static final byte yy_acpt[] = " +
+                            "(byte[]) unpackResource(\"acpt\");");
+	m_outstream.println();
 
-	// CSA: modified yy_cmap to use string packing 9-Aug-1999
+	// TUMA: modified yy_cmap to use serialize resource
 	int[] yy_cmap = new int[m_spec.m_ccls_map.length];
 	for (i = 0; i < m_spec.m_ccls_map.length; ++i)
 	    yy_cmap[i] = m_spec.m_col_map[m_spec.m_ccls_map[i]];
-	m_outstream.print("\tprivate int yy_cmap[] = unpackFromString(");
-	emit_table_as_string(new int[][] { yy_cmap });
-	m_outstream.println(")[0];");
+	serialize_object_resource(yy_cmap, "cmap");
+	m_outstream.println("\tprivate static final int yy_cmap[] = " +
+                            "(int[]) unpackResource(\"cmap\");");
 	m_outstream.println();
 
-	// CSA: modified yy_rmap to use string packing 9-Aug-1999
-	m_outstream.print("\tprivate int yy_rmap[] = unpackFromString(");
-	emit_table_as_string(new int[][] { m_spec.m_row_map });
-	m_outstream.println(")[0];");
+	// TUMA: modified yy_rmap to use serialize resource
+	serialize_object_resource(m_spec.m_row_map, "rmap");
+	m_outstream.println("\tprivate static final int yy_rmap[] = " +
+                            "(int[]) unpackResource(\"rmap\");");
 	m_outstream.println();
 
 	// 6/24/98 Raimondas Lencevicius
@@ -823,11 +788,36 @@ class CEmit
 	    CUtility.ASSERT(dtrans.m_dtrans.length==m_spec.m_dtrans_ncols);
 	    yy_nxt[elem] = dtrans.m_dtrans;
 	}
-	m_outstream.print
-	  ("\tprivate int yy_nxt[][] = unpackFromString(");
-	emit_table_as_string(yy_nxt);
-	m_outstream.println(");");
+	serialize_object_resource(yy_nxt, "nxt");
+	m_outstream.println("\tprivate static final int yy_nxt[][] = " +
+                            "(int[][]) unpackResource(\"nxt\");");
 	m_outstream.println();
+      }
+
+  /***************************************************************
+    Function: emit_driver
+    Description: Output an integer table as a string.  Written by
+    Raimondas Lencevicius 6/24/98; reorganized by CSA 9-Aug-1999.
+    From his original comments:
+	   yy_nxt[][] values are coded into a string
+	   by printing integers and representing
+	   integer sequences as "value:length" pairs.
+    **************************************************************/
+  private void serialize_object_resource
+    (
+     Object o,
+     String name
+     )
+      throws java.io.IOException
+      {
+	String filename = new String(m_spec.m_class_name) + "_"+name+".dat";
+	File f = new File(resourceDir, filename);
+	FileOutputStream fileStr = new FileOutputStream(f);
+	GZIPOutputStream gzipStr = new GZIPOutputStream(fileStr);
+	ObjectOutputStream out = new ObjectOutputStream(gzipStr);
+	out.writeObject(o);
+	out.flush();
+	out.close();
       }
 
   /***************************************************************
