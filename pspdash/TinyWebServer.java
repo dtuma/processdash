@@ -216,8 +216,8 @@ public class TinyWebServer extends Thread {
         OutputStream outputStream = null;
         Writer headerOut = null;
         boolean isRunning = false;
-        IOException ioexception = null;
-        boolean errorEncountered = false, headerRead = false;
+        Exception exceptionEncountered = null;
+        boolean headerRead = false;
         Map env = null;
         String outputCharset = OUTPUT_CHARSET;
 
@@ -257,8 +257,17 @@ public class TinyWebServer extends Thread {
         public byte[] getOutput() throws IOException {
             if (outputStream instanceof ByteArrayOutputStream) {
                 run();
-                if (ioexception != null) throw ioexception;
-                if (errorEncountered) throw new IOException();
+                if (exceptionEncountered instanceof IOException)
+                    throw (IOException) exceptionEncountered;
+                if (exceptionEncountered != null) try {
+                    // this construct will cause the exception chaining
+                    // mechanism to be invoked in Java 1.4, but will still
+                    // compile and run in Java 1.3
+                    throw exceptionEncountered;
+                } catch (Exception ee) {
+                    throw new IOException();
+                }
+
                 return ((ByteArrayOutputStream) outputStream).toByteArray();
 
             } else
@@ -269,7 +278,7 @@ public class TinyWebServer extends Thread {
             close();
             inputStream = null;
             outputStream = null;
-            ioexception = null;
+            exceptionEncountered = null;
         }
 
         public synchronized void close() {
@@ -296,7 +305,8 @@ public class TinyWebServer extends Thread {
                 try {
                     handleRequest();
                 } catch (TinyWebThreadException twte) {
-                    errorEncountered = true;
+                    if (exceptionEncountered == null)
+                        exceptionEncountered = twte;
                 }
                 isRunning = false;
             }
@@ -479,11 +489,9 @@ public class TinyWebServer extends Thread {
 
                 script.service(inputStream, cgiOut, env);
             } catch (Exception cgie) {
+                this.exceptionEncountered = cgie;
                 if (tempFile != null) tempFile.delete();
-                if (cgie instanceof IOException)
-                    this.ioexception = (IOException) cgie;
                 if (clientSocket == null) {
-                    errorEncountered = true;
                     return;
                 } else if (cgie instanceof TinyCGIException) {
                     TinyCGIException tce = (TinyCGIException) cgie;
@@ -980,8 +988,10 @@ public class TinyWebServer extends Thread {
                                String otherHeaders )
             throws TinyWebThreadException
         {
+            TinyWebThreadException result = new TinyWebThreadException();
             try {
-                errorEncountered = true;
+                if (exceptionEncountered == null)
+                    exceptionEncountered = result;
                 discardHeader();
                 sendHeaders( status, title, "text/html", -1, -1, otherHeaders);
                 headerOut.write("<HTML><HEAD><TITLE>" + status + " " + title +
@@ -991,7 +1001,7 @@ public class TinyWebServer extends Thread {
                 headerOut.flush();
             } catch (IOException ioe) {
             }
-            throw new TinyWebThreadException();
+            throw result;
         }
 
         private boolean headersSent = false;
