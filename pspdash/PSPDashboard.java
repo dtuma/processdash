@@ -254,6 +254,29 @@ public class PSPDashboard extends JFrame implements WindowListener {
         }
     }
 
+    private static void ensureJRE13() {
+        String versionNum = System.getProperty("java.version");
+        if (versionNum.startsWith("1.2")) {
+            //Class.forName("javax.sound.sampled.Clip") == null) {
+            String vendorURL = System.getProperty("java.vendor.url");
+            JRE_REQ_MESSAGE[3] += versionNum + ".";
+            JRE_REQ_MESSAGE[5] += vendorURL;
+            JOptionPane.showMessageDialog(null, JRE_REQ_MESSAGE,
+                                          "JRE 1.3 Required",
+                                          JOptionPane.ERROR_MESSAGE);
+            Browser.launch(vendorURL);
+            System.exit(0);
+        }
+    }
+    private static final String[] JRE_REQ_MESSAGE = {
+        "You need to upgrade your Java Runtime Environment!  This",
+        "version of the Process Dashboard requires version 1.3 or",
+        "higher of the Java Runtime Environment.  You are currently",
+        "running Java Runtime Environment version ",
+        "    To download an updated version of the Java Runtime",
+        "Environment, visit   " };
+
+
     public void refreshHierarchy() {
         hierarchy.delete();
         hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
@@ -361,6 +384,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
     public static void main(String args[]) {
         ss = new SplashScreen(PSPDashboard.class.getResource("splash.gif"));
         ss.displayFor(3000);      // show for at least 3 seconds.
+
+        ensureJRE13();
 
         PSPDashboard dash = new PSPDashboard("Process Dashboard");
         DashController.setDashboard(dash);
