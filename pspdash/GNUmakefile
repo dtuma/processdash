@@ -88,6 +88,7 @@ $(CGI_CLASSES) : %.class : %.java
 clean:
 	cd build; $(MAKE) clean
 	cd data; $(MAKE) clean
+	rm $(CGI_CLASSES)
 
 
 new: clean all
