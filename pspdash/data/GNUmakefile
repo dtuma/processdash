@@ -32,11 +32,13 @@ SRC = ../..
 BIN_DATA = ../build
 BIN_IE = ../build/IE
 BIN_NS = ../build/NS
+BIN_DOM = ../build/DOM
 
 # Commands to run JDK tools
 MSJAVAC ?= //C/java/ms/SDK4.0/bin/jvc.exe
 MSCAB   ?= //c/java/ms/SDK4.0/bin/cabarc.exe
 JAVAC   ?= //C/java/sun/jdk1.2.2/bin/javac.exe
+JAVAC4  ?= //C/java/sun/jdk1.4/bin/javac.exe
 JAR     ?= //C/java/sun/jdk1.2.2/bin/jar.exe
 
 SABLECC ?= java -cp ../build/sablecc.jar org.sablecc.sablecc.SableCC
@@ -83,6 +85,16 @@ BROWSER_FILES=../DateFormatter.java \
 	RemoteException.java \
 	RepositoryClient.java \
 	StringInterpreter.java
+
+DOM_FILES=$(BROWSER_FILES) \
+	DOMCheckboxField.java \
+	DOMDataApplet.java \
+	DOMDelayedRedrawer.java \
+	DOMField.java \
+	DOMFieldManager.java \
+	DOMSelectField.java \
+	DOMTextField.java \
+	DOMTextAreaField.java
 
 NS_FILES=$(BROWSER_FILES) \
 	NSCheckboxField.java \
@@ -151,10 +163,12 @@ DATA_FILES=$(COMMON_FILES) \
 
 IE_CLASSES=$(subst .java,.class,$(IE_FILES))
 NS_CLASSES=$(subst .java,.class,$(NS_FILES))
+DOM_CLASSES=$(subst .java,.class,$(DOM_FILES))
 DATA_CLASSES=$(subst .java,.class,$(DATA_FILES))
 
 IE_CLASS_FILES=$(addprefix $(BIN_IE)/pspdash/data/,$(IE_CLASSES))
 NS_CLASS_FILES=$(addprefix $(BIN_NS)/pspdash/data/,$(NS_CLASSES))
+DOM_CLASS_FILES=$(addprefix $(BIN_DOM)/pspdash/data/,$(DOM_CLASSES))
 DATA_CLASS_FILES=$(addprefix $(BIN_DATA)/pspdash/data/,$(DATA_CLASSES))
 
 
@@ -217,6 +231,20 @@ $(BIN_NS)/pspdash/data/%.class: %.java
 	    -d $(BIN_NS) \
 	    $(NS_FILES)
 	cd $(BIN_NS); $(JAR) cf DataApplet.jar pspdash
+
+DOM: $(DOM_CLASS_FILES)
+
+$(BIN_DOM)/pspdash/data/%.class: %.java
+	mkdir -p $(BIN_DOM)
+#	rm -rf $(BIN_DOM)/pspdash $(BIN_DOM)/DataApplet.jar
+	@echo "********** Compiling DOMDataApplet..."
+	@$(JAVAC4) \
+	    -deprecation \
+	    -sourcepath $(SRC) \
+	    -d $(BIN_DOM) \
+	    $(DOM_FILES)
+	cd $(BIN_DOM); $(JAR) cf DOMDataApplet.jar pspdash
+	cp $(BIN_DOM)/DOMDataApplet.jar //c/temp/pfeTest/Templates/DOMDataApplet14.jar
 
 
 clean:
