@@ -45,13 +45,15 @@ public class HTMLPreprocessor {
 
     TinyWebServer web;
     DataRepository data;
+    PSPProperties props;
     Map env, params;
     String prefix;
     String defaultEchoEncoding = null;
 
 
     public HTMLPreprocessor(TinyWebServer web, DataRepository data, Map env) {
-        this(web, data, (String) env.get("PATH_TRANSLATED"), env, null);
+        this(web, data, (PSPProperties) env.get(TinyCGI.PSP_PROPERTIES),
+             (String) env.get("PATH_TRANSLATED"), env, null);
         QueryParser p = new QueryParser();
         try {
             p.parseInput((String) env.get("QUERY_STRING"));
@@ -60,9 +62,11 @@ public class HTMLPreprocessor {
     }
 
     public HTMLPreprocessor(TinyWebServer web, DataRepository data,
+                            PSPProperties props,
                             String prefix, Map env, Map params) {
         this.web = web;
         this.data = data;
+        this.props = props;
         this.prefix = (prefix == null ? "" : prefix);
         this.env = env;
         this.params = params;
@@ -75,6 +79,7 @@ public class HTMLPreprocessor {
         cachedTestExpressions.clear();
 
         numberBlocks(text, "foreach", "endfor", null, null);
+        numberBlocks(text, "fortree", "endtree", null, null);
         numberBlocks(text, "if", "endif", "else", "elif");
 
         DirectiveMatch dir;
@@ -90,8 +95,12 @@ public class HTMLPreprocessor {
                 processIfDirective(dir);
             else if ("incr".equals(dir.directive))
                 processIncrDirective(dir);
+            else if ("set".equals(dir.directive))
+                processSetDirective(dir);
             else if ("break".equals(dir.directive))
                 processBreakDirective(dir);
+            else if (blockMatch("fortree", dir.directive))
+                processForTreeDirective(dir);
             else
                 dir.replace("");
             pos = dir.end;
@@ -227,6 +236,151 @@ public class HTMLPreprocessor {
         foreach.replace("");
     }
 
+    /** process a fortree directive within the buffer */
+    private void processForTreeDirective(DirectiveMatch fortree) {
+        StringBuffer text = fortree.buf;
+        String blockNum = blockNum("fortree", fortree.directive);
+        // find the matching endtree.
+        DirectiveMatch endtree = new DirectiveMatch
+            (text, blockNum + "endtree", fortree.end, true);
+
+        if (!endtree.matches()) {
+            // if the endtree is missing, delete this directive and abort.
+            System.err.println
+                ("fortree directive without matching endtree - aborting.");
+            fortree.replace("");
+            return;
+        }
+
+        // determine the root prefix - possibly alter it based on the
+        // directive's value for the startAt attribute.
+        String rootPrefix = this.prefix;
+        String startAt = fortree.getAttribute("startAt");
+        if (startAt != null && startAt.length() > 0)
+            rootPrefix = rootPrefix + "/" + startAt;
+        PropertyKey rootNode = PropertyKey.fromPath(rootPrefix);
+
+        // get the expandName from the directive.
+        String expandName = fortree.getAttribute("expandName");
+
+        // should the root node be included?
+        boolean includeRoot =
+            "true".equalsIgnoreCase(fortree.getAttribute("includeRoot"));
+
+        // how deep should the iteration go?
+        int maxDepth = Integer.MAX_VALUE;
+        String depthStr = fortree.getAttribute("depth");
+        if (depthStr != null) try {
+            maxDepth = Integer.parseInt(depthStr);
+        } catch (Exception e) {}
+
+        // should the parent be displayed before or after children?
+        boolean parentLast =
+            "true".equalsIgnoreCase(fortree.getAttribute("parentLast"));
+
+        // iterate over the tree and calculate the resulting contents.
+        String loopContents = text.substring(fortree.end, endtree.begin);
+        StringBuffer replacement = new StringBuffer();
+        addSetDirective(replacement, "ROOT", rootPrefix);
+        recurseTreeNode(replacement, loopContents, rootNode, 0, "",
+                        expandName, includeRoot, maxDepth, parentLast);
+
+        // replace the directive with the iterated contents.  Note
+        // that we explicitly replace the initial fortree tag with an
+        // empty string, so the overall processing loop (in the
+        // preprocess method) will process these iterated contents.
+        text.replace(fortree.end, endtree.end, replacement.toString());
+        fortree.replace("");
+    }
+
+    private void addSetDirective(StringBuffer buf, String varName,
+                                 String value) {
+        buf.append(DIRECTIVE_START).append("set")
+            .append(" var=\"").append(varName);
+        if (value != null)
+            buf.append("\" value=\"").append(dirEncode(value));
+        buf.append("\" ").append(DIRECTIVE_END);
+    }
+
+    private void outputTreeNode(StringBuffer buf, String loopContents,
+                                PropertyKey node, int depth, String relPath,
+                                String expansionName, boolean isLeaf,
+                                boolean isExpanded)
+    {
+        addSetDirective(buf, "PATH", node.path());
+        if (relPath.length() == 0) {
+            addSetDirective(buf, "RELPATH", "");
+            addSetDirective(buf, "RELPATHLIST", null);
+        } else {
+            addSetDirective(buf, "RELPATH", relPath.substring(1));
+            addSetDirective(buf, "RELPATHLIST", "LIST=" + relPath + "/");
+        }
+        addSetDirective(buf, "NAME", node.name());
+        addSetDirective(buf, "DEPTH", Integer.toString(depth));
+        addSetDirective(buf, "ISLEAF", isLeaf ? "true" : null);
+        if (expansionName != null) {
+            addSetDirective(buf, "EXPANSIONNAME", expansionName);
+            addSetDirective(buf, "ISEXPANDED", isExpanded ? "true" : null);
+            addSetDirective(buf, "EXPANDLINK",
+                            makeExpansionLink(expansionName, isLeaf,
+                                              isExpanded));
+        }
+        buf.append(loopContents);
+    }
+
+    private void recurseTreeNode(StringBuffer buf, String loopContents,
+                                 PropertyKey node, int depth,
+                                 String relPath, String expandName,
+                                 boolean outputNode, int remainingDepth,
+                                 boolean parentLast)
+    {
+        boolean isLeaf = (props.getNumChildren(node) == 0);
+        String expansionName = makeExpansionName(relPath, expandName);
+        boolean isExpanded = (expandName == null ||
+                              outputNode == false ||
+                              testDataElem("["+expansionName+"]"));
+
+
+        if (outputNode && !parentLast)
+            outputTreeNode(buf, loopContents, node, depth, relPath,
+                           expansionName, isLeaf, isExpanded);
+
+        if (remainingDepth > 0 && isExpanded) {
+            int numKids = props.getNumChildren(node);
+            for (int i = 0;   i < numKids;  i++) {
+                PropertyKey child = props.getChildKey(node, i);
+                recurseTreeNode(buf, loopContents, child, depth+1,
+                                relPath+"/"+child.name(), expandName,
+                                true, remainingDepth-1, parentLast);
+            }
+        }
+
+        if (outputNode && parentLast)
+            outputTreeNode(buf, loopContents, node, depth, relPath,
+                           expansionName, isLeaf, isExpanded);
+    }
+
+    private String makeExpansionName(String relPath, String expandName) {
+        if (expandName == null) return null;
+        return expandName + relPath;
+    }
+    private String makeExpansionLink(String expansionName, boolean isLeaf,
+                                     boolean isExpanded) {
+        if (isLeaf) return LEAF_LINK;
+        String dataName = URLEncoder.encode(prefix + "/" + expansionName);
+        return StringUtils.findAndReplace
+            (isExpanded ? COLLAPSE_LINK : EXPAND_LINK, "###", dataName);
+    }
+    private static final String LEAF_LINK =
+        "<img width=9 height=9 src='/Images/blank.png'>";
+    private static final String COLLAPSE_LINK =
+        "<a border=0 href='/dash/expand.class?collapse=###'>"+
+        "<img border=0 width=9 height=9 src='/Images/minus.png'></a>";
+    private static final String EXPAND_LINK =
+        "<a border=0 href='/dash/expand.class?expand=###'>"+
+        "<img border=0 width=9 height=9 src='/Images/plus.png'></a>";
+
+
 
     /** process an if directive within the buffer */
     private void processIfDirective(DirectiveMatch ifdir) {
@@ -288,7 +442,7 @@ public class HTMLPreprocessor {
         if (result == null) {
             boolean test = false;
             boolean reverse = false;
-            boolean containsIncrementedVar = false;
+            boolean containsVolatileVar = false;
 
             // if the expression contains multiple OR clauses, evaluate
             // them individually and return true if one is true.
@@ -308,7 +462,7 @@ public class HTMLPreprocessor {
             RelationalExpression re = parseRelationalExpression(expression);
             if (re != null) {
                 test = re.test();
-                containsIncrementedVar = re.containsIncrementedVar;
+                containsVolatileVar = re.containsVolatileVar;
             } else {
                 String symbolName = cleanup(expression);
                 if (symbolName.startsWith("not") &&
@@ -316,8 +470,8 @@ public class HTMLPreprocessor {
                     reverse = true;
                     symbolName = cleanup(symbolName.substring(4));
                 }
-                if (incrVariables.contains(symbolName))
-                    containsIncrementedVar = true;
+                if (volatileVariables.contains(symbolName))
+                    containsVolatileVar = true;
 
                 if (!isNull(symbolName))
                     test = (symbolName.startsWith("[") ?
@@ -327,7 +481,7 @@ public class HTMLPreprocessor {
                     test = !test;
             }
             result = test ? Boolean.TRUE : Boolean.FALSE;
-            if (!containsIncrementedVar)
+            if (!containsVolatileVar)
                 cachedTestExpressions.put(expression, result);
         }
         return result.booleanValue();
@@ -335,7 +489,7 @@ public class HTMLPreprocessor {
 
     private class RelationalExpression {
         public String lhs, operator, rhs;
-        public boolean containsIncrementedVar = false;
+        public boolean containsVolatileVar = false;
         public boolean test() {
             if (lhs.length() == 0 || rhs.length() == 0) {
                 System.err.println
@@ -360,7 +514,7 @@ public class HTMLPreprocessor {
         private String getVal(String t) {
             if (t.startsWith("'")) return cleanup(t);
             t = cleanup(t);
-            if (incrVariables.contains(t)) containsIncrementedVar = true;
+            if (volatileVariables.contains(t)) containsVolatileVar = true;
             return getString(cleanup(t));
         }
         private boolean eq(String l, String r) {
@@ -404,7 +558,7 @@ public class HTMLPreprocessor {
         return result;
     }
 
-    private HashSet incrVariables = new HashSet();
+    private HashSet volatileVariables = new HashSet();
     private void processIncrDirective(DirectiveMatch incrDir) {
         String varName = cleanup(incrDir.contents);
         int numberValue = 0;
@@ -414,9 +568,20 @@ public class HTMLPreprocessor {
             numberValue = Integer.parseInt((String) param) + 1;
         } catch (NumberFormatException nfe) {}
         params.put(varName, Integer.toString(numberValue));
-        incrVariables.add(varName);
+        volatileVariables.add(varName);
 
         incrDir.replace("");
+    }
+
+    /** process a set directive within the buffer */
+    private void processSetDirective(DirectiveMatch setDir) {
+        String varName = setDir.getAttribute("var");
+        String valueName = setDir.getAttribute("value");
+
+        params.put(varName, valueName);
+        volatileVariables.add(varName);
+
+        setDir.replace("");
     }
 
     /** process a break directive within the buffer */
@@ -566,8 +731,13 @@ public class HTMLPreprocessor {
             if (param != null)
                 for (int i = 0;   i < param.length;   i++)
                     result.add(param[i]);
-            else if (params.get(listName) instanceof String)
-                result.add((String) params.get(listName));
+            else if (params.get(listName) instanceof String) {
+                String paramVal = (String) params.get(listName);
+                if (paramVal.startsWith("LIST="))
+                    return new ListData(paramVal.substring(5));
+                else
+                    result.add(paramVal);
+            }
 
             return result;
         }

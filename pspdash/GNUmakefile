@@ -53,6 +53,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/control/showTaskSchedule.java \
 	Templates/control/startTiming.java \
 	Templates/control/stopTiming.java \
+	Templates/dash/expand.java \
 	Templates/dash/file.java \
 	Templates/dash/pspdiff.java \
 	Templates/dash/pspdiffDialog.java \
