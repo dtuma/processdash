@@ -28,7 +28,9 @@ package net.sourceforge.processdash.i18n;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -85,8 +87,7 @@ public class Resources extends ResourceBundle {
 
 
     public Enumeration getKeys() {
-        // this isn't exactly accurate.  It won't include the
-        // inherited keys from our parent.
+        // This won't include keys we inherit from our parent.
         return delegate.getKeys();
     }
     public Locale getLocale() {
@@ -127,6 +128,16 @@ public class Resources extends ResourceBundle {
         }
     }
 
+    public Map asMap() {
+        Map result = new HashMap();
+        Enumeration e = getKeys();
+        while (e.hasMoreElements()) {
+            String key = (String) e.nextElement();
+            String value = getString(key);
+            result.put(key, value);
+        }
+        return result;
+    }
 
 
     private static Resources globalResources = null;
