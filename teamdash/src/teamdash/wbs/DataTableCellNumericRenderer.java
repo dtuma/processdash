@@ -40,7 +40,7 @@ class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
         Color errorColor = null;
 
         if (number != null) {
-            // extract informatio from the NumericDataValue object.
+            // extract information from the NumericDataValue object.
             display = number.isInvisible ? "" : number.toString();
             errorMsg = number.errorMessage;
             errorColor = number.errorColor;
