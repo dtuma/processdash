@@ -34,9 +34,11 @@ BIN_IE = ../Templates/IE
 BIN_NS = ../Templates/NS
 
 # Commands to run JDK tools
-MSJAVAC ?= //C/java/ms/SDK4.0/bin/jvc.exe
-JAVAC   ?= //C/java/sun/jdk1.2.2/bin/javac.exe
-JAR     ?= //C/java/sun/jdk1.2.2/bin/jar.exe
+JAVAC   ?= /usr/java/jdk1.3/bin/javac
+JAR     ?= /usr/java/jdk1.3/bin/jar
+
+# where are the MS specific jars?
+MSJARS  ?= ../../msjars
 
 # If using javac from JDK1.3, we need these dependencies.  They won't get 
 # automatically compiled even though they are explicitly imported by 
@@ -65,10 +67,9 @@ data: DataRepository.class $(EXTRAS)
 IE:
 	mkdir -p $(BIN_IE)
 	rm -rf $(BIN_IE)/pspdash
-	$(MSJAVAC) \
-	    /cp:p $(SRC) \
-	    /cp:p c:/WINDOWS/java/CLASSES/classes.zip \
-	    /d $(BIN_IE) \
+	$(JAVAC) \
+	    -classpath $(SRC):$(MSJARS)/msclasseszip.jar:$(MSJARS)/msospclasses.jar:$(MSJARS)/mswfcclasses.jar \
+	    -d $(BIN_IE) \
 	    IEDataApplet.java \
 	    IEFieldManager.java \
 	    OLEDBAlertWindow.java \
@@ -76,10 +77,9 @@ IE:
 	    ../DateFormatter.java
 	rm -f $(BIN_IE)/pspdash/data/OLEDBDSLWrapper.class \
 	      $(BIN_IE)/pspdash/data/OLEDBListenerWrapper.class
-	$(MSJAVAC) \
-	    /cp:p $(SRC) \
-	    /cp:p c:/WINDOWS/java/CLASSES/classes.zip \
-	    /d $(BIN_DATA) \
+	$(JAVAC) \
+	    -classpath $(SRC):$(MSJARS)/msclasseszip.jar:$(MSJARS)/msospclasses.jar:$(MSJARS)/mswfcclasses.jar \
+	    -d $(BIN_DATA) \
 	    OLEDBListenerWrapper.java \
 	    OLEDBDSLWrapper.java
 

@@ -25,7 +25,7 @@
 
 
 # Commands to run JDK tools
-JAR ?= //C/java/sun/jdk1.2.2/bin/jar.exe
+JAR ?= /usr/java/jdk1.3/bin/jar
 
 
 # non-class Files that need to be a part of the distribution jar file

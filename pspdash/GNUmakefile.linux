@@ -31,9 +31,8 @@ SRC = ..
 BIN = build
 
 # Commands to run JDK tools
-MSJAVAC ?= //c/java/ms/SDK3.2/bin/jvc.exe
-JAVAC   ?= //c/java/sun/jdk1.3/bin/javac.exe
-JAR     ?= //c/java/sun/jdk1.3/bin/jar.exe
+JAVAC   ?= /usr/java/jdk1.3/bin/javac
+JAR     ?= /usr/java/jdk1.3/bin/jar
 
 JAVA_FILES=$(wildcard *.java)
 CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
@@ -51,27 +50,27 @@ all: data pspdash
 
 
 install: all
-	cd build; $(MAKE)
+	cd build; $(MAKE) -f GNUmakefile.linux
 
 
 install-nt: all
-	cd build; $(MAKE) install-nt
+	cd build; $(MAKE) -f GNUmakefile.linux install-nt
 
 
 build: FORCE
-	cd build; $(MAKE)
+	cd build; $(MAKE) -f GNUmakefile.linux
 
 
 data: FORCE
-	cd data; $(MAKE) all
+	cd data; $(MAKE) -f GNUmakefile.linux all
 
 
 pspdash: PSPDashboard.class $(CLASS_FILES)
 
 
 clean:
-	cd build; $(MAKE) clean
-	cd data; $(MAKE) clean
+	cd build; $(MAKE) -f GNUmakefile.linux clean
+	cd data; $(MAKE) -f GNUmakefile.linux clean
 
 
 new: clean all
