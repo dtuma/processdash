@@ -163,7 +163,7 @@ public class InternalSettings extends Settings {
     static void loadLocaleSpecificDefaults(ResourceBundle resources) {
         defaults.put("dateFormat", resources.getString("Date_Format"));
         defaults.put("dateTimeFormat", resources.getString("Date_Time_Format"));
-        defaults.put("http.charset", resources.getString("HTTP_charset"));
+        defaults.put("http.charset", resources.getString("HTTP_charset_"));
     }
 
 }
