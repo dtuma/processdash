@@ -75,7 +75,7 @@ PropertyKey<top/PSP for Engineers/6A><Postmortem>=Prop[][][psp1.1/postmort.htm][
 
 # Report R4
 
-PropertyKey<top/PSP for Engineers><R4>=Prop[true][Generic][generic/summary.class][pspForEng/R4/dataFile.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers/R4><Planning>][PropertyKey<top/PSP for Engineers/R4><Postmortem>]
+PropertyKey<top/PSP for Engineers><R4>=Prop[true][Generic][generic/summary.class][pspForEng/R4/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers/R4><Planning>][PropertyKey<top/PSP for Engineers/R4><Postmortem>]
 PropertyKey<top/PSP for Engineers/R4><Planning>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/R4><Postmortem>=Prop[][][][][ME<>][0][0]
 
@@ -122,15 +122,27 @@ PropertyKey<top/PSP for Engineers/9A><Postmortem>=Prop[][][psp2.1/postmort.htm][
 
 # Program 10A
 
-PropertyKey<top/PSP for Engineers><10A>=Prop[true][PSP3][psp3/script.htm][pspForEng/10A/dataFile.txt][M<PSP3cycle(-1)<HLD Inspection(3)][0][4][PropertyKey<top/PSP for Engineers/10A><Planning>][PropertyKey<top/PSP for Engineers/10A><HLD>][PropertyKey<top/PSP for Engineers/10A><HLD Review>][PropertyKey<top/PSP for Engineers/10A><Postmortem>]
+PropertyKey<top/PSP for Engineers><10A>=Prop[true][PSP3][psp3/script.htm][pspForEng/10A/dataFile.txt][M<PSP3cycle(-1)<HLD Inspection(3)][0][5][PropertyKey<top/PSP for Engineers/10A><Planning>][PropertyKey<top/PSP for Engineers/10A><HLD>][PropertyKey<top/PSP for Engineers/10A><HLD Review>][PropertyKey<top/PSP for Engineers/10A><PSP3cycle>][PropertyKey<top/PSP for Engineers/10A><Postmortem>]
+
 PropertyKey<top/PSP for Engineers/10A><Planning>=Prop[][][psp3/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/10A><HLD>=Prop[][][psp3/hld.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/10A><HLD Review>=Prop[][][psp3/hldr.htm][][ME<>][0][0]
+
+PropertyKey<top/PSP for Engineers/10A><PSP3cycle>=Prop[][PSP3cycle][][psp3/cycleData.txt][<Design Inspection(2)<Code Inspection(-2)>PSP3][0][7][PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Design>][PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Design Review>][PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Code>][PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Code Review>][PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Compile>][PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Test>][PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Reassessment>]
+
+PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers/10A/PSP3cycle><Reassessment>=Prop[][][][][ME<>][0][0]
+
 PropertyKey<top/PSP for Engineers/10A><Postmortem>=Prop[][][psp3/postmort.htm][][ME<>][0][0]
 
 
 # Report R5
 
-PropertyKey<top/PSP for Engineers><R5>=Prop[true][Generic][generic/summary.class][pspForEng/R5/dataFile.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers/R5><Planning>][PropertyKey<top/PSP for Engineers/R5><Postmortem>]
+PropertyKey<top/PSP for Engineers><R5>=Prop[true][Generic][generic/summary.class][pspForEng/R5/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers/R5><Planning>][PropertyKey<top/PSP for Engineers/R5><Postmortem>]
 PropertyKey<top/PSP for Engineers/R5><Planning>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/R5><Postmortem>=Prop[][][][][ME<>][0][0]
