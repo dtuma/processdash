@@ -23,8 +23,9 @@
  */
 package com.izforge.izpack.ant;
 
+import java.io.File;
+
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 
@@ -136,9 +137,9 @@ public class IzPackTask extends org.apache.tools.ant.Task
      *
      * @param  input  New value of property input.
      */
-    public void setInput(String input)
+    public void setInput(File input)
     {
-        this.input = input;
+        this.input = input.getAbsolutePath();
     }
 
 
@@ -147,9 +148,9 @@ public class IzPackTask extends org.apache.tools.ant.Task
      *
      * @param  basedir  New value of property basedir.
      */
-    public void setBasedir(String basedir)
+    public void setBasedir(File basedir)
     {
-        this.basedir = basedir;
+        this.basedir = basedir.getAbsolutePath();
     }
 
 
@@ -158,9 +159,9 @@ public class IzPackTask extends org.apache.tools.ant.Task
      *
      * @param  output  New value of property output.
      */
-    public void setOutput(String output)
+    public void setOutput(File output)
     {
-        this.output = output;
+        this.output = output.getAbsolutePath();
     }
 
 
@@ -180,8 +181,9 @@ public class IzPackTask extends org.apache.tools.ant.Task
      *
      * @param  izPackDir  New value of property izPackDir.
      */
-    public void setIzPackDir(String izPackDir)
+    public void setIzPackDir(File izPackDirFile)
     {
+        String izPackDir = izPackDirFile.getAbsolutePath();
         if (!(izPackDir.endsWith("/")))
             izPackDir += "/";
         this.izPackDir = izPackDir;
