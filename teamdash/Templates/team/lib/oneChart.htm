@@ -1,0 +1,13 @@
+<!--#if q =~ 'chart=xy' -->
+    <!--#set var=chart value="xy.class" -->
+<!--#elif q =~ 'chart=pie' -->
+    <!--#set var=chart value="pie.class" -->
+<!--#elif q =~ 'chart=bar' -->
+    <!--#set var=chart value="bar.class" -->
+<!--#elif q =~ 'chart=radar' -->
+    <!--#set var=chart value="radar.class" -->
+<!--#else -->
+    <!--#set var=chart value="line.class" -->
+<!--#endif #-->
+<A HREF="../reports/[!--#echo fullURL --]?<!--#echo q -->"><img
+    src="../reports/<!--#echo chart -->?<!--#echo q -->&<!--#echo small -->"></a>

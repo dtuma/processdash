@@ -1,0 +1,22 @@
+<html>
+<head>
+<link rel=stylesheet type="text/css" href="style.css">
+<style>
+ body { margin: 0pt; padding: 2px }
+ h1   { margin: 0pt; padding: 0pt }
+ h2   { margin: 0pt; padding: 0pt }
+</style>
+</head>
+<body>
+
+[!--#if projectRoot --]
+  <h1>[!--#echo projectRoot --]</h1>
+  <h2><a target="contents" href="[!--#echo var=projectRoot encoding=url --]//<!--#echo Process_ID -->/setup/selectWBSFrame.class"><img border=0 src="hier.png"
+   alt="Navigate Hierarchy" style="margin-right:2px" width=16 height=23></a>[!--#echo wbsPath --]</h2>
+[!--#else--]
+  <h1>[!--#echo PATH_TRANSLATED --]</h1>
+  <h2><a target="contents" href="[!--#echo var=PATH_TRANSLATED encoding=url --]//<!--#echo Process_ID -->/setup/selectWBSFrame.class"><img border=0 src="hier.png" alt="Navigate Hierarchy" style="margin-right:2px" width=16 height=23></a>/</h2>
+[!--#endif--]
+
+</body>
+</html>

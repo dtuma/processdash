@@ -1,0 +1,18 @@
+<html>
+<head>
+<title><!--#echo Full_Name --> Project Summary</title>
+</head>
+
+<frameset cols="153,*" border>
+    <frame name="toc" src="summary_toc.shtm">
+    <frameset rows="75,*">
+        <frame name="name" src="setup/summaryName.class">
+	<!--#break comment-->
+	The hardcoded value of "src" in the next line means that this 
+	frameset will only work on the team side.  It will need to be
+	enhanced if this is to be used for other purposes.
+	<!--#endbreak comment #-->
+        <frame name="contents" src="rollup_plan_summary.shtm?frames">
+    </frameset>
+</frameset>
+</html>

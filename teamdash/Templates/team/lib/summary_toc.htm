@@ -1,0 +1,23 @@
+<html>
+<head>
+<link rel=stylesheet type="text/css" href="style.css">
+<style>
+   P  { margin-bottom: 0.6em; margin-top: 0.6em }
+</STYLE>
+</head>
+<BODY>
+
+<H2><!--#echo Full_Name --> Project Summary</H2>
+
+[!--#if [Project_Schedule_Name] --]
+<P><A HREF="/[!--#echo var='[Project_Schedule_Name]' encoding='url' --]//reports/ev.class" TARGET="contents">Earned Value</A>
+[!--#endif --]
+
+<P><A HREF="rollup_plan_summary.shtm?frames" TARGET="contents">Plan Summary</A>
+
+<P><A HREF="rollup_quality_summary.shtm?frames" TARGET="contents">Quality Summary</A>
+
+<P><A HREF="charts.shtm?frames" TARGET="contents">Analysis Charts</A>
+
+</BODY>
+</HTML>
