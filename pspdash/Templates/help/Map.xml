@@ -23,7 +23,15 @@
 
   <mapID target="ProcessScripts" url="Topics/Overview/ProcessScripts.html" />
   <mapID target="ChangeLog" url="Topics/Overview/ChangeLog.html" />
-  <mapID target="GPL" url="Topics/Overview/gpl.htm" />
+  <mapID target="Licenses" url="Topics/Overview/Licenses.html" />
+  <mapID target="GPL" url="Topics/Overview/gpl.html" />
+  <mapID target="LGPL" url="Topics/Overview/lgpl.html" />
+  <mapID target="JRegex" url="Topics/Overview/License-jregex.html" />
+  <mapID target="W3C" url="Topics/Overview/License-W3C.html" />
+  <mapID target="Apache" url="Topics/Overview/License-ASF.html" />
+  <mapID target="SunBerkeley" url="Topics/Overview/License-SunBerkeley.html" />
+  <mapID target="VisualNumerics" url="Topics/Overview/License-Sfun.html" />
+  <mapID target="JpegEncoder" url="Topics/Overview/License-Weeks.html" />
 
   <mapID target="Planning" url="Topics/Planning/Planning.html" />
   <mapID target="EnteringData" url="Topics/Planning/EnteringData.html" />
@@ -123,5 +131,6 @@
   <mapID target="UsingTaskSchedule.progress" url="Topics/Planning/UsingTaskSchedule.html#progress" />
   <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
   <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />
+  <mapID target="Separation" url="Topics/Overview/Separation.html" />
 
 </map>
