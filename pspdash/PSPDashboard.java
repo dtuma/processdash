@@ -23,23 +23,6 @@
 //
 // E-Mail POC:  ken.raisor@hill.af.mil
 
-/*
- * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
 package pspdash;
 
 import java.awt.FlowLayout;
@@ -67,6 +50,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     PSPProperties templates = null;
     DataRepository data = null;
     TinyWebServer webServer = null;
+    ConcurrencyLock concurrencyLock = null;
     AutoUpdateManager aum = null;
 
     boolean paused = true;
@@ -77,8 +61,10 @@ public class PSPDashboard extends JFrame implements WindowListener {
     String propertiesFile     = DEFAULT_PROP_FILE;
     static final String TEMPLATES_FILE = "state";
     PropertyKey currentPhase  = null;
+    int httpServerPort = DEFAULT_WEB_PORT;
 
     private static final String TEMPLATES_CLASSPATH = "Templates/";
+    public static final int DEFAULT_WEB_PORT = 2468;
 
     private void debug(String msg) {
         System.err.print("PSPDashboard: ");
@@ -105,11 +91,19 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         // start the http server.
         try {
+            String portSetting = Settings.getVal("http.port");
+            if (portSetting != null) try {
+                httpServerPort = Integer.parseInt(portSetting);
+            } catch (NumberFormatException nfe) {
+                System.err.println("Invalid value for 'http.port' setting: "
+                                   + nfe);
+            }
             webServer = new TinyWebServer
-                (2468, TemplateLoader.getTemplateURLs());
+                (httpServerPort, TemplateLoader.getTemplateURLs());
             webServer.start();
             webServer.allowRemoteConnections
                 (Settings.getVal("http.allowRemote"));
+            Browser.setDefaults("localhost", webServer.getPort());
         } catch (IOException ioe) {
             System.err.println("Couldn't start web server: " + ioe);
         }
@@ -122,6 +116,16 @@ public class PSPDashboard extends JFrame implements WindowListener {
         property_directory = prop_file.getParent() + Settings.sep;
         DefectAnalyzer.setDataDirectory(property_directory);
         TimeLog.setDefaultFilename(getTimeLog());
+
+        // ensure that we have exclusive control of the data in the
+        // property_directory
+        //
+        concurrencyLock = new ConcurrencyLock(property_directory,
+                                              webServer.getPort(),
+                                              webServer.getTimestamp());
+
+        // Start up the data repository server.
+        data.startServer(webServer.getPort() - 1);
 
         // determine if Lost Data Files are present in the pspdata directory
         // and take steps to repair them.
@@ -274,13 +278,13 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     protected void quit() {
-        if (configure_button != null) {
-            configure_button.quit();
-            configure_button = null;
-        }
         if (hierarchy != null) {
             hierarchy.terminate();
             hierarchy = null;
+        }
+        if (configure_button != null) {
+            configure_button.quit();
+            configure_button = null;
         }
         if (webServer != null) {
             webServer.quit();
@@ -289,6 +293,10 @@ public class PSPDashboard extends JFrame implements WindowListener {
         if (data != null) {
             data.finalize();
             data = null;
+        }
+        if (concurrencyLock != null) {
+            concurrencyLock.unlock();
+            concurrencyLock = null;
         }
 
         save();
@@ -306,6 +314,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         ss.displayFor(3000);      // show for at least 3 seconds.
 
         PSPDashboard dash = new PSPDashboard("Process Dashboard");
+        DashController.setDashboard(dash);
 
         dash.pack();
         dash.show();
