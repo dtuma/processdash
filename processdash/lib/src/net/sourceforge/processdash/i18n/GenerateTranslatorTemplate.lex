@@ -37,7 +37,7 @@ import java.util.*;
 %%
 
 %{
-    private Properties dict = new Properties();
+    private Map dict = new HashMap();
 
 
     // This main() routine is provided for testing and convenience
@@ -82,12 +82,12 @@ import java.util.*;
     }
 
 
-    public CLASSNAME(Properties p) {
-        dict = p;
+    public CLASSNAME(Map p) {
+        dict = new HashMap(p);
     }
 
-    private void setDictionary(Properties p) {
-        dict = p;
+    private void setDictionary(Map p) {
+        dict = new HashMap(p);
     }
 
     private void popChar() {
@@ -133,7 +133,7 @@ import java.util.*;
         private StringBuffer buf;
         private String result;
         private Reader r;
-        public StringTranslator(String s, Properties dict) {
+        public StringTranslator(String s, Map dict) {
             String ss = s + " ";
             buf = new StringBuffer();
             result = null;
@@ -179,7 +179,7 @@ import java.util.*;
         private char cbuf[] = null;
         private int next, rem;
 
-        public TranslatingReader(Reader r, Properties dict) {
+        public TranslatingReader(Reader r, Map dict) {
             translator = new CLASSNAME(r);
             translator.setDictionary(dict);
             translator.setOut(new Writer() {
@@ -299,7 +299,6 @@ import java.util.*;
 %eof}
 
 
-%unicode
 %ignorecase
 %public
 %class CLASSNAME
