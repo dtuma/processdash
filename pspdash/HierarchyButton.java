@@ -133,6 +133,23 @@ public class HierarchyButton implements ActionListener {
             return false;
     }
 
+    public boolean setPhase(String phase) {
+        if (phase == null || phase.length() == 0) return true;
+
+        // If this is the terminal HierarchyButton without a menu, we
+        // cannot set the phase.  return false.
+        if (child == null) return false;
+
+        // If our child has children, unconditionally delegate this task.
+        if (child.numChildren != 0)
+            return child.setPhase(phase);
+
+        else
+            // our child has no children.  We must be the HierarchyButton
+            // with the rightmost visible menu.
+            return selectChild(phase);
+    }
+
 
     /** Select the child with the given name.
      *
