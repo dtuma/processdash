@@ -40,7 +40,8 @@ import pspdash.data.DateData;
 
 public class EVTask implements DataListener {
 
-    public static final String PLAN_TIME_DATA_NAME = "Estimated Time";
+    public static final String PLAN_TIME_DATA_NAME      = "Estimated Time";
+    public static final String ACT_TIME_DATA_NAME       = "Time";
     public static final String DATE_COMPLETED_DATA_NAME = "Completed";
 
     public interface Listener {
@@ -51,7 +52,8 @@ public class EVTask implements DataListener {
     ArrayList children = new ArrayList();
 
     String name, fullName;
-    double planTime, planValue, cumPlanTime, cumPlanValue, valueEarned;
+    double planTime, planValue, cumPlanTime, cumPlanValue,
+        actualTime, valueEarned;
     Date planDate, dateCompleted;
     boolean planTimeEditable, planTimeNull, dateCompletedEditable;
     Listener listener;
@@ -60,8 +62,10 @@ public class EVTask implements DataListener {
 
     /** Creates an EVTask suitable for the root of an EVTaskList. */
     public EVTask(String rootName) {
-        this.name = this.fullName = rootName;
-        planTime = planValue = cumPlanTime = cumPlanValue = valueEarned = 0;
+        this.name = rootName;
+        this.fullName = "";
+        planTime = planValue = cumPlanTime = cumPlanValue =
+            actualTime = valueEarned = 0;
         planDate = dateCompleted = null;
         listener = null;
         planTimeEditable = dateCompletedEditable = false;
@@ -76,6 +80,23 @@ public class EVTask implements DataListener {
 
         child.parent = this;
         children.add(child);
+    }
+
+    public int remove(EVTask child) {
+        int pos = children.indexOf(child);
+        if (pos != -1)
+            children.remove(pos);
+        return pos;
+    }
+
+    public void moveUp(int childPos) {
+        if (childPos > 0 && childPos < children.size()) {
+            Object a = children.get(childPos-1);
+            Object b = children.get(childPos);
+
+            children.set(childPos-1, b);
+            children.set(childPos,   a);
+        }
     }
 
     /** Creates an EVTask for the tasks in the hierarchy at the given path */
@@ -100,8 +121,10 @@ public class EVTask implements DataListener {
 
         addChildrenFromHierarchy(fullName, key, data, hierarchy, listener);
 
-        if (isLeaf())
+        if (isLeaf()) {
             setActualDate(getValue(DATE_COMPLETED_DATA_NAME));
+            setActualTime(getValue(ACT_TIME_DATA_NAME));
+        }
     }
 
     /** Attempt to find children in the hierarchy, and add them to our
@@ -166,6 +189,16 @@ public class EVTask implements DataListener {
         }
     }
 
+    protected void setActualTime(SimpleData time) {
+        if (time instanceof NumberData) {
+            actualTime = ((NumberData) time).getDouble();
+            if (Double.isNaN(actualTime) || Double.isInfinite(actualTime))
+                actualTime = 0.0;
+        } else {
+            actualTime = 0;
+        }
+    }
+
     public void setPlanTime(Object aValue) {
         if (plannedTimeIsEditable() && aValue instanceof String) {
             // parse the value to obtain a number of minutes
@@ -198,6 +231,8 @@ public class EVTask implements DataListener {
     protected static NumberFormat percentFormatter =
         NumberFormat.getPercentInstance();
     static String formatPercent(double percent) {
+        if (Double.isNaN(percent) || Double.isInfinite(percent))
+            percent = 0;
         return percentFormatter.format(percent);
     }
 
@@ -213,12 +248,14 @@ public class EVTask implements DataListener {
     }
 
     public int getNumChildren() { return children.size(); }
+    public int getChildIndex(Object child) { return children.indexOf(child); }
     public boolean isLeaf() { return children.isEmpty(); }
     public EVTask getChild(int pos) { return (EVTask) children.get(pos); }
     public EVTask getParent() { return parent; }
     public String toString() { return name; }
     public String getName() { return name; }
     public String getPlanTime() { return formatTime(planTime); }
+    public String getActualTime() { return formatTime(actualTime); }
     public String getPlanValue() { return formatPercent(planValue); }
     public String getCumPlanTime() { return formatTime(cumPlanTime); }
     public String getCumPlanValue() { return formatPercent(cumPlanValue); }
@@ -254,13 +291,25 @@ public class EVTask implements DataListener {
 
 
 
-    public void recalc(EVSchedule schedule) {
+
+    public void recalc(EVSchedule schedule, TimeLog log) {
+        resetRootValues();
         recalcPlanCumTime(0.0);
+        recalcActualTimes();
         recalcDateCompleted();
         recalcPlanValue(cumPlanTime);
+        schedule.prepForEvents();
         schedule.cleanUp();
         recalcPlanDates(schedule);
-        schedule.recalcComplete();
+        for (int i = log.v.size();   i-- > 0;   )
+            saveTimeLogInfo(schedule, (TimeLogEntry) log.v.get(i));
+        schedule.firePreparedEvents();
+    }
+
+    protected void resetRootValues() {
+        planTime = planValue = cumPlanTime = cumPlanValue =
+            actualTime = valueEarned = 0;
+        planDate = dateCompleted = null;
     }
 
     public double recalcPlanCumTime(double prevCumTime) {
@@ -281,6 +330,16 @@ public class EVTask implements DataListener {
             }
         }
         return cumPlanTime;
+    }
+
+    public double recalcActualTimes() {
+        if (!isLeaf()) {
+            // for nonleaves, ask each of our children to recalc.
+            actualTime = 0;
+            for (int i = 0;   i < getNumChildren();   i++)
+                actualTime += getChild(i).recalcActualTimes();
+        }
+        return actualTime;
     }
 
     public void recalcPlanValue(double totalTime) {
@@ -327,6 +386,26 @@ public class EVTask implements DataListener {
         }
     }
 
+    public boolean saveTimeLogInfo(EVSchedule schedule, TimeLogEntry e) {
+        String entryPath = e.getPath();
+        if (entryPath.equals(fullName)) {
+            schedule.saveActualTime(e.getStartTime(), e.getElapsedTime());
+            return true;
+        }
+
+        // If this is a parent node, and the time log entry begins
+        // with our full name, dispatch this to our children.
+        if (!isLeaf() &&
+            (fullName == null || fullName.length() == 0 ||
+             entryPath.startsWith(fullName)))
+
+            for (int i = children.size();   i-- > 0;  )  // dispatch loop
+                if (getChild(i).saveTimeLogInfo(schedule, e))
+                    return true;
+
+        return false;
+    }
+
     //
     // DataListener interface
     //
@@ -350,6 +429,8 @@ public class EVTask implements DataListener {
         dataName = dataName.substring(fullName.length()+1);
         if (PLAN_TIME_DATA_NAME.equals(dataName))
             setPlanTime(e.getValue());
+        else if (ACT_TIME_DATA_NAME.equals(dataName))
+            setActualTime(e.getValue());
         else if (DATE_COMPLETED_DATA_NAME.equals(dataName))
             setActualDate(e.getValue());
         else

@@ -26,6 +26,7 @@
 
 package pspdash;
 
+import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -59,12 +60,59 @@ public class EVTaskList extends AbstractTreeTableModel
             listeners = null;
 
         root = new EVTask(taskListName);
-        ((EVTask) root).add
-            (new EVTask("/Project", data, hierarchy,
-                        willNeedChangeNotification ? this : null));
+        addTask("/Project", data, hierarchy, willNeedChangeNotification);
     }
 
     public EVSchedule getSchedule() { return schedule; }
+
+    public void addTask(String path,
+                        DataRepository data,
+                        PSPProperties hierarchy,
+                        boolean willNeedChangeNotification) {
+        if (path == null || path.length() == 0) return;
+
+        // create the new task and add it.
+        EVTask newTask = new EVTask(path, data, hierarchy,
+                                    willNeedChangeNotification ? this : null);
+        ((EVTask) root).add(newTask);
+
+        // send the appropriate TreeModel event.
+        int[] childIndices = new int[] { ((EVTask)root).getNumChildren() - 1 };
+        Object[] children = new Object[] { newTask };
+        fireTreeNodesInserted
+            (this, ((EVTask) root).getPath(), childIndices, children);
+    }
+
+    public boolean removeTask(TreePath path) {
+        // for now, only remove tasks which are children of the root.
+        int pathLen = path.getPathCount();
+        if (pathLen != 2) return false;
+
+        EVTask parent = (EVTask) path.getPathComponent(pathLen-2);
+        EVTask child  = (EVTask) path.getPathComponent(pathLen-1);
+        int pos = parent.remove(child);
+
+        // send the appropriate TreeModel event.
+        int[] childIndices = new int[] { pos };
+        Object[] children = new Object[] { child };
+        fireTreeNodesRemoved
+            (this, ((EVTask) parent).getPath(), childIndices, children);
+        return true;
+    }
+
+    public boolean moveTaskUp(int pos) {
+        EVTask r = (EVTask) root;
+        if (pos < 1 || pos >= r.getNumChildren()) return false;
+
+        // make the change
+        r.moveUp(pos);
+
+        // send the appropriate TreeModel event.
+        int[] childIndices = new int[] { pos-1, pos };
+        Object[] children = new Object[]{ r.getChild(pos-1), r.getChild(pos) };
+        fireTreeStructureChanged(this, r.getPath(), childIndices, children);
+        return true;
+    }
 
 
     //////////////////////////////////////////////////////////////////////
@@ -101,7 +149,11 @@ public class EVTaskList extends AbstractTreeTableModel
                 ((Listener) listeners.get(i)).evNodeChanged(e);
         }
     }
-    public void recalc() { ((EVTask) root).recalc(schedule); }
+    public void recalc() {
+        TimeLog log = new TimeLog();
+        try { log.readDefault(); } catch (IOException ioe) {}
+        ((EVTask) root).recalc(schedule, log);
+    }
 
 
 
@@ -111,13 +163,14 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     /** Names of the columns in the TreeTableModel. */
-    protected static String[] colNames = {
-        "Project/Task", "PT", "PV", "CPT", "CPV", "Plan Date", "Date", "EV" };
-    public static int[] colWidths = {
-        175,             50,   40,   50,    40,    80,          80,     40 };
+    protected static String[] colNames = { "Project/Task",
+        "PT", "Time", "PV", "CPT", "CPV", "Plan Date", "Date", "EV" };
+    public static int[] colWidths = { 175,
+        50,   50,     40,   50,    40,    80,          80,     40 };
     public static String[] toolTips = {
         null,
         "Planned Time (hours:minutes)",
+        "Actual Time (hours:minutes)",
         "Planned Value",
         "Cumulative Planned Time (hours:minutes)",
         "Cumulative Planned Value",
@@ -127,17 +180,19 @@ public class EVTaskList extends AbstractTreeTableModel
 
     protected static final int TASK_COLUMN           = 0;
     protected static final int PLAN_TIME_COLUMN      = 1;
-    protected static final int PLAN_VALUE_COLUMN     = 2;
-    protected static final int PLAN_CUM_TIME_COLUMN  = 3;
-    protected static final int PLAN_CUM_VALUE_COLUMN = 4;
-    protected static final int PLAN_DATE_COLUMN      = 5;
-    protected static final int DATE_COMPLETE_COLUMN  = 6;
-    protected static final int VALUE_EARNED_COLUMN   = 7;
+    protected static final int ACT_TIME_COLUMN       = 2;
+    protected static final int PLAN_VALUE_COLUMN     = 3;
+    protected static final int PLAN_CUM_TIME_COLUMN  = 4;
+    protected static final int PLAN_CUM_VALUE_COLUMN = 5;
+    protected static final int PLAN_DATE_COLUMN      = 6;
+    protected static final int DATE_COMPLETE_COLUMN  = 7;
+    protected static final int VALUE_EARNED_COLUMN   = 8;
 
     /** Types of the columns in the TreeTableModel. */
     static protected Class[]  colTypes = {
         TreeTableModel.class,   // project/task
         String.class,           // planned time
+        String.class,           // actual time
         String.class,           // planned value
         String.class,           // planned cumulative time
         String.class,           // planned cumulative value
@@ -205,6 +260,7 @@ public class EVTaskList extends AbstractTreeTableModel
         switch (column) {
         case TASK_COLUMN:           return n.getName();
         case PLAN_TIME_COLUMN:      return n.getPlanTime();
+        case ACT_TIME_COLUMN:       return n.getActualTime();
         case PLAN_VALUE_COLUMN:     return n.getPlanValue();
         case PLAN_CUM_TIME_COLUMN:  return n.getCumPlanTime();
         case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue();

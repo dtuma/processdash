@@ -39,9 +39,10 @@ public class EVSchedule implements TableModel {
     }
 
     private static final boolean ADJUST = true;
-    private static int ADJUSTMENT = 1000;
-    private static final long DAY_MILLIS = 24L /*hours*/ *
+    private static int ADJUSTMENT = 1000; // one second
+    private static final long HOUR_MILLIS =
         60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
+    private static final long DAY_MILLIS = 24L /*hours*/ * HOUR_MILLIS;
     private static final long WEEK_MILLIS = 7 * DAY_MILLIS;
     private static final long MIDNIGHT = DAY_MILLIS - ADJUSTMENT;
 
@@ -73,11 +74,9 @@ public class EVSchedule implements TableModel {
         public String getPlanTime() { return formatTime(planTime); }
         public String getCumPlanTime() { return formatTime(cumPlanTime); }
         public String getCumPlanValue() { return formatPercent(cumPlanValue); }
-        public String getActualTime() { return "FIXME";
-            //return formatTime(actualTime);
-        }
-        public String getCumActualTime() { return "FIXME";
-            //return formatTime(cumActualTime);
+        public String getActualTime() { return formatTime(actualTime); }
+        public String getCumActualTime() {
+            return formatTime(cumActualTime);
         }
         public String getCumEarnedValue() {
             return formatPercent(cumEarnedValue);
@@ -97,8 +96,8 @@ public class EVSchedule implements TableModel {
                     // period really ends on midnight at the end of that day.
                     value = adjustDate((Date) value, DAY_MILLIS);
 
-                else if (timeOfDay == MIDNIGHT)
-                    // the date entered was ADJUSTMENT short of a day
+                else if ((timeOfDay + ADJUSTMENT) % HOUR_MILLIS == 0)
+                    // the date entered was ADJUSTMENT short of an hour
                     // boundary. Bump it back up.
                     value = adjustDate((Date) value, ADJUSTMENT);
 
@@ -228,7 +227,7 @@ public class EVSchedule implements TableModel {
     }
 
     protected synchronized void add(Period p) {
-        p.previous = get(periods.size() - 1);
+        p.previous = getLast();
         periods.add(p);
     }
 
@@ -253,6 +252,14 @@ public class EVSchedule implements TableModel {
         try {
             return (Period) periods.get(pos);
         } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Period getLast() {
+        try {
+            return (Period) periods.lastElement();
+        } catch (NoSuchElementException nsee) {
             return null;
         }
     }
@@ -285,7 +292,7 @@ public class EVSchedule implements TableModel {
             return NEVER;           // the task will never get done.
 
         while (true) {
-            p = get(periods.size()-1);    // get the last period in the list.
+            p = getLast();          // get the last period in the list.
             if (p.cumPlanTime >= cumPlanTime) {
                 p.cumPlanValue = Math.max(p.cumPlanValue, cumPlanValue);
                 return p.getEndDate();
@@ -296,8 +303,16 @@ public class EVSchedule implements TableModel {
 
     public synchronized void saveCompletedTask(Date dateCompleted,
                                                double planValue) {
-        //System.out.println("saveCompletedTask("+dateCompleted+","+planValue+")");
-        if (dateCompleted == null || dateCompleted == NEVER) return;
+        saveActualTaskInfo(dateCompleted, planValue, 0);
+    }
+    public synchronized void saveActualTime(Date when, double actualTime) {
+        saveActualTaskInfo(when, 0, actualTime);
+    }
+    public synchronized void saveActualTaskInfo(Date when,
+                                                double planValue,
+                                                double actualTime) {
+        //System.out.println("saveActualTaskInfo("+when+","+planValue+")");
+        if (when == null || when == NEVER) return;
 
         boolean foundDate = false;
         Period p;
@@ -305,34 +320,48 @@ public class EVSchedule implements TableModel {
             p = get(i);
             // if this period ends *after* the task's completion date,
             // add the task's planValue to this period's cumPlanValue.
-            if (dateCompleted.compareTo(p.endDate) <= 0) {
+            if (when.compareTo(p.endDate) < 0) {
                 foundDate = true;
                 p.cumEarnedValue += planValue;
+                p.cumActualTime  += actualTime;
+                if (when.compareTo(p.getBeginDate()) >= 0)
+                    p.actualTime += actualTime;
                 //System.out.println("\tadding to period ending "+p.endDate);
             } else
                 break;
         }
         if (foundDate) return;
 
-        // the task was completed AFTER the end date of the entire schedule.
+        // this task info falls AFTER the end date of the entire schedule.
         // expand the schedule until it contains the completion date.
-        int i = periods.size();
         while (true) {
             if (!grow(true, true)) return;
-            p = get(i++);          // get the last period in the list.
-            if (dateCompleted.compareTo(p.endDate) <= 0) {
+            p = getLast();      // get the last period in the list.
+            if (when.compareTo(p.endDate) < 0) {
                 p.cumEarnedValue += planValue;
+                p.cumActualTime  += actualTime;
+                if (when.compareTo(p.getBeginDate()) >= 0)
+                    p.actualTime += actualTime;
                 //System.out.println("\tadding to period ending "+p.endDate);
                 return;
             }
         }
     }
 
+
     public synchronized boolean grow(boolean automatic, boolean force) {
         int size = periods.size();
-        if (size < 2 || size > 100) return false;
+        if (size < 2 || size > 300) return false;
         Period x = get(size-2), y = get(size-1), z;
         if (!force && automatic && y.planTime == 0) return false;
+
+        /*
+        if (y.planTime < defaultPlanTime) {
+            y.cumPlanTime = y.cumPlanTime - y.planTime + defaultPlanTime;
+            y.planTime = defaultPlanTime;
+            return true;
+        }
+        */
 
         long xdate = x.endDate.getTime(), ydate = y.endDate.getTime();
         long delta = ydate - xdate;
@@ -348,12 +377,60 @@ public class EVSchedule implements TableModel {
         return true;
     }
 
+    public synchronized void deleteRow(int row) {
+        Period r = get(row+1);
+        if (r == null || r.automatic) return;
+
+        remove(row+1);
+        // send a "row deleted" event.
+        fireTableChanged(new TableModelEvent
+            (this, row, row, TableModelEvent.ALL_COLUMNS,
+             TableModelEvent.DELETE));
+
+        // signal the need to recalculate all the schedule data.
+        fireNeedsRecalc();
+    }
+
+    public synchronized void insertRow(int row) {
+        Period r = get(row+1);
+        if (r == null) return;
+        Date midpoint = new Date((r.getEndDate().getTime() +
+                                  r.getBeginDate().getTime()) / 2);
+        Period newPeriod = new Period(midpoint, 0.0);
+
+        newPeriod.previous = r.previous;
+        r.previous = newPeriod;
+        periods.add(row+1, newPeriod);
+        r.clearAutomaticFlag();
+
+        // fire a "rows added" event.
+        fireTableChanged(new TableModelEvent
+            (this, row, row, TableModelEvent.ALL_COLUMNS,
+             TableModelEvent.INSERT));
+
+        // signal the need to recalculate all the schedule data.
+        fireNeedsRecalc();
+    }
+
+    public synchronized void addRow() {
+        prepForEvents();
+        grow(false, true);
+        getLast().clearAutomaticFlag();
+        firePreparedEvents();
+
+        // signal the need to recalculate all the schedule data.
+        fireNeedsRecalc();
+    }
+
+    double defaultPlanTime;
     public synchronized void cleanUp() {
+        prepForEvents();
         Period p = null;
         int i;
         for (i = 1;  i < periods.size();  i++) {
             p = get(i);
             p.cumPlanValue = p.cumEarnedValue = 0;
+            p.actualTime   = p.cumActualTime  = 0;
             if (p.automatic)
                 break;
         }
@@ -364,6 +441,7 @@ public class EVSchedule implements TableModel {
             if (p != null) p.automatic = false;
         }
         periods.setSize(i);
+        defaultPlanTime = get(i-1).planTime;
     }
 
     public synchronized void recalcCumPlanTimes() {
@@ -376,7 +454,38 @@ public class EVSchedule implements TableModel {
         }
     }
 
-    synchronized void recalcComplete() { fireTableChanged(); }
+    int prevNumRows = -1;
+    public void prepForEvents() {
+        if (prevNumRows == -1) prevNumRows = getRowCount();
+    }
+    synchronized void firePreparedEvents() {
+        if (prevNumRows == -1) {
+            fireTableChanged(null);
+            return;
+        }
+
+        int currNumRows = getRowCount();
+        int changedRows = (currNumRows < prevNumRows ? currNumRows
+                                                     : prevNumRows);
+
+        // fire an event to redraw rows that previously might have been
+        // automatic.
+        fireTableChanged(new TableModelEvent
+            (this, 0, changedRows-1, TableModelEvent.ALL_COLUMNS,
+             TableModelEvent.UPDATE));
+
+        if (prevNumRows < currNumRows)
+            // fire a "rows added" event.
+            fireTableChanged(new TableModelEvent
+                (this, prevNumRows, currNumRows-1, TableModelEvent.ALL_COLUMNS,
+                 TableModelEvent.INSERT));
+        else if (prevNumRows > currNumRows)
+            // fire a "rows deleted" event.
+            fireTableChanged(new TableModelEvent
+                (this, currNumRows, prevNumRows-1, TableModelEvent.ALL_COLUMNS,
+                 TableModelEvent.DELETE));
+        prevNumRows = -1;
+    }
 
     static String formatTime(double time) { return EVTask.formatTime(time); }
     static String formatPercent(double p) { return EVTask.formatPercent(p); }
@@ -396,11 +505,14 @@ public class EVSchedule implements TableModel {
     /// Table model
     ///
 
-    public static String[] colNames = {
-        "From", "To", "PT", "CPT", "CPV", "Time", "CT", "EV" };
-    public static int[] colWidths = {
-         80,     80,   50,   50,    40,    50,     50,   40 };
-    public static String[] toolTips = {
+    protected static final int DATE_W = 80; // width for date columns
+    protected static final int TIME_W = 50; // width for time columns
+    protected static final int PCT_W  = 40; // width for percentage columns
+    public static final String[] colNames = {
+        "From", "To",   "PT",   "CPT",  "CPV", "Time", "CT",   "EV" };
+    public static final int[] colWidths = {
+         DATE_W, DATE_W, TIME_W, TIME_W, PCT_W, TIME_W, TIME_W, PCT_W };
+    public static final String[] toolTips = {
         null,
         null,
         "Planned Direct Time (hours:minutes)",
@@ -462,7 +574,10 @@ public class EVSchedule implements TableModel {
         case PLAN_TIME_COLUMN: p.setPlanTime(aValue);  break;
         }
     }
-    public boolean rowIsAutomatic(int row) { return get(row+1).automatic; }
+    public boolean rowIsAutomatic(int row) {
+        Period p = get(row+1);
+        return (p != null && p.automatic);
+    }
 
     EventListenerList listenerList = new EventListenerList();
     public void addTableModelListener(TableModelListener l) {
@@ -471,9 +586,8 @@ public class EVSchedule implements TableModel {
     public void removeTableModelListener(TableModelListener l) {
         listenerList.remove(TableModelListener.class, l);
     }
-    public void fireTableChanged() {
+    public void fireTableChanged(TableModelEvent e) {
         Object [] listeners = listenerList.getListenerList();
-        TableModelEvent e = null;
         // Process the listeners last to first, notifying
         // those that are interested in this event
         for (int i = listeners.length-2; i>=0; i-=2) {
