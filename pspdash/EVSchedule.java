@@ -162,6 +162,16 @@ public class EVSchedule implements TableModel {
                     // if no change has been made, exit.
                     if (endDate.equals(value)) return;
 
+                    // if they are editing the start date of the schedule,
+                    // respond simply by sliding the schedule datewise.
+                    if (previous == null) {
+                        long oldStart = endDate.getTime();
+                        long newStart = ((Date) value).getTime();
+                        slideScheduleDates(newStart - oldStart);
+                        fireNeedsRecalc();
+                        return;
+                    }
+
                     // delete any preceeding periods which begin AFTER the
                     // new end date of this period.
                     while (previous != null &&
@@ -338,6 +348,15 @@ public class EVSchedule implements TableModel {
 
         // recalc the cumulative plan times, since they are now messed up.
         recalcCumPlanTimes();
+    }
+
+    protected synchronized void slideScheduleDates(long delta) {
+        Iterator i = periods.iterator();
+        Period p;
+        while (i.hasNext()) {
+            p = (Period) i.next();
+            p.endDate = new Date(p.endDate.getTime() + delta);
+        }
     }
 
 
