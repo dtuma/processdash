@@ -27,6 +27,7 @@
 package pspdash;
 
 import pspdash.data.DataRepository;
+import pspdash.data.SimpleData;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -270,7 +271,9 @@ public class TinyCGIBase implements TinyCGI {
     /** get the name of the person who owns the data in the repository */
     protected String getOwner() {
         DataRepository data = getDataRepository();
-        String result = data.getSimpleValue("/Owner").format();
+        SimpleData val = data.getSimpleValue("/Owner");
+        if (val == null) return null;
+        String result = val.format();
         if ("Enter your name".equals(result))
             return null;
         else
