@@ -147,7 +147,8 @@ abstract class DataInterpreter implements DataListener {
             if (newValue instanceof Boolean)
                 setBoolean((Boolean) newValue);
             else {
-                String strval = newValue.toString();
+                String strval = null;
+                if (newValue != null) strval = newValue.toString();
                 if (strval == null || strval.length() == 0)
                     value = (optional ? null : getNullValue());
                 else if (strval.equals(RESTORE_DEFAULT_COMMAND))
@@ -167,6 +168,7 @@ abstract class DataInterpreter implements DataListener {
                                       // This could be a MalformedValueException
                                       // (from the setString call) or RemoteException
         } catch (Exception e) {     // (from the putValue call).
+            //System.out.println("Caught " + e); e.printStackTrace();
             value = lastValue;        // restore original value of element.
             if (consumer != null)     // restore the HTMLField to the old value.
                 consumer.repositoryChangedValue();
