@@ -6,7 +6,11 @@ import java.util.Map;
 
 public class WBSNode {
 
-    public WBSNode(String name, String type, int level, boolean expanded) {
+    private WBSModel wbsModel;
+
+    public WBSNode(WBSModel model,
+                   String name, String type, int level, boolean expanded) {
+        this.wbsModel = model;
         setName(name);
         setType(type);
         setIndentLevel(level);
@@ -22,7 +26,10 @@ public class WBSNode {
 
     /** Set the name of this node.
      * @param newName the new name for this node.  */
-    public void setName(String newName) { this.name = newName; }
+    public void setName(String newName) {
+        this.name = newName;
+        //fireNodeChanged(new WBSNodeEvent(this, WBSNodeEvent.NAME_CHANGE));
+    }
 
 
 
@@ -34,7 +41,10 @@ public class WBSNode {
 
     /** Set the type of this node
      * @param newType the new type for this node.  */
-    public void setType(String newType) { this.type = newType; }
+    public void setType(String newType) {
+        this.type = newType;
+        //fireNodeChanged(new WBSNodeEvent(this, WBSNodeEvent.TYPE_CHANGE));
+    }
 
 
 
@@ -84,5 +94,10 @@ public class WBSNode {
     public void setNumericAttribute(String attrName, double value) {
         setAttribute(attrName, new Double(value));
     }
-
+    /*
+    public void fireNodeChanged(WBSNodeEvent e) {
+        wbsModel.fireNodeChanged(e);
+        wbsModel.fireTableDataChanged();//
+    }
+    */
 }

@@ -2,6 +2,7 @@
 package teamdash.wbs;
 
 import javax.swing.table.AbstractTableModel;
+import javax.swing.event.EventListenerList;
 
 
 
@@ -10,10 +11,14 @@ import java.util.*;
 public class WBSModel extends AbstractTableModel {
 
     private ArrayList wbsNodes;
+    private WBSModelValidator validator;
+    protected EventListenerList listenerList = new EventListenerList();
+
 
     public WBSModel() {
         wbsNodes = new ArrayList();
-        add(new WBSNode("Root", "Root", 0, true));
+        add(new WBSNode(this, "Root", "Project", 0, true));
+        validator = new WBSModelValidator(this);
     }
 
     public void add(WBSNode node) {
@@ -295,5 +300,49 @@ public class WBSModel extends AbstractTableModel {
             n.setExpanded(true);
         } while (true);
         recalcRows(false);
+    }
+
+    public static final String PROJECT_TYPE = "Project";
+    public static final String SOFTWARE_COMPONENT_TYPE = "Software Component";
+    public static final String REQTS_DOCUMENT = "Requirements Document";
+    public static final String GENERAL_DOCUMENT = "General Document";
+    public static final String HLD_DOCUMENT = "High Level Design Document";
+    public static final String DLD_DOCUMENT = "Detailed Design Document";
+    public static final Set DOCUMENT_TYPES = new HashSet();
+    static {
+        DOCUMENT_TYPES.add(REQTS_DOCUMENT);
+        DOCUMENT_TYPES.add(GENERAL_DOCUMENT);
+        DOCUMENT_TYPES.add(HLD_DOCUMENT);
+        DOCUMENT_TYPES.add(DLD_DOCUMENT);
+    }
+
+    public boolean isSoftwareComponent(String type) {
+        return "Software Component".equalsIgnoreCase(type) ||
+            "Project".equalsIgnoreCase(type);
+    }
+
+    public boolean isDocument(String type) {
+        return DOCUMENT_TYPES.contains(type);
+    }
+
+
+    public void addWBSNodeListener(WBSNodeListener l) {
+        listenerList.add(WBSNodeListener.class, l);
+    }
+
+    public void removeWBSNodeListener(WBSNodeListener l) {
+        listenerList.remove(WBSNodeListener.class, l);
+    }
+
+    public void fireNodeChanged(WBSNodeEvent e) {
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==WBSNodeListener.class) {
+                ((WBSNodeListener)listeners[i+1]).nodeChanged(e);
+            }
+        }
     }
 }

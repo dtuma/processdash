@@ -5,12 +5,15 @@ import java.awt.*;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.*;
+import java.awt.event.MouseEvent;
 
 
 public class WBSNodeRenderer extends DefaultTableCellRenderer {
 
     private WBSModel wbsModel;
     private Map iconMap;
+    private String iconError, nameError;
+    private Font regular = null, bold = null;
 
     public WBSNodeRenderer(WBSModel wbsModel, Map iconMap) {
         this.wbsModel = wbsModel;
@@ -28,9 +31,18 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         expansionIcon.indentationLevel = node.getIndentLevel();
         expansionIcon.isExpanded = node.isExpanded();
         expansionIcon.isLeaf = wbsModel.isLeaf(node);
-        expansionIcon.realIcon = (Icon) iconMap.get(node.getType());
-        if (expansionIcon.realIcon == null)
-            expansionIcon.realIcon = (Icon) iconMap.get(null);
+        Icon icon = (Icon) iconMap.get(node.getType());
+        if (icon == null) icon =  (Icon) iconMap.get(null);
+
+        iconError = (String) node.getAttribute
+            (WBSModelValidator.NODE_TYPE_ERROR_ATTR_NAME);
+        nameError = (String) node.getAttribute
+            (WBSModelValidator.NODE_NAME_ERROR_ATTR_NAME);
+
+        if (iconError != null)
+            icon = IconFactory.getModifiedIcon(icon, IconFactory.ERROR_ICON);
+
+        expansionIcon.realIcon = icon;
 
         Component result = super.getTableCellRendererComponent
             (table, node.getName(), isSelected, hasFocus, row, column);
@@ -38,10 +50,35 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         setIcon(null);
         setIcon(expansionIcon);
 
+        if (nameError == null) {
+            result.setFont(getFont(false, result));
+            result.setForeground(Color.black);
+        } else {
+            result.setFont(getFont(true, result));
+            result.setForeground(Color.red);
+        }
+
         return result;
     }
 
 
+    public String getToolTipText(MouseEvent event) {
+        int delta = event.getX() - expansionIcon.getIconWidth();
+        if (delta > 0) return nameError;
+        else if (delta > -ICON_HORIZ_SPACING) return iconError;
+        return null;
+    }
+
+
+    protected Font getFont(boolean bold, Component c) {
+        if (this.regular == null) {
+            Font base = c.getFont();
+            if (base == null) return null;
+            this.regular = base.deriveFont(Font.PLAIN);
+            this.bold    = base.deriveFont(Font.BOLD);
+        }
+        return (bold ? this.bold : this.regular);
+    }
 
 
     static final int ICON_SIZE   = 16;
@@ -68,6 +105,14 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
                             y+topMargin);
             }
 
+            /*
+            Icon realIcon = this.realIcon;
+            if ((indentationLevel % 3) == 0)
+                realIcon = IconFactory.getErrorIcon(realIcon);
+            if ((indentationLevel & 1) == 0)
+                realIcon = IconFactory.getPhantomIcon(realIcon);
+            */
+
             realIcon.paintIcon(c, g, x+indentationLevel*ICON_HORIZ_SPACING, y);
         }
 
@@ -79,6 +124,18 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         public int getIconHeight() {
             return realIcon.getIconHeight();
         }
+        /*
+        private void paintIconRectangle(Graphics g, int x, int y, Color c) {
+            g.setColor(c);
+            g.fillRect(x, y, ICON_HORIZ_SPACING, ICON_HORIZ_SPACING);
+        }
+        public void paintPhantomRectangle(Graphics g, int x, int y) {
+            paintIconRectangle(g, x, y, phantomColor);
+        }
+        public void paintErrorRectangle(Graphics g, int x, int y) {
+            paintIconRectangle(g, x, y, Color.red);
+        }
+        */
     }
 
     static Icon MINUS_ICON = new MinusIcon();

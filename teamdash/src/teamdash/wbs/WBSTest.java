@@ -21,11 +21,11 @@ public class WBSTest {
     WBSModel model;
 
     private static final String[][] nodes = {
-        { " A",  "Component" },
+        { " A",  "Software Component" },
         { "  B", "Document" },
         { "  C", "Task" },
-        { "D",   "Component" },
-        { " E",   "Component" },
+        { "D",   "Software Component" },
+        { " E",   "Software Component" },
         { "  F",  "Task" },
         { " G",   "Document" },
         { " H",  "Document" },
@@ -33,13 +33,14 @@ public class WBSTest {
         { "  J", "Task" },
         { " K", "Document" },
         { " L", "Task" },
-        { "M", "Component" },
+        { "M", "Software Component" },
         { "N", null } };
 
     public WBSTest(String colFmt) {
         model = new WBSModel();
         for (int i = 0;   i < nodes.length;   i++)
-            model.add(new WBSNode(nodes[i][0].trim(),
+            model.add(new WBSNode(model,
+                                  nodes[i][0].trim(),
                                   nodes[i][1],
                                   1 + (nodes[i][0].length() -
                                        nodes[i][0].trim().length()),
@@ -58,7 +59,8 @@ public class WBSTest {
     public WBSTest() {
         model = new WBSModel();
         for (int i = 0;   i < nodes.length;   i++)
-            model.add(new WBSNode(nodes[i][0].trim(),
+            model.add(new WBSNode(model,
+                                  nodes[i][0].trim(),
                                   nodes[i][1],
                                   1 + (nodes[i][0].length() -
                                        nodes[i][0].trim().length()),
@@ -67,9 +69,9 @@ public class WBSTest {
 
         Map iconMap = buildIconMap();
         WBSTabPanel table = new WBSTabPanel(model, data, iconMap);
-        table.addTab("Vowels", new String[] {"A", "E", "I", "O", "U" });
+        table.addTab("Vowels", new String[] {"N&C LOC", "E", "I", "O", "U" });
         table.addTab("First", new String[] {
-            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" });
+            "N&C LOC", "B", "C", "D", "E", "F", "G", "H", "I", "J" });
         table.addTab("Last", new String[] {
             "Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q" });
 
@@ -85,8 +87,12 @@ public class WBSTest {
     private Map buildIconMap() {
         Map result = new HashMap();
         Color c = new Color(204, 204, 255);
-        result.put("Component", IconFactory.getSoftwareComponentIcon());
-        result.put("Document", IconFactory.getDocumentIcon(c));
+        result.put("Project", IconFactory.getProjectIcon());
+        result.put("Software Component", IconFactory.getSoftwareComponentIcon());
+        result.put("Requirements Document", IconFactory.getDocumentIcon(Color.orange));
+        result.put("High Level Design Document", IconFactory.getDocumentIcon(Color.blue));
+        result.put("Detailed Design Document", IconFactory.getDocumentIcon(Color.green));
+        result.put("General Document", IconFactory.getDocumentIcon(Color.white));
         result.put("Task", IconFactory.getTaskIcon(c));
         result.put(null, IconFactory.getTaskIcon(c));
 

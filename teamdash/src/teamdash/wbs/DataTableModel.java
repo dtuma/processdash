@@ -22,7 +22,9 @@ public class DataTableModel extends AbstractTableModel {
         wbsModel.addTableModelListener(new TableModelEventRepeater());
 
         columns = new ArrayList();
-        for (char c = 'A';   c <= 'Z';   c++)
+        columns.add(new NewAndChangedLOCColumn(this));
+
+        for (char c = 'B';   c <= 'Z';   c++)
             columns.add(new TopDownBottomUpColumn(this, String.valueOf(c)));
     }
 

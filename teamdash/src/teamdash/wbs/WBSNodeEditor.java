@@ -38,8 +38,8 @@ public class WBSNodeEditor extends AbstractCellEditor
     private Action demoteAction, promoteAction;
 
     private WBSNode editingNode = null;
+    private int rowNumber = -1;
     private EventObject editingRestartEvent = null;
-    private int goalColumn = -1; // expressed in pixels
 
 
     public WBSNodeEditor(JTable table, WBSModel wbsModel, Map iconMap) {
@@ -76,6 +76,7 @@ public class WBSNodeEditor extends AbstractCellEditor
                                                  int column)
     {
         System.out.println("get table cell editor component");
+        rowNumber = row;
         editingNode = (WBSNode) value;
         editorComponent.updateInfo();
         editorComponent.setText(editingNode.getName());
@@ -176,8 +177,18 @@ public class WBSNodeEditor extends AbstractCellEditor
             if (menu.isPopupMenuVisible())
                 return false;
 
-            editingNode.setName(editorComponent.getText());
+            String oldName = editingNode.getName();
+            String newName = editorComponent.getText();
+            if (newName == null || newName.trim().length() == 0) return false;
+            newName = newName.trim();
+
+            if (!newName.equals(oldName)) {
+                editingNode.setName(newName);
+                wbsModel.fireTableRowsUpdated(rowNumber,
+                                              wbsModel.getRowCount()-1);
+            }
             editingNode = null;
+            rowNumber = -1;
         }
 
         return super.stopCellEditing();
@@ -252,11 +263,12 @@ public class WBSNodeEditor extends AbstractCellEditor
         JMenuBar menuBar;
         //DropDownMenu menu;
         JTextField textField;
-        Component iconListener;
+        JComponent iconListener;
 
         int indentationLevel = 0;
         boolean isExpanded, isLeaf;
         Icon nodeIcon;
+        String iconError;
         Color backgroundColor = null;
 
         /**
@@ -331,6 +343,12 @@ public class WBSNodeEditor extends AbstractCellEditor
             isExpanded = editingNode.isExpanded();
             isLeaf = wbsModel.isLeaf(editingNode);
             nodeIcon = getIconForType(editingNode.getType());
+            iconError = (String) editingNode.getAttribute
+                (WBSModelValidator.NODE_TYPE_ERROR_ATTR_NAME);
+            iconListener.setToolTipText(iconError);
+            if (iconError != null)
+                nodeIcon = IconFactory.getModifiedIcon
+                    (nodeIcon, IconFactory.ERROR_ICON);
         }
 
         public void setText(String text) { textField.setText(text); }
@@ -363,7 +381,8 @@ public class WBSNodeEditor extends AbstractCellEditor
         }
 
 
-        private class IconListener extends JButton implements MouseListener {
+        private class IconListener extends JComponent implements MouseListener
+        {
             public IconListener() { addMouseListener(this); }
             public void paint(Graphics g) { }
 
@@ -453,9 +472,12 @@ public class WBSNodeEditor extends AbstractCellEditor
         public void actionPerformed(ActionEvent e) {
             if (editingNode != null) {
                 editingNode.setType(type);
+                wbsModel.fireTableRowsUpdated(rowNumber,
+                                              wbsModel.getRowCount()-1);
                 editorComponent.updateInfo();
                 editorComponent.invalidate();
                 editorComponent.repaint();
+                //wbsModel.fireTableRowsUpdated(rowNumber, rowNumber);
             } else {
                 System.out.println("in NodeIconMenuAction.actionPerformed: editingNode = null!");
             }

@@ -20,16 +20,21 @@ class DataTableCellRenderer extends DefaultTableCellRenderer {
                                                    int row,
                                                    int column) {
         ErrorValue errorValue = null;
+        boolean readOnly = false;
 
         if (value instanceof ErrorValue) {
             errorValue = (ErrorValue) value;
             value = errorValue.value;
         }
+        if (value instanceof ReadOnlyValue) {
+            readOnly = true;
+            value = ((ReadOnlyValue) value).value;
+        }
 
         Component result = super.getTableCellRendererComponent
             (table, value, isSelected, hasFocus, row, column);
 
-        result.setForeground(getForegroundColor(errorValue));
+        result.setForeground(getForegroundColor(errorValue, readOnly));
 
         Font f = getFont(errorValue != null, result);
         if (f != null) result.setFont(f);
@@ -41,9 +46,10 @@ class DataTableCellRenderer extends DefaultTableCellRenderer {
         return result;
     }
 
-    protected Color getForegroundColor(ErrorValue errorValue) {
+    protected Color getForegroundColor(ErrorValue errorValue,
+                                       boolean readOnly) {
         if (errorValue == null)
-            return Color.black;
+            return (readOnly ? Color.gray : Color.black);
         switch (errorValue.severity) {
         case ErrorValue.ERROR: return Color.red;
         case ErrorValue.WARNING: return Color.orange;

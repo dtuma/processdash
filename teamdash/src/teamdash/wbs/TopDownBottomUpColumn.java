@@ -8,10 +8,10 @@ import java.text.NumberFormat;
 public class TopDownBottomUpColumn implements DataColumn, TableModelListener
 {
 
-    private DataTableModel dataModel;
-    private WBSModel wbsModel;
-    private String name;
-    private String topDownAttrName, bottomUpAttrName;
+    protected DataTableModel dataModel;
+    protected WBSModel wbsModel;
+    protected String name;
+    protected String topDownAttrName, bottomUpAttrName, inheritedAttrName;
     protected double fuzzFactor = 0.05;
 
     public TopDownBottomUpColumn(DataTableModel dataModel, String name) {
@@ -20,6 +20,7 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
         this.name = name;
         topDownAttrName = name + " (Top Down)";
         bottomUpAttrName = name + " (Bottom_Up)";
+        inheritedAttrName = name + " (Inherited_)";
         recalc();
         wbsModel.addTableModelListener(this);
     }
@@ -44,7 +45,20 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
 
     public Class getColumnClass() { return String.class; }
 
-    public boolean isCellEditable(int rowIndex) { return true; }
+    public boolean isCellEditable(int rowIndex) {
+        WBSNode node = wbsModel.getNodeForRow(rowIndex);
+        return isCellEditable(node);
+    }
+
+    public boolean isCellEditable(WBSNode node) {
+        if (node == null) return false;
+
+        if (shouldPrune(node)) return false;
+        if (node.getAttribute(topDownAttrName) != null) return true;
+        if (node.getAttribute(bottomUpAttrName) != null) return true;
+
+        return false;
+    }
 
     public Object getValueAt(int rowIndex) {
         WBSNode node = wbsModel.getNodeForRow(rowIndex);
@@ -56,6 +70,8 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
             String errMsg =
                 "top-down/bottom-up mismatch (bottom-up = " + bottomUp + ")";
             return new ErrorValue(result, errMsg);
+        } else if (! isCellEditable(node)) {
+            return new ReadOnlyValue(result);
         } else
             return result;
     }
@@ -94,30 +110,35 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
         fireRecalcEvent();
     }
 
-    private void recalc() { recalc(wbsModel.getRoot()); }
+    protected void recalc() { recalc(wbsModel.getRoot()); }
 
-    private double recalc(WBSNode node) {
+    protected double recalc(WBSNode node) {
         double topDownValue = node.getNumericAttribute(topDownAttrName);
 
         WBSNode[] children = wbsModel.getChildren(node);
+        int numToInclude = filterChildren(children);
 
-        if (children.length == 0) {
+        double result;
+
+        if (numToInclude == 0) {
             // this is a leaf. The bottom up value equals the top-down value.
             if (Double.isNaN(topDownValue)) topDownValue = 0;
             node.setNumericAttribute(bottomUpAttrName, topDownValue);
-            return topDownValue;
+            node.setAttribute(inheritedAttrName, null);
+            result = topDownValue;
 
         } else {
             // this node has children.  Recursively calculate the
             // bottom-up value from those of the children.
             double bottomUpValue = 0;
             double childValue;
-            for (int i = children.length;   i-- > 0; ) {
+            for (int i = 0;   i < numToInclude;   i++) {
                 childValue = recalc(children[i]);
                 bottomUpValue += childValue;
             }
             // save the bottom-up attribute value we calculated.
             node.setNumericAttribute(bottomUpAttrName, bottomUpValue);
+            node.setAttribute(inheritedAttrName, null);
 
             // if the top-down and bottom-up match, silently erase the
             // superfluous top-down estimate.
@@ -125,11 +146,67 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
                 node.setAttribute(topDownAttrName, null);
 
             if (equal(bottomUpValue, 0))
-                return (Double.isNaN(topDownValue) ? 0 : topDownValue);
+                result = (Double.isNaN(topDownValue) ? 0 : topDownValue);
             else
-                return bottomUpValue;
+                result = bottomUpValue;
         }
+
+        // set the inherited value for pruned children.
+        for (int i = numToInclude;   i < children.length;   i++)
+            setInheritedValue(children[i], result);
+
+        return result;
     }
+
+    protected void setInheritedValue(WBSNode node, double value) {
+        //node.setAttribute(topDownAttrName, null);
+        node.setAttribute(bottomUpAttrName, null);
+        node.setNumericAttribute(inheritedAttrName, value);
+
+        WBSNode[] children = wbsModel.getChildren(node);
+        for (int i = 0;   i < children.length;   i++)
+            setInheritedValue(children[i], value);
+    }
+
+    protected int filterChildren(WBSNode[] children) {
+        int len = children.length;
+        int left = 0;
+        int right = len - 1;
+
+        while (true) {
+            // find the leftmost child that needs to be pruned.
+            while (left < len && !shouldPrune(children[left]))
+                left++;
+
+            if (left >= right) break;
+
+            // find the rightmost child that doesn't need pruning.
+            while (right > left && shouldPrune(children[right]))
+                right--;
+
+            if (left < right) {
+                WBSNode temp = children[left];
+                children[left] = children[right];
+                children[right] = temp;
+                left++; right--;
+            }
+        }
+
+        return left;
+    }
+
+    /** Returns true if the given node should not participate in the
+     * bottom-up calculation.
+     *
+     * Nodes that are pruned from the calculation (and all the
+     * children of pruned nodes) will have neither their "top down"
+     * nor their "bottom up" attribute set.  Instead, they will have
+     * their "inherited" attribute set to the value of their nearest
+     * ancestor.
+     *
+     * This method exists so subclasses can override it.
+     */
+    protected boolean shouldPrune(WBSNode node) { return false; }
 
     protected boolean topDownBottomUpMismatch(WBSNode node) {
         double topDownValue = node.getNumericAttribute(topDownAttrName);
@@ -178,7 +255,10 @@ public class TopDownBottomUpColumn implements DataColumn, TableModelListener
 
     protected double getValueForNode(WBSNode node) {
         if (node == null) return 0;
-        double value = node.getNumericAttribute(topDownAttrName);
+
+        double value = node.getNumericAttribute(inheritedAttrName);
+        if (Double.isNaN(value))
+            value = node.getNumericAttribute(topDownAttrName);
         if (Double.isNaN(value))
             value = node.getNumericAttribute(bottomUpAttrName);
         if (Double.isNaN(value))
