@@ -30,10 +30,10 @@ import java.io.PrintWriter;
 
 public class SQLFilter extends AbstractLanguageFilter {
 
-    private static final String[] COMMENT_STARTERS = { "--" };
+    private static final String[] COMMENT_STARTERS = { "--", "/*" };
     protected String[] getCommentStarters() { return COMMENT_STARTERS; }
 
-    private static final String[] COMMENT_ENDERS   = { "\n" };
+    private static final String[] COMMENT_ENDERS   = { "\n", "*/" };
     protected String[] getCommentEnders()   { return COMMENT_ENDERS; }
 
     private static final String[] FILENAME_ENDINGS = {
