@@ -77,49 +77,31 @@ process that describes your system:</P>
 <HR>
 
 <H2><A name="add_on"></A>Add-on Process Sets</H2>
-<P>The following processes do not come with the dashboard by default, but are 
-easy to install:</P>
-
-<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
- <TR>
-  <TD vAlign=top width="100%">
-   <UL>
-    <LI><A name=SCRDCR></a>SCR/DCR - a set of processes (inspired by PSP3) 
-      created by the Hill AFB TaskView team for software development. (These 
-      processes were distributed with version 1.1 of the dashboard, but are 
-      no longer actively supported.) Available at 
-      <u>http://prdownloads.sourceforge.net/processdash/SCR-DCR.jar</u></LI>
-   </UL>
-  </TD>
- </TR>
-</TABLE>
+<P>The Process Dashboard was written to allow various processes to be 
+followed, not just the PSP processes.  As such, we can offer add-on process 
+sets that can be installed into the dashboard.  Check the downloads section 
+of our website at <U>http://processdash.sourceforge.net</u> for the latest 
+add-on process sets.</p>
 
 <P>To install an add-on process set:</P>
-
-<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
- <TR>
-  <TD vAlign=top width="100%">
-   <UL>
-    <LI>Locate the file "<I>pspdash.jar</I>" on your system. (If you are on a 
-      Windows system, this file is most likely located in the directory 
-      "<I>C:\Program Files\Process Dashboard</I>".) 
-    <LI>Click on a link above to download the add-on process set. When your 
-      browser asks you whether you want to save the file or open it; choose 
-      <B><I>Save</I></B>.&nbsp; Save the file into the directory you found in 
-      the previous step. (In other words, the <I>pspdash.jar</I> file and the 
-      add-on process file should be side-by-side in the same directory. 
-      <STRONG><I>Do not</I></STRONG> overwrite the <I>pspdash.jar</I> file, 
-      just save the process file into the same directory.)</li>
-    <LI>If the dashboard is running, you will need to restart it for the new 
-      processes to be found. </LI>
-   </UL>
-  </TD>
- </TR>
-</TABLE>
+<UL>
+ <LI>Locate the file "<I>pspdash.jar</I>" on your system. (If you are on a 
+   Windows system, this file is most likely located in the directory 
+   "<I>C:\Program Files\Process Dashboard</I>".) 
+ <LI>Download the add-on process set from our website. When your browser asks 
+   you whether you want to save the file or open it; choose 
+   <B><I>Save</I></B>.&nbsp; Save the file into the directory you found in 
+   the previous step. (In other words, the <I>pspdash.jar</I> file and the 
+   add-on process file should be side-by-side in the same directory.  
+   <STRONG><I>Do not</I></STRONG> overwrite the <I>pspdash.jar</I> file, just 
+   save the process file into the same directory.)</li>
+ <LI>If the dashboard is running, you will need to restart it for the new 
+   processes to be found. </LI>
+</UL>
 
 <HR>
 
-<H2><A name=upgrade></A>Upgrade to New Version </H2>
+<H2><A name=upgrade></A>Upgrade to New Version</H2>
 <OL>
  <LI>If the dashboard is currently running, stop it first.</li>
  <LI>Locate the file "<EM>pspdash.jar</EM>" on your system. (If you are on a 
@@ -254,16 +236,11 @@ browser installed on your system. Then follow the instructions below: </P>
    (e.g., metrics, defects, time log, etc) to be stored.</LI>
  <LI>Create a shell script to run the dashboard and place it in your path. 
    The script should look something like this: 
-
-  <TABLE cellSpacing=0 cellPadding=0 width="75%" align=center border=0>
-   <TR>
-    <TD>
-      #!/bin/sh<BR>
-      cd ~/path/to/your/personal/data/directory<BR>
-      /path/to/jre/bin/java -jar /path/to/pspdash.jar<BR>
-    </TD>
-   </TR>
-  </TABLE></LI>
+    <pre>
+      #!/bin/sh
+      cd ~/path/to/your/personal/data/directory
+      /path/to/jre/bin/java -jar /path/to/pspdash.jar
+    </pre></li>
  <LI>Please consider subscribing to our announcements mailing list. We will 
    send email to this mailing list when new versions of the tool are 
    available.  You can subscribe to the list at 
