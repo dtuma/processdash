@@ -42,6 +42,7 @@ public class TaskScheduleChart extends JDialog {
         JTabbedPane tabPane = new JTabbedPane();
         tabPane.addTab("Earned Value", buildValueChart());
         tabPane.addTab("Direct Hours", buildTimeChart());
+        tabPane.addTab("Combined",     buildCombinedChart());
 
         getContentPane().add(tabPane);
         pack();
@@ -54,6 +55,10 @@ public class TaskScheduleChart extends JDialog {
 
     private JFreeChartPanel buildValueChart() {
         return buildChart(parent.model.getSchedule().getValueChartData());
+    }
+
+    private JFreeChartPanel buildCombinedChart() {
+        return buildChart(parent.model.getSchedule().getCombinedChartData());
     }
 
     private JFreeChartPanel buildChart(XYDataSource data) {
