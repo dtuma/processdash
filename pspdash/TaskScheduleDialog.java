@@ -82,8 +82,7 @@ public class TaskScheduleDialog
                               boolean createRollup) {
         // Create the frame and set an appropriate icon
         frame = new JFrame(resources.getString("Window_Title"));
-        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
-                           (getClass().getResource("icon32.gif")));
+        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
         PCSH.enableHelpKey(frame, "UsingTaskSchedule");
 
         // Try to open an existing earned value model.

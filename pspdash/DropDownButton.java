@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -47,7 +47,7 @@ public class DropDownButton extends Box {
     private JButton dropDownButton;
     private boolean dropDownEnabled = false;
     private boolean mainRunsDefaultMenuOption = true;
-    private ImageIcon enabledDownArrow, disDownArrow;
+    private Icon enabledDownArrow, disDownArrow;
     private DropDownMenu menu;
     private MainButtonListener mainButtonListener = new MainButtonListener();
 
@@ -70,10 +70,8 @@ public class DropDownButton extends Box {
             (new RightChoppedBorder(mainButton.getBorder(), 2));
         add(mainButton);
 
-        enabledDownArrow = new ImageIcon
-            (getClass().getResource("down-arrow.gif"));
-        disDownArrow = new ImageIcon
-            (getClass().getResource("down-arrow-dis.gif"));
+        enabledDownArrow = DashboardIconFactory.getSmallDownArrowIcon();
+        disDownArrow = DashboardIconFactory.getSmallDisabledDownArrowIcon();
         dropDownButton = new JButton(disDownArrow);
         dropDownButton.setDisabledIcon(disDownArrow);
         dropDownButton.addMouseListener(new DropDownListener());

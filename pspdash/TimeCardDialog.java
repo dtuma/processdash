@@ -63,8 +63,7 @@ public class TimeCardDialog {
         this.timeLog = timeLog;
 
         frame = new JFrame(resources.getString("Time_Card_Window_Title"));
-        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
-                           (getClass().getResource("icon32.gif")));
+        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
 
         model = new TimeCard(useProps, timeLog);
         treeTable = new JTreeTable(model);

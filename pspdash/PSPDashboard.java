@@ -84,8 +84,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
     PSPDashboard(String title) {
         super();
-        setIconImage(Toolkit.getDefaultToolkit().createImage
-                     (getClass().getResource("icon32.gif")));
+        setIconImage(DashboardIconFactory.getWindowIconImage());
         getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 2, 2));
         addWindowListener(this);
 

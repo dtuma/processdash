@@ -168,8 +168,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         frame = new JFrame(resource.getString("HierarchyEditor"));
         frame.setTitle(resource.getString("HierarchyEditor"));
-        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
-                           (getClass().getResource("icon32.gif")));
+        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
         frame.getContentPane().add("North", buildToolBar());
         frame.getContentPane().add("Center", panel);
         frame.setJMenuBar(menuBar);

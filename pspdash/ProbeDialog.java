@@ -77,7 +77,7 @@ public class ProbeDialog extends JFrame implements
         super();
         setTitle(resources.getString("PROBE_Window_Title"));
         PCSH.enableHelpKey(this, "UsingProbeTool");
-        setIconImage(dash.getIconImage());
+        setIconImage(DashboardIconFactory.getWindowIconImage());
 
         parent = dash;
         data   = parent.data;

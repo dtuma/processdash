@@ -58,7 +58,7 @@ public class TaskScheduleChart extends JFrame
     public TaskScheduleChart(TaskScheduleDialog parent) {
         super(resources.format("Window_Title_FMT", parent.taskListName));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
-        setIconImage(parent.frame.getIconImage());
+        setIconImage(DashboardIconFactory.getWindowIconImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         taskList = parent.model;
         taskList.addRecalcListener(this);

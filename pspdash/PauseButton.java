@@ -36,7 +36,7 @@ import java.util.StringTokenizer;
 import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import pspdash.data.SaveableData;
 import pspdash.data.DateData;
 import pspdash.data.DoubleData;
@@ -44,8 +44,8 @@ import pspdash.data.DoubleData;
 
 public class PauseButton extends DropDownButton implements ActionListener {
     PSPDashboard parent = null;
-    ImageIcon pause_icon = null;
-    ImageIcon continue_icon = null;
+    Icon pause_icon = null;
+    Icon continue_icon = null;
     boolean showCurrent = false;
     boolean paused = true;
     Timer stopwatch = null;
@@ -72,8 +72,8 @@ public class PauseButton extends DropDownButton implements ActionListener {
         continue_tip = res.getString("Continue_Tip");
 
         try {
-            pause_icon = new ImageIcon(getClass().getResource("pause.gif"));
-            continue_icon = new ImageIcon(getClass().getResource("continue.gif"));
+            pause_icon = DashboardIconFactory.getPauseIcon();
+            continue_icon = DashboardIconFactory.getContinueIcon();
         } catch (Exception e) {
             pause_icon = continue_icon = null;
         }

@@ -86,8 +86,7 @@ public class DefectEditor extends Component
         reload ();
 
         frame = new JFrame(resources.getString("Defect_Log_Window_Title"));
-        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
-                           (getClass().getResource("icon32.gif")));
+        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
         frame.getContentPane().add("Center", panel);
         frame.setBackground(Color.lightGray);
         PCSH.enableHelpKey(frame, "UsingDefectLogEditor");

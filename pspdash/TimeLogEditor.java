@@ -114,8 +114,7 @@ public class TimeLogEditor extends Object
         } catch (IOException e) {}
 
         frame = new JFrame(resources.getString("Time_Log_Editor_Window_Title"));
-        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
-                           (getClass().getResource("icon32.gif")));
+        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
         frame.getContentPane().add("Center", panel);
         frame.setBackground(Color.lightGray);
         PCSH.enableHelpKey(frame, "UsingTimeLogEditor");

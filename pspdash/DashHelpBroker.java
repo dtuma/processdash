@@ -63,8 +63,7 @@ class DashHelpBroker extends DefaultHelpBroker
         super.setHelpSet(hs);
         initPresentation();
 
-        frame.setIconImage(Toolkit.getDefaultToolkit().createImage
-            (PSPDashboard.class.getResource("icon32.gif")));
+        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
     }
 
 

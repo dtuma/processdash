@@ -166,7 +166,7 @@ public class TaskScheduleChooser
                                             String[] taskLists) {
         this.dash = dash;
 
-        dialog = new JDialog();
+        dialog = new JDialog(dash);
         PCSH.enableHelpKey(dialog, "UsingTaskSchedule.chooser");
         dialog.setTitle(resources.getString("Choose_Window_Title"));
         dialog.getContentPane().add

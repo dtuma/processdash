@@ -89,8 +89,7 @@ public class TaskScheduleCollaborationWizard {
 
         // Create the frame and set an appropriate icon
         frame = new JFrame(resources.getString("Window_Title"));
-        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
-                           (getClass().getResource("icon32.gif")));
+        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
 
         frame.getContentPane().add(new WelcomeScreen());
         frame.pack();
