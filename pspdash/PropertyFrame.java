@@ -1188,8 +1188,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             DefaultMutableTreeNode node = getSelectedNode();
             if (node == null) return;
 
-                // get the default index for adding
-                PropertyKey parentPKey = treeModel.getPropKey (useProps, node.getPath ());
+            // get the default index for adding
+            PropertyKey parentPKey = treeModel.getPropKey (useProps, node.getPath ());
             Prop val = useProps.pget (parentPKey);
             int newIndex = useProps.getNumChildren (parentPKey);
 
@@ -1218,7 +1218,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                             if (idx1 >= 0 && idx2 >= 0) {
                                               // change index
                                 idx1 = Integer.valueOf (allowedChild.substring
-                                                      (idx1 + 1, idx2)).intValue();
+                                                        (idx1 + 1, idx2)).intValue();
                                 newIndex = ((idx1 < 0) ? (newIndex + idx1) : idx1);
                             }
                             break;              // exit while loop
@@ -1227,16 +1227,16 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 }
             }
 
-                String newChildName = useProps.pget(parentPKey).uniqueChildName(cutKey.name());
-                // Create an appropriately named node (original + made unique(if needed))
-            useProps.addChildKey (parentPKey,
-                                  useProps.pget(parentPKey).uniqueChildName(newChildName),
-                                  newIndex);
+            // Create an appropriately named node (original + made unique(if needed))
+            String newChildName =
+                useProps.pget(parentPKey).uniqueChildName(cutKey.name());
+            useProps.addChildKey
+                (parentPKey,
+                 useProps.pget(parentPKey).uniqueChildName(newChildName),
+                 newIndex);
 
-                // Copy from the cutKey to the new child key
-            useProps.copyExact (useProps,
-                                cutKey,
-                                useProps.getChildKey (parentPKey, newIndex));
+                    // Move nodes from the cutKey to the new child key
+            useProps.move (cutKey, useProps.getChildKey (parentPKey, newIndex));
 
                 // Now 'delete' the cut node
             treeModel.removeNodeFromParent(cutNode);
@@ -1249,8 +1249,14 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
             treeModel.nodeStructureChanged(node);
 
+            // ensure that the newly pasted node is visible, and select it.
+            DefaultMutableTreeNode pastedNode =
+                (DefaultMutableTreeNode) node.getChildAt(newIndex);
+            tree.setSelectionPath(new TreePath(treeModel.getPathToRoot(pastedNode)));
+
             cutNode = null;
             pasteMenuItem.setEnabled(false);
+            setDirty(true);
         }
     }
 
@@ -1268,13 +1274,13 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
             /* match parent with child's required parent list, if any */
         String cutStatus = cutProp.getStatus();
-        if (cutStatus == null) return true;		/* no required parent */
+        if (cutStatus == null) return true;         /* no required parent */
         int idx = cutStatus.indexOf(REQUIRED_PARENT);
-        if (idx == -1) return true;				/* no required parent */
+        if (idx == -1) return true;                         /* no required parent */
 
         StringTokenizer st = new StringTokenizer
             (cutStatus.substring (idx + 1), String.valueOf (REQUIRED_PARENT));
-        while (st.hasMoreElements())			/* matches required parent */
+        while (st.hasMoreElements())                        /* matches required parent */
             if (parentID.equals(st.nextElement())) return true;
 
         return false;
