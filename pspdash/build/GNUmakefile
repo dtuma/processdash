@@ -52,6 +52,8 @@ INSTALLED_FILES=$(addprefix pspdash/,$(NON_CLASS_FILES))
 
 TEMPLATE_FILES:=$(shell cd ..; find Templates -type f -print | grep -v -f build/template-ignore)
 
+APPLET_FILENAME=DataApplet14
+
 all: pspdash.jar
 
 install: pspdash.jar
@@ -71,19 +73,19 @@ pspdash.jar: $(INSTALLED_FILES) manifest perltools jaxp crimson jfreechart templ
 # make a local copy of the contents of the templates directory, without
 # CVS stuff or emacs backup~ files.
 ifeq ($(BUILD_PLATFORM),CYGWIN)
-templates: $(TEMPLATE_FILES) Templates/DataApplet.cab Templates/DataApplet.jar
+templates: $(TEMPLATE_FILES) Templates/$(APPLET_FILENAME).cab Templates/$(APPLET_FILENAME).jar
 else
-templates: $(TEMPLATE_FILES) Templates/DataApplet.jar
+templates: $(TEMPLATE_FILES) Templates/$(APPLET_FILENAME).jar
 endif
 
 $(TEMPLATE_FILES) : Templates/% : ../Templates/%
 	@mkdir -p '$(dir Templates/$*)'
 	cp '../Templates/$*' 'Templates/$*'
 
-Templates/DataApplet.cab: IE/DataApplet.cab
+Templates/$(APPLET_FILENAME).cab: IE/DataApplet.cab
 	cp $< $@
 
-Templates/DataApplet.jar: NS/DataApplet.jar
+Templates/$(APPLET_FILENAME).jar: NS/DataApplet.jar
 	cp $< $@
 
 
