@@ -46,6 +46,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/psp/r5b.java \
 	Templates/reports/defectlog.java \
 	Templates/reports/bar.java \
+	Templates/reports/excel.java \
 	Templates/reports/line.java \
 	Templates/reports/pie.java \
 	Templates/reports/xy.java \
@@ -98,7 +99,7 @@ data: FORCE
 pspdash: PSPDashboard.class $(CLASS_FILES)
 
 
-cgi-scripts: $(CGI_CLASSES) $(SIZEEST_COPIES)
+cgi-scripts: $(CGI_CLASSES) $(SIZEEST_COPIES) Templates/reports/excel.iqy
 
 $(SIZEEST_COPIES): Templates/psp1/sizeest.class
 	cp Templates/psp1/sizeest.class $@
@@ -109,6 +110,9 @@ $(CGI_CLASSES) : %.class : %.java $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)
 	    -deprecation \
 	    -d $(dir $<) \
 	    $<
+
+Templates/reports/excel.iqy: Templates/reports/excel.class
+	cp Templates/reports/excel.class Templates/reports/excel.iqy
 
 
 clean:
