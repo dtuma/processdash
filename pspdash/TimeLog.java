@@ -1,5 +1,5 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -63,6 +63,12 @@ public class TimeLog {
 
     public static void setDefaultFilename(String filename) {
         defaultTimeLogFile = filename;
+        try {
+            // this will create a zero length file if and only if the file
+            // doesn't already exist.
+            File f = new File(filename);
+            f.createNewFile();
+        } catch (IOException ioe) {}
     }
 
     public void readDefault() throws IOException {
