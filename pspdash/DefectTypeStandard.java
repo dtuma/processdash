@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -60,7 +60,7 @@ public class DefectTypeStandard extends OptionList {
         if (defectTypeName == null)
             defectTypeName = Settings.getVal("defectTypeStandard");
         if (defectTypeName == null)
-            defectTypeName = "PSP - text";
+            defectTypeName = DEFAULT_NAME;
 
         return getByName(defectTypeName, r);
     }
@@ -105,6 +105,8 @@ public class DefectTypeStandard extends OptionList {
             if (name.startsWith(DATA_PREFIX))
                 names.add(name.substring(DATA_PREFIX.length()));
         }
+        if (names.isEmpty())
+            names.add(DEFAULT_NAME);
         String[] result = new String[names.size()];
         result = (String[]) names.toArray(result);
         Arrays.sort(result, String.CASE_INSENSITIVE_ORDER);
@@ -180,17 +182,7 @@ public class DefectTypeStandard extends OptionList {
 
 
     /** Defect standard to use if everything else fails */
+    private static final String DEFAULT_NAME = "Generic";
     private static final String DEFAULT_DEFECT_TYPES =
-        "Documentation (comments, messages)|" +
-        "Syntax (spelling, punctuation, typos, instruction formats)|" +
-        "Build, package (change management, library, version control)|" +
-        "Assignment (declaration, duplicate names, scope, limits)|" +
-        "Interface (procedure calls and reference, I/O, user formats)|" +
-        "Checking (error messages, inadequate checks)|" +
-        "Data (structure, content)|" +
-        "Function (logic, pointers, loops, recursion, computation, " +
-                  "function defects)|" +
-        "System (configuration, timing, memory)|" +
-        "Environment (design, compile, test, or other support "+
-                     "system problems)";
+        "10|20|30|40|50|60|70|80|90|100";
 }

@@ -145,12 +145,6 @@ timelog.updateInterval=1
 
 
 #
-# Default defect type standard.
-#
-defectTypeStandard=PSP - text
-
-
-#
 # Default settings for charts
 #
 
