@@ -27,6 +27,7 @@ package pspdash;
 
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -84,14 +85,32 @@ public class SelectableHierarchyTree extends JTree {
         addMouseListener(new MouseAdapter() {
              public void mousePressed(MouseEvent e) {
                  if (e.getClickCount() != 1) return;
-                 int selRow = getRowForLocation(e.getX(), e.getY());
-                 if (selRow == -1) return;
-                 TreePath selPath = getPathForRow(selRow);
-                 toggleSelection(selPath);
+                 if (processMouseClick(e.getX(), e.getY()))
+                     e.consume();
              }
          });
     }
 
+
+    protected boolean processMouseClick(int x, int y) {
+        int row = getRowForLocation(x, y);
+        if (row == -1) return false;
+
+        TreePath treePath = getPathForRow(row);
+        Object clickedNode = treePath.getLastPathComponent();
+        boolean expanded = isExpanded(row);
+        boolean leaf = model.isLeaf(clickedNode);
+
+        renderer.getTreeCellRendererComponent
+            (this, clickedNode, false, expanded, leaf, row, true);
+        CheckBoxIcon i = (CheckBoxIcon) renderer.getIcon();
+        Rectangle bounds = getRowBounds(row);
+        if (!i.isInCheckBox(x - bounds.x, y - bounds.y))
+            return false;
+
+        toggleSelection(treePath);
+        return true;
+    }
 
     protected void toggleSelection(TreePath selPath) {
         HierarchyTreeNode node =
@@ -152,35 +171,44 @@ public class SelectableHierarchyTree extends JTree {
 
     private class CheckBoxIcon implements Icon {
 
-        private Icon a, b;
-        private Component cb;
-        private int gap;
+        private Icon icon, checkBoxIcon;
+        private JCheckBox cb;
+        private int gap, height, width;
+        private int iconHeight,  iconWidth,  iconDiff;
+        private int checkHeight, checkWidth, checkDiff;
 
-        public CheckBoxIcon(Icon a, Component cb) {
-            this.a = a;
+        public CheckBoxIcon(Icon icon, JCheckBox cb) {
+            this.icon = icon;
             this.cb = cb;
-            this.b = UIManager.getIcon("CheckBox.icon");
+            this.checkBoxIcon = UIManager.getIcon("CheckBox.icon");
             this.gap = 4;
+
+            iconHeight = icon.getIconHeight();
+            checkHeight = checkBoxIcon.getIconHeight();
+            height = Math.max(iconHeight, checkHeight);
+
+            iconWidth = icon.getIconWidth();
+            checkWidth = checkBoxIcon.getIconWidth();
+            width = iconWidth + gap + checkWidth;
+
+            iconDiff = (height-iconHeight) / 2;
+            checkDiff = (height-checkHeight) / 2;
         }
 
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            int aHeight = a.getIconHeight();
-            int bHeight = b.getIconHeight();
-            int height = Math.max(aHeight, bHeight);
-
-            int aDiff = (height-aHeight) / 2;
-            int bDiff = (height-bHeight) / 2;
-
-            a.paintIcon(c, g, x, y+aDiff);
-            b.paintIcon(cb, g, x+a.getIconWidth()+gap, y+bDiff);
+            icon.paintIcon(c, g, x, y+iconDiff);
+            checkBoxIcon.paintIcon(cb, g, x+iconWidth+gap, y+checkDiff);
         }
 
-        public int getIconWidth() {
-            return a.getIconWidth() + gap + b.getIconWidth();
-        }
+        public int getIconWidth() { return width; }
 
-        public int getIconHeight() {
-            return Math.max(a.getIconHeight(), b.getIconHeight());
+        public int getIconHeight() { return height; }
+
+        public boolean isInCheckBox(int x, int y) {
+            return (x >= iconWidth + gap)
+                && (x < width)
+                && (y >= checkDiff)
+                && (y < checkDiff + checkHeight);
         }
     }
 
