@@ -63,6 +63,7 @@
 .ppt=application/mspowerpoint
 .ps=application/postscript
 .qt=video/quicktime
+.rpt=text/plain
 .rtf=application/rtf
 .shtml=text/x-server-parsed-html
 .shtm=text/x-server-parsed-html
