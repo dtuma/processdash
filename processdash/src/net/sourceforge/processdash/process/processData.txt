@@ -56,6 +56,11 @@
 
     // Size metrics
 
+    [SIZE_METRIC_NAME] == "Size";
+    [SIZE_METRIC_NAME_ABBR] == "Size";
+    [AGGR_SIZE_METRIC_NAME] == [SIZE_METRIC_NAME];
+    [AGGR_SIZE_METRIC_NAME_ABBR] == [SIZE_METRIC_NAME_ABBR];
+
     [Estimated Size] = ?NaN;
     [Size] = ?NaN;
     [Size Estimating Error] = ([Size] - [Estimated Size]) / [Estimated Size];

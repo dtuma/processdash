@@ -129,3 +129,6 @@ sumForCycles(Defects Removed);
 
 [Completed] = maxDate("Completed",
 		      ",Planning,HLD,HLD Review,Postmortem,", [PSP3_Cycles]);
+
+[HLD/SIZE_METRIC_NAME] = "HLD Pages";
+[HLD Review/SIZE_METRIC_NAME] = "HLD Pages";
