@@ -198,9 +198,10 @@ public class TaskScheduleDialog
                     addTask(); }});
         result.add(addTaskButton);
         result.add(Box.createHorizontalGlue());
+        // button margins: 2 pixels top and bottom, 14 left and right.
 
         deleteTaskButton = new JButton
-            (isRollup ? "Delete Schedule" : "Delete Task");
+            (isRollup ? "Remove Schedule" : "Delete Task");
         deleteTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     deleteTask(); }});
@@ -294,7 +295,7 @@ public class TaskScheduleDialog
         collaborateButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     showCollaborationWizard(); }});
-        //box.add(collaborateButton);
+        box.add(collaborateButton);
 
         box.add(Box.createHorizontalGlue());
 
@@ -1131,11 +1132,9 @@ public class TaskScheduleDialog
             ((DefaultCellEditor)e).addCellEditorListener(this);
             }*/
 
-    private static final String COLLAB_WIZARD_URL = "//dash/evCollab.class";
     public void showCollaborationWizard() {
         if (saveOrCancel(true))
-            new TaskScheduleCollaborationWizard
-                (dash.data, dash.webServer, taskListName);
+            new TaskScheduleCollaborationWizard(dash, taskListName);
     }
 
     public void showChart() {

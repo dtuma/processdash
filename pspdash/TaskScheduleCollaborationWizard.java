@@ -50,34 +50,38 @@ public class TaskScheduleCollaborationWizard {
 
     private boolean isRollup;
     private JFrame frame;
+    private PSPDashboard dash;
     private DataRepository data;
+    private PSPProperties hierarchy;
+    private ObjectCache cache;
     private TinyWebServer webServer;
     private String taskListName;
+    private String rollupTaskListName = null;
     private Stack previousPanes = new Stack();
 
     /** Create and display a collaboration wizard.
      */
-    public TaskScheduleCollaborationWizard(DataRepository data,
-                                           TinyWebServer webServer,
+    public TaskScheduleCollaborationWizard(PSPDashboard dash,
                                            String taskListName) {
         // check input parameters
         if (EVTaskListData.validName(taskListName) &&
-            EVTaskListData.exists(data, taskListName))
+            EVTaskListData.exists(dash.data, taskListName))
             isRollup = false;
 
         else if (EVTaskListRollup.validName(taskListName) &&
-                 EVTaskListRollup.exists(data, taskListName))
-            // isRollup = true;
-            throw new IllegalArgumentException
-                ("Rollup schedules not yet supported.");
+                 EVTaskListRollup.exists(dash.data, taskListName))
+            isRollup = true;
 
         else
             throw new IllegalArgumentException
                 ("No local task list by that name");
 
         // Save the parameters into our data structure
-        this.data = data;
-        this.webServer = webServer;
+        this.dash = dash;
+        this.data = dash.data;
+        this.hierarchy = dash.props;
+        this.cache = dash.objectCache;
+        this.webServer = dash.webServer;
         this.taskListName = taskListName;
 
         // Create the frame and set an appropriate icon
@@ -93,8 +97,10 @@ public class TaskScheduleCollaborationWizard {
         frame.show();
     }
 
-    private String getTaskNameText() {
-        return ("<html><h2>" + HTMLUtils.escapeEntities(taskListName) +
+    private String getTaskNameText() { return getTaskNameText(PUBLISH); }
+    private String getTaskNameText(int action) {
+        String name = (action == ROLLUP ? rollupTaskListName : taskListName);
+        return ("<html><h2>" + HTMLUtils.escapeEntities(name) +
                 "</h2></html>");
     }
 
@@ -102,6 +108,11 @@ public class TaskScheduleCollaborationWizard {
         frame.setVisible(false);
         frame.dispose();
         previousPanes.clear();
+        data = null;
+        hierarchy = null;
+        cache = null;
+        webServer = null;
+        dash = null;
     }
 
     private void setPanel(JPanel panel) {
@@ -135,7 +146,7 @@ public class TaskScheduleCollaborationWizard {
     }
 
     private void showRollupScreen() {
-        //FIXME: not yet implemented
+        setPanel(new RollupNameScreen());
     }
 
     private static final int PUBLISH = 0;
@@ -197,6 +208,7 @@ public class TaskScheduleCollaborationWizard {
 
             shareButton = newJButton();
             shareButton.setText("Share");
+            shareButton.setEnabled(!isRollup);
             buttonBox.add(shareButton);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -219,6 +231,7 @@ public class TaskScheduleCollaborationWizard {
 
             rollupButton = newJButton();
             rollupButton.setText("Rollup");
+            rollupButton.setEnabled(!isRollup);
             buttonBox.add(rollupButton);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -363,16 +376,19 @@ public class TaskScheduleCollaborationWizard {
         public void mouseReleased(MouseEvent e) {}
         public void mouseEntered(MouseEvent e) {
             Object o = e.getSource();
-            if (o == publishButton)     showInfo(PUBLISH);
-            else if (o == shareButton)  showInfo(SHARE);
-            else if (o == rollupButton) showInfo(ROLLUP);
-            else if (o == cancelButton) showInfo(CANCEL);
-            else return;
+            if (o instanceof JButton && ((JButton) o).isEnabled()) {
 
-            colorButton(publishButton, o);
-            colorButton(shareButton,   o);
-            colorButton(rollupButton,  o);
-            //colorButton(cancelButton,  o);
+                if (o == publishButton)     showInfo(PUBLISH);
+                else if (o == shareButton)  showInfo(SHARE);
+                else if (o == rollupButton) showInfo(ROLLUP);
+                else if (o == cancelButton) showInfo(CANCEL);
+                else return;
+
+                colorButton(publishButton, o);
+                colorButton(shareButton,   o);
+                colorButton(rollupButton,  o);
+                //colorButton(cancelButton,  o);
+            }
         }
         private void colorButton(JButton button, Object target) {
             button.setBackground(button == target ? Color.yellow : null);
@@ -645,6 +661,175 @@ public class TaskScheduleCollaborationWizard {
         "Please enter a password, or select",
         "the \"Don't require a password\" option." };
 
+    private class RollupNameScreen extends JPanel implements ActionListener {
+        public JLabel taskListName;
+        public JTextArea prompt;
+        public JLabel namePrompt;
+        public JTextField rollupName;
+        public JButton backButton, nextButton, cancelButton;
+        public JLabel filler;
+
+        public JPanel BuildbuttonBox() {
+            JPanel buttonBox = new JPanel();
+            FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
+            buttonBox.setLayout(oLayout);
+
+            backButton = new JButton("<Back");
+            backButton.addActionListener(this);
+            buttonBox.add(backButton);
+
+            nextButton = new JButton("Next>");
+            nextButton.addActionListener(this);
+            buttonBox.add(nextButton);
+
+            JLabel filler = new JLabel("  ");
+            buttonBox.add(filler);
+
+            cancelButton = new JButton("Cancel");
+            cancelButton.addActionListener(this);
+            buttonBox.add(cancelButton);
+
+            return buttonBox;
+        }
+
+        void BuildFrame() {
+            Container oPanel = this;
+            GridBagLayout oLayout = new GridBagLayout();
+            oPanel.setLayout(oLayout);
+            GridBagConstraints oConst;
+            taskListName = new JLabel();
+            taskListName.setText(getTaskNameText());
+            oPanel.add(taskListName);
+            oConst = new GridBagConstraints();
+            oConst.gridx =0;
+            oConst.gridy =0;
+            oConst.weightx =1.0;
+            oConst.gridwidth =2;
+            oConst.fill =GridBagConstraints.HORIZONTAL;
+            oConst.anchor =GridBagConstraints.WEST;
+            oConst.insets.top =10;
+            oConst.insets.left =10;
+            oConst.insets.right =10;
+            oLayout.setConstraints(taskListName, oConst);
+
+            prompt = new JTextArea("", 3, 10);
+            prompt.setText("This wizard will create a new rollup schedule, " +
+                           "and add the current schedule to it.  Please " +
+                           "choose a name for the resulting rollup schedule:");
+            prompt.setBackground(null);
+            prompt.setLineWrap(true);
+            prompt.setWrapStyleWord(true);
+            prompt.setEditable(false);
+            oPanel.add(prompt);
+            oConst = new GridBagConstraints();
+            oConst.gridx =0;
+            oConst.gridy =1;
+            oConst.weightx =1.0;
+            oConst.weighty =0.0;
+            oConst.fill =GridBagConstraints.BOTH;
+            oConst.gridwidth =2;
+            oConst.anchor =GridBagConstraints.WEST;
+            oConst.insets.top =10;
+            oConst.insets.left =10;
+            oConst.insets.right =10;
+            oLayout.setConstraints(prompt, oConst);
+
+            namePrompt = new JLabel();
+            namePrompt.setText("Name:");
+            oPanel.add(namePrompt);
+            oConst = new GridBagConstraints();
+            oConst.gridx =0;
+            oConst.gridy =2;
+            oConst.anchor =GridBagConstraints.WEST;
+            oConst.insets.left =50;
+            oConst.insets.right =10;
+            oLayout.setConstraints(namePrompt, oConst);
+
+            rollupName = new JTextField();
+            if (rollupTaskListName != null)
+                rollupName.setText(rollupTaskListName);
+            else
+                rollupName.setText
+                    (TaskScheduleCollaborationWizard.this.taskListName +
+                     " Rollup");
+            rollupName.setColumns(15);
+            oPanel.add(rollupName);
+            oConst = new GridBagConstraints();
+            oConst.gridx =1;
+            oConst.gridy =2;
+            oConst.anchor =GridBagConstraints.WEST;
+            oLayout.setConstraints(rollupName, oConst);
+
+            filler = new JLabel();
+            filler.setText("");
+            oPanel.add(filler);
+            oConst = new GridBagConstraints();
+            oConst.gridx =0;
+            oConst.gridy =3;
+            oConst.weighty =1.0;
+            oConst.fill =GridBagConstraints.VERTICAL;
+            oLayout.setConstraints(filler, oConst);
+
+            JPanel buttonBox = BuildbuttonBox();
+            oPanel.add(buttonBox);
+            oConst = new GridBagConstraints();
+            oConst.gridx =0;
+            oConst.gridy =4;
+            oConst.gridwidth =2;
+            oConst.anchor =GridBagConstraints.EAST;
+            oConst.insets.top =20;
+            oConst.insets.bottom =10;
+            oConst.insets.left =10;
+            oConst.insets.right =10;
+            oLayout.setConstraints(buttonBox, oConst);
+
+            prompt.setFont(namePrompt.getFont());
+        }
+
+
+        public RollupNameScreen() {
+            BuildFrame();
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Object source = e.getSource();
+            if (source == cancelButton) {
+                closeWizard(); return;
+            } else if (source == backButton) {
+                backPanel(); return;
+            } else if (source != nextButton) return;
+
+            // they clicked the next button. check to ensure their inputs
+            // are valid.
+            String newName = rollupName.getText();
+            if (newName != null) newName = newName.trim();
+
+            // check the validity of the name they chose.
+            String errorMessage =
+                TaskScheduleChooser.checkNewTemplateName(newName, data);
+            if (errorMessage != null) {
+                errorMessage = StringUtils.findAndReplace
+                    (errorMessage, "template", "schedule");
+                JOptionPane.showMessageDialog
+                    (frame, errorMessage, "Invalid Schedule Name",
+                     JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // create the new task list, and add the current list to it.
+            EVTaskListRollup rollup = new EVTaskListRollup
+                (newName, data, hierarchy, cache);
+            rollup.addTask(TaskScheduleCollaborationWizard.this.taskListName,
+                           data, hierarchy, cache, false);
+            rollup.save();
+            rollup = null;
+
+            // display the results screen.
+            rollupTaskListName = newName;
+            showResultsScreen(ROLLUP, NO_PASSWORD);
+        }
+    }
+
     private class ResultsScreen extends JPanel
         implements ActionListener, HyperlinkListener
     {
@@ -668,7 +853,6 @@ public class TaskScheduleCollaborationWizard {
             finishButton.addActionListener(this);
             buttonBox.add(finishButton);
 
-            /*
             JLabel filler = new JLabel("  ");
             buttonBox.add(filler);
 
@@ -676,7 +860,6 @@ public class TaskScheduleCollaborationWizard {
             cancelButton.setEnabled(false);
             cancelButton.addActionListener(this);
             buttonBox.add(cancelButton);
-            */
 
             return buttonBox;
         }
@@ -687,7 +870,7 @@ public class TaskScheduleCollaborationWizard {
             oPanel.setLayout(oLayout);
             GridBagConstraints oConst;
             taskListName = new JLabel();
-            taskListName.setText(getTaskNameText());
+            taskListName.setText(getTaskNameText(action));
             oPanel.add(taskListName);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -727,10 +910,11 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridx =0;
             oConst.gridy =2;
             oConst.gridwidth =2;
+            oConst.anchor =GridBagConstraints.EAST;
             oConst.insets.top =20;
+            oConst.insets.bottom =10;
             oConst.insets.left =10;
             oConst.insets.right =10;
-            oConst.insets.bottom =10;
             oLayout.setConstraints(buttonBox, oConst);
 
         }
@@ -813,6 +997,11 @@ public class TaskScheduleCollaborationWizard {
         public void actionPerformed(ActionEvent e) {
             Object source = e.getSource();
             if (source == finishButton || source == cancelButton) {
+                if (action == ROLLUP &&
+                    rollupTaskListName != null &&
+                    source == finishButton)
+                    TaskScheduleChooser.open(dash, rollupTaskListName);
+
                 closeWizard(); return;
             } else if (source == backButton) {
                 backPanel(); return;

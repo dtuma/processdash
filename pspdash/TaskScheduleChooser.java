@@ -26,6 +26,9 @@
 
 package pspdash;
 
+import pspdash.data.DataRepository;
+
+import java.awt.Cursor;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.Timer;
@@ -120,24 +123,11 @@ public class TaskScheduleChooser
             taskName = (String) inputField.getText();
 
             taskName = taskName.trim();
-
-            if (taskName.length() == 0)
-                message = new String[] {
-                    "Please enter a template name, or click cancel.", prompt };
-
-            else if (taskName.indexOf('/') != -1)
-                message = new String[] {
-                    "The template name cannot contain the '/' character.",
-                    prompt };
-
-            else if (templateExists(taskName))
-                message = new String[] {
-                    "There is already a template with the name '" +
-                    taskName + "'.",
-                    prompt };
-
-            else
+            String errorMessage = checkNewTemplateName(taskName, dash.data);
+            if (errorMessage == null)
                 break;
+            else
+                message = new String[] { errorMessage, prompt };
         }
         if (rollupOption != null && rollupOption.getSelectedIndex() == 1)
             taskName = ROLLUP_PREFIX + taskName;
@@ -145,8 +135,24 @@ public class TaskScheduleChooser
     }
     public static final String ROLLUP_PREFIX = " ";
 
-    private boolean templateExists(String taskListName) {
-        String [] taskLists = EVTaskList.findTaskLists(dash.data);
+    public static String checkNewTemplateName(String taskName,
+                                              DataRepository data) {
+        if (taskName == null || taskName.trim().length() == 0)
+            return "Please enter a template name, or click cancel.";
+
+        if (taskName.indexOf('/') != -1)
+            return "The template name cannot contain the '/' character.";
+
+        if (templateExists(taskName, data))
+            return "There is already a template with the name '" +
+                taskName + "'.";
+
+        return null;
+    }
+
+    private static boolean templateExists(String taskListName,
+                                          DataRepository data) {
+        String [] taskLists = EVTaskList.findTaskLists(data);
         for (int i = taskLists.length;   i-- > 0; )
             if (taskListName.equals(taskLists[i]))
                 return true;
@@ -246,6 +252,8 @@ public class TaskScheduleChooser
     }
 
     protected void openSelectedTaskList() {
+        dialog.getContentPane().setCursor
+            (Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         open(dash, (String) list.getSelectedValue());
         if (dialog != null) dialog.dispose();
     }

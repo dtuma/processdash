@@ -142,6 +142,8 @@ public class ev extends CGIChartBase {
         // strip the "publishing prefix" if it is present.
         if (taskListName.startsWith("ev /"))
             taskListName = taskListName.substring(4);
+        else if (taskListName.startsWith("evr /"))
+            taskListName = taskListName.substring(5);
 
         long now = System.currentTimeMillis();
 
