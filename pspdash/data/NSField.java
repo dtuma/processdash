@@ -61,9 +61,10 @@ abstract class NSField extends HTMLField {
     private static Object READONLY = new Double(0.0);
 
     public void redraw() {
-        if (element != null) {
+        if (element != null) try {
             paint();
-            element.setMember("isEditable", (isEditable() ? EDITABLE : READONLY));
+            element.setMember("className",
+                              (isEditable() ? "editableElem" : "readOnlyElem"));
 
             Object style = element.getMember("style");
             if (style instanceof JSObject) try {
@@ -71,7 +72,11 @@ abstract class NSField extends HTMLField {
                 element.eval(isEditable() ? "readOnly=false;" : "readOnly=true;");
                 ((JSObject) style).setMember("backgroundColor",
                                              (isEditable() ? "#ffffff" : "#cccccc"));
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (Exception ee) {
+            ee.printStackTrace();
         }
     }
 
