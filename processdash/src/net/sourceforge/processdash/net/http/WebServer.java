@@ -1357,6 +1357,10 @@ public class WebServer extends Thread {
         return result;
     }
 
+    public static Map getMimeTypeMap() {
+        return Collections.unmodifiableMap(mimeTypes);
+    }
+
     /** Utility routine: slurp an entire file from an InputStream. */
     public static byte[] slurpContents(InputStream in, boolean close)
         throws IOException

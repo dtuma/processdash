@@ -77,8 +77,11 @@ public class HTMLArchiver {
         this.requestContents = new HashMap();
 
         switch (outputMode) {
+            case OUTPUT_ZIP:
+                this.writer = new ZipArchiveWriter(); break;
+
             case OUTPUT_MIME: default:
-                this.writer = new MimeArchiveWriter();
+                this.writer = new MimeArchiveWriter(); break;
         }
     }
 
@@ -154,7 +157,7 @@ public class HTMLArchiver {
                             continue;
                         } else if (subURI.indexOf(".iqy") != -1) {
                             // special handling for excel export links
-                            safeURL = writeExcelPart(uri, html);
+                            safeURL = writeExcelPart(uri, html, contentType);
                             extra = " target='_blank'";
                         } else {
                             URL u = new URL(baseURL, subURI);
@@ -230,7 +233,7 @@ public class HTMLArchiver {
         }
 
         // write the target of the "export to excel" link.
-        String excelURL = writeExcelPart(uri, result);
+        String excelURL = writeExcelPart(uri, result, contentType);
 
         // insert an "export to excel" link in the HTML document
         String exportLink = "<a target='_blank' href='"+ excelURL +
@@ -251,7 +254,7 @@ public class HTMLArchiver {
         writer.addFile(uri, contentType, htmlBytes, 0);
     }
 
-    protected String writeExcelPart(String forUri, StringBuffer content)
+    protected String writeExcelPart(String forUri, StringBuffer content, String htmlContentType)
         throws IOException
     {
         // write out the document with a special content-type to support
@@ -278,7 +281,9 @@ public class HTMLArchiver {
         StringUtils.findAndReplace(content, "<IMG", "<dis_img");
 
         // write it out.
-        writeTextFile(excelURL, "application/vnd.ms-excel", content);
+        String charset = HTTPUtils.getCharset(htmlContentType);
+        String contentType = "application/vnd.ms-excel; charset=" + charset;
+        writeTextFile(excelURL, contentType, content);
 
         // undo the damage we did earlier
         StringUtils.findAndReplace(content, "<dis_img", "<img");
@@ -460,6 +465,10 @@ public class HTMLArchiver {
     }
 
     protected String makeExcelURL(String url) {
+        int dotPos = url.lastIndexOf('.');
+        if (dotPos != -1)
+            url = url.substring(0, dotPos);
+
         return url + "_.xls";
     }
 
