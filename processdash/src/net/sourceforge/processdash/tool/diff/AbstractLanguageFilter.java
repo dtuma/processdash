@@ -146,6 +146,7 @@ public class AbstractLanguageFilter implements LanguageFilter {
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
     {
+        out.write(13); out.write(10); out.write(13); out.write(10);
         out.write(CAVEAT_HTML);
     }
 
