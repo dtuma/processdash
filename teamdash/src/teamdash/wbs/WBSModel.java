@@ -269,7 +269,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return result;
     }
 
-    private WBSNode[] getDescendants(WBSNode node) {
+    protected WBSNode[] getDescendants(WBSNode node) {
         int nodePos = wbsNodes.indexOf(node);
         IntList descendantIndexes = getDescendantIndexes(node, nodePos);
         WBSNode[] result = new WBSNode[descendantIndexes.size()];
@@ -567,6 +567,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public int[] insertNodes(List nodesToInsert, int beforeRow) {
+        return insertNodes(nodesToInsert, beforeRow, true);
+    }
+
+    protected int[] insertNodes(List nodesToInsert, int beforeRow, boolean notify) {
         if (nodesToInsert == null || nodesToInsert.size() == 0) return null;
 
         List currentVisibleNodes = new ArrayList();
@@ -591,7 +595,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         Iterator i = currentVisibleNodes.iterator();
         while (i.hasNext())
             makeVisible(wbsNodes.indexOf(i.next()));
-        fireTableDataChanged();
+
+        if (notify)
+            fireTableDataChanged();
 
         return getRowsForNodes(nodesToInsert);
     }

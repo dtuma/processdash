@@ -1,6 +1,8 @@
 package teamdash.wbs;
 
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,8 +37,8 @@ public class WorkflowWBSModel extends WBSModel {
     }
 
     /** Get the names of the workflows containing the given rows */
-    public Set getWorkflowsForRows(int[] rows) {
-        HashSet result = new HashSet();
+    public List getWorkflowsForRows(int[] rows) {
+        LinkedList result = new UniqueLinkedList();
 
         List nodes = getNodesForRows(rows, true);
         for (Iterator i = nodes.iterator(); i.hasNext();) {
@@ -58,17 +60,57 @@ public class WorkflowWBSModel extends WBSModel {
             return getWorkflowParent(getParent(node));
     }
 
-    public List getNodesForWorkflows(Set selectedWorkflowNames) {
+    public List getNodesForWorkflows(Collection selectedWorkflowNames) {
         LinkedList result = new LinkedList();
 
         int numRows = getRowCount();
-        boolean isIncluded = false;
+        for (int r = 1;   r < numRows;   r++) {
+            WBSNode node = getNodeForRow(r);
+            if (node.getIndentLevel() == 1
+                    && selectedWorkflowNames.contains(node.getName())) {
+                result.add(node);
+                result.addAll(Arrays.asList(getDescendants(node)));
+            }
+        }
+
+        return result;
+    }
+
+    public void mergeWorkflow(WorkflowWBSModel source, String workflowName, boolean notify) {
+        // FIXME - this is not copying collapsed nodes
+        Set nameSet = Collections.singleton(workflowName);
+        List currentWorkflowContents = getNodesForWorkflows(nameSet);
+        List newWorkflowContents = source.getNodesForWorkflows(nameSet);
+
+        if (newWorkflowContents == null || newWorkflowContents.isEmpty())
+            return;
+
+        int insertBeforeRow = Integer.MAX_VALUE;
+        if (currentWorkflowContents != null && !currentWorkflowContents.isEmpty()) {
+            insertBeforeRow = getRowForNode((WBSNode) currentWorkflowContents.get(0));
+            deleteNodes(currentWorkflowContents, false);
+        }
+
+        insertNodes(newWorkflowContents, insertBeforeRow, notify);
+    }
+
+    public void mergeWorkflows(WorkflowWBSModel source, Collection workflowNames) {
+        for (Iterator i = workflowNames.iterator(); i.hasNext();) {
+            String workflowName = (String) i.next();
+            mergeWorkflow(source, workflowName, false);
+        }
+
+        fireTableDataChanged();
+    }
+
+    public List getWorkflowNames() {
+        LinkedList result = new UniqueLinkedList();
+
+        int numRows = getRowCount();
         for (int r = 1;   r < numRows;   r++) {
             WBSNode node = getNodeForRow(r);
             if (node.getIndentLevel() == 1)
-                isIncluded = selectedWorkflowNames.contains(node.getName());
-            if (isIncluded)
-                result.add(node);
+                result.add(node.getName());
         }
 
         return result;
@@ -93,5 +135,13 @@ public class WorkflowWBSModel extends WBSModel {
 //
 //    }
 
+    private static class UniqueLinkedList extends LinkedList {
+        public boolean add(Object o) {
+            if (contains(o))
+                return false;
+            else
+                return super.add(o);
+        }
+    }
 
 }

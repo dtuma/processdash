@@ -6,7 +6,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyEditor;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -22,7 +21,7 @@ public class WorkflowSelectionModel extends DefaultListSelectionModel implements
 
 
     PropertyEditor selectedWorkflowNamesManager;
-    Set selectedWorkflowNames;
+    List selectedWorkflowNames;
     private boolean isMakingChange = false;
 
     public WorkflowSelectionModel(WBSJTable sourceTable, PropertyEditor e) {
@@ -52,7 +51,7 @@ public class WorkflowSelectionModel extends DefaultListSelectionModel implements
     private void refreshWorkflowsFromSelection() {
         if (!isMakingChange) {
             int[] rows = sourceTable.getSelectedRows();
-            Set newSelectedWorkflowNames = sourceModel.getWorkflowsForRows(rows);
+            List newSelectedWorkflowNames = sourceModel.getWorkflowsForRows(rows);
 
             if (!newSelectedWorkflowNames.equals(selectedWorkflowNames))
                 selectedWorkflowNamesManager.setValue(newSelectedWorkflowNames);
@@ -64,28 +63,21 @@ public class WorkflowSelectionModel extends DefaultListSelectionModel implements
 
     private void refreshSelectionFromWorkflows() {
         isMakingChange = true;
-        selectedWorkflowNames = (Set) selectedWorkflowNamesManager.getValue();
+        selectedWorkflowNames = (List) selectedWorkflowNamesManager.getValue();
         List workflowNodes = sourceModel.getNodesForWorkflows(selectedWorkflowNames);
         int[] rows = sourceModel.getRowsForNodes(workflowNodes);
         Arrays.sort(rows);
 
         int anchor = super.getAnchorSelectionIndex();
-        int lead = super.getLeadSelectionIndex();
         if (Arrays.binarySearch(rows, anchor) < 0)
             anchor = -1;
-        if (Arrays.binarySearch(rows, lead) < 0)
-            lead = -1;
 
         super.clearSelection();
         for (int i = 0; i < rows.length; i++)
             super.addSelectionInterval(rows[i], rows[i]);
 
-        if (anchor != -1) {
-            if (lead != -1)
-                super.addSelectionInterval(anchor, lead);
-            else
-                super.addSelectionInterval(anchor, anchor);
-        }
+        if (anchor != -1)
+            super.addSelectionInterval(anchor, anchor);
         isMakingChange = false;
     }
 

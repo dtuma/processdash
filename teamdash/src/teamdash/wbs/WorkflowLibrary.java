@@ -4,6 +4,7 @@ package teamdash.wbs;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -21,7 +22,7 @@ public class WorkflowLibrary {
     private File file;
     private String processName;
     private String processVersion;
-    private WBSModel workflows;
+    private WorkflowWBSModel workflows;
 
 
 
@@ -38,6 +39,10 @@ public class WorkflowLibrary {
         this.processName = process.getProcessName();
         this.processVersion = process.getProcessVersion();
         this.workflows = new WorkflowWBSModel("Archived Workflows");
+        // The constructor for WBSModel will create a 'default' WBS which we
+        // don't want.  Delete those contents, leaving only the root.
+        WBSNode[] children = this.workflows.getDescendants(this.workflows.getRoot());
+        this.workflows.deleteNodes(Arrays.asList(children));
     }
 
     public String getProcessName() {
@@ -48,7 +53,7 @@ public class WorkflowLibrary {
         return processVersion;
     }
 
-    public WBSModel getWorkflows() {
+    public WorkflowWBSModel getWorkflows() {
         return workflows;
     }
 

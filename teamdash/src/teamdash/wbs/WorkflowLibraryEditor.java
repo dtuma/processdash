@@ -6,10 +6,13 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
+import java.beans.EventHandler;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorSupport;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -34,8 +37,11 @@ public class WorkflowLibraryEditor {
     /** The team project that these workflows belong to. */
     TeamProject teamProject;
 
+    /** Are we importing or exporting workflows? */
+    boolean export;
+
     /** The WBS model for the team project workflows */
-    WBSModel workflows;
+    WorkflowWBSModel workflows;
     /** The data model for the team project workflows */
     WorkflowModel workflowModel;
     /** The table to display the team project workflows in */
@@ -44,11 +50,15 @@ public class WorkflowLibraryEditor {
     /** The file containing the library workflows */
     WorkflowLibrary libraryFile;
     /** The WBS model for the library workflows */
-    WBSModel library;
+    WorkflowWBSModel library;
     /** The data model for the library workflows */
     WorkflowModel libraryModel;
     /** The table to display the library workflows in */
     WBSJTable libraryTable;
+
+    /** An editor whose value is a Set containing the names of all currently
+     * selected workflows. */
+    PropertyEditor selectedWorkflowNames;
 
     /** The dialog containing this workflow editor */
     JDialog dialog;
@@ -59,8 +69,9 @@ public class WorkflowLibraryEditor {
     JButton okButton;
     JButton cancelButton;
 
+    boolean dirtyFlag;
 
-    private JFileChooser fileChooser;
+    private static JFileChooser fileChooser;
 
 
     public class UserCancelledException extends Exception {}
@@ -68,25 +79,30 @@ public class WorkflowLibraryEditor {
     public WorkflowLibraryEditor(TeamProject teamProject, JFrame parent, boolean export) throws UserCancelledException {
         this.teamProject = teamProject;
         TeamProcess process = teamProject.getTeamProcess();
+        this.export = export;
 
         openWorkflowLibrary(parent, export);
         libraryModel =  new WorkflowModel(library, process);
+        libraryModel.setEditingEnabled(false);
 
         workflows = new WorkflowWBSModel();
         workflows.copyFrom(teamProject.getWorkflows());
         workflowModel = new WorkflowModel(this.workflows, process);
+        workflowModel.setEditingEnabled(false);
+
+        dirtyFlag = false;
 
         String title = teamProject.getProjectName() +
                            " - " + (export ? "Export" : "Import") +
                            " Team Workflows";
         dialog = new JDialog(parent, title, true);
-        buildContents(export);
+        buildContents();
         dialog.setSize(800, 600);
         dialog.show();
     }
 
 
-    private void buildContents(boolean export) {
+    private void buildContents() {
         GridBagLayout layout = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         JPanel panel = new JPanel(layout);
@@ -112,10 +128,12 @@ public class WorkflowLibraryEditor {
         layout.setConstraints(sp, c);
         panel.add(sp);
 
-        PropertyEditor e = new WorkflowNameSetPropertyEditor();
-        WorkflowSelectionModel wsm = new WorkflowSelectionModel(workflowTable, e);
+        selectedWorkflowNames = new WorkflowNameSetPropertyEditor();
+        WorkflowSelectionModel wsm = new WorkflowSelectionModel
+            (workflowTable, selectedWorkflowNames);
         workflowTable.setSelectionModel(wsm);
-        WorkflowSelectionModel lsm = new WorkflowSelectionModel(libraryTable, e);
+        WorkflowSelectionModel lsm = new WorkflowSelectionModel
+            (libraryTable, selectedWorkflowNames);
         libraryTable.setSelectionModel(lsm);
         new SelectionListener(wsm, lsm, export);
 
@@ -126,6 +144,9 @@ public class WorkflowLibraryEditor {
         addButton.setText("Add");
         addButton.setMnemonic('A');
         addButton.setEnabled(false);
+        addButton.addActionListener
+            ((ActionListener) EventHandler.create
+                (ActionListener.class, this, "addWorkflowAction"));
         initConstraints(c, 2, 1, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.SOUTH);
         c.insets = insets10;
         layout.setConstraints(addButton, c);
@@ -135,6 +156,9 @@ public class WorkflowLibraryEditor {
         addAllButton.setMnemonic('L');
         addAllButton.setIcon(export ? IconFactory.getRightArrowIcon() : IconFactory.getLeftArrowIcon());
         addAllButton.setHorizontalTextPosition(export ? SwingConstants.LEFT : SwingConstants.RIGHT);
+        addAllButton.addActionListener
+            ((ActionListener) EventHandler.create
+                (ActionListener.class, this, "addAllWorkflowsAction"));
         initConstraints(c, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.NORTH);
         c.insets = insets10;
         layout.setConstraints(addAllButton, c);
@@ -186,6 +210,33 @@ public class WorkflowLibraryEditor {
         c.weightx = weightx;
         c.weighty = weighty;
         c.anchor = anchor;
+    }
+
+    private WorkflowWBSModel getSourceWBSModel() {
+        return (export ? workflows : library);
+    }
+
+    private WorkflowWBSModel getDestWBSModel() {
+        return (export ? library : workflows);
+    }
+
+    public void addWorkflowAction() {
+        List selectedWorkflows = (List) selectedWorkflowNames.getValue();
+        if (selectedWorkflows != null && !selectedWorkflows.isEmpty()) {
+            getDestWBSModel().mergeWorkflows(getSourceWBSModel(), selectedWorkflows);
+            selectedWorkflowNames.setValue(selectedWorkflows);
+            dirtyFlag = true;
+        }
+    }
+
+    public void addAllWorkflowsAction() {
+        List selectedWorkflows = (List) selectedWorkflowNames.getValue();
+        List allWorkflows = getSourceWBSModel().getWorkflowNames();
+        if (allWorkflows != null && !allWorkflows.isEmpty()) {
+            getDestWBSModel().mergeWorkflows(getSourceWBSModel(), allWorkflows);
+            selectedWorkflowNames.setValue(selectedWorkflows);
+            dirtyFlag = true;
+        }
     }
 
 
