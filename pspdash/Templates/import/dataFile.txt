@@ -137,10 +137,12 @@ combine(Defects Removed);
  */
 
 [PSP_Level] = 2.1;
+[Hide_HLD_Phases] = [PSP_Level] < 3;
 [FreezeFlag/HLD( Review)?/(Time|Defects Injected|Defects Removed)] =
-    [PSP_Level] < 3;
+    [Hide_HLD_Phases];
+[Hide_Review_Phases] = [PSP_Level] < 2;
 [FreezeFlag/(Design|Code) Review/(Time|Defects Injected|Defects Removed)] =
-    [PSP_Level] < 2;
+    [Hide_Review_Phases];
 
 
 /*
