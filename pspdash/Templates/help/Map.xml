@@ -41,6 +41,6 @@
   <mapID target="ModifyingExistingProcesses" url="Topics/AdvancedTopics/ModifyingExistingProcesses.html" />
   <mapID target="Exit" url="Topics/Execution/Exit.html" />
   <mapID target="Help" url="Topics/Execution/UsingHelp.html" />
-  <mapID target="GPL" url="gpl.htm" />
+  <mapID target="GPL" url="Topics/Overview/gpl.htm" />
 
 </map>

@@ -58,7 +58,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static String FILE_SEP = null;
     static final String ANALYSIS_URL = "/reports/index.htm";
 // static final String HELP_URL    = "/help/PSPDash.htm";
-    static final String ABOUT_URL    = "/help/about.htm";
+    static final String ABOUT_URL    = "/help/Topics/Overview/about.htm";
 
                                   // indices into menu labels
     static final int HIERARCHY_FRAME    = 0;
