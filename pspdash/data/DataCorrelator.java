@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.lang.Double;
 
+import pspdash.Filter;
 import pspdash.Settings;
 
 public class DataCorrelator {
@@ -67,13 +68,7 @@ public class DataCorrelator {
     }
 
     private boolean matchesFilter (String name) {
-        if (theFilter == null)
-            return true;
-        for (int ii = 0; ii < theFilter.size(); ii++) {
-            if (name.startsWith((String)theFilter.elementAt(ii)))
-                return true;
-        }
-        return false;
+        return Filter.matchesFilter(theFilter, name);
     }
 
     private void scanRepository() {

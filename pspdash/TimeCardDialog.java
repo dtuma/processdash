@@ -260,9 +260,8 @@ public class TimeCardDialog {
             }
 
             private boolean pathMatches(String path) {
-                if (path.equals(fullname)) return true;
-                if (!path.startsWith(fullname)) return false;
-                return (path.charAt(fullname.length()) == '/');
+                // is my full name a prefix that matches the given path?
+                return Filter.pathMatches(path, fullname);
             }
 
             public void prune() {

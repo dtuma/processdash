@@ -29,8 +29,9 @@ package pspdash;
 import java.util.Vector;
 
 
-/** This class implements a primitive filter.  If the string begins with
- *  one of the Strings in the Vector, or if the Vector is null, it passes.
+/** This class implements a primitive filter for hierarchy paths.  If
+ *  the string begins with one of the hierarchy prefixes in the
+ *  Vector, or if the Vector is null, it passes.
  */
 public class Filter {
 
@@ -38,10 +39,16 @@ public class Filter {
         if (theFilter == null)
             return true;
         for (int ii = 0; ii < theFilter.size(); ii++) {
-            if (name.startsWith((String)theFilter.elementAt(ii)))
+            if (pathMatches(name, (String) theFilter.elementAt(ii)))
                 return true;
         }
         return false;
+    }
+
+    public static boolean pathMatches(String fullName, String pathPrefix) {
+        if (fullName.equals(pathPrefix)) return true;
+        if (!fullName.startsWith(pathPrefix)) return false;
+        return (fullName.charAt(pathPrefix.length()) == '/');
     }
 
 }
