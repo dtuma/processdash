@@ -26,4 +26,4 @@ undefine([Use_Rollup]);
 
 = Extra freeze flag
 
-FreezeFlag/8A (AFR|% (Appraisal|Failure) COQ)$==![(&&	Completed)]
+[FreezeFlag/8A (AFR|% (Appraisal|Failure) COQ)$] = [Completed];

@@ -11,4 +11,4 @@ undefine([Use_Rollup]);
 
 = Extra freeze flag
 
-FreezeFlag/4A LOC per Hour==![(&&	Completed)]
+[FreezeFlag/4A LOC per Hour] = [Completed];

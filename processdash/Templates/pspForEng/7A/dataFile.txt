@@ -89,4 +89,5 @@ Compile/7A DRL To Date=?NaN
 
 = Extra freeze flag
 
-FreezeFlag/.*7A (Yield|Defects per KLOC|DRL|Defects Removed per (KLOC|Hour))$==![(&&	Completed)]
+[FreezeFlag/.*7A (Yield|Defects per KLOC|DRL|Defects Removed per (KLOC|Hour))$]
+   = [Completed];

@@ -23,4 +23,4 @@ undefine([Use_Rollup]);
 
 = Extra freeze flag
 
-FreezeFlag/5A %( New)? Reused==![(&&	Completed)]
+[FreezeFlag/5A %( New)? Reused] = [Completed];
