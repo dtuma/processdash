@@ -160,12 +160,22 @@ public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
         writePrintCommands(session, coupon, false);
     }
 
+    private void writeAckCommand() {
+        String msgID = getParameter("msgid");
+        out.write("<script>parent.ackMessage("+msgID+")</script>");
+    }
+
+    private void writeDoneCommand(int suggestedDelay) {
+        out.write("<script>parent.messageDone("+suggestedDelay+")</script>");
+    }
+
     private void writePrintCommands(FormDataSession session, int coupon,
                                     boolean waitForCmd) {
-        out.write("<script>parent.ack()</script>");
+        writeAckCommand();
 
         if (session == null) {
             writeReregisterCommand();
+            writeDoneCommand(100);
             return;
         }
 
@@ -185,17 +195,12 @@ public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
             }
         }
 
-        out.write("<script>" +
-//                "function doListen() {" +
-//                "   self.location.replace(parent.getListenURL());" +
-//                "}" +
-                "self.setTimeout('parent.doListen()',"+delay+")" +
-                "</script>");
+        writeDoneCommand(delay);
         out.flush();
     }
 
     private void writeReregisterCommand() {
-        out.write("<script>parent.reregister();</script>");
+        out.write("<script>parent.registerData();</script>");
         out.flush();
     }
 

@@ -3,34 +3,34 @@
 /****************************************************************************
 // Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
-// 
+//
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-// 
+//
 // The author(s) may be contacted at:
 // Process Dashboard Group
 // c/o Ken Raisor
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
-// 
+//
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 ****************************************************************************/
 
 
-				// if this (no-op) statement is removed, a
-				// bug in Netscape causes this entire script
-document.write(" ");		// to be overlooked...
+                                // if this (no-op) statement is removed, a
+                                // bug in Netscape causes this entire script
+document.write(" ");            // to be overlooked...
 
 
 
@@ -49,20 +49,10 @@ var debug = false;
 
 if (debug) { document.write("running data.js<P>"); }
 
-/*
- * A tag that must be present in the data for this form to display this data.
- * This value is set by the presence of an <INPUT> element (probably of
- * TYPE=HIDDEN) with the NAME "requiredTag".  That element's VALUE property
- * will determine the value of this variable.
- */
-var requiredTag = "";
-
 var SILENT;
 
 var ieVersion = 0;
 var nsVersion = 0;
-
-var AppletName = "DataApplet161";   // VERSION
 
 
 
@@ -86,22 +76,24 @@ var AppletName = "DataApplet161";   // VERSION
  */
 
 function elementIterate(funcObj) {
-  var numForms, formNum, form, numElements, elementNum, elem;
-  numForms = document.forms.length;
-  for (formNum = 0; formNum < numForms; formNum++) {
-    form = document.forms[formNum];
-    numElements = document.forms[formNum].elements.length;
-    for (elemNum = 0; elemNum < numElements; elemNum++) {
-      funcObj.func(document.forms[formNum].elements[elemNum]);
-    } // for elemNum...
-  } // for formNum...
+    var numForms, formNum, form, numElements, elementNum, elem;
+    numForms = document.forms.length;
+    for (formNum = 0; formNum < numForms; formNum++) {
+        form = document.forms[formNum];
+        numElements = document.forms[formNum].elements.length;
+        for (elemNum = 0; elemNum < numElements; elemNum++) {
+            funcObj.func(document.forms[formNum].elements[elemNum]);
+        } // for elemNum...
+    } // for formNum...
 }
+
 
 /*
  * escape backslashes and tabs.
  */
 
 function escStr(s) { return s.replace(/\\/g,"\\\\").replace(/\t/g, "\\t"); }
+
 
 /*
  * escape HTML entities.
@@ -114,84 +106,8 @@ function textToHTML(text) {
 
 
 /*
- * Should read-only data be unlocked?
+ * URL-encode strings in UTF-8 format
  */
-
-var unlocked = (window.location.search.indexOf("unlock") != -1);
-
-var unlockURL;
-if (unlocked) {
-  unlockURL = window.location.href.replace(/unlock/, "")
-              .replace(/([?&])&/, "$1").replace(/[?&]$/, "");
-  unlockHTML =
-    '<br><A HREF="javascript:gotoUnLockURL();"><!--#echo Lock_Message --></A>';
-} else {
-  if (window.location.search == "") {
-    unlockURL = window.location.href + "?unlock";
-  } else {
-    unlockURL = window.location.href + "&unlock";
-  }
-  unlockHTML = 
-    '<br><A HREF="javascript:displayUnlockWarning();"><!--#echo Unlock_Message --></A>';
-}
-
-
-/*
- * Functions used for unlocking
- */
-
-function displayUnlockWarning() {
-if (window.confirm("<!--#echo var="Unlock_Warning" encoding="javaStr" -->"))
-  displayDefaultMessage();
-}
-
-function displayDefaultMessage() {
-  window.alert("<!--#echo var="DEFAULT_Message" encoding="javaStr" -->");
-  gotoUnLockURL();
-}
-function gotoUnLockURL() {
-  window.location.replace(unlockURL);
-}
-
-/*
- * Functions used for exporting
- */
-
-function eesc(str) {
-    str = escape(str);
-    str = str.replace(/\//g, "%2F");
-    str = str.replace(/\./g, "%2E");
-    str = str.replace(/\+/g, "%2B");
-    return str;
-}
-
-function writeExportHTML() {
-    document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<!--#echo Export_To --> ");
-    document.writeln("<A HREF='/reports/form2html.class'><!--#echo Export_To_HTML --></A>");
-    var url = urlEncode(window.location.pathname +
-		        window.location.hash +
-		        window.location.search);
-    url = "/reports/form2html.class?uri=" + url;
-    url = urlEncode(url);
-	
-    document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+ 
-		     "&fullPage'><!--#echo Export_To_Excel --></A>");
-}
-
-function writeHelpLink() {
-  document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<A HREF='/help/Topics/Planning/EnteringData.html' TARGET='_blank'><I><!--#echo Help_Dots --></I></A>");
-}
-
-function writeFooter() {
-    if (!SILENT) {
-	document.write('<span class=doNotPrint>');
-	document.write(unlockHTML);
-	writeExportHTML();
-	writeHelpLink();
-	document.write('</span>');
-    }
-}
-
 
 var HEXDIGITS = "0123456789ABCDEF";
 function toHex(b) {
@@ -235,285 +151,14 @@ function urlEncode(text) {
 }
 
 
-
-
-
-var pageContainsElements = false;
-	 
 /*
- * When this routine is established as the event handler for a particular
- * event on a particular object, it will block the event from reaching the
- * object if the object has an "isEditable" property which is set to false.
+ * Generate a random number between 0 and 999.
  */
 
-function NScheckEditable() {
-  if (this.className == "readOnlyElem")
-    return false;
-  else
-    return true;
+function randNum() {
+    return Math.floor(Math.random() * 1000);
 }
 
-
-/*
- * When this routine is established as the event handler for a particular
- * event on a particular object, it will invoke the notifyListener method on
- * the DataApplet just before the event occurs.
- */
-
-function NSchangeNotify()  {
-  NSchangeNotifyElem(this);
-  return NScheckEditable();
-}
-
-function NSchangeNotifyElem(elem) {
-  var value;
-  if (elem.type.toLowerCase() == "checkbox")
-      value = (elem.checked ? "true" : "false");
-  else
-      value = elem.value;
-
-  var url = "http://" + self.location.host + "/dash/formEdit" +
-      "?s=" + sessionID + 
-      "&c=" + changeCoupon +
-      "&f=" + getElemNum(elem.id) +
-      "&v=" + urlEncode(value);
-  
-  if (ieVersion == 0)
-      self.frames["listener"].stop();
-
-  self.frames["listener"].location.replace(url);
-
-  /* FIXME - use new mechanism here 
-  if (document.applets["NSDataAppl"] != null)
-    document.applets["NSDataAppl"].notifyListener(elem.id, value);
-  else if (document.all && document.all.NSDataAppl)
-    document.all.NSDataAppl.notifyListener(elem.id, value);
-  */
-}
-
-
-/*
- * Examine a form element during startup, and setup any required event
- * handlers.
- */
-
-var NSelementList;
-
-function NSregisterElement(elem) {
-
-  pageContainsElements = true;
-
-  if (elem.name.toLowerCase() == "requiredtag")
-    requiredTag = elem.value;
-
-  else if (elem.name && elem.name.indexOf("NOT_DATA") == -1) {
-    NSelementList.push(elem);
-    switch (elem.type.toLowerCase()) {
-
-    case "select-one" :
-    case "select-multiple":
-      if (debug) document.writeln("Setting "+elem.name+".onChange<BR>");
-      elem.onchange = NSchangeNotify;
-      if (ieVersion > 0)
-        IEsetupSelectValues(elem);
-      break;
-
-    case "text" :
-    case "textarea" :
-      if (debug) document.writeln("Setting "+elem.name+".onKeyDown<BR>");
-      elem.onkeydown = NScheckEditable;
-      if (debug) document.writeln("Setting "+elem.name+".onChange<BR>");
-      elem.onchange = NSchangeNotify;
-      break;
-
-    case "checkbox":
-      elem.onclick = NSchangeNotify;
-      break;
-
-    default:
-      // elem is of type HIDDEN, RESET, SUBMIT, FILEUPLOAD, PASSWORD,
-      // BUTTON, or RADIO.  no event handlers need to be setup
-      // for these elements.
-    }
-  }
-}
-				// function object for use with elementIterate
-function NSregisterElementObj() { this.func = NSregisterElement; }
-
-
-
-/*
- * if the current element is a "select-one" element, make sure it all its
- * <OPTION> elements have their "value" property set (since IE databinding
- * binds select elements based on option-values).  If any <OPTION> is missing
- * a value, give it a value equal to its "text" property.
- */
-
-function IEsetupSelectValues(elem) {
-  if (elem.type.toLowerCase() != "select-one") return;
-
-  var numOptions, optionNum;
-  numOptions = elem.options.length;
-  for (optionNum = 0;   optionNum < numOptions;  optionNum++)
-    if (elem.options(optionNum).value == "")
-      elem.options(optionNum).value = elem.options(optionNum).text;
-}
-
-
-var NSparameterString = "";     // a list of parameters for registration
-
-function getElemID(elemNum) { return "dashelem_" + elemNum; }
-function getElemNum(elemID) { return elemID.substring(9);   }
-function getElemType(elem) { 
-    switch (elem.type.toLowerCase()) {
-    case "select-one" : case "select-multiple": return "s";
-    case "checkbox": return "c";
-    }
-    return "t";
-}
-
-function NSAssignIdentifiers() {
-  NSparameterString = "requiredTag=" + escStr(requiredTag);
-
-  var elem;
-  for (i = 0;   i < NSelementList.length;   i++) {
-    elem = NSelementList[i];
-    elem.id = getElemID(i);
-    NSparameterString = NSparameterString +
-	"&f" + i + "=" + getElemType(elem) + urlEncode(elem.name);
-  }
-}
-
-function NSSetupElements() {
-  NSelementList = new Array();
-  elementIterate(new NSregisterElementObj());
-  NSAssignIdentifiers();
-}
-
-var sessionID = "";
-var changeCoupon = 0;
-var uniqueID = 0;
-
-function setSessionID(id) {
-    sessionID = id;
-    ack();
-}
-
-function getListenURL() {
-    anticipateAcknowledge();
-    uniqueID++;
-    var uri = "/dash/formListen?"+uniqueID+"&s="+sessionID+"&c="+changeCoupon;
-    var url = "http://" + self.location.host + uri;
-    return url;
-}
-
-function doListen() {
-    var url = getListenURL();
-    self.frames["listener"].location.replace(url);
-}
-
-var acknowledged = true;
-
-function ack() { acknowledged = true; }
-function anticipateAcknowledge() {
-    acknowledged = false;
-    self.setTimeout("checkAcknowledge()", 5000);
-}
-function checkAcknowledge() {
-    if (!acknowledged) acknowledgedFailed();
-}
-function acknowledgedFailed() {
-    for (i = 0;   i < NSelementList.length;   i++) {
-	elem = NSelementList[i];
-	paintField(getElemNum(elem.id), "NO CONNECTION", true, 0);
-    }
-}
-
-function checkForUpdates() {
-  var url = getListenURL();
-  listener.src = url;
-}
-
-function paintField(elemNum, value, readOnly, coupon) {
-  ack();
-
-  if (elemNum == -1) {
-      if (value == "page-refresh") {
-	  var url = window.location.href;
-	  if (window.location.search == "")
-	      url += "?refresh";
-	  else
-	      url += "&refresh";
-	  window.location.replace(url);
-      }
-      return;
-  }
-
-  if (elemNum >= NSelementList.length) return;
-  var elem = document.getElementById(getElemID(elemNum));
-  if (elem == null) return;
-
-
-  elem.className = (readOnly ? "readOnlyElem" : "editableElem");
-  switch (elem.type.toLowerCase()) {
-
-    case "checkbox":
-      elem.checked = (value == "true");
-      elem.readOnly = readOnly;
-      break;
-
-    case "text" :
-    case "textarea" :
-      elem.value = value;
-      elem.readOnly = readOnly;
-      break;
-
-    case "select-one" :
-    case "select-multiple":
-      elem.value = value;
-      break;
-  }
-  changeCoupon = coupon;
-}
-
-function getRegistrationURL() {
-    var uri = urlEncode(window.location.pathname +
-		        window.location.hash +
-		        window.location.search);
-    return '/dash/formRegister?uri=' + uri + '&' + NSparameterString;
-}
-
-function reregister() {
-    NSAssignIdentifiers();
-    changeCoupon = 0;
-    self.frames["listener"].location.replace(getRegistrationURL());
-}
-
-/*
- * Netscape top-level setup procedure.
- */
-
-function NSSetup() {
-
-  if (debug) document.writeln("<p>Setting up under Netscape, ");
-
-  NSSetupElements();
-
-  if (pageContainsElements == true) {
-    if (debug) document.writeln("<p>creating applet.");
-    var url = getRegistrationURL();
-    document.write('<iframe id=listener name=listener ');
-    if (!debug) document.write('style="width:0; height:0; border:0" ');
-    document.writeln('src="' + url + '"></iframe>');
-
-    writeFooter();
-  }
-}
-
-
-/***********************************************************************
- ***                       SNIFFING ROUTINES                         ***
- ***********************************************************************/
 
 
 /*
@@ -524,13 +169,14 @@ function NSSetup() {
  *
  * This code was extracted from the Microsoft Internet SDK.
  */
+
 function MSIEversion() {
-  var ua = window.navigator.userAgent;
-  var msie = ua.indexOf ( "MSIE " );
-  if ( msie > 0 )    // is Microsoft Internet Explorer; return version number
-    return parseInt ( ua.substring ( msie+5, ua.indexOf ( ".", msie ) ) );
-  else
-    return 0;        // is other browser
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf ( "MSIE " );
+    if ( msie > 0 )    // is Microsoft Internet Explorer; return version number
+        return parseInt ( ua.substring ( msie+5, ua.indexOf ( ".", msie ) ) );
+    else
+        return 0;        // is other browser
 }
 
 
@@ -539,19 +185,526 @@ function MSIEversion() {
  */
 
 function NSversion() {
-  var aN = window.navigator.appName;
-  var aV = window.navigator.appVersion;
+    var aN = window.navigator.appName;
+    var aV = window.navigator.appVersion;
 
-  if (aN == "Netscape")
-    return parseInt (aV.substring (0, aV.indexOf(".", 0)));
-  else
-    return 0;
+    if (aN == "Netscape")
+        return parseInt (aV.substring (0, aV.indexOf(".", 0)));
+    else
+        return 0;
 }
 
 
 function isWindows() {
-  var agt=navigator.userAgent.toLowerCase();
-  return ( (agt.indexOf("win")!=-1) || (agt.indexOf("16bit")!=-1) )
+    var agt=navigator.userAgent.toLowerCase();
+    return ( (agt.indexOf("win")!=-1) || (agt.indexOf("16bit")!=-1) )
+}
+
+
+
+
+
+
+/***********************************************************************
+ ***                    PAGE FOOTER ROUTINES                         ***
+ ***********************************************************************/
+
+/*
+ * Should read-only data be unlocked?
+ */
+
+var unlocked = (window.location.search.indexOf("unlock") != -1);
+
+var unlockURL;
+if (unlocked) {
+    unlockURL = window.location.href.replace(/unlock/, "")
+        .replace(/([?&])&/, "$1").replace(/[?&]$/, "");
+    unlockHTML =
+        '<br><A HREF="javascript:gotoUnLockURL();">' +
+        '<!--#echo Lock_Message --></A>';
+} else {
+    if (window.location.search == "") {
+        unlockURL = window.location.href + "?unlock";
+    } else {
+        unlockURL = window.location.href + "&unlock";
+    }
+    unlockHTML =
+        '<br><A HREF="javascript:displayUnlockWarning();">' +
+        '<!--#echo Unlock_Message --></A>';
+}
+
+
+/*
+ * Functions used for unlocking
+ */
+
+function displayUnlockWarning() {
+    var msg = "<!--#echo var='Unlock_Warning' encoding='javaStr' -->";
+    if (window.confirm(msg))
+        displayDefaultMessage();
+}
+
+function displayDefaultMessage() {
+    window.alert("<!--#echo var='DEFAULT_Message' encoding='javaStr' -->");
+    gotoUnLockURL();
+}
+function gotoUnLockURL() {
+    window.location.replace(unlockURL);
+}
+
+
+/*
+ * Functions used for exporting
+ */
+
+function writeExportHTML() {
+    document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<!--#echo Export_To --> ");
+    document.writeln("<A HREF='/reports/form2html.class'>" +
+                     "<!--#echo Export_To_HTML --></A>");
+    var url = urlEncode(window.location.pathname +
+                        window.location.hash +
+                        window.location.search);
+    url = "/reports/form2html.class?uri=" + url;
+    url = urlEncode(url);
+
+    document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+
+                     "&fullPage'><!--#echo Export_To_Excel --></A>");
+}
+
+function writeHelpLink() {
+    document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;" +
+                     "<A HREF='/help/Topics/Planning/EnteringData.html' " +
+                     "TARGET='_blank'><I><!--#echo Help_Dots --></I></A>");
+}
+
+function writeFooter() {
+    if (!SILENT) {
+        document.write('<span class=doNotPrint>');
+        document.write(unlockHTML);
+        writeExportHTML();
+        writeHelpLink();
+        document.write('</span>');
+    }
+}
+
+
+
+
+/***********************************************************************
+ ***                      MESSAGE DISPATCH                           ***
+ ***********************************************************************
+ *
+ * These routines manage the dispatch of messages from the browser to
+ * the dashboard.  Within the limits set by javascript (i.e., no
+ * synchronization), they attempt to ensure guaranteed delivery of
+ * all messages, in the order they were originally sent.
+ */
+
+var DISPATCH_IDLE = 0;
+var DISPATCH_SENDING = 1;
+var DISPATCH_RECEIVING = 2;
+var DISPATCH_CONNECTION_LOST = 2;
+var dispatchState = DISPATCH_IDLE;
+
+
+var DISPATCH_ACK_TIMEOUT = 5000;
+var DISPATCH_DONE_TIMEOUT = 30000;
+var DISPATCH_FRAME = "listener";
+
+var DISPATCH_NULL_MESSAGE_GENERATOR = "alert('need to call initDispatch')";
+var DISPATCH_ACK_TIMEOUT_COMMAND = "alert('need to call initDispatch')";
+
+
+var messageQueue = new Array();
+var nextMessageID = randNum();
+var ackTimeoutID = -1;
+var waitTimeoutID = -1;
+
+// public - should be called by other javascript on page load.
+function initDispatch(nullMsgFunc, connLostFunc) {
+
+    DISPATCH_NULL_MESSAGE_GENERATOR = nullMsgFunc;
+    DISPATCH_ACK_TIMEOUT_COMMAND = connLostFunc;
+
+    if (!self.frames[DISPATCH_FRAME]) {
+        document.write('<iframe id="' + DISPATCH_FRAME +
+                       '" name="' + DISPATCH_FRAME + '" ');
+        if (!debug) document.write('style="width:0; height:0; border:0" ');
+        document.writeln('></iframe>');
+    }
+}
+
+
+// public - this method can be called freely by other javascript.
+function addMessage(msg) {
+    var msgID = nextMessageID++;
+    var fullMessage = msg + getMsgIDSuffix(msgID);
+
+    messageQueue.push(fullMessage);
+    if (dispatchState == DISPATCH_IDLE)
+        dispatchMessage(true);
+}
+
+
+// private (should only be called by dispatch logic)
+function getMsgIDSuffix(msgID) {
+    return "&msgid=" + msgID;
+}
+function clearDispatchTimeout(timeoutID) {
+    if (timeoutID != -1)
+        self.clearTimeout(timeoutID);
+    return -1;
+}
+
+
+
+// private (should only be called by dispatch logic)
+function dispatchMessage(expectIdle) {
+    if (messageQueue.length == 0)
+        return;  // shouldn't happen?
+    if (expectIdle && dispatchState != DISPATCH_IDLE)
+        return;    // shouldn't happen?
+
+    dispatchState = DISPATCH_SENDING;
+
+    waitTimeoutID = clearDispatchTimeout(waitTimeoutID);
+
+    var nextMessage = messageQueue[0];
+    var messageURL = "http://" + self.location.host + nextMessage;
+
+    ackTimeoutID = self.setTimeout("ackTimeout()", DISPATCH_ACK_TIMEOUT);
+    self.frames[DISPATCH_FRAME].location.replace(messageURL);
+}
+
+// protected (should only be called by script generated by the dashboard
+// in response to a delivered message)
+function ackMessage(msgID) {
+    ackTimeoutID = clearDispatchTimeout(ackTimeoutID);
+
+    dispatchState = DISPATCH_RECEIVING;
+
+    var currentMessage = messageQueue[0];
+    var msgIDSuffix = getMsgIDSuffix(msgID);
+    if (currentMessage.indexOf(msgIDSuffix) == -1)
+        alert("messages were delivered out of order!!");
+    else
+        messageQueue.shift();
+
+    waitTimeoutID = self.setTimeout("waitTimeout()", DISPATCH_DONE_TIMEOUT);
+}
+
+// protected (should only be called by script generated by the dashboard
+// in response to a delivered message)
+function messageDone(suggestedDelay) {
+    waitTimeoutID = clearDispatchTimeout(waitTimeoutID);
+
+    if (messageQueue.length > 0)
+        dispatchMessage(false);
+    else
+        wait(suggestedDelay);
+}
+
+// private (should only be called by dispatch logic)
+function ackTimeout() {
+    if (ackTimeoutID != -1) {
+        dispatchState = DISPATCH_CONNECTION_LOST;
+        eval(DISPATCH_ACK_TIMEOUT_COMMAND);
+    }
+}
+
+
+// private (should only be called by dispatch logic)
+function wait(suggestedDelay) {
+    dispatchState = DISPATCH_IDLE;
+    waitTimeoutID = self.setTimeout("waitTimeout()", suggestedDelay);
+}
+
+
+// private (should only be called by dispatch logic)
+function waitTimeout() {
+    waitTimeoutID = -1;
+    if (self.frames[DISPATCH_FRAME].stop)
+        self.frames[DISPATCH_FRAME].stop();
+    addMessage(eval(DISPATCH_NULL_MESSAGE_GENERATOR));
+}
+
+
+
+
+/***********************************************************************
+ ***                     DATA HANDLING ROUTINES                      ***
+ ***********************************************************************/
+
+var pageContainsElements = false;
+
+/*
+ * A tag that must be present in the data for this form to display this data.
+ * This value is set by the presence of an <INPUT> element (probably of
+ * TYPE=HIDDEN) with the NAME "requiredTag".  That element's VALUE property
+ * will determine the value of this variable.
+ */
+var requiredTag = "";
+
+/*
+ * A list of all the data elements on the page.
+ */
+var elementList;
+
+/*
+ * The textual values of the elements in the list above.
+ */
+var valueList;
+
+
+
+/*
+ * When this routine is established as the event handler for a particular
+ * event on a particular object, it will block the event from reaching the
+ * object if the object has the class "readOnlyElem".
+ */
+
+function checkEditable() {
+    return checkElemEditable(this);
+}
+function checkElemEditable(elem) {
+    return (elem.className != "readOnlyElem");
+}
+
+
+/*
+ * When this routine is established as the event handler for a particular
+ * event on a particular object, it will invoke the notifyListener method on
+ * the DataApplet just before the event occurs.
+ */
+
+function changeNotify()  {
+    changeNotifyElem(this);
+    return checkEditable();
+}
+
+function changeNotifyElem(elem) {
+    var elemNum = getElemNum(elem.id);
+    var value = getElemValue(elem);
+
+    if (value != valueList[elemNum]) {
+
+        if (checkElemEditable(elem))
+            addMessage("/dash/formEdit" +
+                       "?s=" + sessionID +
+                       "&c=" + changeCoupon +
+                       "&f=" + elemNum +
+                       "&v=" + urlEncode(value));
+        else
+            paintField(elemNum, valueList[elemNum], true, changeCoupon);
+
+    }
+}
+
+
+
+
+/*
+ * Examine a form element during startup, and setup any required event
+ * handlers.
+ */
+
+function registerElement(elem) {
+
+    pageContainsElements = true;
+
+    if (elem.name.toLowerCase() == "requiredtag")
+        requiredTag = elem.value;
+
+    else if (elem.name && elem.name.indexOf("NOT_DATA") == -1) {
+        elementList.push(elem);
+        switch (elem.type.toLowerCase()) {
+
+        case "select-one" :
+        case "select-multiple":
+            if (debug) document.writeln("Setting "+elem.name+".onChange<BR>");
+            elem.onchange = changeNotify;
+            setupSelectValues(elem);
+            break;
+
+        case "text" :
+        case "textarea" :
+            if (debug) document.writeln("Setting "+elem.name+".onKeyDown<BR>");
+            elem.onkeydown = checkEditable;
+            if (debug) document.writeln("Setting "+elem.name+".onChange<BR>");
+            elem.onchange = changeNotify;
+            break;
+
+        case "checkbox":
+            elem.onclick = changeNotify;
+            break;
+
+        default:
+            // elem is of type HIDDEN, RESET, SUBMIT, FILEUPLOAD, PASSWORD,
+            // BUTTON, or RADIO.  no event handlers need to be setup
+            // for these elements.
+        }
+    }
+}
+                                // function object for use with elementIterate
+function registerElementObj() { this.func = registerElement; }
+
+
+
+/*
+ * if the current element is a "select-one" element, make sure it all its
+ * <OPTION> elements have their "value" property set (in particular, IE
+ * doesn't bother to set the option-values).  If any <OPTION> is missing
+ * a value, give it a value equal to its "text" property.
+ */
+
+function setupSelectValues(elem) {
+    if (elem.type.toLowerCase() != "select-one") return;
+
+    var numOptions, optionNum, opt;
+    numOptions = elem.options.length;
+    for (optionNum = 0;   optionNum < numOptions;  optionNum++) {
+        opt = elem.options[optionNum];
+        if (!opt.value)
+            opt.value = opt.text;
+    }
+}
+
+
+/*
+ * Several utility routines that look up various attributes of an element
+ */
+
+function getElemID(elemNum) { return "dashelem_" + elemNum; }
+function getElemNum(elemID) { return elemID.substring(9);   }
+function getElemType(elem) {
+    switch (elem.type.toLowerCase()) {
+    case "select-one" : case "select-multiple": return "s";
+    case "checkbox": return "c";
+    }
+    return "t";
+}
+function getElemValue(elem) {
+    if (elem.type.toLowerCase() == "checkbox")
+        return (elem.checked ? "true" : "false");
+    else
+        return elem.value;
+}
+
+
+var parameterString = "";     // a list of parameters for registration
+
+function assignIdentifiers() {
+    parameterString = "requiredTag=" + urlEncode(requiredTag);
+    valueList = new Array();
+
+    var elem;
+    for (i = 0;   i < elementList.length;   i++) {
+        elem = elementList[i];
+        elem.id = getElemID(i);
+        parameterString = parameterString +
+            "&f" + i + "=" + getElemType(elem) + urlEncode(elem.name);
+        valueList.push(getElemValue(elem));
+    }
+}
+
+function setupElements() {
+    elementList = new Array();
+    elementIterate(new registerElementObj());
+    assignIdentifiers();
+}
+
+var sessionID = "";
+var changeCoupon = 0;
+
+function setSessionID(id) {
+    sessionID = id;
+}
+
+function getListenURL() {
+    return "/dash/formListen?s="+sessionID+"&c="+changeCoupon;
+}
+
+function connectionLost() {
+    for (i = 0;   i < elementList.length;   i++) {
+        elem = elementList[i];
+        paintField(getElemNum(elem.id), "NO CONNECTION", true, 0);
+    }
+}
+
+function paintField(elemNum, value, readOnly, coupon) {
+    if (elemNum == -1) {
+        if (value == "page-refresh") {
+            var url = window.location.href;
+            if (window.location.search == "")
+                url += "?refresh=" + randNum();
+            else
+                url += "&refresh=" + randNum();
+            window.location.replace(url);
+        }
+        return;
+    }
+
+    if (elemNum >= elementList.length) return;
+    var elem = document.getElementById(getElemID(elemNum));
+    if (elem == null) return;
+
+    elem.className = (readOnly ? "readOnlyElem" : "editableElem");
+    switch (elem.type.toLowerCase()) {
+
+    case "checkbox":
+        elem.checked = (value == "true");
+        elem.readOnly = readOnly;
+        break;
+
+    case "text" :
+    case "hidden" :
+    case "textarea" :
+        elem.value = value;
+        elem.readOnly = readOnly;
+        break;
+
+    case "select-one" :
+    case "select-multiple":
+        elem.value = value;
+        break;
+    }
+    valueList[elemNum] = value;
+    changeCoupon = coupon;
+}
+
+function getRegistrationURL() {
+    var uri = urlEncode(window.location.pathname +
+                        window.location.hash +
+                        window.location.search);
+    return '/dash/formRegister?uri=' + uri + '&' + parameterString;
+}
+
+function registerData() {
+    assignIdentifiers();
+    changeCoupon = 0;
+    addMessage(getRegistrationURL());
+}
+
+/*
+ * Top-level setup procedure.
+ */
+
+function setupData() {
+
+    if (debug) document.writeln("<p>Setting up using javascript approach.");
+
+    setupElements();
+
+    if (pageContainsElements == true) {
+        if (debug) document.writeln("<p>creating dispatch frame.");
+        initDispatch("getListenURL()", "connectionLost()");
+
+        if (debug) document.writeln("<p>registering for data notifications.");
+        registerData();
+
+        if (debug) document.writeln("<p>writing footer.");
+        writeFooter();
+    }
 }
 
 
@@ -565,6 +718,6 @@ if (debug) document.writeln("Starting setup process.");
 ieVersion = MSIEversion();
 nsVersion = NSversion();
 
-NSSetup();
+setupData();
 
 if (debug) document.writeln("<p>done with data.js.");

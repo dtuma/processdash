@@ -565,19 +565,19 @@ document.writeln("<P>Problem loading the data.js script!");
 
     function setChecked(num, checked) {
         elements[num].checked = checked;
-	NSchangeNotifyElem(elements[num]);
+	changeNotifyElem(elements[num]);
 	delay = dataDelay;
     }
 
     function setValue(num, value) {
         elements[num].value = value;
-	NSchangeNotifyElem(elements[num]);
+	changeNotifyElem(elements[num]);
 	delay = dataDelay;
     }
 
     function setSelIndex(num, value) {
         elements[num].selectedIndex = value;
-	NSchangeNotifyElem(elements[num]);
+	changeNotifyElem(elements[num]);
 	delay = dataDelay;
     }
 
