@@ -85,7 +85,8 @@ public class DataImporter extends Thread {
         DataImporter importer;
         while (i.hasNext()) {
             importer = (DataImporter) i.next();
-            if (importer.importPrefix.startsWith(prefix)) {
+            if (importer.importPrefix != null &&
+                importer.importPrefix.startsWith(prefix)) {
                 System.out.println("checking "+importer.importPrefix+
                                    "=>"+importer.directory);
                 importer.checkFiles();
