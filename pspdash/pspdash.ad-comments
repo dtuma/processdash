@@ -193,8 +193,10 @@ pspdiff.suffix.sql=a space-separated list of filename extensions (e.g. \
 
 stateFile=The default location for the user's state file.
 
-templates.directory=The location of the system-wide template files. \
-	Leave this blank to pull templates from the classpath.
+templates.directory=Supplemental locations of system-wide template files. \
+	This can be a semicolon-separated list of directories that contain \
+	dashboard process template and supporting files. Each entry in \
+	the list should end in "/Templates".
 
 timelog.updateInterval=The dashboard saves the current time log entry \
 	periodically.  This setting specifies the number of minutes it \
