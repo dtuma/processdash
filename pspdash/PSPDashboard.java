@@ -114,6 +114,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
                 webServer = new TinyWebServer(2468, TEMPLATES_CLASSPATH);
 
             webServer.start();
+            webServer.allowRemoteConnections
+                ("true".equalsIgnoreCase(Settings.getVal("http.allowRemote")));
         } catch (IOException ioe) {
             System.err.println("Couldn't start web server: " + ioe);
         }
