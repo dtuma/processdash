@@ -29,6 +29,7 @@ package net.sourceforge.processdash.net.http;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.*;
 
 
@@ -163,6 +164,27 @@ public class HTMLPreprocessor {
             var = echo.getAttribute("var");
             if (isNull(var)) var = echo.contents.trim();
             value = (isNull(var) ? "" : getString(var));
+        }
+
+        if (!isNull(echo.getAttribute("arg0"))) {
+            LinkedList args = new LinkedList();
+            int argNum = 0;
+            while (true) {
+                String arg = echo.getAttribute("arg" + argNum);
+                if (arg == null) break;
+
+                if (arg.startsWith("'"))
+                    arg = cleanup(arg);
+                else
+                    arg = getString(arg);
+                args.add(arg);
+                argNum++;
+            }
+            try {
+                value = MessageFormat.format(value, args.toArray());
+            } catch (Exception e) {
+                System.out.println("Bad message format: '"+value+"'");
+            }
         }
 
         // Apply the requested encoding(s)
