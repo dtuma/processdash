@@ -25,6 +25,8 @@
 
 package pspdash;
 
+import java.util.StringTokenizer;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
@@ -79,7 +81,19 @@ public class XMLUtils {
     }
 
     public static String escapeAttribute(String value) {
-        return value;           // FIXME: need to escape string!!
+        StringTokenizer tok = new StringTokenizer(value, "<>&'\"", true);
+        StringBuffer result = new StringBuffer();
+        String token;
+        while (tok.hasMoreTokens()) {
+            token = tok.nextToken();
+            if      ("<".equals(token))  result.append("&lt;");
+            else if (">".equals(token))  result.append("&gt;");
+            else if ("&".equals(token))  result.append("&amp;");
+            else if ("'".equals(token))  result.append("&apos;");
+            else if ("\"".equals(token)) result.append("&quot;");
+            else                         result.append(token);
+        }
+        return result.toString();
     }
 
 }
