@@ -41,7 +41,7 @@ JAR_CONTENTS=Templates/pspForMSE.template \
 	$(DIR)/2A/*.* \
 	$(DIR)/*B/*.* \
 	$(DIR)/R*/dataFile.txt
-pspForMSE.jar: prog2A prog3B manifest dataFile.txt ../pspForMSE.template
+pspForMSE.jar: prog2A prog3B prog4B manifest dataFile.txt ../pspForMSE.template
 	cd ../..; $(JAR) -cfm $(DIR)/pspForMSE.jar $(DIR)/manifest $(JAR_CONTENTS)
 
 ######################################################################
@@ -84,4 +84,4 @@ $(SIZEEST_COPIES): ../psp1/sizeest.class
 # Other miscellaneous targets
 
 clean:
-	rm -f *~ *B/*~ *A/*~ *B/*.*htm *A/*.*htm *B/sizeest.class
+	rm -f *~ *B/*~ *A/*~ 3B/*.*htm 4B/*.*htm *A/*.*htm *B/sizeest.class pspForMSE.jar
