@@ -71,6 +71,10 @@ public class TinyWebServer extends Thread {
     private static final Properties mimeTypes = new Properties();
     private static final Hashtable DEFAULT_ENV = new Hashtable();
     private static final String CRLF = "\r\n";
+    private static final int SCAN_BUF_SIZE = 4096;
+    private static final String DASH_CHARSET = "iso-8859-1";
+    private static final String HEADER_CHARSET = DASH_CHARSET;
+    private static String OUTPUT_CHARSET = DASH_CHARSET;
 
     static {
         try {
@@ -209,11 +213,12 @@ public class TinyWebServer extends Thread {
         InputStream inputStream = null;
         BufferedReader in = null;
         OutputStream outputStream = null;
-        Writer out = null;
+        Writer headerOut = null;
         boolean isRunning = false;
         IOException ioexception = null;
         boolean errorEncountered = false, headerRead = false;
         Map env = null;
+        String outputCharset = OUTPUT_CHARSET;
 
         String uri, method, protocol, id, path, query;
 
@@ -226,8 +231,8 @@ public class TinyWebServer extends Thread {
                 this.in = new BufferedReader
                     (new InputStreamReader(inputStream));
                 this.outputStream = clientSocket.getOutputStream();
-                this.out = new BufferedWriter
-                    (new OutputStreamWriter(outputStream));
+                this.headerOut = new BufferedWriter
+                    (new OutputStreamWriter(outputStream, HEADER_CHARSET));
             } catch (IOException ioe) {
                 this.inputStream = null;
             }
@@ -239,8 +244,13 @@ public class TinyWebServer extends Thread {
             this.inputStream = new ByteArrayInputStream(request.getBytes());
             this.in = new BufferedReader(new InputStreamReader(inputStream));
             this.outputStream = new ByteArrayOutputStream(1024);
-            this.out = new BufferedWriter
-                (new OutputStreamWriter(outputStream));
+            this.outputCharset = "UTF-8";
+            try {
+                this.headerOut = new BufferedWriter
+                    (new OutputStreamWriter(outputStream, HEADER_CHARSET));
+            } catch (UnsupportedEncodingException e) {
+                // shouldn't happen.
+            }
         }
 
         public byte[] getOutput() throws IOException {
@@ -267,12 +277,12 @@ public class TinyWebServer extends Thread {
             serverThreads.remove(this);
 
             try {
-                if (out != null) { out.flush(); out.close(); }
+                if (headerOut != null) { headerOut.flush(); headerOut.close(); }
                 if (in  != null) in.close();
                 if (clientSocket != null) clientSocket.close();
             } catch (IOException ioe) {}
 
-            out = null;
+            headerOut = null;
             in = null;
             clientSocket = null;
             env = null;
@@ -322,7 +332,8 @@ public class TinyWebServer extends Thread {
                 // decide what to do with the file based on its mime-type.
                 String initial_mime_type =
                     getMimeTypeFromName(conn.getURL().getFile());
-                if (SERVER_PARSED_MIME_TYPE.equals(initial_mime_type))
+                if (!Translator.isTranslating() &&
+                    SERVER_PARSED_MIME_TYPE.equals(initial_mime_type))
                     servePreprocessedFile(conn);
                 else if (CGI_MIME_TYPE.equals(initial_mime_type))
                     serveCGI(conn);
@@ -683,82 +694,139 @@ public class TinyWebServer extends Thread {
         private void servePlain(URLConnection conn, String mime_type)
             throws TinyWebThreadException, IOException
         {
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[SCAN_BUF_SIZE];
             InputStream content = conn.getInputStream();
             int numBytes = -1;
-            if (content != null) numBytes = content.read(buffer);
-            if (numBytes == -1)
+            if (content == null)
                 sendError( 500, "Internal Error", "Couldn't read file." );
 
-            if (mime_type == null)
-                mime_type = getDefaultMimeType(buffer, numBytes);
+            boolean translate =
+                Translator.isTranslating() && !nonTranslatedPath(path);
+            boolean preprocess = SERVER_PARSED_MIME_TYPE.equals(mime_type);
 
-            if (mime_type.startsWith("text/html") &&
-                containsServerParseOverride(buffer, numBytes))
-                servePreprocessedFile(content, buffer, numBytes);
+            if (mime_type == null ||
+                (preprocess && translate) ||
+                mime_type.startsWith("text/html")) {
+
+                PushbackInputStream pb = new PushbackInputStream
+                    (content, SCAN_BUF_SIZE + 1);
+                numBytes = pb.read(buffer);
+                if (numBytes < 1)
+                    sendError( 500, "Internal Error", "Couldn't read file." );
+                pb.unread(buffer, 0, numBytes);
+                content = pb;
+
+                if (mime_type == null)
+                    mime_type = getDefaultMimeType(buffer, numBytes);
+
+                if ((preprocess && translate) ||
+                    mime_type.startsWith("text/html")) {
+                    String scanBuf = new String
+                        (buffer, 0, numBytes, DASH_CHARSET);
+                    translate =
+                        translate && !containsNoTranslateTag(scanBuf);
+                    preprocess =
+                        preprocess || containsServerParseOverride(scanBuf);
+                }
+            }
+
+            if (preprocess)
+                servePreprocessedFile(content, translate);
+
+            else if (translate && mime_type.startsWith("text/html"))
+                serveTranslatedFile(content, mime_type);
 
             else {
                 discardHeader();
                 sendHeaders(200, "OK", mime_type, conn.getContentLength(),
                             conn.getLastModified(), null);
-                out.flush();
 
-                do {
+                while (-1 != (numBytes = content.read(buffer))) {
                     outputStream.write(buffer, 0, numBytes);
-                } while (-1 != (numBytes = content.read(buffer)));
+                }
                 outputStream.flush();
                 content.close();
             }
         }
 
-        private boolean containsServerParseOverride(byte[] buffer,
-                                                    int numBytes) {
-            String initialContents = new String(buffer, 0, numBytes);
-            return (initialContents.indexOf(SERVER_PARSE_OVERRIDE) != -1);
+        private boolean containsServerParseOverride(String scanBuf) {
+            return (scanBuf.indexOf(SERVER_PARSE_OVERRIDE) != -1);
         }
         private static final String SERVER_PARSE_OVERRIDE =
             "<!--#server-parsed";
+
+        private boolean containsNoTranslateTag(String scanBuf) {
+            return (scanBuf.indexOf(NO_TRANSLATE_TAG) != -1);
+        }
+        private static final String NO_TRANSLATE_TAG =
+            "<!--#do-not-translate";
+
+        private boolean nonTranslatedPath(String path) {
+            return (path.startsWith("help/") ||
+                    path.startsWith("psp0") ||
+                    path.startsWith("psp1") ||
+                    path.startsWith("psp2") ||
+                    path.startsWith("psp3") ||
+                    path.startsWith("pspForEng/"));
+        }
 
 
         /** Serve up a server-parsed html file. */
         private void servePreprocessedFile(URLConnection conn)
             throws TinyWebThreadException, IOException
         {
-            String content = preprocessTextFile(conn.getInputStream(),null,0);
-            sendHeaders(200, "OK", "text/html", content.length(), -1, null);
-            out.write(content);
+            String content = preprocessTextFile(conn.getInputStream(), false);
+            byte[] bytes = content.getBytes(outputCharset);
+            String contentType = "text/html; charset="+outputCharset;
+            sendHeaders(200, "OK", contentType, bytes.length, -1, null);
+            outputStream.write(bytes);
         }
 
 
         /** Serve up a server-parsed html file. */
-        private void servePreprocessedFile(InputStream in,
-                                           byte [] extra, int numBytes)
+        private void servePreprocessedFile(InputStream in, boolean translate)
             throws TinyWebThreadException, IOException
         {
-            String content = preprocessTextFile(in, extra, numBytes);
-            sendHeaders(200, "OK", "text/html", content.length(), -1, null);
-            out.write(content);
+            String content = preprocessTextFile(in, translate);
+            byte[] bytes = content.getBytes(outputCharset);
+            String contentType = "text/html; charset="+outputCharset;
+            sendHeaders(200, "OK", contentType, bytes.length, -1, null);
+            outputStream.write(bytes);
         }
 
-        private String preprocessTextFile(InputStream in,
-                                          byte [] extra, int numBytes)
+        private String preprocessTextFile(InputStream in, boolean translate)
             throws TinyWebThreadException, IOException
         {
             byte[] rawContent = slurpContents(in, true);
-            if (extra != null && numBytes > 0) {
-                byte [] totalContent = new byte[numBytes + rawContent.length];
-                System.arraycopy(extra, 0, totalContent, 0, numBytes);
-                System.arraycopy(rawContent, 0, totalContent, numBytes,
-                                 rawContent.length);
-                rawContent = totalContent;
-            }
-            String content = new String(rawContent);
+            String content = new String(rawContent, DASH_CHARSET);
+            if (translate)
+                content = Translator.translate(content);
 
             parseHTTPHeaders();
 
             HTMLPreprocessor p =
                 new HTMLPreprocessor(TinyWebServer.this, data, env);
             return p.preprocess(content);
+        }
+
+        private void serveTranslatedFile(InputStream content, String mime_type)
+            throws IOException
+        {
+            discardHeader();
+            Reader fileReader = new InputStreamReader(content, DASH_CHARSET);
+            Reader translatedReader = Translator.translate(fileReader);
+            Writer output = new OutputStreamWriter(outputStream, outputCharset);
+            mime_type = mime_type + "; charset="+outputCharset;
+
+            sendHeaders(200, "OK", mime_type, -1, -1, null);
+
+            char[] buf = new char[4096];
+            int numChars;
+            while (-1 != (numChars = translatedReader.read(buf))) {
+                output.write(buf, 0, numChars);
+            }
+            output.flush();
+            content.close();
         }
 
 
@@ -911,10 +979,11 @@ public class TinyWebServer extends Thread {
                 errorEncountered = true;
                 discardHeader();
                 sendHeaders( status, title, "text/html", -1, -1, otherHeaders);
-                out.write("<HTML><HEAD><TITLE>" + status + " " + title +
-                          "</TITLE></HEAD>\n<BODY BGCOLOR=\"#cc9999\"><H4>" +
-                          status + " " + title + "</H4>\n" +
-                          text + "\n" + "</BODY></HTML>\n");
+                headerOut.write("<HTML><HEAD><TITLE>" + status + " " + title +
+                                "</TITLE></HEAD>\n<BODY BGCOLOR=\"#cc9999\"><H4>" +
+                                status + " " + title + "</H4>\n" +
+                                text + "\n" + "</BODY></HTML>\n");
+                headerOut.flush();
             } catch (IOException ioe) {
             }
             throw new TinyWebThreadException();
@@ -931,22 +1000,22 @@ public class TinyWebServer extends Thread {
 
             Date now = new Date();
 
-            out.write(PROTOCOL + " " + status + " " + title + CRLF);
-            out.write("Server: localhost" + CRLF);
-            out.write("Date: " + dateFormat.format(now) + CRLF);
+            headerOut.write(PROTOCOL + " " + status + " " + title + CRLF);
+            headerOut.write("Server: localhost" + CRLF);
+            headerOut.write("Date: " + dateFormat.format(now) + CRLF);
             if (mimeType != null)
-                out.write("Content-Type: " + mimeType + CRLF);
-            // out.write("Accept-Ranges: bytes" + CRLF);
+                headerOut.write("Content-Type: " + mimeType + CRLF);
+            // headerOut.write("Accept-Ranges: bytes" + CRLF);
             if (mod > 0)
-                out.write("Last-Modified: " +
-                          dateFormat.format(new Date(mod)) + CRLF);
+                headerOut.write("Last-Modified: " +
+                                dateFormat.format(new Date(mod)) + CRLF);
             if (length >= 0)
-                out.write("Content-Length: " + length + CRLF);
-            out.write(startupTimestampHeader + CRLF);
+                headerOut.write("Content-Length: " + length + CRLF);
+            headerOut.write(startupTimestampHeader + CRLF);
             if (otherHeaders != null)
-                out.write(otherHeaders);
-            out.write("Connection: close" + CRLF + CRLF);
-            out.flush();
+                headerOut.write(otherHeaders);
+            headerOut.write("Connection: close" + CRLF + CRLF);
+            headerOut.flush();
         }
 
         private String getMimeTypeFromName(String name) {
@@ -1368,7 +1437,13 @@ public class TinyWebServer extends Thread {
         }
         this.port = port;
         DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
-        TinyCGIBase.setDefaultCharset(Settings.getVal("http.charset"));
+
+        String charsetName = Settings.getVal("http.charset");
+        if (charsetName != null && charsetName.length() > 0) try {
+            "test".getBytes(charsetName);
+            OUTPUT_CHARSET = charsetName;
+            TinyCGIBase.setDefaultCharset(OUTPUT_CHARSET);
+        } catch (UnsupportedEncodingException uee) {}
     }
 
     /**
