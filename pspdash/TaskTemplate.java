@@ -80,13 +80,13 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
     static final String COMPLETED_TIME = "Completed";
     static final String PLANNED_TIME   = "Estimated Time";
 
-    static final String NEW_TOKEN      = "<new>";	// pull menu options
+    static final String NEW_TOKEN      = "<new>"; // pull menu options
     static final String DELETE_TOKEN   = "<delete>";
     static final String NO_SELECTION   = "<none>";
 
     static final String ID_SEP         = "|"; // id field divider
 
-    static final String TAB            = "	"; // prop field divider
+    static final String TAB            = "        "; // prop field divider
     static final String TASK_KEY       = "<tasks>";  // top prop for task sheet
     static final String PT_START       = ".start";   // Props for task sheet
     static final String PT_EXTERNAL    = ".external";
@@ -173,7 +173,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
         if (taskProps != null) {
             try {
                 FileOutputStream out = new FileOutputStream (taskFile);
-                taskProps.save(out, "Task & Schedule Template Data");
+                taskProps.store(out, "Task & Schedule Template Data");
             } catch (Exception e2) {}
         }
 
@@ -221,7 +221,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
 
 
 
-    public long scanTask (TaskEntry te) {	// fill in 'slurp'able data fields
+    public long scanTask (TaskEntry te) { // fill in 'slurp'able data fields
         String thePath = te.taskName.path();
 
         NumberData pt = (NumberData)data.getValue (thePath + PLANNED_TIME);
@@ -568,7 +568,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
                 te = (TaskEntry)currentTaskLog.elementAt (row);
             } catch (Exception e) { validateCell = null; return false; }
             switch (col) {
-            case 2:			// Planned Time
+            case 2:                   // Planned Time
                 try {
                     String thePath = te.taskName.path();
                     DoubleData pt = (DoubleData)data.getValue (thePath + PLANNED_TIME);
@@ -586,7 +586,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
                     taskTable.table.setValueAt (formatTime (te.plannedTime), col, row);
                 } catch (Exception e) { rv = false; }
                 break;
-            case 7:			// Actual Date
+            case 7:                   // Actual Date
                 Date d = DateFormatter.parseDate (newValue);
                 if (d == null) {
                     rv = false;
@@ -610,7 +610,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
                 se = (ScheduleEntry)currentScheduleLog.elementAt (row);
             } catch (Exception e) { validateCell = null; return false; }
             switch (col) {
-            case 2:			// Planned Time
+            case 2:                   // Planned Time
                 try {
                     long lv = Long.valueOf (newValue).longValue();
                     if (lv >= 0)
@@ -683,7 +683,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
             pk = (PropertyKey)v.elementAt (i);
             if (pk != null)
                 addTaskRow (pk);
-            else {			// check here for externals
+            else {                    // check here for externals
             }
         }
 
@@ -757,7 +757,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
         taskSheetName = null;
         boolean rv = false;
 
-        if (selIndex == 0) {	// NO_SELECTION
+        if (selIndex == 0) {        // NO_SELECTION
             System.err.println ("Clearing ... ");
             clearTables();
 
@@ -790,7 +790,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
                 deleteSheet (s);
             }
 
-        } else {			// an actual selection - load it
+        } else {                    // an actual selection - load it
             //TBD
             taskSheetName = (String)taskNames.getSelectedItem();
             System.err.println ("Loading " + taskSheetName);
@@ -1030,15 +1030,15 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
              new int[] {30, 200,
                         45, 35, 50, 35, 75,
                         75, 35},
-             new String[] {"Task Number",				     // Task #
+             new String[] {"Task Number",                                  // Task #
                            "Task Name - The node the task is attached to", // Task
-                           "Planned Time (hours)",			     // PT
-                           "Planned Value",				     // PV
-                           "Planned Cumulative Time (hours)",		     // PCT
-                           "Planned Cumulative Value",		     // PCV
-                           "Planned Date",				     // PDate
-                           "Actual Date",				     // Date
-                           "Actual Earned Value"},			     // EV
+                           "Planned Time (hours)",                         // PT
+                           "Planned Value",                                // PV
+                           "Planned Cumulative Time (hours)",              // PCT
+                           "Planned Cumulative Value",                     // PCV
+                           "Planned Date",                                 // PDate
+                           "Actual Date",                                  // Date
+                           "Actual Earned Value"},                         // EV
              null, this, TASK_TABLE, true, null,
              new boolean[] {false, false,
                             true, false, false, false, false,
@@ -1094,14 +1094,14 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
              new int[] {50, 100,
                         45, 50, 35,
                         60, 50, 35},
-             new String[] {"Week Number",			   // Week #
+             new String[] {"Week Number",                        // Week #
                            "Date of first day in week (Monday)", // Task
-                           "Planned Time (hours)",		   // PT
-                           "Planned Cumulative Time (hours)",	   // PCT
-                           "Planned Cumulative Value",	   // PCV
-                           "Actual Time (hours)",		   // PDate
-                           "Actual Cumulative Time (hours)",	   // Date
-                           "Actual Cumulative Earned Value"},	   // EV
+                           "Planned Time (hours)",               // PT
+                           "Planned Cumulative Time (hours)",    // PCT
+                           "Planned Cumulative Value",           // PCV
+                           "Actual Time (hours)",                // PDate
+                           "Actual Cumulative Time (hours)",     // Date
+                           "Actual Cumulative Earned Value"},    // EV
              null, this, SCHEDULE_TABLE, true, null,
              new boolean[] {false, false,
                             true, false, false,
@@ -1195,7 +1195,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
     public void valueChanged (TreeSelectionEvent e) {
         TreePath tp = e.getNewLeadSelectionPath();
 
-        if (tp == null) {		// deselection
+        if (tp == null) {           // deselection
             tree.clearSelection();
             return;
         }
