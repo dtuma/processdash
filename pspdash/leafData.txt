@@ -55,9 +55,13 @@
 
     [PATH/Estimated DRL] =
         [PATH/Estimated Defects Removed per Hour] /
-        [LAST_FAILURE_PHASE/Estimated Defects Removed per Hour];
+        iff([LAST_FAILURE_PHASE/Estimated Defects Removed per Hour],
+            [LAST_FAILURE_PHASE/Estimated Defects Removed per Hour],
+            [LAST_FAILURE_PHASE/Estimated Defects Removed per Hour To Date]);
     [PATH/DRL] = [PATH/Defects Removed per Hour] /
-        [LAST_FAILURE_PHASE/Defects Removed per Hour];
+	iff([LAST_FAILURE_PHASE/Defects Removed per Hour],
+	    [LAST_FAILURE_PHASE/Defects Removed per Hour],
+	    [LAST_FAILURE_PHASE/Defects Removed per Hour To Date]);
 
 #endif // LAST_FAILURE_PHASE
 #endif // IS_QUALITY_PHASE
