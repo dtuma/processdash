@@ -257,6 +257,12 @@ public class DefectDialog extends JDialog implements ActionListener {
 
         while (leafNames.hasMoreElements()) {
             item = ((String)leafNames.nextElement()).substring(prefixLength);
+
+            // This is NOT the right way to do this. A better way would be to
+            // look at the defect flag of each leaf.  Leaves that wanted to
+            // forbid defects could set their flag to false. But this will work...
+            if (item.endsWith("Postmortem") || item.endsWith("Reassessment"))
+                continue;           // don't add to the list.
             result.addItem(item);
             if (item.equals(selectedChild))
                 result.setSelectedItem(item);
