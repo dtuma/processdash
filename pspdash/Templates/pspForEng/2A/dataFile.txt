@@ -1,5 +1,6 @@
 #include <psp0.1/dataFile.txt>
 #include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
 
 = Flag this as the PSP2A program.  This allows the dashboard to find
 = it when calculating retroactive 1A data, even if it gets renamed.

@@ -1,5 +1,6 @@
 #include <psp0.1/dataFile.txt>
 #include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
 
 = Numbers which are normally defaulted to 0, force students to enter
 

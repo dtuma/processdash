@@ -1,5 +1,6 @@
 #include <psp2.1/dataFile.txt>
 #include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
 
 = Students must manually calculate appraisal COQ for program 8A.
 

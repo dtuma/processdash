@@ -1,5 +1,6 @@
 #include <psp1/dataFile.txt>
 #include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
 
 = Students must manually calculate LOC/Hr for program 4A.
 

@@ -1,5 +1,6 @@
 #include <psp2/dataFile.txt>
 #include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
 
 = Students must manually calculate test defect density for program 7A.
 
