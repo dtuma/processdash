@@ -149,7 +149,7 @@ $(BIN)/pspdash/%.class: %.java
 	$(JAVAC) \
 	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar' \
 	    -deprecation \
-            -sourcepath $(SRC) \
+	    -sourcepath $(SRC) \
 	    -d $(BIN) \
 	    $^
 
@@ -160,6 +160,6 @@ $(BIN)/com/jrefinery/chart/%.class: Templates/reports/%.java
 	$(JAVAC) \
 	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar' \
 	    -deprecation \
-            -sourcepath $(SRC) \
+	    -sourcepath $(SRC) \
 	    -d $(BIN) \
 	    $^
