@@ -104,7 +104,7 @@ public class DataApplet extends java.applet.Applet {
         } catch (ForbiddenException e) {
             debug("got forbidden exception.");
             data = null;
-            errorMsg = "FORBIDDEN";
+            errorMsg = "No such project OR project/process mismatch";
         } catch (Exception e) {
             printError(e);
         }
