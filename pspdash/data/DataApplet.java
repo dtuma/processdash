@@ -40,14 +40,9 @@ public class DataApplet extends java.applet.Applet {
     String readOnlyColorString = "#aaaaaa";
     HTMLFieldManager mgr = null;
     RepositoryWatcher watcher = null;
-    private boolean unlock = false;
 
 
     DataApplet() {}
-
-    public void init() {
-        unlock = ("true".equals(getParameter("unlock")));
-    }
 
 
     protected void printError(Exception e) {
@@ -149,6 +144,6 @@ public class DataApplet extends java.applet.Applet {
 
     public String readOnlyColor() { return readOnlyColorString; }
 
-    public boolean unlocked() { return unlock; }
+    public boolean unlocked() { return ("true".equals(getParameter("unlock"))); }
 
 }
