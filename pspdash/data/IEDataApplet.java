@@ -53,8 +53,8 @@ public class IEDataApplet extends DataApplet {
 
         super.start();              // initiate top-level DataApplet start().
 
-        if (!browserGotManager)
-            notifyListeners();
+        // if (!browserGotManager)
+        notifyListeners();
     }
 
 
