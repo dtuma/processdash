@@ -2,7 +2,7 @@
 
 qf=../compProj.rpt
 
-title=LOC Reviewed per Hour vs. Yield - Design Review
+title=Design Review Rate vs. Process Yield
 
 d1==Design Review/Appraisal Rate
 h1==Design Review LOC/Hour

@@ -2,7 +2,7 @@
 
 qf=../compProj.rpt
 
-title=LOC Reviewed per Hour vs. Yield - Code Review
+title=Code Review Rate vs. Process Yield
 
 d1==Code Review/Appraisal Rate
 h1==Code Review LOC/Hour
