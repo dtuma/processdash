@@ -63,6 +63,8 @@ public class TaskScheduleChooser
 
 
     public void displayNewTemplateDialog(PSPDashboard dash) {
+        this.dash = dash;
+
         if (dialog != null) dialog.dispose();
 
         String taskName = getTemplateName
