@@ -70,8 +70,8 @@ LOC per Hour To Date==![(/	New & Changed LOC To Date	Time To Date	0.0166667)]
 sumUp(Estimated Time)
 
 sumUp(Planning/Time)
-sumUp(High Level Design/Time)
-sumUp(High Level Design Review/Time)
+sumUp(HLD/Time)
+sumUp(HLD Review/Time)
 sumUp(Design/Time)
 sumUp(Design Review/Time)
 Design/Combined Time To Date==![(+	Design/Time To Date	Design Review/Time To Date)]
@@ -87,8 +87,8 @@ Time To Date==![(+	~[^/]*/Time To Date)]
 == % Time To Date
 
 phasePercent(Planning,Time)
-phasePercent(High Level Design,Time)
-phasePercent(High Level Design Review,Time)
+phasePercent(HLD,Time)
+phasePercent(HLD Review,Time)
 phasePercent(Design,Time)
 phasePercent(Design Review,Time)
 Design/Combined % Time To Date==![(/	Design/Combined Time To Date	Time To Date)]
@@ -107,8 +107,8 @@ phasePercent(Postmortem,Time)
 
 sumUp(Before Development/Defects Injected)
 sumUp(Planning/Defects Injected)
-sumUp(High Level Design/Defects Injected)
-sumUp(High Level Design Review/Defects Injected)
+sumUp(HLD/Defects Injected)
+sumUp(HLD Review/Defects Injected)
 sumUp(Design/Defects Injected)
 sumUp(Design Review/Defects Injected)
 Design/Combined Defects Injected To Date==![(+	Design/Defects Injected To Date	Design Review/Defects Injected To Date)]
@@ -127,8 +127,8 @@ Defects per KLOC To Date==![(/	Defects Injected To Date	New & Changed KLOC To Da
 
 phasePercent(Before Development,Defects Injected)
 phasePercent(Planning,Defects Injected)
-phasePercent(High Level Design,Defects Injected)
-phasePercent(High Level Design Review,Defects Injected)
+phasePercent(HLD,Defects Injected)
+phasePercent(HLD Review,Defects Injected)
 phasePercent(Design,Defects Injected)
 phasePercent(Design Review,Defects Injected)
 Design/Combined % Defects Injected To Date==![(/	Design/Combined Defects Injected To Date	Defects Injected To Date)]
@@ -147,8 +147,8 @@ phasePercent(Postmortem,Defects Injected)
 
 
 sumUp(Planning/Defects Removed)
-sumUp(High Level Design/Defects Removed)
-sumUp(High Level Design Review/Defects Removed)
+sumUp(HLD/Defects Removed)
+sumUp(HLD Review/Defects Removed)
 sumUp(Design/Defects Removed)
 sumUp(Design Review/Defects Removed)
 Design/Combined Defects Removed To Date==![(+	Design/Defects Removed To Date	Design Review/Defects Removed To Date)]
@@ -165,8 +165,8 @@ Defects Removed To Date==![(+	~[^/]*/Defects Removed To Date)]
 == % Defects Removed To Date
 
 phasePercent(Planning,Defects Removed)
-phasePercent(High Level Design,Defects Removed)
-phasePercent(High Level Design Review,Defects Removed)
+phasePercent(HLD,Defects Removed)
+phasePercent(HLD Review,Defects Removed)
 phasePercent(Design,Defects Removed)
 phasePercent(Design Review,Defects Removed)
 Design/Combined % Defects Removed To Date==![(/	Design/Combined Defects Removed To Date	Defects Removed To Date)]
@@ -185,14 +185,14 @@ phasePercent(After Development,Defects Removed)
 ==
 
 #define defRemPerHr(Phase) Phase/Defects Removed per Hour To Date==![(/	Phase/Defects Removed To Date	Phase/Time To Date	0.0166667)]
-defRemPerHr(High Level Design Review)
+defRemPerHr(HLD Review)
 defRemPerHr(Design Review)
 defRemPerHr(Code Review)
 defRemPerHr(Compile)
 defRemPerHr(Test)
 
 #define defRemLeverage(Phase) Phase/DRL To Date==![(/	Phase/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
-defRemLeverage(High Level Design Review)
+defRemLeverage(HLD Review)
 defRemLeverage(Design Review)
 defRemLeverage(Code Review)
 defRemLeverage(Compile)
@@ -204,7 +204,7 @@ defRemLeverage(Compile)
 
 #define DRTD(Phase) Phase/Defects Removed To Date
 #define DRTDR(Phase) DRTD(Phase)	DRTD(Phase Review)
-Yield To Date==![(/	[(+	DRTD(Planning)	DRTDR(High Level Design)	DRTDR(Design)	DRTDR(Code))]	Defects Removed To Date)]
+Yield To Date==![(/	[(+	DRTD(Planning)	DRTDR(HLD)	DRTDR(Design)	DRTDR(Code))]	Defects Removed To Date)]
 
 Test/Defects Removed per KLOC To Date==![(/	DRTD(Test)	New & Changed KLOC To Date)]
 Defects Removed per KLOC To Date==![(/	Defects Removed To Date	New & Changed KLOC To Date)]

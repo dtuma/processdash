@@ -55,10 +55,10 @@
 ## Template for PSP3 process
 ##
 
-PropertyKey<top><PSP3>=Prop[true][PSP3][psp3/script.htm][psp3/dataFile.txt][<PSP3cycle(-1)<HLD Inspection(3)][0][4][PropertyKey<top/PSP3><Planning>][PropertyKey<top/PSP3><High Level Design>][PropertyKey<top/PSP3><High Level Design Review>][PropertyKey<top/PSP3><Postmortem>]
+PropertyKey<top><PSP3>=Prop[true][PSP3][psp3/script.htm][psp3/dataFile.txt][<PSP3cycle(-1)<HLD Inspection(3)][0][4][PropertyKey<top/PSP3><Planning>][PropertyKey<top/PSP3><HLD>][PropertyKey<top/PSP3><HLD Review>][PropertyKey<top/PSP3><Postmortem>]
 PropertyKey<top/PSP3><Planning>=Prop[][][psp3/planning.htm][][ME<>][0][0]
-PropertyKey<top/PSP3><High Level Design>=Prop[][][psp3/hld.htm][][ME<>][0][0]
-PropertyKey<top/PSP3><High Level Design Review>=Prop[][][psp3/hldr.htm][][ME<>][0][0]
+PropertyKey<top/PSP3><HLD>=Prop[][][psp3/hld.htm][][ME<>][0][0]
+PropertyKey<top/PSP3><HLD Review>=Prop[][][psp3/hldr.htm][][ME<>][0][0]
 PropertyKey<top/PSP3><Postmortem>=Prop[][][psp3/postmort.htm][][ME<>][0][0]
 
 

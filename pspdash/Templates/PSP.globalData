@@ -70,8 +70,8 @@ LOC per Hour To Date==![(/	New & Changed LOC To Date	Time To Date	0.0166667)]
 Estimated Time To Date==![(+	~/.*/{Completed}{PSP Project}Estimated Time)]
 
 Planning/Time To Date==![(+	~/.*/{Completed}{PSP Project}Planning/Time)]
-High Level Design/Time To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design/Time)]
-High Level Design Review/Time To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design Review/Time)]
+HLD/Time To Date==![(+	~/.*/{Completed}{PSP Project}HLD/Time)]
+HLD Review/Time To Date==![(+	~/.*/{Completed}{PSP Project}HLD Review/Time)]
 Design/Time To Date==![(+	~/.*/{Completed}{PSP Project}Design/Time)]
 Design Review/Time To Date==![(+	~/.*/{Completed}{PSP Project}Design Review/Time)]
 Design/Combined Time To Date==![(+	Design/Time To Date	Design Review/Time To Date)]
@@ -87,8 +87,8 @@ Time To Date==![(+	~[^/]*/Time To Date)]
 == % Time To Date
 
 Planning/% Time To Date==![(/	Planning/Time To Date	Time To Date)]
-High Level Design/% Time To Date==![(/	High Level Design/Time To Date	Time To Date)]
-High Level Design Review/% Time To Date==![(/	High Level Design Review/Time To Date	Time To Date)]
+HLD/% Time To Date==![(/	HLD/Time To Date	Time To Date)]
+HLD Review/% Time To Date==![(/	HLD Review/Time To Date	Time To Date)]
 Design/% Time To Date==![(/	Design/Time To Date	Time To Date)]
 Design Review/% Time To Date==![(/	Design Review/Time To Date	Time To Date)]
 Design/Combined % Time To Date==![(/	Design/Combined Time To Date	Time To Date)]
@@ -107,8 +107,8 @@ Postmortem/% Time To Date==![(/	Postmortem/Time To Date	Time To Date)]
 
 Before Development/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Before Development/Defects Injected)]
 Planning/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Planning/Defects Injected)]
-High Level Design/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design/Defects Injected)]
-High Level Design Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design Review/Defects Injected)]
+HLD/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}HLD/Defects Injected)]
+HLD Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}HLD Review/Defects Injected)]
 Design/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Design/Defects Injected)]
 Design Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Design Review/Defects Injected)]
 Design/Combined Defects Injected To Date==![(+	Design/Defects Injected To Date	Design Review/Defects Injected To Date)]
@@ -127,8 +127,8 @@ Defects per KLOC To Date==![(/	Defects Injected To Date	New & Changed KLOC To Da
 
 Before Development/% Defects Injected To Date==![(/	Before Development/Defects Injected To Date	Defects Injected To Date)]
 Planning/% Defects Injected To Date==![(/	Planning/Defects Injected To Date	Defects Injected To Date)]
-High Level Design/% Defects Injected To Date==![(/	High Level Design/Defects Injected To Date	Defects Injected To Date)]
-High Level Design Review/% Defects Injected To Date==![(/	High Level Design Review/Defects Injected To Date	Defects Injected To Date)]
+HLD/% Defects Injected To Date==![(/	HLD/Defects Injected To Date	Defects Injected To Date)]
+HLD Review/% Defects Injected To Date==![(/	HLD Review/Defects Injected To Date	Defects Injected To Date)]
 Design/% Defects Injected To Date==![(/	Design/Defects Injected To Date	Defects Injected To Date)]
 Design Review/% Defects Injected To Date==![(/	Design Review/Defects Injected To Date	Defects Injected To Date)]
 Design/Combined % Defects Injected To Date==![(/	Design/Combined Defects Injected To Date	Defects Injected To Date)]
@@ -147,8 +147,8 @@ Postmortem/% Defects Injected To Date==![(/	Postmortem/Defects Injected To Date	
 
 
 Planning/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Planning/Defects Removed)]
-High Level Design/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design/Defects Removed)]
-High Level Design Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design Review/Defects Removed)]
+HLD/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}HLD/Defects Removed)]
+HLD Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}HLD Review/Defects Removed)]
 Design/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Design/Defects Removed)]
 Design Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Design Review/Defects Removed)]
 Design/Combined Defects Removed To Date==![(+	Design/Defects Removed To Date	Design Review/Defects Removed To Date)]
@@ -165,8 +165,8 @@ Defects Removed To Date==![(+	~[^/]*/Defects Removed To Date)]
 == % Defects Removed To Date
 
 Planning/% Defects Removed To Date==![(/	Planning/Defects Removed To Date	Defects Removed To Date)]
-High Level Design/% Defects Removed To Date==![(/	High Level Design/Defects Removed To Date	Defects Removed To Date)]
-High Level Design Review/% Defects Removed To Date==![(/	High Level Design Review/Defects Removed To Date	Defects Removed To Date)]
+HLD/% Defects Removed To Date==![(/	HLD/Defects Removed To Date	Defects Removed To Date)]
+HLD Review/% Defects Removed To Date==![(/	HLD Review/Defects Removed To Date	Defects Removed To Date)]
 Design/% Defects Removed To Date==![(/	Design/Defects Removed To Date	Defects Removed To Date)]
 Design Review/% Defects Removed To Date==![(/	Design Review/Defects Removed To Date	Defects Removed To Date)]
 Design/Combined % Defects Removed To Date==![(/	Design/Combined Defects Removed To Date	Defects Removed To Date)]
@@ -185,14 +185,14 @@ After Development/% Defects Removed To Date==![(/	After Development/Defects Remo
 ==
 
 
-High Level Design Review/Defects Removed per Hour To Date==![(/	High Level Design Review/Defects Removed To Date	High Level Design Review/Time To Date	0.0166667)]
+HLD Review/Defects Removed per Hour To Date==![(/	HLD Review/Defects Removed To Date	HLD Review/Time To Date	0.0166667)]
 Design Review/Defects Removed per Hour To Date==![(/	Design Review/Defects Removed To Date	Design Review/Time To Date	0.0166667)]
 Code Review/Defects Removed per Hour To Date==![(/	Code Review/Defects Removed To Date	Code Review/Time To Date	0.0166667)]
 Compile/Defects Removed per Hour To Date==![(/	Compile/Defects Removed To Date	Compile/Time To Date	0.0166667)]
 Test/Defects Removed per Hour To Date==![(/	Test/Defects Removed To Date	Test/Time To Date	0.0166667)]
 
 
-High Level Design Review/DRL To Date==![(/	High Level Design Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
+HLD Review/DRL To Date==![(/	HLD Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
 Design Review/DRL To Date==![(/	Design Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
 Code Review/DRL To Date==![(/	Code Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
 Compile/DRL To Date==![(/	Compile/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
@@ -204,7 +204,7 @@ Compile/DRL To Date==![(/	Compile/Defects Removed per Hour To Date	Test/Defects 
 
 
 
-Yield To Date==![(/	[(+	Planning/Defects Removed To Date	High Level Design/Defects Removed To Date	High Level Design Review/Defects Removed To Date	Design/Defects Removed To Date	Design Review/Defects Removed To Date	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]	Defects Removed To Date)]
+Yield To Date==![(/	[(+	Planning/Defects Removed To Date	HLD/Defects Removed To Date	HLD Review/Defects Removed To Date	Design/Defects Removed To Date	Design Review/Defects Removed To Date	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]	Defects Removed To Date)]
 
 Test/Defects Removed per KLOC To Date==![(/	Test/Defects Removed To Date	New & Changed KLOC To Date)]
 Defects Removed per KLOC To Date==![(/	Defects Removed To Date	New & Changed KLOC To Date)]
