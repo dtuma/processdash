@@ -39,7 +39,7 @@
  <indexitem text="earned value" target="UsingTaskSchedule"/>
  <indexitem text="entering data" target="EnteringData"/>
  <indexitem text="exporting data" target="ExportingData">
-  <indexitem text="from forms" target="ExportingFromForms">
+  <indexitem text="from forms" target="ExportingFromForms"/>
  </indexitem>
  <indexitem text="freezing data" target="CompletionButton.freeze"/>
  <indexitem text="frequently asked questions" target="FAQ"/>
@@ -54,7 +54,7 @@
  <indexitem text="JavaHelp" target="Help"/>
  <indexitem text="LOC (lines of code) counter" target="LOCCounter"/>
  <indexitem text="linear regression" target="UsingProbeTool.regression"/>
- <indexitem text="multiple to-date data" target="MultipleToDateData">
+ <indexitem text="multiple to-date data" target="MultipleToDateData"/>
  <indexitem text="navigating" target="HierarchyMenus"/>
  <indexitem text="new objects" target="UsingSizeEstimatingTemplate.newObjects"/>
  <indexitem text="object LOC" target="UsingSizeEstimatingTemplate.objectLOC"/>
@@ -101,7 +101,7 @@
  </indexitem>
  <indexitem text="significance" target="UsingProbeTool.significance"/>
  <indexitem text="size estimating template" target="UsingSizeEstimatingTemplate"/>
- <indexitem text="task & schedule tool" target="UsingTaskSchedule"/>
+ <indexitem text="task and schedule tool" target="UsingTaskSchedule"/>
  <indexitem text="time card" target="UsingTimeLogEditor.TimeCardView"/>
  <indexitem text="time estimation" target="UsingSizeEstimatingTemplate.time"/>
  <indexitem text="time log" target="UsingTimeLogEditor">
