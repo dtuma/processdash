@@ -1,3 +1,4 @@
+#include <psp1/dataFile.txt>
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -40,135 +41,18 @@
 
 psp1.1==1.0
 PSP1.1==1.0
-
-
-
-==
-== Data Elements to track Time.
-==
-
-= Estimated Time
-
-Estimated Time=0.0
-
-Planning/Estimated Time==![(*	Estimated Time	/Planning/% Time To Date)]
-Design/Estimated Time==![(*	Estimated Time	/Design/% Time To Date)]
-Design Review/Estimated Time==![(*	Estimated Time	/Design Review/% Time To Date)]
-Code/Estimated Time==![(*	Estimated Time	/Code/% Time To Date)]
-Code Review/Estimated Time==![(*	Estimated Time	/Code Review/% Time To Date)]
-Compile/Estimated Time==![(*	Estimated Time	/Compile/% Time To Date)]
-Test/Estimated Time==![(*	Estimated Time	/Test/% Time To Date)]
-Postmortem/Estimated Time==![(*	Estimated Time	/Postmortem/% Time To Date)]
-
-= Actual Time
-
-Planning/Time==0.0
-Design/Time==0.0
-Design Review/Time==0.0
-Code/Time==0.0
-Code Review/Time==0.0
-Compile/Time==0.0
-Test/Time==0.0
-Postmortem/Time==0.0
-Time==![(+	~.*/Time)]
-
-= Actual % Time.
-
-Planning/% Time==![(/	Planning/Time	Time)]
-Design/% Time==![(/	Design/Time	Time)]
-Design Review/% Time==![(/	Design Review/Time	Time)]
-Code/% Time==![(/	Code/Time	Time)]
-Code Review/% Time==![(/	Code Review/Time	Time)]
-Compile/% Time==![(/	Compile/Time	Time)]
-Test/% Time==![(/	Test/Time	Time)]
-Postmortem/% Time==![(/	Postmortem/Time	Time)]
-
-
+psp1==0.0
+PSP1==0.0
 
 ==
-== Data Elements to track LOC.
+== New Elements for PSP1.1
 ==
 
-= Estimated LOC
+Estimated Max Time=0.0
+Estimated Min Time=0.0
 
-Estimated Base LOC=0.0
-Estimated Deleted LOC=0.0
-Estimated Modified LOC=0.0
-Estimated Base Additions LOC==![(+	~Base Additions/LOC \d+)]
-Estimated New Objects LOC==![(+	~New Objects/LOC \d+)]
-Estimated Reused LOC==![(+	~Reused Objects/LOC \d+)]
-Estimated Object LOC==![(+	[(+	Estimated Base Additions LOC	Estimated New Objects LOC)]	Estimated Modified LOC)]
-Estimated New & Changed LOC=0.0
-Estimated Added LOC==![(-	Estimated New & Changed LOC	Estimated Modified LOC)]
-Estimated New Reused LOC==![(+	~New Objects/New Reused LOC \d+)]
-Estimated LOC==![(-	[(+	Estimated New & Changed LOC	Estimated Base LOC	Estimated Reused LOC)]	Estimated Deleted LOC	Estimated Modified LOC)]
-Estimated KLOC==![(/	Estimated LOC	1000)]
+Estimated % Reused==![(/	Estimated Reused LOC	Estimated LOC)]
+Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated New & Changed LOC)]
 
-= Actual LOC
-
-Base LOC=0.0
-Deleted LOC=0.0
-Modified LOC=0.0
-Added LOC==![(-	[(+	LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
-Reused LOC=0.0
-New & Changed LOC==![(+	Added LOC	Modified LOC)]
-New Reused LOC=0.0
-LOC=0.0
-KLOC==![(/	LOC	1000)]
-
-
-
-==
-== Data Elements to track Defects Injected
-==
-
-Before Development/Defects Injected==0.0
-Planning/Defects Injected==0.0
-Design/Defects Injected==0.0
-Design Review/Defects Injected==0.0
-Code/Defects Injected==0.0
-Code Review/Defects Injected==0.0
-Compile/Defects Injected==0.0
-Test/Defects Injected==0.0
-Postmortem/Defects Injected==0.0
-Defects Injected==![(-	~.*/Defects Injected	Before Development/Defects Injected)]
-Defects per KLOC==![(/	Defects Injected	KLOC)]
-
-
-
-==
-== Data Elements to track Defects Removed
-==
-
-Planning/Defects Removed==0.0
-Design/Defects Removed==0.0
-Design Review/Defects Removed==0.0
-Code/Defects Removed==0.0
-Code Review/Defects Removed==0.0
-Compile/Defects Removed==0.0
-Test/Defects Removed==0.0
-Postmortem/Defects Removed==0.0
-After Development/Defects Removed==0.0
-Defects Removed==![(-	~.*/Defects Removed	After Development/Defects Removed)]
-
-
-
-==
-== Data Elements to calculate overall process metrics.
-==
-
-= Calculations based on estimated data
-
-Estimated LOC per Hour==![(*	60	[(/	Estimated LOC	Estimated Time)])]
-
-= Calculations based on actual data
-
-LOC per Hour==![(*	60	[(/	LOC	Time)])]
-
-
-
-==
-== Miscellaneous data elements
-==
-
-Started=@now
+% Reused==![(/	Reused LOC	LOC)]
+% New Reused==![(/	New Reused LOC	New & Changed LOC)]
