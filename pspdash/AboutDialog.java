@@ -69,7 +69,16 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
      * Launch a browser when you click on a link
      */
     public void hyperlinkUpdate(HyperlinkEvent e) {
-        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
-            Browser.launch(e.getURL().toString());
+        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            String url = e.getURL().toString();
+            if (url.startsWith("http://help/"))
+                try {
+                    DashHelpBroker help = DashHelpBroker.getInstance();
+                    help.setCurrentID(url.substring(12));
+                    help.setDisplayed(true);
+                } catch (Exception ex) {}
+            else
+                Browser.launch(url);
+        }
     }
 }
