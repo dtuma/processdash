@@ -299,6 +299,7 @@ import java.util.*;
 %eof}
 
 
+%unicode
 %ignorecase
 %public
 %class CLASSNAME
