@@ -50,12 +50,12 @@ public class DoubleData implements SimpleData, NumberData {
         }
     }
 
-    public DoubleData(int i)	{ value = (double)i; }
-    public DoubleData(double d)	{ value = d; }
-    public String saveString()	{ return Double.toString(value); }
-    public double getDouble()	{ return value; }
-    public int getInteger()	{ return (int)value; }
-    public boolean isEditable()	{ return editable; }
+    public DoubleData(int i)    { value = (double)i; }
+    public DoubleData(double d) { value = d; }
+    public String saveString()  { return Double.toString(value); }
+    public double getDouble()   { return value; }
+    public int getInteger()     { return (int)value; }
+    public boolean isEditable() { return editable; }
     public void setEditable(boolean e) { editable = e; }
     public void dispose() {};
 
@@ -63,9 +63,25 @@ public class DoubleData implements SimpleData, NumberData {
         return new DoubleData(value, editable);
     }
 
+    public static final int AUTO_DECIMAL = -1;
+
     public static String formatNumber(double value, int numDecimalPoints) {
         if (Double.isNaN(value) || Double.isInfinite(value))
             return "ERROR";
+
+        if (numDecimalPoints == AUTO_DECIMAL)
+            if (value-((int)value) == 0.0)
+                numDecimalPoints = 0;
+            else if (value > -10 && value < 10)
+                numDecimalPoints = 2;
+            else
+                numDecimalPoints = 1;
+
+        /*
+         * round off value appropriately. Numbers are rounded away from zero,
+         * to the number of digits specified by numDecimalPoints.
+         */
+        value += (value>0 ? 0.5 : -0.5) * Math.pow(0.1, numDecimalPoints);
 
         if (numDecimalPoints == 0)
             return Integer.toString((int)value);
@@ -83,8 +99,8 @@ public class DoubleData implements SimpleData, NumberData {
         while (numPadZeros-- > 0)
             fraction.insert(0, '0');
 
-                                  // if the value ends with several zeros, they
-                                  // are unnecessary, and can be removed.
+                                // if the value ends with several zeros, they
+                                // are unnecessary, and can be removed.
         int length = fraction.length();
         while (length > 1 && (fraction.charAt(length-1) == '0'))
             fraction.setLength(--length);
@@ -105,7 +121,7 @@ public class DoubleData implements SimpleData, NumberData {
     }
 
     public static String formatNumber(double value) {
-        return formatNumber(value, (value-((int)value)==0.0) ? 0 : 2);
+        return formatNumber(value, AUTO_DECIMAL);
     }
 
     public SimpleData parse(String val) throws MalformedValueException {
