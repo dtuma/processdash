@@ -200,13 +200,17 @@ public class GUIInstaller extends InstallerBase
         int npacks = availableLangPacks.size();
         if (npacks == 0)
             throw new Exception("no language pack available");
-        String selectedPack;
+        String selectedPack = LocaleMapper.getISO3forLocale(Locale.getDefault());
 
         // We get the langpack name
-        if (npacks != 1)
+        if ("eng".equalsIgnoreCase(selectedPack))
+            // don't display language selection dialog to english users for now
+            selectedPack = "eng";
+
+        else if (npacks != 1)
         {
             LanguageDialog picker = new LanguageDialog(availableLangPacks.toArray());
-            picker.setSelection(Locale.getDefault().getISO3Country().toLowerCase());
+            picker.setSelection(LocaleMapper.getISO3forDefaultLocale());
             picker.setModal(true);
             picker.show();
 
@@ -391,12 +395,6 @@ public class GUIInstaller extends InstallerBase
             gbConstraints.gridy = 3;
             layout.addLayoutComponent(comboBox, gbConstraints);
             contentPane.add(comboBox);
-
-            // select the best language by default
-            String defaultISO3 = LocaleMapper.getISO3forDefaultLocale();
-            for (int i = items.length;   i-- > 0; )
-                if (defaultISO3.equals(items[i]))
-                    comboBox.setSelectedIndex(i);
 
             okButton = new JButton("Ok");
             okButton.addActionListener(this);
