@@ -184,7 +184,7 @@ public class RepositoryServer extends Thread {
         public void dataValueChanged(DataEvent e) {
             try {
                 synchronized (out) {
-                    out.writeObject(e);
+                    sendDataEvent(e);
                     out.flush();
                 }
             } catch (Exception ex) { printError(ex); }
@@ -196,13 +196,25 @@ public class RepositoryServer extends Thread {
             synchronized (out) {
                 for (int i = v.size();  i > 0; )
                     try {
-                        out.writeObject(v.elementAt(--i));
+                        sendDataEvent((DataEvent) v.elementAt(--i));
                     } catch (Exception ex) { printError(ex); }
 
                 try {
                     out.flush();
                 } catch (Exception ex) { printError(ex); }
             }
+        }
+
+        // WARNING - you must manually synchronize on the <code>out</code>
+        // object before calling this method.
+        private void sendDataEvent(DataEvent e) throws IOException {
+            if (e.getValue() == null) {
+                SaveableData d = data.getValue(e.getName());
+                if (d != null && !d.isEditable())
+                    e = new DataEvent((Repository) e.getSource(), e.getName(),
+                                      e.getID(), ImmutableStringData.EMPTY_STRING);
+            }
+            out.writeObject(e);
         }
 
         private void cleanup() {
