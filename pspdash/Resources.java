@@ -32,7 +32,19 @@ import java.util.ResourceBundle;
 
 public class Resources {
 
+    private static ResourceBundle globalResources = null;
+
     private Resources() {}
+
+    private static void initGlobalResources() {
+        if (globalResources == null)
+            globalResources = getBundle("pspdash.Resources");
+    }
+
+    public static String getString(String key) {
+        initGlobalResources();
+        return globalResources.getString(key);
+    }
 
     private static class TemplateClassLoader extends ClassLoader {
 

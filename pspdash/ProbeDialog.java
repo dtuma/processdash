@@ -37,6 +37,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.*;
+import java.text.NumberFormat;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
@@ -69,8 +70,12 @@ public class ProbeDialog extends JFrame implements
 
     private javax.swing.Timer docChangeTimer;
 
+    ResourceBundle resources = Resources.getBundle("pspdash.PROBE");
+
+
     ProbeDialog(PSPDashboard dash) {
-        super("PROBE");
+        super();
+        setTitle(resources.getString("PROBE_Window_Title"));
         PCSH.enableHelpKey(this, "UsingProbeTool");
         setIconImage(dash.getIconImage());
 
@@ -95,7 +100,8 @@ public class ProbeDialog extends JFrame implements
 
         g.gridy = 0;   g.insets = no_margin;
 
-        c = label = new JLabel("Method:");   g.gridx = 0;   g.gridwidth = 1;
+        c = label = new JLabel(resources.getString("Method_Label"));
+        g.gridx = 0;   g.gridwidth = 1;
         g.weightx = 0;   g.anchor = g.CENTER;   g.fill = g.NONE;
         layout.setConstraints(c, g);   panel.add(c);
 
@@ -108,21 +114,22 @@ public class ProbeDialog extends JFrame implements
 
         g.gridy++;              // next row
 
-        c = new JLabel("Correlate");    g.gridx = 0;   g.gridwidth = 1;
+        c = new JLabel(resources.getString("X_Label"));
+        g.gridx = 0;   g.gridwidth = 1;
         g.weightx = 0;   g.fill = g.NONE;
         layout.setConstraints(c, g);   panel.add(c);
 
         xName = new DataComboBox(data);
         g.gridx = 1;  g.gridwidth = 3;  g.weightx = 0;  g.fill = g.HORIZONTAL;
         layout.setConstraints(xName, g);   panel.add(xName);
-        xName.setToolTipText
-            ("The independent variable in the correlation, i.e. x");
+        xName.setToolTipText(resources.getString("X_Description"));
         xName.addActionListener(this);
 
 
         g.gridy++;              // new row
 
-        c = new JLabel("with");    g.gridx = 0;   g.gridwidth = 1;
+        c = new JLabel(resources.getString("Y_Label"));
+        g.gridx = 0;   g.gridwidth = 1;
         g.weightx = 0;   g.fill = g.NONE;
         layout.setConstraints(c, g);   panel.add(c);
 
@@ -130,8 +137,7 @@ public class ProbeDialog extends JFrame implements
         g.gridx = 1;   g.gridwidth = 3;
         g.weightx = 0;   g.anchor = g.WEST;   g.fill = g.HORIZONTAL;
         layout.setConstraints(yName, g);   panel.add(yName);
-        yName.setToolTipText
-            ("The dependent variable in the correlation, i.e. y");
+        yName.setToolTipText(resources.getString("Y_Description"));
         yName.addActionListener(this);
 
 
@@ -143,8 +149,8 @@ public class ProbeDialog extends JFrame implements
 
         g.gridy++;              // new row
 
-        estimateLabel = new JLabel("Estimate");   g.gridx = 0;
-        g.gridwidth = 1;   g.weightx = 0;   g.anchor = g.EAST;
+        estimateLabel = new JLabel(resources.getString("Estimate_Label"));
+        g.gridx = 0; g.gridwidth = 1;   g.weightx = 0;   g.anchor = g.EAST;
         g.fill = g.NONE;   g.insets = no_margin;
         layout.setConstraints(estimateLabel, g);   panel.add(estimateLabel);
 
@@ -155,8 +161,8 @@ public class ProbeDialog extends JFrame implements
         estimate.addActionListener(this);
         estimate.getDocument().addDocumentListener(this);
 
-        percentLabel = new JLabel("% range");   g.gridx = 2;
-        g.gridwidth = 1;   g.anchor = g.EAST;
+        percentLabel = new JLabel(resources.getString("Percent_Label"));
+        g.gridx = 2; g.gridwidth = 1;   g.anchor = g.EAST;
         layout.setConstraints(percentLabel, g);   panel.add(percentLabel);
 
         percent = new JTextField("70", 7);   g.gridx = 3;   g.gridwidth = 1;
@@ -177,7 +183,8 @@ public class ProbeDialog extends JFrame implements
 
         JPanel box = new JPanel();
         box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
-        box.setBorder(BorderFactory.createTitledBorder("L. Regression"));
+        box.setBorder(BorderFactory.createTitledBorder
+                      (resources.getString("L_Regression")));
         box.add(projection = new JLabel());
         box.add(beta0 = new JLabel());
         box.add(beta1 = new JLabel());
@@ -193,14 +200,14 @@ public class ProbeDialog extends JFrame implements
         layout.setConstraints(box, g);   panel.add(box);
         regressionBox = box;
 
-        rSquared.setToolTipText
-            ("The measure of how well these data elements correlate.");
+        rSquared.setToolTipText(resources.getString("R_Squared_Description"));
         significance.setToolTipText
-            ("the probability that this correlation could occur by chance.");
+            (resources.getString("Significance_Description"));
 
         box = new JPanel();
         box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
-        box.setBorder(BorderFactory.createTitledBorder("Average"));
+        box.setBorder(BorderFactory.createTitledBorder
+                      (resources.getString("Average")));
         box.add(Cprojection = new JLabel());
         box.add(Cbeta0 = new JLabel());
         box.add(Cbeta1 = new JLabel());
@@ -217,21 +224,21 @@ public class ProbeDialog extends JFrame implements
         g.gridy++;              //new row: filter button
         g.fill = g.HORIZONTAL;  g.weighty = 0;
 
-        filterButton = new JButton ("Filter...");
+        filterButton = new JButton (resources.getString("Filter_Button"));
         filterButton.setActionCommand("filter");
         filterButton.addActionListener(this);
         layout.setConstraints(filterButton, g);   panel.add(filterButton);
 
         g.gridy++;              //new row: chart button
 
-        chartButton = new JButton ("Chart...");
+        chartButton = new JButton (resources.getString("Chart_Button"));
         chartButton.setActionCommand("chart");
         chartButton.addActionListener(this);
         layout.setConstraints(chartButton, g);   panel.add(chartButton);
 
         g.gridy++;              //new row: close button
 
-        closeButton = new JButton ("Close");
+        closeButton = new JButton (Resources.getString("Close"));
         closeButton.setActionCommand("close");
         closeButton.addActionListener(this);
         layout.setConstraints(closeButton, g);   panel.add(closeButton);
@@ -258,25 +265,46 @@ public class ProbeDialog extends JFrame implements
         show();
     }
 
-    private String format(double value, int numDecimalPoints) {
-        String result = DoubleData.formatNumber(value, numDecimalPoints);
-        return (result.startsWith("#") ? "Not Enough Data" : result);
+    private String notEnoughData = resources.getString("Not_Enough_Data");
+    private NumberFormat percentFormat = NumberFormat.getPercentInstance();
+    private String formatPercent(double value, int numDecimalPoints) {
+        if (Double.isNaN(value) || Double.isInfinite(value))
+            return notEnoughData;
+        percentFormat.setMaximumFractionDigits(numDecimalPoints);
+        return percentFormat.format(value);
     }
 
+    private String format(double value, int numDecimalPoints) {
+        String result = DoubleData.formatNumber(value, numDecimalPoints);
+        if (result.startsWith("#"))
+            return notEnoughData;
+        return result;
+    }
+
+    // these variables name elements in the data repository, and
+    // therefore cannot currently be localized.
     private static final String EST_OBJ_LOC = "Estimated Object LOC";
     private static final String EST_NC_LOC  = "Estimated New & Changed LOC";
     private static final String ACT_NC_LOC  = "New & Changed LOC";
     private static final String ACT_TIME    = "Time";
 
-    private static final String[] PROBE_METHODS = {
-        "PROBE Method A for Size", "PROBE Method A for Time",
-        "PROBE Method B for Size", "PROBE Method B for Time",
-        "PROBE Method C1 for Size",
-        "PROBE Method C2 for Size",
-        "PROBE Method C1 for Time",
-        "PROBE Method C2 for Time",
-        "PROBE Method C3 for Time",
-        "-Custom-" };
+    private String[] PROBE_METHODS = buildProbeMethods();
+    private String[] buildProbeMethods() {
+        String[] result = new String[10];
+        String size = resources.getString("Size");
+        String time = resources.getString("Time");
+        result[0]  = Resources.format(resources, "Method_FMT", "A", size);
+        result[1]  = Resources.format(resources, "Method_FMT", "A", time);
+        result[2]  = Resources.format(resources, "Method_FMT", "B", size);
+        result[3]  = Resources.format(resources, "Method_FMT", "B", time);
+        result[4]  = Resources.format(resources, "Method_FMT", "C1", size);
+        result[5]  = Resources.format(resources, "Method_FMT", "C2", size);
+        result[6]  = Resources.format(resources, "Method_FMT", "C1", time);
+        result[7]  = Resources.format(resources, "Method_FMT", "C2", time);
+        result[8]  = Resources.format(resources, "Method_FMT", "C3", time);
+        result[9]  = resources.getString("Custom_Method");
+        return result;
+    }
     private static final boolean [] PROBE_SHOW_REGRESSION = {
         true, true, true, true, false, false, false, false, false };
     private static final String[] PROBE_X = {
@@ -291,6 +319,15 @@ public class ProbeDialog extends JFrame implements
         ACT_TIME, ACT_TIME, ACT_TIME };         // method C for time
 
 
+    private String unknownValue = resources.getString("Unknown_Value");
+    private String formatField(String key, String value) {
+        String label = resources.getString(key);
+        if (value == null)
+            return label + " = " + unknownValue;
+        else
+            return label + " = " + value;
+    }
+
     private void setAFields (boolean enableFields,
                              String  b0Text,
                              String  b1Text,
@@ -298,12 +335,12 @@ public class ProbeDialog extends JFrame implements
                              String  sigText,
                              String  varText,
                              String  sdText) {
-        beta0.setText        ((b0Text != null)  ? b0Text  : "Beta0 = ????");
-        beta1.setText        ((b1Text != null)  ? b1Text  : "Beta1 = ????");
-        rSquared.setText     ((rsText != null)  ? rsText  : "r\u00B2 = ????");
-        significance.setText ((sigText != null) ? sigText : "p = ????");
-        variance.setText     ((varText != null) ? varText : "Variance = ????");
-        stddev.setText       ((sdText != null)  ? sdText  : "StdDev = ???? ");
+        beta0.setText        (formatField("Beta0", b0Text));
+        beta1.setText        (formatField("Beta1", b1Text));
+        rSquared.setText     (formatField("R_Squared", rsText));
+        significance.setText (formatField("Significance", sigText));
+        variance.setText     (formatField("Variance", varText));
+        stddev.setText       (formatField("Standard_Deviation", sdText));
 
         beta0.setEnabled(enableFields);
         beta1.setEnabled(enableFields);
@@ -318,10 +355,10 @@ public class ProbeDialog extends JFrame implements
                              String  ranText,
                              String  upiText,
                              String  lpiText) {
-        projection.setText ((proText != null)  ? proText : "Projection = ????");
-        range.setText      ((ranText != null)  ? ranText : "Range = ????");
-        upi.setText        ((upiText != null)  ? upiText : "UPI = ????");
-        lpi.setText        ((lpiText != null)  ? lpiText : "LPI = ????");
+        projection.setText (formatField("Projection", proText));
+        range.setText      (formatField("Range", ranText));
+        upi.setText        (formatField("UPI", upiText));
+        lpi.setText        (formatField("LPI", lpiText));
 
         projection.setEnabled(enableFields);
         range.setEnabled(enableFields);
@@ -332,8 +369,8 @@ public class ProbeDialog extends JFrame implements
     private void setCFields (boolean enableFields,
                              String  b0Text,
                              String  b1Text) {
-        Cbeta0.setText        ((b0Text != null) ? b0Text  : "Beta0 = ????");
-        Cbeta1.setText        ((b1Text != null) ? b1Text  : "Beta1 = ????");
+        Cbeta0.setText        (formatField("Beta0", b0Text));
+        Cbeta1.setText        (formatField("Beta1", b1Text));
 
         Cbeta0.setEnabled(enableFields);
         Cbeta1.setEnabled(enableFields);
@@ -341,7 +378,7 @@ public class ProbeDialog extends JFrame implements
 
     private void setCRanges (boolean enableFields,
                              String  proText) {
-        Cprojection.setText ((proText != null)  ? proText : "Projection = ????");
+        Cprojection.setText (formatField("Projection", proText));
 
         Cprojection.setEnabled(enableFields);
     }
@@ -360,7 +397,7 @@ public class ProbeDialog extends JFrame implements
     private volatile CorrelationWorker correlationWorker = null;
 
     private void correlate() {
-        System.out.println("correlate");
+        //System.out.println("correlate");
         synchronized (this) {
             correlationWorker = new CorrelationWorker();
             correlationWorker.start();
@@ -424,33 +461,26 @@ public class ProbeDialog extends JFrame implements
             double r_squared = corr.c.r * corr.c.r;
 
             setAFields (enableFields,
-                        "Beta0 = " + format(corr.r.beta0, 4),
-                        "Beta1 = " + format(corr.r.beta1, 4),
-                        "r\u00B2 = " + format(r_squared, 4),
-                        "p = " + format(corr.c.p * 100, 4) + "%",
-                        "Variance = " + format(var, 2),
-                        "StdDev = " + format(corr.r.stddev, 3));
+                        format(corr.r.beta0, 4),
+                        format(corr.r.beta1, 4),
+                        format(r_squared, 4),
+                        formatPercent(corr.c.p, 2),
+                        format(var, 2),
+                        format(corr.r.stddev, 3));
 
-            if (r_squared >= 0.9) rSquared.setForeground(Color.black);
-            else if (r_squared >= 0.7) rSquared.setForeground(Color.blue);
-            else if (r_squared >= 0.5) rSquared.setForeground(Color.orange.darker());
-            else rSquared.setForeground(Color.red);
-
-            if (corr.c.p <= 0.05) significance.setForeground(Color.black);
-            else if (corr.c.p <= 0.12) significance.setForeground(Color.blue);
-            else if (corr.c.p < 0.20) significance.setForeground(Color.orange.darker());
-            else significance.setForeground(Color.red);
+            setColorFromRange(rSquared, r_squared, R_SQUARED_COLORS);
+            setColorFromRange(significance, corr.c.p, SIGNIFICANCE_COLORS);
 
             setCFields (enableFields,
-                        "Beta0 = " + format(0, 4),
-                        "Beta1 = " + format(corr.r.y_avg / corr.r.x_avg, 4));
+                        format(0, 4),
+                        format(corr.r.y_avg / corr.r.x_avg, 4));
         }
 
         estimate.setEditable(enableFields);
         percent.setEditable(enableFields);
 
-        estimateLabel.setText("Estimate");
-        percentLabel.setText("% range");
+        //estimateLabel.setText("Estimate");
+        //percentLabel.setText("% range");
         estimateLabel.setEnabled(enableFields);
         estimate.setEnabled(enableFields);
         percentLabel.setEnabled(enableFields);
@@ -464,6 +494,29 @@ public class ProbeDialog extends JFrame implements
 
         if (!showRegression) doDisable(regressionBox);
         if (!showAverage)    doDisable(averageBox);
+    }
+
+    private Object[][] R_SQUARED_COLORS = {
+        { null, Color.red },
+        { new Double(0.5), Color.orange.darker() },
+        { new Double(0.7), Color.blue },
+        { new Double(0.9), Color.black } };
+    private Object[][] SIGNIFICANCE_COLORS = {
+        { null, Color.black },
+        { new Double(0.0501), Color.blue },
+        { new Double(0.1201), Color.orange.darker() },
+        { new Double(0.2001), Color.red } };
+
+
+    private void setColorFromRange(JComponent c, double val,
+                                   Object[][] colorRanges) {
+        for (int i = colorRanges.length; i-- > 1; ) {
+            if (val >= ((Number) colorRanges[i][0]).doubleValue()) {
+                c.setForeground((Color) colorRanges[i][1]);
+                return;
+            }
+        }
+        c.setForeground((Color) colorRanges[0][1]);
     }
 
     private void findRange() {
@@ -498,13 +551,12 @@ public class ProbeDialog extends JFrame implements
             enableFields = true;
 
             setARanges (enableFields,
-                        "Projection = " + format(corr.r.projection, 2),
-                        "Range = " + format(corr.r.range, 2),
-                        "UPI = " + format(corr.r.UPI, 2),
-                        "LPI = " + format(corr.r.LPI, 2));
+                        format(corr.r.projection, 2),
+                        format(corr.r.range, 2),
+                        format(corr.r.UPI, 2),
+                        format(corr.r.LPI, 2));
 
             setCRanges (enableFields,
-                        "Projection = " +
                         format((corr.r.y_avg / corr.r.x_avg) * est, 2));
         }
 

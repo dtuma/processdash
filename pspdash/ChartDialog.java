@@ -44,6 +44,8 @@ public class ChartDialog extends JDialog {
     Vector titles;
     DefaultTableModel tableModel;
 
+    ResourceBundle resources = Resources.getBundle("pspdash.PROBE");
+
 
     public ChartDialog (Frame parent,
                         DataCorrelator c,
@@ -51,7 +53,8 @@ public class ChartDialog extends JDialog {
                         String labelY,
                         boolean showRegression,
                         boolean showAverage) {
-        super (parent, "PROBE Chart");
+        super (parent);
+        setTitle(resources.getString("Chart_Window_Title"));
         PCSH.enableHelpKey(this, "UsingProbeTool.chart");
         corr = c;
 
@@ -61,11 +64,11 @@ public class ChartDialog extends JDialog {
         chart = new ChartCanvas(c, labelX, labelY, showRegression, showAverage);
 
 
-        if (labelX == null) labelX = "-";
-        if (labelY == null) labelY = "-";
+        if (labelX == null) labelX = resources.getString("Empty_Label");
+        if (labelY == null) labelY = resources.getString("Empty_Label");
 
         titles = new Vector();
-        titles.add("Task/Project");
+        titles.add(Resources.getString("Task_Project"));
         titles.add(labelX);
         titles.add(labelY);
 
@@ -87,7 +90,7 @@ public class ChartDialog extends JDialog {
 
         Box buttonBox = new Box(BoxLayout.X_AXIS);
         buttonBox.add (Box.createGlue());
-        JButton button = new JButton ("Close");
+        JButton button = new JButton (Resources.getString("Close"));
         button.setActionCommand("close");
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -313,11 +316,11 @@ public class ChartDialog extends JDialog {
 
                                       // draw legend
             g.setColor (showRegression ? Color.blue : Color.lightGray);
-            String l1 = "Linear Regression";
+            String l1 = resources.getString("Linear_Regression");
             g.drawString (l1, 5,
                           cBounds.y - 1 + cBounds.height - fm.getMaxDescent());
             g.setColor (showAverage ? Color.red : Color.lightGray);
-            g.drawString ("Average", 15 + fm.stringWidth (l1),
+            g.drawString (resources.getString("Average"), 15 + fm.stringWidth (l1),
                           cBounds.y - 1 + cBounds.height - fm.getMaxDescent());
             cBounds.height -= cHigh + 2;
 

@@ -454,7 +454,8 @@ public class PSPDiff {
             out.print(filterName);
             out.println("</h2><table border>");
             printOption(out, "-lang=" + filterName,
-                        "Force the use of this language filter.");
+                        Resources.getBundle("pspdash.PSPDiff")
+                            .getString("Force_Explanation"));
             String[][] options = currentFilter.getOptions();
             if (options != null)
                 for (int j = 0;   j < options.length;   j++) {
