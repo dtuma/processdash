@@ -7,6 +7,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -64,7 +65,7 @@ public class WBSEditor implements WindowListener {
 
         frame = new JFrame
             (teamProject.getProjectName() + " - Work Breakdown Structure");
-        frame.setJMenuBar(buildMenuBar());
+        frame.setJMenuBar(buildMenuBar(table));
         frame.getContentPane().add(table);
         frame.getContentPane().add(teamTimePanel, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -73,11 +74,11 @@ public class WBSEditor implements WindowListener {
         frame.show();
     }
 
-    private JMenuBar buildMenuBar() {
+    private JMenuBar buildMenuBar(WBSTabPanel tabPanel) {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu());
-        result.add(buildEditMenu());
+        result.add(buildEditMenu(tabPanel.wbsTable.getEditingActions()));
         result.add(buildWorkflowMenu());
         result.add(buildViewMenu());
 
@@ -89,10 +90,13 @@ public class WBSEditor implements WindowListener {
         result.add(new CloseAction());
         return result;
     }
-    private JMenu buildEditMenu() {
+    private JMenu buildEditMenu(Action[] editingActions) {
         JMenu result = new JMenu("Edit");
         result.add(undoList.getUndoAction());
         result.add(undoList.getRedoAction());
+        result.addSeparator();
+        for (int i = 0;   i < editingActions.length;   i++)
+            result.add(editingActions[i]);
         return result;
     }
     private JMenu buildWorkflowMenu() {

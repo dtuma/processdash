@@ -118,6 +118,12 @@ public class WBSJTable extends JTable {
         }
     }
 
+    /** Return a list of actions useful for editing the wbs */
+    public Action[] getEditingActions() {
+        return new Action[] { CUT_ACTION, COPY_ACTION, PASTE_ACTION,
+            DEMOTE_ACTION, PROMOTE_ACTION, INSERT_ACTION, ENTER_ACTION,
+            DELETE_ACTION };
+    }
 
     /** Populate the <tt>customActions</tt> list with actions for editing
      * the work breakdown structure. */
