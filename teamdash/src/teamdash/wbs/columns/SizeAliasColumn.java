@@ -72,5 +72,9 @@ implements CalculatedDataColumn {
         if (column != -1)
             dataModel.setValueAt(aValue, node, column);
     }
+    public void resetDependentColumns() {
+        for (int i = 0;   i < columns.length;   i++)
+            columns[i] = -1;
+    }
 
 }

@@ -13,13 +13,12 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import org.w3c.dom.Document;
 import pspdash.XMLUtils;
+import teamdash.*;
 import teamdash.TeamMember;
 import teamdash.TeamMemberList;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
@@ -39,6 +38,7 @@ public class WBSTest implements WindowListener {
     JTable table;
     WBSModel model;
     TeamMemberList teamList;
+    TeamProcess teamProcess = new TeamProcess();
 
     private static final String[][] nodes = {
         { " A",  "Software Component" },
@@ -94,7 +94,7 @@ public class WBSTest implements WindowListener {
 
     public WBSTest(String filename, boolean ignored) {
         buildModel(filename);
-        Map iconMap = buildIconMap();
+        Map iconMap = teamProcess.getIconMap(); //buildIconMap();
         table = new WBSJTable(model, iconMap);
         JScrollPane sp = new JScrollPane(table);
 
@@ -110,18 +110,7 @@ public class WBSTest implements WindowListener {
         loadTeam();
         DataTableModel data = new DataTableModel(model);
 
-        Map iconMap = buildIconMap();
-        JMenu taskSubmenu = new JMenu("Tasks ");
-        taskSubmenu.add(new JMenuItem("PSP Task"));
-        taskSubmenu.add(new JMenuItem("Task"));
-        JMenu iconMenu = new JMenu();
-        iconMenu.add(taskSubmenu);
-        iconMenu.addSeparator();
-        for (int i = 0;   i < iconMenuItems.length;  i++)
-            iconMenu.add(new JMenuItem(iconMenuItems[i]));
-        WBSTabPanel table = new WBSTabPanel(model, data, iconMap, iconMenu);
-        //table.addTab("Vowels", new String[] {"N&C LOC", "E", "I", "O", "U" },
-        //            new String[] { "LOC", "Echo","India","Oscar","Uniform" });
+        WBSTabPanel table = new WBSTabPanel(model, data, teamProcess);
 
 
         table.addTab("Size",

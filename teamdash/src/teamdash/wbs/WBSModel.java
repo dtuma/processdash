@@ -23,7 +23,11 @@ public class WBSModel extends AbstractTableModel {
 
     public WBSModel(String name) {
         wbsNodes = new ArrayList();
+        if (name == null || name.trim().length() == 0)
+            name = "Team Project";
         add(new WBSNode(this, name, "Project", 0, true));
+        add(new WBSNode(this, "Software Component", "Software Component",
+                        1, true));
         validator = new WBSModelValidator(this);
     }
 

@@ -13,5 +13,6 @@ public abstract class AbstractDataColumn implements DataColumn {
     public Class getColumnClass() { return String.class; }
     public String[] getDependentColumnIDs() { return dependentColumns; }
     public String[] getAffectedColumnIDs() { return null; }
+    public void resetDependentColumns() {}
 
 }

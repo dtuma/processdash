@@ -62,8 +62,10 @@ public class DataTableModel extends AbstractTableModel {
         Iterator i = columns.iterator();
         while (i.hasNext()) {
             Object column = i.next();
-            if (column instanceof CalculatedDataColumn)
+            if (column instanceof CalculatedDataColumn) {
                 calculatedColumns.add(column);
+                ((CalculatedDataColumn) column).resetDependentColumns();
+            }
         }
 
         // initialize each calculated column.

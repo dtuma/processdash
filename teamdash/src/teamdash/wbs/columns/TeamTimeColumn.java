@@ -25,6 +25,10 @@ public class TeamTimeColumn extends AbstractNumericColumn
             includedColumns.add(columnNumber);
     }
 
+    public void resetDependentColumns() {
+        includedColumns = new IntList();
+    }
+
     public boolean isCellEditable(WBSNode node) {
         return false;
     }
@@ -55,26 +59,5 @@ public class TeamTimeColumn extends AbstractNumericColumn
     }
 
     protected void setValueForNode(double value, WBSNode node) { }
-/*            if (Double.isNaN(value) || value < 0) return;
 
-            double nc = value, added, modified;
-            added = NumericDataValue.parse
-                (dataModel.getValueAt(node, addedColumn));
-            modified = NumericDataValue.parse
-                (dataModel.getValueAt(node, modifiedColumn));
-
-            if (nc > modified) {
-                // when the user edit "new & changed", try to accomodate them
-                // by altering the "added" value.
-                added = nc - modified;
-                dataModel.setValueAt(new Double(added), node, addedColumn);
-            } else {
-                // if the strategy above would result in a negative value for
-                // "added", then zero out added and decrease the modified value
-                dataModel.setValueAt(new Double(0),  node, addedColumn);
-                dataModel.setValueAt(new Double(nc), node, modifiedColumn);
-            }
-        }
-    }
-*/
 }

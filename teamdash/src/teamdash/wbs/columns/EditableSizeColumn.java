@@ -57,4 +57,8 @@ implements CalculatedDataColumn {
             node.setAttribute(ATTR_NAME, aValue);
     }
 
+    public void resetDependentColumns() {
+        newChangedColumn = -1;
+    }
+
 }

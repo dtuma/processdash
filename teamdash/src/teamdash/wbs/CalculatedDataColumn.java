@@ -17,4 +17,8 @@ public interface CalculatedDataColumn extends DataColumn {
      * column */
     public void storeDependentColumn(String ID, int columnNumber);
 
+    /** Discard information received as part of previous storeDependentColumn
+     * calls */
+    public void resetDependentColumns();
+
 }

@@ -22,6 +22,8 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import teamdash.*;
+
 /** Class to display the WBS editor panel
  */
 public class WBSTabPanel extends JPanel {
@@ -33,6 +35,13 @@ public class WBSTabPanel extends JPanel {
     JSplitPane splitPane;
     ArrayList tableColumnModels = new ArrayList();
     GridBagLayout layout;
+
+    /** Create a WBSTabPanel */
+    public WBSTabPanel(WBSModel wbs, DataTableModel data,
+                       TeamProcess teamProcess) {
+        this(wbs, data, teamProcess.getIconMap(),
+             teamProcess.getNodeTypeMenu());
+    }
 
     /** Create a WBSTabPanel */
     public WBSTabPanel(

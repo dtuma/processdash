@@ -121,6 +121,9 @@ public class SizeAccountingColumnSet {
                 dataModel.setValueAt(new Double(nc), node, modifiedColumn);
             }
         }
+        public void resetDependentColumns() {
+            addedColumn = modifiedColumn = -1;
+        }
     }
 
     private static class TotalSizeColumn extends AbstractNumericColumn
@@ -167,6 +170,9 @@ public class SizeAccountingColumnSet {
             double total   = base - deleted + added + reused;
 
             return new NumericDataValue(total, false);
+        }
+        public void resetDependentColumns() {
+            baseColumn = deletedColumn = addedColumn = reusedColumn = -1;
         }
     }
 
@@ -228,5 +234,6 @@ public class SizeAccountingColumnSet {
         public void setValueAt(Object aValue, WBSNode node) {
             column.setValueAt(aValue, node);
         }
+        public void resetDependentColumns() {}
     }
 }
