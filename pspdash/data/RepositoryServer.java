@@ -231,18 +231,13 @@ public class RepositoryServer extends Thread {
         }
     }
 
-    public RepositoryServer(DataRepository r, int port) {
-        try {
-            data = r;
-            this.port = port;
-            if (port > 0) {
-                // debug("creating serverSocket...");
-                serverSocket = new ServerSocket(port);
-                // debug("done.");
-            } else {
-                serverSocket = null;
-            }
-        } catch (IOException e) { printError(e); }
+    public RepositoryServer(DataRepository r, ServerSocket socket) {
+        data = r;
+        serverSocket = socket;
+        if (socket != null)
+            port = socket.getLocalPort();
+        else
+            port = -1;
     }
 
     public int getPort() {

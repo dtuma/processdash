@@ -36,6 +36,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -891,9 +892,9 @@ public class DataRepository implements Repository {
             dataFreezer.start();
         }
 
-        public void startServer(int port) {
+        public void startServer(ServerSocket socket) {
             if (dataServer == null) {
-                dataServer = new RepositoryServer(this, port);
+                dataServer = new RepositoryServer(this, socket);
                 dataServer.start();
             }
         }

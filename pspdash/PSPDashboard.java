@@ -133,7 +133,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
                                               webServer.getTimestamp());
 
         // Start up the data repository server.
-        data.startServer(webServer.getPort() - 1);
+        data.startServer(webServer.getDataSocket());
 
         // determine if Lost Data Files are present in the pspdata directory
         // and take steps to repair them.

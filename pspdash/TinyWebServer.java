@@ -36,6 +36,7 @@ import java.text.*;
 public class TinyWebServer extends Thread {
 
     ServerSocket serverSocket = null;
+    ServerSocket dataSocket = null;
     Vector serverThreads = new Vector();
     URL [] roots = null;
     DataRepository data = null;
@@ -787,6 +788,8 @@ public class TinyWebServer extends Thread {
 
     /** Return the number of the port this server is listening on. */
     public int getPort()         { return port; }
+    /** Return the socket we opened for data connections. */
+    public ServerSocket getDataSocket() { return dataSocket; }
     /** Return the startup timestamp for this server. */
     public String getTimestamp() { return startupTimestamp; }
 
@@ -797,8 +800,17 @@ public class TinyWebServer extends Thread {
         startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
 
         while (serverSocket == null) try {
+            dataSocket = new ServerSocket(port-1);
             serverSocket = new ServerSocket(port);
-        } catch (IOException ioe) {
+        } catch (IOException ioex) {
+            if (dataSocket != null) {
+                try { dataSocket.close(); } catch (IOException ioe) {}
+                dataSocket = null;
+            }
+            if (serverSocket != null) {
+                try { serverSocket.close(); } catch (IOException ioe) {}
+                serverSocket = null;
+            }
             port += 2;
         }
         this.port = port;
