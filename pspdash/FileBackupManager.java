@@ -131,7 +131,7 @@ public class FileBackupManager {
             File out = new File(dataDir, LOG_FILE_NAME);
             logFile = new FileOutputStream(out);
             ConsoleWindow.getInstalledConsole().setCopyOutputStream(logFile);
-            System.out.println("Version 1.4.1.3 - logging started at " +
+            System.out.println("Version 1.4.1.4 - logging started at " +
                                new Date());
         } catch (IOException ioe) { printError(ioe); }
     }
