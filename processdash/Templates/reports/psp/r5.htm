@@ -39,7 +39,14 @@ TD.task   { text-align: left; white-space: nowrap }
 </head>
 <BODY>
 
-<H1><!--#echo var="PATH_TRANSLATED" --></H1>
+<!--#if "PATH_TRANSLATED" eq '/To Date/PSP/All' -->
+    <H1><!--#echo var="To_Date_Prefix_FMT" arg0="'PSP'" --></H1>
+<!--#elif "PATH_TRANSLATED" =~ '/To Date/.*/All' -->
+    <H1><!--#echo var="To_Date_Prefix_FMT" arg0=[Process_ID] --></H1>
+<!--#else-->
+    <H1><!--#echo var="PATH_TRANSLATED" --></H1>
+<!--#endif-->
+
 <H2><!--#echo Pareto.Title_Long --></H2>
 
 <IMG WIDTH=500 HEIGHT=400 SRC="r5a.class?qf=../compProj.rpt&categoryLabels=vertical&width=500&height=400&strict"> <BR> 
