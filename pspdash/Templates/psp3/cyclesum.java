@@ -116,6 +116,19 @@ public class cyclesum extends pspdash.TinyCGIBase {
         }
     }
 
+    /** Print a static portion of the form. */
+    private void printStaticPart(String text, boolean planning)
+        throws IOException
+    {
+        if (planning) {
+            text = replace(text, PLAN_TAG, "Plan");
+        } else {
+            text = replace(text, PLAN_TAG, "Actual");
+            text = replace(text, EST_TEXT, "");
+        }
+        out.print(text);
+    }
+
 
     /** Generate CGI script output.
      *
@@ -129,10 +142,10 @@ public class cyclesum extends pspdash.TinyCGIBase {
         boolean planning = (parameters.get("plan") != null);
 
         for (int i=0;   i < dynamicPieces.length;  i++) {
-            out.write(staticPieces[i]);
+            printStaticPart(staticPieces[i], planning);
             printDynamicPart(cycleList, i, planning);
         }
-        out.write(staticPieces[staticPieces.length - 1]);
+        printStaticPart(staticPieces[staticPieces.length - 1], planning);
     }
 
 
