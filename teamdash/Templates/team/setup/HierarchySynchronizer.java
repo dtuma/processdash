@@ -26,6 +26,7 @@ import pspdash.HierarchyAlterer.HierarchyAlterationException;
 import pspdash.data.DataRepository;
 import pspdash.data.DoubleData;
 import pspdash.data.SimpleData;
+import pspdash.data.StringData;
 
 public class HierarchySynchronizer {
 
@@ -337,7 +338,7 @@ public class HierarchySynchronizer {
         public void syncData(String path, Element node) {
              String nodeID = node.getAttribute(ID_ATTR);
              try {
-                 putData(path, WBS_ID_DATA_NAME, new DoubleData(nodeID));
+                 putData(path, WBS_ID_DATA_NAME, StringData.create(nodeID));
             } catch (Exception e) {}
             if (!isTeam()) maybeSaveDocSize(path, node);
         }
@@ -388,10 +389,12 @@ public class HierarchySynchronizer {
                 return;
             int pos = SIZE_UNITS_LIST.indexOf(units);
             if (pos == -1) return;
-            String docSizeDataName = DOC_SIZE_DATA_NAMES[pos];
+            String actualSizeUnits = INTERNAL_SIZE_UNITS[pos];
 
             // check to see if any doc size data exists for this node
-            SimpleData d = getData(path, docSizeDataName);
+            SimpleData d = getData(path, EST_SIZE_DATA_NAME);
+            if (d != null && d.test()) return;
+            d = getData(path, SIZE_UNITS_DATA_NAME);
             if (d != null && d.test()) return;
 
             // find out whether this individual is a contributor to the
@@ -412,7 +415,9 @@ public class HierarchySynchronizer {
             }
 
             // save the document size data to the project.
-            putData(path, docSizeDataName, new DoubleData(size));
+            putData(path, EST_SIZE_DATA_NAME, new DoubleData(size));
+            putData(path, SIZE_UNITS_DATA_NAME,
+                    StringData.create(actualSizeUnits));
         }
     }
 
@@ -490,22 +495,35 @@ public class HierarchySynchronizer {
             if (inspUnits == null || inspUnits.length() == 0) return;
             int pos = SIZE_UNITS_LIST.indexOf(inspUnits);
             if (pos == -1) return;
-            String inspDataName = INSP_DATA_NAMES[pos];
+            String actualSizeUnits = INTERNAL_SIZE_UNITS[pos];
 
             // check to see if any inspection size data exists for this node.
-            SimpleData d = getData(path, inspDataName);
+            SimpleData d = getData(path, EST_SIZE_DATA_NAME);
+            if (d != null && d.test()) return;
+            d = getData(path, SIZE_UNITS_DATA_NAME);
             if (d != null && d.test()) return;
 
             // save the inspection size data to the project.
-            putNumber(path, inspDataName, node.getAttribute("inspSize"));
+            putNumber(path, EST_SIZE_DATA_NAME, node.getAttribute("inspSize"));
+            putData(path, SIZE_UNITS_DATA_NAME,
+                    StringData.create("Inspected " + actualSizeUnits));
         }
     }
 
 
     private static final String[] SIZE_UNITS = new String[] {
         "Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines", "LOC" };
+    private static final String[] INTERNAL_SIZE_UNITS = new String[] {
+        "Text Pages", "Req Pages", "HLD Pages", "DLD Lines",
+        "New & Changed LOC" };
     private static final List SIZE_UNITS_LIST =
         Arrays.asList(SIZE_UNITS);
+    private static final String EST_SIZE_DATA_NAME =
+        "Sized_Objects/0/Estimated Size";
+    private static final String SIZE_UNITS_DATA_NAME =
+        "Sized_Objects/0/Sized_Object_Units";
+
+    /*
     private static final String[] INSP_DATA_NAMES = new String[] {
         "Estimated Inspected Text Pages",
         "Estimated Inspected Req Pages",
@@ -519,7 +537,7 @@ public class HierarchySynchronizer {
         "Estimated HLD Pages",
         "Estimated DLD Lines"
     };
-
+    */
 
 
     private class SyncPSPTaskNode extends SyncSimpleNode {
