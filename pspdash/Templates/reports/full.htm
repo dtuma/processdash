@@ -47,6 +47,10 @@ function imgSrc() {
         chart = "xy.class";
     else if (window.location.search.indexOf("chart=pie") != -1)
         chart = "pie.class";
+    else if (window.location.search.indexOf("chart=bar") != -1)
+        chart = "bar.class";
+    else if (window.location.search.indexOf("chart=radar") != -1)
+        chart = "radar.class";
     return (chart + window.location.search + "&width="+W() + "&height="+H());
 }
 

@@ -36,6 +36,7 @@ function write(query, small) {
         if      (query.indexOf("chart=xy")  != -1) chart = "xy.class";
         else if (query.indexOf("chart=pie") != -1) chart = "pie.class";
         else if (query.indexOf("chart=bar") != -1) chart = "bar.class";
+        else if (query.indexOf("chart=radar") != -1) chart = "radar.class";
     }
     document.writeln("<A HREF='../full.htm?" + query + "'>");
     document.writeln("<img src='../"+chart+"?"+query+"&"+small+"'></a>");
