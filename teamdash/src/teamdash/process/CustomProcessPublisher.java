@@ -11,13 +11,16 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+import java.util.jar.JarOutputStream;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import pspdash.AutoUpdateManager;
 import pspdash.HTMLPreprocessor;
 import pspdash.ProgressDialog;
 import pspdash.StringUtils;
@@ -53,7 +56,8 @@ public class CustomProcessPublisher {
     }
 
 
-    ZipOutputStream zip;
+    File destFile;
+    JarOutputStream zip;
     Writer out;
 
     TinyWebServer webServer;
@@ -64,10 +68,7 @@ public class CustomProcessPublisher {
     protected CustomProcessPublisher(File destFile, TinyWebServer webServer)
         throws IOException
     {
-        FileOutputStream fos = new FileOutputStream(destFile);
-        zip = new ZipOutputStream(fos);
-        out = new OutputStreamWriter(zip);
-
+        this.destFile = destFile;
         this.webServer = webServer;
         parameters = new HashMap();
         customParams = new HashMap();
@@ -77,10 +78,46 @@ public class CustomProcessPublisher {
 
     protected synchronized void publish(CustomProcess process)
         throws IOException {
-        writeXMLSettings(process);
         initProcess(process);
-        runGenerationScript(process.getGeneratorScript());
+
+        Document script = loadScript(process.getGeneratorScript());
+        openStreams(process, script);
+
+        writeXMLSettings(process);
+        runGenerationScript(script);
     }
+
+    protected Document loadScript(String scriptName) throws IOException {
+        try {
+            return XMLUtils.parse(getFile(scriptName));
+        } catch (SAXException se) {
+            System.err.print(se);
+            se.printStackTrace();
+            throw new IOException("Invalid XML file");
+        }
+    }
+
+    protected void openStreams(CustomProcess process, Document script)
+        throws IOException {
+
+        String scriptID = script.getDocumentElement().getAttribute("id");
+        String scriptVers =
+            script.getDocumentElement().getAttribute("version");
+
+        Manifest mf = new Manifest();
+        Attributes attrs = mf.getMainAttributes();
+        attrs.putValue("Manifest-Version", "1.0");
+        attrs.putValue(AutoUpdateManager.NAME_ATTRIBUTE,
+                       (String) parameters.get("Full_Name"));
+        attrs.putValue(AutoUpdateManager.ID_ATTRIBUTE, process.getProcessID());
+        attrs.putValue(AutoUpdateManager.VERSION_ATTRIBUTE,
+                       scriptVers + "." + System.currentTimeMillis());
+
+        FileOutputStream fos = new FileOutputStream(destFile);
+        zip = new JarOutputStream(fos, mf);
+        out = new OutputStreamWriter(zip);
+    }
+
 
     protected void close() throws IOException {
         out.flush();
@@ -188,15 +225,7 @@ public class CustomProcessPublisher {
         return processor.preprocess(content);
     }
 
-    protected void runGenerationScript(String scriptName) throws IOException {
-        Document script = null;
-        try {
-            script = XMLUtils.parse(getFile(scriptName));
-        } catch (SAXException se) {
-            System.err.print(se);
-            se.printStackTrace();
-            throw new IOException("Invalid XML file");
-        }
+    protected void runGenerationScript(Document script) throws IOException {
         NodeList files = script.getElementsByTagName("file");
         String defaultInDir =
             script.getDocumentElement().getAttribute("inDirectory");
