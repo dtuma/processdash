@@ -383,7 +383,8 @@ public class EVTaskList extends AbstractTreeTableModel
             newTask = new EVTask(path, data, hierarchy,
                                  willNeedChangeNotification ? this : null);
         }
-        ((EVTask) root).add(newTask);
+        if (!((EVTask) root).add(newTask))
+            return false;
 
         // send the appropriate TreeModel event.
         int[] childIndices = new int[] { ((EVTask)root).getNumChildren() - 1 };
