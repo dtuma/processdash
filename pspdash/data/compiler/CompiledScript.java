@@ -27,12 +27,13 @@ package pspdash.data.compiler;
 
 import pspdash.data.SimpleData;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class CompiledScript {
+public class CompiledScript implements Serializable {
 
     private String saveString = null;
     private List instructions = new ArrayList();

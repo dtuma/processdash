@@ -25,9 +25,10 @@
 
 package pspdash.data.compiler;
 
+import java.io.Serializable;
 import java.util.List;
 
-public interface Function {
+public interface Function extends Serializable {
 
     /** Perform a procedure call.
      *

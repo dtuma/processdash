@@ -30,6 +30,7 @@ import pspdash.data.DataRepository;
 import pspdash.data.DefinitionFactory;
 import pspdash.data.ListData;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -40,7 +41,7 @@ import org.w3c.dom.NodeList;
 
 /** Automatically defines various types of data.
  */
-public abstract class AutoData implements DefinitionFactory {
+public abstract class AutoData implements DefinitionFactory, Serializable {
 
 
     /** Create and register AutoData objects for all the templates in

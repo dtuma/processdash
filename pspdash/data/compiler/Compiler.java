@@ -80,7 +80,15 @@ public class Compiler extends DepthFirstAdapter {
         return result;
     }
 
+
     public static CompiledScript compile(String expression)
+        throws CompilationException
+    {
+        return compile(compileVal(expression));
+    }
+
+
+    public static PValue compileVal(String expression)
         throws CompilationException
     {
         try {
@@ -91,14 +99,11 @@ public class Compiler extends DepthFirstAdapter {
             // Parse the input
             Start tree = p.parse();
 
-            // get the expression
+            // get the expression and return it
             FindLastExpression search = new FindLastExpression();
             tree.apply(search);
+            return search.expression;
 
-            // compile the expression and return it.
-            return compile(search.expression);
-        } catch (CompilationException ce) {
-            throw ce;
         } catch (Exception e) {
             throw new CompilationException("Error while compiling: " + e);
         }

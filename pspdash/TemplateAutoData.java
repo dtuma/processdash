@@ -29,6 +29,7 @@ package pspdash;
 import pspdash.data.DataRepository;
 import pspdash.data.ListData;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.w3c.dom.Element;
@@ -41,7 +42,8 @@ import org.w3c.dom.NodeList;
 public class TemplateAutoData extends AutoData {
 
 
-    private Element template;
+    private transient Element template;
+    private String templateStr = null;
     private String templateID, usesRollupID, definesRollupID;
     private String dataFile;
     private Map definitions = null;
@@ -338,6 +340,22 @@ public class TemplateAutoData extends AutoData {
             else
                 return "";
         }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out)
+        throws IOException
+    {
+        templateStr = template.toString();
+        out.defaultWriteObject();
+    }
+    private void readObject(java.io.ObjectInputStream in)
+        throws IOException, ClassNotFoundException
+    {
+        in.defaultReadObject();
+        try {
+            template = XMLUtils.parse(templateStr).getDocumentElement();
+            templateStr = null;
+        } catch (Exception e) {}
     }
 }
 

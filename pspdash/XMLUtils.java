@@ -37,6 +37,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -80,6 +81,12 @@ public class XMLUtils {
             if (builder != null) builderPool.release(builder);
         }
         return result;
+    }
+
+    public static Document parse(String document)
+        throws SAXException, IOException
+    {
+        return parse(new ByteArrayInputStream(document.getBytes()));
     }
 
     public static String escapeAttribute(String value) {

@@ -33,6 +33,9 @@ import java.io.InputStreamReader;
 import java.io.FileInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.PushbackReader;
 import java.io.FileReader;
@@ -1096,6 +1099,34 @@ public class DataRepository implements Repository {
             }
         }
 
+        public void saveDefinitions(OutputStream out) throws IOException {
+            ObjectOutputStream o = new ObjectOutputStream(out);
+            o.writeObject(includedFileCache);
+            o.writeObject(defineDeclarations);
+            o.writeObject(defaultDefinitions);
+            o.writeObject(globalDataDefinitions);
+            o.writeObject(mountedPhantomData);
+            o.close();
+        }
+        public void loadDefinitions(InputStream in) {
+            try {
+                ObjectInputStream i = new ObjectInputStream(in);
+                Hashtable a, b, c, d, e;
+                a = (Hashtable) i.readObject();
+                b = (Hashtable) i.readObject();
+                c = (Hashtable) i.readObject();
+                d = (Hashtable) i.readObject();
+                e = (Hashtable) i.readObject();
+                remountPhantomData(e);
+                includedFileCache.putAll(a);
+                defineDeclarations.putAll(b);
+                defaultDefinitions.putAll(c);
+                globalDataDefinitions.putAll(d);
+                System.out.println("loaded serialized definitions.");
+                in.close();
+            } catch (Throwable t) {}
+        }
+
 
         public synchronized void dumpRepository (PrintWriter out, Vector filt) {
             Iterator k = getKeys();
@@ -2154,6 +2185,17 @@ public class DataRepository implements Repository {
             }
         }
 
+        private Hashtable mountedPhantomData = new Hashtable();
+
+        private void remountPhantomData(Hashtable h) throws InvalidDatafileFormat {
+            Iterator i = h.entrySet().iterator();
+            Map.Entry e;
+            while (i.hasNext()) {
+                e = (Map.Entry) i.next();
+                mountPhantomData((String) e.getKey(), (Map) e.getValue());
+            }
+        }
+
         public void mountPhantomData(String dataPrefix, Map values)
             throws InvalidDatafileFormat
         {
@@ -2161,6 +2203,9 @@ public class DataRepository implements Repository {
             // data element's datafile is null, it is considered transient and
             // can be deleted at any time if no one is listening to its value.
             mountData(getPhantomDataFile(), dataPrefix, values);
+
+            if (mountedPhantomData != null)
+                mountedPhantomData.put(dataPrefix, values);
         }
 
         private DataFile getPhantomDataFile() {

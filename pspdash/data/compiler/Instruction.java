@@ -25,7 +25,9 @@
 
 package pspdash.data.compiler;
 
-public interface Instruction {
+import java.io.Serializable;
+
+public interface Instruction extends Serializable {
     public void execute(Stack stack, ExpressionContext context)
         throws ExecutionException;
 }

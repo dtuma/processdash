@@ -34,6 +34,7 @@ import pspdash.data.StringData;
 import pspdash.data.compiler.CompiledScript;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URLConnection;
 import java.util.*;
 
@@ -63,7 +64,7 @@ public class RollupAutoData extends AutoData {
         return new AliasAutoData();
     }
 
-    private class AliasAutoData implements DefinitionFactory {
+    private class AliasAutoData implements DefinitionFactory, Serializable {
         public AliasAutoData() {}
 
         /** Create the default data definitions for the template

@@ -193,6 +193,16 @@ public class PSPDashboard extends JFrame implements WindowListener {
             }
         }
 
+        // possibly reload cached data definitions.
+        File serializedDefinitions = new File(property_directory, "defns.ser");
+        if (serializedDefinitions.exists() &&
+            (serializedDefinitions.lastModified() >
+             TemplateLoader.getTemplateTimestamp()))
+            try {
+                data.loadDefinitions(new FileInputStream
+                    (serializedDefinitions));
+            } catch (Exception e) {}
+
         // open all the datafiles that were specified in the properties file.
         data.startInconsistency();
         try {
@@ -229,6 +239,11 @@ public class PSPDashboard extends JFrame implements WindowListener {
             exc.printStackTrace(System.err);
         }
         data.finishInconsistency();
+        try {
+            data.saveDefinitions(new FileOutputStream(serializedDefinitions));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         webServer.setData(data);
         webServer.setProps(props);

@@ -53,6 +53,8 @@ public class TemplateLoader {
     private static final String DATAFILE_SUFFIX = ".globaldata";
     private static final String TEMPLATE_DIR = "Templates/";
 
+    private static long templateTimestamp = 0;
+
     public static PSPProperties loadTemplates(DataRepository data,
                                               AutoUpdateManager aum) {
         PSPProperties templates = new PSPProperties(null);
@@ -185,6 +187,7 @@ public class TemplateLoader {
                     debug("loading template: " + f);
                     loadXMLProcessTemplate
                         (templates, data, new FileInputStream(f), true);
+                    processTimestamp(f);
                     foundTemplates = true;
                 } catch (IOException ioe) {
                     debug("unable to load process template: " + f);
@@ -194,6 +197,7 @@ public class TemplateLoader {
                     debug("loading template: " + f);
                     loadProcessTemplate
                         (templates, new FileInputStream(f), true);
+                    processTimestamp(f);
                     foundTemplates = true;
                 } catch (IOException ioe) {
                     debug("unable to load process template: " + f);
@@ -202,6 +206,7 @@ public class TemplateLoader {
                 try {
                     debug("loading data: " + f);
                     data.addGlobalDefinitions(new FileInputStream(f), true);
+                    processTimestamp(f);
                 } catch (Exception e) {
                     System.out.println
                         ("unable to load global process data from " + f +
@@ -358,9 +363,11 @@ public class TemplateLoader {
         for (int i=0;  i < dirContents.length;  i++) try {
             name = dirContents[i].toURL().toString();
             lname = name.toLowerCase();
-            if ((lname.endsWith(".jar") || lname.endsWith(".zip")) &&
-                ! lname.endsWith(JARFILE_NAME))
-                v.add(new URL("jar:" + name + "!/" + TEMPLATE_DIR));
+            if ((lname.endsWith(".jar") || lname.endsWith(".zip"))) {
+                processTimestamp(dirContents[i]);
+                if (! lname.endsWith(JARFILE_NAME))
+                    v.add(new URL("jar:" + name + "!/" + TEMPLATE_DIR));
+            }
         } catch (MalformedURLException mue) {}
     }
     /** Figure out what directory contains the pspdash.jar file. */
@@ -404,6 +411,17 @@ public class TemplateLoader {
 
         return null;
     }
+
+    public static void processTimestamp(long time) {
+        if (time > templateTimestamp)
+            templateTimestamp = time;
+    }
+    public static void processTimestamp(File f) {
+        //System.out.println("timestamp for file " + f.getPath() + " is " +
+        //                   f.lastModified());
+        processTimestamp(f.lastModified());
+    }
+    public static long getTemplateTimestamp() { return templateTimestamp; }
 
     private static void createScriptMaps(PSPProperties templates) {
         Enumeration nodes = templates.keys();

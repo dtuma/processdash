@@ -25,6 +25,9 @@
 
 package pspdash.data;
 
+import java.io.IOException;
+import java.io.Serializable;
+
 import pspdash.data.compiler.CompiledScript;
 import pspdash.data.compiler.CompilationException;
 import pspdash.data.compiler.Compiler;
@@ -35,9 +38,9 @@ import pspdash.data.compiler.node.TIdentifier;
 import pspdash.data.compiler.node.PValue;
 import pspdash.data.compiler.analysis.DepthFirstAdapter;
 
-class SearchFactory implements ListFunction {
+class SearchFactory implements ListFunction, Serializable {
 
-    protected PValue expression;
+    protected transient PValue expression;
     protected String start, tag, saveString;
 
     public SearchFactory(ASearchDeclaration decl) {
@@ -84,6 +87,26 @@ class SearchFactory implements ListFunction {
         return new SearchFunction(name, data.createDataName(prefix, start),
                                   tag, script, data, prefix);
     }
+
+    private String expressionStr = null;
+
+    private void writeObject(java.io.ObjectOutputStream out)
+        throws IOException
+    {
+        if (expression != null)
+            expressionStr = expression.toString();
+        out.defaultWriteObject();
+    }
+    private void readObject(java.io.ObjectInputStream in)
+        throws IOException, ClassNotFoundException
+    {
+        in.defaultReadObject();
+        if (expressionStr != null) try {
+            expression = Compiler.compileVal(expressionStr);
+            expressionStr = null;
+        } catch (Exception e) {}
+    }
+
 
     private class NormalizeReferences extends DepthFirstAdapter {
         DataRepository data;
