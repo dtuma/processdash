@@ -74,6 +74,8 @@ public class ListData implements SimpleData {
     public synchronized void addAll(Object o) {
         if (immutable) throw new IllegalStateException();
         if (o == null) return;
+        if (o instanceof SaveableData && !(o instanceof SimpleData))
+            o = ((SaveableData) o).getSimpleValue();
         if (o instanceof StringData)
             o = ((StringData) o).asList();
         if (o instanceof ListData) {

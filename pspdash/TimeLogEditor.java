@@ -232,18 +232,18 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
                     // Extract the data from the data repository that corresponds
                     // to the change we are currently applying.
-                    NumberData pt = (NumberData)data.getValue (thePath);
+                    Object pt = data.getValue (thePath);
 
                     // Are they trying to log time against some node which performs
                     // roll up only?  This is bad - don't allow it.
-                    if (pt instanceof NumberFunction) {
+                    if (!(pt instanceof DoubleData) || pt instanceof NumberFunction) {
                         System.err.println("Error in TimeLogEditor: time must be logged " +
                                            "to phases (i.e. leaves of the hierarchy).");
                         continue;
                     }
 
                     if (pt != null)
-                        l += (long)pt.getInteger ();
+                        l += (long)((DoubleData) pt).getInteger ();
 
                     // Save the new value into the data repository.
                     data.putValue(thePath, new DoubleData(l, false));

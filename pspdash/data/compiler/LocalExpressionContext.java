@@ -26,6 +26,7 @@
 package pspdash.data.compiler;
 
 import pspdash.data.ListData;
+import pspdash.data.SaveableData;
 import pspdash.data.SimpleData;
 import pspdash.data.StringData;
 
@@ -54,6 +55,8 @@ public class LocalExpressionContext implements ExpressionContext {
             setLocalValue((SimpleData) v);
         else if (v instanceof String)
             setLocalValue(StringData.create((String) v));
+        else if (v instanceof SaveableData)
+            setLocalValue(((SaveableData) v).getSimpleValue());
         else
             setLocalValue(null);
     }

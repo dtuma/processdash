@@ -68,6 +68,8 @@ public class DataComparator implements Comparator {
     }
 
     private Object scrub(Object obj) {
+        if (obj instanceof SaveableData && !(obj instanceof SimpleData))
+            obj = ((SaveableData) obj).getSimpleValue();
         if (obj instanceof NumberData) return obj;
         if (obj instanceof DateData) return obj;
         if (obj instanceof StringData) return obj;

@@ -203,7 +203,7 @@ public class DefectLog {
         if (val == null)
             val = new DoubleData(increment);
         else if (val instanceof NumberFunction)
-            return;                   // Do nothing - don't overwrite calculations
+            return;          // Do nothing - don't overwrite old-style calculations
         else
             val = new DoubleData(val.getInteger() + increment);
         val.setEditable(false);
@@ -324,7 +324,8 @@ public class DefectLog {
                 if (subname.endsWith(DEF_INJ_SUFFIX) ||
                     subname.endsWith(DEF_REM_SUFFIX)) {
 
-                    if (data.getValue(name) instanceof NumberFunction)
+                    Object o = data.getValue(name);
+                    if (!(o instanceof DoubleData) || o instanceof NumberFunction)
                                 // Don't overwrite calculations, which are
                         continue; // typically summing up values from other places
 

@@ -541,7 +541,7 @@ public class file extends TinyCGIBase {
         public PathVariable(String name, String metaName, String impliedPath,
                             String defaultValue) {
             this.metaName = metaName;
-            Object val = null;
+            SaveableData val = null;
             DataRepository data = getDataRepository();
 
             if (name.startsWith("/")) {
@@ -554,7 +554,7 @@ public class file extends TinyCGIBase {
                 StringBuffer prefix = new StringBuffer(getPrefix());
                 val = data.getInheritableValue(prefix, name);
                 if (val != null && !(val instanceof SimpleData))
-                    val = ((SaveableData)val).getSimpleValue();
+                    val = val.getSimpleValue();
                 dataName = data.createDataName(prefix.toString(), name);
             }
 
@@ -725,7 +725,9 @@ public class file extends TinyCGIBase {
                     (new ByteArrayInputStream(getRequest(url, true)));
                 documentMap.put(url, result);
             } catch (SAXException se) {
-                throw new IOException("Invalid XML file");
+                //throw new IOException("Invalid XML file");
+                // FIXME: display error message
+                return null;
             }
         return result;
     }
@@ -741,10 +743,13 @@ public class file extends TinyCGIBase {
         StringBuffer prefix = new StringBuffer(getPrefix());
         ListData list;
         Element result = null;
-        Object val;
+        SaveableData val;
         for (val = data.getInheritableValue(prefix, FILE_XML_DATANAME);
              val != null;
              val = data.getInheritableValue(chop(prefix), FILE_XML_DATANAME)) {
+
+            if (val != null && !(val instanceof SimpleData))
+                val = val.getSimpleValue();
 
             if (val instanceof StringData)
                 list = ((StringData) val).asList();
@@ -757,9 +762,7 @@ public class file extends TinyCGIBase {
                 for (int i=0;   i < list.size();  i++) {
                     String url = (String) list.get(i);
                     Document docList = getDocumentTree(url);
-                    if (docList == null)
-                        ; // FIXME: display error message
-                    else {
+                    if (docList != null) {
                         result = (new FileFinder(name, docList)).file;
                         if (result != null)
                             return result;

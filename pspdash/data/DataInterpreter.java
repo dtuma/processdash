@@ -91,6 +91,10 @@ abstract class DataInterpreter implements DataListener {
         if (value instanceof StringData &&
             ((StringData)value).getString().length() == 0) return Boolean.FALSE;
 
+                                    // empty lists are false.
+        if (value instanceof ListData &&
+            ((ListData)value).size() == 0) return Boolean.FALSE;
+
         else return Boolean.TRUE;   // everything else is true.
     }
 

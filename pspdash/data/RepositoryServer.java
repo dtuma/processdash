@@ -80,13 +80,9 @@ public class RepositoryServer extends Thread {
                 if (requiredTag.length() == 0)
                     out.writeBoolean(true);
                 else {
-                    SaveableData d =
-                        data.getValue(data.createDataName(dataPath,requiredTag));
-                    if (d instanceof NumberData &&
-                        ((NumberData)d).getDouble() == 0.0) d = null;
-                    else if (d instanceof StringData &&
-                             ((StringData)d).getString().length() == 0) d = null;
-                    out.writeBoolean(d != null);
+                    SimpleData d =
+                        data.getSimpleValue(data.createDataName(dataPath,requiredTag));
+                    out.writeBoolean(d != null && d.test());
                 }
                 out.writeObject(InternalSettings.getSettings());
                 out.flush();
