@@ -65,6 +65,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/pie.java \
 	Templates/reports/xy.java \
 	Templates/reports/table.java \
+	Templates/reports/hist.java \
 	Templates/CFilter.java \
 	Templates/CobolFilter.java \
 	Templates/SQLFilter.java \
