@@ -77,6 +77,12 @@ public class EVMetricsRollup extends EVMetrics {
         return new Date(s.getTime() + (long) (duration * MINUTE_MILLIS));
     }
 
+    public Date optimizedPlanDate() {
+        return optimizedPlanDate;
+    }
+    private Date optimizedPlanDate = null;
+    void setOptimizedPlanDate(Date d) { optimizedPlanDate = d; }
+
 
 
 
@@ -105,13 +111,15 @@ public class EVMetricsRollup extends EVMetrics {
 
 
     public String optimizedPlanDate(int style) {
-        return OPD_FORMATS[style];
+        Date d =  optimizedPlanDate();
+        if (d == null) return null;
+        return MessageFormat.format(OPD_FORMATS[style], args(d));
     }
     static final String[] OPD_FORMATS = {
         "Optimized Plan Date",
-        "NYI", //"{0,date}",
-        "NYI", //"{0,date}",
-        "Not yet implemented." }; // "If you rebalanced subschedules optimally, the overall plan would complete {0,date}." };
+        "{0,date}",
+        "{0,date}",
+        "If you rebalanced subschedules optimally, the overall planned completion date would be {0,date}." };
 
 
     public String independentForecastDuration(int style) {

@@ -33,6 +33,7 @@ public class EVScheduleRollup extends EVSchedule {
 
     Vector subSchedules = new Vector();
     double totalPlanTime;
+    boolean optimizedPlanTimeNeeded = true;
 
     /** Create an EVScheduleRollup.
      *
@@ -48,6 +49,18 @@ public class EVScheduleRollup extends EVSchedule {
             EVTaskList taskList = (EVTaskList) i.next();
             subSchedules.add(taskList.getSchedule());
         }
+    }
+
+
+    /** Clone an existing EVScheduleRollup.
+     */
+    public EVScheduleRollup(EVScheduleRollup r) {
+        super();
+        metrics = new EVMetricsRollup();
+
+        Iterator i = r.subSchedules.iterator();
+        while (i.hasNext())
+            subSchedules.add(new EVSchedule((EVSchedule) i.next()));
     }
 
 
@@ -83,6 +96,10 @@ public class EVScheduleRollup extends EVSchedule {
 
         // recalculate cumulative values for *this* schedule.
         calculateCumValues();
+
+        // calculate the optimized plan date.
+        if (optimizedPlanTimeNeeded)
+            calculateOptimizedPlanDate();
 
         // fire events to indicate that our contents have changed.
         getMetrics().recalcComplete();
@@ -232,6 +249,32 @@ public class EVScheduleRollup extends EVSchedule {
             p.cumEarnedValue = (cumEarnedValue += p.earnedValue);
         }
     }
+
+    private void calculateOptimizedPlanDate() {
+        Date result = getOptimizedDate(metrics.totalPlan());
+        ((EVMetricsRollup) metrics).setOptimizedPlanDate(result);
+    }
+
+    private Date getOptimizedDate(double cumPlanTime) {
+        // Clone ourself so we can perform a "what-if" calculation without
+        // screwing up our data.
+        EVScheduleRollup r = new EVScheduleRollup(this);
+        r.optimizedPlanTimeNeeded = false;
+
+        // grow all the subschedules so they are plenty long enough.
+        Iterator i = r.subSchedules.iterator();
+        EVSchedule s;
+        while (i.hasNext()) {
+            s = (EVSchedule) i.next();
+            s.cleanUp();
+            s.getPlannedCompletionDate(cumPlanTime, cumPlanTime);
+        }
+
+        // recalculate the data in the cloned rollup schedule.
+        r.recalc();
+        return r.getPlannedCompletionDate(cumPlanTime, cumPlanTime);
+    }
+
 
     public void saveActualTaskInfo(Date when, double planValue,
                                    double actualTime) { }
