@@ -36,6 +36,7 @@ import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.reports.AnalysisPage;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -111,11 +112,13 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
         String header = resources.interpolate
             (HEADER_TEXT, HTMLUtils.ESC_ENTITIES);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
-        header = StringUtils.findAndReplace(header, "%path%", path);
+        header = StringUtils.findAndReplace
+            (header, "%path%",
+             HTMLUtils.escapeEntities(AnalysisPage.localizePrefix(path)));
         out.println(header);
 
-        out.print
-            (Translator.translate(resources.interpolate(D23_HEADER, HTMLUtils.ESC_ENTITIES)));
+        out.print(Translator.translate
+                  (resources.interpolate(D23_HEADER, HTMLUtils.ESC_ENTITIES)));
 
         String defectLogParam = (String) env.get("QUERY_STRING");
         if (defectLogParam == null)
