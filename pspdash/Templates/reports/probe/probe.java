@@ -459,7 +459,10 @@ public class probe extends TinyCGIBase {
                       formatNumber(estProductivity)+" LOC/Hr, which is " +
                       "consistent with your 'To Date' productivity of " +
                       formatNumber(histProductivity) + " LOC/Hr (" +
-                      PLUS_MINUS + " " + formatNumber(histDev) + ").\n");
+                      PLUS_MINUS + " " + formatNumber(histDev) + ").\n" +
+                      "<p><b>Congratulations!</b> You have completed the "+
+                      "PROBE process. Press the Finish button to close "+
+                      "this window.\n");
             printContinueButton(TIME_PAGE, null);
         }
     }
