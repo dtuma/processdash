@@ -110,6 +110,19 @@ public class DataRepository implements Repository {
     DataRealizer dataRealizer;
 
 
+    private class DataSaver extends Thread {
+        public DataSaver() { start(); }
+        public void run() {
+            while (true) try {
+                sleep(120000);         // save dirty datafiles every 2 minutes
+                saveAllDatafiles();
+            } catch (InterruptedException ie) {}
+        }
+    }
+
+    DataSaver dataSaver = new DataSaver();
+
+
     private class DataFile {
         String prefix = null;
         String inheritsFrom = null;
@@ -366,21 +379,24 @@ public class DataRepository implements Repository {
         dataNotifier.start();
     }
 
-    public void finalize() {
+    public void saveAllDatafiles() {
         DataFile datafile;
-
-        // Command data realizer to terminate, then wait for it to.
-        dataRealizer.terminate();
-        try {
-            dataRealizer.join(6000);
-        } catch (InterruptedException e) {}
 
         for (int i = datafiles.size();   i-- != 0; ) {
             datafile = (DataFile)datafiles.elementAt(i);
             if (datafile.dirtyCount > 0)
                 saveDatafile(datafile);
         }
+    }
 
+    public void finalize() {
+        // Command data realizer to terminate, then wait for it to.
+        dataRealizer.terminate();
+        try {
+            dataRealizer.join(6000);
+        } catch (InterruptedException e) {}
+
+        saveAllDatafiles();
         dataServer.quit();
     }
 
