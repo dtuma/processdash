@@ -780,7 +780,12 @@ public class WebServer extends Thread {
 
             boolean translate =
                 Translator.isTranslating() && !nonTranslatedPath(path);
-            boolean preprocess = SERVER_PARSED_MIME_TYPE.equals(mime_type);
+
+            boolean preprocess = false;
+            if (SERVER_PARSED_MIME_TYPE.equals(mime_type)) {
+                preprocess = true;
+                mime_type = "text/html";
+            }
 
             if (mime_type == null ||
                 (preprocess && translate) ||
@@ -809,11 +814,8 @@ public class WebServer extends Thread {
                 }
             }
 
-            if (preprocess) {
-                if (SERVER_PARSED_MIME_TYPE.equals(mime_type))
-                    mime_type = "text/html";
+            if (preprocess)
                 servePreprocessedFile(content, translate, mime_type);
-            }
 
             else if (translate && mime_type.startsWith("text/html"))
                 serveTranslatedFile(content, mime_type);
