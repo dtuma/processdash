@@ -56,7 +56,7 @@ INSTALLED_FILES=$(addprefix pspdash/,$(NON_CLASS_FILES))
 
 TEMPLATE_FILES:=$(shell cd ..; find Templates -type f -print | grep -v -f build/template-ignore)
 
-APPLET_FILENAME=DataApplet14
+APPLET_FILENAME=DataApplet15
 
 all: pspdash.jar
 
