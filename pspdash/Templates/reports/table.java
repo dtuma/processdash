@@ -96,7 +96,7 @@ public class table extends pspdash.TinyCGIBase {
                     url = "table.class?excel&";
                 else
                     url = "excel.iqy?";
-                out.print("<P><A HREF=\"");
+                out.print("<P class='doNotPrint'><A HREF=\"");
                 out.print(url);
                 out.print((String) env.get("QUERY_STRING"));
                 out.println("\"><I>Export to Excel</I></A>");
