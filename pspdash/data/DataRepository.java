@@ -1021,7 +1021,7 @@ public class DataRepository implements Repository {
                                       // find the datafile associated with 'prefix'
             for (int index = datafiles.size();  index-- > 0; ) {
                 datafile = (DataFile) datafiles.elementAt(index);
-                if (datafile.prefix.equals(oldPrefix)) {
+                if (datafile.prefix.equals(oldPrefix) && datafile.file != null) {
                     datafileName = datafile.file.getPath();
                     break;
                 }
@@ -1098,21 +1098,21 @@ public class DataRepository implements Repository {
 
 
         public synchronized void dumpRepository (PrintWriter out, Vector filt) {
-            Enumeration k = data.keys();
+            Iterator k = getKeys();
             String name, value;
             DataElement  de;
             SimpleData sd;
 
                                       // first, realize all elements.
-            while (k.hasMoreElements()) {
-                name = (String) k.nextElement();
+            while (k.hasNext()) {
+                name = (String) k.next();
                 ((DataElement)data.get(name)).maybeRealize();
             }
 
                                       // next, print out all element values.
-            k = data.keys();
-            while (k.hasMoreElements()) {
-                name = (String) k.nextElement();
+            k = getKeys();
+            while (k.hasNext()) {
+                name = (String) k.next();
                 if (pspdash.Filter.matchesFilter(filt, name)) {
                     try {
                         de = (DataElement)data.get(name);
@@ -1131,7 +1131,7 @@ public class DataRepository implements Repository {
                                 out.println(name + "," + value);
                         }
                     } catch (Exception e) {
-//        System.err.println("Data error:"+e.toString()+" for:"+name);
+//          System.err.println("Data error:"+e.toString()+" for:"+name);
                     }
                 }
                 Thread.yield();
@@ -1140,20 +1140,20 @@ public class DataRepository implements Repository {
 
 
         public synchronized void dumpRepository () {
-            Enumeration k = data.keys();
+            Iterator k = getKeys();
             String name;
             DataElement element;
 
                                       // first, realize all elements.
-            while (k.hasMoreElements()) {
-                name = (String) k.nextElement();
+            while (k.hasNext()) {
+                name = (String) k.next();
                 ((DataElement)data.get(name)).maybeRealize();
             }
 
                                       // next, print out all element values.
-            k = data.keys();
-            while (k.hasMoreElements()) {
-                name = (String) k.nextElement();
+            k = getKeys();
+            while (k.hasNext()) {
+                name = (String) k.next();
                 element = (DataElement)data.get(name);
                 System.out.print(name);
                 System.out.print("=" + element.getValue());
@@ -1302,6 +1302,7 @@ public class DataRepository implements Repository {
             if (name.indexOf("//") == -1)
                 for (int i = datafiles.size();   i-- != 0; ) {
                     datafile = (DataFile)datafiles.elementAt(i);
+                    if (datafile.file == null) continue;
                     if (!datafile.file.canWrite()) continue;
                     if (name.startsWith(datafile.prefix + "/") &&
                         ((result == null) ||
@@ -2018,10 +2019,11 @@ public class DataRepository implements Repository {
                 //
                 getID(dataPrefix);
                 // debug("openDatafile done");
-            } catch (Error e) {
+            } catch (Throwable e) {
                 if (OPENDATAFILE_ERROR_DEPTH > 10) {
+                    dataFile.file = null;
                     closeDatafile(dataPrefix);
-                    throw e;
+                    throw new IOException("Caught unexpected exception " + e);
                 }
                 synchronized (OPENDATAFILE_ERROR_DEPTH_LOCK) {
                     OPENDATAFILE_ERROR_DEPTH++;
@@ -2041,7 +2043,7 @@ public class DataRepository implements Repository {
                 finishInconsistency();
             }
         }
-        private Object OPENDATAFILE_ERROR_DEPTH_LOCK = new Object();
+        private final Object OPENDATAFILE_ERROR_DEPTH_LOCK = new Object();
         private volatile int OPENDATAFILE_ERROR_DEPTH = 0;
 
         private static volatile int MAX_DIRTY = 10;
@@ -2422,7 +2424,10 @@ public class DataRepository implements Repository {
             for (int index = datafiles.size();  index-- > 0; ) {
                 DataFile datafile = (DataFile) datafiles.elementAt(index);
                 if (datafile.prefix.equals(prefix)) {
-                    datafileName = datafile.file.getPath();
+                    if (datafile.file == null)
+                        datafileName = "";
+                    else
+                        datafileName = datafile.file.getPath();
                     break;
                 }
             }
