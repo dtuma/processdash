@@ -63,6 +63,9 @@ public class TinyWebServer extends Thread {
     public static final String CGI_MIME_TYPE = "application/x-httpd-cgi";
     public static final String TIMESTAMP_HEADER = "Dash-Startup-Timestamp";
     public static final String PACKAGE_ENV_PREFIX = "Dash_Package_";
+    public static final String LINK_SUFFIX = ".lnk";
+    public static final String LINK_MIME_TYPE = "text/x-server-shortcut";
+    public static final String CGI_LINK_PREFIX = "class:";
 
     private static final DateFormat dateFormat =
                            // Tue, 05 Dec 2000 17:28:07 GMT
@@ -337,25 +340,33 @@ public class TinyWebServer extends Thread {
                 // only accept localhost requests.
                 checkIP();
 
-                // open the requested file
-                URLConnection conn = resolveURL(path);
-
-                // decide what to do with the file based on its mime-type.
-                String initial_mime_type =
-                    getMimeTypeFromName(conn.getURL().getFile());
-                if (!Translator.isTranslating() &&
-                    SERVER_PARSED_MIME_TYPE.equals(initial_mime_type))
-                    servePreprocessedFile(conn, "text/html");
-                else if (CGI_MIME_TYPE.equals(initial_mime_type))
-                    serveCGI(conn);
-                else
-                    servePlain(conn, initial_mime_type);
+                // serve up the request.
+                serveRequest();
 
             } catch (NoSuchElementException nsee) {
                 sendError( 400, "Bad Request", "No request found." );
             } catch (IOException ioe) {
                 sendError( 500, "Internal Error", "IO Exception." );
             }
+        }
+
+        private void serveRequest() throws TinyWebThreadException, IOException
+        {
+            // open the requested file
+            URLConnection conn = resolveURL(path);
+
+            // decide what to do with the file based on its mime-type.
+            String initial_mime_type =
+                getMimeTypeFromName(conn.getURL().getFile());
+            if (!Translator.isTranslating() &&
+                SERVER_PARSED_MIME_TYPE.equals(initial_mime_type))
+                servePreprocessedFile(conn, "text/html");
+            else if (CGI_MIME_TYPE.equals(initial_mime_type))
+                serveCGI(conn);
+            else if (LINK_MIME_TYPE.equals(initial_mime_type))
+                serveLink(conn);
+            else
+                servePlain(conn, initial_mime_type);
         }
 
         /** Break the URI into hierarchy path, file path, and query string.
@@ -392,79 +403,172 @@ public class TinyWebServer extends Thread {
                 id = uri.substring(0, pos);
                 path = uri.substring(pos+2);
             } else try {
-                pos = uri.indexOf('/', 1);
-                id = uri.substring(1, pos);
-                Integer.parseInt(id);
-                path = uri.substring(pos + 1);
-            } catch (Exception e) {
-                /* This block will be reached if the uri did not contain a
-                 * second '/' character, or if the text between the initial
-                 * and the second slash was not a number.  In these cases,
-                 * we treat the uri as a simple file path, with no hierarchy
-                 * path information.
-                 */
-                id = "";
-                path = uri.substring(1);
-            }
-        }
+                 pos = uri.indexOf('/', 1);
+                 id = uri.substring(1, pos);
+                 Integer.parseInt(id);
+                 path = uri.substring(pos + 1);
+             } catch (Exception e) {
+                 /* This block will be reached if the uri did not contain a
+                  * second '/' character, or if the text between the initial
+                  * and the second slash was not a number.  In these cases,
+                  * we treat the uri as a simple file path, with no hierarchy
+                  * path information.
+                  */
+                 id = "";
+                 path = uri.substring(1);
+             }
+         }
 
-        /** Resolve an absolute URL */
-        private URLConnection resolveURL(String url)
-            throws TinyWebThreadException
+         /** Resolve an absolute URL */
+         private URLConnection resolveURL(String url)
+             throws TinyWebThreadException
+         {
+             URLConnection result = TinyWebServer.this.resolveURL(url);
+             if (result == null)
+                 sendError(404, "Not Found", "File '" + url + "' not found.");
+             return result;
+         }
+
+         /* Currently unused.
+            * Resolve a relative URL
+         private URLConnection resolveURL(String url, URL base)
+             throws TinyWebThreadException
+         {
+             if (url.charAt(0) == '/')
+                 return resolveURL(url.substring(1));
+
+             try {
+                 URL u = checkSafeURL(new URL(base, url));
+                 if (u != null) {
+                     URLConnection result = u.openConnection();
+                     result.connect();
+                     return result;
+                 }
+             } catch (IOException a) { }
+
+             sendError(404, "Not Found", "File '" + url + "' not found.");
+             return null;        // this line will never be reached.
+         }
+         */
+
+         private void parseHTTPHeaders() throws IOException {
+             buildEnvironment();
+
+             if (headerRead) return;
+
+             // Parse the headers on the original http request and add to
+             // the cgi script environment.
+             String line, header;
+             StringBuffer text = new StringBuffer();
+             int pos;
+             while (null != (line = readLine(inputStream))) {
+                 if (line.length() == 0) break;
+                 header = parseHeader(line,text).toUpperCase().replace('-','_');
+
+                 if (header.equals("CONTENT_TYPE") ||
+                     header.equals("CONTENT_LENGTH"))
+                     env.put(header, text.toString());
+                 else
+                     env.put("HTTP_" + header, text.toString());
+             }
+             headerRead = true;
+         }
+
+
+        /** parse name=value pairs in the body of a server shortcut,
+         * and add them to the query string */
+        private void parseLinkParameters(BufferedReader linkContents)
+            throws IOException
         {
-            URLConnection result = TinyWebServer.this.resolveURL(url);
-            if (result == null)
-                sendError(404, "Not Found", "File '" + url + "' not found.");
-            return result;
-        }
+            StringBuffer queryString = new StringBuffer();
+            String param, name, val;
+            int equalsPos;
 
-        /* Currently unused.
-         * Resolve a relative URL
-        private URLConnection resolveURL(String url, URL base)
-            throws TinyWebThreadException
-        {
-            if (url.charAt(0) == '/')
-                return resolveURL(url.substring(1));
-
-            try {
-                URL u = checkSafeURL(new URL(base, url));
-                if (u != null) {
-                    URLConnection result = u.openConnection();
-                    result.connect();
-                    return result;
+            // read each line of the file.
+            while ((param = linkContents.readLine()) != null) {
+                equalsPos = param.indexOf('=');
+                // ignore empty lines and lines starting with '='
+                if (equalsPos == 0 || param.length() == 0)
+                    continue;
+                else if (equalsPos == -1)
+                    // if there is no value, append the name only.
+                    queryString.append("&")
+                        .append(URLEncoder.encode(param.trim()));
+                else {
+                    // extract and append name and value.
+                    name = param.substring(0, equalsPos);
+                    val = param.substring(equalsPos+1);
+                    if (val.startsWith("=")) val = val.substring(1);
+                    queryString.append("&").append(URLEncoder.encode(name))
+                        .append("=").append(URLEncoder.encode(val));
                 }
-            } catch (IOException a) { }
-
-            sendError(404, "Not Found", "File '" + url + "' not found.");
-            return null;        // this line will never be reached.
-        }
-        */
-
-        private void parseHTTPHeaders() throws IOException {
-            buildEnvironment();
-
-            if (headerRead) return;
-
-            // Parse the headers on the original http request and add to
-            // the cgi script environment.
-            String line, header;
-            StringBuffer text = new StringBuffer();
-            int pos;
-            while (null != (line = readLine(inputStream))) {
-                if (line.length() == 0) break;
-                header = parseHeader(line,text).toUpperCase().replace('-','_');
-
-                if (header.equals("CONTENT_TYPE") ||
-                    header.equals("CONTENT_LENGTH"))
-                    env.put(header, text.toString());
-                else
-                    env.put("HTTP_" + header, text.toString());
             }
-            headerRead = true;
+
+            if (queryString.length() != 0) {
+                // merge the newly constructed query parameters with
+                // the existing query string.
+                String existingQuery = (String) env.get("QUERY_STRING");
+                if (existingQuery != null)
+                    queryString.append("&").append(existingQuery);
+
+                // save the resulting query string into the environment
+                // for this thread.
+                query = queryString.toString().substring(1);
+                env.put("QUERY_STRING", query);
+            }
+        }
+
+
+        /** Handle a server shortcut. */
+        private void serveLink(URLConnection conn)
+            throws IOException, TinyWebThreadException
+        {
+            BufferedReader linkContents = new BufferedReader
+                (new InputStreamReader(conn.getInputStream()));
+            String redirectLocation = linkContents.readLine();
+            if (redirectLocation.indexOf('?') != -1 ||
+                redirectLocation.indexOf("//") != -1)
+                sendError(500, "Internal Error",
+                          "Malformed server shortcut.");
+
+            // Parse the headers and build the environment.
+            parseHTTPHeaders();
+            parseLinkParameters(linkContents);
+
+            linkContents.close();
+
+            if (redirectLocation.startsWith(CGI_LINK_PREFIX)) {
+                String className = redirectLocation
+                    .substring(CGI_LINK_PREFIX.length()).trim();
+                serveCGI(getScript(conn, className));
+            } else {
+                try {
+                    // resolve the shortcut target as a URL relative
+                    // to the path of the server shortcut.  Although
+                    // this isn't strictly necessary if the target is
+                    // absolute, performing these steps anyway helps
+                    // to ensure that the URL is well-formed.
+                    URL contextURL = new URL("http://unimportant/" + path);
+                    URL uriURL = new URL(contextURL, redirectLocation);
+                    path = uriURL.getFile().substring(1);
+                } catch (IOException ioe) {
+                    sendError(500, "Internal Error",
+                              "Malformed server shortcut.");
+                }
+                serveRequest();
+            }
         }
 
         /** Handle a cgi-like http request. */
         private void serveCGI(URLConnection conn)
+            throws IOException, TinyWebThreadException
+        {
+            serveCGI(getScript(conn));
+        }
+
+
+        /** Handle a cgi-like http request. */
+        private void serveCGI(TinyCGI script)
             throws IOException, TinyWebThreadException
         {
             // Parse the headers and build the environment.
@@ -473,10 +577,7 @@ public class TinyWebServer extends Thread {
             // Run the cgi script, and capture the results.
             OutputStream cgiOut = null;
             File tempFile = null;
-            TinyCGI script = null;
             try {
-                // get an instantiation of the cgi script object
-                script = getScript(conn);
                 if (script == null)
                     sendError(500, "Internal Error", "Couldn't load script." );
 
@@ -654,13 +755,20 @@ public class TinyWebServer extends Thread {
          * @return an instantiated TinyCGI script, or null on error.
          */
         private TinyCGI getScript(URLConnection conn) {
+            return getScript(conn, null);
+        }
+        private TinyCGI getScript(URLConnection conn, String className) {
             CGIPool pool = null;
             synchronized (cgiCache) {
                 pool = (CGIPool) cgiCache.get(path);
                 if (pool == null) try {
                     CGILoader cgiLoader = getLoader(conn);
-                    pool = new CGIPool
-                        (path, cgiLoader.loadFromConnection(conn));
+                    Class clz = null;
+                    if (className == null)
+                        clz = cgiLoader.loadFromConnection(conn);
+                    else
+                        clz = cgiLoader.loadClass(className);
+                    pool = new CGIPool(path, clz);
                     cgiCache.put(path, pool);
                 } catch (Throwable t) {
                     return null;
@@ -1140,6 +1248,9 @@ public class TinyWebServer extends Thread {
             // System.out.println("Using URL: " + u);
             return result;
         } catch (IOException ioe) { }
+
+        if (!url.endsWith(LINK_SUFFIX))
+            return resolveURL(url + LINK_SUFFIX);
 
         return null;
     }
