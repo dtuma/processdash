@@ -302,7 +302,8 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
     }
 
     private static class LineRange {
-        int[] x, y;
+        Line2D edge1, edge2, mainLine;
+        Polygon fillArea;
         Stroke mainLineStroke, edgeLineStroke;
         Paint mainLinePaint, edgeLinePaint, fillPaint;
         public LineRange(double x0, double y0,
@@ -311,14 +312,18 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
                          double x3, double y3,
                          Stroke outlineStroke,
                          Paint mainLinePaint) {
-            x = new int[4];   y = new int[4];
-            x[0] = (int) x0;  x[1] = (int) x2;  x[2] = (int) x1;  x[3] = (int) x3;
-            y[0] = (int) y0;  y[1] = (int) y2;  y[2] = (int) y1;  y[3] = (int) y3;
+
+            mainLine = new Line2D.Double(x0, y0, x1, y1);
+            edge1 = new Line2D.Double(x0, y0, x2, y2);
+            edge2 = new Line2D.Double(x0, y0, x3, y3);
+            fillArea = new Polygon();
+            fillArea.addPoint((int) Math.round(x0), (int) Math.round(y0));
+            fillArea.addPoint((int) Math.round(x2), (int) Math.round(y2));
+            fillArea.addPoint((int) Math.round(x3), (int) Math.round(y3));
+
             this.mainLinePaint = mainLinePaint;
             if (mainLinePaint instanceof Color) {
                 Color c = (Color) mainLinePaint;
-                //        Color dark = transp(c, 0.8);
-                //        Color light = transp(c, 0.01);
                 Color dark = transp(c, calcAlpha(c));
                 Color light = transp(c, 0.01);
                 this.edgeLinePaint = this.fillPaint = c;
@@ -334,7 +339,7 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
 
             if (outlineStroke instanceof BasicStroke) {
                 float lineWidth = ((BasicStroke) outlineStroke).getLineWidth();
-                this.edgeLineStroke = new BasicStroke(lineWidth / 2);
+                this.edgeLineStroke = new BasicStroke(lineWidth / 4);
                 this.mainLineStroke = new BasicStroke(lineWidth * 2);
             } else {
                 this.edgeLineStroke = outlineStroke;
@@ -344,27 +349,32 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
 
         public void draw(Graphics2D g2) {
             g2.setPaint(fillPaint);
-            g2.fillPolygon(x, y, 4);
+            g2.fill(fillArea);
+            g2.fill(fillArea);
 
             g2.setStroke(edgeLineStroke);
             g2.setPaint(edgeLinePaint);
-            g2.drawLine(x[0], y[0], x[1], y[1]);
-            g2.drawLine(x[0], y[0], x[3], y[3]);
+            g2.draw(edge1);
+            g2.draw(edge2);
 
             g2.setStroke(mainLineStroke);
             g2.setPaint(mainLinePaint);
-            g2.drawLine(x[0], y[0], x[2], y[2]);
+            g2.draw(mainLine);
         }
 
         private double calcAlpha(Color c) {
+            // convert the color to a black-and-white value.  0=black, 1=white
             double gray = (0.30 * c.getRed() +
                            0.59 * c.getGreen() +
                            0.11 * c.getBlue()) / 255;
             // the brighter the color, the higher an alpha value we need.
+            // (keep bright colors from disappearing into the white background)
             // the darker the color, the lower an alpha value we need.
-            // green (0.59) should become 0.3;  yellow (0.89) should map to 0.8
-            double result = 0.123 / (1 - gray);
-            return (result > 0 && result < 1) ? result : 0.3;
+            // (keep dark colors from hiding the trend line)
+            double result = 0.85 * 0.123 / (1 - gray);
+            if (result < 0.3) return 0.3;
+            if (result > 0.8) return 0.8;
+            return result;
         }
 
         private Color transp(Color c, double alpha) {
