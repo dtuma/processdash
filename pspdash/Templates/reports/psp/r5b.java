@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 import pspdash.*;
@@ -79,14 +79,13 @@ public class r5b extends CGIChartBase implements DefectAnalyzer.Task {
     /** Initialize internal data structures to zero */
     private void initValues() {
         defectFixTimes = new HashMap();
-        if (parameters.get("strict") != null)
-            for (int i=PSP_DEFECT_TYPES.length; i-->0; )
-                getRow(PSP_DEFECT_TYPES[i]);
+        if (parameters.get("strict") != null) {
+            DefectTypeStandard dts =
+                DefectTypeStandard.get(getPrefix(), getDataRepository());
+            for (int i=dts.options.size();  i-->0; )
+                getRow((String) dts.options.elementAt(i));
+        }
     }
-    /** list of defect types used by the PSP */
-    private static final String [] PSP_DEFECT_TYPES = {
-        "Documentation", "Syntax", "Build, package", "Assignment",
-        "Interface", "Checking", "Data", "Function", "System", "Environment" };
 
     /** Lookup the row for a defect type - create it if it doesn't exist. */
     private float[] getRow(String defectType) {
