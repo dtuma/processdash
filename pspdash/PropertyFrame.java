@@ -203,7 +203,6 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         setDirty (false);
 
         if (pendingVector != null) {
-            String templateDir = dashboard.getTemplateDirectory();
             String dataDir = dashboard.getDirectory();
             for (int i = 0; i < pendingVector.size(); i++)
                 if (pendingVector.elementAt (i) instanceof PendingDataChange) {
