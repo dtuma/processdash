@@ -2,6 +2,9 @@
 
 <file-list>
 
+<file name="Coding Standard" templatePath="/Templates/pspDoc/C29.rtf"
+      path="[/{Project/Language} Coding Standard Document]"/>
+
 <directory name="PSP Project Document Directory"
            path="[PSP Project Document Directory]"
 	   templatePath="/Templates/pspDoc">
@@ -12,7 +15,21 @@
   <file name="Test Report" path="[Test Report Filename]"
         defaultPath="Test Report.rtf" templatePath="C37.rtf"/>
 
+  <file name="Design Review Checklist" path="[Design Review Checklist]"
+        defaultPath="Design Review Checklist.rtf"
+	templatePath="[/{Project/Language} Design Review Checklist Template]"/>
+
+  <file name="Code Review Checklist" path="[Code Review Checklist]"
+        defaultPath="Code Review Checklist.rtf"
+	templatePath="[/{Project/Language} Code Review Checklist Template]"/>
+
   <!-- add more lines here for additional files -->
+
+  <!-- support requirements statement? -->
+  <!-- support conceptual design? -->
+
+  <!-- task planning and schedule planning templates would not be external
+       documents, but would be integrated into dashboard -->
 
 </directory>
 
