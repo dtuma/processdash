@@ -977,6 +977,16 @@ public class TinyWebServer extends Thread {
         return path;
     }
 
+    public static String getHostName() {
+        String result = Settings.getVal("http.hostname");
+        if (result == null || result.length() == 0) try {
+            result = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException uhe) {
+            result = "localhost";
+        }
+        return result;
+    }
+
     /** Utility routine: slurp an entire file from an InputStream. */
     public static byte[] slurpContents(InputStream in, boolean close)
         throws IOException
