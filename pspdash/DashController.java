@@ -138,15 +138,17 @@ public class DashController {
         String dataName = dash.data.createDataName
             (prefix, ImportExport.EXPORT_DATANAME);
         SimpleData filename = dash.data.getSimpleValue(dataName);
-        if (filename != null && filename.test())
-            // run the exporter in a thread - it will block by opening
-            // a modal dialog.
-            new ExportStarter(prefix, filename.format());
+        if (filename != null && filename.test()) {
+            Vector filter = new Vector();
+            filter.add(prefix);
+            ImportExport.export(dash, filter, new File(filename.format()));
+        }
     }
+    /*
     private static class ExportStarter extends Thread {
         String prefix, filename;
         public ExportStarter(String p, String f) {
-            prefix = p;   filename = Settings.translateFile(f);   start(); }
+            prefix = p;   filename = Settings.translateFile(f); }
         public void run() {
             Vector filter = new Vector();
             filter.add(prefix);
@@ -155,6 +157,7 @@ public class DashController {
             raiseWindow();
         }
     }
+    */
 
 
     public static void startTiming() { dash.pause_button.cont();  }
@@ -170,6 +173,66 @@ public class DashController {
         out.println("<HTML><HEAD><SCRIPT>");
         out.println("history.back();");
         out.println("</SCRIPT></HEAD><BODY></BODY></HTML>");
+    }
+
+    public static Map getTemplates() {
+        Prop templates = dash.templates.pget(PropertyKey.ROOT);
+        TreeMap result = new TreeMap();
+        for (int i = templates.getNumChildren();   i-- > 0; ) {
+            PropertyKey childKey = templates.getChild(i);
+            Prop child = dash.templates.pget(childKey);
+            result.put(child.getID(), Prop.unqualifiedName(childKey.name()));
+        }
+        return result;
+    }
+
+    public static void changeHttpPort(int port) {
+        dash.changeHttpPort(port);
+    }
+
+    public static boolean isHierarchyEditorOpen() {
+        return dash.configure_button.isHierarchyEditorOpen();
+    }
+
+    public static void addTemplateDirToPath(String templateDir) {
+        if (templateDir == null) return;
+        templateDir = templateDir.replace('\\', '/');
+
+        String templatePath = Settings.getVal(TEMPLATE_PATH);
+        if (templatePath == null)
+            InternalSettings.set(TEMPLATE_PATH, templateDir);
+
+        else if (!templateSettingContainsDir(templatePath, templateDir)) {
+            templatePath = templateDir + ";" + templatePath;
+            InternalSettings.set(TEMPLATE_PATH, templatePath);
+        }
+    }
+    private static final String TEMPLATE_PATH = "templates.directory";
+    private static boolean templateSettingContainsDir(String setting,
+                                                      String dir)
+    {
+        setting = ";" + setting + ";";
+        dir     = ";" + dir     + ";";
+        return setting.indexOf(dir) != -1;
+    }
+
+    public static boolean alterTemplateID(String prefix,
+                                          String oldID,
+                                          String newID) {
+        PropertyKey key = dash.props.findExistingKey(prefix);
+        String actualID = dash.props.getID(key);
+        if (oldID == actualID || // handles "null == null" case
+            (oldID != null && oldID.equals(actualID))) try {
+            HierarchyAlterer a = new HierarchyAlterer(dash);
+            a.addTemplate(prefix, newID);
+            return true;
+        } catch (Exception e) {}
+
+        return false;
+    }
+
+    public static boolean loadNewTemplate(String jarfileName) {
+        return dash.addTemplateJar(jarfileName);
     }
 
 }
