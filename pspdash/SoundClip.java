@@ -26,22 +26,19 @@
 
 package pspdash;
 
+import java.applet.Applet;
+import java.applet.AudioClip;
 import java.net.URL;
-import javax.sound.sampled.*;
 
 
 
 /** This class provides simple access to sound files, and insulates
  * other classes from system-dependent problems.
- *
- * Possible future enhancement: make use of reflection to load and
- * play the sound clip, so platforms that do not have the
- * javax.sound.sampled package can still run.
  */
 public class SoundClip {
 
     /** The sound clip itself. */
-    private Clip clip = null;
+    private AudioClip clip = null;
 
     /** Create and initialize a sound clip that can be played later.
      *
@@ -52,39 +49,14 @@ public class SoundClip {
      *   <code>play()</code> is called.
      */
     public SoundClip(URL url) {
-        if (url != null)
-            (new ClipLoader(url)).start();
+        clip = Applet.newAudioClip(url);
     }
 
     /** Play a sound clip.
      */
     public void play() {
-        if (clip != null) {
-            clip.setFramePosition(0);
-            clip.start();
-        }
+        if (clip != null)
+            clip.play();
     }
 
-    /** On some systems, the logic for loading a sound clip may hang
-     * forever.  to prevent this from hanging the dashboard forever,
-     * we execute it in a separate thread.
-     */
-    private class ClipLoader extends Thread {
-        URL url;
-        public ClipLoader(URL u) { url = u; }
-        public void run() {
-            try {
-                AudioInputStream soundFile =
-                    AudioSystem.getAudioInputStream(url);
-                AudioFormat soundFormat = soundFile.getFormat();
-                int bufferSize = (int) (soundFile.getFrameLength() *
-                                        soundFormat.getFrameSize());
-                DataLine.Info info = new DataLine.Info
-                    (Clip.class, soundFile.getFormat(), bufferSize);
-                Clip result = (Clip) AudioSystem.getLine(info);
-                result.open(soundFile); // may hang forever
-                clip = result;
-            } catch (Throwable t) {}
-        }
-    }
 }
