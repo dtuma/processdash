@@ -77,13 +77,22 @@ public class Resources {
         new TemplateClassLoader();
 
 
+    private static final boolean TIME_LOADING = false;
+
     public static ResourceBundle getBundle(String bundleName) {
-        long start = System.currentTimeMillis();
+        long start = 0;
+        if (TIME_LOADING)
+            start = System.currentTimeMillis();
+
         ResourceBundle result = ResourceBundle.getBundle
             (bundleName, Locale.getDefault(), RESOURCE_LOADER);
-        long end = System.currentTimeMillis();
-        long delta = end - start;
-        System.out.println("Loading bundle Took " + delta + " ms");
+
+        if (TIME_LOADING) {
+            long end = System.currentTimeMillis();
+            long delta = end - start;
+            System.out.println("Loading bundle Took " + delta + " ms");
+        }
+
         return result;
     }
 
