@@ -626,6 +626,8 @@ public class WBSJTable extends JTable {
         }
     }
     final DeleteAction DELETE_ACTION = new DeleteAction();
+    /** This string is used by the delete action to compose a message
+     * which will be displayed to the user. */
     String selfName = "work breakdown structure";
 
 
