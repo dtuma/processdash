@@ -27,6 +27,7 @@
 package pspdash.data;
 
 import java.io.*;
+import java.util.HashMap;
 import pspdash.StringUtils;
 
 
@@ -34,13 +35,22 @@ public class InterpolatingFilter extends PushbackInputStream {
 
     DataRepository data;
     String prefix;
+    HashMap localDefs;
+    boolean ignoreNulls = false;
 
     public InterpolatingFilter(InputStream i, DataRepository data,
                                String prefix) {
         super(i, 1024);
         this.data = data;
         this.prefix = prefix;
+        this.localDefs = defaultLocalDefs();
     }
+
+    public void setLocalVar(String varName, String value) {
+        localDefs.put(varName, value);
+    }
+    public void setIgnoreNulls(boolean i) { ignoreNulls = i; }
+
 
     private static final int MAX_NAME_LEN = 200;
     private byte[] NAME_BUF = new byte[MAX_NAME_LEN];
@@ -91,25 +101,41 @@ public class InterpolatingFilter extends PushbackInputStream {
         return '[';
     }
 
-    // names of special variables
-    public static final String PREFIX = "Project/Task";
-
     private void interpolateVariable(String varName) throws IOException {
-        String dataName = StringUtils.findAndReplace(varName, "\n", "");
-        if (PREFIX.equals(dataName)) {
-            unread(prefix.getBytes()); return;
-        }
-        SaveableData s = data.getInheritableValue(prefix, dataName);
-        if (s == null) { fail(varName); return; }
-        SimpleData sd = s.getSimpleValue();
-        if (sd == null) { fail(varName); return; }
-        String str = sd.format();
-        unread(str.getBytes());
+        String value = lookupValue(varName);
+        if (value == null) {
+            if (ignoreNulls) return;
+            unread(']'); unread(']');
+            unread(varName.getBytes());
+            unread('['); unread('[');
+        } else
+            unread(value.getBytes());
     }
-    private void fail(String varName) throws IOException {
-        unread(']'); unread(']');
-        unread(varName.getBytes());
-        unread('['); unread('[');
+
+    // names of special variables
+    public static final String PREFIX_VAR = "Project/Task";
+
+    private String lookupValue(String varName) {
+        // See if there is a local setting for this variable.
+        String result = (String) localDefs.get(varName);
+
+        if (result == null)
+            // failing that, look in the data repository.
+            result = lookupRepositoryValue(varName);
+
+        return result;
+    }
+    private String lookupRepositoryValue(String dataName) {
+        SaveableData s = data.getInheritableValue(prefix, dataName);
+        if (s == null) return null;
+        SimpleData sd = s.getSimpleValue();
+        if (sd == null) return null;
+        return sd.format();
+    }
+    private HashMap defaultLocalDefs() {
+        HashMap result = new HashMap();
+        result.put(PREFIX_VAR, prefix);
+        return result;
     }
 
 
