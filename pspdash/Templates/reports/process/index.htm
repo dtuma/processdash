@@ -32,13 +32,8 @@
 
 <TABLE><TR><TD><H1>Process Analysis&nbsp;</H1></TD>
 <TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
+<script src="../chart.js"></script>
 <script>
-    function write(query, small) {
-        var chart = "line.class";
-        if (query.indexOf("chart=xy") != -1) chart = "xy.class";
-        document.writeln("<A HREF='../full.htm?" + query + "'>");
-        document.writeln("<img src='../"+chart+"?"+query+"&"+small+"'></a>");
-    }
     write("qf=process/productivity.rpt", "qf=small.rpt");
     write("qf=process/prod-vs-yield.rpt&chart=xy", "qf=small.rpt");
     write("qf=process/prod-vs-afr.rpt&chart=xy", "qf=small.rpt");
