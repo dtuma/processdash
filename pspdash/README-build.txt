@@ -28,6 +28,6 @@ If you are not compiling on Windows, set the environment variable:
 Then, from a cygwin bash shell on Windows or any shell on Unix,
 cd into the directory containing this file, and type
 
-   make install
+   make all
 
 (unix users: you may need to type gmake to invoke GNU make.)
