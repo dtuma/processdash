@@ -98,12 +98,12 @@ public class LinearRegression {
             term = newX - x_avg;
             term = 1.0 + (1.0 / n) + (term * term) / x_var;
 
-            stud_t = new StudentsT(n - 2).t(p / 2.0);
+        stud_t = DistLib.t.quantile(0.5 + p / 2.0, n - 2);
 
             range = stud_t * stddev * Math.sqrt(term);
-        }
+            }
 
-        UPI = projection + range;
-        LPI = projection - range;
+            UPI = projection + range;
+            LPI = projection - range;
     }
 }

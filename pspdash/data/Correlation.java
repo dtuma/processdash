@@ -70,7 +70,7 @@ public class Correlation {
         else {
             double t = Math.abs(r) * Math.sqrt((n - 2) / (1.0 - r * r));
 
-            p = 2.0 * (0.5 - new StudentsT(n - 2).alpha(t));
+            p = 2.0 * (1 - DistLib.t.cumulative(t, n-2));
         }
     }
 

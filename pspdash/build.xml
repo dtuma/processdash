@@ -103,6 +103,7 @@ Authors:
   <path id="build.classpath">
     <pathelement location="${build}"/>
     <!-- pathelement location="${lib}/PerlTools.jar"/ -->
+    <pathelement location="${lib}/distlib.jar"/>
     <pathelement location="${lib}/jregex.jar"/>
     <pathelement location="${lib}/jfreechart.jar"/>
     <pathelement location="${lib}/jaxp.jar"/>
@@ -416,6 +417,8 @@ Authors:
       <zipfileset src="${lib}/jregex.jar"    excludes="META-INF/ meta-inf/"/>
       <zipfileset src="${lib}/jaxp.jar"      excludes="META-INF/ meta-inf/"/>
       <zipfileset src="${lib}/crimson.jar"   excludes="META-INF/ meta-inf/"/>
+      <zipfileset src="${lib}/distlib.jar"
+          excludes="META-INF/ meta-inf/ **/*.java"/>
     </jar>
   </target>
 
