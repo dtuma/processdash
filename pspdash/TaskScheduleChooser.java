@@ -69,10 +69,13 @@ public class TaskScheduleChooser
 
         String taskName = getTemplateName
             (dash, "Create New Schedule",
-             "Choose a name for the new task & schedule template:", true);
+             "Choose a name for the new task & schedule template:",
+             showRollupOption);
 
         open(dash, taskName);
     }
+    private static boolean showRollupOption =
+        Settings.getBool("ev.enableRollup",false);
 
     private static final String[] ROLLUP_OPTIONS = {
         "Create Schedule", "Create EV Roll-up" };
