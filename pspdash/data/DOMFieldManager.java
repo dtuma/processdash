@@ -181,7 +181,7 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
                 inputListeners.setElementAt(f, pos);
                 //element.setMember(INDEX_ATTR, new Integer(pos));
                 if (unlocked) f.unlock();
-                if (f.i.isActive()) f.i.setChangeListener(this);
+                if (f.i != null && f.i.isActive()) f.i.setChangeListener(this);
             }
             String key = formIdx + "," + elemIdx;
             inputListenersH.put(key, new Integer(pos));
