@@ -27,6 +27,7 @@ package net.sourceforge.processdash.ui.web.reports;
 
 import java.util.Vector;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.LinearRegression;
 
 import org.jfree.data.DatasetChangeListener;
@@ -118,9 +119,12 @@ public class XYDataSourceTrendLine implements XYDataset {
             return 0;
     }
 
+    private static final String DEFAULT_NAME =
+        Resources.getGlobalBundle().getString("Trend");
+
     private static class RegressionLine extends XYDataSourceTrendLine {
         public RegressionLine(XYDataset src, int seriesNum) {
-            super(src, "Trend");
+            super(src, DEFAULT_NAME);
 
             Vector data = new Vector();
             double minX = Double.NaN, maxX = Double.NaN;
