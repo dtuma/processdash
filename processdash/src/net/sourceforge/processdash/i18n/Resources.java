@@ -38,18 +38,28 @@ import net.sourceforge.processdash.util.StringUtils;
 public class Resources extends ResourceBundle {
 
     private String bundleName;
+    private String bundlePrefix;
     private ResourceBundle delegate;
 
-    private Resources(String bundleName, ResourceBundle delegate,
-                      ResourceBundle parent) {
+    private Resources(String bundleName, String bundlePrefix,
+                      ResourceBundle delegate, ResourceBundle parent) {
         this.bundleName = bundleName;
+        this.bundlePrefix = bundlePrefix;
         this.delegate = delegate;
         setParent(parent);
     }
 
     protected Object handleGetObject(String key) {
         try {
-            return delegate.getObject(key);
+            if (bundlePrefix != null)
+                key = bundlePrefix + "." + key;
+
+            Object result = delegate.getObject(key);
+
+            if (result instanceof String)
+                return interpolate((String) result);
+            else
+                return result;
         } catch (MissingResourceException mre) {
             return null;
         }
@@ -71,6 +81,24 @@ public class Resources extends ResourceBundle {
         if (result == null)
             result = addDialogIndicator(getString(key));
         return result;
+    }
+
+
+    private static final String VAR_START_PAT = "${";
+    private static final String VAR_END_PAT = "}";
+    protected String interpolate(String s) {
+        while (true) {
+            int beg = s.indexOf(VAR_START_PAT);
+            if (beg == -1) return s;
+
+            int end = s.indexOf(VAR_END_PAT, beg);
+            if (end == -1) return s;
+
+            String var = s.substring(beg+VAR_START_PAT.length(), end);
+            String replacement = getString(var);
+            s = s.substring(0, beg) + replacement +
+                s.substring(end+VAR_END_PAT.length());
+        }
     }
 
 
@@ -133,9 +161,11 @@ public class Resources extends ResourceBundle {
 
 
     private static final boolean TIME_LOADING = false;
+    private static final char PREFIX_SEPARATOR = '_';
 
     public static Resources getDashBundle(String bundleName) {
         initGlobalResources();
+        bundleName = bundleName.replace('.', PREFIX_SEPARATOR);
         return getResourceBundle("resources." + bundleName, globalResources);
     }
     public static Resources getTemplateBundle(String bundleName) {
@@ -143,14 +173,20 @@ public class Resources extends ResourceBundle {
         return getResourceBundle(bundleName, globalResources);
     }
     private static Resources getResourceBundle(String bundleName,
-                                           ResourceBundle parent) {
+                                               ResourceBundle parent) {
         long start = 0;
         if (TIME_LOADING)
             start = System.currentTimeMillis();
 
+        String bundlePrefix = null;
+        String bundleBaseName = getBundleBaseName(bundleName);
+        if (!bundleName.equals(bundleBaseName))
+            bundlePrefix = bundleName.substring(bundleBaseName.length()+1);
+
         ResourceBundle realBundle = ResourceBundle.getBundle
-            (bundleName, Locale.getDefault(), RESOURCE_LOADER);
-        Resources result = new Resources(bundleName, realBundle, parent);
+            (bundleBaseName, Locale.getDefault(), RESOURCE_LOADER);
+        Resources result = new Resources(bundleBaseName, bundlePrefix,
+                                         realBundle, parent);
 
         if (TIME_LOADING) {
             long end = System.currentTimeMillis();
@@ -159,6 +195,11 @@ public class Resources extends ResourceBundle {
         }
 
         return result;
+    }
+    private static final String getBundleBaseName(String bundleName) {
+        int pos = bundleName.indexOf(PREFIX_SEPARATOR);
+        if (pos == -1) return bundleName;
+        return bundleName.substring(0, pos);
     }
 
     public String format(String key, Object[] args) {
