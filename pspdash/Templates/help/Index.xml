@@ -85,6 +85,7 @@
   <indexitem text="sound" target="PlayPause.sound"/>
  </indexitem>
  <indexitem text="timer, defect" target="EnteringDefects.timing"/>
+ <indexitem text="timer, icon" target="AccessingScripts.scriptIcons"/>
  <indexitem text="timer process" target="ProcessScripts.timer"/>
  <indexitem text="TSP" target="GoalsOfPSPAndDashboard.tsp"/>
  <indexitem text="upgrade" target="HowToInstall.upgrade"/>
