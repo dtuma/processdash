@@ -4,7 +4,6 @@ undefine([Use_Rollup]);
 // We intentionally do not include <pspForEng/progData.txt>
 
 [PSPFORENG_1A_TAG] = TAG;
-[PSP To Date Subset Prefix] = [../Rollup_Name];
 
 // Copy the LOC metrics calculated for us by our parent.
 
