@@ -500,10 +500,10 @@ public class DefectLogEditor extends Component
 
         retPanel.setLayout(new BorderLayout());
         table = new ValidatingTable
-            (resources.getStrings("Column_Name_", columns),
+            (resources.getStrings("Columns.", columns, ".Name"),
              null,
-             resources.getInts("Column_Width_", columns),
-             resources.getStrings("Column_Tooltip_", columns),
+             resources.getInts("Columns.", columns, ".Width"),
+             resources.getStrings("Columns.", columns, ".Tooltip"),
              null, null, 0, true, null,
              new boolean[] {false, false, false, // no columns editable
                             false, false, false,
