@@ -2,7 +2,6 @@ package teamdash.wbs.columns;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import teamdash.wbs.CalculatedDataColumn;
@@ -11,8 +10,8 @@ import teamdash.wbs.IntList;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSNode;
 
-/** This column calculates several interrelated columns dealing with team time.
- *
+/** This column manages the calculation and interrelationship of several
+ * tightly related columns dealing with team time.
  */
 public class TeamTimeColumn extends TopDownBottomUpColumn {
 
@@ -35,6 +34,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         m.addDataColumn(numPeopleColumn = new NumPeopleColumn());
     }
 
+
     public void storeDependentColumn(String ID, int columnNumber) {
         if ("Size".equals(ID))
             sizeColumn = columnNumber;
@@ -44,10 +44,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             teamMemberColumns.add(columnNumber);
     }
 
+
     public void resetDependentColumns() {
         sizeColumn = unitsColumn = -1;
         teamMemberColumns = new IntList();
     }
+
 
     public Object getValueAt(WBSNode node) {
         NumericDataValue result = (NumericDataValue) super.getValueAt(node);
@@ -64,18 +66,17 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         }
 
         if (needsAssigning) {
-            result.errorMessage = "Task needs to be assigned to individual(s)";
+            result.errorMessage =
+                (equal(result.value, 0)
+                 ? "Task time needs to be estimated"
+                 : "Task needs to be assigned to individual(s)");
             result.errorColor = Color.blue;
         }
 
         return result;
     }
 
-    private double safe(double v) {
-        return (Double.isNaN(v) || Double.isInfinite(v) ? 0 : v);
-    }
 
-    protected void setValueForNode(double value, WBSNode node) { }
 
 
     protected double recalc(WBSNode node) {
@@ -84,7 +85,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         // 2) the user edited the Size column, and we're recalculating
         // 3) the user edited an individual time column, and we're recalcing
 
-        // do extra stuff here.
+        // if this is a leaf, automatically reset its top-down estimate to
+        // match the "teamTime" value calculated by the associated LeafNodeData
+        // object.
         LeafNodeData leafData = getLeafNodeData(node);
         if (leafData != null) {
             leafData.recalc();
@@ -94,6 +97,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 node.setNumericAttribute(topDownAttrName, leafData.teamTime);
         }
 
+        // Then, recalculate as usual.
         return super.recalc(node);
     }
 
@@ -106,53 +110,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             leafData.userSetTeamTime(value);
     }
 
-    /** This class is used to record a change that needs to be made to
-     * a dependent data column */
-    private class DataChange {
-
-        WBSNode node;   // the node where the change is to be made
-        int column;     // the column to make the change to
-        Object value;   // the new value to store
-
-        public DataChange(WBSNode node, int column, double value) {
-            this(node, column, new Double(value));
-        }
-        public DataChange(WBSNode node, int column, Object value) {
-            this.node = node;
-            this.column = column;
-            this.value = value;
-        }
-        /** make the requested change */
-        public void makeChange() {
-            dataModel.setValueAt(value, node, column);
-        }
-    }
 
 
-    /** Make a series of changes to dependent data columns. */
-    private void makeDataChanges(List changesToMake) {
-        if (changesToMake == null || changesToMake.size() == 0) return;
-        Iterator i = changesToMake.iterator();
-        while (i.hasNext())
-            ((DataChange) i.next()).makeChange();
-    }
 
-
-    private class IndivTime {
-        double time;
-        int column;
-        public IndivTime(WBSNode node, int column) {
-            this.column = column;
-            this.time = safe(parse(dataModel.getValueAt(node, column)));
-        }
-        public boolean equals(Object o) {
-            return (o instanceof IndivTime &&
-                    equal(((IndivTime) o).time, time) &&
-                    ((IndivTime) o).column == column);
-        }
-    }
-
-
+    /** Get an array of IndivTime objects representing the amount of task time
+     * each individual has for the given wbs node. */
     protected IndivTime[] getIndivTimes(WBSNode node) {
         IndivTime[] result = new IndivTime[teamMemberColumns.size()];
         for (int i = teamMemberColumns.size();   i-- > 0; )
@@ -160,23 +122,29 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         return result;
     }
 
+
+
+    /** Add up the task times for each individual at the given node */
     private double sumIndivTimes(WBSNode node) {
+        return sumIndivTimes(getIndivTimes(node));
+    }
+
+    /** Add up the task times for each IndivTime object in the given array. */
+    private double sumIndivTimes(IndivTime[] individualTimes) {
         double result = 0;
-        for (int i = teamMemberColumns.size();   i-- > 0; )
-            result += safe(parse
-                (dataModel.getValueAt(node, teamMemberColumns.get(i))));
+        for (int i = 0;   i < individualTimes.length;   i++)
+            result += individualTimes[i].time;
         return result;
     }
 
+
+    /** Count the number of individuals with nonzero times for the given node */
     private int countPeople(WBSNode node) {
-        int count = 0;
-        for (int i = teamMemberColumns.size();   i-- > 0; )
-            if (parse
-                (dataModel.getValueAt(node, teamMemberColumns.get(i))) > 0)
-                count++;
-        return count;
+        return countPeople(getIndivTimes(node));
     }
 
+    /** Count the number of individuals with nonzero times in the given
+     * list of IndivTime objects. */
     private int countPeople(IndivTime[] indivTimes) {
         int count = 0;
         for (int i = 0;   i < indivTimes.length;   i++)
@@ -184,34 +152,47 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         return count;
     }
 
+
+
+    /** Convenience method */
     private static double parse(Object o) {
         return NumericDataValue.parse(o);
     }
+
+
+    /** Compare two (possibly null) strings for equality */
     private boolean equal(String a, String b) {
         if (a == null) a = "";
         if (b == null) b = "";
         return a.equals(b);
     }
-    private boolean equal(IndivTime a, IndivTime b) {
-        if (a == null && b == null) return true;
-        return (a != null && a.equals(b));
-    }
-    private boolean equal(IndivTime[] a, IndivTime[] b) {
-        if (a == null) a = new IndivTime[0];
-        if (b == null) b = new IndivTime[0];
 
-        if (a.length != b.length) return false;
-        for (int i = a.length;   i-- > 0; )
-            if (!equal(a[i], b[i])) return false;
-        return true;
+
+    /** filter out infinite/NaN values, replacing them with 0. */
+    private double safe(double v) {
+        return (Double.isNaN(v) || Double.isInfinite(v) ? 0 : v);
     }
 
+
+    /** Find the most frequently occurring nonzero task time in the given
+     * array of IndivTime objects.
+     * 
+     * @return the most frequently occurring task time, or zero if there is a
+     * tie for the most frequently occurring time. */
     private double getMode(IndivTime[] indivTimes) {
         double[] d = new double[indivTimes.length];
         for (int i = d.length;   i-- > 0; )
             d[i] = indivTimes[i].time;
         return getMode(d);
     }
+
+    /** Find the most frequently occurring nonzero number in the array.
+     * 
+     * Note: this is a destructive operation; it modifies the array passed in.
+     * 
+     * @return the most frequently occurring nonzero number in the array.  if
+     * all numbers are zero, or if there is a "tie" for the most frequently
+     * occurring number, returns zero. */
     private double getMode(double[] d) {
         double result = 0;
         int count = 0;
@@ -239,31 +220,40 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         return tie ? 0 : result;
     }
 
-    private static final String RATE_ATTR = "Rate";
-    private static final String TPP_ATTR  = "Time_Per_Person";
-    private static final String NUM_PEOPLE_ATTR = "# People";
 
 
+    /** Get the LeafNodeData object for a particular node.
+     * 
+     * If the node is a leaf, this will create a LeafNodeData object if
+     * necessary, or return the existing LeafNodeData object if one exists.
+     * If the node is not a leaf, this will return null. */
+    protected LeafNodeData getLeafNodeData(WBSNode node) {
+        if (!wbsModel.isLeaf(node)) {
+            node.setAttribute(DATA_ATTR_NAME, null);
+            return null;
+        }
 
-    private interface LeafNodeManipulator {
-        public void recalc(LeafNodeData leafData);
+        LeafNodeData result =
+            (LeafNodeData) node.getAttribute(DATA_ATTR_NAME);
+        if (result == null) {
+            result = new LeafNodeData(node);
+            node.setAttribute(DATA_ATTR_NAME, result);
+        }
+        return result;
     }
 
-    private class ConnectedManipulator implements LeafNodeManipulator {
-        public void recalc(LeafNodeData leafData) {}
-    }
-
-    private class DisconnectedManipulator implements LeafNodeManipulator {
-        public void recalc(LeafNodeData leafData) {}
-    }
 
 
+
+    /** Manages the relationships between data values at a leaf node.
+     * 
+     * As data values change, determines how best to recalculate other data
+     * values. */
     private class LeafNodeData {
         WBSNode node;
         double size, rate, timePerPerson, numPeople, actualNumPeople, teamTime;
         String units;
         IndivTime[] individualTimes;
-        LeafNodeManipulator manipulator;
 
         public LeafNodeData(WBSNode node) {
             this.node = node;
@@ -312,11 +302,6 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
             if (numPeople == 0)
                 numPeople = (actualNumPeople > 0 ? actualNumPeople : 1);
-
-            if (numPeople == actualNumPeople)
-                manipulator = new ConnectedManipulator();
-            else
-                manipulator = new DisconnectedManipulator();
         }
 
         void figureTeamTime() {
@@ -326,7 +311,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
 
         public boolean isConnected() {
-            return (manipulator instanceof ConnectedManipulator);
+            return (numPeople == actualNumPeople);
         }
 
         public double sumIndivTimes() {
@@ -356,17 +341,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 dataModel.columnChanged(numPeopleColumn);
                 dataModel.columnChanged(TeamTimeColumn.this);
             }
-
-            manipulator.recalc(this);
         }
 
         public void userSetSize(double value) {
             size = value;
-            if (safe(rate) != 0) {
-                double newTimePerPerson = size / rate;
-                userSetTimePerPerson(newTimePerPerson);
-                dataModel.columnChanged(timePerPersonColumn);
-            }
+            if (safe(rate) != 0)
+                userSetTimePerPerson(size / rate);
         }
 
         protected void recalculateRate() {
@@ -384,12 +364,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 node.setAttribute(RATE_ATTR, null);
             } else {
                 rate = value;
-                double newTimePerPerson = size / rate;
-                userSetTimePerPerson(newTimePerPerson);
-                dataModel.columnChanged(timePerPersonColumn);
+                userSetTimePerPerson(size / rate);
             }
         }
 
+        /** Messaged when the user (directly or indirectly) alters the time
+         * per person.  */
         public void userSetTimePerPerson(double value) {
             // if nothing has changed, avoid the pain of recalculating.
             if (equal(value, timePerPerson)) return;
@@ -405,21 +385,19 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
                 // find individuals with that amount of time, and update them.
                 List changesToMake = new ArrayList();
-                Double newValue = new Double(timePerPerson);
                 for (int i = individualTimes.length;   i-- > 0; )
                     if (equal(individualTimes[i].time, oldTimePerPerson))
-                        changesToMake.add
-                            (new DataChange(node, individualTimes[i].column,
-                                            newValue));
-                makeDataChanges(changesToMake);
+                        individualTimes[i].setTime(timePerPerson);
                 individualTimes = getIndivTimes(node);
             }
 
             // recalculate team time and register the change.
             figureTeamTime();
             dataModel.columnChanged(TeamTimeColumn.this);
+            dataModel.columnChanged(timePerPersonColumn);
         }
 
+        /** Messaged when the user edits the # of people for a leaf node. */
         public void userSetNumPeople(double value) {
             if (safe(value) > 0 && value >= actualNumPeople) {
                 node.setNumericAttribute(NUM_PEOPLE_ATTR, value);
@@ -430,6 +408,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             }
         }
 
+        /** Messaged when the user edits the team time for a leaf node. */
         public void userSetTeamTime(double value) {
             double oldTeamTime = teamTime;
             teamTime = value;
@@ -446,32 +425,34 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 // find individuals with nonzero time, and update them.
                 List changesToMake = new ArrayList();
                 for (int i = individualTimes.length;   i-- > 0; )
-                    if (individualTimes[i].time > 0)
-                        changesToMake.add
-                            (new DataChange(node, individualTimes[i].column,
-                                            individualTimes[i].time * ratio));
-                makeDataChanges(changesToMake);
+                    individualTimes[i].multiplyTime(ratio);
             }
             figureTeamTime();
         }
     }
 
 
+    /** This class holds the task time for one individual */
+    private class IndivTime {
+        WBSNode node;
+        double time;
+        int column;
 
-
-    protected LeafNodeData getLeafNodeData(WBSNode node) {
-        if (!wbsModel.isLeaf(node)) {
-            node.setAttribute(DATA_ATTR_NAME, null);
-            return null;
+        public IndivTime(WBSNode node, int column) {
+            this.node = node;
+            this.column = column;
+            this.time = safe(parse(dataModel.getValueAt(node, column)));
         }
 
-        LeafNodeData result =
-            (LeafNodeData) node.getAttribute(DATA_ATTR_NAME);
-        if (result == null) {
-            result = new LeafNodeData(node);
-            node.setAttribute(DATA_ATTR_NAME, result);
+        public void setTime(double newTime) {
+            this.time = newTime;
+            dataModel.setValueAt(new Double(time), node, column);
         }
-        return result;
+
+        public void multiplyTime(double ratio) {
+            if (time > 0)
+                setTime(time * ratio);
+        }
     }
 
 
@@ -535,6 +516,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     }
 
 
+
     /** A column representing the task time per individual */
     private class TimePerPersonColumn extends DependentColumn {
         public TimePerPersonColumn() {
@@ -547,6 +529,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             nodeData.userSetTimePerPerson(value);
         }
     }
+
 
 
     /** A column representing the number of people assigned to a task. */
@@ -568,6 +551,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
 
     private static final String DATA_ATTR_NAME = "Time_Data";
+    private static final String RATE_ATTR = "Rate";
+    private static final String TPP_ATTR  = "Time Per Person";
+    private static final String NUM_PEOPLE_ATTR = "# People";
     private static final NumericDataValue BLANK =
         new NumericDataValue(0, false, true, null);
 }
