@@ -56,15 +56,17 @@ public class DefectAnalysisPage extends AnalysisPage {
                            fmtArg("phase", qualityPhases.get(i)));
 
         // write the cumulative injection percentage chart
-        if (developmentPhases.size() > 0)
+        if (developmentPhases.size() > 1)
             writeChartHTML(LINE_CHART, CUM_INJ_PCT_CHART);
 
-        if (qualityPhases.size() > 0) {
-            // write the cumulative removal percentage chart
+        // write the cumulative removal percentage chart
+        if (qualityPhases.size() > 1)
             writeChartHTML(LINE_CHART, CUM_REM_PCT_CHART);
-            // write the removal rates chart
+
+        // write the removal rates chart
+        if (qualityPhases.size() > 0)
             writeChartHTML(LINE_CHART, REM_RATES_CHART);
-        }
+
         if (qualityPhases.size() > 1)
             // write the defect removal leverage chart
             writeChartHTML(LINE_CHART, LEVERAGE_CHART);

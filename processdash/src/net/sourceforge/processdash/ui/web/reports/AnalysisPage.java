@@ -117,7 +117,7 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
     }
 
 
-    protected String localizePrefix(String prefix) {
+    public static String localizePrefix(String prefix) {
         if (prefix.startsWith("/To Date/") && prefix.endsWith("/All")) {
             prefix = prefix.substring(9, prefix.length() - 4);
             return resources.format("To_Date_Prefix_FMT", prefix);
@@ -137,13 +137,18 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
         else if (val instanceof StringData)
             return ((StringData) val).asList();
         else
-            return null;
+            return new ListData();
     }
 
     protected String getProcessString(String stringName) {
         String dataName = DataRepository.createDataName(getPrefix(), stringName);
         SimpleData val = getDataRepository().getSimpleValue(dataName);
         return val == null ? "" : val.format();
+    }
+
+    protected boolean metricIsDefined(String name) {
+        String dataName = DataRepository.createDataName(getPrefix(), name);
+        return getDataRepository().getValue(dataName) != null;
     }
 
     protected String interpolate(String text) {

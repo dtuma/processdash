@@ -44,8 +44,10 @@ public class PlanAnalysisPage extends AnalysisPage {
         ListData failurePhases = getProcessList("Failure_Phase_List");
 
         // write the size charts
-        writeChartHTML(LINE_CHART, SIZE_CHART);
-        writeChartHTML(LINE_CHART, SIZE_ERR_CHART);
+        if (metricIsDefined("SIZE_METRIC_NAME")) {
+            writeChartHTML(LINE_CHART, SIZE_CHART);
+            writeChartHTML(LINE_CHART, SIZE_ERR_CHART);
+        }
 
         // write the total time charts
         writeChartHTML(LINE_CHART, TIME_CHART);
@@ -55,13 +57,15 @@ public class PlanAnalysisPage extends AnalysisPage {
         for (int i = 0;   i < overheadPhases.size();   i++)
             writeChartHTML(LINE_CHART, PCT_TIME_CHART,
                            fmtArg("phase", overheadPhases.get(i)));
-        writeChartHTML(LINE_CHART, PCT_OVERHEAD_TIME_CHART);
+        if (overheadPhases.size() > 1)
+            writeChartHTML(LINE_CHART, PCT_OVERHEAD_TIME_CHART);
 
         // write failure time charts
         for (int i = 0;   i < failurePhases.size();   i++)
             writeChartHTML(LINE_CHART, PCT_TIME_CHART,
                            fmtArg("phase", failurePhases.get(i)));
-        writeChartHTML(LINE_CHART, PCT_FAILURE_TIME_CHART);
+        if (failurePhases.size() > 1)
+            writeChartHTML(LINE_CHART, PCT_FAILURE_TIME_CHART);
 
         // write time in phase chart
         writeChartHTML(PIE_CHART, PHASE_TIME_CHART);

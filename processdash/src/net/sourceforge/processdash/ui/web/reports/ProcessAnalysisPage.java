@@ -39,19 +39,31 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
         // get information about the current process
         ListData failurePhases = getProcessList("Failure_Phase_List");
+        boolean hasProductivity = metricIsDefined("Productivity");
+        boolean hasYield = metricIsDefined("Yield");
+        boolean hasAFR = metricIsDefined("AFR");
 
         // write the productivity charts
-        writeChartHTML(LINE_CHART, PROD_CHART);
-        writeChartHTML(XY_CHART, PROD_VS_YIELD_CHART);
+        if (hasProductivity) {
+            writeChartHTML(LINE_CHART, PROD_CHART);
+            if (hasYield)
+                writeChartHTML(XY_CHART, PROD_VS_YIELD_CHART);
+        }
 
         // write afr charts
-        writeChartHTML(XY_CHART, PROD_VS_AFR_CHART);
-        writeChartHTML(XY_CHART, YIELD_VS_AFR_CHART);
+        if (hasAFR) {
+            if (hasProductivity)
+                writeChartHTML(XY_CHART, PROD_VS_AFR_CHART);
+            if (hasYield)
+                writeChartHTML(XY_CHART, YIELD_VS_AFR_CHART);
+        }
 
         for (int i = 1;   i < failurePhases.size();   i++) {
             String phaseArg = fmtArg("phase", failurePhases.get(i));
-            writeChartHTML(XY_CHART, DEF_VS_AFR_CHART, phaseArg);
-            writeChartHTML(XY_CHART, DEF_VS_YIELD_CHART, phaseArg);
+            if (hasAFR)
+                writeChartHTML(XY_CHART, DEF_VS_AFR_CHART, phaseArg);
+            if (hasYield)
+                writeChartHTML(XY_CHART, DEF_VS_YIELD_CHART, phaseArg);
         }
     }
 

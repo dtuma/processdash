@@ -36,24 +36,35 @@ public class QualityAnalysisPage extends AnalysisPage {
 
     protected void writeHTML() throws IOException {
         writeHTMLHeader("Quality.Title");
+        boolean hasYield = metricIsDefined("Yield");
+        boolean hasAFR = metricIsDefined("AFR");
+        boolean hasAppraisal = metricIsDefined("% Appraisal COQ");
+        boolean hasFailure = metricIsDefined("% Failure COQ");
 
-        writeChartHTML(LINE_CHART, YIELD_CHART);
-        writeChartHTML(LINE_CHART, FAIL_COQ_CHART);
-        writeChartHTML(LINE_CHART, APPR_COQ_CHART);
-        writeChartHTML(LINE_CHART, TOTAL_COQ_CHART);
-        writeChartHTML(LINE_CHART, AFR_CHART);
+        if (hasYield)
+            writeChartHTML(LINE_CHART, YIELD_CHART);
+        if (hasFailure)
+            writeChartHTML(LINE_CHART, FAIL_COQ_CHART);
+        if (hasAppraisal)
+            writeChartHTML(LINE_CHART, APPR_COQ_CHART);
+        if (hasAppraisal && hasFailure)
+            writeChartHTML(LINE_CHART, TOTAL_COQ_CHART);
+        if (hasAFR)
+            writeChartHTML(LINE_CHART, AFR_CHART);
 
         ListData mainAppraisalPhases = getMainAppraisalPhases();
-        if (mainAppraisalPhases.size() > 0)
+        if (mainAppraisalPhases.size() > 0) {
             writeChartHTML(LINE_CHART, REVIEW_RATE_CHART);
-        for (int i = 0;   i < mainAppraisalPhases.size();   i++) {
-            writeChartHTML(XY_CHART, REV_RATE_VS_PROC_YIELD,
-                           fmtArg("phase", mainAppraisalPhases.get(i)));
-            writeChartHTML(XY_CHART, REV_RATE_VS_PHASE_YIELD,
-                           fmtArg("phase", mainAppraisalPhases.get(i)));
+            for (int i = 0;   i < mainAppraisalPhases.size();   i++) {
+                if (hasYield)
+                    writeChartHTML(XY_CHART, REV_RATE_VS_PROC_YIELD,
+                                   fmtArg("phase", mainAppraisalPhases.get(i)));
+                writeChartHTML(XY_CHART, REV_RATE_VS_PHASE_YIELD,
+                               fmtArg("phase", mainAppraisalPhases.get(i)));
+            }
+            if (hasYield && mainAppraisalPhases.size() > 1)
+                writeChartHTML(XY_CHART, COMBINED_REV_RATE_VS_PROC_YIELD);
         }
-
-        writeChartHTML(XY_CHART, COMBINED_REV_RATE_VS_PROC_YIELD);
     }
 
     private static final String YIELD_CHART = "Yield";
