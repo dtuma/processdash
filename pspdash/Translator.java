@@ -94,7 +94,6 @@ public class Translator {
     private static void createCustomEngine() {
         try {
             URL u = getCustomEngineClassURL();
-            System.out.println("custom engine url="+u);
             if (u == null) return;
 
             String path = u.toString();
