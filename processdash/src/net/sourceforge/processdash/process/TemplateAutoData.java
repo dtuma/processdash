@@ -84,11 +84,14 @@ public class TemplateAutoData extends AutoData {
             globalDataHeader.append("#define DEFINE_ROLLUP_ID ")
                 .append(esc(definesRollupID)).append("\n");
 
-        // Eventually, we will look at the template and dynamically
-        // determine whether or not to #define the next two tokens,
-        // but for now we'll just do it.
-        globalDataHeader.append("#define PROCESS_HAS_SIZE\n")
-            .append("#define PROCESS_HAS_DEFECTS\n");
+        // does the process capture size metrics?
+        if (!"none".equals(template.getAttribute(SIZE_METRIC_ATTR)))
+            globalDataHeader.append("#define PROCESS_HAS_SIZE\n");
+        // does the process capture defect metrics?
+        // FIXME: the following "if" statement is breaking some
+        // dashboard processes (e.g. generic, psp3cycle?)
+        //if ("true".equalsIgnoreCase(template.getAttribute(DEFECTLOG_ATTR)))
+            globalDataHeader.append("#define PROCESS_HAS_DEFECTS\n");
 
         // Go get the data about the phases in this process.
         PhaseLister phases = new PhaseLister();
@@ -271,9 +274,9 @@ public class TemplateAutoData extends AutoData {
     static PhaseTypeSet failurePhaseTypes = new PhaseTypeSet(new String[] {
         "failure", "comp", "ut", "it", "st", "at", "pl" });
     static PhaseTypeSet overheadPhaseTypes = new PhaseTypeSet(new String[] {
-        "mgmt", "strat", "plan", "pm" });
+        "overhead", "mgmt", "strat", "plan", "pm" });
     static PhaseTypeSet developmentPhaseTypes = new PhaseTypeSet(new String[] {
-        "req", "stp", "itp", "td", "hld", "dld", "code", "doc" });
+        "develop", "req", "stp", "itp", "td", "hld", "dld", "code", "doc" });
 
     public static boolean isAppraisalPhaseType(String phaseType) {
         return appraisalPhaseTypes.contains(phaseType); }
