@@ -62,7 +62,8 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener,
         this.script = expression;
         this.data = data;
         this.prefix = prefix;
-        this.value = this.externalValue = new ListData();
+        this.value = new ListData();
+        this.externalValue = null;
         chopTagLength = (this.tag.startsWith("/") ? this.tag.length() : 0);
 
         this.value.setEditable(false);
@@ -111,11 +112,27 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener,
      */
     private Set eventThreads = Collections.synchronizedSet(new HashSet());
 
+    /** Add a prefix to our list, doing our best to keep the list
+     *  sorted in hierarchy order.
+     *
+     * @return true if the value of the list changed.
+     */
     private boolean doAdd(String prefix) {
+        // If the user edits their hierarchy, our list may no longer
+        // be sorted correctly, so we have to be wary of that possibility.
+        // The Collections.binarySearch() method requires that the list be
+        // sorted in ascending order.  Therefore, if the binarySearch method
+        // reports that the item is not in our list, we need to doublecheck
+        // ourselves to make certain it really isn't there.
         int pos = Collections.binarySearch(value.getVector(), prefix, this);
         if (pos >= 0)
             return false;
-        else {
+        else if (value.getVector().contains(prefix)) {
+            // If our doublecheck indicates that the item IS there, then
+            // re-sort the list to avoid future problems.
+            Collections.sort(value.getVector(), this);
+            return true;
+        } else {
             value.insert(prefix, -1 - pos);
             return true;
         }
@@ -133,10 +150,15 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener,
             return;             // Guard against infinite loops.
         */
         if (script == null) {
-            // We don't have a script - all elements should be implicitly
-            // added.
-            if (doAdd(dataPrefix))
-                doNotify();
+            // We don't have a script - just check to ensure that the
+            // element is defined, and then add it.
+            if (test2(data.getSimpleValue(dataName))) {
+                if (doAdd(dataPrefix))
+                    doNotify();
+            }
+
+            // Listen for changes to the data value.
+            data.addActiveDataListener(dataName, this, name);
 
         } else {
             // We need to see if this element matches the expression.
@@ -185,6 +207,10 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener,
             }
         }
 
+        // Note that it isn't necessary for us to removeDataListener(dataName)
+        // because the element associated with dataName is disappearing even
+        // as we speak
+
         if (value.remove(dataPrefix))
             doNotify();
 
@@ -195,6 +221,9 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener,
     private boolean test(SimpleData data) {
         return (data != null && data.test());
     }
+    private boolean test2(SimpleData data) {
+        return (data != null);
+    }
 
 
     private boolean isCondition(String name) {
@@ -204,10 +233,18 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener,
     private boolean handleDataEvent(DataEvent e) {
 
         String dataName = e.getName();
-        if (!isCondition(dataName)) return false;
+        String dataPrefix;
+        boolean include;
+        if (isCondition(dataName)) {
+            dataPrefix = getConditionPrefix(dataName);
+            include = test(e.getValue());
+        } else {
+            dataPrefix = getTagPrefix(dataName);
+            if (dataPrefix == null) return false;
+            include = test2(e.getValue());
+        }
 
-        String dataPrefix = getConditionPrefix(dataName);
-        if (test(e.getValue()))
+        if (include)
             return doAdd(dataPrefix);
         else
             return value.remove(dataPrefix);
@@ -231,10 +268,9 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener,
     }
 
     protected void doNotify() {
-        if (valueQueried) {
-            externalValue = new ListData(value);
-            data.putValue(name, this);
-        }
+        externalValue = null;
+        if (valueQueried)
+            data.valueRecalculated(name, this);
     }
 
     // The following methods define the SaveableData interface.
@@ -247,14 +283,14 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener,
 
     public SimpleData getSimpleValue() {
         valueQueried = true;
+        if (externalValue == null) externalValue = new ListData(value);
         return externalValue;
     }
 
     public void dispose() {
         if (data == null) return;
         data.removeRepositoryListener(this);
-        if (script != null)
-            data.deleteDataListener(this);
+        data.deleteDataListener(this);
         condList = null;
         data = null;
         name = prefix = start = tag = null;
