@@ -38,16 +38,18 @@ JAR     ?= //c/java/sun/jdk1.3/bin/jar.exe
 JAVA_FILES=$(wildcard *.java)
 CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
 
+CGI_JAVA=Templates/psp1/sizeest.java
+CGI_CLASSES=$(subst .java,.class,$(CGI_JAVA))
 
 ######################################################################
 # targets
 ######################################################################
 
 
-default: pspdash build
+default: pspdash cgi-scripts build
 
 
-all: data pspdash
+all: data pspdash cgi-scripts
 
 
 install: all
@@ -67,6 +69,17 @@ data: FORCE
 
 
 pspdash: PSPDashboard.class $(CLASS_FILES)
+
+
+cgi-scripts: $(CGI_CLASSES)
+
+$(CGI_CLASSES) : %.class : %.java
+	$(JAVAC) \
+	    -classpath build \
+	    -deprecation \
+	    -sourcepath . \
+	    -d . \
+	    $^
 
 
 clean:
