@@ -34,11 +34,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.net.URL;
-import java.net.URLEncoder;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.*;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 public class DataApplet extends Applet implements RepositoryClientListener {
@@ -311,8 +311,8 @@ public class DataApplet extends Applet implements RepositoryClientListener {
             // DO NOT fix the deprecated statements on the next lines!
             // This code needs to run in Java 1.1 JVMs.
             String urlStr = PROBLEM_URL +
-                "?JAVA_VERSION=" + URLEncoder.encode(javaVersion) +
-                "&ERROR_MESSAGE=" + URLEncoder.encode(buf.toString());
+                "?JAVA_VERSION=" + HTMLUtils.urlEncode(javaVersion) +
+                "&ERROR_MESSAGE=" + HTMLUtils.urlEncode(buf.toString());
             URL url = new URL(getDocumentBase(), urlStr);
             getAppletContext().showDocument(url, "_top");
         } catch (IOException ioe) {}
