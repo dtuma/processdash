@@ -64,6 +64,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
     static final char NO_MOVE_CHAR    = 'M';
     static final char NO_EDIT_CHAR    = 'E';
+    static final char DELETE_OK_CHAR  = 'D';
     static final char ALLOWED_CHILD   = '<';
     static final char REQUIRED_PARENT = '>';
 
@@ -349,7 +350,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
      * to deal with changes to the tree selection.
      */
     public void valueChanged (TreeSelectionEvent e) {
-        TreePath tp = e.getNewLeadSelectionPath();
+        TreePath tp = (e == null ? tree.getSelectionPath()
+                                 : e.getNewLeadSelectionPath());
 
         if (tp == null) {           // deselection
             deleteMenuItem.setEnabled (false);
@@ -362,13 +364,6 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         // Place code to update selection-sensitive field(s) here.
         Prop val = useProps.pget (key);
 
-                                    // enable if deleteable, else...
-        if (path.length > 1) {
-            deleteMenuItem.setEnabled (true);
-        } else {                    // top two levels (root & 1st sub) static
-            deleteMenuItem.setEnabled (false);
-        }
-
         String status = val.getStatus();
         if (status == null)
             status = "";
@@ -376,6 +371,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         int     parseIndex      = 0;
         boolean moveable        = true;
         boolean editable        = true;
+        boolean deletable       = true;
         boolean allowsSiblings  = true;
         boolean allowsChildren  = true;
         Vector  allowedChildren = null;
@@ -392,6 +388,13 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             parseIndex++;
         }
 
+        if (path.length <= 1)	// top two levels (root & 1st sub) static
+            deletable = false;
+        else if (!editable && !moveable)
+            deletable =
+                status.startsWith("" + NO_MOVE_CHAR + NO_EDIT_CHAR + DELETE_OK_CHAR);
+        deleteMenuItem.setEnabled (deletable);
+
         String pStatus = useProps.pget(key.getParent()).getStatus();
         if ((pStatus != null) && (pStatus.indexOf(ALLOWED_CHILD) >= 0))
             allowsSiblings = false;
@@ -407,14 +410,20 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 StringTokenizer st = new StringTokenizer
                     (status.substring (parseIndex + 1, lastChar),
                      String.valueOf (ALLOWED_CHILD));
-                String sDebug;
+                String sDebug, childID;
                 int endIndex;
                 while (st.hasMoreElements()) {
                     sDebug = st.nextToken();
                     endIndex = sDebug.indexOf ("(");
                     if (endIndex < 0)
                         endIndex = sDebug.length();
-                    allowedChildren.addElement (sDebug.substring (0, endIndex));
+                    childID = sDebug.substring (0, endIndex);
+                                         // if there isn't already a child with this name
+                                         // or if the given template is rename-able,
+                    if (val.isUniqueChildName(childID) ||
+                        templateIsMalleable(childID))
+                                         // then it's okay to allow adding this template.
+                        allowedChildren.addElement (childID);
 //        System.out.println("Allowing Template " +
 //                           sDebug.substring (0, endIndex));
                 }
@@ -423,6 +432,18 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         adjustMenu (allowsSiblings, allowsChildren, editable,
                     allowedChildren, val.getID());
+    }
+
+    private boolean templateIsMalleable(String templateName) {
+        PropertyKey templateKey = new PropertyKey (PropertyKey.ROOT,
+                                                   templateName);
+        String status = templates.pget(templateKey).getStatus();
+        if (status == null) return true;
+        if (status.startsWith(NO_MOVE_CHAR + "" + NO_EDIT_CHAR) ||
+            status.startsWith(NO_EDIT_CHAR + ""))
+            return false;
+        else
+            return true;
     }
 
     public void updateTemplateMenu(Vector tList,
@@ -723,6 +744,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             if ( ! tree.isExpanded (0))
                 tree.expandRow(0);
 
+            /* recompute the template menu. */
+            valueChanged(null);
+
             setDirty (true);
         }
     } // End of PropertyFrame.AddChildAction
@@ -782,6 +806,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             }
             if ( ! tree.isExpanded (0))
                 tree.expandRow(0);
+
+            /* recompute the template menu. */
+            valueChanged(null);
 
             setDirty (true);
         }
