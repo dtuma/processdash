@@ -51,7 +51,7 @@ public class IEDataApplet extends DataApplet {
         mgr = new IEFieldManager(this);
         browserGotManager = false;
 
-        super.start();		// initiate top-level DataApplet start().
+        super.start();              // initiate top-level DataApplet start().
 
         if (!browserGotManager)
             notifyListeners();
@@ -74,11 +74,11 @@ public class IEDataApplet extends DataApplet {
     public void addDataSourceListener(DataSourceListener listener)
          throws java.util.TooManyListenersException
     {
-        debug("addDataSourceListener");
+        debug("addDataSourceListener, param is " + listener);
         if (myDSL != null)
             com.ms.com.ComLib.release(myDSL);
 
-        myDSL = listener;
+        myDSL = new OLEDBDSLWrapper(listener);
     }
 
 
@@ -101,6 +101,8 @@ public class IEDataApplet extends DataApplet {
         debug("notifyListeners");
         if (myDSL != null)
             myDSL.dataMemberChanged("");
+
+        debug("listeners notified.");
     }
 
 
