@@ -589,11 +589,6 @@ public class wizard extends TinyCGIBase {
             teamDirectory = teamDirectory.substring
                 (0, teamDirectory.length()-1);
 
-        // calculate the new template directory, and add it to the
-        // template path
-        String templateDir = teamDirectory + "/Templates";
-        DashController.addTemplateDirToPath(templateDir);
-
         // calculate the new import instruction, and add it to the
         // import list
         String prefix = "Import_" + projectID;
@@ -603,6 +598,23 @@ public class wizard extends TinyCGIBase {
         // enable other configuration settings that are appropriate for
         // team use.
         DashController.enableTeamSettings();
+
+        // initiate the template directory adding task.
+        new TemplateDirAdder(teamDirectory);
+    }
+
+    private final class TemplateDirAdder extends Thread {
+        private String teamDirectory;
+        public TemplateDirAdder(String teamDirectory) {
+            this.teamDirectory = teamDirectory;
+            this.start();
+        }
+        public void run() {
+            // calculate the new template directory, and add it to the
+            // template path
+            String templateDir = teamDirectory + "/Templates";
+            DashController.addTemplateDirToPath(templateDir, true);
+        }
     }
 
 

@@ -16,8 +16,13 @@ TD.value { font-family: monospace }
 
 <h2>Success</h2>
 
-The team project has been created and set up successfully!
+<p>The team project has been created and set up successfully!</p>
 
+<p><b>Note: Check back with your main Process Dashboard window; it may
+be displaying a dialog titled &quot;Import Template&quot;.  It it is,
+you should click the dialog's OK button to ensure that all the
+dashboard instances in this team project remain in agreement on the
+process definition.</b></p>
 
 <table width='100%'><tr><td width='100%' align='right' nowrap>
 <input type=button name=cancel value='Close'
