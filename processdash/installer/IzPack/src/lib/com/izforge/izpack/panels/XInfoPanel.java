@@ -28,25 +28,25 @@
  */
 package com.izforge.izpack.panels;
 
-import com.izforge.izpack.*;
-import com.izforge.izpack.gui.*;
-import com.izforge.izpack.installer.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
-import java.io.*;
-import java.util.*;
-
-import javax.swing.*;
-import javax.swing.event.*;
+import com.izforge.izpack.installer.InstallData;
+import com.izforge.izpack.installer.InstallerFrame;
+import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.installer.ResourceManager;
+import com.izforge.izpack.installer.VariableSubstitutor;
 
 /**
  *  The XInfo panel class - shows some adaptative text (ie by parsing for some
  *  variables.
  *
  * @author     Julien Ponge
- * @created    November 1, 2002
  */
 public class XInfoPanel extends IzPanel
 {
@@ -87,7 +87,7 @@ public class XInfoPanel extends IzPanel
             parent.icons.getImageIcon("edit"), JLabel.TRAILING);
         parent.buildConstraints(gbConstraints, 0, 0, 1, 1, 1.0, 0.0);
         gbConstraints.insets = new Insets(5, 5, 5, 5);
-        gbConstraints.fill = GridBagConstraints.NONE;
+        gbConstraints.fill = GridBagConstraints.BOTH;
         gbConstraints.anchor = GridBagConstraints.SOUTHWEST;
         layout.addLayoutComponent(infoLabel, gbConstraints);
         add(infoLabel);
@@ -108,7 +108,7 @@ public class XInfoPanel extends IzPanel
         try
         {
             // We read it
-            info = super.getResourceManager().getTextResource("XInfoPanel.info");
+            info = ResourceManager.getInstance().getTextResource("XInfoPanel.info");
         }
         catch (Exception err)
         {

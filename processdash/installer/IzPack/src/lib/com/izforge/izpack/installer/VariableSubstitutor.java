@@ -32,8 +32,8 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +50,6 @@ import java.util.Map;
  *  copied as is.
  *
  * @author     Johannes Lehtinen <johannes.lehtinen@iki.fi>
- * @created    October 27, 2002
  */
 public class VariableSubstitutor
 {
@@ -67,6 +66,9 @@ public class VariableSubstitutor
     /**  A constant for file type. XML file. */
     protected final static int TYPE_XML = 2;
 
+    /**  A constant for file type. Shell file. */
+    protected final static int TYPE_SHELL = 3;
+
     /**  A mapping of file type names to corresponding integer constants. */
     protected static Map typeNameToConstantMap;
 
@@ -78,6 +80,7 @@ public class VariableSubstitutor
         typeNameToConstantMap.put("javaprop",
             new Integer(TYPE_JAVA_PROPERTIES));
         typeNameToConstantMap.put("xml", new Integer(TYPE_XML));
+        typeNameToConstantMap.put("shell", new Integer(TYPE_SHELL));
     }
 
 
@@ -105,6 +108,8 @@ public class VariableSubstitutor
     public String substitute(String str, String type)
         throws IllegalArgumentException
     {
+        if (str == null) return null;
+
         // Create reader and writer for the strings
         StringReader reader = new StringReader(str);
         StringWriter writer = new StringWriter();
@@ -193,12 +198,15 @@ public class VariableSubstitutor
         // Check the file type
         int t = getTypeConstant(type);
 
+        // determine character which starts a variable
+        char variable_start = (t == TYPE_SHELL ? '%' : '$');
+
         // Copy data and substitute variables
         int c = reader.read();
         while (true)
         {
             // Find the next potential variable reference or EOF
-            while (c != -1 && c != '$')
+            while (c != -1 && c != variable_start)
             {
                 writer.write(c);
                 c = reader.read();
@@ -216,7 +224,7 @@ public class VariableSubstitutor
             }
             else if (c == -1)
             {
-                writer.write('$');
+                writer.write(variable_start);
                 return;
             }
 
@@ -248,7 +256,7 @@ public class VariableSubstitutor
             // ...or ignore it
             else
             {
-                writer.write('$');
+                writer.write(variable_start);
                 if (braces)
                     writer.write('{');
                 writer.write(name);
@@ -292,6 +300,7 @@ public class VariableSubstitutor
         switch (type)
         {
             case TYPE_PLAIN:
+            case TYPE_SHELL:
                 return str;
             case TYPE_JAVA_PROPERTIES:
                 buffer = new StringBuffer(str);

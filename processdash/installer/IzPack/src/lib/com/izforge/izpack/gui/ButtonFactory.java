@@ -39,77 +39,92 @@ public class ButtonFactory
         private static boolean useButtonIcons = false;
 
 
-        public static void useButtonIcons()
+    /**
+     * Enable icons for buttons
+     * This setting has no effect on OSX
+     */
+          public static void useButtonIcons()
+          {
+        if(System.getProperty("mrj.version")==null)
         {
-                useButtonIcons = true;
+                    useButtonIcons = true;
         }
-        public static void useHighlightButtons()
-        {
-                useHighlightButtons = true;
-                useButtonIcons = true;
-        }
+            }
 
-        public static JButton createButton(Icon icon, Color color)
+    /**
+     * Enable highlight buttons
+     * This setting has no effect on OSX
+     */
+          public static void useHighlightButtons()
+          {
+        if(System.getProperty("mrj.version")==null)
         {
-                if (useHighlightButtons)
-                {
-                        return new HighlightJButton(icon, color);
-                }
-                else
-                {
-                        if (useButtonIcons)
-                        {
-                                return new JButton(icon);
-                        }
-                        else
-                        {
-                                return new JButton();
-                        }
-                }
+                    useHighlightButtons = true;
+                    useButtonIcons = true;
         }
+            }
 
-        public static JButton createButton(String text, Color color)
-        {
-                if (useHighlightButtons)
-                {
-                        return new HighlightJButton(text, color);
-                }
-                else
-                {
-                        return new JButton(text);
-                }
-        }
+            public static JButton createButton(Icon icon, Color color)
+            {
+                    if (useHighlightButtons)
+                    {
+                            return new HighlightJButton(icon, color);
+                    }
+                    else
+                    {
+                            if (useButtonIcons)
+                            {
+                                    return new JButton(icon);
+                            }
+                            else
+                            {
+                                    return new JButton();
+                            }
+                    }
+            }
 
-        public static JButton createButton(String text, Icon icon, Color color)
-        {
-                if (useHighlightButtons)
-                {
-                        return new HighlightJButton(text,icon, color);
-                }
-                else
-                {
-                        if (useButtonIcons)
-                        {
-                                return new JButton(text,icon);
-                        }
-                        else
-                        {
-                                return new JButton(text);
-                        }
-                }
-        }
+            public static JButton createButton(String text, Color color)
+            {
+                    if (useHighlightButtons)
+                    {
+                            return new HighlightJButton(text, color);
+                    }
+                    else
+                    {
+                            return new JButton(text);
+                    }
+            }
 
-        public static JButton createButton(Action a, Color color)
-        {
-                if (useHighlightButtons)
-                {
-                        return new HighlightJButton(a, color);
-                }
-                else
-                {
-                        return new JButton(a);
-                }
-        }
+            public static JButton createButton(String text, Icon icon, Color color)
+            {
+                    if (useHighlightButtons)
+                    {
+                            return new HighlightJButton(text,icon, color);
+                    }
+                    else
+                    {
+                            if (useButtonIcons)
+                            {
+                                    return new JButton(text,icon);
+                            }
+                            else
+                            {
+                                    return new JButton(text);
+                            }
+                    }
+            }
+
+            public static JButton createButton(Action a, Color color)
+            {
+                    if (useHighlightButtons)
+                    {
+                            return new HighlightJButton(a, color);
+                    }
+                    else
+                    {
+                            return new JButton(a);
+                    }
+            }
 
 }
 

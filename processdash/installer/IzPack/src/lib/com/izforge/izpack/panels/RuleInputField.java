@@ -25,12 +25,19 @@
 
 package   com.izforge.izpack.panels;
 
-import    java.awt.*;
-import    java.awt.event.*;
-import    java.util.*;
+import java.awt.Toolkit;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
-import    javax.swing.*;
-import    javax.swing.event.*;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -478,18 +485,7 @@ public class RuleInputField extends JComponent implements KeyListener,
             }
         }
     }
- /*--------------------------------------------------------------------------*/
- /**
- * Sets the focus to the first field.
- */
- /*--------------------------------------------------------------------------*/
-    private void selectFirst ()
-    {
-        // set the focus to the first field
-        activeField = (RuleTextField)inputFields.elementAt (0);
-        activeField.grabFocus ();
-        activeField.selectAll ();
-    }
+
  /*--------------------------------------------------------------------------*/
  /**
  * This method validates the field content. Validating is performed through

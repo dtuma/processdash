@@ -24,27 +24,45 @@
  */
 package com.izforge.izpack.uninstaller;
 
-import com.izforge.izpack.*;
-import com.izforge.izpack.gui.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.UIManager;
 
-import java.awt.*;
-import java.awt.event.*;
-
-import javax.swing.*;
-import javax.swing.event.*;
-
-import javax.swing.plaf.*;
-import javax.swing.plaf.metal.*;
+import com.izforge.izpack.LocaleDatabase;
+import com.izforge.izpack.gui.ButtonFactory;
+import com.izforge.izpack.gui.IconsDatabase;
+import com.izforge.izpack.util.AbstractUIHandler;
 
 /**
  *  The uninstaller frame class.
  *
  * @author     Julien Ponge
- * @created    November 1, 2002
  */
 public class UninstallerFrame extends JFrame
 {
@@ -52,22 +70,22 @@ public class UninstallerFrame extends JFrame
     private IconsDatabase icons;
 
     /**  The language pack. */
-    private LocaleDatabase langpack;
+    protected LocaleDatabase langpack;
 
     /**  The warning label. */
     private JLabel warningLabel;
 
     /**  The target destroy checkbox. */
-    private JCheckBox targetDestroyCheckbox;
+    protected JCheckBox targetDestroyCheckbox;
 
     /**  The progress bar. */
-    private JProgressBar progressBar;
+    protected JProgressBar progressBar;
 
     /**  The destroy button. */
-    private JButton destroyButton;
+    protected JButton destroyButton;
 
     /**  The quit button. */
-    private JButton quitButton;
+    protected JButton quitButton;
 
     /**  The layout. */
     private GridBagLayout layout;
@@ -79,7 +97,7 @@ public class UninstallerFrame extends JFrame
     private Color buttonsHColor = new Color(230, 230, 230);
 
     /**  The installation path. */
-    private String installPath;
+    protected String installPath;
 
 
     /**
@@ -293,8 +311,7 @@ public class UninstallerFrame extends JFrame
     /**
      *  The window events handler.
      *
-     * @author     julien
-     * @created    November 1, 2002
+     * @author     Julien Ponge
      */
     class WindowHandler extends WindowAdapter
     {
@@ -311,29 +328,32 @@ public class UninstallerFrame extends JFrame
 
 
     /**
-     *  The destroyer handler.
+     * The destroyer handler.
      *
-     * @author     julien
-     * @created    November 1, 2002
+     * This class also implements the InstallListener because the FileExecutor needs it.
+     * TODO: get rid of the InstallListener - implement generic Listener
+     * 
+     * @author     Julien Ponge
+     * @author     Tino Schwarze
      */
-    class DestroyerHandler implements DestroyerListener
+    class DestroyerHandler implements com.izforge.izpack.util.AbstractUIProgressHandler
     {
         /**
          *  The destroyer starts.
          *
-         * @param  min  The minimum value of the progress.
-         * @param  max  The maximum value of the progress.
+         * @param name The name of the overall action. Not used here.
+         * @param max  The maximum value of the progress.
          */
-        public void destroyerStart(int min, int max)
+        public void startAction (String name, int max)
         {
-            progressBar.setMinimum(min);
+            progressBar.setMinimum(0);
             progressBar.setMaximum(max);
             blockGUI();
         }
 
 
         /**  The destroyer stops.  */
-        public void destroyerStop()
+        public void stopAction ()
         {
             progressBar.setString(langpack.getString("InstallPanel.finished"));
             targetDestroyCheckbox.setEnabled(false);
@@ -348,33 +368,110 @@ public class UninstallerFrame extends JFrame
          * @param  pos      The actual position.
          * @param  message  The message.
          */
-        public void destroyerProgress(int pos, String message)
+        public void progress(int pos, String message)
         {
             progressBar.setValue(pos);
             progressBar.setString(message);
         }
 
+        public void nextStep (String step_name, int step_no, int no_of_substeps)
+        {
+        }
+
+        /**
+         *  Output a notification.
+         * 
+         * Does nothing here.
+         * 
+         * @param text
+         */
+        public void emitNotification (String text)
+        {
+        }
+
+        /**
+         *  Output a warning.
+         * 
+         * @param text
+         */
+        public boolean emitWarning (String title, String text)
+        {
+            return (JOptionPane.showConfirmDialog(null, text, title,
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION);
+        }
 
         /**
          *  The destroyer encountered an error.
          *
          * @param  error  The error message.
          */
-        public void destroyerError(String error)
+        public void emitError(String title, String error)
         {
             progressBar.setString(error);
-            JOptionPane.showMessageDialog(null, error.toString(),
-                langpack.getString("installer.error"),
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, error, title, JOptionPane.OK_CANCEL_OPTION);
         }
+
+        /**
+     * Ask the user a question.
+     * 
+     * @param title Message title.
+     * @param question The question.
+     * @param choices The set of choices to present.
+     * 
+     * @return The user's choice.
+     * 
+     * @see AbstractUIHandler#askQuestion(String, String, int)
+     */
+    public int askQuestion (String title, String question, int choices)
+    {
+        return askQuestion (title, question, choices, -1);
     }
+
+    /**
+     * Ask the user a question.
+     * 
+     * @param title Message title.
+     * @param question The question.
+     * @param choices The set of choices to present.
+     * @param default_choice The default choice. (-1 = no default choice)
+     * 
+     * @return The user's choice.
+     * @see AbstractUIHandler#askQuestion(String, String, int, int)
+     */
+    public int askQuestion (String title, String question, int choices, int default_choice)
+    {
+        int jo_choices = 0;
+
+        if (choices == AbstractUIHandler.CHOICES_YES_NO)
+            jo_choices = JOptionPane.YES_NO_OPTION;
+        else if (choices == AbstractUIHandler.CHOICES_YES_NO_CANCEL)
+            jo_choices = JOptionPane.YES_NO_CANCEL_OPTION;
+
+        int user_choice = JOptionPane.showConfirmDialog (
+            null,
+            (Object)question,
+            title,
+            jo_choices, JOptionPane.QUESTION_MESSAGE);
+
+        if (user_choice == JOptionPane.CANCEL_OPTION)
+            return AbstractUIHandler.ANSWER_CANCEL;
+
+        if (user_choice == JOptionPane.YES_OPTION)
+            return AbstractUIHandler.ANSWER_YES;
+
+        if (user_choice == JOptionPane.NO_OPTION)
+            return AbstractUIHandler.ANSWER_NO;
+
+        return default_choice;
+    }
+
+}
 
 
     /**
      *  The actions events handler.
      *
-     * @author     julien
-     * @created    November 1, 2002
+     * @author     Julien Ponge
      */
     class ActionsHandler implements ActionListener
     {

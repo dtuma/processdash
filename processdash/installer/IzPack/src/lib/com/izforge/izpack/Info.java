@@ -24,15 +24,14 @@
  */
 package com.izforge.izpack;
 
-import java.io.*;
-import java.util.*;
+import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  *  Contains some informations for an installer, as defined in the <info>
  *  section of the XML files.
  *
  * @author     Julien Ponge
- * @created    October 26, 2002
  */
 public class Info implements Serializable
 {
@@ -48,6 +47,8 @@ public class Info implements Serializable
     /**  The required Java version (min) */
     private String javaVersion = "1.2";
 
+    /**  Whether to write the uninstaller */
+    private boolean writeUninstaller = true;
 
     /**  The constructor, deliberatly void.  */
     public Info() { }
@@ -162,12 +163,24 @@ public class Info implements Serializable
         return javaVersion;
     }
 
+    /**
+     * @return Whether to write an uninstaller.
+     */
+    public boolean getWriteUninstaller()
+    {
+        return writeUninstaller;
+    }
+
+
+    public void setWriteUninstaller(boolean b)
+    {
+        writeUninstaller = b;
+    }
 
     /**
      *  This class represents an author.
      *
-     * @author     julien
-     * @created    October 26, 2002
+     * @author     Julien Ponge
      */
     public static class Author implements Serializable
     {

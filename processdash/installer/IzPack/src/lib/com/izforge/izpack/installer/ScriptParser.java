@@ -28,12 +28,17 @@
  */
 package com.izforge.izpack.installer;
 
-import com.izforge.izpack.ParsableFile;
-
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
+
+import com.izforge.izpack.ParsableFile;
+import com.izforge.izpack.util.OsConstraint;
 
 /**
  * The script parser classe.
@@ -56,6 +61,18 @@ public class ScriptParser
 
     /**  The file separator character. */
     public final static String FILE_SEPARATOR = "FILE_SEPARATOR";
+
+    /** The application name. */
+    public final static String APP_NAME = "APP_NAME";
+
+    /** The application URL. */
+    public final static String APP_URL = "APP_URL";
+
+    /** The application version. */
+    public final static String APP_VER = "APP_VER";
+
+    /** The language IS03 code. */
+    public final static String ISO3_LANG = "IS03_LANG";
 
     /**  The files to parse. */
     private Collection files;
@@ -93,6 +110,13 @@ public class ScriptParser
             // Create a temporary file for the parsed data
             // (Use the same directory so that renaming works later)
             ParsableFile pfile = (ParsableFile) iter.next();
+
+            // check whether the OS matches
+            if (! OsConstraint.oneMatchesCurrentSystem (pfile.osConstraints))
+            {
+                continue;
+            }
+
             File file = new File(pfile.path);
             File parsedFile
                 = File.createTempFile("izpp", null, file.getParentFile());

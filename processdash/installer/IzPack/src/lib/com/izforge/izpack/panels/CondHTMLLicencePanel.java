@@ -25,22 +25,37 @@
  */
 package com.izforge.izpack.panels;
 
-import com.izforge.izpack.*;
-import com.izforge.izpack.gui.*;
-import com.izforge.izpack.installer.*;
-
-import java.awt.*;
-import java.awt.event.*;
-
-import java.io.*;
-import java.net.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
 import net.n3.nanoxml.XMLElement;
+
+import com.izforge.izpack.Pack;
+import com.izforge.izpack.installer.InstallData;
+import com.izforge.izpack.installer.InstallerFrame;
+import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.installer.ResourceManager;
 
 /**
  *  The IzPack HTML license panel.
@@ -182,7 +197,7 @@ public class CondHTMLLicencePanel extends IzPanel implements HyperlinkListener, 
         {
             String resNamePrifix = "CondHTMLLicencePanel"+instanceNumber+".header";
             headerFmt = new MessageFormat
-                (super.getResourceManager().getTextResource(resNamePrifix));
+                (ResourceManager.getInstance().getTextResource(resNamePrifix));
         }
         catch (Exception err)
         {
@@ -203,7 +218,7 @@ public class CondHTMLLicencePanel extends IzPanel implements HyperlinkListener, 
         String resNamePrifix = "CondHTMLLicencePanel"+instanceNumber+".licence";
         try
         {
-            return super.getResourceManager().getURL(resNamePrifix);
+            return ResourceManager.getInstance().getURL(resNamePrifix);
         }
         catch (Exception ex)
         {

@@ -25,8 +25,11 @@
 
 package   com.izforge.izpack.util;
 
-import    java.util.*;
-import    java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -206,9 +209,6 @@ public class TargetFactory
 
     /** The delimiter characters used to tokenize version numbers */
     private static final String VERSION_DELIMITER           = ".-";
-
-    /** the extension used by Java for class files */
-    private static final String CLASS_EXTENSION             = ".class";
 
     // ------------------------------------------------------------------------
     // Variable Declarations
@@ -503,8 +503,8 @@ public class TargetFactory
  *
  * @return    an index for the processor architecture
  *
- * @see       X86
- * @see       OTHER
+ * @see       #X86
+ * @see       #OTHER
  */
  /*--------------------------------------------------------------------------*/
     public int getArchitecture ()

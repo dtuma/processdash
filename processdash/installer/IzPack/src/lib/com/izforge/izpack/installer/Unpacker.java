@@ -28,29 +28,43 @@
  */
 package com.izforge.izpack.installer;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
+import javax.swing.JOptionPane;
+
+import com.izforge.izpack.ExecutableFile;
+import com.izforge.izpack.Pack;
+import com.izforge.izpack.PackFile;
+import com.izforge.izpack.ParsableFile;
+import com.izforge.izpack.util.AbstractUIHandler;
+import com.izforge.izpack.util.AbstractUIProgressHandler;
 import com.izforge.izpack.util.FileExecutor;
-import com.izforge.izpack.*;
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.util.zip.*;
-import java.util.jar.*;
-import javax.swing.*;
+import com.izforge.izpack.util.OsConstraint;
 
 /**
  *  Unpacker class.
  *
  * @author     Julien Ponge
  * @author     Johannes Lehtinen
- * @created    October 27, 2002
  */
 public class Unpacker extends Thread
 {
     /**  The installdata. */
-    private InstallData idata;
+    private AutomatedInstallData idata;
 
     /**  The installer listener. */
-    private InstallListener listener;
+    private AbstractUIProgressHandler handler;
 
     /**  The uninstallation data. */
     private UninstallData udata;
@@ -64,23 +78,19 @@ public class Unpacker extends Thread
     /**  The instances of the unpacker objects. */
     private static ArrayList instances = new ArrayList();
 
-    /** translations */
-    private LocaleDatabase langpack;
-
 
     /**
      *  The constructor.
      *
      * @param  idata     The installation data.
-     * @param  listener  The installation listener.
+     * @param  handler   The installation progress handler.
      */
-    public Unpacker(InstallData idata, InstallListener listener, LocaleDatabase langpack)
+    public Unpacker(AutomatedInstallData idata, AbstractUIProgressHandler handler)
     {
         super("IzPack - Unpacker thread");
 
         this.idata = idata;
-        this.listener = listener;
-        this.langpack = langpack;
+        this.handler = handler;
 
         // Initialize the variable substitutor
         vs = new VariableSubstitutor(idata.getVariableValueMap());
@@ -97,41 +107,12 @@ public class Unpacker extends Thread
         return instances;
     }
 
-    private boolean matchOS(String actualOS, String targetOS)
-    {
-
-        if(targetOS.equalsIgnoreCase("unix"))
-        {
-            return
-                (actualOS.lastIndexOf("unix")    > -1 ||
-                 actualOS.lastIndexOf("linux")   > -1 ||
-                 actualOS.lastIndexOf("solaris") > -1 ||
-                 actualOS.lastIndexOf("sunos")   > -1 ||
-                 actualOS.lastIndexOf("aix")     > -1 ||
-                 actualOS.lastIndexOf("bsd")     > -1 );
-        }
-        else if (targetOS.equalsIgnoreCase("windows"))
-        {
-            return(actualOS.lastIndexOf("windows") > -1);
-        }
-        else if (targetOS.equalsIgnoreCase("mac"))
-        {
-            return(actualOS.lastIndexOf("mac") > -1);
-        }
-        else
-        {
-            return actualOS.equalsIgnoreCase(targetOS);
-        }
-    }
-
     /**  The run method.  */
     public void run()
     {
         instances.add(this);
         try
         {
-            listener.startUnpack();
-            String currentOs = System.getProperty("os.name").toLowerCase();
             //
             // Initialisations
             FileOutputStream out = null;
@@ -139,6 +120,7 @@ public class Unpacker extends Thread
             ArrayList executables = new ArrayList();
             List packs = idata.selectedPacks;
             int npacks = packs.size();
+            handler.startAction ("Unpacking", npacks);
             udata = UninstallData.getInstance();
 
             // We unpack the selected packs
@@ -157,39 +139,88 @@ public class Unpacker extends Thread
 
                 // We unpack the files
                 int nfiles = objIn.readInt();
-                listener.changeUnpack(0, nfiles, ((Pack) packs.get(i)).name);
+                handler.nextStep (((Pack) packs.get(i)).name, i+1, nfiles);
                 for (int j = 0; j < nfiles; j++)
                 {
                     // We read the header
                     PackFile pf = (PackFile) objIn.readObject();
-                    if (null == pf.os || matchOS(currentOs, pf.os.toLowerCase()))
+
+                    if (OsConstraint.oneMatchesCurrentSystem(pf.osConstraints))
                     {
                         // We translate & build the path
                         String path = translatePath(pf.targetPath);
                         File pathFile = new File(path);
-                        String fname = pathFile.getName();
-                        int z = fname.length();
                         File dest = pathFile.getParentFile();
                         if (!dest.exists())
-                            dest.mkdirs();
+                        {
+                            if (! dest.mkdirs())
+                            {
+                                handler.emitError("Error creating directories", "Could not create directory\n"+dest.getPath());
+                                handler.stopAction ();
+                                return;
+                            }
+                        }
 
                         // We add the path to the log,
                         udata.addFile(path);
 
-                        listener.progressUnpack(j, path);
+                        handler.progress (j, path);
 
-                        //if this file exists and shouldnot override skip this file
-                        if (pathFile.exists()) {
-                            if (pf.override == false) {
+                        //if this file exists and should not be overwritten, check
+                        //what to do
+                        if (pathFile.exists ())
+                        {
+                            boolean overwritefile = false;
+
+                            // don't overwrite file if the user said so
+                            if (pf.override != PackFile.OVERRIDE_FALSE)
+                            {
+                                if (pf.override == PackFile.OVERRIDE_TRUE)
+                                {
+                                    overwritefile = true;
+                                }
+                                else if (pf.override == PackFile.OVERRIDE_UPDATE)
+                                {
+                                    // check mtime of involved files
+                                    // (this is not 100% perfect, because the already existing file might
+                                    // still be modified but the new installed is just a bit newer; we would
+                                    // need the creation time of the existing file or record with which mtime
+                                    // it was installed...)
+                                    overwritefile = (pathFile.lastModified() < pf.mtime);
+                                }
+                                else
+                                {
+                                    int def_choice = -1;
+
+                                    if (pf.override == PackFile.OVERRIDE_ASK_FALSE)
+                                        def_choice = AbstractUIHandler.ANSWER_NO;
+                                    if (pf.override == PackFile.OVERRIDE_ASK_TRUE)
+                                        def_choice = AbstractUIHandler.ANSWER_YES;
+
+                                    int answer = handler.askQuestion (
+                                        idata.langpack.getString ("InstallPanel.overwrite.title") + pathFile.getName (),
+                                        idata.langpack.getString ("InstallPanel.overwrite.question") + pathFile.getAbsolutePath(),
+                                        AbstractUIHandler.CHOICES_YES_NO, def_choice);
+
+                                    overwritefile = (answer == AbstractUIHandler.ANSWER_YES);
+                                }
+
+                            }
+
+                            if (! overwritefile)
+                            {
                                 objIn.skip(pf.length);
                                 continue;
-                            } else {
+                            }
+                            else
+                            {
                                 pathFile.delete();
                             }
+
                         }
 
                         // We copy the file
-                        out = new FileOutputStream(path);
+                        out = new FileOutputStream(pathFile);
                         byte[] buffer = new byte[5120];
                         long bytesCopied = 0;
                         while (bytesCopied < pf.length)
@@ -207,6 +238,10 @@ public class Unpacker extends Thread
                         }
                         // Cleanings
                         out.close();
+
+                        // Set file modification time if specified
+                        if (pf.mtime >= 0)
+                            pathFile.setLastModified (pf.mtime);
 
                         // Empty dirs restoring
                         String _n = pathFile.getName();
@@ -260,25 +295,27 @@ public class Unpacker extends Thread
 
             // We use the file executor
             FileExecutor executor = new FileExecutor(executables);
-            if (executor.executeFiles(ExecutableFile.POSTINSTALL) != 0)
-                javax.swing.JOptionPane.showMessageDialog(
-                    null,
-                    "The installation was not completed.",
-                    "Installation warning",
-                    javax.swing.JOptionPane.WARNING_MESSAGE);
+            if (executor.executeFiles(ExecutableFile.POSTINSTALL, handler) != 0)
+                handler.emitError ("File execution failed", "The installation was not completed");
 
             // We put the uninstaller
-            putUninstaller();
+            if (idata.info.getWriteUninstaller())
+                putUninstaller();
 
             // The end :-)
-            listener.stopUnpack();
+            handler.stopAction();
         }
         catch (Exception err)
         {
-            listener.stopUnpack();
-            listener.errorUnpack(err.toString());
+            // TODO: finer grained error handling with useful error messages
+            handler.stopAction();
+            handler.emitError ("An error occured", err.toString());
+            err.printStackTrace ();
         }
-        instances.remove(instances.indexOf(this));
+        finally
+        {
+            instances.remove(instances.indexOf(this));
+        }
     }
 
 
@@ -395,7 +432,7 @@ public class Unpacker extends Thread
             if (packageLocation != null &&
                 !packageLocation.equalsIgnoreCase("internal")) {
                 PackageDownloader downloader = new PackageDownloader
-                    (packName, packageLocation, langpack);
+                    (packName, packageLocation, idata.langpack);
                 in = downloader.getInputStream();
             } else {
                 // the packageLocation is either not specified, or was "internal".
@@ -405,12 +442,12 @@ public class Unpacker extends Thread
 
             if (in == null) {
                 String[] message = {
-                    langpack.getString("PackageDownloader.error.info1"),
+                    idata.langpack.getString("PackageDownloader.error.info1"),
                     "        " + packName,
-                    langpack.getString("PackageDownloader.error.info2")
+                    idata.langpack.getString("PackageDownloader.error.info2")
                 };
                 JOptionPane.showMessageDialog(
-                    null, message, langpack.getString("PackageDownloader.error.title"),
+                    null, message, idata.langpack.getString("PackageDownloader.error.title"),
                     JOptionPane.WARNING_MESSAGE);
             }
         }

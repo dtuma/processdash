@@ -28,21 +28,53 @@
 
 package   com.izforge.izpack.panels;
 
-import    java.awt.*;
-import    java.awt.event.*;
-import    java.io.*;
-import    java.util.*;
-import    javax.swing.*;
-import    javax.swing.border.*;
-import    javax.swing.event.*;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.Vector;
 
-import    com.izforge.izpack.*;
-import    com.izforge.izpack.gui.*;
-import    com.izforge.izpack.installer.*;
-import    com.izforge.izpack.util.*;
-import    com.izforge.izpack.util.os.*;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
-import    net.n3.nanoxml.*;
+import net.n3.nanoxml.NonValidator;
+import net.n3.nanoxml.StdXMLBuilder;
+import net.n3.nanoxml.StdXMLParser;
+import net.n3.nanoxml.StdXMLReader;
+import net.n3.nanoxml.XMLElement;
+
+import com.izforge.izpack.Pack;
+import com.izforge.izpack.gui.ButtonFactory;
+import com.izforge.izpack.installer.InstallData;
+import com.izforge.izpack.installer.InstallerFrame;
+import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.installer.UninstallData;
+import com.izforge.izpack.installer.VariableSubstitutor;
+import com.izforge.izpack.util.MultiLineLabel;
+import com.izforge.izpack.util.TargetFactory;
+import com.izforge.izpack.util.os.ShellLink;
+import com.izforge.izpack.util.os.Shortcut;
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -63,7 +95,6 @@ import    net.n3.nanoxml.*;
  * conditions are met.
  *
  * @see      com.izforge.izpack.util.os.ShellLink
- * @see      com.izforge.izpack.util.os.Alias
  *
  * @version  0.0.1 / 2/26/02
  * @author   Elmar Grom
@@ -82,8 +113,6 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
     // ------------------------------------------------------------------------
     // Constant Definitions
     // ------------------------------------------------------------------------
-    private static final String LOCATION_APPLICATIONS     = "applications";
-    private static final String LOCATION_START_MENU       = "startMenu";
 
     private static final String SEPARATOR_LINE            = "--------------------------------------------------------------------------------";
 
@@ -299,7 +328,7 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
         try
         {
             shortcut = (Shortcut)(TargetFactory.getInstance ().makeObject ("com.izforge.izpack.util.os.Shortcut"));
-            shortcut.initialize (shortcut.APPLICATIONS, "-");
+            shortcut.initialize (Shortcut.APPLICATIONS, "-");
         }
         catch (Throwable exception)
         {
@@ -763,7 +792,7 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
                         // add the file and directory name to the file list
                         String fileName       = shortcut.getFileName ();
                         String directoryName  = shortcut.getDirectoryCreated ();
-                        files.add (fileName);
+                        files.add (0, fileName);
 
                         if (!(directoryName == null))
                         {

@@ -24,17 +24,21 @@
  */
 package com.izforge.izpack.uninstaller;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
 
 import com.izforge.izpack.ExecutableFile;
+import com.izforge.izpack.util.AbstractUIProgressHandler;
 import com.izforge.izpack.util.FileExecutor;
 
 /**
  *  The files destroyer class.
  *
  * @author     Julien Ponge
- * @created    November 1, 2002
  */
 public class Destroyer extends Thread
 {
@@ -45,7 +49,7 @@ public class Destroyer extends Thread
     private String installPath;
 
     /**  the destroyer listener. */
-    private DestroyerListener listener;
+    private AbstractUIProgressHandler handler;
 
 
     /**
@@ -53,15 +57,15 @@ public class Destroyer extends Thread
      *
      * @param  installPath   The installation path.
      * @param  forceDestroy  Shall we force the recursive deletion.
-     * @param  listener      The destroyer listener.
+     * @param  handler       The destroyer listener.
      */
-    public Destroyer(String installPath, boolean forceDestroy, DestroyerListener listener)
+    public Destroyer(String installPath, boolean forceDestroy, AbstractUIProgressHandler handler)
     {
         super("IzPack - Destroyer");
 
         this.installPath = installPath;
         this.forceDestroy = forceDestroy;
-        this.listener = listener;
+        this.handler = handler;
     }
 
 
@@ -73,12 +77,12 @@ public class Destroyer extends Thread
             // We get the list of the files to delete
             ArrayList executables = getExecutablesList();
             FileExecutor executor = new FileExecutor(executables);
-            executor.executeFiles(ExecutableFile.UNINSTALL);
+            executor.executeFiles(ExecutableFile.UNINSTALL, this.handler);
 
             ArrayList files = getFilesList();
             int size = files.size();
 
-            listener.destroyerStart(0, size);
+            handler.startAction ("destroy", size);
 
             // We destroy the files
             for (int i = 0; i < size; i++)
@@ -86,21 +90,21 @@ public class Destroyer extends Thread
                 File file = (File) files.get(i);
                 if (file.exists())
                     file.delete();
-                listener.destroyerProgress(i, file.getAbsolutePath());
+                handler.progress(i, file.getAbsolutePath());
             }
 
             // We make a complementary cleanup
-            listener.destroyerProgress(size, "[ cleanups ]");
+            handler.progress(size, "[ cleanups ]");
             cleanup(new File(installPath));
             askUninstallerRemoval();
 
-            listener.destroyerStop();
+            handler.stopAction ();
         }
         catch (Exception err)
         {
-            listener.destroyerStop();
+            handler.stopAction ();
             err.printStackTrace();
-            listener.destroyerError(err.toString());
+            handler.emitError("exception caught", err.toString());
         }
     }
 

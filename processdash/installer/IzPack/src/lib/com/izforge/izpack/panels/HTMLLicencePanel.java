@@ -24,25 +24,30 @@
  */
 package com.izforge.izpack.panels;
 
-import com.izforge.izpack.*;
-import com.izforge.izpack.gui.*;
-import com.izforge.izpack.installer.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.URL;
 
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.ButtonGroup;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
-import javax.swing.*;
-import javax.swing.event.*;
+import com.izforge.izpack.installer.InstallData;
+import com.izforge.izpack.installer.InstallerFrame;
+import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.installer.ResourceManager;
 
 /**
  *  The IzPack HTML license panel.
  *
  * @author     Julien Ponge
- * @created    November 1, 2002
  */
 public class HTMLLicencePanel extends IzPanel implements HyperlinkListener, ActionListener
 {
@@ -51,9 +56,6 @@ public class HTMLLicencePanel extends IzPanel implements HyperlinkListener, Acti
 
     /**  The layout constraints. */
     private GridBagConstraints gbConstraints;
-
-    /**  The licence text. */
-    private String licence;
 
     /**  The info label. */
     private JLabel infoLabel;
@@ -150,12 +152,10 @@ public class HTMLLicencePanel extends IzPanel implements HyperlinkListener, Acti
      */
     private URL loadLicence()
     {
-        URL retVal = null;
-
         String resNamePrifix = "HTMLLicencePanel.licence";
         try
         {
-            return super.getResourceManager().getURL(resNamePrifix);
+            return ResourceManager.getInstance().getURL(resNamePrifix);
         }
         catch (Exception ex)
         {

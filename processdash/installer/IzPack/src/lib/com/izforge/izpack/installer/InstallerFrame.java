@@ -26,23 +26,59 @@
  */
 package com.izforge.izpack.installer;
 
-import com.izforge.izpack.*;
-import com.izforge.izpack.gui.*;
-import com.izforge.izpack.util.*;
-
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.zip.*;
-import java.lang.reflect.*;
+import java.util.Vector;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
-import javax.swing.*;
+import net.n3.nanoxml.NonValidator;
+import net.n3.nanoxml.StdXMLBuilder;
+import net.n3.nanoxml.StdXMLParser;
+import net.n3.nanoxml.StdXMLReader;
+import net.n3.nanoxml.XMLElement;
+import net.n3.nanoxml.XMLWriter;
 
-import net.n3.nanoxml.*;
+import com.izforge.izpack.ExecutableFile;
+import com.izforge.izpack.LocaleDatabase;
+import com.izforge.izpack.gui.ButtonFactory;
+import com.izforge.izpack.gui.EtchedLineBorder;
+import com.izforge.izpack.gui.IconsDatabase;
+import com.izforge.izpack.util.AbstractUIProgressHandler;
+import com.izforge.izpack.util.Housekeeper;
 
 /**
  *  The IzPack installer frame.
@@ -56,25 +92,25 @@ public class InstallerFrame extends JFrame
     public LocaleDatabase langpack;
 
     /**  The installation data. */
-    private InstallData installdata;
+    protected InstallData installdata;
 
     /**  The icons database. */
     public IconsDatabase icons;
 
     /**  The panels container. */
-    private JPanel panelsContainer;
+    protected JPanel panelsContainer;
 
     /**  The frame content pane. */
-    private JPanel contentPane;
+    protected JPanel contentPane;
 
     /**  The previous button. */
-    private JButton prevButton;
+    protected JButton prevButton;
 
     /**  The next button. */
-    private JButton nextButton;
+    protected JButton nextButton;
 
     /**  The quit button. */
-    private JButton quitButton;
+    protected JButton quitButton;
 
     /**  The 'made with izpack' label, please KEEP IT THERE. */
     private JLabel madewithLabel;
@@ -88,12 +124,12 @@ public class InstallerFrame extends JFrame
      * @param  installdata    The installation data.
      * @exception  Exception  Description of the Exception
      */
-    public InstallerFrame(String title, LocaleDatabase langpack, InstallData installdata)
+    public InstallerFrame(String title, InstallData installdata)
         throws Exception
     {
         super(title);
-        this.langpack = langpack;
         this.installdata = installdata;
+        this.langpack = installdata.langpack;
 
         // Sets the window events handler
         addWindowListener(new WindowHandler());
@@ -107,65 +143,6 @@ public class InstallerFrame extends JFrame
         showFrame();
         switchPanel(0);
     }
-
-
-    /**
-     *  The constructor (automated mode)
-     *
-     * @param  langpack       The language pack.
-     * @param  installdata    The installation data.
-     * @exception  Exception  Description of the Exception
-     */
-    public InstallerFrame(LocaleDatabase langpack, InstallData installdata)
-        throws Exception
-    {
-        super("IzPack - automated installation");
-        this.langpack = langpack;
-        this.installdata = installdata;
-
-        // Loadings to make the panels able to be run properly
-        loadIcons();
-        loadPanels();
-        buildGUI();
-        switchPanel(0);
-
-        // Runs the automated process
-        runAutomation();
-
-        // Bye
-        Housekeeper.getInstance().shutDown(0);
-    }
-
-
-    /**
-     *  Runs the automated mode.
-     *
-     * @exception  Exception  Description of the Exception
-     */
-    private void runAutomation() throws Exception
-    {
-        // Echoes a start message
-        System.out.println("[ Running automated installation ... ]");
-
-        // We process each panel
-        int size = installdata.panels.size();
-        for (int i = 0; i < size; i++)
-        {
-            // We get the panel
-            IzPanel panel = (IzPanel) installdata.panels.get(i);
-            String className = (String) installdata.panelsOrder.get(i);
-
-            // We get its root xml markup
-            XMLElement panelRoot = installdata.xmlData.getFirstChildNamed(className);
-
-            // We invoke it
-            panel.runAutomated(panelRoot);
-        }
-
-        // Echoes a end message
-        System.out.println("[ Automated installation done ]");
-    }
-
 
     /**
      *  Loads the panels.
@@ -282,7 +259,7 @@ public class InstallerFrame extends JFrame
 
         NavigationHandler navHandler = new NavigationHandler();
 
-            JPanel navPanel = new JPanel();
+        JPanel navPanel = new JPanel();
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.X_AXIS));
         navPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(8,8,8,8), BorderFactory.createTitledBorder(new EtchedLineBorder(), langpack.getString("installer.madewith")+" ")));
         navPanel.add(Box.createHorizontalGlue());
@@ -311,25 +288,25 @@ public class InstallerFrame extends JFrame
         quitButton.addActionListener(navHandler);
         contentPane.add(navPanel,BorderLayout.SOUTH);
 
-            try
+        try
+        {
+            ResourceManager rm = ResourceManager.getInstance();
+            ImageIcon icon = rm.getImageIconResource("Installer.image");
+            if (icon != null)
             {
-                    ResourceManager rm = new ResourceManager(installdata);
-                    ImageIcon icon = rm.getImageIconResource("Installer.image");
-                    if (icon != null)
-                    {
-                            JPanel imgPanel = new JPanel();
-                            imgPanel.setLayout(new BorderLayout());
-                            imgPanel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
-                            JLabel label = new JLabel(icon);
-                            label.setBorder(BorderFactory.createLoweredBevelBorder());
-                            imgPanel.add(label,BorderLayout.CENTER);
-                            contentPane.add(imgPanel,BorderLayout.WEST);
-                    }
+                JPanel imgPanel = new JPanel();
+                imgPanel.setLayout(new BorderLayout());
+                imgPanel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
+                JLabel label = new JLabel(icon);
+                label.setBorder(BorderFactory.createLoweredBevelBorder());
+                imgPanel.add(label,BorderLayout.CENTER);
+                contentPane.add(imgPanel,BorderLayout.WEST);
             }
-            catch (Exception e)
-            {
-                    //ignore
-            }
+        }
+        catch (Exception e)
+        {
+            //ignore
+        }
 
          getRootPane().setDefaultButton(nextButton);
     }
@@ -351,7 +328,7 @@ public class InstallerFrame extends JFrame
      *
      * @param  last  Description of the Parameter
      */
-    private void switchPanel(int last)
+    protected void switchPanel(int last)
     {
         panelsContainer.setVisible(false);
         IzPanel panel = (IzPanel) installdata.panels.get(installdata.curPanelNumber);
@@ -397,6 +374,8 @@ public class InstallerFrame extends JFrame
             UninstallData udata = UninstallData.getInstance();
             List files = udata.getFilesList();
             ZipOutputStream outJar = installdata.uninstallOutJar;
+
+            if (outJar == null) return;
 
             // We write the files log
             outJar.putNextEntry(new ZipEntry("install.log"));
@@ -450,12 +429,19 @@ public class InstallerFrame extends JFrame
      *  Gets the stream to a resource.
      *
      * @param  res            The resource id.
-     * @return                The resource value
-     * @exception  Exception  Description of the Exception
+     * @return                The resource value, null if not found
      */
-    public InputStream getResource(String res) throws Exception
+    public InputStream getResource(String res)
     {
-        return getClass().getResourceAsStream("/res/" + res);
+        try
+        {
+            //System.out.println ("retrieving resource " + res);
+            return ResourceManager.getInstance().getInputStream (res);
+        }
+        catch (ResourceNotFoundException e)
+        {
+            return null;
+        }
     }
 
 
@@ -513,7 +499,8 @@ public class InstallerFrame extends JFrame
         if (installdata.canClose)
         {
             // Everything went well
-            writeUninstallData();
+            if (installdata.info.getWriteUninstaller())
+                writeUninstallData();
             Housekeeper.getInstance().shutDown(0);
         }
         else
@@ -533,7 +520,7 @@ public class InstallerFrame extends JFrame
 
 
     /**  Wipes the written files when you abort the installation.  */
-    private void wipeAborted()
+    protected void wipeAborted()
     {
         Iterator it;
 
@@ -564,7 +551,7 @@ public class InstallerFrame extends JFrame
             File f = new File(p);
             f.delete();
         }
-//    cleanWipe(new File(InstallData.getInstance().getInstallPath()));
+//    cleanWipe(new File(installdata.getInstallPath()));
     }
 
 
@@ -591,9 +578,9 @@ public class InstallerFrame extends JFrame
      *
      * @param  listener  The installation listener.
      */
-    public void install(InstallListener listener)
+    public void install(AbstractUIProgressHandler listener)
     {
-        Unpacker unpacker = new Unpacker(installdata, listener, langpack);
+        Unpacker unpacker = new Unpacker(installdata, listener);
         unpacker.start();
     }
 
@@ -675,8 +662,7 @@ public class InstallerFrame extends JFrame
     /**
      *  Handles the events from the navigation bar elements.
      *
-     * @author     julien
-     * created    October 27, 2002
+     * @author     Julien Ponge
      */
     class NavigationHandler implements ActionListener
     {

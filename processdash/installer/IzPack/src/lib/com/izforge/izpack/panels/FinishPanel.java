@@ -24,26 +24,33 @@
  */
 package com.izforge.izpack.panels;
 
-import com.izforge.izpack.*;
-import com.izforge.izpack.gui.*;
-import com.izforge.izpack.installer.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
-import java.io.*;
-import java.util.*;
-
-import javax.swing.*;
-import javax.swing.event.*;
-
-import net.n3.nanoxml.*;
+import com.izforge.izpack.gui.ButtonFactory;
+import com.izforge.izpack.installer.InstallData;
+import com.izforge.izpack.installer.InstallerFrame;
+import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.installer.VariableSubstitutor;
 
 /**
  *  The finish panel class.
  *
  * @author     Julien Ponge
- * @created    October 27, 2002
  */
 public class FinishPanel extends IzPanel implements ActionListener
 {
@@ -107,19 +114,21 @@ public class FinishPanel extends IzPanel implements ActionListener
         parent.lockPrevButton();
         if (idata.installSuccess)
         {
-            // We prepare a message for the uninstaller feature
-            String home = "";
-            home = System.getProperty("user.home");
-            String path = translatePath("$INSTALL_PATH") + File.separator +
-                "Uninstaller";
-
             // We set the information
             centerPanel.add(new JLabel(parent.langpack.getString("FinishPanel.success"),
                 parent.icons.getImageIcon("information"), JLabel.TRAILING));
             centerPanel.add(Box.createVerticalStrut(20));
-            centerPanel.add(new JLabel(parent.langpack.getString("FinishPanel.uninst.info"),
-                parent.icons.getImageIcon("information"), JLabel.TRAILING));
-            centerPanel.add(new JLabel(path, parent.icons.getImageIcon("empty"), JLabel.TRAILING));
+
+            if (idata.info.getWriteUninstaller())
+            {
+                // We prepare a message for the uninstaller feature
+                String path = translatePath("$INSTALL_PATH") + File.separator +
+                    "Uninstaller";
+
+                centerPanel.add(new JLabel(parent.langpack.getString("FinishPanel.uninst.info"),
+                    parent.icons.getImageIcon("information"), JLabel.TRAILING));
+                centerPanel.add(new JLabel(path, parent.icons.getImageIcon("empty"), JLabel.TRAILING));
+            }
 
             /* We add the autoButton
             centerPanel.add(Box.createVerticalStrut(20));
@@ -149,13 +158,12 @@ public class FinishPanel extends IzPanel implements ActionListener
         fc.setCurrentDirectory(new File(idata.getInstallPath()));
         fc.setMultiSelectionEnabled(false);
         fc.addChoosableFileFilter(fc.getAcceptAllFileFilter());
-        fc.setDialogType(JFileChooser.SAVE_DIALOG);
-        fc.setCurrentDirectory(new File("."));
+        //fc.setCurrentDirectory(new File("."));
 
         // Shows it
         try
         {
-            if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
+            if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
             {
                 // We handle the xml data writing
                 File file = fc.getSelectedFile();

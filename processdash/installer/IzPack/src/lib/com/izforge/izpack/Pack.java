@@ -24,14 +24,14 @@
  */
 package com.izforge.izpack;
 
-import java.io.*;
+import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.util.List;
 
 /**
  *  Represents a Pack.
  *
  * @author     Julien Ponge
- * @created    October 26, 2002
  */
 public class Pack implements Serializable
 {
@@ -44,12 +44,17 @@ public class Pack implements Serializable
     /**  The pack description. */
     public String description;
 
+    /**  The target operation system of this pack */
+    public List osConstraints = null;
+
     /**  True if the pack is required. */
     public boolean required;
 
     /**  The bumber of bytes contained in the pack. */
     public long nbytes;
 
+    /**  Whether this pack is suggested (preselected for installation). */
+    public boolean preselected;
 
     /**
      *  The constructor.
@@ -59,13 +64,14 @@ public class Pack implements Serializable
      * @param  targetOs    Description of the Parameter
      * @param  required     Indicates wether the pack is required or not.
      */
-        public Pack(String name, String id, String description, String targetOs, boolean required)
+    public Pack(String name, String id, String description, List osConstraints, boolean required, boolean preselected)
     {
         this.name = name;
         this.id = id;
         this.description = description;
-        this.os = targetOs;
+        this.osConstraints = osConstraints;
         this.required = required;
+        this.preselected = preselected;
         nbytes = 0;
     }
 
@@ -92,9 +98,6 @@ public class Pack implements Serializable
 
     /**  Used of conversions. */
     private final static DecimalFormat formatter = new DecimalFormat("#,###.##");
-
-    /**  The target operation system of this pack */
-    public String os = null;
 
     /**
      *  Convert bytes into appropiate mesaurements.

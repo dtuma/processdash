@@ -26,18 +26,20 @@
  */
 package com.izforge.izpack.panels;
 
-import com.izforge.izpack.*;
-import com.izforge.izpack.gui.*;
-import com.izforge.izpack.installer.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.util.ArrayList;
 
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.event.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
-import java.util.*;
-
-import javax.swing.*;
-import javax.swing.event.*;
+import com.izforge.izpack.Info;
+import com.izforge.izpack.installer.InstallData;
+import com.izforge.izpack.installer.InstallerFrame;
+import com.izforge.izpack.installer.IzPanel;
 
 /**
  * The Hello panel class.
@@ -108,17 +110,23 @@ public class HelloPanel extends IzPanel
                 for (int i = 0; i < size; i++)
                 {
                     Info.Author a = (Info.Author) authors.get(i);
-                    label = new JLabel(" - " + a.getName() + " <" + a.getEmail() + ">",
-                        parent.icons.getImageIcon("empty"), JLabel.TRAILING);
-                    centerPanel.add(label);
+            String email = (a.getEmail() != null) ? (" <" + a.getEmail() + ">") : "";
+                  label = new JLabel(" - " + a.getName() + email,
+                      parent.icons.getImageIcon("empty"), JLabel.TRAILING);
+                  centerPanel.add(label);
                 }
 
                 centerPanel.add(Box.createVerticalStrut(20));
         }
 
-        str = parent.langpack.getString("HelloPanel.url") + idata.info.getAppURL();
-        appURLLabel = new JLabel(str, parent.icons.getImageIcon("bookmark"), JLabel.TRAILING);
-        centerPanel.add(appURLLabel);
+        if (idata.info.getAppURL() != null)
+        {
+            str = parent.langpack.getString("HelloPanel.url") +
+                  idata.info.getAppURL();
+            appURLLabel = new JLabel(str, parent.icons.getImageIcon("bookmark"),
+                                     JLabel.TRAILING);
+            centerPanel.add(appURLLabel);
+        }
     }
 
 

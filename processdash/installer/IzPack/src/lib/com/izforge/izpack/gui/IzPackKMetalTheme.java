@@ -26,17 +26,12 @@
  */
 package com.izforge.izpack.gui;
 
-import java.awt.*;
-
-import javax.swing.*;
-import javax.swing.plaf.*;
-import javax.swing.plaf.metal.*;
+import javax.swing.plaf.ColorUIResource;
 
 /**
  *  The IzPack Kunststoff L&F theme.
  *
  * @author     Julien Ponge
- * @created    October 27, 2002
  */
 public class IzPackKMetalTheme extends IzPackMetalTheme
 {

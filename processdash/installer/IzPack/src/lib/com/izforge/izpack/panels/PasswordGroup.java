@@ -26,8 +26,9 @@
 
 package   com.izforge.izpack.panels;
 
-import    java.util.*;
-import    javax.swing.*;
+import java.util.Vector;
+
+import javax.swing.JPasswordField;
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -46,8 +47,6 @@ public class PasswordGroup implements ProcessingClient
     // ------------------------------------------------------------------------
     // Variable Declarations
     // ------------------------------------------------------------------------
-    private String      variable  = null;
-    private String      message   = "";
     private Vector      fields    = new Vector ();
     private Validator   validator = null;
     private Processor   processor = null;

@@ -28,24 +28,32 @@
  */
 package com.izforge.izpack.compiler;
 
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
-import java.util.jar.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.jar.JarOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
-import com.izforge.izpack.*;
+import com.izforge.izpack.GUIPrefs;
+import com.izforge.izpack.Info;
+import com.izforge.izpack.Pack;
 
 /**
  *  The packager class. A packager is used by the compiler to actually do the
  *  packaging job.
  *
  * @author     Julien Ponge
- * @created    October 26, 2002
  */
 public abstract class Packager
 {
     /**  The path to the skeleton installer. */
-    public final static String SKELETON_PATH = Compiler.IZPACK_HOME + "lib" +
+    public final static String SKELETON_SUBPATH = "lib" +
         File.separator + "installer.jar";
 
     /**  The packs informations. */
@@ -95,18 +103,53 @@ public abstract class Packager
 
 
     /**
+     * Write the skeleton installer to the output JAR.
+     */
+    public void writeSkeletonInstaller (JarOutputStream out)
+        throws Exception
+    {
+        InputStream is = getClass().getResourceAsStream("/lib/installer.jar");
+        ZipInputStream skeleton_is = null;
+        if (is != null)
+        {
+            skeleton_is = new ZipInputStream (is);
+        }
+
+        if (skeleton_is == null)
+        {
+            skeleton_is = new ZipInputStream (new FileInputStream (
+                Compiler.IZPACK_HOME + "lib" + File.separator + "installer.jar"));
+        }
+
+        ZipEntry zentry;
+
+        while ((zentry = skeleton_is.getNextEntry()) != null)
+        {
+            // Puts a new entry
+            out.putNextEntry(new ZipEntry(zentry.getName()));
+
+            // Copy the data
+            copyStream(skeleton_is, out);
+
+            out.closeEntry();
+            skeleton_is.closeEntry();
+        }
+
+    }
+
+    /**
      *  Adds a pack (the compiler sends the merged data).
      *
      * @param  packNumber     The pack number.
      * @param  name           The pack name.
      * @param  required       Is the pack required ?
-     * @param  targetOs       The target operation system of this pack.
+     * @param  osConstraints  The target operation system(s) of this pack.
      * @param  description    The pack description.
      * @return                Description of the Return Value
      * @exception  Exception  Description of the Exception
      */
-    public abstract OutputStream addPack(int packNumber, String name, String id, String targetOs,
-                                         boolean required, String description)
+    public abstract OutputStream addPack(int packNumber, String name, String id, List osConstraints,
+                                         boolean required, String description, boolean preselected)
         throws Exception;
 
 

@@ -24,18 +24,28 @@
  */
 package com.izforge.izpack.compiler;
 
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
-import java.util.jar.*;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 
-import com.izforge.izpack.*;
+import com.izforge.izpack.GUIPrefs;
+import com.izforge.izpack.Info;
+import com.izforge.izpack.Pack;
 
 /**
  *  Standard packager.
  *
  * @author     Julien Ponge
- * @created    October 26, 2002
  */
 public class StdPackager extends Packager
 {
@@ -65,21 +75,8 @@ public class StdPackager extends Packager
 
         // Copies the skeleton installer
         sendMsg("Copying the skeleton installer ...");
-        JarFile skeleton = new JarFile(SKELETON_PATH);
-        Enumeration entries = skeleton.entries();
-        while (entries.hasMoreElements())
-        {
-            // Puts a new entry
-            ZipEntry zentry = (ZipEntry) entries.nextElement();
-            InputStream zin = skeleton.getInputStream(zentry);
-            outJar.putNextEntry(new ZipEntry(zentry.getName()));
 
-            // Copy the data
-            copyStream(zin, outJar);
-
-            outJar.closeEntry();
-            zin.close();
-        }
+        writeSkeletonInstaller (outJar);
     }
 
 
@@ -89,18 +86,18 @@ public class StdPackager extends Packager
      * @param  packNumber     The pack number.
      * @param  name           The pack name.
      * @param  required       Is the pack required ?
-     * @param  targetOs       The target operation system of this pack.
+     * @param  osConstraints  The target operation system(s) of this pack.
      * @param  description    The pack description.
      * @return                Description of the Return Value
      * @exception  Exception  Description of the Exception
      */
-    public OutputStream addPack(int packNumber, String name, String id, String targetOs, boolean required,
-                                String description) throws Exception
+    public OutputStream addPack(int packNumber, String name, String id, List osConstraints, boolean required,
+                                String description, boolean preselected) throws Exception
     {
         sendMsg("Adding pack #" + packNumber + " : " + name + " ...");
 
         // Adds it in the packs array
-        Pack pack = new Pack(name, id, description, targetOs, required);
+        Pack pack = new Pack(name, id, description, osConstraints, required, preselected);
         packs.add(packNumber, pack);
 
         // Returns the suiting output stream
@@ -143,7 +140,6 @@ public class StdPackager extends Packager
         outJar.putNextEntry(new ZipEntry("com/izforge/izpack/panels/" + classFilename));
         copyStream(input, outJar);
         outJar.closeEntry();
-        input.close();
     }
 
 
@@ -217,7 +213,6 @@ public class StdPackager extends Packager
         outJar.putNextEntry(new ZipEntry("res/" + resId));
         copyStream(input, outJar);
         outJar.closeEntry();
-        input.close();
     }
 
 

@@ -24,13 +24,20 @@
  */
 package com.izforge.izpack.util;
 
-import com.izforge.izpack.ExecutableFile;
-
-import java.io.*;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+
+import com.izforge.izpack.ExecutableFile;
 
 /**
  *  Executes a bunch of files. This class is intended to do a system dependent
@@ -39,7 +46,6 @@ import java.util.Iterator;
  *  execution on Unix systems execution flag will be set on processed file.
  *
  * @author     Olexij Tkatchenko <ot@parcs.de>
- * @created    November 1, 2002
  */
 public class FileExecutor
 {
@@ -48,8 +54,7 @@ public class FileExecutor
      *  command execution end terminates if the apropriate stream runs out of
      *  data.
      *
-     * @author     julien
-     * @created    November 1, 2002
+     * @author     Olexij Tkatchenko <ot@parcs.de>
      */
     private class MonitorInputStream implements Runnable
     {
@@ -134,118 +139,143 @@ public class FileExecutor
 
 
     /**
+     *  Constructs a new executor.
+     */
+    public FileExecutor ()
+    {
+        this.files = null;
+    }
+
+    /**
      *  Executed a system command and waits for completion.
      *
      * @param  params  system command as string array
-     * @param  output  Description of the Parameter
-     * @return         Description of the Return Value
+     * @param  output  contains output of the command
+     *                 index 0 = standard output
+     *                 index 1 = standard error
+     * @return         exit status of process
      */
-          public int executeCommand(String[] params, String[] output)
-          {
-                  StringBuffer retval = new StringBuffer();
-              retval.append("executeCommand\n");
-              if (params != null)
-              {
-                  for (int i = 0; i < params.length; i++)
-                          {
-                              retval.append("\tparams: "+params[i]);
-                              retval.append("\n");
-                          }
-              }
-                  Process process = null;
-                  MonitorInputStream outMonitor = null;
-                  MonitorInputStream errMonitor = null;
-                  Thread t1 = null;
-                  Thread t2 = null;
-                  int exitStatus = -1;
+    public int executeCommand(String[] params, String[] output)
+    {
+        StringBuffer retval = new StringBuffer();
+        retval.append("executeCommand\n");
+        if (params != null)
+        {
+            for (int i = 0; i < params.length; i++)
+            {
+                retval.append("\tparams: "+params[i]);
+                retval.append("\n");
+            }
+        }
+        Process process = null;
+        MonitorInputStream outMonitor = null;
+        MonitorInputStream errMonitor = null;
+        Thread t1 = null;
+        Thread t2 = null;
+        int exitStatus = -1;
 
-                  try
-                  {
-                          // execute command
-                          process = Runtime.getRuntime().exec(params);
+        Debug.trace(retval);
 
-              boolean console = false;//TODO: impl from xml <execute in_console=true ...>, but works already if this flag is true
-              if (console)
-              {
-                          Console c = new Console(process);
-                          // save command output
-                          output[0] = c.getOutputData();
-                          output[1] = c.getErrorData();
-              }
-              else
-              {
-                          StringWriter outWriter = new StringWriter();
-                          StringWriter errWriter = new StringWriter();
+        try
+        {
+            // execute command
+            process = Runtime.getRuntime().exec(params);
 
-                          InputStreamReader or =
-                                  new InputStreamReader(process.getInputStream());
-                          InputStreamReader er =
-                                  new InputStreamReader(process.getErrorStream());
-                          outMonitor = new MonitorInputStream(or, outWriter);
-                          errMonitor = new MonitorInputStream(er, errWriter);
-                          t1 = new Thread(outMonitor);
-                          t2 = new Thread(errMonitor);
-                          t1.setDaemon(true);
-                          t2.setDaemon(true);
-                          t1.start();
-                          t2.start();
+            boolean console = false;//TODO: impl from xml <execute in_console=true ...>, but works already if this flag is true
+            if (console)
+            {
+                Console c = new Console(process);
+                // save command output
+                output[0] = c.getOutputData();
+                output[1] = c.getErrorData();
+                exitStatus = process.exitValue();
+            }
+            else
+            {
+                StringWriter outWriter = new StringWriter();
+                StringWriter errWriter = new StringWriter();
 
-                          // wait for command to comlete
-                          exitStatus = process.waitFor();
-                          if (t1 != null)
-                          {
-                                  t1.join();
-                          }
-                          if (t2 != null)
-                          {
-                                  t2.join();
-                          }
+                InputStreamReader or =
+                    new InputStreamReader(process.getInputStream());
+                InputStreamReader er =
+                    new InputStreamReader(process.getErrorStream());
+                outMonitor = new MonitorInputStream(or, outWriter);
+                errMonitor = new MonitorInputStream(er, errWriter);
+                t1 = new Thread(outMonitor);
+                t2 = new Thread(errMonitor);
+                t1.setDaemon(true);
+                t2.setDaemon(true);
+                t1.start();
+                t2.start();
 
-                          // save command output
-                          output[0] = outWriter.toString();
-                          output[1] = errWriter.toString();
-              }
-                          exitStatus = process.exitValue();
-                  }
-                  catch (InterruptedException e)
-                  {
-                          e.printStackTrace(System.err);
-                          stopThread(t1, outMonitor);
-                          stopThread(t2, errMonitor);
-                          output[0] = "";
-                          output[1] = e.getMessage() + "\n";
-                          process.destroy();
-                  }
-                  catch (IOException e)
-                  {
-                          e.printStackTrace(System.err);
-                          output[0] = "";
-                          output[1] = e.getMessage() + "\n";
-                  }
-                  return exitStatus;
-          }
+                // wait for command to complete
+                exitStatus = process.waitFor();
+                if (t1 != null)
+                {
+                    t1.join();
+                }
+                if (t2 != null)
+                {
+                    t2.join();
+                }
+
+                // save command output
+                output[0] = outWriter.toString();
+                Debug.trace ("stdout:");
+                Debug.trace (output[0]);
+                output[1] = errWriter.toString();
+                Debug.trace ("stderr:");
+                Debug.trace (output[1]);
+            }
+            Debug.trace ("exit status: " + Integer.toString (exitStatus));
+        }
+        catch (InterruptedException e)
+        {
+            if (Debug.tracing()) e.printStackTrace(System.err);
+            stopThread(t1, outMonitor);
+            stopThread(t2, errMonitor);
+            output[0] = "";
+            output[1] = e.getMessage() + "\n";
+            process.destroy();
+        }
+        catch (IOException e)
+        {
+            if (Debug.tracing()) e.printStackTrace(System.err);
+            output[0] = "";
+            output[1] = e.getMessage() + "\n";
+        }
+        return exitStatus;
+    }
 
     /**
      *  Executes files specified at construction time.
      *
-     * @return    Description of the Return Value
+     * @param   currentStage the stage of the installation
+     * @param   handler The AbstractUIHandler to notify on errors.
+     * 
+     * @return  0 on success, else the exit status of the last failed command
      */
-    public int executeFiles(int currentStage)
+    public int executeFiles(int currentStage, AbstractUIHandler handler)
     {
         int exitStatus = 0;
         String[] output = new String[2];
         String pathSep = System.getProperty("path.separator");
         String osName = System.getProperty("os.name").toLowerCase();
-        String permissions = (System.getProperty("user.name").equals("root")) ? "a+x" : "u+x";
+        //String permissions = (System.getProperty("user.name").equals("root")) ? "a+x" : "u+x";
+        String permissions = "a+x";
 
         // loop through all executables
         Iterator efileIterator = files.iterator();
         while ((exitStatus == 0) && efileIterator.hasNext())
         {
-            boolean deleteAfterwards = true;
             ExecutableFile efile = (ExecutableFile) efileIterator.next();
+            boolean deleteAfterwards = ! efile.keepFile;
             File file = new File(efile.path);
             Debug.trace("handeling executable file "+efile);
+
+            // skip file if not for current OS (it might not have been installed at all)
+            if (! OsConstraint.oneMatchesCurrentSystem (efile.osList))
+                continue;
 
             if(currentStage!=ExecutableFile.UNINSTALL)
             {
@@ -256,96 +286,83 @@ public class FileExecutor
                     Debug.trace("making file executable (setting executable flag)");
                     String[] params = {"/bin/chmod", permissions, file.toString()};
                     exitStatus = executeCommand(params, output);
-                }
-            }
-            // loop through all operating systems
-            Iterator osIterator = efile.osList.iterator();
-            if (!osIterator.hasNext())
-            {
-                Debug.trace("no os to install the file on!");
-            }
-            while (osIterator.hasNext())
-            {
-                Os os = (Os) osIterator.next();
-
-                Debug.trace("checking if os param on file "+os+" equals current os");
-                if (os.matchCurrentSystem())
-                {
-                        Debug.trace("match current os");
-                    // execute command in POSTINSTALL stage
-                    if ((exitStatus == 0) &&
-                        ((currentStage == ExecutableFile.POSTINSTALL && efile.executionStage == ExecutableFile.POSTINSTALL)
-                        || (currentStage==ExecutableFile.UNINSTALL && efile.executionStage == ExecutableFile.UNINSTALL)))
+                    if (exitStatus != 0)
                     {
-                        List paramList = new ArrayList();
-                        if (ExecutableFile.BIN == efile.type)
-                            paramList.add(file.toString());
-
-                        else if (ExecutableFile.JAR == efile.type && null == efile.mainClass)
-                        {
-                            paramList.add(System.getProperty("java.home") + "/bin/java");
-                            paramList.add("-jar");
-                            paramList.add(file.toString());
-                        }
-                        else if (ExecutableFile.JAR == efile.type && null != efile.mainClass)
-                        {
-                            paramList.add(System.getProperty("java.home") + "/bin/java");
-                            paramList.add("-cp=" + file.toString());
-                            paramList.add(efile.mainClass);
-                        }
-
-                        if (null != efile.argList && !efile.argList.isEmpty())
-                            paramList.addAll(efile.argList);
-
-                        String[] params = new String[paramList.size()];
-                        for (int i = 0; i < paramList.size(); i++)
-                            params[i] = (String) paramList.get(i);
-
-                        exitStatus = executeCommand(params, output);
-                        // bring a dialog depending on return code and failure handling
-                        if (exitStatus != 0)
-                        {
-                            deleteAfterwards = false;
-                            String message = output[0] + "\n" + output[1];
-                            if (message.length() == 1)
-                                message = new String("Failed to execute " + file.toString() + ".");
-
-                            if (efile.onFailure == ExecutableFile.ABORT)
-
-                                javax.swing.JOptionPane.showMessageDialog(null, message,
-                                    "Installation error",
-                                    javax.swing.JOptionPane.ERROR_MESSAGE);
-                            else if (efile.onFailure == ExecutableFile.WARN)
-                            {
-
-                                javax.swing.JOptionPane.showMessageDialog(null, message,
-                                    "Installation warning",
-                                    javax.swing.JOptionPane.WARNING_MESSAGE);
-                                exitStatus = 0;
-                            }
-                            else
-                                if (
-                                    javax.swing.JOptionPane.showConfirmDialog(null,
-                                    message + "Would you like to proceed?",
-                                    "Installation Warning",
-                                    javax.swing.JOptionPane.YES_NO_OPTION) ==
-                                    javax.swing.JOptionPane.YES_OPTION)
-                                    exitStatus = 0;
-
-                        }
+                        handler.emitError("file execution error", "Error executing \n"+
+                            params[0]+" "+params[1]+" "+params[2]);
+                        continue;
                     }
                 }
-                else
-                {
-                        Debug.trace("-no match with current os!");
-                }
             }
 
-                      // POSTINSTALL executables will be deleted
-                      if (efile.executionStage == ExecutableFile.POSTINSTALL && deleteAfterwards)
-                      {
-                              if (file.canWrite()) file.delete();
-                      }
+            // execute command in POSTINSTALL stage
+            if ((exitStatus == 0) &&
+                ((currentStage == ExecutableFile.POSTINSTALL && efile.executionStage == ExecutableFile.POSTINSTALL)
+                 || (currentStage==ExecutableFile.UNINSTALL && efile.executionStage == ExecutableFile.UNINSTALL)))
+            {
+                List paramList = new ArrayList();
+                if (ExecutableFile.BIN == efile.type)
+                    paramList.add(file.toString());
+
+                else if (ExecutableFile.JAR == efile.type && null == efile.mainClass)
+                {
+                    paramList.add(System.getProperty("java.home") + "/bin/java");
+                    paramList.add("-jar");
+                    paramList.add(file.toString());
+                }
+                else if (ExecutableFile.JAR == efile.type && null != efile.mainClass)
+                {
+                    paramList.add(System.getProperty("java.home") + "/bin/java");
+                    paramList.add("-cp");
+                    paramList.add(file.toString());
+                    paramList.add(efile.mainClass);
+                }
+
+                if (null != efile.argList && !efile.argList.isEmpty())
+                    paramList.addAll(efile.argList);
+
+                String[] params = new String[paramList.size()];
+                for (int i = 0; i < paramList.size(); i++)
+                    params[i] = (String) paramList.get(i);
+
+                exitStatus = executeCommand(params, output);
+
+                // bring a dialog depending on return code and failure handling
+                if (exitStatus != 0)
+                {
+                    deleteAfterwards = false;
+                    String message = output[0] + "\n" + output[1];
+                    if (message.length() == 1)
+                        message = new String("Failed to execute " + file.toString() + ".");
+
+                    if (efile.onFailure == ExecutableFile.ABORT)
+                    {
+                        // CHECKME: let the user decide or abort anyway?
+                        handler.emitError("file execution error", message);
+                    }
+                    else if (efile.onFailure == ExecutableFile.WARN)
+                    {
+                        // CHECKME: let the user decide or abort anyway?
+                        handler.emitWarning ("file execution error", message);
+                        exitStatus = 0;
+                    }
+                    else
+                    {
+                        if (handler.askQuestion (null, "Continue?", AbstractUIHandler.CHOICES_YES_NO)
+                            == AbstractUIHandler.ANSWER_YES)
+                            exitStatus = 0;
+                    }
+
+                }
+
+            }
+
+
+            // POSTINSTALL executables will be deleted
+            if (efile.executionStage == ExecutableFile.POSTINSTALL && deleteAfterwards)
+            {
+                if (file.canWrite()) file.delete();
+            }
 
         }
         return exitStatus;
