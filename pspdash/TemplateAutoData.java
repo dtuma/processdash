@@ -119,6 +119,12 @@ public class TemplateAutoData extends AutoData {
                 globalDataHeader.append("#define PROCESS_HAS_APPRAISAL\n");
                 dataDefinitions.put(APPR_LIST_ELEM, phases.appraisal);
             }
+
+            // Were any quality phases defined?
+            if (phases.quality.size() > 0) {
+                globalDataHeader.append("#define PROCESS_HAS_QUALITY\n");
+                dataDefinitions.put(QUAL_LIST_ELEM, phases.quality);
+            }
         }
 
         buildDefaultData(template, "", data, dataDefinitions,
@@ -264,6 +270,7 @@ public class TemplateAutoData extends AutoData {
     private static final String YIELD_LIST_ELEM = "Yield_Phase_List";
     private static final String FAIL_LIST_ELEM  = "Failure_Phase_List";
     private static final String APPR_LIST_ELEM  = "Appraisal_Phase_List";
+    private static final String QUAL_LIST_ELEM  = "Quality_Phase_List";
     private static final String PHASE_LIST_ELEM = "Phase_List";
     static final String PHASE_TYPE_ATTR = "type";
 
@@ -273,7 +280,7 @@ public class TemplateAutoData extends AutoData {
      */
     private class PhaseLister extends XMLDepthFirstIterator {
 
-        ListData all, yield, appraisal, failure, nodes;
+        ListData all, yield, appraisal, failure, quality, nodes;
         String lastNameSeen = null;
 
         public PhaseLister() {
@@ -281,6 +288,7 @@ public class TemplateAutoData extends AutoData {
             yield = newEmptyList();
             appraisal = newEmptyList();
             failure = newEmptyList();
+            quality = newEmptyList();
         }
 
         public void commit() {
@@ -288,6 +296,7 @@ public class TemplateAutoData extends AutoData {
             yield.setImmutable();
             appraisal.setImmutable();
             failure.setImmutable();
+            quality.setImmutable();
         }
 
         public int getOrdering() { return POST; }
@@ -309,10 +318,13 @@ public class TemplateAutoData extends AutoData {
                     // appraisal, failure, and/or yield lists.
                     String phaseType =
                         e.getAttribute(PHASE_TYPE_ATTR);
-                    if (failurePhaseTypes.contains(phaseType))
+                    if (failurePhaseTypes.contains(phaseType)) {
                         failure.add(nodeName);
-                    else if (appraisalPhaseTypes.contains(phaseType))
+                        quality.add(nodeName);
+                    } else if (appraisalPhaseTypes.contains(phaseType)) {
                         appraisal.add(nodeName);
+                        quality.add(nodeName);
+                    }
 
                     if (failure.size() == 0) yield.add(nodeName);
                 }
