@@ -63,8 +63,11 @@ public class DashController {
 
     public static void startTiming() { dash.pause_button.cont();  }
     public static void stopTiming()  { dash.pause_button.pause(); }
-    public static void setPath(String path) {
-        dash.pause_button.setPath(path);
+    public static boolean setPath(String path) {
+        return dash.pause_button.setPath(path);
+    }
+    public static boolean setPhase(String phase) {
+        return dash.pause_button.setPhase(phase);
     }
 
     public static void printNullDocument(PrintWriter out) {
