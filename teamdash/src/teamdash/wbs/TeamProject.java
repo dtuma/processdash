@@ -64,7 +64,7 @@ public class TeamProject {
 
 
     /** Open and parse an XML file. @return null on error. */
-    private Element openXML(File file) {
+    private static Element openXML(File file) {
         try {
             Document doc = XMLUtils.parse(new FileInputStream(file));
             return doc.getDocumentElement();
@@ -163,7 +163,24 @@ public class TeamProject {
         }
     }
 
+    /*
 
+    // The following stub procedure was for running memory usage experiments.
+    public static void main(String args[]) {
+        Element el = openXML(new File("team.xml"));
+        System.out.println("Press enter to start");
+        try {
+            byte[] buf = new byte[100];
+            System.in.read(buf);
+        } catch (Exception e) {}
+        TeamProject p = new TeamProject(new File("."), "Team Project");
+        DataTableModel m = new DataTableModel(p.getWBS(),p.getTeamMemberList(), p.getTeamProcess());
+        System.out.println("Press a key to finish");
+        try {
+            System.in.read();
+        } catch (Exception e) {}
+    }
+    */
 
     private static final String TEAM_LIST_FILENAME = "team.xml";
     private static final String WBS_FILENAME = "wbs.xml";
