@@ -443,7 +443,9 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     }
 
                                 // make sure root is expanded
-    public void expandRoot () { tree.expandRow (0); }
+    public void expandRoot () {
+        tree.expandPath (new TreePath(treeModel.getRoot()));
+    }
 
     /** Construct a menu. */
     private JMenuBar constructMenuBar() {
@@ -986,8 +988,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 new DefaultMutableTreeNode (newCName (parent));
             treeModel.insertNodeInto(newNode, parent, newIndex);
             startEditingNode(newNode);
-            if ( ! tree.isExpanded (0))
-                tree.expandRow(0);
+            expandRoot();
 
             setDirty (true);
         }
@@ -1023,8 +1024,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 new DefaultMutableTreeNode (newCName (parent));
             treeModel.insertNodeInto(newNode, parent, newIndex);
             startEditingNode(newNode);
-            if ( ! tree.isExpanded (0))
-                tree.expandRow(0);
+            expandRoot();
 
             /* recompute the template menu. */
             valueChanged(null);
@@ -1066,8 +1066,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 new DefaultMutableTreeNode (newCName (parent));
             treeModel.insertNodeInto(newNode, parent, newIndex);
             startEditingNode(newNode);
-            if ( ! tree.isExpanded (0))
-                tree.expandRow(0);
+            expandRoot();
 
             setDirty (true);
         }
