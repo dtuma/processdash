@@ -68,7 +68,7 @@ Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated New & Changed LO
 == Local copies of To Date data
 ==
 
-Estimated Time To Date==![(#=	/Estimated Time To Date)]
+ESTIMATED Time To Date==![(#=	/Estimated Time To Date)]
 Time To Date==![(#=	/Time To Date)]
 CPI To Date==![(#=	/CPI To Date)]
 % Reused To Date==![(#=	/% Reused To Date)]
