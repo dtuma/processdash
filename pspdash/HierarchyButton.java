@@ -190,7 +190,7 @@ public class HierarchyButton implements ActionListener {
 
     public void workPerformed(DateData d) {
           // calculate the name of the Start Date data element for our path.
-        String dataName = self.path() + "/Started";
+        String dataName = parent.data.createDataName(self.path(), "Started");
 
             // if our start date has not already been set, set it to d
         if (parent.data.getValue(dataName) == null)
@@ -203,7 +203,8 @@ public class HierarchyButton implements ActionListener {
 
     private void markCompleted() {
           // mark this phase as completed in the data repository.
-        parent.data.putValue(self.path() + "/Completed", new DateData());
+        String dataName = parent.data.createDataName(self.path(), "Completed");
+        parent.data.putValue(dataName, new DateData());
     }
 
 

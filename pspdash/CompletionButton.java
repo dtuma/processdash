@@ -49,7 +49,7 @@ class CompletionButton extends JCheckBox implements ActionListener {
     }
 
     public void setPath(String p) {
-        dataName = p + "/Completed";
+        dataName = parent.data.createDataName(p, "Completed");
         DateData d = (DateData) parent.data.getValue(dataName);
         if (d == null) {
             setSelected(false);

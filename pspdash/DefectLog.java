@@ -193,7 +193,7 @@ public class DefectLog {
     }
 
     private void incrementDataValue(String dataName, int increment) {
-        dataName = dataPrefix + dataName;
+        dataName = data.createDataName(dataPrefix, dataName);
         DoubleData val;
         try {
             val = (DoubleData)data.getValue(dataName);
@@ -338,7 +338,7 @@ public class DefectLog {
         dataNames = phaseData.keySet().iterator();
         while (dataNames.hasNext()) {
             subname = (String) dataNames.next();
-            name = dataPrefix + subname;
+            name = data.createDataName(dataPrefix, subname);
             val = new DoubleData(phaseData.extractValue(subname));
             val.setEditable(false);
             data.putValue(name, val);
