@@ -204,9 +204,13 @@ public class ScriptBrowser extends JDialog
 
         ScriptID script, defaultScript = (ScriptID) scripts.elementAt(0);
 
+        String dataPath = defaultScript.getDataPath();
         for (int i=1;  i < scripts.size();  i++) {
             script = (ScriptID) scripts.elementAt(i);
+            if (dataPath != null && !dataPath.equals(script.getDataPath()))
+                break;
             scriptList.addElement(script);
+            dataPath = script.getDataPath();
             if (defaultScript.scriptEquals(script))
                 list.getSelectionModel().addSelectionInterval(i-1, i-1);
         }
