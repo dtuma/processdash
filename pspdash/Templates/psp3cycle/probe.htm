@@ -1,0 +1,166 @@
+<!--
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 1999  United States Air Force
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// 
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+// 
+// E-Mail POC:  ken.raisor@hill.af.mil
+-->
+
+<HTML>
+<HEAD>
+<TITLE>PROBE Estimating Script</TITLE>
+</HEAD>
+<BODY>
+
+<H1>PROBE Estimating Script</H1>
+
+<TABLE BORDER>
+
+<TR>
+<TD>Phase<BR>Number</TD>
+<TD>Purpose</TD>
+<TD>To guide the PROBE estimation process.</TD>
+</TR>
+
+<TR>
+<TD></TD>
+<TD VALIGN=TOP>Entry Criteria</TD>
+<TD><UL>
+<LI>Requirements statement
+<LI>Size Estimating Template and instructions
+<LI>LOC per method data for object types
+<LI>Time Recording Log
+</UL></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>1</TD>
+<TD VALIGN=TOP>Conceptual Design</TD>
+<TD><UL>
+<LI>Review the requirements and produce a conceptual design to meet them.
+</UL></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>2</TD>
+<TD VALIGN=TOP>Identify Objects</TD>
+<TD>
+Using the <A HREF="sizeest.class">Size Estimating Template</A>,
+<UL>
+<LI>Identify and name the objects needed to implement this design.
+<LI>Judge the number of methods in each object.
+<LI>Determine the type category for each object (Logic, I/O, Calculation, Text, Data, Set-up).
+<LI>Estimate the relative size of the object's methods (very small, small, medium, large, very large).
+<LI>Find the LOC per method from the <A HREF="objsize.htm" TARGET=objsize>object database</A> for that object type.
+<LI>Calculate the estimated object size as the number of methods times the LOC per method.
+<LI>Judge which of these objects will likely be entered in the reuse library and check the box in the LOC(New Reused) column.
+</UL></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>3</TD>
+<TD VALIGN=TOP>Other Program LOC</TD>
+<TD><UL>
+<LI>Follow the Size Estimating Template instructions to estimate the base, deleted, modified, added, reused, and new reused LOC.
+</UL></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>4</TD>
+<TD VALIGN=TOP>Estimating Basis</TD>
+<TD><UL>
+<LI>A  -  If you have no historical data, use your judgment to estimate the new and changed LOC and the required development time per LOC.
+<LI>B  -  If you have sufficient actual data on development time and program size, estimate the new and changed LOC for the new program and multiply it by your historical new and changed LOC per hour productivity rate.
+<LI>C  -  If you have sufficient actual development time and actual object LOC data, calculate the B<sub>0</sub> and B<sub>1</sub> regression factors from these actual object LOC and actual hours data.
+<LI>D  -  If you have sufficient estimated object LOC data, calculate two sets of B<sub>0</sub> and B<sub>1</sub> regression parameters.  One for the estimated object LOC versus actual new and changed LOC and use these parameters to calcuate the estimated new and changed LOC on the Size Estimating Template.  Calculate the second set of B<sub>0</sub> and B<sub>1</sub> regression parameters for estimated object LOC and actual hours.  Use these parameters to estimate total planned development time.
+</UL></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>5</TD>
+<TD VALIGN=TOP>Sufficient Data</TD>
+<TD><UL>
+<LI>To use the averaging method, it is sufficient to have historical data on actual new and changed LOC and actual development hours for one project.
+<LI>To use the regression method, you must have a minimum of three sets of historical development data.
+<LI>With three or more sets of historical data, the correlation between LOC (estimate or actual) and development time should give an r value such that r<sup>2</sup> >= 0.50.
+</UL></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>6</TD>
+<TD VALIGN=TOP>Regression Method</TD>
+<TD><UL>
+<LI>Use the linear regression procedure described in Appendix A, Table A27, to calculate the B<sub>0</sub> and B<sub>1</sub> regression parameters.
+<LI>Select the size data as actual object LOC (case C in step 4) or estimated object LOC (case D in step 4).
+</UL>
+<I>Note</I>: the regression parameters in the Size Estimating Template relate the base program additions (BA), new object (NO), and base program modifications (M) to total new and changed LOC (N).  Your regression dataset should include these same items.
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>7</TD>
+<TD VALIGN=TOP>Regression Parameter Test</TD>
+<TD>The absolute magnitude of B<sub>0</sub> should be substantially less than the expected size (for size estimates) or development time (for hour estimates) of the program you are estimating.
+<UL>
+<LI>For size estimates, the value of B<sub>1</sub> should be positive and relatively near to 1.0.
+<LI>For development time estimates, the value of 1/B<sub>1</sub> should be positive and relatively near to your historical LOC/hour productivity.
+</UL>
+If these conditions are not met, use the averaging method.</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>8</TD>
+<TD VALIGN=TOP>Averaging Method</TD>
+<TD><UL>
+<LI>Set the value of B<sub>0</sub> = 0.
+<LI>Set B<sub>1</sub> = the sum of the development time for each program in the database / the sum of the actual object LOC for each program in the database.
+</UL><I>Note</I>: the size data in the size estimating database should include the same items included in the new program estimate.</TD>
+</TR>
+
+
+<TR>
+<TD VALIGN=TOP>9</TD>
+<TD VALIGN=TOP>Estimate</TD>
+<TD><UL>
+<LI>Estimate the projected LOC in the Size Estimating Template and calculate the development time:<br>
+Hours = B<sub>0</sub> + B<sub>1</sub> * (projected plus modified LOC).
+</UL></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>10</TD>
+<TD VALIGN=TOP>Prediction Interval</TD>
+<TD><UL>
+<LI>If you used the regression method, calculate the prediction interval for the estimate as described in Appendix A, section A8.
+</UL><I>Note</I>: the use of actual new and changed LOC and actual development time in the regression calculations is equivalent to assuming that the size estimate was exactly correct.  This will generally give an unrealistically small prediction interval.</TD>
+</TR>
+
+</TABLE>
+
+<P><A HREF="planning.htm#AfterProbe">Next: Continue planning</A>.
+<P><A HREF="script.htm">Top</A>
+
+<HR><FONT SIZE="-1"><I>Copyright &copy;&nbsp;1995 Addison-Wesley
+Publishing Company, Inc.  Used by permission.</I></FONT>
+
+</BODY>
+</HTML>
