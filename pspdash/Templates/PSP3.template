@@ -55,7 +55,7 @@
 ## Template for PSP3 process
 ##
 
-PropertyKey<top><PSP3>=Prop[true][PSP3][psp3/script.htm][psp3/dataFile.txt][<PSP3cycle(-1)][0][4][PropertyKey<top/PSP3><Planning>][PropertyKey<top/PSP3><High Level Design>][PropertyKey<top/PSP3><High Level Design Review>][PropertyKey<top/PSP3><Postmortem>]
+PropertyKey<top><PSP3>=Prop[true][PSP3][psp3/script.htm][psp3/dataFile.txt][<PSP3cycle(-1)<HLD Inspection(3)][0][4][PropertyKey<top/PSP3><Planning>][PropertyKey<top/PSP3><High Level Design>][PropertyKey<top/PSP3><High Level Design Review>][PropertyKey<top/PSP3><Postmortem>]
 PropertyKey<top/PSP3><Planning>=Prop[][][psp3/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP3><High Level Design>=Prop[][][psp3/hld.htm][][ME<>][0][0]
 PropertyKey<top/PSP3><High Level Design Review>=Prop[][][psp3/hldr.htm][][ME<>][0][0]
@@ -66,7 +66,7 @@ PropertyKey<top/PSP3><Postmortem>=Prop[][][psp3/postmort.htm][][ME<>][0][0]
 ## Template for a PSP3 cycle
 ##
 
-PropertyKey<top><PSP3cycle>=Prop[][PSP3cycle][][psp3/cycleData.txt][<>PSP3][0][7][PropertyKey<top/PSP3cycle><Design>][PropertyKey<top/PSP3cycle><Design Review>][PropertyKey<top/PSP3cycle><Code>][PropertyKey<top/PSP3cycle><Code Review>][PropertyKey<top/PSP3cycle><Compile>][PropertyKey<top/PSP3cycle><Test>][PropertyKey<top/PSP3cycle><Reassessment>]
+PropertyKey<top><PSP3cycle>=Prop[][PSP3cycle][][psp3/cycleData.txt][<Design Inspection(2)<Code Inspection(-2)>PSP3][0][7][PropertyKey<top/PSP3cycle><Design>][PropertyKey<top/PSP3cycle><Design Review>][PropertyKey<top/PSP3cycle><Code>][PropertyKey<top/PSP3cycle><Code Review>][PropertyKey<top/PSP3cycle><Compile>][PropertyKey<top/PSP3cycle><Test>][PropertyKey<top/PSP3cycle><Reassessment>]
 PropertyKey<top/PSP3cycle><Design>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP3cycle><Design Review>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP3cycle><Code>=Prop[][][][][ME<>][0][0]
@@ -74,3 +74,9 @@ PropertyKey<top/PSP3cycle><Code Review>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP3cycle><Compile>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP3cycle><Test>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP3cycle><Reassessment>=Prop[][][][][ME<>][0][0]
+
+##
+## Templates for optional inspection phases - disabled for now.
+##
+
+#PropertyKey<top><HLD Inspection>=Prop[][HLD Inspection][pspInsp/script.htm][pspInsp/dataFile.txt][MED<>PSP3][0][0]
