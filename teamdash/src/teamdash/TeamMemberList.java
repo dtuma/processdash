@@ -35,9 +35,8 @@ public class TeamMemberList extends AbstractTableModel {
      * the list */
     private boolean autoNewRow = true;
 
-    /** Creates a team member list with one empty team member at the end. */
+    /** Creates an empty team member list. */
     public TeamMemberList() {
-        addNewRow();
     }
 
     /** Create a team member list from the information in the given
