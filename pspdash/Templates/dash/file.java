@@ -797,7 +797,9 @@ public class file extends TinyCGIBase {
         // Look for an inheritable value for the FILE_XML element in the
         // data repository.
         DataRepository data = getDataRepository();
-        StringBuffer prefix = new StringBuffer(getPrefix());
+        String pfx = getPrefix();
+        if (pfx == null) pfx = "/";
+        StringBuffer prefix = new StringBuffer(pfx);
         ListData list;
         Element result = null;
         SaveableData val;
