@@ -100,6 +100,7 @@ public class CachedURLObject extends CachedObject {
     public boolean refresh() {
         try {
             URLConnection conn = url.openConnection();
+            conn.setUseCaches(false);
             if (credential != null)
                 conn.setRequestProperty("Authorization", credential);
 
