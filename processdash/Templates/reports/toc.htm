@@ -37,23 +37,36 @@
 <BODY>
 <H1><!--#echo Data_Analysis --></H1>
 
-<!--#if Dash_Package_pspProc -->
-<P><A HREF="../psp3/rollsum.htm" TARGET=contents><!--#echo Summary.Title --></A>
+<!--#if not [PSP Project] -->
+    <P><A HREF="../dash/summary.shtm?rollup" 
+          TARGET=contents><!--#echo Summary.Title --></A>
+<!--#elif Dash_Package_pspProc -->
+    <P><A HREF="../psp3/rollsum.htm" 
+          TARGET=contents><!--#echo Summary.Title --></A>
 <!--#endif-->
 
+<!--#if defined [Defects Injected] -->
 <P><A HREF="defectAnalysis" TARGET=contents><!--#echo Defects.Title --></A>
+<!--#endif-->
 
 <P><A HREF="planAnalysis" TARGET=contents><!--#echo Plan.Title --></A>
 
+<!--#if defined [SIZE_METRIC_NAME] || defined [AFR] -->
 <P><A HREF="processAnalysis" TARGET=contents><!--#echo Process.Title --></A>
+<!--#endif-->
 
+<!--#if defined [Yield] || defined [% COQ] -->
 <P><A HREF="qualityAnalysis" TARGET=contents><!--#echo Quality.Title --></A>
+<!--#endif-->
 
+<!--#if defined [Defects Injected] -->
 <P><A HREF="psp/r3.shtm" TARGET=contents><!--#echo R3.Title --></A>
 
-<P><A HREF="psp/r4.class?strict&qf=../compProj.rpt" TARGET=contents><!--#echo R4.Title --></A>
+<P><A HREF="psp/r4.class?strict&qf=../compProj.rpt"
+      TARGET=contents><!--#echo R4.Title --></A>
 
 <P><A HREF="psp/r5.htm" TARGET=contents><!--#echo Pareto.Title --></A>
+<!--#endif-->
 
 <P><A HREF="custom/create.shtm" TARGET=contents><!--#echo Custom.Title --></A>
 

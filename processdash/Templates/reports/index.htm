@@ -1,4 +1,4 @@
-<!--
+<!--#server-parsed --><!--#resources file="reports" --><!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 // 
@@ -25,9 +25,13 @@
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 -->
 <HTML>
-<HEAD><TITLE>Data Analysis</TITLE></HEAD>
+<HEAD><TITLE><!--#echo Data_Analysis --></TITLE></HEAD>
 <FRAMESET COLS="140,*">
     <FRAME NAME="toc" SRC="toc.htm">
+<!--#if defined [Defects Injected] -->
     <FRAME NAME="contents" SRC="defectAnalysis">
+<!--#else-->
+    <FRAME NAME="contents" SRC="planAnalysis">
+<!--#endif-->
 </FRAMESET>
 </HTML>
