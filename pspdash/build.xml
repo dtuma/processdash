@@ -69,7 +69,7 @@ Authors:
 
 ==================================================================== -->
 
-<project default="jar" basedir=".">
+<project default="dist" basedir=".">
 
   <property environment="env"/>
 
@@ -551,6 +551,8 @@ Authors:
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
   </target>
+
+  <target name="dist" depends="javahelp-addon,jar"/>
 
 </project>
 
