@@ -47,11 +47,11 @@ public class EVSchedule implements TableModel {
     }
 
     private static final boolean ADJUST = true;
-    private static int ADJUSTMENT = 1000; // one second
+    private static int ADJUSTMENT = 1000;  // one second
     private static final long HOUR_MILLIS =
         60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
     private static final long DAY_MILLIS = 24L /*hours*/ * HOUR_MILLIS;
-    private static final long WEEK_MILLIS = 7 * DAY_MILLIS;
+    static final long WEEK_MILLIS = 7 * DAY_MILLIS;
     private static final long MIDNIGHT = DAY_MILLIS - ADJUSTMENT;
 
     public class Period implements Cloneable {
@@ -217,6 +217,11 @@ public class EVSchedule implements TableModel {
                 return super.clone();
             } catch (CloneNotSupportedException ncse) { return null; }
         }
+
+        /** Warning - these fields are typically unused, so they
+         * rarely contain any real data. Don't expect them to contain
+         * anything useful unless you put it there. */
+        double planValue = 0, earnedValue = 0;
     }
 
     Vector periods = new Vector();
@@ -441,6 +446,7 @@ public class EVSchedule implements TableModel {
 
     private Date effectiveDate = null;
     private int effectivePeriod = 0;
+    public Date getEffectiveDate() { return effectiveDate; }
     public synchronized void setEffectiveDate(Date d) {
         effectiveDate = d;
         effectivePeriod = 0;
@@ -597,6 +603,23 @@ public class EVSchedule implements TableModel {
             p.cumPlanTime = cumPlanTime;
         }
     }
+
+
+    /** the Period.planValue and Period.earnedValue fields generally do not
+     * contain any data. This routine calculates the values of these fields
+     * for all the periods in the given schedule */
+    protected synchronized void calcIndividualValues() {
+        Iterator i = periods.iterator();
+        Period p = (Period) i.next();
+        p.planValue = p.cumPlanValue;
+        p.earnedValue = p.cumEarnedValue;
+        while (i.hasNext()) {
+            p = (Period) i.next();
+            p.planValue   = p.cumPlanValue   - p.previous.cumPlanValue;
+            p.earnedValue = p.cumEarnedValue - p.previous.cumEarnedValue;
+        }
+    }
+
 
     int prevNumRows = -1;
     public void prepForEvents() {
