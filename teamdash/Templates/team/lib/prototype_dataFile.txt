@@ -5,6 +5,8 @@
 [<!--#echo Process_ID --> Tag] = tag;
 <!--#if not USE_TO_DATE_DATA #-->
 undefine([Use_Rollup]);
+[/<!--#echo Process_ID -->/Project List] =
+    search("/", "<!--#echo Process_ID --> Rollup Eligible");
 <!--#endif-->
 
 /*
