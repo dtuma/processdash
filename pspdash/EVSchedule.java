@@ -583,7 +583,9 @@ public class EVSchedule implements TableModel {
         EVSchedule s = new EVSchedule(this);
         s.cleanUp();
         if (useDTPI) s.multiply(1 / metrics.directTimePerformanceIndex());
-        return s.getPlannedCompletionDate(cumPlanTime, cumPlanTime);
+        double extra = cumPlanTime + s.defaultPlanDirectTime;
+        s.getPlannedCompletionDate(extra, extra);
+        return s.extrapolateWithinSchedule(cumPlanTime);
     }
 
     public synchronized Date getPlannedCompletionDate(double cumPlanTime,
