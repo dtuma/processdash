@@ -159,7 +159,7 @@ public class WebServer extends Thread {
                 resolveClass(result);
                 return result;
             } catch (Exception e) {
-                throw new ClassNotFoundException(name);
+                throw new ClassNotFoundException(name, e);
             }
         }
         protected URL findResource(String name) {
@@ -356,8 +356,10 @@ public class WebServer extends Thread {
 
             } catch (NoSuchElementException nsee) {
                 sendError( 400, "Bad Request", "No request found." );
-            } catch (IOException ioe) {
-                sendError( 500, "Internal Error", "IO Exception." );
+            } catch (TinyWebThreadException twte) {
+                throw twte;
+            } catch (Throwable t) {
+                sendError( 500, "Internal Error", null, null, t);
             }
         }
 
@@ -612,10 +614,7 @@ public class WebServer extends Thread {
                     sendError(tce.getStatus(), tce.getTitle(), tce.getText(),
                               tce.getOtherHeaders());
                 } else {
-                    StringWriter w = new StringWriter();
-                    cgie.printStackTrace(new PrintWriter(w));
-                    sendError(500, "CGI Error", "Error running script: " +
-                              "<PRE>" + w.toString() + "</PRE>");
+                    sendError(500, "CGI Error", null, null, cgie);
                 }
             } finally {
                 if (script != null) doneWithScript(script);
@@ -968,6 +967,8 @@ public class WebServer extends Thread {
         private boolean checkPassword(String path)
             throws TinyWebThreadException
         {
+            if (data == null)
+                return false;
             String dataName = path + "/_Password_";
             Object value = data.getValue(dataName);
             if (value == null)
@@ -1055,18 +1056,33 @@ public class WebServer extends Thread {
          */
         private void sendError(int status, String title, String text )
             throws TinyWebThreadException {
-            sendError(status, title, text, null);
+            sendError(status, title, text, null, null);
         }
         private void sendError(int status, String title, String text,
                                String otherHeaders )
+            throws TinyWebThreadException {
+            sendError(status, title, text, otherHeaders, null);
+        }
+        private void sendError(int status, String title, String text,
+                               String otherHeaders, Throwable cause )
             throws TinyWebThreadException
         {
             TinyWebThreadException result = new TinyWebThreadException();
+            if (cause != null)
+                result.initCause(cause);
             try {
                 if (exceptionEncountered == null)
                     exceptionEncountered = result;
                 discardHeader();
                 sendHeaders( status, title, "text/html", -1, -1, otherHeaders);
+                if (cause != null) {
+                    StringWriter w = new StringWriter();
+                    cause.printStackTrace(new PrintWriter(w));
+                    if (text == null)
+                        text = "Error encountered:<PRE>" + w + "</PRE>";
+                    else
+                        text = text + "<!--\n" + w + "\n-->";
+                }
                 headerOut.write("<HTML><HEAD><TITLE>" + status + " " + title +
                                 "</TITLE></HEAD>\n<BODY BGCOLOR=\"#cc9999\"><H4>" +
                                 status + " " + title + "</H4>\n" +
