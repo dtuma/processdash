@@ -45,7 +45,8 @@ public class table extends pspdash.TinyCGIBase {
     protected void writeContents() throws IOException {
         String title = (String) parameters.get("title");
         String style = (String) parameters.get("style");
-        String units = (String) parameters.get("units");
+        String head  = (String) parameters.get("headerComment");
+        String foot  = (String) parameters.get("footerComment");
 
         boolean skipRowHdr = (parameters.get("skipRowHdr") != null);
         boolean skipColHdr = (parameters.get("skipColHdr") != null);
@@ -60,16 +61,14 @@ public class table extends pspdash.TinyCGIBase {
 
             out.println("</HEAD><BODY>");
             if (title != null) out.println("<H1>" + title + "</H1>");
-            if (units != null) out.println("<P>(" + units + ")</P>");
+            if (head  != null) out.println("<P>"  + head  + "</P>");
             out.println(style == null ? "<TABLE BORDER>" : "<TABLE>");
         }
 
         // get the data
         if (parameters.get("h0") == null) parameters.put("h0", "Project/Task");
-        String prefix = (String) parameters.get("hierarchyPath");
-        if (prefix == null) prefix = (String) env.get("PATH_TRANSLATED");
         ResultSet tableData =
-            ResultSet.get(getDataRepository(), parameters, prefix,
+            ResultSet.get(getDataRepository(), parameters, getPrefix(),
                           getPSPProperties());
         if (parameters.get("transpose") != null)
             tableData = tableData.transpose();
@@ -89,6 +88,7 @@ public class table extends pspdash.TinyCGIBase {
 
         if (!includable) {
             out.println("</TABLE>");
+            if (foot != null) out.println("<P>" + foot + "</P>");
             if (parameters.get(EXCEL_PARAM) == null &&
                 ! "none".equalsIgnoreCase(exportMethod)) {
                 String url;
