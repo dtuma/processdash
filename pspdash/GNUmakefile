@@ -63,6 +63,15 @@ JFREECHART_JAVA=Templates/reports/XYPlot.java \
 	Templates/reports/PiePlot.java
 JFREECHART_CLASSES=$(subst .java,.class,$(JFREECHART_JAVA))
 
+SCR_DCR_FILES=Templates/SCR.globalData \
+	Templates/SCR.template \
+	Templates/DCR.template \
+	Templates/Insp.template \
+	Templates/SCR/*.* \
+	Templates/SCRcycle/*.* \
+	Templates/DCR/*.* \
+	Templates/Inspection/*.*
+
 # build platform dependency
 BUILD_PLATFORM ?= CYGWIN
 ifeq ($(BUILD_PLATFORM),CYGWIN)
@@ -112,6 +121,9 @@ $(CGI_CLASSES) : %.class : %.java $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)
 	    -deprecation \
 	    -d $(dir $<) \
 	    $<
+
+build/SCR-DCR.jar: $(SCR_DCR_FILES)
+	$(JAR) cf build/SCR-DCR.jar $(SCR_DCR_FILES)
 
 Templates/reports/excel.iqy: Templates/reports/excel.class
 	cp Templates/reports/excel.class Templates/reports/excel.iqy
