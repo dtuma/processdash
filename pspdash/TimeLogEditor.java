@@ -78,6 +78,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     JButton    revertButton = null;
     JButton    saveButton   = null;
     JButton    addButton    = null;
+    TimeCardDialog timeCardDialog = null;
 
     static final long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
 
@@ -158,8 +159,10 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     private static final Object CONFIRM_CLOSE_MSG =
         "Do you want to save the changes you made to the time log?";
     public void confirmClose(boolean showCancel) {
-        if (saveRevertOrCancel(showCancel))
+        if (saveRevertOrCancel(showCancel)) {
             frame.setVisible (false);   // close the time log window.
+            if (timeCardDialog != null) timeCardDialog.hide();
+        }
     }
 
     public boolean saveRevertOrCancel(boolean showCancel) {
@@ -321,6 +324,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
         //treeModel.nodeStructureChanged((TreeNode)treeModel.getRoot());
         tree.repaint(tree.getVisibleRect());
+        if (timeCardDialog != null) timeCardDialog.recalc();
     }
 
     void applyFilter (boolean resetTimes) {
@@ -773,8 +777,22 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         return retPanel;
     }
 
+    protected void showTimeCard() {
+        if (timeCardDialog != null)
+            timeCardDialog.show();
+        else
+            timeCardDialog = new TimeCardDialog(useProps, tl);
+    }
+
     private JPanel constructControlPanel () {
         JPanel  retPanel = new JPanel(false);
+
+        JButton timeCardButton = new JButton("Time Card View");
+        retPanel.add(timeCardButton);
+        retPanel.add(Box.createHorizontalStrut(100));
+        timeCardButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                showTimeCard(); }});
 
         revertButton = new JButton ("Revert");
         retPanel.add (revertButton);
