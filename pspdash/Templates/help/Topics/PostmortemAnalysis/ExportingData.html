@@ -14,6 +14,10 @@ menu.  Doing so will bring up the following tool:</p>
 
 <P><center><img src="../../Images/ExportTool-Data.png"></center></p>
 
+<P><B><EM>NOTE: This tool will be replaced by a much more robust 
+import/export capability in a future version of the dashboard and is to be 
+considered a deprecated feature.</EM></B></P>
+
 <P>The Export tool presents the project hierarchy in a pane on the left, and 
 options to export either your process data or the hierarchy list.</p>
 
@@ -21,9 +25,17 @@ options to export either your process data or the hierarchy list.</p>
 <P>If you choose to export your data, only the process nodes that have 
 actually measured data will be written to a file in the following format:</p>
 
-<pre>/complete/path/to/data/item,&lt;value&gt;</pre>
+<pre>
+/complete/path/to/data/item,&lt;value&gt;
+  ...
+!Date &amp; Time!,&lt;number of minutes recorded&gt;
+  ...
+</pre>
 
-<P>For example   <B><EM>[more to come]</em></b>
+<P>The data elements themselves will not be in any particular order, but the 
+time data will be in chronological order.  This format was originally 
+implemented to allow earned value tracking in an external tool and does not 
+really provide a complete dump of the data in the dashboard repository.</p>
 
 <h3>Exporting the Hierarchy list</h3>
 <P>If you choose to export the hierarchy list, the entire hierarchy tree will 
