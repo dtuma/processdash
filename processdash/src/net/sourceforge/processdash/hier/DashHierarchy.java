@@ -52,6 +52,8 @@ import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.*;
 
 import org.w3c.dom.Element;
@@ -60,8 +62,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import pspdash.ScriptID;
-import pspdash.TemplateLoader;
 
 public class DashHierarchy extends Hashtable implements ItemSelectable,
                                                         Comparator {

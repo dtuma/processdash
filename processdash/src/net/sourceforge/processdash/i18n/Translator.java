@@ -30,7 +30,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
-import pspdash.TemplateLoader;
+import net.sourceforge.processdash.templates.TemplateLoader;
+
 
 public class Translator {
 

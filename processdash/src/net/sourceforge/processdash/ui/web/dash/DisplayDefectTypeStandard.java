@@ -27,8 +27,8 @@
 package net.sourceforge.processdash.ui.web.dash;
 
 
+import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
-import pspdash.DefectTypeStandard;
 
 
 public class DisplayDefectTypeStandard extends TinyCGIBase {

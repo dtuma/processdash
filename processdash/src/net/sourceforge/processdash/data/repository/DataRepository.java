@@ -25,7 +25,6 @@
 
 package net.sourceforge.processdash.data.repository;
 
-import pspdash.TemplateLoader;
 
 import java.io.File;
 import java.io.InputStream;
@@ -86,6 +85,7 @@ import net.sourceforge.processdash.data.compiler.node.TIdentifier;
 import net.sourceforge.processdash.data.compiler.node.TStringLiteral;
 import net.sourceforge.processdash.data.compiler.parser.Parser;
 import net.sourceforge.processdash.data.compiler.parser.ParserException;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.*;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.Perl5Util;

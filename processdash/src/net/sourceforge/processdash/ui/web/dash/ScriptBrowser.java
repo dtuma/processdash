@@ -32,10 +32,10 @@ import java.util.Vector;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.ScriptID;
 
 
 public class ScriptBrowser extends TinyCGIBase {

@@ -37,11 +37,11 @@ import java.util.StringTokenizer;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.ResourcePool;
 import net.sourceforge.processdash.util.StringUtils;
 
 import pspdash.Settings;
-import pspdash.TemplateLoader;
 
 public class LOCDiff {
 

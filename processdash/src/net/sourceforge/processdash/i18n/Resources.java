@@ -32,8 +32,8 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import pspdash.TemplateLoader;
 
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.*;
 
 public class Resources extends ResourceBundle {

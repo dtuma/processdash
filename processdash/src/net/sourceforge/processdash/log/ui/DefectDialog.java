@@ -44,12 +44,12 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
 
 import java.util.*;
 
-import pspdash.DefectTypeStandard;
 import pspdash.PSPDashboard;
 import pspdash.Settings;
 import pspdash.Timer;

@@ -39,6 +39,8 @@ import java.util.Vector;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
@@ -48,8 +50,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import pspdash.DashController;
-import pspdash.ScriptID;
-import pspdash.TemplateLoader;
 
 
 
