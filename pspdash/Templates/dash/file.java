@@ -372,9 +372,13 @@ public class file extends TinyCGIBase {
                 pathVal = ((Element) n).getAttribute(TEMPLATE_PATH_ATTR);
                 setTemplatePathVariables((Element) n);
             }
-            if (XMLUtils.hasValue(pathVal))
-                isTemplate = true;
-            else
+            if (XMLUtils.hasValue(pathVal)) {
+                if ("none".equals(pathVal)) {
+                    foundTemplate = isTemplate = false;
+                    return null;
+                } else
+                    isTemplate = true;
+            } else
                 pathVal = ((Element) n).getAttribute(PATH_ATTR);
         }
         if (!XMLUtils.hasValue(pathVal))
