@@ -74,6 +74,10 @@ public class Timer {
         return (startTime != null);
     }
 
+    public boolean isRunning() {
+        return (startTime != null);
+    }
+
     public void reset() {
         startTime = null;
         stopTime = null;
