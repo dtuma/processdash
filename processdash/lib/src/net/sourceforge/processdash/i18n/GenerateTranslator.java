@@ -252,6 +252,8 @@ public class GenerateTranslator extends MatchingTask {
         while (i.hasNext()) {
             Map.Entry e = (Map.Entry) i.next();
             String key = (String) e.getKey();
+            if (key.endsWith("_FMT") || key.indexOf("__") != -1)
+                continue;
             String pattern = makePattern(key);
 
             out.write(partA);
