@@ -165,3 +165,59 @@ foreach $line (@sorted) {
 
    printf "%*s|%s\n", $maxLen, $sides[1], $sides[0];
 }
+
+# go through all the forms in the given process directory and make a list of 
+# formulas that are used, unused, and unknown.
+
+($dirname =$ARGV[0]) =~ s:/.*::;
+
+opendir DIRH, $dirname or die "Cannot open directory $dirname for read:$!\n";
+@files = readdir DIRH;
+closedir DIRH;
+
+@dataElements=();
+
+foreach $file (@files) {
+   if (! -f "$dirname/$file") {
+      next;
+   }
+
+   open FH, "$dirname/$file" or die "Cannot open file $dirname/$file:$!\n";
+   @file = <FH>;
+   close FH;
+   chomp(@file);
+
+   # go through file looking for data element names
+   foreach $line (@file) {
+      if ($line =~ m/INPUT.*NAME="([^"]+)"/i) {
+         push @dataElements, $1;
+      }
+   }
+}
+
+# dump the formulas used
+print "\nUsed formulas:\n";
+foreach $item (@dataElements) {
+   print "$item\n";
+}
+
+exit 1;
+
+# go through the formula items that were memorized from the dataFiles and 
+# flag them accordingly
+
+foreach $i (@sorted) {
+   push @sortedFlags, "UNKNOWN";
+}
+
+foreach $i (@dataElements) {
+   push @elementsFlags, "UNKNOWN";
+}
+
+foreach $item (@sorted) {
+   $item =~ s/=.*$//;
+
+   if (grep //,@dataElements) {
+   } else {
+   }
+}
