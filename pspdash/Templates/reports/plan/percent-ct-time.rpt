@@ -1,0 +1,9 @@
+= % Compile + Test Time query
+
+qf=../compProj.rpt
+
+title==% Compile + Test Time
+units==%
+
+d1==![(*	[(+	Compile/% Time	Test/% Time)]	100)]
+h1==%

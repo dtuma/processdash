@@ -1,0 +1,12 @@
+= Defect Injection % by Phase query
+
+qf=defects.rpt
+
+title==Defect Injection % by Phase
+units==%
+
+h1=Code
+d1==![(/	[(+	~.*/{<=	PSP Phase	40}Defects Injected)]	Defects Injected	0.01)]
+
+h2=Design
+d2==![(/	[(+	~.*/{<=	PSP Phase	30}Defects Injected)]	Defects Injected	0.01)]

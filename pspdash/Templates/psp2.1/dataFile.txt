@@ -55,9 +55,3 @@ PSP2==0.0
 Estimated % Appraisal COQ==![(/	[(+	Design Review/Estimated Time	Code Review/Estimated Time)]	Estimated Time)]
 Estimated % Failure COQ==![(/	[(+	Compile/Estimated Time	Test/Estimated Time)]	Estimated Time)]
 Estimated AFR==![(/	Estimated % Appraisal COQ	Estimated % Failure COQ)]
-
-= Calculations based on actual data
-
-% Appraisal COQ==![(/	[(+	Design Review/Time	Code Review/Time)]	Time)]
-% Failure COQ==![(/	[(+	Compile/Time	Test/Time)]	Time)]
-AFR==![(/	% Appraisal COQ	% Failure COQ)]

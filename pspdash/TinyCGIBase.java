@@ -26,7 +26,9 @@
 
 package pspdash;
 
+import pspdash.data.DataRepository;
 import java.io.*;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 
@@ -55,16 +57,18 @@ public class TinyCGIBase implements TinyCGI {
     /** Parse CGI query parameters, and store them in the Map
      *  <code>parameters</code>.
      *
-     * Multivalued parameters are currently not supported.
-     * In the future, if form handling is required, this method might
-     * be extended to parse POSTed form data.
+     * Single valued parameters can be fetched directly from the map.
+     * Multivalued parameters are stored in the map as String arrays,
+     * with "_ALL" appended to the name.  (So a query string
+     * "name=foo&name=bar" would result in a 2-element string array
+     * being placed in the map under the key "name_ALL".)
      */
-    protected void parseInput(String query) {
+    protected void parseInput(String query) throws IOException {
         if (query == null || query.length() == 0) return;
 
         String delim = (query.indexOf('\n') == -1) ? "&" : "\r\n";
         StringTokenizer params = new StringTokenizer(query, delim);
-        String param;
+        String param, name, val;
         int equalsPos;
         while (params.hasMoreTokens()) {
             param = params.nextToken();
@@ -73,12 +77,99 @@ public class TinyCGIBase implements TinyCGI {
                 continue;
             else if (equalsPos == -1)
                 parameters.put(URLDecoder.decode(param), Boolean.TRUE);
-            else
-                parameters.put
-                    (URLDecoder.decode(param.substring(0, equalsPos)),
-                     URLDecoder.decode(param.substring(equalsPos+1)));
+            else {
+                name = URLDecoder.decode(param.substring(0, equalsPos));
+                val = param.substring(equalsPos+1);
+                // skip URL decoding if the value begins with "=".  This
+                // saves us from having to URL-encode complex expressions
+                // in query files.
+                if (val.startsWith("=")) val = val.substring(1);
+                else val = URLDecoder.decode(val);
+                if (supportQueryFiles() && QUERY_FILE_PARAM.equals(name))
+                    parseInputFile(val);
+                else {
+                    parameters.put(name, val);
+                    name = name + "_ALL";
+                    parameters.put
+                        (name, append((String[]) parameters.get(name), val));
+                }
+            }
         }
     }
+    public static final String QUERY_FILE_PARAM = "qf";
+
+    /* Read name=value pairs from POSTed form data. */
+    protected void parseFormData() throws IOException {
+        parseInput(new String(TinyWebServer.slurpContents(inStream)));
+    }
+
+    /* Read name=value pairs from the given URI. If the URI is not
+     * absolute (e.g. "/0/reports/foo"), it is interpreted relative
+     * to the current request. */
+    protected void parseInputFile(String filename) throws IOException {
+        if (filename == null || filename.length() == 0) return;
+
+        if (nestingDepth > 50)
+            throw new IOException("Infinite recursion - aborting.");
+
+        TinyWebServer t = getTinyWebServer();
+        String origFilename = filename;
+        String scriptPath = (String) env.get("SCRIPT_PATH");
+        try {
+            nestingDepth++;
+            if (!filename.startsWith("/")) {
+                URL context = new URL("http://localhost:2468" + scriptPath);
+                URL file = new URL(context, filename);
+                filename = file.getFile();
+            }
+            env.put("SCRIPT_PATH", filename);
+            parseInput(new String(t.getRequest(filename, true)));
+        } catch (IOException ioe) {
+            System.out.println("Couldn't read file: " + filename);
+            System.out.println("(Specified as '" + origFilename + "' from '" +
+                               scriptPath +"')");
+        } finally {
+            env.put("SCRIPT_PATH", scriptPath);
+            nestingDepth--;
+        }
+    }
+    private int nestingDepth = 0;
+
+    private String[] append(String [] array, String element) {
+        String [] result;
+        result = new String[array == null ? 1 : array.length + 1];
+        if (array != null)
+            System.arraycopy(array, 0, result, 0, array.length);
+        result[result.length-1] = element;
+        return result;
+    }
+
+
+    /** Get the data repository servicing this request. */
+    protected DataRepository getDataRepository() {
+        return (DataRepository) env.get(DATA_REPOSITORY);
+    }
+    /** Get the tiny web server that is running this request. */
+    protected TinyWebServer getTinyWebServer() {
+        return (TinyWebServer) env.get(TINY_WEB_SERVER);
+    }
+    /** Get the PSPProperties object */
+    protected PSPProperties getPSPProperties() {
+        return (PSPProperties) env.get(PSP_PROPERTIES);
+    }
+    /** Perform an internal http request. */
+    protected byte[] getRequest(String uri, boolean skipHeaders)
+        throws IOException {
+        return getTinyWebServer().getRequest(uri, skipHeaders);
+    }
+    /** Fetch a named query parameter */
+    protected String getParameter(String name) {
+        return (String) parameters.get(name);
+    }
+    /** Does this CGI script want to support query parameter files?
+     * child classes that DO NOT want query parameter support should
+     * override this method to return false. */
+    protected boolean supportQueryFiles() { return true; }
 
 
     /** Write a standard CGI header.

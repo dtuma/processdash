@@ -76,7 +76,8 @@ public interface TinyCGI {
      *     <DT><code>SCRIPT_NAME</code>
      *     <DD>is not the full path to the script; it is missing the initial
      *         project token.  For the URL example above,
-     *         <code>SCRIPT_NAME</code> would be /psp0/script.htm .
+     *         <code>SCRIPT_NAME</code> would be /psp0/script.htm .  To get
+     *         the full path to the script, use <code>SCRIPT_PATH</code>.
      *
      *     <DT><code>PSP_PROPERTIES</code>
      *     <DD>is an extra variable in the environment, pointing to the

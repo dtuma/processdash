@@ -1,0 +1,9 @@
+= Actual Time query
+
+qf=../compProj.rpt
+
+title=Actual Development Time
+units=Hours
+
+d1==![(/	Time	60)]
+h1=Hours

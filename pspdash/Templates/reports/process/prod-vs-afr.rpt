@@ -1,0 +1,11 @@
+= Productivity vs. A/FR query
+
+qf=../compProj.rpt
+
+title=Productivity vs. A/FR
+
+d1=AFR
+h1==Appraisal to Failure Ratio
+
+d2==![(/	New & Changed LOC	Time	0.016666)]
+h2=Productivity(LOC/Hr)

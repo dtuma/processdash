@@ -1,0 +1,8 @@
+= Productivity query
+
+qf=../compProj.rpt
+
+title=Productivity
+
+d1==![(/	New & Changed LOC	Time	0.016666)]
+h1=LOC/Hr

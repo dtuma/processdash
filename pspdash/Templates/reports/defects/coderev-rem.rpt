@@ -1,0 +1,7 @@
+= Defects Removed in Code Review query
+
+qf=defects.rpt
+
+title=Defects Removed in Code Review
+
+d1==![(*	1000	[(/	Code Review/Defects Removed	New & Changed LOC)])]

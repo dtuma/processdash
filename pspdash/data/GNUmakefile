@@ -152,7 +152,7 @@ $(CLASS_FILES) : %.class : $(BIN_DATA)/pspdash/data/%.class
 
 $(BIN_DATA)/pspdash/data/%.class: %.java
 	$(JAVAC) \
-	    -classpath ../build/PerlTools.jar \
+	    -classpath '../build/PerlTools.jar;../build/jfreechart.jar' \
 	    -deprecation \
 	    -sourcepath $(SRC) \
 	    -d $(BIN_DATA) \

@@ -1,0 +1,12 @@
+=
+= Find all completed projects, and order by completion date.
+=
+
+where=PSP Project
+where=Completed
+order=Completed
+
+= default headers
+
+h0=Project/Task
+categoryLabels=vertical

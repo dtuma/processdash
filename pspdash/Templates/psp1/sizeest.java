@@ -41,10 +41,9 @@ public class sizeest extends pspdash.TinyCGIBase {
 
     private void init() throws IOException {
         try {
-            TinyWebServer t = (TinyWebServer) env.get(TINY_WEB_SERVER);
             String uri = "/0" + env.get("SCRIPT_NAME");
             uri = uri.substring(0, uri.length() - 6) + ".htm";
-            String text = new String(t.getRequest(uri, true));
+            String text = new String(getRequest(uri, true));
 
             int beg, end;
             end = text.indexOf(BASE_CUT);
@@ -136,7 +135,7 @@ public class sizeest extends pspdash.TinyCGIBase {
         for (int e = dataElements.length; e-- > 0; )
             dataNames[e] = prefix + "/" + dataElements[e];
 
-        DataRepository data = (DataRepository) env.get(DATA_REPOSITORY);
+        DataRepository data = getDataRepository();
 
         int maxRow = -1, i;
     ROW:

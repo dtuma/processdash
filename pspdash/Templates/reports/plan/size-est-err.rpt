@@ -1,0 +1,8 @@
+= Size Estimating Error query
+
+qf=../compProj.rpt
+
+title=Size Estimating Error
+
+h1==%
+d1==![(/	[(-	New & Changed LOC	Estimated New & Changed LOC)]	Estimated New & Changed LOC	0.01)]

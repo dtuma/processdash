@@ -51,6 +51,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     ProbeDialog   probe_dialog = null;
 
     static String FILE_SEP = null;
+    static final String ANALYSIS_URL =
+                                  ScriptButton.URL_PREFIX +"0/reports/index.htm";
     static final String HELP_URL = ScriptButton.URL_PREFIX +"0/help/PSPDash.htm";
     static final String ABOUT_URL = ScriptButton.URL_PREFIX + "0/help/about.htm";
 
@@ -60,10 +62,12 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static final int DEFECT_LOG_FRAME   = 2;
     static final int PROBE_DIALOG       = 3;
     //static final int TASK_DIALOG      = 4; // disabled
-    static final int IMPORT_EXPORT      = 4;
-    static final int HELP_FRAME         = 5;
-    static final int ABOUT_DIALOG       = 6;
-    static final int FIRST_HISTORY_ITEM = 6;
+    static final int DATA_ANALYSIS      = 4;
+    static final int IMPORT_EXPORT      = 5;
+    static final int HELP_FRAME         = 6;
+    static final int ABOUT_DIALOG       = 7;
+    static final int EXIT_PROGRAM       = 8;
+    static final int FIRST_HISTORY_ITEM = 8;
     static final int MAX_HISTORY_SIZE   = 0;
 
                                   // menu labels & cmd text (see above)
@@ -73,9 +77,11 @@ class ConfigureButton extends JMenuBar implements ActionListener {
          new String ("Defect Log"),
          new String ("PROBE"),
          //     new String ("Task & Schedule"),
+         new String ("Data Analysis"),
          new String ("Import/Export"),
          new String ("Help"),
-         new String ("About")};
+         new String ("About"),
+         new String ("Exit")};
 
     ConfigureButton(PSPDashboard dash) {
         super();
@@ -172,9 +178,13 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         }
     }
 
+    public void startDataAnalysis() { Browser.launch(ANALYSIS_URL); }
+
     public void startHelp() { Browser.launch(HELP_URL); }
 
     public void startAboutDialog() { new AboutDialog(parent, ABOUT_URL); }
+
+    public void exitProgram() { parent.exitProgram(); }
 
     public void save() {
         if (task_frame != null)
@@ -194,12 +204,16 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             startProbeDialog ();
 //  } else if (cmd.equals(menuLabels[TASK_DIALOG])) {
 //    startTaskDialog ();
+        } else if (cmd.equals(menuLabels[DATA_ANALYSIS])) {
+            startDataAnalysis ();
         } else if (cmd.equals(menuLabels[IMPORT_EXPORT])) {
             startImportExport ();
         } else if (cmd.equals(menuLabels[HELP_FRAME])) {
             startHelp ();
         } else if (cmd.equals(menuLabels[ABOUT_DIALOG])) {
             startAboutDialog ();
+        } else if (cmd.equals(menuLabels[EXIT_PROGRAM])) {
+            exitProgram ();
         }
     }
 

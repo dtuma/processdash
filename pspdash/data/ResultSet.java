@@ -25,6 +25,11 @@
 
 package pspdash.data;
 
+import com.jrefinery.chart.CategoryDataSource;
+import com.jrefinery.chart.XYDataSource;
+import com.jrefinery.chart.event.DataSourceChangeListener;
+import pspdash.PSPProperties;
+
 import java.util.*;
 
 public class ResultSet {
@@ -103,7 +108,8 @@ public class ResultSet {
 
     /** Perform a query and return a result set. */
     public static ResultSet get(DataRepository data, String[] conditions,
-                                String orderBy, String[] dataNames) {
+                                String orderBy, String[] dataNames,
+                                String basePrefix, PSPProperties props) {
 
         // Construct a regular expression for searching the repository.
         StringBuffer re =  new StringBuffer("~.*/");
@@ -114,10 +120,10 @@ public class ResultSet {
         re.append(orderBy);
 
         // Find data elements that match the regular expression.
-        SortedList list = new SortedList
-            (data, re.toString(), "", FAKE_DATA_NAME);
+        if (basePrefix == null) basePrefix = "";
+        SortedList list = SortedList.getInstance
+            (data, re.toString(), basePrefix, FAKE_DATA_NAME, props);
         String [] prefixes = list.getNames();
-        list.dispose();
 
         // Create a result set to return
         ResultSet result = new ResultSet(prefixes.length, dataNames.length);
@@ -129,19 +135,41 @@ public class ResultSet {
 
         // get the data and fill the result set.
         String prefix, dataName;
-        int tailLen = orderBy.length() + 1;
+        int baseLen = basePrefix.length(), tailLen = orderBy.length() + 1;
+        if (baseLen > 0) baseLen++; // remove / as well
+
+        String [] fixedUpNames = new String[dataNames.length];
+        for (int i=dataNames.length;  i>0;  )
+            if (dataNames[--i].charAt(0) == '!')
+                fixedUpNames[i] = fixupName(dataNames[i]);
+        SaveableData value;
+
         for (int p=0;  p < prefixes.length;  p++) {
             // get the next prefix
             prefix = prefixes[p];
             // remove the name of the orderBy data element, & the preceeding /
             prefix = prefix.substring(0, prefix.length() - tailLen);
-            result.setRowName(p+1, prefix);
+            result.setRowName(p+1, prefix.substring(baseLen));
 
             // look up the data for this row.
-            for (int d=0;  d < dataNames.length;  d++) {
-                dataName = prefix + "/" + dataNames[d];
-                result.setData(p+1, d+1, data.getSimpleValue(dataName));
-            }
+            for (int d=0;  d < dataNames.length;  d++)
+                if (dataNames[d].startsWith("![(")) {
+                    dataName = DataRepository.anonymousPrefix + "/" +
+                        prefix + "/" + fixedUpNames[d];
+                    value = data.getSimpleValue(dataName);
+
+                    if (value == null) try {
+                        value = ValueFactory.create
+                            (dataName, dataNames[d], data, prefix);
+                        data.putValue(dataName, value);
+                    } catch (MalformedValueException mve) { }
+                    result.setData(p+1, d+1,
+                                   value==null ?null :value.getSimpleValue());
+
+                } else {
+                    dataName = prefix + "/" + dataNames[d];
+                    result.setData(p+1, d+1, data.getSimpleValue(dataName));
+                }
         }
         return result;
     }
@@ -152,9 +180,10 @@ public class ResultSet {
     /** Perform a query and return a result set.
      *  the queryParameters Map contains the instructions for performing
      * the query */
-    public static ResultSet get(DataRepository data, Map queryParameters) {
+    public static ResultSet get(DataRepository data, Map queryParameters,
+                                String prefix, PSPProperties props) {
         // orderBy dataElement name is stored in the "order" parameter
-        String orderBy   = (String) queryParameters.get("order");
+        String orderBy = (String) queryParameters.get("order");
 
         // conditions are given via "where" parameter(s)
         String [] conditions = (String[]) queryParameters.get("where_ALL");
@@ -173,7 +202,8 @@ public class ResultSet {
         while (--i > 0) dataNames[i-1] = (String) queryParameters.get("d" + i);
 
         // fetch the results.
-        ResultSet result = get(data, conditions, orderBy, dataNames);
+        ResultSet result =
+            get(data, conditions, orderBy, dataNames, prefix, props);
 
         // parameters "h0", "h1", etc specify overridden column headers
         String colHeader;
@@ -186,4 +216,110 @@ public class ResultSet {
         return result;
     }
 
+    /** Make certain that we have at least one row of data, even if it is
+     * bogus.
+     * This is necessary because the charting library doesn't like drawing
+     * charts with no data in them.
+     */
+    private void ensureOneRow() {
+        if (numRows() > 0) return;
+
+        Object[][] newData = new Object[2][numCols()+1];
+        for (int i=numCols();  i>=0; i--) {
+            newData[0][i] = data[0][i]; // copy column headers.
+            newData[1][i] = null; // make all data elements in row 1 null.
+        }
+        data = newData;
+        setRowName(1, "No data to display");
+    }
+
+    private static String fixupName(String name) {
+        return "anonymousChart" + name.hashCode();
+    }
+
+
+
+    private class Category {
+        int rowNum;
+        public Category(int rowNum) { this.rowNum = rowNum; }
+        public String toString() { return asString(data[rowNum][0]); }
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // CategoryDataSource
+    ////////////////////////////////////////////////////////////////////////
+
+    protected class RSCategoryDataSource implements CategoryDataSource {
+        /** Returns the number of series in the data source. */
+        public int getSeriesCount() { return numCols(); }
+        /** Returns the name of the specified series (zero-based). */
+        public String getSeriesName(int seriesIndex) {
+            return getColName(seriesIndex+1); }
+        /* The following methods are not applicable for us */
+        public void addChangeListener(DataSourceChangeListener listener) {}
+        public void removeChangeListener(DataSourceChangeListener listener) {}
+
+        /** Returns the value for the specified series (zero-based index) and
+         * category. */
+        public Number getValue(int seriesIndex, Object category) {
+            return getNumber(((Category) category).rowNum, seriesIndex+1);
+        }
+        /** Returns a list of the categories in the data source */
+        public List getCategories() {
+            ArrayList result = new ArrayList();
+            for (int row=1;  row <= numRows();  row++)
+                result.add(new Category(row));
+            return result;
+        }
+        /** Returns the number of categories in the data source. */
+        public int getCategoryCount() { return numRows(); }
+    }
+
+    public CategoryDataSource catDataSource() {
+        ensureOneRow();
+        return new RSCategoryDataSource();
+    }
+
+    protected class RSXYDataSource implements XYDataSource {
+        /** Returns the number of series in the data source. */
+        public int getSeriesCount() { return numCols() - 1; }
+        /** Returns the name of the specified series (zero-based). */
+        public String getSeriesName(int seriesIndex) {
+            return getColName(seriesIndex+2); }
+        /* The following methods are not applicable for us */
+        public void addChangeListener(DataSourceChangeListener listener) {}
+        public void removeChangeListener(DataSourceChangeListener listener) {}
+
+        /** Returns the x-value for the specified series and item */
+        public Number getXValue(int seriesIndex, int itemIndex) {
+            return getNumber(itemIndex+1, 1); }
+        /** Returns the y-value for the specified series and item */
+        public Number getYValue(int seriesIndex, int itemIndex) {
+            if (itemIndex == -1)
+                return (numRows() > 0 && numCols() > 0 &&
+                        (getData(1,1) instanceof DateData)) ? null : ZERO;
+            return getNumber(itemIndex+1, seriesIndex+2); }
+        /** Returns the number of items in the specified series */
+        public int getItemCount(int seriesIndex) { return numRows(); }
+    }
+    private static Double ZERO = new Double(0.0);
+
+    public XYDataSource xyDataSource() {
+        ensureOneRow();
+        return new RSXYDataSource();
+    }
+
+    protected Number asNumber(SimpleData s) {
+        double d = 0.0;
+        if (s instanceof NumberData) {
+            d = ((NumberData) s).getDouble();
+            if (Double.isNaN(d) || Double.isInfinite(d)) d = 0.0;
+        } else if (s instanceof DateData) {
+            d = ((DateData) s).getValue().getTime();
+        }
+        return new Double(d);
+    }
+    protected Number getNumber(int row, int col) {
+        return asNumber(getData(row, col));
+    }
 }

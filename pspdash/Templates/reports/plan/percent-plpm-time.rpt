@@ -1,0 +1,9 @@
+= % Plan + Postmortem Time query
+
+qf=../compProj.rpt
+
+title==% Plan + Postmortem Time
+units==%
+
+d1==![(*	[(+	Planning/% Time	Postmortem/% Time)]	100)]
+h1==%

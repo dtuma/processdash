@@ -1,0 +1,7 @@
+= Defects Removed in Test query
+
+qf=defects.rpt
+
+title=Defects Removed in Test
+
+d1==![(*	1000	[(/	Test/Defects Removed	New & Changed LOC)])]

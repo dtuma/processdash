@@ -1,0 +1,18 @@
+= Defect Removal % by Phase query
+
+qf=defects.rpt
+
+title==Defect Removal % by Phase
+units==%
+
+h1=Test
+d1==![(/	[(+	~.*/{<=	PSP Phase	60}Defects Removed)]	Defects Removed	0.01)]
+
+h2=Compile
+d2==![(/	[(+	~.*/{<=	PSP Phase	50}Defects Removed)]	Defects Removed	0.01)]
+
+h3=Code Rev.
+d3==![(/	[(+	~.*/{<=	PSP Phase	45}Defects Removed)]	Defects Removed	0.01)]
+
+h4=Des. Rev.
+d4==![(/	[(+	~.*/{<=	PSP Phase	35}Defects Removed)]	Defects Removed	0.01)]

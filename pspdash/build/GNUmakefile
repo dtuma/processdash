@@ -43,7 +43,7 @@ NON_CLASS_FILES=continue.gif \
 		state
 INSTALLED_FILES=$(addprefix pspdash/,$(NON_CLASS_FILES))
 
-TEMPLATE_FILES:=$(shell cd ..; find Templates -type f -print | fgrep -v CVS | fgrep -v .java | fgrep -v '~')
+TEMPLATE_FILES:=$(shell cd ..; find Templates -type f -print | fgrep -v CVS | fgrep -v .java | fgrep -v '~' | fgrep -v .cvsignore)
 
 all: pspdash.jar
 
@@ -56,7 +56,7 @@ install-nt: $(INSTALLED_FILES) manifest perltools templates FORCE
 
 
 # package everything up for distribution
-pspdash.jar: $(INSTALLED_FILES) manifest perltools templates FORCE
+pspdash.jar: $(INSTALLED_FILES) manifest perltools jfreechart templates FORCE
 	$(JAR) cfm pspdash.jar manifest pspdash com Templates
 
 
@@ -82,6 +82,15 @@ perltools: com/oroinc/text/perl/Perl5Util.class
 com/oroinc/text/perl/Perl5Util.class: PerlTools.jar
 	$(JAR) -xf PerlTools.jar
 
+# unzip the JFreeChart jarfile.
+jfreechart: com/jrefinery/chart/JFreeChart.class com/jrefinery/chart/XYPlot.class
+
+com/jrefinery/chart/JFreeChart.class: jfreechart.jar
+	$(JAR) -xf jfreechart.jar
+	rm -rf com/jrefinery/util com/jrefinery/chart/ui com/jrefinery/chart/XYPlot.class
+
+com/jrefinery/chart/XYPlot.class: ../Templates/reports/XYPlot.java
+	cd ..; make XYPlot.class
 
 clean:
 	rm -f pspdash.jar *~

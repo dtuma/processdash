@@ -269,6 +269,10 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     public void windowClosing(WindowEvent w) {
+        exitProgram();
+    }
+
+    void exitProgram() {
         quit();
         System.exit(0);
     }

@@ -1,0 +1,11 @@
+= Yield vs Code Review Rate query
+
+qf=../compProj.rpt
+
+title=LOC Reviewed per Hour vs. Yield - Code Review
+
+d1==![(/	New & Changed LOC	Code Review/Time	0.016666)]
+h1==Code Review LOC/Hour
+
+d2==![(*	100	Yield)]
+h2=Yield

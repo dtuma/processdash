@@ -93,6 +93,20 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
                 int itemCount = data.getItemCount(series);
                 int itemIndex = 0;
                 Point2D prev = null;
+                boolean isScatter = false;
+                try {
+                    // we want to be able to determine whether each series should be
+                    // drawn as a scatterplot or as a line.  The best way to do this
+                    // is to ask the datasource.  We could creating a subinterface of
+                    // XYDataSource that includes a method for us to call, but that
+                    // would be painful.  Instead, we'll use this workable kludge:
+                    // an XYDataSource can tell us whether each series is a scatter
+                    // via the YValue with itemIndex -1.  If we ask for item -1, and
+                    // an exception is thrown, or we get null, we'll presume the
+                    // default line behavior.  If we get any nonull value back, we'll
+                    // take that as our signal that the series is a scatter.
+                    isScatter = (data.getYValue(series, -1) != null);
+                } catch (Exception e) {}
                 while (itemIndex<itemCount) {
                     Number x = data.getXValue(series, itemIndex);
                     Number y = data.getYValue(series, itemIndex);
@@ -101,7 +115,9 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
                     Paint p = chart.getSeriesPaint(series);
                     Stroke s = chart.getSeriesStroke(series);
                     Point2D current = new Point2D.Double(xx, yy);
-                    if (prev!=null) {
+                    if (isScatter) {
+                        lines.add(new Bar(xx-3, yy-3, 6.0, 6.0, s, Color.black, p));
+                    } else if (prev!=null) {
                         lines.add(new Line(prev.getX(), prev.getY(), current.getX(), current.getY(), s, p));
                     }
                     prev = current;
@@ -179,10 +195,21 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
 
         java.util.List lines = getLines(plotArea);   // area should be remaining area only
         for (int i=0; i<lines.size(); i++) {
-            Line l = (Line)lines.get(i);
-            g2.setPaint(l.getPaint());
-            g2.setStroke(l.getStroke());
-            g2.draw(l.getLine());
+            Object o = lines.get(i);
+            if (o instanceof Line) {
+                Line l = (Line) o;
+                g2.setPaint(l.getPaint());
+                g2.setStroke(l.getStroke());
+                g2.draw(l.getLine());
+            } else {
+                Bar b = (Bar) o;
+                Rectangle2D barArea = b.getArea();
+                g2.setPaint(b.getFillPaint());
+                g2.fill(barArea);
+                g2.setStroke(b.getOutlineStroke());
+                g2.setPaint(b.getOutlinePaint());
+                g2.draw(barArea);
+            }
         }
 
         g2.setClip(originalClip);

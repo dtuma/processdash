@@ -24,19 +24,12 @@
 // E-Mail POC:  ken.raisor@hill.af.mil
 
 import java.io.IOException;
-import pspdash.TinyWebServer;
 import pspdash.data.DataRepository;
 import pspdash.data.ResultSet;
 
 public class table extends pspdash.TinyCGIBase {
 
     protected void writeContents() throws IOException {
-        String file = (String) parameters.get("file");
-        if (file != null) {
-            TinyWebServer t = (TinyWebServer) env.get(TINY_WEB_SERVER);
-            parseInput(new String(t.getRequest("/0/" + file, true)));
-        }
-
         String title = (String) parameters.get("title");
         String style = (String) parameters.get("style");
         String units = (String) parameters.get("units");
@@ -54,8 +47,10 @@ public class table extends pspdash.TinyCGIBase {
 
         // get the data
         if (parameters.get("h0") == null) parameters.put("h0", "Project/Task");
-        DataRepository data = (DataRepository) env.get(DATA_REPOSITORY);
-        ResultSet tableData = ResultSet.get(data, parameters);
+        String prefix = (String) env.get("PATH_TRANSLATED");
+        ResultSet tableData =
+            ResultSet.get(getDataRepository(), parameters, prefix,
+                          getPSPProperties());
 
         // print the table
         for (int row=0;  row <= tableData.numRows();  row++) {

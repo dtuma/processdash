@@ -1,0 +1,7 @@
+= Total Defect Density query
+
+qf=defects.rpt
+
+title=Total Defects
+
+d1==![(*	1000	[(/	Defects Removed	New & Changed LOC)])]

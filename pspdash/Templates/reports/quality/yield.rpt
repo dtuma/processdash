@@ -1,0 +1,8 @@
+= Yield query
+
+qf=../compProj.rpt
+
+title=Defect Removal Yield
+
+d1==![(*	100	Yield)]
+h1==Yield %

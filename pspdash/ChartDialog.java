@@ -220,8 +220,9 @@ public class ChartDialog extends JDialog {
             xTickSpacing = calcTicks (minX, maxX);
             yTickSpacing = calcTicks (minY, maxY);
 
-            Rectangle r = getBounds();	// refresh visible part of screen
-            repaint(0, 0, r.width, r.height);
+                                      // refresh visible part of screen
+            Rectangle r = ChartCanvas.this.getBounds();
+            ChartCanvas.this.repaint(0, 0, r.width, r.height);
         }
 
         int calcTicks (double min, double max) {
@@ -279,7 +280,7 @@ public class ChartDialog extends JDialog {
 
         public void paint(Graphics g) {
             int ii;
-            Rectangle cBounds = getBounds();
+            Rectangle cBounds = ChartCanvas.this.getBounds();
             cBounds.x = 0; cBounds.y = 0;
             FontMetrics fm = g.getFontMetrics();
             int cWide = fm.getMaxAdvance() + 2; // 2 == margin
@@ -385,10 +386,10 @@ public class ChartDialog extends JDialog {
             }
 
                                       // draw lines
-            g.setColor (Color.blue);	// Linear Regression
+            g.setColor (Color.blue);  // Linear Regression
             drawLineInRect (g, cBounds, c.r.beta0, c.r.beta1,
                             minX, maxX, minY, maxY, xMult, yMult);
-            g.setColor (Color.red);	// Average
+            g.setColor (Color.red);   // Average
             drawLineInRect (g, cBounds, 0, c.r.y_avg / c.r.x_avg,
                             minX, maxX, minY, maxY, xMult, yMult);
         }

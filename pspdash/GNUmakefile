@@ -40,6 +40,8 @@ CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
 
 CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/psp3/cyclesum.java \
+	Templates/reports/line.java \
+	Templates/reports/xy.java \
 	Templates/reports/table.java
 CGI_CLASSES=$(subst .java,.class,$(CGI_JAVA))
 SIZEEST_COPIES=Templates/psp1.1/sizeest.class \
@@ -86,7 +88,7 @@ $(SIZEEST_COPIES): Templates/psp1/sizeest.class
 
 $(CGI_CLASSES) : %.class : %.java
 	$(JAVAC) \
-	    -classpath build \
+	    -classpath 'build;build/PerlTools.jar;build/jfreechart.jar' \
 	    -deprecation \
 	    -d $(dir $^) \
 	    $^
@@ -122,8 +124,18 @@ $(CLASS_FILES) : %.class : $(BIN)/pspdash/%.class
 
 $(BIN)/pspdash/%.class: %.java
 	$(JAVAC) \
-	    -classpath build/PerlTools.jar \
+	    -classpath 'build;build/PerlTools.jar;build/jfreechart.jar' \
 	    -deprecation \
-	    -sourcepath $(SRC) \
+            -sourcepath $(SRC) \
+	    -d $(BIN) \
+	    $^
+
+XYPlot.class: $(BIN)/com/jrefinery/chart/XYPlot.class
+
+$(BIN)/com/jrefinery/chart/XYPlot.class: Templates/reports/XYPlot.java
+	$(JAVAC) \
+	    -classpath 'build;build/PerlTools.jar;build/jfreechart.jar' \
+	    -deprecation \
+            -sourcepath $(SRC) \
 	    -d $(BIN) \
 	    $^

@@ -96,6 +96,11 @@ abstract class DataList {
         // System.err.println("DataList." + msg);
     }
 
+    private String makeNiceName(String name) {
+        return name.replace('(', '_').replace(')', '_')
+            .replace('[', '_').replace(']', '_');
+    }
+
 
     public void dispose() {
         // debug("dispose");
@@ -391,7 +396,8 @@ abstract class DataList {
                     // System.out.println("");
 
                     // get a new data name for the conditional expression
-                    String dataCondName = data.anonymousPrefix+"_Conditional/"+ condExpr;
+                    String dataCondName = data.anonymousPrefix + "_Conditional/" +
+                        makeNiceName(condExpr);
 
                     // add the dataCondName -> dataName pair to watched data
                     dataWatchers.put(dataCondName, dataName);

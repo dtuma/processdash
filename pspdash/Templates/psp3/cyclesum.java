@@ -24,7 +24,6 @@
 // E-Mail POC:  ken.raisor@hill.af.mil
 
 
-import pspdash.TinyWebServer;
 import pspdash.PSPProperties;
 import pspdash.PropertyKey;
 import java.io.*;
@@ -46,10 +45,9 @@ public class cyclesum extends pspdash.TinyCGIBase {
 
     private synchronized void init() throws IOException {
         try {
-            TinyWebServer t = (TinyWebServer) env.get(TINY_WEB_SERVER);
             String uri = "/0" + env.get("SCRIPT_NAME");
             uri = uri.substring(0, uri.length() - 6) + ".htm";
-            String text = new String(t.getRequest(uri, true));
+            String text = new String(getRequest(uri, true));
 
             ArrayList staticList  = new ArrayList();
             ArrayList dynamicList = new ArrayList();
@@ -78,7 +76,7 @@ public class cyclesum extends pspdash.TinyCGIBase {
     /** Get the list of PSP3 cycle names under the current PSP3 task. */
     private String[] getCycleList() {
         String prefix = (String) env.get("PATH_TRANSLATED");
-        PSPProperties props = (PSPProperties) env.get(PSP_PROPERTIES);
+        PSPProperties props = getPSPProperties();
         PropertyKey self = props.findExistingKey(prefix);
         // WARNING: the "4" on the next line is a magic number which
         // depends on the structure of the PSP3 template.

@@ -115,13 +115,7 @@ class ScriptButton extends JButton {
     protected void viewScript (String theScript, String thePath) {
         if (theScript != null) {
             String url = URL_PREFIX + parent.data.getID(thePath) + "/" + theScript;
-
-            try {
-                Browser.launch(url);
-            } catch (Exception e) {
-                System.err.println
-                    ("Caught exception when trying to run web browser: " + e);
-            }
+            Browser.launch(url);
         }
     }
 

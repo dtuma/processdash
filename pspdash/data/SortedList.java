@@ -28,15 +28,43 @@ package pspdash.data;
 
 import java.util.Enumeration;
 import java.util.TreeSet;
+import java.util.Hashtable;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Iterator;
+import pspdash.PSPProperties;
 
 class SortedList extends DataList {
 
-    public SortedList(DataRepository r, String dataName, String prefix,
-                      String fName) {
+    PSPProperties props;
+
+    private static Hashtable cache = new Hashtable();
+
+    public static SortedList getInstance
+        (DataRepository r, String dataName, String prefix,
+         String fName, PSPProperties props)
+    {
+        String cacheKey = prefix + dataName;
+        SortedList result = (SortedList) cache.get(cacheKey);
+        if (result == null)         // no cached list? get a synchronization lock
+            synchronized(SortedList.class) {
+                // now that we have the lock, check to see if there STILL is no
+                // cached list. (The person who had the lock before us might have
+                // created and cached a list.)
+                result = (SortedList) cache.get(cacheKey);
+                if (result == null) {
+                    // okay, we *really* do need to create a new list, and then cache it.
+                    result = new SortedList(r, dataName, prefix, fName, props);
+                    cache.put(cacheKey, result);
+                }
+            }
+        return result;
+    }
+
+    private SortedList(DataRepository r, String dataName, String prefix,
+                       String fName, PSPProperties props) {
         super(r, dataName, prefix, fName);
+        this.props = props;
     }
 
     private class Sorter implements Comparator {
@@ -45,6 +73,9 @@ class SortedList extends DataList {
             DataListValue v1 = (DataListValue) e1.getValue(),
                 v2 = (DataListValue) e2.getValue();
             int result = DataComparator.instance.compare(v1.value, v2.value);
+            if (result == 0)
+                result = props.comparePaths((String) e1.getKey(),
+                                            (String) e2.getKey());
             if (result == 0)
                 result = ((String) e1.getKey()).compareTo(e2.getKey());
             return result;

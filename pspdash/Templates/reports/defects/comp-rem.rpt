@@ -1,0 +1,7 @@
+= Defects Removed in Compile query
+
+qf=defects.rpt
+
+title=Defects Removed in Compile
+
+d1==![(*	1000	[(/	Compile/Defects Removed	New & Changed LOC)])]
