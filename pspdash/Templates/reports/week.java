@@ -142,7 +142,8 @@ public class week extends TinyCGIBase {
 
         Map errors = metrics.getErrors();
         if (errors != null && errors.size() > 0) {
-            out.print("<table border><tr><td bgcolor='#ff5050'>" +
+            out.print("<table border><tr>" +
+                      "<td style='text-align:left' bgcolor='#ff5050'>" +
                       "<h3>Errors</h3><b>There are problems with this " +
                       "earned value schedule:<ul>");
             Iterator i = errors.keySet().iterator();
