@@ -274,7 +274,7 @@ public class EVTaskList extends AbstractTreeTableModel
         ((EVTask) root).saveToXML(result);
         schedule.saveToXML(result);
         result.append("</EVModel>");
-        System.out.print(result.toString());
+        //System.out.print(result.toString());
         return result.toString();
     }
 
@@ -488,7 +488,7 @@ public class EVTaskList extends AbstractTreeTableModel
     private void maybeDispose() {
         if (recalcListeners == null) return;
         if (recalcListeners.isEmpty()) {
-            System.out.println("disposing!");
+            //System.out.println("disposing!");
             hierarchy.removeHierarchyListener(this);
             ((EVTask) root).destroy();
         }
@@ -519,7 +519,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     private double totalPlanTime;
     public void recalc() {
-        System.out.println("recalculating " + taskListName);
+        //System.out.println("recalculating " + taskListName);
         if (isXML())
             openXML(data, taskListName);
         else if (isRollup())
@@ -741,7 +741,7 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public void finalize() throws Throwable {
-        System.out.println("finalizing EVTaskList " + taskListName);
+        //System.out.println("finalizing EVTaskList " + taskListName);
         super.finalize();
     }
 
