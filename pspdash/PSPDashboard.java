@@ -451,6 +451,10 @@ public class PSPDashboard extends JFrame implements WindowListener {
             hierarchy.terminate();
             hierarchy = null;
         }
+        if (pause_button != null) {
+            pause_button.quit();
+            pause_button = null;
+        }
         if (configure_button != null) {
             configure_button.quit();
             configure_button = null;
