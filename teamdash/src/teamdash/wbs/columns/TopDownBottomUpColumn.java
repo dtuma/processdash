@@ -7,6 +7,8 @@ import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
+/** A numeric column containing data which should sum up hierarchically.
+ */
 public class TopDownBottomUpColumn extends AbstractNumericColumn
     implements CalculatedDataColumn
 {

@@ -3,34 +3,112 @@ package teamdash.wbs;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import javax.swing.table.AbstractTableModel;
-import javax.swing.event.EventListenerList;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 
+/** This class maintains a tree-like work breakdown structure, and
+ * exposes it via a table model.
+ *
+ * Trees are normally represented in Swing with a TreeModel (and can
+ * still be displayed in tables using a JTreeTable), but I chose not
+ * to use a TreeModel for an important reason: above all else, I
+ * wanted the work breakdown structure to be <b>very</b> easy to edit.
+ * (This was my most important user requirement.)  I wanted the user
+ * to be able to simply edit the hierarchy with simple actions similar
+ * to those found when editing an outline in a Microsoft Word document:
+ * promote/demote, insert/delete, and cut/paste.
+ *
+ * Facilitating simple editing comes with a price: you must allow the
+ * user to create "illegal" trees. For example:
+
+ * <PRE>PARENT
+ +----CHILD1
+ |     +-GRANDCHILD1
+ +-CHILD2
+    +-GRANDCHILD2
+    +-GRANDCHILD3</PRE>
+
+ * in this tree, child1 and child2 are siblings, even though there
+ * appears to be a missing tree node in between parent and child1.
+ * The TreeModel cannot support this type of behavior.  Further,
+ * actions like promote/demote become incredibly difficult to
+ * implement in a TreeModel - and even more difficult to implement
+ * symmetrically (e.g. demoting something and then promoting it should
+ * result in a no-op).
+ *
+ * After careful analysis, I decided I needed a custom data structure
+ * to perform these operations.  This WBSModel maintains a simple
+ * (flat) list of nodes, represented by {@link WBSNode}.  In addition
+ * to the regular node characteristics like name and type, these nodes
+ * contain an "indentationLevel" property.  Various methods in this
+ * class examine the indentation levels of nodes to calculate tree-like
+ * operations (e.g. getParent, getChildCount, getChildren).  The first
+ * item in the list is the root, and always has indentation level 0. No
+ * other node in the tree is allowed to have indentation level 0.
+ *
+ * Nodes also keep track of an "expanded" property, which indicates
+ * whether the node should be expanded or collapsed when displaying a
+ * tree view.  Swing's TreeModel does not encompass this concept,
+ * opting instead to store the expanded/collapsed flags in a JTree
+ * object.  This is a good design decision, which allows two different
+ * JTrees to display the same TreeModel and have different
+ * expanded/collapsed states.  I found that the behavior of many of
+ * the editing operations I needed to support was tied very closely to
+ * the expanded/collapsed state of the nodes in question.  Separating
+ * expanded/collapsed data into a separate model would significantly
+ * increase the complexity of the logic I needed to write, and did not
+ * provide much value, since I don't need to display multiple
+ * instances of the work breakdown structure.  (I decided that even if
+ * multiple instances were required in the future, requiring their
+ * expanded/collapsed states to stay in synch would not be a
+ * liability.)
+ * 
+ * In addition, it should be noted that the nodes of the work breakdown
+ * structure can store/retrieve an unlimited amount of related data via the
+ * WBSNode.setAttribute methods.  This can be used to store data like the
+ * planned size/time for a node, the name of a resource assigned to the task,
+ * etc.
+ */
 public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
+    /** The flat list of nodes in this work breakdown structure */
     private ArrayList wbsNodes;
+
+    /** An object which can check the WBS for errors. */
     private WBSModelValidator validator;
-    protected EventListenerList listenerList = new EventListenerList();
 
 
-    public WBSModel() { this("Root"); }
 
-    public WBSModel(String name) {
+    public WBSModel() { this("Team Project"); }
+
+    /** Create a work breakdown structure model.
+     * 
+     * This will add a few nodes to the model to give the user an idea on how
+     * to start.
+     * @param rootNodeName the name to give the root node of the hierarchy.
+     */
+    public WBSModel(String rootNodeName) {
         wbsNodes = new ArrayList();
-        if (name == null || name.trim().length() == 0)
-            name = "Team Project";
-        add(new WBSNode(this, name, "Project", 0, true));
+        if (rootNodeName == null || rootNodeName.trim().length() == 0)
+            rootNodeName = "Team Project";
+        add(new WBSNode(this, rootNodeName, "Project", 0, true));
         add(new WBSNode(this, "Software Component", "Software Component",
                         1, true));
         validator = new WBSModelValidator(this);
     }
 
+    /** Load a work breakdown structure from the data in the given XML element.
+     */
     public WBSModel(Element e) {
         wbsNodes = new ArrayList();
         loadXML(e);
@@ -38,16 +116,31 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         validator.recalc();
     }
 
+    /** Add a node to the end of this work breakdown structure.
+     */
     public void add(WBSNode node) {
         wbsNodes.add(node);
         recalcRows();
     }
 
+    /** Insert a node into this work breakdown structure.
+     * 
+     * @param beforeRow the row where the node should be inserted.
+     * @param newNode the new node to insert.
+     * @return int the actual row number of the inserted node (which may differ
+     * from the <code>beforeRow</code> parameter if it contained an invalid
+     * value)
+     */
     public int add(int beforeRow, WBSNode newNode) {
+        // don't insert anything before the root node
         if (beforeRow < 1) beforeRow = 1;
+
+        // if beforeRow points to a position past the end of the table, just
+        // append the row.
         if (beforeRow >= rows.length) {
             add(newNode);
             return rows.length - 1;
+
         } else {
             int beforePos = rows[beforeRow];
             wbsNodes.add(beforePos, newNode);
@@ -56,8 +149,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         }
     }
 
+    /** Return the number of nodes in the wbs. */
     public int size() { return wbsNodes.size(); }
 
+    /** Returns the node which is the root of the wbs hierarchy. */
     public WBSNode getRoot() {
         return (WBSNode) wbsNodes.get(0);
     }

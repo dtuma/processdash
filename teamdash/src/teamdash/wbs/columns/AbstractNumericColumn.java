@@ -3,6 +3,8 @@ package teamdash.wbs.columns;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSNode;
 
+/** Abstract implementation of DataColumn interface for a numeric column.
+ */
 public abstract class AbstractNumericColumn extends AbstractDataColumn {
 
     protected double fuzzFactor = 0.05;
