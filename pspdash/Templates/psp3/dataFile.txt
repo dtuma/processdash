@@ -195,3 +195,24 @@ HLD Review/DRL==![(/	HLD Review/Defects Removed per Hour	Test/Defects Removed pe
 ==
 
 (Base Additions|New Objects|Reused Objects)/([^0-9]+) (\d+)=null
+
+==
+== tags identifying new/different nodes and leaves in this process
+==
+
+HLD/node==1.0
+HLD/leaf==1.0
+HLD Review/node==1.0
+HLD Review/leaf==1.0
+Design/leaf=null
+Design/node=null
+Design Review/leaf=null
+Design Review/node=null
+Code/leaf=null
+Code/node=null
+Code Review/leaf=null
+Code Review/node=null
+Compile/leaf=null
+Compile/node=null
+Test/leaf=null
+Test/node=null

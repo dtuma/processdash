@@ -80,3 +80,15 @@ Defects Removed==![(+	~.*/Defects Removed)]
 ==
 
 (Base Additions|New Objects|Reused Objects)/([^0-9]+) (\d+)=null
+
+
+==
+== tags identifying new/different nodes and leaves in this process
+==
+
+Reassessment/node==1.0
+Reassessment/leaf==1.0
+Planning/node==null
+Planning/leaf==null
+Postmortem/node==null
+Postmortem/leaf==null

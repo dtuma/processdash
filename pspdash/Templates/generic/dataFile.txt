@@ -41,6 +41,7 @@
 generic==1.0
 GENERIC==1.0
 
+
 = These data elements allow users to customize a generic project.
 
 Generic - Show Defects=1.0
@@ -111,3 +112,14 @@ Postmortem/Defects Injected==0.0
 Postmortem/Defects Removed==0.0
 Postmortem/Defects Injected per Hour==![(/	Postmortem/Defects Injected	Postmortem/Time	0.016667)]
 Postmortem/Defects Removed per Hour==![(/	Postmortem/Defects Removed	Postmortem/Time	0.016667)]
+
+
+==
+== tags identifying the nodes and leaves in this process
+==
+
+node==1.0
+Planning/node==1.0
+Planning/leaf==1.0
+Postmortem/node==1.0
+Postmortem/leaf==1.0

@@ -60,3 +60,11 @@ Defects Removed==0.0
 
 Defects Injected per Hour==![(/	Defects Injected	Time	0.016667)]
 Defects Removed per Hour==![(/	Defects Removed	Time	0.016667)]
+
+
+==
+== tags identifying this phase as a node and a leaf.
+==
+
+node==1.0
+leaf==1.0

@@ -58,6 +58,23 @@ Compile/PSP Phase==50.0
 Test/PSP Phase==60.0
 Postmortem/PSP Phase==70.0
 
+= tags identifying the nodes and leaves in this process (reviews 
+= intentionally omitted).
+
+node==1.0
+Planning/leaf==1.0
+Planning/node==1.0
+Design/leaf==1.0
+Design/node==1.0
+Code/leaf==1.0
+Code/node==1.0
+Compile/leaf==1.0
+Compile/node==1.0
+Test/leaf==1.0
+Test/node==1.0
+Postmortem/leaf==1.0
+Postmortem/node==1.0
+
 
 ==
 == Data Elements to track Time.
