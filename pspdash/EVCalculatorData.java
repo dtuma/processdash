@@ -432,7 +432,8 @@ Value to recalculate
      *
      */
 
-    public List getEVLeaves(boolean filter) {  // filter is not yet used.
+
+    public List getReorderableEVLeaves() {
         List result = new LinkedList(evLeaves);
         Iterator i = result.iterator();
         while (i.hasNext()) {

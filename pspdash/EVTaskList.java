@@ -625,9 +625,9 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
-    TreeTableModel getFlatModel() { return new FlatTreeModel(); }
+    FlatTreeModel getFlatModel() { return new FlatTreeModel(); }
 
-    private class FlatTreeModel extends AbstractTreeTableModel
+    public class FlatTreeModel extends AbstractTreeTableModel
         implements TreeModelListener, RecalcListener
     {
 
@@ -641,7 +641,10 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         private List getEVLeaves() {
-            return calculator.getEVLeaves(true);
+            if (calculator instanceof EVCalculatorData)
+                return ((EVCalculatorData) calculator).getReorderableEVLeaves();
+            else
+                return calculator.getEVLeaves();
         }
 
         public Class getColumnClass(int column) {
@@ -782,6 +785,29 @@ public class EVTaskList extends AbstractTreeTableModel
                 fireTreeNodesRemoved(this, ((EVTask) root).getPath(),
                                      childIndices, children);
             }
+        }
+
+        private void enumerateOrdinals() {
+            Iterator allLeaves = calculator.getEVLeaves().iterator();
+            int pos = 1;
+            while (allLeaves.hasNext()) {
+                EVTask task = (EVTask) allLeaves.next();
+                task.taskOrdinal = pos++;
+            }
+        }
+
+        public boolean moveTaskUp(int pos) {
+            if (pos < 1 || pos >= evLeaves.size()) return false;
+
+            enumerateOrdinals();
+
+            EVTask target = (EVTask) evLeaves.get(pos);
+            EVTask predecessor = (EVTask) evLeaves.get(pos-1);
+            pos = target.taskOrdinal;
+            target.taskOrdinal = predecessor.taskOrdinal;
+            predecessor.taskOrdinal = pos;
+
+            return true;
         }
     }
 

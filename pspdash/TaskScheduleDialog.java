@@ -64,6 +64,8 @@ public class TaskScheduleDialog
     protected PSPDashboard dash;
     protected String taskListName;
 
+    private EVTaskList.FlatTreeModel flatModel = null;
+
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
         deletePeriodButton, chartButton, reportButton, closeButton,
@@ -1189,6 +1191,7 @@ public class TaskScheduleDialog
                                                   localName);
     }
     private static final String XML_QUERY_SUFFIX = "?xml";
+    // localized to here
     private static Map IMPORT_ERROR_MESSAGE_MAP = null;
     private Map getImportErrorMessageMap() {
         if (IMPORT_ERROR_MESSAGE_MAP == null) {
@@ -1292,12 +1295,13 @@ public class TaskScheduleDialog
      * task tree root.
      */
     protected void moveTaskUp() {
-        if (isFlatView()) { notYetImplemented(); return; }
-
         TreePath selPath = treeTable.getTree().getSelectionPath();
 
         // make the change.
-        if (model.moveTaskUp(selectedTaskPos(selPath))) {
+        if (isFlatView()
+                ? flatModel.moveTaskUp(selectedTaskPos(selPath, flatModel))
+                : model.moveTaskUp(selectedTaskPos(selPath, model)))
+        {
             setDirty(true);
             recalcAll();
 
@@ -1313,12 +1317,13 @@ public class TaskScheduleDialog
      * task tree root.
      */
     protected void moveTaskDown() {
-        if (isFlatView()) { notYetImplemented(); return; }
-
         TreePath selPath = treeTable.getTree().getSelectionPath();
 
         // make the change.
-        if (model.moveTaskUp(selectedTaskPos(selPath)+1)) {
+        if (isFlatView()
+                ? flatModel.moveTaskUp(selectedTaskPos(selPath, flatModel)+1)
+                : model.moveTaskUp(selectedTaskPos(selPath, model)+1))
+        {
             setDirty(true);
             recalcAll();
 
@@ -1344,14 +1349,14 @@ public class TaskScheduleDialog
         }
     }
 
-    protected int selectedTaskPos(TreePath selPath) {
+    protected int selectedTaskPos(TreePath selPath, TreeModel model) {
         if (selPath == null) return -1;
 
         int pathLen = selPath.getPathCount();
         if (pathLen != 2) return -1; // only adjust children of the root node.
         EVTask selectedTask = (EVTask) selPath.getPathComponent(pathLen-1);
         EVTask parentNode = (EVTask) selPath.getPathComponent(pathLen-2);
-        return parentNode.getChildIndex(selectedTask);
+        return model.getIndexOfChild(parentNode, selectedTask);
     }
 
     protected void enableTaskButtons(ListSelectionEvent e) {
@@ -1379,7 +1384,7 @@ public class TaskScheduleDialog
 
         //addTaskButton    .setEnabled(false);
         deleteTaskButton .setEnabled(enableDelete);
-        deleteTaskButton .setText("Remove Task");
+        deleteTaskButton .setText(resources.getString("Remove_Task"));
         moveUpButton     .setEnabled(enableUp);
         moveDownButton   .setEnabled(enableDown);
     }
@@ -1388,7 +1393,7 @@ public class TaskScheduleDialog
     protected void enableTaskButtons(TreePath selectionPath) {
         boolean enableDelete = false, enableExplode = false,
             enableUp = false, enableDown = false, isPruned = false;
-        int pos = selectedTaskPos(selectionPath);
+        int pos = selectedTaskPos(selectionPath, model);
         if (pos != -1) {
             int numKids = ((EVTask) model.getRoot()).getNumChildren();
 
@@ -1413,8 +1418,6 @@ public class TaskScheduleDialog
         moveUpButton     .setEnabled(enableUp);
         moveDownButton   .setEnabled(enableDown);
     }
-
-    private TreeTableModel flatModel = null;
 
     protected void toggleFlatView() {
         boolean showFlat = isFlatView();

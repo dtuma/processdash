@@ -27,6 +27,8 @@
 package pspdash;
 
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -42,7 +44,8 @@ public abstract class EVCalculator {
 
     public abstract void recalculate();
 
-    public List getEVLeaves(boolean filter) {
+
+    public List getEVLeaves() {
         return evLeaves;
     }
 
