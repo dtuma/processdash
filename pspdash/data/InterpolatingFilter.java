@@ -27,6 +27,8 @@
 package pspdash.data;
 
 import java.io.*;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import pspdash.StringUtils;
 
@@ -114,6 +116,8 @@ public class InterpolatingFilter extends PushbackInputStream {
 
     // names of special variables
     public static final String PREFIX_VAR = "Project/Task";
+    public static final String TODAY_VAR  = "Today";
+    public static final String NOW_VAR    = "Now";
 
     private String lookupValue(String varName) {
         // See if there is a local setting for this variable.
@@ -134,9 +138,16 @@ public class InterpolatingFilter extends PushbackInputStream {
     }
     private HashMap defaultLocalDefs() {
         HashMap result = new HashMap();
+        Date now = new Date();
+        result.put(TODAY_VAR,  dateFormatter.format(now));
+        result.put(NOW_VAR,    dateTimeFormatter.format(now));
         result.put(PREFIX_VAR, prefix);
         return result;
     }
+    private static DateFormat dateFormatter =
+        DateFormat.getDateInstance(DateFormat.MEDIUM);
+    private static DateFormat dateTimeFormatter =
+        DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
 
 
     // The routines below exist solely to ensure that all reads go through
