@@ -284,7 +284,7 @@ public class AutoUpdateManager {
 
 
     private final void debug(String msg) {
-        System.out.println("AutoUpdateManager: " + msg);
+        // System.out.println("AutoUpdateManager: " + msg);
     }
 
 }
