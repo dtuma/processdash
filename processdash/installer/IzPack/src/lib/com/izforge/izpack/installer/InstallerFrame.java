@@ -356,7 +356,10 @@ public class InstallerFrame extends JFrame
         panelsContainer.setVisible(false);
         IzPanel panel = (IzPanel) installdata.panels.get(installdata.curPanelNumber);
         IzPanel l_panel = (IzPanel) installdata.panels.get(last);
-        l_panel.makeXMLData(installdata.xmlData.getChildAtIndex(last));
+        XMLElement panelXML = installdata.xmlData.getChildAtIndex(last);
+        while (panelXML.hasChildren())
+            panelXML.removeChildAtIndex(0);
+        l_panel.makeXMLData(panelXML);
         panelsContainer.remove(l_panel);
         panelsContainer.add(panel);
         if (installdata.curPanelNumber == 0)
@@ -370,6 +373,7 @@ public class InstallerFrame extends JFrame
             prevButton.setVisible(false);
             nextButton.setVisible(false);
             lockNextButton();
+            quitButton.setText("OK");
         }
         else
         {
@@ -560,26 +564,26 @@ public class InstallerFrame extends JFrame
             File f = new File(p);
             f.delete();
         }
-        cleanWipe(new File(InstallData.getInstance().getInstallPath()));
+//    cleanWipe(new File(InstallData.getInstance().getInstallPath()));
     }
 
 
-    /**
-     *  Recursive files wiper.
-     *
-     * @param  file  The file to wipe.
-     */
-    private void cleanWipe(File file)
-    {
-        if (file.isDirectory())
-        {
-            File[] files = file.listFiles();
-            int size = files.length;
-            for (int i = 0; i < size; i++)
-                cleanWipe(files[i]);
-        }
-        file.delete();
-    }
+//  /**
+//   *  Recursive files wiper.
+//   *
+//   * @param  file  The file to wipe.
+//   */
+//  private void cleanWipe(File file)
+//  {
+//    if (file.isDirectory())
+//    {
+//      File[] files = file.listFiles();
+//      int size = files.length;
+//      for (int i = 0; i < size; i++)
+//        cleanWipe(files[i]);
+//    }
+//    file.delete();
+//  }
 
 
     /**
@@ -654,13 +658,16 @@ public class InstallerFrame extends JFrame
     }
 
 
+    private int skipDirection = 1;
+
     /**  Allows a panel to ask to be skipped.  */
     public void skipPanel()
     {
-        if (installdata.curPanelNumber < installdata.panels.size() - 1)
+        int newPanelNumber = installdata.curPanelNumber + skipDirection;
+        if (newPanelNumber >= 0 && newPanelNumber < installdata.panels.size())
         {
-            installdata.curPanelNumber++;
-            switchPanel(installdata.curPanelNumber - 1);
+            installdata.curPanelNumber = newPanelNumber;
+            switchPanel(installdata.curPanelNumber - skipDirection);
         }
     }
 
@@ -685,8 +692,10 @@ public class InstallerFrame extends JFrame
             {
                 if ((installdata.curPanelNumber > 0))
                 {
+                    skipDirection = -1;
                     installdata.curPanelNumber--;
                     switchPanel(installdata.curPanelNumber + 1);
+                    skipDirection = 1;
                 }
             }
             else
@@ -732,4 +741,3 @@ public class InstallerFrame extends JFrame
         }
     }
 }
-
