@@ -1,0 +1,303 @@
+<HTML>
+<head>
+<TITLE>Team Use - PSP Data and Earned Value</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+<style>
+   .td { color: blue;  font-weight: bold }
+   .tp { color: #ff6600;  font-weight: bold }
+   .in { color: #008800;  font-weight: bold }
+   pre { margin-left: 0.5cm; font-family: sans-serif; font-size: small }
+   ol { margin-left: 0.5cm }
+   li { margin-bottom: 0.5cm }
+</style>
+
+</head>
+<BODY>
+
+<H1>Team Use - PSP Data and Earned Value</H1>
+
+This approach can take your team a <u>long</u> way toward using
+high-maturity techniques to track project progress.  However,
+graphical user interfaces are not currently provided to accomplish all
+of the steps below, so some manual configuration will be required.
+
+<p>To correctly perform this manual configuration, it is helpful to
+understand the rollup process used by this approach.  In this
+approach, each team member will run their own personal instance of the
+dashboard, which they use to capture and track their own personal
+metrics.  In addition, a team instance of the dashboard is run.  This
+team instance aggregates team data, calculates rolled-up metrics, and
+displays charts and reports of team project data.</p>
+
+
+<p><center><img src="../../Images/TeamRollupDataFlow.png"></center></p>
+
+<p>To simplify ongoing communication, this approach uses a shared
+network directory (labeled "Team Data Directory" in the diagram
+above).  Individuals configure their personal dashboard instances to
+periodically export metrics data.  Each individual's data is saved
+into a different file in this network folder.  Meanwhile, the team
+dashboard instance is configured to import data from this same
+directory.  The resulting imported data is then rolled up using
+existing mechanisms already present in the Process Dashboard.</p>
+
+<p>To use this approach, follow the steps below.</p>
+
+<H2 NO_NUMBER>Create Team Data Directory</H2>
+
+Most teams have a folder on a shared network drive where project
+documents are stored.  Create a subdirectory specifically for
+dashboard metrics data.  The main requirement is that all team members
+should have the ability to save files to this directory.  In a Windows
+environment, each team member will most likely want to map the network
+drive so the folder is accessible via a simple filename.
+
+<p>Depending on your organizational culture, you may also wish to
+tighten permissions to prevent non-team members from viewing the
+data.</p>
+
+<H2 NO_NUMBER>Create Team Dashboard Instance</H2>
+
+The word "instance" may be confusing to some.  By "instance," we mean
+a running dashboard program window, with its own data storage area
+that differs from other "instances."
+
+<p>You can run the Team Dashboard instance just about anywhere.
+Practically speaking, it is probably easiest to run it on the project
+manager's computer or team leader's computer. If you have access to a
+shared network computer, you might decide to run it there instead;
+however, you may occasionally need to interact with the graphical user
+interface for the team dashboard instance, so I would not recommend
+running it on an inaccessible computer locked in a server room.</p>
+
+<p>Creating a team dashboard instance is fairly simple:</p>
+
+<ol>
+
+<li>Install the Process Dashboard on the computer in question if it is
+    not there already.</li>
+
+<li>If you are running the team dashboard on the project manager's
+    computer or the team leader's computer, then it will be common for
+    them to have a personal dashboard instance as well.  This isn't a
+    problem.  To create a second instance:
+
+    <ol style="list-style-type:lower-alpha">
+
+    <li>Make a copy of the shortcut you use to run the dashboard.
+        Rename the shortcut with a name like "Team Dashboard."</li>
+
+    <li>Right click on your new shortcut and choose "Properties."</li>
+
+    <li>In the window that appears, change the "Start in:" field to
+        name a different directory.  (By default, it will typically
+        read "<tt>C:\pspdata</tt>".)  Create a new directory on your
+        hard drive (for example "<tt>C:\teamdata</tt>" - but anything
+        is fine) and enter its name in the "Start in" field.
+        <B>Remember this directory - you'll use it in step 3
+        below.</b></li>
+
+    <li>Put your cursor at the end of the "Target" field, and append a
+        space, followed by the double quote character (&quot;),
+        followed by the words Team Dashboard, followed by another
+        double quote character.  This will cause the words 
+	"Team Dashboard" to be displayed in the title bar of the Team
+        Dashboard instance.</li>
+
+    <li>Click OK</li>
+
+    <li>Try launching the dashboard using your new shortcut.  The new
+        shortcut should launch a dashboard instance that is completely
+        independent from your original dashboard instance, and which
+        displays "Team Dashboard" in its title bar.  Once you have
+        successfully verified that the new shortcut works as expected,
+        shut down the new dashboard instance.</li>
+
+    </ol></li>
+
+<li>Next, we'll configure the new dashboard instance.  Navigate to the
+    directory you created in step 2c above and find the file
+    "<tt>pspdash.ini</tt>".  (If the file does not exist, then you're
+    either looking in the wrong place, or you didn't perform all the
+    steps above as instructed!) Make certain the team dashboard is NOT
+    running. Then double-click the "<tt>pspdash.ini</tt>" file to open
+    it.  Add the following lines to the bottom of the file:
+
+<pre>http.port=3000
+http.allowRemote=true
+ev.enableRollup=true
+import.directories=Imported=&gt;<span class="td">T:/teamdir/pspdata</span></pre>
+
+    Now, edit the last line: replace the characters shown in blue type
+    with the real path to your "Team Data Directory".  Even though
+    Windows would normally use backslash characters to separate
+    directory names, you should use forward slash characters instead,
+    as shown above.  This last line configures your team instance to
+    automatically import data from the named directory.  It will scan
+    the contents of that directory every 10 minutes or so to see if
+    the timestamps on any files have changed, and automatically import
+    any new data it finds.</li>
+
+</ol>
+
+<p>Your team dashboard instance is now created and configured.</p>
+
+<H2 NO_NUMBER>Configure Individual Dashboard Instances</H2>
+
+Next, you should set up the Dashboard instances for each team member.
+Have each team member follow these steps:
+
+<ol>
+
+<li>Run the dashboard, and open the Hierarchy Editor.  Somewhere in
+    your dashboard hierarchy, create a "Node" (using the &quot;Edit
+    <img src="../../Images/rarrow.png"> Add&nbsp;Node&quot; menu) to
+    represent the work you will perform for this project.  In the text
+    below, we'll pretend that the node created is &quot;<span
+    class="tp">/Project/Team&nbsp;Project</span>&quot;, but you should
+    give your node a meaningful name, that represents the project at
+    hand.  Save the changes by selecting &quot;File <img
+    src="../../Images/rarrow.png"> Save&quot; from the Hierarchy
+    Editor window.  Close the Hierarchy Editor.<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Later, when you
+    begin planning your personal work for this project, you should
+    create nodes and PSP templates representing project tasks.  These
+    should be placed hierarchically underneath this project node to
+    ensure that their metrics are included in the team rollup.)</li>
+
+<li>From the C menu on the main dashboard window, choose Task and
+    Schedule.  Create a new schedule to represent your project.  In
+    the task list for this new schedule, <u>add the node</u> you
+    created in step 1 above.  Save the schedule.  Close the Task &amp;
+    Schedule window.</li>
+
+<li><b>Shut down the dashboard.</b>  (Don't skip this step!)</li>
+
+<li>Open the directory containing your personal data - on Windows
+    systems, this defaults to "<tt>C:\pspdata</tt>" unless you changed
+    it when installing the dashboard.  Find the file called
+    "<tt>global.dat</tt>" and open it in an editor like Notepad.  Add
+    a line to the end of the file with the form:
+
+    <pre><i class="tp">&lt;projectPath&gt;</i>/EXPORT_FILE=&quot;<i class="td">&lt;teamDirectory&gt;</i>/<i class="in">&lt;yourName&gt;</i>.txt</pre>
+
+    For example:
+
+    <pre><b class="tp">Project/Team Project</b>/EXPORT_FILE=&quot;<b class="td">T:/teamdir/pspdata</b>/<b class="in">Bob</b>.txt</pre>
+
+    Carefully make the following edits:<ul>
+
+    <li>Where the orange text appears in the line above, you should
+        enter the full name of the team project node you created in
+        step 1, minus the initial slash character.</li>
+
+    <li>Where the blue text appears, you should enter the complete
+        path to the team data directory, using forward slashes
+        (<tt>/</tt>) instead of backslashes (<tt>\</tt>).</li>
+
+    <li>Where the green text appears, you should enter your name or
+        initials (just make certain you choose a filename that is
+        different from any of your team members).</li>
+
+    <li>Black text in the line should be copied exactly.</li>
+
+    </ul>Do not include any additional whitespace characters (not at
+    the beginning of the line, nor the end, nor between any of the
+    components above).</p>
+
+<li>Restart the dashboard, then shut it down again.  As it shuts down,
+    you may briefly see a small window with a progress bar that
+    displays the text "Auto Exporting."  Check the team data
+    directory.  It should contain a file with the name you specified
+    in step 4 above.  If it no such file exists, then you most likely
+    made an error in step 4 above; repeat steps 3 and 4 again.</li>
+
+</ol>
+
+
+<H2 NO_NUMBER>Create Team Rollups</H2>
+
+Once all team members have configured their dashboards as described
+above, data should be available to the team dashboard.  You'll want to
+create two different types of team rollup: a rolled up earned value
+schedule, and rolled up project metrics.
+
+<H3 NO_NUMBER>Creating the Rolled-up Earned Value Schedule</H3>
+
+<ol>
+
+<li>Open the Team Dashboard instance and select "Task &amp; Schedule"
+    from its C menu.  If it displays a window giving you an option to
+    open an existing schedule, click "New."</li>
+
+<li>When you see a dialog entitled "Create New Schedule", enter a name
+    for your team project schedule and select "Create EV Roll-up" from
+    the drop-down list.  (If you don't see a drop-down list, then you
+    didn't correctly configure the team dashboard - see step 3 in the
+    "Create Team Dashboard Instance" section above.)  Click OK to
+    create the new rollup schedule.</li>
+
+<li>The window that appears should give you an opportunity to add
+    schedules to the rollup; add each individual's schedule in turn.
+    (If some individual's schedule does not appear in the list, then
+    they have not correctly configured their personal dashboard as
+    described above.)  Save the team rollup schedule.</li>
+
+<li>You can view an HTML report of the team rollup schedule by
+    clicking the "Report" button.  If the team dashboard instance is
+    running, you can access this same report from other computers by
+    typing an appropriate URL in a web browser; just copy and paste
+    the URL for the report, and replace the word "localhost" with the
+    name of the computer where the team dashboard instance is
+    running.</li>
+
+</ol>
+
+
+<H3 NO_NUMBER>Creating Rolled-up PSP Metrics</H3>
+
+<ol>
+
+<li>Open the Team Dashboard instance and select "Hierarchy Editor"
+    from its C menu.</li>
+
+<li>Highlight a node in the hierarchy editor like "Project" and select
+    the &quot;Edit <img src="../../Images/rarrow.png"> Add Template
+    <img src="../../Images/rarrow.png"> Rollup PSP Data&quot; menu
+    option.  A new node will be created; give it a name appropriate
+    for your project.  Save and close the Hierarchy Editor.</li>
+
+<li>Use the Hierarchy Menus to navigate to the node you just created.
+    Click the drop-down arrow to the right of the Script Button.
+    Choose the "Analyze Rollup Data" option.  An analysis web page for
+    the project will be displayed.  This website rolls up data from
+    PSP tasks in the project. (If people use a non-PSP process to
+    perform their work, that data will not be rolled up into this
+    analysis.)</li>
+
+<li>By default, the analysis web page will include data from all
+    completed PSP tasks in the team project.  You can change the
+    criteria by selecting the "Edit Data Rollup Filter" option on the
+    Script Button's drop-down menu. By editing the values on the
+    rollup filter form, you can instruct the rollup to include<ul>
+
+      <li>Data from all PSP tasks, whether they are complete or not</li>
+      <li>Data for all tasks with certain keywords (this can be a useful
+          way to view a subset of the data in your project)</li></ul>
+
+    If you find yourself editing the filter frequently to see
+    different data views, you can instead repeat step 2 above to
+    create any number of distinct rollups.  Then provide different
+    filter criteria for each rollup.  5. If the team dashboard
+    instance is running, you can access these same analyses from other
+    computers by typing an appropriate URL in a web browser; just copy
+    and paste the URL for the analysis web page, and replace the word
+    "localhost" with the name of the computer where the team dashboard
+    instance is running.
+
+</ol>
+
+
+</BODY>
+</HTML>
