@@ -40,5 +40,8 @@ JAR_CONTENTS=Templates/import.template \
 importPSP.jar: ../import.template dataFile.txt import.htm manifest
 	cd ../..; $(JAR) -cfm $(DIR)/importPSP.jar $(DIR)/manifest $(JAR_CONTENTS)
 
+install: all
+	cp importPSP.jar ../../build/importPSP.jar
+
 clean:
 	rm -f *~ importPSP.jar

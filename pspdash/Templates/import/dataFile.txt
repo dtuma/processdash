@@ -79,8 +79,8 @@ Estimated Time=?NaN
 = Actual Time
 
 Planning/Time=?0.0
-HLD/Time=?0.0
-HLD Review/Time=?0.0
+HLD/Time==#?0.0?0.0
+HLD Review/Time==#?0.0?0.0
 Design/Time=?0.0
 Design Review/Time=?0.0
 Design/Combined Time==![(+	Design/Time	Design Review/Time)]
@@ -117,8 +117,8 @@ PM/% Time==![(/	PM/Time	Time)]
 
 Before Development/Defects Injected=0.0
 Planning/Defects Injected=?0.0
-HLD/Defects Injected=?0.0
-HLD Review/Defects Injected=?0.0
+HLD/Defects Injected==#?0.0?0.0
+HLD Review/Defects Injected==#?0.0?0.0
 Design/Defects Injected=?0.0
 Design Review/Defects Injected=?0.0
 Design/Combined Defects Injected==![(+	Design/Defects Injected	Design Review/Defects Injected)]
@@ -135,8 +135,8 @@ Defects Injected==![(+	~(Planning|HLD|HLD Review|Design|Design Review|Code|Code 
 ==
 
 Planning/Defects Removed=?0.0
-HLD/Defects Removed=?0.0
-HLD Review/Defects Removed=?0.0
+HLD/Defects Removed==#?0.0?0.0
+HLD Review/Defects Removed==#?0.0?0.0
 Design/Defects Removed=?0.0
 Design Review/Defects Removed=?0.0
 Design/Combined Defects Removed==![(+	Design/Defects Removed	Design Review/Defects Removed)]
@@ -183,5 +183,5 @@ Completed=?@43200000
 ==
 
 PSP_Level=2.1
-FreezeFlag/HLD( Review)?/.*==![(<	PSP_Level	3)]
-FreezeFlag/(Design|Code) Review/.*==![(<	PSP_Level	2)]
+FreezeFlag/HLD( Review)?/(Time|Defects Injected|Defects Removed)==![(<	PSP_Level	3)]
+FreezeFlag/(Design|Code) Review/(Time|Defects Injected|Defects Removed)==![(<	PSP_Level	2)]

@@ -1,3 +1,4 @@
+<!--#server-parsed -->
 <!--
 // PSP Dashboard - Data Automation Tool for PSP-like processes
 // Copyright (C) 1999  United States Air Force
@@ -40,7 +41,8 @@ TD.header {
 </HEAD>
 <BODY>
 
-<H1>Import PSP Project Data</H1>
+<H1><!--#echo var="PATH_TRANSLATED" --></H1>
+<H2>Import PSP Project Data</H2>
 
 <FORM NAME=PLAN>
 
@@ -76,9 +78,9 @@ TD.header {
 </SELECT></TD>
 </TR>
 </TABLE>
-<P>
 
-<H2>Project Data</H2>
+<BR><P><FONT SIZE="+2"><B>Project Data</B></FONT>
+
 <TABLE>
 
 <TR>
@@ -123,10 +125,10 @@ TD.header {
 <TD><INPUT TYPE=text SIZE=7 NAME="New Reused LOC"></TD>
 </TR>
 
-</TABLE>
+</TABLE></P>
 
+<BR><P><FONT SIZE="+2"><B>Phase Data</B></FONT>
 
-<H2>Phase Data</H2>
 <TABLE>
 
 <TR>
@@ -185,7 +187,7 @@ TD.header {
 <TD>&nbsp;</TD>
 </TR>
 
-</TABLE>
+</TABLE></P>
 </FORM>
 
 <SCRIPT LANGUAGE=JavaScript SRC="/data.js">
