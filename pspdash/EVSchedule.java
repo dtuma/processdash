@@ -334,16 +334,17 @@ public class EVSchedule implements TableModel {
         // There isn't enough time in the schedule - we'll attempt
         // to expand the schedule so it contains enough hours.
 
-        if (!grow(true, false))     // if we can't expand the schedule,
+        if (defaultPlanTime <= 0.0) // if we can't add hours to the schedule,
             return NEVER;           // the task will never get done.
 
         while (true) {
+            if (!grow(true) || !addHours(cumPlanTime)) return NEVER;
+
             p = getLast();          // get the last period in the list.
             if (p.cumPlanTime >= cumPlanTime) {
                 p.cumPlanValue = Math.max(p.cumPlanValue, cumPlanValue);
                 return p.getEndDate();
             }
-            if (!grow(true, false)) return NEVER;
         }
     }
 
@@ -381,7 +382,7 @@ public class EVSchedule implements TableModel {
         // this task info falls AFTER the end date of the entire schedule.
         // expand the schedule until it contains the completion date.
         while (true) {
-            if (!grow(true, true)) return;
+            if (!grow(true)) return;
             p = getLast();      // get the last period in the list.
             if (when.compareTo(p.endDate) < 0) {
                 p.cumEarnedValue += planValue;
@@ -394,26 +395,56 @@ public class EVSchedule implements TableModel {
         }
     }
 
+    /** look at the final row in the schedule, and maybe bump it up.
+     *
+     *  The final row will <b>not</b> be bumped up if:<ul>
+     *  <li>it is a manual row.
+     *  <li>it already contains at defaultPlanTime minutes or more.
+     *  </ul>
+     *  In these situations, no changes will be made, and this method will
+     *  return false.
+     *
+     *  Otherwise, the final row will be bumped up an amount equal to the
+     *  smaller of:<ul>
+     *  <li>the difference between its plan time and defaultPlanTime
+     *  <li>the difference between its cum plan time and the required
+     *      cum plan time.
+     *  </ul>
+     */
+    protected synchronized boolean addHours(double requiredCumPlanTime) {
+        Period z = getLast();
 
-    public synchronized boolean grow(boolean automatic, boolean force) {
+        if (!z.automatic) return false;
+
+        double diff = defaultPlanTime - z.planTime;
+        if (diff <= 0.0) return false;
+
+        double cumDiff = requiredCumPlanTime - z.cumPlanTime;
+        if (cumDiff <= 0) return false;
+
+        if (diff < cumDiff) {
+            z.planTime = defaultPlanTime;
+            z.cumPlanTime = z.previous.cumPlanTime + defaultPlanTime;
+        } else {
+            z.cumPlanTime = requiredCumPlanTime;
+            z.planTime = requiredCumPlanTime - z.previous.cumPlanTime;
+        }
+        return true;
+    }
+
+    /** Add a new period (containing 0 planned hours) to the end of
+     *  the schedule.
+     */
+    protected synchronized boolean grow(boolean automatic) {
         int size = periods.size();
         if (size < 2 || size > 300) return false;
         Period x = get(size-2), y = get(size-1), z;
-        if (!force && automatic && y.planTime == 0) return false;
-
-        /*
-        if (y.planTime < defaultPlanTime) {
-            y.cumPlanTime = y.cumPlanTime - y.planTime + defaultPlanTime;
-            y.planTime = defaultPlanTime;
-            return true;
-        }
-        */
 
         long xdate = x.endDate.getTime(), ydate = y.endDate.getTime();
         long delta = ydate - xdate;
         Date zdate = new Date(ydate + delta);
-        z = new Period(zdate, y.planTime);
-        z.cumPlanTime = y.cumPlanTime + z.planTime;
+        z = new Period(zdate, 0.0);
+        z.cumPlanTime = y.cumPlanTime;
         z.cumPlanValue = y.cumPlanValue;
         z.cumEarnedValue = y.cumEarnedValue;
         z.automatic = automatic;
@@ -460,7 +491,7 @@ public class EVSchedule implements TableModel {
 
     public synchronized void addRow() {
         prepForEvents();
-        grow(false, true);
+        grow(false);
         getLast().clearAutomaticFlag();
         firePreparedEvents();
 
@@ -468,7 +499,12 @@ public class EVSchedule implements TableModel {
         fireNeedsRecalc();
     }
 
+    /** The amount of planTime in the <b>last</b> manual schedule period.
+     *  This is the maximum amount of time that will be alloted to any
+     *  automatic schedule period.
+     */
     double defaultPlanTime;
+
     public synchronized void cleanUp() {
         prepForEvents();
         Period p = null;
