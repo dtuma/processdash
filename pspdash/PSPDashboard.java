@@ -97,6 +97,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         // create the data repository.
         data = new DataRepository();
+        data.setRealizationPolicy(Settings.getVal("autoRealization"));
         templates = TemplateLoader.loadTemplates(data);
 
         // start the http server.
