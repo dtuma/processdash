@@ -102,38 +102,38 @@
     <str id="installer.javaversion.title" txt="インストールできません {0}"/>
     <str id="installer.javaversion.info">
 Java実行環境をアップグレードする必要があります!
-{0} {1} は、version {2} 以上の
-Java実行環境が必要です。現在のJava実行環境のversionは
+{0} {1} は、バージョン {2} 以上の
+Java実行環境が必要です。現在のJava実行環境のバージョンは
 {3}です。
-       Java実行環境のアップグレードのダウンロードは、
-{4}からできます。
-更新後、再度このインストールを実行してください。</str>
+       最新のJava実行環境は
+{4}からダウンロードできます。
+更新後、再度このインストールプログラムを実行してください。</str>
 
     <!-- Conditional License Panel strings -->
     <str id="LicencePanel.deselect.title" txt="パッケージを除外しますか?"/>
-    <str id="LicencePanel.deselect.message1" txt="あなたはライセンス規約に同意しないを選択しました。\n"/>
+    <str id="LicencePanel.deselect.message1" txt="あなたは使用許諾契約に同意しないを選択しました。\n"/>
     <str id="LicencePanel.deselect.message2" txt="インストール・リストからモジュールを削除していいですか？"/>
 
     <!-- Data Dir Panel strings -->
-    <str id="DataDirPanel.info" txt="個人用メトリックス・データのディレクトリーを選択してください :"/>
-    <str id="DataDirPanel.empty_datadir" txt="データのディレクトリを選択してください。"/>
+    <str id="DataDirPanel.info" txt="個人用メトリックスデータ用のディレクトリを指定してください :"/>
+    <str id="DataDirPanel.empty_datadir" txt="データ用のディレクトリを指定してください。"/>
 
     <!-- Shutdown Dashboard Panel strings -->
     <str id="ShutdownDashboardPanel.info">
 現在Process Dashboardを実行中の場合は、
-新しいファイルのインストールで予測できないエラーを起こすかもしれませんので、
-Process Dashboardを終了させてください。
+新しいファイルのインストールで予測できないエラーを起こすかも知れませんので、
+Process Dashboardを終了してください。
 
 Process Dashboardを初めてインストールするか、
 Process Dashboardが実行中でなければ、
 この警告は無視してください。
 
-そうでなければ、実行中のすべてのProcess Dashboard処理を終了させてから、
+そうでなければ、実行中のすべてのProcess Dashboard処理を終了してから、
 &quot;次へ&quot; ボタンをクリックしてください。</str>
 
     <str id="ShutdownDashboardPanel.error.info">
 Process Dashboardが実行中です。
-先に進む前に、Process Dashboardを終了させてください。</str>
+先に進む前に、Process Dashboardを終了してください。</str>
 
     <str id="ShutdownDashboardPanel.error.title" txt="Process Dashboard Running"/>
 
@@ -141,9 +141,9 @@ Process Dashboardが実行中です。
     <str id="PackageDownloader.title" txt="ダウンロード中..."/>
     <str id="PackageDownloader.info1" txt="ダウンロード中 &quot;"/>
     <str id="PackageDownloader.info2" txt="&quot;..."/>
-    <str id="PackageDownloader.error.title" txt="インストール警告"/>
-    <str id="PackageDownloader.error.info1" txt="当パッケージ:"/>
-    <str id="PackageDownloader.error.info2" txt="ダウンロード失敗により、インストールされませんでした。"/>
+    <str id="PackageDownloader.error.title" txt="インストール時の問題"/>
+    <str id="PackageDownloader.error.info1" txt="パッケージ:"/>
+    <str id="PackageDownloader.error.info2" txt="ダウンロードに失敗しました。インストール出来ませんでした。"/>
 
 
 </langpack>
