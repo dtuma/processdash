@@ -97,8 +97,8 @@ Authors:
   <property name="ie.cab" value="${build}/Templates/${applet.file}.cab"/>
   <property name="hb.dir" value="${build}/hb"/>
 
-  <property name="jfreechart.jar" value="${lib}/jfreechart-0.9.13.jar"/>
-  <property name="jcommon.jar"    value="${lib}/jcommon-0.8.8.jar"/>
+  <property name="jfreechart.jar" value="${lib}/jfreechart-0.9.15.jar"/>
+  <property name="jcommon.jar"    value="${lib}/jcommon-0.9.0.jar"/>
 
 
 

@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.StandardXYItemRenderer;
+import org.jfree.chart.renderer.XYItemRendererState;
 import org.jfree.data.RangeInfo;
 import org.jfree.data.XYDataset;
 import org.jfree.ui.RectangleEdge;
@@ -63,6 +64,7 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
     /** Draws the visual representation of a single data item.
      */
     public void drawItem(Graphics2D g2,
+                         XYItemRendererState state,
                          Rectangle2D dataArea,
                          PlotRenderingInfo info,
                          XYPlot plot,
