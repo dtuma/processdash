@@ -151,7 +151,7 @@ public class ev extends CGIChartBase {
         EVSchedule s = evModel.getSchedule();
         EVMetrics  m = s.getMetrics();
 
-        out.print("<table>");
+        out.print("<table name='STATS'>");
         for (int i = 0;   i < m.getRowCount();   i++)
             writeMetric(m, i);
         out.print("</table>");
@@ -191,9 +191,12 @@ public class ev extends CGIChartBase {
         "<html><head><title>Earned Value - %taskListName%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "</head><body><h1>Earned Value - %taskListName%</h1>\n";
+    static final String COLOR_PARAMS =
+        "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
     static final String SEPARATE_CHARTS_HTML =
-        "<img src='ev.class?"+CHART_PARAM+"="+VALUE_CHART+"'>&nbsp;" +
-        "<img src='ev.class?"+CHART_PARAM+"="+TIME_CHART+"'><br>\n";
+        "<img src='ev.class?"+CHART_PARAM+"="+VALUE_CHART+COLOR_PARAMS+"'>" +
+        "<img src='ev.class?"+CHART_PARAM+"="+TIME_CHART+COLOR_PARAMS+
+        "&width=320&hideLegend'><br>\n";
     static final String COMBINED_CHARTS_HTML =
         "<img src='ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
     static final String FOOTER_HTML =
