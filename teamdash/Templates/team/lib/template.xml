@@ -1,0 +1,299 @@
+<?xml version='1.0'?>
+
+<dashboard-process-template>
+
+
+
+
+<!--======================================================================
+    The template for a root project node on the team side
+ =======================================================================-->
+
+  <template
+      name="PID-Team:!*!:<!--#echo Full_Name --> Project (Team)"
+      ID="PID/TeamRoot"
+      defineRollup="no"
+      dataFile="PID/team_root_dataFile.txt"
+      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->"
+      >
+
+    <html ID="sump" href="PID/rollup_plan_summary.shtm"
+        title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
+    <html ID="sumq" href="PID/rollup_quality_summary.shtm"
+        title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
+    <html ID="charts" href="PID/charts.shtm"
+        title="<!--#echo Full_Name --> Analysis Charts"/>
+    <html ID="team" href="PID/team_tools.shtm"
+        title="Team Project Tools and Settings"/>
+
+  </template>
+
+
+
+
+<!--======================================================================
+    The template for a project subcomponent on the team side
+ =======================================================================-->
+
+  <template
+      name="PID-Team:!*!:Subsystem"
+      ID="PID/TeamNode"
+      defineRollup="no"
+      dataFile="PID/team_node_dataFile.txt"
+      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/TeamRoot}PID/TeamNode"
+      >
+
+    <html ID="sump" href="PID/rollup_plan_summary.shtm"
+        title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
+    <html ID="sumq" href="PID/rollup_quality_summary.shtm"
+        title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
+    <html ID="charts" href="PID/charts.shtm"
+        title="<!--#echo Full_Name --> Analysis Charts"/>
+
+  </template>
+
+
+<!--#break deferred-->
+
+<!--======================================================================
+    The template for a project subtask on the team side
+ =======================================================================-->
+
+  <template
+      name="PID-Team:!*!:Task"
+      ID="PID/TeamTask"
+      defineRollup="no"
+      XdefectLog="false"
+      dataFile="PID/team_task_dataFile.txt"
+      constraints="{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/TeamRoot}PID/TeamNode}PID/TeamTask"
+      >
+  </template>
+
+<!--#endbreak deferred-->
+
+
+
+<!--======================================================================
+    The template for a root project node on the individual side.
+ =======================================================================-->
+
+  <template
+      name="PID-Indiv:!*!:<!--#echo Full_Name --> Project"
+      ID="PID/IndivRoot"
+      defineRollup="no"
+      defectLog="true"
+      dataFile="PID/indiv_root_dataFile.txt"
+      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->"
+      >
+    <html ID="sump" href="PID/plan_summary.shtm"
+        title="<!--#echo Full_Name --> Project Plan Summary"/>
+    <!-- html ID="sumq" href="PID/quality_summary.shtm"
+        title="<!--#echo Full_Name --> Project Quality Summary"/ -->
+    <!-- html ID="top" href="PID/script.htm"
+        title="<!--#echo Full_Name --> Process Script"/ -->
+    <html ID="team" href="PID/indiv_tools.shtm"
+        title="Team Project Tools and Settings"/>
+
+  </template>
+
+
+
+
+<!--======================================================================
+    The template for a "full" node/task on the individual side.  A "full"
+    node contains all the phases underneath by default; these phases
+    can be manually deleted as necessary, and reinserted later if needed.
+ =======================================================================-->
+
+  <template
+      name="PID-Indiv:!*!:Subtask"
+      ID="PID/IndivFullNode"
+      <!--#if USE_TO_DATE_DATA #-->
+          usesRollup="PID"
+      <!--#else#-->
+          defineRollup="no"
+      <!--#endif#-->
+      defectLog="true"
+      dataFile="PID/indiv_full_dataFile.txt"
+      size="New &amp; Changed LOC"
+      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
+      >
+
+    <html ID="sump" href="PID/plan_summary.shtm"
+        title="<!--#echo Full_Name --> Project Plan Summary"/>
+    <!-- html ID="sumq" href="PID/quality_summary.shtm"
+        title="<!--#echo Full_Name --> Project Quality Summary"/ -->
+    <html ID="top" href="PID/script.htm"
+        title="<!--#echo Full_Name --> Process Script"/>
+
+<!--#foreach name=Phase list=Phase_List -->
+
+    <html ID="Phase_script"
+        title="<!--#echo Phase_Long_Name --> Script"
+        href="PID/Phase_script.htm"/>
+    <phase name="Sub_tasks /<!--#echo Phase_Name -->" imaginary="true"/>
+    <phase name="<!--#echo Phase_Name -->"
+        type="<!--#echo Phase_Type -->"
+        <!--#if Phase_Size_Metric --> 
+            size="<!--#echo Phase_Size_Metric -->"
+        <!--#endif-->
+	constraints="ED{}"
+        htmlID="Phase_script"/>
+
+<!--#endfor-->
+
+  </template>
+
+
+
+
+<!--======================================================================
+    The template for a "simple" node/task on the individual side.  A
+    simple node initially contains no phases; they must be added
+    individually.
+ =======================================================================-->
+
+  <template
+      name="PID-Indiv:!*!:Simple Subtask"
+      ID="PID/IndivEmptyNode"
+      defineRollup="no"
+      defectLog="true"
+      dataFile="PID/indiv_empty_dataFile.txt"
+      size="New &amp; Changed LOC"
+      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
+      >
+
+    <html ID="sump" href="PID/plan_summary.shtm"
+        title="<!--#echo Full_Name --> Project Plan Summary"/>
+    <!-- html ID="sumq" href="PID/quality_summary.shtm"
+        title="<!--#echo Full_Name --> Project Quality Summary"/ -->
+    <html ID="top" href="PID/script.htm"
+        title="<!--#echo Full_Name --> Process Script"/>
+
+<!-- FIXME: this is really a hack; in theory we shouldn't know whether there will be a phase called "planning". -->
+
+    <html ID="Planning_script"
+        title="<!--#echo Planning_Long_Name --> Script"
+        href="PID/Planning_script.htm"/>
+    <phase name="<!--#echo Planning_Name -->"
+        type="<!--#echo Planning_Type -->"
+        <!--#if Planning_Size_Metric --> 
+            size="<!--#echo Planning_Size_Metric -->"
+        <!--#endif-->
+	constraints="E{}"
+        htmlID="Planning_script"/>
+
+  </template>
+
+
+
+
+<!--======================================================================
+    The template for a read-only "simple" node/task on the individual side.
+    This is used to construct a read-only copy of the team hierarchy.
+ =======================================================================-->
+
+  <template
+      name="PID-Indiv:!*!:Subsystem"
+      ID="PID/IndivReadOnlyNode"
+      defineRollup="no"
+      defectLog="true"
+      dataFile="PID/indiv_empty_dataFile.txt"
+      size="New &amp; Changed LOC"
+      constraints="ME<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}"
+      ><!--#break comment-->
+         We alter the constraints to make this node immovable and
+	 uneditable.  We also change the 'required parent' list to '}',
+	 which makes it impossible for users to instantiate this
+	 node into their hierarchy manually.
+       <!--#endbreak comment-->
+
+    <html ID="sump" href="PID/plan_summary.shtm"
+        title="<!--#echo Full_Name --> Project Plan Summary"/>
+    <!-- html ID="sumq" href="PID/quality_summary.shtm"
+        title="<!--#echo Full_Name --> Project Quality Summary"/ -->
+    <html ID="top" href="PID/script.htm"
+        title="<!--#echo Full_Name --> Process Script"/>
+
+  </template>
+
+
+
+
+<!--======================================================================
+    The templates for each individual phase.  These can be added into
+    the "subtask" or "simple subtask" nodes above.
+ =======================================================================-->
+
+<!--#foreach name=Phase list=Phase_List -->
+
+  <template
+      name="PID-phase<!--#echo Phase_Pos -->:!*!:<!--#echo Phase_Name -->"
+      ID="PID/PHASE/Phase"
+      dataFile="none"
+      href="PID/Phase_script.htm"
+      constraints="ED{}PID/TeamRoot}PID/TeamNode}PID/TeamTask}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode" />
+
+<!--#endfor-->
+
+
+
+
+<!--======================================================================
+    Define the rollup dataset for this process.
+  =======================================================================-->
+
+  <template
+      name="PID-rollup-prototype"
+      imaginary="true"
+      href="none"
+      dataFile="PID/prototype_dataFile.txt"
+      size="New &amp; Changed LOC"
+      defineRollup="PID">
+
+<!--#foreach name=Phase list=Phase_List -->
+    <phase name="<!--#echo Phase_Name -->"
+        type="<!--#echo Phase_Type -->"
+        <!--#if Phase_Size_Metric #--> 
+            size="<!--#echo Phase_Size_Metric -->"
+        <!--#endif#-->
+	imaginary="true"/>
+<!--#endfor-->
+
+  </template>
+
+
+
+
+<!--======================================================================
+    The template for an extra data rollup node.  This node can be
+    instantiated manually anywhere to perform an additional,
+    independent rollup of data for this process.
+  =======================================================================-->
+
+  <template
+      name="PID-rollup:!*!:Rollup <!--#echo Full_Name --> Data"
+      ID="PID/Rollup"
+      dataFile="PID/rollup_dataFile.txt"
+      defineRollup="no">
+
+    <html ID="sump" href="PID/rollup_plan_summary.shtm"
+        title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
+    <html ID="sumq" href="PID/rollup_quality_summary.shtm"
+        title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
+    <html ID="charts" href="PID/charts.shtm"
+        title="<!--#echo Full_Name --> Analysis Charts"/>
+    <!-- html ID="config" title="Edit Data Rollup Filter"
+          href="PID/rollup_filter.shtm"/ -->
+
+    <phase name="Analyze Rollup Data"/>
+  </template>
+
+  <!-- This imaginary template prevents the AutoData mechanism from
+       mistakenly creating a data rollup template on our behalf -->
+  <template imaginary="true" name="PID Discarded Rollup"
+            dataFile="ROLLUP:PID" defineRollup="no"/>
+
+
+
+</dashboard-process-template>

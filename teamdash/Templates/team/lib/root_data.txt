@@ -1,0 +1,68 @@
+// <!--#echo var="-*- mode:html -*-" -->
+// Data definitions for a <!--#echo Full_Name --> project root
+//
+
+[Project_Path_Prefix] = [^];
+[Project_ID] = "Enter Project Identifier";
+[Project_WBS_ID] = [Project_ID];
+
+
+/*
+ * Redefine the rollup filter to include items from this project.
+ */
+[Rollup_Filter] =
+     "[Project_WBS_ID] == [{Project_WBS_ID}] || <!--#echo null #-->
+      startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID])";
+
+
+
+/*
+ * Default guidelines for the quality profile
+ */
+
+[Target Design/Code Ratio] = 1.0;
+
+[Target Design Review/Design Ratio] = 0.5;
+
+[Target Code Review/Code Ratio] = 0.5;
+
+[Target Test Defect Density] = 5;
+
+[Target Compile Defect Density] = 10;
+
+
+
+/*
+ * Default Phase Yields and Defect Injection Rates
+ */
+
+<!--#foreach name=PHASE list=Phase_List #-->
+
+[<!--#echo PHASE_Name -->/Estimated % Phase Yield] =
+    <!--#if PHASE_Type eq 'COMP' --> 0.50;
+    <!--#elif PHASE_Type =~ '^(DLDR|CR|.*INSP)$' --> 0.70;
+    <!--#elif PHASE_Type =~ '^(IT|ST)$' --> 0.80;
+    <!--#elif PHASE_Type eq 'UT' --> 0.90;
+    <!--#else--> 0;
+    <!--#endif-->
+[<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour] = 
+    <!--#if   PHASE_Type eq 'REQ'  --> 0.25;
+    <!--#elif PHASE_Type eq 'HLD'  --> 0.25;
+    <!--#elif PHASE_Type eq 'DLD'  --> 0.75;
+    <!--#elif PHASE_Type eq 'CODE' --> 2;
+    <!--#elif PHASE_Type eq 'COMP' --> 0.3;
+    <!--#elif PHASE_Type eq 'UT'   --> 0.067;
+    <!--#else--> 0;
+    <!--#endif-->
+<!--#endfor-->
+
+
+
+/*
+ * Settings concerning team interconnectivity.
+ */
+
+[Team_Directory] = "Enter network directory path";
+[Team_URL] = null;
+
+[file_sep] = iff(match("|\\\\|", [Team_Directory]), "\\", "/");

@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+
+<!--
+    This file contains instructions on how to generate a custom process.
+-->
+
+<generation-script name="script-v1"
+      inDirectory="/team/lib"
+      outDirectory="/Templates/<!--#echo Process_ID -->">
+
+    <!-- generate the xml template file. -->
+    <file in="template.xml" encoding="xml"
+          out="/Templates/<!--#echo Process_ID -->-template.xml">
+        <param name="PID" replace="true"
+               value="<!--#echo var=Process_ID -->"/>
+        <param name="PSP_Children"
+	       value="{PSP0.1{PSP1{PSP1.1{PSP2{PSP2.1"/>
+	       <!-- I'm excluding PSP3 for now for defect logging reasons. -->
+    </file>
+
+    <!-- localize the stylesheet, to enable process-specific overrides -->
+    <file in="style.css" encoding="none"/>
+
+    <!-- html pages for the individual project root node -->
+    <file in="indiv_tools.htm" encoding="html" out="indiv_tools.shtm"/>
+    <file in="project_parameters.htm" encoding="html" 
+          out="indiv_project_parameters.shtm">
+	<param name="indiv" value="true" />
+    </file>
+
+    <!-- html pages for the team project root node -->
+    <file in="team_tools.htm"  encoding="html" out="team_tools.shtm"/>
+    <file in="project_parameters.htm" encoding="html" 
+          out="team_project_parameters.shtm"/>
+
+    <!-- data file shared by both project root nodes. -->
+    <file in="root_data.txt" encoding="data" />
+
+    <!-- data files for use on the team side -->
+    <file in="team_root_dataFile.txt" encoding="data" />
+    <file in="team_node_dataFile.txt" encoding="data" />
+
+    <!-- data files for use on the individal side -->
+    <file in="indiv_root_dataFile.txt" encoding="data" />
+    <file in="indiv_full_dataFile.txt" encoding="data" />
+    <file in="indiv_empty_dataFile.txt" encoding="data" />
+
+    <!-- forms for use on the individual side -->
+    <file in="plan_summary.htm" encoding="html" out="plan_summary.shtm">
+        <param name="UNLOCK" value="u" replace="true"/>
+    </file>
+    <file in="summary_redirect.htm" out="summary.shtm"/>
+    <file in="quality_summary.htm" encoding="html"
+          out="quality_summary.shtm"/>
+
+    <!-- scripts for use on the individual side -->
+    <file in="process_script.htm" encoding="html" out="script.htm"/>
+
+    <!--#foreach name=Current_Phase list=Phase_List -->
+    <file in="phase_script.htm" encoding="html"
+          out="Current_Phase_script.htm">
+        <param name="Phase" value="Current_Phase" replace="true"/>
+    </file>
+    <!--#endfor-->
+
+
+    <!-- forms shared by team nodes and rollup templates -->
+    <file in="plan_summary.htm" encoding="html"
+          out="rollup_plan_summary.shtm">
+	<param name="rollup" value="true"/>
+        <param name="UNLOCK" value="" replace="true"/>
+    </file>
+    <file in="quality_summary.htm" encoding="html"
+          out="rollup_quality_summary.shtm">
+	<param name="rollup" value="true"/>
+    </file>
+
+    <FILE in="" encoding="html"
+          out="rollup_filter.shtm"/>
+
+    <!-- data file used by rollups and team nodes -->
+    <file in="rollup_dataFile.txt" encoding="data"
+          out="rollup_dataFile.txt"/>
+
+    <!-- core datafile that describes the data structure of the process -->
+    <file in="prototype_dataFile.txt" encoding="data"
+          out="prototype_dataFile.txt"/>
+
+    <!-- CGI script for navigating the hierarchy -->
+    <file in="/team/selectHier.class" encoding="binary"
+          out="selectHier.class"/>
+    <file in="hier.png" encoding="binary" />
+
+    <!-- query files for various reports -->
+    <file in="percent-def-free.rpt" encoding="none" />
+    <file in="def-rem-profile.rpt" encoding="none" />
+    <file in="quality-profile.rpt" encoding="none"
+          out="quality-profile-plan.rpt">
+	  <param name="Estimated_" value="Estimated " replace="true"/>
+    </file>
+    <file in="quality-profile.rpt" encoding="none"
+          out="quality-profile-act.rpt">
+	  <param name="Estimated_" value="" replace="true"/>
+    </file>
+
+    <!-- the html page displaying charts -->
+    <file in="charts.htm" encoding="url" 
+          out="charts.shtm" />
+
+</generation-script>

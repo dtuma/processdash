@@ -1,0 +1,270 @@
+//<!--#echo -*- mode:html -*- -->
+// This datafile defines the prototype for the <!--#echo Full_Name --> process.
+//
+
+[<!--#echo Process_ID --> Tag] = tag;
+<!--#if not USE_TO_DATE_DATA #-->
+undefine([Use_Rollup]);
+<!--#endif-->
+
+/*
+ * Define the relationship between inspected size metrics and base
+ * size metrics: you typically inspect what was produced.
+ */
+
+<!--#foreach name=Metric values=",New & Changed LOC,Req Pages,Text Pages,HLD Pages,DLD Lines," -->
+[Estimated Inspected Metric] = iff([Metric], [Metric], [Estimated Metric]);
+[Inspected Metric] = [Metric];
+<!--#endfor-->
+
+
+/*
+ * The standard functions assume that aggregate metrics equal regular
+ * metrics.  This is true for all of the metrics except LOC, which use
+ * KLOC as an aggregate metric.
+ */
+
+[New & Changed KLOC] = [New & Changed LOC] / 1000;
+[Estimated New & Changed KLOC] = [Estimated New & Changed LOC] / 1000;
+[Inspected New & Changed KLOC] = [Inspected New & Changed LOC] / 1000;
+[Estimated Inspected New & Changed KLOC] =
+    [Estimated Inspected New & Changed LOC] / 1000;
+
+[Aggregate New & Changed LOC] = [New & Changed KLOC];
+[Estimated Aggregate New & Changed LOC] = [Estimated New & Changed KLOC];
+[Aggregate Inspected New & Changed LOC] = [Inspected New & Changed KLOC];
+[Estimated Aggregate Inspected New & Changed LOC] =
+    [Estimated Inspected New & Changed KLOC];
+
+[Size Estimating Error] = [New & Changed LOC Estimating Error];
+
+
+
+/*
+ * DLD Lines seem to be inconsistently handled in the TSP.  They seem to
+ * be used only for calculating review/inspection rates; if they aren't
+ * present New & Changed KLOC is used instead. In any rate, New & Changed
+ * KLOC is always used instead of DLD Lines for calculating defect densities.
+ */
+
+[Aggregate DLD Lines] = [New & Changed KLOC];
+[Estimated Aggregate DLD Lines] = [Estimated New & Changed KLOC];
+[Aggregate Inspected DLD Lines] = [Inspected New & Changed KLOC];
+[Estimated Aggregate Inspected DLD Lines] =
+    [Estimated Inspected New & Changed KLOC];
+
+<!--#foreach name=Inspected_ values=",Inspected ,," #-->
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+[Effective_Estimated_Inspected_DLD Lines] =
+    nvl([Estimated_Inspected_DLD Lines], 
+        [Estimated_Inspected_New & Changed LOC]);
+<!--#endfor--><!--#endfor-->
+
+<!--#foreach name=Phase list=Phase_List #-->
+  <!--#if Phase_Size_Metric =~ 'DLD Lines$' #-->
+    [<!--#echo Phase_Name -->/Estimated Appraisal Rate] =
+        60 * [Effective_Estimated <!--#echo Phase_Size_Metric -->] /
+        [<!--#echo Phase_Name -->/Estimated Time];
+    [<!--#echo Phase_Name -->/Appraisal Rate] =
+        60 * [Effective_<!--#echo Phase_Size_Metric -->] /
+        [<!--#echo Phase_Name -->/Time];
+
+<!--#endif--><!--#endfor-->
+
+
+/*
+ * Ask for rollups of the individual types of LOC.
+ */
+<!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,New & Changed,Total,New Reused,Object," -->
+[Estimated TypeOf LOC] = 0;
+[TypeOf LOC] = 0;
+<!--#endfor-->
+
+[Estimated % Reused] = [Estimated Reused LOC] / [Estimated Total LOC];
+[Estimated % New Reused] =
+        [Estimated New Reused LOC] / [Estimated New & Changed LOC];
+
+[% Reused]     = [Reused LOC]     / [Total LOC];
+[% New Reused] = [New Reused LOC] / [New & Changed LOC];
+
+
+/*
+ * Calculate phase and process yields
+ */
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+    <!--#if Phase_Prev_Sibling #-->
+        <!--#foreach name=Prev list=Phase_Prev_Sibling #-->
+        [<!--#echo Phase_Name -->/Estimated_Defects_Injected_So_Far] =
+            [<!--#echo Phase_Name -->/Estimated_Defects Injected] +
+            [<!--#echo Prev_Name -->/Estimated_Defects_Injected_So_Far];
+        [<!--#echo Phase_Name -->/Estimated_Defects_Removed_So_Far] =
+            [<!--#echo Phase_Name -->/Estimated_Defects Removed] +
+            [<!--#echo Prev_Name -->/Estimated_Defects_Removed_So_Far];
+        <!--#if 'Estimated_' eq '' #-->
+        [<!--#echo Phase_Name -->/% Ph<!--#echo null -->ase Yield] =
+            [<!--#echo Phase_Name -->/Defects Removed] /
+	    ( [<!--#echo Phase_Name -->/Defects_Injected_So_Far] -
+	      [<!--#echo Prev_Name -->/Defects_Removed_So_Far] );
+        <!--#endif#-->
+        [<!--#echo Phase_Name -->/Estimated_% Process Yield] =
+            [<!--#echo Prev_Name -->/Estimated_Defects_Removed_So_Far] /
+            [<!--#echo Prev_Name -->/Estimated_Defects_Injected_So_Far];
+        <!--#endfor-->
+    <!--#else#-->
+        [<!--#echo Phase_Name -->/Estimated_Defects_Injected_So_Far] =
+            [<!--#echo Phase_Name -->/Estimated_Defects Injected];
+        [<!--#echo Phase_Name -->/Estimated_Defects_Removed_So_Far] =
+            [<!--#echo Phase_Name -->/Estimated_Defects Removed];
+        <!--#if 'Estimated_' eq '' #-->
+        [<!--#echo Phase_Name -->/% Ph<!--#echo null -->ase Yield] =
+            [<!--#echo Phase_Name -->/Defects Removed] /
+            [<!--#echo Phase_Name -->/Defects Injected];
+        <!--#endif-->
+    <!--#endif-->
+
+<!--#endfor--><!--#endfor-->
+
+
+/*
+ * Inherit estimated phase yields and defect injection rates from settings
+ * elsewhere
+ */
+<!--#foreach name=PHASE list=Phase_List #-->
+[<!--#echo PHASE_Name -->/Estimated % Phase Yield] = 
+    inherit("<!--#echo PHASE_Name -->/Estimated % Phase Yield");
+[<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour] = 
+    inherit("<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour");
+<!--#endfor-->
+
+
+/*
+ * Calculate estimated defect injection counts from defect injection rates.
+ */
+<!--#foreach name=Phase list=Phase_List #-->
+[<!--#echo Phase_Name -->/Estimated Defects Injected] = 
+    [<!--#echo Phase_Name -->/Estimated Defects Injected per Hour] *
+    [<!--#echo Phase_Name -->/Estimated Time] / 60;
+<!--#endfor-->
+
+
+/*
+ * Calculate estimated defect removal counts from estimated phase yields
+ */
+<!--#foreach name=Phase list=Phase_List #-->
+[<!--#echo Phase_Name -->/Estimated Defects Removed] =
+    [<!--#echo Phase_Name -->/Estimated % Ph<!--#echo null -->ase Yield] *
+    ( [<!--#echo Phase_Name -->/Estimated Defects_Injected_So_Far]
+      <!--#if Phase_Prev_Sibling #-->
+      <!--#foreach name=Prev list=Phase_Prev_Sibling #-->
+        - [<!--#echo Prev_Name -->/Estimated Defects_Removed_So_Far]
+      <!--#endfor--><!--#endif--> );
+<!--#endfor-->
+
+
+
+/*
+ * Calculate the number of defects injected / removed in development.
+ */
+
+[Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Type ne 'AT' #--><!--#if Phase_Type ne 'PL' #--><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+
+[Total Development /Estimated Defects Injected] =
+    sumFor("Estimated Defects Injected", [Development_Phase_List]);
+[Total Development /Defects Injected] =
+    sumFor("Defects Injected", [Development_Phase_List]);
+[Total Development /Estimated Defects Removed] =
+    sumFor("Estimated Defects Removed", [Development_Phase_List]);
+[Total Development /Defects Removed] =
+    sumFor("Defects Removed", [Development_Phase_List]);
+
+// Calculate defect densities for development
+
+[Total Development /Estimated Defect Density] =
+    [Total Development /Estimated Defects Removed] /
+    [Estimated New & Changed KLOC];
+[Total Development /Defect Density] =
+    [Total Development /Defects Removed] / [New & Changed KLOC];
+
+
+/*
+ * Make lists of the phases in this process, organized by phase-type.
+ */
+
+<!--#foreach name=TYPE values=",MGMT,STRAT,PLAN,REQ,STP,REQINSP,HLD,ITP,HLDRINSP,DLD,DLDR,TD,DLDINSP,CODE,CR,COMP,CODEINSP,UT,PM,IT,ST,DOC,AT,PL," #-->
+[TYPE_Phase_List] = "<!--#foreach name=Phase list=Phase_List #--><!--#if Phase_Type eq 'TYPE' --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
+<!--#endfor-->
+
+
+
+/*
+ * Calculate defect ratios
+ */
+
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+[DLDR_vs_UT/Estimated_Defect Ratio] =
+      sumFor("Estimated_Defects Removed", [DLDR_Phase_List]) / 
+      sumFor("Estimated_Defects Removed", [UT_Phase_List]);
+[CR_vs_COMP/Estimated_Defect Ratio] =
+      sumFor("Estimated_Defects Removed", [CR_Phase_List]) / 
+      sumFor("Estimated_Defects Removed", [COMP_Phase_List]);
+<!--#endfor-->
+
+
+
+/*
+ * Calculate development time ratios
+ */
+
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+[REQINSP_vs_REQ/Estimated_Time Ratio] =
+      sumFor("Estimated_Time", [REQINSP_Phase_List]) / 
+      sumFor("Estimated_Time", [REQ_Phase_List]);
+[HLDRINSP_vs_HLD/Estimated_Time Ratio] =
+      sumFor("Estimated_Time", [HLDRINSP_Phase_List]) / 
+      sumFor("Estimated_Time", [HLD_Phase_List]);
+[DLD_vs_CODE/Estimated_Time Ratio] =
+      sumFor("Estimated_Time", [DLD_Phase_List]) / 
+      sumFor("Estimated_Time", [CODE_Phase_List]);
+[DLDR_vs_DLD/Estimated_Time Ratio] =
+      sumFor("Estimated_Time", [DLDR_Phase_List]) / 
+      sumFor("Estimated_Time", [DLD_Phase_List]);
+[CR_vs_CODE/Estimated_Time Ratio] =
+      sumFor("Estimated_Time", [CR_Phase_List]) / 
+      sumFor("Estimated_Time", [CODE_Phase_List]);
+<!--#endfor-->
+
+[DRP_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Quality --><!--#if not Phase_Size_Metric || Phase_Size_Metric =~ ' (LOC|Lines)$' --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+
+
+/*
+ * Calculations for the quality profile
+ */
+
+<!--#foreach name=Estimated_ values=",Estimated ,," -->
+
+[QP_Estimated_DLD_Time] = sumFor("Estimated_Time", [DLD_Phase_List]);
+[QP_Estimated_DLDR_Time] = sumFor("Estimated_Time", [DLDR_Phase_List]);
+[QP_Estimated_CODE_Time] = sumFor("Estimated_Time", [CODE_Phase_List]);
+[QP_Estimated_CR_Time] = sumFor("Estimated_Time", [CR_Phase_List]);
+[QP_Estimated_COMP_Def]= sumFor("Estimated_Defect Density", [COMP_Phase_List]);
+[QP_Estimated_UT_Def] = sumFor("Estimated_Defect Density", [UT_Phase_List]);
+
+[Estimated_Quality_Profile_1] = nvl([QP_Estimated_DLD_Time] /
+    ([QP_Estimated_CODE_Time] * inherit("Target Design/Code Ratio")), 1);
+
+[Estimated_Quality_Profile_2] = nvl([QP_Estimated_CR_Time] /
+    ([QP_Estimated_CODE_Time] * inherit("Target Code Review/Code Ratio")), 1);
+
+[Estimated_Quality_Profile_3] = nvl(2 / (1 + [QP_Estimated_COMP_Def] /
+    inherit("Target Compile Defect Density")), 1);
+
+[Estimated_Quality_Profile_4] = nvl(2 / (1 + [QP_Estimated_UT_Def] /
+    inherit("Target Test Defect Density")), 1);
+
+[Estimated_Quality_Profile_5] = nvl([QP_Estimated_DLDR_Time] /
+    ([QP_Estimated_DLD_Time] * inherit("Target Design Review/Design Ratio")),
+    1);
+
+<!--#endfor-->

@@ -1,0 +1,35 @@
+// <!--#echo var="-*- mode:html -*-" -->
+// Data file for a rollup dataset for <!--#echo Full_Name -->
+//
+
+#include <ROLLUP:<!--#echo Process_ID -->>;
+
+/*
+ * We need to redefine the rollup project list to include PSP projects.
+ */
+[/<!--#echo Process_ID -->/Full Project List] =
+    setUnion([/<!--#echo Process_ID -->/Project List], [/PSP/Project List]);
+[Rollup_List] =
+    filter(eval([Rollup_Filter], [_]), [/<!--#echo Process_ID -->/Full Project List]);
+
+
+/*
+ * Count the number of distinct software projects in this rollup list.
+ */
+[Software_Project_List] =
+    filter(indirect([_] &/ "New & Changed LOC") > 0, [Rollup_List]);
+[Software_Project_Count] = count([Software_Project_List]);
+
+
+/*
+ * Calculate % Defect Free metrics for each failure phase.
+ */
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#if Phase_Is_Failure #-->
+
+[<!--#echo Phase_Name -->/% Defect Free] = count(filter(
+    !(indirect([_] &/ "<!--#echo Phase_Name -->/Defects Removed") > 0),
+    [Software_Project_List])) / [Software_Project_Count];
+
+<!--#endif--><!--#endfor-->

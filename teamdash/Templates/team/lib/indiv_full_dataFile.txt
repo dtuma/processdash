@@ -1,0 +1,222 @@
+//<!--#echo -*- mode:html -*- -->
+// This is the datafile for the <!--#echo Full_Name --> process.
+//
+
+#include <<!--#echo Process_ID -->/prototype_dataFile.txt> exclude (
+    [Phase_List], [Child_List], [Yield_Phase_List], [Failure_Phase_List],
+    [Appraisal_Phase_List], [Quality_Phase_List],
+    [<!--#echo Process_ID -->-rollup-prototype]
+)
+[Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
+
+
+/*
+ * Get a list of the subtasks immediately underneath this task.
+ */
+[Subtask_List] = filter(startsWith([^] & "/"),
+	                [/<!--#echo Process_ID -->/Project List]);
+[Immediate_Subtask_List] = filter(chopPath() == [^], [Subtask_List]);
+
+
+/*
+ * Calculate the total time and defects for subtasks.
+ */
+
+<!--#foreach name=Metric values=",Time,Defects Injected,Defects Removed," #-->
+
+[Sub_tasks /Metric] = sumFor("Metric", [Immediate_Subtask_List]);
+[Sub_tasks /Estimated Metric] =
+    sumFor("Estimated Metric", [Immediate_Subtask_List]);
+
+<!--#endfor-->
+
+
+/*
+ * Calculate accumulated size metrics.
+ */
+
+<!--#foreach name=Metric values=",Req Pages,HLD Pages,DLD Lines,New & Changed LOC," #-->
+<!--#foreach name=Inspected_ values=",,Inspected ," #-->
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+
+[Sub_tasks /Estimated_Inspected_Metric] =
+    sumFor("Estimated_Inspected_Metric", [Subtask_List]);
+[Total_Plus_Subtasks/Estimated_Inspected_Metric] =
+    [Estimated_Inspected_Metric] + [Sub_tasks /Estimated_Inspected_Metric];
+<!--#endfor-->
+<!--#endfor-->
+<!--#endfor-->
+
+/*
+ * Alter calculations for summary metrics to include subtasks.
+ */
+
+[Estimated Productivity] =
+    60 * [Total_Plus_Subtasks/Estimated New & Changed LOC] / [Estimated Time];
+[Productivity] = 60 * [Total_Plus_Subtasks/New & Changed LOC] / [Time];
+[Size Estimating Error] = ([Total_Plus_Subtasks/New & Changed LOC] - [Total_Plus_Subtasks/Estimated New & Changed LOC]) / [Total_Plus_Subtasks/Estimated New & Changed LOC];
+
+
+
+/*
+ * Calculate the per-phase time and defects for subtasks.
+ * Since we included imaginary "subtask phases" for each phase in the
+ * process, this will effectively cause the process-level totals
+ * (e.g. [Time], [Defects Injected], etc.) to include data from subtasks.
+ */
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#foreach name=Metric values=",Time,Defects Injected,Defects Removed," #-->
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+
+[Sub_tasks /<!--#echo Phase_Name -->/Estimated_Metric] =
+    sumFor("<!--#echo Phase_Name -->/Estimated_Metric", [Subtask_List]);
+[Total_Plus_Subtasks/<!--#echo Phase_Name -->/Estimated_Metric] =
+    [<!--#echo Phase_Name -->/Estimated_Metric] +
+    [Sub_tasks /<!--#echo Phase_Name -->/Estimated_Metric];
+
+<!--#endfor--><!--#endfor--><!--#endfor-->
+
+
+
+/*
+ * Alter the calculations for phase and process yields to recognize subtasks
+ */
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+    <!--#if Phase_Prev_Sibling #-->
+        <!--#foreach name=Prev list=Phase_Prev_Sibling #-->
+        [<!--#echo Phase_Name -->/Estimated_Defects_Injected_So_Far] =
+            [<!--#echo Phase_Name -->/Estimated_Defects Injected] +
+            [Sub_tasks /<!--#echo Phase_Name -->/Estimated_Defects Injected] +
+            [<!--#echo Prev_Name -->/Estimated_Defects_Injected_So_Far];
+        [<!--#echo Phase_Name -->/Estimated_Defects_Removed_So_Far] =
+            [<!--#echo Phase_Name -->/Estimated_Defects Removed] +
+            [Sub_tasks /<!--#echo Phase_Name -->/Estimated_Defects Removed] +
+            [<!--#echo Prev_Name -->/Estimated_Defects_Removed_So_Far];
+        <!--#endfor-->
+    <!--#else#-->
+        [<!--#echo Phase_Name -->/Estimated_Defects_Injected_So_Far] =
+            [Sub_tasks /<!--#echo Phase_Name -->/Estimated_Defects Injected] +
+            [<!--#echo Phase_Name -->/Estimated_Defects Injected];
+        [<!--#echo Phase_Name -->/Estimated_Defects_Removed_So_Far] =
+            [Sub_tasks /<!--#echo Phase_Name -->/Estimated_Defects Removed] +
+            [<!--#echo Phase_Name -->/Estimated_Defects Removed];
+    <!--#endif-->
+
+<!--#endfor--><!--#endfor-->
+
+<!--#break outOfControlQualityStuff-->
+
+/*
+ * Alter the defect rate/density calculations to recognize subtasks.
+ */
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+
+    <!--#if 'Estimated_' eq '' #-->
+    [<!--#echo Phase_Name -->/Estimated_Defects Injected per Hour] = 60 *
+        ( [<!--#echo Phase_Name -->/Estimated_Defects Injected] +
+          [Sub_tasks /<!--#echo Phase_Name -->/Estimated_Defects Injected] )
+        / [<!--#echo Phase_Name -->/Estimated_Time];
+    <!--#endif#-->
+    [<!--#echo Phase_Name -->/Estimated_Defects Removed per Hour] = 60 *
+        ( [<!--#echo Phase_Name -->/Estimated_Defects Removed] +
+	  [Sub_tasks /<!--#echo Phase_Name -->/Estimated_Defects Removed] )
+	/ [<!--#echo Phase_Name -->/Estimated_Time];
+    [<!--#echo Phase_Name -->/Estimated_Defect Injection Density] =
+        ( [<!--#echo Phase_Name -->/Estimated_Defects Injected] +
+	  [Sub_tasks /<!--#echo Phase_Name -->/Estimated_Defects Injected] )
+	/ [Estimated_Aggregate Size];
+    [<!--#echo Phase_Name -->/Estimated_Defect Density] =
+        ( [<!--#echo Phase_Name -->/Estimated_Defects Removed] +
+          [Sub_tasks /<!--#echo Phase_Name -->/Estimated_Defects Removed] )
+	/ [Estimated_Aggregate Size];
+
+<!--#endfor--><!--#endfor-->
+
+<!--#endbreak outOfControlQualityStuff-->
+
+
+/*
+ * Calculate the estimated defects removed by phase.
+ */
+
+<!--#foreach name=Phase list=Phase_List #-->
+
+[Total_Plus_Subtasks/<!--#echo Phase_Name -->/Estimated Defects Removed] =
+    [<!--#echo Phase_Name -->/Estimated % Ph<!--#echo null -->ase Yield] *
+    ( [<!--#echo Phase_Name -->/Estimated Defects_Injected_So_Far]
+      <!--#if Phase_Prev_Sibling #-->
+      <!--#foreach name=Prev list=Phase_Prev_Sibling #-->
+        - [<!--#echo Prev_Name -->/Estimated Defects_Removed_So_Far]
+      <!--#endfor--><!--#endif--> );
+
+[<!--#echo Phase_Name -->/Estimated Defects Removed] =
+    [Total_Plus_Subtasks/<!--#echo Phase_Name -->/Estimated Defects Removed] -
+    [Sub_tasks /<!--#echo Phase_Name -->/Estimated Defects Removed];
+
+<!--#endfor-->
+
+
+/*
+ * Alter the list of development phases to include subtasks.
+ */
+
+[Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Type ne 'AT' #--><!--#if Phase_Type ne 'PL' #-->Sub_tasks /<!--#echo Phase_Name --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+
+
+
+<!--#break outOfControlQualityStuff-->
+
+/*
+ * Alter the phase-type lists to include subtasks.
+ */
+
+<!--#foreach name=TYPE values=",MGMT,STRAT,PLAN,REQ,STP,REQINSP,HLD,ITP,HLDRINSP,DLD,DLDR,TD,DLDINSP,CODE,CR,COMP,CODEINSP,UT,PM,IT,ST,DOC,AT,PL," #-->
+[TYPE_Phase_List] = "<!--#foreach name=Phase list=Phase_List #--><!--#if Phase_Type eq 'TYPE' -->Sub_tasks /<!--#echo Phase_Name --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
+<!--#endfor-->
+
+/*
+ * Alter review rate calculations to include subtasks.
+ */
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#if Phase_Type =~ '^(REQINSP|HLDRINSP|DLDR|DLDINSP|CR|CODEINSP)$' #-->
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+
+    [<!--#echo Phase_Name -->/Estimated_Appraisal Rate] = 60 *
+        <!--#if Phase_Size_Metric =~ 'DLD Lines$' #-->
+            [Effective_Estimated_<!--#echo Phase_Size_Metric -->]
+        <!--#elif Phase_Type eq 'CR' || Phase_Type eq 'CODEINSP' #-->
+            [Estimated_New & Changed LOC]
+        <!--#else#-->
+            [Total_Plus_Subtasks/Estimated_<!--#echo Phase_Size_Metric -->]
+        <!--#endif#-->
+        / [<!--#echo Phase_Name -->/Estimated_Time];
+<!--#endfor--><!--#endif--><!--#endfor-->
+
+/*
+ * Display-related data items
+ */
+
+[Show_Defects_per_Page] = false
+<!--#foreach name=Phase list=Phase_List #-->
+  <!--#if Phase_Is_Quality #-->
+  <!--#if Phase_Size_Metric =~ ' Pages$' #-->
+      || [<!--#echo Phase_Name -->/node]
+  <!--#endif#-->
+  <!--#endif#-->
+<!--#endfor-->;
+
+[Show_Defects_per_KLOC] = false
+<!--#foreach name=Phase list=Phase_List #-->
+  <!--#if Phase_Is_Quality #-->
+  <!--#if not Phase_Size_Metric || Phase_Size_Metric =~ ' (LOC|Lines)$' #-->
+      || [<!--#echo Phase_Name -->/node]
+  <!--#endif#-->
+  <!--#endif#-->
+<!--#endfor-->;
+
+<!--#endbreak outOfControlQualityStuff-->

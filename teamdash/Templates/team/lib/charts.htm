@@ -1,0 +1,40 @@
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="style.css">
+<TITLE>Analysis Charts</TITLE>
+
+<SCRIPT>
+function write(query, small) {
+    var chart = "line.class";
+    if (query.indexOf("chart=") != -1) {
+        if      (query.indexOf("chart=xy")  != -1) chart = "xy.class";
+        else if (query.indexOf("chart=pie") != -1) chart = "pie.class";
+        else if (query.indexOf("chart=bar") != -1) chart = "bar.class";
+        else if (query.indexOf("chart=radar") != -1) chart = "radar.class";
+    }
+    document.writeln("<A HREF='../reports/full.htm?" + query + "'>");
+    document.writeln("<img src='../reports/"+chart+"?"+query+"&"+small+"'></a>");
+}
+</SCRIPT>
+
+</HEAD>
+<BODY>
+
+<H1><!--#include file="/team/lib/hier.htm" -->[!--#echo var="PATH_TRANSLATED" --]</H1>
+<TABLE><TR><TD><H2>Analysis Charts&nbsp;</H2></TD>
+<TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
+<script>
+
+// Need to do earned value
+// Need to do planned vs. actual hours
+
+  write("qf=../<!--#echo Process_ID -->/percent-def-free.rpt", "qf=small.rpt");
+  write("qf=../<!--#echo Process_ID -->/def-rem-profile.rpt", "qf=small.rpt");
+  document.write("<br>\n");
+  write("qf=../<!--#echo Process_ID -->/quality-profile-plan.rpt&chart=radar",
+        "qf=small.rpt&skipAxisLabels");
+  write("qf=../<!--#echo Process_ID -->/quality-profile-act.rpt&chart=radar",
+        "qf=small.rpt&skipAxisLabels");
+</script>
+</BODY>
+</HTML>

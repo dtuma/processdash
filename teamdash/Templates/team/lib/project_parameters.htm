@@ -1,0 +1,166 @@
+<html>
+<head>
+<title>Team Project Parameters and Settings</title>
+<link rel=stylesheet type="text/css" href="style.css">
+</head>
+<body>
+
+<h1>[!--#echo PATH_TRANSLATED --]</h1>
+
+<!--#if not indiv -->
+
+<span style="display:none">
+<a href="rollup_plan_summary.shtm">Team project plan summary</a>
+</span>
+
+<!--#endif-->
+
+<h2>Team Project Parameters and Settings</h2>
+
+<form>
+
+<input type=hidden name=requiredTag
+<!--#if indiv -->
+       VALUE="<!--#echo Process_ID --> IndivRoot Tag"
+<!--#else-->
+       VALUE="<!--#echo Process_ID --> TeamRoot Tag"
+<!--#endif-->
+>
+
+
+<table>
+
+<tr>
+<td>Team Project ID</td>
+<td><input type=text size=50 name="Project_ID	s"></td>
+</tr>
+
+<tr>
+<td>Team Project Network Directory</td>
+<td><input type=text size=50 name="Team_Directory	s"></td>
+</tr>
+
+<!--#break disabledForNow -->
+<tr>
+<td>Team Project URL</td>
+<td><input type=text size=50 name="Team_URL	s"></td>
+</tr>
+<!--#endbreak disabledForNow -->
+
+<!--#if indiv -->
+<tr>
+<td>Your initials</td>
+<td><input type=text size=50 name="Indiv_Initials	s"></td>
+</tr>
+
+<tr>
+<td>Your data export filename</td>
+<td><input type=text size=50 name="EXPORT_FILE	s"></td>
+</tr>
+<!--#endif-->
+
+</table>
+
+<h2>Quality Profile Parameters</h2>
+
+<table>
+
+<tr>
+<td class=indented>Design time as a % of coding time</td>
+<td><input type=text size=7 name="[Target Design/Code Ratio]%"></td>
+</tr>
+
+<tr>
+<td class=indented>Code review time as a % of code time</td>
+<td><input type=text size=7 name="[Target Code Review/Code Ratio]%"></td>
+</tr>
+
+<tr>
+<td class=indented>Compile defects/KLOC</td>
+<td><input type=text size=7 name="Target Compile Defect Density"></td>
+</tr>
+
+<tr>
+<td class=indented>Unit test defects/KLOC</td>
+<td><input type=text size=7 name="Target Test Defect Density"></td>
+</tr>
+
+<tr>
+<td class=indented>Design review time as a % of design time</td>
+<td><input type=text size=7 name="[Target Design Review/Design Ratio]%"></td>
+</tr>
+
+</table>
+
+
+<h2>Estimated Phase Yields</h2>
+
+<table>
+
+<!--#foreach name=PHASE list=Phase_List #-->
+<!--#if PHASE_Type !~ '^(MGMT|STRAT|PM)$' -->
+
+<tr>
+<td class=indented><!--#echo PHASE_Long_Name --></td>
+<td><input type=text size=7 name="<!--#echo PHASE_Name -->/Estimated % Phase Yield"></td>
+</tr>
+
+<!--#endif-->
+<!--#endfor-->
+
+</table>
+
+
+<h2>Estimated Defect Injection Rates</h2>
+
+<table>
+
+<!--#foreach name=PHASE list=Phase_List #-->
+<!--#if PHASE_Type !~ '^(MGMT|STRAT|PM)$' -->
+
+<tr>
+<td class=indented><!--#echo PHASE_Long_Name --></td>
+<td><input type=text size=7 name="<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour	4"></td>
+</tr>
+
+<!--#endif-->
+<!--#endfor-->
+
+</table>
+
+
+
+</form>
+
+<hr>
+
+<script src="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</script>
+
+<!--#break disabledForNow -->
+<!--#if not indiv -->
+[!--#if [<!--#echo Process_ID --> TeamRoot Tag] --]
+
+<span style="display:none">
+<a href="rollup_plan_summary.shtm">Team project plan summary</a>
+</span>
+
+<script>
+   self.setTimeout("maybeSetURL();", 5000);
+   function maybeSetURL() {
+      var URLfield = document.forms[0].elements[3];
+      if (URLfield.value)
+         return;
+
+      URLfield.value = document.links[0].href;
+      if (document.applets["NSDataAppl"] != null)
+         document.applets["NSDataAppl"].notifyListener(URLfield);
+   }
+</script>
+[!--#endif--]
+<!--#endif -->
+<!--#endbreak disabledForNow -->
+
+</body>
+</html>
