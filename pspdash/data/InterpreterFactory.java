@@ -29,8 +29,6 @@ package pspdash.data;
 
 class InterpreterFactory {
 
-    private static final String PERCENTAGE_FLAG = "/%/";
-
     public static DataInterpreter create(Repository r, String inputName,
                                          String prefix) {
 
@@ -53,7 +51,9 @@ class InterpreterFactory {
 
         if (n.hasFlag('s'))
             result = new StringInterpreter(r, n.name, readOnly);
-        else if (n.hasFlag('%') || n.name.indexOf(PERCENTAGE_FLAG) != -1)
+        else if (n.hasFlag('n'))
+            result = new DoubleInterpreter(r, n.name, n.digitFlag(), readOnly);
+        else if (n.hasFlag('%') || n.name.indexOf('%') != -1)
             result = new PercentInterpreter(r, n.name, n.digitFlag(), readOnly);
         else if (n.hasFlag('d'))
             result = new DateInterpreter(r, n.name, readOnly);
