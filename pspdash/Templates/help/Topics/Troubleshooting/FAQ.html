@@ -46,6 +46,7 @@
 <ul>
  <LI><a href="FAQ.html#HideFinished">Can I hide my finished projects from the hierarchy browser (and other screens)?  They are starting to pile up and are taking up a lot of space.</a></li>
  <LI><a href="FAQ.html#OutlierProject">I have a project in my hierarchy that doesn't have much to do with my current development habits.  Can I mark it as an "outlier" so that it doesn't corrupt the Planning and PROBE estimates?</a></li>
+ <LI><a href="FAQ.html#WebServerWorms">Since the dashboard has a web server in it, do I have to worry about internet worms and viruses attacking my machine?</a></LI>
  <LI><a href="FAQ.html#DCRSCR">What happened to the DCR and SCR processes?</A></LI>
  <LI><a href="FAQ.html#Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</A></LI>
  <LI><A HREF="#TeamSupport">Does the Process Dashboard support teams?</A></LI>
@@ -453,6 +454,37 @@ to mark the project as incomplete.  The To Date, Planning, and PROBE
 calculations only use completed projects for their data sets.  The drawback 
 with this approach is that you will lose the accurate completion date for the 
 project that you mark incomplete.</p>
+
+<P><HR><a name="WebServerWorms"></a><b>Since the dashboard has a web server in it, do I have to worry about internet worms and viruses attacking my machine?</b>
+
+<P>A good question! The short answer: the web server built into the
+dashboard is NOT susceptible to any existing worms or viruses.</P>
+
+<P>The longer answer: the web server in the dashboard is custom code,
+written from scratch specifically for the dashboard. Because it shares
+no common code with any other web server, viruses and worms which have
+been written to attack other web servers (such as Microsoft's IIS web
+server) will not affect it in any way.</P>
+
+<P>We cannot guarantee that the dashboard web-server code is
+defect-free, and impervious to attacks by hackers. But those hackers
+would have to write a virus or worm to specifically target the
+dashboard. The dashboard currently has less than 10000 users
+worldwide, so I would imagine it to be a fairly unlikely target.</P>
+
+<P>Fortunately, because the dashboard is written in Java rather than
+C/C++, it is not susceptible to many common hacking techniques like
+buffer overruns (a common worm infection strategy). This means that
+even if a hacker was interested in writing an attack targeted at the
+dashboard, the worst thing they could probably do is to crash your
+running dashboard program.</P>
+
+<P>If this information doesn't allay your concerns, you can use the
+"http.allowRemote" setting to make it impossible for other computers
+to connect to the dashboard. See the 
+<a href="../AdvancedTopics/ConfigurationFile.html">configuration
+file</a> help topic for more information.</P>
+
 
 <P><HR><a name="DCRSCR"></a><b>What happened to the DCR and SCR processes?</b>
 

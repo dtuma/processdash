@@ -252,9 +252,13 @@ the # character.</p>
    Thus, if you have set this to true, setting a password will deny 
    connection attempts that do not correctly identify the password.
    Conversely, you can leave this set to false, and setting a password
-   will allow connection attempts that correctly supply the password.
+   will allow connection attempts that correctly supply the password.<br>
+   If you <i>never</i> want other people to be able to connect to your
+   dashboard (whether they know a password or not), set this parameter
+   to <code>"never"</code>. This will make it impossible for other
+   computers to see your dashboard.<br>
    <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i>, <i>false</i>, or <i>never</i>.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Example:</td><td>http.allowRemote=true</td></tr>
    </table>

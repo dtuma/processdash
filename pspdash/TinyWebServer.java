@@ -1181,9 +1181,13 @@ public class TinyWebServer extends Thread {
         startupTimestamp = Long.toString((new Date()).getTime());
         startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
 
+        InetAddress listenAddress = null;
+        if ("never".equalsIgnoreCase(Settings.getVal("http.allowRemote")))
+            listenAddress = LOOPBACK_ADDR;
+
         while (serverSocket == null) try {
-            dataSocket = new ServerSocket(port-1);
-            serverSocket = new ServerSocket(port);
+            dataSocket = new ServerSocket(port-1, 50, listenAddress);
+            serverSocket = new ServerSocket(port, 50, listenAddress);
         } catch (IOException ioex) {
             if (dataSocket != null) {
                 try { dataSocket.close(); } catch (IOException ioe) {}
