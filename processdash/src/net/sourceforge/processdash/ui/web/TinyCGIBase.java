@@ -34,6 +34,7 @@ import java.util.*;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -205,6 +206,29 @@ public class TinyCGIBase implements TinyCGI {
             }
             env.put("SCRIPT_PATH", filename);
             parseInput(new String(t.getRequest(filename, true), "UTF-8"));
+
+            // now try looking for a companion resource bundle, and load
+            // values from it as well.
+            try {
+                String bundleName = filename;
+                int pos = bundleName.indexOf("//");
+                if (pos != -1)
+                    bundleName = bundleName.substring(pos+1);
+                pos = bundleName.lastIndexOf('.');
+                if (pos != -1)
+                    bundleName = bundleName.substring(0, pos);
+
+                Resources bundle = Resources.getTemplateBundle(bundleName);
+                Enumeration keys = bundle.getKeys();
+                while (keys.hasMoreElements()) {
+                    String key = (String) keys.nextElement();
+                    String val = bundle.getString(key);
+                    parameters.put(key, val);
+                }
+            } catch (Exception e) {
+                // it is not an error if no companion bundle was found.
+            }
+
         } catch (IOException ioe) {
             System.out.println("Couldn't read file: " + filename);
             System.out.println("(Specified as '" + origFilename + "' from '" +
