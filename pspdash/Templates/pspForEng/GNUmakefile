@@ -94,13 +94,16 @@ $(PROG_8A_FILES): 8A/% : ../psp2.1/%
 
 
 ######################################################################
-# Make needed copies of the size estimatating template class.
+# Make needed copies of the size estimating template class.
 
 SIZEEST_COPIES=$(addsuffix /sizeest.class,4A 5A 7A 8A)
 $(SIZEEST_COPIES): ../psp1/sizeest.class
 	cp $< $@
 
 # Other miscellaneous targets
+
+install: all
+	cp pspForEng.jar ../../build/pspForEng.jar
 
 clean:
 	rm -f *~ *A/*~ *A/*.*htm *A/sizeest.class

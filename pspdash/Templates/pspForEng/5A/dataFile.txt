@@ -2,7 +2,7 @@
 
 = Students must manually calculate CPI for program 5A.
 
-5A Estimated Time To Date=?NaN
+5A ESTIMATED Time To Date=?NaN
 5A Time To Date=?NaN
 5A CPI To Date=?NaN
 
@@ -27,3 +27,7 @@ Estimated Modified LOC=?NaN
 Base LOC=?NaN
 Deleted LOC=?NaN
 Modified LOC=?NaN
+
+= Extra freeze flag
+
+FreezeFlag/5A %( New)? Reused==![(&&	Completed)]

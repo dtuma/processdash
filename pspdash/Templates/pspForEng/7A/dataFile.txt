@@ -85,3 +85,7 @@ Estimated Modified LOC=?NaN
 Base LOC=?NaN
 Deleted LOC=?NaN
 Modified LOC=?NaN
+
+= Extra freeze flag
+
+FreezeFlag/.*7A (Yield|Defects per KLOC|DRL|Defects Removed per (KLOC|Hour))$==![(&&	Completed)]
