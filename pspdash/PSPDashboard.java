@@ -67,6 +67,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     PSPProperties templates = null;
     DataRepository data = null;
     TinyWebServer webServer = null;
+    AutoUpdateManager aum = null;
 
     boolean paused = true;
     String timeLogName        = "time.log";
@@ -98,7 +99,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
         // create the data repository.
         data = new DataRepository();
         data.setRealizationPolicy(Settings.getVal("autoRealization"));
-        templates = TemplateLoader.loadTemplates(data);
+        aum = new AutoUpdateManager();
+        templates = TemplateLoader.loadTemplates(data, aum);
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
 
         // start the http server.
@@ -309,6 +311,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         dash.show();
 
         dropSplashScreen();
+        dash.aum.maybePerformCheck(dash);
     }
 
 }

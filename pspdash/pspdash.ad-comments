@@ -47,6 +47,14 @@ autoRealization=Policy for auto-realization of data. To save time and \
 	you experience irritating delays when saving edits to the hierarchy, \
 	try using the "min" or "none" options.
 
+autoUpdate.disabled=If this property is set to "true", the dashboard will \
+	not automatically perform a monthly check for updated versions \
+	of the dashboard software or the add-on process sets.
+
+autoUpdate.lastCheckDate=This is the last date when the dashboard was able \
+	to successfully check for updated versions of the dashboard software \
+	and add-on process sets.  (Measured in milliseconds since Jan 1, 1970.)
+
 browser.command=The command to execute to run an HTML browser for script \
 	files. If left unset, the default will be Netscape on non-windows \
 	platforms (netscape must be in your path), or the system default \

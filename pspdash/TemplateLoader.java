@@ -48,6 +48,7 @@ import java.net.URL;
 import java.io.*;
 import java.util.*;
 import java.net.JarURLConnection;
+import java.util.jar.JarInputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 
@@ -57,7 +58,8 @@ public class TemplateLoader {
     private static final String DATAFILE_SUFFIX = ".globaldata";
     private static final String TEMPLATE_DIR = "Templates/";
 
-    public static PSPProperties loadTemplates(DataRepository data) {
+    public static PSPProperties loadTemplates(DataRepository data,
+                                              AutoUpdateManager aum) {
         PSPProperties templates = new PSPProperties(null);
 
         URL[] roots = getTemplateURLs();
@@ -85,7 +87,7 @@ public class TemplateLoader {
                 // from the end of the URL.
                 String jarFileURL = templateDirURL.substring
                     (4, templateDirURL.indexOf('!'));
-                searchJarForTemplates(templates, jarFileURL, data);
+                searchJarForTemplates(templates, jarFileURL, data, aum);
             }
         }
 
@@ -124,12 +126,15 @@ public class TemplateLoader {
 
     protected static boolean searchJarForTemplates(PSPProperties templates,
                                                    String jarURL,
-                                                   DataRepository data) {
+                                                   DataRepository data,
+                                                   AutoUpdateManager aum) {
         boolean foundTemplates = false;
         try {
             debug("searching for templates in " + jarURL);
-            ZipInputStream jarFile =
-                new ZipInputStream((new URL(jarURL)).openStream());
+
+            JarInputStream jarFile =
+                new JarInputStream((new URL(jarURL)).openStream());
+            aum.addPackage(jarURL, jarFile.getManifest());
 
             ZipEntry file;
             String filename;
