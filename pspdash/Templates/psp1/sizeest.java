@@ -24,28 +24,27 @@
 // E-Mail POC:  ken.raisor@hill.af.mil
 
 
-package Templates.psp1;
-
 import pspdash.data.DataRepository;
+import pspdash.TinyWebServer;
 import java.io.*;
 import java.util.*;
 
 public class sizeest extends pspdash.TinyCGIBase {
 
     public String partA, baseRow, partB, newRow, partC, reusedRow, partD;
-    private IOException ioexception = null;
+    private boolean needsInit = true;
 
     private static final String BASE_CUT  = "<!--BaseAdditions-->";
     private static final String NEW_CUT   = "<!--NewObjects-->";
     private static final String REUSE_CUT = "<!--ReusedObjects-->";
     private static final String CUT_END   = "<!--end-->";
 
-    public sizeest() { init(); }
-
-    private void init() {
+    private void init() throws IOException {
         try {
-            String text = pspdash.TinyWebServer.slurpFile
-                (getClass().getResourceAsStream("sizeest.htm")).toString();
+            TinyWebServer t = (TinyWebServer) env.get(TINY_WEB_SERVER);
+            String uri = "/0" + env.get("SCRIPT_NAME");
+            uri = uri.substring(0, uri.length() - 6) + ".htm";
+            String text = new String(t.getRequest(uri, true));
 
             int beg, end;
             end = text.indexOf(BASE_CUT);
@@ -67,9 +66,11 @@ public class sizeest extends pspdash.TinyCGIBase {
             reusedRow = text.substring(beg, end);
 
             partD = text.substring(end);
+            needsInit = false;
 
-        } catch (IOException ioe) {
-            ioexception = ioe;
+        } catch (IndexOutOfBoundsException ioob) {
+            needsInit = true;
+            throw new IOException();
         }
     }
 
@@ -99,9 +100,7 @@ public class sizeest extends pspdash.TinyCGIBase {
      * the contents of the script.
      */
     protected void writeContents() throws IOException {
-        if (parameters.get("init") != null) init();
-
-        if (ioexception != null) throw ioexception;
+        if (needsInit || parameters.get("init") != null) init();
 
         out.write(partA);
         writeTable(baseRow,   baseData,   "moreBase",   4, 0, 5);
