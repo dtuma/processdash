@@ -423,7 +423,8 @@ public class ProbeDialog extends JFrame implements
             findRange();
 
             if (chartDlg != null)
-                chartDlg.updateDialog (corr, x_name, y_name);
+                chartDlg.updateDialog (corr, x_name, y_name,
+                                       showRegression, showAverage);
 
             if (!showRegression) doDisable(regressionBox);
             if (!showAverage)    doDisable(averageBox);
@@ -501,7 +502,8 @@ public class ProbeDialog extends JFrame implements
                     chartDlg = new ChartDialog (this,
                                                 corr,
                                                 (String)xName.getSelectedItem(),
-                                                (String)yName.getSelectedItem());
+                                                (String)yName.getSelectedItem(),
+                                                showRegression, showAverage);
                 else
                     chartDlg.show();
             } else if (cmd.equals("close")) {

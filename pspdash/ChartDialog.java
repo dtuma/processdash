@@ -48,14 +48,16 @@ public class ChartDialog extends JDialog {
     public ChartDialog (Frame parent,
                         DataCorrelator c,
                         String labelX,
-                        String labelY) {
+                        String labelY,
+                        boolean showRegression,
+                        boolean showAverage) {
         super (parent, "PROBE Chart");
         corr = c;
 
         names  = (corr == null) ? null : corr.getDataNames();
         points = (corr == null) ? null : corr.getDataPoints();
 
-        chart = new ChartCanvas(c, labelX, labelY);
+        chart = new ChartCanvas(c, labelX, labelY, showRegression, showAverage);
 
 
         if (labelX == null) labelX = "-";
@@ -97,10 +99,9 @@ public class ChartDialog extends JDialog {
         show();
     }
 
-
     public void updateDialog (DataCorrelator c,
-                              String labelX,
-                              String labelY) {
+                              String labelX, String labelY,
+                              boolean showRegression, boolean showAverage) {
         corr = c;
         names  = (corr == null) ? null : corr.getDataNames();
         points = (corr == null) ? null : corr.getDataPoints();
@@ -123,7 +124,7 @@ public class ChartDialog extends JDialog {
                              new Double (db[1])});
             }
         table.tableChanged(null);
-        chart.updateChart (corr, labelX, labelY);
+        chart.updateChart (corr, labelX, labelY, showRegression, showAverage);
     }
 
 
@@ -163,11 +164,14 @@ public class ChartDialog extends JDialog {
         Dimension minSize  = new Dimension (0, 0);
         Dimension prefSize = new Dimension (300, 300);
         Dimension maxSize  = new Dimension (10000, 10000);
+        boolean showRegression, showAverage;
 
         public ChartCanvas (DataCorrelator c,
                             String labelX,
-                            String labelY) {
-            updateChart (c, labelX, labelY);
+                            String labelY,
+                            boolean showRegression,
+                            boolean showAverage) {
+            updateChart (c, labelX, labelY, showRegression, showAverage);
         }
 
         public Dimension getPreferredSize() { return prefSize; }
@@ -178,10 +182,14 @@ public class ChartDialog extends JDialog {
 
         public void updateChart (DataCorrelator c,
                                  String labelX,
-                                 String labelY) {
+                                 String labelY,
+                                 boolean showRegression,
+                                 boolean showAverage) {
             this.c = c;
             this.labelX = labelX;
             this.labelY = labelY;
+            this.showRegression = showRegression;
+            this.showAverage = showAverage;
             points = (c == null) ? null : c.getDataPoints();
 
                                       // calc data point spread
@@ -302,11 +310,11 @@ public class ChartDialog extends JDialog {
             cBounds.y++; cBounds.height -= 2;
 
                                       // draw legend
-            g.setColor (Color.blue);
+            g.setColor (showRegression ? Color.blue : Color.lightGray);
             String l1 = "Linear Regression";
             g.drawString (l1, 5,
                           cBounds.y - 1 + cBounds.height - fm.getMaxDescent());
-            g.setColor (Color.red);
+            g.setColor (showAverage ? Color.red : Color.lightGray);
             g.drawString ("Average", 15 + fm.stringWidth (l1),
                           cBounds.y - 1 + cBounds.height - fm.getMaxDescent());
             cBounds.height -= cHigh + 2;
@@ -397,10 +405,12 @@ public class ChartDialog extends JDialog {
             }
 
                                       // draw lines
-            g.setColor (Color.blue);  // Linear Regression
+                                      // Linear Regression
+            g.setColor (showRegression ? Color.blue : Color.lightGray);
             drawLineInRect (g, cBounds, c.r.beta0, c.r.beta1,
                             minX, maxX, minY, maxY, xMult, yMult);
-            g.setColor (Color.red);   // Average
+                                      // Average
+            g.setColor (showAverage ? Color.red : Color.lightGray);
             drawLineInRect (g, cBounds, 0, c.r.y_avg / c.r.x_avg,
                             minX, maxX, minY, maxY, xMult, yMult);
         }
