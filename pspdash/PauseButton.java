@@ -181,7 +181,8 @@ public class PauseButton extends DropDownButton implements ActionListener {
 
         if (newCurrentPhase != null) {
             currentPhase = newCurrentPhase;
-            timeElementName = currentPhase.path() + "/Time";
+            timeElementName = parent.data.createDataName
+                (currentPhase.path(), "Time");
         }
 
         if (!paused) cont();
