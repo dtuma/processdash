@@ -32,7 +32,10 @@ import pspdash.data.SimpleData;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.net.URLConnection;
 import java.util.*;
+import org.w3c.dom.*;
 
 
 
@@ -61,17 +64,37 @@ public class teamStart extends TinyCGIBase {
     // Information for the page which asks the team leader which team
     // process they wish to use.
     private static final String PROCESS_PAGE = "process";
+    private static final String SHOW_PROCESS_PAGE = "showProc";
     private static final String PROCESS_URL = "teamStartProcess.shtm";
+    // Information for the page which asks an individual for the URL
+    // of the team project.
+    private static final String TEAM_URL_PAGE = "teamURL";
+    private static final String SHOW_URL_PAGE = "showURL";
+    private static final String TEAM_URL_URL = "teamStartTeamURL.shtm";
+
 
     private static final String TEAM_PID = "setup//Process_ID";
     private static final String TEAM_PID_LIST = "setup//Process_ID_List";
     private static final String TEAM_PROC_NAME = "setup//Process_Name";
+    private static final String TEAM_URL = "setup//Team_URL";
+    private static final String TEMPLATE_ID = "setup//Template_ID";
+    private static final String TEMPLATE_PATH = "setup//Template_Path";
+    private static final String TEMPLATE_UNC = "setup//Template_Path_UNC";
+    private static final String CONTINUATION_URI = "setup//Continuation_URI";
+
+    // value indicating we should help an individual join a team project
+    private static final String JOIN_PAGE = "join";
+    private static final String JOIN_ERROR_URL = "teamStartJoinError.shtm";
+
+
 
     protected void writeHeader() {}
     protected void writeContents() {}
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
     {
+        DashController.checkIP(env.get("REMOTE_ADDR"));
+
         super.service(in, out, env);
         if ("POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
             parseFormData();
@@ -80,7 +103,12 @@ public class teamStart extends TinyCGIBase {
         if (page == null)                         showWelcomePage();
         else if (WELCOME_PAGE.equals(page))       showWelcomePage();
         else if (TYPE_PAGE.equals(page))          handleTypePage();
+        else if (SHOW_PROCESS_PAGE.equals(page))  showTeamProcessesPage();
         else if (PROCESS_PAGE.equals(page))       handleProcessPage();
+
+        else if (SHOW_URL_PAGE.equals(page))      showTeamURLPage();
+        else if (TEAM_URL_PAGE.equals(page))      handleTeamURLPage();
+        else if (JOIN_PAGE.equals(page))          handleJoinPage();
 
         this.out.flush();
     }
@@ -101,6 +129,7 @@ public class teamStart extends TinyCGIBase {
     protected void putValue(String name, SimpleData dataValue) {
         DataRepository data = getDataRepository();
         String prefix = getPrefix();
+        if (prefix == null) prefix = "";
         String dataName = data.createDataName(prefix, name);
         data.putValue(dataName, dataValue);
     }
@@ -109,6 +138,7 @@ public class teamStart extends TinyCGIBase {
     protected String getValue(String name) {
         DataRepository data = getDataRepository();
         String prefix = getPrefix();
+        if (prefix == null) prefix = "";
         String dataName = data.createDataName(prefix, name);
         SimpleData d = data.getSimpleValue(dataName);
         return (d == null ? null : d.format());
@@ -125,8 +155,7 @@ public class teamStart extends TinyCGIBase {
             showTeamProcessesPage();
 
         } else if (parameters.get("joinTeamProject") != null) {
-            // TODO
-            printRedirect(TYPE_URL);
+            showTeamURLPage();
         }
     }
 
@@ -225,5 +254,183 @@ public class teamStart extends TinyCGIBase {
         return null;
     }
 
+    /** Display the page asking the individual for the URL of the team
+     * project. */
+    protected void showTeamURLPage() {
+        printRedirect(TEAM_URL_URL);
+    }
+
+    /** Handle values posted from the "team project url" page */
+    protected void handleTeamURLPage() {
+        String teamURL = getParameter("Team_URL");
+        if (teamURL != null) putValue(TEAM_URL, teamURL);
+
+        String errMsg = downloadTeamTemplateInfo(teamURL);
+        if (errMsg == null)
+            joinProject();
+        else
+            printRedirect(TEAM_URL_URL + "?errMsg="+URLEncoder.encode(errMsg));
+    }
+
+    /** Contact the team dashboard and download information about the
+     * process template in use by the project.
+     * @return null on success; else an error message describing the
+     * problem encountered.
+     */
+    protected String downloadTeamTemplateInfo(String teamURL) {
+        // Ensure they entered a team URL.
+        if (teamURL == null || teamURL.trim().length() == 0)
+            return "You must enter a team project URL!";
+
+        // Make certain the team URL is a valid URL.  Note that we
+        // should be able to work with the URL to just about any page
+        // in the team project! So whether the team leader gives
+        // people the URL to the "join" page, or the URL to the "table
+        // of contents" page, or even the URL to some other obscure
+        // page for the project, we should be able to derive the URL
+        // we need.
+        teamURL = teamURL.trim();
+        if (!teamURL.startsWith("http://")) return INVALID_TEAM_URL_ERR;
+        int pos = teamURL.indexOf("//", 7);
+        if (pos != -1) pos = teamURL.indexOf('/', pos+2);
+        if (pos == -1) return INVALID_TEAM_URL_ERR;
+        teamURL = teamURL.substring(0, pos+1) + "setup/join.class?xml";
+        URL u = null;
+        try {
+            u = new URL(teamURL);
+        } catch (IOException ioe) {
+            return "The URL you entered is not a valid URL.  Please "+
+                "doublecheck and correct it.";
+        }
+
+        // Download an XML document containing the template information.
+        Document doc = null;
+        try {
+            URLConnection conn = u.openConnection();
+            conn.connect();
+            doc = XMLUtils.parse(conn.getInputStream());
+        } catch (Exception e) {
+            return "The dashboard was unable to retrieve information about "+
+                "the team project.  Please ensure that you have entered the "+
+                "team project URL correctly, and contact your team leader "+
+                "to ensure that the team dashboard is currently running.";
+        }
+
+        // Extract the relevant information from the XML document we
+        // downloaded.
+        Element e = doc.getDocumentElement();
+        putValue(TEMPLATE_ID, e.getAttribute("Template_ID"));
+        putValue(TEMPLATE_PATH, e.getAttribute("Template_Path"));
+        putValue(TEMPLATE_UNC, e.getAttribute("Template_Path_UNC"));
+        putValue(CONTINUATION_URI, e.getAttribute("Continuation_URI"));
+
+        return null;
+    }
+    private static final String INVALID_TEAM_URL_ERR =
+        "The URL you entered is not a valid team project URL. "+
+        "Please doublecheck and correct it.";
+
+
+    /** Handle values posted from the "join team project" page */
+    protected void handleJoinPage() {
+        putValue(TEAM_URL, getParameter("Team_URL"));
+        putValue(TEMPLATE_ID, getParameter("Template_ID"));
+        putValue(TEMPLATE_PATH, getParameter("Template_Path"));
+        putValue(TEMPLATE_UNC, getParameter("Template_Path_UNC"));
+        putValue(CONTINUATION_URI, getParameter("Continuation_URI"));
+        joinProject();
+    }
+
+
+    /** Attempt to join a team project. */
+    protected void joinProject() {
+        String teamURL = getValue(TEAM_URL);
+        String templateID = getValue(TEMPLATE_ID);
+        String templatePath = getValue(TEMPLATE_PATH);
+        String templatePathUNC = getValue(TEMPLATE_UNC);
+        String continuationURI = getValue(CONTINUATION_URI);
+
+        String errorMessage = ensureTemplateLoaded
+            (templateID, templatePath, templatePathUNC, continuationURI);
+        if (errorMessage == null) {
+            String prefix = getPrefix();
+            if (prefix == null)
+                printRedirect(continuationURI);
+            else
+                printRedirect(prefix + "/" + continuationURI);
+        } else
+            printRedirect(JOIN_ERROR_URL + "?errMsg=" +
+                          URLEncoder.encode(errorMessage));
+    }
+
+    /** Make certain a particular process template is loaded; if it isn't,
+     * attempt to load it.
+     * @return null on success; else an error message describing the
+     * problem encountered.
+     */
+    protected String ensureTemplateLoaded(String templateID,
+                                          String templatePath,
+                                          String templatePathUNC,
+                                          String continuationURI)
+    {
+        /* Skip this initial step - if a template jarfile was located in
+            more than one place, this could lead to an individual using the
+            wrong one,
+        if (DashController.getTemplates().get(templateID) != null) {
+            // If we have already loaded a template with the given name,
+            // there is nothing to do.
+            return null;
+        }
+        */
+
+        // We need to find and load the necessary process template.
+        // Check to ensure that the template is contained in a 'jar'
+        // or 'zip' file.
+        String suffix =
+            templatePath.substring(templatePath.length()-4).toLowerCase();
+        if (!suffix.equals(".jar") && !suffix.equals(".zip"))
+            return "The team project setup logic currently only supports "+
+                "custom projects that are stored in 'jar' or 'zip' files.";
+
+        // Check to see if the file actually exists.
+        File f = new File(templatePath);
+        if (!f.exists()) {
+            if (templatePathUNC == null || templatePathUNC.length() == 0) {
+                return "that file doesn't exist";
+
+            } else {
+                // Try to find the template file using the UNC path.
+                NetworkDriveList networkDriveList = new NetworkDriveList();
+                String altTemplatePath =
+                    networkDriveList.fromUNCName(templatePathUNC);
+                if (altTemplatePath != null &&
+                    (f = new File(altTemplatePath)).exists())
+                    templatePath = altTemplatePath;
+                else
+                    return "that file doesn't exist";
+            }
+        }
+
+        // Load the template definition.
+        if (DashController.loadNewTemplate(templatePath) == false)
+            return "the file couldn't be loaded";
+
+        // One last check: before we redirect the user to the
+        // continuationURI, make certain that it can now be found
+        // in the list of template roots.
+        int pos = continuationURI.indexOf('?');
+        if (pos != -1) continuationURI = continuationURI.substring(0,pos);
+        // TODO: possibly change this to go through the web server instead?
+        if (TemplateLoader.resolveURL(continuationURI) == null)
+            return "the file couldn't be loaded";
+
+
+        // calculate the new template directory, and add it to the
+        // template path
+        String templateDir = f.getParent();
+        DashController.addTemplateDirToPath(templateDir);
+
+        return null;
+    }
 
 }
