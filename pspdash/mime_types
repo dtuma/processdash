@@ -43,8 +43,8 @@
 .exe=application/octet-stream
 .gif=image/gif
 .gz=application/gzip
-.htm=text/html; charset=iso-8859-1
-.html=text/html; charset=iso-8859-1
+.htm=text/html
+.html=text/html
 .iqy=application/x-httpd-cgi
 .jar=application/octet-stream
 .jpe=image/jpeg
