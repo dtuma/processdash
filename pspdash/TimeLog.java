@@ -89,9 +89,9 @@ public class TimeLog {
 
         // Create temporary files
         File tempFile = new File(logfile.getParent() + fileSep +
-                                                            "t_time.log");
+                                                            "tttt_tim.log");
         File backupFile = new File(logfile.getParent() + fileSep +
-                                   "ttime.log");
+                                   "tttttime.log");
 
         BufferedWriter out = new BufferedWriter (new FileWriter (tempFile));
         BufferedWriter backup = new BufferedWriter (new FileWriter (backupFile));

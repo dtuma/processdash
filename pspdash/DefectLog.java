@@ -65,9 +65,9 @@ public class DefectLog {
 
         // Create temporary files
         File tempFile = new File(defectFile.getParent()+ fileSep +
-                                 "t_" + defectFile.getName());
+                                 "tttt_" + defectFile.getName());
         File backupFile = new File(defectFile.getParent()+ fileSep +
-                                 "t" + defectFile.getName());
+                                 "tttt" + defectFile.getName());
         try {
             PrintWriter out =
                 new PrintWriter(new BufferedWriter(new FileWriter(tempFile)));
@@ -89,7 +89,7 @@ public class DefectLog {
                 }
 
             if (d.number != null) {
-//	updateData(defects, null); //preferred, but doesn't work (yet) w/null
+//      updateData(defects, null); //preferred, but doesn't work (yet) w/null
                 updateData(defects);
                 if (parent.configure_button.defect_frame != null)
                     parent.configure_button.defect_frame.updateDefectLog (this);

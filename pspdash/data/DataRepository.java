@@ -998,110 +998,112 @@ public class DataRepository implements Repository {
     // the actual datafile.  Once the rename is successful, backup is
     // deleted.
     private void saveDatafile(DataFile datafile) {
-        // debug("saveDatafile");
+        synchronized(datafile) {
+            // debug("saveDatafile");
 
-        String fileSep = System.getProperty("file.separator");
+            String fileSep = System.getProperty("file.separator");
 
-        // Create temporary files
-        File tempFile = new File(datafile.file.getParent() +
-                                 fileSep + "temp.dat");
-        File backupFile = new File(datafile.file.getParent() + fileSep +
-                                   "t" + datafile.file.getName() );
-        BufferedWriter out;
-        BufferedWriter backup;
+            // Create temporary files
+            File tempFile = new File(datafile.file.getParent() +
+                                     fileSep + "tttt_" + datafile.file.getName());
+            File backupFile = new File(datafile.file.getParent() + fileSep +
+                                       "tttt" + datafile.file.getName() );
+            BufferedWriter out;
+            BufferedWriter backup;
 
-        try {
-            out = new BufferedWriter(new FileWriter(tempFile));
-            backup = new BufferedWriter(new FileWriter(backupFile));
-
-        } catch (IOException e) {
-            System.err.println("IOException " + e + " while opening " +
-                               datafile.file.getPath() + "; save aborted");
-            return;
-        }
-
-        Map defaultValues;
-
-        // if the data file has an include statement, write it to the
-        // the two temporary output files.
-        if (datafile.inheritsFrom != null) {
-            defaultValues = (Map) includedFileCache.get(datafile.inheritsFrom);
             try {
-                out.write(includeTag + datafile.inheritsFrom);
-                out.newLine();
-                backup.write(includeTag + datafile.inheritsFrom);
-                backup.newLine();
-            } catch (IOException e) {}
-        } else {
-            defaultValues = new HashMap();
-        }
+                out = new BufferedWriter(new FileWriter(tempFile));
+                backup = new BufferedWriter(new FileWriter(backupFile));
 
-        datafile.dirtyCount = 0;
+            } catch (IOException e) {
+                System.err.println("IOException " + e + " while opening " +
+                                   datafile.file.getPath() + "; save aborted");
+                return;
+            }
 
-        Enumeration k = data.keys();
-        String name, valStr, defaultValStr;
-        DataElement element;
-        SaveableData value;
-        int prefixLength = datafile.prefix.length() + 1;
+            Map defaultValues;
 
-        // write the data elements to the two temporary output files.
-        while (k.hasMoreElements()) {
-            name = (String)k.nextElement();
-            element = (DataElement)data.get(name);
+            // if the data file has an include statement, write it to the
+            // the two temporary output files.
+            if (datafile.inheritsFrom != null) {
+                defaultValues = (Map) includedFileCache.get(datafile.inheritsFrom);
+                try {
+                    out.write(includeTag + datafile.inheritsFrom);
+                    out.newLine();
+                    backup.write(includeTag + datafile.inheritsFrom);
+                    backup.newLine();
+                } catch (IOException e) {}
+            } else {
+                defaultValues = new HashMap();
+            }
 
-            // Make a quick check on the element and datafile validity
-            // before taking the time to get the value
-            if ((element != null) && (element.datafile == datafile)) {
-                value = element.getValue();
-                if (value != null) {
-                    try {
-                        name = name.substring(prefixLength);
+            datafile.dirtyCount = 0;
 
-                        valStr = (value.isEditable()? "" : "=") + value.saveString();
-                        defaultValStr = (String) defaultValues.get(name);
-                        if (valStr.equals(defaultValStr))
-                            continue;
+            Enumeration k = data.keys();
+            String name, valStr, defaultValStr;
+            DataElement element;
+            SaveableData value;
+            int prefixLength = datafile.prefix.length() + 1;
 
-                        out.write(name);
-                        out.write('=');
-                        out.write(valStr);
-                        out.newLine();
+            // write the data elements to the two temporary output files.
+            while (k.hasMoreElements()) {
+                name = (String)k.nextElement();
+                element = (DataElement)data.get(name);
 
-                        backup.write(name);
-                        backup.write('=');
-                        backup.write(valStr);
-                        backup.newLine();
-                    } catch (IOException e) {
-                        System.err.println("IOException " + e + " while writing " +
-                                           name + " to " + datafile.file.getPath());
+                // Make a quick check on the element and datafile validity
+                // before taking the time to get the value
+                if ((element != null) && (element.datafile == datafile)) {
+                    value = element.getValue();
+                    if (value != null) {
+                        try {
+                            name = name.substring(prefixLength);
+
+                            valStr = (value.isEditable()? "" : "=") + value.saveString();
+                            defaultValStr = (String) defaultValues.get(name);
+                            if (valStr.equals(defaultValStr))
+                                continue;
+
+                            out.write(name);
+                            out.write('=');
+                            out.write(valStr);
+                            out.newLine();
+
+                            backup.write(name);
+                            backup.write('=');
+                            backup.write(valStr);
+                            backup.newLine();
+                        } catch (IOException e) {
+                            System.err.println("IOException " + e + " while writing " +
+                                               name + " to " + datafile.file.getPath());
+                        }
                     }
                 }
             }
+
+            try {
+                // Close the temporary output files
+                out.flush();
+                out.close();
+
+                backup.flush();
+                backup.close();
+
+                // rename out to the real datafile
+                datafile.file.delete();
+                tempFile.renameTo(datafile.file);
+
+                // delete the backup
+                backupFile.delete();
+
+            } catch (IOException e) {
+                System.err.println("IOException " + e + " while closing " +
+                                   datafile.file.getPath());
+            }
+
+            System.err.println("Saved " + datafile.file.getPath());
+            // debug("saveDatafile done");
         }
-
-        try {
-            // Close the temporary output files
-            out.flush();
-            out.close();
-
-            backup.flush();
-            backup.close();
-
-            // rename out to the real datafile
-            datafile.file.delete();
-            tempFile.renameTo(datafile.file);
-
-            // delete the backup
-            backupFile.delete();
-
-        } catch (IOException e) {
-            System.err.println("IOException " + e + " while closing " +
-                               datafile.file.getPath());
-        }
-
-        System.err.println("Saved " + datafile.file.getPath());
-        // debug("saveDatafile done");
-        }
+    }
 
 
 

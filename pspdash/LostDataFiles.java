@@ -35,8 +35,8 @@ import javax.swing.JOptionPane;
 
 public class LostDataFiles implements FilenameFilter {
 
-    private static String acceptFilter = "t"; // used to determine if a file
-                                               // is lost
+    private static String acceptFilter = "tttt"; // used to determine if a file
+                                                 // is lost
     private static String rejectFilter[] = {"tasks", "time.log"};
                                      // an exception to acceptFilter
     private static String warnMsg =

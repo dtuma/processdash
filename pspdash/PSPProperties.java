@@ -331,8 +331,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         }
 
         // Create temporary files
-        File tempFile = new File(propsFile.getParent() + fileSep + "t_state");
-        File backupFile = new File(propsFile.getParent() + fileSep + "tstate");
+        File tempFile = new File(propsFile.getParent() + fileSep + "tttt_sta");
+        File backupFile = new File(propsFile.getParent() + fileSep + "ttttstat");
 
         BufferedWriter out = new BufferedWriter (new FileWriter (tempFile));
         BufferedWriter backup = new BufferedWriter (new FileWriter (backupFile));
