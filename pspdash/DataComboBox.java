@@ -32,7 +32,7 @@ import java.util.*;
 import java.io.*;
 import pspdash.data.DataRepository;
 import com.oroinc.text.perl.Perl5Util;
-import com.oroinc.text.perl.MalformedPerl5PatternException;
+import com.oroinc.text.MalformedCachePatternException;
 
 public class DataComboBox extends JComboBox implements ILessThan {
 
@@ -60,7 +60,7 @@ public class DataComboBox extends JComboBox implements ILessThan {
     public static Set getAllDataNames(DataRepository dr) {
         if (dataNameList != null) return dataNameList;
 
-        Perl5Util perl = new Perl5Util();
+        Perl5Util perl = PerlPool.get();
         Set result = new TreeSet();
         String hiddenDataRE = "m\n(" + Settings.getVal(settingName) + ")\ni";
 
@@ -76,13 +76,14 @@ public class DataComboBox extends JComboBox implements ILessThan {
             try {
                 if (!perl.match(hiddenDataRE, dataName))
                     result.add(dataName);
-            } catch (MalformedPerl5PatternException mp5pe) {
+            } catch (MalformedCachePatternException mp5pe) {
                 System.err.println("The user setting, 'hiddenData', is not a valid " +
                                    "regular expression.");
                 break;
             }
         }
 
+        PerlPool.release(perl);
         dataNameList = Collections.unmodifiableSet(result);
         return result;
     }
