@@ -17,8 +17,7 @@ undefine([ROLLUP_ID Rollup Eligible]);
 
 // Compute a global list of all projects which can be rolled up with
 // this consolidator.
-[/ROLLUP_ID/Project List] =
-    search("/", "ROLLUP_ID Rollup Eligible", [ROLLUP_ID Rollup Eligible]);
+[/ROLLUP_ID/Project List] = search("/", "ROLLUP_ID Rollup Eligible");
 
 // Compute a global list of all rollup datasets created using this
 // consolidator.
