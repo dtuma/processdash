@@ -853,10 +853,10 @@ public class TimeLogEditor extends Object
 
         retPanel.setLayout(new BorderLayout());
         table = new ValidatingTable
-            (resources.getStrings("Column_Name_", COLUMN_KEYS),
+            (resources.getStrings("Columns.", COLUMN_KEYS, ".Name"),
              null,
-             resources.getInts("Column_Width_", COLUMN_KEYS),
-             resources.getStrings("Column_Tooltip_", COLUMN_KEYS),
+             resources.getInts("Columns.", COLUMN_KEYS, ".Width"),
+             resources.getStrings("Columns.", COLUMN_KEYS, ".Tooltip"),
              null, this, 0, true, null, null);
         retPanel.add ("Center", table);
 
