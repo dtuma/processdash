@@ -73,9 +73,13 @@ public class excel extends pspdash.TinyCGIBase {
         int endPos   = results.lastIndexOf("/TABLE");
         if (endPos != -1) endPos = results.indexOf('>', endPos);
 
-        if (beginPos == -1 || endPos == -1)
+        if (parameters.get("fullPage") != null ||
+            beginPos == -1 || endPos == -1) {
+            // Break the stylesheet links - otherwise Excel will complain
+            results = StringUtils.findAndReplace(results, "<link", "<notlink");
+            results = StringUtils.findAndReplace(results, "<LINK", "<NOTLINK");
             out.println(results);
-        else {
+        } else {
             out.println("<HTML>");
             out.println(results.substring(beginPos, endPos + 1));
             out.println("</HTML>");
