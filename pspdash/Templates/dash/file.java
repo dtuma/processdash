@@ -179,7 +179,7 @@ public class file extends TinyCGIBase {
             // user for them before continuing.
             pathVariables = metaPathVariables;
             pathVariableNames = metaPathVariableNames;
-            displayNeedInfoForm(filename, null, false);
+            displayNeedInfoForm(filename, null, false, file);
             return;
         }
 
@@ -193,7 +193,7 @@ public class file extends TinyCGIBase {
         if (result == null) {
             // if we could not locate the file because we need the user
             // to enter more information, display a form.
-            displayNeedInfoForm(filename, result, false);
+            displayNeedInfoForm(filename, result, false, file);
             return;
         }
 
@@ -224,7 +224,7 @@ public class file extends TinyCGIBase {
             // user for them before continuing.
             pathVariables = metaPathVariables;
             pathVariableNames = metaPathVariableNames;
-            displayNeedInfoForm(filename, null, true);
+            displayNeedInfoForm(filename, null, true, file);
             return;
         }
 
@@ -232,7 +232,7 @@ public class file extends TinyCGIBase {
             // if there was no template information, go back and display a
             // form for the original document.
             restorePathInfo();
-            displayNeedInfoForm(filename, result, false);
+            displayNeedInfoForm(filename, result, false, file);
             return;
         }
 
@@ -251,7 +251,7 @@ public class file extends TinyCGIBase {
         if (template == null || (templateURL == null && !template.exists())) {
             // if we could not locate the template because we need the user
             // to enter more information, display a form.
-            displayNeedInfoForm(filename, template, true);
+            displayNeedInfoForm(filename, template, true, file);
             return;
         }
 
@@ -280,7 +280,7 @@ public class file extends TinyCGIBase {
             out.print("Location: " + result.toURL() + "\r\n\r\n");
         } catch (MalformedURLException mue) {
             System.out.println("Exception: " + mue);
-            displayNeedInfoForm(filename, result, false);
+            displayNeedInfoForm(filename, result, false, null);
         }
     }
 
@@ -486,12 +486,12 @@ public class file extends TinyCGIBase {
 
     /** Lookup a cached PathVariable, or create one if no cached one exists.
      */
-    private PathVariable getPathVariable(String name, String impliedPath,
+    private PathVariable getPathVariable(String mname, String impliedPath,
                                          String defaultValue) {
-        name = resolveMetaReferences(name);
+        String name = resolveMetaReferences(mname);
         PathVariable result = (PathVariable) pathVariables.get(name);
         if (result == null) {
-            result = new PathVariable(name, impliedPath, defaultValue);
+            result = new PathVariable(name, mname, impliedPath, defaultValue);
             pathVariables.put(name, result);
             pathVariableNames.add(name);
         }
@@ -512,7 +512,7 @@ public class file extends TinyCGIBase {
             metaName = name.substring(beg+1, end);
             PathVariable pv = (PathVariable) metaPathVariables.get(metaName);
             if (pv == null)
-                pv = new PathVariable(metaName, null, "");
+                pv = new PathVariable(metaName, metaName, null, "");
             if (pv.isUnknown()) {
                 metaPathVariables.put(metaName, pv);
                 metaPathVariableNames.add(metaName);
@@ -532,14 +532,15 @@ public class file extends TinyCGIBase {
     /** Holds information about a data element referenced from a path.
      */
     class PathVariable {
-        String name, dataName, value = null;
+        String metaName, dataName, value = null;
 
         public PathVariable(String name, String impliedPath) {
-            this(name, impliedPath, null); }
+            this(name, name, impliedPath, null); }
         public PathVariable(String name) {
-            this(name, null, null); }
-        public PathVariable(String name, String impliedPath,
+            this(name, name, null, null); }
+        public PathVariable(String name, String metaName, String impliedPath,
                             String defaultValue) {
+            this.metaName = metaName;
             Object val = null;
             DataRepository data = getDataRepository();
 
@@ -598,6 +599,27 @@ public class file extends TinyCGIBase {
             File aa = new File(a), bb = new File(b);
             return aa.equals(bb);
         }
+        private String displayName = null;
+        private String commentText = null;
+        public void lookupExtraInfo(Element e) {
+            if (e == null) return;
+            Document doc = e.getOwnerDocument();
+            if (doc == null) return;
+
+            e = (new FileFinder("[" + metaName + "]", doc)).file;
+            if (e != null) {
+                displayName = e.getAttribute("displayName");
+                if (e.hasChildNodes()) {
+                    StringBuffer buf = new StringBuffer();
+                    NodeList list = e.getChildNodes();
+                    for (int i=0;  i<list.getLength(); i++)
+                        buf.append(list.item(i).toString());
+                    commentText = buf.toString();
+                }
+            }
+        }
+        public String getDisplayName() { return displayName; }
+        public String getCommentText() { return commentText; }
     }
 
 
@@ -630,7 +652,7 @@ public class file extends TinyCGIBase {
      * information from the user.
      */
     private void displayNeedInfoForm(String filename, File file,
-                                     boolean isTemplate) {
+                                     boolean isTemplate, Element e) {
         out.print("Content-type: text/html\r\n\r\n" +
                   "<html><head><title>Enter File Information</title></head>\n"+
                   "<body><h1>Enter File Information</h1>\n");
@@ -654,20 +676,30 @@ public class file extends TinyCGIBase {
             PathVariable pathVar = getPathVariable(varName);
             if (pathVar.getDataname() == null)
                 continue;
+            pathVar.lookupExtraInfo(e);
 
-            out.print("<tr><td>");
-            String displayName = varName;
+            out.print("<tr><td valign='top'>");
+            String displayName = pathVar.getDisplayName();
+            if (!XMLUtils.hasValue(displayName)) displayName = varName;
             if (displayName.startsWith("/"))
                 displayName = displayName.substring(1);
             out.print(TinyWebServer.encodeHtmlEntities(displayName));
-            out.print("&nbsp;</td><td><input size='40' type='text' name='");
+            out.print("&nbsp;</td><td valign='top'>" +
+                      "<input size='40' type='text' name='");
             out.print(TinyWebServer.encodeHtmlEntities(varName));
             String value = pathVar.getValue();
             if (value != null) {
                 out.print("' value='");
                 out.print(TinyWebServer.encodeHtmlEntities(value));
             }
-            out.println("'></td></tr>");
+            out.print("'>");
+            String comment = pathVar.getCommentText();
+            if (XMLUtils.hasValue(comment)) {
+                out.print("<br><i>");
+                out.print(comment);
+                out.print("</i><br>&nbsp;");
+            }
+            out.println("</td></tr>");
         }
         out.println("</table>");
         out.print("<input type='hidden' name='" + FILE_PARAM + "' value='");
