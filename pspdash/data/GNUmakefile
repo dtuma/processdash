@@ -67,17 +67,19 @@ EXTRAS=AdditionFunction.class SubtractionFunction.class \
 
 default: data
 
-
-all: IE NS data
-
-
 data: DataRepository.class $(EXTRAS)
 
+ifneq ($(BUILD_PLATFORM),CYGWIN)
+
+all: NS data
+
+else
+
+all: IE NS data
 
 IE:
 	mkdir -p $(BIN_IE)
 	rm -rf $(BIN_IE)/pspdash $(BIN_IE)/DataApplet.cab
-ifeq ($(BUILD_PLATFORM),CYGWIN)
 	$(MSJAVAC) \
 	    /cp:p $(SRC) \
 	    /cp:p c:/WINDOWS/java/CLASSES/classes.zip \
@@ -96,23 +98,9 @@ ifeq ($(BUILD_PLATFORM),CYGWIN)
 	    OLEDBListenerWrapper.java \
 	    OLEDBDSLWrapper.java
 	cd $(BIN_IE); $(MSCAB) -r -p n DataApplet.cab pspdash\\*
-else
-	$(JAVAC) \
-	    -classpath '$(SRC)$(DS)$(MSJARS)/msclasseszip.jar$(DS)$(MSJARS)/msospclasses.jar$(DS)$(MSJARS)/mswfcclasses.jar' \
-	    -d $(BIN_IE) \
-	    IEDataApplet.java \
-	    IEFieldManager.java \
-	    OLEDBAlertWindow.java \
-	    ../Settings.java \
-	    ../DateFormatter.java
-	rm -f $(BIN_IE)/pspdash/data/OLEDBDSLWrapper.class \
-	      $(BIN_IE)/pspdash/data/OLEDBListenerWrapper.class
-	$(JAVAC) \
-	    -classpath '$(SRC)$(DS)$(MSJARS)/msclasseszip.jar$(DS)$(MSJARS)/msospclasses.jar$(DS)$(MSJARS)/mswfcclasses.jar' \
-	    -d $(BIN_DATA) \
-	    OLEDBListenerWrapper.java \
-	    OLEDBDSLWrapper.java
+
 endif
+
 
 NS:
 	mkdir -p $(BIN_NS)
