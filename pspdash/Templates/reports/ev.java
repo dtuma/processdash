@@ -238,7 +238,7 @@ public class ev extends CGIChartBase {
                        evModel.toolTips);
 
         out.print("<h2>Schedule Template</h2>\n");
-        writeHTMLTable("SCHEDULE", s, s.toolTips);
+        writeHTMLTable("SCHEDULE", s, s.getColumnTooltips());
 
         out.print("<p class='doNotPrint'>");
         out.print(EXPORT_HTML1);

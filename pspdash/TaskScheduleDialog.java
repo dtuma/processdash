@@ -133,7 +133,7 @@ public class TaskScheduleDialog
         scheduleTable = new ScheduleJTable(model.getSchedule());
                                 // add tool tips to the table header.
         ToolTipTableCellRendererProxy.installHeaderToolTips
-            (scheduleTable, EVSchedule.toolTips);
+            (scheduleTable, model.getSchedule().getColumnTooltips());
                                 // set default widths for the columns
         for (int i = 0;  i < EVSchedule.colWidths.length;  i++)
             scheduleTable.getColumnModel().getColumn(i)

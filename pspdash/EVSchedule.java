@@ -656,12 +656,20 @@ public class EVSchedule implements TableModel {
     }
 
     private double directPercentage = 1;
-    private boolean showDirectColumns = true;
+    private boolean showDirectColumns = false;
+    private String[] toolTips = buildColumnTooltips();
     public void setLevelOfEffort(double percent) {
         directPercentage = 1.0 - percent;
         if (directPercentage < 0)
             directPercentage = 0;
         showDirectColumns = (directPercentage < 1);
+        if (showDirectColumns) {
+            toolTips[PLAN_TIME_COLUMN] = TOOL_TIPS[PLAN_TIME_COLUMN];
+            toolTips[TIME_COLUMN] = TOOL_TIPS[TIME_COLUMN];
+        } else {
+            toolTips[PLAN_TIME_COLUMN] = TOOL_TIPS[PLAN_DTIME_COLUMN];
+            toolTips[TIME_COLUMN] = TOOL_TIPS[DTIME_COLUMN];
+        }
     }
 
     private Date effectiveDate = null;
@@ -949,7 +957,7 @@ public class EVSchedule implements TableModel {
         "From", "To",   "PT",   "PDT",  "CPT",  "CPV", "Time", "%I",  "DTime", "CT",   "EV" };
     public static final int[] colWidths = {
          DATE_W, DATE_W, TIME_W, TIME_W, TIME_W, PCT_W, TIME_W, PCT_W, TIME_W,  TIME_W, PCT_W };
-    public static final String[] toolTips = {
+    public static final String[] TOOL_TIPS = {
         null,
         null,
         "Planned Time (hours:minutes)",
@@ -1001,6 +1009,22 @@ public class EVSchedule implements TableModel {
         else
             return colNames[i];
     }
+    public String[] getColumnTooltips() {
+        return toolTips;
+    }
+    private String[] buildColumnTooltips() {
+        String [] result = new String[TOOL_TIPS.length];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = TOOL_TIPS[i];
+        }
+        if (directPercentage == 1.0) {
+            result[PLAN_TIME_COLUMN] = result[PLAN_DTIME_COLUMN];
+            result[TIME_COLUMN] = result[DTIME_COLUMN];
+        }
+        toolTips = result;
+        return result;
+    }
+
     public Class getColumnClass(int i) { return colTypes[i]; }
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         return columnIndex < 4;
