@@ -1,0 +1,6 @@
+#!/usr/bin/perl -p
+
+BEGIN { $pat = shift; }
+
+if (/$pat/o) { $_ = '';          } # filter out cut lines
+else         { s|\.\./|../../|g; } # modify relative paths

@@ -1,0 +1,19 @@
+#include <psp1.1/dataFile.txt>
+
+= Students must manually calculate CPI for program 5A.
+
+5A Estimated Time To Date=0.0
+5A Time To Date=0.0
+5A CPI To Date=0.0
+
+= Students must manually calculate % Reused for program 5A.
+
+Estimated % Reused=0.0
+% Reused=0.0
+5A % Reused To Date=0.0
+
+= Students must manually calculate % New Reused for program 5A.
+
+Estimated % New Reused=0.0
+% New Reused=0.0
+5A % New Reused To Date=0.0
