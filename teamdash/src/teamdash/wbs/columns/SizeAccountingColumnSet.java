@@ -220,15 +220,20 @@ public class SizeAccountingColumnSet {
             if (!column.isCellEditable(node)) return false;
             // if we aren't filtering this node, then it's editable.
             if (!isFiltered(node)) return true;
-            // if this node has a zero or NaN value, it isn't editable.
-            return NumericDataValue.parse(column.getValueAt(node)) > 0;
+            // if this node has a non-erroneous zero or NaN value, it isn't
+            // editable.
+            Object value = column.getValueAt(node);
+            if (value instanceof NumericDataValue &&
+                ((NumericDataValue) value).errorMessage != null) return true;
+            return NumericDataValue.parse(value) > 0;
         }
 
         public Object getValueAt(WBSNode node) {
             NumericDataValue result =
                 (NumericDataValue) column.getValueAt(node);
             if (result == null) return result;
-            if (isFiltered(node) && !(result.value > 0)) {
+            if (isFiltered(node) && !(result.value > 0) &&
+                result.errorMessage == null) {
                 result.isEditable = false;
                 result.isInvisible = true;
             }

@@ -90,7 +90,7 @@ public class TeamProject {
     private void saveTeamList() {
         try {
             File f = new File(directory, TEAM_LIST_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f);
+            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
             teamList.getAsXML(out);
             out.close();
         } catch (Exception e) {
@@ -129,7 +129,7 @@ public class TeamProject {
     private void saveWBS() {
         try {
             File f = new File(directory, WBS_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f);
+            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
             wbs.getAsXML(out);
             out.close();
         } catch (Exception e) {
@@ -155,13 +155,15 @@ public class TeamProject {
     private void saveWorkflows() {
         try {
             File f = new File(directory, FLOW_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f);
+            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
             workflows.getAsXML(out);
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+
 
     /*
 
@@ -186,4 +188,5 @@ public class TeamProject {
     private static final String WBS_FILENAME = "wbs.xml";
     private static final String FLOW_FILENAME = "workflow.xml";
     private static final String PROCESS_FILENAME = "process.xml";
+
 }

@@ -103,7 +103,7 @@ public class SizeTypeColumn extends AbstractDataColumn {
             String id = (String) e.getValue();
 
             SizeAccountingColumnSet.create
-                (dataModel, id, new DocSizePruner(docType), null); //docType);
+                (dataModel, id, new DocSizePruner(docType), docType); //null);
         }
 
         // create aliasing columns

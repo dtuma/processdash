@@ -1,6 +1,8 @@
 
 package teamdash.wbs.columns;
 
+import java.util.ArrayList;
+
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
@@ -105,7 +107,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             // if this node has children, try multiplying all their values
             // by an appropriate ratio to keep the top-down and bottom-up
             // values in sync.
-            maybeMultiplyValues(node,  newValue / oldValue);
+            maybeMultiplyValues(node, newValue, oldValue);
 
             // save the new top-down value for this node.
             userChangingValue(node, newValue);
@@ -238,12 +240,42 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         return true;
     }
 
-    protected void maybeMultiplyValues(WBSNode node, double ratio) {
-        if (Double.isNaN(ratio) || Double.isInfinite(ratio)) return;
-        if (equal(ratio, 0)) return;
+    protected void maybeMultiplyValues(WBSNode node, double newValue, double oldValue) {
         if (topDownBottomUpMismatch(node)) return;
 
-        multiplyValue(node, ratio);
+        double ratio = newValue / oldValue;
+        if (!Double.isNaN(ratio) &&
+            !Double.isInfinite(ratio) &&
+            !equal(ratio, 0)) {
+            multiplyValue(node, ratio);
+        } else {
+            WBSNode delegate = getSingleLeafForNode(node, !equal(oldValue, 0));
+            if (delegate != null) {
+                userChangingValue(delegate, newValue);
+                delegate.setNumericAttribute(topDownAttrName, newValue);
+            }
+        }
+    }
+
+    private WBSNode getSingleLeafForNode(WBSNode node, boolean withValue) {
+        ArrayList leaves = new ArrayList();
+        getLeavesForNode(node, withValue, leaves);
+        if (leaves.size() == 1)
+            return (WBSNode) leaves.get(0);
+        else
+            return null;
+    }
+    private void getLeavesForNode(WBSNode node, boolean withValue, ArrayList result) {
+        WBSNode[] children = wbsModel.getChildren(node);
+        int numToInclude = filterChildren(children);
+
+        if (numToInclude == 0) {  // this is a leaf.
+            double val = node.getNumericAttribute(topDownAttrName);
+            if (withValue == false || val > fuzzFactor)
+                result.add(node);
+
+        } else for (int i = 0;   i < numToInclude;   i++)
+            getLeavesForNode(children[i], withValue, result);
     }
 
     /** Recurse over all the children of <code>node</code>, and multiply

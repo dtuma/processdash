@@ -7,7 +7,8 @@ public class LOCPruner implements Pruner {
     public boolean shouldPrune(WBSNode node) {
         String nodeType = node.getType();
         if ("Software Component".equals(nodeType) ||
-            "Project".equals(nodeType)) return false;
+            "Project".equals(nodeType) ||
+            "PSP Task".equals(nodeType)) return false;
 
         return true;
     }

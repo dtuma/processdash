@@ -27,15 +27,18 @@ public class WBSEditor implements WindowListener {
     TeamProject teamProject;
     JFrame frame;
     TeamTimePanel teamTimePanel;
+    WBSDataWriter dataWriter;
+    File dataDumpFile;
 
-
-    public WBSEditor(TeamProject teamProject) {
+    public WBSEditor(TeamProject teamProject, File dumpFile) {
         this.teamProject = teamProject;
+        this.dataDumpFile = dumpFile;
 
         WBSModel model = teamProject.getWBS();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess());
+        dataWriter = new WBSDataWriter(model, data, teamProject.getTeamProcess());
         WBSTabPanel table =
             new WBSTabPanel(model, data, teamProject.getTeamProcess());
         teamProject.getTeamMemberList().addInitialsListener(table);
@@ -126,9 +129,23 @@ public class WBSEditor implements WindowListener {
         return result;
     }
 
+    private void save() {
+        teamProject.save();
+        writeData();
+    }
+
+    private static final String DATA_DUMP_FILENAME = "projDump.xml";
+    private void writeData() {
+        try {
+            dataWriter.write(dataDumpFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void windowOpened(WindowEvent e) {}
     public void windowClosing(WindowEvent e) {
-        teamProject.save();
+        save();
     }
     public void windowClosed(WindowEvent e) {}
     public void windowIconified(WindowEvent e) {}
@@ -142,7 +159,9 @@ public class WBSEditor implements WindowListener {
         if (args.length > 0)
             filename = args[0];
 
-        new WBSEditor(new TeamProject(new File(filename), "Team Project"));
+        File dir = new File(filename);
+        File dumpFile = new File(dir, "projDump.xml");
+        new WBSEditor(new TeamProject(dir, "Team Project"), dumpFile);
     }
 
     private class SaveAction extends AbstractAction {
@@ -151,7 +170,7 @@ public class WBSEditor implements WindowListener {
             putValue(MNEMONIC_KEY, new Integer('S'));
         }
         public void actionPerformed(ActionEvent e) {
-            teamProject.save();
+            save();
         }
     }
 
@@ -162,7 +181,7 @@ public class WBSEditor implements WindowListener {
             frame.addWindowListener(this);
         }
         public void actionPerformed(ActionEvent e) {
-            teamProject.save();
+            save();
             System.exit(0);
         }
         public void windowOpened(WindowEvent e) {}
