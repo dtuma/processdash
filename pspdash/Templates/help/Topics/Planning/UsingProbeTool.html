@@ -9,28 +9,22 @@
 <P>The PROBE tool provides assistance in making estimates by performing the 
 PROBE calculations for you.</p>
 
-<p><img src="../../Images/ProbeToolStart.jpg"></p>
+<p><img src="../../Images/ProbeToolStart.png"></p>
 
-<P>The PROBE tool can perform correlation tests and projections based on sets 
-of process data.  By default it provides for the following four 
-combinations:</P> 
+<P>The PROBE tool can perform correlation tests and projections based on any two
+process data metrics.  The Method pull-down allows quick access to the 
+different estimation methods provided by the PROBE estimation method.  
+Clicking on the pull-down gives the following choices:</p>
 
-<ul>
- <li><em>Estimated Object LOC</em> and <em>Actual New &amp; Changed LOC</em> 
-data</LI>
- <li><em>Estimated Object LOC</em> and <em>Actual Total Time</em> data</LI>
- <li><em>Estimated New &amp; Changed LOC</em> and <em>Actual Total Time</em> 
-data</LI>
- <li><em>Estimated New &amp; Changed LOC</em> and <em>Actual New &amp; 
-Changed LOC</em> data</LI>
-</ul> 
+<P><img src="../../Images/ProbeToolMethods.png"></p>
 
-<P>If you would care to attempt to correlate other process data, you can set 
-the <!-- CHANGE --><b><em>[WHAT ENTRY GOES HERE?]</em></b> entry in the 
-configuration file to <b><em>[TRUE OR FALSE?]</em></b>.  For more information 
-about the configuration file see the <a 
-href="../AdvancedTopics/ConfigurationFile.html">configuration file</a> help 
-topic.</p>
+<P>Choosing any of the standard PROBE methods will set the independent and 
+dependent variables to their appropriate values.  The different methods are 
+documented on the PROBE instructions form.</p>
+
+<P>If you would like to explore correlations between any two other process 
+metric variables, they can be chosen from the independent and dependent 
+variable pull-downs.</p>
 
 <P>Basically the PROBE tool runs a correlation test on the two sets of data 
 chosen.  It then reports the various statistical measurements on the dialog.  
@@ -39,10 +33,10 @@ relationships between the sets of data chosen (r<sup>2</sup>, p, Variance,
 Standard Deviation), and those that are related to a projection based on the 
 estimate entered (<i>B</i><sub>0</sub>, <i>B</i><sub>1</sub>, Range, UPI and 
 LPI).  Also there are two columns of data on the tool.  The left column shows 
-data based on a linear regression (this is for methods 4A, 4B, 5A and 5B of 
-the PROBE estimation method) and the right column shows data based on how 
-well your data seem to predict on the average (this is for methods 4C, 5C, 
-and 5D of the PROBE estimation method).</p>
+data based on a linear regression (this is for methods A and B the PROBE 
+estimation method) and the right column shows data based on how well your 
+data seem to predict on the average (this is for the different C methods of 
+the PROBE estimation method).</p> 
 
 <h2>Filtering your data set</h2>
 <P>The filter button allows you to restrict the data set of the correlation 
@@ -50,7 +44,7 @@ and projection to certain projects.  It will pop up a tree view of the
 current projects stored and allow you to add or remove data items from the 
 selected set.</p>
 
-<p><img src="../../Images/ProbeFilter.jpg"></p>
+<p><img src="../../Images/ProbeFilter.png"></p>
 
 <p>Seleted items are marked with a graphical "X".  By default the tool only 
 shows projects in the tree (nodes).  You can expand this view to include the 
@@ -74,9 +68,9 @@ indicates that the number correlate well enough to use a linear regression
 method.  The degree of confidence as measured by the r<sup>2</sup> variable 
 is shown on the dialog by its color.  When the value is too low to be used 
 for predictive purposes, the r<sup>2</sup> value will show up in red.  Values 
-that show better and better agreement are shown in different colors.  Orange 
-is better than red, blue is better than orange, and black is better than 
-blue.</p>
+that show better and better agreement are shown in different colors.  The 
+colors used are: red (very bad), yellow/orange (bad), blue (good), and black 
+(very good).</p>
 
 <h3>The significance measurement</h3>
 <p>The significance measurement is an indication of how significant the 
@@ -84,8 +78,7 @@ correlation is.  It is expressed in a percentage that represents the
 probability that this correlation could have happened by chance.  Low numbers 
 mean that the data is probably showing a causality and can be used to make 
 projections.  The same color scheme to show the relative "goodness" of the 
-data is used here.  Red is not very good, orange is better than red, blue is 
-better than orange and black is better than blue.</p>
+data is used here.</p>
 
 <P>Both measures need to be taken into consideration before using a 
 projection from a linear correlation.  There are some data combinations that 
