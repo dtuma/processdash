@@ -309,9 +309,17 @@ a parent node should always be equal to the sum of the planned times for all
 its children. This is almost always the case for the PSP processes that come 
 with the dashboard. However, if you have <A 
 HREF="EnteringData.html#unlock">unlocked</A> your data and overwritten 
-calculations, times may no longer sum up correctly. When this occurs, the 
+calculations, times may no longer sum up correctly.  This problem can also
+occur if you are using plain hierarchy "nodes" to describe tasks, and you
+subdivide a node after estimating its time.  When this occurs, the 
 task list will use the children's plan time for calculations rather than the 
-parent's.</P>
+parent's.  To correct this error, do one of the following:<ul>
+<li>Edit the planned times for the children, so they agree with the planned
+    time for the parent.
+<li>Edit the planned time for the parent, so it agrees with the planned
+    time for the children.
+<li>Highlight the planned time for the parent, and delete it.
+</ul></P>
 
 <P><B>Calendar starts too late:</B> If some of the tasks in your task list 
 were completed <I>before</I>the start of the first time period in your 
