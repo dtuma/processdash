@@ -1,13 +1,19 @@
 
-import pspdash.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.URLDecoder;
+import java.util.Map;
+
+import pspdash.PSPProperties;
+import pspdash.PropertyKey;
+import pspdash.TinyCGIBase;
+import pspdash.TinyCGIException;
+import pspdash.TinyWebServer;
 import pspdash.data.DataRepository;
 import pspdash.data.ImmutableStringData;
-import pspdash.data.ImmutableDoubleData;
 import pspdash.data.SimpleData;
-
-import java.io.*;
-import java.net.*;
-import java.util.*;
 
 /** This class helps an individual to join a team project.
  *
@@ -78,7 +84,7 @@ public class join extends TinyCGIBase {
         DataRepository data = getDataRepository();
         String prefix = getPrefix();
         if (prefix == null) prefix = "";
-        String dataName = data.createDataName(prefix, name);
+        String dataName = DataRepository.createDataName(prefix, name);
         data.putValue(dataName, dataValue);
     }
 
@@ -87,7 +93,7 @@ public class join extends TinyCGIBase {
         DataRepository data = getDataRepository();
         String prefix = getPrefix();
         if (prefix == null) prefix = "";
-        String dataName = data.createDataName(prefix, name);
+        String dataName = DataRepository.createDataName(prefix, name);
         SimpleData d = data.getSimpleValue(dataName);
         return (d == null ? null : d.format());
     }
