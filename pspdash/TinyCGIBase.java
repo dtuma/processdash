@@ -330,4 +330,24 @@ public class TinyCGIBase implements TinyCGI {
         out.println("This space intentionally left blank.");
         out.println("</BODY></HTML>");
     }
+
+    /** Set the default character set to be used for CGI output.
+     *
+     * If the parameter does not name a valid charset, this method
+     * will do nothing.
+     *
+     * @param charsetName The name of a supported character encoding
+     */
+    static void setDefaultCharset(String charsetName) {
+        if (charsetName != null && charsetName.length() > 0) try {
+            "test".getBytes(charsetName);
+            DEFAULT_CHARSET = charsetName;
+        } catch (UnsupportedEncodingException uee) {}
+    }
+
+    /** Get the name of the default character set to be used for CGI output.
+     */
+    public static String getDefaultCharset() {
+        return DEFAULT_CHARSET;
+    }
 }
