@@ -24,6 +24,7 @@ public class wizard extends TinyCGIBase {
     private static final String TEAM_CLOSE_HIERARCHY_PAGE = "teamCloseHier";
 
     private static final String WELCOME_URL = "welcome.shtm";
+    private static final String INVALID_URL = "invalid.shtm";
     private static final String TYPE_URL = "selectType.shtm";
     private static final String PROCESS_URL = "selectProcess.shtm";
     private static final String TEAM_DIR_URL = "teamDirectory.shtm";
@@ -54,8 +55,9 @@ public class wizard extends TinyCGIBase {
             parseFormData();
 
         String page = getParameter(PAGE);
-        if (page == null || WELCOME_PAGE.equals(page))
-            showWelcomePage();
+        if (ensureTeamProjectStub() == false)     showInvalidPage();
+        else if (page == null || WELCOME_PAGE.equals(page))
+                                                  showWelcomePage();
         else if (TYPE_PAGE.equals(page))          handleTypePage();
         else if (PROCESS_PAGE.equals(page))       handleProcessPage();
         else if (TEAM_DIR_PAGE.equals(page))      handleTeamDirPage();
@@ -98,6 +100,19 @@ public class wizard extends TinyCGIBase {
         String dataName = data.createDataName(prefix, name);
         SimpleData d = data.getSimpleValue(dataName);
         return (d == null ? null : d.format());
+    }
+
+    /** Ensure that the current prefix names a "TeamProjectStub" project */
+    protected boolean ensureTeamProjectStub() {
+        PSPProperties hierarchy = getPSPProperties();
+        PropertyKey key = hierarchy.findExistingKey(getPrefix());
+        String templateID = hierarchy.getID(key);
+        return TEAM_STUB_ID.equals(templateID);
+    }
+
+    /** Display the invalid page */
+    protected void showInvalidPage() {
+        printRedirect(INVALID_URL);
     }
 
     /** Display the welcome page */
@@ -247,29 +262,18 @@ public class wizard extends TinyCGIBase {
      * @param filename a canonical filename
      */
     private boolean ensureNetworkDrive(String filename) {
-        System.out.println("ensureNetworkDrive("+filename+")");
-
         if (filename == null) return false;
 
-        String driveLetter = getDriveLetter(filename);
-        //FIXME - uncomment the next line.
-        //if ("C".equalsIgnoreCase(driveLetter)) return false;
+        // if we weren't able to get a list of network drives, then we
+        // have to give the user the benefit of the doubt.
+        if (!getNetworkDriveList().wasSuccessful())
+            return true;
 
-        if (!getNetworkDriveList().wasSuccessful()) return true;
-
-        return getNetworkDriveList().isNetworkDrive(driveLetter);
+        return getNetworkDriveList().onNetworkDrive(filename);
     }
 
     private boolean isWindows() {
         return (System.getProperty("os.name").indexOf("Windows") != -1);
-    }
-    private String getDriveLetter(String filename) {
-        if (!isWindows())
-            return null;
-
-        if (filename.length() < 2) return null;
-        if (filename.charAt(1) != ':') return null;
-        return filename.substring(0, 1);
     }
 
     private NetworkDriveList networkDriveList = null;
@@ -380,10 +384,11 @@ public class wizard extends TinyCGIBase {
 
         // perform lots of other setup tasks.  Unlike the operation
         // above, these tasks should succeed 99.999% of the time.
-        tryToCopyProcessJarfile (processJarFile, teamDirectory);
+        alterTeamTemplateID(teamPID);
         saveTeamDataValues (teamDirectory, projectID, teamSchedule);
-        saveTeamSettings (teamDirectory, projectID);
         createTeamSchedule (teamSchedule);
+        saveTeamSettings (teamDirectory, projectID);
+        tryToCopyProcessJarfile (processJarFile, teamDirectory);
 
         // print a success message!
         printRedirect(TEAM_SUCCESS_URL);
@@ -477,12 +482,9 @@ public class wizard extends TinyCGIBase {
 
 
     protected String calcUNCName(String filename) {
-        String driveLetter = getDriveLetter(filename);
-        if (driveLetter == null) return null;
+        String result = getNetworkDriveList().toUNCName(filename);
+        if (result == null) return null;
 
-        if (!getNetworkDriveList().wasSuccessful()) return null;
-        String uncPrefix = getNetworkDriveList().getUNCName(driveLetter);
-        String result = uncPrefix + filename.substring(2);
         File testFile = new File(result);
         if (testFile.isDirectory())
             return result;
@@ -575,76 +577,8 @@ public class wizard extends TinyCGIBase {
         // TODO: create a top-down schedule as well.
     }
 
-    protected void alterTemplateID(String teamPID) {
+    protected void alterTeamTemplateID(String teamPID) {
         DashController.alterTemplateID(getPrefix(), TEAM_STUB_ID, teamPID);
-    }
-
-
-    /** On Windows systems, this class compiles a list of drive
-     * letters that are mapped to network drives, along with the UNC
-     * names they are mapped to.
-     */
-    private class NetworkDriveList implements Runnable {
-
-        private volatile boolean successful = false;
-        private Map networkDrives = new TreeMap();
-        private volatile Process subprocess = null;
-
-        public NetworkDriveList() {
-            Thread t = new Thread(this);
-            t.setDaemon(true);
-            t.start();
-            try {
-                t.join(1000);
-            } catch (InterruptedException ie) {}
-            if (successful == false)
-                subprocess.destroy();
-            subprocess = null;
-        }
-
-        public void run() {
-            try {
-                subprocess = Runtime.getRuntime().exec("net use");
-                BufferedReader in = new BufferedReader
-                    (new InputStreamReader(subprocess.getInputStream()));
-                String line;
-                boolean sawHeader = false;
-                while ((line = in.readLine()) != null) {
-                    if (!sawHeader && line.startsWith("-----"))
-                        sawHeader = true;
-                    else if (sawHeader) {
-                        int pos = line.indexOf(':');
-                        if (pos < 2) continue;
-                        if (" \t".indexOf(line.charAt(pos-2)) == -1) continue;
-                        String driveLetter = line.substring(pos-1, pos);
-                        driveLetter = driveLetter.toUpperCase();
-                        pos = line.indexOf('\\', pos);
-                        if (pos == -1) continue;
-                        line = line.substring(pos);
-                        pos = line.indexOf('\t');
-                        if (pos != -1) line = line.substring(0, pos);
-                        pos = line.indexOf(' ');
-                        if (pos != -1) line = line.substring(0, pos);
-                        networkDrives.put(driveLetter, line);
-                    }
-                }
-                System.out.println("NetworkDriveList:");
-                System.out.println(networkDrives);
-                successful = true;
-            } catch (Exception e) {}
-        }
-
-        public boolean wasSuccessful() { return successful; }
-        public boolean isNetworkDrive(String driveLetter) {
-            if (driveLetter == null) return false;
-            driveLetter = driveLetter.toUpperCase();
-            return networkDrives.containsKey(driveLetter);
-        }
-        public String getUNCName(String driveLetter) {
-            if (driveLetter == null) return null;
-            driveLetter = driveLetter.toUpperCase();
-            return (String) networkDrives.get(driveLetter);
-        }
     }
 
 }
