@@ -27,6 +27,10 @@ package pspdash.data;
 
 
 public class ImmutableStringData extends StringData {
+
+    public static final ImmutableStringData EMPTY_STRING =
+        new ImmutableStringData("", false, true);
+
     private String value;
 
     public ImmutableStringData(String val, boolean editable, boolean defined) {
