@@ -171,13 +171,16 @@ probeDialog.onlyCompleted=If this property is set to "true", the probe \
 	dialog box will automatically filter the list of data points so \
 	that it only contains tasks which are marked as completed.
 
-probeWizard.strictTimeMethods=If this property is set to "false", the \
-	probe wizard will correct errors in the calculations in the \
-	probe script.  By default, the probe wizard will strictly \
-	adhere to the printed calculation errors.
+probeWizard.strictTimeMethods=If this property is set to "true", the \
+	probe wizard will strictly adhere to printed calculation errors \
+	in the PROBE script.  By default, the probe wizard will correct \
+	errors in the calculations.
 
 pspdiff.suffix.c=a space-separated list of filename extensions (e.g. \
 	".c .h .java") which signal that a file contains C/Java source code.
+
+pspdiff.suffix.cobol=a space-separated list of filename extensions (e.g. \
+	".cob .cbl") which signal that a file contains COBOL source code.
 
 pspdiff.suffix.pascal=a space-separated list of filename extensions (e.g. \
 	".pas") which signal that a file contains Pascal source code.
