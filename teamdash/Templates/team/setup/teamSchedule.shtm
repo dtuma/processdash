@@ -1,0 +1,52 @@
+<html>
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='style.css'>
+</head>
+<body>
+
+<img align="left" src="team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Select Schedule Name</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='teamSchedule'>
+
+<p>The dashboard will create a team earned value schedule for this
+project that rolls up data from the individual earned value
+schedules.</p>
+
+<!--#if missing -->
+
+<table width='100%'><tr><td width='100%' class=error>You must enter a
+name for the team schedule!</td></tr></table>
+
+<!--#elif duplicate -->
+
+<table><tr><td class=error>There is already a schedule with the name
+you entered.  Schedule names must be unique; please enter a new,
+unique name for the schedule.</td></tr></table>
+
+<!--#endif-->
+
+<p>What would you like to call the rolled-up team schedule?</p>
+
+<table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Schedule Name:&nbsp;</td>
+<td><input type=text name=scheduleName
+    <!--#if [setup//Team_Schedule] -->
+           value="<!--#echo var='[setup//Team_Schedule]' -->"
+    <!--#endif-->
+           size=60></td></tr></table>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=cancel value='Cancel'
+       onClick='window.close();'>&nbsp;&nbsp;
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=next value='Next'>
+</td></tr></table>
+
+</form>
+</body>

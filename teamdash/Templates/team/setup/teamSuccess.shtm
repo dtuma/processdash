@@ -1,0 +1,28 @@
+<html>
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='style.css'>
+<style>
+TD.label { font-weight: bold;   vertical-align: top;
+           text-align: left;    padding-right: .5cm }
+TD.value { font-family: monospace }
+</style>
+</head>
+<body>
+
+<img align="left" src="team.jpg">
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Success</h2>
+
+The team project has been created and setup successfully!
+
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=cancel value='Close'
+       onClick='window.close();'>
+</td></tr></table>
+
+</form>
+</body>
