@@ -1,0 +1,10 @@
+#include <generic/dataFile2.txt>
+
+= By default, don't bother with defects for the report.  The student can
+= always override this if they want to.
+
+Generic - Show Defects=0.0
+
+= Default size measurement for the report (student can override).
+
+Units="Analyses
