@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,11 +21,12 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
 import java.util.*;
+import com.jrefinery.chart.XYDataSource;
 
 /** This class represents a schedule that has been rolled up from
  *  several subschedules. (Note: at this time it only supports the
@@ -354,6 +355,40 @@ public class EVScheduleRollup extends EVSchedule {
         if (a == null) return b;
         if (b == null) return a;
         return (a.before(b) ? a : b);
+    }
+
+    private class OptForecastChartSeries extends ForecastChartSeries {
+        public String getSeriesName() { return "Optimized"; }
+        protected Date getForecastDate() {
+            return ((EVMetricsRollup) metrics).optimizedPlanDate();
+        }
+    }
+
+    private class RollupValueChartData extends ValueChartData {
+        public RollupValueChartData() {
+            super();
+            ChartSeries[] s = new ChartSeries[4];
+            s[0] = series[0];
+            s[1] = series[1];
+            s[2] = series[2];
+            s[3] = optForecast = new OptForecastChartSeries();
+            series = s;
+        }
+        OptForecastChartSeries optForecast;
+        protected void recalcForecast(Double currentYVal) {
+            super.recalcForecast(currentYVal);
+
+            optForecast.currentYVal = currentYVal;
+            optForecast.forecastYVal = ONE_HUNDRED;
+            optForecast.recalc();
+            if (numSeries == 3 && optForecast.getItemCount() != 0)
+                numSeries = 4;
+        }
+    }
+    public XYDataSource getValueChartData() {
+        ValueChartData result = new RollupValueChartData();
+        result.recalc();
+        return result;
     }
 
 }

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 import pspdash.*;
 import pspdash.data.DateData;
@@ -406,6 +406,7 @@ public class ev extends CGIChartBase {
         // First, print the table header.
         out.print("<html><body><table border>\n");
         int seriesCount = xydata.getSeriesCount();
+        if (seriesCount > 3) seriesCount = 3;
         if (parameters.get("nohdr") == null) {
             out.print("<tr><td>Date</td>");
             // print out the series names in the data source.

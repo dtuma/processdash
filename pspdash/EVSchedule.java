@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -1110,10 +1110,10 @@ public class EVSchedule implements TableModel {
     // based on EVSchedules.
     //////////////////////////////////////////////////////////////////////
 
-    private static final Double ZERO = new Double(0.0);
-    private static final Double ONE_HUNDRED = new Double(100.0);
+    protected static final Double ZERO = new Double(0.0);
+    protected static final Double ONE_HUNDRED = new Double(100.0);
 
-    private interface ChartSeries {
+    protected interface ChartSeries {
         /** Returns the name of the specified series (zero-based). */
         String getSeriesName();
         /** Returns the number of items in the specified series */
@@ -1148,7 +1148,7 @@ public class EVSchedule implements TableModel {
         }
     }
 
-    private class ForecastChartSeries implements ChartSeries {
+    protected class ForecastChartSeries implements ChartSeries {
         Number currentYVal, forecastYVal;
         Number currentXVal, forecastXVal;
         int itemCount = 2;
@@ -1163,11 +1163,14 @@ public class EVSchedule implements TableModel {
         public void recalc() {
             itemCount = 2;
             currentXVal = dateToLong(effectiveDate);
-            forecastXVal = dateToLong(metrics.independentForecastDate());
+            forecastXVal = dateToLong(getForecastDate());
             if (itemCount == 2 &&
                 (notLessThan(currentXVal, forecastXVal) ||
                  notLessThan(currentYVal, forecastYVal)))
                 itemCount = 0;
+        }
+        protected Date getForecastDate() {
+            return metrics.independentForecastDate();
         }
         private boolean notLessThan(Number a, Number b) {
             if (a == null || b == null) return true;
@@ -1291,7 +1294,7 @@ public class EVSchedule implements TableModel {
 
     /** XYDataSource for charting plan vs actual earned value.
      */
-    private class ValueChartData extends ChartData implements RangeInfo {
+    protected class ValueChartData extends ChartData implements RangeInfo {
         public ValueChartData() {
             double mult = 100.0 / totalPlan();
             series = new ChartSeries[3];
@@ -1306,7 +1309,10 @@ public class EVSchedule implements TableModel {
             double mult = 100.0 / totalPlan();
             if (Double.isInfinite(mult)) mult = 0;
             plan.mult = actual.mult = mult;
-            forecast.currentYVal = new Double(getLast().cumEarnedValue * mult);
+            recalcForecast(new Double(getLast().cumEarnedValue * mult));
+        }
+        protected void recalcForecast(Double currentYVal) {
+            forecast.currentYVal = currentYVal;
             forecast.forecastYVal = ONE_HUNDRED;
             forecast.recalc();
             numSeries = (forecast.getItemCount() == 0 ? 2 : 3);
