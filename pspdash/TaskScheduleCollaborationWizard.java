@@ -88,8 +88,6 @@ public class TaskScheduleCollaborationWizard {
         frame = new JFrame("Task and Schedule Collaboration Wizard");
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
-        //FIXME - need to create help
-        //PCSH.enableHelpKey(frame, "UsingTaskSchedule");
 
         frame.getContentPane().add(new WelcomeScreen());
         frame.pack();
@@ -126,6 +124,7 @@ public class TaskScheduleCollaborationWizard {
         frame.getContentPane().removeAll();
         frame.getContentPane().add(panel);
         frame.setVisible(true);
+        PCSH.enableHelpKey(frame, PCSH.getHelpIDString(panel));
     }
 
     private void backPanel() {
@@ -148,6 +147,16 @@ public class TaskScheduleCollaborationWizard {
     private void showRollupScreen() {
         setPanel(new RollupNameScreen());
     }
+
+    // We display images in the welcome screen that have a background
+    // color (because saving them with alpha transparency tripled the
+    // size of the files unnecessarily).  This background color
+    // matches the default Windows Java background color, but that
+    // default might be different for other platforms, or for users
+    // with nonstandard Windows color schemes. Therefore, to keep the
+    // images from being displayed with a shadow around them, we
+    // manually set the background color of the wizard to match.
+    private Color backgroundColor = new Color(198, 195, 198);
 
     private static final int PUBLISH = 0;
     private static final int SHARE   = 1;
@@ -176,11 +185,11 @@ public class TaskScheduleCollaborationWizard {
         ImageIcon publishImage, shareImage, rollupImage;
 
 
+
         public JPanel BuildbuttonBox() {
-            // FIXME: we need to ensure that all JPanel objects have a
-            // background color of #c6c3c6 (198, 195, 198)
 
             JPanel buttonBox = new JPanel();
+            buttonBox.setBackground(backgroundColor);
             GridBagLayout oLayout = new GridBagLayout();
             buttonBox.setLayout(oLayout);
             GridBagConstraints oConst;
@@ -360,6 +369,8 @@ public class TaskScheduleCollaborationWizard {
             images[CANCEL] = null;
 
             BuildFrame();
+            this.setBackground(backgroundColor);
+            PCSH.enableHelpKey(this, "TaskScheduleCollaboration");
         }
 
 
@@ -477,6 +488,7 @@ public class TaskScheduleCollaborationWizard {
 
         public JPanel BuildbuttonBox() {
             JPanel buttonBox = new JPanel();
+            buttonBox.setBackground(backgroundColor);
             FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
             buttonBox.setLayout(oLayout);
 
@@ -543,6 +555,7 @@ public class TaskScheduleCollaborationWizard {
             buttonGroup = new ButtonGroup();
             reqPasswordOption = new JRadioButton();
             buttonGroup.add(reqPasswordOption);
+            reqPasswordOption.setBackground(null);
             reqPasswordOption.setText("Require people to enter this password:");
             oPanel.add(reqPasswordOption);
             oConst = new GridBagConstraints();
@@ -576,6 +589,7 @@ public class TaskScheduleCollaborationWizard {
 
             noPasswordOption = new JRadioButton();
             buttonGroup.add(noPasswordOption);
+            noPasswordOption.setBackground(null);
             noPasswordOption.setText("Don't require a password");
             oPanel.add(noPasswordOption);
             oConst = new GridBagConstraints();
@@ -625,6 +639,9 @@ public class TaskScheduleCollaborationWizard {
         public PasswordScreen(int action) {
             this.action = action;
             BuildFrame();
+            this.setBackground(backgroundColor);
+            // FIXME: this doesn't seem to be working.
+            PCSH.enableHelpKey(this, PASSWORD_HELP_TOPICS[action]);
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -657,6 +674,11 @@ public class TaskScheduleCollaborationWizard {
         }
     }
 
+    private static final String[] PASSWORD_HELP_TOPICS = {
+        "TaskScheduleCollaboration.publishPassword",
+        "TaskScheduleCollaboration.sharePassword",
+        "TaskScheduleCollaboration.createRollup" };
+
     private static final String[] PASSWORD_ERROR = {
         "Please enter a password, or select",
         "the \"Don't require a password\" option." };
@@ -671,6 +693,7 @@ public class TaskScheduleCollaborationWizard {
 
         public JPanel BuildbuttonBox() {
             JPanel buttonBox = new JPanel();
+            buttonBox.setBackground(backgroundColor);
             FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
             buttonBox.setLayout(oLayout);
 
@@ -730,6 +753,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.gridwidth =2;
             oConst.anchor =GridBagConstraints.WEST;
             oConst.insets.top =10;
+            oConst.insets.bottom =10;
             oConst.insets.left =10;
             oConst.insets.right =10;
             oLayout.setConstraints(prompt, oConst);
@@ -789,6 +813,8 @@ public class TaskScheduleCollaborationWizard {
 
         public RollupNameScreen() {
             BuildFrame();
+            this.setBackground(backgroundColor);
+            PCSH.enableHelpKey(this, "TaskScheduleCollaboration.createRollup");
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -842,6 +868,7 @@ public class TaskScheduleCollaborationWizard {
 
         public JPanel BuildbuttonBox() {
             JPanel buttonBox = new JPanel();
+            buttonBox.setBackground(backgroundColor);
             FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
             buttonBox.setLayout(oLayout);
 
@@ -925,6 +952,8 @@ public class TaskScheduleCollaborationWizard {
             this.password = password;
             BuildFrame();
             setText();
+            this.setBackground(backgroundColor);
+            PCSH.enableHelpKey(this, RESULTS_HELP_TOPICS[action]);
         }
 
         public void setText() {
@@ -963,12 +992,7 @@ public class TaskScheduleCollaborationWizard {
         public String getTaskListURL() {
             String prefix = getPrefix(action);
             prefix = TinyWebServer.urlEncodePath(prefix);
-            String host;
-            try {
-                host = InetAddress.getLocalHost().getHostName();
-            } catch (UnknownHostException uhe) {
-                host = "localhost";
-            }
+            String host = webServer.getHostName();
             int port = webServer.getPort();
             return "http://" + host + ":" + port + prefix + EV_URL;
         }
@@ -990,7 +1014,10 @@ public class TaskScheduleCollaborationWizard {
         public void hyperlinkUpdate(HyperlinkEvent e) {
             if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
                 String url = e.getURL().toString();
-                Browser.launch(url);
+                if (url.startsWith("http://help/"))
+                    PCSH.displayHelpTopic(url.substring(12));
+                else
+                    Browser.launch(url);
             }
         }
 
@@ -1008,6 +1035,11 @@ public class TaskScheduleCollaborationWizard {
             }
         }
     }
+
+    private static final String[] RESULTS_HELP_TOPICS = {
+        "TaskScheduleCollaboration.publishFinish",
+        "TaskScheduleCollaboration.shareFinish",
+        "TaskScheduleCollaboration.createRollup" };
 
     private static final String[] resultURL = {
         "/Templates/dash/ev-publish-results.htm",

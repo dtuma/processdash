@@ -18,7 +18,7 @@ jump to the Create New Schedule dialog which will allow you to create one.
 If you have already created at least one schedule, a Task &amp; Schedule
 chooser window will appear.</P>
 
-<p><center></a><img src="../../Images/TaskScheduleChooser.png"></center></p>
+<p><center><img src="../../Images/TaskScheduleChooser.png"></center></p>
 
 <p>This window displays all the schedules you have created. After you click
 on a schedule to highlight it, you can use the buttons along the bottom to
@@ -66,13 +66,6 @@ the given task.</p>
 <p><b>Planned Value (PV):</b> This is the amount of earned value that will be 
 earned by the given task based on the planned numbers.</p>
 
-<p><b>Cumulative Planned Time (CPT):</b> This is the amount of time for the 
-given task, including all tasks that are before it in the task list.</p>
-
-<p><b>Cumulative Planned Value (CPV):</b> This is the Planned Value analog of 
-the CPT column.  It shows the amount of planned value for the given task 
-including all tasks that are before it in the task list.</p>
-
 <p><b>Plan Date:</b> This is the date that the Task &amp; Schedule tool thinks 
 you will finish the given task.  This number uses the data from the lower 
 half of the Task &amp; Schedule tool to determine an ending date.</p>
@@ -109,6 +102,25 @@ time, the task would be 50% spent.</p>
 <p><b>Earned Value (EV):</b> This is the actual amount of earned value that 
 this task has earned.  <i>Remember that earned value measures are not counted 
 until the task is marked as complete.</i></p>
+
+
+<p><b>Note:</b> The original PSP task template described in
+<i>A&nbsp;Discipline for Software Engineering</i> contains two columns
+that are normally not displayed by the dashboard.  (They really only
+exist in the PSP template to help you perform the calculations
+manually; when the computer is performing the calculations, they don't
+provide much value and simply take up space.)  If you wish, you can
+display them by adding a "ev.showCumulativeTaskData" setting to your
+<a href="../AdvancedTopics/ConfigurationFile.html">configuration
+file</a>.  It would cause the following two columns to appear: 
+
+<p><b>Cumulative Planned Time (CPT):</b> This is the amount of time for the 
+given task, including all tasks that are before it in the task list.</p>
+
+<p><b>Cumulative Planned Value (CPV):</b> This is the Planned Value analog of 
+the CPT column.  It shows the amount of planned value for the given task 
+including all tasks that are before it in the task list.</p>
+
 
 <p>Briefly, here are the items that are shown in the bottom window:</p>
 
@@ -186,20 +198,21 @@ href="UsingHierarchyEditor.html">Hierarchy Editor</a>.</p>
 
 <h3>Editing the task list</h3>
 
-<p>Once you have added tasks to the task list, you can use the Delete Task 
+<p>Once you have added tasks to the task list, you can use the Remove Task 
 button to remove them, and the Move Task Up/Down buttons to alter their 
 relative order. Note that these options are only available for the 
 <U>top-level</U> tasks. (Top-level tasks are the tasks that you explicitly 
 added using the Add Task button; in the task list, they appear as immediate 
-children of the root of the tree.) At this time it is not possible to delete 
+children of the root of the tree.) At this time it is not possible to remove 
 sub-tasks from your task list or change their relative order. If you want to 
 do either of these things, you have two choices:</P> 
 
 <ul>
  <li>Make the changes in the hierarchy editor (for example, moving nodes up 
    or down to change the relative ordering of tasks)</li>
- <li>Manually add all the subtasks to the task list as top-level tasks 
-   instead of adding their parent to the task list.</li>
+ <li>Use the Explode Task button to replace a hierarchically organized
+   task with the corresponding flat list of tasks, then remove or rearrange
+   the tasks in that flat list.</li>
 </ul>
 
 <p>You should generally try to put the tasks in chronological order (the 
@@ -300,6 +313,10 @@ for access to earned value charts and numerical analyses:</P>
 
 <P>If you prefer, you can view this information in HTML, and even export it 
 Excel, by clicking the Report button.</p>
+
+<p>The Collaborate button provides access to the 
+<a href="TaskScheduleCollaboration.html">task &amp; schedule collaboration
+features</a> of the dashboard.
 
 <H2>The Save Button</H2>
 

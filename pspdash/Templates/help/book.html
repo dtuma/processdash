@@ -27,175 +27,186 @@
 
 <HTML>
 <HEAD>
-<TITLE>Process Dashboard Users' Manual</TITLE>
+<TITLE>Process Dashboard Users Manual</TITLE>
 <STYLE>
 BODY { color: black; background-color: white }
-
-
+.hideInBook { display: none }
 </STYLE>
 </HEAD>
-<BODY><div></div><a name="doc0_top"></a>
-<H1 NO_NUMBER>Process Dashboard Users' Manual</H1>
+<BODY><a name="doc0_top"></a><div class="INITIAL_STATUS">
+
+<H1 NO_NUMBER>Process Dashboard Users Manual</H1>
 <H2 NO_NUMBER>Table of Contents</h2>
-<table>
-<tr><td><b>1.</b>&nbsp;</td><td colspan=9><a href="#para_1_">Quick Overview</a></td></tr>
-<tr><td></td><td><b>1.1.</b>&nbsp;</td><td colspan=8><a href="#para_1_1_">A quick look at the tool</a></td></tr>
-<tr><td></td><td><b>1.2.</b>&nbsp;</td><td colspan=8><a href="#para_1_2_">The dashboard and the web browser</a></td></tr>
-<tr><td></td><td><b>1.3.</b>&nbsp;</td><td colspan=8><a href="#para_1_3_">The process scripts</a></td></tr>
-<tr><td></td><td></td><td><b>1.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_1_">The "generic" process script</a></td></tr>
-<tr><td></td><td></td><td><b>1.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_2_">The "timer" process script</a></td></tr>
-<tr><td></td><td></td><td><b>1.3.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_3_">Custom process scripts</a></td></tr>
-<tr><td></td><td></td><td><b>1.3.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_4_">Custom process vs Generic process?</a></td></tr>
-<tr><td></td><td><b>1.4.</b>&nbsp;</td><td colspan=8><a href="#para_1_4_">Quick start example: a PSP1.1 project</a></td></tr>
-<tr><td></td><td></td><td><b>1.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_1_">Step 1: Create a project in the dashboard</a></td></tr>
-<tr><td></td><td></td><td><b>1.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_2_">Step 2: Planning the project</a></td></tr>
-<tr><td></td><td></td><td><b>1.4.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_3_">Step 3: Designing the program</a></td></tr>
-<tr><td></td><td></td><td><b>1.4.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_4_">Step 4: Writing the code</a></td></tr>
-<tr><td></td><td></td><td><b>1.4.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_5_">Step 5: Compiling the program</a></td></tr>
-<tr><td></td><td></td><td><b>1.4.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_6_">Step 6: Testing the program</a></td></tr>
-<tr><td></td><td></td><td><b>1.4.7.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_7_">Step 7: Postmortem</a></td></tr>
-<tr><td></td><td><b>1.5.</b>&nbsp;</td><td colspan=8><a href="#para_1_5_">Overall goals</a></td></tr>
-<tr><td></td><td></td><td><b>1.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_1_">What is the PSP(SM)?</a></td></tr>
-<tr><td></td><td></td><td><b>1.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_2_">What is the TSP(SM)?</a></td></tr>
-<tr><td></td><td></td><td><b>1.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_3_">Why build a tool?</a></td></tr>
-<tr><td></td><td><b>1.6.</b>&nbsp;</td><td colspan=8><a href="#para_1_6_">Using help</a></td></tr>
-<tr><td></td><td></td><td><b>1.6.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_1_">The Table of Contents view</a></td></tr>
-<tr><td></td><td></td><td><b>1.6.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_2_">The Index view</a></td></tr>
-<tr><td></td><td></td><td><b>1.6.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_3_">The Search Engine view</a></td></tr>
-<tr><td></td><td></td><td><b>1.6.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_4_">The navigation buttons</a></td></tr>
-<tr><td></td><td></td><td><b>1.6.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_5_">The print buttons</a></td></tr>
-<tr><td></td><td></td><td><b>1.6.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_6_">Context sensitive help</a></td></tr>
-<tr><td></td><td><b>1.7.</b>&nbsp;</td><td colspan=8><a href="#para_1_7_">How To Install</a></td></tr>
-<tr><td></td><td></td><td><b>1.7.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_1_">System Requirements</a></td></tr>
-<tr><td></td><td></td><td><b>1.7.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_2_">Installation Instructions:</a></td></tr>
-<tr><td></td><td></td><td><b>1.7.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_3_">Add-on Process Sets</a></td></tr>
-<tr><td></td><td></td><td><b>1.7.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_4_">Upgrade to New Version</a></td></tr>
-<tr><td></td><td></td><td><b>1.7.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_5_">Simple Windows Installation</a></td></tr>
-<tr><td></td><td></td><td><b>1.7.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_6_">Custom Windows Installation</a></td></tr>
-<tr><td></td><td></td><td><b>1.7.7.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_7_">Linux / Unix Installation</a></td></tr>
-<tr><td></td><td><b>1.8.</b>&nbsp;</td><td colspan=8><a href="#para_1_8_">Change History</a></td></tr>
-<tr><td></td><td></td><td><b>1.8.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_1_">Features new in version 1.4</a></td></tr>
-<tr><td></td><td></td><td><b>1.8.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_2_">Features new in version 1.3.1 (released August 14, 2001)</a></td></tr>
-<tr><td></td><td></td><td><b>1.8.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_3_">Features new in version 1.3 (released July 16, 2001)</a></td></tr>
-<tr><td></td><td></td><td><b>1.8.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_4_">Features new in version 1.2 (released April 20, 2001)</a></td></tr>
-<tr><td></td><td></td><td><b>1.8.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_5_">Features new in version 1.1 (released February 9, 2001)</a></td></tr>
-<tr><td></td><td><b>1.9.</b>&nbsp;</td><td colspan=8><a href="#para_1_9_">GNU General Public License</a></td></tr>
-<tr><td></td><td></td><td><b>1.9.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_1_">Table of Contents</a></td></tr>
-<tr><td></td><td></td><td><b>1.9.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_2_">GNU GENERAL PUBLIC LICENSE</a></td></tr>
-<tr><td></td><td></td><td><b>1.9.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_3_">Preamble</a></td></tr>
-<tr><td></td><td></td><td><b>1.9.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_4_">TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION</a></td></tr>
-<tr><td></td><td></td><td><b>1.9.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_5_">END OF TERMS AND CONDITIONS</a></td></tr>
-<tr><td></td><td></td><td><b>1.9.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_6_">How to Apply These Terms to Your New Programs</a></td></tr>
-<tr><td><b>2.</b>&nbsp;</td><td colspan=9><a href="#para_2_">Planning your project</a></td></tr>
-<tr><td></td><td><b>2.1.</b>&nbsp;</td><td colspan=8><a href="#para_2_1_">Entering process data</a></td></tr>
-<tr><td></td><td></td><td><b>2.1.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_1_">The nature of the dashboard forms</a></td></tr>
-<tr><td></td><td></td><td><b>2.1.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_2_">Frozen Calculations</a></td></tr>
-<tr><td></td><td></td><td><b>2.1.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_3_">Read-only data fields</a></td></tr>
-<tr><td></td><td></td><td><b>2.1.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_4_">Exporting form data</a></td></tr>
-<tr><td></td><td><b>2.2.</b>&nbsp;</td><td colspan=8><a href="#para_2_2_">Using the hierarchy editor</a></td></tr>
-<tr><td></td><td></td><td><b>2.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_1_">The File menu</a></td></tr>
-<tr><td></td><td></td><td><b>2.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_2_">The Edit menu</a></td></tr>
-<tr><td></td><td></td><td><b>2.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_3_">Process templates</a></td></tr>
-<tr><td></td><td></td><td><b>2.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_4_">Processes PSP0 - PSP1.1</a></td></tr>
-<tr><td></td><td></td><td><b>2.2.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_5_">The PSP3 process</a></td></tr>
-<tr><td></td><td><b>2.3.</b>&nbsp;</td><td colspan=8><a href="#para_2_3_">Using the Size Estimating Template</a></td></tr>
-<tr><td></td><td></td><td><b>2.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_1_">Base Program LOC</a></td></tr>
-<tr><td></td><td></td><td><b>2.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_2_">Object LOC</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>2.3.2.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_1_">Base Additions</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>2.3.2.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_2_">New Objects</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>2.3.2.3.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_3_">Reused Objects</a></td></tr>
-<tr><td></td><td></td><td><b>2.3.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_3_">Performing the size/time estimation</a></td></tr>
-<tr><td></td><td></td><td><b>2.3.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_4_">Entering Actual data during Postmortem</a></td></tr>
-<tr><td></td><td><b>2.4.</b>&nbsp;</td><td colspan=8><a href="#para_2_4_">Using the PROBE Wizard</a></td></tr>
-<tr><td></td><td></td><td><b>2.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_1_">PROBE Wizard Step 1</a></td></tr>
-<tr><td></td><td></td><td><b>2.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_2_">PROBE Wizard Step 2</a></td></tr>
-<tr><td></td><td></td><td><b>2.4.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_3_">PROBE Wizard Step 3</a></td></tr>
-<tr><td></td><td></td><td><b>2.4.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_4_">PROBE Wizard Step 4</a></td></tr>
-<tr><td></td><td></td><td><b>2.4.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_5_">PROBE Wizard Step 5</a></td></tr>
-<tr><td></td><td></td><td><b>2.4.6.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_6_">A sanity check</a></td></tr>
-<tr><td></td><td><b>2.5.</b>&nbsp;</td><td colspan=8><a href="#para_2_5_">Using the PROBE tool</a></td></tr>
-<tr><td></td><td></td><td><b>2.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_1_">Filtering your data set</a></td></tr>
-<tr><td></td><td></td><td><b>2.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_2_">Measures of correlation</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>2.5.2.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_5_2_1_">The correlation measurement</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>2.5.2.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_5_2_2_">The significance measurement</a></td></tr>
-<tr><td></td><td></td><td><b>2.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_3_">Making a projection</a></td></tr>
-<tr><td></td><td></td><td><b>2.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_4_">Visualizing the data</a></td></tr>
-<tr><td></td><td><b>2.6.</b>&nbsp;</td><td colspan=8><a href="#para_2_6_">Using the Task &amp; Schedule Tool</a></td></tr>
-<tr><td></td><td><b>2.7.</b>&nbsp;</td><td colspan=8><a href="#para_2_7_">Creating a schedule step by step</a></td></tr>
-<tr><td></td><td></td><td><b>2.7.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_1_">Step 1: Add tasks to the task list</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>2.7.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_1_1_">The relationship between the Hierarchy Editor and the Task &amp; Schedule tool</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>2.7.1.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_1_2_">Editing the task list</a></td></tr>
-<tr><td></td><td></td><td><b>2.7.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_2_">Step 2: Estimate task time</a></td></tr>
-<tr><td></td><td></td><td><b>2.7.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_3_">Step 3: Estimate calendar time</a></td></tr>
-<tr><td></td><td></td><td><b>2.7.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_4_">Step 4: Track your progress</a></td></tr>
-<tr><td></td><td></td><td><b>2.7.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_5_">The Save Button</a></td></tr>
-<tr><td></td><td></td><td><b>2.7.6.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_6_">Potential mistakes</a></td></tr>
-<tr><td></td><td><b>2.8.</b>&nbsp;</td><td colspan=8><a href="#para_2_8_">Data Freezing</a></td></tr>
-<tr><td></td><td></td><td><b>2.8.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_8_1_">The gory details</a></td></tr>
-<tr><td><b>3.</b>&nbsp;</td><td colspan=9><a href="#para_3_">Running the dashboard</a></td></tr>
-<tr><td></td><td><b>3.1.</b>&nbsp;</td><td colspan=8><a href="#para_3_1_">Navigating the hierarchy menus</a></td></tr>
-<tr><td></td><td><b>3.2.</b>&nbsp;</td><td colspan=8><a href="#para_3_2_">Accessing the Process Scripts</a></td></tr>
-<tr><td></td><td></td><td><b>3.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_1_">The script button pull-down</a></td></tr>
-<tr><td></td><td></td><td><b>3.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_2_">The timing icons</a></td></tr>
-<tr><td></td><td></td><td><b>3.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_3_">External documents</a></td></tr>
-<tr><td></td><td></td><td><b>3.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_4_">Entering data into the forms</a></td></tr>
-<tr><td></td><td><b>3.3.</b>&nbsp;</td><td colspan=8><a href="#para_3_3_">Using the play/pause button</a></td></tr>
-<tr><td></td><td></td><td><b>3.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_3_1_">The play/pause button pull-down control</a></td></tr>
-<tr><td></td><td><b>3.4.</b>&nbsp;</td><td colspan=8><a href="#para_3_4_">Using the completion checkbox</a></td></tr>
-<tr><td></td><td></td><td><b>3.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_4_1_">Marking a phase complete vs marking the project complete</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>3.4.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_3_4_1_1_">Why should I bother marking the phases/projects complete?</a></td></tr>
-<tr><td></td><td><b>3.5.</b>&nbsp;</td><td colspan=8><a href="#para_3_5_">Using the time log editor</a></td></tr>
-<tr><td></td><td></td><td><b>3.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_1_">Project hierarchy</a></td></tr>
-<tr><td></td><td></td><td><b>3.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_2_">Date filter</a></td></tr>
-<tr><td></td><td></td><td><b>3.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_3_">Time entries</a></td></tr>
-<tr><td></td><td></td><td><b>3.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_4_">Control buttons</a></td></tr>
-<tr><td></td><td><b>3.6.</b>&nbsp;</td><td colspan=8><a href="#para_3_6_">Entering defects</a></td></tr>
-<tr><td></td><td></td><td><b>3.6.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_1_">Defect type</a></td></tr>
-<tr><td></td><td></td><td><b>3.6.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_2_">"fix defects"</a></td></tr>
-<tr><td></td><td></td><td><b>3.6.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_3_">Phase injected and phase removed</a></td></tr>
-<tr><td></td><td></td><td><b>3.6.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_4_">Timing the defect fix</a></td></tr>
-<tr><td></td><td></td><td><b>3.6.5.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_5_">Entering a description</a></td></tr>
-<tr><td></td><td></td><td><b>3.6.6.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_6_">Fixing multiple defects at a time</a></td></tr>
-<tr><td></td><td><b>3.7.</b>&nbsp;</td><td colspan=8><a href="#para_3_7_">Using the Defect Log Editor</a></td></tr>
-<tr><td></td><td><b>3.8.</b>&nbsp;</td><td colspan=8><a href="#para_3_8_">The "C" (configure) menu</a></td></tr>
-<tr><td><b>4.</b>&nbsp;</td><td colspan=9><a href="#para_4_">Postmortem analysis</a></td></tr>
-<tr><td></td><td><b>4.1.</b>&nbsp;</td><td colspan=8><a href="#para_4_1_">Counting LOC</a></td></tr>
-<tr><td></td><td><b>4.2.</b>&nbsp;</td><td colspan=8><a href="#para_4_2_">Data charts and reports</a></td></tr>
-<tr><td></td><td></td><td><b>4.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_1_">The Project Plan Summary</a></td></tr>
-<tr><td></td><td></td><td><b>4.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_2_">Marking your project complete</a></td></tr>
-<tr><td></td><td></td><td><b>4.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_3_">The Time Log and Defect Log</a></td></tr>
-<tr><td></td><td></td><td><b>4.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_4_">Graphical charts</a></td></tr>
-<tr><td></td><td><b>4.3.</b>&nbsp;</td><td colspan=8><a href="#para_4_3_">Exporting your data</a></td></tr>
-<tr><td></td><td></td><td><b>4.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_4_3_1_">Creating an ASCII flat file</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>4.3.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_4_3_1_1_">Exporting data</a></td></tr>
-<tr><td></td><td></td><td></td><td><b>4.3.1.2.</b>&nbsp;</td><td colspan=6><a href="#para_4_3_1_2_">Exporting the Hierarchy list</a></td></tr>
-<tr><td></td><td></td><td><b>4.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_4_3_2_">Exporting data to Excel (PC only)</a></td></tr>
-<tr><td><b>5.</b>&nbsp;</td><td colspan=9><a href="#para_5_">Frequently Asked Questions</a></td></tr>
-<tr><td></td><td><b>5.1.</b>&nbsp;</td><td colspan=8><a href="#para_5_1_">Installation issues</a></td></tr>
-<tr><td></td><td><b>5.2.</b>&nbsp;</td><td colspan=8><a href="#para_5_2_">Online forms</a></td></tr>
-<tr><td></td><td><b>5.3.</b>&nbsp;</td><td colspan=8><a href="#para_5_3_">Files</a></td></tr>
-<tr><td></td><td><b>5.4.</b>&nbsp;</td><td colspan=8><a href="#para_5_4_">Other questions</a></td></tr>
-<tr><td><b>6.</b>&nbsp;</td><td colspan=9><a href="#para_6_">Advanced Topics</a></td></tr>
-<tr><td></td><td><b>6.1.</b>&nbsp;</td><td colspan=8><a href="#para_6_1_">Configuration File</a></td></tr>
-<tr><td></td><td><b>6.2.</b>&nbsp;</td><td colspan=8><a href="#para_6_2_">Using Multiple "To Date" Data Sets</a></td></tr>
-<tr><td></td><td></td><td><b>6.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_1_">Creating Multiple "To Date" Data Sets</a></td></tr>
-<tr><td></td><td></td><td><b>6.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_2_">Customizing "To Date" Data Sets</a></td></tr>
-<tr><td></td><td></td><td><b>6.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_3_">Viewing Rolled Up Data</a></td></tr>
-<tr><td></td><td></td><td><b>6.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_4_">Using Alternate "To Date" Data Sets</a></td></tr>
-<tr><td></td><td><b>6.3.</b>&nbsp;</td><td colspan=8><a href="#para_6_3_">Making a change to a script</a></td></tr>
-<tr><td></td><td><b>6.4.</b>&nbsp;</td><td colspan=8><a href="#para_6_4_">How the Dashboard finds process files</a></td></tr>
-<tr><td></td><td></td><td><b>6.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_4_1_">Sharing changes with team members</a></td></tr>
-<tr><td></td><td></td><td><b>6.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_4_2_">Some files are only read at start up</a></td></tr>
-<tr><td></td><td><b>6.5.</b>&nbsp;</td><td colspan=8><a href="#para_6_5_">Defining your own processes for use in the Process Dashboard</a></td></tr>
-<tr><td></td><td></td><td><b>6.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_1_">Step 1: Identify your process structure</a></td></tr>
-<tr><td></td><td></td><td><b>6.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_2_">Step 2: Create an XML definition for your process</a></td></tr>
-<tr><td></td><td></td><td><b>6.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_3_">Step 3: Save your XML process descriptor</a></td></tr>
-<tr><td></td><td></td><td><b>6.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_4_">Step 4: Restart the dashboard</a></td></tr>
+</div>
+<table cellpadding=2 cellspacing=0 border=0>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>1.</b>&nbsp;</td><td colspan=9><a href="#para_1_">Quick Overview</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.1.</b>&nbsp;</td><td colspan=8><a href="#para_1_1_">A quick look at the tool</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.2.</b>&nbsp;</td><td colspan=8><a href="#para_1_2_">The dashboard and the web browser</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.3.</b>&nbsp;</td><td colspan=8><a href="#para_1_3_">The process scripts</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_1_">The "generic" process script</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_2_">The "timer" process script</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.3.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_3_">Custom process scripts</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.3.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_3_4_">Custom process vs Generic process?</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.4.</b>&nbsp;</td><td colspan=8><a href="#para_1_4_">Quick start example: a PSP1.1 project</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_1_">Step 1: Create a project in the dashboard</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_2_">Step 2: Planning the project</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_3_">Step 3: Designing the program</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_4_">Step 4: Writing the code</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_5_">Step 5: Compiling the program</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_6_">Step 6: Testing the program</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.4.7.</b>&nbsp;</td><td colspan=7><a href="#para_1_4_7_">Step 7: Postmortem</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.5.</b>&nbsp;</td><td colspan=8><a href="#para_1_5_">Overall goals</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_1_">What is the PSP(SM)?</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_2_">What is the TSP(SM)?</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_5_3_">Why build a tool?</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.6.</b>&nbsp;</td><td colspan=8><a href="#para_1_6_">Using help</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_1_">The Table of Contents view</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_2_">The Index view</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_3_">The Search Engine view</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_4_">The navigation buttons</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_5_">The print buttons</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.6.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_6_6_">Context sensitive help</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.7.</b>&nbsp;</td><td colspan=8><a href="#para_1_7_">How To Install</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_1_">System Requirements</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_2_">Installation Instructions:</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_3_">Add-on Process Sets</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_4_">Upgrade to New Version</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_5_">Simple Windows Installation</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_6_">Custom Windows Installation</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.7.7.</b>&nbsp;</td><td colspan=7><a href="#para_1_7_7_">Linux / Unix Installation</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.8.</b>&nbsp;</td><td colspan=8><a href="#para_1_8_">Change History</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_1_">Features new in version 1.4</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_2_">Features new in version 1.3.1 (released August 14, 2001)</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_3_">Features new in version 1.3 (released July 16, 2001)</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_4_">Features new in version 1.2 (released April 20, 2001)</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.8.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_8_5_">Features new in version 1.1 (released February 9, 2001)</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>1.9.</b>&nbsp;</td><td colspan=8><a href="#para_1_9_">GNU General Public License</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.1.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_1_">Table of Contents</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.2.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_2_">GNU GENERAL PUBLIC LICENSE</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.3.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_3_">Preamble</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.4.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_4_">TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.5.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_5_">END OF TERMS AND CONDITIONS</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>1.9.6.</b>&nbsp;</td><td colspan=7><a href="#para_1_9_6_">How to Apply These Terms to Your New Programs</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>2.</b>&nbsp;</td><td colspan=9><a href="#para_2_">Planning your project</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.1.</b>&nbsp;</td><td colspan=8><a href="#para_2_1_">Entering process data</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.1.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_1_">The nature of the dashboard forms</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.1.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_2_">Frozen Calculations</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.1.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_3_">Read-only data fields</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.1.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_1_4_">Exporting form data</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.2.</b>&nbsp;</td><td colspan=8><a href="#para_2_2_">Using the hierarchy editor</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_1_">The File menu</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_2_">The Edit menu and toolbar</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_3_">Process templates</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_4_">Processes PSP0 - PSP1.1</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.2.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_2_5_">The PSP3 process</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.3.</b>&nbsp;</td><td colspan=8><a href="#para_2_3_">Using the Size Estimating Template</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_1_">Base Program LOC</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_2_">Object LOC</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.3.2.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_1_">Base Additions</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.3.2.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_2_">New Objects</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.3.2.3.</b>&nbsp;</td><td colspan=6><a href="#para_2_3_2_3_">Reused Objects</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.3.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_3_">Performing the size/time estimation</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.3.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_3_4_">Entering Actual data during Postmortem</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.4.</b>&nbsp;</td><td colspan=8><a href="#para_2_4_">Using the PROBE Wizard</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_1_">PROBE Wizard Step 1</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_2_">PROBE Wizard Step 2</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_3_">PROBE Wizard Step 3</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_4_">PROBE Wizard Step 4</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_5_">PROBE Wizard Step 5</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.4.6.</b>&nbsp;</td><td colspan=7><a href="#para_2_4_6_">A sanity check</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.5.</b>&nbsp;</td><td colspan=8><a href="#para_2_5_">Using the PROBE tool</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_1_">Filtering your data set</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_2_">Measures of correlation</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.5.2.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_5_2_1_">The correlation measurement</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.5.2.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_5_2_2_">The significance measurement</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_3_">Making a projection</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_5_4_">Visualizing the data</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.6.</b>&nbsp;</td><td colspan=8><a href="#para_2_6_">Using the Task &amp; Schedule Tool</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.7.</b>&nbsp;</td><td colspan=8><a href="#para_2_7_">Creating a schedule step by step</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_1_">Step 1: Add tasks to the task list</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_1_1_">The relationship between the Hierarchy Editor and the Task &amp; Schedule tool</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.1.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_1_2_">Editing the task list</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.2.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_2_">Step 2: Estimate task time</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.3.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_3_">Step 3: Estimate calendar time</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.4.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_4_">Step 4: Track your progress</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.5.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_5_">The Save Button</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.6.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_6_">Potential mistakes</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.7.7.</b>&nbsp;</td><td colspan=7><a href="#para_2_7_7_">Task &amp; Schedule Collaboration</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.7.1.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_7_1_">Publishing Schedules</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.7.2.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_7_2_">Rolling Up Schedules</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td></td><td><b>2.7.7.2.1.</b>&nbsp;</td><td colspan=5><a href="#para_2_7_7_2_1_">Sharing Schedules</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td></td><td><b>2.7.7.2.2.</b>&nbsp;</td><td colspan=5><a href="#para_2_7_7_2_2_">Creating a Roll-up Schedule</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>2.7.7.3.</b>&nbsp;</td><td colspan=6><a href="#para_2_7_7_3_">Constraints and Limitations</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>2.8.</b>&nbsp;</td><td colspan=8><a href="#para_2_8_">Data Freezing</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>2.8.1.</b>&nbsp;</td><td colspan=7><a href="#para_2_8_1_">The gory details</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>3.</b>&nbsp;</td><td colspan=9><a href="#para_3_">Running the dashboard</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.1.</b>&nbsp;</td><td colspan=8><a href="#para_3_1_">Navigating the hierarchy menus</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.2.</b>&nbsp;</td><td colspan=8><a href="#para_3_2_">Accessing the Process Scripts</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_1_">The script button pull-down</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_2_">The timing icons</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_3_">External documents</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_2_4_">Entering data into the forms</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.3.</b>&nbsp;</td><td colspan=8><a href="#para_3_3_">Using the play/pause button</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_3_1_">The play/pause button pull-down control</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.4.</b>&nbsp;</td><td colspan=8><a href="#para_3_4_">Using the completion checkbox</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_4_1_">Marking a phase complete vs marking the project complete</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>3.4.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_3_4_1_1_">Why should I bother marking the phases/projects complete?</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.5.</b>&nbsp;</td><td colspan=8><a href="#para_3_5_">Using the time log editor</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_1_">Project hierarchy</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_2_">Date filter</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_3_">Time entries</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_5_4_">Control buttons</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.6.</b>&nbsp;</td><td colspan=8><a href="#para_3_6_">Entering defects</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_1_">Defect type</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.2.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_2_">"fix defects"</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.3.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_3_">Phase injected and phase removed</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.4.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_4_">Timing the defect fix</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.5.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_5_">Entering a description</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>3.6.6.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_6_">Fixing multiple defects at a time</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.7.</b>&nbsp;</td><td colspan=8><a href="#para_3_7_">Using the Defect Log Editor</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>3.8.</b>&nbsp;</td><td colspan=8><a href="#para_3_8_">The "C" (configure) menu</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>4.</b>&nbsp;</td><td colspan=9><a href="#para_4_">Postmortem analysis</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>4.1.</b>&nbsp;</td><td colspan=8><a href="#para_4_1_">Counting LOC</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>4.2.</b>&nbsp;</td><td colspan=8><a href="#para_4_2_">Data charts and reports</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_1_">The Project Plan Summary</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_2_">Marking your project complete</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_3_">The Time Log and Defect Log</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_4_2_4_">Graphical charts</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>4.3.</b>&nbsp;</td><td colspan=8><a href="#para_4_3_">Exporting your data</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.3.1.</b>&nbsp;</td><td colspan=7><a href="#para_4_3_1_">Creating an ASCII flat file</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>4.3.1.1.</b>&nbsp;</td><td colspan=6><a href="#para_4_3_1_1_">Exporting data</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td></td><td><b>4.3.1.2.</b>&nbsp;</td><td colspan=6><a href="#para_4_3_1_2_">Exporting the Hierarchy list</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>4.3.2.</b>&nbsp;</td><td colspan=7><a href="#para_4_3_2_">Exporting data to Excel (PC only)</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>5.</b>&nbsp;</td><td colspan=9><a href="#para_5_">Frequently Asked Questions</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>5.1.</b>&nbsp;</td><td colspan=8><a href="#para_5_1_">Installation issues</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>5.2.</b>&nbsp;</td><td colspan=8><a href="#para_5_2_">Online forms</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>5.3.</b>&nbsp;</td><td colspan=8><a href="#para_5_3_">Files</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>5.4.</b>&nbsp;</td><td colspan=8><a href="#para_5_4_">Other questions</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td><b>6.</b>&nbsp;</td><td colspan=9><a href="#para_6_">Advanced Topics</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.1.</b>&nbsp;</td><td colspan=8><a href="#para_6_1_">Configuration File</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.2.</b>&nbsp;</td><td colspan=8><a href="#para_6_2_">Using Multiple "To Date" Data Sets</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.2.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_1_">Creating Multiple "To Date" Data Sets</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.2.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_2_">Customizing "To Date" Data Sets</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.2.3.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_3_">Viewing Rolled Up Data</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.2.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_2_4_">Using Alternate "To Date" Data Sets</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.3.</b>&nbsp;</td><td colspan=8><a href="#para_6_3_">Making a change to a script</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.4.</b>&nbsp;</td><td colspan=8><a href="#para_6_4_">How the Dashboard finds process files</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.4.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_4_1_">Sharing changes with team members</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.4.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_4_2_">Some files are only read at start up</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td><b>6.5.</b>&nbsp;</td><td colspan=8><a href="#para_6_5_">Defining your own processes for use in the Process Dashboard</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.5.1.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_1_">Step 1: Identify your process structure</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_2_">Step 2: Create an XML definition for your process</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_3_">Step 3: Save your XML process descriptor</a></td></tr>
+<tr class="INITIAL_TOC_STATUS"><td class="INITIAL_STATUS">&nbsp;</td><td></td><td></td><td><b>6.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_4_">Step 4: Restart the dashboard</a></td></tr>
+ <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td></tr>
 </table>
+<div class="INITIAL_STATUS">
 
 
 <HR>
-<div></div><a name="doc1_top"></a>
+</div>
+<a name="doc1_top"></a><div class="INITIAL_STATUS">
+
 
 <H1><a name="para_1_"></a>1. Quick Overview</H1>
 <P>We feel that the PSP<sup><small>SM</small></sup> and the 
@@ -231,12 +242,12 @@ project work breakdown structure hierarchy, and a configuration menu to allow
 access to other features of the tool.</P>
 
 <P>Pick an item for further help:</P>
-<P><a href="#doc32_top">Configure menu</a></P>
-<P><a href="#doc27_top">Play/Pause button</a></P>
-<P><a href="#doc30_top">Defect entry</a></P>
-<P><a href="#doc26_top">Process scripts</a></P>
-<P><a href="#doc25_top">Project hierarchy menus</a></P>
-<P><a href="#doc28_top">Completion checkbox</a></P>
+<P><a href="#doc33_top">Configure menu</a></P>
+<P><a href="#doc28_top">Play/Pause button</a></P>
+<P><a href="#doc31_top">Defect entry</a></P>
+<P><a href="#doc27_top">Process scripts</a></P>
+<P><a href="#doc26_top">Project hierarchy menus</a></P>
+<P><a href="#doc29_top">Completion checkbox</a></P>
 
 <h2><a name="para_1_2_"></a>1.2. The dashboard and the web browser</h2>
 
@@ -256,6 +267,7 @@ is running.</P>
 <P>For more information about the process scripts see the <a href="#doc2_top">process scripts</a> help topic.</p>
 
 
+<div class="hideInBook">
 <!-- DISCLAIMER -->
 <P> </P>
 <HR>
@@ -267,9 +279,14 @@ is running.</P>
   </TD>
  </TR>
 </TABLE></P>
+</div>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc2_top"></a>
+</div>
+<a name="doc2_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_1_3_"></a>1.3. The process scripts</h2>
 <P>The Process Dashboard provides nearly all the scripts defined in <I>A 
@@ -295,7 +312,7 @@ phase.  When you click on one of these icons, the current phase being
 measured will change to the phase indicated by the icon and the timer will 
 start measuring time for that phase.</p>
 
-<P>For information on how to access the forms, see the <a href="#doc26_top">Accessing process scripts</a> help 
+<P>For information on how to access the forms, see the <a href="#doc27_top">Accessing process scripts</a> help 
 topic.</p>
 
 <p>The following lists detail the forms and scripts provided by the dashboard 
@@ -428,7 +445,7 @@ tool; instead, they are dynamically loaded from simple HTML and text files.
 Thus, it is possible to create your own custom process scripts, forms, and
 data that will be dynamically integrated into the dashboard.
 
-<P>More information on creating custom processes is available in the <a href="#doc42_top"> Advanced
+<P>More information on creating custom processes is available in the <a href="#doc43_top"> Advanced
 Topics</a> section of the help.
 
 <h3><a name="para_1_3_4_"></a>1.3.4. Custom process vs Generic process?</h3>
@@ -461,8 +478,12 @@ process when you feel you've confidently identified its phases.</P>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc3_top"></a>
+</div>
+<a name="doc3_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_1_4_"></a>1.4. Quick start example: a PSP1.1 project</H2>
 <P>This example will show how to use the Process Dashboard for a PSP1.1 level 
@@ -484,7 +505,7 @@ Process Dashboard currently offers without being overly complicated<A HREF="#doc
 </OL>
 
 
-<P>Next step: <a href="#doc4_top">Creating the project</A></P>
+<P class="hideInBook">Next step: <a href="#doc4_top">Creating the project</A></P>
 
 <HR>
 
@@ -510,19 +531,25 @@ you won't have any historical data in the dashboard. Therefore:
      on a hyperlink to the "note" anchor above (even when viewing this page
      in a web browser like IE or Netscape). -->
 
+<div class="hideInBook">
 <P>&nbsp;</P>
 <P>&nbsp;</P>
 <P>&nbsp;</P>
 <P>&nbsp;</P>
 <P>&nbsp;</P>
+</div>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc4_top"></a>
+</div>
+<a name="doc4_top"></a><div class="INITIAL_STATUS">
+
 
 <h3><a name="para_1_4_1_"></a>1.4.1. Step 1: Create a project in the dashboard</h3>
 <P>The first thing we need to do to get started is to create a new PSP1.1 
 project in the dashboard.  To do that, we will start the hierarchy editor by 
-choosing Hierarchy from the <a href="#doc32_top">Configure
+choosing Hierarchy from the <a href="#doc33_top">Configure
 menu</a>.</P>
 
 <p><center><img src="Images/QSHierarchyEditorBefore.png"></center></p>
@@ -551,6 +578,7 @@ process phases for a PSP1.1 project.</p>
 <P>Now we can save our changes and close the hierarchy editor via the File 
 menu.<p>
 
+<div class="hideInBook">
 <P>Next step: <a href="#doc5_top">Planning the project</A></P>
 
 <P>Jump to step:<BR>
@@ -563,11 +591,16 @@ menu.<p>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc9_top">6. Testing the program</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc10_top">7. Postmortem</a>
 </P>
+</div>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc5_top"></a>
+</div>
+<a name="doc5_top"></a><div class="INITIAL_STATUS">
+
 
 <h3><a name="para_1_4_2_"></a>1.4.2. Step 2: Planning the project</h3>
 
@@ -655,6 +688,7 @@ is running, a little "clicking" noise is made.  This little bit of feedback
 assures us that the timer is still running.</p>
 
 
+<div class="hideInBook">
 <P>Next step: <a href="#doc6_top">Designing the program</A></P>
 
 <P>Jump to step:<BR>
@@ -667,11 +701,16 @@ assures us that the timer is still running.</p>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc9_top">6. Testing the program</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc10_top">7. Postmortem</a>
 </P>
+</div>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc6_top"></a>
+</div>
+<a name="doc6_top"></a><div class="INITIAL_STATUS">
+
 
 <h3><a name="para_1_4_3_"></a>1.4.3. Step 3: Designing the program</h3>
 
@@ -690,7 +729,7 @@ script.</p>
 
 <p>While designing program 5A, we will be sure to keep the dashboard's timer 
 running.  This can be confirmed by noticing the state of the play/pause 
-button.  For more information on the play/pause button, see the <a href="#doc27_top">play/pause button</a> help topic.</P>
+button.  For more information on the play/pause button, see the <a href="#doc28_top">play/pause button</a> help topic.</P>
 
 <P>Once finished with the program design, we move on to the coding phase by 
 clicking the completion checkbox again.</p>
@@ -698,6 +737,7 @@ clicking the completion checkbox again.</p>
 <p><center><img src="Images/QSDesigning.png"></center></p>
 
 
+<div class="hideInBook">
 <P>Next step: <a href="#doc7_top">Writing the code</A></P>
 
 <P>Jump to step:<BR>
@@ -710,12 +750,17 @@ clicking the completion checkbox again.</p>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc9_top">6. Testing the program</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc10_top">7. Postmortem</a>
 </P>
+</div>
 
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc7_top"></a>
+</div>
+<a name="doc7_top"></a><div class="INITIAL_STATUS">
+
 
 <h3><a name="para_1_4_4_"></a>1.4.4. Step 4: Writing the code</h3>
 
@@ -726,6 +771,7 @@ about the timer and hitting the completion checkbox apply.</P>
 next phase, so no defects were entered here.  Let's move on to compilation!</p>
 
 
+<div class="hideInBook">
 <P>Next step: <a href="#doc8_top">Compiling the Program</A></P>
 
 <P>Jump to step:<BR>
@@ -738,12 +784,16 @@ next phase, so no defects were entered here.  Let's move on to compilation!</p>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc9_top">6. Testing the program</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc10_top">7. Postmortem</a>
 </P>
-
+</div>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc8_top"></a>
+</div>
+<a name="doc8_top"></a><div class="INITIAL_STATUS">
+
 
 <h3><a name="para_1_4_5_"></a>1.4.5. Step 5: Compiling the program</h3>
 
@@ -761,7 +811,7 @@ error.  The defect dialog looks for this defect looks like the following:</p>
 <p><center><img src="Images/QSEnterDefect1.png"></center></p>
 
 <P>The defect dialog allows entry of all the pertinent data about a defect.  
-For more information about entering defects into the dashboard, see the <a href="#doc30_top">Entering Defects</a> help topic.</p>
+For more information about entering defects into the dashboard, see the <a href="#doc31_top">Entering Defects</a> help topic.</p>
 
 <p>Of course, there were more defects found during compile, but we won't show 
 them all.</p>
@@ -771,7 +821,7 @@ program compiles cleanly, clicking the completion checkbox moves us onward
 into the testing phase.</p>
 
 
-
+<div class="hideInBook">
 <P>Next step: <a href="#doc9_top">Testing the program</A></P>
 
 <P>Jump to step:<BR>
@@ -784,12 +834,16 @@ into the testing phase.</p>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc9_top">6. Testing the program</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc10_top">7. Postmortem</a>
 </P>
-
+</div>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc9_top"></a>
+</div>
+<a name="doc9_top"></a><div class="INITIAL_STATUS">
+
 
 <h3><a name="para_1_4_6_"></a>1.4.6. Step 6: Testing the program</h3>
 
@@ -820,12 +874,13 @@ dialog is paused.  Also, notice that the number of the previous defect is
 already entered in the Fix Defect blank.  Once the information for this new 
 defect is entered and the user clicks OK, the previous defect dialog will pop 
 to the front of the screen and the timer will resume.  For more information 
-about this behavior, see the <a href="#doc30_top">Entering Defects</a> help topic.</p>
+about this behavior, see the <a href="#doc31_top">Entering Defects</a> help topic.</p>
 
 <P>Back to our example.  Once the program has been sufficiently tested and 
 all the defects have been entered, hit the completion checkbox again to move 
 into Postmortem.</p>
 
+<div class="hideInBook">
 <P>Next step: <a href="#doc10_top">Postmortem</A></P>
 
 <P>Jump to step:<BR>
@@ -838,12 +893,16 @@ into Postmortem.</p>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc9_top">6. Testing the program</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc10_top">7. Postmortem</a>
 </P>
-
+</div>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc10_top"></a>
+</div>
+<a name="doc10_top"></a><div class="INITIAL_STATUS">
+
 
 <h3><a name="para_1_4_7_"></a>1.4.7. Step 7: Postmortem</h3>
 
@@ -875,7 +934,7 @@ checkbox on the Project Plan Summary.</p>
 <p>If the Project Complete checkbox had not been automatically checked, it 
 would indicate that we had already overridden this automatic behavior.  You 
 can learn more about the relationship between marking the phases complete and 
-marking the entire project complete by reading the <a href="#doc28_top">Using the completion checkbox</a>
+marking the entire project complete by reading the <a href="#doc29_top">Using the completion checkbox</a>
 help topic.</p>
 
 <p>At the end of this project, the entire Project Plan Summary form looks 
@@ -893,12 +952,13 @@ browser to a set of pages that contain many useful graphs of process data.</P>
 allow easy analysis of various metrics measured in the PSP.  Clicking on one 
 of the chart thumbnails in the right pane will bring up a full-sized view of 
 that chart.  For more information on the types of data that can be analyzed 
-via these reports and graphs, see the <a href="#doc35_top">Creating Reports and 
+via these reports and graphs, see the <a href="#doc36_top">Creating Reports and 
 Charts</a> help topic.</p>
 
 <P>That's it for this example.  We hope it has been helpful.</p>
 
 
+<div class="hideInBook">
 <P>Jump to step:<BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc3_top">START</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc4_top">1. Creating the project</a><BR>
@@ -909,11 +969,16 @@ Charts</a> help topic.</p>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc9_top">6. Testing the program</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#doc10_top">7. Postmortem</a>
 </P>
+</div>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc11_top"></a>
+</div>
+<a name="doc11_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_1_5_"></a>1.5. Overall goals</H2>
 <P>We feel that the PSP and the TSP are remarkable technologies that can change 
@@ -1027,8 +1092,12 @@ University.</P>
  </TR>
 </TABLE></P>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc12_top"></a>
+</div>
+<a name="doc12_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_1_6_"></a>1.6. Using help</H2>
 
@@ -1091,8 +1160,12 @@ tool.</p>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc13_top"></a>
+</div>
+<a name="doc13_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_1_7_"></a>1.7. How To Install</H2>
 
@@ -1316,8 +1389,12 @@ cd ~/path/to/your/personal/data/directory<br>
 </OL>
 
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc14_top"></a>
+</div>
+<a name="doc14_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_1_8_"></a>1.8. Change History</H2>
 
@@ -1517,8 +1594,12 @@ cd ~/path/to/your/personal/data/directory<br>
    easier to install.</li>
 </ul>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc15_top"></a>
+</div>
+<a name="doc15_top"></a><div class="INITIAL_STATUS">
+
 <H2><a name="para_1_9_"></a>1.9. GNU General Public License</H2>
 
 <H3><a name="para_1_9_1_"></a>1.9.1. Table of Contents</H3>
@@ -2007,8 +2088,13 @@ Updated:
 31 Jul 2000 jonas
 <!-- hhmts end -->
 <HR>
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc16_top"></a>
+<HR>
+</div>
+<a name="doc16_top"></a><div class="INITIAL_STATUS">
+
 
 <H1><a name="para_2_"></a>2. Planning your project</H1>
 
@@ -2038,6 +2124,7 @@ that time, size, and defect data can be tracked, and the <a href="#doc21_top">PR
 <b>B</b>ased <b>E</b>stimation method.  Finally, the <a href="#doc22_top">Task and Schedule Tool</a> allows you to
 create a schedule and track your progress against it using earned value.</P>
 
+<div class="hideInBook">
 <!-- DISCLAIMER -->
 <P> </P>
 <HR>
@@ -2049,18 +2136,23 @@ create a schedule and track your progress against it using earned value.</P>
   </TD>
  </TR>
 </TABLE>
+</div>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc17_top"></a>
+</div>
+<a name="doc17_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_2_1_"></a>2.1. Entering process data</H2>
 <P>There are two main ways of entering data into the Process Dashboard.  The 
 first is through various input tools and dialogs provided by the dashboard 
-(e.g. the <a href="#doc30_top">defect dialog</a>, the 
-<A HREF="#doc29_top">time log editor</A>, etc.).</p>
+(e.g. the <a href="#doc31_top">defect dialog</a>, the 
+<A HREF="#doc30_top">time log editor</A>, etc.).</p>
 
 <p>The second is through the various PSP forms.  The scripts and forms are 
-provided through an integrated web interface.  See the <a href="#doc26_top">Accessing Process Scripts</a> help 
+provided through an integrated web interface.  See the <a href="#doc27_top">Accessing Process Scripts</a> help 
 topic for more info on how to access the scripts and forms.  To find out more 
 information about the different process scripts and forms that are available, 
 see the <a href="#doc2_top">process scripts</a> help 
@@ -2132,7 +2224,7 @@ are baselined and stop recalculating.  Similarly, when you mark a PSP project
 complete, the Actual and To Date data elements will freeze and stop 
 recalculating. So if you expect formulas to recalculate and they don't, check 
 to make certain that the planning phase and the entire project are <U>not</U>
-marked complete. For more information, see the <A HREF="#doc23_top">Data Freezing</A> help topic.</P>
+marked complete. For more information, see the <A HREF="#doc24_top">Data Freezing</A> help topic.</P>
 
 <a name="doc17_unlock"></a><h3><a name="para_2_1_3_"></a>2.1.3. Read-only data fields</h3>
 
@@ -2176,7 +2268,7 @@ of your data.  This HTML snapshot can be saved using the &quot;File <img src="Im
 dashboard form, use the "Export to Excel" link at the bottom of the page. 
 This will open the form in Excel, where you can reference the data in Excel 
 charts and equations. For more information on the Excel export feature, see 
-the <A HREF="#doc36_excel">Exporting your 
+the <A HREF="#doc37_excel">Exporting your 
 data</A> help topic.</p>
 
 <p><b>Important:</b> the Excel version of the form contains <i>exported</i>
@@ -2184,15 +2276,19 @@ data only.  If you edit values in the Excel spreadsheet, your changes will
 not be imported back into the Process Dashboard. To change a data value in 
 the Process Dashboard, you must make the change in a dashboard form.</p>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc18_top"></a>
+</div>
+<a name="doc18_top"></a><div class="INITIAL_STATUS">
+
 
 
 <H2><a name="para_2_2_"></a>2.2. Using the hierarchy editor</h2>
 <P>The hierarchy editor allows you to create a work breakdown structure for 
 your work, and also defines the process elements that will be used for a 
 given software project. The hierarchy editor can be opened by selecting the
-"Hierarchy" option on the <a href="#doc32_top">configure
+"Hierarchy" option on the <a href="#doc33_top">configure
 menu</a>.</P>
 
 <P>Its basic function is to allow creation and deletion of nodes in a project 
@@ -2219,10 +2315,11 @@ saves the changes to the dashboard project tree, and Revert will revert the
 project tree back to the state of the last save or to when the editor was 
 opened.</p>
 
-<h3><a name="para_2_2_2_"></a>2.2.2. The Edit menu</h3>
+<h3><a name="para_2_2_2_"></a>2.2.2. The Edit menu and toolbar</h3>
 
 <P>The Edit menu provides some rudimentary editing control on the project 
-hierarchy.  It provides the choices of Delete, Move Up, Move Down, Cut, Paste, Add Node, and Add Template.</P>
+hierarchy.  It provides the choices of Delete, Move Up, Move Down, Cut, Paste, Add Node, and Add Template.  Several of these choices are duplicated on the
+Edit toolbar.</P>
 
 <P><B>Delete</B> will allow the deletion of a portion of the project tree.  
 It deletes the selected node and all its children from the tree.  Be careful; 
@@ -2278,7 +2375,7 @@ node.</p>
 Use this choice when you are ready to define a project.  The Add Template 
 menu brings up a cascading second menu that provides choices among the 
 various defined processes.  By default, the 7 PSP process levels are 
-provided, along with three others: <a href="#doc2_generic">Generic</a>, <a href="#doc2_timer">Timer</a>, and <A HREF="#doc40_top">Rollup PSP Data</A>.  If you 
+provided, along with three others: <a href="#doc2_generic">Generic</a>, <a href="#doc2_timer">Timer</a>, and <A HREF="#doc41_top">Rollup PSP Data</A>.  If you 
 have added any add-on process sets, other choices will appear as well.  For 
 more information about the processes and their scripts, see the <a href="#doc2_top">process scripts</A> help topic.</p>
 
@@ -2346,8 +2443,12 @@ you would like in this manner.</p>
 
 <p><center><img src="Images/HierarchyEditorShowPSP3WithCycle.png"></center></p>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc19_top"></a>
+</div>
+<a name="doc19_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_2_3_"></a>2.3. Using the Size Estimating Template</H2>
 
@@ -2496,8 +2597,12 @@ calculated on this form will automatically appear on the Project Plan Summary
 form.</p>
 
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc20_top"></a>
+</div>
+<a name="doc20_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_2_4_"></a>2.4. Using the PROBE Wizard</H2>
 
@@ -2666,14 +2771,18 @@ simply close the PROBE Wizard (using the "X" in the window title bar). The
 estimates you chose for size and time will still appear on the Size 
 Estimating Template.</p>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc21_top"></a>
+</div>
+<a name="doc21_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_2_5_"></a>2.5. Using the PROBE tool</H2>
 
 <P>The PROBE tool provides assistance in making estimates by performing the 
 PROBE calculations for you. The PROBE tool can be opened by selecting the
-"PROBE" option on the <a href="#doc32_top">configure
+"PROBE" option on the <a href="#doc33_top">configure
 menu</a>.</p>
 
 <p>This version of the Process Dashboard also contains a PROBE Wizard that 
@@ -2805,8 +2914,12 @@ third columns show the data values for the X and Y axes respectively.</p>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc22_top"></a>
+</div>
+<a name="doc22_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_2_6_"></a>2.6. Using the Task &amp; Schedule Tool</H2>
 
@@ -2814,14 +2927,14 @@ third columns show the data values for the X and Y axes respectively.</p>
 completing tasks, and track progress against that schedule using earned 
 value. You can open the task and schedule tool by selecting the 
 &quot;Task &amp; Schedule&quot; option on the
-<a href="#doc32_top">configure menu</a>.</P>
+<a href="#doc33_top">configure menu</a>.</P>
 
 <P>If you haven't created any schedules, the dashboard will immediately
 jump to the Create New Schedule dialog which will allow you to create one. 
 If you have already created at least one schedule, a Task &amp; Schedule
 chooser window will appear.</P>
 
-<p><center></a><img src="Images/TaskScheduleChooser.png"></center></p>
+<p><center><img src="Images/TaskScheduleChooser.png"></center></p>
 
 <p>This window displays all the schedules you have created. After you click
 on a schedule to highlight it, you can use the buttons along the bottom to
@@ -2868,6 +2981,53 @@ the given task.</p>
 <p><b>Planned Value (PV):</b> This is the amount of earned value that will be 
 earned by the given task based on the planned numbers.</p>
 
+<p><b>Plan Date:</b> This is the date that the Task &amp; Schedule tool thinks 
+you will finish the given task.  This number uses the data from the lower 
+half of the Task &amp; Schedule tool to determine an ending date.</p>
+
+<p><b>Date:</b> This is the actual completion date.  It will be filled in 
+automatically when you mark the task complete via the <a href="#doc29_top">Completion Button</a></p>
+
+<p><b>Percent Complete (%C):</b> This is the percent complete for the
+current task.  Many people are accustomed to informally estimating
+percent complete; PSP formalizes this concept:<ul>
+
+  <li>If a task has no subtasks, it will either be 0% complete or 100%
+      complete, based upon whether you have marked it complete via the
+      <a href="#doc29_top">Completion Button</a>.</li>
+
+  <li>If a task has subtasks, its percent complete is calculated by
+      using the planned times of those tasks to compute a weighted
+      average.</li>
+
+</ul>At times you might wish for the ability to edit the "percent
+complete" for a task because it is "90% done."  Unfortunately, this
+often leads to tasks that reach 90% complete and stay there for weeks,
+slipping the schedule.  PSP states that instead, you should break the
+task down into subtasks and mark some of those subtasks complete.
+That way, you will get an accurate measure of percent complete.</p>
+
+<p><b>Percent Spent (%S):</b> This number describes the relationship
+between planned time and actual time for the given task.  If you have
+spent twice as much time on this task as you planned to spend, it
+would be 200% spent.  If you have only used up half of the planned
+time, the task would be 50% spent.</p>
+
+<p><b>Earned Value (EV):</b> This is the actual amount of earned value that 
+this task has earned.  <i>Remember that earned value measures are not counted 
+until the task is marked as complete.</i></p>
+
+
+<p><b>Note:</b> The original PSP task template described in
+<i>A&nbsp;Discipline for Software Engineering</i> contains two columns
+that are normally not displayed by the dashboard.  (They really only
+exist in the PSP template to help you perform the calculations
+manually; when the computer is performing the calculations, they don't
+provide much value and simply take up space.)  If you wish, you can
+display them by adding a "ev.showCumulativeTaskData" setting to your
+<a href="#doc40_top">configuration
+file</a>.  It would cause the following two columns to appear: 
+
 <p><b>Cumulative Planned Time (CPT):</b> This is the amount of time for the 
 given task, including all tasks that are before it in the task list.</p>
 
@@ -2875,16 +3035,6 @@ given task, including all tasks that are before it in the task list.</p>
 the CPT column.  It shows the amount of planned value for the given task 
 including all tasks that are before it in the task list.</p>
 
-<p><b>Plan Date:</b> This is the date that the Task &amp; Schedule tool thinks 
-you will finish the given task.  This number uses the data from the lower 
-half of the Task &amp; Schedule tool to determine an ending date.</p>
-
-<p><b>Date:</b> This is the actual completion date.  It will be filled in 
-automatically when you mark the task complete via the <a href="#doc28_top">Completion Button</a></p>
-
-<p><b>Earned Value (EV):</b> This is the actual amount of earned value that 
-this task has earned.  <i>Remember that earned value measures are not counted 
-until the task is marked as complete.</i></p>
 
 <p>Briefly, here are the items that are shown in the bottom window:</p>
 
@@ -2961,20 +3111,21 @@ from the dashboard itself must be done from the <a href="#doc18_top">Hierarchy E
 
 <h4><a name="para_2_7_1_2_"></a>2.7.1.2. Editing the task list</h4>
 
-<p>Once you have added tasks to the task list, you can use the Delete Task 
+<p>Once you have added tasks to the task list, you can use the Remove Task 
 button to remove them, and the Move Task Up/Down buttons to alter their 
 relative order. Note that these options are only available for the 
 <U>top-level</U> tasks. (Top-level tasks are the tasks that you explicitly 
 added using the Add Task button; in the task list, they appear as immediate 
-children of the root of the tree.) At this time it is not possible to delete 
+children of the root of the tree.) At this time it is not possible to remove 
 sub-tasks from your task list or change their relative order. If you want to 
 do either of these things, you have two choices:</P>
 
 <ul>
  <li>Make the changes in the hierarchy editor (for example, moving nodes up 
    or down to change the relative ordering of tasks)</li>
- <li>Manually add all the subtasks to the task list as top-level tasks 
-   instead of adding their parent to the task list.</li>
+ <li>Use the Explode Task button to replace a hierarchically organized
+   task with the corresponding flat list of tasks, then remove or rearrange
+   the tasks in that flat list.</li>
 </ul>
 
 <p>You should generally try to put the tasks in chronological order (the 
@@ -3055,10 +3206,10 @@ dashboard will calculate planned completion dates for each task. As you work,
 you should:</P>
 
 <UL>
- <LI>Accurately log time against tasks using the <A HREF="#doc27_top">Play/Pause button</A> and the <A HREF="#doc29_top">Time Log Editor</A>. Time 
+ <LI>Accurately log time against tasks using the <A HREF="#doc28_top">Play/Pause button</A> and the <A HREF="#doc30_top">Time Log Editor</A>. Time 
    logged against tasks in your task list will appear in the Actual Time
    columns of the task list and schedule list.</LI>
- <LI>Mark tasks complete using the <A HREF="#doc28_top">Completion Checkbox</A>. When 
+ <LI>Mark tasks complete using the <A HREF="#doc29_top">Completion Checkbox</A>. When 
    tasks are marked complete, the completion date will appear in the task 
    list, and you will earn the planned value for that task.</LI>
 </UL>
@@ -3072,6 +3223,10 @@ for access to earned value charts and numerical analyses:</P>
 
 <P>If you prefer, you can view this information in HTML, and even export it 
 Excel, by clicking the Report button.</p>
+
+<p>The Collaborate button provides access to the 
+<a href="#doc23_top">task &amp; schedule collaboration
+features</a> of the dashboard.
 
 <H3><a name="para_2_7_5_"></a>2.7.5. The Save Button</H3>
 
@@ -3105,9 +3260,17 @@ should always add up in a hierarchical manner; that is, the planned time for
 a parent node should always be equal to the sum of the planned times for all 
 its children. This is almost always the case for the PSP processes that come 
 with the dashboard. However, if you have <A HREF="#doc17_unlock">unlocked</A> your data and overwritten 
-calculations, times may no longer sum up correctly. When this occurs, the 
+calculations, times may no longer sum up correctly.  This problem can also
+occur if you are using plain hierarchy "nodes" to describe tasks, and you
+subdivide a node after estimating its time.  When this occurs, the 
 task list will use the children's plan time for calculations rather than the 
-parent's.</P>
+parent's.  To correct this error, do one of the following:<ul>
+<li>Edit the planned times for the children, so they agree with the planned
+    time for the parent.
+<li>Edit the planned time for the parent, so it agrees with the planned
+    time for the children.
+<li>Highlight the planned time for the parent, and delete it.
+</ul></P>
 
 <P><B>Calendar starts too late:</B> If some of the tasks in your task list 
 were completed <I>before</I>the start of the first time period in your 
@@ -3124,8 +3287,280 @@ text, a tool tip will provide a short description of the problem. For
 a more complete explanation of the problem, click the red "Errors"
 button that appears at the bottom of the task &amp; schedule window.
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc23_top"></a>
+</div>
+<a name="doc23_top"></a><div class="INITIAL_STATUS">
+
+
+<H3><a name="para_2_7_7_"></a>2.7.7. Task &amp; Schedule Collaboration</H3>
+
+<P>The <a href="#doc22_top">task and schedule tool</a>
+contains built-in support for collaboration; just click the
+Collaborate button on the Task &amp; Schedule dialog.</p>
+
+<p><center><img src="Images/TaskScheduleCollaborationButton.png"></center></p>
+
+<p>The &quot;Task and Schedule Collaboration Wizard&quot; will
+appear.</p>
+
+<p><center><img src="Images/TaskScheduleCollab.png"></center></p>
+
+<p>The task &amp; schedule tool supports two different types of
+collaboration.  It allows you to <a href="#doc23_publishing">publish</a> a
+schedule (so other people can see it), and it allows you to <a href="#doc23_rollup">roll-up</a> individual schedules to create a team
+schedule.</p>
+
+<p><b>Note:</b> These collaboration features will typically only work
+within a local area network.  In addition, they only work when the
+dashboard is running.  See the <a href="#doc23_limitations">limitations</a>
+section below for more information.</p>
+
+<hr>
+
+<h4><a name="para_2_7_7_1_"></a>2.7.7.1. <a name="doc23_publishing"></a>Publishing Schedules</h4>
+
+<p>Publishing a schedule opens up permissions so other people can view
+the HTML earned value report. This is a great way to:</p>
+
+<ul>
+  <li>Let co-workers who depend on your work know when they can expect
+    it to be completed.</li>
+  <li>Keep your manager or your customer apprised of your progress.</li>
+</ul>
+
+<p><a name="doc23_publishPassword"></a>To publish your schedule, open it and
+click on the Collaborate button. Then, click the Publish button. The
+dashboard will give you an opportunity to set a password. Setting a
+password prevents other people from viewing this schedule unless they
+know the password. If this isn't a concern to you, you can choose not
+to require a password. Passwords are set on a schedule-by-schedule
+basis, so you can set different passwords for different schedules, or
+set the password on one schedule but not another.</p>
+
+<p><center><img src="Images/TaskScheduleCollabPassword.png"></center></p>
+
+<p><a name="doc23_publishFinish"></a>The dashboard will save your password
+settings as soon as you click the Next button. It will then display a
+final screen containing the URL, username, and password of the
+published schedule. People will need this information to view the
+published schedule, so you will need to send this information to
+them. A hyperlink is provided that will help you to write an email
+containing this information.</p>
+
+<p>If you forget the URL or the password in the future, you can walk
+through this process again.  Reopen the schedule, click the
+Collaborate and Publish buttons, and you'll see the password screen
+containing the configuration you set earlier. You can edit the
+password settings if you wish, and your changes will be saved - or you
+can just click Next without changing the password settings.  You will
+once again be given the final screen with the URL/password, and the
+hyperlink you can use to email that information.</p>
+
+<p><b>Note:</b> people will only be able to view the published
+schedule while you have the dashboard running. For more information,
+see the <a href="#doc23_limitations">limitations</a> section below.</p>
+
+<hr>
+
+<h4><a name="para_2_7_7_2_"></a>2.7.7.2. <a name="doc23_rollup"></a>Rolling Up Schedules</h4>
+
+<p>When two or more people are working on a project together, it is
+very helpful to roll up each person's individual schedule to create a
+team schedule. Creating a team schedule has many benefits:</p>
+
+<ul>
+
+  <li>It helps you to <b>track team progress</b>. You can easily
+    determine whether the project is ahead or behind schedule, and
+    over or under budget.</li>
+
+  <li>It helps you to <b>forecast</b> the date when the overall
+    project will most likely complete, as well as the total cost of
+    the finished project.</li>
+
+  <li>It helps to <b>balance the project workload</b>. Despite your
+    best planning efforts, you usually find that someone on the team
+    has too many tasks assigned to them. Reassigning tasks so that
+    everyone is forecast to finish at the same time is called
+    &quot;balancing the schedule.&quot;</li>
+
+</ul>
+
+<p>Rolling up schedules is a two-step process: first, each individual
+must &quot;<a href="#doc23_sharing">share</a>&quot; their schedule. Then,
+someone must create a master &quot;<a href="#doc23_createRollup">roll-up</a>&quot;
+schedule.</p>
+
+<h5><a name="para_2_7_7_2_1_"></a>2.7.7.2.1. <a name="doc23_sharing"></a>Sharing Schedules</h5>
+
+<p><a name="doc23_sharePassword"></a>To share your schedule, open it and
+click on the Collaborate button. Then, click the Share button. The
+dashboard will give you an opportunity to set a sharing
+password. Setting a password prevents other people from adding this
+schedule to a master schedule unless they know the password. If this
+isn't a concern to you, you can choose not to require a
+password. Passwords are set on a schedule-by-schedule basis, so you
+can set different passwords for different schedules, or set the
+password on one schedule but not another.</p>
+
+<p><a name="doc23_shareFinish"></a>The dashboard will save your password
+settings as soon as you click the Next button. It will then display a
+final screen containing the password and the URL of the shared
+schedule.  <a name="doc23_emailShareInfo"></a>You need to send this
+information to the person who is creating the master
+&quot;roll-up&quot; schedule. A hyperlink is provided that will help
+you to email the information to that person.</p>
+
+<p>If you forget the URL or the password in the future, you can walk
+through this process again.  Reopen the schedule, click the
+Collaborate and Share buttons, and you'll see the password screen
+containing the configuration you set earlier. You can edit the
+password settings if you wish, and your changes will be saved - but
+realize that changing the password will break any roll-ups that
+contain this schedule. To avoid that problem, just click Next without
+changing the password settings. You will once again be given the final
+screen with the URL/password, and the hyperlink you can use to email
+that information.</p>
+
+<h5><a name="para_2_7_7_2_2_"></a>2.7.7.2.2. <a name="doc23_createRollup"></a>Creating a Roll-up Schedule</h5>
+
+<p>One person on the team should create a master schedule which
+roll-ups all of the individual schedules to the team level. Since that
+person usually has their own individual schedule as well, the
+dashboard is designed to create the rollup schedule and add their
+individual schedule all in one step.</p>
+
+<p>To create the roll-up schedule, open your personal schedule and
+click the Collaborate button. Then, click the Rollup button. The
+dashboard will allow you to choose a name for the resulting roll-up
+schedule. When you click the Next button, the dashboard will create
+the new roll-up schedule and add your personal schedule to it. When
+you click the Finish button, the dashboard will open the new roll-up
+schedule it just created.</p>
+
+<p>Now, you will want to add additional schedules to the roll-up. Just
+click the Add Schedule button to display the Add Schedule dialog
+box. This dialog lists all of your personal schedules - you can add
+one or more of them if you wish.  However, you will generally just
+want to select the "Import a shared schedule..."  option. It will
+prompt you for the URL and password of the shared schedule you wish to
+add. This is information you need to get from your co-workers -
+hopefully they emailed it to you as described
+<a href="#doc23_emailShareInfo">above</a>.  Copy the information from the email
+into the fields provided, and click OK. At this point, the dashboard
+will connect to your co-worker's dashboard and retrieve the shared
+schedule. If it cannot retrieve the shared schedule, you should:</p>
+
+<ul>
+  <li>Contact your co-worker to make certain that they have the
+    dashboard running.</li>
+
+  <li>Double-check that they sent you the right URL and password, and
+    that they haven't changed the password since they sent it to you.</li>
+
+  <li>Try adding the shared schedule again. If these steps don't solve
+    the problem, you may need to take a look at the
+    <a href="#doc23_limitations">limitations</a> section below.</li>
+</ul>
+
+<p>After retrieving the shared schedule, the dashboard will give you
+an opportunity to designate a &quot;local name&quot; for it. By
+default, it uses the name of the remote schedule, followed by the name
+of the person who created the schedule. (This allows you to tell
+schedules apart, since they might otherwise have very similar names.)
+The shared schedule will appear in the master schedule by the
+&quot;local name&quot; you designate.</p>
+
+<p>If you add a schedule by mistake, you can remove it by highlighting
+it and clicking the Remove Schedule button.</p>
+
+<ul>
+
+  <li><b>Tip:</b> if someone changes the password on their shared
+    schedule, you can correct the problem by removing that schedule
+    from the master schedule, and adding it back again with the new
+    password.</li>
+
+  <li><b>Tip:</b> if you want to create a roll-up schedule, but you
+    don't have a personal schedule to add to it, you can simply open
+    an existing personal schedule, use the Collaborate button to
+    create the rollup, then remove the personal schedule
+    manually.</li>
+
+</ul>
+
+<p>The Move Schedule Up and Move Schedule Down buttons can be used to
+rearrange the list of schedules. Note that this will not change any of
+the roll-up calculations, since these calculations are independent of
+the order of the list.</p>
+
+<p>Your co-workers will probably want to be able to see the roll-up
+schedule you just created. Simply open the roll-up schedule, click the
+Collaborate button, and click Publish. See the section <a href="#doc23_publishing">above</a> on publishing for additional
+instructions. It is not currently possible to add one rollup schedule
+to another rollup schedule, so the Share and Rollup buttons will be
+disabled when you open the &quot;Task and Schedule Collaboration
+Wizard&quot; from a rollup schedule.</p>
+
+<hr>
+
+<h4><a name="para_2_7_7_3_"></a>2.7.7.3. <a name="doc23_limitations"></a>Constraints and Limitations</h4>
+
+To understand the constraints of these collaboration features, it is
+helpful to understand how the features work.
+
+<p><center><img src="Images/TaskScheduleCollabArchitecture.png"></center></p>
+
+<p>When you publish a schedule, the dashboard acts as a web server
+that your co-workers can connect to with their web browser.  Their web
+browser communicates to your dashboard to see the published
+schedule.</p>
+
+<p>Similarly, when you share a schedule, the dashboard acts as a
+server that your co-worker's dashboard can connect to.  The dashboard
+that is computing the roll-up schedule connects to your dashboard and
+retrieves the latest copy of your schedule in a peer-to-peer
+fashion.</p>
+
+<p>As a result, your dashboard must be running for the collaboration
+features to work.  If your dashboard is not running when a co-worker
+tries to look at your published schedule, they will instead see an
+error page stating "Cannot find server or DNS Error."</p>
+
+<p>Rollup schedules keep a locally cached copy of your schedule, to
+enable calculating a rollup even when your dashboard isn't running.
+The rollup schedule will attempt to retrieve a recent version of your
+schedule.  If your dashboard is not running, it will calculate the
+rollup using the most recent version it has cached.</p>
+
+<p>The collaboration features rely on TCP/IP connectivity and DNS resolution
+to work. Because of this, you will probably need to be on the same network as
+your co-worker, manager, and/or customer.  If someone is on a different
+network than you (especially if there is a firewall between your computer and
+theirs), they may not be able to take advantage of any collaboration
+features you have enabled.</p>
+
+<p>Most of the time, you interact with the dashboard web server by viewing
+web pages that begin with "http://localhost".  This works fine when the
+dashboard and the web browser are both running on the same computer. For the
+collaboration features to work, however, your co-workers need a web address
+that begins with the DNS name of your computer. Therefore, the dashboard
+automatically ascertains the name of your computer and uses that to construct
+collaboration URLs.  This process should work 99% of the time. If, however,
+the dashboard deduces an incorrect name for your computer, then no one
+will be able to use the collaboration URLs you send them.  If this occurs,
+you should ask your system administrator for the DNS name of your computer,
+and use it to set the "http.hostname" setting in your 
+<a href="#doc40_top">configuration file</a>.
+
+</div>
+<div class="INITIAL_STATUS">
+
+</div>
+<a name="doc24_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_2_8_"></a>2.8. Data Freezing</H2>
 
@@ -3141,7 +3576,7 @@ click the completion checkbox to complete the planning phase, all your
 Planned data will be baselined. The estimates you entered for size and time, 
 along with all the calculated computed data elements for estimated data, will 
 be frozen so that your planned data will always stay constant (if you really 
-want to know more about why this is necessary, read the <a href="#doc23_gory">gory 
+want to know more about why this is necessary, read the <a href="#doc24_gory">gory 
 details</a> section).</p>
 
 <P>Similarly, when you mark the project complete, the To Date numbers will be 
@@ -3166,7 +3601,7 @@ form.</p>
 
 <p><center><img src="Images/QSCheckProjectComplete.png"></center></p>
 
-<a name="doc23_gory"></a><h3><a name="para_2_8_1_"></a>2.8.1. The gory details</h3>
+<a name="doc24_gory"></a><h3><a name="para_2_8_1_"></a>2.8.1. The gory details</h3>
 
 <P>The "To Date" elements on the forms are set up to always recalculate 
 themselves based on all the completed data in the dashboard's database.  This 
@@ -3198,11 +3633,16 @@ won't be changing anymore.</p>
 Date items to reflect the current situation) you can turn off this behavior 
 by setting the <code>dataFreezing.disabled</code> option in the configuration 
 file.  For more information about the configuration file and what can be set 
-there, see the <a href="#doc39_top">configuration file</a> help 
+there, see the <a href="#doc40_top">configuration file</a> help 
 topic.</p>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc24_top"></a>
+<HR>
+</div>
+<a name="doc25_top"></a><div class="INITIAL_STATUS">
+
 
 <H1><a name="para_3_"></a>3. Running the dashboard</H1>
 
@@ -3223,6 +3663,7 @@ problem.  When using the dashboard, the metrics required by the PSP can be
 measured quickly, easily, and accurately.</p>
 
 
+<div class="hideInBook">
 <!-- DISCLAIMER -->
 <P> </P>
 <HR>
@@ -3234,9 +3675,14 @@ measured quickly, easily, and accurately.</p>
   </TD>
  </TR>
 </TABLE></P>
+</div>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc25_top"></a>
+</div>
+<a name="doc26_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_3_1_"></a>3.1. Navigating the hierarchy menus</H2>
 
@@ -3295,12 +3741,16 @@ project".</p>
 
 <P>To help you keep track which tasks have marked complete, the hierarchy
 menus display small checkmarks next to completed items. (You can mark an
-item complete with the <A HREF="#doc28_top">completion checkbox</A>.)</P>
+item complete with the <A HREF="#doc29_top">completion checkbox</A>.)</P>
 
 <p><center><img src="Images/HierarchyMenus4.png"></center></P>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc26_top"></a>
+</div>
+<a name="doc27_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_3_2_"></a>3.2. Accessing the Process Scripts</H2>
 <P>Most of the scripts necessary to perform your work are already included in 
@@ -3325,7 +3775,7 @@ online forms allow you to navigate back to the "top" of the set of process
 scripts by a link labelled "Top".  Also, a link which will take you on to the
 next phase in the given process is usually shown as well.</P>
 
-<a name="doc26_scriptIcons"></a><h3><a name="para_3_2_1_"></a>3.2.1. <A NAME="doc26_pullDown"></A>The script button pull-down</h3>
+<a name="doc27_scriptIcons"></a><h3><a name="para_3_2_1_"></a>3.2.1. <A NAME="doc27_pullDown"></A>The script button pull-down</h3>
 <P>The script button pull-down tab allows you to choose a particular form in 
 a more direct manner.  Clicking the pull-down on the forms button will bring 
 up a menu of the most commonly used scripts and forms available for the current process.  Choosing 
@@ -3333,7 +3783,7 @@ one of these will open the named script or form.</p>
 
 <P><center><img src="Images/PointToScriptPullDownShowMenu.png" width="296" height="232"></center></p>
 
-<a name="doc26_scriptBrowser"></a><P>You can also select the &quot;More...&quot;
+<a name="doc27_scriptBrowser"></a><P>You can also select the &quot;More...&quot;
 option at the bottom of the menu to bring up a script browser. The
 script browser shows your hierarchy on the left; when you highlight a
 node in the hierarchy, it displays the available scripts and forms on
@@ -3382,8 +3832,12 @@ the <A HREF="#doc17_top">Entering data</A> help topic.</P>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc27_top"></a>
+</div>
+<a name="doc28_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_3_3_"></a>3.3. Using the play/pause button</H2>
 
@@ -3394,8 +3848,8 @@ dashboard.</P>
 
 <P>The dashboard timer makes it easy to measure the amount of time spent in 
 the various phases of your development process.  When you start the timer, it
-will automatically make appropriate entries in your <a href="#doc29_top">time log</a> for the project/task which you
-have made active with the <a href="#doc25_top">hierarchy
+will automatically make appropriate entries in your <a href="#doc30_top">time log</a> for the project/task which you
+have made active with the <a href="#doc26_top">hierarchy
 menus</a>.</P>
 
 <P>By default, the play/pause button shows a triangle when the timer <em>IS 
@@ -3420,7 +3874,7 @@ will cause the play and pause symbols to reverse their meaning:</P>
 
 <pre>pauseButton.showCurrent=true</pre>
 
-<P>For more information about the configuration file see the <a href="#doc39_top">configuration file</a> help 
+<P>For more information about the configuration file see the <a href="#doc40_top">configuration file</a> help 
 topic.</P>
 
 <p>It is <b>not</b> necessary to stop the timer before using the hierarchy
@@ -3428,7 +3882,7 @@ menus to change the active project/task/phase.  You can leave the timer in
 "play" mode as you move from one phase to another, and it will properly
 finalize one entry in the time log, and open another.</p>
 
-<a name="doc27_timelogdelay"></a><p>When the timer is running and you first navigate
+<a name="doc28_timelogdelay"></a><p>When the timer is running and you first navigate
 to an activity, you will notice that the dashboard will not create an entry in
 the time log until you have spent a full minute there; this is by design.
 Navigating from one task to another may require multiple interactions with the
@@ -3439,7 +3893,7 @@ entries in the time log for all those intermediate tasks; therefore, the
 dashboard waits and creates the time log entry only after you have logged 60
 seconds worth of elapsed time to an activity.</p>
 
-<a name="doc27_sound"></a><P>When you start the timer, it will make a short 
+<a name="doc28_sound"></a><P>When you start the timer, it will make a short 
 "clicking" sound to let you know it is timing you.  You can leave the timer 
 running as you move from phase to phase and project to project, and it will 
 play the "timing sound" as you navigate to each new project/phase.  Once 
@@ -3448,7 +3902,7 @@ sound will <b>not</b> play if the timer is not running.  Therefore, as you
 move from one project/phase to another, if you expect to hear the sound and 
 do not (or vice versa), check the state of the timer.</p>
 
-<a name="doc27_pullDown"></a><h3><a name="para_3_3_1_"></a>3.3.1. The play/pause button pull-down control</h3>
+<a name="doc28_pullDown"></a><h3><a name="para_3_3_1_"></a>3.3.1. The play/pause button pull-down control</h3>
 <P>The play/pause button contains a pull-down control that can be used to
 quickly jump to a point on the project tree where you have recently recorded
 time.  This provides another way of navigating to a project or project phase
@@ -3471,8 +3925,12 @@ juggling several activities. If you keep bouncing back and forth between
 several unrelated activities, you can quickly jump to a recent activity and
 log time there by using the pull-down menu.</P>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc28_top"></a>
+</div>
+<a name="doc29_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_3_4_"></a>3.4. Using the completion checkbox</H2>
 
@@ -3485,7 +3943,7 @@ that phase as completed via the completion checkbox.</P>
 phase to the next phase prescribed by the running process template.  If the 
 timer is currently running, it will automatically stop recording time for the 
 given phase and start the timing of the next phase.  For more information on 
-using the timer, see the <a href="#doc27_top">Using the Play/Pause 
+using the timer, see the <a href="#doc28_top">Using the Play/Pause 
 button</A> help topic.</P>
 
 <P>Phases marked as complete will show a little checkmark in the completion 
@@ -3527,14 +3985,18 @@ the right of completed tasks.</p>
 
 <p><center><img src="Images/HierarchyMenus4.png"></center></p>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc29_top"></a>
+</div>
+<a name="doc30_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_3_5_"></a>3.5. Using the time log editor</H2>
 
 <P>You can use the time log editor to correct mistakes you might make when 
 timing your activities.  The time log editor can be opened by selecting the
-"Time Log" option on the <a href="#doc32_top">configure menu</a>.</P>
+"Time Log" option on the <a href="#doc33_top">configure menu</a>.</P>
 
 <p><center><img src="Images/TimeLogEditor.png"></center></p>
 
@@ -3550,7 +4012,7 @@ the filtered view of the time log.  You can use the "Time Format" pulldown
 control to display these times in hours:minutes, decimal hours, or percentages
 (of either the total time, or the time logged to the parent of the node).</P>
 
-<a name="doc29_dateFilter"></a><h3><a name="para_3_5_2_"></a>3.5.2. Date filter</h3>
+<a name="doc30_dateFilter"></a><h3><a name="para_3_5_2_"></a>3.5.2. Date filter</h3>
 <P>Above the split pane is a set of controls that provide date filtering on 
 the time entries display.  Once the desired span of dates has been chosen, 
 clicking the "Apply Filter" button will restrict the data shown to the range 
@@ -3593,14 +4055,14 @@ button, or by highlighting the corresponding leaf of the tree.</P>
 <P>The Save and Revert buttons will save the changes or revert the entries to 
 their previous values.</P>
 
-<a name="doc29_summarize"></a><P>The Summarize button will collapse all time 
+<a name="doc30_summarize"></a><P>The Summarize button will collapse all time 
 entries that were logged to the same process phase into one entry.  The 
 Dashboard will create new entries each time that it starts recording time in 
 a given process phase (i.e. when a process phase is left and then returned to 
 again for more time measurement).  This function will allow you to collaspe 
 all duplicates entries in the current display.</P>
 
-<a name="doc29_TimeCardView"></a><p>The Time Card View button will display another 
+<a name="doc30_TimeCardView"></a><p>The Time Card View button will display another 
 view of the time data.</p>
 
 <p><center><img src="Images/TimeCardView.png"></center></p>
@@ -3626,8 +4088,12 @@ checkbox, and you can change the display time format using the pulldown.</p>
 <p>You can choose to display time in hours:minutes, decimal hours, or
 minutes.</p>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc30_top"></a>
+</div>
+<a name="doc31_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_3_6_"></a>3.6. Entering defects</H2>
 
@@ -3652,14 +4118,14 @@ choices are the same as those given in <I>A Discipline for Software
 Engineering</I>.  At this time, there is no (simple) way to define a different
 defect categorization scheme.</P>
 
-<a name="doc30_fixDefects"></a><h3><a name="para_3_6_2_"></a>3.6.2. "fix defects"</h3>
+<a name="doc31_fixDefects"></a><h3><a name="para_3_6_2_"></a>3.6.2. "fix defects"</h3>
 <P>The "Fix Defect" entry is where you can put the ID number of another 
 defect if this is a "fix defect".  A fix defect is a defect that was 
 injected while fixing another defect.  In order to determine the ID number of 
 the other defect, you can pull up the defect editor by choosing "Defect Log"
 on the "C" menu.  One of the columns of information about each defect will 
 show the ID number.  For more information about using the Defect Log see the 
-<a href="#doc31_top">Using the defect log editor</a> help 
+<a href="#doc32_top">Using the defect log editor</a> help 
 topic.</P>
 
 <P>The "new fix defect" button to the right of the ID entry provides another 
@@ -3677,7 +4143,7 @@ one on top) is being used to enter a fix defect.</p>
 <p><center><img src="Images/QSTwoDefectDialogs.png"></center></p>
 
 <p>This process works with defects that you edit from within the defect log 
-editor as well.  See the section below on <a href="#doc30_fixingMultipleDefects">fixing multiple defects</a> for more discussion 
+editor as well.  See the section below on <a href="#doc31_fixingMultipleDefects">fixing multiple defects</a> for more discussion 
 on having two defect dialogs open at once.</P>
 
 
@@ -3688,7 +4154,7 @@ dashboard will set both of these to what it thinks are appropriate choices
 given the current development phase, but that default choice can be 
 overridden easily.</P>
 
-<a name="doc30_timing"></a><h3><a name="para_3_6_4_"></a>3.6.4. Timing the defect fix</h3>
+<a name="doc31_timing"></a><h3><a name="para_3_6_4_"></a>3.6.4. Timing the defect fix</h3>
 <P>The defect dialog has its own built in timer independent of the main 
 dashboard timer.  By default, when the dialog first appears, it starts timing 
 the fix of the defect.  The fix time display will show the time passing.  The 
@@ -3701,7 +4167,7 @@ without starting the defect timer.</P>
 
 <PRE>defectDialog.autostart=false</PRE>
 
-<P>For more information about the configuration file see the <a href="#doc39_top">configuration file</a> help 
+<P>For more information about the configuration file see the <a href="#doc40_top">configuration file</a> help 
 topic.</P>
 
 <P>The timer start/stop button allows starting and stopping of the defect 
@@ -3714,7 +4180,7 @@ time display box.</P>
 <h3><a name="para_3_6_5_"></a>3.6.5. Entering a description</h3>
 <P>The defect description pane is where you record a description of the defect.</P>
 
-<a name="doc30_fixingMultipleDefects"></a><h3><a name="para_3_6_6_"></a>3.6.6. Fixing multiple defects at a time</h3>
+<a name="doc31_fixingMultipleDefects"></a><h3><a name="para_3_6_6_"></a>3.6.6. Fixing multiple defects at a time</h3>
 
 <P>If you have the need to fix more than one defect at one time, you can do 
 so by simply pushing the defect button on the dashboard again to display 
@@ -3731,14 +4197,18 @@ the defect into the dialog box as soon as it is opened so that when it comes
 back to the front as the currently active defect, it will be clear what you 
 were working on.</P>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc31_top"></a>
+</div>
+<a name="doc32_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_3_7_"></a>3.7. Using the Defect Log Editor</H2>
 
 <P>You can use the defect log editor to correct mistakes you might make when 
 entering defects.  The defects log editor can be opened by selecting the
-"Defect Log" option on the <a href="#doc32_top">configure menu</a>.</P>
+"Defect Log" option on the <a href="#doc33_top">configure menu</a>.</P>
 
 <p><center><img src="Images/DefectLogEditor.png"></center></p>
 
@@ -3751,13 +4221,17 @@ those on the branch chosen.</P>
 would like to change.  When a particular defect entry is picked, the Edit 
 button becomes active.  Clicking the Edit button will bring up the same 
 dialog box used to enter defects.  All the defect data can be changed using 
-this dialog.  For help using the defect entry dialog please see the <a href="#doc30_top">Entering defects</A> help topic.</P>
+this dialog.  For help using the defect entry dialog please see the <a href="#doc31_top">Entering defects</A> help topic.</P>
 
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc32_top"></a>
+</div>
+<a name="doc33_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_3_8_"></a>3.8. The "C" (configure) menu</H2>
 
@@ -3773,9 +4247,9 @@ to give you complete control of your PSP data.</P>
 <ul>
  <li><a href="#doc18_top">Hierarchy</a>
    provides access to and simple editing of the project hierarchy.</li>
- <li><a href="#doc29_top">Time Log</a> provides an editor that 
+ <li><a href="#doc30_top">Time Log</a> provides an editor that 
    allows editing of the time data measured in each of the process phases.</li>
- <li><a href="#doc31_top">Defect Log</a> provides a listing of 
+ <li><a href="#doc32_top">Defect Log</a> provides a listing of 
    defects and a method of making changes to the defect data.</li>
  <li><a href="#doc21_top">PROBE</a> provides access to a 
    tool to help with the <b>PRO</b>xy <b>B</b>ased <b>E</B>stimation 
@@ -3783,10 +4257,10 @@ to give you complete control of your PSP data.</P>
  <li><A HREF="#doc22_top">Task &amp; Schedule</A> provides
   access to a tool for creating a schedule, and tracking your progress
   against it using earned value.</li>
- <li><a href="#doc35_top">Data 
+ <li><a href="#doc36_top">Data 
    Analysis</a> provides access to many helpful charts, graphs, and reports 
    for postmortem analysis.</li>
- <li><a href="#doc36_top">Export</a>
+ <li><a href="#doc37_top">Export</a>
    provides access to a tool that allows ASCII dumps of process data in two 
    forms.</LI>
  <li><u>Help</u> provides access to a sub menu of help-related items.
@@ -3796,20 +4270,27 @@ to give you complete control of your PSP data.</P>
    with the Table of Contents pane selected.</li>
   <li><a href="#doc12_search">Search</a> brings up this help viewer 
    with the Search pane selected.</li>
+  <li><u>Printable Users Manual</u> displays a printer-friendly version of
+   the Process Dashboard User's Manual.</li>
   <li><u>About Process Dashboard</u> displays the "about" screen.</li>
-  <li><a name="doc32_bugreport"></a><u>Submit bug report</u> will bring up your web 
+  <li><a name="doc33_bugreport"></a><u>Submit bug report</u> will bring up your web 
    browser pointed to our website where you can submit any bug you might find 
    in the Process Dashboard.  We want the Dashboard to be the best that it 
    can be, so feel free to submit a bug!</li>
-  <li><a name="doc32_helponline"></a><u>Online help forum</u> will bring up your web 
+  <li><a name="doc33_helponline"></a><u>Online help forum</u> will bring up your web 
    browser pointed to our website where you can post messages to an online 
    help forum.  Your questions can be answered by other users of the 
    Dashboard or by the Dashboard developers who frequent the forum as well.</li>
  <li><u>Exit</u> exits the dashboard.</li>
 </ul>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc33_top"></a>
+<HR>
+</div>
+<a name="doc34_top"></a><div class="INITIAL_STATUS">
+
 
 <H1><a name="para_4_"></a>4. Postmortem analysis</H1>
 
@@ -3836,11 +4317,13 @@ the PSP, and it also knows how to create many helpful graphs to let you get a
 visual feel for how the data look.</p>
 
 <p>The main thing that isn't done automatically is the final LOC counts.
-You can use the built-in <A HREF="#doc34_top">LOC counter</A>, or an
+You can use the built-in <A HREF="#doc35_top">LOC counter</A>, or an
 external LOC counter of your own choosing, to calculate LOC; then enter 
 the final counts on the Project Plan Summary form (for PSP levels 0 and 0.1) 
 and on the Size Estimating Template (for PSP levels 1 through 3).</p>
 
+
+<div class="hideInBook">
 <!-- DISCLAIMER -->
 <P> </P>
 <HR>
@@ -3852,11 +4335,15 @@ and on the Size Estimating Template (for PSP levels 1 through 3).</p>
   </TD>
  </TR>
 </TABLE>
+</div>
 
-<!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc34_top"></a>
+</div>
+<a name="doc35_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_4_1_"></a>4.1. Counting LOC</H2>
 
@@ -3889,8 +4376,12 @@ counting code that can work with the Process Dashboard will be detailed in
 the <I>Process Authoring Manual</I> when it becomes available on our 
 website.</P>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc35_top"></a>
+</div>
+<a name="doc36_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_4_2_"></a>4.2. Data charts and reports</H2>
 <P>The Process Dashboard automates many reports and charts that can be quite 
@@ -3925,7 +4416,7 @@ of the various reports and forms), you will links named "Time Log" and
 "Defect Log" in the text of the script.  These will bring up a read-only 
 version of the two logs.</p>
 
-<a name="doc35_charts"></a><h3><a name="para_4_2_4_"></a>4.2.4. Graphical charts</h3>
+<a name="doc36_charts"></a><h3><a name="para_4_2_4_"></a>4.2.4. Graphical charts</h3>
 <P>The dashboard also makes many graphical charts of various kinds 
 available.  Choosing Data Analysis from the C menu will bring up a split view 
 that contains an index of various chart types on the left and thumbnails of 
@@ -3960,8 +4451,12 @@ that chart.</p>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc36_top"></a>
+</div>
+<a name="doc37_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_4_3_"></a>4.3. Exporting your data</H2>
 <P>Presently the dashboard provides two methods of exporting data to other 
@@ -4006,7 +4501,7 @@ the following format:</p>
 
 <pre>/complete/path/to/data/item</pre>
 
-<a name="doc36_excel"></a><h3><a name="para_4_3_2_"></a>4.3.2. Exporting data to Excel (PC only)</h3>
+<a name="doc37_excel"></a><h3><a name="para_4_3_2_"></a>4.3.2. Exporting data to Excel (PC only)</h3>
 <p>Many of the reporting forms in the dashboard have links that say "Export 
 to Excel...".  When this link is clicked, an Excel sheet will come up that 
 contains the data from that form.</p>
@@ -4015,7 +4510,7 @@ contains the data from that form.</p>
 in Netscape versus the way it is handled in Internet Explorer.</p>
 
 <ul>
- <li><B><A NAME="doc36_static">Static export</A>:</B> In Netscape, the sheet will have static data elements that contain the 
+ <li><B><A NAME="doc37_static">Static export</A>:</B> In Netscape, the sheet will have static data elements that contain the 
    values of the process variables at the instant that the export was 
    done.</li>
  <li><B>Dynamic export:</B> In Internet Explorer, the sheet will be a linked spreadsheet.  Excel 
@@ -4027,13 +4522,13 @@ in Netscape versus the way it is handled in Internet Explorer.</p>
    spreadsheet is opened.</li>
 </ul>
 
-<P>If this feature doesn't seem to be working for you, see the <A HREF="#doc37_BadExcel">related FAQ</A>.
+<P>If this feature doesn't seem to be working for you, see the <A HREF="#doc38_BadExcel">related FAQ</A>.
 
 <P>The "Export to Excel..." option will appear on 
 <UL>
  <li>forms such as the Project Plan Summary and the Size Estimating
   Template</li>
- <li>tables that are displayed by clicking on a graphical chart (see <a href="#doc35_charts">Data Charts and Reports</a> for
+ <li>tables that are displayed by clicking on a graphical chart (see <a href="#doc36_charts">Data Charts and Reports</a> for
    more information)</li>
  <li>the table that is displayed when you click on the "historical data" link 
    from a PSP1.0 or higher process script</li>
@@ -4047,8 +4542,13 @@ in Netscape versus the way it is handled in Internet Explorer.</p>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc37_top"></a>
+<HR>
+</div>
+<a name="doc38_top"></a><div class="INITIAL_STATUS">
+
 
 <H1><a name="para_5_"></a>5. Frequently Asked Questions</H1>
 
@@ -4057,49 +4557,49 @@ in Netscape versus the way it is handled in Internet Explorer.</p>
 <h2><a name="para_5_1_"></a>5.1. Installation issues</h2>
 
 <UL>
- <LI><a href="#doc37_MacInstall">How can I install the Process Dashboard on a Macintosh computer?</A></LI>
- <LI><a href="#doc37_NoServer">My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</A></LI>
- <LI><a href="#doc37_SunPlugin">My web browser is able to show the forms, but none of the entry blanks have any information.  What is wrong?</a></li>
+ <LI><a href="#doc38_MacInstall">How can I install the Process Dashboard on a Macintosh computer?</A></LI>
+ <LI><a href="#doc38_NoServer">My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</A></LI>
+ <LI><a href="#doc38_SunPlugin">My web browser is able to show the forms, but none of the entry blanks have any information.  What is wrong?</a></li>
 
 </ul>
 
 <h2><a name="para_5_2_"></a>5.2. Online forms</h2>
 <ul>
- <LI><A HREF="#doc37_TwoForms">If I have a dashboard script or form open, and I
+ <LI><A HREF="#doc38_TwoForms">If I have a dashboard script or form open, and I
   click the script button to open another form, the new form appears in my
   existing browser window, replacing the old form. Why can't I have two
   forms open at once?</A></LI>
- <LI><a href="#doc37_NoConnection">All my data elements say "NO CONNECTION".  What is wrong?</A></LI>
- <LI><a href="#doc37_ERROR">Some of my data elements say "#VALUE!" or "#DIV/0!".  What is wrong?</A></LI>
- <LI><a href="#doc37_BadExcel">I tried to export my data to Excel with the link on one of the forms, but I just got a small ASCII file.  What is wrong?</A></LI>
- <LI><a href="#doc37_NoSubmit">Why is there no "submit" button on the HTML forms?</A></LI>
- <LI><a href="#doc37_TimerUpdate">I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</A></LI>
- <LI><a href="#doc37_FrozenData">I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</A></LI>
- <LI><a href="#doc37_FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
- <LI><A HREF="#doc37_ExtDocFail">I click on a document hyperlink in a process script, but the document never opens.</A></LI>
- <li><a href="#doc37_ProcessTweak">I'd like to make a minor change in one of the process scripts.  Can I do that?</a></li>
+ <LI><a href="#doc38_NoConnection">All my data elements say "NO CONNECTION".  What is wrong?</A></LI>
+ <LI><a href="#doc38_ERROR">Some of my data elements say "#VALUE!" or "#DIV/0!".  What is wrong?</A></LI>
+ <LI><a href="#doc38_BadExcel">I tried to export my data to Excel with the link on one of the forms, but I just got a small ASCII file.  What is wrong?</A></LI>
+ <LI><a href="#doc38_NoSubmit">Why is there no "submit" button on the HTML forms?</A></LI>
+ <LI><a href="#doc38_TimerUpdate">I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</A></LI>
+ <LI><a href="#doc38_FrozenData">I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</A></LI>
+ <LI><a href="#doc38_FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
+ <LI><A HREF="#doc38_ExtDocFail">I click on a document hyperlink in a process script, but the document never opens.</A></LI>
+ <li><a href="#doc38_ProcessTweak">I'd like to make a minor change in one of the process scripts.  Can I do that?</a></li>
 </ul>
 
 <h2><a name="para_5_3_"></a>5.3. Files</h2>
 <ul>
- <LI><a href="#doc37_WhereIsConfig">Where is the configuration file located?</A></LI>
- <LI><a href="#doc37_WhereData">Where is my PSP data stored?</A></LI>
- <LI><a href="#doc37_MoveData">How can I backup my psp data and/or move it to another computer?</A></LI>
- <li><a href="#doc37_CorruptFiles">I got a warning box that claims that my data files have been corrupted!  Can I get my data back?</a></li>
+ <LI><a href="#doc38_WhereIsConfig">Where is the configuration file located?</A></LI>
+ <LI><a href="#doc38_WhereData">Where is my PSP data stored?</A></LI>
+ <LI><a href="#doc38_MoveData">How can I backup my psp data and/or move it to another computer?</A></LI>
+ <li><a href="#doc38_CorruptFiles">I got a warning box that claims that my data files have been corrupted!  Can I get my data back?</a></li>
 </ul>
 
 <h2><a name="para_5_4_"></a>5.4. Other questions</h2>
 <ul>
- <LI><a href="#doc37_HideFinished">Can I hide my finished projects from the hierarchy browser (and other screens)?  They are starting to pile up and are taking up a lot of space.</a></li>
- <LI><a href="#doc37_OutlierProject">I have a project in my hierarchy that doesn't have much to do with my current development habits.  Can I mark it as an "outlier" so that it doesn't corrupt the Planning and PROBE estimates?</a></li>
- <LI><a href="#doc37_DCRSCR">What happened to the DCR and SCR processes?</A></LI>
- <LI><a href="#doc37_Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</A></LI>
- <LI><A HREF="#doc37_TeamSupport">Does the Process Dashboard support teams?</A></LI>
- <LI><a href="#doc37_Website">Where can I get the latest information about the Process Dashboard?</A></LI>
- <LI><a href="#doc37_BugReport">I think I've found a bug.  Whom do I contact?</A></LI>
+ <LI><a href="#doc38_HideFinished">Can I hide my finished projects from the hierarchy browser (and other screens)?  They are starting to pile up and are taking up a lot of space.</a></li>
+ <LI><a href="#doc38_OutlierProject">I have a project in my hierarchy that doesn't have much to do with my current development habits.  Can I mark it as an "outlier" so that it doesn't corrupt the Planning and PROBE estimates?</a></li>
+ <LI><a href="#doc38_DCRSCR">What happened to the DCR and SCR processes?</A></LI>
+ <LI><a href="#doc38_Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</A></LI>
+ <LI><A HREF="#doc38_TeamSupport">Does the Process Dashboard support teams?</A></LI>
+ <LI><a href="#doc38_Website">Where can I get the latest information about the Process Dashboard?</A></LI>
+ <LI><a href="#doc38_BugReport">I think I've found a bug.  Whom do I contact?</A></LI>
 </UL>
 
-<P><HR><a name="doc37_MacInstall"></a><B>How can I install the Process Dashboard on 
+<P><HR><a name="doc38_MacInstall"></a><B>How can I install the Process Dashboard on 
    a Macintosh computer?</b>
 
 <p>At this time, we do not have very much experience with installing or 
@@ -4113,7 +4613,7 @@ work with you one-on-one to work things out so that we can document the
 proper procedure.</p>
 
 
-<P><HR><a name="doc37_NoServer"></a><B>My web browser displays an error message 
+<P><HR><a name="doc38_NoServer"></a><B>My web browser displays an error message 
    when I try to view a script/form/chart/report/etc.  What is wrong?</B>
 
 <P>The dashboard actually contains a very small HTTP server that provides all
@@ -4144,7 +4644,7 @@ is running.</p>
       &quot;localhost&quot;.</LI>
   </UL>
 
-<p><hr><a name="doc37_SunPlugin"></a><b>My web browser is able to show the forms, 
+<p><hr><a name="doc38_SunPlugin"></a><b>My web browser is able to show the forms, 
 but none of the entry blanks have any information.  What is wrong?</b>
 
 <p>If you can see the HTML forms but they don't seem to be talking to the 
@@ -4166,7 +4666,7 @@ please send us an email at
 <em>processdash-devel@lists.sourceforge.net</em></p> and we will attempt to 
 help you with the problem.
 
-<P><hr><A NAME="doc37_TwoForms"></A><b>If I have a dashboard script or form open,
+<P><hr><A NAME="doc38_TwoForms"></A><b>If I have a dashboard script or form open,
 and I click the script button to open another form, the new form appears in
 my existing browser window, replacing the old form. Why can't I have two
 forms open at once?</b>
@@ -4184,7 +4684,7 @@ pointed in the right direction:
       launching shortcuts."</LI>
 </OL>
 
-<P><HR><a name="doc37_NoConnection"></a><B>All my data elements say "NO 
+<P><HR><a name="doc38_NoConnection"></a><B>All my data elements say "NO 
 CONNECTION".  What is wrong?</B>
 
 <P>The forms always display "live" data - this allows them to auto-recalculate
@@ -4223,7 +4723,7 @@ problem, you must</p>
 <P>This will allow the dashboard to search for an available communications 
 port.</p>
 
-<P><HR><a name="doc37_ERROR"></a><B>Some of my data elements say
+<P><HR><a name="doc38_ERROR"></a><B>Some of my data elements say
 "<code>#VALUE!</code>" or "<code>#DIV/0!</code>". What is wrong?</B>
 
 <P>"<code>#VALUE!</code>" indicates that the dashboard cannot calculate a 
@@ -4234,7 +4734,7 @@ value because the formula references a value that is missing (displayed as
 that there is a "<code>?????</code>" field somewhere that you still need to 
 fill in. If you fill in all the "<code>?????</code>" fields and the 
 "<code>#VALUE!</code>" field does not recalculate, check to ensure that the 
-calculation is not <A HREF="#doc23_top">frozen</A>.</P>
+calculation is not <A HREF="#doc24_top">frozen</A>.</P>
 
 <P>"<code>#DIV/0!</code>" indicates that the dashboard encounted a 
 divide-by-zero error when calculating a particular data value. Many times 
@@ -4249,10 +4749,10 @@ attempts to divide by zero and returns the error.</P>
 in the habit of clicking the little "completion" checkbox at the right end of 
 the dashboard, some (or all) of your data will be ignored by the dashboard 
 when creating reports and graphs.  The reporting features of the dashboard 
-only report tasks/projects that are marked as complete.  See the <a href="#doc28_top">Using the Completion Checkbox</a>
+only report tasks/projects that are marked as complete.  See the <a href="#doc29_top">Using the Completion Checkbox</a>
 help topic for more information.</P>
 
-<P><HR><a name="doc37_BadExcel"></a><B>I tried to export my data to Excel with the 
+<P><HR><a name="doc38_BadExcel"></a><B>I tried to export my data to Excel with the 
 link on one of the forms, but I just got a small ASCII file.  What is 
 wrong?</B>
 
@@ -4268,13 +4768,13 @@ text file. Alternatively, that three line text file might appear in an Excel
 spreadsheet.</p>
 
 <P>If you encounter such problems, the simplest fix is to add the
-following line to your <a href="#doc39_top">configuration file</a>:</p>
+following line to your <a href="#doc40_top">configuration file</a>:</p>
 
 <pre> excel.exportMethod=mime</pre>
 
-<p>And data will be exported to Excel <A HREF="#doc36_static">statically</A>.</P>
+<p>And data will be exported to Excel <A HREF="#doc37_static">statically</A>.</P>
 
-<P><HR><a name="doc37_NoSubmit"></A><B>Why is there no "submit" button on the HTML 
+<P><HR><a name="doc38_NoSubmit"></A><B>Why is there no "submit" button on the HTML 
 forms?</B>
 
 <P>The HTML forms used by the dashboard are continually "live".  There is no 
@@ -4288,13 +4788,13 @@ information, see the <A HREF="#doc17_top">Entering process
 data</A> help topic.</P>
 
 
-<P><HR><a name="doc37_TimerUpdate"></a><B>I've started the timer, but none of the 
+<P><HR><a name="doc38_TimerUpdate"></a><B>I've started the timer, but none of the 
 numbers on my reports are changing.  How can I know that it is working?</b>
 
 <p>When the timer is running and you first navigate to an activity, the
 dashboard will not create an entry in the time log until you have spent a full
 minute there; this is by design.  For a more detailed explanation, see the
-help topic for the <a href="#doc27_timelogdelay">play /
+help topic for the <a href="#doc28_timelogdelay">play /
 pause button</a>.</P>
 
 <P>Also, the dashboard will make a quiet "tick" sound whenever the timer 
@@ -4305,7 +4805,7 @@ determined by positioning the mouse pointer over the play/pause button.  A
 tooltip help will pop up containing the current state.</p>
 
 
-<P><HR><a name="doc37_FrozenData"></a><B>I made a mistake in one of my numbers on 
+<P><HR><a name="doc38_FrozenData"></a><B>I made a mistake in one of my numbers on 
 the Project Plan Summary form, but the form won't let me change the numbers! 
 What can I do?</b>
 
@@ -4313,11 +4813,11 @@ What can I do?</b>
 planning phase by clicking the completion checkbox.  Also it will freeze all 
 the data when the project is marked as complete.  You can make these numbers 
 editable by marking either the project or the planning phase incomplete 
-again.  For more info on freezing data see the <a href="#doc23_top">data freezing</a> and the <a href="#doc28_top">completion checkbox</a> help 
+again.  For more info on freezing data see the <a href="#doc24_top">data freezing</a> and the <a href="#doc29_top">completion checkbox</a> help 
 topics.</p>
 
 
-<P><HR><a name="doc37_FormsColors"></a><b>What is the significance of the different 
+<P><HR><a name="doc38_FormsColors"></a><b>What is the significance of the different 
 text colors on the PSP process scripts and forms?</b>
 
 <P>In his book <I>A Discipline for Software Engineering</I> where he outlines 
@@ -4340,7 +4840,7 @@ certain steps are performed (e.g.  instead of performing a PROBE calculation,
 the PROBE tool should be used).  Green text is used to indicate this slight
 departure from the <i>true</i> PSP scripts and forms.</P>
 
-<P><HR><a name="doc37_ExtDocFail"></a><b>I click on a document hyperlink in a 
+<P><HR><a name="doc38_ExtDocFail"></a><b>I click on a document hyperlink in a 
 process script, but the document never opens.</b>
 
 <P>For maximum portability, the document templates provided with the 
@@ -4357,14 +4857,14 @@ prompt you to save it (not very helpful). To solve this problem, you must:</P>
    program you just installed.</LI>
 </OL>
 
-<p><hr><a name="doc37_ProcessTweak"></a><b>I'd like to make a minor change in one 
+<p><hr><a name="doc38_ProcessTweak"></a><b>I'd like to make a minor change in one 
 of the process scripts.  Can I do that?</b>
 
-<p>Yes you can!  Please see the section on <a href="#doc41_OverwritingScript">overwriting 
+<p>Yes you can!  Please see the section on <a href="#doc42_OverwritingScript">overwriting 
 process scripts</a> in the help topic that describes how the dashboard finds 
 the script files.</p>
 
-<P><HR><a name="doc37_WhereIsConfig"></A><B>Where is the configuration file located?</B>
+<P><HR><a name="doc38_WhereIsConfig"></A><B>Where is the configuration file located?</B>
 
 <P>The configuration file is named <code>.pspdash</code> on Unix systems and
 <code>pspdash.ini</code> on Windows systems.  It can be located in either of
@@ -4372,11 +4872,11 @@ two places: the user's data directory or the user's home directory (on Unix
 systems).  The dashboard looks in the data directory first, then in the user's
 home directory.  To find out exactly where your configuration file is located,
 choose "About" from the configuration menu, then click on the link for "user
-settings". See the <a href="#doc39_top">configuration file</A> help
+settings". See the <a href="#doc40_top">configuration file</A> help
 topic for more information about the configuration file and the settings that
 can be defined there.</P>
 
-<P><HR><a name="doc37_WhereData"></a><B>Where is my PSP data stored?</B>
+<P><HR><a name="doc38_WhereData"></a><B>Where is my PSP data stored?</B>
 <P>The dashboard stores all of your data in a single directory, in plain text
 files.  This directory is often referred to in this documentation as the "data
 directory".  With the current default configuration, data is always stored in
@@ -4397,11 +4897,11 @@ Dashboard&quot; from the configuration menu, then clicking on the link
 for &quot;user settings&quot;.</p>
 
 
-<P><HR><a name="doc37_MoveData"></A><B>How can I backup my psp data and/or move it 
+<P><HR><a name="doc38_MoveData"></A><B>How can I backup my psp data and/or move it 
 to another computer?</B>
 
 <P>If you want to backup your psp data, simply back up the contents of your
-<a href="#doc37_WhereData">data directory</a>.  To move your psp data to a different
+<a href="#doc38_WhereData">data directory</a>.  To move your psp data to a different
 computer,</p>
 
 <UL>
@@ -4412,7 +4912,7 @@ computer,</p>
     data directory.</LI></UL>
 
 
-<p><hr><a name="doc37_CorruptFiles"></a><b>I got a warning box that claims that my data files have been corrupted!  Can I get my data back?</b>
+<p><hr><a name="doc38_CorruptFiles"></a><b>I got a warning box that claims that my data files have been corrupted!  Can I get my data back?</b>
 
 <p>If you did not continue running the dashboard when the dialog warned you 
 that doing so could be quite dangerous, then yes, you probably can.</p>
@@ -4436,11 +4936,11 @@ steps to take next are:</p>
 
 <p>Even though the Dashboard has been designed to be safe with your precious 
 process data, it is still a good idea to back up the Dashboard's data 
-directory every so often.  See the question about <a href="#doc37_MoveData">backing 
+directory every so often.  See the question about <a href="#doc38_MoveData">backing 
 up your Dashboard data</a> for more information.</p>
 
 
-<p><hr><a name="doc37_HideFinished"></a><b>Can I hide my finished projects from the 
+<p><hr><a name="doc38_HideFinished"></a><b>Can I hide my finished projects from the 
 hierarchy browser (and other screens)?  They are starting to pile up and are 
 taking up a lot of space.</b>
 
@@ -4455,7 +4955,7 @@ your PROBE Estimates and your Planning data.  See the <a href="#doc18_top">hiera
 for more information.</p>
 
 
-<p><hr><a name="doc37_OutlierProject"></a><b>I have a project in my hierarchy that 
+<p><hr><a name="doc38_OutlierProject"></a><b>I have a project in my hierarchy that 
 doesn't have much to do with my current development habits.  Can I mark it as 
 an "outlier" so that it doesn't corrupt the Planning and PROBE estimates?</b>
 
@@ -4478,7 +4978,7 @@ help topics for more information.</p>
 <p>To remove a project's effects from Planning and To Date calculations, you 
 can make use of multiple data sets.  By defining a customized data set for 
 your current project, you can isolate only the data you know is applicable.  
-See the <a href="#doc40_top">multiple To Date 
+See the <a href="#doc41_top">multiple To Date 
 data</a> help topic for more information.</p>
 
 <p>A less desireable but simpler way to remove a project's effects would be 
@@ -4487,7 +4987,7 @@ calculations only use completed projects for their data sets.  The drawback
 with this approach is that you will lose the accurate completion date for the 
 project that you mark incomplete.</p>
 
-<P><HR><a name="doc37_DCRSCR"></a><b>What happened to the DCR and SCR processes?</b>
+<P><HR><a name="doc38_DCRSCR"></a><b>What happened to the DCR and SCR processes?</b>
 
 <P>The DCR and SCR processes were shipped with version 1.1 of the
 Process Dashboard.  They were later removed from the main dashboard
@@ -4501,7 +5001,7 @@ Discipline for Software Engineering</i>, they fall into this category.
 We have not attempted to obtain that permission from Addison-Wesley, so
 these processes are no longer available.</p>
 
-<P><HR><a name="doc37_Auto"></a><B>I would like to integrate the dashboard more 
+<P><HR><a name="doc38_Auto"></a><B>I would like to integrate the dashboard more 
 closely with my IDE. Is it possible to programatically start/stop the timer, 
 and change the active hierarchy path?</B>
 
@@ -4526,7 +5026,7 @@ to change the current hierarchy path <b>and</b> start the timer, use
 request originates from the same machine where the dashboard is
 running.
 
-<P><HR><A NAME="doc37_TeamSupport"></A><b>Does the Process Dashboard support
+<P><HR><A NAME="doc38_TeamSupport"></A><b>Does the Process Dashboard support
 teams?</b>
 
 <P>The current version of the dashboard <I>does</I> contain features that
@@ -4536,14 +5036,14 @@ team is using the dashboard, and would like to evaluate these features,
 please send email to <I>processdash-devel@lists.sourceforge.net</I> for
 assistance.</p>
 
-<P><HR><a name="doc37_Website"></a><b>Where can I get the latest information about 
+<P><HR><a name="doc38_Website"></a><b>Where can I get the latest information about 
 the Process Dashboard?</b>
 
 <P>The latest developments in the development of the Process Dashboard, 
 including the latest version, can be found at 
 <em>http://processdash.sourceforge.net.</em></p>
 
-<P><HR><a name="doc37_BugReport"></a><B>I think I've found a bug.  Whom do I contact?</b>
+<P><HR><a name="doc38_BugReport"></a><B>I think I've found a bug.  Whom do I contact?</b>
 
 <P>If you like, you can fill out a bug form on our web site at 
 <EM>http://sourceforge.net/tracker/?group_id=9858&amp;atid=109858</EM>.  The 
@@ -4553,8 +5053,13 @@ menu.  This will open your web browser pointed right to the bug form.</p>
 <p>If you would rather send us an email, write to 
 <em>processdash-devel@lists.sourceforge.net</em></p>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc38_top"></a>
+<HR>
+</div>
+<a name="doc39_top"></a><div class="INITIAL_STATUS">
+
 
 <H1><a name="para_6_"></a>6. Advanced Topics</H1>
 
@@ -4566,6 +5071,7 @@ obvious?  This is the place to look.</p>
 various features of the dashboard, track multiple sets of To Date data, and 
 how to create your own processes for use in the Dashboard.</p>
 
+<div class="hideInBook">
 <p> </p>
 <HR>
 <P><TABLE cellSpacing=0 cellPadding=0 width="75%" align=center border=0>
@@ -4576,9 +5082,14 @@ how to create your own processes for use in the Dashboard.</p>
   </TD>
  </TR>
 </TABLE>
+</div>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc39_top"></a>
+</div>
+<a name="doc40_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_6_1_"></a>6.1. Configuration File</H2>
 <P>The Configuration File is used to customize the behavior of the Process
@@ -4602,7 +5113,7 @@ the # character.</p>
 <P>The settings available in this file and their usage are listed below:</P>
 
 <ul>
- <li><a name="doc39_autoRealization"></a><strong>autoRealization</strong><br>
+ <li><a name="doc40_autoRealization"></a><strong>autoRealization</strong><br>
    Policy for auto-realization of data. To save time and memory, formulas are 
    not immediately calculated when the dashboard opens.  Instead, they are 
    calculated (realized) at some later time.  This realization always occurs 
@@ -4624,7 +5135,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_autoUpdate"></a><strong>autoUpdate.disabled</strong><br>
+ <li><a name="doc40_autoUpdate"></a><strong>autoUpdate.disabled</strong><br>
    If this property is set to "true", the dashboard will not automatically 
    perform a monthly check for updated versions of the dashboard software or 
    the add-on process sets.<br>
@@ -4698,7 +5209,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_dateFormat"></a><strong>dateFormat</strong><br>
+ <li><a name="doc40_dateFormat"></a><strong>dateFormat</strong><br>
    Display format for date fields.<br>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td>A list of recognized date formats, separated by 
@@ -4712,7 +5223,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_dateTimeFormat"></a><strong>dateTimeFormat</strong><br>
+ <li><a name="doc40_dateTimeFormat"></a><strong>dateTimeFormat</strong><br>
    Display format for date and time fields.<br>
    <table border=0><tr valign="top"><td NOWRAP>Format:</td><td>A list of 
       recognized date formats, separated by the | character.  The first 
@@ -4726,7 +5237,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_defectDialogAutostart"></a><strong>defectDialog.autostart</strong><br>
+ <li><a name="doc40_defectDialogAutostart"></a><strong>defectDialog.autostart</strong><br>
    Controls whether to start the defect timer when opening a new defect dialog.<br>
    If this property is set to "true", clicking the defect button on the main
    dashboard window will cause the defect dialog box to come up with 
@@ -4741,7 +5252,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_defectDialogPhaseMap"></a><strong>defectDialog.phaseMap</strong><br>
+ <li><a name="doc40_defectDialogPhaseMap"></a><strong>defectDialog.phaseMap</strong><br>
    Describes common defect injection/removal patterns.  Each pair is 
    interpreted to mean "Often defects are injected in phase A, and removed in 
    phase B."  When you remove a defect during phase B of a process, it will 
@@ -4757,7 +5268,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_defectDialogRestrictSequence"></a><strong>defectDialog.restrictSequence</strong><br>
+ <li><a name="doc40_defectDialogRestrictSequence"></a><strong>defectDialog.restrictSequence</strong><br>
    If this property is set to true, the defect dialog will check injection 
    and removal phases to ensure that defects are NOT removed before they are 
    injected.  (You might want to disable this feature if you make use of 
@@ -4805,10 +5316,34 @@ the # character.</p>
    If true, the dashboard will allow connections from other machines.<br>
    If false, the dashboard will reject all HTTP connections unless they come 
    from "localhost".<br>
+   Note that password settings (such as those set on shared/published
+   earned value schedules) establish exceptions that override this setting.
+   Thus, if you have set this to true, setting a password will deny 
+   connection attempts that do not correctly identify the password.
+   Conversely, you can leave this set to false, and setting a password
+   will allow connection attempts that correctly supply the password.
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Example:</td><td>http.allowRemote=true</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>http.hostname</strong><br>
+   Most of the time, you interact with the dashboard web server by viewing
+   a web page that begins with "http://localhost".  This works fine when
+   the dashboard and the web browser are both running on the same computer.
+   Sometimes, though, it is desirable to construct a URL for other people
+   to use (for example, when publishing or sharing an earned value schedule).
+   The dashboard will ascertain the name of your computer and use that to
+   construct the URL; this process should work 99% of the time. If, however,
+   the dashboard deduces an incorrect name for your computer, you can use
+   this setting to override the built-in name deduction logic.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>hostname</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>none</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>hostname.mycompany.com</td></tr>
    </table>
  </li>
  <br>
@@ -4825,7 +5360,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_pauseButtonHistorySize"></a><strong>pauseButton.historySize</strong><br>
+ <li><a name="doc40_pauseButtonHistorySize"></a><strong>pauseButton.historySize</strong><br>
    The maximum number of entries which should be retained in the play/pause 
    button's history list.<br>
    <table border=0>
@@ -4836,7 +5371,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_pauseButtonQuiet"></a><strong>pauseButton.quiet</strong><br>
+ <li><a name="doc40_pauseButtonQuiet"></a><strong>pauseButton.quiet</strong><br>
    If this property is set to "true", the Play/Pause button will not provide 
    any audible feedback. By default, the Play/Pause button will make a
    clicking sound whenever you start the timer or change tasks with the
@@ -4849,7 +5384,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_pauseButtonShowCurrent"></a><strong>pauseButton.showCurrent</strong><br>
+ <li><a name="doc40_pauseButtonShowCurrent"></a><strong>pauseButton.showCurrent</strong><br>
    Controls the appearance of the play/pause button on the dashboard.<br>
    If true, the button will show the PLAY symbol 
    [<img src="Images/continue.gif">] while playing (the button will show
@@ -4864,7 +5399,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_probeDialogOnlyCompleted"></a><strong>probeDialog.onlyCompleted</strong><br>
+ <li><a name="doc40_probeDialogOnlyCompleted"></a><strong>probeDialog.onlyCompleted</strong><br>
    Controls implicit filtering of data by the PROBE tool.<br>
    If true, the PROBE tool only correlates data from completed projects.<br>
    If false, the PROBE tool will use all available data.<br>
@@ -4876,7 +5411,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_pspdiffSuffixC"></a><strong>pspdiff.suffix.c</strong><br>
+ <li><a name="doc40_pspdiffSuffixC"></a><strong>pspdiff.suffix.c</strong><br>
    The pspdiff LOC counter built into the dashboard has support for several 
    common language syntaxes.  You can tell it which language to pick based on 
    the suffix of the filename.  This rule lets you control which suffixes 
@@ -4891,7 +5426,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_pspdiffSuffixCobol"></a><strong>pspdiff.suffix.cobol</strong><br>
+ <li><a name="doc40_pspdiffSuffixCobol"></a><strong>pspdiff.suffix.cobol</strong><br>
    The pspdiff LOC counter built into the dashboard has support for several 
    common language syntaxes.  You can tell it which language to pick based on 
    the suffix of the filename.  This rule lets you control which suffixes 
@@ -4906,7 +5441,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_pspdiffSuffixPascal"></a><strong>pspdiff.suffix.pascal</strong><br>
+ <li><a name="doc40_pspdiffSuffixPascal"></a><strong>pspdiff.suffix.pascal</strong><br>
    The pspdiff LOC counter built into the dashboard has support for several 
    common language syntaxes.  You can tell it which language to pick based on 
    the suffix of the filename.  This rule lets you control which suffixes 
@@ -4921,7 +5456,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_pspdiffSuffixSh"></a><strong>pspdiff.suffix.sh</strong><br>
+ <li><a name="doc40_pspdiffSuffixSh"></a><strong>pspdiff.suffix.sh</strong><br>
    The pspdiff LOC counter built into the dashboard has support for several 
    common language syntaxes.  You can tell it which language to pick based on 
    the suffix of the filename.  This rule lets you control which suffixes 
@@ -4936,7 +5471,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_pspdiffSuffixSql"></a><strong>pspdiff.suffix.sql</strong><br>
+ <li><a name="doc40_pspdiffSuffixSql"></a><strong>pspdiff.suffix.sql</strong><br>
    The pspdiff LOC counter built into the dashboard has support for several 
    common language syntaxes.  You can tell it which language to pick based on 
    the suffix of the filename.  This rule lets you control which suffixes 
@@ -4976,7 +5511,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><a name="doc39_timelogUpdateInterval"></a><strong>timelog.updateInterval</strong><br>
+ <li><a name="doc40_timelogUpdateInterval"></a><strong>timelog.updateInterval</strong><br>
    The dashboard saves the current time log entry periodically.  This setting 
    specifies the number of minutes it should wait between saves.
    <table border=0>
@@ -4990,8 +5525,12 @@ the # character.</p>
 
 <!-- DISCLAIMER -->
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc40_top"></a>
+</div>
+<a name="doc41_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_6_2_"></a>6.2. Using Multiple "To Date" Data Sets</H2>
 
@@ -5029,7 +5568,7 @@ dashboard, which is called "/To Date/PSP/All".  This rollup will not appear
 in your hierarchy, but its data is available for use by projects in your 
 hierarchy.</p>
 
-<a name="doc40_filter"></a><H3><a name="para_6_2_2_"></a>6.2.2. Customizing "To Date" Data Sets</H3>
+<a name="doc41_filter"></a><H3><a name="para_6_2_2_"></a>6.2.2. Customizing "To Date" Data Sets</H3>
 
 <p>When you first create a new To Date data set, it will (by default) be 
 rolling up data from all completed PSP projects.  Therefore, the first thing 
@@ -5080,7 +5619,7 @@ criteria.</p>
 <H3><a name="para_6_2_3_"></a>6.2.3. Viewing Rolled Up Data</H3>
 
 <P>To view rolled up data, just use the hierarchy menus to navigate to a data 
-rollup node, and click the script button. The <A HREF="#doc35_charts">Data 
+rollup node, and click the script button. The <A HREF="#doc36_charts">Data 
 Analysis</A> center will appear - but it will be displaying only data from 
 the projects that you have included in your rollup!  In fact, the main "Data 
 Analysis" center which is launched from the Configure menu is nothing more 
@@ -5101,16 +5640,20 @@ columns.</p>
 
 <p><center><img src="Images/DataRollupSummaryPullDown.png"></center></p>
 
-<p><B>TIP:</B> remember that data in the plan column <A HREF="#doc23_top">freezes</A> when planning is marked 
+<p><B>TIP:</B> remember that data in the plan column <A HREF="#doc24_top">freezes</A> when planning is marked 
 complete, and data in the "To Date" columns freezes when the project is 
 marked complete.  Therefore, if Planning and/or the entire project is marked 
 complete when you alter the drop-down, the data in the "Plan" and/or "To 
 Date" columns will not recalculate.</p>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc41_top"></a>
+</div>
+<a name="doc42_top"></a><div class="INITIAL_STATUS">
 
-<a name="doc41_OverwritingScript"></a><h2><a name="para_6_3_"></a>6.3. Making a change to a script</h2>
+
+<a name="doc42_OverwritingScript"></a><h2><a name="para_6_3_"></a>6.3. Making a change to a script</h2>
 
 <p>Perhaps the built-in PSP processes suit you well, but you'd like to make 
 some small tweak to one of the HTML scripts.  For example, you might like to 
@@ -5142,7 +5685,7 @@ analyzer perhaps).</p>
 hierarchy, the dashboard will show you the page containing your custom 
 changes.</p>
 
-<a name="doc41_FindFiles"></a><H2><a name="para_6_4_"></a>6.4. How the Dashboard finds process files</H2>
+<a name="doc42_FindFiles"></a><H2><a name="para_6_4_"></a>6.4. How the Dashboard finds process files</H2>
 
 <p>When it starts, the dashboard searches for process files and add-ins and 
 dynamically loads them.  Also, every time you request a web page from 
@@ -5177,7 +5720,7 @@ you want to customize anything that appears in a process templates directory,
 you can.  Just create your custom version and put it in a location earlier on 
 the search list.</p>
 
-<a name="doc41_sharing"></a><h3><a name="para_6_4_1_"></a>6.4.1. Sharing changes with team members</h3>
+<a name="doc42_sharing"></a><h3><a name="para_6_4_1_"></a>6.4.1. Sharing changes with team members</h3>
 
 <p>If you're working with a team, and everyone on your team would like access 
 to changes you have made to a process script, you can do the following:</p>
@@ -5197,9 +5740,9 @@ to changes you have made to a process script, you can do the following:</p>
   <ul>
    <li>HTML files overriding files that are built into the dashboard</li>
    <li>LanguageFilters defining custom LOC counters</li>
-   <li><a href="#doc42_XmlDef">template.xml</a> files 
+   <li><a href="#doc43_XmlDef">template.xml</a> files 
       defining team processes</li>
-   <li>Data files and HTML scripts/forms supporting those team <a href="#doc42_top">processes</a></li>
+   <li>Data files and HTML scripts/forms supporting those team <a href="#doc43_top">processes</a></li>
   </ul>
    and when you make changes to these items, everyone on the team will see 
    them automatically (except as noted below).</li>
@@ -5215,8 +5758,12 @@ once, when the dashboard starts up.  If you make changes to these files,
 people will have to shut down and restart their dashboard to see your 
 changes.</p>
 
+</div>
+<div class="INITIAL_STATUS">
 
-<div></div><a name="doc42_top"></a>
+</div>
+<a name="doc43_top"></a><div class="INITIAL_STATUS">
+
 
 <H2><a name="para_6_5_"></a>6.5. Defining your own processes for use in the Process Dashboard</H2>
 
@@ -5245,13 +5792,13 @@ creating a simple, custom process is not difficult. Just follow these
 steps:</P>
 
 <OL>
- <LI><A HREF="#doc42_ProcessStructure">Identify your process structure</A></LI>
- <LI><A HREF="#doc42_XmlDef">Create an XML definition for your process</A></LI>
- <LI><A HREF="#doc42_XmlDesc">Save your XML process descriptor</A></LI>
- <LI><A HREF="#doc42_Restart">Restart the dashboard</A></LI>
+ <LI><A HREF="#doc43_ProcessStructure">Identify your process structure</A></LI>
+ <LI><A HREF="#doc43_XmlDef">Create an XML definition for your process</A></LI>
+ <LI><A HREF="#doc43_XmlDesc">Save your XML process descriptor</A></LI>
+ <LI><A HREF="#doc43_Restart">Restart the dashboard</A></LI>
 </OL>
 
-<H3><a name="para_6_5_1_"></a>6.5.1. <A NAME="doc42_ProcessStructure">Step 1: Identify your process structure</A></H3>
+<H3><a name="para_6_5_1_"></a>6.5.1. <A NAME="doc43_ProcessStructure">Step 1: Identify your process structure</A></H3>
 
 <P>What steps do you want to include in your process? The standard PSP0 
 process, of course, includes the phases Planning, Design, Code, Compile, 
@@ -5303,7 +5850,7 @@ planning phase serves an obvious purpose of estimating size, cost, schedule,
 risk, etc. The postmortem phase allows you to ensure accurate collection of 
 data and capture process improvement proposals.</P>
 
-<H3><a name="para_6_5_2_"></a>6.5.2. <A NAME="doc42_XmlDef">Step 2: Create an XML definition for your process</A></H3>
+<H3><a name="para_6_5_2_"></a>6.5.2. <A NAME="doc43_XmlDef">Step 2: Create an XML definition for your process</A></H3>
 
 <P>The dashboard understands a process structure that is described in XML 
 format. <B>The discussion below assumes that you are familiar with XML.</B>
@@ -5368,10 +5915,10 @@ phase, you can omit it for others. If you do specify phase types, the
 dashboard will be able to intelligently calculate metrics like Yield, A/FR, 
 and Defect removal efficiency.</P>
 
-<H3><a name="para_6_5_3_"></a>6.5.3. <A NAME="doc42_XmlDesc">Step 3: Save your XML process descriptor</A></H3>
+<H3><a name="para_6_5_3_"></a>6.5.3. <A NAME="doc43_XmlDesc">Step 3: Save your XML process descriptor</A></H3>
 
 <P>Once your XML process descriptor is complete, it is time to save it 
-somewhere <A HREF="#doc41_FindFiles">where the dashboard 
+somewhere <A HREF="#doc42_FindFiles">where the dashboard 
 can find it</A>. Follow these steps:</P>
 
 <ol>
@@ -5389,12 +5936,12 @@ can find it</A>. Follow these steps:</P>
 
 <P>This is the simplest place to put your XML process descriptor. Of course, 
 if you want to share your process with team members, you may want to put it 
-somewhere else. See the section on <A HREF="#doc41_FindFiles">how the dashboard finds process 
+somewhere else. See the section on <A HREF="#doc42_FindFiles">how the dashboard finds process 
 files</A> for more information. Keep in mind that the dashboard will search 
 for "<code><b>-template.xml</b></code>" files in the "Templates" directories 
 only - subdirectories will not be searched.</P>
 
-<H3><a name="para_6_5_4_"></a>6.5.4. <A NAME="doc42_Restart">Step 4: Restart the dashboard</A></H3>
+<H3><a name="para_6_5_4_"></a>6.5.4. <A NAME="doc43_Restart">Step 4: Restart the dashboard</A></H3>
 
 <P>Once your XML process descriptor is in place, it is necessary to shut down 
 the dashboard and restart it for the new process to be found.  Once found, 
@@ -5424,6 +5971,8 @@ you will automatically have:</P>
 <P>Check back on our website and download the <I>Process Authoring Manual</I>
 when it becomes available.</P>
 
+</div>
+<div class="INITIAL_STATUS">
 
 </BODY>
 </HTML>

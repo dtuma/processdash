@@ -11,12 +11,12 @@
 contains built-in support for collaboration; just click the
 Collaborate button on the Task &amp; Schedule dialog.</p>
 
-<p>---point to collaborate button---</p>
+<p><center><img src="../../Images/TaskScheduleCollaborationButton.png"></center></p>
 
 <p>The &quot;Task and Schedule Collaboration Wizard&quot; will
 appear.</p>
 
-<p>---show collaboration wizard---</p>
+<p><center><img src="../../Images/TaskScheduleCollab.png"></center></p>
 
 <p>The task &amp; schedule tool supports two different types of
 collaboration.  It allows you to <a href="#publishing">publish</a> a
@@ -42,21 +42,24 @@ the HTML earned value report. This is a great way to:</p>
   <li>Keep your manager or your customer apprised of your progress.</li>
 </ul>
 
-<p>To publish your schedule, open it and click on the Collaborate
-button. Then, click the Publish button. The dashboard will give you an
-opportunity to set a password. Setting a password prevents other
-people from viewing this schedule unless they know the password. If
-this isn't a concern to you, you can choose not to require a
-password. Passwords are set on a schedule-by-schedule basis, so you
-can set different passwords for different schedules, or set the
-password on one schedule but not another.</p>
+<p><a name="publishPassword"></a>To publish your schedule, open it and
+click on the Collaborate button. Then, click the Publish button. The
+dashboard will give you an opportunity to set a password. Setting a
+password prevents other people from viewing this schedule unless they
+know the password. If this isn't a concern to you, you can choose not
+to require a password. Passwords are set on a schedule-by-schedule
+basis, so you can set different passwords for different schedules, or
+set the password on one schedule but not another.</p>
 
-<p>The dashboard will save your password settings as soon as you click
-the Next button. It will then display a final screen containing the
-URL, username, and password of the published schedule. People will
-need this information to view the published schedule, so you will need
-to send this information to them. A hyperlink is provided that will
-help you to write an email containing this information.</p>
+<p><center><img src="../../Images/TaskScheduleCollabPassword.png"></center></p>
+
+<p><a name="publishFinish"></a>The dashboard will save your password
+settings as soon as you click the Next button. It will then display a
+final screen containing the URL, username, and password of the
+published schedule. People will need this information to view the
+published schedule, so you will need to send this information to
+them. A hyperlink is provided that will help you to write an email
+containing this information.</p>
 
 <p>If you forget the URL or the password in the future, you can walk
 through this process again.  Reopen the schedule, click the
@@ -104,22 +107,23 @@ schedule.</p>
 
 <h3><a name="sharing"></a>Sharing Schedules</h3>
 
-<p>To share your schedule, open it and click on the Collaborate
-button. Then, click the Share button. The dashboard will give you an
-opportunity to set a sharing password. Setting a password prevents
-other people from adding this schedule to a master schedule unless
-they know the password. If this isn't a concern to you, you can choose
-not to require a password. Passwords are set on a schedule-by-schedule
-basis, so you can set different passwords for different schedules, or
-set the password on one schedule but not another.</p>
+<p><a name="sharePassword"></a>To share your schedule, open it and
+click on the Collaborate button. Then, click the Share button. The
+dashboard will give you an opportunity to set a sharing
+password. Setting a password prevents other people from adding this
+schedule to a master schedule unless they know the password. If this
+isn't a concern to you, you can choose not to require a
+password. Passwords are set on a schedule-by-schedule basis, so you
+can set different passwords for different schedules, or set the
+password on one schedule but not another.</p>
 
-<p>The dashboard will save your password settings as soon as you click
-the Next button. It will then display a final screen containing the
-password and the URL of the shared schedule.
-<a name="emailShareInfo"></a>You need to send this information to the
-person who is creating the master &quot;roll-up&quot; schedule. A
-hyperlink is provided that will help you to email the information to
-that person.</p>
+<p><a name="shareFinish"></a>The dashboard will save your password
+settings as soon as you click the Next button. It will then display a
+final screen containing the password and the URL of the shared
+schedule.  <a name="emailShareInfo"></a>You need to send this
+information to the person who is creating the master
+&quot;roll-up&quot; schedule. A hyperlink is provided that will help
+you to email the information to that person.</p>
 
 <p>If you forget the URL or the password in the future, you can walk
 through this process again.  Reopen the schedule, click the
@@ -217,9 +221,52 @@ Wizard&quot; from a rollup schedule.</p>
 
 <h2><a name="limitations"></a>Constraints and Limitations</h2>
 
-<p>You must have the dashboard running.</p>
+To understand the constraints of these collaboration features, it is
+helpful to understand how the features work.
 
-<p>You will probably need to be on the same LAN.</p>
+<p><center><img src="../../Images/TaskScheduleCollabArchitecture.png"></center></p>
+
+<p>When you publish a schedule, the dashboard acts as a web server
+that your co-workers can connect to with their web browser.  Their web
+browser communicates to your dashboard to see the published
+schedule.</p>
+
+<p>Similarly, when you share a schedule, the dashboard acts as a
+server that your co-worker's dashboard can connect to.  The dashboard
+that is computing the roll-up schedule connects to your dashboard and
+retrieves the latest copy of your schedule in a peer-to-peer
+fashion.</p>
+
+<p>As a result, your dashboard must be running for the collaboration
+features to work.  If your dashboard is not running when a co-worker
+tries to look at your published schedule, they will instead see an
+error page stating "Cannot find server or DNS Error."</p>
+
+<p>Rollup schedules keep a locally cached copy of your schedule, to
+enable calculating a rollup even when your dashboard isn't running.
+The rollup schedule will attempt to retrieve a recent version of your
+schedule.  If your dashboard is not running, it will calculate the
+rollup using the most recent version it has cached.</p>
+
+<p>The collaboration features rely on TCP/IP connectivity and DNS resolution
+to work. Because of this, you will probably need to be on the same network as
+your co-worker, manager, and/or customer.  If someone is on a different
+network than you (especially if there is a firewall between your computer and
+theirs), they may not be able to take advantage of any collaboration
+features you have enabled.</p>
+
+<p>Most of the time, you interact with the dashboard web server by viewing
+web pages that begin with "http://localhost".  This works fine when the
+dashboard and the web browser are both running on the same computer. For the
+collaboration features to work, however, your co-workers need a web address
+that begins with the DNS name of your computer. Therefore, the dashboard
+automatically ascertains the name of your computer and uses that to construct
+collaboration URLs.  This process should work 99% of the time. If, however,
+the dashboard deduces an incorrect name for your computer, then no one
+will be able to use the collaboration URLs you send them.  If this occurs,
+you should ask your system administrator for the DNS name of your computer,
+and use it to set the "http.hostname" setting in your 
+<a href="../AdvancedTopics/ConfigurationFile.html">configuration file</a>.
 
 </BODY>
 </HTML>

@@ -113,6 +113,13 @@
   <mapID target="UnlockReadOnly" url="Topics/Planning/EnteringData.html#unlock"/>
   <mapID target="ExportingFromForms" url="Topics/Planning/EnteringData.html#exporting"/>
   <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
+  <mapID target="TaskScheduleCollaboration" url="Topics/Planning/TaskScheduleCollaboration.html" />
+  <mapID target="TaskScheduleCollaboration.publishPassword" url="Topics/Planning/TaskScheduleCollaboration.html#publishPassword" />
+  <mapID target="TaskScheduleCollaboration.publishFinish" url="Topics/Planning/TaskScheduleCollaboration.html#publishFinish" />
+  <mapID target="TaskScheduleCollaboration.sharePassword" url="Topics/Planning/TaskScheduleCollaboration.html#sharePassword" />
+  <mapID target="TaskScheduleCollaboration.shareFinish" url="Topics/Planning/TaskScheduleCollaboration.html#shareFinish" />
+  <mapID target="TaskScheduleCollaboration.createRollup" url="Topics/Planning/TaskScheduleCollaboration.html#createRollup" />
+  <mapID target="TaskScheduleCollaboration.limitations" url="Topics/Planning/TaskScheduleCollaboration.html#limitations" />
   <mapID target="UsingTaskSchedule.progress" url="Topics/Planning/UsingTaskSchedule.html#progress" />
   <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
   <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />

@@ -31,7 +31,9 @@
       <tocitem image="PageIcon" target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
       <tocitem image="PageIcon" target="UsingProbeWizard" text="Using the PROBE Wizard"/>
       <tocitem image="PageIcon" target="UsingProbeTool" text="Using the PROBE Tool"/>
-      <tocitem image="PageIcon" target="UsingTaskSchedule" text="Using the Task &amp; Schedule Tool"/>
+      <tocitem image="BookIcon" target="UsingTaskSchedule" text="Using the Task &amp; Schedule Tool">
+        <tocitem image="PageIcon" target="TaskScheduleCollaboration" text="Task &amp; Schedule Collaboration"/>
+      </tocitem>
       <tocitem image="PageIcon" target="DataFreezing" text="Data Freezing"/>
     </tocitem>
 
