@@ -248,18 +248,22 @@ public class ProbeDialog extends JFrame implements
         private static final String[] PROBE_METHODS = {
             "PROBE Method A for Size", "PROBE Method A for Time",
             "PROBE Method B for Size", "PROBE Method B for Time",
-            "PROBE Method C for Size", "PROBE Method C for Time",
+            "PROBE Method C for Size",
+            "PROBE Method C1 for Time",
+            "PROBE Method C2 for Time",
+            "PROBE Method C3 for Time",
             "-Custom-" };
         private static final boolean [] PROBE_SHOW_REGRESSION = {
-            true, true, true, true, false, false };
+            true, true, true, true, false, false, false, false };
         private static final String[] PROBE_X = {
             EST_OBJ_LOC, EST_OBJ_LOC,
             EST_NC_LOC,  EST_NC_LOC,
-            EST_NC_LOC,  EST_NC_LOC };
+            EST_NC_LOC,
+            EST_OBJ_LOC, EST_NC_LOC, ACT_NC_LOC };
         private static final String[] PROBE_Y = {
             ACT_NC_LOC, ACT_TIME,
             ACT_NC_LOC, ACT_TIME,
-            ACT_NC_LOC, ACT_TIME };
+            ACT_NC_LOC, ACT_TIME, ACT_TIME, ACT_TIME };
 
 
         private void setAFields (boolean enableFields,
