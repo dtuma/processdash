@@ -40,8 +40,8 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import java.util.*;
 
-public class DefectDialog extends JDialog implements ActionListener,
-                                                     DocumentListener
+public class DefectDialog extends JDialog
+    implements ActionListener, DocumentListener, WindowListener
 {
     PSPDashboard parent;
     String defectFilename;
@@ -56,6 +56,7 @@ public class DefectDialog extends JDialog implements ActionListener,
     DecimalField fix_time;
     JTextArea description;
     JComboBox defect_type, phase_injected, phase_removed;
+    boolean isDirty = false, autoCreated = false;
 
     /** A stack of the defect dialogs that have been interrupted. */
     private static Stack interruptedDialogs = new Stack();
@@ -100,11 +101,15 @@ public class DefectDialog extends JDialog implements ActionListener,
         g.gridwidth = 1;
         defect_type = DefectTypeStandard.get
             (defectPath.path(), dash.data).getAsComboBox();
+        defect_type.insertItemAt("Choose a type", 0);
+        defect_type.setSelectedIndex(0);
+        defect_type.addActionListener(this);
 
         g.gridx = 0;   layout.setConstraints(defect_type, g);
         panel.add(defect_type);
 
         fix_defect = new JTextField(5);
+        fix_defect.getDocument().addDocumentListener(this);
         fix_defect.setMinimumSize(fix_defect.getPreferredSize());
         g.gridx = 1;   layout.setConstraints(fix_defect, g);
         panel.add(fix_defect);
@@ -141,10 +146,12 @@ public class DefectDialog extends JDialog implements ActionListener,
         phase_injected = phaseComboBox(defectPath, defaultInjectionPhase);
 
         phase_injected.insertItemAt("Before Development", 0);
+        phase_injected.addActionListener(this);
         g.gridx = 0;   layout.setConstraints(phase_injected, g);
         panel.add(phase_injected);
 
         phase_removed.addItem("After Development");
+        phase_removed.addActionListener(this);
         g.gridx = 1; g.gridwidth =2; layout.setConstraints(phase_removed, g);
         panel.add(phase_removed);
 
@@ -183,6 +190,7 @@ public class DefectDialog extends JDialog implements ActionListener,
                                 // eighth row
         g.gridy = 7;   g.insets = bottom_margin;  g.fill = g.BOTH;
         description = new JTextArea();
+        description.getDocument().addDocumentListener(this);
         description.setLineWrap(true);
         description.setWrapStyleWord(true);
 
@@ -218,7 +226,8 @@ public class DefectDialog extends JDialog implements ActionListener,
         g.gridx = 1; g.gridwidth = 2; layout.setConstraints(CancelButton, g);
         panel.add(CancelButton);
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(this);
 
         getContentPane().add(panel);
         pack();
@@ -227,6 +236,7 @@ public class DefectDialog extends JDialog implements ActionListener,
 
         if ("true".equalsIgnoreCase(Settings.getVal("defectDialog.autostart")))
             startTimingDefect();
+        setDirty(false);
     }
 
     DefectDialog(PSPDashboard dash, String defectFilename,
@@ -234,6 +244,12 @@ public class DefectDialog extends JDialog implements ActionListener,
         this(dash, defectFilename, defectPath);
         stopTimingDefect();
         setValues(defect);
+        setDirty(false);
+    }
+
+    public void setDirty(boolean dirty) {
+        isDirty = dirty;
+        //OKButton.setEnabled(dirty);
     }
 
     public void save() {
@@ -253,6 +269,7 @@ public class DefectDialog extends JDialog implements ActionListener,
 
         defectNumber = d.number;
         number.setText("Defect #" + d.number);
+        setDirty(false);
     }
 
     public void startTimingDefect() {
@@ -289,6 +306,8 @@ public class DefectDialog extends JDialog implements ActionListener,
             startTimingDefect();
         else
             stopTimingDefect();
+
+        setDirty(true);
     }
 
     private void maybePopDialog() {
@@ -302,6 +321,11 @@ public class DefectDialog extends JDialog implements ActionListener,
                 if (stopwatch.isRunning())
                     activeDialog.startTimingDefect();
             }
+    }
+
+    private void maybeDeleteAutocreatedDefect() {
+        if (autoCreated)
+            defectLog.deleteDefect(defectNumber);
     }
 
     private void comboSelect(JComboBox cb, String item) {
@@ -419,6 +443,7 @@ public class DefectDialog extends JDialog implements ActionListener,
 
     private void fixTimeChanged() {
         if (programmaticallyChangingFixTime) return;
+        setDirty(true);
         stopwatch.setElapsed((long) (fix_time.getValue() * 60.0));
     }
 
@@ -429,9 +454,14 @@ public class DefectDialog extends JDialog implements ActionListener,
     }
 
     private void openFixDefectDialog() {
-        save();
+        if (defectNumber == null) {
+            save();
+            setDirty(true);
+            autoCreated = true;
+        }
         DefectDialog d = new DefectDialog(parent, defectFilename, defectPath);
         d.fix_defect.setText(defectNumber);
+        d.setDirty(false);
     }
 
     public void setValues(Defect d) {
@@ -457,6 +487,12 @@ public class DefectDialog extends JDialog implements ActionListener,
         super.dispose();
     }
 
+
+    /** Check to see if the removal phase is before the injection phase.
+     *
+     * If they are out of order, display an error message to the user and
+     * return false; otherwise return true.
+     */
     private boolean checkSequence() {
         if ("false".equalsIgnoreCase
             (Settings.getVal("defectDialog.restrictSequence")))
@@ -491,26 +527,98 @@ public class DefectDialog extends JDialog implements ActionListener,
         "phase than when it was injected." };
 
 
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == activeRefreshTimer) {
-            refreshFixTimeFromStopwatch();
-        } else if (e.getSource() == OKButton) {
-            if (checkSequence()) {
-                maybePopDialog(); save(); dispose();
-            }
-        } else if (e.getSource() == CancelButton) {
-            maybePopDialog(); dispose();
-        } else if (e.getSource() == defectTimerButton) {
-            toggleDefect();
-        } else if (e.getSource() == fixDefectButton) {
-            openFixDefectDialog();
+    /** Check to ensure that the user has selected a defect type.
+     *
+     * If they have not, display an error message to the user and
+     * return false; otherwise return true.
+     */
+    private boolean checkValidType() {
+        if (defect_type.getSelectedIndex() > 0)
+            return true;
+
+        JOptionPane.showMessageDialog
+            (this, "Please choose a type for the defect.",
+             "Choose defect type", JOptionPane.ERROR_MESSAGE);
+
+        return false;
+    }
+
+
+    /** Check to see if the defect has been modified, prior to a "Cancel"
+     * operation.
+     *
+     * If the defect has not been modified, return true.  If the
+     * defect HAS been modified, ask the user if they really want to
+     * discard their changes.  If they do, return true; otherwise
+     * returns false.
+     */
+    private boolean checkDirty() {
+        return (!isDirty ||
+                JOptionPane.showConfirmDialog
+                (this, "Discard changes?", "Confirm Cancel",
+                 JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
+    }
+
+    /** Logic supporting a click of the OK button */
+    private void okButtonAction() {
+        if (checkSequence() && checkValidType()) {
+            maybePopDialog();
+            save();
+            dispose();
         }
+    }
+
+    /** Logic supporting a click of the Cancel button */
+    private void cancelButtonAction() {
+        if (checkDirty()) {
+            maybeDeleteAutocreatedDefect();
+            maybePopDialog();
+            dispose();
+        }
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == activeRefreshTimer)
+            refreshFixTimeFromStopwatch();
+        else if (e.getSource() == OKButton)
+            okButtonAction();
+        else if (e.getSource() == CancelButton)
+            cancelButtonAction();
+        else if (e.getSource() == defectTimerButton)
+            toggleDefect();
+        else if (e.getSource() == fixDefectButton)
+            openFixDefectDialog();
+        else
+            // this event must be a notification of a change to one of the
+            // JComboBoxes on the form.
+            setDirty(true);
     }
 
     // Implementation of the DocumentListener interface
 
-    public void changedUpdate(DocumentEvent e) {}
-    public void insertUpdate(DocumentEvent e)  { fixTimeChanged(); }
-    public void removeUpdate(DocumentEvent e)  { fixTimeChanged(); }
+    private void handleDocumentEvent(DocumentEvent e) {
+        if (e.getDocument() == fix_time.getDocument())
+            // If the user edited the "Fix Time" field, perform the
+            // necessary recalculations.
+            fixTimeChanged();
 
+        else
+            // The user changed one of the other text fields on the form
+            // (for example, the Fix Defect or the Description).
+            setDirty(true);
+    }
+
+    public void changedUpdate(DocumentEvent e) {}
+    public void insertUpdate(DocumentEvent e)  { handleDocumentEvent(e); }
+    public void removeUpdate(DocumentEvent e)  { handleDocumentEvent(e); }
+
+    // Implementation of the WindowListener interface
+
+    public void windowOpened(WindowEvent e) {}
+    public void windowClosing(WindowEvent e) { cancelButtonAction(); }
+    public void windowClosed(WindowEvent e) {}
+    public void windowIconified(WindowEvent e) {}
+    public void windowDeiconified(WindowEvent e) {}
+    public void windowActivated(WindowEvent e) {}
+    public void windowDeactivated(WindowEvent e) {}
 }
