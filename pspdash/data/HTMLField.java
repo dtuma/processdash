@@ -47,5 +47,8 @@ abstract class HTMLField {
     }
 
 
+    public void unlock() { if (i != null) i.unlock(); }
+
+
     abstract public void repositoryChangedValue();
 }

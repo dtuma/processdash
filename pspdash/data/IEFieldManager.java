@@ -43,6 +43,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
     String dataPath = null;       // may also store an error message
     int waitingOnElements;
     Vector dataInfo = null;
+    boolean unlocked = false;
 
 
     public static final String checkboxType = new String("checkbox");
@@ -71,6 +72,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
                 isCheckbox = checkboxType.equalsIgnoreCase(fieldType);
                 i = InterpreterFactory.create(data, dataName, dataPath);
                 i.setConsumer(this);
+                if (unlocked) unlock();
             }
         }
 
@@ -139,6 +141,7 @@ class IEFieldManager implements OLEDBSimpleProvider, HTMLFieldManager {
         int dataCount = 0;
         String dataName, fieldName;
         dataInfo = new Vector();
+        unlocked = a.unlocked();
 
                                     // scan the applet parameters for field specs
         while ((dataName = a.getParameter(fieldName="field"+dataCount)) != null) {

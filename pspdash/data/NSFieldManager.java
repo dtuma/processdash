@@ -38,13 +38,14 @@ class NSFieldManager implements HTMLFieldManager {
     Hashtable inputListeners = null;
     Repository data = null;
     String dataPath = null;
-    boolean isRunning;
+    boolean isRunning, unlocked;
 
 
 
     NSFieldManager(DataApplet a) throws Exception {
         isRunning = true;
         inputListeners = new Hashtable();
+        unlocked = a.unlocked();
 
         // First order of business: get the current browser window object.
         // Sometimes this will fail if the browser is slow in coming up,
@@ -55,7 +56,7 @@ class NSFieldManager implements HTMLFieldManager {
             window = JSObject.getWindow(a);
             break;
         } catch (Exception e) {
-            try {			// Pause before retrying...
+            try {                     // Pause before retrying...
                 Thread.currentThread().sleep(100);
             } catch (InterruptedException ie) {}
         }
@@ -139,7 +140,10 @@ class NSFieldManager implements HTMLFieldManager {
 
             // etc.
 
-            if (f != null) inputListeners.put(element, f);
+            if (f != null) {
+                inputListeners.put(element, f);
+                if (unlocked) f.unlock();
+            }
         } catch (Exception e) {}
     }
 

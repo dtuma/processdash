@@ -96,6 +96,21 @@ function elementIterate(funcObj) {
 
 function escStr(s) { return s.replace(/\\/g,"\\\\").replace(/\t/g, "\\t"); }
 
+/*
+ * Should read-only data be unlocked?
+ */
+
+var unlocked = (window.location.search.indexOf("unlock") != -1);
+
+var unlockURL;
+if (unlocked) {
+  unlockURL = window.location.href.replace(/unlock/, "")
+              .replace(/([?&])&/, "$1").replace(/[?&]$/, "");
+} else if (window.location.search == "") {
+  unlockURL = window.location.href + "?unlock";
+} else {
+  unlockURL = window.location.href + "&unlock";
+}
 
 
 
@@ -223,7 +238,13 @@ function IEsetup() {
     document.writeln(IEparameterString);
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
+    if (unlocked)
+      document.writeln('<param name=unlock value=true>');
     document.writeln('</applet>');
+
+    document.write('<A HREF="' + unlockURL + '">');
+    document.write(unlocked ? "Lock" : "Unlock");
+    document.writeln(" read-only data</A>");
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
     IEDataAppl.ondatasetchanged  = IEscanForReadOnly;
@@ -422,7 +443,13 @@ function NSSetup() {
 		            ' width=1 height=1 MAYSCRIPT>');
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
+    if (unlocked)
+      document.writeln('<param name=unlock value=true>');
     document.writeln('</applet>');
+
+    document.write('<A HREF="' + unlockURL + '">');
+    document.write(unlocked ? "Lock" : "Unlock");
+    document.writeln(" read-only data</A>");
   }
 }
 

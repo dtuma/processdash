@@ -39,6 +39,7 @@ abstract class DataInterpreter implements DataListener {
                                   // if this value is true, this element should
                                   // always be reported as read-only, even if the
     boolean readOnly = false;     // underlying data element is editable.
+    boolean unlocked = false;
 
     /** If this value is true, then this data element is optional, and null
      *  values shouldn't be flagged with "?????". */
@@ -101,7 +102,9 @@ abstract class DataInterpreter implements DataListener {
     public SimpleData getNullValue() { return null; }
 
     public boolean isEditable() {
-        return (!noConnection && !readOnly && (value==null || value.isEditable()));
+        if (noConnection) return false;
+        if (unlocked) return true;
+        return (!readOnly && (value==null || value.isEditable()));
     }
 
     public void dataValueChanged(DataEvent e) {
@@ -123,7 +126,7 @@ abstract class DataInterpreter implements DataListener {
 
     public void userChangedValue(Object newValue) {
 
-        if (!isEditable()) {        // if this data is read-only,
+        if (!unlocked && !isEditable()) {        // if this data is read-only,
                             // restore its old value in case the user messed it up.
             if (consumer != null) consumer.repositoryChangedValue();
 
@@ -169,5 +172,7 @@ abstract class DataInterpreter implements DataListener {
         consumer = null;
         value = lastValue = null;
     }
+
+    public void unlock() { unlocked = true; }
 
 }
