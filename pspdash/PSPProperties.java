@@ -299,11 +299,14 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
 
         while ((line = in.readLine()) != null) {
             if ((! line.startsWith ("#")) &&
-                ((equalsPosition = line.indexOf('=', 0)) != -1)) {
-                key = PropertyKey.valueOf (line.substring(0, equalsPosition));
-                val = Prop.valueOf (line.substring(equalsPosition+1));
-                put (key, val);
-            }
+                ((equalsPosition = line.indexOf('=', 0)) != -1))
+                try {
+                    key = PropertyKey.valueOf (line.substring(0, equalsPosition));
+                    val = Prop.valueOf (line.substring(equalsPosition+1));
+                    put (key, val);
+                } catch (Exception e) {
+                    throw new IOException("Invalid hierarchy file format.");
+                }
         }
 
         if (close) in.close();
