@@ -53,7 +53,12 @@ public class RepositoryClient extends Thread implements Repository {
 
         try {
             setName(getName() + "(RepositoryClient)");
-            String ID = (new StringTokenizer(url.getFile(), "/")).nextToken();
+            String ID, urlFile = url.getFile();
+            int pos = urlFile.indexOf("//");
+            if (pos == -1)
+                ID = (new StringTokenizer(urlFile, "/")).nextToken();
+            else
+                ID = urlFile.substring(0, pos);
 
             // debug("creating socket...");
             clientSocket = new Socket(url.getHost(), url.getPort() - 1);
