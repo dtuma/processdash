@@ -59,7 +59,17 @@ class NSCheckboxField extends NSField {
     }
 
     public void parse() {
-        variantValue = new Boolean(HTML_TRUE.equals(element.getMember("checked")));
+        Object checked = element.getMember("checked");
+        variantValue = new Boolean(isChecked(checked));
+    }
+
+    private boolean isChecked(Object checked) {
+        if (checked == null) return false;
+        if (checked instanceof Boolean) return ((Boolean) checked).booleanValue();
+        if (checked instanceof Number) return ((Number) checked).intValue() > 0;
+        String s = checked.toString();
+        if (s == null || s.length() == 0) return false;
+        return ("1yYtTcC".indexOf(s.charAt(0)) != -1);
     }
 
 }
