@@ -98,6 +98,15 @@ function elementIterate(funcObj) {
 
 function escStr(s) { return s.replace(/\\/g,"\\\\").replace(/\t/g, "\\t"); }
 
+/*
+ * escape HTML entities.
+ */
+
+function textToHTML(text) {
+    return text.replace(/&/, "&amp;").replace(/</, "&lt;")
+        .replace(/>/, "&gt;").replace(/"/, "&quot;"); //")
+}
+
 
 /*
  * Should read-only data be unlocked?
@@ -271,7 +280,8 @@ function IEregisterElement(elem) {
       ieFields[IEfieldNum] = elem;         // and add info about the element to
 				           // the IEparameterString.
       IEparameterString = IEparameterString + 
-	'<param name=field'+ IEfieldNum +' value="'+ escStr(elem.name) +'">'+
+	'<param name=field'+ IEfieldNum +
+              ' value="'+ textToHTML(escStr(elem.name)) +'">'+
 	'<param name=type' + IEfieldNum +' value="'+ elem.type         +'">';
       IEfieldNum++;
     }
