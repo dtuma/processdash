@@ -26,7 +26,7 @@
 package pspdash.data;
 
 
-public class MalformedData implements SaveableData {
+public class MalformedData extends DoubleData {
 
     private static StringData SIMPLE_VALUE = null;
     static {
@@ -37,9 +37,11 @@ public class MalformedData implements SaveableData {
     }
 
     String saveString;
-    boolean defined = true;
 
-    public MalformedData(String value)    { saveString = value;  }
+    public MalformedData(String value) {
+        super(Double.NaN, false);
+        saveString = value;
+    }
     public boolean isEditable()           { return false;        }
     public void setEditable(boolean e)    {                      }
     public boolean isDefined()            { return true;         }
