@@ -13,8 +13,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.table.TableColumn;
 
-import teamdash.TeamProcess;
-import teamdash.TeamProject;
 import teamdash.wbs.columns.SizeTypeColumn;
 
 public class WorkflowEditor {

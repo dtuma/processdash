@@ -672,6 +672,17 @@ public class WBSNodeEditor extends AbstractCellEditor
             // if this menu item doesn't name a node type, do nothing.
             if (type == null) return;
 
+            // if the name of the node matches the old node type, update the
+            // name of the task to keep it in sync.
+            String oldType = editingNode.getType();
+            String nodeName = editorComponent.getText();
+            nodeName = (nodeName == null ? "" : nodeName.trim());
+            if (nodeName.length() == 0 || oldType.equals(nodeName + " Task")) {
+                nodeName = type.substring(0, type.length() - 5);
+                editorComponent.setText(nodeName);
+                editingNode.setName(nodeName);
+            }
+
             // save the new type of the node.
             editingNode.setType(type);
 

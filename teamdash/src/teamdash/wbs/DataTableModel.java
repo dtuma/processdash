@@ -16,7 +16,6 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 
 import teamdash.TeamMemberList;
-import teamdash.TeamProcess;
 import teamdash.wbs.columns.NullDataColumn;
 import teamdash.wbs.columns.PhaseColumn;
 import teamdash.wbs.columns.SizeTypeColumn;

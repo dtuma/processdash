@@ -21,7 +21,6 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 import teamdash.TeamMemberListEditor;
-import teamdash.TeamProject;
 
 public class WBSEditor implements WindowListener {
 
@@ -250,7 +249,8 @@ public class WBSEditor implements WindowListener {
             if (editor != null)
                 editor.show();
             else
-                editor = new TeamMemberListEditor(teamProject);
+                editor = new TeamMemberListEditor
+                    (teamProject.getTeamMemberList());
         }
     }
 

@@ -27,7 +27,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import teamdash.TeamMemberList;
-import teamdash.TeamProcess;
 
 /** Class to display the WBS editor panel
  */

@@ -1,8 +1,8 @@
 package teamdash.wbs.columns;
 
-import teamdash.TeamProcess;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 

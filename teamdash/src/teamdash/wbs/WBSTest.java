@@ -14,7 +14,6 @@ import javax.swing.JTable;
 import org.w3c.dom.Document;
 import pspdash.XMLUtils;
 import teamdash.TeamMemberList;
-import teamdash.TeamProcess;
 
 
 public class WBSTest implements WindowListener {
@@ -30,7 +29,7 @@ public class WBSTest implements WindowListener {
     JTable table;
     WBSModel model;
     TeamMemberList teamList;
-    TeamProcess teamProcess = new TeamProcess();
+    TeamProcess teamProcess = new TeamProcess(null);
 
     private static final String[][] nodes = {
         { " A",  "Software Component" },

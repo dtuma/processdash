@@ -13,17 +13,19 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+//import teamdash.wbs.*;
+
 public class TeamMemberListEditor {
 
     TeamMemberList teamMemberList, orig;
     JTable table;
     JPanel buttons;
     JFrame frame;
-
+/*
     public TeamMemberListEditor(TeamProject teamProject) {
         this(teamProject.getTeamMemberList());
     }
-
+*/
     public TeamMemberListEditor(TeamMemberList teamList) {
         teamMemberList = new TeamMemberList(orig = teamList);
         teamMemberList.maybeAddEmptyRow();
