@@ -90,15 +90,22 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         out.println("<TD>Compile</TD><TD>Test</TD>");
         out.println("<TD>Compile</TD><TD>Test</TD></TR>");
 
+        String defectLogParam = (String) env.get("QUERY_STRING");
+        if (defectLogParam == null)
+            defectLogParam = "";
+        else
+            defectLogParam = StringUtils.findAndReplace
+                (defectLogParam, "qf=../", "qf=");
+
         Iterator defectTypes = defectCounts.keySet().iterator();
         String defectType;
         int [] row;
         while (defectTypes.hasNext()) {
             defectType = (String) defectTypes.next();
             row = (int[]) defectCounts.get(defectType);
-            printD23(defectType, row);
+            printD23(defectLogParam, defectType, row);
         }
-        printD23("Total", totals);
+        printD23(defectLogParam, "Total", totals);
 
         out.println("</TABLE>");
 
@@ -121,18 +128,22 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
 
         out.println("</TABLE>");
         out.println("<P><A HREF=\"../excel.iqy\"><I>Export to Excel</I></A>");
-        if (strict)
-            out.println("<P><HR>" + FOOTNOTE);
+        if (strict) {
+            String query = (String) env.get("QUERY_STRING");
+            query = StringUtils.findAndReplace(query, "strict", "notstrict");
+            out.println("<P><HR>" +
+                        StringUtils.findAndReplace(FOOTNOTE, "%qs%", query));
+        }
         out.println("</BODY></HTML>");
     }
     protected static final String FOOTNOTE =
         "<P class=footnote>To reduce clutter, and omit completely empty " +
-        "rows from the tables above, <A HREF='r4.class'>click here</A>.";
+        "rows from the tables above, <A HREF='r4.class?%qs%'>click here</A>.";
 
-    protected void printD23(String label, int [] row) {
-        String dt = "";
+    protected void printD23(String param, String label, int [] row) {
+        String dt = param;
         if (!label.startsWith("Total")) {
-            dt = "type=" + URLEncoder.encode(label);
+            dt += ("&type=" + URLEncoder.encode(label));
             if (!strict && 0 == (row[INJ_DESIGN] + row[INJ_CODE] +
                                  row[REM_COMPILE] + row[REM_TEST]))
                 return;
