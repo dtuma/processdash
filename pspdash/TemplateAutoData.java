@@ -152,6 +152,15 @@ public class TemplateAutoData extends AutoData {
         if (!isProcessNode(node)) return;
         if (noAutoDataNode(node)) return;
 
+        // Check for a local redefinition of the Size metric.
+        int localDataLength = globalDataLength;
+        String sizeMetric = node.getAttribute(SIZE_METRIC_ATTR);
+        if (XMLUtils.hasValue(sizeMetric)) {
+            String localSizeDefn = "#define Size " + esc(sizeMetric) + "\n";
+            nodeDefinitions.append(localSizeDefn);
+            localDataLength += localSizeDefn.length();
+        }
+
         // Iterate over the children of this element.
         NodeList children = node.getChildNodes();
         ListData childList = newEmptyList();
@@ -165,15 +174,16 @@ public class TemplateAutoData extends AutoData {
                     pathConcat(path, child.getAttribute(NAME_ATTR));
                 childList.add(childName);
                 buildDefaultData(child, childName, data, definitions,
-                                 globalDataLength, nodeDefinitions);
+                                 localDataLength, nodeDefinitions);
             }
         }
         childList.setImmutable();
 
         // truncate the nodeDefinitions StringBuffer so it only
-        // contains the global data definitions (probably unnecessary,
-        // but a wise and safe thing to do).
-        nodeDefinitions.setLength(globalDataLength);
+        // contains the global data definitions plus the local size
+        // definition (probably unnecessary, but a wise and safe thing
+        // to do).
+        nodeDefinitions.setLength(localDataLength);
 
         if (XMLUtils.hasValue(path))
             nodeDefinitions.append("#define ").append(PATH_MACRO)
@@ -253,6 +263,14 @@ public class TemplateAutoData extends AutoData {
     static PhaseTypeSet developmentPhaseTypes = new PhaseTypeSet(new String[] {
         "req", "stp", "itp", "td", "hld", "dld", "code", "doc" });
 
+    public static boolean isAppraisalPhaseType(String phaseType) {
+        return appraisalPhaseTypes.contains(phaseType); }
+    public static boolean isFailurePhaseType(String phaseType) {
+        return failurePhaseTypes.contains(phaseType); }
+    public static boolean isDevelopmentPhaseType(String phaseType) {
+        return developmentPhaseTypes.contains(phaseType); }
+    public static boolean isOverheadPhaseType(String phaseType) {
+        return overheadPhaseTypes.contains(phaseType); }
 
     private static final String LEAF_DATA    = getFileContents("leafData.txt");
     private static final String NODE_DATA    = getFileContents("nodeData.txt");
