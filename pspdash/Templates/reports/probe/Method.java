@@ -111,7 +111,7 @@ class Method implements Comparable {
         out.print("</td><td valign=middle>&nbsp;<br>");
 
         String link = ("<a href='"+getMethodPurpose()+getMethodLetter()+
-                       "tut.htm' target='popup' onClick='popup();'>");
+                       "tut.htm' "+probe.LINK_ATTRS+">");
         Iterator i;
         if (errorMessages.size() != 0) {
 
@@ -267,8 +267,8 @@ class Method implements Comparable {
     }
 
     public static final String BETA0 =
-        "<a href='params.htm' target='popup' onClick='popup();'>beta0</a>";
+        "<a href='params.htm' "+probe.LINK_ATTRS+">beta0</a>";
     public static final String BETA1 =
-        "<a href='params.htm' target='popup' onClick='popup();'>beta1</a>";
+        "<a href='params.htm' "+probe.LINK_ATTRS+">beta1</a>";
     public static final String NBSP = "&nbsp;";
 }

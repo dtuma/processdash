@@ -107,10 +107,9 @@ class RegressionMethod extends Method {
     }
 
     public static final String RSQ =
-        "<a href='params.htm' target='popup' "+
-        "onClick='popup();'>r<sup>2</sup></a>";
+        "<a href='params.htm' "+probe.LINK_ATTRS+">r<sup>2</sup></a>";
     public static final String PROB =
-        "<a href='params.htm' target='popup' onClick='popup();'>p</a>";
+        "<a href='params.htm' "+probe.LINK_ATTRS+">p</a>";
 
     void printOption(PrintWriter out, boolean isBest) {
         printOption(out, l.projection, isBest, l.beta0, l.beta1, l.range,

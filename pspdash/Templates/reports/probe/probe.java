@@ -394,6 +394,9 @@ public class probe extends TinyCGIBase {
         "<tr><td></td><td bgcolor='gray'>" +
         "<img src='line.png' width=1 height=1></td><td></td></tr>\n";
 
+    public static final String LINK_ATTRS =
+        " target='popup' onClick='popup();' class='plain' ";
+
 
     public static final int EST_OBJ  = HistData.EST_OBJ_LOC;
     public static final int EST_NC   = HistData.EST_NC_LOC;

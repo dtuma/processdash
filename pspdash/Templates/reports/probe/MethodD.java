@@ -50,8 +50,8 @@ class MethodD extends Method {
 
         String estTarget = ("size".equals(getMethodPurpose()) ?
                             "new and changed LOC" : "total development time");
-        String link = ("<a href='"+getMethodPurpose()+
-                       "Dtut.htm' target='popup' onClick='popup();'>");
+        String link = ("<a "+probe.LINK_ATTRS+" href='"+getMethodPurpose()+
+                       "Dtut.htm'>");
         if (isBest)
             out.println
                 ("Your best option for estimating " + getMethodPurpose() +
