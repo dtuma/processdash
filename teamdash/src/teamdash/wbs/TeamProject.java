@@ -33,6 +33,11 @@ public class TeamProject {
         saveWBS();
     }
 
+    /** Return the name of the project */
+    public String getProjectName() {
+        return projectName;
+    }
+
     /** Get the list of team members on this project */
     public TeamMemberList getTeamMemberList() {
         return teamList;
@@ -96,6 +101,7 @@ public class TeamProject {
         try {
             Element xml = openXML(new File(directory, WBS_FILENAME));
             if (xml != null) wbs = new WBSModel(xml);
+            projectName = wbs.getRoot().getName();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -13,14 +13,13 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import org.w3c.dom.Document;
 import pspdash.XMLUtils;
-import teamdash.*;
 import teamdash.TeamMember;
 import teamdash.TeamMemberList;
+import teamdash.TeamProcess;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -55,12 +54,12 @@ public class WBSTest implements WindowListener {
         { " L",  "Task" },
         { "M",  "Software Component" },
         { "N", "Task" } };
-    private static final String[] iconMenuItems = {
+    /*private static final String[] iconMenuItems = {
         "Software Component",
         "General Document",
         "Requirements Document",
         "High Level Design Document",
-        "Detailed Design Document" };
+        "Detailed Design Document" };*/
 
     private void buildModel(String filename) {
         if (filename != null) try {
@@ -92,6 +91,7 @@ public class WBSTest implements WindowListener {
         }
     }
 
+/*
     public WBSTest(String filename, boolean ignored) {
         buildModel(filename);
         Map iconMap = teamProcess.getIconMap(); //buildIconMap();
@@ -104,6 +104,7 @@ public class WBSTest implements WindowListener {
         frame.pack();
         frame.show();
     }
+*/
 
     public WBSTest(String filename) {
         buildModel(filename);
@@ -152,24 +153,16 @@ public class WBSTest implements WindowListener {
 
         TeamTimePanel teamTime = new TeamTimePanel(teamList, dataModel);
 
-        //JScrollPane sp = new JScrollPane(table);
-
         JFrame frame = new JFrame("WBSTest");
         frame.getContentPane().add(table);
         frame.getContentPane().add(teamTime, BorderLayout.SOUTH);
-        //frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(this);
         frame.pack();
         frame.show();
-        /*
-        long beg = System.currentTimeMillis();
-        for (int j = 1000; j-- > 0;)
-            table.paint();
-        long end = System.currentTimeMillis();
-        System.out.println("paint time (ms): "+ (end-beg));    */
     }
 
+/*
     private Map buildIconMap() {
         Map result = new HashMap();
         Color c = new Color(204, 204, 255);
@@ -190,7 +183,7 @@ public class WBSTest implements WindowListener {
 
         return result;
     }
-
+*/
 
     // implementation of java.awt.event.WindowListener interface
 

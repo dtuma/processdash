@@ -211,7 +211,17 @@ public class WBSNode implements Cloneable {
     protected Object clone() {
         try {
             WBSNode result = (WBSNode) super.clone();
+
+            // clone the attributes Map
             result.attributes = (Map) ((HashMap) result.attributes).clone();
+            // remove "transient" attributes from the copied Map.  These
+            // attributes will be recalculated as necessary.
+            Iterator i = result.attributes.keySet().iterator();
+            while (i.hasNext()) {
+                String attrName = (String) i.next();
+                if (attrName.indexOf('_') != -1)
+                    i.remove();
+            }
             return result;
         } catch (CloneNotSupportedException cnse) {
             return null;        // can't happen?
