@@ -1,6 +1,7 @@
 <html>
 <head>
 <title>PROBE Method <!--#echo var=x --> for <!--#echo var=purpose --></title>
+<link rel=stylesheet type='text/css' href='style.css'>
 <style>
   SPAN { font-weight: bold; font-style: italic; ftext-decoration: underline  }
 </style>
