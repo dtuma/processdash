@@ -1175,10 +1175,11 @@ public class DataRepository implements Repository {
 
                                     // if they have specified a prefix, notify them
                                     // of all the data beginning with that prefix.
-                while (k.hasMoreElements())
+                while (k.hasMoreElements()) {
                     if ((name = (String) k.nextElement()).startsWith(prefix))
                         rl.dataAdded(new DataEvent(this, name,
                                                    DataEvent.DATA_ADDED, null));
+                }
 
             else                    // if they have specified no prefix, only
                                     // notify them of data that is NOT anonymous.
