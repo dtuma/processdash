@@ -100,10 +100,18 @@ public class EVMetricsRollup extends EVMetrics {
     }
     protected void recalcViability(EVSchedule s) {
         super.recalcViability(s);
-        maybeRecalcComplete(s, optCompletionDateInterval);
-        if (unviable(optCompletionDateInterval)) {
-            // System.out.println("opt date interval is not viable");
+        if (costInterval == null)
             optCompletionDateInterval = null;
+
+        else {
+            if (optCompletionDateInterval instanceof TargetedConfidenceInterval)
+                retargetViability
+                    (s, (TargetedConfidenceInterval)optCompletionDateInterval,
+                     optimizedForecastDate());
+            if (unviable(optCompletionDateInterval)) {
+                // System.out.println("opt date interval is not viable");
+                optCompletionDateInterval = null;
+            }
         }
     }
     protected void recalcScheduleTime(EVSchedule s) {

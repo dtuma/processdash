@@ -44,10 +44,6 @@ import pspdash.data.DoubleData;
 
 public class EVMetrics implements TableModel {
 
-    public interface RecalcCompleteTask {
-        public void recalcComplete(EVSchedule s, EVMetrics m);
-    }
-
     /** The total planned time for all tasks in an EVModel, in minutes. */
     protected double totalPlanTime = 0.0;
 
@@ -172,9 +168,17 @@ public class EVMetrics implements TableModel {
         recalcViability(s);
         recalcMetricsFormatters();
     }
-    protected void maybeRecalcComplete(EVSchedule s, Object o) {
-        if (o instanceof RecalcCompleteTask)
-            ((RecalcCompleteTask) o).recalcComplete(s, this);
+    protected void retargetViability(EVSchedule s,
+                                      TargetedConfidenceInterval t,
+                                      double target) {
+        t.calcViability(target, 0.7);
+    }
+    protected void retargetViability(EVSchedule s,
+                                      TargetedConfidenceInterval t,
+                                      Date target) {
+        double v = -1;
+        if (target != null) v = target.getTime();
+        t.calcViability(v, 0.7);
     }
     protected boolean unviable(ConfidenceInterval ci) {
         if (ci == null) return false;
@@ -182,19 +186,27 @@ public class EVMetrics implements TableModel {
         return false;
     }
     protected void recalcViability(EVSchedule s) {
-        maybeRecalcComplete(s, costInterval);
+        if (costInterval instanceof TargetedConfidenceInterval)
+            retargetViability(s, (TargetedConfidenceInterval) costInterval,
+                              independentForecastCost() - actual());
         if (unviable(costInterval)) {
             // System.out.println("cost interval is not viable");
             costInterval = null;
+            timeErrInterval = null;
+            completionDateInterval = null;
         }
 
-        maybeRecalcComplete(s, timeErrInterval);
+        /*maybeCalcViability(s, timeErrInterval, 1.0);
         if (unviable(timeErrInterval)) {
             // System.out.println("time err interval is not viable");
             timeErrInterval = null;
-        }
+            completionDateInterval = null;
+        }*/
 
-        maybeRecalcComplete(s, completionDateInterval);
+        if (completionDateInterval instanceof TargetedConfidenceInterval)
+            retargetViability
+                (s, (TargetedConfidenceInterval)completionDateInterval,
+                 independentForecastDate());
         if (unviable(completionDateInterval)) {
             // System.out.println("completion date interval is not viable");
             completionDateInterval = null;
