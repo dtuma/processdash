@@ -21,5 +21,7 @@ disclaimer
 uncap.pl
 help.config
 checkHelpFiles.pl
+makeTOC.pl
 DashboardOnlineHelp.txt
 SCR-.*htm
+.xvpics
