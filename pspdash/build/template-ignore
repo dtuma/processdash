@@ -25,6 +25,7 @@ uncap.pl
 help.config
 checkHelpFiles.pl
 makeTOC.pl
+makeBook.pl
 DashboardOnlineHelp.txt
 SCR-.*htm
 .xvpics
