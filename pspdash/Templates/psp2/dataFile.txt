@@ -129,3 +129,11 @@ Estimated Yield==![(/	[(+	Planning/Estimated Defects Removed	Design/Estimated De
 Test/Defects Removed per KLOC==![(/	Test/Defects Removed	New & Changed KLOC)]
 Defects Removed per KLOC==![(/	Defects Removed	New & Changed KLOC)]
 
+==
+== tags identifying new nodes and leaves in this process
+==
+
+Design Review/node==1.0
+Design Review/leaf==1.0
+Code Review/node==1.0
+Code Review/leaf==1.0
