@@ -684,6 +684,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             return false;
         else if (!useProps.pget(parent).isUniqueChildName(newName))
             return false;
+        else if (newName.trim().length() == 0)
+            return false;
         else
             return true;
     }
