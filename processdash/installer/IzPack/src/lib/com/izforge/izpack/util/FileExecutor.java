@@ -251,7 +251,7 @@ public class FileExecutor
             {
                 // fix executable permission for unix systems
                 if (pathSep.equals(":") && (!osName.startsWith("mac") ||
-                    osName.endsWith("x")))
+                    osName.endsWith("x")) && file.exists())
                 {
                     Debug.trace("making file executable (setting executable flag)");
                     String[] params = {"/bin/chmod", permissions, file.toString()};
