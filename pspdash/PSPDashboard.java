@@ -357,7 +357,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         "    To download an updated version of the Java Runtime",
         "Environment, visit   " };
 
-    public boolean addTemplateJar(String jarfileName) {
+    boolean addTemplateJar(String jarfileName) {
         if (!TemplateLoader.addTemplateJar(data, templates, jarfileName, aum))
             return false;
 
@@ -367,7 +367,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         return true;
     }
 
-    public void changeHttpPort(int newPort) {
+    void changeHttpPort(int newPort) {
         try {
             webServer.addExtraPort(newPort);
             Browser.setDefaults("localhost", newPort);
@@ -504,7 +504,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     public static void main(String args[]) {
-        ss = new SplashScreen(PSPDashboard.class.getResource("splash.gif"));
+        ss = new SplashScreen(PSPDashboard.class.getResource("splash.png"));
         ss.displayFor(3000);      // show for at least 3 seconds.
 
         ensureJRE13();

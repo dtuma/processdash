@@ -59,7 +59,7 @@ public class TemplateLoader {
 
     private static long templateTimestamp = 0;
 
-    public static PSPProperties loadTemplates(DataRepository data,
+    static PSPProperties loadTemplates(DataRepository data,
                                               AutoUpdateManager aum) {
         PSPProperties templates = new PSPProperties(null);
 
@@ -146,7 +146,7 @@ public class TemplateLoader {
 
     /** Dynamically create templates for any orphaned data rollups.
      */
-    protected static void generateRollupTemplates(PSPProperties templates,
+    private static void generateRollupTemplates(PSPProperties templates,
                                                   DataRepository data) {
         String rollupXML = AutoData.generateRollupTemplateXML();
         if (rollupXML == null) return;
@@ -168,7 +168,7 @@ public class TemplateLoader {
      *
      * NOTE: currently, the children are placed in alphabetical order.
      */
-    protected static void createProcessRoot(PSPProperties templates) {
+    private static void createProcessRoot(PSPProperties templates) {
         Enumeration nodes = templates.keys();
         Vector processes = new Vector();
         PropertyKey key, parent;
@@ -188,10 +188,10 @@ public class TemplateLoader {
         }
     }
 
-    protected static boolean searchJarForTemplates(PSPProperties templates,
-                                                   String jarURL,
-                                                   DataRepository data,
-                                                   AutoUpdateManager aum) {
+    private static boolean searchJarForTemplates(PSPProperties templates,
+                                                 String jarURL,
+                                                 DataRepository data,
+                                                 AutoUpdateManager aum) {
         boolean foundTemplates = false;
         try {
             debug("searching for templates in " + jarURL);
@@ -239,9 +239,9 @@ public class TemplateLoader {
         return foundTemplates;
     }
 
-    protected static boolean searchDirForTemplates(PSPProperties templates,
-                                                   String directoryName,
-                                                   DataRepository data) {
+    private static boolean searchDirForTemplates(PSPProperties templates,
+                                                 String directoryName,
+                                                 DataRepository data) {
         debug("searching for templates in " + directoryName);
         File[] process_templates = new File(directoryName).listFiles();
         if (process_templates == null) return false;
@@ -507,11 +507,33 @@ public class TemplateLoader {
         return (entry != null);
     }
 
+    /** Looks through the various loaded templates, and determines which
+     * absolute URL the given String maps to.  If the given URL does not
+     * map to any real resource, returns null.
+     * 
+     * Note: since this locates a resource which is known to exist, it must
+     * make a connection to that URL.  However, the named resource is not
+     * downloaded, and is not interpreted.  In particular, if the resulting URL
+     * names a CGI script, that script will not be executed;  the URL
+     * connection made is only looking at the file, not loading or running the
+     * class named within.
+     */
     public static URL resolveURL(String url) {
         URLConnection result = resolveURLConnection(url);
         return (result == null ? null : result.getURL());
     }
 
+    /** Looks through the various loaded templates, determines which
+     * absolute URL the given String maps to, and returns a connection to that
+     * URL.  If the given URL does not map to any real resource, returns null.
+     * 
+     * Note: although this opens a connection to the named URL, it does not
+     * interpret the results.  In particular, if the resulting URL names a CGI
+     * script, that script will not be executed; the URL connection
+     * returned will serve the raw binary bytes that make up the script, not
+     * the bytes returned by executing the script.  To execute the script, use
+     * the {@link TinyWebServer} instead.
+     */
     public static URLConnection resolveURLConnection(String url) {
         URL [] roots = getTemplateURLs();
         if (url.startsWith("/")) url = url.substring(1);
@@ -527,11 +549,11 @@ public class TemplateLoader {
         return null;
     }
 
-    public static void processTimestamp(long time) {
+    private static void processTimestamp(long time) {
         if (time > templateTimestamp)
             templateTimestamp = time;
     }
-    public static void processTimestamp(File f) {
+    private static void processTimestamp(File f) {
         //System.out.println("timestamp for file " + f.getPath() + " is " +
         //                   f.lastModified());
         processTimestamp(f.lastModified());
