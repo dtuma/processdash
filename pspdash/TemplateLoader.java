@@ -37,6 +37,7 @@ import java.net.JarURLConnection;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DOMException;
@@ -433,16 +434,15 @@ public class TemplateLoader {
         } catch (IndexOutOfBoundsException ioobe) {}
         return null;
     }
+
     private static boolean isDashboardJarfile(File f) {
+        Object entry = null;
         try {
-            JarInputStream jarFile =
-                new JarInputStream(new FileInputStream(f));
-            String id = jarFile.getManifest().getMainAttributes()
-                .getValue("Dash-Pkg-ID");
-            return "pspdash".equals(id);
-        } catch (Throwable t) {
-            return false;
-        }
+            ZipFile zipFile = new ZipFile(f);
+            entry = zipFile.getEntry("pspdash/PSPDashboard.class");
+            zipFile.close();
+        } catch (Throwable t) { }
+        return (entry != null);
     }
 
     public static URL resolveURL(String url) {
