@@ -86,7 +86,7 @@ public abstract class AbstractLinearConfidenceInterval
         calcStddev();
 
         if (Double.isNaN(stddev)  || Double.isInfinite(stddev)  ||
-            numSamples < 2) {
+            numSamples < 3) {
             viability = CANNOT_CALCULATE;
             return;
         }

@@ -55,7 +55,11 @@ public class LinearRatioConfidenceInterval
 
 
     protected void calcViability() {
-        viability = NOMINAL;
+        if (Double.isNaN(stddev)  || Double.isInfinite(stddev)  ||
+            numSamples < 3)
+            viability = CANNOT_CALCULATE;
+        else
+            viability = NOMINAL;
     }
 
 }
