@@ -73,6 +73,18 @@ defectDialog.autostart=true
 
 
 #
+# The following property describes common defect injection/removal
+# patterns.  It should be a list of phase pairs; the pairs should be
+# separated from each other by "|" characters.  Each pair should be of
+# the form "phase A=>phase B"; each pair is interpreted to mean "Often
+# defects are injected in phase A, and removed in phase B."  When you
+# remove a defect during phase B of a process, it will then use phase A
+# as the default injection phase.
+#
+defectDialog.phaseMap=HLD=>Design|Design=>Test
+
+
+#
 # If this property is set to "simple", the PROBE dialog will only display
 # data elements relating to the standard PROBE methods A,B,C, and D. If
 # this setting has any other value, PROBE will display an exhaustive list
