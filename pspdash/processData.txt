@@ -111,3 +111,5 @@
     [DEFINE_ROLLUP_ID Rollup Eligible] = tag;
 
 #endif // DEFINE_ROLLUP_ID
+
+[Project_WBS_ID]    = inherit("Project_WBS_ID");
