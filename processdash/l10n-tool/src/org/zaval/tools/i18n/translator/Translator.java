@@ -1759,6 +1759,7 @@ implements TranslatorConstants
     }
     public void setTranslationNeededTester(Comparator translationNeededTester) {
         this.translationNeededTester = translationNeededTester;
+        setAllIndicators();
     }
 
     public void setSaveListener(ActionListener saveListener) {
