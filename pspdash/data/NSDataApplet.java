@@ -49,9 +49,9 @@ public class NSDataApplet extends DataApplet {
         }
     }
 
-    public void notifyListener(Object element) {
+    public void notifyListener(Object element, Object id) {
         if (mgr != null)
-            ((NSFieldManager)mgr).notifyListener(element);
+            ((NSFieldManager)mgr).notifyListener(element, id);
     }
 
     protected void debug(String s) { /*System.out.println("NSDataApplet: "+s);*/}
