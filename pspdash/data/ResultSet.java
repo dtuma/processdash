@@ -141,7 +141,7 @@ public class ResultSet {
         if (d == null || !d.isDefined()) return "";
 
         String result = d.format();
-        if (result.startsWith("ERR")) return result;
+        if (result.startsWith("#") || result.startsWith("ERR")) return result;
 
         return prefix[col] + result + suffix[col];
     }
