@@ -211,7 +211,7 @@ Defects Removed per KLOC To Date==![(/	Defects Removed To Date	New & Changed KLO
 % Appraisal COQ To Date==![(/	[(+	~[^/]* Review/Time To Date)]	Time To Date)]
 % Failure COQ To Date==![(/	[(+	Compile/Time To Date	Test/Time To Date)]	Time To Date)]
 % New Reused To Date==![(/	New Reused LOC To Date	New & Changed LOC To Date)]
-% Reused To Date==![(/	Reused LOC To Date	LOC To Date)]
+% Reused To Date==![(/	Reused LOC To Date	Total LOC To Date)]
 AFR To Date==![(/	% Appraisal COQ To Date	% Failure COQ To Date)]
 CPI To Date==![(/	Estimated Time To Date	Time To Date)]
 
