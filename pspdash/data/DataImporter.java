@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import pspdash.RobustFileWriter;
+
 
 /* This class imports data files into the repository */
 public class DataImporter extends Thread {
@@ -111,6 +113,8 @@ public class DataImporter extends Thread {
                 currentFiles.remove(files[i]);
             }
 
+            // if any previously imported files no longer exist, close
+            // the corresponding datafiles.
             Iterator i = currentFiles.iterator();
             while (i.hasNext())
                 closeFile((File) i.next());
@@ -119,13 +123,18 @@ public class DataImporter extends Thread {
     }
 
     private void checkFile(File f) throws IOException {
+        // ignore temporary files created by the RobustFileWriter class.
+        if (f == null || f.getName() == null ||
+            f.getName().startsWith(RobustFileWriter.OUT_PREFIX))
+            return;
+
         Long prevModTime = (Long) modTimes.get(f);
         long modTime = f.lastModified();
 
         // If this file is new (we've never seen it before), or if has
         // been modified since we imported it last,
         if (prevModTime == null || prevModTime.longValue() < modTime) {
-            importData(f, data);                    // import it, and
+            importData(f, data);                   // import it, and
             modTimes.put(f, new Long(modTime));    // save its mod time
         }
     }
@@ -207,7 +216,7 @@ public class DataImporter extends Thread {
         } catch (MalformedValueException mfe) {}
 
         // give up and interpret it as a plain string.
-        return StringData.create(value);
+        return StringData.create(StringData.unescapeString(value));
     }
 
 }
