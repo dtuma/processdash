@@ -78,4 +78,8 @@ public class XMLUtils {
         return result;
     }
 
+    public static String escapeAttribute(String value) {
+        return value;           // FIXME: need to escape string!!
+    }
+
 }
