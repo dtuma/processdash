@@ -92,6 +92,7 @@ public class ProbeDialog extends JFrame implements
             g.weightx = 0;   g.fill = g.HORIZONTAL;
             layout.setConstraints(method, g);   panel.add(method);
             method.addActionListener(this);
+            method.setMaximumRowCount(PROBE_METHODS.length);
 
 
             g.gridy++;              // next row
@@ -248,22 +249,24 @@ public class ProbeDialog extends JFrame implements
         private static final String[] PROBE_METHODS = {
             "PROBE Method A for Size", "PROBE Method A for Time",
             "PROBE Method B for Size", "PROBE Method B for Time",
-            "PROBE Method C for Size",
+            "PROBE Method C1 for Size",
+            "PROBE Method C2 for Size",
             "PROBE Method C1 for Time",
             "PROBE Method C2 for Time",
             "PROBE Method C3 for Time",
             "-Custom-" };
         private static final boolean [] PROBE_SHOW_REGRESSION = {
-            true, true, true, true, false, false, false, false };
+            true, true, true, true, false, false, false, false, false };
         private static final String[] PROBE_X = {
-            EST_OBJ_LOC, EST_OBJ_LOC,
-            EST_NC_LOC,  EST_NC_LOC,
-            EST_NC_LOC,
-            EST_OBJ_LOC, EST_NC_LOC, ACT_NC_LOC };
+            EST_OBJ_LOC, EST_OBJ_LOC,               // method A
+            EST_NC_LOC,  EST_NC_LOC,                // method B
+            EST_OBJ_LOC, EST_NC_LOC,                // method C for size
+            EST_OBJ_LOC, EST_NC_LOC, ACT_NC_LOC };  // method C for time
         private static final String[] PROBE_Y = {
-            ACT_NC_LOC, ACT_TIME,
-            ACT_NC_LOC, ACT_TIME,
-            ACT_NC_LOC, ACT_TIME, ACT_TIME, ACT_TIME };
+            ACT_NC_LOC, ACT_TIME,                   // method A
+            ACT_NC_LOC, ACT_TIME,                   // method B
+            ACT_NC_LOC, ACT_NC_LOC,                 // method C for size
+            ACT_TIME, ACT_TIME, ACT_TIME };         // method C for time
 
 
         private void setAFields (boolean enableFields,
