@@ -173,7 +173,7 @@ This file contains the template definitions for the standard PSP processes.
             dataFile="psp3/dataFile.txt" htmlID="top"
             constraints="{PSP3cycle(-1){HLD Inspection(3)">
     <html ID="sum"  title="PSP3 Project Summary" href="psp3/summary.htm"/>
-    <html ID="sum"  title="PSP3 Cycle Summary" href="psp3/cyclesum.class"/>
+    <html ID="csum" title="PSP3 Cycle Summary" href="psp3/cyclesum.class"/>
     <html ID="size" title="PSP3 Size Estimating Template" 
                     href="psp3/sizeest.class"/>
     <html ID="top"  title="PSP3 Process Script" href="psp3/script.htm"/>
@@ -213,10 +213,12 @@ This file contains the template definitions for the standard PSP processes.
   <template name="PSP Data Rollup Prototype" imaginary="true"
             dataFile="psp3/rollupData.txt" defineRollup="PSP"/>
 
-  <template name="Rollup PSP Data" ID="Rollup PSP Data" dataFile="ROLLUP:PSP"
-            defineRollup="no" htmlID="config">
+  <template name="Rollup PSP Data" ID="Rollup PSP Data"
+            dataFile="ROLLUP:PSP" defineRollup="no">
+    <html ID="sum" title="PSP Rollup Project Summary" href="psp3/rollsum.htm"/>
     <html ID="config" title="Edit Data Rollup Filter"
           href="dash/rollupFilter.shtm"/>
+
     <phase name="Analyze Rollup Data"/>
   </template>
 
