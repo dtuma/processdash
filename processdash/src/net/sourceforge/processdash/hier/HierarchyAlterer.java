@@ -185,7 +185,7 @@ public class HierarchyAlterer implements ItemListener {
     }
 
     /* Not yet implemented.
-    public void renameNode(PSPDashboard dash, String oldPath, String newPath)
+    public void renameNode(ProcessDashboard dash, String oldPath, String newPath)
         throws HierarchyAlterationException
     {
         PSPProperties props = dash.props;

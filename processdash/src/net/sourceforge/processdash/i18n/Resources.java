@@ -80,7 +80,7 @@ public class Resources extends ResourceBundle {
 
     private static void initGlobalResources() {
         if (globalResources == null)
-            globalResources = getDashBundle("processdash.Resources", null);
+            globalResources = getResourceBundle("resources.Resources", null);
     }
 
     public static Resources getGlobalBundle() {
@@ -103,14 +103,6 @@ public class Resources extends ResourceBundle {
             throw new ClassNotFoundException(name);
         }
         protected URL findResource(String name) {
-            if (name.startsWith("processdash"))
-                name = "resources" + name.substring(11);
-            else if (name.startsWith("/processdash"))
-                name = "/resources" + name.substring(12);
-            else if (name.startsWith("pspdash"))  // legacy - OK
-                name = "resources" + name.substring(7);
-            else if (name.startsWith("/pspdash")) // legacy - OK
-                name = "/resources" + name.substring(8);
             name = name.replace('$', '.');
             return findResourceImpl(name);
         }
@@ -144,9 +136,13 @@ public class Resources extends ResourceBundle {
 
     public static Resources getDashBundle(String bundleName) {
         initGlobalResources();
-        return getDashBundle(bundleName, globalResources);
+        return getResourceBundle("resources." + bundleName, globalResources);
     }
-    private static Resources getDashBundle(String bundleName,
+    public static Resources getTemplateBundle(String bundleName) {
+        initGlobalResources();
+        return getResourceBundle(bundleName, globalResources);
+    }
+    private static Resources getResourceBundle(String bundleName,
                                            ResourceBundle parent) {
         long start = 0;
         if (TIME_LOADING)

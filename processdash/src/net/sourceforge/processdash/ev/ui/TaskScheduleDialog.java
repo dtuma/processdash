@@ -117,7 +117,7 @@ public class TaskScheduleDialog
     protected JFrame chartDialog = null;
 
     protected Resources resources =
-        Resources.getDashBundle("pspdash.TaskScheduleDialog");
+        Resources.getDashBundle("TaskScheduleDialog");
 
 
     public TaskScheduleDialog(DashboardContext dash, String taskListName,

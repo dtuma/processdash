@@ -25,7 +25,7 @@
 
 /*
  * This class provides a property object with the the attributes necessary
- * for the PSPDashboard.  The child array uses zero-based indexing.
+ * for the ProcessDashboard.  The child array uses zero-based indexing.
  */
 
 package net.sourceforge.processdash.hier;

@@ -243,7 +243,7 @@ public abstract class CachedObject {
     }
 
 
-    private static final String OLD_PACKAGE = "pspdash.";
+    private static final String OLD_PACKAGE = "pspdash."; // legacy - OK
     private static final String PACKAGE =
         "net.sourceforge.processdash.net.cache.";
 

@@ -80,8 +80,7 @@ import net.sourceforge.processdash.util.RobustFileWriter;
 
 public class ImportExport extends JDialog implements ActionListener {
 
-    static final Resources resource =
-        Resources.getDashBundle("pspdash.ImportExport");
+    static final Resources resource = Resources.getDashBundle("ImportExport");
 
     static final int X_DATA = 0;
     static final int X_LIST = 1;

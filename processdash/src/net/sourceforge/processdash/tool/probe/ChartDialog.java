@@ -63,7 +63,7 @@ public class ChartDialog extends JDialog {
     Vector titles;
     DefaultTableModel tableModel;
 
-    Resources resources = Resources.getDashBundle("pspdash.PROBE");
+    Resources resources = Resources.getDashBundle("PROBE");
 
 
     public ChartDialog (Frame parent,

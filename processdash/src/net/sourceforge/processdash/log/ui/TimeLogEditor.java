@@ -93,7 +93,7 @@ public class TimeLogEditor extends Object
     boolean tableContainsRows = false;
     boolean selectedNodeLoggingAllowed = false;
 
-    Resources resources = Resources.getDashBundle("pspdash.Time");
+    Resources resources = Resources.getDashBundle("Time");
 
     //
     // member functions

@@ -181,7 +181,7 @@ public class CachedURLObject extends CachedObject {
         if (result != null) return result;
 
         if (RESOURCES == null)
-            RESOURCES = Resources.getDashBundle("pspdash.CachedURLObject");
+            RESOURCES = Resources.getDashBundle("CachedURLObject");
         result = RESOURCES.getString(errorKey);
         return result == null ? errorKey : result;
     }

@@ -70,8 +70,7 @@ public class AutoUpdateManager {
     private String p_user;
     private String p_pass;
     private long now;
-    private Resources resources =
-        Resources.getDashBundle("pspdash.AutoUpdateManager");
+    private Resources resources = Resources.getDashBundle("AutoUpdateManager");
 
     public AutoUpdateManager(Collection packages) {
         this.packages = new ArrayList(packages);

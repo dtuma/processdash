@@ -142,7 +142,7 @@ public class Translator {
 
     private static void createDefaultEngine() {
         try {
-            ResourceBundle r = Resources.getDashBundle("pspdash.Translator");
+            ResourceBundle r = Resources.getDashBundle("Translator");
             TRANSLATOR = new DefaultEngine(r);
         } catch (Exception e) {
         }

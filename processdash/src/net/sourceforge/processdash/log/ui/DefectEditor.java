@@ -70,7 +70,7 @@ public class DefectEditor extends Component
     protected JComboBox dtsSelector;
 //  protected UserWarning     warnUser;
 
-    Resources resources = Resources.getDashBundle("pspdash.Defects");
+    Resources resources = Resources.getDashBundle("Defects");
     String inheritTypeSelection, typeSelectionTooltip;
     boolean buildingDtsSelector = false;
 

@@ -31,7 +31,8 @@ import net.sourceforge.processdash.net.cache.ObjectCache;
 
 public class EVTaskListCached extends EVTaskListXMLAbstract {
 
-    public static final String CACHED_OBJECT_TYPE = "pspdash.EVTaskListCached";
+    public static final String CACHED_OBJECT_TYPE =
+        "pspdash.EVTaskListCached"; // legacy - OK
     public static final String LOCAL_NAME_ATTR = "LocalName";
 
     private int objectID;

@@ -34,8 +34,7 @@ public class LookAndFeelSettings {
 
     public static void loadLocalizedSettings() {
         try {
-            Resources r = Resources.getDashBundle
-                ("pspdash.LookAndFeelSettings");
+            Resources r = Resources.getDashBundle("LookAndFeelSettings");
             Enumeration e = r.getKeys();
             while (e.hasMoreElements()) {
                 String dest = (String) e.nextElement();

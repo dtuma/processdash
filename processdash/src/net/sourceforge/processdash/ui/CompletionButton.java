@@ -49,7 +49,7 @@ public class CompletionButton extends JCheckBox implements ActionListener {
         super();
         PCSH.enableHelp(this, "CompletionButton");
         parent = dash;
-        resources = Resources.getDashBundle("pspdash.PSPDashboard");
+        resources = Resources.getDashBundle("ProcessDashboard");
         setMargin (new Insets (0,2,0,2));
         addActionListener(this);
         GridBagConstraints g = new GridBagConstraints();

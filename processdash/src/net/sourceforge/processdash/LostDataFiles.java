@@ -111,7 +111,7 @@ public class LostDataFiles implements FilenameFilter {
             ProcessDashboard.dropSplashScreen();
 
             // Create an instance of the InfoDialog
-            Resources r = Resources.getDashBundle("pspdash.PSPDashboard");
+            Resources r = Resources.getDashBundle("ProcessDashboard");
             response = JOptionPane.showConfirmDialog
                 (parent,
                  this.printOut() + "\n" + r.getString("Lost_Data_Message"),

@@ -96,7 +96,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     public static final int DEFAULT_WEB_PORT = 2468;
 
     private void debug(String msg) {
-        System.err.print("PSPDashboard: ");
+        System.err.print("ProcessDashboard: ");
         System.err.println(msg);
     }
 
@@ -123,14 +123,14 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             data.disableFreezing();
         templates = TemplateLoader.loadTemplates(data);
         aum = new AutoUpdateManager(TemplateLoader.getPackages());
-        resources = Resources.getDashBundle("pspdash.PSPDashboard");
+        resources = Resources.getDashBundle("ProcessDashboard");
         InternalSettings.loadLocaleSpecificDefaults(resources);
         FormatUtil.setDateFormats(Settings.getVal("dateFormat"),
                 Settings.getVal("dateTimeFormat"));
         Translator.init();
         LookAndFeelSettings.loadLocalizedSettings();
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
-        versionNumber = TemplateLoader.getPackageVersion("pspdash");
+        versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
         System.out.println("Process Dashboard version " + versionNumber);
         setTitle(title != null ? title : resources.getString("Window_Title"));
 
@@ -354,7 +354,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         String versionNum = System.getProperty("java.version");
         String req = "1.4";
         if (DashPackage.compareVersions(versionNum, req) < 0) {
-            Resources res = Resources.getDashBundle("pspdash.PSPDashboard");
+            Resources res = Resources.getDashBundle("ProcessDashboard");
             String vendorURL = System.getProperty("java.vendor.url");
             JOptionPane.showMessageDialog
                 (null,

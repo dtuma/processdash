@@ -58,8 +58,7 @@ public class EVSchedule implements TableModel {
 
     public static final Date NEVER = new Date(Long.MAX_VALUE);
     public static final Date A_LONG_TIME_AGO = new Date(0);
-    static Resources resources =
-        Resources.getDashBundle("pspdash.TaskScheduleDialog");
+    static Resources resources = Resources.getDashBundle("TaskScheduleDialog");
 
     public interface Listener {
         public void evScheduleChanged();

@@ -74,8 +74,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     protected ProcessDashboard  dashboard = null;
     protected ConfigureButton configureButton;
 
-    static final Resources resource =
-        Resources.getDashBundle("pspdash.PropertyFrame");
+    static final Resources resource = Resources.getDashBundle("HierarchyEditor");
 
     static final char NO_MOVE_CHAR    = 'M';
     static final char NO_EDIT_CHAR    = 'E';

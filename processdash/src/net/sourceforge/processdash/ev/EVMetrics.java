@@ -409,7 +409,7 @@ public class EVMetrics implements TableModel {
 
 
 
-    static Resources resources = Resources.getDashBundle("pspdash.EVMetrics");
+    static Resources resources = Resources.getDashBundle("EVMetrics");
     static Map formatCaches = Collections.synchronizedMap(new HashMap());
 
     protected String getResourcePrefix() { return null; }

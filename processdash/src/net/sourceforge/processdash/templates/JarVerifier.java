@@ -196,7 +196,7 @@ public class JarVerifier {
 
     public static void main(String argv[]) {
         if (argv == null || argv.length == 0) {
-            System.out.println("Usage: java pspdash.JarVerifier filename.jar");
+            System.out.println("Usage: java net.sourceforge.processdash.templates.JarVerifier filename.jar");
         } else {
             for (int i = 0;   i < argv.length;   i++) try {
                 String filename = argv[i];

@@ -90,7 +90,7 @@ public class TaskScheduleCollaborationWizard {
     private Stack previousPanes = new Stack();
 
     Resources resources = Resources.getDashBundle
-        ("pspdash.TaskScheduleCollaborationWizard");
+        ("TaskScheduleCollaborationWizard");
 
     /** Create and display a collaboration wizard.
      */

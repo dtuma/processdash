@@ -174,15 +174,12 @@ public abstract class AbstractConfidenceInterval implements ConfidenceInterval
         return getQuantile(u.random());
     }
 
-    private static final String OLD_PACKAGE = "pspdash.";
     private static final String PACKAGE = "net.sourceforge.processdash.ev.ci.";
 
     public void saveToXML(String tagName, StringBuffer result) {
         String type = getClass().getName();
         if (type.startsWith(PACKAGE))
             type = type.substring(PACKAGE.length());
-        else if (type.startsWith(OLD_PACKAGE))
-            type = type.substring(OLD_PACKAGE.length());
 
         result.append("<").append(tagName)
             .append(" type='").append(type).append("' ");

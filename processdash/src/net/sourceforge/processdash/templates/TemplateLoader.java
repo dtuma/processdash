@@ -371,7 +371,7 @@ public class TemplateLoader {
             root = doc.getDocumentElement();
         } catch (SAXException se) {
             String message = XMLUtils.exceptionMessage(se);
-            Resources r = Resources.getDashBundle("pspdash.Templates");
+            Resources r = Resources.getDashBundle("Templates");
             if (message == null)
                 message = r.format("Error_FMT", filename);
             else
@@ -550,7 +550,7 @@ public class TemplateLoader {
         Object entry1 = null, entry2 = null;
         try {
             ZipFile zipFile = new ZipFile(f);
-            entry1 = zipFile.getEntry("pspdash/PSPDashboard.class");
+            entry1 = zipFile.getEntry("pspdash/PSPDashboard.class"); // legacy
             entry2 = zipFile.getEntry("net/sourceforge/processdash/ProcessDashboard.class");
             zipFile.close();
         } catch (Throwable t) { }
@@ -607,7 +607,7 @@ public class TemplateLoader {
         Iterator i = packages.keySet().iterator();
         while (i.hasNext()) {
             DashPackage pkg = (DashPackage) i.next();
-            if ("pspdash".equals(pkg.id))
+            if ("pspdash".equals(pkg.id)) // legacy
                 return pkg.version;
         }
 
@@ -616,7 +616,7 @@ public class TemplateLoader {
         i = packages.keySet().iterator();
         while (i.hasNext()) {
             DashPackage pkg = (DashPackage) i.next();
-            if (pkg.id != null && pkg.id.startsWith("pspdash_"))
+            if (pkg.id != null && pkg.id.startsWith("pspdash_")) // legacy
                 return pkg.version;
         }
 
@@ -877,7 +877,7 @@ public class TemplateLoader {
 
             if (v.size() == 0) {
                 String planSummaryName = Resources.getDashBundle
-                    ("pspdash.Templates").format("Plan_Summary_Name_FMT", ID);
+                    ("Templates").format("Plan_Summary_Name_FMT", ID);
                 v.addElement(new ScriptID("dash/summary.shtm", null,
                                           planSummaryName));
 
@@ -926,7 +926,7 @@ public class TemplateLoader {
     private static ErrorReporter errorReporter = null;
     public synchronized static void logTemplateError(String error) {
         if (errorReporter == null) {
-            Resources r = Resources.getDashBundle("pspdash.Templates");
+            Resources r = Resources.getDashBundle("Templates");
             errorReporter = new ErrorReporter
                 (r.getString("Error_Title"),
                  r.getStrings("Error_Header"),

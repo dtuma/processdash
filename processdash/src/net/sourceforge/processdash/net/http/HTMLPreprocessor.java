@@ -694,7 +694,7 @@ public class HTMLPreprocessor {
                 url.substring(1).replace('.', '$').replace('/', '.');
             Resources r;
             try {
-                r = Resources.getDashBundle(resName);
+                r = Resources.getTemplateBundle(resName);
             } catch (MissingResourceException mre) {
                 throw new FileNotFoundException(url + ".properties");
             }

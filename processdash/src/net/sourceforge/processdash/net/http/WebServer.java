@@ -93,7 +93,7 @@ public class WebServer extends Thread {
 
     static {
         try {
-            DEFAULT_ENV.put("SERVER_SOFTWARE", "PSPDASH");
+            DEFAULT_ENV.put("SERVER_SOFTWARE", "PROCESS_DASHBOARD");
             DEFAULT_ENV.put("SERVER_NAME", "localhost");
             DEFAULT_ENV.put("GATEWAY_INTERFACE", "CGI/1.1");
             DEFAULT_ENV.put("SERVER_ADDR", "127.0.0.1");
@@ -662,7 +662,8 @@ public class WebServer extends Thread {
                 super(name);
                 if (!TinyCGI.class.isAssignableFrom(c))
                     throw new IllegalArgumentException
-                        (c.getName() + " does not implement pspdash.TinyCGI");
+                        (c.getName() + " does not implement "+
+                         "net.sourceforge.processdash.net.http.TinyCGI");
                 cgiClass = c;
             }
             protected Object createNewResource() {

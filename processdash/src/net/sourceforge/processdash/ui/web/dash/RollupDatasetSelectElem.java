@@ -177,7 +177,7 @@ public class RollupDatasetSelectElem extends TinyCGIBase {
 
     /** Calculate the name of a rollup instance list, from its rollup
      * ID.  This must agree with the "rollupData.txt" file in the
-     * pspdash directory.
+     * net/sourceforge/processdash/process directory.
      */
     private static String rollupInstanceList(String rollupID) {
         return "/" + rollupID + "/Rollup Instance List";

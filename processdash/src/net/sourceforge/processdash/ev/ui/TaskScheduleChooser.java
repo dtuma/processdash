@@ -73,8 +73,7 @@ public class TaskScheduleChooser
     protected JButton newButton, renameButton, deleteButton,
         cancelButton, okayButton;
 
-    static Resources resources = Resources.getDashBundle
-        ("pspdash.TaskScheduleChooser");
+    static Resources resources = Resources.getDashBundle("TaskScheduleChooser");
 
     public TaskScheduleChooser(DashboardContext dash) {
         this(dash, EVTaskList.findTaskLists(dash.getData()));

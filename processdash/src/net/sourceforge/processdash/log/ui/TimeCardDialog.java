@@ -69,7 +69,7 @@ public class TimeCardDialog {
     private static final int HOURS = 1;
     private static final int MINUTES = 2;
 
-    Resources resources = Resources.getDashBundle("pspdash.Time");
+    Resources resources = Resources.getDashBundle("Time");
 
     public TimeCardDialog(DashHierarchy useProps, TimeLog timeLog) {
         this.useProps = useProps;

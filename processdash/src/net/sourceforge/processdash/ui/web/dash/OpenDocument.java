@@ -173,7 +173,7 @@ public class OpenDocument extends TinyCGIBase {
     public static final String TEMPLATE_ROOT_UNIX = "/Templates/";
 
     private static final Resources resources =
-        Resources.getDashBundle("dash.file");
+        Resources.getTemplateBundle("dash.file");
 
 
     protected void writeHeader() {}
@@ -864,7 +864,7 @@ public class OpenDocument extends TinyCGIBase {
                 resourceName = resourceName.replace('/', '.');
                 if (resourceName.startsWith("."))
                     resourceName = resourceName.substring(1);
-                Resources bundle = Resources.getDashBundle(resourceName);
+                Resources bundle = Resources.getTemplateBundle(resourceName);
                 resourceMap.put(result, bundle);
             } catch (Exception e) {}
         }

@@ -86,7 +86,7 @@ public class ProbeDialog extends JFrame implements
 
     private javax.swing.Timer docChangeTimer;
 
-    Resources resources = Resources.getDashBundle("pspdash.PROBE");
+    Resources resources = Resources.getDashBundle("PROBE");
 
 
     public ProbeDialog(DashHierarchy props, DataRepository data) {

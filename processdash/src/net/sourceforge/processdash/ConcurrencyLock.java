@@ -167,7 +167,7 @@ public class ConcurrencyLock {
      * data in the given directory.
      */
     private void showWarningDialog(String directory) {
-        Resources r = Resources.getDashBundle("pspdash.PSPDashboard");
+        Resources r = Resources.getDashBundle("ProcessDashboard");
         JOptionPane.showMessageDialog
             (null,
              r.formatStrings("Data_Sharing_Violation_Message_FMT", directory),
@@ -180,7 +180,7 @@ public class ConcurrencyLock {
      * create a lock file in the given directory.
      */
     private void showFailureDialog(String directory) {
-        Resources r = Resources.getDashBundle("pspdash.PSPDashboard");
+        Resources r = Resources.getDashBundle("ProcessDashboard");
         JOptionPane.showMessageDialog
             (null,
              r.formatStrings("Lock_Failure_Message_FMT", directory),

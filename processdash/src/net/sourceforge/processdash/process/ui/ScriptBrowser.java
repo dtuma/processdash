@@ -78,7 +78,7 @@ public class ScriptBrowser extends JDialog
 
     protected JButton editButton, deleteButton, closeButton;
 
-    Resources resources = Resources.getDashBundle("pspdash.PSPDashboard");
+    Resources resources = Resources.getDashBundle("ProcessDashboard");
 
 
     //

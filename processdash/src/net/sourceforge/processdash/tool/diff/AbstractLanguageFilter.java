@@ -41,8 +41,7 @@ import net.sourceforge.processdash.util.StringUtils;
  */
 public class AbstractLanguageFilter implements LanguageFilter {
 
-    static final Resources resource =
-        Resources.getDashBundle("pspdash.PSPDiff");
+    static final Resources resource = Resources.getDashBundle("LOCDiff");
 
     protected static final String COMMENT_START_STR =
         String.valueOf(COMMENT_START);

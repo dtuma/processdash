@@ -59,8 +59,7 @@ public class EVTaskList extends AbstractTreeTableModel
 {
 
     public static final String MAIN_DATA_PREFIX = "/Task-Schedule/";
-    static Resources resources =
-        Resources.getDashBundle("pspdash.TaskScheduleDialog");
+    static Resources resources = Resources.getDashBundle("TaskScheduleDialog");
 
 
     protected String taskListName;

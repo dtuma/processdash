@@ -201,7 +201,7 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
     private static void replaceRollupResource(StringBuffer buf, String key,
                                               String rollupID) {
         if (resources == null)
-            resources = Resources.getDashBundle("pspdash.Templates");
+            resources = Resources.getDashBundle("Templates");
 
         String val = resources.format(key+"_FMT", rollupID);
         StringUtils.findAndReplace(buf, key, XMLUtils.escapeAttribute(val));

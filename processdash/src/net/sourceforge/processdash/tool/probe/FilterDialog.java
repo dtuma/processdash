@@ -51,7 +51,7 @@ public class FilterDialog extends JDialog implements ActionListener {
 
     ActionListener      l;
 
-    Resources resources = Resources.getDashBundle("pspdash.PROBE");
+    Resources resources = Resources.getDashBundle("PROBE");
 
 
     public FilterDialog (DashHierarchy props,

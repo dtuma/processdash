@@ -97,7 +97,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     }
 
     private static final Resources resources =
-        Resources.getDashBundle("pspdash.Defects");
+        Resources.getDashBundle("Defects");
 
     protected String getHTML(String key) {
         return HTMLUtils.escapeEntities(resources.getString(key));

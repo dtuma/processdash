@@ -68,8 +68,7 @@ public class TaskScheduleChart extends JFrame
     EVSchedule schedule;
     JTabbedPane tabPane;
 
-    static Resources resources =
-        Resources.getDashBundle("pspdash.TaskScheduleChart");
+    static Resources resources = Resources.getDashBundle("TaskScheduleChart");
 
     public TaskScheduleChart(TaskScheduleDialog parent) {
         super(resources.format("Window_Title_FMT", parent.taskListName));

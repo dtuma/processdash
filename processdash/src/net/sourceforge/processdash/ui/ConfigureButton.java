@@ -65,7 +65,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
     static final String FORUM_URL =
         "http://sourceforge.net/forum/forum.php?forum_id=30753";
 
-    Resources resources = Resources.getDashBundle("pspdash.PSPDashboard");
+    Resources resources = Resources.getDashBundle("ProcessDashboard");
 
                                   // menu labels
     static final String HIERARCHY_FRAME  = "Hierarchy";

@@ -45,8 +45,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class LOCDiff {
 
-    static final Resources resource =
-        Resources.getDashBundle("pspdash.PSPDiff");
+    static final Resources resource = Resources.getDashBundle("LOCDiff");
 
     private int base, added, deleted, modified, total;
     WhitespaceCompareString[] linesA, linesB;
