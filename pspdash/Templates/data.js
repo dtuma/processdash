@@ -59,6 +59,8 @@ var requiredTag = "";
 
 var SILENT;
 
+var ieVersion = 0;
+var nsVersion = 0;
 
 
 
@@ -314,13 +316,16 @@ function IEsetup() {
 		            ' archive="/help/Topics/Troubleshooting/DataApplet/SunPlugin.jar" ' +
 		            ' code=pspdash.data.IEDataApplet'+
 		            ' width=1 height=1>');
-    document.writeln('<param name="cabbase" value="/DataApplet151.cab">');
+    document.writeln('<param name="cabbase" value="/DataApplet152.cab">');
     document.writeln(IEparameterString);
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
     if (unlocked)
       document.writeln('<param name=unlock value=true>');
     document.writeln('<param name=docURL value="'+window.location.href+'">');
+    document.writeln('<param name=ieVersion value="'+ieVersion+'">');
+    document.writeln('<param name=nsVersion value="'+nsVersion+'">');
+    document.writeln('<param name=debug value="<!--#echo dataApplet.debug -->">');
     document.writeln('</applet>');
 
     writeFooter();
@@ -386,15 +391,15 @@ function NScheckEditable() {
  */
 
 function NSchangeNotify()  {
-/*if (debug) {
-    java.lang.System.out.print("NSchangeNotify called by ");
-    java.lang.System.out.println(this);
-  }*/
-  if (document.applets["NSDataAppl"] != null)
-    document.applets["NSDataAppl"].notifyListener(this, this.id);
-  else if (document.all && document.all.NSDataAppl)
-    document.all.NSDataAppl.notifyListener(this, this.id);
+  NSchangeNotifyElem(this);
   return NScheckEditable();
+}
+
+function NSchangeNotifyElem(elem) {
+  if (document.applets["NSDataAppl"] != null)
+    document.applets["NSDataAppl"].notifyListener(elem.id);
+  else if (document.all && document.all.NSDataAppl)
+    document.all.NSDataAppl.notifyListener(elem.id);
 }
 
 
@@ -417,6 +422,7 @@ function NSregisterElement(elem) {
     case "select-multiple":
       if (debug) document.writeln("Setting "+elem.name+".onChange<BR>");
       elem.onchange = NSchangeNotify;
+      if (ieVersion > 0) IEsetupSelectValues(elem);
       break;
 
     case "text" :
@@ -453,8 +459,8 @@ function NSSetup() {
 
   if (pageContainsElements == true) {
     if (debug) document.writeln("<p>creating applet.");
-    document.writeln('<applet name=NSDataAppl'+
-		            ' archive="/DataApplet151.jar" '+
+    document.writeln('<applet id=NSDataAppl name=NSDataAppl'+
+		            ' archive="/DataApplet152.jar" '+
 		            ' code=pspdash.data.NSDataApplet'+
 		            ' width=1 height=1 MAYSCRIPT>');
     if (requiredTag != "")
@@ -462,6 +468,10 @@ function NSSetup() {
     if (unlocked)
       document.writeln('<param name=unlock value=true>');
     document.writeln('<param name=docURL value="'+window.location.href+'">');
+    document.writeln('<param name=ieVersion value="'+ieVersion+'">');
+    document.writeln('<param name=nsVersion value="'+nsVersion+'">');
+    document.writeln('<param name=debug value="<!--#echo dataApplet.debug -->">');
+    document.writeln('<param name=disableDOM value="<!--#echo dataApplet.disableDOM -->">');
     document.writeln('</applet>');
 
     writeFooter();
@@ -486,7 +496,7 @@ function ForcePlugInSetup() {
 	     'width="1" height="1" id="NSDataAppl" '+
   	     'codebase="http://java.sun.com/products/plugin/1.3.0_02/jinstall-130_02-win32.cab#Version=1,3,0,2">'+
 	     '<param name=CODE value="pspdash.data.NSDataApplet">'+
-	     '<param name=ARCHIVE value="/DataApplet151.jar">'+
+	     '<param name=ARCHIVE value="/DataApplet152.jar">'+
 	     '<param name=NAME value="NSDataAppl">'+
 	     '<param name=type value="application/x-java-applet;version=1.3">'+
   	     '<param name=MAYSCRIPT value=true>');
@@ -496,6 +506,10 @@ function ForcePlugInSetup() {
     if (unlocked)
       document.writeln('<param name=unlock value=true>');
     document.writeln('<param name=docURL value="'+window.location.href+'">');
+    document.writeln('<param name=ieVersion value="'+ieVersion+'">');
+    document.writeln('<param name=nsVersion value="'+nsVersion+'">');
+    document.writeln('<param name=debug value="<!--#echo dataApplet.debug -->">');
+    document.writeln('<param name=disableDOM value="<!--#echo dataApplet.disableDOM -->">');
     document.writeln('</object>');
 
     writeFooter();
@@ -546,7 +560,10 @@ function forcePlugIn() { return lookForToken("ForceJavaPlugIn", true);  }
 
 if (debug) document.writeln("Starting setup process.");
 
-if (MSIEversion() >= 4) {
+ieVersion = MSIEversion();
+nsVersion = NSversion();
+
+if (ieVersion >= 4) {
     if (isWindows() == false)
 	NSSetup();
     else if (forcePlugIn())
@@ -556,7 +573,7 @@ if (MSIEversion() >= 4) {
     else
 	IEsetup();
 }
-else if (NSversion() >= 4)
+else if (nsVersion >= 4)
     NSSetup();
 else
     top.location.pathname =

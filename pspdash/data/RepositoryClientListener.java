@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,36 +21,12 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
-
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash.data;
 
+public interface RepositoryClientListener {
 
-public class DOMDataApplet extends DataApplet {
+    public void repositoryClientStopping();
 
-
-    public DOMDataApplet() {}
-
-
-    public void start() {
-        isRunning = true;
-
-        try {
-            mgr = new DOMFieldManager(this);
-            super.start();
-
-        } catch (Exception e) {     // creating the DOMFieldManager could throw
-            printError(e);            // an exception
-        }
-    }
-
-    public void notifyListener(String key) {
-        if (mgr != null)
-            ((DOMFieldManager)mgr).notifyListener(key);
-    }
-
-    protected void debug(String s) {
-        System.out.println("DOMDataApplet: "+s);
-    }
 }

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
@@ -29,6 +29,8 @@ package pspdash.data;
 
 import com.sun.java.browser.dom.*;
 import org.w3c.dom.html.*;
+import org.w3c.dom.css.CSSStyleDeclaration;
+import org.w3c.dom.css.ElementCSSInlineStyle;
 
 
 abstract class DOMField extends HTMLField {
@@ -80,12 +82,18 @@ abstract class DOMField extends HTMLField {
             paint();
 
             boolean readOnly = !isEditable();
-            //setReadOnly(readOnly);
+            setReadOnly(readOnly);
             element.setClassName(readOnly ? "readOnlyElem" : "editableElem");
-            if (element instanceof HTMLInputElement)
-                ((HTMLInputElement) element).setTabIndex(readOnly ? -1 : 0);
-            else if (element instanceof HTMLTextAreaElement)
-                ((HTMLTextAreaElement) element).setTabIndex(readOnly ? -1 : 0);
+
+            if (DataApplet.nsVersion() > 4 &&
+                element instanceof ElementCSSInlineStyle)
+                try {
+                    CSSStyleDeclaration style =
+                        ((ElementCSSInlineStyle) element).getStyle();
+                    style.setProperty("backgroundColor",
+                                      (isEditable() ? "#ffffff" : "#cccccc"),
+                                      "");
+                } catch (Exception e) {}
         }
     }
 
@@ -102,6 +110,52 @@ abstract class DOMField extends HTMLField {
         redraw();
     }
 
+
+    protected void debug(String msg) {
+        if (DataApplet.debug)
+            // print this object's classname (minus "pspdash.data.") and the message
+            System.out.println(getClass().getName().substring(13) + ": " + msg);
+    }
+
+
+    private static String HTML_TRUE = "true";
+    private static String HTML_FALSE = null;
+
+    private static String[] HTML_TRUE_VALUES = {
+        "true", "checked", "1.0" };
+    private static String[] HTML_FALSE_VALUES = {
+        null, "false", "unchecked", "", "0.0" };
+
+    /** Warning - only call this method from the DOM access thread! */
+    public void manuallySetReadOnly(boolean readOnly) {
+        element.setAttribute("readOnly", (readOnly ? HTML_TRUE : HTML_FALSE));
+        if (readOnly == isReadOnly()) return;
+
+        // our changes didn't take. Try other values.
+        String[] trialValues = (readOnly ? HTML_TRUE_VALUES : HTML_FALSE_VALUES);
+        for (int i = 0;   i < trialValues.length;   i++) {
+            element.setAttribute("readOnly", trialValues[i]);
+            // if this trial value appeared to work, save it into the
+            // appropriate static field
+            if (readOnly == isReadOnly()) {
+                debug("changing readOnly="+readOnly+" constant to "+trialValues[i]);
+                if (readOnly)
+                    HTML_TRUE = trialValues[i];
+                else
+                    HTML_FALSE = trialValues[i];
+                return;
+            }
+        }
+    }
+
+    /* Warning - only call this method from the DOM access thread!
+     *
+     * subclasses should generally override this method.
+     */
+    protected boolean isReadOnly() {
+        return false;
+    }
+
     public void userEvent() {
         try {
             service.invokeAndWait(new ParseAction());
@@ -115,10 +169,7 @@ abstract class DOMField extends HTMLField {
 
     private class FieldAction implements DOMAction {
         public Object run(DOMAccessor accessor) {
-            try {/*
-                HTMLDocument doc = (HTMLDocument) accessor.getDocument(null);
-                HTMLFormElement form = (HTMLFormElement) doc.getForms().item(formNum);
-                HTMLElement elem = (HTMLElement) form.getElements().item(elemNum);*/
+            try {
                 if (element != null)
                     act(element);
             } catch (Throwable t) {

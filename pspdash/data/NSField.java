@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
@@ -63,17 +63,21 @@ abstract class NSField extends HTMLField {
     public void redraw() {
         if (element != null) try {
             paint();
-            element.setMember("className",
-                              (isEditable() ? "editableElem" : "readOnlyElem"));
 
-            Object style = element.getMember("style");
-            if (style instanceof JSObject) try {
-                                      // This will execute only in Netscape 6+
-                element.eval(isEditable() ? "readOnly=false;" : "readOnly=true;");
-                ((JSObject) style).setMember("backgroundColor",
-                                             (isEditable() ? "#ffffff" : "#cccccc"));
-            } catch (Exception e) {
-                e.printStackTrace();
+            boolean readOnly = !isEditable();
+            element.setMember("className",
+                              (readOnly ? "readOnlyElem" : "editableElem"));
+
+            if (DataApplet.nsVersion() > 4) {
+                Object style = element.getMember("style");
+                if (style instanceof JSObject) try {
+                                        // This will execute only in Netscape 6+
+                    element.eval(isEditable() ? "readOnly=false;" : "readOnly=true;");
+                    ((JSObject) style).setMember("backgroundColor",
+                                                 (isEditable() ? "#ffffff" : "#cccccc"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } catch (Exception ee) {
             ee.printStackTrace();
@@ -93,6 +97,12 @@ abstract class NSField extends HTMLField {
     public void userEvent() {
         if (element != null) parse();
         if (i != null) i.userChangedValue(variantValue);
+    }
+
+    protected void debug(String msg) {
+        if (DataApplet.debug)
+            // print this object's classname (minus "pspdash.data.") and the message
+            System.out.println(getClass().getName().substring(13) + ": " + msg);
     }
 
 }

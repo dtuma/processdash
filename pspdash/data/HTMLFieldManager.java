@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
@@ -31,18 +31,26 @@ interface HTMLFieldManager {
     /**
      * Setup all internal data structures and establish connections to data.
      * @param data is the repository to get data from, or null if the applet
-     *	    was unable to establish a connection.
+     *        was unable to establish a connection.
      * @param dataPath is the prefix of the data being accessed.  If data was
-     *	    null, dataPath will contain an applicable error message instead.
+     *        null, dataPath will contain an applicable error message instead.
      **/
 
     public void initialize(Repository data, String dataPath);
 
 
     /**
+     * Notify the data repository that the user has edited a value.
+     * @param id a unique ID assigned to the HTML input element
+     **/
+
+    public void notifyListener(Object elementID);
+
+
+    /**
      * Shutdown and cleanup.
      * if @param repositoryExists is true, the field manager must also
-     *	    remove all data connections.
+     *        remove all data connections.
      **/
 
     public void dispose(boolean repositoryExists);

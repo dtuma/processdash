@@ -162,7 +162,6 @@ Authors:
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ie.txt"/>
       <excludesfile name="${lib}/fileset-ns.txt"/>
-      <excludesfile name="${lib}/fileset-dom.txt"/>
     </javac>
   </target>
 
@@ -267,23 +266,8 @@ Authors:
 
 
 
-  <!-- Not yet used -->
-  <target name="DOMDataApplet" depends="init" if="commondom.support"
-          description="Compile the data applet support for the w3c DOM">
-    <mkdir dir="${dom.dir}"/>
-    <javac srcdir="${src}" destdir="${dom.dir}" debug="${debug}"
-           classpathref="build.classpath">
-      <includesfile name="${lib}/fileset-applet-only.txt"/>
-      <includesfile name="${lib}/fileset-applet-extra.txt"/>
-      <includesfile name="${lib}/fileset-dom.txt"/>
-    </javac>
-    <jar destfile="${dom.jar}" basedir="${dom.dir}" includes="pspdash/"/>
-  </target>
-
-
-
   <target name="NSDataApplet" depends="init" if="nsobject.support"
-          description="Compile the data applet support for netscape">
+        description="Compile the data applet support for netscape and W3C dom">
     <mkdir dir="${ns.dir}"/>
     <javac srcdir="${src}" destdir="${ns.dir}" debug="${debug}"
            includeAntRuntime="no" includeJavaRuntime="no" target="1.1">

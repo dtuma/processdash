@@ -46,6 +46,7 @@ public class RepositoryClient extends Thread implements Repository {
     private volatile Vector dataNameList = null;
     private Object dataNameListLock = new Object();
     private volatile boolean isRunning = false;
+    private Vector repositoryClientListeners = new Vector();
 
     public RepositoryClient(URL url, String requiredTag)
         throws RemoteException, ForbiddenException {
@@ -156,7 +157,10 @@ public class RepositoryClient extends Thread implements Repository {
 
         } catch (Exception exception) { printError(exception); }
 
-        synchronized (this) { cleanup(); notifyAll(); }
+        synchronized (this) {
+            cleanup();
+            notifyAllListeners();
+        }
     }
 
     public synchronized void quit() {
@@ -166,10 +170,29 @@ public class RepositoryClient extends Thread implements Repository {
 
         cleanup();
 
-        // debug("notifyAll.");
-        notifyAll();
+        // debug("notifyAllListeners.");
+        notifyAllListeners();
 
         // debug("quit done.");
+    }
+
+    public void addRepositoryClientListener(RepositoryClientListener l) {
+        repositoryClientListeners.addElement(l);
+    }
+
+    public void removeRepositoryClientListener(RepositoryClientListener l) {
+        repositoryClientListeners.removeElement(l);
+    }
+
+    private void notifyAllListeners() {
+        Vector l = repositoryClientListeners;
+        repositoryClientListeners = new Vector();
+
+        for (int i = l.size();  i-- > 0; ) {
+            try {
+                ((RepositoryClientListener) l.elementAt(i)).repositoryClientStopping();
+            } catch (Throwable t) {}
+        }
     }
 
     public void putValue(String name, SaveableData value)

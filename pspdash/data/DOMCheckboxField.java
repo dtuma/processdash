@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
@@ -34,6 +34,15 @@ import org.w3c.dom.html.HTMLInputElement;
 
 class DOMCheckboxField extends DOMField {
 
+    private static boolean setManually = false;
+    private static String HTML_TRUE = "true";
+    private static String HTML_FALSE = null;
+
+    private static String[] HTML_TRUE_VALUES = {
+        "true", "checked", "1.0" };
+    private static String[] HTML_FALSE_VALUES = {
+        null, "false", "unchecked", "", "0.0" };
+
 
     public DOMCheckboxField(DOMService service, DOMDelayedRedrawer redrawer,
                             HTMLElement element, Repository data,
@@ -45,23 +54,60 @@ class DOMCheckboxField extends DOMField {
 
 
     public void fetch() {
-        variantValue = i.getBoolean();
+        debug("fetching - value is '"+i.value+"'");
+        variantValue  = i.getBoolean();
     }
 
     public void paint() {
-        /* The following line is causing a stack overflow error, in the routine
-            sun.plugin.dom.DOMObjectHelper.setBooleanMemberNoEx
-        ((HTMLInputElement) element).setChecked(Boolean.TRUE.equals(variantValue));
-        */
+        boolean desiredValue = Boolean.TRUE.equals(variantValue);
+        debug("painting checkbox, variantValue="+desiredValue);
+        if (!setManually) {
+            ((HTMLInputElement) element).setChecked(desiredValue);
+            if (desiredValue == isChecked()) return;
+        }
+
+        debug("setting attribute manually");
+        setManually = true;
+        element.setAttribute("checked", (desiredValue ? HTML_TRUE : HTML_FALSE));
+
+        // now check to see if our changes "took."
+        if (desiredValue != isChecked()) {
+            // our changes didn't take. Try other values.
+            String[] trialValues =
+                (desiredValue ? HTML_TRUE_VALUES : HTML_FALSE_VALUES);
+            for (int i = 0;   i < trialValues.length;   i++) {
+                element.setAttribute("checked", trialValues[i]);
+                // if this trial value appeared to work, save it into the
+                // appropriate static field
+                if (desiredValue == isChecked()) {
+                    debug("changing "+desiredValue+" constant to '"+trialValues[i]+"'");
+                    if (desiredValue)
+                        HTML_TRUE = trialValues[i];
+                    else
+                        HTML_FALSE = trialValues[i];
+                    break;
+                }
+            }
+        }
+
+        debug("done with paint; value is now "+isChecked());
     }
 
     public void parse() {
-        variantValue = new Boolean(((HTMLInputElement) element).getChecked());
+        variantValue = new Boolean(isChecked());
+    }
+
+    private boolean isChecked() {
+        return ((HTMLInputElement) element).getChecked();
+    }
+
+    protected boolean isReadOnly() {
+        return ((HTMLInputElement) element).getReadOnly();
     }
 
     public void setReadOnly(boolean readOnly) {
-        ((HTMLInputElement) element).setReadOnly(readOnly);
+        // Broken?? ((HTMLInputElement) element).setReadOnly(readOnly);
+        manuallySetReadOnly(readOnly);
         ((HTMLInputElement) element).setTabIndex(readOnly ? -1 : 0);
     }
-
 }

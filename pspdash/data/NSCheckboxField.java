@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
@@ -74,7 +74,7 @@ class NSCheckboxField extends NSField {
             // if this trial value appeared to work, save it into the
             // appropriate static field
             if (desiredValue == isChecked(element.getMember("checked"))) {
-                //* */ debug("changing "+desiredValue+" constant to "+trialValues[i]);
+                debug("changing "+desiredValue+" constant to '"+trialValues[i]+"'");
                 if (desiredValue)
                     HTML_TRUE = trialValues[i];
                 else
@@ -98,7 +98,4 @@ class NSCheckboxField extends NSField {
         return ("1yYtTcC".indexOf(s.charAt(0)) != -1);
     }
 
-    private void debug(String message) {
-        System.out.println(message);
-    }
 }

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash.data;
 
@@ -31,16 +31,20 @@ import java.applet.Applet;
 import java.net.URL;
 
 
-public class DataApplet extends java.applet.Applet {
+public class DataApplet extends java.applet.Applet
+    implements RepositoryClientListener
+{
 
     volatile boolean isRunning = false;
     RepositoryClient data = null;
     String dataPrefix = null;
     String requiredTag = null;
+    static int ieVersion = -1;
+    static int nsVersion = -1;
     String errorMsg = null;
     String readOnlyColorString = "#aaaaaa";
     HTMLFieldManager mgr = null;
-    RepositoryWatcher watcher = null;
+    public static boolean debug = false;
 
 
     DataApplet() {}
@@ -53,32 +57,15 @@ public class DataApplet extends java.applet.Applet {
 
 
     protected void debug(String msg) {
-        // System.out.println("DataApplet: " + msg);
+        if (debug)
+            System.out.println("DataApplet: " + msg);
     }
 
-
-    private class RepositoryWatcher extends Thread {
-        public boolean enabled = true;
-        public RepositoryWatcher() {
-            try {
-                setName(getName() + "(RepositoryWatcher)");
-            } catch (SecurityException e) {}
-        }
-
-        public void run() {
-            // debug("RepositoryWatcher waiting on data...");
-            try {
-                synchronized (data) { data.wait(); }
-            } catch (InterruptedException e) {};
-
-            if (enabled) {
-                // debug("RepositoryWatcher stopping applet...");
-                DataApplet.this.stop();
-                // debug("RepositoryWatcher starting applet...");
-                DataApplet.this.start();
-            }
-            // debug("RepositoryWatcher done.");
-        }
+    public void repositoryClientStopping() {
+        debug("RepositoryClientListener stopping applet...");
+        stop();
+        debug("RepositoryClientListener starting applet...");
+        start();
     }
 
     public void start() {
@@ -86,17 +73,20 @@ public class DataApplet extends java.applet.Applet {
         isRunning = true;
 
         requiredTag = getParameter("requiredTag");
+        ieVersion = getIntParameter("ieVersion");
+        nsVersion = getIntParameter("nsVersion");
+        debug = getBoolParameter("debug", false);
         debug("url="+getDocumentBase()+", requiredTag="+requiredTag);
 
         try {
             data = new RepositoryClient(getDocumentBase(), requiredTag);
             dataPrefix = data.getDataPath();
-            watcher = new RepositoryWatcher();
-            watcher.start();
+            data.addRepositoryClientListener(this);
 
             String s;
             if ((s = Settings.getVal("browser.readonly.color")) != null)
                 readOnlyColorString = s;
+            debug = Settings.getBool("dataApplet.debug", false);
 
         } catch (RemoteException e) {
             debug("got remote exception.");
@@ -122,15 +112,11 @@ public class DataApplet extends java.applet.Applet {
         isRunning = false;
         try {
             if (data != null) {
-                // debug("data is not null...");
-                if (watcher != null) {
-                    // debug("disabling watcher...");
-                    watcher.enabled = false;
-                }
-                // debug("quitting data...");
+                debug("data is not null; unregistering listener...");
+                data.removeRepositoryClientListener(this);
+                debug("quitting data...");
                 data.quit();
                 data = null;
-                watcher = null;
             }
             if (mgr != null) {
                 mgr.dispose(false);
@@ -145,7 +131,29 @@ public class DataApplet extends java.applet.Applet {
 
     public String readOnlyColor() { return readOnlyColorString; }
 
-    public boolean unlocked() { return ("true".equals(getParameter("unlock"))); }
+    public int getIntParameter(String name) {
+        try {
+            return Integer.parseInt(getParameter(name));
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    public boolean getBoolParameter(String name, boolean defaultValue) {
+        String value = getParameter(name);
+        if (value == null || value.length() == 0) return defaultValue;
+        switch (value.charAt(0)) {
+        case 't': case 'T': case 'y': case 'Y': return true;
+        case 'f': case 'F': case 'n': case 'N': return false;
+        }
+        return defaultValue;
+    }
+
+    public static int ieVersion() { return ieVersion; }
+
+    public static int nsVersion() { return nsVersion; }
+
+    public boolean unlocked() { return getBoolParameter("unlock", false); }
 
     public void refreshPage() {
         try {

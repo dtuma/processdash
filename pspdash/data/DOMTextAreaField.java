@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
@@ -42,17 +42,24 @@ class DOMTextAreaField extends DOMField {
               ((HTMLTextAreaElement) element).getName(), data, dataPath);
     }
 
+    public void fetch() { variantValue = i.getString(); }
+
     public void paint() {
         String text = (variantValue == null ? "" : variantValue.toString());
         ((HTMLTextAreaElement) element).setValue(text);
     }
+
     public void parse() {
         variantValue = ((HTMLTextAreaElement) element).getValue();
     }
+
+    protected boolean isReadOnly() {
+        return ((HTMLTextAreaElement) element).getReadOnly();
+    }
+
     public void setReadOnly(boolean readOnly) {
-        ((HTMLTextAreaElement) element).setReadOnly(readOnly);
+        // Broken?? ((HTMLTextAreaElement) element).setReadOnly(readOnly);
+        manuallySetReadOnly(readOnly);
         ((HTMLTextAreaElement) element).setTabIndex(readOnly ? -1 : 0);
     }
-    public void fetch() { variantValue = i.getString(); }
-
 }

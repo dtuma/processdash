@@ -34,10 +34,7 @@
    function setvalue() {
       document.forms[0].elements[11].value =
          document.forms[0].elements[10].value;
-      if (document.applets["NSDataAppl"] != null)
-         document.applets["NSDataAppl"].notifyListener
-	     (document.forms[0].elements[11],
-	      document.forms[0].elements[11].id);
+      NSchangeNotifyElem(document.forms[0].elements[11]);
    }
 </SCRIPT>
 

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,14 +21,13 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
 
 
 import java.util.Vector;
-import java.util.Hashtable;
 import com.sun.java.browser.dom.*;
 import org.w3c.dom.html.*;
 
@@ -36,22 +35,20 @@ import org.w3c.dom.html.*;
 class DOMFieldManager implements HTMLFieldManager, DataListener {
 
     DOMService service = null;
-    DOMDelayedRedrawer redrawer = null;
     Vector inputListeners = null;
-    Hashtable inputListenersH = null;
     Repository data = null;
     String dataPath = null;
+    DOMDelayedRedrawer redrawer = null;
     boolean isRunning, unlocked;
-    DataApplet a = null;
+    DataApplet applet = null;
 
-
-
-    DOMFieldManager(DataApplet a) throws Exception {
-        this.a = a;
+    public DOMFieldManager(DataApplet a) throws Exception {
+        debug("constructor starting");
         isRunning = true;
         inputListeners = new Vector();
-        inputListenersH = new Hashtable();
         unlocked = a.unlocked();
+        this.applet = a;
+
         try {
             service = DOMService.getService(a);
             redrawer = new DOMDelayedRedrawer(service);
@@ -59,6 +56,8 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
             service = null;
             printError(e);
         }
+
+        debug("constructor finished");
     }
 
 
@@ -77,8 +76,7 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
                     return null;
                 } } );
         } catch (DOMAccessException dae) {
-            System.err.println("Caught " + dae);
-            dae.printStackTrace();
+            printError(dae);
         }
 
         debug("initialization complete.");
@@ -87,10 +85,14 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
     private void doInitialize(DOMAccessor accessor) {
 
         try {
-            HTMLDocument doc = (HTMLDocument) accessor.getDocument(a);
+            HTMLDocument doc = (HTMLDocument) accessor.getDocument(applet);
             HTMLCollection formList = doc.getForms();
-            int elemNum = 0;
 
+            // Build an internal list of all the elements on the form. (This
+            // is necessary because otherwise Netscape 6 has a nasty habit of
+            // reordering the list of elements in the form as we initialize
+            // them.)
+            Vector allElements = new Vector();
             if (formList != null) {
                 int numForms = formList.getLength();
                 for (int formIdx = 0;   formIdx < numForms; formIdx++) {
@@ -99,12 +101,18 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
                     int numElements = elementList.getLength();
                     for (int elementIdx = 0;  elementIdx < numElements;  elementIdx++) {
                         if (!isRunning) return; // abort if we have been terminated
-                        reinititializeFormElement
-                            ((HTMLElement) elementList.item(elementIdx),
-                             formIdx, elementIdx, elemNum++);
+                        allElements.addElement(elementList.item(elementIdx));
                     }
                 }
             }
+
+            // Now walk through our list of elements and initialize them.
+            for (int elemNum = 0;   elemNum < allElements.size();   elemNum++) {
+                if (!isRunning) return; // abort if we have been terminated
+                reinititializeFormElement
+                    ((HTMLElement)allElements.elementAt(elemNum), elemNum);
+            }
+
         } catch (Exception e) { printError(e); }
     }
 
@@ -119,13 +127,13 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
         if (r != null) r.quit();
 
         try {
-            // debug("erasing listeners...");
+            debug("erasing listeners...");
             for (int i = inputListeners.size();   i-- > 0; )
                 destroyInputListener(i);
 
         } catch (Exception e) { printError(e); }
+        service = null;
         inputListeners = null;
-        inputListenersH = null;
         data = null;
         dataPath = null;
     }
@@ -138,13 +146,14 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
             inputListeners.setElementAt(null, pos);
         } catch (ArrayIndexOutOfBoundsException e) {}
 
-        if (f != null)
+        if (f != null) {
+            debug("disposing field #"+pos+": "+f);
             f.dispose(data != null);
+        }
     }
 
 
-    public void reinititializeFormElement
-        (HTMLElement element, int formIdx, int elemIdx, int pos) {
+    public void reinititializeFormElement(HTMLElement element, int pos) {
         destroyInputListener(pos);
         HTMLField f = null;
         HTMLInputElement input = null;
@@ -153,7 +162,6 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
             if (element instanceof HTMLInputElement) {
                 input = (HTMLInputElement) element;
                 String inputType = input.getType();
-                // debug("Initializing a "+elementType+" element named ");
                 if ("text".equalsIgnoreCase(inputType) ||
                     "hidden".equalsIgnoreCase(inputType))
                 {
@@ -176,58 +184,65 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
             // etc.
 
             if (f != null) {
+                debug("storing element");
                 while (inputListeners.size() < pos+1)
                     inputListeners.addElement(null);
                 inputListeners.setElementAt(f, pos);
-                //element.setMember(INDEX_ATTR, new Integer(pos));
+                debug("setting element id");
+                element.setId(ELEM_ID_PREFIX + pos);
+                debug("customizing element");
                 if (unlocked) f.unlock();
                 if (f.i != null && f.i.isActive()) f.i.setChangeListener(this);
             }
-            String key = formIdx + "," + elemIdx;
-            inputListenersH.put(key, new Integer(pos));
         } catch (Exception e) {
-            System.out.println("Caught " + e);
-            e.printStackTrace();
+            printError(e);
         }
     }
-    private static final String INDEX_ATTR = "id";
+    private static final String ELEM_ID_PREFIX = "dashelem_";
 
 
-    public void notifyListener(String key) {
-        // debug("notifyListener called by " + (String)element.getMember("name"));
+    public void notifyListener(Object id) {
+        debug("notifyListener called by id="+id);
         DOMField f = null;
-        //debug("notifyListener("+key+")");
-        Object pos = inputListenersH.get(key);
-        //debug("notifyListener: pos ="+pos);
-        if (pos instanceof Integer)
-            f = (DOMField) inputListeners.elementAt(((Integer) pos).intValue());
-        //debug("notifyListener: f ="+f);
 
+        int idx = -1;
+        try {
+            Object pos = id;
+
+            if (pos instanceof String && ((String) pos).startsWith(ELEM_ID_PREFIX))
+                pos = ((String) pos).substring(ELEM_ID_PREFIX.length());
+
+            debug("\tpos="+pos);
+            idx = intValue(pos);
+        } catch (Exception e) {
+            printError(e);
+        }
+
+        if (idx >= 0 && idx < inputListeners.size())
+            f = (DOMField) inputListeners.elementAt(idx);
+
+        debug("\tfield="+f);
         if (f != null) f.userEvent();
     }
 
     public void dataValuesChanged(Vector v) { dataValueChanged(null); }
-    public void dataValueChanged(DataEvent e) { a.refreshPage(); }
+    public void dataValueChanged(DataEvent e) { applet.refreshPage(); }
+
+    public static int intValue(Object o) {
+        if (o == null) return -1;
+        if (o instanceof Number) return ((Number) o).intValue();
+        try {
+            return Integer.parseInt(o.toString());
+        } catch (Exception e) {}
+        return -1;
+    }
 
     protected void printError(Exception e) {
         System.err.println("Exception: " + e);
         e.printStackTrace(System.err);
     }
     private void debug(String s) {
-        System.out.println("DOMFieldManager."+s);
+        if (DataApplet.debug)
+            System.out.println("DOMFieldManager: "+s);
     }
 }
-
-/*
-
-    DOMService service = null;
-    try {
-        service = DOMService. getService(MyApplet);
-        String title = (String) service.invokeAndWait( new DOMAction() {
-            public Object run( DOMAccessor accessor) {
-                 HTMLDocument doc = (HTMLDocument) accessor.getDocument();
-                 return doc.getTitle(); } });
-    } catch (DOMUnsupportedException e1) {
-    } catch (DOMAccessException e2) { }
-
- */

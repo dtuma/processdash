@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash.data;
@@ -30,6 +30,7 @@ package pspdash.data;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Hashtable;
@@ -42,15 +43,20 @@ public class NSDataApplet extends DataApplet {
     public NSDataApplet() {}
 
 
+    private Class[] CONSTR_PARAM = { DataApplet.class };
+
     public void start() {
         isRunning = true;
 
         try {
-            mgr = new NSFieldManager(this);
+            boolean disableDOM = getBoolParameter("disableDOM", false);
+            Class cls = getFieldManagerClass(disableDOM);
+            Constructor cstr = cls.getConstructor(CONSTR_PARAM);
+            mgr = (HTMLFieldManager) cstr.newInstance(new Object[] { this });
             super.start();
 
         } catch (Throwable e) {
-            // creating or initializing the NSFieldManager in an unsupported
+            // creating or initializing the HTMLFieldManager in an unsupported
             // browser could cause various exceptions or errors to be thrown.
             System.out.println
                 ("Your current browser configuration appears to be incapable\n"+
@@ -62,12 +68,28 @@ public class NSDataApplet extends DataApplet {
         }
     }
 
-    public void notifyListener(Object element, Object id) {
-        if (mgr != null)
-            ((NSFieldManager)mgr).notifyListener(element, id);
+    private Class getFieldManagerClass(boolean disableDOM) throws Exception {
+        if (!disableDOM) {
+            String javaVer = System.getProperty("java.version");
+            if (javaVer.compareTo("1.4.2") >= 0)
+                try {
+                    return Class.forName("pspdash.data.DOMFieldManager");
+                } catch (Throwable e) {}
+        }
+
+        return Class.forName("pspdash.data.NSFieldManager");
     }
 
-    protected void debug(String s) { /*System.out.println("NSDataApplet: "+s);*/}
+    public void notifyListener(Object id) {
+        debug("NSDataApplet.notifyListener("+id+")");
+        if (mgr != null)
+            mgr.notifyListener(id);
+    }
+
+    protected void debug(String s) {
+        if (DataApplet.debug)
+            System.out.println("NSDataApplet: "+s);
+    }
 
     private static final String PROBLEM_URL =
         "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";
