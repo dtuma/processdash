@@ -221,7 +221,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
     }
 
     protected boolean test(String defPhase, String cmpPhase) {
-        return defPhase.endsWith(cmpPhase);
+        return defPhase.equals(cmpPhase) || defPhase.endsWith("/"+cmpPhase);
     }
 
     public void analyze(String path, Defect d) {
