@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -160,6 +160,7 @@ public class EVTask implements DataListener {
 
     private static final Date COMPLETION_DATE_NA = EVSchedule.A_LONG_TIME_AGO;
 
+    static Resources resources = Resources.getDashBundle("pspdash.EVTask");
 
     /** Creates an EVTask suitable for the root of an EVTaskList.  */
     public EVTask(String rootName) {
@@ -641,10 +642,10 @@ public class EVTask implements DataListener {
     }
     public String getPlanTimeError() {
         if (hasTopDownBottomUpError())
-            return "top-down/bottom-up mismatch (bottom-up = " +
-                formatTime(bottomUpPlanTime) + ")";
+            return resources.format("Mismatch_Error_FMT",
+                                    formatTime(bottomUpPlanTime));
         if (planTimeIsMissing())
-            return "plan time is missing";
+            return resources.getString("Plan_Time_Missing_Error");
         return null;
     }
     public String getActualTime(double totalActualTime) {
@@ -924,9 +925,10 @@ public class EVTask implements DataListener {
         case 1:                 // this is a child of the root.
             if (containsNode(rootChildList, this) ||
                 containsNode(otherNodeList, this)) {
-                metrics.addError("The task \"" + fullName + "\" appears in "+
-                                 "the task list more than once.", this);
-                setTaskError("Duplicate task");
+                metrics.addError(resources.format
+                                 ("Duplicate_Task_Error_Msg_FMT", fullName),
+                                 this);
+                setTaskError(resources.getString("Duplicate_Task_Error"));
             } else
                 setTaskError(null);
             rootChildList.add(this);
@@ -936,27 +938,25 @@ public class EVTask implements DataListener {
             int pos = indexOfNode(rootChildList, this);
             if (pos != -1) {
                 EVTask t = (EVTask) rootChildList.get(pos);
-                metrics.addError("The task \"" + t.fullName + "\" appears in "+
-                                 "the task list more than once.", t);
-                t.setTaskError("Duplicate task");
+                metrics.addError(resources.format
+                                 ("Duplicate_Task_Error_Msg_FMT", t.fullName),
+                                 t);
+                t.setTaskError(resources.getString("Duplicate_Task_Error"));
             }
             setTaskError(null);
             otherNodeList.add(this);
         }
 
         if (hasTopDownBottomUpError())
-            metrics.addError("The top-down estimate of " + getPlanTime() +
-                             " for task \"" + fullName + "\" does not " +
-                             "agree with the bottom-up estimate of " +
-                             formatTime(bottomUpPlanTime) + ". (Consider " +
-                             "editing or deleting the top-down estimate " +
-                             "for task \"" + fullName + "\", or modifying " +
-                             "the estimates of the tasks underneath it.)",
+            metrics.addError(resources.format("Mismatch_Error_Msg_FMT",
+                                              fullName,
+                                              getPlanTime(),
+                                              formatTime(bottomUpPlanTime)),
                              this);
         if (planTimeIsMissing())
             metrics.addError
-                ("You still need to estimate the time required for task \"" +
-                 fullName + "\".", this);
+                (resources.format("Plan_Time_Missing_Error_Msg_FMT", fullName),
+                 this);
 
         for (int i = 0;   i < getNumChildren();   i++)
             getChild(i).checkForNodeErrors(metrics, depth+1,
