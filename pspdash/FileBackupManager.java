@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -131,7 +131,7 @@ public class FileBackupManager {
             File out = new File(dataDir, LOG_FILE_NAME);
             logFile = new FileOutputStream(out);
             ConsoleWindow.getInstalledConsole().setCopyOutputStream(logFile);
-            System.out.println("Version 1.5.0.4 - logging started at " +
+            System.out.println("Version 1.5.0.5 - logging started at " +
                                new Date());
             System.out.println(System.getProperty("java.vendor") +
                                " JRE " + System.getProperty("java.version") +
