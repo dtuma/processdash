@@ -23,15 +23,14 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-
 package net.sourceforge.processdash.ui.web.psp;
 
 
-import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import pspdash.Defect;
@@ -153,7 +152,7 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
     protected void printD23(String param, String label, int [] row) {
         String dt = param;
         if (!label.startsWith("Total")) {
-            dt += ("&type=" + URLEncoder.encode(label));
+            dt += ("&type=" + HTMLUtils.urlEncode(label));
             if (!strict && 0 == (row[INJ_DESIGN] + row[INJ_CODE] +
                                  row[REM_COMPILE] + row[REM_TEST]))
                 return;
