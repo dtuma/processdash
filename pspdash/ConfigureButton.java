@@ -120,7 +120,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
         // add help listener
         try {
-            URL hsURL = new URL((new File(".")).toURL(), "Templates/help/PSPDash.hs");
+            URL hsURL = TemplateLoader.resolveURL(HELPSET_PATH);
 
             hs = new HelpSet(null,hsURL);
             System.out.println("Found help set at " + hsURL);
@@ -136,6 +136,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             System.out.println("Error on help");
         }
     }
+
+    private static final String HELPSET_PATH = "/help/PSPDash.hs";
 
     public void quit () {
         if (time_frame != null) {
