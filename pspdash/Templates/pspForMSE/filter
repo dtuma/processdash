@@ -1,0 +1,9 @@
+#!/usr/bin/perl -p
+
+BEGIN { $pat = shift; }
+
+if (/$pat/o) { $_ = '';          } # filter out cut lines
+elsif (s|MANUALFOR="([0-9AB]+)" NAME="/([a-zA-Z ]+/)?|NAME="$2$1 |) {}
+elsif (s|MANUALFOR="([0-9AB]+)" NAME="([a-zA-Z ]+/)?|NAME="$2$1 |)  {}
+
+s|\.\./|../../|g; # modify relative paths

@@ -1,0 +1,375 @@
+<!--
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 1999  United States Air Force
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// 
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+// 
+// E-Mail POC:  ken.raisor@hill.af.mil
+-->
+
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="../style.css">
+<TITLE>PSP1.0.1 Project Planning Summary</TITLE>
+</HEAD>
+<BODY>
+
+<H1>PSP1.0.1 Project Planning Summary</H1>
+
+<FORM NAME=PLAN>
+
+<INPUT TYPE=hidden NAME=requiredTag VALUE=psp1.0.1>
+
+<TABLE>
+<TR>
+<TD>Project Name</TD>
+<TD><INPUT TYPE=text SIZE=50 NAME="Project//Name	sr==p"></TD>
+</TR>
+<TR>
+<TD>Project Owner</TD>
+<TD><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
+</TR>
+<TR>
+<TD>Start Date</TD>
+<TD><INPUT TYPE=text SIZE=25 NAME="Started	d"></TD>
+</TR>
+<TR>
+<TD>Completion Date</TD>
+<TD><INPUT TYPE=text SIZE=25 NAME="Completed	d"> Completed: <INPUT TYPE=checkbox NAME="Completed	d"></TD>
+</TR>
+<TR>
+<TD>Language</TD>
+<TD><INPUT TYPE=text SIZE=15 NAME="Project/Language	s"></TD>
+</TR>
+</TABLE>
+<P>
+
+<TABLE>
+
+<TR>
+<TD>Summary</TD>
+<TD ALIGN=CENTER>Plan</TD>
+<TD ALIGN=CENTER>Actual</TD>
+<TD ALIGN=CENTER>To Date</TD>
+</TR>
+
+<TR>
+<TD>LOC/Hour</TD>
+<TD><INPUT TYPE=text SIZE=7 MANUALFOR="4A" NAME="Estimated LOC per Hour"></TD>
+<TD><INPUT TYPE=text SIZE=7 MANUALFOR="4A" NAME="LOC per Hour"></TD>
+<TD><INPUT TYPE=text SIZE=7 MANUALFOR="4A" NAME="LOC per Hour To Date"></TD>
+</TR>
+
+<TR>
+<TD ALIGN=LEFT><B>Program Size (LOC)</B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER><B>To Date</B></TD>
+</TR>
+
+<TR>
+<TD>Base(B)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Base LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Base LOC"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;Deleted (D)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Deleted LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Deleted LOC"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;Modified (M)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Modified LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Modified LOC"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;Added (A)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Added LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Added LOC"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;Reused (R)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Reused LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Reused LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Reused LOC To Date"></TD>
+</TR>
+
+<TR>
+<TD>Total New &amp; Changed (N)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New & Changed LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New & Changed LOC To Date"></TD>
+</TR>
+
+<TR>
+<TD>Total LOC (T)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Total LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Total LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Total LOC To Date"></TD>
+</TR>
+
+<TR>
+<TD>Total New Reused</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New Reused LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New Reused LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New Reused LOC To Date"></TD>
+</TR>
+
+<TR>
+<TD>Object LOC (E)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Object LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Object LOC"></td>
+<TD></td>
+</TR>
+
+<TR>
+<TD ALIGN=LEFT><B>Time in Phase (min.)</B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<TD ALIGN=CENTER><B>To Date %</B></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Planning</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/Time To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/% Time To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Design</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined Time To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined % Time To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;<span class=newPsp>Design review</span></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/Time To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/% Time To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Code</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined Time To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined % Time To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;<span class=newPsp>Code review</span></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/Time To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/% Time To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Compile</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/Time To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/% Time To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Test</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/Time To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/% Time To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Postmortem</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Postmortem/Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Postmortem/Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Postmortem/Time To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Postmortem/% Time To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;Total</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time To Date"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD><B>Defects Injected</B></TD>
+<TD ALIGN=CENTER></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<TD ALIGN=CENTER><B>To Date %</B></TD>
+</TR>
+<TR class=dash>
+<TD>&nbsp;&nbsp;Before Development</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Before Development/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Before Development/Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Before Development/% Defects Injected To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Planning</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/% Defects Injected To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Design</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined % Defects Injected To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;<span class=newPsp>Design Review</span></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/Estimated Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/% Defects Injected To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Code</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined % Defects Injected To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;<span class=newPsp>Code Review</span></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/Estimated Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/% Defects Injected To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Compile</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/% Defects Injected To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Test</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/Defects Injected To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/% Defects Injected To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;Total Development</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Injected To Date"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD><B>Defects Removed</B></TD>
+<TD ALIGN=CENTER></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<TD ALIGN=CENTER><B>To Date %</B></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Planning</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/Defects Removed To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Planning/% Defects Removed To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Design</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined Defects Removed To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design/Combined % Defects Removed To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;<span class=newPsp>Design Review</span></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/Estimated Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/Defects Removed To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Design Review/% Defects Removed To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Code</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined Defects Removed To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code/Combined % Defects Removed To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;<span class=newPsp>Code Review</span></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/Estimated Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/Defects Removed To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Code Review/% Defects Removed To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Compile</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/Defects Removed To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Compile/% Defects Removed To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;Test</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/Defects Removed To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Test/% Defects Removed To Date	%"></TD>
+</TR>
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;Total Development</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Removed To Date"></TD>
+<TD></TD>
+</TR>
+<TR>
+<TD>After Development</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="After Development/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="After Development/Defects Removed To Date"></TD>
+<TD></TD>
+</TR>
+</TABLE>
+</FORM>
+
+<HR><FONT SIZE="-1"><I>Copyright &copy;&nbsp;1995 Addison-Wesley
+Publishing Company, Inc.  Used by permission.</I></FONT>
+
+
+<SCRIPT LANGUAGE=JavaScript SRC="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</SCRIPT>
+
+</BODY>
+</HTML>

@@ -10,6 +10,7 @@ SCR.globalData
 DCR.template
 Insp.template
 pspForEng
+pspForMSE
 dataFileCheck.pl
 batchEdit.pl
 text

@@ -1,0 +1,33 @@
+#include <pspForMSE/5B/dataFile.txt>
+
+=
+=  Do any of these make sense at 1.0.1?
+=
+
+= Students must manually calculate CPI for program 4B.
+
+4B Estimated Time To Date=?NaN
+4B Time To Date=?NaN
+4B CPI To Date=?NaN
+
+= Students must manually calculate % Reused for program 4B.
+
+4B Estimated % Reused=?NaN
+4B % Reused=?NaN
+4B % Reused To Date=?NaN
+
+= Students must manually calculate % New Reused for program 4B.
+
+4B Estimated % New Reused=?NaN
+4B % New Reused=?NaN
+4B % New Reused To Date=?NaN
+
+
+= Numbers which are normally defaulted to 0, force students to enter
+
+Estimated Base LOC=?NaN
+Estimated Deleted LOC=?NaN
+Estimated Modified LOC=?NaN
+Base LOC=?NaN
+Deleted LOC=?NaN
+Modified LOC=?NaN

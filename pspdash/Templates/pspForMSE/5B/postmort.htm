@@ -1,0 +1,135 @@
+<!--
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 1999  United States Air Force
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// 
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+// 
+// E-Mail POC:  ken.raisor@hill.af.mil
+-->
+
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="../style.css">
+<TITLE>PSP1.0.1 Postmortem Script</TITLE>
+</HEAD>
+<BODY>
+
+<H1>PSP1.0.1 Postmortem Script</H1>
+
+<TABLE BORDER>
+
+<TR>
+<TD>Phase<BR>Number</TD>
+<TD>Purpose</TD>
+<TD>To guide the PSP postmortem process.</TD>
+</TR>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD VALIGN=TOP>Entry Criteria</TD>
+<TD><UL>
+<LI>Problem description and requirements statement</LI>
+<LI><A HREF="summary.htm">Project Plan Summary</A> with program size and 
+development time data</LI>
+<LI>Completed Test Report Template</LI>
+<LI><span class=newPsp>Completed Design Review and Code Review 
+   Checklists</span></LI>
+<LI>Completed <A HREF="../reports/timelog.class">Time Recording Log</a></LI>
+<LI>Completed <A HREF="../reports/defectlog.class">Defect Recording 
+    Log</a></LI>
+<LI>A tested and running program that conforms to the Coding Standard</LI>
+</UL></TD>
+</TR>
+
+<TR class=nonDash>
+<TD class=nonDash VALIGN=TOP><span class=nonDash>1</span></TD>
+<TD class=nonDash VALIGN=TOP><span class=nonDash>Defects Injected</span></TD>
+<TD class=nonDash><span class=nonDash><UL>
+<LI>Determine from the <A HREF="../reports/defectlog.class" 
+    class=nonDash>Defect Recording Log</a> the number of defects injected
+    in each PSP1 phase.</LI>
+<LI>Enter this number under Defects Injected -- Actual on the 
+    <A class=nonDash HREF=summary.htm>Project Plan Summary</a>.</LI>
+</UL></span></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP><span class=nonDash>2</span></TD>
+<TD VALIGN=TOP><span class=nonDash>Defects Removed</span></TD>
+<TD><span class=nonDash><UL>
+<LI>Determine from the <A HREF="../reports/defectlog.class" 
+    class=nonDash>Defect Recording Log</a> the number of defects removed
+    in each PSP1 phase.</LI>
+<LI>Enter this number under Defects Removed -- Actual on the 
+    <A class=nonDash HREF=summary.htm>Project Plan Summary</a>.</LI>
+</UL></span></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>3</TD>
+<TD VALIGN=TOP>Size</TD>
+<TD><UL>
+<LI>Count the LOC in the completed program.</LI>
+<LI>Determine the base, reused, deleted, modified, added, total, total new 
+and change, and new reuse LOC. <span class=dash>(If you do not already
+have a tool for measuring deleted, modified, and added LOC, you may find
+<A href="http://processdash.sourceforge.net/pspdiff.html">this tool</a>
+useful.)</span></LI>
+<LI>Enter these data in the <A HREF="sizeest.class">Size Estimating 
+Template</A> and the <A href="summary.htm">Project Plan Summary</a>.</LI>
+</UL></TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP><span class=nonDash>4</span></TD>
+<TD VALIGN=TOP><span class=nonDash>Time</span></TD>
+<TD><span class=nonDash><UL>
+<LI>Review the completed <A HREF="../reports/timelog.class" 
+    class=nonDash>Time Recording Log</a>.</LI>
+<LI>Enter the total time spent in each PSP1 phase in the Actual column of the 
+    <A class=nonDash HREF=summary.htm>Project Plan Summary</a></LI>
+</UL></span></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD VALIGN=TOP>Exit Criteria</TD>
+<TD><UL>
+<LI>A fully tested program that conforms to the Coding Standard</LI>
+<LI><span class=newPsp>Completed Design Review and Code Review Checklists</span></LI>
+<LI>A completed Test Report Template</LI>
+<LI>Completed <A href="summary.htm">Project Plan Summary</a></LI>
+<LI>Completed PIP forms describing process problems, improvement suggestions, 
+and lessons learned</LI>
+<LI>Completed <A HREF="../reports/defectlog.class">Defect</a> and
+   <A HREF="../reports/timelog.class">Time</a> Recording Logs</LI>
+</UL></TD>
+</TR>
+
+</TABLE>
+
+<P><A HREF="script.htm">Top</A>
+
+<HR><FONT SIZE="-1"><I>Copyright &copy;&nbsp;1995 Addison-Wesley
+Publishing Company, Inc.  Used by permission.</I></FONT>
+
+</BODY>
+</HTML>

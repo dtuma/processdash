@@ -1,0 +1,33 @@
+#include <psp0.1/dataFile.txt>
+
+= Students must manually spread the time across the phases for program 2A.
+
+Planning/Estimated Time=?NaN
+Design/Combined Estimated Time=?NaN
+Code/Combined Estimated Time=?NaN
+Compile/Estimated Time=?NaN
+Test/Estimated Time=?NaN
+Postmortem/Estimated Time=?NaN
+
+
+= Students must calculate Added and N&C LOC for program 2A.
+
+2A New & Changed LOC=?NaN
+2A Added LOC=?NaN
+
+
+= Students must enter To Date LOC
+
+Reused LOC To Date=?NaN
+New & Changed LOC To Date=?NaN
+Total LOC To Date=?NaN
+New Reused LOC To Date=?NaN
+
+
+= Numbers which are normally defaulted to 0, force students to enter
+
+Base LOC=?NaN
+Deleted LOC=?NaN
+Modified LOC=?NaN
+Reused LOC=?NaN
+New Reused LOC=?NaN

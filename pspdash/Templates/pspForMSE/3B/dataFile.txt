@@ -1,0 +1,17 @@
+#include <psp1/dataFile.txt>
+
+= Students must manually calculate LOC/Hr for program 3B.
+
+3B Estimated LOC per Hour=?NaN
+3B LOC per Hour=?NaN
+3B LOC per Hour To Date=?NaN
+
+
+= Numbers which are normally defaulted to 0, force students to enter
+
+Estimated Base LOC=?NaN
+Estimated Deleted LOC=?NaN
+Estimated Modified LOC=?NaN
+Base LOC=?NaN
+Deleted LOC=?NaN
+Modified LOC=?NaN
