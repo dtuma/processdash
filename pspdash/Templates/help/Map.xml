@@ -47,6 +47,51 @@
   <mapID target="FAQ" url="Topics/Troubleshooting/FAQ.html" />
 
   <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
-  <mapID target="ModifyingExistingProcesses" url="Topics/AdvancedTopics/ModifyingExistingProcesses.html" />
-  <mapID target="CreatingNewProcesses" url="Topics/AdvancedTopics/CreatingNewProcesses.html" />
+
+  <mapID target="HowToInstall.addon" url="Topics/Overview/HowToInstall.html#addon" />
+  <mapID target="ConfigurationFile.autoRealization" url="Topics/AdvancedTopics/ConfigurationFile.html#autoRealization" />
+  <mapID target="ConfigurationFile.autoUpdate" url="Topics/AdvancedTopics/ConfigurationFile.html#autoUpdate" />
+  <mapID target="UsingProbeTool.average" url="Topics/Planning/UsingProbeTool.html#average" />
+  <mapID target="UsingSizeEstimatingTemplate.baseLOC" url="Topics/Planning/UsingSizeEstimatingTemplate.html#baseLOC" />
+  <mapID target="UsingSizeEstimatingTemplate.baseAdditions" url="Topics/Planning/UsingSizeEstimatingTemplate.html#baseAdditions" />
+  <mapID target="UsingProbeTool.interval" url="Topics/Planning/UsingProbeTool.html#interval" />
+  <mapID target="UsingProbeTool.correlation" url="Topics/Planning/UsingProbeTool.html#correlation" />
+  <mapID target="UsingHierarchyEditor.cyclic" url="Topics/Planning/UsingHierarchyEditor.html#cyclic" />
+  <mapID target="ConfigurationFile.defectDialog.autostart" url="Topics/AdvancedTopics/ConfigurationFile.html#defectDialogAutostart" />
+  <mapID target="ConfigurationFile.defectDialog.phaseMap" url="Topics/AdvancedTopics/ConfigurationFile.html#defectDialogPhaseMap" />
+  <mapID target="ConfigurationFile.defectDialog.restrictSequence" url="Topics/AdvancedTopics/ConfigurationFile.html#defectDialogRestrictSequence" />
+  <mapID target="EnteringDefects.fixDefects" url="Topics/Execution/EnteringDefects.html#fixDefects" />
+  <mapID target="EnteringDefects.fixingMultipleDefects" url="Topics/Execution/EnteringDefects.html#fixingMultipleDefects" />
+  <mapID target="EnteringDefects.timing" url="Topics/Execution/EnteringDefects.html#timing" />
+  <mapID target="ConfigurationFile.dateFormat" url="Topics/AdvancedTopics/ConfigurationFile.html#dateFormat" />
+  <mapID target="ProcessScripts.generic" url="Topics/Overview/ProcessScripts.html#generic" />
+  <mapID target="ConfigurationFile.hiddenData" url="Topics/AdvancedTopics/ConfigurationFile.html#hiddenData" />
+  <mapID target="UsingProbeTool.regression" url="Topics/Planning/UsingProbeTool.html#regression" />
+  <mapID target="UsingSizeEstimatingTemplate.newObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#newObjects" />
+  <mapID target="UsingSizeEstimatingTemplate.objectLOC" url="Topics/Planning/UsingSizeEstimatingTemplate.html#objectLOC" />
+  <mapID target="ConfigurationFile.pauseButton.historySize" url="Topics/AdvancedTopics/ConfigurationFile.html#pauseButtonHistorySize" />
+  <mapID target="ConfigurationFile.pauseButton.quiet" url="Topics/AdvancedTopics/ConfigurationFile.html#pauseButtonQuiet" />
+  <mapID target="ConfigurationFile.pauseButton.showCurrent" url="Topics/AdvancedTopics/ConfigurationFile.html#pauseButtonShowCurrent" />
+  <mapID target="PlayPause.pullDown" url="Topics/Execution/PlayPause.html#pullDown" />
+  <mapID target="UsingProbeTool.interval" url="Topics/Planning/UsingProbeTool.html#interval" />
+  <mapID target="ConfigurationFile.probeDialog.chart" url="Topics/AdvancedTopics/ConfigurationFile.html#probeDialogChart" />
+  <mapID target="ConfigurationFile.probeDialog.dataList" url="Topics/AdvancedTopics/ConfigurationFile.html#probeDialogDataList" />
+  <mapID target="ConfigurationFile.probeDialog.filter" url="Topics/AdvancedTopics/ConfigurationFile.html#probeDialogfilter" />
+  <mapID target="ConfigurationFile.probeDialog.onlyCompleted" url="Topics/AdvancedTopics/ConfigurationFile.html#probeDialogOnlyCompleted" />
+  <mapID target="UsingProbeTool.projection" url="Topics/Planning/UsingProbeTool.html#projection" />
+  <mapID target="GoalsOfPSPAndDashboard.psp" url="Topics/Overview/GoalsOfPSPAndDashboard.html#psp" />
+  <mapID target="UsingProbeTool.regression" url="Topics/Planning/UsingProbeTool.html#regression" />
+  <mapID target="UsingSizeEstimatingTemplate.reusedObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#reusedObjects" />
+  <mapID target="AccessingScripts.pulldown" url="Topics/Execution/AccessingScripts.html#pulldown" />
+  <mapID target="UsingProbeTool.significance" url="Topics/Planning/UsingProbeTool.html#significance" />
+  <mapID target="ConfigurationFile.stateFile" url="Topics/AdvancedTopics/ConfigurationFile.html#stateFile" />
+  <mapID target="UsingSizeEstimatingTemplate.time" url="Topics/Planning/UsingSizeEstimatingTemplate.html#time" />
+  <mapID target="UsingTimeLogEditor.dateFilter" url="Topics/Execution/UsingTimeLogEditor.html#dateFilter" />
+  <mapID target="UsingTimeLogEditor.summarize" url="Topics/Execution/UsingTimeLogEditor.html#summarize" />
+  <mapID target="ConfigurationFile.timelog.updateInterval" url="Topics/AdvancedTopics/ConfigurationFile.html#timelogUpdateInterval" />
+  <mapID target="PlayPause.sound" url="Topics/Execution/PlayPause.html#sound" />
+  <mapID target="ProcessScripts.timer" url="Topics/Overview/ProcessScripts.html#timer" />
+  <mapID target="GoalsOfPSPAndDashboard.tsp" url="Topics/Overview/GoalsOfPSPAndDashboard.html#tsp" />
+  <mapID target="HowToInstall.upgrade" url="Topics/Overview/HowToInstall.html#upgrade" />
+  <mapID target="QuickOverview.webServer" url="Topics/Overview/QuickOverview.html#webServer" />
 </map>

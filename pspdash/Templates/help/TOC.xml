@@ -58,11 +58,6 @@
 
     <tocitem image="BookIcon" text="Advanced Topics">
       <tocitem image="PageIcon" target="ConfigurationFile" text="The configuration file"/>
-
-<!-- 
-      <tocitem target="ModifyingExistingProcesses" text="Modifying the existing processes"/>
-      <tocitem target="CreatingNewProcesses" text="Creating your own processes"/>
--->
     </tocitem>
 
   </tocitem>

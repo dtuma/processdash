@@ -62,39 +62,82 @@ foreach $line (@index) {
 }
 
 # verify that all files that are mapped are in the config file, and vice versa
+print "Checking Map.xml against help.config...";
+$dirty = 0;
 foreach $item (@mapFiles) {
    if (! grep /^$item$/,@conf) {
-      print "$item found in Map.xml but not in help.config\n";
+      print "\n$item found in Map.xml but not in help.config";
+      $dirty = 1;
    }
 }
+if ($dirty == 0) {
+   print "No errors.";
+}
+print "\n\n";
+
+print "Checking help.config against Map.xml...";
+$dirty = 0;
 foreach $item (@conf) {
    if (! grep /^$item$/,@mapFiles) {
-      print "$item found in help.config but not in Map.xml\n";
+      print "\n$item found in help.config but not in Map.xml";
+      $dirty = 1;
    }
 }
+if ($dirty == 0) {
+   print "No errors.";
+}
+print "\n\n";
 
 # verify that every mapped file is found in TOC and vice versa
+print "Checking Map.xml against TOC.xml...";
+$dirty = 0;
 foreach $item (@mapIDs) {
    if (! grep /^$item$/,@tocItems) {
-      print "$item found in Map.xml but not in TOC.xml\n";
+      print "\n$item found in Map.xml but not in TOC.xml";
+      $dirty = 1;
    }
 }
+if ($dirty == 0) {
+   print "No errors.";
+}
+print "\n\n";
 
+print "Checking TOC.xml against Map.xml...";
+$dirty = 0;
 foreach $item (@tocItems) {
    if (! grep /^$item$/,@mapIDs) {
-      print "$item found in TOC.xml but not in Map.xml\n";
+      print "\n$item found in TOC.xml but not in Map.xml";
+      $dirty = 1;
    }
 }
+if ($dirty == 0) {
+   print "No errors.";
+}
+print "\n\n";
 
 # verify that every mapped file is found in Index and vice versa
-#foreach $item (@mapIDs) {
-#   if (! grep /^$item$/,@indexItems) {
-#      print "$item foundin Map.xml but not in Index.xml\n";
-#   }
-#}
+print "Checking Map.xml against Index.xml...";
+$dirty = 0;
+foreach $item (@mapIDs) {
+   if (! grep /^$item$/,@indexItems) {
+      print "\n$item found in Map.xml but not in Index.xml";
+      $dirty = 1;
+   }
+}
+if ($dirty == 0) {
+   print "No errors.";
+}
+print "\n\n";
 
-#foreach $item (@indexItems) {
-#   if (! grep /^$item$/,@mapIDs) {
-#      print "$item foundin Index.xml but not in Map.xml\n";
-#   }
-#}
+print "Checking Index.xml against Map.xml...";
+$dirty = 0;
+foreach $item (@indexItems) {
+   if (! grep /^$item$/,@mapIDs) {
+      print "\n$item found in Index.xml but not in Map.xml";
+      $dirty = 1;
+   }
+}
+if ($dirty == 0) {
+   print "No errors.";
+}
+print "\n\n";
