@@ -208,7 +208,6 @@ public class DataRepository implements Repository {
 
             // The name of this element.
             private String name;
-            private char[] nameCA;
 
             // the value of this element.  When data elements are created but not
             // initialized, their value is set to null.  Elements with null values
@@ -242,7 +241,6 @@ public class DataRepository implements Repository {
 
             public DataElement(String name) {
                 this.name = name;
-                this.nameCA = name.toCharArray();
             }
 
             public SaveableData getValue() {
@@ -294,7 +292,7 @@ public class DataRepository implements Repository {
             public DataEvent getDataChangedEvent() {
                 DataEvent result = event;
                 if (result == null || result.getID() != DataEvent.VALUE_CHANGED)
-                    event = result = new DataEvent(DataRepository.this, name, nameCA,
+                    event = result = new DataEvent(DataRepository.this, name,
                                                    DataEvent.VALUE_CHANGED,
                                                    getSimpleValue());
                 return result;
@@ -303,12 +301,10 @@ public class DataRepository implements Repository {
             public DataEvent getDataAddedEvent() {
                 DataEvent result = event;
                 if (result == null || result.getID() != DataEvent.DATA_ADDED)
-                    event = result = new DataEvent(DataRepository.this, name, nameCA,
+                    event = result = new DataEvent(DataRepository.this, name,
                                                    DataEvent.DATA_ADDED, null);
                 return result;
             }
-
-            public char[] getNameCA() { return nameCA; }
         }
 
         private class DataNotifier extends Thread {
@@ -777,6 +773,7 @@ public class DataRepository implements Repository {
                 boolean observedFlagValue;
                 volatile boolean initializing;
                 Set tentativeFreezables;
+                char[] buffer = null;
 
                 public FrozenDataSet(String freezeFlagName) {
                     this.freezeFlagName = freezeFlagName;
@@ -1326,8 +1323,7 @@ public class DataRepository implements Repository {
                                         // notify any repository listeners
                 if (!name.startsWith(anonymousPrefix))
                     repositoryListenerList.dispatch
-                        (new DataEvent(this, name, removedElement.getNameCA(),
-                                       DataEvent.DATA_REMOVED, oldValue));
+                        (new DataEvent(this, name, DataEvent.DATA_REMOVED, oldValue));
 
                             // flag the element's datafile as having been modified
                 if (removedElement.datafile != null)
