@@ -116,6 +116,7 @@ public class RepositoryServer extends Thread {
             while (threadIsRunning) try {
                 // debug("reading from socket...");
                 try {
+                    methodName = null;
                     methodName = in.readLine();
                 } catch (SocketException se) {
                     if (threadIsRunning) {
@@ -190,7 +191,7 @@ public class RepositoryServer extends Thread {
         }
 
         public void dataValuesChanged(Vector v) {
-            if (v == null) return;
+            if (v == null || !threadIsRunning) return;
 
             synchronized (out) {
                 for (int i = v.size();  i > 0; )
