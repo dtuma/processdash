@@ -27,7 +27,7 @@ choices are the same as those given in <I>A Discipline for Software
 Engineering</I>.  At this time, there is no way to define a different defect 
 categorization scheme.</P>
 
-<h3>"fix defects"</h3>
+<a name="fixDefects"></a><h3>"fix defects"</h3>
 <P>The "Fix Defect" entry is where you can put the ID number of another 
 defect if this is a "fix defect".  A fix defect is a defect that was 
 injected while fixing another defect.  In order to determine the ID number of 
@@ -47,8 +47,9 @@ to get a second defect dialog (to enter this new defect).  This second dialog
 will have the ID number of the previous defect already entered in the ID 
 entry blank.  You can now input data relating to this new fix defect.  This 
 process works with defects that you edit from within the defect log editor as 
-well.  See the section below on <a href="#multiples">fixing multiple 
-defects</a> for more discussion on having two defect dialogs open at once.</P>
+well.  See the section below on <a href="#fixingMultipleDefects">fixing 
+multiple defects</a> for more discussion on having two defect dialogs open at 
+once.</P> 
 
 <h3>Phase injected and phase removed</h3>
 <P>The defect injected and defect removed pulldowns allow selection of the 
@@ -57,7 +58,7 @@ dashboard will set both of these to what it thinks are appropriate choices
 given the current development phase, but that default choice can be 
 overridden easily.</P>
 
-<h3>Timing the defect fix</h3>
+<a name="timing"></a><h3>Timing the defect fix</h3>
 <P>The defect dialog has its own built in timer independent of the main 
 dashboard timer.  By default, when the dialog first appears, it starts timing 
 the fix of the defect.  The fix time display will show the time passing.  The 
@@ -84,7 +85,7 @@ time display box.</P>
 <h3>Entering a description</h3>
 <P>The defect description pane is where you record a description of the defect.</P>
 
-<a name="multiples"></a><h2>Fixing multiple defects at a time</h2>
+<a name="fixingMultipleDefects"></a><h2>Fixing multiple defects at a time</h2>
 
 <P>If you have the need to fix more than one defect at one time, you can do 
 so by simply pushing the defect button again to display another defect 

@@ -32,7 +32,7 @@ name.  Both of these fields should be automatically filled in by the
 dashboard (if your name does not appear, go ahead and enter it -- it will 
 show up on the other forms as well).</p>
 
-<h2>Base Program LOC</h2>
+<a name="baseLOC"></a><h2>Base Program LOC</h2>
 
 <P>The Base Program LOC section is where you enter the information about any 
 base LOC that are going to go into your project.  The form has blanks for 
@@ -51,8 +51,7 @@ existing program, the LOC from the existing program count as base LOC.</P>
 LOC.  These are LOC that were part of the base program that are either 
 deleted or changed during the software project.</P>
 
-<h2>Object LOC</h2>
-
+<a name="objectLOC"></a><h2>Object LOC</h2>
 <P>The PSP tends to refer to all programming modules as objects.  If you are 
 programming in an object oriented language such as C++, Java, or Smalltalk, 
 then it makes sense to think in terms of real O-O objects.  If however you 
@@ -60,7 +59,7 @@ are programming in a non-object oriented language such as C, FORTRAN, or even
 LISP, then it makes more sense to think in logical groupings of functionality 
 such as functions or subroutines or procedures.</p>
 
-<h3>Base Additions</h3>
+<a name="baseAdditions"></a><h3>Base Additions</h3>
 
 <P>Base Additions LOC are lines added to objects/modules that already exist 
 in the base program.  The form gives blanks for a description of the added 
@@ -91,8 +90,7 @@ how many LOC belong in each category.</p>
 
 <P>The totals will update automatically as you enter your data.</p>
 
-<h3>New Objects</h3>
-
+<a name="newObjects"></a><h3>New Objects</h3>
 <P>New Objects are probably where the bulk of new development will happen in 
 most of your projects.  The entries are identical to those discussed in the 
 Base Additions section with one exception.  Beside the estimated and actual 
@@ -104,16 +102,14 @@ can probably be reused in the general sense.  It usually has to do with
 proper packaging of the code as well: Are proper interfaces defined?  Is the 
 code sufficiently well documented?  Etc.</p>
 
-<h3>Reused Objects</h3>
-
+<a name="reusedObjects"></a><h3>Reused Objects</h3>
 <P>Reused Objects are objects that are brought into the program from a reuse 
 library.  The line between a reused object LOC and a base LOC can sometimes 
 get blurry.  The main rule is that you must not count the same LOC as both 
 base and reused.  The LOC counting formulas will not work out correctly in 
 that case.</p> <!-- more to say here?  Or leave well enough alone? -->
 
-<h2>Performing the size/time estimation</h2>
-
+<a name="time"></a><h2>Performing the size/time estimation</h2>
 <P>Once you have thought through all the changes that are going to be made to 
 the software, you are ready to calculate a prediction of size and or time.  
 The form will add up the <b>estimated object LOC</b> for you.  This is the

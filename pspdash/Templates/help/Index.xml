@@ -32,6 +32,7 @@
  <indexitem text="dateFormat" target="ConfigurationFile.dateFormat"/>
  <indexitem text="entering data" target="EnteringData"/>
  <indexitem text="exporting data" target="ExportingData"/>
+ <indexitem text="freezing data" target="CompletionButton.freeze"/>
  <indexitem text="frequently asked questions" target="FAQ"/>
  <indexitem text="generic process" target="ProcessScripts.generic"/>
  <indexitem text="goals" target="GoalsOfPSPAndDashboard"/>
@@ -49,19 +50,17 @@
  <indexitem text="planning" target="Planning"/>
  <indexitem text="play/pause button" target="PlayPause">
   <indexitem text="historySize" target="ConfigurationFile.pauseButton.historySize"/>
+  <indexitem text="pull down" target="PlayPause.pullDown"/>
   <indexitem text="quiet" target="ConfigurationFile.pauseButton.quiet"/>
   <indexitem text="showCurrent" target="ConfigurationFile.pauseButton.showCurrent"/>
-  <indexitem text="pull down" target="PlayPause.pullDown"/>
  </indexitem>
  <indexitem text="postmortem" target="PostmortemAnalysis"/>
  <indexitem text="prediction interval" target="UsingProbeTool.interval"/>
  <indexitem text="PROBE tool" target="UsingProbeTool">
-  <indexitem text="PROBE dialog" target="UsingProbeTool">
-   <indexitem text="chart" target="ConfigurationFile.probeDialog.chart"/>
-   <indexitem text="dataList" target="ConfigurationFile.probeDialog.dataList"/>
-   <indexitem text="filtering data" target="ConfigurationFile.probeDialog.filter"/>
-   <indexitem text="onlyCompleted" target="ConfigurationFile.probeDialog.onlyCompleted"/>
-  </indexitem>
+  <indexitem text="chart" target="UsingProbeTool.chart"/>
+  <indexitem text="dataList" target="ConfigurationFile.probeDialog.dataList"/>
+  <indexitem text="filtering data" target="UsingProbeTool.filter"/>
+  <indexitem text="onlyCompleted" target="ConfigurationFile.probeDialog.onlyCompleted"/>
  </indexitem>
  <indexitem text="process scripts" target="ProcessScripts"/>
  <indexitem text="project tree" target="UsingHierarchyEditor"/>
@@ -74,7 +73,7 @@
  <indexitem text="reports" target="DataChartsAndReports"/>
  <indexitem text="reused objects" target="UsingSizeEstimatingTemplate.reusedObjects"/>
  <indexitem text="script button" target="AccessingScripts">
-  <indexitem text="pull down" target="AccessingScripts.pulldown"/>
+  <indexitem text="pull down" target="AccessingScripts.pullDown"/>
  </indexitem>
  <indexitem text="significance" target="UsingProbeTool.significance"/>
  <indexitem text="size estimating template" target="UsingSizeEstimatingTemplate"/>

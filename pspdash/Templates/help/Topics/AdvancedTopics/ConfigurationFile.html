@@ -22,7 +22,7 @@ the # character.</p>
 <P>The settings available in this file and their usage are listed below:</P>
 
 <ul>
- <li><strong>autoRealization</strong><br>
+ <li><a name="autoRealization"></a><strong>autoRealization</strong><br>
    Policy for auto-realization of data. To save time and memory, formulas are 
    not immediately calculated when the dashboard opens.  Instead, they are 
    calculated (realized) at some later time.  This realization always occurs 
@@ -44,7 +44,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>autoUpdate.disabled</strong><br>
+ <li><a name="autoUpdate"></a><strong>autoUpdate.disabled</strong><br>
    If this property is set to "true", the dashboard will not automatically 
    perform a monthly check for updated versions of the dashboard software or 
    the add-on process sets.<br>
@@ -128,7 +128,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>dateFormat</strong><br>
+ <li><a name="dateFormat"></a><strong>dateFormat</strong><br>
    Display format for date fields.<br>
    <table border=0>
     <tr valign="top"><td>Format:</td><td>A list of recognized date formats, separated by 
@@ -143,7 +143,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>dateTimeFormat</strong><br>
+ <li><a name="dateTimeFormat"></a><strong>dateTimeFormat</strong><br>
    Display format for date and time fields.<br>
    <table border=0>
     <tr valign="top"><td>Format:</td><td>A list of recognized date formats, separated by 
@@ -158,7 +158,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>defectDialog.autostart</strong><br>
+ <li><a name="defectDialogAutostart"></a><strong>defectDialog.autostart</strong><br>
    Controls whether to start the defect timer when the defect dialog appears.<br>
    If this property is set to "true", the defect dialog box will come up with 
    the timer already running.  Any other value for this property means the 
@@ -172,7 +172,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>defectDialog.phaseMap</strong><br>
+ <li><a name="defectDialogPhaseMap"></a><strong>defectDialog.phaseMap</strong><br>
    Describes common defect injection/removal patterns.  Each pair is 
    interpreted to mean "Often defects are injected in phase A, and removed in 
    phase B."  When you remove a defect during phase B of a process, it will 
@@ -187,7 +187,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>defectDialog.restrictSequence</strong><br>
+ <li><a name="defectDialogRestrictSequence"></a><strong>defectDialog.restrictSequence</strong><br>
    If this property is set to true, the defect dialog will check injection 
    and removal phases to ensure that defects are NOT removed before they are 
    injected.  (You might want to disable this feature if you make use of 
@@ -226,7 +226,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>hiddenData</strong><br>
+ <li><a name="hiddenData"></a><strong>hiddenData</strong><br>
    Data names to be suppressed from user-visible data lists (by default).<br>
    <table border=0>
     <tr valign="top"><td>Format:</td><td>This property should be a series of regular 
@@ -262,7 +262,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>pauseButton.historySize</strong><br>
+ <li><a name="pauseButtonHistorySize"></a><strong>pauseButton.historySize</strong><br>
    The maximum number of entries which should be retained in the play/pause 
    button's history list.<br>
    <table border=0>
@@ -273,7 +273,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>pauseButton.quiet</strong><br>
+ <li><a name="pauseButtonQuiet"></a><strong>pauseButton.quiet</strong><br>
    If this property is set to "true", the Play/Pause button will not provide 
    any audible feedback.<br>
    <table border=0>
@@ -284,7 +284,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>pauseButton.showCurrent</strong><br>
+ <li><a name="pauseButtonShowCurrent"></a><strong>pauseButton.showCurrent</strong><br>
    Controls the appearance of the play/pause button on the dashboard.<br>
    If true, the button will show the PLAY symbol 
    [<img src="../../Images/continue.gif">] while playing (the button shows its 
@@ -299,7 +299,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>probeDialog.dataList</strong><br>
+ <li><a name="probeDialogDataList"></a><strong>probeDialog.dataList</strong><br>
    If this property is set to "simple", the PROBE dialog will only display 
    data elements relating to the standard PROBE methods A,B,C, and D. If this 
    setting has any other value, PROBE will display an exhaustive list of data 
@@ -312,7 +312,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>probeDialog.onlyCompleted</strong><br>
+ <li><a name="probeDialogOnlyCompleted"></a><strong>probeDialog.onlyCompleted</strong><br>
    Controls implicit filtering of data by the PROBE tool.<br>
    If true, the PROBE tool only correlates data from completed projects.<br>
    If false, the PROBE tool will use all available data.<br>
@@ -324,7 +324,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>stateFile</strong><br>
+ <li><a name="stateFile"></a><strong>stateFile</strong><br>
    Location of the data file that stores the hierarchy.<BR>
    <table border=0>
     <tr valign="top"><td>Format:</td><td>complete pathname</td></tr>
@@ -348,7 +348,7 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>timelog.updateInterval</strong><br>
+ <li><a name="timelogUpdateInterval"></a><strong>timelog.updateInterval</strong><br>
    The dashboard saves the current time log entry periodically.  This setting 
    specifies the number of minutes it should wait between saves.
    <table border=0>

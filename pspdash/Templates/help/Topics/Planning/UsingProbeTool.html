@@ -26,19 +26,20 @@ documented on the PROBE instructions form.</p>
 metric variables, they can be chosen from the independent and dependent 
 variable pull-downs.</p>
 
-<P>Basically the PROBE tool runs a correlation test on the two sets of data 
-chosen.  It then reports the various statistical measurements on the dialog.  
-There are two types of measurements shown on the dialog: those that show 
-relationships between the sets of data chosen (r<sup>2</sup>, p, Variance, 
-Standard Deviation), and those that are related to a projection based on the 
-estimate entered (<i>B</i><sub>0</sub>, <i>B</i><sub>1</sub>, Range, UPI and 
-LPI).  Also there are two columns of data on the tool.  The left column shows 
-data based on a linear regression (this is for methods A and B the PROBE 
-estimation method) and the right column shows data based on how well your 
-data seem to predict on the average (this is for the different C methods of 
-the PROBE estimation method).</p> 
+<P><a name="average"></a><a name="regression"></a>Basically the PROBE 
+tool runs a correlation test on the two sets of data chosen.  It then reports 
+the various statistical measurements on the dialog.  There are two types of 
+measurements shown on the dialog: those that show relationships between the 
+sets of data chosen (r<sup>2</sup>, p, Variance, Standard Deviation), and 
+those that are related to a projection based on the estimate entered 
+(<i>B</i><sub>0</sub>, <i>B</i><sub>1</sub>, Range, UPI and LPI).  Also there 
+are two columns of data on the tool.  The left column shows data based on a 
+linear regression (this is for methods A and B the PROBE estimation method) 
+and the right column shows data based on how well your data seem to predict 
+on the average (this is for the different C methods of the PROBE estimation 
+method).</p> 
 
-<h2>Filtering your data set</h2>
+<a name="probeDialogFilter"></a><h2>Filtering your data set</h2>
 <P>The filter button allows you to restrict the data set of the correlation 
 and projection to certain projects.  It will pop up a tree view of the 
 current projects stored and allow you to add or remove data items from the 
@@ -53,7 +54,7 @@ allow you to include or reject data from among different phases of projects.
 The Apply button applies your filtering selection to the numbers in the PROBE 
 dialog.</p> 
 
-<h2>Measures of correlation</h2>
+</a><h2>Measures of correlation</h2>
 <P>On a typical estimation, you will want to choose from the different 
 combinations of correlations available to see if any of the data correlate 
 well enough to be used for projections.  The PROBE tool will make this quite 
@@ -62,7 +63,7 @@ numbers on the tool will update to show you the results. The key numbers to
 examine are the measure of correlation (r<sup>2</sup>) and the significance 
 measurement (p).</p>
 
-<h3>The correlation measurement</h3>
+<a name="correlation"></a><h3>The correlation measurement</h3>
 <p>As detailed by Watts Humphrey, an r<sup>2</sup> value of over 0.5 
 indicates that the number correlate well enough to use a linear regression 
 method.  The degree of confidence as measured by the r<sup>2</sup> variable 
@@ -72,7 +73,7 @@ that show better and better agreement are shown in different colors.  The
 colors used are: red (very bad), yellow/orange (bad), blue (good), and black 
 (very good).</p>
 
-<h3>The significance measurement</h3>
+<a name="significance"></a><h3>The significance measurement</h3>
 <p>The significance measurement is an indication of how significant the 
 correlation is.  It is expressed in a percentage that represents the 
 probability that this correlation could have happened by chance.  Low numbers 
@@ -86,7 +87,7 @@ can make one of the measurements look good while the other is bad.  For
 example if you have data that correlate well but the significance of that 
 correlation is not very high, you could be looking at a random occurrence.</p>
 
-<h2>Making a projection</h2>
+<a name="interval"></a><a name="projection"></a><h2>Making a projection</h2>
 <P>To make a projection, just enter an estimate in the Estimate entry.  The 
 estimate should be an estimate of the type of data that is chosen in the top 
 pull down box marked "Correlate".  For example, you should put an estimated 
@@ -105,7 +106,7 @@ column showing the projection using linear regression and the right column
 showing the projection based on an averaging technique).  It is up to you to 
 decide which numbers are appropriate for making the projection.</p>
 
-<h2>Visualizing the data</h2>
+<a name="probeDialogChart"></a><h2>Visualizing the data</h2>
 <P>The PROBE tool also offers a scatterplot of your process data.  This view 
 is chosen by clicking on the "Chart" button.</p>
 

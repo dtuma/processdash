@@ -29,14 +29,21 @@ for ($i=0; $i < @conf; $i++) {
    $conf[$i] =~ s/File //;
 }
 
+print "Checking Map.xml contents...";
+$dirty = 0;
 foreach $line (@map) {
    if ($line =~ m/<mapID target="([^"]+)" *url="([^"]+)"/) {
       $ID = $1;
-      $file = $2;
+      $url = $2;
+
+      # remove named tags
+      ($file = $url) =~ s/html#.*/html/;
+      ($tagname = $url) =~ s/^.*#//;
 
       # while here, check to see that the file exists
       if (! -f $file) {
-         print "$file found in Map.xml, but the file does not exist\n";
+         print "\n$file found in Map.xml, but the file does not exist";
+         $dirty = 1;
       }
 
       # skip graphics files
@@ -44,10 +51,63 @@ foreach $line (@map) {
          next;
       }
 
-      push @mapFiles, $file;
+      # see if the named tag exists
+      $found = 0;
+      if ($url ne $file) {
+         if (-f $file) {
+            open FH, "$file";
+            @html = <FH>;
+            close FH;
+
+            $state = 0;
+            foreach $l (@html) {
+               # tokenize
+               foreach $token (split /  */,$l) {
+                  if ($state == 0) {
+                     if ($token =~ m/<a/i) {
+                        $state = 1;
+                        next;
+                     }
+                  }
+
+                  if ($state == 1) {
+                     if ($token =~ m/name="([^"]+)"/i) {
+                        if ($1 eq $tagname) {
+                           $found = 1;
+                           last;
+                        }
+                     }
+
+                     if ($token =~ m/<\/a>/i) {
+                        if ($token !~ m/<a/i) {
+                           $state = 0;
+                        }
+                     }
+                  }
+               }
+
+               if ($found) {
+                  last;
+               }
+            }
+
+            if (! $found) {
+               print "\n$url found in Map.xml, but I could not find the name tag.";
+               $dirty = 1;
+            }
+         }
+      }
+
+      if (! grep /^$file$/,@mapFiles) {
+         push @mapFiles, $file;
+      }
       push @mapIDs, $ID;
    }
 }
+if ($dirty == 0) {
+   print "No errors.";
+}
+print "\n\n";
 
 foreach $line (@toc) {
    if ($line =~ m/<tocitem .*target="([^"]+)"/) {
@@ -88,20 +148,7 @@ if ($dirty == 0) {
 }
 print "\n\n";
 
-# verify that every mapped file is found in TOC and vice versa
-print "Checking Map.xml against TOC.xml...";
-$dirty = 0;
-foreach $item (@mapIDs) {
-   if (! grep /^$item$/,@tocItems) {
-      print "\n$item found in Map.xml but not in TOC.xml";
-      $dirty = 1;
-   }
-}
-if ($dirty == 0) {
-   print "No errors.";
-}
-print "\n\n";
-
+# verify that every TOC file is found in Map
 print "Checking TOC.xml against Map.xml...";
 $dirty = 0;
 foreach $item (@tocItems) {
@@ -115,12 +162,12 @@ if ($dirty == 0) {
 }
 print "\n\n";
 
-# verify that every mapped file is found in Index and vice versa
-print "Checking Map.xml against Index.xml...";
+# verify that every Index file is found in Map
+print "Checking Index.xml against Map.xml...";
 $dirty = 0;
-foreach $item (@mapIDs) {
-   if (! grep /^$item$/,@indexItems) {
-      print "\n$item found in Map.xml but not in Index.xml";
+foreach $item (@indexItems) {
+   if (! grep /^$item$/,@mapIDs) {
+      print "\n$item found in Index.xml but not in Map.xml";
       $dirty = 1;
    }
 }
@@ -129,12 +176,15 @@ if ($dirty == 0) {
 }
 print "\n\n";
 
-print "Checking Index.xml against Map.xml...";
+# verify that every mapped file is found in either TOC or Index
+print "Checking Map.xml against TOC.xml and Index.xml...";
 $dirty = 0;
-foreach $item (@indexItems) {
-   if (! grep /^$item$/,@mapIDs) {
-      print "\n$item found in Index.xml but not in Map.xml";
-      $dirty = 1;
+foreach $item (@mapIDs) {
+   if (! grep /^$item$/,@tocItems) {
+      if (! grep /^$item$/,@indexItems) {
+         print "\n$item found in Map.xml but not in TOC.xml nor Index.xml";
+         $dirty = 1;
+      }
    }
 }
 if ($dirty == 0) {
