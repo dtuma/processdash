@@ -1,17 +1,30 @@
 
 <project default="jar" basedir=".">
 
+  <target name="filelist.txt">
+    <pathconvert property=".filelistbasedir" pathsep="," dirsep="/">
+      <path id=".jhbasedir.path" path="Templates/team/setup"/>
+    </pathconvert>
+    <pathconvert property=".filelist" pathsep="," dirsep="/">
+      <path>
+        <fileset dir="Templates/team/setup" includes="*.shtm,*.class" excludes="*sizeForm*"/>
+      </path>
+    </pathconvert>
+    <property name="filelist" value="Templates/team/setup/filelist.txt"/>
+    <echo message="&lt;!--#set var='Wizard_File_List' value='LIST=,${.filelist},' --&gt;&#13;&#10;" file="${filelist}"/>
+    <replace file="${filelist}" token="${.filelistbasedir}/" value=""/>
+  </target>
 
-  <target name="jar">
-    <exec executable="perl" dir="Templates/team/setup">
+  <target name="jar" depends="filelist.txt">
+    <!-- exec executable="perl" dir="Templates/team/setup">
       <arg value="makeList.pl"/>
-    </exec>
+    </exec -->
     <jar destfile="TeamTools.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
 	<attribute name="Dash-Pkg-ID" value="teamTools"/>
-	<attribute name="Dash-Pkg-Version" value="1.8.0"/>
+	<attribute name="Dash-Pkg-Version" value="1.9.0"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
