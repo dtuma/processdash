@@ -66,7 +66,8 @@ class DOMSelectField extends DOMField {
     }
     public void setReadOnly(boolean readOnly) {
         //Not in DOM??? ((HTMLSelectElement) element).setReadOnly(readOnly);
-        ((HTMLSelectElement) element).setTabIndex(readOnly ? -1 : 0);
+        if (DataApplet.ieVersion() > 0)
+            ((HTMLSelectElement) element).setTabIndex(readOnly ? -1 : 0);
     }
 
 

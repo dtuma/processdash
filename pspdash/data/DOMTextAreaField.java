@@ -60,6 +60,7 @@ class DOMTextAreaField extends DOMField {
     public void setReadOnly(boolean readOnly) {
         // Broken?? ((HTMLTextAreaElement) element).setReadOnly(readOnly);
         manuallySetReadOnly(readOnly);
-        ((HTMLTextAreaElement) element).setTabIndex(readOnly ? -1 : 0);
+        if (DataApplet.ieVersion() > 0)
+            ((HTMLTextAreaElement) element).setTabIndex(readOnly ? -1 : 0);
     }
 }

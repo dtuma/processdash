@@ -59,7 +59,8 @@ class DOMTextField extends DOMField {
     public void setReadOnly(boolean readOnly) {
         // Broken?? ((HTMLInputElement) element).setReadOnly(readOnly);
         manuallySetReadOnly(readOnly);
-        ((HTMLInputElement) element).setTabIndex(readOnly ? -1 : 0);
+        if (DataApplet.ieVersion() > 0)
+            ((HTMLInputElement) element).setTabIndex(readOnly ? -1 : 0);
     }
 
 }
