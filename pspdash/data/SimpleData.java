@@ -33,4 +33,5 @@ public interface SimpleData extends SaveableData, Serializable {
     public boolean equals(SimpleData val);
     public boolean lessThan(SimpleData val);
     public boolean greaterThan(SimpleData val);
+    public boolean test();
 }
