@@ -49,6 +49,7 @@ import java.util.*;
 
 import pspdash.data.SimpleData;
 import pspdash.data.StringData;
+import pspdash.data.DataImporter;
 
 public class ImportExport extends JDialog implements ActionListener {
 
@@ -381,7 +382,7 @@ public class ImportExport extends JDialog implements ActionListener {
         p.run();
         System.out.println("Completed user-scheduled data export.");
     }
-    public static final String EXPORT_DATANAME = "EXPORT_FILE";
+    public static final String EXPORT_DATANAME = DataImporter.EXPORT_DATANAME;
 
     private static class DailyExporterThread extends Thread {
         private PSPDashboard parent;
