@@ -509,9 +509,9 @@ public class WBSModel extends AbstractTableModel {
     }
 
     public void getAsXML(Writer out) throws IOException {
-        out.write("<wbsModel>");
+        out.write("<wbsModel>\n");
         for (int i = 0;   i < wbsNodes.size();   i++)
             ((WBSNode) wbsNodes.get(i)).getAsXML(out);
-        out.write("</wbsModel>");
+        out.write("</wbsModel>\n");
     }
 }

@@ -2,24 +2,25 @@ package teamdash.wbs.columns;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
-import teamdash.wbs.ReadOnlyValue;
+import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSNode;
 
-public class SizeAliasColumn implements CalculatedDataColumn {
-    private static final ReadOnlyValue BLANK = new ReadOnlyValue("");
+public class SizeAliasColumn extends AbstractNumericColumn
+implements CalculatedDataColumn {
+
+    private static final NumericDataValue BLANK =
+        new NumericDataValue(0, false, true, null);
 
     DataTableModel dataModel;
-    String name;
     String accountingID;
     String[] sizeUnits;
     int [] columns;
-    String[] dependentColumns;
 
     public SizeAliasColumn(DataTableModel m, String name,
                            String accountingID, String [] sizeUnits)
     {
         this.dataModel = m;
-        this.name = name;
+        this.columnName = this.columnID = name;
         this.accountingID = accountingID;
 
         this.sizeUnits = sizeUnits;
@@ -31,11 +32,6 @@ public class SizeAliasColumn implements CalculatedDataColumn {
         }
     }
 
-    public String getColumnID() { return name; }
-    public String getColumnName() { return name; }
-    public Class getColumnClass() { return String.class; }
-    public String[] getDependentColumnIDs() { return dependentColumns; }
-    public String[] getAffectedColumnIDs() { return null; }
     public boolean recalculate() { return true; }
 
 
@@ -50,6 +46,7 @@ public class SizeAliasColumn implements CalculatedDataColumn {
     protected String getSizeUnit(WBSNode node) {
         return (String) SizeTypeColumn.SIZE_METRICS.get(node.getType());
     }
+
     protected int getSizeColumn(WBSNode node) {
         String unit = getSizeUnit(node);
         if (unit == null) return -1;

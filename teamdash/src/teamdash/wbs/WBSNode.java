@@ -152,6 +152,9 @@ public class WBSNode implements Cloneable {
      * <code>Writer</code> object. */
     public void getAsXML(Writer out) throws IOException {
         // write the opening wbsNode tag.
+        String indentation = SPACES.substring
+            (0, Math.min(2 * (indentLevel + 1), SPACES.length()));
+        out.write(indentation);
         out.write("<"+ELEMENT_NAME+" "+NAME_ATTR+"='");
         out.write(XMLUtils.escapeAttribute(getName()));
         if (getType() != null) {
@@ -161,13 +164,14 @@ public class WBSNode implements Cloneable {
         out.write("' "+INDENT_ATTR+"='");
         out.write(Integer.toString(getIndentLevel()));
         if (isExpanded()) out.write("' "+EXPAND_ATTR+"='true");
-        out.write("'>");
+        out.write("'");         // don't close tag yet
 
         // write out a tag for each attribute.
         Iterator i = attributes.entrySet().iterator();
         Map.Entry e;
         Object v;
         String name, value;
+        boolean wroteAttribute = false;
         while (i.hasNext()) {
             e = (Map.Entry) i.next();
             name = (String) e.getKey();
@@ -179,15 +183,26 @@ public class WBSNode implements Cloneable {
             if (v == null) continue;
             value = v.toString();
 
-            out.write("<"+ATTR_ELEM_NAME+" "+NAME_ATTR+"='");
+            out.write(">\n");   // close previous tag
+            out.write(indentation);
+            out.write("  <"+ATTR_ELEM_NAME+" "+NAME_ATTR+"='");
             out.write(XMLUtils.escapeAttribute(name));
             out.write("' "+VALUE_ATTR+"='");
             out.write(XMLUtils.escapeAttribute(value));
-            out.write("'/>");
+            out.write("'/");
+            wroteAttribute = true;
         }
 
-        // write the closing wbsNode tag.
-        out.write("</"+ELEMENT_NAME+">");
+
+        if (!wroteAttribute)
+            // if this node had no attributes, we can get away with simply
+            // closing the original <wbsNode> tag.
+            out.write("/>\n");
+        else {
+            out.write(">\n");        // close final <attr> tag
+            out.write(indentation);  // write the closing wbsNode tag.
+            out.write("</"+ELEMENT_NAME+">\n");
+        }
     }
 
 
@@ -223,4 +238,6 @@ public class WBSNode implements Cloneable {
     private static final String EXPAND_ATTR = "expanded";
     private static final String ATTR_ELEM_NAME = "attr";
     private static final String VALUE_ATTR = "value";
+    private static final String SPACES =
+        "                                                            ";
 }

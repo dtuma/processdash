@@ -331,7 +331,7 @@ public class DataTableModel extends AbstractTableModel {
         if (column.recalculate()) {
             // if data changed, fire an appropriate table model event.
             TableModelEvent e = new TableModelEvent
-                (this, 0, Integer.MAX_VALUE, columnPos, TableModelEvent.UPDATE);
+                (this, 0, getRowCount()-1, columnPos, TableModelEvent.UPDATE);
             fireTableChanged(e);
         }
 

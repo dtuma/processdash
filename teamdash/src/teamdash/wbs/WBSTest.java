@@ -106,11 +106,18 @@ public class WBSTest implements WindowListener {
         WBSTabPanel table = new WBSTabPanel(model, data, iconMap, iconMenu);
         table.addTab("Vowels", new String[] {"N&C LOC", "E", "I", "O", "U" },
                     new String[] { "LOC", "Echo","India","Oscar","Uniform" });
-        String[] s = new String[] {
-            "Size-Units", "Base", "Deleted", "Modified",
-            "Added", "Reused", "N&C", "Total" };
-        table.addTab("Size-LOC", s, s);
-        s = new String[] { "Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q" };
+        table.addTab("Size",
+                     new String[] { "Size", "Size-Units", "N&C-LOC", "N&C-Text Pages",
+                                    "N&C-Reqts Pages", "N&C-HLD Pages", "N&C-DLD Lines" },
+                     new String[] { "Size", "Units", "LOC","Text Pages",
+                                    "Reqts Pages", "HLD Pages", "DLD Lines" });
+        table.addTab("Size Accounting",
+                     new String[] { "Size-Units", "Base", "Deleted", "Modified", "Added",
+                                    "Reused", "N&C", "Total" },
+                     new String[] { "Units",  "Base", "Deleted", "Modified", "Added",
+                                    "Reused", "N&C", "Total" });
+
+        String[] s = new String[] { "Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q" };
         table.addTab("Last", s, s);
 
         //JScrollPane sp = new JScrollPane(table);

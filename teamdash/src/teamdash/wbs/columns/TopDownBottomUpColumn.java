@@ -3,6 +3,7 @@ package teamdash.wbs.columns;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -13,8 +14,6 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
     protected DataTableModel dataModel;
     protected WBSModel wbsModel;
-    protected String columnName;
-    protected String columnID;
     protected String topDownAttrName, bottomUpAttrName, inheritedAttrName;
     protected Pruner pruner = null;
     protected boolean hideInheritedValues = false;
@@ -42,17 +41,16 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         recalculate();
     }
 
-    public String getColumnName() { return columnName; }
-    public String getColumnID() { return columnID; }
-
-    public Class getColumnClass() { return String.class; }
+    public void setHideInheritedValues(boolean b) {
+        hideInheritedValues = b;
+    }
 
     public boolean isCellEditable(WBSNode node) {
         if (node == null) return false;
 
         if (node.getAttribute(inheritedAttrName) != null) return false;
         if (shouldPrune(node)) {
-            System.out.println("pointA");
+            System.out.println("pointA"); // TODO - this shouldn't be necessary.
             return false; }
         /*
         if (node.getAttribute(topDownAttrName) != null) return true;
@@ -62,24 +60,35 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         return true;
     }
 
-    protected boolean isCellVisible(WBSNode node) {
-        if (hideInheritedValues)
-            return node.getAttribute(inheritedAttrName) == null;
-        else
-            return true;
+
+    public Object getValueAt(WBSNode node) {
+
+        // if this node has an inherited value, return it.
+        double inheritedValue = node.getNumericAttribute(inheritedAttrName);
+        if (!Double.isNaN(inheritedValue))
+            return new NumericDataValue
+                (inheritedValue, false, hideInheritedValues, null);
+
+        double topDownValue  = node.getNumericAttribute(topDownAttrName);
+        double bottomUpValue = node.getNumericAttribute(bottomUpAttrName);
+
+        // if there is no top-down value, return the bottom-up value, or zero.
+        if (Double.isNaN(topDownValue))
+            return new NumericDataValue
+                (Double.isNaN(bottomUpValue) ? 0 : bottomUpValue);
+
+        // if the top-down and bottom up values match, return them.
+        if (equal(topDownValue, bottomUpValue))
+            return new NumericDataValue(topDownValue);
+
+        // return a "mismatch" object
+        String errMsg = "top-down/bottom-up mismatch (bottom-up = " +
+            NumericDataValue.format(bottomUpValue) + ")";
+        return new NumericDataValue
+            (topDownValue, true, false, errMsg, bottomUpValue);
     }
 
 
-    protected String getErrorAt(WBSNode node) {
-        if (topDownBottomUpMismatch(node)) {
-            String bottomUp =
-                formatValue(node.getNumericAttribute(bottomUpAttrName));
-            String errMsg =
-                "top-down/bottom-up mismatch (bottom-up = " + bottomUp + ")";
-            return errMsg;
-        } else
-            return null;
-    }
 
     public void setValueAt(Object aValue, WBSNode node) {
         System.out.println("setValueAt("+aValue+")");
@@ -90,11 +99,11 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         else {
 
             // parse the value we were given to obtain a double.
-            double newValue = parseValue(aValue);
+            double newValue = NumericDataValue.parse(aValue);
             if (Double.isNaN(newValue)) return;
 
             // look up the old value of this node.
-            double oldValue = getValueForNode(node);
+            double oldValue = NumericDataValue.parse(getValueAt(node));
             if (equal(oldValue, newValue))
                 return;             // if no change was made, return.
 
@@ -156,15 +165,14 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         }
 
         // set the inherited value for pruned children.
+        double inheritedVal = (Double.isNaN(result) ? 0 : result);
         for (int i = numToInclude;   i < children.length;   i++)
-            setInheritedValue(children[i], result);
+            setInheritedValue(children[i], inheritedVal);
 
         return result;
     }
 
     protected void setInheritedValue(WBSNode node, double value) {
-        if (Double.isNaN(value)) value = 0;
-
         node.setAttribute(bottomUpAttrName, null);
         node.setNumericAttribute(inheritedAttrName, value);
 
@@ -265,25 +273,5 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
     }
 
 
-
-    protected double getValueForNode(WBSNode node) {
-        if (node == null) return 0;
-
-        double value = node.getNumericAttribute(inheritedAttrName);
-        if (Double.isNaN(value))
-            value = node.getNumericAttribute(topDownAttrName);
-        if (Double.isNaN(value))
-            value = node.getNumericAttribute(bottomUpAttrName);
-        if (Double.isNaN(value))
-            value = 0;
-
-        return value;
-    }
-
-
-
-    public String[] getDependentColumnIDs() { return null; }
-    public String[] getAffectedColumnIDs()  { return null; }
     public void storeDependentColumn(String ID, int columnNumber) { }
-    protected void setValueForNode(double value, WBSNode node) { /* unused */ }
 }

@@ -5,11 +5,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import teamdash.wbs.DataColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.WBSNode;
 
-public class SizeTypeColumn implements DataColumn {
+public class SizeTypeColumn extends AbstractDataColumn {
 
     private static final String ATTR_NAME = "Size Metric";
     static final Map SIZE_METRICS = buildMap();
@@ -19,11 +19,10 @@ public class SizeTypeColumn implements DataColumn {
 
     public SizeTypeColumn(DataTableModel m) {
         this.dataModel = m;
+        this.columnID = "Size-Units";
+        this.columnName = "Units";
     }
 
-    public String getColumnID() { return "Size-Units"; }
-    public String getColumnName() { return "Units"; }
-    public Class getColumnClass() { return String.class; }
 
     public boolean isCellEditable(WBSNode node) {
         return SIZE_METRICS.get(node.getType()) == null;
@@ -33,6 +32,8 @@ public class SizeTypeColumn implements DataColumn {
         Object result = SIZE_METRICS.get(node.getType());
         if (result == null)
             result = node.getAttribute(ATTR_NAME);
+        else
+            result = new ReadOnlyValue(result);
         return result;
     }
 
@@ -53,8 +54,11 @@ public class SizeTypeColumn implements DataColumn {
     }
 
     public static void createSizeColumns(DataTableModel dataModel) {
-        // create the base size type column.
+        // create the size type column.
         dataModel.addDataColumn(new SizeTypeColumn(dataModel));
+
+        // create an editable size column.
+        dataModel.addDataColumn(new EditableSizeColumn(dataModel));
 
         // create LOC accounting columns.
         SizeAccountingColumnSet.create(dataModel, "LOC", new LOCPruner());
@@ -66,8 +70,8 @@ public class SizeTypeColumn implements DataColumn {
             e = (Map.Entry) i.next();
             if ("LOC".equals(e.getValue())) continue;
 
-            String id = (String) e.getValue();
             String docType = (String) e.getKey();
+            String id = (String) e.getValue();
 
             SizeAccountingColumnSet.create
                 (dataModel, id, new DocSizePruner(docType));

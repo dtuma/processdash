@@ -2,37 +2,31 @@ package teamdash.wbs.columns;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSNode;
 
 public class SizeAccountingColumnSet {
 
-    public static void create(DataTableModel m, String id, Pruner p)
+    public static void create(DataTableModel model, String id, Pruner p)
     {
-        // create "Base" column
-        m.addDataColumn(new TopDownBottomUpColumn
-                            (m, getBaseID(id), getBaseID(id), p));
+        createColumn(model, getBaseID(id), p);     // create "Base" column
+        createColumn(model, getDeletedID(id), p);  // create "Deleted" column
+        createColumn(model, getModifiedID(id), p); // create "Modified" column
+        createColumn(model, getAddedID(id), p);    // create "Added" column
+        createColumn(model, getReusedID(id), p);   // create "Reused" column
 
-        // create "Deleted" column
-        m.addDataColumn(new TopDownBottomUpColumn
-                            (m, getDeletedID(id), getDeletedID(id), p));
+        // create "New & Changed" column
+        model.addDataColumn(new NewChangedSizeColumn(model, id));
 
-        // create "Modified" column
-        m.addDataColumn(new TopDownBottomUpColumn
-                            (m, getModifiedID(id), getModifiedID(id), p));
+        // create "Total" column
+        model.addDataColumn(new TotalSizeColumn(model, id));
+    }
 
-        // create "Added" column
-        m.addDataColumn(new TopDownBottomUpColumn
-                            (m, getAddedID(id), getAddedID(id), p));
-
-        // create "Reused" column
-        m.addDataColumn(new TopDownBottomUpColumn
-                            (m, getReusedID(id), getReusedID(id), p));
-
-        // create New & Changed
-        m.addDataColumn(new NewChangedSizeColumn(m, id));
-
-        // create Total
-        m.addDataColumn(new TotalSizeColumn(m, id));
+    private static void createColumn(DataTableModel m, String name, Pruner p) {
+        TopDownBottomUpColumn column =
+            new TopDownBottomUpColumn(m, name, name, p);
+        column.setHideInheritedValues(true);
+        m.addDataColumn(column);
     }
 
     public static String getBaseID(String id)     { return "Base-"     + id; }
@@ -71,17 +65,40 @@ public class SizeAccountingColumnSet {
             return dataModel.isCellEditable(node,addedColumn);
         }
 
-        protected double getValueForNode(WBSNode node) {
-            return parseValue(dataModel.getValueAt(node, addedColumn)) +
-                parseValue(dataModel.getValueAt(node, modifiedColumn));
+
+        public Object getValueAt(WBSNode node) {
+            NumericDataValue added =
+                (NumericDataValue) dataModel.getValueAt(node, addedColumn);
+            NumericDataValue modified =
+                (NumericDataValue) dataModel.getValueAt(node, modifiedColumn);
+
+            double value = safe(added.value) + safe(modified.value);
+            double bottomUp =
+                safe(added.expectedValue) + safe(modified.expectedValue);
+
+            String errMsg = null;
+            if (added.errorMessage != null || modified.errorMessage != null)
+                errMsg = "top-down/bottom-up mismatch (bottom-up = " +
+                    NumericDataValue.format(bottomUp) + ")";
+
+            boolean editable = added.isEditable;
+            boolean invisible = added.isInvisible;
+
+            return new NumericDataValue
+                (value, editable, invisible, errMsg, bottomUp);
+        }
+        private double safe(double v) {
+            return (Double.isNaN(v) ? 0 : v);
         }
 
         protected void setValueForNode(double value, WBSNode node) {
             if (Double.isNaN(value) || value < 0) return;
 
             double nc = value, added, modified;
-            added = parseValue(dataModel.getValueAt(node, addedColumn));
-            modified = parseValue(dataModel.getValueAt(node, modifiedColumn));
+            added = NumericDataValue.parse
+                (dataModel.getValueAt(node, addedColumn));
+            modified = NumericDataValue.parse
+                (dataModel.getValueAt(node, modifiedColumn));
 
             if (nc > modified) {
                 // when the user edit "new & changed", try to accomodate them
@@ -109,10 +126,10 @@ public class SizeAccountingColumnSet {
         public TotalSizeColumn(DataTableModel m, String id) {
             this.dataModel = m;
             this.columnName = this.columnID = getTotalID(id);
-            baseID = getBaseID(id);
+            baseID    = getBaseID(id);
             deletedID = getDeletedID(id);
-            addedID = getAddedID(id);
-            reusedID = getReusedID(id);
+            addedID   = getAddedID(id);
+            reusedID  = getReusedID(id);
             this.dependentColumns = new String[] {
                 baseID, deletedID, addedID, reusedID };
         }
@@ -130,7 +147,7 @@ public class SizeAccountingColumnSet {
         public boolean isCellEditable(WBSNode node) { return false; }
 
         private double getVal(WBSNode node, int column) {
-            return parseValue(dataModel.getValueAt(node, column));
+            return NumericDataValue.parse(dataModel.getValueAt(node, column));
         }
 
         protected double getValueForNode(WBSNode node) {
@@ -140,7 +157,5 @@ public class SizeAccountingColumnSet {
             double reused  = getVal(node, reusedColumn);
             return base - deleted + added + reused;
         }
-
-        protected void setValueForNode(double value, WBSNode node) { }
     }
 }
