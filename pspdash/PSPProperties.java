@@ -356,11 +356,13 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
             }
         }
         return result;
+    }
 
+    public PropertyKey getRootChildByName(String id) {
         // This is NOT the correct way to do this, but this is how PropertyFrame
         // is currently doing it.  Fix it later.
-        //PropertyKey result = new PropertyKey (PropertyKey.ROOT, id);
-        //return (containsKey(result) ? result : null);
+        PropertyKey result = new PropertyKey (PropertyKey.ROOT, id);
+        return (containsKey(result) ? result : null);
     }
 
     public static final String NAME_ATTR = "name";

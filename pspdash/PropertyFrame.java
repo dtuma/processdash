@@ -869,7 +869,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         //recursive copy of node, children and properties
         PropertyKey parent = treeModel.getPropKey (useProps,
                                                    destParent.getPath ());
-        PropertyKey templateKey = templates.getByID(templateName);
+        PropertyKey templateKey = templates.getRootChildByName(templateName);
         int newIndex = useProps.getNumChildren (parent);
 
                                     // See if should be adding at other index...
