@@ -98,4 +98,7 @@ public class DateData implements SimpleData {
         return ((val instanceof DateData) &&
                 (value != null) && (value.after(((DateData)val).value)));
     }
+    public boolean test() {
+        return (value != null);
+    }
 }
