@@ -198,6 +198,19 @@ public class PauseButton extends DropDownButton implements ActionListener {
         }
     }
 
+    public boolean setPhase(String phase) {
+        if (parent.hierarchy.setPhase(phase))
+            return true;
+        else {
+            // They have navigated to a new portion of the hierarchy,
+            // where the current phase is not present.  Beep to let them
+            // know there was a problem.
+            pause();
+            Toolkit.getDefaultToolkit().beep();
+            return false;
+        }
+    }
+
     public void addToMenu(String path) {
         JMenu menu = getMenu();
         JMenuItem itemToAdd = null, oneItem;
