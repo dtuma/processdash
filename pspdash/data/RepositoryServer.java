@@ -25,12 +25,18 @@
 
 package pspdash.data;
 
-import pspdash.InternalSettings;
-import pspdash.StringUtils;
-import java.net.*;
-import java.io.*;
-import java.util.Hashtable;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.URLDecoder;
 import java.util.Vector;
+
+import pspdash.Settings;
+import pspdash.StringUtils;
 
 public class RepositoryServer extends Thread {
 
@@ -85,7 +91,7 @@ public class RepositoryServer extends Thread {
                         data.getSimpleValue(data.createDataName(dataPath,requiredTag));
                     out.writeBoolean(d != null && d.test());
                 }
-                out.writeObject(InternalSettings.getSettings());
+                out.writeObject(Settings.getSettings());
                 out.flush();
 
             } catch (IOException e) { printError(e); }

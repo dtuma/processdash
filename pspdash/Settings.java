@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 public class Settings {
 
     protected static Properties settings = null;
+    protected static Properties serializable = null, defaults = null;
     protected static String homedir = null;
 
     public static final String sep = System.getProperty("file.separator");
@@ -112,4 +113,14 @@ public class Settings {
             else
                 return result;
     }
+
+    public static Properties getSettings() {
+        if (serializable == null) {
+            Properties results = new Properties(defaults);
+            results.putAll(settings);
+            serializable = results;
+        }
+        return serializable;
+    }
+
 }

@@ -31,11 +31,10 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-public class InternalSettings extends Settings {
+class InternalSettings extends Settings {
 
 
     private static FileProperties fsettings = null;
-    private static Properties serializable = null, defaults = null;
     private static String settingsFile = null;
     public static final String sep = System.getProperty("file.separator");
 
@@ -159,12 +158,4 @@ public class InternalSettings extends Settings {
         } catch (Exception e) { }
     }
 
-    public static Properties getSettings() {
-        if (serializable == null) {
-            Properties results = new Properties(defaults);
-            results.putAll(settings);
-            serializable = results;
-        }
-        return serializable;
-    }
 }
