@@ -329,11 +329,6 @@ public class TinyWebServer extends Thread {
         private void serveCGI(URLConnection conn)
             throws IOException, TinyWebThreadException
         {
-            // get an instantiation of the cgi script object
-            TinyCGI script = getScript(conn);
-            if (script == null)
-                sendError (500, "Internal Error", "Couldn't load script." );
-
             Map env = buildEnvironment();
 
             // Parse the headers on the original http request and add to
@@ -355,7 +350,13 @@ public class TinyWebServer extends Thread {
 
             // Run the cgi script, and capture the results.
             ByteArrayOutputStream cgiOut = new ByteArrayOutputStream();
+            TinyCGI script = null;
             try {
+                // get an instantiation of the cgi script object
+                script = getScript(conn);
+                if (script == null)
+                    sendError(500, "Internal Error", "Couldn't load script." );
+
                 script.service(inputStream, cgiOut, env);
             } catch (Exception cgie) {
                 if (cgie instanceof IOException)
@@ -370,7 +371,7 @@ public class TinyWebServer extends Thread {
                               "<PRE>" + w.toString() + "</PRE>");
                 }
             } finally {
-                doneWithScript(script);
+                if (script != null) doneWithScript(script);
             }
             byte [] results = cgiOut.toByteArray();
 
@@ -447,6 +448,23 @@ public class TinyWebServer extends Thread {
             return env;
         }
 
+        private class CGIPool extends ResourcePool {
+            Class cgiClass;
+            CGIPool(Class c) throws IllegalArgumentException {
+                if (!TinyCGI.class.isAssignableFrom(c))
+                    throw new IllegalArgumentException
+                        (c.getName() + " does not implement pspdash.TinyCGI");
+                cgiClass = c;
+            }
+            protected Object createNewResource() {
+                try {
+                    return cgiClass.newInstance();
+                } catch (Throwable t) {
+                    return null;
+                }
+            }
+        }
+
         /** Get a TinyCGI script for a given uri path.
          * @param conn the URLConnection to the ".class" file for the script.
          *   TinyCGI scripts must be java classes in the root package (like
@@ -454,19 +472,21 @@ public class TinyWebServer extends Thread {
          * @return an instantiated TinyCGI script, or null on error.
          */
         private TinyCGI getScript(URLConnection conn) {
-            TinyCGI result = (TinyCGI) cgiCache.remove(path);
-            if (result != null)
-                return result;
-
-            try {
-                Class c = cgiLoader.loadFromConnection(conn);
-                result = (TinyCGI) c.newInstance();
-                return result;
-            } catch (Throwable t) {}
-            return null;
+            CGIPool pool = null;
+            synchronized (cgiCache) {
+                pool = (CGIPool) cgiCache.get(path);
+                if (pool == null) try {
+                    pool = new CGIPool(cgiLoader.loadFromConnection(conn));
+                    cgiCache.put(path, pool);
+                } catch (Throwable t) {
+                    return null;
+                }
+            }
+            return (TinyCGI) pool.get();
         }
         private void doneWithScript(Object script) {
-            cgiCache.put(path, script);
+            CGIPool pool = (CGIPool) cgiCache.get(path);
+            pool.release(script);
         }
 
 
