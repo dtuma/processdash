@@ -38,6 +38,9 @@ import java.util.Hashtable;
 import java.util.NoSuchElementException;
 import java.util.Vector;
 
+import pspdash.data.DataRepository;
+import pspdash.data.DoubleData;
+import pspdash.data.NumberFunction;
 
 public class TimeLog {
 
@@ -239,6 +242,32 @@ public class TimeLog {
         }
 
         return times;
+    }
+
+    public static boolean timeLoggingAllowed(String nodePath,
+                                             PSPProperties props,
+                                             DataRepository data) {
+        if (nodePath == null) return false;
+        return timeLoggingAllowed(PropertyKey.fromPath(nodePath), props, data);
+    }
+
+    public static boolean timeLoggingAllowed(PropertyKey node,
+                                             PSPProperties props,
+                                             DataRepository data) {
+        if (node == null || props == null || data == null) return false;
+
+        // if the node has children, logging time here is not allowed.
+        if (props.pget(node).getNumChildren() > 0)
+            return false;
+
+        // check to see if the current node defines time as a calculation.
+        // if it does, logging time here is not allowed.
+        String dataName = data.createDataName(node.path(), "Time");
+        Object timeData = data.getValue(dataName);
+        if (timeData == null) return true;
+        if (!(timeData instanceof DoubleData)) return false;
+        if (timeData instanceof NumberFunction) return false;
+        return true;
     }
 
     public Enumeration filter (PropertyKey k, Date from, Date to) {

@@ -185,7 +185,16 @@ public class PauseButton extends DropDownButton implements ActionListener {
                 (currentPhase.path(), "Time");
         }
 
-        if (!paused) cont();
+        if (TimeLog.timeLoggingAllowed
+            (currentPhase, parent.props, parent.data)) {
+
+            getButton().setEnabled(true);
+            if (!paused) cont();
+
+        } else {
+            pause();
+            getButton().setEnabled(false);
+        }
     }
 
     public boolean setPath(String path) {
