@@ -6,7 +6,6 @@
 
 <generation-script name="script-v2"
       id="Team" version="1.9.0"
-      requiresDashboard="1.6.4"
       inDirectory="/team/lib"
       outDirectory="/Templates/<!--#echo Process_ID -->">
 
