@@ -35,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedWriter;
+import java.io.Writer;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -316,6 +317,63 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
             v.addElement (new String[] {key.path(), dataFile});
         for (int i = 0; i < getNumChildren (key); i++)
             scanForDataFiles(v, getChildKey (key, i));
+    }
+
+    private void maybePrintAttribute(Writer out, String attr, String val)
+        throws IOException
+    {
+        if (val == null || val.length() == 0) return;
+        out.write(" ");
+        out.write(attr);
+        out.write("=\"");
+        out.write(XMLUtils.escapeAttribute(val));
+        out.write("\"");
+    }
+
+    private void saveXMLNode(BufferedWriter out, int depth, PropertyKey key)
+        throws IOException
+    {
+        if (key == null) return;
+        Prop prop = (Prop) get (key);
+        if (prop == null) return;
+        int i;
+
+        for (i = depth;   i > 0;   i--)
+            out.write("  ");
+
+        out.write("<node name=\"" + XMLUtils.escapeAttribute(key.name()) + "\"");
+        maybePrintAttribute(out, "template", prop.getID());
+        maybePrintAttribute(out, "datafile", prop.getDataFile());
+        maybePrintAttribute(out, "defectlog", prop.getDefectLog());
+
+        int numChildren = prop.getNumChildren();
+        if (numChildren == 0) {
+            out.write(" />");
+            out.newLine();
+        } else {
+            maybePrintAttribute(out, "selectedIndex",
+                                Integer.toString(prop.getSelectedChild()));
+            out.write(">");
+            out.newLine();
+
+            for (i = 0;  i < numChildren;  i++)
+                saveXMLNode(out, depth+1, prop.getChild(i));
+
+
+            for (i = depth;   i > 0;   i--)
+                out.write("  ");
+            out.write("</node>");
+            out.newLine();
+        }
+    }
+
+    public void saveXML(String filename) throws IOException {
+        BufferedWriter out = new BufferedWriter(new RobustFileWriter(filename));
+        out.write("<?xml version=\"1.0\"?>");
+        out.newLine();
+        out.newLine();
+        saveXMLNode(out, 0, PropertyKey.ROOT);
+        out.close();
     }
 
 
