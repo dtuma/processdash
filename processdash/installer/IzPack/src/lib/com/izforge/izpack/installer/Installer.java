@@ -124,11 +124,29 @@ public class Installer
         String required = installdata.info.getJavaVersion();
         if (version.compareTo(required) < 0)
         {
-            System.out.println("Can't install !");
-            System.out.println("> The minimum Java version required is " +
-                required);
-            System.out.println("> Your version is " + version);
-            System.out.println("Please upgrade to the minimum version.");
+            try {
+                String appName = installdata.info.getAppName();
+                String appVers = installdata.info.getAppVersion();
+                String vendorURL = System.getProperty("java.vendor.url");
+                String[] message = {
+                    "You need to upgrade your Java Runtime Environment!",
+                    appName+" "+appVers+" requires version "+required+" or",
+                    "higher of the Java Runtime Environment.  You are currently",
+                    "running Java Runtime Environment version "+version,
+                    "",
+                    "       To download an updated version of the Java Runtime",
+                    "Environment, visit   "+vendorURL,
+                    "Then run this installer program again."
+                };
+                JOptionPane.showMessageDialog(null, message,
+                    "Can't install "+appName, JOptionPane.ERROR_MESSAGE);
+            } catch (Exception e) {
+                System.out.println("Can't install !");
+                System.out.println("> The minimum Java version required is " +
+                                   required);
+                System.out.println("> Your version is " + version);
+                System.out.println("Please upgrade to the minimum version.");
+            }
             System.exit(1);
         }
     }
@@ -667,4 +685,3 @@ public class Installer
         }
     }
 }
-
