@@ -141,6 +141,7 @@ public class file extends TinyCGIBase {
 
     public static final String FILE_PARAM = "file";
     public static final String PAGE_COUNT_PARAM = "pageCount";
+    public static final String CONFIRM_PARAM = "confirm";
     public static final String FILE_XML_DATANAME = "FILES_XML";
 
     public static final String NAME_ATTR = "name";
@@ -198,13 +199,24 @@ public class file extends TinyCGIBase {
             return;
         }
 
-        if (!result.exists() && isDirectory) {
-            // if the user is asking for a directory but it doesn't exist,
-            // create it for them.
-            if (!result.mkdirs()) {
-                sendCopyTemplateError("Could not create the directory '" +
-                                      result.getPath() + "'.");
+        if (!result.exists()) {
+            if (getParameter(CONFIRM_PARAM) == null) {
+                // if the file does not exist, display the form to
+                // confirm with the user that they really want the
+                // file autocreated.  This additionally gives them an
+                // opportunity to override the default location.
+                displayNeedInfoForm(filename, result, false, true, file);
                 return;
+            }
+
+            if  (isDirectory) {
+                // if the user is asking for a directory but it
+                // doesn't exist, create it for them.
+                if (!result.mkdirs()) {
+                    sendCopyTemplateError("Could not create the directory '" +
+                                          result.getPath() + "'.");
+                    return;
+                }
             }
         }
 
@@ -599,7 +611,7 @@ public class file extends TinyCGIBase {
                 if (! pathEqual(value, defaultValue)) {
                     // Save this user-specified value in the repository.
                     // (Default values are not saved to the repository.)
-                    data.putValue(dataName, StringData.create(value));
+                    data.userPutValue(dataName, StringData.create(value));
                 }
 
             } else if (val instanceof SimpleData)
@@ -679,18 +691,24 @@ public class file extends TinyCGIBase {
      */
     private void displayNeedInfoForm(String filename, File file,
                                      boolean isTemplate, Element e) {
+        displayNeedInfoForm(filename, file, isTemplate, false, e);
+    }
+    private void displayNeedInfoForm(String filename, File file,
+                                     boolean isTemplate,
+                                     boolean createConfirm, Element e) {
         out.print("Content-type: text/html\r\n\r\n" +
                   "<html><head><title>Enter File Information</title></head>\n"+
                   "<body><h1>Enter File Information</h1>\n");
-        if (file != null) {
+        if (file != null && !createConfirm) {
             out.print("The dashboard tried to find the ");
             out.print(isTemplate ? "<b>template</b>" : "file");
             out.print(" in the following location: <PRE>        ");
             out.print(file.getPath());
             out.println("</PRE>but no such file exists.<P>");
         }
-        out.print("Please provide the following information to help locate " +
-                  "the '");
+        out.print("Please provide the following information to ");
+        out.print(createConfirm ? "create" : "help locate");
+        out.print(" the '");
         out.print(filename);
         out.println(isTemplate ? "' template." : "'.");
 
@@ -735,9 +753,10 @@ public class file extends TinyCGIBase {
         out.print("'>\n" +
                   "<input type='hidden' name='" + FILE_PARAM + "' value='");
         out.print(TinyWebServer.encodeHtmlEntities(filename));
-        out.println("'>\n" +
-                    "<input type='submit' name='OK' value='OK'>\n" +
-                    "</form></body></html>");
+        out.print("'>\n" +
+                  "<input type='hidden' name='"+CONFIRM_PARAM+"' value='1'>\n"+
+                  "<input type='submit' name='OK' value='OK'>\n" +
+                  "</form></body></html>\n");
     }
 
     protected static String docOpenSetting =
