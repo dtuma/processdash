@@ -579,9 +579,9 @@ public class wizard extends TinyCGIBase {
             return null;
     }
 
-    private static final String IMPORT_DIRS = "import.directories";
-    private static final String EV_ROLLUP = "ev.enableRollup";
-    private static final String HTTP_PORT = "http.port";
+
+
+
     protected void saveTeamSettings(String teamDirectory, String projectID) {
         // rewrite the team directory into "settings" filename form.
         teamDirectory = teamDirectory.replace('\\', '/');
@@ -596,50 +596,15 @@ public class wizard extends TinyCGIBase {
 
         // calculate the new import instruction, and add it to the
         // import list
-        String importInstr = ("Import_" + projectID + "=>" +
-                              teamDirectory + "/data/" + projectID);
-        String imports = Settings.getVal(IMPORT_DIRS);
-        if (imports == null)
-            InternalSettings.set(IMPORT_DIRS, importInstr);
-        else
-            InternalSettings.set(IMPORT_DIRS, imports + "|" + importInstr);
-        DataImporter.init(getDataRepository(), importInstr);
+        String prefix = "Import_" + projectID;
+        String importDir = teamDirectory + "/data/" + projectID;
+        DashController.addImportSetting(prefix, importDir);
 
-        // enable earned value rollups.
-        InternalSettings.set(EV_ROLLUP, "true");
-
-        // listen on a repeatable port.
-        String port = Settings.getVal(HTTP_PORT);
-        if (port == null) {
-            int portNum = getAvailablePort();
-            InternalSettings.set(HTTP_PORT, Integer.toString(portNum));
-            // start listening on that port.
-            DashController.changeHttpPort(portNum);
-        }
-
+        // enable other configuration settings that are appropriate for
+        // team use.
+        DashController.enableTeamSettings();
     }
 
-    private int getAvailablePort() {
-        for (int i = 0;   i < PORT_PATTERNS.length;   i++)
-            for (int j = 2;   j < 10;   j++)
-                if (isPortAvailable(i*j))
-                    return i*j;
-        return 3000;
-    }
-    private int[] PORT_PATTERNS = {
-        1000, 1111, 1001, 1010, 1100, 1011, 1101, 1110 };
-    private boolean isPortAvailable(int port) {
-        if (port < 1024) return false;
-        boolean successful = false;
-        try {
-            ServerSocket a = new ServerSocket(port-1);
-            ServerSocket b = new ServerSocket(port);
-            successful = true;
-            a.close();
-            b.close();
-        } catch (IOException ioe) {}
-        return successful;
-    }
 
     protected void createTeamSchedule(String scheduleName) {
         EVTaskListRollup rollup = new EVTaskListRollup
@@ -647,7 +612,7 @@ public class wizard extends TinyCGIBase {
              getPSPProperties(), getObjectCache(), false);
         rollup.save();
 
-        // TODO: create a top-down schedule as well.
+        // todo: create a top-down schedule as well.
     }
 
     protected void alterTeamTemplateID(String teamPID) {
