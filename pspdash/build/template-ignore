@@ -1,5 +1,7 @@
 CVS
 \.java$
+\.bmp$
+\.BMP$
 \~$
 \.cvsignore$
 \.log$
