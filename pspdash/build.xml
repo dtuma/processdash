@@ -479,9 +479,8 @@ Authors:
   <target name="-javahelp-index" depends="init,-javahelp-depend"
           if="javahelp.jhindexerjar" unless="javahelp.upToDate">
     <!-- delete the previous contents of the JavaHelpSearch dir -->
-    <delete>
-      <fileset dir="${helpsearch}" includes="*"/>
-    </delete>
+    <delete dir="${helpsearch}" quiet="true"/>
+    <mkdir dir="${helpsearch}"/>
 
     <!-- refresh the help.config file -->
     <pathconvert property=".jhbasedir" pathsep=":" dirsep="/">
