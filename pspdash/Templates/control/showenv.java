@@ -24,15 +24,18 @@
 // E-Mail POC:  ken.raisor@hill.af.mil
 
 
-import pspdash.*;
 import java.io.IOException;
+
+import pspdash.DashController;
+import pspdash.PSPDashboard;
+import pspdash.TinyCGIBase;
 
 public class showenv extends TinyCGIBase {
 
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
         if (parameters.get("config") != null) {
-            out.print(InternalSettings.getSettingsFileName());
+            out.print(DashController.getSettingsFileName());
             return;
         }
 
@@ -40,7 +43,7 @@ public class showenv extends TinyCGIBase {
         out.println("<BODY><H1>Your settings</H1>");
 
         out.print("<P>Your configuration file is:<PRE>     ");
-        out.println(InternalSettings.getSettingsFileName());
+        out.println(DashController.getSettingsFileName());
         out.println("</PRE></P>");
 
         out.print("<P>Your data is located in the directory:<PRE>     ");
