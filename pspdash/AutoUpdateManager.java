@@ -363,10 +363,6 @@ public class AutoUpdateManager {
             } catch (IOException ioe) {}
         }
 
-        private static final String ID_ATTRIBUTE      = "Dash-Pkg-ID";
-        private static final String VERSION_ATTRIBUTE = "Dash-Pkg-Version";
-        private static final String NAME_ATTRIBUTE    = "Dash-Pkg-Name";
-        private static final String URL_ATTRIBUTE     = "Dash-Pkg-URL";
         private static final String COMMENT_START =
             "The last date when the dashboard was able to successfully " +
             "check for an updated version of ";
@@ -375,4 +371,9 @@ public class AutoUpdateManager {
     private void debug(String msg) {
         // System.out.println("AutoUpdateManager: " + msg);
     }
+
+    public static final String ID_ATTRIBUTE      = "Dash-Pkg-ID";
+    public static final String VERSION_ATTRIBUTE = "Dash-Pkg-Version";
+    public static final String NAME_ATTRIBUTE    = "Dash-Pkg-Name";
+    public static final String URL_ATTRIBUTE     = "Dash-Pkg-URL";
 }
