@@ -39,6 +39,9 @@ public interface TinyCGI {
     /** Key for looking up the data repository in the environment. */
     public static final String DATA_REPOSITORY = "DATA_REPOSITORY";
 
+    /** Key for looking up the web server in the environment. */
+    public static final String TINY_WEB_SERVER = "TINY_WEB_SERVER";
+
     /**
      * Handle a cgi-like request within a TinyWebServer.
      *
@@ -82,6 +85,10 @@ public interface TinyCGI {
      *     <DT><code>DATA_REPOSITORY</code>
      *     <DD>is an extra variable in the environment, pointing to the
      *         application's data repository.
+     *
+     *     <DT><code>TINY_WEB_SERVER</code>
+     *     <DD>is an extra variable in the environment, pointing to the
+     *         web server which is executing this script.
      * </DL></OL>
      */
     void service(InputStream in, OutputStream out, Map env)
