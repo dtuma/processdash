@@ -31,6 +31,8 @@ import pspdash.data.SimpleData;
 import pspdash.data.StringData;
 
 import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.net.URLDecoder;
 import java.util.*;
@@ -100,6 +102,8 @@ public class HTMLPreprocessor {
                 processBreakDirective(dir);
             else if (blockMatch("fortree", dir.directive))
                 processForTreeDirective(dir);
+            else if ("resources".equals(dir.directive))
+                processResourcesDirective(dir);
             else
                 dir.replace("");
             pos = dir.end;
@@ -154,7 +158,9 @@ public class HTMLPreprocessor {
         }
 
         // Apply the requested encoding(s)
-        String encodings = echo.getAttribute("encoding");
+        String encodings = echo.getAttribute("defaultEncoding");
+        if (encodings != null) defaultEchoEncoding = encodings;
+        encodings = echo.getAttribute("encoding");
         if (encodings == null) encodings = defaultEchoEncoding;
         value = applyEncodings(value, encodings);
 
@@ -184,6 +190,8 @@ public class HTMLPreprocessor {
                 value = AutoData.esc(value);
             else if ("dir".equalsIgnoreCase(encoding))
                 value = dirEncode(value);
+            else if ("javaStr".equalsIgnoreCase(encoding))
+                value = javaEncode(value);
             else
                 // default: HTML entity encoding
                 value = HTMLUtils.escapeEntities(value);
@@ -661,6 +669,39 @@ public class HTMLPreprocessor {
         breakDir.replace("");
     }
 
+    /** process a resources directive within the buffer */
+    private void processResourcesDirective(DirectiveMatch resDir)
+        throws IOException
+    {
+        // what file do they want us to include?
+        String url = resDir.getAttribute("file");
+        if (isNull(url))
+            url = resDir.contents;
+        if (!isNull(url)) {
+            // fetch the requested url (relative to the current url) and
+            // replace the include directive with its contents.
+            String context = (String) env.get("REQUEST_URI");
+            URL tempURL = new URL("http://ignored" + context);
+            tempURL = new URL(tempURL, url);
+            url = tempURL.getFile();
+            String resName =
+                url.substring(1).replace('.', '$').replace('/', '.');
+            Resources r;
+            try {
+                r = Resources.getDashBundle(resName);
+            } catch (MissingResourceException mre) {
+                throw new FileNotFoundException(url + ".properties");
+            }
+            Enumeration keys = r.getKeys();
+            while (keys.hasMoreElements()) {
+                String key = (String) keys.nextElement();
+                String value = r.getString(key);
+                env.put(key, value);
+            }
+        }
+        resDir.replace("");
+    }
+
     /** search for blocks created by matching start and end directives, and
      * give them unique numerical prefixes so it will be easy to figure out
      * which start directive goes with which end directive.  This handles
@@ -720,6 +761,24 @@ public class HTMLPreprocessor {
             if (endPos != -1) t = t.substring(1, endPos);
         }
         return dirUnencode(t);
+    }
+
+    private static String javaEncode(String s) {
+        StringBuffer result = new StringBuffer();
+        for (int i = 0;   i < s.length();   i++)
+            switch (s.charAt(i)) {
+                case '\b': result.append("\\b"); break;
+                case '\t': result.append("\\t"); break;
+                case '\f': result.append("\\f"); break;
+                case '\r': result.append("\\r"); break;
+                case '\n': result.append("\\n"); break;
+                case '\'': result.append("\\'"); break;
+                case '\"': result.append("\\\""); break;
+                case '\\': result.append("\\\\"); break;
+                default:   result.append(s.charAt(i)); break;
+            }
+
+        return result.toString();
     }
 
     private static String dirEncode(String s) {
