@@ -149,6 +149,7 @@ public class DataRepository implements Repository {
                 while (true) try {
                     sleep(120000);         // save dirty datafiles every 2 minutes
                     saveAllDatafiles();
+                    System.gc();
                 } catch (InterruptedException ie) {}
             }
         }
@@ -169,11 +170,16 @@ public class DataRepository implements Repository {
         // The DataElement class tracks the state of a single piece of data.
         private class DataElement {
 
+            // The name of this element.
+            private String name;
+            private char[] nameCA;
+
             // the value of this element.  When data elements are created but not
             // initialized, their value is set to null.  Elements with null values
             // will not be saved out to any datafile.
             //
             private SaveableData value = null;
+            private volatile SimpleData simpleValue = null;
             private boolean deferred = false;
 
             // the datafile to which this element should be saved.  If this value
@@ -193,7 +199,15 @@ public class DataRepository implements Repository {
             //
             Vector dataListenerList = null;
 
-            public DataElement() {}
+            // a preconstructed event for dispatching to listeners (so a new event
+            // need not be constructed each time).
+            //
+            private volatile DataEvent event = null;
+
+            public DataElement(String name) {
+                this.name = name;
+                this.nameCA = name.toCharArray();
+            }
 
             public SaveableData getValue() {
                 if (deferred) realize();
@@ -201,8 +215,10 @@ public class DataRepository implements Repository {
             }
 
             public SimpleData getSimpleValue() {
+                if (value == null) return null;
+                if (simpleValue != null) return simpleValue;
                 if (deferred) realize();
-                return value.getSimpleValue();
+                return (simpleValue = value.getSimpleValue());
             }
 
             public SaveableData getImmediateValue() {
@@ -210,6 +226,8 @@ public class DataRepository implements Repository {
             }
 
             public synchronized void setValue(SaveableData d) {
+                event = null;
+                simpleValue = null;
                 if (deferred = ((value = d) instanceof DeferredData))
                     if (realizeDeferredDataFor == datafile ||
                         realizeDeferredDataFor == Boolean.TRUE)
@@ -236,6 +254,25 @@ public class DataRepository implements Repository {
             }
 
             public void maybeRealize() { if (deferred) realize(); }
+
+            public DataEvent getDataChangedEvent() {
+                DataEvent result = event;
+                if (result == null || result.getID() != DataEvent.VALUE_CHANGED)
+                    event = result = new DataEvent(DataRepository.this, name, nameCA,
+                                                   DataEvent.VALUE_CHANGED,
+                                                   getSimpleValue());
+                return result;
+            }
+
+            public DataEvent getDataAddedEvent() {
+                DataEvent result = event;
+                if (result == null || result.getID() != DataEvent.DATA_ADDED)
+                    event = result = new DataEvent(DataRepository.this, name, nameCA,
+                                                   DataEvent.DATA_ADDED, null);
+                return result;
+            }
+
+            public char[] getNameCA() { return nameCA; }
         }
 
         private class DataNotifier extends Thread {
@@ -427,10 +464,7 @@ public class DataRepository implements Repository {
                     while (names.hasMoreElements()) {
                         name = (String) names.nextElement();
                         d    = (DataElement) elements.get(name);
-                        dataEvents.addElement(new DataEvent(DataRepository.this, name,
-                                                            DataEvent.VALUE_CHANGED,
-                                                            d.getValue() == null ? null :
-                                                            d.getSimpleValue()));
+                        dataEvents.addElement(d.getDataChangedEvent());
                     }
 
                                           // send the data events via dataValuesChanged()
@@ -855,7 +889,7 @@ public class DataRepository implements Repository {
                     try {
                         if (isFreezeFlagElement(dataName))
                             return;           // don't freeze freeze flags!
-                        if (!perl.match(freezeRegexp, dataName))
+                        if (!perl.match(freezeRegexp, e.getNameCA()))
                             return;           // only freeze data which matches the regexp.
                     } catch (MalformedPerl5PatternException m) {
                         //The user has given a bogus pattern!
@@ -1176,7 +1210,7 @@ public class DataRepository implements Repository {
                                 boolean notify) {
 
                                     // Add the element to the table
-            DataElement d = new DataElement();
+            DataElement d = new DataElement(name);
             d.setValue(value);
             d.datafile = f;
             data.put(name, d);
@@ -1184,8 +1218,7 @@ public class DataRepository implements Repository {
             //                    (value == null ? "null" : value.saveString()));
 
             if (notify && !name.startsWith(anonymousPrefix))
-                repositoryListenerList.dispatch
-                    (new DataEvent(this, name, DataEvent.DATA_ADDED, null));
+                repositoryListenerList.dispatch(d.getDataAddedEvent());
 
             return d;
         }
@@ -1215,7 +1248,8 @@ public class DataRepository implements Repository {
                                         // notify any repository listeners
                 if (!name.startsWith(anonymousPrefix))
                     repositoryListenerList.dispatch
-                        (new DataEvent(this, name, DataEvent.DATA_REMOVED, oldValue));
+                        (new DataEvent(this, name, removedElement.getNameCA(),
+                                       DataEvent.DATA_REMOVED, oldValue));
 
                             // flag the element's datafile as having been modified
                 if (removedElement.datafile != null)
@@ -1511,8 +1545,6 @@ public class DataRepository implements Repository {
                     dest.putAll(cachedIncludeFile);
                     line = filtIn.readLine();
                 }
-
-                filtIn = new CppFilter(in);
 
                 // find a line with a valid = assignment and load its data into
                 // the destination Hashtable
@@ -2043,19 +2075,19 @@ public class DataRepository implements Repository {
                                         // if they have specified a prefix, notify them
                                         // of all the data beginning with that prefix.
                     while (k.hasNext()) {
-                        if ((name = (String) k.next()).startsWith(prefix) &&
-                            data.containsKey(name))
-                            rl.dataAdded(new DataEvent(this, name,
-                                                       DataEvent.DATA_ADDED, null));
+                        if ((name = (String) k.next()).startsWith(prefix)) {
+                            DataElement d = (DataElement) data.get(name);
+                            if (d != null) rl.dataAdded(d.getDataAddedEvent());
+                        }
                     }
 
                 else                    // if they have specified no prefix, only
                                         // notify them of data that is NOT anonymous.
                     while (k.hasNext())
-                        if (!(name = (String) k.next()).startsWith(anonymousPrefix) &&
-                            data.containsKey(name))
-                            rl.dataAdded(new DataEvent(this, name,
-                                                       DataEvent.DATA_ADDED, null));
+                        if (!(name = (String) k.next()).startsWith(anonymousPrefix)) {
+                            DataElement d = (DataElement) data.get(name);
+                            if (d != null) rl.dataAdded(d.getDataAddedEvent());
+                        }
 
                 // debug("addRepositoryListener done");
         }
