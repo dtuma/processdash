@@ -91,6 +91,12 @@ public class XMLUtils {
         return parse(new ByteArrayInputStream(document.getBytes()));
     }
 
+    public static StringMapper ESCAPE_ATTRIBUTE = new StringMapper() {
+        public String getString(String str) {
+            return escapeAttribute(str);
+        }
+    };
+
     public static String escapeAttribute(String value) {
         return StringUtils.findAndReplace
             (HTMLUtils.escapeEntities(value), "'", "&apos;");
