@@ -67,7 +67,6 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     protected PSPProperties   useProps;
     protected PSPDashboard    dashboard = null;
     protected ValidatingTable table;
-    protected UserWarning     warnUser;
 
     protected Hashtable       postedChanges = new Hashtable();
 
@@ -716,11 +715,23 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     }
 
     protected void summarizeWarning() {
-        if (warnUser != null)
-            warnUser.show();
-        else
-            warnUser = new UserWarning (frame, "User Warning");
+        if (JOptionPane.showConfirmDialog(frame, SUMMARIZE_WARNING_MESSAGE,
+                                          "Summarization Warning",
+                                          JOptionPane.OK_CANCEL_OPTION,
+                                          JOptionPane.WARNING_MESSAGE)
+            == JOptionPane.OK_OPTION) {
+            summarize();
+        }
     }
+    private static String[] SUMMARIZE_WARNING_MESSAGE = {
+        "Time  log  summarization  is  INCOMPATIBLE with  earned  value",
+        "analysis!  Therefore, you should NOT use the summarize feature",
+        "on  any task  which  you have  added  to a  task and  schedule",
+        "template, unless you never care to view that task and schedule",
+        "template again in the future.",
+        " ",
+        "Click OK to collapse visible fields with duplicate 'Logged To'",
+        "fields into a single entry.  Otherwise click CANCEL." };
 
     private JPanel constructEditPanel () {
         JPanel  retPanel = new JPanel(false);
@@ -914,45 +925,5 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     class SaveAction extends Object implements ActionListener {
         public void actionPerformed(ActionEvent e) { save(); }
     } // End of TimeLogEditor.SaveAction
-
-
-    class UserWarning extends JDialog {
-        public UserWarning (Frame f, String s) {
-            super (f, s);
-            Box b = Box.createVerticalBox();
-            b.add (Box.createVerticalStrut(5));
-            b.add (new JLabel
-                ("Click OK to collapse visible fields with duplicate 'Logged To'   "));
-            b.add (new JLabel
-                ("fields into a single entry.  Otherwise click CANCEL.   "));
-            b.add (Box.createVerticalStrut(5));
-            b.add (Box.createVerticalGlue());
-            JButton button;
-            button = new JButton ("Cancel");
-            button.addActionListener (new ActionListener () {
-                public void actionPerformed(ActionEvent e) { warnUser.dispose(); }
-            });
-
-            Box b2 = Box.createHorizontalBox();
-            b2.add (Box.createVerticalStrut(50));
-            b2.add (Box.createHorizontalGlue());
-            b2.add (button);
-            b2.add (Box.createHorizontalGlue());
-            button = new JButton ("OK");
-            button.addActionListener (new ActionListener () {
-                public void actionPerformed(ActionEvent e) {
-                    warnUser.dispose();
-                    summarize();
-                }
-            });
-            b2.add (button);
-            b2.add (Box.createHorizontalGlue());
-            b.add (b2);
-            getContentPane().add (b);
-//      setResizable(false);
-            pack();
-            this.show();
-        }
-    }
 
 }
