@@ -47,6 +47,18 @@ public class HTTPUtils {
     }
 
 
+    /** Change the charset in a mime content type string; return the new
+     * content type string
+     */
+    public static String setCharset(String contentType, String newCharset) {
+        int pos = contentType.toLowerCase().indexOf("charset=");
+        if (pos == -1)
+            return contentType + "; charset=" + newCharset;
+        else
+            return contentType.substring(pos+8) + newCharset;
+    }
+
+
     /** Extract the content type from the given HTTP response headers.
      */
     public static String getContentType(String header) {

@@ -850,13 +850,6 @@ public class WebServer extends Thread {
             return path.startsWith("help/");
         }
 
-        private String setMimeTypeCharset(String type, String charset) {
-            int pos = type.toLowerCase().indexOf("charset=");
-            if (pos == -1)
-                return type + "; charset=" + charset;
-            return type.substring(pos+8) + charset;
-        }
-
 
         /** Serve up a server-parsed html file. */
         private void servePreprocessedFile(URLConnection conn, String mimeType)
@@ -864,7 +857,7 @@ public class WebServer extends Thread {
         {
             String content = preprocessTextFile(conn.getInputStream(), false);
             byte[] bytes = content.getBytes(outputCharset);
-            String contentType = setMimeTypeCharset(mimeType, outputCharset);
+            String contentType = HTTPUtils.setCharset(mimeType, outputCharset);
             sendHeaders(200, "OK", contentType, bytes.length, -1, null);
             outputStream.write(bytes);
         }
@@ -877,7 +870,7 @@ public class WebServer extends Thread {
         {
             String content = preprocessTextFile(in, translate);
             byte[] bytes = content.getBytes(outputCharset);
-            String contentType = setMimeTypeCharset(mimeType, outputCharset);
+            String contentType = HTTPUtils.setCharset(mimeType, outputCharset);
             sendHeaders(200, "OK", contentType, bytes.length, -1, null);
             outputStream.write(bytes);
         }
@@ -914,7 +907,7 @@ public class WebServer extends Thread {
             Reader fileReader = new InputStreamReader(content, DASH_CHARSET);
             Reader translatedReader = Translator.translate(fileReader);
             Writer output = new OutputStreamWriter(outputStream, outputCharset);
-            mime_type = setMimeTypeCharset(mime_type, outputCharset);
+            mime_type = HTTPUtils.setCharset(mime_type, outputCharset);
 
             sendHeaders(200, "OK", mime_type, -1, -1, null);
 
