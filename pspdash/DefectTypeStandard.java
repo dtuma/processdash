@@ -28,6 +28,7 @@ package pspdash;
 
 import pspdash.data.DataRepository;
 import pspdash.data.SaveableData;
+import pspdash.data.StringData;
 import javax.swing.*;
 import java.util.*;
 
@@ -39,6 +40,9 @@ public class DefectTypeStandard extends OptionList {
 
     public String getName() { return defectTypeName; }
 
+    private static final String DATA_PREFIX = "/Defect Type Standard/";
+    private static final String SETTING_DATA_NAME = "Defect Type Standard";
+
     /** Get the defect type standard for the named project/task */
     public static DefectTypeStandard get(String path, DataRepository r) {
         data = r;
@@ -48,7 +52,7 @@ public class DefectTypeStandard extends OptionList {
         if (path == null) path = "";
 
         SaveableData defectSetting = data.getInheritableValue
-            (path, "Defect Type Standard");
+            (path, SETTING_DATA_NAME);
 
         if (defectSetting != null)
             defectTypeName = defectSetting.getSimpleValue().format();
@@ -57,20 +61,23 @@ public class DefectTypeStandard extends OptionList {
         if (defectTypeName == null)
             defectTypeName = "PSP - text";
 
-        return get(defectTypeName);
+        return getByName(defectTypeName, r);
     }
 
 
     /** Get the named defect type standard. */
-    public static DefectTypeStandard get(String defectTypeName)
+    public static DefectTypeStandard getByName(String defectTypeName,
+                                               DataRepository r)
     {
+        data = r;
+
         DefectTypeStandard result =
             (DefectTypeStandard) cache.get(defectTypeName);
         if (result == null) {
             String defectTypes = null;
             try {
                 defectTypes = data.getSimpleValue
-                    ("/Defect Type Standard/" + defectTypeName).format();
+                    (DATA_PREFIX + defectTypeName).format();
             } catch (NullPointerException npe) {
                 defectTypes = Settings.getVal("defectType." + defectTypeName);
                 if (defectTypes == null) {
@@ -87,6 +94,64 @@ public class DefectTypeStandard extends OptionList {
         }
         return result;
     }
+
+    public static String[] getDefinedStandards(DataRepository r) {
+        LinkedList names = new LinkedList();
+        data = r;
+        Iterator k = r.getKeys();
+        while (k.hasNext()) {
+            String name = (String) k.next();
+            if (name.startsWith(DATA_PREFIX))
+                names.add(name.substring(DATA_PREFIX.length()));
+        }
+        String[] result = new String[names.size()];
+        return (String[]) names.toArray(result);
+    }
+
+    public static void save(String defectTypeName,
+                            DataRepository r,
+                            String[] types,
+                            String ignorableType) {
+
+        StringBuffer buf = new StringBuffer();
+        if (types != null)
+            for (int i = 0;  i < types.length;   i++) {
+                if (types[i] == null) continue;
+                String t = types[i].trim();
+                if (t.length() == 0) continue;
+                if (t.equals(ignorableType)) continue;
+                buf.append("|").append(t);
+            }
+        String saveValue = buf.toString();
+        data = r;
+
+        if (saveValue.length() == 0)
+            data.putValue(DATA_PREFIX + defectTypeName, null);
+        else
+            data.putValue(DATA_PREFIX + defectTypeName,
+                          StringData.create(saveValue.substring(1)));
+        cache.remove(defectTypeName);
+    }
+
+
+    public static void saveDefault(DataRepository r, String path,
+                                   String defectTypeName) {
+        data = r;
+
+        // if no defect type was passed in, do nothing.
+        if (defectTypeName == null || defectTypeName.length() == 0)
+            return;
+        // if the named defect type does not exist, do nothing.
+        if (data.getSimpleValue(DATA_PREFIX + defectTypeName) == null &&
+            Settings.getVal("defectType." + defectTypeName) == null)
+            return;
+
+        if (path == null) path = "";
+
+        String dataName = data.createDataName(path, SETTING_DATA_NAME);
+        data.putValue(dataName, StringData.create(defectTypeName));
+    }
+
 
     private static DataRepository data = null;
 
