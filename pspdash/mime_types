@@ -63,6 +63,8 @@
 .ps=application/postscript
 .qt=video/quicktime
 .rtf=application/rtf
+.shtml=text/x-server-parsed-html
+.shtm=text/x-server-parsed-html
 .snd=audio/basic
 .tif=image/tiff
 .tiff=image/tiff
