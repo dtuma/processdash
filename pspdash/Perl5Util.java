@@ -34,16 +34,16 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 
 /*
-    Timing Notes:
-    - using the old regex package (oromatcher), dashboard takes 24 seconds to
+    Timing Notes, made with a large input dataset:
+    - using the old regex package (oromatcher), dashboard took 24 seconds to
         start up.
-    - using the new regex package (jregex), dashboard takes 23 seconds to start.
-    - using both, dashboard takes 31 seconds to start.
+    - using the new regex package (jregex), dashboard took 23 seconds to start.
+    - using both, dashboard took 31 seconds to start.
 
     Inference:
     - 14 seconds of activity elsewhere
-    - oromatcher takes 10 seconds
-    - jregex takes 7 seconds
+    - oromatcher took 10 seconds
+    - jregex took 7 seconds
 
  */
 
@@ -142,12 +142,12 @@ public class Perl5Util {
  /*new*/    matcher = getPattern(expression).matcher();
  /*new*/    matcher.setTarget(input, 0, input.length);
  /*new*/    boolean newResult = matcher.find();
- /*old*/    boolean oldResult = perl5.match(expression, input);
- /*cmp*/   if (newResult != oldResult)
- /*cmp*/      showError("match disagreement("+expression+","+
- /*cmp*/                         new String(input)+")"+
- /*cmp*/                         "\n\toldResult=" + oldResult +
- /*cmp*/                         "\n\tnewResult=" + newResult);
+//*old*/    boolean oldResult = perl5.match(expression, input);
+//*cmp*/   if (newResult != oldResult)
+//*cmp*/      showError("match disagreement("+expression+","+
+//*cmp*/                         new String(input)+")"+
+//*cmp*/                         "\n\toldResult=" + oldResult +
+//*cmp*/                         "\n\tnewResult=" + newResult);
 //*old*/    return oldResult;
  /*new*/    return newResult;
         } catch (Throwable t) {
@@ -164,11 +164,11 @@ public class Perl5Util {
  /*new*/    matcher = getPattern(expression).matcher();
  /*new*/    matcher.setTarget(input);
  /*new*/    boolean newResult = matcher.find();
- /*old*/    boolean oldResult = perl5.match(expression, input);
- /*cmp*/    if (newResult != oldResult)
- /*cmp*/        showError("match disagreement("+expression+","+input+")"+
- /*cmp*/                           "\n\toldResult=" + oldResult +
- /*cmp*/                           "\n\tnewResult=" + newResult);
+//*old*/    boolean oldResult = perl5.match(expression, input);
+//*cmp*/    if (newResult != oldResult)
+//*cmp*/        showError("match disagreement("+expression+","+input+")"+
+//*cmp*/                           "\n\toldResult=" + oldResult +
+//*cmp*/                           "\n\tnewResult=" + newResult);
 //*old*/    return oldResult;
  /*new*/    return newResult;
         } catch (Throwable t) {
@@ -227,17 +227,17 @@ public class Perl5Util {
  /*new*/    String newResult = null;
  /*new*/    synchronized (r) { newResult = r.replace(input); }
 
- /*old*/    String oldResult = perl5.substitute(oldExpr, input);
- /*cmp*/    if (!newResult.equals(oldResult)) {
- /*cmp*/        showError("substitute disagreement!"+
- /*cmp*/                           "\n\toldExpr=" + StringUtils.findAndReplace
- /*cmp*/                           (oldExpr, "\n", "\\n") +
- /*cmp*/                           "\n\tnewExpr=" + StringUtils.findAndReplace
- /*cmp*/                           (newExpr, "\n", "\\n") +
- /*cmp*/                           "\n\tinput="+input+
- /*cmp*/                           "\n\told="+oldResult+
- /*cmp*/                           "\n\tnew="+newResult);
- /*cmp*/        }
+//*old*/    String oldResult = perl5.substitute(oldExpr, input);
+//*cmp*/    if (!newResult.equals(oldResult)) {
+//*cmp*/        showError("substitute disagreement!"+
+//*cmp*/                           "\n\toldExpr=" + StringUtils.findAndReplace
+//*cmp*/                           (oldExpr, "\n", "\\n") +
+//*cmp*/                           "\n\tnewExpr=" + StringUtils.findAndReplace
+//*cmp*/                           (newExpr, "\n", "\\n") +
+//*cmp*/                           "\n\tinput="+input+
+//*cmp*/                           "\n\told="+oldResult+
+//*cmp*/                           "\n\tnew="+newResult);
+//*cmp*/        }
 
 //*old*/    return oldResult;
  /*new*/    return newResult;
@@ -250,10 +250,10 @@ public class Perl5Util {
     public String preMatch() {
  /*new*/if (matcher == null) return null;
  /*new*/String newResult = matcher.prefix();
- /*old*/String oldResult = perl5.preMatch();
- /*cmp*/if (!newResult.equals(oldResult))
- /*cmp*/    showError("preMatch disagreement\n\told="+oldResult+
- /*cmp*/              "\n\tnew="+newResult);
+//*old*/String oldResult = perl5.preMatch();
+//*cmp*/if (!newResult.equals(oldResult))
+//*cmp*/    showError("preMatch disagreement\n\told="+oldResult+
+//*cmp*/              "\n\tnew="+newResult);
 //*old*/return oldResult;
  /*new*/return newResult;
     }
@@ -262,10 +262,10 @@ public class Perl5Util {
     public String postMatch() {
  /*new*/if (matcher == null) return null;
  /*new*/String newResult = matcher.suffix();
- /*old*/String oldResult = perl5.postMatch();
- /*cmp*/if (!newResult.equals(oldResult))
- /*cmp*/    showError("postMatch disagreement\n\told="+oldResult+
- /*cmp*/              "\n\tnew="+newResult);
+//*old*/String oldResult = perl5.postMatch();
+//*cmp*/if (!newResult.equals(oldResult))
+//*cmp*/    showError("postMatch disagreement\n\told="+oldResult+
+//*cmp*/              "\n\tnew="+newResult);
 //*old*/return oldResult;
  /*new*/return newResult;
     }
@@ -275,10 +275,10 @@ public class Perl5Util {
     public String group(int group) {
  /*new*/if (matcher == null) return null;
  /*new*/String newResult = matcher.group(group);
- /*old*/String oldResult = perl5.group(group);
- /*cmp*/if (!newResult.equals(oldResult))
- /*cmp*/    showError("group disagreement\n\told="+oldResult+
- /*cmp*/              "\n\tnew="+newResult);
+//*old*/String oldResult = perl5.group(group);
+//*cmp*/if (!newResult.equals(oldResult))
+//*cmp*/    showError("group disagreement\n\told="+oldResult+
+//*cmp*/              "\n\tnew="+newResult);
 //*old*/return oldResult;
  /*new*/return newResult;
     }
