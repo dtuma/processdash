@@ -153,6 +153,12 @@ build/SCR-DCR.jar: Templates/SCR/manifest $(SCR_DCR_FILES)
 Templates/reports/excel.iqy: Templates/reports/excel.class
 	cp Templates/reports/excel.class Templates/reports/excel.iqy
 
+DISABLED_WARNINGS=directory-index,img-alt,extension-attribute,extension-markup,attribute-delimiter
+
+weblint:
+	weblint -d $(DISABLED_WARNINGS) Templates | \
+	grep -v -f weblint-ignore
+
 clean:
 	cd build; $(MAKE) clean
 	cd data; $(MAKE) clean
