@@ -22,6 +22,6 @@ pspdash/pspdash.ad-comments
 pspdash/rollupData.txt
 pspdash/script.gif
 pspdash/scriptd.gif
-pspdash/splash.gif
+pspdash/splash.png
 pspdash/state
 pspdash/timing.wav
