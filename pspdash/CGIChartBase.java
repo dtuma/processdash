@@ -130,7 +130,8 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
         chart.draw(g2, new Rectangle2D.Double(0, 0, width, height));
         g2.dispose();
 
-        JpegEncoder jpegEncoder = new JpegEncoder(img, 100, outStream);
+        int quality = (parameters.containsKey("EXPORT") ? 85 : 100);
+        JpegEncoder jpegEncoder = new JpegEncoder(img, quality, outStream);
         jpegEncoder.Compress();
         outStream.flush();
         outStream.close();
