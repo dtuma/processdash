@@ -33,7 +33,11 @@ public class importNow extends TinyCGIBase {
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
-        DataImporter.refreshPrefix(getPrefix());
+        // DataImporter.refreshPrefix() doesn't expect a hierarchy prefix as
+        // input - instead, it wants an import prefix (e.g. "/Import_sf7a7s").
+        // We don't have a consistent means of determining that prefix, so
+        // we'll just refresh all imported data.
+        DataImporter.refreshPrefix("/");
         DashController.printNullDocument(out);
     }
 
