@@ -38,7 +38,8 @@ import pspdash.data.DataRepository;
 
 
 public class DefectEditor extends Component
-    implements TreeSelectionListener, ListSelectionListener, ActionListener
+    implements TreeSelectionListener, ListSelectionListener, ActionListener,
+               PSPProperties.Listener
 {
     /** Class Attributes */
     protected JFrame          frame;
@@ -72,6 +73,7 @@ public class DefectEditor extends Component
         JPanel   panel   = new JPanel(true);
 
         useProps = props;
+        props.addHierarchyListener(this);
         data     = dashboard.getDataRepository();
 
         defectLogs = new Hashtable ();
@@ -162,10 +164,14 @@ public class DefectEditor extends Component
     }
 
 
+    public void hierarchyChanged(PSPProperties.Event e) { reloadAll(null); }
+
     public void reloadAll(PSPProperties newProps) {
-        useProps.copy(newProps);
+        if (newProps != null)
+            useProps.copy(newProps);
         treeModel.reload (useProps);
         treeModel.nodeStructureChanged((TreeNode) treeModel.getRoot());
+        reload();
         applyFilter();
     }
 
@@ -176,6 +182,7 @@ public class DefectEditor extends Component
         DefectLog dl;
         String defLogName;
         Defect[] defects;
+        defectLogs.clear();
         Enumeration pKeys = useProps.keys ();
         while (pKeys.hasMoreElements()) {
             pKey = (PropertyKey)pKeys.nextElement();
