@@ -12,6 +12,9 @@ import java.awt.image.WritableRaster;
 
 import javax.swing.JTable;
 
+
+/** The table cell renderer to display time for a team member.
+ */
 public class TeamMemberTimeCellRenderer extends DataTableCellNumericRenderer {
 
     private Color theColor;
@@ -21,29 +24,17 @@ public class TeamMemberTimeCellRenderer extends DataTableCellNumericRenderer {
 
     public TeamMemberTimeCellRenderer() { }
 
-    public Component getTableCellRendererComponent(
-        JTable table,
-        Object value,
-        boolean isSelected,
-        boolean hasFocus,
-        int row,
-        int column) {
+    public Component getTableCellRendererComponent
+        (JTable table, Object value, boolean isSelected,
+         boolean hasFocus, int row, int column) {
 
-        Component result =
-            super.getTableCellRendererComponent(
-                table,
-                value,
-                isSelected,
-                hasFocus,
-                row,
-                column);
-
+        Component result = super.getTableCellRendererComponent
+            (table, value, isSelected, hasFocus, row, column);
 
         if (value instanceof TeamMemberTime)
             theColor = ((TeamMemberTime) value).color;
         else
             theColor = Color.white;
-
 
         paint = hasFocus ? null : getPaint(isSelected);
 
@@ -80,7 +71,8 @@ public class TeamMemberTimeCellRenderer extends DataTableCellNumericRenderer {
         // I create a custom TexturePaint instead because the redraws are
         // approximately four times faster. This also gives me the flexibility
         // to perform a quadratic fade instead of a linear fade.
-        return new TexturePaint(i, new Rectangle(leftBorder, 0, gradientWidth, 1));
+        return new TexturePaint
+            (i, new Rectangle(leftBorder, 0, gradientWidth, 1));
     }
 
     public boolean isOpaque() {
