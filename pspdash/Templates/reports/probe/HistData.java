@@ -195,12 +195,12 @@ class HistData {
                   "following set of historical data:<br>&nbsp;\n"+
                   "<table border style='margin-left:1cm'>"+
                   "<tr><th>Project/Task</th>"+
-                  "<th>Estimated Object LOC</th>" +
-                  "<th>Estimated New &amp; Changed LOC</th>"+
-                  "<th>Actual New &amp; Changed LOC</th>" +
-                  "<th>Estimated Hours</th>" +
-                  "<th>Actual Hours</th>" +
-                  "<th>Exclude?</th></tr>\n");
+                  "<th><img src='EstObjLOC.gif'></th>" +
+                  "<th><img src='EstNCLOC.gif'></th>"+
+                  "<th><img src='ActNCLOC.gif'></th>" +
+                  "<th><img src='EstHours.gif'></th>" +
+                  "<th><img src='ActHours.gif'></th>" +
+                  "<th><img src='Exclude.gif'></th></tr>\n");
         for (int r = 1;   r <= resultSet.numRows();   r++) {
             out.print("<tr>");
             out.print("<td nowrap>");
