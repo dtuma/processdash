@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 import pspdash.*;
 import pspdash.data.DataRepository;
@@ -74,7 +74,8 @@ public class dtsEdit extends TinyCGIBase {
 
     /** Generate CGI script output. */
     protected void doGet() throws IOException {
-        writeHeader();
+        out = new PrintWriter(new OutputStreamWriter(outStream, "UTF-8"));
+        out.print("Content-type: text/html; charset=utf-8\r\n\r\n");
 
         String action = getParameter(ACTION);
         String name = getParameter(NAME);
@@ -101,6 +102,20 @@ public class dtsEdit extends TinyCGIBase {
         return HTMLUtils.escapeEntities(resources.getString(key));
     }
 
+    protected void writeHTMLHeader() {
+        String title = resources.getString("Page_Title");
+        out.print("<html><head><title>");
+        out.print(title);
+        out.print("</title>\n"+
+                  "<link rel=stylesheet type='text/css' href='/style.css'>\n"+
+                  "<style>\n"+
+                  "  TD { padding-right: 0.3cm }\n"+
+                  "</style>\n"+
+                  "</head><body><h1>");
+        out.print(title);
+        out.print("</h1>\n");
+    }
+
     protected void showStandard(String name) throws IOException {
         out.print("<html><head><meta http-equiv='Refresh' "+
                   "CONTENT='0;URL=../reports/dts.class?name=");
@@ -115,7 +130,7 @@ public class dtsEdit extends TinyCGIBase {
 
         String defaultName = DefectTypeStandard.get("", data).getName();
 
-        out.println(resources.getString("Header_HTML"));
+        writeHTMLHeader();
         out.print("<p>");
         out.println(getHTML("Welcome_Prompt"));
         out.println("<ul>");
@@ -205,7 +220,7 @@ public class dtsEdit extends TinyCGIBase {
                             boolean nameEditable,
                             String realName) throws IOException {
 
-        out.println(resources.getString("Header_HTML"));
+        writeHTMLHeader();
         out.print("<h2>");
         out.print(getHTML(headerKey));
         out.println("</h2>");
@@ -246,7 +261,7 @@ public class dtsEdit extends TinyCGIBase {
     }
 
     protected void deleteExisting(String standardName) throws IOException {
-        out.println(resources.getString("Header_HTML"));
+        writeHTMLHeader();
         out.print("<h2>");
         out.print(getHTML("Delete_Existing"));
         out.println("</h2><p>");
@@ -265,7 +280,7 @@ public class dtsEdit extends TinyCGIBase {
     }
 
     protected void setDefault(String standardName) throws IOException {
-        out.println(resources.getString("Header_HTML"));
+        writeHTMLHeader();
         out.print("<h2>");
         out.print(getHTML("Set_As_Default"));
         out.println("</h2><p>");
