@@ -108,6 +108,10 @@ SCR_DCR_FILES=Templates/SCR.globalData \
 	Templates/DCR/*.* \
 	Templates/Inspection/*.*
 
+
+SUN_PLUG_DIR=Templates/help/Topics/Troubleshooting/DataApplet
+SUN_PLUG_JAR=$(SUN_PLUG_DIR)/SunPlugin.jar
+
 # build platform dependency
 BUILD_PLATFORM ?= CYGWIN
 ifeq ($(BUILD_PLATFORM),CYGWIN)
@@ -121,7 +125,7 @@ endif
 ######################################################################
 
 
-all: data pspdash cgi-scripts build
+all: data pspdash cgi-scripts $(SUN_PLUG_JAR) build
 
 install: all
 
@@ -143,11 +147,19 @@ endif
 pspdash: PSPDashboard.class $(CLASS_FILES)
 
 
-cgi-scripts: $(CGI_CLASSES) $(SIZEEST_COPIES) Templates/reports/excel.iqy
+cgi-scripts: $(CGI_CLASSES) $(SIZEEST_COPIES) Templates/reports/excel.iqy 
 
 $(SIZEEST_COPIES): Templates/psp1/sizeest.class
 	cp Templates/psp1/sizeest.class $@
 
+$(SUN_PLUG_JAR): $(SUN_PLUG_DIR)/SunPlugin.java
+	cd $(SUN_PLUG_DIR); \
+	rm -rf pspdash IEDataApplet.java; \
+	cp SunPlugin.java IEDataApplet.java; \
+	$(JAVAC) -d . IEDataApplet.java
+	cd $(SUN_PLUG_DIR); \
+	$(JAR) cf SunPlugin.jar pspdash; \
+	rm -rf pspdash IEDataApplet.java
 
 Templates/reports/pie.class: $(BIN)/com/jrefinery/chart/PiePlot.class
 Templates/reports/radar.class: $(BIN)/com/jrefinery/chart/RadarPlot.class

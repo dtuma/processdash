@@ -317,6 +317,7 @@ function IEsetup() {
 
 				// add a data applet to the page.
     document.writeln('<applet id=IEDataAppl'+
+		            ' archive="/help/Topics/Troubleshooting/DataApplet/SunPlugin.jar" ' +
 		            ' code=pspdash.data.IEDataApplet'+
 		            ' width=1 height=1>');
     document.writeln('<param name="cabbase" value="/DataApplet14.cab">');
