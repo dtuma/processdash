@@ -32,13 +32,8 @@
 
 <TABLE><TR><TD><H1>Defect Analysis&nbsp;</H1></TD>
 <TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
+<script src="../chart.js"></script>
 <script>
-    function write(query, small) {
-        var chart = "line.class";
-        if (query.indexOf("chart=xy") != -1) chart = "xy.class";
-        document.writeln("<A HREF='../full.htm?" + query + "'>");
-        document.writeln("<img src='../"+chart+"?"+query+"&"+small+"'></a>");
-    }
     write("qf=defects/total.rpt", "qf=small.rpt");
     write("qf=defects/design-inj.rpt", "qf=small.rpt");
     write("qf=defects/code-inj.rpt", "qf=small.rpt");
@@ -49,5 +44,9 @@
     write("qf=defects/percent-inj.rpt", "qf=small.rpt");
     write("qf=defects/percent-rem.rpt", "qf=small.rpt");
     write("qf=defects/comp-vs-test.rpt&chart=xy", "qf=small.rpt");
+//    write("qf=defects/to-date-inj.rpt&chart=pie", "qf=small.rpt&titleFontSize=10&hideLegend&interiorSpacing=30");
+//    write("qf=defects/to-date-rem.rpt&chart=pie", "qf=small.rpt&titleFontSize=9&hideLegend&interiorSpacing=30");
+    write("qf=defects/to-date-inj.rpt&chart=pie", "qf=small.rpt&titleFontSize=10&skipWedgeLabels&interiorSpacing=5");
+    write("qf=defects/to-date-rem.rpt&chart=pie", "qf=small.rpt&titleFontSize=9&skipWedgeLabels&interiorSpacing=5");
 </script>
 </BODY>
