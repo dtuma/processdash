@@ -105,4 +105,8 @@ public class WorkflowLibrary {
         }
     }
 
+    public String getFileName() {
+        return file.getName();
+    }
+
 }

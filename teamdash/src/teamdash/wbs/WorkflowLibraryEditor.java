@@ -36,8 +36,9 @@ import javax.swing.filechooser.FileFilter;
 public class WorkflowLibraryEditor {
 
 
-    private static final String DISCARD_IMPORT_MESSAGE = "Discard changes imported to the workflows in this team project?";
-    private static final String DISCARD_EXPORT_MESSAGE = "Discard changes exported to the workflow library?";
+    private static final String WORKFLOW_LIBRARY_FILENAME_EXTENSION = ".wfxml";
+
+
     /** The team project that these workflows belong to. */
     TeamProject teamProject;
 
@@ -110,7 +111,7 @@ public class WorkflowLibraryEditor {
         GridBagLayout layout = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         JPanel panel = new JPanel(layout);
-        panel.setBorder(new EmptyBorder(5,5,5,5));
+        panel.setBorder(new EmptyBorder(10,10,10,10));
 
         Insets insets0 = new Insets(0, 0, 0, 0);
         Insets insets10 = new Insets(10, 10, 10, 10);
@@ -119,7 +120,7 @@ public class WorkflowLibraryEditor {
             (workflowModel, teamProject.getTeamProcess());
         workflowTable.setEditingEnabled(false);
         JScrollPane sp = new JScrollPane(workflowTable);
-        initConstraints(c, 0, 1, 2, 2, GridBagConstraints.BOTH, 2, 2, GridBagConstraints.CENTER);
+        initConstraints(c, 0, 1, 2, 2, GridBagConstraints.BOTH, 2, 2, GridBagConstraints.CENTER, insets0);
         layout.setConstraints(sp, c);
         panel.add(sp);
 
@@ -128,7 +129,7 @@ public class WorkflowLibraryEditor {
         libraryTable.setEditingEnabled(false);
         libraryTable.setBackground(LIGHT_SEPIA);
         sp = new JScrollPane(libraryTable);
-        initConstraints(c, 3, 1, 2, 2, GridBagConstraints.BOTH, 2, 2, GridBagConstraints.CENTER);
+        initConstraints(c, 3, 1, 2, 2, GridBagConstraints.BOTH, 2, 2, GridBagConstraints.CENTER, insets0);
         layout.setConstraints(sp, c);
         panel.add(sp);
 
@@ -149,8 +150,7 @@ public class WorkflowLibraryEditor {
         addButton.setMnemonic('A');
         addButton.setEnabled(false);
         addButton.addActionListener(createActionListener("addWorkflowAction"));
-        initConstraints(c, 2, 1, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.SOUTH);
-        c.insets = insets10;
+        initConstraints(c, 2, 1, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.SOUTH, insets10);
         layout.setConstraints(addButton, c);
         panel.add(addButton);
 
@@ -159,44 +159,45 @@ public class WorkflowLibraryEditor {
         addAllButton.setIcon(export ? IconFactory.getRightArrowIcon() : IconFactory.getLeftArrowIcon());
         addAllButton.setHorizontalTextPosition(export ? SwingConstants.LEFT : SwingConstants.RIGHT);
         addAllButton.addActionListener(createActionListener("addAllWorkflowsAction"));
-        initConstraints(c, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.NORTH);
-        c.insets = insets10;
+        initConstraints(c, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, 0, 1, GridBagConstraints.NORTH, insets10);
         layout.setConstraints(addAllButton, c);
         panel.add(addAllButton);
 
+        /*
         openLibraryButton = new JButton(IconFactory.getOpenIcon());
         openLibraryButton.setToolTipText("Open Other Workflow Library...");
         openLibraryButton.addActionListener
             (createActionListener("openLibraryAction"));
-        initConstraints(c, 4, 0, 1, 1, GridBagConstraints.NONE, 0, 0, GridBagConstraints.EAST);
-        c.insets = insets0;
+        initConstraints(c, 4, 0, 1, 1, GridBagConstraints.NONE, 0, 0, GridBagConstraints.EAST, insets0);
         layout.setConstraints(openLibraryButton, c);
         panel.add(openLibraryButton);
+        */
 
-        JLabel label = new JLabel("Workflows in the project:");
-        initConstraints(c, 0, 0, 1, 1, GridBagConstraints.NONE, 0, 0, GridBagConstraints.WEST);
+        JLabel label = new JLabel("Workflows in the project '"
+                + teamProject.getProjectName() + "':");
+        initConstraints(c, 0, 0, 1, 1, GridBagConstraints.NONE, 0, 0, GridBagConstraints.WEST, insets0);
         layout.setConstraints(label, c);
         panel.add(label);
 
-        label = new JLabel("Workflows in the library:");
-        initConstraints(c, 3, 0, 1, 1, GridBagConstraints.NONE, 0, 0, GridBagConstraints.WEST);
+        label = new JLabel("Workflows in the library '"
+                + libraryFile.getFileName() + "':");
+        initConstraints(c, 3, 0, 1, 1, GridBagConstraints.NONE, 0, 0, GridBagConstraints.WEST, insets0);
         layout.setConstraints(label, c);
         panel.add(label);
 
         Box buttonPanel = Box.createHorizontalBox();
         buttonPanel.add(Box.createHorizontalGlue());
 
-        cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(createActionListener("cancelAction"));
-        buttonPanel.add(cancelButton);
-        buttonPanel.add(Box.createHorizontalStrut(10));
-
         okButton = new JButton(export ? "Export" : "Import");
         okButton.addActionListener(createActionListener("okAction"));
         buttonPanel.add(okButton);
 
-        initConstraints(c, 0, 3, 5, 1, GridBagConstraints.BOTH, 0, 0, GridBagConstraints.NORTH);
-        c.insets = new Insets(10, 0, 0, 0);
+        cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(createActionListener("cancelAction"));
+        buttonPanel.add(Box.createHorizontalStrut(10));
+        buttonPanel.add(cancelButton);
+
+        initConstraints(c, 0, 3, 5, 1, GridBagConstraints.BOTH, 0, 0, GridBagConstraints.NORTH, new Insets(10, 0, 0, 0));
         layout.setConstraints(buttonPanel, c);
         panel.add(buttonPanel);
 
@@ -211,7 +212,7 @@ public class WorkflowLibraryEditor {
     private static Color SEPIA = new Color(159, 141, 114);
     private static Color LIGHT_SEPIA = new Color(232, 224, 205);
 
-    private void initConstraints(GridBagConstraints c, int gridx, int gridy, int gridwidth, int gridheight, int fill, double weightx, double weighty, int anchor) {
+    private void initConstraints(GridBagConstraints c, int gridx, int gridy, int gridwidth, int gridheight, int fill, double weightx, double weighty, int anchor, Insets insets) {
         c.gridx = gridx;
         c.gridy = gridy;
         c.gridwidth = gridwidth;
@@ -220,6 +221,7 @@ public class WorkflowLibraryEditor {
         c.weightx = weightx;
         c.weighty = weighty;
         c.anchor = anchor;
+        c.insets = insets;
     }
 
     private ActionListener createActionListener(String methodName) {
@@ -266,6 +268,9 @@ public class WorkflowLibraryEditor {
             (dialog, message, "Discard Changes?", JOptionPane.YES_NO_OPTION);
         return (response == JOptionPane.YES_OPTION);
     }
+    private static final String DISCARD_IMPORT_MESSAGE = "Discard changes imported to the workflows in this team project?";
+    private static final String DISCARD_EXPORT_MESSAGE = "Discard changes exported to the workflow library?";
+
 
 
     public void okAction() {
@@ -292,12 +297,13 @@ public class WorkflowLibraryEditor {
         return true;
     }
 
+    /*
     public void openLibraryAction() {
         if (export && dirtyFlag && !confirmCancel())
             return;
-        // FIXME
         JOptionPane.showMessageDialog(dialog, "Not yet implemented");
     }
+    */
 
 
     private void openWorkflowLibrary(Component parent, boolean export) throws UserCancelledException {
@@ -428,7 +434,13 @@ public class WorkflowLibraryEditor {
     private File selectFile(Component parent, boolean export) {
         String title = (export ? "Export to Workflow Library" : "Import from Workflow Library");
         String buttonLabel = (export ? "Export..." : "Import...");
-        return selectFile(parent, title, buttonLabel);
+        File result = selectFile(parent, title, buttonLabel);
+
+        // maybe add filename extension, if the user didn't specify it.
+        if (export && result.getName().indexOf('.') == -1)
+            result = new File(result.getParentFile(), result.getName() + WORKFLOW_LIBRARY_FILENAME_EXTENSION);
+
+        return result;
     }
 
     private File selectFile(Component parent, String title, String buttonLabel) {
@@ -457,7 +469,8 @@ public class WorkflowLibraryEditor {
     private static class WorkflowFileFilter extends FileFilter {
 
         public boolean accept(File f) {
-            return (f.isDirectory() || f.getName().endsWith(".wfxml"));
+            return (f.isDirectory() ||
+                f.getName().endsWith(WORKFLOW_LIBRARY_FILENAME_EXTENSION));
         }
 
         public String getDescription() {
