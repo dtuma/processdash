@@ -32,7 +32,7 @@ import javax.swing.event.*;
 
 import pspdash.data.DoubleData;
 
-public class EVMetrics {
+public class EVMetrics implements TableModel {
 
     /** The total planned time for all tasks in an EVModel, in minutes. */
     protected double totalPlanTime = 0.0;
@@ -173,28 +173,32 @@ public class EVMetrics {
 
 
 
+    /** display the name of the metric. */
+    public static final int NAME = 0;
+
     /** display a value as a number only, possibly preceeded by a
      * negative sign and possibly followed by a percentage sign or
      * other unit qualifier. Examples: 1.09, -65% */
-    public static final int SHORT  = 0;
+    public static final int SHORT  = 1;
 
     /** display a value succintly, but rather than using a numeric sign,
      * interpret the value.  Examples: 3 days behind schedule, 45% over
      * budget */
-    public static final int MEDIUM = 1;
+    public static final int MEDIUM = 2;
 
     /** return a complete sentence explaining and interpreting the value.
      * Examples: 40% of the total work has been accomplished. */
-    public static final int FULL   = 2;
+    public static final int FULL   = 3;
 
 
 
     public String costVariance(int style) {
         double d= costVariance();
         if (badDouble(d)) return null;
-        return MessageFormat.format(CV_FORMATS[style], args(d,formatCost(d)));
+        return MessageFormat.format(CV_FORMATS[style], costArgs(d));
     }
     static final String[] CV_FORMATS = {
+        "Cost Variance",
         "{0,number}",
         "{1} {0,choice,-1#over|0#under} budget",
         "The tasks completed to date have taken {1} {0,choice,-1#more|0#less} effort than planned." };
@@ -203,9 +207,10 @@ public class EVMetrics {
     public String scheduleVariance(int style) {
         double d= scheduleVariance();
         if (badDouble(d)) return null;
-        return MessageFormat.format(SV_FORMATS[style], args(d,formatCost(d)));
+        return MessageFormat.format(SV_FORMATS[style], costArgs(d));
     }
     static final String[] SV_FORMATS = {
+        "Schedule Variance",
         "{0,number}",
         "{1} {0,choice,-1#behind|0#ahead of} schedule",
         "You have completed {1} {0,choice,-1#less|0#more} work than you had planned to complete by this date." };
@@ -217,9 +222,10 @@ public class EVMetrics {
         return MessageFormat.format(CVP_FORMATS[style], absArgs(d));
     }
     static final String[] CVP_FORMATS = {
+        "Cost Variance %",
         "{0,number,percent}",
         "{1,number,percent} {0,choice,-1#over|0#under} budget",
-        "The tasks completed to date have taken {1,number,percent} {0,choice,-1#less|0#more} effort than planned." };
+        "The tasks completed to date have taken {1,number,percent} {0,choice,-1#more|0#less} effort than planned." };
 
     public String scheduleVariancePercentage(int style) {
         double d= scheduleVariancePercentage();
@@ -227,6 +233,7 @@ public class EVMetrics {
         return MessageFormat.format(SVP_FORMATS[style], absArgs(d));
     }
     static final String[] SVP_FORMATS = {
+        "Schedule Variance %",
         "{0,number,percent}",
         "{1,number,percent} {0,choice,-1#behind|0#ahead of} schedule",
         "You have completed  {1,number,percent} {0,choice,-1#less|0#more} work than you had planned to complete by this date." };
@@ -238,6 +245,7 @@ public class EVMetrics {
         return MessageFormat.format(CPI_FORMATS[style], args(d));
     }
     static final String[] CPI_FORMATS = {
+        "Cost Performance Index",
         "{0,number}",
         "{0,number}",
         "Work is taking {0,choice,0#more|1#less} time than planned.  For every effort hour actually spent, you are accomplishing {0,number} hours worth of planned results." };
@@ -248,6 +256,7 @@ public class EVMetrics {
         return MessageFormat.format(SPI_FORMATS[style], args(d));
     }
     static final String[] SPI_FORMATS = {
+        "Schedule Performance Index",
         "{0,number}",
         "{0,number}",
         "You are completing tasks more {0,choice,0#slowly|1#quickly} than scheduled.  For every effort hour of work you should have accomplished to date, you are completing {0,number} hours." };
@@ -259,6 +268,7 @@ public class EVMetrics {
         return MessageFormat.format(PC_FORMATS[style], args(d));
     }
     static final String[] PC_FORMATS = {
+        "Percent Complete",
         "{0,number,percent}",
         "{0,number,percent}",
         "You have completed {0,number,percent} of the total work." };
@@ -270,6 +280,7 @@ public class EVMetrics {
         return MessageFormat.format(PS_FORMATS[style], args(d));
     }
     static final String[] PS_FORMATS = {
+        "Percent Spent",
         "{0,number,percent}",
         "{0,number,percent}",
         "You have spent {0,number,percent} of the total planned effort hours." };
@@ -281,6 +292,7 @@ public class EVMetrics {
         return MessageFormat.format(TCPI_FORMATS[style], args(d));
     }
     static final String[] TCPI_FORMATS = {
+        "To Complete Performance Index",
         "{0,number}",
         "{0,number}",
         "In order to complete all the work within the original effort estimate, each future hour of effort must accomplish {0,number} hours worth of planned results." };
@@ -289,43 +301,46 @@ public class EVMetrics {
     public String improvementRatio(int style) {
         double d= improvementRatio();
         if (badDouble(d)) return null;
-        return MessageFormat.format(IR_FORMATS[style], args(d));
+        return MessageFormat.format(IR_FORMATS[style], absArgs(d));
     }
     static final String[] IR_FORMATS = {
+        "Improvement Ratio",
         "{0,number}",
         "{0,number}",
-        "In order to complete all the work within the original effort estimate, you must be {0,number} times as productive in the future as you have been in the past." };
+        "In order to complete all the work within the original effort estimate, you must be {1,number,percent} {0,choice,-1#less|0#} productive in the future as you have been in the past." };
 
 
     public String independentForecastCost(int style) {
         double d= independentForecastCost();
         if (badDouble(d)) return null;
-        return MessageFormat.format(IFC_FORMATS[style], args(formatCost(d)));
+        return MessageFormat.format(IFC_FORMATS[style], costArgs(d));
     }
     static final String[] IFC_FORMATS = {
+        "Forecast Cost",
         "{0}",
-        "{0}",
-        "Based upon your current CPI, the total work is forecast to require {0} of effort." };
+        "{1}",
+        "Based upon your current CPI, the total work is forecast to require {1} of effort." };
 
 
     public String elapsed(int style) {
         double d= elapsed();
         if (badDouble(d)) return null;
-        return MessageFormat.format(EL_FORMATS[style],
-                                    args(formatDuration(d)));
+        return MessageFormat.format(EL_FORMATS[style], durationArgs(d));
     }
     static final String[] EL_FORMATS = {
+        "Elapsed Time",
         "{0}",
-        "{0}",
-        "The project began {0} ago." };
+        "{1}",
+        "The project began {1} ago." };
 
 
     public String scheduleVarianceDuration(int style) {
         double d= scheduleVarianceDuration();
         if (badDouble(d)) return null;
-        return MessageFormat.format(SVD_FORMATS[style], durArgs(d));
+        return MessageFormat.format(SVD_FORMATS[style], durationArgs(d));
     }
     static final String[] SVD_FORMATS = {
+        "Schedule Variance Duration",
         "{0,number}",
         "{1} {0,choice,-1#behind|0#ahead of} schedule",
         "Based upon your current rate of task completion to date, you are {1} {0,choice,-1#behind|0#ahead of} schedule." };
@@ -334,12 +349,12 @@ public class EVMetrics {
     public String independentForecastDuration(int style) {
         double d= independentForecastDuration();
         if (badDouble(d)) return null;
-        return MessageFormat.format(IFD_FORMATS[style],
-                                    args(formatDuration(d)));
+        return MessageFormat.format(IFD_FORMATS[style], durationArgs(d));
     }
     static final String[] IFD_FORMATS = {
+        "Forecast Duration",
         "{0}",
-        "{0}",
+        "{1}",
         "Based upon your current rate of task completion to date, the total work schedule is forecast to be {1}." };
 
 
@@ -349,16 +364,14 @@ public class EVMetrics {
         return MessageFormat.format(IFDT_FORMATS[style], args(d));
     }
     static final String[] IFDT_FORMATS = {
-        "{0,date,}",
+        "Forecast Completion Date",
+        "{0,date}",
         "{0,date}",
         "Based upon your current rate of task completion to date, the total work is forecast to be completed {0,date}." };
 
 
     public static String formatDuration(double duration) {
         return formatDuration(duration, YEAR_MINUTES);
-    }
-    public static String formatCost(double cost) {
-        return formatDuration(cost, HOUR_MINUTES);
     }
     public static String formatDuration(double duration, int maxUnits) {
         if (badDouble(duration))
@@ -425,12 +438,60 @@ public class EVMetrics {
         Object[] result = { new Double(d), o };
         return result;
     }
-    public static Object[] durArgs(double d) {
-        Object[] result = { new Double(d), formatDuration(d) };
-        return result;
+    public static Object[] durationArgs(double d) {
+        return args(d/DAY_MINUTES, formatDuration(d));
+    }
+    public static Object[] costArgs(double d) {
+        return args(d/HOUR_MINUTES, formatDuration(d, HOUR_MINUTES));
     }
     public static Object[] absArgs(double d) {
         Object[] result = { new Double(d), new Double(Math.abs(d)) };
         return result;
     }
+
+
+
+    /*
+     *TableModel Interface
+     */
+
+    public String getColumnName(int columnIndex) {
+        switch (columnIndex) {
+        case 0: return "Metric Name";
+        case 1: return "Value";
+        case 2: return "Interpretation";
+        case 3: default: return "Explanation";
+        }
+    }
+    public int getColumnCount() { return 4; }
+
+    public Object getValueAt(int row, int col) {
+        switch (row) {
+        case 0: return costVariance(col);
+        case 1: return costVariancePercentage(col);
+        case 2: return costPerformanceIndex(col);
+
+        case 3: return scheduleVariance(col);
+        case 4: return scheduleVariancePercentage(col);
+        case 5: return scheduleVarianceDuration(col);
+        case 6: return schedulePerformanceIndex(col);
+
+        case 7: return percentComplete(col);
+        case 8: return percentSpent(col);
+        case 9: return toCompletePerformanceIndex(col);
+        case 10: return improvementRatio(col);
+
+        case 11: return independentForecastCost(col);
+        case 12: return independentForecastDuration(col);
+        case 13: default: return independentForecastDate(col);
+        }
+    }
+    public int getRowCount() { return 14; }
+
+
+    public Class getColumnClass(int columnIndex) { return String.class; }
+    public boolean isCellEditable(int row, int col) { return false; }
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {}
+    public void addTableModelListener(TableModelListener l) {}
+    public void removeTableModelListener(TableModelListener l) {}
 }

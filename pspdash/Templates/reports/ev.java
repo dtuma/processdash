@@ -152,27 +152,8 @@ public class ev extends CGIChartBase {
         EVMetrics  m = s.getMetrics();
 
         out.print("<table>");
-        writeMetric("Cost Variance", m.costVariance(MED));
-        writeMetric("Cost Variance %", m.costVariancePercentage(MED));
-        writeMetric("Cost Performance Index", m.costPerformanceIndex(MED));
-
-        writeMetric("Schedule Variance", m.scheduleVariance(MED));
-        writeMetric("Schedule Variance %", m.scheduleVariancePercentage(MED));
-        writeMetric("Schedule Variance Duration",
-                    m.scheduleVarianceDuration(MED));
-        writeMetric("Schedule Performance Index",
-                    m.schedulePerformanceIndex(MED));
-
-        writeMetric("Percent Complete", m.percentComplete(MED));
-        writeMetric("Percent Spent", m.percentSpent(MED));
-        writeMetric("To Complete Performance Index",
-                    m.toCompletePerformanceIndex(MED));
-        writeMetric("Improvement Ratio", m.improvementRatio(MED));
-
-        writeMetric("Forecast Cost", m.independentForecastCost(MED));
-        writeMetric("Forecast Duration", m.independentForecastDuration(MED));
-        writeMetric("Forecast Completion Date",
-                    m.independentForecastDate(MED));
+        for (int i = 0;   i < m.getRowCount();   i++)
+            writeMetric(m, i);
         out.print("</table>");
 
         out.print("<h2>Task Template</h2>\n");
@@ -184,13 +165,25 @@ public class ev extends CGIChartBase {
 
         out.print(FOOTER_HTML);
     }
-    protected void writeMetric(String name, String value) {
-        if (value == null) return;
+    protected void writeMetric(EVMetrics m, int i) {
+        String name = (String) m.getValueAt(i, EVMetrics.NAME);
+        if (name == null) return;
+        String number = (String) m.getValueAt(i, EVMetrics.SHORT);
+        String interpretation = (String) m.getValueAt(i, EVMetrics.MEDIUM);
+        String explanation = (String) m.getValueAt(i, EVMetrics.FULL);
+
         out.write("<tr><td><b>");
         out.write(name);
         out.write(":&nbsp;</b></td><td>");
-        out.write(value);
-        out.write("</td></tr>\n");
+        out.write(number);
+        out.write("</td><td colspan='5'><I>(");
+        if (!number.equals(interpretation)) {
+            out.write(interpretation);
+            out.write(" ");
+        }
+        out.write("<a href='javascript:alert(\"");
+        out.write(explanation);
+        out.write("\");'>More...</a>)</I></td></tr>\n");
     }
 
     static final String TASK_LIST_VAR = "%taskListName%";

@@ -809,20 +809,27 @@ public class EVSchedule implements TableModel {
     }
 
     private class ForecastChartSeries implements ChartSeries {
+        Number currentYVal, forecastYVal;
+        Number currentXVal, forecastXVal;
+        int itemCount = 2;
         public String getSeriesName() { return "Forecast"; }
-        public int getItemCount() { return 2; }
+        public int getItemCount() { return itemCount; }
         public Number getXValue(int itemIndex) {
-            Date d;
-            if (itemIndex == 0)
-                d = effectiveDate;
-            else
-                d = metrics.independentForecastDate();
-            return new Long(d.getTime());
+            return (itemIndex == 0 ? currentXVal : forecastXVal);
         }
         public Number getYValue(int itemIndex) {
             return (itemIndex == 0 ? currentYVal : forecastYVal);
         }
-        Number currentYVal, forecastYVal;
+        public void recalc() {
+            itemCount = 2;
+            currentXVal = dateToLong(effectiveDate);
+            forecastXVal = dateToLong(metrics.independentForecastDate());
+        }
+        private Number dateToLong(Date d) {
+            if (d != null) return new Long(d.getTime());
+            itemCount = 0;
+            return null;
+        }
     }
 
 
@@ -904,10 +911,11 @@ public class EVSchedule implements TableModel {
         }
         ForecastChartSeries forecast;
         public void recalc() {
+            forecast.recalc();
             forecast.currentYVal = new Double(getLast().cumActualTime / 60.0);
             forecast.forecastYVal = new Double
                 (checkDouble(metrics.independentForecastCost() / 60.0));
-            if (forecast.getXValue(1) == null) numSeries = 2;
+            if (forecast.getItemCount() == 0) numSeries = 2;
         }
         private double checkDouble(double d) {
             numSeries = ((Double.isNaN(d) || Double.isInfinite(d)) ? 2 : 3);
@@ -943,9 +951,10 @@ public class EVSchedule implements TableModel {
         }
         ForecastChartSeries forecast;
         public void recalc() {
+            forecast.recalc();
             forecast.currentYVal = new Double(getLast().cumEarnedValue * 100);
             forecast.forecastYVal = ONE_HUNDRED;
-            numSeries = (forecast.getXValue(1) == null ? 2 : 3);
+            numSeries = (forecast.getItemCount() == 0 ? 2 : 3);
         }
         int numSeries = 3;
         public int getSeriesCount() { maybeRecalc(); return numSeries; }
