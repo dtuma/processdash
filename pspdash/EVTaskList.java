@@ -189,6 +189,10 @@ public class EVTaskList extends AbstractTreeTableModel
             EVTaskListXML.exists(data, taskListName))
             return new EVTaskListXML(taskListName, data);
 
+        // for testing purposes, return a cached list
+        if (taskListName.equals(TESTING_TASK_LIST_NAME))
+            return TESTING_TASK_LIST;
+
         // no task list was found.
         return null;
     }
@@ -216,6 +220,13 @@ public class EVTaskList extends AbstractTreeTableModel
                                     ("Invalid_Schedule_Error_Message"));
 
         return result;
+    }
+
+    private static String TESTING_TASK_LIST_NAME = null;
+    private static EVTaskList TESTING_TASK_LIST = null;
+    public static void setTestingTaskList(String name, EVTaskList taskList) {
+        TESTING_TASK_LIST_NAME = name;
+        TESTING_TASK_LIST = taskList;
     }
 
 
@@ -268,6 +279,7 @@ public class EVTaskList extends AbstractTreeTableModel
             return result.toString();
         }
     }
+
 
     public boolean addTask(String path,
                            DataRepository data,
