@@ -7,8 +7,8 @@ import java.net.URL;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import pspdash.RobustFileWriter;
-import pspdash.XMLUtils;
+import teamdash.RobustFileWriter;
+import teamdash.XMLUtils;
 import teamdash.TeamMemberList;
 
 public class TeamProject {

@@ -11,7 +11,7 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import pspdash.XMLUtils;
+import teamdash.XMLUtils;
 
 /** This class represents a node in the work breakdown structure hierarchy.
  */

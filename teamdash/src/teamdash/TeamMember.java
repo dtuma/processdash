@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
 
-import pspdash.XMLUtils;
 
 
 /** Holds information about a individual member of a project team.

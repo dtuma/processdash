@@ -7,8 +7,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import pspdash.RobustFileWriter;
-import pspdash.XMLUtils;
+import teamdash.RobustFileWriter;
+import teamdash.XMLUtils;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 
