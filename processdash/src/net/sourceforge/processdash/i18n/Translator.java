@@ -103,7 +103,7 @@ public class Translator {
         createCustomEngine();
         if (TRANSLATOR == null) createDefaultEngine();
         STRICT_STRING_TRANSLATION = Settings.getBool
-            ("i18n.strictTranslation", true);
+            ("i18n.strictTranslation", false);
         //System.out.println("Translator is " +
         //                   (TRANSLATOR == null ? "OFF" : "ON"));
     }

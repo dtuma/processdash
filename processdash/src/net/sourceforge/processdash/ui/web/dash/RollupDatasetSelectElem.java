@@ -36,7 +36,9 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataEvent;
 import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 
@@ -60,6 +62,8 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
  * data.
  */
 public class RollupDatasetSelectElem extends TinyCGIBase {
+
+    private static Resources resources = Resources.getDashBundle("Templates");
 
     protected void writeContents() throws IOException {
         DataRepository data = getDataRepository();   if (data == null) return;
@@ -103,9 +107,10 @@ public class RollupDatasetSelectElem extends TinyCGIBase {
             return CACHE.put(rollupID, "");
 
         // Construct an HTML fragment
+        String prompt = resources.format("Rollup_Select_Prompt_FMT", rollupID);
         StringBuffer result = new StringBuffer();
-        result.append("<tr><td>Base &quot;To Date&quot; ").append(rollupID)
-            .append(" data on:&nbsp;</td>\n    <td colspan=10><select name='[")
+        result.append("<tr><td>").append(HTMLUtils.escapeEntities(prompt))
+            .append("&nbsp;</td>\n    <td colspan=10><select name='[")
             .append(rollupPrefix(rollupID)).append("]s'>");
         for (int i = 0;   i < instanceList.size();   i++)
             result.append("\n<option>").append(instanceList.get(i));

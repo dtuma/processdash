@@ -59,7 +59,7 @@
 
 <TABLE>
 <TR>
-<TD>Project Owner</TD>
+<TD><!--#echo Project_Owner --></TD>
 <TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
 </TR>
 
@@ -74,12 +74,12 @@
 </TR>
 
 <TR>
-<TD>Keywords</TD>
+<TD><!--#echo Keywords --></TD>
 <TD COLSPAN=10><INPUT TYPE=text SIZE=25 NAME="Project/Keywords	s"></TD>
 </TR>
 
 <TR>
-<TD>Language</TD>
+<TD><!--#echo Language --></TD>
 <TD COLSPAN=10><INPUT TYPE=text SIZE=15 NAME="Project/Language	s"></TD>
 </TR>
 
