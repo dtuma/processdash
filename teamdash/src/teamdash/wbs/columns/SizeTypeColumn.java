@@ -9,14 +9,28 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.WBSNode;
 
+
+/** This class performs two purposes:<ul>
+ * <li>It displays the unit of size measurement appropriate for a node
+ *     in a work breakdown structure.
+ * <li>It contains static methods for creating all necessary
+ *     size-related columns
+ * </ul>
+ */
 public class SizeTypeColumn extends AbstractDataColumn {
 
+    /** The ID we use for this column in the data model */
     static final String COLUMN_ID = "Size-Units";
 
-    public static final String[] SIZE_UNITS = new String[] {
-            "LOC","Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
-
+    /** The attribute this column uses to store its data on WBS nodes */
     private static final String ATTR_NAME = "Size Metric";
+
+    /** A list of the defined size metrics.  (This is hardcoded for
+     * now, and must agree with the list in teamdash.wbs.TeamProcess) */
+    public static final String[] SIZE_UNITS = new String[] {
+            "LOC", "Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
+
+    /** Maps node types to related size units */
     static final Map SIZE_METRICS = buildMap();
 
 
@@ -33,6 +47,7 @@ public class SizeTypeColumn extends AbstractDataColumn {
         return SIZE_METRICS.get(node.getType()) == null;
     }
 
+
     public Object getValueAt(WBSNode node) {
         Object result = SIZE_METRICS.get(node.getType());
         if (result == null)
@@ -42,9 +57,12 @@ public class SizeTypeColumn extends AbstractDataColumn {
         return result;
     }
 
+
     public void setValueAt(Object aValue, WBSNode node) {
         node.setAttribute(ATTR_NAME, aValue);
     }
+
+
 
     private static Map buildMap() {
         Map sizeMetrics = new HashMap();
@@ -58,6 +76,11 @@ public class SizeTypeColumn extends AbstractDataColumn {
         return Collections.unmodifiableMap(sizeMetrics);
     }
 
+
+
+    /** Create all of the required columns for size metrics, and add them
+     * to the given data model.
+     */
     public static void createSizeColumns(DataTableModel dataModel) {
         // create the size type column.
         dataModel.addDataColumn(new SizeTypeColumn(dataModel));
@@ -66,7 +89,8 @@ public class SizeTypeColumn extends AbstractDataColumn {
         dataModel.addDataColumn(new EditableSizeColumn(dataModel));
 
         // create LOC accounting columns.
-        SizeAccountingColumnSet.create(dataModel, "LOC", new LOCPruner(), null);
+        SizeAccountingColumnSet.create
+            (dataModel, "LOC", new LOCPruner(), null);
 
         // create size accounting columns for various document types.
         Iterator i = SIZE_METRICS.entrySet().iterator();
