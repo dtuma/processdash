@@ -25,7 +25,7 @@
 == E-Mail POC:  ken.raisor@hill.af.mil
 
 =============================================================================
-== Title:	$Id$
+== Title:	PSP.globalData.pre
 == Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
 == Created:	Thu Jan  8 16:34:18 1998
 ==
@@ -107,10 +107,11 @@ Code/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Code/Defects In
 Code Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Code Review/Defects Injected)]
 Compile/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Compile/Defects Injected)]
 Test/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Test/Defects Injected)]
+Reassessment/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Reassessment/Defects Injected)]
 Postmortem/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Postmortem/Defects Injected)]
-Defects Injected To Date==![(-	~[^/]*/Defects Injected To Date	Before Development/Defects Injected To Date)]
-Defects Injected per KLOC To Date==![(/	Defects Injected To Date	KLOC To Date)]
-Defects per KLOC To Date==![(/	Defects Injected To Date	KLOC To Date)]
+Defects Injected To Date==![(+	~[^B][^/]*/Defects Injected To Date)]
+Defects Injected per KLOC To Date==![(/	Defects Injected To Date	New & Changed KLOC To Date)]
+Defects per KLOC To Date==![(/	Defects Injected To Date	New & Changed KLOC To Date)]
 
 == % Defects Injected To Date
 
@@ -124,6 +125,7 @@ Code/% Defects Injected To Date==![(/	Code/Defects Injected To Date	Defects Inje
 Code Review/% Defects Injected To Date==![(/	Code Review/Defects Injected To Date	Defects Injected To Date)]
 Compile/% Defects Injected To Date==![(/	Compile/Defects Injected To Date	Defects Injected To Date)]
 Test/% Defects Injected To Date==![(/	Test/Defects Injected To Date	Defects Injected To Date)]
+Reassessment/% Defects Injected To Date==![(/	Reassessment/Defects Injected To Date	Defects Injected To Date)]
 Postmortem/% Defects Injected To Date==![(/	Postmortem/Defects Injected To Date	Defects Injected To Date)]
 
 
@@ -141,6 +143,7 @@ Code/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Code/Defects Rem
 Code Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Code Review/Defects Removed)]
 Compile/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Compile/Defects Removed)]
 Test/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Test/Defects Removed)]
+Reassessment/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Reassessment/Defects Removed)]
 Postmortem/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Postmortem/Defects Removed)]
 After Development/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}After Development/Defects Removed)]
 Defects Removed To Date==![(+	~[^/]*/Defects Removed To Date)]
@@ -156,6 +159,7 @@ Code/% Defects Removed To Date==![(/	Code/Defects Removed To Date	Defects Remove
 Code Review/% Defects Removed To Date==![(/	Code Review/Defects Removed To Date	Defects Removed To Date)]
 Compile/% Defects Removed To Date==![(/	Compile/Defects Removed To Date	Defects Removed To Date)]
 Test/% Defects Removed To Date==![(/	Test/Defects Removed To Date	Defects Removed To Date)]
+Reassessment/% Defects Removed To Date==![(/	Reassessment/Defects Removed To Date	Defects Removed To Date)]
 Postmortem/% Defects Removed To Date==![(/	Postmortem/Defects Removed To Date	Defects Removed To Date)]
 After Development/% Defects Removed To Date==![(/	After Development/Defects Removed To Date	Defects Removed To Date)]
 
@@ -164,10 +168,15 @@ After Development/% Defects Removed To Date==![(/	After Development/Defects Remo
 == Data Elements to calculate Defect Removal Efficiency
 ==
 
-Design Review/Defects Removed per Hour To Date==![(*	60	[(/	Design Review/Defects Removed To Date	Design Review/Time To Date)])]
-Code Review/Defects Removed per Hour To Date==![(*	60	[(/	Code Review/Defects Removed To Date	Code Review/Time To Date)])]
-Compile/Defects Removed per Hour To Date==![(*	60	[(/	Compile/Defects Removed To Date	Compile/Time To Date)])]
-Test/Defects Removed per Hour To Date==![(*	60	[(/	Test/Defects Removed To Date	Test/Time To Date)])]
+
+High Level Design Review/Defects Removed per Hour To Date==![(/	High Level Design Review/Defects Removed To Date	High Level Design Review/Time To Date	0.0166667)]
+Design Review/Defects Removed per Hour To Date==![(/	Design Review/Defects Removed To Date	Design Review/Time To Date	0.0166667)]
+Code Review/Defects Removed per Hour To Date==![(/	Code Review/Defects Removed To Date	Code Review/Time To Date	0.0166667)]
+Compile/Defects Removed per Hour To Date==![(/	Compile/Defects Removed To Date	Compile/Time To Date	0.0166667)]
+Test/Defects Removed per Hour To Date==![(/	Test/Defects Removed To Date	Test/Time To Date	0.0166667)]
+
+
+High Level Design Review/DRL To Date==![(/	High Level Design Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
 Design Review/DRL To Date==![(/	Design Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
 Code Review/DRL To Date==![(/	Code Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
 Compile/DRL To Date==![(/	Compile/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
@@ -177,10 +186,13 @@ Compile/DRL To Date==![(/	Compile/Defects Removed per Hour To Date	Test/Defects 
 == Data Elements to Track Overall Process Metrics 
 ==
 
+
+
 Yield To Date==![(/	[(+	Planning/Defects Removed To Date	High Level Design/Defects Removed To Date	High Level Design Review/Defects Removed To Date	Design/Defects Removed To Date	Design Review/Defects Removed To Date	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]	Defects Removed To Date)]
+
 Test/Defects Removed per KLOC To Date==![(/	Test/Defects Removed To Date	New & Changed KLOC To Date)]
 Defects Removed per KLOC To Date==![(/	Defects Removed To Date	New & Changed KLOC To Date)]
-% Appraisal COQ To Date==![(/	[(+	High Level Design Review/Time To Date	Design Review/Time To Date	Code Review/Time To Date)]	Time To Date)]
+% Appraisal COQ To Date==![(/	[(+	~[^/]* Review/Time To Date)]	Time To Date)]
 % Failure COQ To Date==![(/	[(+	Compile/Time To Date	Test/Time To Date)]	Time To Date)]
 % New Reused To Date==![(/	New Reused LOC To Date	New & Changed LOC To Date)]
 % Reused To Date==![(/	Reused LOC To Date	LOC To Date)]
