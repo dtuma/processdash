@@ -56,27 +56,27 @@ Plan Summary</H2>
 <TABLE>
 <TR>
 <TD>Project Owner</TD>
-<TD><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
 </TR>
 
 <TR>
 <TD>Start Date</TD>
-<TD><INPUT TYPE=text SIZE=25 NAME="Started	d"></TD>
+<TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="Started	d"></TD>
 </TR>
 
 <TR>
 <TD>Completion Date</TD>
-<TD><INPUT TYPE=text SIZE=25 NAME="Completed	du"> Completed: <INPUT TYPE=checkbox NAME="Completed	du"></TD>
+<TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="Completed	du"></TD><TD COLSPAN=6>&nbsp;Completed: <INPUT TYPE=checkbox NAME="Completed	du"></TD>
 </TR>
 
 <TR>
 <TD>Keywords</TD>
-<TD><INPUT TYPE=text SIZE=25 NAME="Project/Keywords	s"></TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=25 NAME="Project/Keywords	s"></TD>
 </TR>
 
 <TR>
 <TD>Language</TD>
-<TD><INPUT TYPE=text SIZE=15 NAME="Project/Language	s"></TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=15 NAME="Project/Language	s"></TD>
 </TR>
 
 </TABLE>

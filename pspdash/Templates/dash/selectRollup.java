@@ -112,7 +112,7 @@ public class selectRollup extends TinyCGIBase {
         // Construct an HTML fragment
         StringBuffer result = new StringBuffer();
         result.append("<tr><td>Base &quot;To Date&quot; ").append(rollupID)
-            .append(" data on:&nbsp;</td>\n    <td><select name='[")
+            .append(" data on:&nbsp;</td>\n    <td colspan=10><select name='[")
             .append(rollupPrefix(rollupID)).append("]s'>");
         for (int i = 0;   i < instanceList.size();   i++)
             result.append("\n<option>").append(instanceList.get(i));
