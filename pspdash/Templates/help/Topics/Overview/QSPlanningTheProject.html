@@ -70,7 +70,7 @@ red.  That makes sense, since method A requires historical data for estimated
 object LOC, which we don't have by the time we do Program 5A. We can quickly 
 check the other PROBE methods just by choosing a method in the pulldown.</p>
 
-<P>When we try method B, the numbers don't look much better, so we're force 
+<P>When we try method B, the numbers don't look much better, so we're forced
 to use method C.  The dashboard provides two method C's for size: C1 and C2.  
 These are very analogous to the different C methods that are available in the 
 standard PSP estimating procedure for Time estimation.  C1 needs to have 
@@ -81,13 +81,19 @@ use C2.</p>
 method.  It has already set <i>B</i><sub>0</sub> to 0.0, and has done the 
 calculation of <i>B</i><sub>1</sub> for you.</p>
 
-<P>Moving forward with method C1, we need to enter our estimated object LOC 
+<P>Moving forward with method C2, we need to enter our estimated object LOC 
 from the Size Estimating Template into the PROBE tool.  Entering 164.3 into 
 the estimate blank gives us the following screen.</p>
 
 <p><center><img src="../../Images/QSProbeAfter.png"></center></p>
 
-<P>Our projected New &amp; Changed LOC for this project should be 120.39.
+<P>Our projected New &amp; Changed LOC for this project should be 120.39.  We 
+can also record the values of <i>B</i><sub>0</sub> and <i>B</i><sub>1</sub>, 
+the Prediction Interval percent (70%), and the method chosen (C2) on the Size 
+Estimating Template form under the Size heading.  The other values requested 
+on the form (prediction range, UPI, LPI, and r<sup>2</sup>) don't apply to 
+method C2 since they are by-products of a regression fit.  We can leave them 
+as they are.</p>
 
 <P>We can now use the PROBE tool to attempt a correlation between Estimated New 
 &amp; Changed LOC and total development time.  Again, we can investigate the 
@@ -98,11 +104,12 @@ object LOC to use as a basis.</p>
 
 <p><center><img src="../../Images/QSProbeAfterTime.png"></center></p>
 
-<P>Our projected Time estimated for this project should be 337.69 minutes.</p> 
+<P>Our projected Time estimated for this project should be 337.69 minutes.  
+We record this value as well as the other values as before 
+(<i>B</i><sub>0</sub>, <i>B</i><sub>1</sub>, prediction interval, and probe 
+method).  And again, we can skip the linear regression parameters.</p> 
 
-<P>Both of these numbers get placed on the Size Estimating Template.  Since 
-we didn't do a linear regression, we can skip the UPI and LPI entries.  After 
-our planning efforts on this form it looks like the following:</p>
+<p>After our planning efforts on this form it looks like the following:</p>
 
 <p><center><img src="../../Images/QSSizeEstimatingTemplateDone.png"></center></p>
 
