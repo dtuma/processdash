@@ -59,7 +59,7 @@ public class selectHier extends TinyCGIBase {
         relPath = HTMLUtils.escapeEntities(relPath);
         name = HTMLUtils.escapeEntities(name);
 
-        out.print("<a href='javascript:doClick(\"" + relPath + "\");'>");
+        printLink(rootPath, relPath);
         out.print(name);
         out.println("</a></td></tr>");
 
@@ -73,6 +73,10 @@ public class selectHier extends TinyCGIBase {
     private static final String SPACER =
         "<img width=16 height=13 src='/help/Images/spacer.gif'>";
 
+
+    protected void printLink(String rootPath, String relPath) {
+        out.print("<a href='javascript:doClick(\"" + relPath + "\");'>");
+    }
 
 
     protected PropertyKey getStartingKey() {
