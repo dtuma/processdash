@@ -37,6 +37,7 @@ import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -64,6 +65,8 @@ public class EVReport extends CGIChartBase {
 
 
     private static final int MED = EVMetrics.MEDIUM;
+
+    private static Resources resources = Resources.getDashBundle("EV");
 
     boolean drawingChart;
 
@@ -218,24 +221,27 @@ public class EVReport extends CGIChartBase {
         String taskListURL = HTMLUtils.urlEncode(taskListName);
 
         out.print(StringUtils.findAndReplace
-                  (HEADER_HTML, TASK_LIST_VAR, taskListHTML));
-        out.print(StringUtils.findAndReplace
-                  (SEPARATE_CHARTS_HTML, TASK_LIST_VAR, taskListURL));
+                  (HEADER_HTML, TITLE_VAR,
+                   resources.format("Report.Title_FMT", taskListHTML)));
+        out.print(SEPARATE_CHARTS_HTML);
 
         EVSchedule s = evModel.getSchedule();
         EVMetrics  m = s.getMetrics();
 
         Map errors = m.getErrors();
         if (errors != null && errors.size() > 0) {
-            out.print("<table border><tr><td bgcolor='#ff5050'>" +
-                      "<h2>Errors</h2><b>There are problems with this " +
-                      "earned value schedule:<ul>");
+            out.print("<table border><tr><td bgcolor='#ff5050'><h2>");
+            out.print(getResource("Report.Errors_Heading"));
+            out.print("</h2><b>");
+            out.print(getResource("Error_Dialog.Head"));
+            out.print("<ul>");
             Iterator i = errors.keySet().iterator();
             while (i.hasNext())
                 out.print("\n<li>" +
                           WebServer.encodeHtmlEntities((String) i.next()));
-            out.print("\n</ul>Until you correct these problems, calculations" +
-                      " may be incorrect.</b></td></tr></table>\n");
+            out.print("\n</ul>");
+            out.print(getResource("Error_Dialog.Foot"));
+            out.print("</b></td></tr></table>\n");
         }
 
 
@@ -244,19 +250,29 @@ public class EVReport extends CGIChartBase {
             writeMetric(m, i);
         out.print("</table>");
 
-        out.print("<h2>Task Template</h2>\n");
+        out.print("<h2>"+getResource("TaskList.Title")+"</h2>\n");
         writeHTMLTable("TASK", evModel.getSimpleTableModel(),
                        EVTaskList.toolTips);
 
-        out.print("<h2>Schedule Template</h2>\n");
+        out.print("<h2>"+getResource("Schedule.Title")+"</h2>\n");
         writeHTMLTable("SCHEDULE", s, s.getColumnTooltips());
 
         out.print("<p class='doNotPrint'>");
-        out.print(EXPORT_HTML1);
-        if (!parameters.containsKey("EXPORT"))
-            out.print(EXPORT_HTML2);
-        if (getDataRepository().getValue("/Enable_EV_Week_form") != null)
-            out.print(OPT_FOOTER_HTML);
+        out.print(EXPORT_HTML1A);
+        out.print(getResource("Report.Export_Text"));
+        out.print(EXPORT_HTML1B);
+
+        if (!parameters.containsKey("EXPORT")) {
+            out.print(EXPORT_HTML2A);
+            out.print(getResource("Report.Export_Charts"));
+            out.print(EXPORT_HTML2B);
+        }
+
+        if (getDataRepository().getValue("/Enable_EV_Week_form") != null) {
+            out.print(OPT_FOOTER_HTML1);
+            out.print(getResource("Report.Show_Weekly_View"));
+            out.print(OPT_FOOTER_HTML2);
+        }
         out.print("</p>");
         out.print(FOOTER_HTML2);
     }
@@ -278,14 +294,17 @@ public class EVReport extends CGIChartBase {
         }
         out.write("<a class='doNotPrint' href='javascript:alert(\"");
         out.write(explanation);
-        out.write("\");'>More...</a>)</I></td></tr>\n");
+        out.write("\");'>");
+        out.write(encodeHTML(resources.getDlgString("More")));
+        out.write("</a>)</I></td></tr>\n");
     }
 
-    static final String TASK_LIST_VAR = "%taskListName%";
+
+    static final String TITLE_VAR = "%title%";
     static final String HEADER_HTML =
-        "<html><head><title>Earned Value - %taskListName%</title>\n" +
+        "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
-        "</head><body><h1>Earned Value - %taskListName%</h1>\n";
+        "</head><body><h1>%title%</h1>\n";
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
     static final String SEPARATE_CHARTS_HTML =
@@ -295,14 +314,12 @@ public class EVReport extends CGIChartBase {
         "&width=320&hideLegend'></pre>\n";
     static final String COMBINED_CHARTS_HTML =
         "<img src='ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
-    static final String EXPORT_HTML1 =
-        "<a href=\"../reports/excel.iqy\"><i>Export text to Excel</i></a>" +
-        "&nbsp; &nbsp; &nbsp; &nbsp;";
-    static final String EXPORT_HTML2 =
-        "<a href='ev.xls'><i>Export charts to Excel</i></a>" +
-        "&nbsp; &nbsp; &nbsp; &nbsp;";
-    static final String OPT_FOOTER_HTML =
-        "<a href='week.class'><i>Show Weekly View</i></a>";
+    static final String EXPORT_HTML1A = "<a href=\"../reports/excel.iqy\"><i>";
+    static final String EXPORT_HTML1B = "</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
+    static final String EXPORT_HTML2A = "<a href='ev.xls'><i>";
+    static final String EXPORT_HTML2B = "</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
+    static final String OPT_FOOTER_HTML1 = "<a href='week.class'><i>";
+    static final String OPT_FOOTER_HTML2 = "</i></a>";
     static final String FOOTER_HTML2 = "</body></html>";
 
     /** Generate an HTML table based on a TableModel.
@@ -368,7 +385,9 @@ public class EVReport extends CGIChartBase {
         xydata = evModel.getSchedule().getTimeChartData();
 
         // Alter the appearance of the chart.
-        maybeWriteParam("title", "Direct Hours");
+        maybeWriteParam
+            ("title",
+             resources.getString("Chart.Tabs.Direct_Hours_Chart.Full_Name"));
 
         super.writeContents();
     }
@@ -379,7 +398,10 @@ public class EVReport extends CGIChartBase {
         xydata = evModel.getSchedule().getValueChartData();
 
         // Alter the appearance of the chart.
-        maybeWriteParam("title", "Earned Value (%)");
+        maybeWriteParam
+            ("title",
+             resources.getString
+             ("Chart.Tabs.Earned_Value_Chart.Full_Name") + " (%)");
 
         super.writeContents();
     }
@@ -428,18 +450,23 @@ public class EVReport extends CGIChartBase {
         int seriesCount = xydata.getSeriesCount();
         if (seriesCount > maxSeries) seriesCount = maxSeries;
         if (parameters.get("nohdr") == null) {
-            out.print("<tr><td>Date</td>");
+            out.print("<tr><td>"+getResource("Schedule.Date_Label")+"</td>");
             // print out the series names in the data source.
             for (int i = 0;  i < seriesCount;   i++)
                 out.print("<td>" + xydata.getSeriesName(i) + "</td>");
 
             // if the data source came up short, fill in default
             // column headers.
-            if (seriesCount < 1) out.print("<td>Plan</td>");
-            if (seriesCount < 2) out.print("<td>Actual</td>");
-            if (seriesCount < 3) out.print("<td>Forecast</td>");
+            if (seriesCount < 1)
+                out.print("<td>"+getResource("Schedule.Plan_Label")+"</td>");
+            if (seriesCount < 2)
+                out.print("<td>"+getResource("Schedule.Actual_Label")+"</td>");
+            if (seriesCount < 3)
+                out.print("<td>"+getResource("Schedule.Forecast_Label")+
+                          "</td>");
             if (seriesCount < 4 && maxSeries == 4)
-                                 out.print("<td>Optimized</td>");
+                out.print("<td>"+getResource("Schedule.Optimized_Label")+
+                          "</td>");
             out.println("</tr>");
         }
 
@@ -504,5 +531,9 @@ public class EVReport extends CGIChartBase {
             return "";
         else
             return WebServer.encodeHtmlEntities(text);
+    }
+
+    final static String getResource(String key) {
+        return encodeHTML(resources.getString(key)).replace('\n', ' ');
     }
 }

@@ -68,10 +68,10 @@ public class TaskScheduleChart extends JFrame
     EVSchedule schedule;
     JTabbedPane tabPane;
 
-    static Resources resources = Resources.getDashBundle("EV");
+    static Resources resources = Resources.getDashBundle("EV.Chart");
 
     public TaskScheduleChart(TaskScheduleDialog parent) {
-        super(resources.format("Chart.Window_Title_FMT", parent.taskListName));
+        super(resources.format("Window_Title_FMT", parent.taskListName));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         setIconImage(DashboardIconFactory.getWindowIconImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -174,19 +174,19 @@ public class TaskScheduleChart extends JFrame
             { "Earned_Value_Chart", "Direct_Hours_Chart",
                   "Combined_Chart", "Statistics" };
         TAB_NAMES = new String[3][0];
-        TAB_NAMES[FULL]  = resources.getStrings("Chart.Tabs.", colKeys, ".Full_Name");
-        TAB_NAMES[MED]   = resources.getStrings("Chart.Tabs.", colKeys, ".Med_Name");
-        TAB_NAMES[SHORT] = resources.getStrings("Chart.Tabs.", colKeys, ".Short_Name");
+        TAB_NAMES[FULL] = resources.getStrings("Tabs.", colKeys, ".Full_Name");
+        TAB_NAMES[MED]  = resources.getStrings("Tabs.", colKeys, ".Med_Name");
+        TAB_NAMES[SHORT]= resources.getStrings("Tabs.", colKeys, ".Short_Name");
         if ("CURRENCY".equals(TAB_NAMES[SHORT][1]))
             TAB_NAMES[SHORT][1] =
                 (new DecimalFormatSymbols()).getCurrencySymbol();
         try {
             MED_WINDOW_WIDTH = Integer.parseInt
-                (resources.getString("Chart.Window_Width_Med_Name"));
+                (resources.getString("Window_Width_Med_Name"));
         } catch (NumberFormatException nfe) {}
         try {
             SHORT_WINDOW_WIDTH = Integer.parseInt
-                (resources.getString("Chart.Window_Width_Short_Name"));
+                (resources.getString("Window_Width_Short_Name"));
         } catch (NumberFormatException nfe) {}
     }
 
@@ -222,7 +222,7 @@ public class TaskScheduleChart extends JFrame
         EVMetrics metrics;
         ListSelectionModel selectionModel;
         public DescriptionPane(EVMetrics m, ListSelectionModel sm) {
-            super(resources.getString("Chart.Choose_Metric_Instruction"));
+            super(resources.getString("Choose_Metric_Instruction"));
             setBackground(null);
             setLineWrap(true); setWrapStyleWord(true); setEditable(false);
             doResize();

@@ -73,7 +73,7 @@ public class TaskScheduleChooser
     protected JButton newButton, renameButton, deleteButton,
         cancelButton, okayButton;
 
-    static Resources resources = Resources.getDashBundle("EV");
+    static Resources resources = Resources.getDashBundle("EV.Chooser");
 
     public TaskScheduleChooser(DashboardContext dash) {
         this(dash, EVTaskList.findTaskLists(dash.getData()));
@@ -99,8 +99,8 @@ public class TaskScheduleChooser
         if (dialog != null) dialog.dispose();
 
         String taskName = getTemplateName
-            (dash, resources.getString("Chooser.New_Schedule_Window.Title"),
-             resources.getString("Chooser.New_Schedule_Window.Prompt"),
+            (dash, resources.getString("New_Schedule_Window.Title"),
+             resources.getString("New_Schedule_Window.Prompt"),
              showRollupOption);
 
         open(dash, taskName);
@@ -120,10 +120,8 @@ public class TaskScheduleChooser
         JComboBox rollupOption = null;
         if (showRollupOptions) {
             String[] rollupOptions = new String[2];
-            rollupOptions[0] = resources.getString
-                ("Chooser.Create_Schedule_Option");
-            rollupOptions[1] = resources.getString
-                ("Chooser.Create_Rollup_Option");
+            rollupOptions[0] = resources.getString("Create_Schedule_Option");
+            rollupOptions[1] = resources.getString("Create_Rollup_Option");
             rollupOption = new JComboBox(rollupOptions);
             options = new Object[] {
                 rollupOption, new JLabel("      "), OK, CANCEL };
@@ -167,14 +165,13 @@ public class TaskScheduleChooser
     public static String checkNewTemplateName(String taskName,
                                               DataRepository data) {
         if (taskName == null || taskName.trim().length() == 0)
-            return resources.getString("Chooser.Name_Missing_Message");
+            return resources.getString("Name_Missing_Message");
 
         if (taskName.indexOf('/') != -1)
-            return resources.getString("Chooser.Slash_Prohibited_Message");
+            return resources.getString("Slash_Prohibited_Message");
 
         if (templateExists(taskName, data))
-            return resources.format("Chooser.Duplicate_Name_Message_FMT",
-                                    taskName);
+            return resources.format("Duplicate_Name_Message_FMT", taskName);
 
         return null;
     }
@@ -197,9 +194,9 @@ public class TaskScheduleChooser
         else
             dialog = new JDialog();
         PCSH.enableHelpKey(dialog, "UsingTaskSchedule.chooser");
-        dialog.setTitle(resources.getString("Chooser.Choose_Window.Title"));
+        dialog.setTitle(resources.getString("Choose_Window.Title"));
         dialog.getContentPane().add
-            (new JLabel(resources.getString("Chooser.Choose_Window.Prompt")),
+            (new JLabel(resources.getString("Choose_Window.Prompt")),
              BorderLayout.NORTH);
 
         list = new JList(taskLists);
@@ -298,9 +295,8 @@ public class TaskScheduleChooser
         if (taskListName == null) return;
 
         String newName = getTemplateName
-            (dialog, resources.getString("Chooser.Rename_Window.Title"),
-             resources.format("Chooser.Rename_Window.Prompt_FMT",
-                              taskListName),
+            (dialog, resources.getString("Rename_Window.Title"),
+             resources.format("Rename_Window.Prompt_FMT", taskListName),
              false);
 
         if (newName != null) {
@@ -319,10 +315,9 @@ public class TaskScheduleChooser
         if (taskListName == null) return;
 
         String message = resources.format
-            ("Chooser.Delete_Window.Prompt_FMT", taskListName);
+            ("Delete_Window.Prompt_FMT", taskListName);
         if (JOptionPane.showConfirmDialog
-            (dialog, message,
-             resources.getString("Chooser.Delete_Window.Title"),
+            (dialog, message, resources.getString("Delete_Window.Title"),
              JOptionPane.YES_NO_OPTION,
              JOptionPane.QUESTION_MESSAGE)
             == JOptionPane.YES_OPTION) {

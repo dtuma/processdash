@@ -89,7 +89,7 @@ public class TaskScheduleCollaborationWizard {
     private String rollupTaskListName = null;
     private Stack previousPanes = new Stack();
 
-    Resources resources = Resources.getDashBundle("EV");
+    Resources resources = Resources.getDashBundle("EV.Collab");
 
     /** Create and display a collaboration wizard.
      */
@@ -117,7 +117,7 @@ public class TaskScheduleCollaborationWizard {
         this.taskListName = taskListName;
 
         // Create the frame and set an appropriate icon
-        frame = new JFrame(resources.getString("Collab.Window_Title"));
+        frame = new JFrame(resources.getString("Window_Title"));
         frame.setIconImage(DashboardIconFactory.getWindowIconImage());
 
         frame.getContentPane().add(new WelcomeScreen());
@@ -227,7 +227,7 @@ public class TaskScheduleCollaborationWizard {
 
             publishButton = newJButton();
             publishButton.setText
-                (resources.getString("Collab.Publish.Button"));
+                (resources.getString("Publish.Button"));
             publishButton.setBackground(null);
             buttonBox.add(publishButton);
             oConst = new GridBagConstraints();
@@ -249,7 +249,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(filler1, oConst);
 
             shareButton = newJButton();
-            shareButton.setText(resources.getString("Collab.Share.Button"));
+            shareButton.setText(resources.getString("Share.Button"));
             shareButton.setBackground(null);
             shareButton.setEnabled(!isRollup);
             buttonBox.add(shareButton);
@@ -273,7 +273,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(filler2, oConst);
 
             rollupButton = newJButton();
-            rollupButton.setText(resources.getString("Collab.Rollup.Button"));
+            rollupButton.setText(resources.getString("Rollup.Button"));
             rollupButton.setBackground(null);
             rollupButton.setEnabled(!isRollup);
             buttonBox.add(rollupButton);
@@ -335,7 +335,7 @@ public class TaskScheduleCollaborationWizard {
 
             prompt = new JLabel();
             prompt.setText(resources.getString
-                           ("Collab.Welcome_Screen_Prompt"));
+                           ("Welcome_Screen_Prompt"));
 
             oPanel.add(prompt);
             oConst = new GridBagConstraints();
@@ -454,9 +454,9 @@ public class TaskScheduleCollaborationWizard {
         }
         ImageIcon[] images = new ImageIcon[4];
         private final String[] TEXT = new String[] {
-            resources.getString("Collab.Publish.Description"),
-            resources.getString("Collab.Share.Description"),
-            resources.getString("Collab.Rollup.Description"),
+            resources.getString("Publish.Description"),
+            resources.getString("Share.Description"),
+            resources.getString("Rollup.Description"),
             "" };
 
         public void actionPerformed(ActionEvent e) {
@@ -528,12 +528,12 @@ public class TaskScheduleCollaborationWizard {
             buttonBox.setLayout(oLayout);
 
             backButton = new JButton
-                (resources.getString("Collab.Back_Button"));
+                (resources.getString("Back_Button"));
             backButton.addActionListener(this);
             buttonBox.add(backButton);
 
             nextButton = new JButton
-                (resources.getString("Collab.Next_Button"));
+                (resources.getString("Next_Button"));
 
             nextButton.addActionListener(this);
             buttonBox.add(nextButton);
@@ -571,8 +571,8 @@ public class TaskScheduleCollaborationWizard {
             prompt = new JTextArea("", 2, 10);
             prompt.setText(resources.getString
                            (action == PUBLISH
-                            ? "Collab.Publish.Permissions_Prompt"
-                            : "Collab.Share.Permissions_Prompt"));
+                            ? "Publish.Permissions_Prompt"
+                            : "Share.Permissions_Prompt"));
             prompt.setBackground(null);
             prompt.setLineWrap(true);
             prompt.setWrapStyleWord(true);
@@ -596,7 +596,7 @@ public class TaskScheduleCollaborationWizard {
             buttonGroup.add(reqPasswordOption);
             reqPasswordOption.setBackground(null);
             reqPasswordOption.setText
-                (resources.getString("Collab.Password.Require_Option"));
+                (resources.getString("Password.Require_Option"));
             oPanel.add(reqPasswordOption);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -608,7 +608,7 @@ public class TaskScheduleCollaborationWizard {
             oLayout.setConstraints(reqPasswordOption, oConst);
 
             passPrompt = new JLabel();
-            passPrompt.setText(resources.getString("Collab.Password.Label"));
+            passPrompt.setText(resources.getString("Password.Label"));
             oPanel.add(passPrompt);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -631,7 +631,7 @@ public class TaskScheduleCollaborationWizard {
             buttonGroup.add(noPasswordOption);
             noPasswordOption.setBackground(null);
             noPasswordOption.setText
-                (resources.getString("Collab.Password.Do_Not_Require_Option"));
+                (resources.getString("Password.Do_Not_Require_Option"));
             oPanel.add(noPasswordOption);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -704,8 +704,8 @@ public class TaskScheduleCollaborationWizard {
             if (newPassword == null || newPassword.trim().length() == 0) {
                 JOptionPane.showMessageDialog
                     (frame,
-                     resources.getStrings("Collab.Password.Error_Prompt"),
-                     resources.getString("Collab.Password.Error_Title"),
+                     resources.getStrings("Password.Error_Prompt"),
+                     resources.getString("Password.Error_Title"),
                      JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -736,12 +736,12 @@ public class TaskScheduleCollaborationWizard {
             buttonBox.setLayout(oLayout);
 
             backButton = new JButton
-                (resources.getString("Collab.Back_Button"));
+                (resources.getString("Back_Button"));
             backButton.addActionListener(this);
             buttonBox.add(backButton);
 
             nextButton = new JButton
-                (resources.getString("Collab.Next_Button"));
+                (resources.getString("Next_Button"));
             nextButton.addActionListener(this);
             buttonBox.add(nextButton);
 
@@ -777,7 +777,7 @@ public class TaskScheduleCollaborationWizard {
 
             prompt = new JTextArea("", 3, 10);
             prompt.setText(resources.getString
-                           ("Collab.Rollup.Choose_Name_Prompt"));
+                           ("Rollup.Choose_Name_Prompt"));
             prompt.setBackground(null);
             prompt.setLineWrap(true);
             prompt.setWrapStyleWord(true);
@@ -799,7 +799,7 @@ public class TaskScheduleCollaborationWizard {
 
             namePrompt = new JLabel();
             namePrompt.setText(resources.getString
-                               ("Collab.Rollup.Name_Label"));
+                               ("Rollup.Name_Label"));
             oPanel.add(namePrompt);
             oConst = new GridBagConstraints();
             oConst.gridx =0;
@@ -815,7 +815,7 @@ public class TaskScheduleCollaborationWizard {
             else
                 rollupName.setText
                     (resources.format
-                     ("Collab.Rollup.Default_Name_FMT",
+                     ("Rollup.Default_Name_FMT",
                         TaskScheduleCollaborationWizard.this.taskListName));
             rollupName.setColumns(15);
             oPanel.add(rollupName);
@@ -880,7 +880,7 @@ public class TaskScheduleCollaborationWizard {
                 JOptionPane.showMessageDialog
                     (frame, errorMessage,
                      resources.getString
-                     ("Collab.Rollup.Invalid_Schedule_Name_Title"),
+                     ("Rollup.Invalid_Schedule_Name_Title"),
                      JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -916,12 +916,12 @@ public class TaskScheduleCollaborationWizard {
             buttonBox.setLayout(oLayout);
 
             backButton = new JButton
-                (resources.getString("Collab.Back_Button"));
+                (resources.getString("Back_Button"));
             backButton.addActionListener(this);
             buttonBox.add(backButton);
 
             finishButton = new JButton
-                (resources.getString("Collab.Finish_Button"));
+                (resources.getString("Finish_Button"));
             finishButton.addActionListener(this);
             buttonBox.add(finishButton);
 
