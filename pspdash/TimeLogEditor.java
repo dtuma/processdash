@@ -27,6 +27,7 @@
 package pspdash;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -68,6 +69,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     protected PSPProperties   useProps;
     protected PSPDashboard    dashboard = null;
     protected ValidatingTable table;
+    protected JSplitPane      splitPane;
 
     protected Hashtable       postedChanges = new Hashtable();
 
@@ -139,8 +141,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         /* And show it. */
         panel.setLayout(new BorderLayout());
         panel.add("North", constructFilterPanel());
-        panel.add("Center", new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                                           sp, constructEditPanel()));
+        panel.add("Center", splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                                                       sp, constructEditPanel()));
         panel.add("South", constructControlPanel());
 
         frame.addWindowListener( new WindowAdapter() {
@@ -151,11 +153,13 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         setSelectedNode(dash.getCurrentPhase());
+        loadCustomDimensions();
+        splitPane.setDividerLocation(dividerLocation);
 
         applyFilter(false);
         cancelPostedChanges();
         setDirty(false);
-        frame.setSize(new Dimension(800, 400));
+        frame.setSize(new Dimension(frameWidth, frameHeight));
         frame.show();
     }
 
@@ -164,6 +168,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         "Do you want to save the changes you made to the time log?";
     public void confirmClose(boolean showCancel) {
         if (saveRevertOrCancel(showCancel)) {
+            saveCustomDimensions();
             frame.setVisible (false);   // close the time log window.
             if (timeCardDialog != null) timeCardDialog.hide();
         }
@@ -318,6 +323,29 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         case FORMAT_HOURS_MINUTES: default:
             return formatTime(t);
         }
+    }
+
+    private static final String DIMENSION_SETTING_NAME = "timelog.dimensions";
+    private int frameWidth, frameHeight, dividerLocation = -1;
+    private void loadCustomDimensions() {
+        String setting = Settings.getVal(DIMENSION_SETTING_NAME);
+        if (setting != null && setting.length() > 0) try {
+            StringTokenizer tok = new StringTokenizer(setting, ",");
+            frameWidth = Integer.parseInt(tok.nextToken());
+            frameHeight = Integer.parseInt(tok.nextToken());
+            dividerLocation = Integer.parseInt(tok.nextToken());
+        } catch (Exception e) {}
+        if (dividerLocation == -1) {
+            frameWidth = 800; frameHeight = 400; dividerLocation = 300;
+        }
+    }
+    private void saveCustomDimensions() {
+        frameWidth = frame.getSize().width;
+        frameHeight = frame.getSize().height;
+        dividerLocation = splitPane.getDividerLocation();
+        InternalSettings.set
+            (DIMENSION_SETTING_NAME,
+             frameWidth + "," + frameHeight + "," + dividerLocation);
     }
 
     public long collectTime(Object node, Hashtable timesIn, Hashtable timesOut) {
@@ -559,22 +587,26 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
     private JPanel constructFilterPanel () {
         JPanel  retPanel = new JPanel(false);
+        retPanel.setLayout(new BoxLayout(retPanel, BoxLayout.X_AXIS));
+        retPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         DropDownButton button;
         JButton btn;
         Insets insets = new Insets(0, 2, 0, 2);
         JLabel  label;
 
+        retPanel.add(Box.createHorizontalGlue());
+
         label = new JLabel ("Time Format: ");
-        retPanel.add(label);
+        retPanel.add(label);   retPanel.add(Box.createHorizontalStrut(5));
         formatChoice = new JComboBox(TIME_FORMATS);
-        retPanel.add(formatChoice);
+        retPanel.add(formatChoice);   retPanel.add(Box.createHorizontalStrut(5));
         formatChoice.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 timeFormat = formatChoice.getSelectedIndex(); setTimes(); }} );
         retPanel.add(new JLabel("          "));
 
         label = new JLabel ("Filter: ");
-        retPanel.add (label);
+        retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
 
         btn = new JButton("<<");
         btn.setMargin(insets);
@@ -582,25 +614,27 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         btn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { scrollFilterBackward(); }
             });
-        retPanel.add(btn);
+        retPanel.add(btn);   retPanel.add(Box.createHorizontalStrut(5));
 
         label = new JLabel ("From ");
-        retPanel.add (label);
+        retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
 
         fromDate = new JTextField ("", 10);
+        fromDate.setMaximumSize(fromDate.getPreferredSize());
         DateChangeAction l = new DateChangeAction (fromDate);
         fromDate.addActionListener (l);
         fromDate.addFocusListener (l);
-        retPanel.add (fromDate);
+        retPanel.add (fromDate);   retPanel.add(Box.createHorizontalStrut(5));
 
         label = new JLabel (" To ");
-        retPanel.add (label);
+        retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
 
         toDate = new JTextField ("", 10);
+        toDate.setMaximumSize(toDate.getPreferredSize());
         l = new DateChangeAction (toDate);
         toDate.addActionListener (l);
         toDate.addFocusListener (l);
-        retPanel.add (toDate);
+        retPanel.add (toDate);   retPanel.add(Box.createHorizontalStrut(5));
 
 
         btn = new JButton(">>");
@@ -609,7 +643,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         btn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { scrollFilterForward(); }
             });
-        retPanel.add(btn);
+        retPanel.add(btn);   retPanel.add(Box.createHorizontalStrut(5));
 
         button = new DropDownButton ("Apply Filter");
         button.setRunFirstMenuOption(false);
@@ -633,6 +667,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             public void actionPerformed(ActionEvent e) { clearFilter(); }
             });
         retPanel.add (button);
+
+        retPanel.add(Box.createHorizontalGlue());
 
         return retPanel;
     }
