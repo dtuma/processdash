@@ -889,6 +889,13 @@ public class TinyWebServer extends Thread {
         return str;
     }
 
+    public static String urlEncodePath(String path) {
+        path = URLEncoder.encode(path);
+        path = StringUtils.findAndReplace(path, "%2F", "/");
+        path = StringUtils.findAndReplace(path, "%2f", "/");
+        return path;
+    }
+
     /** Utility routine: slurp an entire file from an InputStream. */
     public static byte[] slurpContents(InputStream in, boolean close)
         throws IOException
