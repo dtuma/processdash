@@ -62,7 +62,7 @@ class AveragingMethod extends Method {
     protected int yCol = 0;
     protected int getYCol() { return yCol; }
 
-    void printOption(PrintWriter out, boolean isBest) {
-        printOption(out, l.projection, isBest, 0, l.beta1, -1, -1, -1);
+    void printOption(PrintWriter out, boolean isSelected) {
+        printOption(out, l.projection, isSelected, 0, l.beta1, -1, -1, -1);
     }
 }

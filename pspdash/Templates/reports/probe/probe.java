@@ -71,33 +71,48 @@ public class probe extends TinyCGIBase {
     }
     private static final String NEXT_PAGE = "nextPage";
     protected void savePostedData() {
-        maybeSavePosted("size", "Estimated New & Changed LOC", 1);
-        maybeSavePosted("time", "Estimated Time", 60);
+        maybeSavePosted("size", ESTM_NC_LOC, 1,
+                        "Estimated Min LOC", "Estimated Max LOC");
+        maybeSavePosted("time", ESTM_TIME, 60,
+                        "Estimated Min Time", "Estimated Max Time");
     }
-    protected void maybeSavePosted(String what, String where, double mult) {
+    protected void maybeSavePosted(String what, String where, double mult,
+                                   String lpiName, String upiName) {
         String method = getParameter(what);
         if (method == null) return;
 
         DataRepository data = getDataRepository();
-        String base = data.createDataName(getPrefix(), where);
+        String prefix = getPrefix();
+        String base = data.createDataName(prefix, where);
         String qual = what + method;
         String dataName;
+        SimpleData e, r, lpi, upi;
 
         // Save the chosen method
         data.putValue(base+"/Probe Method", StringData.create(method));
         // Save the value
-        data.putValue(base, getNum(qual, Method.FLD_ESTIMATE, mult));
+        data.putValue(base, e = getNum(qual, Method.FLD_ESTIMATE, mult));
         // Save beta0 and beta1
         data.putValue(base+"/Beta0", getNum(qual, Method.FLD_BETA0, mult));
         data.putValue(base+"/Beta1", getNum(qual, Method.FLD_BETA1, mult));
         // Save the range
-        data.putValue(base+"/Range", getNum(qual, Method.FLD_RANGE, mult));
+        data.putValue(base+"/Range", r = getNum(qual, Method.FLD_RANGE, mult));
         // Save the interval percent
         data.putValue(base+"/Interval Percent",
                       getNum(qual, Method.FLD_PERCENT, 1));
         // Save the correlation
         data.putValue(base+"/R Squared",
                       getNum(qual, Method.FLD_CORRELATION, 1));
+
+        if (r instanceof DoubleData) {
+            double est   = ((DoubleData) e).getDouble();
+            double range = ((DoubleData) r).getDouble();
+            upi = new DoubleData(est + range);
+            lpi = new DoubleData(Math.max(0, est - range));
+        } else
+            upi = lpi = N_A;
+        data.putValue(prefix+"/"+lpiName, lpi);
+        data.putValue(prefix+"/"+upiName, upi);
     }
     protected SimpleData getNum(String qual, String name, double mult) {
         String inputFieldName = qual + name;
@@ -144,7 +159,7 @@ public class probe extends TinyCGIBase {
         if (SIZE_PAGE.equals(page))
             printSizeSection(data, estObjLOC, estNCLOC);
         if (TIME_PAGE.equals(page))
-            printTimeSection(data, estObjLOC, estNCLOC);
+            printTimeSection(data, estObjLOC, estNCLOC, estTime);
         if (CHECK_PAGE.equals(page))
             printCheckPage(data, estNCLOC, estTime);
 
@@ -257,6 +272,7 @@ public class probe extends TinyCGIBase {
                   "estimate, <font color='#0000ff'>use your engineering "+
                   "judgement</font> to choose from the following PROBE "+
                   "methods:</b><br><br>\n");
+        String selectedMethod = getSelectedMethod(ESTM_NC_LOC);
 
         // Calculate data for each of the PROBE methods for size.
         ArrayList sizeMethods = new ArrayList();
@@ -268,10 +284,14 @@ public class probe extends TinyCGIBase {
                                               ACT_NC, "C1", "size"));
         sizeMethods.add(new AveragingMethod  (data, estObjLOC, EST_NC,
                                               ACT_NC, "C2", "size"));
-        double methodDSize = (Double.isNaN(estNCLOC) ? estObjLOC : estNCLOC);
+        double methodDSize;
+        if (selectedMethod.equals("D") && !Double.isNaN(estNCLOC))
+            methodDSize = estNCLOC;
+        else
+            methodDSize = estObjLOC;
         sizeMethods.add(new MethodD (data, methodDSize, "size"));
 
-        printMethods(sizeMethods);
+        printMethods(sizeMethods, selectedMethod);
 
         out.print("<p>Choose your size estimate from the options above, "+
                   "then click the Continue button.");
@@ -279,12 +299,13 @@ public class probe extends TinyCGIBase {
     }
 
     protected void printTimeSection(HistData data, double estObjLOC,
-                                    double estNCLOC) {
+                                    double estNCLOC, double estTime) {
 
         out.print("<h2>Step 3: Time</h2><b>To create your time estimate,\n" +
                   "<font color='#0000ff'>use your engineering "+
                   "judgement</font> to choose from the following PROBE "+
                   " methods:</b><br><br>\n");
+        String selectedMethod = getSelectedMethod(ESTM_TIME);
 
         // Calculate data for each of the PROBE methods for time.
         ArrayList timeMethods = new ArrayList();
@@ -302,25 +323,49 @@ public class probe extends TinyCGIBase {
                     observations.clear();
                     return (rating < 0.0 ? rating
                             : Method.PROBE_METHOD_D + 0.00001); } });
-        timeMethods.add(new MethodD (data, estObjLOC, "time"));
+        double methodDTime;
+        if (selectedMethod.equals("D"))
+            methodDTime = estTime;
+        else
+            methodDTime = Double.NaN;
+        timeMethods.add(new MethodD (data, methodDTime, "time"));
 
-        printMethods(timeMethods);
+        printMethods(timeMethods, selectedMethod);
 
         out.print("<p>Choose your time estimate from the options above, "+
                   "then click the Continue button.");
         printContinueButton(SIZE_PAGE, CHECK_PAGE);
     }
 
-    protected void printMethods(ArrayList methods) {
+    protected String getSelectedMethod(String what) {
+        DataRepository data = getDataRepository();
+        String prefix = getPrefix();
+        String name = data.createDataName(prefix, what);
+        name = data.createDataName(name, "Probe Method");
+        SimpleData d = data.getSimpleValue(name);
+        if (d instanceof StringData) {
+            String result = d.format();
+            if (result.endsWith("  ")) return null;
+            return result.trim();
+        } else
+            return null;
+    }
+
+    protected void printMethods(ArrayList methods, String selected) {
 
         out.print("<table>\n");
 
         Collections.sort(methods);
         Iterator i = methods.iterator();
-        boolean isBest = true;
+        boolean isBest = true, isSelected;
+        Method m;
         while (i.hasNext()) {
-            ((Method) i.next()).printRow(out, isBest);
-            //if (i.hasNext())
+            m = (Method) i.next();
+            if (selected == null)
+                isSelected = isBest;
+            else
+                isSelected = selected.equals(m.getMethodLetter());
+            m.printRow(out, isBest, isSelected);
             out.print(DIVIDER);
             isBest = false;
         }
@@ -394,7 +439,7 @@ public class probe extends TinyCGIBase {
         "<tr><td></td><td bgcolor='gray'>" +
         "<img src='line.png' width=1 height=1></td><td></td></tr>\n";
 
-    public static final String LINK_ATTRS =
+    public static String LINK_ATTRS =
         " target='popup' onClick='popup();' class='plain' ";
 
 

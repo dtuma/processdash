@@ -100,11 +100,11 @@ class Method implements Comparable {
 
 
 
-    public void printRow(PrintWriter out, boolean isBest) {
+    public void printRow(PrintWriter out, boolean isBest, boolean isSelected) {
         out.print("<tr><td valign=middle>");
 
         if (getRating() > 0)
-            printOption(out, isBest);
+            printOption(out, isSelected);
         else
             out.print(NBSP);
 
@@ -147,16 +147,16 @@ class Method implements Comparable {
 
         out.print("</td></tr>");
     }
-    void printOption(PrintWriter out, boolean isBest) { out.print(NBSP); }
+    void printOption(PrintWriter out, boolean isSelected) { out.print(NBSP); }
 
-    void printOption(PrintWriter out, double estimate, boolean isBest,
+    void printOption(PrintWriter out, double estimate, boolean isSelected,
                      double beta0, double beta1, double range,
                      double percent, double rSquared) {
         String purpose = getMethodPurpose();
         String letter = getMethodLetter();
         String qual = purpose + letter;
         out.print("<input type='radio' ");
-        if (isBest) out.print("checked ");
+        if (isSelected) out.print("checked ");
         out.print("name='" + purpose + "' ");
         out.print("value='" + letter + "'><tt>");
         out.print(formatNumber(estimate));

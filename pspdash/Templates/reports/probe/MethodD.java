@@ -32,19 +32,22 @@ import pspdash.data.DoubleData;
 
 class MethodD extends Method {
 
+    double estimate;
+
     /** Perform the calculations required for this PROBE Method. */
-    public MethodD(HistData data, double estObjLOC, String purpose) {
-        super(data, estObjLOC, "D", purpose);
+    public MethodD(HistData data, double estimate, String purpose) {
+        super(data, 0, "D", purpose);
+        this.estimate = estimate;
     }
 
 
     public double getRating() { return PROBE_METHOD_D; }
 
 
-    public void printRow(PrintWriter out, boolean isBest) {
+    public void printRow(PrintWriter out, boolean isBest, boolean isSelected) {
         out.print("<tr><td valign=middle>");
 
-        printOption(out, isBest);
+        printOption(out, isSelected);
 
         out.print("</td><td valign=middle>&nbsp;<br>");
 
@@ -73,20 +76,22 @@ class MethodD extends Method {
         out.print("</td></tr>");
     }
 
-    void printOption(PrintWriter out, boolean isBest) {
+    void printOption(PrintWriter out, boolean isSelected) {
         String purpose = getMethodPurpose();
         String letter = getMethodLetter();
         String qual = purpose + letter;
 
         out.print("<input type='radio' ");
-        if (isBest) out.print("checked ");
+        if (isSelected) out.print("checked ");
         out.print("name='" + purpose + "' ");
         out.print("value='" + letter + "'>");
         out.print("<input type='text' name='"+ qual+FLD_ESTIMATE +"' value='");
-        if ("size".equals(purpose))
-            out.print(formatNumber(estObjLOC));
-        else
+        if (Double.isNaN(estimate))
             out.print("?????");
+        else if ("size".equals(purpose))
+            out.print(formatNumber(estimate));
+        else
+            out.print(formatNumber(estimate/60));
         out.print("' size='7' onFocus='select_"+purpose+"D();'><tt>" + NBSP);
         out.print(("size".equals(purpose)) ? "LOC" : "Hours");
         out.print(NBSP + NBSP + NBSP + "</tt>\n");

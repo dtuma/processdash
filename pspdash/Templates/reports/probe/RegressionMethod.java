@@ -111,8 +111,8 @@ class RegressionMethod extends Method {
     public static final String PROB =
         "<a href='params.htm' "+probe.LINK_ATTRS+">p</a>";
 
-    void printOption(PrintWriter out, boolean isBest) {
-        printOption(out, l.projection, isBest, l.beta0, l.beta1, l.range,
+    void printOption(PrintWriter out, boolean isSelected) {
+        printOption(out, l.projection, isSelected, l.beta0, l.beta1, l.range,
                     0.70, (c.r * c.r));
     }
 }
