@@ -65,7 +65,7 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
     private boolean openXML() {
         if (object == null) {
             createErrorRootNode
-                (localName, getRes("Cannot_Open_Schedule_Error"));
+                (localName, resources.getString("Cannot_Open_Schedule_Error"));
             return false;
         }
 
@@ -73,9 +73,10 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
         String errorMessage = null;
         if (object.olderThanAge(3)) {
             errorMessage = object.getErrorMessage();
-            String errorPrefix = (object.olderThanAge(5)
-                                  ? getRes("Out_Of_Date_Error")
-                                  : " " + getRes("Out_Of_Date_Warning")) + " ";
+            String errorPrefix =
+                (object.olderThanAge(5)
+                 ? resources.getString("Out_Of_Date_Error")
+                 : " " + resources.getString("Out_Of_Date_Warning")) + " ";
             if (errorMessage == null)
                 errorMessage = errorPrefix;
             else if (xmlDoc != null)
@@ -84,10 +85,6 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
 
 
         return openXML(xmlDoc, localName, errorMessage);
-    }
-    private String getRes(String key) {
-        Resources r = Resources.getDashBundle("pspdash.TaskScheduleDialog");
-        return r.getString(key);
     }
 
 

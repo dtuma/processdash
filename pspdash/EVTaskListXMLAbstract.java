@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -59,7 +59,8 @@ public class EVTaskListXMLAbstract extends EVTaskList {
     protected boolean openXML(String xmlDoc, String displayName,
                               String errorMessage) {
         if (xmlDoc == null) {
-            if (errorMessage == null) errorMessage = "Invalid schedule";
+            if (errorMessage == null)
+                errorMessage = resources.getString("Invalid_Schedule");
             createErrorRootNode(displayName, errorMessage);
             return false;
         } else if (xmlDoc.equals(xmlSource) &&
@@ -101,7 +102,8 @@ public class EVTaskListXMLAbstract extends EVTaskList {
         } catch (Exception e) {
             System.err.println("Got exception: " +e);
             e.printStackTrace();
-            if (errorMessage == null) errorMessage = "Invalid schedule";
+            if (errorMessage == null)
+                errorMessage = resources.getString("Invalid_Schedule");
             createErrorRootNode(displayName, errorMessage);
             return false;
         }
