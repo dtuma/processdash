@@ -126,6 +126,9 @@ http.port=The port number where the dashboard should listen for incoming \
 	the port one number less than this port - typically 2467 - must be \
 	available also, for incoming data connections.)
 
+pauseButton.historySize=The maximum number of entries which should be \
+	retained in the play/pause button's history list.
+
 pauseButton.showCurrent=If this property is set to "true", the Play/Pause \
 	button will display the current state (i.e., while paused, it will \
 	display the PAUSE symbol).  Otherwise, the button will display the \
