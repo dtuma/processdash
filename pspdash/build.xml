@@ -284,7 +284,10 @@ Authors:
           description="Compile the data applet support for netscape">
     <mkdir dir="${ns.dir}"/>
     <javac srcdir="${src}" destdir="${ns.dir}" debug="${debug}"
+           includeAntRuntime="no" includeJavaRuntime="no" target="1.1"
            classpath="${java.home}/lib/jaws.jar">
+      <bootclasspath>
+      </bootclasspath>
       <includesfile name="${lib}/fileset-applet-only.txt"/>
       <includesfile name="${lib}/fileset-applet-extra.txt"/>
       <includesfile name="${lib}/fileset-ns.txt"/>
@@ -301,6 +304,7 @@ Authors:
            includeAntRuntime="no" includeJavaRuntime="no" target="1.1"
            failonerror="false" debug="${debug}">
       <bootclasspath>
+         <!-- it is okay if neither of the following files exist -->
          <pathelement location="c:\Windows\java\classes\classes.zip"/>
          <pathelement location="c:\Winnt\java\classes\classes.zip"/>
       </bootclasspath>
