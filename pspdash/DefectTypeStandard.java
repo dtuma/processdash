@@ -33,7 +33,11 @@ import java.util.*;
 
 public class DefectTypeStandard extends OptionList {
 
+    private String defectTypeName = null;
+
     private DefectTypeStandard(String s) { super(s); }
+
+    public String getName() { return defectTypeName; }
 
     /** Get the defect type standard for the named project/task */
     public static DefectTypeStandard get(String path, DataRepository r) {
@@ -78,6 +82,7 @@ public class DefectTypeStandard extends OptionList {
 
             // create a JComboBox with those defect types.
             result = new DefectTypeStandard(defectTypes);
+            result.defectTypeName = defectTypeName;
             cache.put(defectTypeName, result);
         }
         return result;
