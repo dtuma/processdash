@@ -41,6 +41,12 @@
 generic==1.0
 GENERIC==1.0
 
+= These data elements allow users to customize a generic project.
+
+Generic - Show Defects=1.0
+Generic - Show Size=1.0
+Units="Units
+
 
 ==
 == Data Elements to track Time.
@@ -50,38 +56,58 @@ Estimated Time=0.0
 Time==![(+	~.*/Time)]
 Time Estimating Error==![(/	[(-	Time	Estimated Time)]	Estimated Time)]
 
+
 ==
 == Data Elements to track defects
 ==
 
-Generic - Show Defects=1.0
 Before Development/Defects Injected==0.0
 After Development/Defects Removed=0.0
 Defects Injected==![(-	~.*/Defects Injected	Before Development/Defects Injected)]
 Defects Removed==![(+	~.*/Defects Removed)]
 
-= Various defect ratios
-
-Before Development/% Defects Injected==![(/	Before Development/Defects Injected	Defects Injected)]
-After Development/% Defects Removed==![(/	After Development/Defects Removed	Defects Removed)]
-
-Before Development/Defect Injection Density==![(/	Before Development/Defects Injected	Size)]
-After Development/Defect Density==![(/	After Development/Defects Removed	Size)]
-Defect Density==![(/	Defects Removed	Size)]
-
-Before Development/Defects Injected per Hour==![(/	Before Development/Defects Injected	Time	0.016667)]
-After Development/Defects Removed per Hour==![(/	After Development/Defects Removed	Time	0.016667)]
-Defects Injected per Hour==![(/	Defects Injected	Time	0.016667)]
-Defects Removed per Hour==![(/	Defects Removed	Time	0.016667)]
 
 ==
 == Data Elements to track size
 ==
 
-Generic - Show Size=1.0
 Estimated Size=0.0
 Size=0.0
 Size Estimating Error==![(/	[(-	Size	Estimated Size)]	Estimated Size)]
-Units="Units
+
+
+==
+== Data Elements for overall process metrics
+==
+
 Estimated Productivity==![(/	Estimated Size	Estimated Time	0.016667)]
 Productivity==![(/	Size	Time	0.016667)]
+Defect Density==![(/	Defects Removed	Size)]
+Defects Injected per Hour==![(/	Defects Injected	Time	0.016667)]
+Defects Removed per Hour==![(/	Defects Removed	Time	0.016667)]
+
+
+==
+== Data Elements for the planning phase
+==
+
+Planning/genericPhase==10.0
+Planning/Estimated Time=0.0
+Planning/Time==0.0
+Planning/Defects Injected==0.0
+Planning/Defects Removed==0.0
+Planning/Defects Injected per Hour==![(/	Planning/Defects Injected	Planning/Time	0.016667)]
+Planning/Defects Removed per Hour==![(/	Planning/Defects Removed	Planning/Time	0.016667)]
+
+
+==
+== Data Elements for the postmortem phase
+==
+
+Postmortem/genericPhase==70.0
+Postmortem/Estimated Time==![(-	Estimated Time	~.*/{<	genericPhase	70}Estimated Time)]
+Postmortem/Time==0.0
+Postmortem/Defects Injected==0.0
+Postmortem/Defects Removed==0.0
+Postmortem/Defects Injected per Hour==![(/	Postmortem/Defects Injected	Postmortem/Time	0.016667)]
+Postmortem/Defects Removed per Hour==![(/	Postmortem/Defects Removed	Postmortem/Time	0.016667)]
