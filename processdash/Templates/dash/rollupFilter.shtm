@@ -23,12 +23,12 @@
 // Hill AFB, UT 84056-5843
 // 
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
--->
+--><!--#resources bundle="Templates.Filter" -->
 
 <HTML>
 <HEAD>
 <link rel=stylesheet type="text/css" href="/style.css">
-<TITLE>Edit Data Rollup Filter</TITLE>
+<TITLE><!--#echo Title --></TITLE>
 
 <SCRIPT>
    function setvalue() {
@@ -42,7 +42,7 @@
 <BODY>
 
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
-<H2>Edit Data Rollup Filter</H2>
+<H2><!--#echo Title --></H2>
 
 <FORM NAME=PLAN>
 
@@ -50,38 +50,38 @@
 
 <TABLE>
 <TR>
-<TD><INPUT TYPE=checkbox NAME="Rollup_Date_Filter_On">&nbsp;Only
-rollup projects <b>completed after</b>:</td>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Date_Filter_On">&nbsp;<!--#echo
+    var="Date_Prompt_HTML" encoding="none" --></td>
 <TD><INPUT TYPE=text SIZE=25 NAME="[Rollup As Of Date]d"></TD>
 </TR>
 
 <TR>
-<TD><INPUT TYPE=checkbox NAME="Rollup_Language_Filter_On">&nbsp;Only
-rollup projects <b>written with language</b>:</td>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Language_Filter_On">&nbsp;<!--#echo 
+    var="Language_Prompt_HTML" encoding="none" --></td>
 <TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Language]s"></TD>
 </TR>
 
 <TR>
-<TD><INPUT TYPE=checkbox NAME="Rollup_Keyword_Filter_On">&nbsp;Only
-rollup projects <b>with keywords matching</b>:</td>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Keyword_Filter_On">&nbsp;<!--#echo
+    var="Keywords_Prompt_HTML" encoding="none"  --></td>
 <TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Keyword]s"></TD>
 </TR>
 
 <TR>
-<TD><INPUT TYPE=checkbox NAME="Rollup_Prefix_Filter_On">&nbsp;Only
-rollup projects whose <b>path starts with</b>:</td>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Prefix_Filter_On">&nbsp;<!--#echo
+    var="Path_Prompt_HTML" encoding="none"  --></td>
 <TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Prefix]s"></TD>
 </TR>
-<tr><td align=center colspan=2><input
-    type=button value="Filter!" onclick="setvalue();"></td></tr>
+<tr><td align=center colspan=2><input type=button onclick="setvalue();"
+    value="<!--#echo Filter_Button -->"></td></tr>
 </TABLE>
 
 <input type=hidden name="[Rollup_Filter_Prototype]s">
 
-<P>If you wish, you can edit the filter expression directly:<BR>
+<P><!--#echo var="Direct_Edit_Prompt_HTML" encoding="none" --><BR>
 <textarea rows=4 cols=80 name="[Rollup_Filter]s"></textarea><BR>
 
-<P>The resulting list of included projects is:<BR>
+<P><!--#echo var="Result_Header_HTML" encoding="none" --><BR>
 <textarea rows=10 cols=80 name="[Printable_Rollup_List]s"></textarea>
 
 </FORM>

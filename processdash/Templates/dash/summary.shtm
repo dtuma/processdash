@@ -23,7 +23,7 @@
 // Hill AFB, UT 84056-5843
 // 
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
---><!--#resources bundle="Templates" -->
+--><!--#resources bundle="Templates.Summary" -->
 
 <HTML>
 <HEAD>
