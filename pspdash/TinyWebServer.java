@@ -780,9 +780,10 @@ public class TinyWebServer extends Thread {
             // unconditionally allow internal requests.
             if (clientSocket == null) return;
 
-            // unconditionally serve up items in the root directory.
-            // (This includes "style.css", "DataApplet.*", "data.js").
-            if (path.indexOf('/') == -1) return;
+            // unconditionally serve up items in the root directory
+            // (This includes "style.css", "DataApplet.*", "data.js")
+            // and the Images/ directory.
+            if (path.indexOf('/') == -1 || path.startsWith("Images/")) return;
 
             // unconditionally serve requests that originate from the
             // local host.
@@ -1513,6 +1514,7 @@ public class TinyWebServer extends Thread {
         SecondaryServerSocket s = new SecondaryServerSocket(port);
         secondaryServerSockets.add(s);
         s.start();
+        this.port = port;
     }
     private Vector secondaryServerSockets = new Vector();
 
