@@ -248,7 +248,8 @@ public class ProbeDialog extends JFrame implements
         }
 
         private String format(double value, int numDecimalPoints) {
-            return DoubleData.formatNumber(value, numDecimalPoints);
+            String result = DoubleData.formatNumber(value, numDecimalPoints);
+            return (result.startsWith("#") ? "Not Enough Data" : result);
         }
 
         private static final String EST_OBJ_LOC = "Estimated Object LOC";
