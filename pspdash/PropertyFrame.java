@@ -316,7 +316,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         while (dataNames.hasNext()) {
             name = (String) dataNames.next();
             if ((name.endsWith(NODE_TAG) || name.endsWith(LEAF_TAG)) &&
-                dashboard.data.getValue(name) == TagData.getInstance())
+                dashboard.data.getValue(name) instanceof TagData)
                 nodesAndLeaves.add(name);
         }
         /* "Pretend" that the data item "/node" is set.  We never want
@@ -354,7 +354,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     private void clearNodesAndLeaves() {
         Iterator i = nodesAndLeaves.iterator();
         while (i.hasNext())
-            dashboard.data.removeValue((String) i.next());
+            dashboard.data.putValue((String) i.next(), null);
     }
 
     private void updateNodesAndLeaves() {
