@@ -76,7 +76,7 @@ public class Resources extends ResourceBundle {
 
 
     private Object getRedirectedObject(String key) {
-        int pos = key.indexOf('/', 1);
+        int pos = key.indexOf(':', 1);
         String redirectBundleName = key.substring(1, pos);
         String redirectKey = key.substring(pos+1);
         ResourceBundle redirectBundle = getDashBundle(redirectBundleName);
