@@ -30,6 +30,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.Properties;
 
@@ -44,16 +45,18 @@ public class RepositoryClient extends Thread implements Repository {
     private String dataPath = null;
     private volatile Vector dataNameList = null;
     private Object dataNameListLock = new Object();
+    private volatile boolean isRunning = false;
 
-
-    public RepositoryClient(String ID, String requiredTag) throws RemoteException, ForbiddenException {
+    public RepositoryClient(URL url, String requiredTag)
+        throws RemoteException, ForbiddenException {
         boolean tagExists = true;
 
         try {
             setName(getName() + "(RepositoryClient)");
+            String ID = (new StringTokenizer(url.getFile(), "/")).nextToken();
 
             // debug("creating socket...");
-            clientSocket = new Socket("localhost", 2467);
+            clientSocket = new Socket(url.getHost(), url.getPort() - 1);
 
             // debug("got socket, getting output stream...");
             out = new PrintWriter(clientSocket.getOutputStream(), false);
@@ -73,6 +76,7 @@ public class RepositoryClient extends Thread implements Repository {
             if (!tagExists)
                 throw new ForbiddenException();
 
+            isRunning = true;
             this.start();
 
         } catch (ForbiddenException e) { cleanup(); throw e;
@@ -114,13 +118,13 @@ public class RepositoryClient extends Thread implements Repository {
         String value = null;
         Enumeration enum = null;
 
-        while (true) try {
+        while (isRunning) try {
             o = null;
             try {
                 o = in.readObject();
                 e = (DataEvent) o;
             } catch (ClassCastException ex) { dataNameList = (Vector) o; continue;
-            } catch (Exception ex) { break; }
+            } catch (Exception ex) { isRunning = false; break; }
 
             // debug("got dataValueChanged on " + e.getName());
 
@@ -147,7 +151,8 @@ public class RepositoryClient extends Thread implements Repository {
 
     public synchronized void quit() {
         // debug("stopping...");
-        stop();
+        isRunning = false;
+        interrupt();
 
         cleanup();
 
