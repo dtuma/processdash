@@ -84,6 +84,9 @@ public class RepositoryClient extends Thread implements Repository {
             isRunning = true;
             this.start();
 
+            //if (Settings.getBool("dataApplet.debug", false))
+            //  RCL.addRepositoryClient(this);
+
         } catch (ForbiddenException e) { cleanup(); throw e;
         } catch (ConnectException e)   { cleanup(); throw new RemoteException();
         } catch (Exception e) {
@@ -94,6 +97,8 @@ public class RepositoryClient extends Thread implements Repository {
     }
 
     private synchronized void cleanup() {
+        //RCL.removeRepositoryClient(this);
+
         if (out != null) try { out.close(); out = null; } catch (Exception ex) {}
         if (in  != null) try { in.close();  in  = null; } catch (Exception ex) {}
         if (clientSocket != null) try {
@@ -295,6 +300,23 @@ public class RepositoryClient extends Thread implements Repository {
                 }
             }
         }
+    }
+
+    boolean writeLogMessage(String message) {
+        if (out == null) return false;
+        try {
+            message = message.replace('\n', '\u0001');
+            message = message.replace('\r', ' ');
+            synchronized (out) {
+                out.println("logMessage");
+                out.println(message);
+                out.flush();
+            }
+            return true;
+        } catch (Exception e) {
+            printError(e);
+        }
+        return false;
     }
 
 
