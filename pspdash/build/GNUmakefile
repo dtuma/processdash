@@ -51,7 +51,7 @@ install: pspdash.jar
 
 # "no templates" version of the jar file.  A little nicer for playing with 
 # the HTML and/or CGI stuff at runtime.
-install-nt: $(INSTALLED_FILES) manifest perltools templates FORCE
+install-nt: $(INSTALLED_FILES) manifest perltools jfreechart templates FORCE
 	$(JAR) cfm pspdash.jar manifest pspdash com
 
 
