@@ -33,11 +33,18 @@
       ID="PID/TeamRoot"
       defineRollup="no"
       dataFile="PID/team_root_dataFile.txt"
-      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}"
+      constraints="{PID/Rollup}"
       ><!--#break comment-->
-           This node cannot be directly instantiated by the user. They
+           This node cannot be directly instantiated by the user. (The
+	   'required parent' list of } enforces this policy.) They
 	   must instead instantiate a team project stub, and run the
 	   setup wizard to create an instance of this template.
+
+           We also change the 'allowed children' list to {PID/Rollup.
+	   This allows the user to create rollups under this node,
+	   but prevents them from adding any other type of children.
+	   Those children must instead be added using the WBS editor.
+
        <!--#endbreak comment-->
 
     <html ID="sum" href="PID/team_summary.shtm"
