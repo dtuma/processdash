@@ -72,9 +72,11 @@ class DOMDelayedRedrawer extends Thread implements DOMAction {
         }
     }
 
-    public synchronized void quit() {
+    public void quit() {
         isRunning = false;
-        notify();
+        synchronized (this) {
+            notify();
+        }
     }
 
 
@@ -82,11 +84,12 @@ class DOMDelayedRedrawer extends Thread implements DOMAction {
     public Object run(DOMAccessor accessor) {
         DOMField f = null;
         int count = 0;
-        while (itemsToNotify.size() > 0) {
+        while (isRunning && itemsToNotify.size() > 0) {
             f = (DOMField) itemsToNotify.elementAt(0);
             itemsToNotify.removeElementAt(0);
             try {
-                f.redraw();
+                if (isRunning)
+                    f.redraw();
                 count++;
             } catch (Throwable t) {
                 System.err.println("Caught " + t);
