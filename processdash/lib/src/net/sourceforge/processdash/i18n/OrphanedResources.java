@@ -79,7 +79,7 @@ public class OrphanedResources extends MatchingTask {
 
     private Object loadProps(String filename) {
         try {
-            File f = new File(fileset.getDir(project), filename);
+            File f = new File(fileset.getDir(getProject()), filename);
             Properties p = new Properties();
             p.load(new FileInputStream(f));
             return p;
