@@ -155,6 +155,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         try {
             // try to load the user's existing properties file.
             v = props.load(propertiesFile);
+            props.saveXML(propertiesFile + ".xml");
         } catch (Exception e) { try {
             // apparently, the user doesn't already have a properties file.
             // read the default properties file, which simply contains
