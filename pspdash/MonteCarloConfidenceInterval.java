@@ -37,6 +37,7 @@ public class MonteCarloConfidenceInterval implements ConfidenceInterval
 {
 
     protected DoubleList samples = null;
+    protected double viability = NOMINAL;
     protected double acceptableError = 0.001;
 
     public MonteCarloConfidenceInterval() {
@@ -141,7 +142,18 @@ public class MonteCarloConfidenceInterval implements ConfidenceInterval
         return getQuantile(u.random());
     }
 
+    public void calcViability(double expectedValue, double cutoffPercentile) {
+        int pos = samples.find(expectedValue);
+        double prob = 2 * Math.abs((((double) pos) / samples.size()) - 0.5);
+        if (prob > cutoffPercentile)
+            // the current probability is not acceptable.
+            viability = SERIOUS_PROBLEM;
+        else
+            // use the percentage to scale the nominal viability rating.
+            viability = NOMINAL * (1 - prob);
+    }
+
     public double getViability() {
-        return NOMINAL;
+        return viability;
     }
 }

@@ -194,7 +194,7 @@ public class EVCalculatorRollup extends EVCalculator {
     }
 
     private void createCostInterval() {
-        // System.out.println("Creating cost interval");
+         System.out.println("Creating cost interval");
         ConfidenceIntervalSum sum = new ConfidenceIntervalSum();
         sum.acceptableError = 5 * 60;
         Iterator i = schedule.subSchedules.iterator();
@@ -216,7 +216,7 @@ public class EVCalculatorRollup extends EVCalculator {
     private void createBothIntervals() {
         if (COST_ONLY) { createCostInterval(); return; }
 
-        // System.out.println("Creating both intervals");
+         System.out.println("Creating both intervals");
         List subs = schedule.subSchedules;
         EVScheduleRandom[] randSchedules = new EVScheduleRandom[subs.size()];
         for (int i = 0;   i < randSchedules.length;   i++)

@@ -434,11 +434,12 @@ Value to recalculate
 
 
     private void createScheduleConfidenceInterval() {
+        EVMetrics metrics = schedule.getMetrics();
         try {
             ConfidenceInterval costInterval =
-                schedule.getMetrics().getCostConfidenceInterval();
+                metrics.getCostConfidenceInterval();
             ConfidenceInterval timeErrInterval =
-                schedule.getMetrics().getTimeErrConfidenceInterval();
+                metrics.getTimeErrConfidenceInterval();
 
             ConfidenceInterval completionDate = null;
             if (costInterval != null && timeErrInterval != null) {
@@ -449,9 +450,9 @@ Value to recalculate
                 completionDate = ci.getForecastDateInterval();
             }
 
-            schedule.getMetrics().setDateConfidenceInterval(completionDate);
+            metrics.setDateConfidenceInterval(completionDate);
         } catch (Exception e) {
-            schedule.getMetrics().setDateConfidenceInterval(null);
+            metrics.setDateConfidenceInterval(null);
             System.out.println("Error calculating schedule interval:");
             e.printStackTrace();
         }

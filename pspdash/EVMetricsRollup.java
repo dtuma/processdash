@@ -98,6 +98,14 @@ public class EVMetricsRollup extends EVMetrics {
         recalcOptimizedPlanDate(s);
         super.recalcComplete(s);
     }
+    protected void recalcViability(EVSchedule s) {
+        super.recalcViability(s);
+        maybeRecalcComplete(s, optCompletionDateInterval);
+        if (unviable(optCompletionDateInterval)) {
+            System.out.println("opt date interval is not viable");
+            optCompletionDateInterval = null;
+        }
+    }
     protected void recalcScheduleTime(EVSchedule s) {
         // do nothing - it is already calculated.
     }
@@ -131,7 +139,7 @@ public class EVMetricsRollup extends EVMetrics {
             return calcDuration(startDate(), super.independentForecastDate());
     }
 
-    private Date optimizedForecastDate = null;
+//    private Date optimizedForecastDate = null;
     public Date optimizedForecastDate() {
         if (useSimpleForecastDateFormula) {
             // use the extrapolation algorithm that EVMetrics uses to

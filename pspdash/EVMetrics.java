@@ -44,6 +44,10 @@ import pspdash.data.DoubleData;
 
 public class EVMetrics implements TableModel {
 
+    public interface RecalcCompleteTask {
+        public void recalcComplete(EVSchedule s, EVMetrics m);
+    }
+
     /** The total planned time for all tasks in an EVModel, in minutes. */
     protected double totalPlanTime = 0.0;
 
@@ -165,7 +169,33 @@ public class EVMetrics implements TableModel {
     public void recalcComplete(EVSchedule s) {
         recalcScheduleTime(s);
         recalcForecastDate(s);
+        recalcViability(s);
         recalcMetricsFormatters();
+    }
+    protected void maybeRecalcComplete(EVSchedule s, Object o) {
+        if (o instanceof RecalcCompleteTask)
+            ((RecalcCompleteTask) o).recalcComplete(s, this);
+    }
+    protected boolean unviable(ConfidenceInterval ci) {
+        if (ci == null) return false;
+        if (ci.getViability() <= ConfidenceInterval.ACCEPTABLE) return true;
+        return false;
+    }
+    protected void recalcViability(EVSchedule s) {
+        maybeRecalcComplete(s, costInterval);
+        if (unviable(costInterval)) {
+            System.out.println("cost interval is not viable");
+            costInterval = null;}
+
+        maybeRecalcComplete(s, timeErrInterval);
+        if (unviable(timeErrInterval)) {
+            System.out.println("time err interval is not viable");
+            timeErrInterval = null;}
+
+        maybeRecalcComplete(s, completionDateInterval);
+        if (unviable(completionDateInterval)) {
+            System.out.println("completion date interval is not viable");
+            completionDateInterval = null;}
     }
     protected void recalcMetricsFormatters() {
         validMetrics.clear();

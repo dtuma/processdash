@@ -119,6 +119,25 @@ public class DoubleList {
     }
 
 
+    /** Search for a value in the list.
+     */
+    public int find(double value) {
+        int left = 0;
+        int right = size() - 1;
+        int mid;
+        double mval;
+        while (left < right) {
+            mid = (left + right) / 2;
+            mval = contents[mid];
+            if (value == mval)              return mid;
+            else if (value < contents[mid]) right = mid - 1;
+            else                            left  = mid + 1;
+        }
+
+        return left;
+    }
+
+
     /** Return an array containing the <code>double</code> values in this
      * list.  If this list has size 0, so will the resulting array.
      */
