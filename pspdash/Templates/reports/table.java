@@ -29,16 +29,9 @@ import pspdash.data.ResultSet;
 
 public class table extends pspdash.TinyCGIBase {
 
-    private static final String EXCEL_PARAM = "excel";
-    private static String exportMethod =
-        pspdash.Settings.getVal("excel.exportMethod");
-
     /** Write the CGI header. */
     protected void writeHeader() {
-        if (parameters.get(EXCEL_PARAM) != null)
-            out.print("Content-type: application/vnd.ms-excel\r\n\r\n");
-        else
-            out.print("Content-type: text/html\r\n\r\n");
+        out.print("Content-type: text/html\r\n\r\n");
         out.flush();
     }
 
@@ -87,20 +80,8 @@ public class table extends pspdash.TinyCGIBase {
         if (!includable) {
             out.println("</TABLE>");
             if (foot != null) out.println("<P>" + foot + "</P>");
-            if (parameters.get(EXCEL_PARAM) == null &&
-                ! "none".equalsIgnoreCase(exportMethod)) {
-                String url;
-                String userAgent = (String) env.get("HTTP_USER_AGENT");
-                if ("mime".equalsIgnoreCase(exportMethod) ||
-                    (exportMethod == null && userAgent.indexOf("MSIE") == -1))
-                    url = "table.class?excel&";
-                else
-                    url = "excel.iqy?";
-                out.print("<P class='doNotPrint'><A HREF=\"");
-                out.print(url);
-                out.print((String) env.get("QUERY_STRING"));
-                out.println("\"><I>Export to Excel</I></A>");
-            }
+            out.print("<P class='doNotPrint'><A HREF=\"excel.iqy\">" +
+                      "<I>Export to Excel</I></A>");
             out.println("</BODY></HTML>");
         }
     }
