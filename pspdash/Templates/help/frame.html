@@ -31,19 +31,12 @@
 </HEAD>
 
 <SCRIPT>
-  var contentURL = "Overview/QuickOverview.html";
-  var srch = location.search;
-  if (srch != "") {
-    contentURL = srch;
-    while (contentURL.substring(0,1) == "?") {
-      contentURL = contentURL.substring(1);
-    }
-  }
-  contentURL = "Topics/" + contentURL;
+  var contentID = location.search;
+  if (contentID == "") { contentID = "?QuickOverview"; }
 
-  document.write('<FRAMESET COLS="200,*" BORDER=3>');
-  document.write(' <FRAME NAME=toc SRC="TOC.html"' + srch + '>');
-  document.write(' <FRAME NAME=c SRC=' + contentURL + '>');
+  document.write('<FRAMESET COLS="200,*">');
+  document.write(' <FRAME NAME="toc" SRC="TOC.html'+ contentID +'">');
+  document.write(' <FRAME NAME="contents" SRC="about:blank">');
   document.write('</FRAMESET>');
 
 </SCRIPT>   
