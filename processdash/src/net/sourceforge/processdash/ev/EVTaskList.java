@@ -46,11 +46,12 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 
-import pspdash.AbstractTreeTableModel;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
+import net.sourceforge.processdash.ui.lib.TreeTableModel;
+
 import pspdash.ObjectCache;
-import pspdash.PSPProperties;
-import pspdash.Resources;
-import pspdash.TreeTableModel;
 import pspdash.data.DataRepository;
 
 public class EVTaskList extends AbstractTreeTableModel
@@ -168,7 +169,7 @@ public class EVTaskList extends AbstractTreeTableModel
      */
     public static EVTaskList openExisting(String taskListName,
                                           DataRepository data,
-                                          PSPProperties hierarchy,
+                                          DashHierarchy hierarchy,
                                           ObjectCache cache,
                                           boolean willNeedChangeNotification)
     {
@@ -204,7 +205,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public static EVTaskList open(String taskListName,
                                   DataRepository data,
-                                  PSPProperties hierarchy,
+                                  DashHierarchy hierarchy,
                                   ObjectCache cache,
                                   boolean willNeedChangeNotification)
     {
@@ -288,7 +289,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public boolean addTask(String path,
                            DataRepository data,
-                           PSPProperties hierarchy,
+                           DashHierarchy hierarchy,
                            ObjectCache cache,
                            boolean willNeedChangeNotification) {
         if (path == null || path.length() == 0 || !isEditable()) return false;
@@ -307,7 +308,7 @@ public class EVTaskList extends AbstractTreeTableModel
     }
     public EVTask createAndAddTask(String path,
                                    DataRepository data,
-                                   PSPProperties hierarchy,
+                                   DashHierarchy hierarchy,
                                    ObjectCache cache,
                                    boolean willNeedChangeNotification) {
         return null;

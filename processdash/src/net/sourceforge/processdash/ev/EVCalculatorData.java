@@ -35,10 +35,10 @@ import java.util.List;
 import java.util.Iterator;
 
 import pspdash.Settings;
-import pspdash.TimeLog;
-import pspdash.TimeLogEntry;
 
 import net.sourceforge.processdash.ev.ci.*;
+import net.sourceforge.processdash.log.TimeLog;
+import net.sourceforge.processdash.log.TimeLogEntry;
 
 
 public class EVCalculatorData extends EVCalculator {

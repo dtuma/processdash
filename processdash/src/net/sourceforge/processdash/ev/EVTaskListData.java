@@ -36,8 +36,9 @@ import java.util.TreeMap;
 
 import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.hier.DashHierarchy;
+
 import pspdash.ObjectCache;
-import pspdash.PSPProperties;
 import pspdash.data.DataComparator;
 import pspdash.data.DataRepository;
 import pspdash.data.DoubleData;
@@ -46,7 +47,7 @@ import pspdash.data.SimpleData;
 import pspdash.data.StringData;
 
 public class EVTaskListData extends EVTaskList
-    implements PSPProperties.Listener
+    implements DashHierarchy.Listener
 {
 
     public static final String TASK_ORDINAL_PREFIX = "TST_";
@@ -54,11 +55,11 @@ public class EVTaskListData extends EVTaskList
     public static final String ID_DATA_NAME = "Task List ID";
 
     protected DataRepository data;
-    protected PSPProperties hierarchy;
+    protected DashHierarchy hierarchy;
 
     public EVTaskListData(String taskListName,
                           DataRepository data,
-                          PSPProperties hierarchy,
+                          DashHierarchy hierarchy,
                           boolean willNeedChangeNotification) {
         super(taskListName, taskListName, willNeedChangeNotification);
         this.data = data;
@@ -197,7 +198,7 @@ public class EVTaskListData extends EVTaskList
         r.saveStructuralData(newName);
     }
 
-    public void hierarchyChanged(PSPProperties.Event e) {
+    public void hierarchyChanged(DashHierarchy.Event e) {
         if (someoneCares()) {
             EVTask r = (EVTask) root;
 
@@ -220,7 +221,7 @@ public class EVTaskListData extends EVTaskList
 
     public EVTask createAndAddTask(String path,
                                    DataRepository data,
-                                   PSPProperties hierarchy,
+                                   DashHierarchy hierarchy,
                                    ObjectCache cache,
                                    boolean willNeedChangeNotification) {
         EVTask newTask = new EVTask(taskListName, path, data, hierarchy,

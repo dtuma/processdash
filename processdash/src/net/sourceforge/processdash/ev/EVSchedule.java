@@ -39,6 +39,9 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.ui.TimeLogEditor;
+
 import org.jfree.data.AbstractDataset;
 import org.jfree.data.DatasetChangeEvent;
 import org.jfree.data.DatasetChangeListener;
@@ -49,8 +52,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import pspdash.Resources;
-import pspdash.TimeLogEditor;
 import pspdash.data.ListData;
 
 public class EVSchedule implements TableModel {

@@ -32,16 +32,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.ui.TimeLogEditor;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import pspdash.PSPProperties;
-import pspdash.PropertyKey;
-import pspdash.Resources;
-import pspdash.TimeLogEditor;
 import pspdash.data.DataRepository;
 import pspdash.data.DataListener;
 import pspdash.data.DataEvent;
@@ -249,7 +249,7 @@ public class EVTask implements DataListener {
 
     /** Creates an EVTask for the tasks in the hierarchy at the given path */
     public EVTask(String taskListName, String hierarchyPath, DataRepository data,
-                  PSPProperties hierarchy, Listener listener) {
+                  DashHierarchy hierarchy, Listener listener) {
         this(null, taskListName, hierarchyPath.substring(1), hierarchyPath,
              null, data, hierarchy, listener);
     }
@@ -257,7 +257,7 @@ public class EVTask implements DataListener {
 
     protected EVTask(EVTask parent, String taskListName, String name,
                      String fullName, PropertyKey key, DataRepository data,
-                     PSPProperties hierarchy, Listener listener)
+                     DashHierarchy hierarchy, Listener listener)
     {
         this.parent = parent;
         this.name = name;
@@ -289,7 +289,7 @@ public class EVTask implements DataListener {
      */
     protected boolean addChildrenFromHierarchy(String fullName,
                      PropertyKey key, DataRepository data,
-                     PSPProperties hierarchy, Listener listener)
+                     DashHierarchy hierarchy, Listener listener)
     {
         boolean addedChild = false;
 

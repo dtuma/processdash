@@ -39,10 +39,10 @@ import javax.swing.table.*;
 import javax.swing.event.*;
 
 import net.sourceforge.processdash.ev.ci.*;
+import net.sourceforge.processdash.i18n.Resources;
 
 import org.w3c.dom.Element;
 
-import pspdash.Resources;
 import pspdash.Settings;
 import pspdash.data.DoubleData;
 

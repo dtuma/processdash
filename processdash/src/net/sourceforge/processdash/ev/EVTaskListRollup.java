@@ -30,8 +30,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import net.sourceforge.processdash.hier.DashHierarchy;
+
 import pspdash.ObjectCache;
-import pspdash.PSPProperties;
 import pspdash.data.DataRepository;
 import pspdash.data.ListData;
 import pspdash.data.SimpleData;
@@ -50,7 +51,7 @@ public class EVTaskListRollup extends EVTaskList {
      */
     public EVTaskListRollup(String taskListName,
                             DataRepository data,
-                            PSPProperties hierarchy,
+                            DashHierarchy hierarchy,
                             ObjectCache cache,
                             boolean willNeedChangeNotification) {
         super(taskListName, taskListName, willNeedChangeNotification);
@@ -81,7 +82,7 @@ public class EVTaskListRollup extends EVTaskList {
     }
 
     private void addTaskListsFromData(DataRepository data,
-                                      PSPProperties hierarchy,
+                                      DashHierarchy hierarchy,
                                       ObjectCache cache,
                                       String taskListName) {
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
@@ -139,7 +140,7 @@ public class EVTaskListRollup extends EVTaskList {
 
     public EVTask createAndAddTask(String path,
                                    DataRepository data,
-                                   PSPProperties hierarchy,
+                                   DashHierarchy hierarchy,
                                    ObjectCache cache,
                                    boolean willNeedChangeNotification) {
 
