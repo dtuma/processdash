@@ -376,9 +376,12 @@ public class DataRepository implements Repository {
 
                     if (t == null)
                         elements.put(CIRCULARITY_TOKEN, Thread.currentThread());
-                    else if (t != Thread.currentThread())
+                    else if (t != Thread.currentThread()) {
+                        System.out.println("waiting for other thread...");
+                        try { elements.wait(); } catch (InterruptedException ie) {}
+                        System.out.println("waiting done.");
                         return;
-                    else {
+                    } else {
                         if (listenerName != null) {
                             System.err.println("Infinite recursion encountered while " +
                                                "recalculating " + listenerName +
@@ -404,7 +407,6 @@ public class DataRepository implements Repository {
                     if (activeListener != null)
                         fireEvent(activeListener);
                 }
-                elements.remove(CIRCULARITY_TOKEN);
 
                                         // Build a list of data events to send
                 elements = ((Hashtable) notifications.remove(dl));
@@ -412,29 +414,34 @@ public class DataRepository implements Repository {
                     activeListeners.remove(listenerName);
                 if (elements == null) return;
 
-                Vector dataEvents = new Vector();
-                names = elements.keys();
-                while (names.hasMoreElements()) {
-                    name = (String) names.nextElement();
-                    d    = (DataElement) elements.get(name);
-                    dataEvents.addElement(new DataEvent(DataRepository.this, name,
-                                                        DataEvent.VALUE_CHANGED,
-                                                        d.getValue() == null ? null :
-                                                        d.getSimpleValue()));
-                }
-
-                                        // send the data events via dataValuesChanged()
                 try {
-                    dl.dataValuesChanged(dataEvents);
-                } catch (RemoteException rem) {
-                    System.err.println(rem.getMessage());
-                    System.err.println("    when trying to notify a datalistener.");
-                } catch (Exception e) {
-                    // Various exceptions, most notably NullPointerException, can
-                    // occur if we erroneously notify a DataListener of changes *after*
-                    // it has unregistered for those changes.  Such mistakes can happen
-                    // due to multithreading, but no harm is done as long as the
-                    // exception is caught here.
+                    elements.remove(CIRCULARITY_TOKEN);
+                    Vector dataEvents = new Vector();
+                    names = elements.keys();
+                    while (names.hasMoreElements()) {
+                        name = (String) names.nextElement();
+                        d    = (DataElement) elements.get(name);
+                        dataEvents.addElement(new DataEvent(DataRepository.this, name,
+                                                            DataEvent.VALUE_CHANGED,
+                                                            d.getValue() == null ? null :
+                                                            d.getSimpleValue()));
+                    }
+
+                                          // send the data events via dataValuesChanged()
+                    try {
+                        dl.dataValuesChanged(dataEvents);
+                    } catch (RemoteException rem) {
+                        System.err.println(rem.getMessage());
+                        System.err.println("    when trying to notify a datalistener.");
+                    } catch (Exception e) {
+                        // Various exceptions, most notably NullPointerException, can
+                        // occur if we erroneously notify a DataListener of changes *after*
+                        // it has unregistered for those changes.  Such mistakes can happen
+                        // due to multithreading, but no harm is done as long as the
+                        // exception is caught here.
+                    }
+                } finally {
+                    synchronized (elements) { elements.notifyAll(); }
                 }
             }
 
