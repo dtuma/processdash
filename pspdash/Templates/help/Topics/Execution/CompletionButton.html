@@ -31,87 +31,26 @@ complete.</P>
 still do so even if the completion checkbox has been pressed.  The dashboard 
 will still accumulate time in whatever phase you make current.</P>
 
-<p>As a convenience, if you mark the final <b>phase</b> in a project complete,
-it will automatically mark the <b>project</b> complete as well.  Still, the
-completion flag for the project and the completion flag for the last phase are
-distinct entities, so marking the final phase incomplete will <b>not</b> also
-mark the project incomplete.  You can typically edit the project completion
-flag via the Project Plan Summary form.</p>
+<p>By default, a <B>project</B> will be considered complete when all the <B>phases</B>
+in the project have been marked complete. However, if you manually edit the
+project completion date on the plan summary form, you have manually
+overridden this behavior.&nbsp; From then on, the project completion status
+must be edited manually; it will no longer respond to changes in phase
+completion status.</p>
 
 <P>It is worth remembering that the "To Date" data entries, the data analysis
-reports, and the PROBE tool only use data from projects that are marked
+reports, and the PROBE tool only use data from <B> projects</B> that are marked
 complete, so it is good to make a habit of marking your projects complete,
 either with the completion checkbox or via the Project Plan Summary form.</p>
 
-<a name="freeze"></a><h2>"Freezing" data</h2>
+<P>Also remember that the task and schedule tool tracks your progress by
+looking to see which <B>tasks</B> have been marked complete, so it is good
+to make a habit of marking phases complete. To help you keep track of what
+has and hasn't been marked complete, the hierarchy menus will display a
+checkmark to the right of completed tasks.</p>
 
-<P>By default, the dashboard will "freeze" appropriate pieces of data when 
-the corresponding project phase is marked as completed.  The two points where 
-this happens are at the end of the Planning phase and at the end of the 
-project.</p>
-
-<P>In PSP process levels 0.1 and above, when you are planning your project 
-the dashboard will use your historical data to help you create an estimate of 
-how your total time will be distributed across the process phases.  Once you 
-click the completion checkbox to complete the planning phase, your time 
-estimate and those computed data elements will be frozen so that your planned 
-data will always stay constant (if you really want to know more about why 
-this is necessary, read the <a href="#gory">gory details</a> section).</p>
-
-<P>When you click the completion checkbox on the postmortem phase of the 
-project, the project itself gets marked as completed.  At this point the To 
-Date numbers will be brought up to date and frozen.  This will enable you to 
-view this report again in the future without having the To Date numbers 
-changing in the report.</p>
-
-<P>One side effect of the freezing of data is that if you want to change your
-time or size estimate, you will have to navigate back to the Planning phase
-and mark it as incomplete by clicking the completion checkbox again.  Once it
-has been marked as incomplete the dashboard will allow you to enter a
-different estimate.</p>
-
-<p>The same is true of the To Date items on the report.  If you navigate back
-to an old project and start logging time to it, the "Actual" columns will
-update as required, but the To Date columns will not.  You will need to mark
-the project as incomplete so that the To Date items will thaw out and
-recalculate.</p>
-
-<a name="gory"></a><h3>The gory details</h3>
-
-<P>The "To Date" elements on the forms are set up to always recalculate 
-themselves based on all the completed data in the dashboard's database.  This 
-is fine for most circumstances.  However, if you ever want to go back and 
-look at a Project Plan Summary form (or other report or chart) from an older 
-completed project, the dashboard would recalculate those To Date elements all 
-over again.  This time the calculation would include data that was not 
-available at the time the project was originally finished.  This would 
-preclude anyone from being able to reproduce a previous Project Plan Summary 
-accurately.</p>
-
-<P>Actually, it gets a bit worse.  Since the estimates of time spent in each 
-of the process phases is based on the To Date data, all the estimates would 
-be changing on those older forms as well.  In fact, once you had planned your 
-estimates for time in the various phases, those planned times would 
-immediately change on the Project Plan Summary at the end of the project when 
-you completed the current project.  The current project's data would be 
-incorporated back into those estimates!</p>
-
-<P>The way we chose to deal with this problem is to introduce the freezing of 
-data elements.  Now, once your planning is finished the data will freeze and 
-not be "corrupted" by the finishing of the current project.  Also it becomes 
-possible to recreate older Project Plan Summary forms since their formulas 
-won't be changing anymore.</p>
-
-<P>If you do not desire this kind of behavior (e.g. you <b>always</b> want 
-the To Date items to reflect the current situation) you can turn off this 
-behavior by setting the <B><code>dataFreezing.disabled</code></B> option in
-the configuration file.  For more information about the configuration file
-and what can be set there, see the <a 
-href="../AdvancedTopics/ConfigurationFile.html">configuration file</a> help 
-topic.</p>
-
-
-<!-- DISCLAIMER -->
+<P ALIGN="center"><IMG BORDER="0" SRC="../../Images/HierarchyMenus4.png"
+WIDTH="337" HEIGHT="178"></p>
 
 </BODY>
 </HTML>

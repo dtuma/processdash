@@ -20,13 +20,15 @@
  <LI><a href="FAQ.html#WhereData">Where is my PSP data stored?</A></LI>
  <LI><a href="FAQ.html#MoveData">How can I backup my psp data and/or move it to another computer?</A></LI>
  <LI><a href="FAQ.html#FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
+ <LI><A HREF="#ExtDocFail">I click on a document hyperlink in a process
+  script, but the document never opens.</A></LI>
  <LI><a href="FAQ.html#DCRSCR">What happened to the DCR and SCR processes?</A></LI>
  <LI><a href="FAQ.html#Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</A></LI>
  <LI><a href="FAQ.html#Website">Where can I get the latest information about the Process Dashboard?</A></LI>
  <LI><a href="FAQ.html#BugReport">I think I've found a bug.  Whom do I contact?</A></LI>
 </UL>
 
-<P><HR><a name="NoServer"></a><B>My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</B></P>
+<P><HR><a name="NoServer"></a><B>My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</B>
 
 <P>The dashboard actually contains a very small HTTP server that provides all
 the web content and thus the content cannot be displayed when the dashboard is
@@ -51,10 +53,10 @@ is running.</p>
    <LI>For Netscape, choose "Edit &gt; Preferences". Under the Category 
       "Advanced &gt; Proxies", click the "Manual proxy configuration" button, 
       and ensure that the "No Proxy for" box contains "localhost".</LI>
-  </UL></p>
+  </UL>
 
 
-<P><HR><a name="NoConnection"></a><B>All my data elements say "NO CONNECTION".  What is wrong?</B></P>
+<P><HR><a name="NoConnection"></a><B>All my data elements say "NO CONNECTION".  What is wrong?</B>
 
 <P>The forms always display "live" data - this allows them to auto-recalculate
 numbers (like a spreadsheet does) when you edit data.  It also allows changes
@@ -69,7 +71,7 @@ it back to the dashboard's data repository. To fix the problem, you must
 <OL>
  <LI>restart the dashboard</li>
  <LI>click the refresh button on your browser.</li>
-</OL></P>
+</OL>
 
 <P>If the dashboard <em>is running</em> and you are still getting "NO 
 CONNECTION" in the data elements, it could be that the data port that the 
@@ -92,7 +94,7 @@ problem, you must</p>
 <P>This will allow the dashboard to search for an available communications 
 port.</p>
 
-<P><HR><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B></P>
+<P><HR><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B>
 <P>Any time the dashboard runs into an error (like divide-by-zero) when
 calculating a particular data value, "ERROR" will show up in the web browser
 for that data element. Many times this is due to having a very small number of
@@ -110,7 +112,7 @@ only report tasks that are marked as complete.  See the <a
 href="../Execution/CompletionButton.html">Using the Completion Checkbox</a> 
 help topic for more information.</P>
 
-<P><HR><a name="BadExcel"></a><B>I tried to export my data to Excel with the link on one of the forms, but I just got a small ASCII file.  What is wrong?</B></P>
+<P><HR><a name="BadExcel"></a><B>I tried to export my data to Excel with the link on one of the forms, but I just got a small ASCII file.  What is wrong?</B>
 
 <P>For the "Export to Excel" functionality to work seamlessly, you must have 
 the ".IQY" file type properly set up on your system.  This setup is normally 
@@ -129,7 +131,7 @@ href="../AdvancedTopics/ConfigurationFile.html">configuration file</a>:</p>
  excel.exportMethod=mime
 </pre>
 
-<P><HR><a name="WhereIsConfig"></A><B>Where is the configuration file located?</B></P>
+<P><HR><a name="WhereIsConfig"></A><B>Where is the configuration file located?</B>
 <P>The configuration file is named <code>.pspdash</code> on Unix systems and
 <code>pspdash.ini</code> on Windows systems.  It can be located in either of
 two places: the user's data directory or the user's home directory (on Unix 
@@ -141,7 +143,7 @@ href="../AdvancedTopics/ConfigurationFile.html">configuration file</A> help
 topic for more information about the configuration file and the settings that
 can be defined there.</P>
 
-<P><HR><a name="NoSubmit"></A><B>Why is there no "submit" button on the HTML forms?</B></P>
+<P><HR><a name="NoSubmit"></A><B>Why is there no "submit" button on the HTML forms?</B>
 <P>The HTML forms used by the dashboard are continually "live".  There is no 
 need to press a submit button to send your data to the dashboard.  Simply 
 enter your data where necessary, and the dashboard will record it.  However,
@@ -151,7 +153,7 @@ else on the page. If the data you are changing is related to other data items
 on the page, you should see the other data elements update.</P>
 
 
-<P><HR><a name="TimerUpdate"></a><B>I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</b></P>
+<P><HR><a name="TimerUpdate"></a><B>I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</b>
 
 <p>When the timer is running and you first navigate to an activity, the
 dashboard will not create an entry in the time log until you have spent a full
@@ -167,7 +169,7 @@ determined by positioning the mouse pointer over the play/pause button.  A
 tooltip help will pop up containing the current state.</p> 
 
 
-<P><HR><a name="FrozenData"></a><B>I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</b></P>
+<P><HR><a name="FrozenData"></a><B>I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</b>
 <P>The dashboard will "freeze" your planning data once you have completed the 
 planning phase by clicking the completion checkbox.  Also it will freeze all 
 the data when the project is marked as complete.  You can make these numbers 
@@ -176,7 +178,7 @@ again.  For more info on freezing data see the <a
 href="../Execution/CompletionButton.html">completion checkbox</a> help 
 topic.</p>
 
-<P><HR><a name="WhereData"></a><B>Where is my PSP data stored?</B></P>
+<P><HR><a name="WhereData"></a><B>Where is my PSP data stored?</B>
 <P>The dashboard stores all of your data in a single directory, in plain text
 files.  This directory is often referred to in this documentation as the "data
 directory".  With the current default configuration, data is always stored in
@@ -196,7 +198,7 @@ directory.</P>
 settings".</p>
 
 
-<P><HR><a name="MoveData"></A><B>How can I backup my psp data and/or move it to another computer?</B></P>
+<P><HR><a name="MoveData"></A><B>How can I backup my psp data and/or move it to another computer?</B>
 
 <P>If you want to backup your psp data, simply back up the contents of your
 <a href="#WhereData">data directory</a>.  To move your psp data to a different
@@ -205,10 +207,10 @@ computer,<UL>
 <LI>copy the contents of your data directory to a directory on the new
     computer</LI>
 <LI>run the dashboard on the new computer, using the chosen directory as the
-    data directory.</LI></UL></P>
+    data directory.</LI></UL>
 
 
-<P><HR><a name="FormsColors"></a><b>What is the significance of the different text colors on the PSP process scripts and forms?</b></p>
+<P><HR><a name="FormsColors"></a><b>What is the significance of the different text colors on the PSP process scripts and forms?</b>
 <P>In his book <I>A Discipline for Software Engineering</I> where he outlines 
 the Personal Software Process, Watts Humphrey introduces the various process 
 elements for doing PSP work in a graduated manner.  Each PSP process is built 
@@ -229,7 +231,25 @@ certain steps are performed (e.g.  instead of performing a PROBE calculation,
 the PROBE tool should be used).  Green text is used to indicate this slight
 departure from the <i>true</i> PSP scripts and forms.</P>
 
-<P><HR><a name="DCRSCR"></a><b>What happened to the DCR and SCR processes?</b></p>
+<P><HR><a name="ExtDocFail"></a><b>I click on a document hyperlink in a
+process script, but the document never opens.</b><P>For maximum
+portability, the document templates provided with the dashboard are rich
+text files (.rtf). Some browsers (most notably Netscape on the Linux
+platform) don't know what to do with a rich text file, and so they prompt
+you to save it (not very helpful). To solve this problem, you must:</P>
+
+
+<OL>
+  <LI>Obtain a program capable of editing rich text files, and install it
+    on your machine.&nbsp; (&quot;Star Office&quot; is one possibility; it
+    is free and runs on Linux.)</LI>
+  <LI>Configure your web browser, and tell it that files of mime type
+    &quot;application/rtf&quot; should be opened with the program you just
+    installed.</LI>
+</OL>
+
+
+<P><HR><a name="DCRSCR"></a><b>What happened to the DCR and SCR processes?</b>
 <P>The DCR and SCR processes which were shipped with prior versions of the 
 Process Dashboard are still available, but are now distributed as add-on 
 process sets.  They can be downloaded from the Process Dashboard website at 
@@ -237,7 +257,7 @@ process sets.  They can be downloaded from the Process Dashboard website at
 installation of add-on process sets, see the <a 
 href="../Overview/HowToInstall.html">installation</a> help topic.</p>
 
-<P><HR><a name="Auto"></a><B>I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</B></P>
+<P><HR><a name="Auto"></a><B>I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</B>
 
 <P>Yes! If you issue an HTTP request of the form:
 
@@ -258,14 +278,14 @@ to change the current hierarchy path <b>and</b> start the timer, use
 
 <B>Note</B>: these commands will have no effect unless the HTTP
 request originates from the same machine where the dashboard is
-running.</P>
+running.
 
-<P><HR><a name="Website"></a><b>Where can I get the latest information about the Process Dashboard?</b></p>
+<P><HR><a name="Website"></a><b>Where can I get the latest information about the Process Dashboard?</b>
 <P>The latest developments in the development of the Process Dashboard, 
 including the latest version, can be found at 
 <em>http://processdash.sourceforge.net.</em></p>
 
-<P><HR><a name="BugReport"></a><B>I think I've found a bug.  Whom do I contact?</b></p>
+<P><HR><a name="BugReport"></a><B>I think I've found a bug.  Whom do I contact?</b>
 <P>You can fill out a bug form on our web site at 
 <em>http://sourceforge.net/bugs/?group_id=9858</em> or if you would rather 
 send us an email, write to <em>processdash-devel@lists.sourceforge.net</em></p>

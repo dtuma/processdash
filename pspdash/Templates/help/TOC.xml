@@ -30,6 +30,7 @@
       <tocitem image="PageIcon" target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
       <tocitem image="PageIcon" target="UsingProbeTool" text="Using the PROBE Tool"/>
       <tocitem image="PageIcon" target="UsingTaskSchedule" text="Using the Task &amp; Schedule Tool"/>
+      <tocitem image="PageIcon" target="DataFreezing" text="Data Freezing"/>
     </tocitem>
 
     <tocitem image="BookIcon" target="Execution" text="Running the Dashboard">
@@ -49,29 +50,29 @@
       <tocitem image="PageIcon" target="ExportingData" text="Exporting your data"/>
     </tocitem>
 
-    <tocitem image="BookIcon" target="FAQ" text="TroubleShooting">
-      <tocitem image="PageIcon" target="FAQ" text="FAQ - Frequently Asked Questions"/>
-    </tocitem>
+    <tocitem image="PageIcon" target="FAQ" text="Troubleshooting / FAQ"/>
 
     <tocitem image="BookIcon" target="ConfigurationFile" text="Advanced Topics">
       <tocitem image="PageIcon" target="ConfigurationFile" text="The configuration file"/>
-      <tocitem image="PageIcon" target="MinorProcessChanges" text="Making minor changes to the built-in processes"/>
-      <tocitem image="BookIcon" target="DefiningOwnProcesses" text="Defining your own custom processes">
-         <tocitem image="PageIcon" target="ThinkProcessesThrough" text="Think your process through carefully"/>
-         <tocitem image="PageIcon" target="CreateProcessStepByStep" text="Making a simple process step by step"/>
-         <tocitem image="BookIcon" target="ProcessDefinitionArch" text="The process definition architecture">
-            <tocitem image="PageIcon" target="TemplateXmlFiles" text="The -template.xml files"/>
-            <tocitem image="PageIcon" target="HTMLScriptsAndForms" text="HTML process scripts and forms"/>
-            <tocitem image="BookIcon" target="Data-CalcFormulaFiles" text="Data/calculation formula files">
-               <tocitem image="PageIcon" target="FittingDataTogether" text="How the data fits together"/>
-               <tocitem image="PageIcon" target="DataFileSyntax" text="Data file syntax"/>
-               <tocitem image="PageIcon" target="DataFileFunctions" text="Available functions"/>
-            </tocitem>
-         <tocitem image="PageIcon" target="DashboardFindsFiles" text="How the dashboard finds the files"/>
-         <tocitem image="PageIcon" target="CustomDefectTypeStandard" text="Defining a custom Defect Type Standard for your process"/>
-      </tocitem>
-     
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>
+      <tocitem image="PageIcon" target="DashboardFindsFiles" text="How the dashboard finds the files"/>
+
+
+      <!-- tocitem image="PageIcon" target="MinorProcessChanges" text="Making minor changes to the built-in processes"/ -->
+      <!-- tocitem image="BookIcon" target="DefiningOwnProcesses" text="Defining your own custom processes" -->
+         <!-- tocitem image="PageIcon" target="ThinkProcessesThrough" text="Think your process through carefully"/ -->
+         <!-- tocitem image="PageIcon" target="CreateProcessStepByStep" text="Making a simple process step by step"/ -->
+         <!-- tocitem image="BookIcon" target="ProcessDefinitionArch" text="The process definition architecture" -->
+            <!-- tocitem image="PageIcon" target="TemplateXmlFiles" text="The -template.xml files"/ -->
+            <!-- tocitem image="PageIcon" target="HTMLScriptsAndForms" text="HTML process scripts and forms"/ -->
+            <!-- tocitem image="BookIcon" target="Data-CalcFormulaFiles" text="Data/calculation formula files" -->
+               <!-- tocitem image="PageIcon" target="FittingDataTogether" text="How the data fits together"/ -->
+               <!-- tocitem image="PageIcon" target="DataFileSyntax" text="Data file syntax"/ -->
+               <!-- tocitem image="PageIcon" target="DataFileFunctions" text="Available functions"/ -->
+            <!-- /tocitem -->
+         <!-- tocitem image="PageIcon" target="CustomDefectTypeStandard" text="Defining a custom Defect Type Standard for your process"/ -->
+      <!-- /tocitem -->
+
     </tocitem>
   </tocitem>
 </toc>

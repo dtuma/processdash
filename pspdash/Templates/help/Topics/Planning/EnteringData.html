@@ -32,14 +32,14 @@ windows. There is no need to press any kind of &quot;submit data&quot;
 button.</P>
 
 <P>After typing in a value, you must generally &quot;leave&quot; that input
-field to signal that you are finished entering information.&nbsp; Pressing
+field to signal that you are finished entering information. Pressing
 the &quot;Tab&quot; key (to move to the next input field) or clicking
-anywhere else on the page is generally sufficient.&nbsp; As soon as the
+anywhere else on the page is generally sufficient. As soon as the
 &quot;input cursor&quot; leaves the field in question, the dashboard will
 automatically pick up your data, recalculate related data items, and save
 your data for future sessions.</P>
 
-<P>If you enter an invalid value in for a data item (for example, typing
+<P>If you enter an invalid value for a data item (for example, typing
 &quot;foo&quot; in an input field that is expecting a number), the
 dashboard will reject the invalid value and restore the previous value for
 that input field.</P>
@@ -49,30 +49,43 @@ that input field.</P>
 to enter a value for that data item. Therefore, you should ensure that
 there are no &quot;<code>?????</code>&quot; symbols in the &quot;<B>Plan</B>&quot;
 column of your project plan summary before marking the <B>Planning</B> 
-phase complete.&nbsp; Similarly, make certain you fill in all missing
+phase complete. Similarly, make certain you fill in all missing
 values in the &quot;<B>Actual</B>&quot; column of your project plan summary
 before marking the project complete.</P>
 
 <P>If the dashboard cannot recalculate a formula because the formula
 references a missing (&quot;<code>?????</code>&quot;) or otherwise invalid data value,
-it will display &quot;<code>#VALUE!</code>&quot; as the result of the calculation.&nbsp;
+it will display &quot;<code>#VALUE!</code>&quot; as the result of the calculation.
 When you see &quot;<code>#VALUE!</code>&quot; in a dashboard form, it almost <I>always</I>
 means that there is a &quot;<code>?????</code>&quot; field somewhere that you still need
 to fill in.</P>
 
 <P>If the dashboard recalculates a formula and encounters a divide-by-zero
 error, it will display &quot;<code>#DIV/0!</code>&quot; as the result of the
-calculation.&nbsp; Divide-by-zero errors are common when you first begin
+calculation. Divide-by-zero errors are common when you first begin
 using the dashboard, since you will not have any historical data.</P>
 
 <P>To make all this possible, the dashboard software actually contains a very small 
 HTTP server embedded within it.  This server allows communication between the 
-HTML pages and the process data that is tracked by the dashboard.&nbsp; If
+HTML pages and the process data that is tracked by the dashboard. If
 you close the dashboard program while one of the HTML forms is open, the
 form will reset and display &quot;<code>NO&nbsp;CONNECTION</code>&quot;. You can reestablish
 the connection simply by restarting the dashboard, then telling your
 browser to reload the HTML
 page.</P>
+
+<H2>Frozen Calculations</H2>
+
+<P>If you edit the value in an input field, and related data items don't
+recalculate, the data is probably <I>frozen</I>. Remember that when you
+mark the planning phase of a PSP project complete, all the
+&quot;Planned&quot; data elements are baselined and stop recalculating.
+Similarly, when you mark a PSP project complete, the &quot;Actual&quot; and
+&quot;To Date&quot; data elements will freeze and stop recalculating. So if
+you expect formulas to recalculate and they don't, check to make certain
+that the planning phase and the entire project are <U>not</U> marked
+complete.&nbsp; For more information, see the <A HREF="DataFreezing.html">Data
+Freezing</A> help topic.</P>
 
 <h2>Exporting form data</h2>
 
@@ -106,7 +119,7 @@ rather they will update when other data elements to which they are related
 get updated.  If you are using Internet Explorer, these values are
 displayed with a grey background.</p>
 
-<P>Sometimes you may decide that you want to <b> override</b> one or more
+<P><A NAME="unlock"></A>Sometimes you may decide that you want to <b> override</b> one or more
 of these calculated values.  You can "unlock" these read-only data elements
 by clicking on the &quot;<u>Unlock read-only data</u>&quot; link at the
 bottom of the page.  Unlocking read-only data will make all the elements on

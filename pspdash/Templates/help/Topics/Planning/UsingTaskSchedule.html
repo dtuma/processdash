@@ -7,5 +7,201 @@
 
 <H1>The Task &amp; Schedule Tool</H1>
 
+<P>The task and schedule tool allows you to generate a schedule for
+completing tasks, and track progress against that schedule using earned
+value. You can open the task and schedule tool by selecting the &quot;Task
+&amp; Schedule&quot; option on the <a href="../Execution/ConfigureMenu.html">configure
+menu</a>.</P>
+
+<P>If you haven't created any schedules, the dashboard will immediately
+jump to the &quot;Create New Schedule&quot; prompt. If you have already created at least one schedule, a task &amp; schedule
+chooser window will appear.</P>
+<P ALIGN="center"><IMG BORDER="0"
+SRC="../../Images/TaskScheduleChooser.png" width="363" height="230"></P>
+<P>This window displays all the schedules you have created. After you click
+on a schedule to highlight it, you can use the buttons along the bottom to
+open it, rename it, or delete it. The &quot;Cancel&quot; button will close
+this window.</P>
+<P>Clicking the &quot;New...&quot; button will create a new schedule. The
+dashboard will ask you to enter a name for the new schedule. Enter a name
+and press OK. An empty task &amp; schedule window will appear, and will
+immediately prompt you for the first task you want to add to the schedule. </P>
+<P>The task &amp; schedule window combines the PSP task planning template
+(table C47) and the schedule planning template (table C49) into one window.
+&nbsp;The top portion of the window contains the list of tasks that are
+included in this schedule, and the bottom portion of the window displays
+the time periods included in the schedule. </P>
+<P ALIGN="center"><IMG BORDER="0" SRC="../../Images/TaskSchedule.png"
+WIDTH="386" HEIGHT="368"> </P>
+<P ALIGN="left">Editable values appear with a yellow background. If you are
+unfamiliar with the various columns in the task and schedule planning
+templates, you can hover the pointer over the column headings and a tool
+tip will tell you what the abbreviated heading stands for. </P>
+<H2>Step 1: Add tasks to the task list&nbsp; </H2>
+<P>To create a schedule, you decide what tasks you want included in the
+schedule, and add them with the &quot;Add Task...&quot; button. You can
+add&nbsp;any node in your hierarchy to the task list; it will be added,
+along with all its children, recursively. As an improvement over the
+traditional task planning template, the dashboard displays your task list
+in a hierarchical fashion. You can expand and contract this hierarchical
+view to get coarser- or finer-grained data. </P>
+<P>It is also worth pointing out that if you edit your hierarchy in the
+future (using the <A HREF="UsingHierarchyEditor.html">hierarchy editor</A>),
+your changes will automatically propagate into affected task lists. For
+example, if you add a node named &quot;Release 3.0&quot; to a task list,
+then in the future if you were to create/delete subtasks underneath
+&quot;Release 3.0&quot;, they would automatically appear in the task list /
+disappear from the task list.) </P>
+<P>Once you have added tasks to the task list, you can use the &quot;Delete
+Task...&quot; button to remove them, and the &quot;Move Task Up/Down&quot;
+buttons to alter their relative order. Note that these options are only
+available for the <U>top-level</U> tasks. (Top-level tasks are the tasks
+that you explicitly added using the &quot;Add Task...&quot; button; in the
+task list, they appear as immediate children of the root of the tree.) At
+this time it is not possible to delete sub-tasks from your task list or
+change their relative order. If you want to do either of these things, you
+have two choices: </P>
+<UL>
+  <LI>Make the changes in the hierarchy editor (for example, moving nodes
+    up or down to change the relative ordering of tasks)</LI>
+  <LI>Manually add all the subtasks to the task list as top-level tasks
+    instead of adding their parent to the task list.</LI>
+</UL>
+<P>You should generally try to put the tasks in chronological order (the
+first task in the list should be the one you plan to work on first, and so
+on). Once you have added tasks to your task list, it wouldn't hurt to click
+the &quot;Save&quot; button.&nbsp;</P>
+<H2>Step 2: Estimate task time </H2>
+<P>Once tasks are added to the task list, the dashboard will look up
+information like the planned time, actual time, etc. from the appropriate
+project plan summary forms, and display it in the appropriate boxes. You
+can click on any value with a yellow background and edit it, and the change
+will appear immediately on the associated project plan summary form.
+(Similarly, if you edit one of these values on a project plan summary form,
+the new value will automatically appear here in the task list.)</P>
+
+<P>If
+some tasks still have a planned time (the column heading is &quot;PT&quot;)
+of 0:00, you can enter your time estimates for those tasks
+now.</P>
+
+<H2>Step 3: Estimate calendar time</H2>
+
+<P>To generate a schedule, the dashboard needs to know how much time you
+plan to spend working on these tasks, and when you plan to spend it. This
+information is displayed in the bottom portion of the window. Each row in
+the table represents a time period. These time periods are consecutive;
+each time period begins when the previous time period ends.</P>
+
+<P>Think about how much time you have available to work on the tasks listed
+in your task list. Describe a time period by entering the dates it will
+start and stop, and in the &quot;PT&quot; (Planned Time) column enter the
+number of hours you think you can spend during that time period.</P>
+
+<P>Most of the time people have fairly predictable schedules - for example,
+you might say &quot;I'm going to spend 20 hours a week on this until it
+gets done.&quot; Since this is the most common situation, the schedule
+will, by
+default, grow automatically to meet the demand. You don't have to
+manually add rows to your schedule until there are enough hours to cover
+the tasks - instead, the schedule template will automatically duplicate the
+final row in the table until there are enough hours. You can easily see
+where the automatic portion of the schedule starts because the automatic
+rows are displayed with a medium gray font. Thus, the black rows in the
+schedule template are rows that you have manually created/edited, and the
+gray rows are the ones which have been automatically added to meet the time
+requirements. <I>(<B><A NAME="shortSchedule">Note</A></B>: you can disable this automatic schedule expansion
+simply by making the final manual row in your schedule contain zero planned hours.
+The dashboard recognizes that infinite duplications of the &quot;zero&quot; row
+will not help you get any more hours, so it leaves the schedule short and
+assigns some of your tasks the planned completion date of
+&quot;never&quot;.)</I>&nbsp;</P>
+
+<P> As in the task list, editable cells have a yellow background.
+Since time periods are contiguous, editing the &quot;To&quot; value on one row will cause the &quot;From&quot; value on
+the following row to change accordingly.
+Similarly, editing the &quot;From&quot; value on one row will cause the
+&quot;To&quot; value on the previous row to change. If you make changes to the last
+black row (which is used as a template and copied to make
+all the subsequent gray rows), all of the gray rows will be regenerated
+accordingly. If you edit a value in one of the gray rows, it (and all of
+the rows before it) will become &quot;real&quot;, and the row in question
+will become the new &quot;template row&quot; upon which subsequent gray
+rows will be based.</P>
+
+<P>If you need to extend the schedule past its optimal completion date,
+click the &quot;Add Row&quot; button to create a new row at the bottom of
+your schedule. The &quot;Insert Row&quot; button will split the currently
+selected time period into two separate rows, while the &quot;Delete
+Row&quot; will merge the currently selected time period with the one that
+follows it. (Note that it isn't possible to delete an automatically
+generated row. If you're trying to force your schedule to end early, you
+should do so by entering 0 planned hours for the final time period, as
+described <A HREF="#shortSchedule">above</A>.)</P>
+
+<H2>Step 4: Track your progress&nbsp;</H2>
+
+<P>With the list of tasks and the calendar of available time in place, the
+dashboard will calculate planned completion dates for each task. As you
+work, you should:</P>
+<UL>
+  <LI>Accurately log time against tasks using the <A
+    HREF="../Execution/PlayPause.html">play/pause button</A> and the <A
+    HREF="../Execution/UsingTimeLogEditor.html">time log editor</A>. Time
+    logged against tasks in your task list will appear in the &quot;Actual
+    Time&quot; columns of the task list and schedule list.</LI>
+  <LI>Mark tasks complete using the <A
+    HREF="../Execution/CompletionButton.html">completion checkbox</A>. When
+    tasks are marked complete, the completion date will appear in the task
+    list, and you will &quot;earn&quot; the planned value for that task.</LI>
+</UL>
+<P>While your project is in progress, you can click on the
+&quot;Chart&quot; button for access to earned value charts and numerical
+analyses:</P>
+<P ALIGN="center">&nbsp;<IMG BORDER="0"
+SRC="../../Images/TaskChartValue.png" WIDTH="322" HEIGHT="265"></P>
+<P ALIGN="center"><IMG BORDER="0" SRC="../../Images/TaskChartStats.png"
+WIDTH="325" HEIGHT="265"></P>
+<P ALIGN="left">If you prefer, you can view this information in HTML, and
+even export it Excel, by clicking the &quot;Report&quot; button.</P>
+<H2 ALIGN="left">The Save Button</H2>
+<P ALIGN="left">If you edit the schedule or the list of tasks, you will
+need to click the Save button to save your changes. If you edit
+yellow-background values in the task list, however, those changes will be
+saved transparently; pressing the save button is not necessary.</P>
+<HR>
+<H2>Potential mistakes</H2>
+<P>Be careful to avoid making the following mistakes when creating a
+schedule:</P>
+<P><B>Duplicate tasks</B>. Nothing currently prevents you from adding the
+same task to your task list more than once. This could easily happen, for
+example, if you add a task to your task list, then add its parent as well.
+If you do this, the dashboard will dutifully create a schedule as if you
+were performing the task twice.&nbsp;</P>
+<P><B>Conflicts between different schedules</B>. The dashboard lets you
+create multiple, independent schedules. It does not, however, offer any
+support for time management when multiple schedules are running
+concurrently. Nothing prevents you from creating twelve different
+concurrent schedules, and promising to spend 40 hours per week on each.
+Also, nothing prevents you from adding one task to multiple different
+schedules.</P>
+<P><B>Time estimates that don't add up</B>. The &quot;Planned Time&quot;
+(PT) column should always add up in a hierarchical manner; that is, the
+planned time for a parent node should always be equal to the sum of the
+planned times for all its children. This is almost always the case for the
+PSP processes that come with the dashboard. However, if you have <A
+HREF="EnteringData.html#unlock">unlocked</A> your data and overwritten
+calculations, times may no longer sum up correctly. When this occurs, the
+task list will use the children's plan time for calculations rather than
+the parent's.</P>
+<P><B>Calendar starts too late</B>. If some of the tasks in your task list
+were completed <I>before<B> </B></I>the start of the first time period in
+your schedule, or if you have logged time to some of the tasks in your task
+list <I>before<B> </B></I>the start of the first time period in your
+schedule, then some of the earned value calculations will be incorrect. You
+can easily spot this problem because the &quot;Actual&quot; lines for the
+&quot;Earned Value&quot; and/or &quot;Direct Hours&quot; charts will not
+start at zero.</P>
+
 </BODY>
 </HTML>
