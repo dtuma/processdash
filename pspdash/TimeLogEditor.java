@@ -85,7 +85,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     static final long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
 
     boolean tableContainsRows = false;
-    boolean selectedNodeHasNoChildren = false;
+    boolean selectedNodeLoggingAllowed = false;
 
     //
     // member functions
@@ -149,6 +149,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             }
         });
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+
+        setSelectedNode(dash.getCurrentPhase());
 
         applyFilter(false);
         cancelPostedChanges();
@@ -259,7 +261,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     }
 
 
-    protected static long parseTime (String s) {
+    public static long parseTime (String s) {
         int colon = s.indexOf (":");
         long lv = -1;
         if (colon >= 0) {
@@ -415,7 +417,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         if (resetTimes)
             setTimes();
 
-        addButton.setEnabled(tableContainsRows || selectedNodeHasNoChildren);
+        addButton.setEnabled(tableContainsRows || selectedNodeLoggingAllowed);
     }
 
     private void setFilter(Date from, Date to) {
@@ -506,8 +508,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         switch (table.table.convertColumnIndexToModel(col)) {
         case 0:                     //Logged To (key) (must exist in hierarchy)
             PropertyKey key = useProps.findExistingKey (newValue);
-            if (key == null || key.equals(tle.key) ||
-                useProps.getNumChildren(key) > 0) {
+            if (key == null || key.equals(tle.key) || !timeLoggingAllowed(key)) {
                 rv = false;
                 table.table.setValueAt (tle.key.path(), row, col);
             } else {
@@ -693,7 +694,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                               // else try to base new row on current tree selection
         else if ((selected = getSelectedNode()) != null &&
                  (key = treeModel.getPropKey(useProps, selected.getPath())) != null
-                 && (useProps.getNumChildren(key) == 0))
+                 && timeLoggingAllowed(key))
             tle = new TimeLogEntry (key, new Date(), 0, 0);
 
         else              // else try to base new row on last row of table
@@ -748,7 +749,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         postTimeChange (tle.key, - tle.minutesElapsed);
 
         tableContainsRows = (model.getRowCount() > 0);
-        addButton.setEnabled(tableContainsRows || selectedNodeHasNoChildren);
+        addButton.setEnabled(tableContainsRows || selectedNodeLoggingAllowed);
     }
 
     protected void summarize() {
@@ -885,9 +886,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         useProps.copy(newProps);
         treeModel.reload (useProps);
 
-        DefaultMutableTreeNode selNode = getSelectedNode();
-        selectedNodeHasNoChildren =
-            (selNode != null && selNode.getChildCount() == 0);
+        checkSelectedNodeLoggingAllowed();
 
         reload();
     }
@@ -938,10 +937,24 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         }
         Object [] path = tp.getPath();
         PropertyKey key = treeModel.getPropKey (useProps, path);
-
-        Prop val = useProps.pget (key);
-        selectedNodeHasNoChildren = (val.getNumChildren() == 0);
+        checkSelectedNodeLoggingAllowed(key);
         applyFilter (false);
+    }
+
+    private void checkSelectedNodeLoggingAllowed() {
+        TreePath selPath = tree.getSelectionPath();
+        PropertyKey key = null;
+        if (selPath != null) {
+            Object [] path = selPath.getPath();
+            key = treeModel.getPropKey (useProps, path);
+        }
+        checkSelectedNodeLoggingAllowed(key);
+    }
+    private void checkSelectedNodeLoggingAllowed(PropertyKey key) {
+        selectedNodeLoggingAllowed = timeLoggingAllowed(key);
+    }
+    private boolean timeLoggingAllowed(PropertyKey key) {
+        return TimeLog.timeLoggingAllowed(key, useProps, dashboard.data);
     }
 
 
@@ -1006,5 +1019,19 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     class SaveAction extends Object implements ActionListener {
         public void actionPerformed(ActionEvent e) { save(); }
     } // End of TimeLogEditor.SaveAction
+
+    /** Expand the hierarchy so that the given node is visible and selected.
+     */
+    public void setSelectedNode(PropertyKey path) {
+        if (path == null) return;
+        DefaultMutableTreeNode node =
+            (DefaultMutableTreeNode) treeModel.getNodeForKey(useProps, path);
+        if (node == null) return;
+
+        TreePath tp = new TreePath(node.getPath());
+        tree.clearSelection();
+        tree.scrollPathToVisible(tp);
+        tree.addSelectionPath(tp);
+    }
 
 }
