@@ -107,7 +107,7 @@ public class TemplateLoader {
         ByteArrayInputStream in =
             new ByteArrayInputStream(rollupXML.getBytes());
         try {
-            loadXMLProcessTemplate(templates, data, in, true);
+            loadXMLProcessTemplate(templates, data, null, in, true);
         } catch (IOException ioe) {}
     }
 
@@ -162,7 +162,8 @@ public class TemplateLoader {
 
                 if (filename.endsWith(XML_TEMPLATE_SUFFIX)) {
                     debug("loading template: " + filename);
-                    loadXMLProcessTemplate(templates, data, jarFile, false);
+                    String n = file.getName() + " (in " + jarURL + ")";
+                    loadXMLProcessTemplate(templates, data, n, jarFile, false);
                     foundTemplates = true;
                 } else if (filename.endsWith(TEMPLATE_SUFFIX)) {
                     debug("loading template: " + filename);
@@ -208,7 +209,8 @@ public class TemplateLoader {
                 try {
                     debug("loading template: " + f);
                     loadXMLProcessTemplate
-                        (templates, data, new FileInputStream(f), true);
+                        (templates, data, f.getPath(),
+                         new FileInputStream(f), true);
                     processTimestamp(f);
                     foundTemplates = true;
                 } catch (IOException ioe) {
@@ -265,6 +267,7 @@ public class TemplateLoader {
 
     private static void loadXMLProcessTemplate(PSPProperties templates,
                                                DataRepository data,
+                                               String filename,
                                                InputStream in, boolean close)
         throws IOException
     {
@@ -278,7 +281,9 @@ public class TemplateLoader {
             Document doc = XMLUtils.parse(in);
             root = doc.getDocumentElement();
         } catch (SAXException se) {
-            // FIXME: print an error message
+            String message = XMLUtils.exceptionMessage(se);
+            message = (message == null ? "" : ": " + message);
+            ErrorReporter.templates.logError("Error in " + filename + message);
             return;
         }
 

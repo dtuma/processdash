@@ -25,6 +25,7 @@
 
 package pspdash.data;
 
+import pspdash.ErrorReporter;
 import pspdash.PerlPool;
 
 import java.io.File;
@@ -1903,11 +1904,13 @@ public class DataRepository implements Repository {
                 tree.apply(loader);
 
             } catch (ParserException pe) {
-                throw new InvalidDatafileFormat("Could not parse " + filename + "; " +
-                                                pe.getMessage());
+                String message = "Could not parse " +filename+ "; " + pe.getMessage();
+                ErrorReporter.templates.logError(message);
+                throw new InvalidDatafileFormat(message);
             } catch (LexerException le) {
-                throw new InvalidDatafileFormat("Could not parse " + filename + "; " +
-                                                le.getMessage());
+                String message = "Could not parse " +filename+ "; " + le.getMessage();
+                ErrorReporter.templates.logError(message);
+                throw new InvalidDatafileFormat(message);
             } catch (LoadingException load) {
                 Exception root = load.getRoot();
                 if (root instanceof FileNotFoundException)

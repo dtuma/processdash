@@ -98,4 +98,20 @@ public class XMLUtils {
         return (val != null && val.length() > 0);
     }
 
+    public static String exceptionMessage(Exception e) {
+        String message = e.getMessage();
+        if (message == null) return null;
+
+        if (e instanceof SAXParseException) {
+            int line = ((SAXParseException) e).getLineNumber();
+            int column = ((SAXParseException) e).getColumnNumber();
+            if (line != -1 && column != -1)
+                message += " (on line " +line+ ", column " +column+")";
+            else if (line != -1)
+                message += " (on line " +line+ ")";
+        }
+
+        return message;
+    }
+
 }
