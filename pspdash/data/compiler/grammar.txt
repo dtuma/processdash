@@ -168,10 +168,7 @@ Productions
     {read_only} eq;
 
   value =
-    {date} date_literal |
     {null} null |
-    {true} true |
-    {false} false |
     {tag} tag |
 //  {block} block |
     {expression} expression;
@@ -195,6 +192,8 @@ Productions
 
   level5_expr =
     {null} level4_expr |
+    {true} true |
+    {false} false |
     {binary} [left]:level4_expr [op]:relop [right]:level4_expr;
 
   relop =
@@ -208,6 +207,7 @@ Productions
   level4_expr =
     {null} level3_expr |
     {string} string_literal |
+    {date} date_literal |
     {binary1} [left]:level4_expr [op]:stringop [right]:level3_expr |
     {binary2} [left]:level4_expr [op]:stringop [right]:string_literal;
 
