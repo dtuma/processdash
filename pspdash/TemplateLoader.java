@@ -53,6 +53,7 @@ import java.util.zip.ZipEntry;
 public class TemplateLoader {
 
     private static final String TEMPLATE_SUFFIX = ".template";
+    private static final String DATAFILE_SUFFIX = ".globaldata";
     private static final String TEMPLATE_DIR = "Templates/";
 
     public static PSPProperties loadTemplates(DataRepository data) {
@@ -65,7 +66,7 @@ public class TemplateLoader {
             /* If the user has specified a templates directory, search
              * through it for process templates.
              */
-            if (searchDirForTemplates(templates, template_directory))
+            if (searchDirForTemplates(templates, template_directory, data))
                 data.addDatafileSearchDir(template_directory);
 
         } else {
@@ -92,7 +93,7 @@ public class TemplateLoader {
 
                     // strip "file:/" from the beginning of the url.
                     String dirname = templateDirURL.substring(6);
-                    if (searchDirForTemplates(templates, dirname))
+                    if (searchDirForTemplates(templates, dirname, data))
                         data.addDatafileSearchDir(dirname);
 
                 } else {
@@ -104,7 +105,7 @@ public class TemplateLoader {
                     // from the end of the URL.
                     String jarFileURL = templateDirURL.substring
                         (4, templateDirURL.indexOf('!'));
-                    searchJarForTemplates(templates, jarFileURL);
+                    searchJarForTemplates(templates, jarFileURL, data);
                 }
             }
         }
@@ -143,7 +144,8 @@ public class TemplateLoader {
     }
 
     protected static boolean searchJarForTemplates(PSPProperties templates,
-                                                   String jarURL) {
+                                                   String jarURL,
+                                                   DataRepository data) {
         boolean foundTemplates = false;
         try {
             // debug("searching for templates in " + jarURL);
@@ -154,12 +156,22 @@ public class TemplateLoader {
             String filename;
             while ((file = jarFile.getNextEntry()) != null) {
                 filename = file.getName().toLowerCase();
-                if (filename.startsWith(TEMPLATE_DIR.toLowerCase()) &&
-                    filename.endsWith(TEMPLATE_SUFFIX) &&
-                    filename.lastIndexOf('/') == 9) {
+                if (!filename.startsWith(TEMPLATE_DIR.toLowerCase()) ||
+                    filename.lastIndexOf('/') != 9)
+                    continue;
+
+                if (filename.endsWith(TEMPLATE_SUFFIX)) {
                     // debug("loading template: " + filename);
                     templates.load(jarFile, false);
                     foundTemplates = true;
+                } else if (filename.endsWith(DATAFILE_SUFFIX)) {
+                    try {
+                        // debug("loading data: " + filename);
+                        data.addGlobalDefinitions(jarFile, false);
+                    } catch (Exception e) {
+                        debug("unable to load global process data from " +
+                              file.getName() + " in " + jarURL + ": " + e);
+                    }
                 }
             }
 
@@ -171,7 +183,8 @@ public class TemplateLoader {
     }
 
     protected static boolean searchDirForTemplates(PSPProperties templates,
-                                                   String directoryName) {
+                                                   String directoryName,
+                                                   DataRepository data) {
         // debug("searching for templates in " + directoryName);
         File[] process_templates = new File(directoryName).listFiles();
         if (process_templates == null) return false;
@@ -179,14 +192,26 @@ public class TemplateLoader {
         int i = process_templates.length;
         boolean foundTemplates = false;
         File f;
+        String filename;
         while (i-- > 0) {
             f = process_templates[i];
-            if (f.getName().toLowerCase().endsWith(TEMPLATE_SUFFIX)) try {
-                // debug("loading template: " + f);
-                templates.load(new FileInputStream(f));
-                foundTemplates = true;
-            } catch (IOException ioe) {
-                debug("unable to load process template: " + f);
+            filename = f.getName().toLowerCase();
+            if (filename.endsWith(TEMPLATE_SUFFIX)) {
+                try {
+                    // debug("loading template: " + f);
+                    templates.load(new FileInputStream(f));
+                    foundTemplates = true;
+                } catch (IOException ioe) {
+                    debug("unable to load process template: " + f);
+                }
+            } else if (filename.endsWith(DATAFILE_SUFFIX)) {
+                try {
+                    // debug("loading data: " + f);
+                    data.addGlobalDefinitions(new FileInputStream(f), true);
+                } catch (Exception e) {
+                    debug("unable to load global process data from " + f +
+                          ": " + e);
+                }
             }
         }
         return foundTemplates;

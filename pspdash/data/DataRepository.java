@@ -366,11 +366,11 @@ public class DataRepository implements Repository {
 
 
     DataNotifier dataNotifier;
-    Vector templateDirs;
+    Vector templateDirs = new Vector();
 
 
     public DataRepository() {
-        templateDirs = new Vector();
+        includedFileCache.put("<dataFile.txt>", globalDataDefinitions);
         dataServer = new RepositoryServer(this);
         dataRealizer = new DataRealizer();
         dataNotifier = new DataNotifier();
@@ -729,13 +729,13 @@ public class DataRepository implements Repository {
 
 
 
-//    public final SaveableData getSimpleValue(String name) {
-//      DataElement d = (DataElement)data.get(name);
-//      if (d == null || d.getValue() == null)
-//        return null;
-//      else
-//        return d.getSimpleValue();
-//    }
+    public final SimpleData getSimpleValue(String name) {
+        DataElement d = (DataElement)data.get(name);
+        if (d == null || d.getValue() == null)
+            return null;
+        else
+            return d.getSimpleValue();
+    }
 
 
 
@@ -791,7 +791,7 @@ public class DataRepository implements Repository {
 
 
     private static final String includeTag = "#include ";
-    private static final Hashtable includedFileCache = new Hashtable();
+    private final Hashtable includedFileCache = new Hashtable();
 
 
     private InputStream findDatafile(String path, File currentFile) throws
@@ -842,7 +842,7 @@ public class DataRepository implements Repository {
     // call to loadDatafile is made, using the same Hashtable.  Return the
     // name of the include file, if one was found.
 
-    private String loadDatafile(InputStream datafile, Map dest)
+    private String loadDatafile(InputStream datafile, Map dest, boolean close)
         throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
         // Initialize data, file, and read buffer.
@@ -878,7 +878,7 @@ public class DataRepository implements Repository {
                     // relative to the current file.  Such directives are not
                     // currently used by the dashboard, so nothing will break.)
                     loadDatafile(findDatafile(inheritedDatafile, null),
-                                 cachedIncludeFile);
+                                 cachedIncludeFile, true);
                     cachedIncludeFile = Collections.unmodifiableMap(cachedIncludeFile);
                     includedFileCache.put(inheritedDatafile, cachedIncludeFile);
                 }
@@ -901,10 +901,17 @@ public class DataRepository implements Repository {
             }
         }
         finally {
-            in.close();
+            if (close) in.close();
         }
 
         return inheritedDatafile;
+    }
+
+    private Hashtable globalDataDefinitions = new Hashtable();
+
+    public void addGlobalDefinitions(InputStream datafile, boolean close)
+        throws FileNotFoundException, IOException, InvalidDatafileFormat {
+        loadDatafile(datafile, globalDataDefinitions, close);
     }
 
 
@@ -919,7 +926,7 @@ public class DataRepository implements Repository {
         dataFile.prefix = dataPrefix;
         dataFile.file = new File(datafilePath);
         dataFile.inheritsFrom =
-            loadDatafile(new FileInputStream(dataFile.file), values);
+            loadDatafile(new FileInputStream(dataFile.file), values, true);
 
                                 // only add the datafile element if the
                                 // loadDatafile process was successful
