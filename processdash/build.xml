@@ -90,7 +90,8 @@ Authors:
   <property name="src"        value="src"/>
   <property name="pspdash"    value="${src}/pspdash"/>
   <property name="data"       value="${pspdash}/data"/>
-  <property name="compiler"   value="${data}/compiler"/>
+  <property name="processdash" value="${src}/net/sourceforge/processdash"/>
+  <property name="compiler"   value="${processdash}/data/compiler"/>
   <property name="templates"  value="Templates"/>
   <property name="help"       value="${templates}/help"/>
   <property name="helpsearch" value="${help}/JavaHelpSearch"/>
