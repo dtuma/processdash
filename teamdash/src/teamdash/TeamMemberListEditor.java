@@ -88,6 +88,8 @@ public class TeamMemberListEditor {
 
         orig.publishChanges(irreversibleChanges);
         orig.copyFrom(teamMemberList);
+        teamMemberList.copyFrom(orig);
+        teamMemberList.maybeAddEmptyRow();
         return true;
     }
 

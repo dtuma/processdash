@@ -13,7 +13,6 @@ import javax.swing.table.TableColumnModel;
 
 import teamdash.TeamMember;
 import teamdash.TeamMemberList;
-import teamdash.wbs.DataColumn;
 import teamdash.wbs.DataTableModel;
 
 public class TeamMemberColumnManager
@@ -40,6 +39,7 @@ public class TeamMemberColumnManager
 
     private void createColumns() {
         List oldColumns = columnList;
+        ArrayList newColumns = new ArrayList();
 
         columnList = new ArrayList();
         List teamMembers = teamList.getTeamMembers();
@@ -52,13 +52,13 @@ public class TeamMemberColumnManager
                 oldColumns.remove(col);
             else {
                 col = new TeamMemberTimeColumn(dataModel, m);
-                dataModel.addDataColumn(col);
+                newColumns.add(col);
             }
             columnList.add(col);
         }
-        Iterator i = oldColumns.iterator();
-        while (i.hasNext())
-            dataModel.removeDataColumn((DataColumn) i.next());
+
+        // make the changes to the columns in the data model.
+        dataModel.addRemoveDataColumns(newColumns, oldColumns);
     }
 
     private TeamMemberTimeColumn getExistingValidTimeColumn

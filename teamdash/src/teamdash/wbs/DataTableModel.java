@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.Timer;
@@ -66,7 +67,6 @@ public class DataTableModel extends AbstractTableModel {
 
     private void initializeColumnDependencies() {
         // create the dependency matrix and populate it with "false" values.
-        // //allocate some extra space for future added columns.
         int numColumns = columns.size();
         dependencies = new boolean[numColumns][numColumns];
         for (int x = 0;   x < numColumns;   x++)
@@ -134,6 +134,7 @@ public class DataTableModel extends AbstractTableModel {
         }
     }
 
+    /** Add a single data column to the data model */
     public void addDataColumn(DataColumn column) {
         columns.add(column);
         // if the dependencies are already computed, update them.
@@ -141,6 +142,7 @@ public class DataTableModel extends AbstractTableModel {
             initializeColumnDependencies();
     }
 
+    /** Remove a single data column from the data model */
     public void removeDataColumn(DataColumn column) {
         int pos = columns.indexOf(column);
         if (pos == -1) return;
@@ -148,6 +150,43 @@ public class DataTableModel extends AbstractTableModel {
         // if the dependencies are already computed, update them.
         if (dependencies != null)
             initializeColumnDependencies();
+    }
+
+    /** Add a list of data columns and remove another list of data columns.
+     * 
+     * The changes are made as part of a batch operation, deferring
+     * recalculations until all the changes are made.  As a result, this will
+     * be much more efficient than a corresponding series of calls to
+     * {@link #addDataColumn(DataColumn) addDataColumn} and
+     * {@link #removeDataColumn(DataColumn) removeDataColumn}
+     * @param columnsToAdd a list of columns to be added. <code>null</code> is
+     * allowed.
+     * @param columnsToRemove a list of columns to be removed. <code>null</code>
+     * is allowed.
+     */
+    public void addRemoveDataColumns(List columnsToAdd, List columnsToRemove) {
+        try {
+            beginChange();
+            dependencies = null;
+
+            Iterator i;
+            if (columnsToRemove != null) {
+                i = columnsToRemove.iterator();
+                while (i.hasNext())
+                    removeDataColumn((DataColumn) i.next());
+            }
+
+            if (columnsToAdd != null) {
+                i = columnsToAdd.iterator();
+                while (i.hasNext())
+                    addDataColumn((DataColumn) i.next());
+            }
+
+            initializeColumnDependencies();
+
+        } finally {
+            endChange();
+        }
     }
 
 
