@@ -49,6 +49,7 @@ public class summary extends pspdash.TinyCGIBase {
 
     private boolean showSize = true;
     private boolean showDefects = true;
+    private boolean showFriendlyHelp = false;
     private String unit, units;
 
 
@@ -88,6 +89,7 @@ public class summary extends pspdash.TinyCGIBase {
         PSPProperties props = getPSPProperties();
         PropertyKey self = props.findExistingKey(prefix);
         int numPhases = props.getNumChildren (self);
+        showFriendlyHelp = (numPhases == 2);
         String [] result = new String[numPhases];
         while (numPhases-- > 0)
             result[numPhases] = props.getChildKey(self, numPhases).name();
@@ -138,6 +140,10 @@ public class summary extends pspdash.TinyCGIBase {
     /** Print a static portion of the form. */
     private void printStaticPart(String text) throws IOException
     {
+        if (showFriendlyHelp) {
+            text = replace(text, "<!--friendlyHelpStart", "");
+            text = replace(text, "friendlyHelpEnd-->",    "");
+        }
         if (!showSize) {
             text = replace(text, "<!--sizeStart-->", "<!--sizeStart");
             text = replace(text, "<!--sizeEnd-->",   "sizeEnd-->");
