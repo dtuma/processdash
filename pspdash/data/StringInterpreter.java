@@ -36,9 +36,10 @@ class StringInterpreter extends DataInterpreter {
 
 
     private static StringData trueValue = StringData.create("True");
+    private static StringData falseValue = StringData.create("");
 
     public void setBoolean(Boolean b) {
-        value = (b.booleanValue() ? trueValue : null);
+        value = (b.booleanValue() ? trueValue : falseValue);
     }
 
 
