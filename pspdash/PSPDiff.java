@@ -342,6 +342,11 @@ public class PSPDiff {
             lines[i] = canonicalizeWhitespace(lines[i]);
     }
     protected String canonicalizeWhitespace(String str) {
+        // begin by trimming whitespace from the string.  if the resulting
+        // trimmed string is already canonical, return it (this will save
+        // a LOT of memory)
+        if (whitespaceIsCanonical(str = str.trim())) return str;
+
         StringBuffer buf = new StringBuffer();
         StringTokenizer tok = new StringTokenizer(str, WHITESPACE);
         while (tok.hasMoreTokens())
@@ -349,6 +354,17 @@ public class PSPDiff {
         String result = buf.toString();
         if (result.length() > 0) result = result.substring(1);
         return result;
+    }
+    protected boolean whitespaceIsCanonical(String str) {
+        // if the string contains any whitespace OTHER than the space
+        // character, it is not canonical.
+        for (int i = WHITESPACE.length();  i-- > 1;  )
+            if (str.indexOf(WHITESPACE.charAt(i)) != -1)
+                return false;
+
+        // if the string contains two spaces next to each other, it is
+        // not canonical.
+        return (str.indexOf("  ") == -1);
     }
     private static final String WHITESPACE =
         " \t\r\n\f" + COMMENT_START_STR + COMMENT_END_STR;
@@ -410,6 +426,11 @@ public class PSPDiff {
     }
 
     protected String stripComments(String str) {
+        if (str.indexOf(LanguageFilter.COMMENT_START) == -1)
+            // efficiently handle degenerate case: if there are no
+            // comments in the string, just return it without change.
+            return str;
+
         StringBuffer buf = new StringBuffer(str);
         stripComments(buf);
         return buf.toString();
