@@ -228,12 +228,17 @@ public class RepositoryServer extends Thread {
         }
     }
 
-    public RepositoryServer(DataRepository r) {
+    public RepositoryServer(DataRepository r, int port) {
         try {
             data = r;
-            // debug("creating serverSocket...");
-            serverSocket = new ServerSocket(port);
-            // debug("done.");
+            this.port = port;
+            if (port > 0) {
+                // debug("creating serverSocket...");
+                serverSocket = new ServerSocket(port);
+                // debug("done.");
+            } else {
+                serverSocket = null;
+            }
         } catch (IOException e) { printError(e); }
     }
 
@@ -242,6 +247,13 @@ public class RepositoryServer extends Thread {
     }
 
     private volatile boolean serverIsRunning = true;
+
+    public void handle(Socket clientSocket) {
+        RepositoryServerThread newServerThread =
+            new RepositoryServerThread(data, clientSocket);
+        newServerThread.start();
+        serverThreads.addElement(newServerThread);
+    }
 
     public void run() {
         Socket clientSocket = null;
@@ -252,12 +264,7 @@ public class RepositoryServer extends Thread {
             // debug("accepting...");
             clientSocket = serverSocket.accept();
             // debug("got a connection.");
-
-            RepositoryServerThread newServerThread =
-                new RepositoryServerThread(data, clientSocket);
-            newServerThread.start();
-            serverThreads.addElement(newServerThread);
-
+            handle(clientSocket);
         } catch (IOException e) {
             printError(e);
         }
