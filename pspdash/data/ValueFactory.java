@@ -25,6 +25,7 @@
 
 package pspdash.data;
 
+import pspdash.ResourcePool;
 import java.lang.reflect.Constructor;
 import java.util.Hashtable;
 import com.oroinc.text.perl.Perl5Util;
@@ -51,7 +52,7 @@ import pspdash.data.NotEqualsFunction;
 
 class ValueFactory {
 
-    private static Perl5Util perl;
+    private static ResourcePool perlPool;
     static final String doublePattern =
         "m\n^-?\\d+\\.\\d+([eE](\\+|-)\\d+)?|-?NaN|-?Infinity$\n";
     static final String integerPattern = "m\n^[-+]?[0-9]+$\n";
@@ -87,39 +88,39 @@ class ValueFactory {
 
     static {
 
-        perl = new Perl5Util();
+        perlPool = new ResourcePool() {
+                protected Object createNewResource() {
+                    return new Perl5Util();
+                }
+            };
 
         functionConstructors = new Hashtable();
 
-        try {
-            Class
-                string = Class.forName("java.lang.String"),
-                data   = Class.forName("pspdash.data.DataRepository");
-            Class[] parameterTypes = {string, string, string, data, string};
+        Class
+            string = java.lang.String.class,
+            data   = pspdash.data.DataRepository.class;
+        Class[] parameterTypes = {string, string, string, data, string};
 
-            String operatorString = null, className = null;
-            Class functionClass;
-            Constructor constructor;
+        String operatorString = null, className = null;
+        Class functionClass;
+        Constructor constructor;
 
-            for (int i=availableFunctions.length; i-- > 0; ) try {
-                operatorString = (String)availableFunctions[i][0];
-                className      = "pspdash.data." + (String)availableFunctions[i][1];
+        for (int i=availableFunctions.length; i-- > 0; ) try {
+            operatorString = (String)availableFunctions[i][0];
+            className      = "pspdash.data." +(String)availableFunctions[i][1];
 
-                functionClass = Class.forName(className);
-                constructor = functionClass.getConstructor(parameterTypes);
+            functionClass = Class.forName(className);
+            constructor = functionClass.getConstructor(parameterTypes);
 
-                functionConstructors.put(operatorString, constructor);
+            functionConstructors.put(operatorString, constructor);
 
-            } catch (ClassNotFoundException e) {
-                System.err.println("Could not find class "+className);
-            } catch (NoSuchMethodException e) {
-                System.err.println
-                    ("Could not find constructor for class "+className);
-            } catch (Exception e) {
-                System.err.println("Could not map operator " + operatorString);
-            }
         } catch (ClassNotFoundException e) {
-            System.err.println("Unable to find class: " + e);
+            System.err.println("Could not find class "+className);
+        } catch (NoSuchMethodException e) {
+            System.err.println
+                ("Could not find constructor for class "+className);
+        } catch (Exception e) {
+            System.err.println("Could not map operator " + operatorString);
         }
     }
 
@@ -241,44 +242,64 @@ class ValueFactory {
     }
 
 
-    private static synchronized SaveableData parseFunction
+    private static SaveableData parseFunction
         (String name, String value, DataRepository r, String prefix)
         throws MalformedValueException {
 
-        String isSimpleFunction = "m\n^" + simpleFunction + "$\n";
-        String containsSimpleFunction = "m\n" + simpleFunction + "\n";
+        SaveableData result = null;
+        Perl5Util perl = (Perl5Util) perlPool.get();
+        try {
+            String isSimpleFunction = "m\n^" + simpleFunction + "$\n";
+            String containsSimpleFunction = "m\n" + simpleFunction + "\n";
 
-        String expression = value.substring(1);    // remove initial "!"
-        expression = perl.substitute("s/\\[\\(/" + FB + "/g", expression);
-        expression = perl.substitute("s/\\)\\]/" + FE + "/g", expression);
+            String expression = value.substring(1);    // remove initial "!"
+            expression = perl.substitute("s/\\[\\(/" + FB + "/g", expression);
+            expression = perl.substitute("s/\\)\\]/" + FE + "/g", expression);
 
-        String pre, func, post, tempname;
+            String pre, func, post, tempname;
 
-        while (! perl.match(isSimpleFunction, expression)) {
-            try {
-                if (!perl.match(containsSimpleFunction, expression))
-                    throw new MalformedValueException("mismatched parenthesis");
-            } catch (MalformedPerl5PatternException e) {
-                throw new MalformedValueException(e.toString());
+            while (! perl.match(isSimpleFunction, expression)) {
+                try {
+                    if (!perl.match(containsSimpleFunction, expression))
+                        throw new MalformedValueException
+                            ("mismatched parentheses");
+                } catch (MalformedPerl5PatternException e) {
+                    throw new MalformedValueException(e.toString());
+                }
+
+                pre = perl.preMatch();
+                func = perl.group(1);
+                post = perl.postMatch();
+
+                tempname = getAnonymousFunctionName();
+                //r.makeUniqueName(r.anonymousPrefix + "_Function");
+                try {
+                    parseSimpleFunc(tempname, func, null, r, prefix);
+                } catch (MalformedValueException e) {
+                    r.removeValue(tempname);
+                    throw e;//new MalformedValueException();
+                }
+                expression = pre + tempname + post;
+
             }
 
-            pre = perl.preMatch();
-            func = perl.group(1);
-            post = perl.postMatch();
-
-            tempname = r.makeUniqueName(r.anonymousPrefix + "_Function");
-            try {
-                parseSimpleFunc(tempname, func, null, r, prefix);
-            } catch (MalformedValueException e) {
-                r.removeValue(tempname);
-                throw e;//new MalformedValueException();
-            }
-            expression = pre + tempname + post;
-
+            expression = perl.group(1);
+            result = parseSimpleFunc(name, expression, value, r, prefix);
+        } finally {
+            perlPool.release(perl);
         }
+        return result;
+    }
 
-        expression = perl.group(1);
-        return parseSimpleFunc(name, expression, value, r, prefix);
+    private static int anonymous_function_counter = 0;
+    private static final Object anonymous_function_counter_lock = new Object();
+
+    private static String getAnonymousFunctionName() {
+        int num;
+        synchronized (anonymous_function_counter_lock) {
+            num = anonymous_function_counter++;
+        }
+        return DataRepository.anonymousPrefix + "_Function" + num;
     }
 
 
