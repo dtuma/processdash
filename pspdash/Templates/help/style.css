@@ -1,0 +1,3 @@
+/* stylesheet for help content when the PSP add-on is not installed */
+.ifpsp { display:none; color:white; font-size:0.1pt; margin:0pt }
+.unlesspsp { }
