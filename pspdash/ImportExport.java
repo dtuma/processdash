@@ -64,11 +64,9 @@ public class ImportExport extends JDialog implements ActionListener {
 
     PSPDashboard  parent;
     PSPProperties props;
-    JCheckBox     incNonTemplate;
-    JTree         tree;
+    SelectableHierarchyTree tree;
     int           operation = X_DATA;
 
-    PropSelectTreeModel treeModel;
 
 
     public ImportExport (PSPDashboard dash) {
@@ -78,14 +76,8 @@ public class ImportExport extends JDialog implements ActionListener {
         parent = dash;
         props = parent.props;
 
-        /* Create the JTreeModel. */
-        treeModel = new PropSelectTreeModel
-            (new DefaultMutableTreeNode (new JCheckBox("root")),
-             props,
-             PropSelectTreeModel.NO_LEAVES);
-
         /* Create the tree. */
-        tree = new SelectableTree (treeModel, new SelectableTreeCellRenderer());
+        tree = new SelectableHierarchyTree(props);
 
         /* Put the Tree in a scroller. */
         JScrollPane sp = new JScrollPane
@@ -95,17 +87,6 @@ public class ImportExport extends JDialog implements ActionListener {
 
         getContentPane().add(sp, "Center");
 
-        Box mainBox = new Box(BoxLayout.Y_AXIS);
-        Box aBox = new Box(BoxLayout.X_AXIS);
-        aBox.add (Box.createHorizontalStrut(2));
-        incNonTemplate = new JCheckBox (resource.getString("Show_Leaf_Nodes"));
-        incNonTemplate.setActionCommand("leaves");
-        incNonTemplate.addActionListener(this);
-        aBox.add (incNonTemplate);
-        aBox.add (Box.createGlue());
-        mainBox.add (aBox);
-        mainBox.add (Box.createVerticalStrut(2));
-
         ButtonGroup bg = new ButtonGroup();
 
         Box buttonBox = new Box(BoxLayout.Y_AXIS);
@@ -114,12 +95,14 @@ public class ImportExport extends JDialog implements ActionListener {
         button.setActionCommand("XData");
         button.addActionListener(this);
         button.setSelected(true);
+        button.setAlignmentX(0.5f);
         bg.add (button);
         buttonBox.add (button);
 
         button = new JRadioButton (resource.getString("ExportHierarchy"));
         button.setActionCommand("XList");
         button.addActionListener(this);
+        button.setAlignmentX(0.5f);
         bg.add (button);
         buttonBox.add (button);
 
@@ -127,7 +110,7 @@ public class ImportExport extends JDialog implements ActionListener {
         buttonBox.add (Box.createVerticalGlue());
 
         Box btnBox = new Box(BoxLayout.X_AXIS);
-        btnBox.add(Box.createHorizontalGlue());
+        btnBox.add(Box.createHorizontalStrut(4));
         JButton btn = new JButton (resource.getString("Export"));
         btn.setActionCommand("Apply");
         btn.addActionListener(this);
@@ -136,13 +119,11 @@ public class ImportExport extends JDialog implements ActionListener {
         btn.setActionCommand("Close");
         btn.addActionListener(this);
         btnBox.add(btn);
-        btnBox.add(Box.createHorizontalGlue());
+        btnBox.add(Box.createHorizontalStrut(4));
         buttonBox.add (btnBox);
         buttonBox.add (Box.createVerticalStrut(2));
 
-        getContentPane().add(mainBox, "South");
         getContentPane().add(buttonBox, "East");
-        updateTree(incNonTemplate.isSelected());
         pack();
         show();
 
@@ -151,40 +132,13 @@ public class ImportExport extends JDialog implements ActionListener {
         FILE_SEP = prop.getProperty ("file.separator");
     }
 
-    protected void updateTree(boolean isSelected) {
-        if (isSelected) {
-            treeModel.setFilterCriteria(treeModel.NO_FILTER);
-        } else {
-            treeModel.setFilterCriteria(treeModel.NO_LEAVES);
-        }
-
-        treeModel.nodeStructureChanged((TreeNode)treeModel.getRoot());
-        tree.repaint(tree.getVisibleRect());
-    }
-
-
-
-    protected void recursivelyAddSelectedToVector (DefaultMutableTreeNode dmn,
-                                                   Vector v) {
-        JCheckBox jcb = (JCheckBox)(dmn.getUserObject());
-        if (jcb.isSelected())
-            v.addElement (treeModel.getPropKey (props, dmn.getPath()).path());
-        else
-            for (int ii = 0; ii < treeModel.getChildCount(dmn); ii++) {
-                recursivelyAddSelectedToVector
-                    ((DefaultMutableTreeNode)treeModel.getChild (dmn, ii), v);
-            }
-    }
-
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
         FileDialog fd;
         String lastFile, lastDir;
         boolean fail = false;
 
-        if (cmd.equals("leaves")) {
-            updateTree(incNonTemplate.isSelected());
-        } else if (cmd.equals("XData")) {
+        if (cmd.equals("XData")) {
             operation = X_DATA;
         } else if (cmd.equals("XList")) {
             operation = X_LIST;
@@ -192,12 +146,7 @@ public class ImportExport extends JDialog implements ActionListener {
             setVisible(false);
         } else if (cmd.equals("Apply")) {
             DefaultMutableTreeNode dmn;
-            Vector v = new Vector();
-            dmn = (DefaultMutableTreeNode)treeModel.getRoot();
-            for (int ii = 0; ii < treeModel.getChildCount(dmn); ii++) {
-                recursivelyAddSelectedToVector
-                    ((DefaultMutableTreeNode)treeModel.getChild (dmn, ii), v);
-            }
+            Vector v = tree.getSelectedPaths();
             switch (operation) {
             case X_DATA:
                 // Perform operation (filter TBD)
