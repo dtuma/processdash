@@ -392,6 +392,7 @@ Authors:
       <!-- include the contents of the libraries we use -->
       <zipfileset src="${jcommon.jar}"/>
       <zipfileset src="${jfreechart.jar}"/>
+      <zipfileset src="${lib}/jfreechart_ja.zip"/>
       <zipfileset src="${lib}/jregex.jar"/>
       <zipfileset src="${lib}/distlib.jar" excludes="**/*.java"/>
       <zipfileset src="${l10n-tool.jar}"/>
