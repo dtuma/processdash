@@ -200,7 +200,7 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
     protected static final String TEMPLATE_NODE_NAME =
         PSPProperties.TEMPLATE_NODE_NAME;
     protected static final String DATAFILE_ATTR = PSPProperties.DATAFILE_ATTR;
-    protected static final String NO_DATAFILE = "none";
+    protected static final String NO_DATAFILE = PSPProperties.NO_DATAFILE;
     protected static final String DATA_EXTENT_ATTR = "autoData";
     protected static final String ID_ATTR   = PSPProperties.ID_ATTR;
     static final String NAME_ATTR = PSPProperties.NAME_ATTR;
