@@ -59,6 +59,8 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
         String prefix = getPrefix();
         data = ResultSet.get(getDataRepository(), parameters, prefix,
                              getPSPProperties());
+        if (parameters.get("transpose") != null)
+            data = data.transpose();
     }
 
     /** Generate CGI chart output. */
@@ -165,9 +167,10 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
             String catAxisLabel = data.getColName(0);
             if (catAxisLabel == null) catAxisLabel = "Project/Task";
 
-            String otherAxisLabel = null;
-            if (data.numCols() == 1) otherAxisLabel = data.getColName(1);
-            if (otherAxisLabel == null) otherAxisLabel = getSetting("units");
+            String otherAxisLabel = getSetting("units");
+            if ((otherAxisLabel == null || otherAxisLabel.length() == 0)
+                && data.numCols() == 1)
+                otherAxisLabel = data.getColName(1);
             if (otherAxisLabel == null) otherAxisLabel = "Value";
 
             String catLabels = getParameter("categoryLabels");
