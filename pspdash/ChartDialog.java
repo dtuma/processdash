@@ -75,6 +75,7 @@ public class ChartDialog extends JDialog {
 
         JScrollPane scrollpane = new JScrollPane(table);
         scrollpane.setMinimumSize (new Dimension (0,0));
+        scrollpane.setPreferredSize(new Dimension(200, 200));
 
         JSplitPane jsp = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                                         true,
@@ -163,7 +164,7 @@ public class ChartDialog extends JDialog {
         double minX, maxX, minY, maxY, pointSpanX, pointSpanY;
         int xTickSpacing, yTickSpacing;
         Dimension minSize  = new Dimension (0, 0);
-        Dimension prefSize = new Dimension (300, 300);
+        Dimension prefSize = new Dimension (200, 200);
         Dimension maxSize  = new Dimension (10000, 10000);
         boolean showRegression, showAverage;
 
