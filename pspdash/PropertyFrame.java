@@ -753,11 +753,17 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     }
 
     private boolean newNameIsAcceptable(PropertyKey parent, String newName) {
-        if (newName.indexOf('/') != -1)
+        if (newName.indexOf('/') != -1) {
+            JOptionPane.showMessageDialog
+                (frame, "Hierarchy names cannot contain the '/' character.",
+                 "Invalid name", JOptionPane.ERROR_MESSAGE);
             return false;
-        else if (!useProps.pget(parent).isUniqueChildName(newName))
+        } else if (!useProps.pget(parent).isUniqueChildName(newName)) {
+            //JOptionPane.showMessageDialog
+            // (frame, "There is already a node with that name.",
+            // "Invalid name", JOptionPane.ERROR_MESSAGE);
             return false;
-        else if (newName.trim().length() == 0)
+        } else if (newName.trim().length() == 0)
             return false;
         else
             return true;
