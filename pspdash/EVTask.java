@@ -63,7 +63,8 @@ public class EVTask implements DataListener {
     double actualNodeTime, valueEarned;          // expressed in minutes
     double topDownPlanTime, bottomUpPlanTime;    // expressed in minutes
     Date planDate, dateCompleted;
-    boolean planTimeEditable, planTimeNull, dateCompletedEditable;
+    boolean planTimeEditable, planTimeNull, planTimeUndefined,
+        dateCompletedEditable;
     boolean ignorePlanTimeValue = false;
     Listener listener;
 
@@ -77,7 +78,7 @@ public class EVTask implements DataListener {
             topDownPlanTime = bottomUpPlanTime = actualNodeTime = 0;
         planDate = dateCompleted = null;
         listener = null;
-        planTimeEditable = dateCompletedEditable = false;
+        planTimeEditable = dateCompletedEditable = planTimeUndefined = false;
         planTimeNull = true;
         data = null;
     }
@@ -215,6 +216,7 @@ public class EVTask implements DataListener {
         actualTime = EVSchedule.getXMLNum(e, "at");
         planDate = EVSchedule.getXMLDate(e, "pd");
         dateCompleted = EVSchedule.getXMLDate(e, "cd");
+        planTimeEditable = planTimeNull = planTimeUndefined = false;
 
         NodeList subTasks = e.getChildNodes();
         for (int i=0;   i < subTasks.getLength();   i++) {
@@ -246,11 +248,14 @@ public class EVTask implements DataListener {
                     Double.isInfinite(topDownPlanTime))
                     topDownPlanTime = 0.0;
                 planTimeEditable = time.isEditable();
+                planTimeUndefined = !time.isDefined();
+                planTimeNull = false;
             }
         } else {
             planTimeNull = (time == null);
             topDownPlanTime = 0;
             planTimeEditable = true;
+            planTimeUndefined = false;
         }
     }
 
@@ -258,7 +263,7 @@ public class EVTask implements DataListener {
         ignorePlanTimeValue = true;
         topDownPlanTime = 0;
         planTimeNull = true;
-        planTimeEditable = false;
+        planTimeEditable = planTimeUndefined = false;
     }
 
     protected void setActualDate(SimpleData date) {
@@ -303,12 +308,13 @@ public class EVTask implements DataListener {
             // if the user is obviously correcting a top-down/bottom-up
             // mismatch, then just treat the input the same as if the
             // user had deleted the top-down estimate.
-            if (hasPlanTimeError() &&
+            if (hasTopDownBottomUpError() &&
                 Math.abs(planTime - bottomUpPlanTime) < 0.9)
                 planTime = -1;
 
             if (planTime != -1) {
                 this.planTime = topDownPlanTime = bottomUpPlanTime = planTime;
+                planTimeNull = planTimeUndefined = false;
                 // save those minutes to the data repository
                 data.userPutValue(data.createDataName(fullName,
                                                       PLAN_TIME_DATA_NAME),
@@ -318,6 +324,8 @@ public class EVTask implements DataListener {
                 data.userPutValue(data.createDataName(fullName,
                                                       PLAN_TIME_DATA_NAME),
                                   null);
+                planTimeNull = true;
+                planTimeUndefined = false;
             }
         }
     }
@@ -386,12 +394,21 @@ public class EVTask implements DataListener {
     public String getFullName() { return fullName; }
     public String getPlanTime() { return formatTime(planTime); }
     public boolean hasPlanTimeError() {
+        return hasTopDownBottomUpError() || planTimeIsMissing();
+    }
+    private boolean hasTopDownBottomUpError() {
         return (Math.abs(planTime - bottomUpPlanTime) > 0.5);
     }
+    private boolean planTimeIsMissing() {
+        return (planTimeEditable && (planTimeNull || planTimeUndefined));
+    }
     public String getPlanTimeError() {
-        if (!hasPlanTimeError()) return null;
-        return "top-down/bottom-up mismatch (bottom-up = " +
-            formatTime(bottomUpPlanTime) + ")";
+        if (hasTopDownBottomUpError())
+            return "top-down/bottom-up mismatch (bottom-up = " +
+                formatTime(bottomUpPlanTime) + ")";
+        if (planTimeIsMissing())
+            return "plan time is missing";
+        return null;
     }
     public String getActualTime() { return formatTime(actualTime); }
     public String getPlanValue(double totalPlanTime) {
@@ -624,7 +641,7 @@ public class EVTask implements DataListener {
             otherNodeList.add(this);
         }
 
-        if (hasPlanTimeError())
+        if (hasTopDownBottomUpError())
             metrics.addError("The top-down estimate of " + getPlanTime() +
                              " for task \"" + fullName + "\" does not " +
                              "agree with the bottom-up estimate of " +
@@ -633,6 +650,10 @@ public class EVTask implements DataListener {
                              "for task \"" + fullName + "\", or modifying " +
                              "the estimates of the tasks underneath it.)",
                              this);
+        if (planTimeIsMissing())
+            metrics.addError
+                ("You still need to estimate the time required for task \"" +
+                 fullName + "\".", this);
 
         for (int i = 0;   i < getNumChildren();   i++)
             getChild(i).checkForNodeErrors(metrics, depth+1,
