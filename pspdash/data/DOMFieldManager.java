@@ -202,7 +202,10 @@ class DOMFieldManager implements HTMLFieldManager {
             }
             String key = formIdx + "," + elemIdx;
             inputListenersH.put(key, new Integer(pos));
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            System.out.println("Caught " + e);
+            e.printStackTrace();
+        }
     }
     private static final String INDEX_ATTR = "dashIndex";
 
@@ -210,10 +213,12 @@ class DOMFieldManager implements HTMLFieldManager {
     public void notifyListener(String key) {
         // debug("notifyListener called by " + (String)element.getMember("name"));
         DOMField f = null;
-
+        //debug("notifyListener("+key+")");
         Object pos = inputListenersH.get(key);
+        //debug("notifyListener: pos ="+pos);
         if (pos instanceof Integer)
             f = (DOMField) inputListeners.elementAt(((Integer) pos).intValue());
+        //debug("notifyListener: f ="+f);
 
         if (f != null) f.userEvent();
     }
