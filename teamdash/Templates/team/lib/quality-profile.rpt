@@ -2,7 +2,7 @@
 
 title=<!--#if 'Estimated_' ne '' -->Planned <!--#endif-->Quality Profile
 for=.
-headerComment==(The numbers displayed are <i><u>computed quality profile indicators</u></i>.  Values of 1.0 or higher indicate that the specified quality goal was met.)
+headerComment==(The numbers displayed are computed quality profile indicators.  Values of 1.0 or higher indicate that the specified quality goal was met.)
 
 d1=Estimated_Quality_Profile_1
 h1==Design/Code Time
