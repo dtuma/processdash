@@ -172,6 +172,15 @@ public class file extends TinyCGIBase {
         // Compute the path to the requested file.
         File result = computePath(file, false);
 
+        if (!metaPathVariables.isEmpty()) {
+            // If any meta variables turned up missing, prompt the
+            // user for them before continuing.
+            pathVariables = metaPathVariables;
+            pathVariableNames = metaPathVariableNames;
+            displayNeedInfoForm(filename, null, false);
+            return;
+        }
+
         if (result == null && !needPathInfo()) {
             // This is an odd situation - no result was found, but we don't
             // have anything to ask the user about...
@@ -207,6 +216,15 @@ public class file extends TinyCGIBase {
         // but it did not exist.  Try to locate a template.
         savePathInfo();
         File template = computePath(file, true);
+
+        if (!metaPathVariables.isEmpty()) {
+            // If any meta variables turned up missing, prompt the
+            // user for them before continuing.
+            pathVariables = metaPathVariables;
+            pathVariableNames = metaPathVariableNames;
+            displayNeedInfoForm(filename, null, true);
+            return;
+        }
 
         if (!foundTemplate) {
             // if there was no template information, go back and display a
@@ -310,8 +328,9 @@ public class file extends TinyCGIBase {
     }
 
     private boolean foundTemplate, isDirectory;
-    private Map pathVariables, savedPathVariables;
-    private ArrayList pathVariableNames, savedPathVariableNames;
+    private Map pathVariables, savedPathVariables, metaPathVariables;
+    private ArrayList pathVariableNames, savedPathVariableNames,
+        metaPathVariableNames;
 
     /** Backup the pathVariable settings in case we need them later. */
     private void savePathInfo() {
@@ -333,6 +352,8 @@ public class file extends TinyCGIBase {
         if (n == null) {
             pathVariables = new HashMap();
             pathVariableNames = new ArrayList();
+            metaPathVariables = new HashMap();
+            metaPathVariableNames = new ArrayList();
             foundTemplate = false;
             return null;
         }
@@ -462,6 +483,7 @@ public class file extends TinyCGIBase {
      */
     private PathVariable getPathVariable(String name, String impliedPath,
                                          String defaultValue) {
+        name = resolveMetaReferences(name);
         PathVariable result = (PathVariable) pathVariables.get(name);
         if (result == null) {
             result = new PathVariable(name, impliedPath, defaultValue);
@@ -472,6 +494,33 @@ public class file extends TinyCGIBase {
     }
     private PathVariable getPathVariable(String name) {
         return getPathVariable(name, null, null);
+    }
+
+    /** Resolve meta references within <code>name</code> */
+    private String resolveMetaReferences(String name) {
+        int beg, end;
+        String metaName;
+        while ((beg = name.indexOf('{')) != -1) {
+            end = name.indexOf('}', beg);
+            // FIXME: error handling if end is -1
+
+            metaName = name.substring(beg+1, end);
+            PathVariable pv = (PathVariable) metaPathVariables.get(metaName);
+            if (pv == null)
+                pv = new PathVariable(metaName, null, "");
+            if (pv.isUnknown()) {
+                metaPathVariables.put(metaName, pv);
+                metaPathVariableNames.add(metaName);
+            }
+            name = name.substring(0,beg) +pv.getValue()+ name.substring(end+1);
+        }
+        // canonicalize whitespace, cleaning up problems with that may
+        // arise during the interpolation of meta variables.
+        name = name.replace('\t', ' ').replace('\n', ' ')
+            .replace('\r', ' ').trim();
+        while (name.indexOf("  ") != -1)
+            name = StringUtils.findAndReplace(name, "  ", " ");
+        return name;
     }
 
 
