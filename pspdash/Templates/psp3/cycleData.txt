@@ -74,6 +74,12 @@ Defects Injected==![(+	~.*/Defects Injected)]
 Reassessment/Defects Removed==0.0
 Defects Removed==![(+	~.*/Defects Removed)]
 
+= Size data that can no longer be calculated from a size estimating template
+
+Estimated Reused LOC=0.0
+Reused LOC=0.0
+Estimated New Reused LOC=0.0
+New Reused LOC=0.0
 
 ==
 == Cancel renaming operation requested by psp2.1
