@@ -5,7 +5,9 @@
 <title><!--#echo Full_Name -->
 <!--#if rollup -->Rollup<!--#else-->Project<!--#endif-->
 Quality Summary</title>
-<!--#if rollup --><SCRIPT SRC="autoExport.js"></script><!--#endif-->
+<!--#if rollup -->[!--#if not EXPORT --]
+<SCRIPT SRC="autoExport.js"></script>
+[!--#endif --]<!--#endif-->
 </head>
 <body>
 
