@@ -116,7 +116,7 @@ public class TinyCGIBase implements TinyCGI {
         String scriptPath = (String) env.get("SCRIPT_PATH");
         try {
             if (!filename.startsWith("/")) {
-                URL context = new URL("http://localhost:2468" + scriptPath);
+                URL context = new URL("http://unimportant" + scriptPath);
                 URL file = new URL(context, filename);
                 filename = file.getFile();
             }
