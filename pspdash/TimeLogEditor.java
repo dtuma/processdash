@@ -482,10 +482,11 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         if (td == null) td = fd;
 
         long diff = 1 + (td.getTime() - fd.getTime()) / DAY_IN_MILLIS;
-        fd = new Date(td.getTime() + DAY_IN_MILLIS);
         if (diff == 28 || diff == 29 || diff == 30 || diff == 31) {
+            fd = new Date(td.getTime() + DAY_IN_MILLIS * 2);
             filterThisMonth(fd);
         } else {
+            fd = new Date(td.getTime() + DAY_IN_MILLIS);
             td = new Date(fd.getTime() + (diff-1) * DAY_IN_MILLIS);
             setFilter(fd, td);
         }
