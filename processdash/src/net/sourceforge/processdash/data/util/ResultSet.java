@@ -51,6 +51,8 @@ public class ResultSet {
     protected double multiplier[];
     protected Object[][] data;
     boolean useRowFormats = false;
+    boolean translateRowHeaders = false;
+    boolean translateColHeaders = true;
 
     /** Create a result set to store the given number of rows and columns
      * of data. */
@@ -81,6 +83,11 @@ public class ResultSet {
             result.suffix[f]     = suffix[f];
             result.multiplier[f] = multiplier[f];
         }
+        // transpose header translation flags, if necessary.
+        if (translateRowHeaders != translateColHeaders) {
+            translateRowHeaders = !translateRowHeaders;
+            translateColHeaders = !translateColHeaders;
+        }
 
         return result;
     }
@@ -97,7 +104,9 @@ public class ResultSet {
     /** Get the header name of a given row.
      * Data row numbering starts at 1 and ends at numRows(). */
     public String getRowName(int row) {
-        return Translator.translate(asString(data[row][0]));
+        String result = asString(data[row][0]);
+        if (translateRowHeaders) result = Translator.translate(result);
+        return result;
     }
 
     /** Return the number of columns of data, not counting the header col. */
@@ -108,7 +117,9 @@ public class ResultSet {
     /** Get the header name of a given column.
      * Data column numbering starts at 1 and ends at numCols(). */
     public String getColName(int col) {
-        return Translator.translate(asString(data[0][col]));
+        String result = asString(data[0][col]);
+        if (translateColHeaders) result = Translator.translate(result);
+        return result;
     }
 
     /** Store an object in the result set.
@@ -164,8 +175,8 @@ public class ResultSet {
      * the empty string. */
     public String format(int row, int col) {
         // row and column headers are strings
-        if (row == 0 || col == 0)
-            return Translator.translate(asString(data[row][col]));
+        if (row == 0) return getColName(col);
+        if (col == 0) return getRowName(row);
 
         SimpleData d = getData(row, col);
         if (d == null || !d.isDefined()) return "";
