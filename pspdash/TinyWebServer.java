@@ -41,6 +41,8 @@ public class TinyWebServer extends Thread {
     CGILoader cgiLoader = new CGILoader();
     Hashtable cgiCache = new Hashtable();
     boolean allowRemoteConnections = false;
+    private int port;
+    private String startupTimestamp, startupTimestampHeader;
 
     public static final String PROTOCOL = "HTTP/1.0";
     public static final String DEFAULT_TEXT_MIME_TYPE =
@@ -50,6 +52,7 @@ public class TinyWebServer extends Thread {
     public static final String SERVER_PARSED_MIME_TYPE =
         "text/x-server-parsed-html";
     public static final String CGI_MIME_TYPE = "application/x-httpd-cgi";
+    public static final String TIMESTAMP_HEADER = "Dash-Startup-Timestamp";
 
     private static final DateFormat dateFormat =
                            // Tue, 05 Dec 2000 17:28:07 GMT
@@ -300,9 +303,16 @@ public class TinyWebServer extends Thread {
             env.put("SCRIPT_PATH", "/" + id + "/" + path);
             env.put("REQUEST_URI", uri);
             env.put("QUERY_STRING", query);
-            if (clientSocket != null)
+            if (clientSocket != null) {
                 env.put("REMOTE_PORT",
                         Integer.toString(clientSocket.getPort()));
+                InetAddress addr = clientSocket.getInetAddress();
+                env.put("REMOTE_HOST", addr.getHostName());
+                env.put("REMOTE_ADDR", addr.getHostAddress());
+                addr = clientSocket.getLocalAddress();
+                env.put("SERVER_NAME", addr.getHostName());
+                env.put("SERVER_ADDR", addr.getHostAddress());
+            }
             env.put(TinyCGI.TINY_WEB_SERVER, TinyWebServer.this);
 
             // Parse the headers on the original http request and add to
@@ -577,6 +587,7 @@ public class TinyWebServer extends Thread {
                           dateFormat.format(new Date(mod)) + CRLF);
             if (length >= 0)
                 out.write("Content-Length: " + length + CRLF);
+            out.write(startupTimestampHeader + CRLF);
             if (otherHeaders != null)
                 out.write(otherHeaders);
             out.write("Connection: close" + CRLF + CRLF);
@@ -725,13 +736,31 @@ public class TinyWebServer extends Thread {
         throws IOException
     {
         if (!uri.startsWith("/")) {
-            // the "localhost:2468" below need not be accurate. It is only
-            // there to keep the constructor for URL() happy.
-            URL contextURL = new URL("http://localhost:2468" + context);
+            URL contextURL = new URL("http://unimportant" + context);
             URL uriURL = new URL(contextURL, uri);
             uri = uriURL.getFile();
         }
         return getRequest(uri, skipHeaders);
+    }
+
+    /** Return the number of the port this server is listening on. */
+    public int getPort()         { return port; }
+    /** Return the startup timestamp for this server. */
+    public String getTimestamp() { return startupTimestamp; }
+
+    private void init(int port, URL [] roots) throws IOException
+    {
+        this.roots = roots;
+        startupTimestamp = Long.toString((new Date()).getTime());
+        startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
+
+        while (serverSocket == null) try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException ioe) {
+            port += 2;
+        }
+        this.port = port;
+        DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
     }
 
     /**
@@ -744,7 +773,6 @@ public class TinyWebServer extends Thread {
      */
     public TinyWebServer(int port, String path) throws IOException
     {
-        // this.port = port;
         if (path == null || path.length() == 0)
             throw new IOException("Path must be specified");
 
@@ -755,12 +783,11 @@ public class TinyWebServer extends Thread {
         while (e.hasMoreElements())
             v.addElement(e.nextElement());
         int i = v.size();
-        roots = new URL[i];
+        URL [] roots = new URL[i];
         while (i-- > 0)
             roots[i] = (URL) v.elementAt(i);
 
-        DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
-        serverSocket = new ServerSocket(port);
+        init(port, roots);
     }
 
     /**
@@ -774,24 +801,18 @@ public class TinyWebServer extends Thread {
         if (!rootDir.isDirectory())
             throw new IOException("Not a directory: " + directoryToServe);
 
-        roots = new URL[1];
+        URL [] roots = new URL[1];
         roots[0] = rootDir.toURL();
 
-        DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
-        serverSocket = new ServerSocket(port);
+        init(port, roots);
     }
 
     /**
      * Run a tiny web server on the given port, serving up resources
      * out of the given list of template search URLs.
      */
-    public TinyWebServer(int port, URL [] roots) throws IOException
-    {
-        // this.port = port;
-        this.roots = roots;
-
-        DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
-        serverSocket = new ServerSocket(port);
+    public TinyWebServer(int port, URL [] roots) throws IOException {
+        init(port, roots);
     }
 
 
