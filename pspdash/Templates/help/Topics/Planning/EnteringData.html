@@ -10,10 +10,16 @@ first is through various input tools and dialogs provided by the dashboard
 (e.g. the <a href="UsingProbeTool.html">PROBE tool</a>, the <a 
 href="../Execution/EnteringDefects.html">defect dialog</a>, etc.).</p>
 
-<p>The second is through the various PSP forms.  The forms are provided 
-through a web interface.  See the <a 
-href="../Execution/AccessingScripts.html">Accessing Process Scripts</a> help 
-topic for more info on how to access the scripts.</p>
+<p>The second is through the various PSP forms.  The forms are provided
+through a web interface.  See the <a
+href="../Execution/AccessingScripts.html">Accessing Process Scripts</a>
+help topic for more info on how to access the scripts.  To find out
+more information about the different process scripts that are available,
+see the <a href="../Overview/ProcessScripts.html">process scripts</a> help
+topic.</p>
+
+
+<!-- DISCLAIMER -->
 
 <h2>The nature of the script files</h2>
 <P>The script files themselves are implemented via static and sometimes 
@@ -27,17 +33,54 @@ Once you pick anywhere else on the page (to signal that you are finished
 entering information), the dashboard will automatically pick up your data -- 
 no need to press any kind of "submit data" button.</P>
 
-<P>Many times there will be greyed-out data boxes.  These are data elements 
-that are computed automatically by the dashboard.  They are not directly 
-editable, but rather they will update when other data elements to which they 
-are related get updated.</p>
+<h2>Exporting form data</h2>
 
-<P>To find out more information about the different process scripts that are 
-available, see the <a href="../Overview/ProcessScripts.html">process scripts</a> help 
-topic.</P>
+<p>When you open a dashboard form, the form connects to the process
+dashboard to retrieve the most up-to-date values for all the data elements
+on the page.  If you choose the &quot;File -&gt; Save&quot; option from
+your browser, you will find that only the form is saved; the values
+contained in the form are not.  If you want to save an electronic copy of a
+dashboard form (for example, to email to a coworker, or to save with
+project documentation), click the &quot;Export to HTML&quot; link at the
+bottom of the page.  The dashboard will create an HTML version of the form
+containing a <i>snapshot</i> of your data.  This HTML snapshot can be saved
+using the &quot;File -&gt; Save&quot; option of your browser.</p>
 
+<p>If you would like to perform additional analysis on the data in a
+dashboard form, use the &quot;Export to Excel&quot; link at the bottom of
+the page. This will open the form in Excel, where you can reference the
+data in Excel charts and equations.  <b>Important:</b> the Excel version of
+the form contains <i>exported</i> data only.  If you edit values in the
+Excel spreadsheet, your changes will not be imported back into the Process
+Dashboard. To change a data value in the Process Dashboard, you must make
+the change in a dashboard form.</p>
 
-<!-- DISCLAIMER -->
+<h2>Read-only data fields</h2>
+
+<P>The Process Dashboard automatically calculates many data elements for
+you.  Normally, these calculated data values are not directly editable, but
+rather they will update when other data elements to which they are related
+get updated.  If you are using Internet Explorer, these values are
+displayed with a grey background.</p>
+
+<P>Sometimes you may decide that you want to <b> override</b> one or more
+of these calculated values.  You can "unlock" these read-only data elements
+by clicking on the &quot;<u>Unlock read-only data</u>&quot; link at the
+bottom of the page.  Unlocking read-only data will make all the elements on
+the page editable, allowing you to override calculated values with your
+own.</p>
+
+<P>Unlocking read-only data is useful for times when you intentionally want
+to override a calculation, but it is not without risk.  Once you have
+overridden a calculation, it will no longer automatically update in
+response to changes in related data items.  In addition, related
+calculations may no longer add up like you would normally expect.
+Therefore, this feature should be used with caution.</p>
+
+<p>After you have overridden a calculation with some value, you may decide
+that you want the old calculation back.  Just type<code><b> DEFAULT
+</b></code>in the input field, and when you leave the field the old
+calculation will be restored.</p>
 
 </BODY>
 </HTML>
