@@ -299,7 +299,7 @@ public class Compiler extends Thread
         while (iter.hasNext())
         {
             Pack pack = (Pack) iter.next();
-            ZipOutputStream zipOut = packager.addPack(i++, pack.name, pack.os, pack.required,
+            OutputStream zipOut = packager.addPack(i++, pack.name, pack.id, pack.os, pack.required,
                 pack.description);
             ObjectOutputStream objOut = new ObjectOutputStream(zipOut);
 
@@ -360,7 +360,11 @@ public class Compiler extends Thread
 
             // Cleanup
             objOut.flush();
-            zipOut.closeEntry();
+            if (zipOut instanceof ZipOutputStream) {
+                ((ZipOutputStream) zipOut).closeEntry();
+            } else {
+                zipOut.close();
+            }
         }
 
         // We ask the packager to finish
@@ -473,6 +477,7 @@ public class Compiler extends Thread
             Pack pack = new Pack();
             pack.number = i;
             pack.name = el.getAttribute("name");
+            pack.id = el.getAttribute("id");
             pack.os = el.getAttribute("os");
             pack.required = el.getAttribute("required").equalsIgnoreCase("yes");
             pack.description = el.getFirstChildNamed("description").getContent();
@@ -566,7 +571,7 @@ public class Compiler extends Thread
             while (iter.hasNext())
             {
                 XMLElement f = (XMLElement) iter.next();
-                String path = basedir + File.separator + f.getAttribute("src");
+                String path = makeFilename(basedir, f.getAttribute("src"));
                 File file = new File(path);
 
                 boolean override = true;
@@ -818,7 +823,7 @@ public class Compiler extends Thread
                 blParse = parse.equalsIgnoreCase("yes");
 
             resources.add(new Resource(res.getAttribute("id"),
-                basedir + File.separator + res.getAttribute("src"),
+                makeFilename(basedir, res.getAttribute("src")),
                 blParse,
                 res.getAttribute("type"),
                 res.getAttribute("encoding")));
@@ -833,13 +838,22 @@ public class Compiler extends Thread
     }
 
 
-    /**
-     *  Returns a list of the ISO3 codes of the langpacks to include.
-     *
-     * @param  data           The XML data.
-     * @return                The ISO 3 codes list.
-     * @exception  Exception  Description of the Exception
-     */
+    private String makeFilename(String baseDir, String file) {
+        File f = new File(file);
+        if (f.isAbsolute())
+            return file;
+        else
+            return baseDir + File.separator + file;
+    }
+
+
+/**
+    *  Returns a list of the ISO3 codes of the langpacks to include.
+    *
+    * @param  data           The XML data.
+    * @return                The ISO 3 codes list.
+    * @exception  Exception  Description of the Exception
+    */
     protected ArrayList getLangpacksCodes(XMLElement data) throws Exception
     {
         // Initialisation
@@ -967,11 +981,13 @@ public class Compiler extends Thread
         // Initialises the parser
         StdXMLParser parser = new StdXMLParser();
         parser.setBuilder(new StdXMLBuilder());
-        parser.setReader(new StdXMLReader(new FileInputStream(filename)));
+        InputStream in = new FileInputStream(filename);
+        parser.setReader(new StdXMLReader(in));
         parser.setValidator(new NonValidator());
 
         // We get it
         XMLElement data = (XMLElement) parser.parse();
+        in.close();
 
         // We check it
         if (!data.getName().equalsIgnoreCase("installation"))
@@ -1055,6 +1071,9 @@ public class Compiler extends Thread
 
         /**  The pack name. */
         public String name;
+
+        /**  The pack id. */
+        public String id;
 
         /**  Is the pack required ? */
         public boolean required;
@@ -1300,4 +1319,3 @@ public class Compiler extends Thread
         }
     }
 }
-
