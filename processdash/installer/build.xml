@@ -135,7 +135,7 @@ Authors:
     <target name="web" depends="init,install-reg.xml"
             description="Create a web-based installer for the dashboard">
         <izpack input="install-reg.xml"
-	    output="${dist}/pdash-install-${version}.jar"
+	    output="${dist}/pdash-install-${dashboard-version}.jar"
             installerType="web-kunststoff"
             basedir="." izPackDir="${izpack.dir}/"/>
     </target>
@@ -143,7 +143,7 @@ Authors:
     <target name="offline" depends="init,install-reg.xml"
             description="Create an offline installer for the dashboard">
         <izpack input="install-reg.xml"
-	    output="${dist}/pdash-install-offline-${version}.jar"
+	    output="${dist}/pdash-install-offline-${dashboard-version}.jar"
             installerType="standard-kunststoff"
             basedir="." izPackDir="${izpack.dir}/"/>
     </target>
@@ -168,22 +168,22 @@ Authors:
 	</antcall>
 
         <izpack input="install-cd.xml"
-	    output="${dist}/pdash-install-${qualifier}-${version}.jar"
+	    output="${dist}/pdash-install-${qualifier}-${dashboard-version}.jar"
             installerType="standard-kunststoff"
             basedir="." izPackDir="${izpack.dir}/"/>
         
 	<echo file="cd-config.ini">1.4
 ${jreInstExe}
-pdash-install-${qualifier}-${version}.jar
+pdash-install-${qualifier}-${dashboard-version}.jar
 </echo>
 
-	<zip destfile="${dist}/pdash-${qualifier}-cd-${version}.zip">
+	<zip destfile="${dist}/pdash-${qualifier}-cd-${dashboard-version}.zip">
 	    <fileset dir="files" includes="setup.exe autorun.inf"/>
 	    <zipfileset dir="."
 	        includes="cd-config.ini"
 		fullpath="data/config.ini"/>
 	    <zipfileset dir="${dist}"
-	        includes="pdash-install-${qualifier}-${version}.jar"
+	        includes="pdash-install-${qualifier}-${dashboard-version}.jar"
 		prefix="data"/>
 	    <zipfileset dir="${jreInstDir}"
 	        includes="${jreInstExe}"
@@ -192,7 +192,7 @@ pdash-install-${qualifier}-${version}.jar
 
 	<delete file="install-cd.xml"/>
 	<delete file="cd-config.ini"/>
-	<delete file="${dist}/pdash-install-${qualifier}-${version}.jar"/>
+	<delete file="${dist}/pdash-install-${qualifier}-${dashboard-version}.jar"/>
     </target>
 
 
