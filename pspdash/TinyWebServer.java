@@ -243,9 +243,10 @@ public class TinyWebServer extends Thread {
         }
 
         private void handleRequest() throws TinyWebThreadException {
+            String line = null;
             try {
                 // read and process the header line
-                String line = readLine(inputStream);
+                line = readLine(inputStream);
                 StringTokenizer tok = new StringTokenizer(line, " ");
                 method   = tok.nextToken();
                 uri      = tok.nextToken();
@@ -280,6 +281,10 @@ public class TinyWebServer extends Thread {
             } catch (NoSuchElementException nsee) {
                 sendError( 400, "Bad Request", "No request found." );
             } catch (IOException ioe) {
+                if (line != null)
+                    System.err.println("When processing '"+line+
+                                       "', caught "+ioe);
+                ioe.printStackTrace();
                 sendError( 500, "Internal Error", "IO Exception." );
             }
         }
@@ -298,11 +303,22 @@ public class TinyWebServer extends Thread {
          * </PRE> */
         private void parseURI(String uri) throws TinyWebThreadException {
 
+            // extract the query string from the end.
+            int pos = uri.indexOf('?');
+            if (pos != -1) {
+                query = uri.substring(pos + 1);
+                uri = uri.substring(0, pos);
+            }
+
+            // remove "." and ".." directories from the uri.
+            uri = canonicalizePath(uri);
+
             // ensure uri starts with a slash.
-            if (! uri.startsWith("/"))
+            if ( uri == null || !uri.startsWith("/") )
                 sendError( 400, "Bad Request", "Bad filename." );
 
-            int pos = uri.indexOf("//");
+            // find the double slash that separates the id from the path.
+            pos = uri.indexOf("//");
             if (pos >= 0) {
                 id = uri.substring(0, pos);
                 path = uri.substring(pos+2);
@@ -321,13 +337,6 @@ public class TinyWebServer extends Thread {
                 id = "";
                 path = uri.substring(1);
             }
-
-            // extract the query string from the end.
-            pos = path.indexOf('?');
-            if (pos != -1) {
-                query = path.substring(pos + 1);
-                path = path.substring(0, pos);
-            }
         }
 
         /** Resolve an absolute URL */
@@ -340,7 +349,8 @@ public class TinyWebServer extends Thread {
             return result;
         }
 
-        /** Resolve a relative URL */
+        /* Currently unused.
+         * Resolve a relative URL
         private URLConnection resolveURL(String url, URL base)
             throws TinyWebThreadException
         {
@@ -359,6 +369,7 @@ public class TinyWebServer extends Thread {
             sendError(404, "Not Found", "File '" + url + "' not found.");
             return null;        // this line will never be reached.
         }
+        */
 
         private void parseHTTPHeaders() throws IOException {
             buildEnvironment();
@@ -883,32 +894,69 @@ public class TinyWebServer extends Thread {
         }
     }
 
-    private URL checkSafeURL(URL u) {
+    private boolean isDirectory(URL u) {
         String urlString = u.toString();
+        if (!urlString.startsWith("file:/")) return false;
+        String filename = urlString.substring(5);
+        filename = URLDecoder.decode(filename);
+        File file = new File(filename);
+        return file.isDirectory();
+    }
 
-        // File URLs pointing to directories typically end with a slash
-        // automatically (although this isn't a documented behavior).
-        if (urlString.endsWith("/"))
-            return null;
+    /** Canonicalize a path through the removal of directory changes
+     * made by occurences of &quot;..&quot; and &quot;.&quot;.
+     *
+     * @return a canonical path, or null on error.
+     */
+    private static String canonicalizePath(String path) {
+        if (path == null) return null;
+        path = path.trim();
 
-        for (int i = 0;  i < roots.length;  i++)
-            if (urlString.startsWith(roots[i].toString()))
-                return u;
+        int pos, beg;
+        while (true) {
 
-        return null;
+            if (path.startsWith("../") || path.startsWith("/../"))
+                return null;
+
+            else if (path.startsWith("./"))
+                path = path.substring(2);
+
+            else if ((pos = path.indexOf("/./")) != -1)
+                path = path.substring(0, pos) + path.substring(pos+2);
+
+            else if (path.endsWith("/."))
+                path = path.substring(0, path.length()-2);
+
+            else if ((pos = path.indexOf("/../", 1)) != -1) {
+                beg = path.lastIndexOf('/', pos-1);
+                if (beg == -1)
+                    path = path.substring(pos+4);
+                else
+                    path = path.substring(0, beg) + path.substring(pos+3);
+
+            } else if (path.endsWith("/..")) {
+                beg = path.lastIndexOf('/', path.length()-4);
+                if (beg == -1)
+                    return null;
+                else
+                    path = path.substring(0, beg+1);
+
+            } else
+                return path;
+        }
     }
 
     private URLConnection resolveURL(String url) {
+        url = canonicalizePath(url);
+        if (url == null) return null;
+
         URL u;
         URLConnection result;
         for (int i = 0;  i < roots.length;  i++) try {
             u = new URL(roots[i], url);
 
-            // don't accept resolved URLs that aren't a child of the root!
-            String urlStr = u.toString();
-            if (!urlStr.startsWith(roots[i].toString()) ||
-                urlStr.endsWith("/"))
-                continue;
+            // don't accept resolved URLs that point to a directory
+            if (isDirectory(u)) continue;
 
             // System.out.println("trying url: " + u);
             result = u.openConnection();
