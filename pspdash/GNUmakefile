@@ -229,7 +229,8 @@ $(BIN)/pspdash/%.class: %.java
 
 #################################################################
 # To build the following file (and thus enable context-sensitive
-# help within the dashboard) you must have the javahelp classes
+# help within the dashboard) you must have the JavaHelp classes
+# in your jre/lib/ext directory as an "installed extension" or else
 # in the path specified by the CLASSPATH environment variable.
 #################################################################
 
@@ -241,7 +242,7 @@ javahelp: DashHelpBroker.jav
 	    -sourcepath $(SRC) \
 	    -d $(BIN) \
 	    DashHelpBroker.java
-
+	rm DashHelpBroker.java
 
 DataSources.class: $(BIN)/com/jrefinery/chart/DataSources.class
 XYPlot.class: $(BIN)/com/jrefinery/chart/XYPlot.class
