@@ -7,14 +7,10 @@ if 0;
 #
 #  To use, run in the Templates directory:
 #
-#     dataFileCheck.pl <datafile> [<globaldata file>]
+#     dataFileCheck.pl <datafile>
 #
 #  where <datafile> is the full pathname to the dataFile.txt for the process 
 #  that you want to examine.
-#
-#  <globaldata file> is an optional argument that says to read the given 
-#  .globalData file instead of the PSP.globalData file (which is read by 
-#  default).
 #
 #  I wrote this on a Unix machine (SGI IRIX, actually), so I'm not sure what 
 #  it will do on Windows machines.  Although I can't see any big problems 
@@ -27,57 +23,48 @@ if ($#ARGV < 0) {
    die "Need a dataFile.txt file to start with (full pathname from Templates\ndirectory: e.g. psp0/datafile.txt)\n";
 }
 
-# which global?
-if ($#ARGV > 0) {
-   $fname = $ARGV[1];
-} else {
-   $fname = "PSP.globalData";
-}
+opendir DIRH, "." or die "Cannot open directory for read:$!\n";
+@files = readdir DIRH;
+chomp(@files);
+closedir DIRH;
 
-open FH, "$fname" or die "Cannot open global datafile $fname:$!\n";
-@DF = <FH>;
-close FH;
-chomp(@DF);
+# pull out the globalData files
+@files = grep /globalData$/,@files;
 
-for ($i=0; $i < @DF; $i++) {
-   $DF[$i] .= " | $fname";
+@DF = ();
+$maxLen = -1;
+foreach $fname (@files) {
 
-   $maxLen = length($fname);
-}
+   open FH, "$fname" or die "Cannot open global datafile $fname:$!\n";
+   @DFNEW = <FH>;
+   close FH;
+   chomp(@DFNEW);
 
-# global data file may have includes
-while (grep /#include/,@DF) {
-   # find the line
-   $found = 0;
-   for ($i=0; $i < @DF; $i++) {
-      if ($DF[$i] =~ m/#include *<(.*)>/) {
-         # get filename
-         $fname = $1;
-
-         open FH, $fname or die "Cannot open file $fname:$!\n";
-         @DFNEW = <FH>;
-         close FH;
-         chomp(@DFNEW);
-   
-         for ($j=0; $j < @DFNEW; $j++) {
-            $DFNEW[$j] .= " | $fname";
-         }
-
-         if (length($fname) > $maxLen) {
-            $maxLen = length($fname);
-         }
-
-         # put this filename's text where the #include line was
-         splice(@DF,$i,1,@DFNEW);
-         print "Including $fname...\n";
-
-         $found = 1;
-         last;
-      }
+   for ($i=0; $i < @DFNEW; $i++) {
+      $DFNEW[$i] .= " | $fname";
    }
 
-   if (! $found) {
-      print "Strange... I found #include, but no #include <file>\nThis may cause an infinite loop!\n";
+   if (length($fname) > $maxLen) {
+      $maxLen = length($fname);
+   }
+
+   push @DF,@DFNEW;
+}
+
+# remove comments and blanks before error check
+@DF = grep !/^[ 	]*\|.*$/,@DF;
+@DF = grep !/^=/,@DF;
+
+# at this point there should be no collisions (or error)
+@sorted = sort @DF;
+
+for ($i=0; $i < @sorted -1; $i++) {
+   ($LHS1 = $sorted[$i]) =~ s/=.*$//;
+   ($LHS2 = $sorted[$i+1]) =~ s/=.*$//;
+
+   if ($LHS1 eq $LHS2) {
+      print "*** ERROR ***\nFound element $LHS1 in more than one globalData file.\n";
+      print "Line1:$sorted[$i]\nLine2:$sorted[$i+1]\n";
    }
 }
 
@@ -168,7 +155,7 @@ for ($i=0; $i < @DF; $i++) {
 # removed marked entries
 @DF = grep !/^=/,@DF;
 
-# sort the output
+# sort the output (just for nicer output)
 @sorted = sort @DF;
 
 # now dump the results, putting the filename origination stuff on the front
