@@ -153,8 +153,11 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
         return -1;
     }
     protected Color getColorSetting(String name) {
-        try {
-            return Color.decode(getParameter(name));
+        String val = getParameter(name);
+        if (val != null) try {
+            if (val.startsWith("_"))
+                val = "#" + val.substring(1);
+            return Color.decode(val);
         } catch (Exception e) {}
         return Color.decode(Settings.getVal(SETTING_PREFIX +name));
     }
