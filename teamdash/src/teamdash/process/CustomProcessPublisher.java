@@ -1,11 +1,29 @@
 
-import pspdash.*;
-import java.net.URLEncoder;
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
+package teamdash.process;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import org.w3c.dom.*;
+
+import pspdash.HTMLPreprocessor;
+import pspdash.ProgressDialog;
+import pspdash.StringUtils;
+import pspdash.TemplateAutoData;
+import pspdash.TinyWebServer;
+import pspdash.XMLUtils;
 
 
 public class CustomProcessPublisher {

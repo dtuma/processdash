@@ -217,7 +217,7 @@ public class CustomProcess extends AbstractTableModel {
         return result.toString();
     }
 
-    String getJarName() {
+    public String getJarName() {
         return getProcessID() + ".zip";
     }
 
