@@ -311,10 +311,11 @@ public class HierarchyButton implements ActionListener {
             }
         }
         public void dataValueChanged(DataEvent e) {
-            if (e.getValue() != null && e.getValue().test())
-                setIcon(CHECKMARK_ICON);
-            else
-                setIcon(null);
+            final Icon i =
+                ((e.getValue() != null && e.getValue().test())
+                    ? CHECKMARK_ICON : null);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { setIcon(i); } } );
         }
         public void dataValuesChanged(Vector v) {
             for (int i = v.size();   i-- > 0; )
