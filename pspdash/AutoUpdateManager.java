@@ -65,13 +65,14 @@ public class AutoUpdateManager {
     public static final String PROXY_PASS = ".proxyPassword";
     public static final long CHECK_INTERVAL = 30L /*days*/ * 24L /*hours*/ *
         60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
-    private static final String BULLET = "\u2022";
 
 
     private ArrayList packages;
     private String p_user;
     private String p_pass;
     private long now;
+    private Resources resources =
+        Resources.getDashBundle("pspdash.AutoUpdateManager");
 
     public AutoUpdateManager(Collection packages) {
         this.packages = new ArrayList(packages);
@@ -205,18 +206,18 @@ public class AutoUpdateManager {
             Collections.sort(updates, String.CASE_INSENSITIVE_ORDER);
 
             html.append("<p>");
-            if (updates.size() == 1)
-                html.append("A new version of the following package is");
-            else
-                html.append("New versions of the following packages are");
-            html.append(" now available from<br><a href=\"")
-                .append(userURL).append("\">")
-                .append(HTMLUtils.escapeEntities(userURL))
-                .append("</a>:<ul>");
+            String hyperlink = "<a href=\"" + userURL + "\">" +
+                HTMLUtils.escapeEntities(userURL) + "</a>";
+            html.append(resources.format("Updates_Available_Message_FMT",
+                                         hyperlink,
+                                         new Integer(updates.size())));
+            html.append("<ul>");
             Iterator u = updates.iterator();
-            while (u.hasNext())
+            while (u.hasNext()) {
+                String updateName = Translator.translate((String) u.next());
                 html.append("<li>")
-                    .append(HTMLUtils.escapeEntities((String) u.next()));
+                    .append(HTMLUtils.escapeEntities(updateName));
+            }
             html.append("</ul>");
         }
 
@@ -234,51 +235,45 @@ public class AutoUpdateManager {
 
 
         JCheckBox disable = new JCheckBox
-            ("Don't perform a monthly check for new releases.");
+            (resources.getString("Do_Not_Check_Label"));
         Object[] messageDisplay = new Object[2];
         messageDisplay[0] = message;
         messageDisplay[1] = disable;
 
+        String [] updateOptions = { resources.getString("Remind_Label"),
+                                    resources.getString("Close_Label") };
+
         int choice = JOptionPane.showOptionDialog
-            (parent, messageDisplay, "Software Updates are Available",
+            (parent, messageDisplay,
+             resources.getString("Updates_Available_Title"),
              JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
-             null, UPDATE_OPTIONS, UPDATE_OPTIONS[0]);
+             null, updateOptions, updateOptions[0]);
         if (choice == 0)
             InternalSettings.set(AUTO_UPDATE_SETTING + REMIND, "true");
 
         if (disable.isSelected())
             InternalSettings.set(AUTO_UPDATE_SETTING + DISABLED, "true");
     }
-    private static final String [] UPDATE_OPTIONS = {
-        "Remind me again", "Close this window" };
-    private static final String DOWNLOAD_URL =
-        "http://processdash.sourceforge.net/autoupdate.html";
 
 
     /** Display a dialog advising the user that the check failed. */
     public void displayCheckFailed(Component parent) {
-        JOptionPane.showMessageDialog(parent, CHECK_FAILED_MSG,
-                                      "Internet Connection Failure",
-                                      JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog
+            (parent,
+             resources.getStrings("Check_Failed_Message"),
+             resources.getString("Check_Failed_Title"),
+             JOptionPane.WARNING_MESSAGE);
     }
-    private static final String[] CHECK_FAILED_MSG = {
-        "The dashboard was unable to determine if any updates",
-        "are available because it could not make a connection to",
-        "the internet. This could either be because:",
-        BULLET + " You are not currently connected to the internet, or",
-        BULLET + " You connect to the internet via an HTTP proxy server",
-        "    (which the update mechanism does not currently support).",
-        "Sorry!" };
 
 
     /** Display a dialog advising the user that everything is up-to-date. */
     public void displayUpToDate(Component parent) {
-        JOptionPane.showMessageDialog(parent, UP_TO_DATE_MSG, "Up To Date",
-                                      JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog
+            (parent,
+             resources.getStrings("Up_To_Date_Message"),
+             resources.getString("Up_To_Date_Title"),
+             JOptionPane.INFORMATION_MESSAGE);
     }
-    private static final String[] UP_TO_DATE_MSG = {
-        "The check is complete.  Your installation",
-        "of the dashboard is up-to-date!" };
 
 
 
