@@ -56,6 +56,8 @@ if (debug) { document.write("running data.js<P>"); }
  */
 var requiredTag = "";
 
+var SILENT;
+
 
 
 
@@ -169,12 +171,14 @@ function eesc(str) {
 function writeExportHTML() {
     document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;Export to: ");
     document.writeln("<A HREF='/reports/form2html.class'>HTML</A>");
-    var url = eesc(window.location.pathname)
+    var url = eesc(window.location.pathname +
+		   window.location.hash +
+		   window.location.search);
     url = "/reports/form2html.class?uri=" + url;
     url = eesc(url);
 	
     document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+ 
-		     "&foo=bar.iqy'>Excel</A>");
+		     "&fullPage'>Excel</A>");
 }
 
 
@@ -307,8 +311,10 @@ function IEsetup() {
       document.writeln('<param name=unlock value=true>');
     document.writeln('</applet>');
 
-    document.write(unlockHTML);
-    writeExportHTML();
+    if (!SILENT) {
+	document.write(unlockHTML);
+	writeExportHTML();
+    }
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
     IEDataAppl.ondatasetchanged  = IEscanForReadOnly;
@@ -511,8 +517,10 @@ function NSSetup() {
       document.writeln('<param name=unlock value=true>');
     document.writeln('</applet>');
 
-    document.write(unlockHTML);
-    writeExportHTML();
+    if (!SILENT) {
+	document.write(unlockHTML);
+	writeExportHTML();
+    }
   }
 }
 
