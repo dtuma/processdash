@@ -63,8 +63,7 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
     /** Generate CGI script output. */
     protected void writeContents() {
 
-        String path = getParameter("hierarchyPath"), title;
-        if (path == null) path = (String) env.get("PATH_TRANSLATED");
+        String path = getPrefix(), title;
         if (path != null && path.length() > 1)
             title = " for " + path;
         else
