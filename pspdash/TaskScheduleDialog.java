@@ -66,8 +66,9 @@ public class TaskScheduleDialog
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
         deletePeriodButton, chartButton, reportButton, closeButton,
-        saveButton, recalcButton, explodeTaskButton, errorButton,
+        saveButton, recalcButton, errorButton,
         collaborateButton;
+    protected JCheckBox flatViewCheckbox;
 
     protected JFrame chartDialog = null;
 
@@ -198,6 +199,10 @@ public class TaskScheduleDialog
         return (model instanceof EVTaskListRollup);
     }
 
+    protected boolean isFlatView() {
+        return (flatViewCheckbox != null && flatViewCheckbox.isSelected());
+    }
+
     private boolean isDirty = false;
     protected void setDirty(boolean dirty) {
         isDirty = dirty;
@@ -226,18 +231,6 @@ public class TaskScheduleDialog
         result.add(deleteTaskButton);
         result.add(Box.createHorizontalGlue());
 
-        if (!isRollup) {
-            explodeTaskButton = new JButton("Explode Task");
-            explodeTaskButton.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        explodeTask(); }});
-            explodeTaskButton.setEnabled(false);
-            result.add(explodeTaskButton);
-            result.add(Box.createHorizontalGlue());
-        } else {
-            explodeTaskButton = null;
-        }
-
         moveUpButton = new JButton
             (isRollup ? "Move Schedule Up" : "Move Task Up");
         moveUpButton.addActionListener(new ActionListener() {
@@ -256,12 +249,26 @@ public class TaskScheduleDialog
         result.add(moveDownButton);
         result.add(Box.createHorizontalGlue());
 
+        if (!isRollup) {
+            flatViewCheckbox = new JCheckBox("Flat View");
+            flatViewCheckbox.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        toggleFlatView(); }});
+            flatViewCheckbox.setSelected(false);
+            flatViewCheckbox.setFocusPainted(false);
+            result.add(flatViewCheckbox);
+            result.add(Box.createHorizontalGlue());
+        } else {
+            flatViewCheckbox = null;
+        }
+
         treeTable.getSelectionModel().addListSelectionListener
             (new ListSelectionListener() {
                     public void valueChanged(ListSelectionEvent e) {
                         enableTaskButtons(e); }});
         return result;
     }
+
 
     protected Component buildScheduleButtons() {
         Box result = Box.createHorizontalBox();
@@ -545,6 +552,17 @@ public class TaskScheduleDialog
                 ((JTextComponent) result).selectAll();
             return result;
         }
+
+        public void setTreeTableModel(TreeTableModel treeTableModel) {
+
+            TreeCellRenderer r = getTree().getCellRenderer();
+
+            super.setTreeTableModel(treeTableModel);
+
+            getTree().setCellRenderer(r);
+            ToolTipManager.sharedInstance().registerComponent(getTree());
+        }
+
     }
 
     class TaskJTreeTableCellRenderer
@@ -1163,6 +1181,11 @@ public class TaskScheduleDialog
     protected void deleteTask() {
         TreePath selPath = treeTable.getTree().getSelectionPath();
         if (selPath == null) return;
+        if (isFlatView()) {
+            EVTask selectedTask = (EVTask) selPath.getLastPathComponent();
+            selPath = new TreePath(selectedTask.getPath());
+        }
+
         int pathLen = selPath.getPathCount();
         if (isRollup()) {
             if (pathLen != 2 || !confirmDelete(selPath)) return;
@@ -1178,6 +1201,8 @@ public class TaskScheduleDialog
             enableTaskButtons();
         }
     }
+
+
     protected boolean confirmDelete(TreePath selPath) {
         EVTask task = (EVTask) selPath.getLastPathComponent();
         String fullName = isRollup() ? task.getName() : task.getFullName();
@@ -1240,6 +1265,8 @@ public class TaskScheduleDialog
      * task tree root.
      */
     protected void moveTaskUp() {
+        if (isFlatView()) { notYetImplemented(); return; }
+
         TreePath selPath = treeTable.getTree().getSelectionPath();
 
         // make the change.
@@ -1259,6 +1286,8 @@ public class TaskScheduleDialog
      * task tree root.
      */
     protected void moveTaskDown() {
+        if (isFlatView()) { notYetImplemented(); return; }
+
         TreePath selPath = treeTable.getTree().getSelectionPath();
 
         // make the change.
@@ -1271,6 +1300,11 @@ public class TaskScheduleDialog
             SwingUtilities.invokeLater(new RowSelectionTask(row));
         }
     }
+
+    private void notYetImplemented() {
+        JOptionPane.showMessageDialog(treeTable, "Not yet implemented");
+    }
+
 
     private class RowSelectionTask implements Runnable {
         private int row;
@@ -1302,9 +1336,27 @@ public class TaskScheduleDialog
     }
 
     protected void enableTaskButtons() {
-        if (treeTable != null)
-            enableTaskButtons(treeTable.getTree().getSelectionPath());
+        if (treeTable != null) {
+            if (isFlatView())
+                enableTaskButtonsFlatView();
+            else
+                enableTaskButtons(treeTable.getTree().getSelectionPath());
+        }
     }
+
+    private void enableTaskButtonsFlatView() {
+        int rowNum = treeTable.getSelectedRow();
+        boolean enableDelete = (rowNum > 0);
+        boolean enableUp     = (rowNum > 1);
+        boolean enableDown   = (rowNum > 0 && rowNum < treeTable.getRowCount()-1);
+
+        //addTaskButton    .setEnabled(false);
+        deleteTaskButton .setEnabled(enableDelete);
+        deleteTaskButton .setText("Remove Task");
+        moveUpButton     .setEnabled(enableUp);
+        moveDownButton   .setEnabled(enableDown);
+    }
+
 
     protected void enableTaskButtons(TreePath selectionPath) {
         boolean enableDelete = false, enableExplode = false,
@@ -1327,13 +1379,42 @@ public class TaskScheduleDialog
                 ((EVTask) selectionPath.getLastPathComponent()).isUserPruned();
         }
 
+        addTaskButton    .setEnabled(true);
         deleteTaskButton .setEnabled(enableDelete);
         if (!isRollup())
             deleteTaskButton.setText(isPruned ? "Restore Task" : "Remove Task");
-        if (explodeTaskButton != null)
-            explodeTaskButton.setEnabled(enableExplode);
         moveUpButton     .setEnabled(enableUp);
         moveDownButton   .setEnabled(enableDown);
+    }
+
+    private TreeTableModel flatModel = null;
+
+    protected void toggleFlatView() {
+        boolean showFlat = isFlatView();
+
+        // changing the TreeTableModel below causes our column model to
+        // be completely recreated from scratch.  Unfortunately, this
+        // loses all information about column width, tooltips, etc.  To
+        // avoid this, we temporarily install a discardable column model.
+        // The disruptive changes will be made to it, then we reinstall
+        // our original column model when we're done.
+        //    Note that we can do this only because we know that we'll
+        // be replacing the TreeTableModel with another one that is
+        // exactly compatible.
+        TableColumnModel columnModel = treeTable.getColumnModel();
+        treeTable.setColumnModel(new DefaultTableColumnModel());
+
+        if (!showFlat)
+            treeTable.setTreeTableModel(model);
+        else {
+            if (flatModel == null)
+                flatModel = model.getFlatModel();
+            treeTable.setTreeTableModel(flatModel);
+        }
+
+        treeTable.setColumnModel(columnModel);
+
+        enableTaskButtons();
     }
 
 

@@ -40,6 +40,7 @@ public class EVCalculatorData extends EVCalculator {
     private EVTask taskRoot;
     private EVSchedule schedule;
     private Date scheduleStartDate, effectiveDate, completionDate;
+    private boolean reorderCompletedTasks = false;
 
     public EVCalculatorData(EVTask root, EVSchedule schedule) {
         this.taskRoot = root;
@@ -49,6 +50,7 @@ public class EVCalculatorData extends EVCalculator {
     public void recalculate() {
         resetData();
         scheduleStartDate = schedule.getStartDate();
+        reorderCompletedTasks = Settings.getBool("ev.sortCompletedTasks", true);
 
         pruneNodes(taskRoot, false);
         double levelOfEffort = calculateLevelOfEffort(taskRoot);
@@ -196,26 +198,10 @@ public class EVCalculatorData extends EVCalculator {
         Collections.sort(evLeaves, new EVLeafComparator(evLeaves));
     }
 
-    protected void sortEVLeafListNoDateSort(List evLeaves) {
-        List chronologicallyPrunedLeaves = new LinkedList();
-        Iterator i = evLeaves.iterator();
-        while (i.hasNext()) {
-            EVTask t = (EVTask) i.next();
-            if (t.dateCompleted != null &&
-                t.dateCompleted.compareTo(scheduleStartDate) < 0) {
-                chronologicallyPrunedLeaves.add(t);
-                i.remove();
-            }
-        }
-        evLeaves.addAll(0, chronologicallyPrunedLeaves);
-    }
-
     private class EVLeafComparator implements Comparator {
         private List origOrder;
-        private boolean reorderCompletedTasks = false;
         private EVLeafComparator(List origList) {
             origOrder = new LinkedList(origList);
-            reorderCompletedTasks = Settings.getBool("ev.sortCompletedTasks", true);
         }
         public int compare(Object o1, Object o2) {
             EVTask t1 = (EVTask) o1;
@@ -445,5 +431,18 @@ Value to recalculate
 
      *
      */
+
+    public List getEVLeaves(boolean filter) {  // filter is not yet used.
+        List result = new LinkedList(evLeaves);
+        Iterator i = result.iterator();
+        while (i.hasNext()) {
+            EVTask task = (EVTask) i.next();
+            Date d = task.dateCompleted;
+            if (d != null &&
+                (reorderCompletedTasks || d.compareTo(scheduleStartDate) < 0))
+                i.remove();
+        }
+        return result;
+    }
 
 }

@@ -31,10 +31,13 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
+
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.table.*;
 import javax.swing.tree.TreePath;
 
@@ -622,6 +625,165 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
+    TreeTableModel getFlatModel() { return new FlatTreeModel(); }
+
+    private class FlatTreeModel extends AbstractTreeTableModel
+        implements TreeModelListener, RecalcListener
+    {
+
+        private List evLeaves;
+
+        public FlatTreeModel() {
+            super(EVTaskList.this.root);
+            evLeaves = getEVLeaves();
+            EVTaskList.this.addTreeModelListener(this);
+            EVTaskList.this.addRecalcListener(this);
+        }
+
+        private List getEVLeaves() {
+            return calculator.getEVLeaves(true);
+        }
+
+        public Class getColumnClass(int column) {
+            return EVTaskList.this.getColumnClass(column);
+        }
+
+        public boolean isCellEditable(Object node, int column) {
+            return EVTaskList.this.isCellEditable(node, column);
+        }
+
+        public void setValueAt(Object aValue, Object node, int column) {
+            EVTaskList.this.setValueAt(aValue, node, column);
+        }
+
+        public int getColumnCount() {
+            return EVTaskList.this.getColumnCount();
+        }
+
+        public String getColumnName(int column) {
+            return EVTaskList.this.getColumnName(column);
+        }
+
+        public Object getValueAt(Object node, int column) {
+            return EVTaskList.this.getValueAt(node, column);
+        }
+
+        public int getChildCount(Object parent) {
+            if (parent == root)
+                return evLeaves.size();
+            return 0;
+        }
+
+        public Object getChild(Object parent, int index) {
+            if (parent == root && index >= 0 && index < evLeaves.size())
+                return evLeaves.get(index);
+            return null;
+        }
+
+        public int getIndexOfChild(Object parent, Object child) {
+            if (parent == root && child instanceof EVTask)
+                return EVTask.indexOfNode(evLeaves, (EVTask) child);
+            return -1;
+        }
+
+        public void treeNodesChanged(TreeModelEvent e) { recalcLeafList(); }
+        public void treeNodesInserted(TreeModelEvent e) { recalcLeafList(); }
+        public void treeNodesRemoved(TreeModelEvent e) { recalcLeafList(); }
+        public void treeStructureChanged(TreeModelEvent e) { recalcLeafList(); }
+        public void evRecalculated(EventObject e) { recalcLeafList(); }
+
+        private synchronized void recalcLeafList() {
+            // get the new leaf list.
+            List oldLeaves = evLeaves;
+            List newLeaves = getEVLeaves();
+
+            // compare the new list to the existing list.  If they are the
+            // same, nothing needs to be done.
+            if (newLeaves.equals(evLeaves)) return;
+
+            /*
+            // perform a more through comparison of the two lists, and fire
+            // the appropriate events.
+            Diff diff = new Diff(evLeaves.toArray(), newLeaves.toArray());
+            Diff.change c = diff.diff_2(true);
+            while (c != null) {
+
+                if (c.deleted > 0) {
+                    int[] childIndices = new int[c.deleted];
+                    Object[] children = new Object[c.deleted];
+                    for (int i = c.deleted;  i-- > 0; ) {
+                        int delChildPos = c.line0 + i;
+                        childIndices[i] = delChildPos;
+                        children[i] = evLeaves.remove(delChildPos);
+                    }
+                    fireTreeNodesRemoved(this, ((EVTask) root).getPath(),
+                                         childIndices, children);
+                }
+
+                if (c.inserted > 0) {
+                    int[] childIndices = new int[c.inserted];
+                    Object[] children = new Object[c.inserted];
+                    for (int i = 0;   i < c.inserted;   i++) {
+                        int insChildSrcPos = c.line1 + i;
+                        int insChildDestPos = c.line0 + i;
+                        childIndices[i] = insChildDestPos;
+                        children[i] = evLeaves.get(insChildSrcPos);
+                        evLeaves.add(insChildDestPos, children[i]);
+                    }
+                    fireTreeNodesInserted(this, ((EVTask) root).getPath(),
+                                          childIndices, children);
+                }
+
+                // go to the next change.
+                c = c.link;
+            }
+
+            if (!evLeaves.equals(newLeaves)) {
+                System.err.println("the leaf lists don't match!!!");
+            }
+
+            evLeaves = newLeaves;
+
+            */
+            int oldLen = oldLeaves.size();
+            int newLen = newLeaves.size();
+            int changedRows = Math.min(newLen, oldLen);
+
+            evLeaves = newLeaves;
+
+            int[] childIndices = new int[changedRows];
+            Object[] children = new Object[changedRows];
+            for (int i = 0;   i < changedRows;   i++) {
+                childIndices[i] = i;
+                children[i] = newLeaves.get(i);
+            }
+            fireTreeNodesChanged(this, ((EVTask) root).getPath(),
+                                 childIndices, children);
+
+            if (oldLen < newLen) {
+                int insertedRows = newLen-oldLen;
+                childIndices = new int[insertedRows];
+                children = new Object[insertedRows];
+                for (int i = 0;   i < insertedRows;   i++) {
+                    childIndices[i] = i+changedRows;
+                    children[i] = newLeaves.get(i+changedRows);
+                }
+                fireTreeNodesInserted(this, ((EVTask) root).getPath(),
+                                      childIndices, children);
+
+            } else if (oldLen > newLen) {
+                int deletedRows = oldLen-newLen;
+                childIndices = new int[deletedRows];
+                children = new Object[deletedRows];
+                for (int i = 0;   i < deletedRows;   i++) {
+                    childIndices[i] = i+changedRows;
+                    children[i] = oldLeaves.get(i+changedRows);
+                }
+                fireTreeNodesRemoved(this, ((EVTask) root).getPath(),
+                                     childIndices, children);
+            }
+        }
+    }
 
 }
 

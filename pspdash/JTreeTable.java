@@ -55,6 +55,9 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 
 import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This example shows how to create a simple JTreeTable component,
@@ -70,20 +73,26 @@ public class JTreeTable extends JTable {
     /** A subclass of JTree. */
     protected TreeTableCellRenderer tree;
     protected TreeTableModelAdapter adapter;
+    protected Map trees = new HashMap();
+    protected Map adapters = new HashMap();
+
+
+    protected ListToTreeSelectionModelWrapper selectionWrapper;
 
     public JTreeTable(TreeTableModel treeTableModel) {
         super();
 
         // Create the tree. It will be used as a renderer and editor.
         tree = new TreeTableCellRenderer(treeTableModel);
+        trees.put(treeTableModel, tree);
 
         // Install a tableModel representing the visible rows in the tree.
         super.setModel
             (adapter = new TreeTableModelAdapter(treeTableModel, tree));
+        adapters.put(treeTableModel, adapter);
 
         // Force the JTable and JTree to share their row selection models.
-        ListToTreeSelectionModelWrapper selectionWrapper = new
-                                ListToTreeSelectionModelWrapper();
+        selectionWrapper = new ListToTreeSelectionModelWrapper();
         tree.setSelectionModel(selectionWrapper);
         setSelectionModel(selectionWrapper.getListSelectionModel());
 
@@ -105,9 +114,43 @@ public class JTreeTable extends JTable {
         }
     }
 
+    public void setTreeTableModel(TreeTableModel treeTableModel) {
+
+        if (trees.containsKey(treeTableModel)) {
+            // reuse the previously created tree object, and its associated
+            // adapter;  this will allow the tree nodes to have the same
+            // expanded/collapsed properties as they had when the user
+            // last saw that tree.
+            tree = (TreeTableCellRenderer) trees.get(treeTableModel);
+            adapter = (TreeTableModelAdapter) adapters.get(treeTableModel);
+
+        } else {
+            // Create the tree. It will be used as a renderer and editor.
+            tree = new TreeTableCellRenderer(treeTableModel);
+            trees.put(treeTableModel, tree);
+
+            // Install a tableModel representing the visible rows in the tree.
+            adapter = new TreeTableModelAdapter(treeTableModel, tree);
+            adapters.put(treeTableModel, adapter);
+
+            // Force the JTable and JTree to share their row selection models.
+            tree.setSelectionModel(selectionWrapper);
+        }
+
+        // install the data model for the table.
+        super.setModel(adapter);
+
+        // Install the tree editor renderer and editor.
+        setDefaultRenderer(TreeTableModel.class, tree);
+    }
+
+
     public void dispose() {
-        if (adapter != null)
+        Iterator i = adapters.values().iterator();
+        while (i.hasNext()) {
+            TreeTableModelAdapter adapter = (TreeTableModelAdapter) i.next();
             adapter.dispose();
+        }
     }
 
     /**
@@ -395,4 +438,5 @@ public class JTreeTable extends JTable {
             }
         }
     }
+
 }

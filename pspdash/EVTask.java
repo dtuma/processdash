@@ -1066,7 +1066,8 @@ public class EVTask implements DataListener {
     }
 
     public boolean isChronologicallyPruned() {
-        return (dateCompleted != null && planDate == null && planValue == 0);
+        return (dateCompleted != null && dateCompleted != COMPLETION_DATE_NA &&
+                planDate == null && planValue == 0);
     }
 
     public boolean isUserPruned() {

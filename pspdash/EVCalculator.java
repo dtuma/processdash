@@ -42,7 +42,7 @@ public abstract class EVCalculator {
 
     public abstract void recalculate();
 
-    public List getEVLeaves() {
+    public List getEVLeaves(boolean filter) {
         return evLeaves;
     }
 
