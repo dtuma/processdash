@@ -66,12 +66,12 @@ abstract class NSField extends HTMLField {
             element.setMember("isEditable", (isEditable() ? EDITABLE : READONLY));
 
             Object style = element.getMember("style");
-            if (style instanceof JSObject) {
+            if (style instanceof JSObject) try {
                                       // This will execute only in Netscape 6+
                 element.eval(isEditable() ? "readOnly=false;" : "readOnly=true;");
                 ((JSObject) style).setMember("backgroundColor",
                                              (isEditable() ? "#ffffff" : "#cccccc"));
-            }
+            } catch (Exception e) {}
         }
     }
 
