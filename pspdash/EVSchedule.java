@@ -268,7 +268,10 @@ public class EVSchedule implements TableModel {
         c.set(c.DAY_OF_WEEK, 1);
 
         Date begin = truncDate(c.getTime());
-        Date end = new Date(begin.getTime() + WEEK_MILLIS);
+        long beginTime = begin.getTime();
+        long endTime  = beginTime + WEEK_MILLIS;
+        endTime += dstDifference(beginTime, endTime);
+        Date end = new Date(endTime);
 
         add(new Period(begin, 0.0));
         add(new Period(end, hours * 60));
@@ -317,7 +320,8 @@ public class EVSchedule implements TableModel {
     public EVSchedule(Element e) {
         metrics.loadFromXML(e);
         NodeList periodNodes = e.getChildNodes();
-        for (int i=0;   i < periodNodes.getLength();   i++) {
+        int len = periodNodes.getLength();
+        for (int i=0;   i < len;   i++) {
             Node n = periodNodes.item(i);
             if (n instanceof Element &&
                 "period".equals(((Element) n).getTagName()))
@@ -353,9 +357,13 @@ public class EVSchedule implements TableModel {
     protected synchronized void slideScheduleDates(long delta) {
         Iterator i = periods.iterator();
         Period p;
+        long currentEndDate, newEndDate;
         while (i.hasNext()) {
             p = (Period) i.next();
-            p.endDate = new Date(p.endDate.getTime() + delta);
+            currentEndDate = p.endDate.getTime();
+            newEndDate = currentEndDate + delta;
+            newEndDate += dstDifference(currentEndDate, newEndDate);
+            p.endDate = new Date(newEndDate);
         }
     }
 
@@ -631,8 +639,10 @@ public class EVSchedule implements TableModel {
         Period x = get(size-2), y = get(size-1), z;
 
         long xdate = x.endDate.getTime(), ydate = y.endDate.getTime();
-        long delta = ydate - xdate;
-        Date zdate = new Date(ydate + delta);
+        long delta = ydate - xdate - dstDifference(xdate, ydate);
+        long zdateTime = ydate + delta;
+        zdateTime += dstDifference(ydate, zdateTime);
+        Date zdate = new Date(zdateTime);
         z = new Period(zdate, 0.0);
         z.cumPlanTime = y.cumPlanTime;
         z.cumPlanValue = y.cumPlanValue;
@@ -642,6 +652,30 @@ public class EVSchedule implements TableModel {
         add(z);
         //System.out.println("growing schedule - new task ends: " + zdate);
         return true;
+    }
+
+    /** examines two different dates to see if one is in daylight
+     * savings time while the other is not.  If they are both in DST
+     * or neither is in DST, returns zero.
+     *
+     * if the first date is in standard time and the second is in
+     * daylight savings time, returns a negative number indicating the
+     * number of milliseconds that were lost.
+     *
+     * if the first date is in daylight savings time and the second is in
+     * standard time, returns a positive number indicating the
+     * number of additional milliseconds that were gained.
+     */
+    private static long dstDifference(long first, long second) {
+        Calendar calendar = Calendar.getInstance();
+
+        long firstDSTOffset, secondDSTOffset;
+        calendar.setTime(new Date(first));
+        firstDSTOffset = calendar.get(calendar.DST_OFFSET);
+        calendar.setTime(new Date(second));
+        secondDSTOffset = calendar.get(calendar.DST_OFFSET);
+
+        return firstDSTOffset - secondDSTOffset;
     }
 
     public synchronized void deleteRow(int row) {
