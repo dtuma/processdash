@@ -26,9 +26,6 @@
 package pspdash.data;
 
 
-public interface FrozenData {
-
-    /** Frozen data can be thawed. */
-    public SaveableData thaw(String defaultVal);
-
+public interface DataConsistencyObserver {
+    public void dataIsConsistent();
 }

@@ -131,6 +131,11 @@ function IEsetupReadOnly(elem) {
 
                                 // call setupReadOnly on the "this" element.
 function IEcheckEditable() { IEsetupReadOnly(this); }
+
+    // call setupReadOnly on the element referenced by the current event.
+function IEresetReadOnly() {
+    IEsetupReadOnly(ieFields[parseInt(event.dataFld.substring(5, 99))]);
+}
                                 // call setupReadOnly on all form elements.
 function IEsetupReadOnlyObj() { this.func = IEsetupReadOnly; }
 function IEscanForReadOnly(event) { elementIterate(new IEsetupReadOnlyObj()); }
@@ -160,6 +165,7 @@ function IEsetupSelectValues(elem) {
  * element for IEDataApplet use. Initially make the element disabled, so the
  * user cannot enter the element or type into it until the applet is ready.
  */
+var ieFields = new Array(10);
 
 function IEregisterElement(elem) {
                          // only setup this element if it has a NAME property.
@@ -172,7 +178,7 @@ function IEregisterElement(elem) {
     else if (elem.dataSrc == "") {         // if elem isn't already bound,
       elem.dataSrc = "#IEDataAppl";        // bind it to the IEDataApplet
       elem.dataFld = "field" + IEfieldNum; // with a new, unique dataFld value,
- 					   // and add info about the element to
+      ieFields[IEfieldNum] = elem;         // and add info about the element to
 				           // the IEparameterString.
       IEparameterString = IEparameterString + 
 	'<param name=field'+ IEfieldNum +' value="'+ escStr(elem.name) +'">'+
@@ -221,6 +227,7 @@ function IEsetup() {
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
     IEDataAppl.ondatasetchanged  = IEscanForReadOnly;
+    IEDataAppl.oncellchange      = IEresetReadOnly;
   }
 }
 

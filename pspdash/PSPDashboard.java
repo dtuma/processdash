@@ -160,6 +160,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         } }
 
         // open all the datafiles that were specified in the properties file.
+        data.startInconsistency();
         try {
             if (v != null) {
                 String a[];
@@ -193,6 +194,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
                 ("when generating default datafile, caught exception "+exc);
             exc.printStackTrace(System.err);
         }
+        data.finishInconsistency();
 
         webServer.setData(data);
         webServer.setProps(props);

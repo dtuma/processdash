@@ -97,11 +97,13 @@ DATA_FILES=$(COMMON_FILES) \
 	ArgumentList.java \
 	ComparisonFunction.java \
 	DataComparator.java \
+	DataConsistencyObserver.java \
 	DataList.java \
 	DataRepository.java \
 	DeferredData.java \
 	DivisionFunction.java \
 	EqualsFunction.java \
+	FrozenData.java \
 	FrozenDate.java \
 	FrozenDouble.java \
 	FrozenString.java \

@@ -52,11 +52,11 @@ public class FrozenString extends StringData implements FrozenData {
     }
 
 
-    public FrozenString(String name, StringData value,
-                        DataRepository data, String prefix) {
+    public FrozenString(String name, StringData value, DataRepository data,
+                        String prefix, String defaultVal) {
         super();
         this.value = value.value;
-        this.editable = value.editable;
+        this.editable = false;
         this.defined = value.defined;
 
         this.name = name;
@@ -64,22 +64,20 @@ public class FrozenString extends StringData implements FrozenData {
         this.data = data;
         this.prefix = prefix;
 
-        if (value instanceof FrozenString) {
-            // Don't freeze things twice!
-            util.formerEditable  = ((FrozenString)value).util.formerEditable;
-            util.formerSaveString= ((FrozenString)value).util.formerSaveString;
-        } else {
-            util.formerEditable   = value.editable;
-            util.formerSaveString = value.saveString();
-        }
+        util.formerEditable    = value.editable;
         util.currentSaveString = super.saveString();
+        util.setFormer(value.saveString(), defaultVal);
     }
 
-    public SaveableData thaw() throws MalformedValueException {
+    public SaveableData thaw(String defaultVal) {
         if (o == null) {
-            System.out.println("thawing " + name);
-            o = ValueFactory.create(name, util.formerSaveString, data, prefix);
-            o.setEditable(util.formerEditable);
+            String value = util.getFormer(defaultVal);
+            try {
+                o = ValueFactory.createQuickly(name, value, data, prefix);
+            } catch (MalformedValueException mve) {
+                o = new MalformedData(value);
+            }
+            if (o != null) o.setEditable(util.formerEditable);
         }
 
         return o;

@@ -52,8 +52,8 @@ public class FrozenDouble extends DoubleData implements FrozenData {
     }
 
 
-    public FrozenDouble(String name, DoubleData value,
-                        DataRepository data, String prefix) {
+    public FrozenDouble(String name, DoubleData value, DataRepository data,
+                        String prefix, String defaultVal) {
         super(value.value, false);
         defined = value.defined;
 
@@ -62,22 +62,20 @@ public class FrozenDouble extends DoubleData implements FrozenData {
         this.data = data;
         this.prefix = prefix;
 
-        if (value instanceof FrozenDouble) {
-            // Don't freeze things twice!
-            util.formerEditable  = ((FrozenDouble)value).util.formerEditable;
-            util.formerSaveString= ((FrozenDouble)value).util.formerSaveString;
-        } else {
-            util.formerEditable   = value.editable;
-            util.formerSaveString = value.saveString();
-        }
+        util.formerEditable    = value.editable;
         util.currentSaveString = super.saveString();
+        util.setFormer(value.saveString(), defaultVal);
     }
 
-    public SaveableData thaw() throws MalformedValueException {
+    public SaveableData thaw(String defaultVal) {
         if (o == null) {
-            System.out.println("thawing " + name);
-            o = ValueFactory.create(name, util.formerSaveString, data, prefix);
-            o.setEditable(util.formerEditable);
+            String value = util.getFormer(defaultVal);
+            try {
+                o = ValueFactory.createQuickly(name, value, data, prefix);
+            } catch (MalformedValueException mve) {
+                o = new MalformedData(value);
+            }
+            if (o != null) o.setEditable(util.formerEditable);
         }
 
         return o;

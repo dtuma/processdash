@@ -46,7 +46,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Stack;
 import com.oroinc.text.perl.MalformedPerl5PatternException;
@@ -459,9 +461,388 @@ public class DataRepository implements Repository {
         }
         private static final String CIRCULARITY_TOKEN = "CIRCULARITY_TOKEN";
 
-
-
         DataNotifier dataNotifier;
+
+
+
+        private class DataFreezer extends Thread implements RepositoryListener,
+                                                            DataConsistencyObserver
+        {
+
+            /** Keys in this hashtable are the String names of freeze tag
+             * data elements.  Values are the FrozenDataSets to which they
+             * refer. */
+            private Hashtable frozenDataSets;
+
+            /** A list of names of data elements which need to be frozen. */
+            private SortedSet itemsToFreeze;
+
+            /** A list of names of data elements which need to be thawed. */
+            private SortedSet itemsToThaw;
+
+            /** Flag indicating that we've received a request to terminate. */
+            private volatile boolean terminate = false;
+
+            public DataFreezer() {
+                frozenDataSets = new Hashtable();
+                itemsToFreeze = Collections.synchronizedSortedSet(new TreeSet());
+                itemsToThaw = Collections.synchronizedSortedSet(new TreeSet());
+                addRepositoryListener(this, "");
+            }
+
+            public void run() {
+                // run this thread until ordered to terminate
+                while (!terminate) {
+                    // Wait until the data is consistent - don't freeze or thaw anything
+                    // while files are being opened and closed.
+                    addDataConsistencyObserver(this);
+
+                    // Sleep until we're needed again.
+                    try { sleep(Long.MAX_VALUE); } catch (InterruptedException i) {}
+                }
+            }
+
+            public void dataIsConsistent() {
+                // Perform all requested work.
+                freezeAll();
+                thawAll();
+            }
+
+            /** Freeze all waiting items. */
+            private void freezeAll() {
+                String item;
+                while ((item = pop(itemsToFreeze)) != null)
+                    performFreeze(item);
+            }
+
+            /** Thaw all waiting items. */
+            private void thawAll() {
+                String item;
+                while ((item = pop(itemsToThaw)) != null)
+                    performThaw(item);
+            }
+
+            /** Pop the first item off a sorted set, in a thread-safe fashion.
+             * @return a item which has been removed from the set, or null if
+             *  the set is empty.
+             */
+            private String pop(SortedSet set) {
+                synchronized(set) {
+                    if (set.isEmpty())
+                        return null;
+                    else {
+                        String result = (String) set.first();
+                        set.remove(result);
+                        return result;
+                    }
+                }
+            }
+
+            public void terminate() {
+                // Stop listening for events.
+                removeRepositoryListener(this);
+
+                // stop this thread (if the thread is currently awake, this will
+                // not have any immediate effect.)
+                terminate = true;
+                interrupt();
+
+                // make certain that all remaining work is completed.  We include
+                // these lines here to implicitly require our caller to wait while
+                // this task is completed.
+                freezeAll();
+                thawAll();
+            }
+
+            public void dataAdded(DataEvent e) {
+                String dataName = e.getName();
+                if (isFreezeFlagElement(dataName) &&
+                    !frozenDataSets.containsKey(dataName))
+                    frozenDataSets.put(dataName, new FrozenDataSet(dataName));
+            }
+
+            public void dataRemoved(DataEvent e) {
+                String dataName = e.getName();
+                if (!isFreezeFlagElement(dataName)) return;
+                FrozenDataSet set = (FrozenDataSet) frozenDataSets.remove(dataName);
+                if (set != null)
+                    set.dispose();
+            }
+
+            private boolean isFreezeFlagElement(String dataName) {
+                return (dataName.indexOf(FREEZE_FLAG_TAG) != -1);
+            }
+
+            /** Perform the work required to freeze a data value. */
+            private void performFreeze(String dataName) {
+                DataElement element = (DataElement) data.get(dataName);
+                if (element == null) return;
+
+                // Make certain no data values are currently in a state of flux
+                dataNotifier.flush();
+
+                // This will realize the value if it is deferred
+                SaveableData value = element.getValue();
+
+                System.err.println("freezing " + dataName);
+
+                // Determine the prefix of the data element.
+                String prefix = "";
+                if (element.datafile != null)
+                    prefix = element.datafile.prefix;
+
+                // Lookup the default value of this data element.
+                String defVal = lookupDefaultValue(dataName, element);
+
+                // Create the frozen version of the value.
+                SaveableData frozenValue = null;
+                if (value instanceof DoubleData)
+                    frozenValue = new FrozenDouble
+                        (dataName, (DoubleData)value, DataRepository.this, prefix, defVal);
+                else if (value instanceof DateData)
+                    frozenValue = new FrozenDate
+                        (dataName, (DateData)value, DataRepository.this, prefix, defVal);
+                else if (value instanceof StringData)
+                    frozenValue = new FrozenString
+                        (dataName, (StringData)value, DataRepository.this, prefix, defVal);
+                else
+                    // Eeek! This should hopefully never happen. It would mean there is
+                    // a new basic form of data that no one told us about! Probably the
+                    // best thing to do is keep our hands off and do nothing.
+                    return;
+
+                // Save the frozen value to the repository.
+                putValue(dataName, frozenValue);
+            }
+
+            /** Perform the work required to thaw a data value. */
+            private void performThaw(String dataName) {
+                DataElement element = (DataElement) data.get(dataName);
+                if (element == null) return;
+
+                String defVal = lookupDefaultValue(dataName, element);
+
+                SaveableData value = element.getImmediateValue(), thawedValue;
+                if (value instanceof FrozenData) {
+                    System.err.println("thawing " + dataName);
+                    // Thaw the value.
+                    thawedValue = ((FrozenData)value).thaw(defVal);
+
+                    // Save the thawed value to the repository.
+                    putValue(dataName, thawedValue);
+                }
+            }
+
+            /** Register the named data element for freezing.
+             *
+             * The element is not frozen immediately, but rather added to a
+             * queue for freezing sometime in the future.
+             */
+            public synchronized void freeze(String dataName) {
+                if (itemsToThaw.remove(dataName) == false)
+                    itemsToFreeze.add(dataName);
+            }
+
+            /** Register the named data element for thawing.
+             *
+             * The element is not thawed immediately, but rather added to a
+             * queue for thawing sometime in the future.
+             */
+            public synchronized void thaw(String dataName) {
+                if (itemsToFreeze.remove(dataName) == false)
+                    itemsToThaw.add(dataName);
+            }
+
+            private class FrozenDataSet implements DataListener,
+                                                   RepositoryListener,
+                                                   DataConsistencyObserver {
+
+                String freezeFlagName;
+                String freezeRegexp;
+                Set dataItems;
+                int currentState = FDS_GRANDFATHERED;
+                volatile boolean initializing;
+                Set tentativeFreezables;
+
+                public FrozenDataSet(String freezeFlagName) {
+                    this.freezeFlagName = freezeFlagName;
+
+                    System.err.println("creating FrozenDataSet for " + freezeFlagName);
+
+                    // Fetch the prefix and the regular expression.
+                    int pos = freezeFlagName.indexOf(FREEZE_FLAG_TAG);
+                    if (pos == -1) return; // shouldn't happen!
+
+                    String prefix = freezeFlagName.substring(0, pos+1);
+                    this.freezeRegexp = "m\n^" + prefix +
+                        freezeFlagName.substring(pos+FREEZE_FLAG_TAG.length()) + "$\n";
+
+                    this.initializing = true;
+                    this.tentativeFreezables = new HashSet();
+                    this.dataItems = Collections.synchronizedSet(new HashSet());
+
+                    addDataListener(freezeFlagName, this);
+
+                    addRepositoryListener(this, prefix);
+                }
+
+                public synchronized void dispose() {
+                    removeRepositoryListener(this);
+                    dataItems.clear();
+                    deleteDataListener(this);
+                }
+
+                private void freeze(String itemName) {
+                    if (initializing) tentativeFreezables.add(itemName);
+                    else DataFreezer.this.freeze(itemName);
+                }
+
+                private void freezeAll(Set dataItems) {
+                    synchronized (dataItems) {
+                        Iterator i = dataItems.iterator();
+                        String itemName;
+                        while (i.hasNext()) {
+                            itemName = (String) i.next();
+                            freeze(itemName);
+                        }
+                    }
+                    interrupt();          // this interrupts the DataFreezer thread.
+                }
+
+                private void thawAll(Set dataItems) {
+                    synchronized (dataItems) {
+                        Iterator i = dataItems.iterator();
+                        String itemName;
+                        while (i.hasNext()) {
+                            itemName = (String) i.next();
+                            thaw(itemName);
+                        }
+                    }
+                    interrupt();          // this interrupts the DataFreezer thread.
+                }
+
+                // The next two methods implement the DataListener interface.
+
+                public void dataValueChanged(DataEvent e) {
+                    if (! freezeFlagName.equals(e.getName())) return;
+                    boolean observedFlagValue = e.getValue().test();
+                    System.err.println(freezeFlagName + " = " + observedFlagValue);
+                    addDataConsistencyObserver(this);
+                }
+
+                public void dataValuesChanged(Vector v) {
+                    if (v == null || v.size() == 0) return;
+                    for (int i = v.size();  i > 0; )
+                        dataValueChanged((DataEvent) v.elementAt(--i));
+                }
+
+                /** Respond to a change in the value of the freeze flag.
+                 *  The state transition diagram is: <PRE>
+                 *
+                 *     current
+                 *     state     freeze flag = TRUE         freeze flag = FALSE
+                 *     -------   ------------------         -----------------------
+                 *     FROZEN    no change                  set to thawed; thaw all
+                 *     GRAND     no change                  set to thawed
+                 *     THAWED    set to frozen; freeze all  no change
+                 *
+                 * </PRE>
+                 */
+                public void dataIsConsistent() {
+                    boolean observedFlagValue = getSimpleValue(freezeFlagName).test();
+                    System.err.println(freezeFlagName + " =(final) "+ observedFlagValue);
+                    synchronized (this) {
+                        if (observedFlagValue == true) {
+                            // data should be frozen or grandfathered.
+                            if (currentState == FDS_THAWED) {
+                                currentState = FDS_FROZEN;
+                                freezeAll(dataItems);
+                            }
+
+                        } else {            // data should be thawed.
+                            if (currentState == FDS_FROZEN && !initializing)
+                                thawAll(dataItems);
+                            currentState = FDS_THAWED;
+                        }
+
+                        if (initializing) {
+                            initializing = false;
+                            if (currentState == FDS_FROZEN)
+                                freezeAll(tentativeFreezables);
+                            tentativeFreezables = null;
+                        }
+                    }
+                }
+
+                /** Respond to a notification about a data element that has been
+                 *  added to the repository.
+                 *
+                 *  (Note that this happens during initial opening of
+                 *  datafiles as well as on an ongoing basis as new elements
+                 *  are created.) The state transition diagram is: <PRE>
+                 *
+                 *     current
+                 *     state     item = THAWED        item = FROZEN
+                 *     -------   -------------------  -------------
+                 *     FROZEN    freeze the item (1)  no action
+                 *     GRAND     no action            set to frozen; freeze all
+                 *     THAWED    no action            no action (2)
+                 *
+                 * </PRE>
+                 * Notes:<P>
+                 * (1) This situation would most likely occur as the result of
+                 *     freezing a project, then installing a new definition for its
+                 *     process. If the new process definition defines a new data
+                 *     element, then this situation would be triggered; the best
+                 *     course of action is to freeze it along with its colleagues.<P>
+                 *
+                 * (2) A single data item might belong to two distinct FreezeSets.
+                 *     If both sets were frozen, it would be <b>doubly</b> frozen.
+                 *     On the other hand, it might be frozen by one but not the
+                 *     other, triggering this scenario.
+                 */
+                public void dataAdded(DataEvent e) {
+                    String dataName = e.getName();
+                    try {
+                        if (!ValueFactory.perl.match(freezeRegexp, dataName))
+                            return;
+                    } catch (MalformedPerl5PatternException m) {
+                        //The user has given a bogus pattern!
+                        System.err.println("The regular expression for " + freezeFlagName +
+                                           " is malformed.");
+                        dispose();
+                        return;
+                    }
+                    SaveableData value = getValue(dataName);
+                    boolean valueIsFrozen = (value instanceof FrozenData);
+
+                    synchronized (this) {
+                        if (currentState == FDS_GRANDFATHERED && valueIsFrozen) {
+                            freezeAll(dataItems);
+                            currentState = FDS_FROZEN;
+                        } else if (currentState == FDS_FROZEN && !valueIsFrozen) {
+                            freeze(dataName);
+                            interrupt();
+                        }
+
+                        dataItems.add(dataName);
+                    }
+                }
+
+                public void dataRemoved(DataEvent e) {
+                    dataItems.remove(e.getName());
+                }
+            }
+        }
+        private static final String FREEZE_FLAG_TAG = "/FreezeFlag/";
+        private static int FDS_FROZEN = 0;
+        private static int FDS_GRANDFATHERED = 1;
+        private static int FDS_THAWED = 2;
+
+        DataFreezer dataFreezer;
+
+
+
         URL [] templateURLs = null;
 
 
@@ -469,8 +850,10 @@ public class DataRepository implements Repository {
             includedFileCache.put("<dataFile.txt>", globalDataDefinitions);
             dataRealizer = new DataRealizer();
             dataNotifier = new DataNotifier();
+            dataFreezer  = new DataFreezer();
             dataRealizer.start();
             dataNotifier.start();
+            dataFreezer.start();
         }
 
         public void startServer(int port) {
@@ -491,6 +874,8 @@ public class DataRepository implements Repository {
         }
 
         public void finalize() {
+            // Command the data freezer to terminate.
+            dataFreezer.terminate();
             // Command data realizer to terminate, then wait for it to.
             dataRealizer.terminate();
             try {
@@ -632,6 +1017,8 @@ public class DataRepository implements Repository {
         public synchronized void closeDatafile (String prefix) {
             //System.out.println("closeDatafile("+prefix+")");
 
+            startInconsistency();
+
             try {
                 DataFile datafile = null;
 
@@ -693,6 +1080,8 @@ public class DataRepository implements Repository {
 
             } catch (Exception e) {
                 printError(e);
+            } finally {
+                finishInconsistency();
             }
         }
 
@@ -903,6 +1292,26 @@ public class DataRepository implements Repository {
 
         private static final String includeTag = "#include ";
         private final Hashtable includedFileCache = new Hashtable();
+
+        String lookupDefaultValue(String dataName, DataElement element) {
+            // if the user didn't bother to look up the data element, look
+            // it up for them.
+            if (element == null) element = (DataElement)data.get(dataName);
+
+            if (element == null ||                   // if there is no such element,
+                element.datafile == null ||   // the element has no datafile, or its
+                element.datafile.inheritsFrom == null)  // datafile doesn't inherit,
+                return null;                        // then the default value is null.
+
+            DataFile datafile = element.datafile;
+            Map defaultValues = (Map) includedFileCache.get(datafile.inheritsFrom);
+            if (defaultValues == null)
+                return null;
+
+            int prefixLength = datafile.prefix.length() + 1;
+            String nameWithinDataFile = dataName.substring(prefixLength);
+            return (String) defaultValues.get(nameWithinDataFile);
+        }
 
 
         private InputStream findDatafile(String path, File currentFile) throws
@@ -1142,6 +1551,7 @@ public class DataRepository implements Repository {
 
         public void openDatafile(String dataPrefix, String datafilePath)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
+
             // debug("openDatafile");
 
             Hashtable values = new Hashtable();
@@ -1160,71 +1570,72 @@ public class DataRepository implements Repository {
                                     // loadDatafile process was successful
             datafiles.addElement(dataFile);
 
-            if (dataPrefix.equals(realizeDeferredDataFor))
-                realizeDeferredDataFor = dataFile;
+            startInconsistency();
 
-            boolean fileEditable = dataFile.file.canWrite();
-            boolean dataEditable = true;
-            // boolean dataDefined = true;
+            try {
+                if (dataPrefix.equals(realizeDeferredDataFor))
+                    realizeDeferredDataFor = dataFile;
 
-            String name, value;
-            SaveableData o;
-            DataElement d;
+                boolean fileEditable = dataFile.file.canWrite();
+                boolean dataEditable = true;
 
-            Enumeration dataNames = values.keys();
-            while (dataNames.hasMoreElements()) {
-                name =  (String) dataNames.nextElement();
-                value = (String) values.get(name);
-                dataElementNameSet.add(name);
-                name = dataPrefix + "/" + name;
+                String localName, name, value;
+                SaveableData o;
+                DataElement d;
 
-                if (value.startsWith("=")) {
-                    dataEditable = false;
-                    value = value.substring(1);
-                } else
-                    dataEditable = true;
+                Enumeration dataNames = values.keys();
+                while (dataNames.hasMoreElements()) {
+                    localName = (String) dataNames.nextElement();
+                    value = (String) values.get(localName);
+                    name = dataPrefix + "/" + localName;
 
-                /*          if (value.startsWith("?")) {
-                    dataDefined = false;
-                    value = value.substring(1);
-                } else
-                dataDefined = true;*/
+                    if (value.startsWith("=")) {
+                        dataEditable = false;
+                        value = value.substring(1);
+                    } else
+                        dataEditable = true;
 
-                if (value.equalsIgnoreCase("@now"))
-                    dataModified = true;
-                try {
-                    o = ValueFactory.createQuickly(name, value, this, dataPrefix);
-                } catch (MalformedValueException mfe) {
-                    System.err.println("Data value for '"+dataPrefix+"/"+name+
-                                       "' in file '"+datafilePath+"' is malformed.");
-                    o = new MalformedData(value);
+                    if (value.equalsIgnoreCase("@now"))
+                        dataModified = true;
+                    try {
+                        o = ValueFactory.createQuickly(name, value, this, dataPrefix);
+                    } catch (MalformedValueException mfe) {
+                        System.err.println("Data value for '"+dataPrefix+"/"+name+
+                                           "' in file '"+datafilePath+"' is malformed.");
+                        o = new MalformedData(value);
+                    }
+                    if (!fileEditable || !dataEditable)
+                        if (o != null) o.setEditable(false);
+                    d = (DataElement)data.get(name);
+                    if (d == null) {
+                        if (o != null) d = add(name, o, dataFile, true);
+                    } else {
+                        putValue(name, o);
+                        d.datafile = dataFile;
+                    }
+                    // this is necessary because the mechanisms above which set the
+                    // value of a DataElement do so AFTER setting the datafile.
+                    if (dataFile == realizeDeferredDataFor && o instanceof DeferredData)
+                        dataRealizer.addElement(d);
+
+                    if (o instanceof DoubleData || o instanceof DeferredData)
+                        dataElementNameSet.add(localName);
                 }
-                if (!fileEditable || !dataEditable)
-                    if (o != null) o.setEditable(false);
-                d = (DataElement)data.get(name);
-                if (d == null) {
-                    if (o != null) d = add(name, o, dataFile, true);
-                } else {
-                    putValue(name, o);
-                    d.datafile = dataFile;
-                }
-                // this is necessary because the mechanisms above which set the
-                // value of a DataElement do so AFTER setting the datafile.
-                if (dataFile == realizeDeferredDataFor && o instanceof DeferredData)
-                    dataRealizer.addElement(d);
-            }
 
-            if (dataModified)
-                datafileModified(dataFile);
+                if (dataModified)
+                    datafileModified(dataFile);
 
-            // make a call to getID.  We don't need the resulting value, but
-            // having made the call will cause an ID to be mapped for this
-            // prefix.  This is necessary to allow users to bring up HTML pages
-            // from their browser's history or bookmark list.
-            //
-            getID(dataPrefix);
-            // debug("openDatafile done");
+                // make a call to getID.  We don't need the resulting value, but
+                // having made the call will cause an ID to be mapped for this
+                // prefix.  This is necessary to allow users to bring up HTML pages
+                // from their browser's history or bookmark list.
+                //
+                getID(dataPrefix);
+                // debug("openDatafile done");
+            } finally {
+                finishInconsistency();
             }
+        }
 
         private static final int MAX_DIRTY = 10;
 
@@ -1317,7 +1728,6 @@ public class DataRepository implements Repository {
                                 name = name.substring(prefixLength);
 
                                 valStr = value.saveString();
-                                //if (!value.isDefined())  valStr = "?" + valStr;
                                 if (!value.isEditable()) valStr = "=" + valStr;
                                 defaultValStr = (String) defaultValues.get(name);
                                 if (valStr.equals(defaultValStr))
@@ -1514,9 +1924,36 @@ public class DataRepository implements Repository {
             // debug("removeRepositoryListener done");
         }
 
-    //    public Enumeration keys() {
-    //        return data.keys();
-    //    }
+        private volatile int inconsistencyDepth = 0;
+        private Set consistencyListeners =
+            Collections.synchronizedSet(new HashSet());
+
+        public void addDataConsistencyObserver(DataConsistencyObserver o) {
+            synchronized (consistencyListeners) {
+                if (inconsistencyDepth == 0)
+                    o.dataIsConsistent();
+                else
+                    consistencyListeners.add(o);
+            }
+        }
+
+        public void startInconsistency() {
+            synchronized (consistencyListeners) { inconsistencyDepth++; }
+        }
+
+        public void finishInconsistency() {
+            synchronized (consistencyListeners) {
+                if (--inconsistencyDepth == 0) {
+                    Iterator i = consistencyListeners.iterator();
+                    DataConsistencyObserver o;
+                    while (i.hasNext()) {
+                        o = (DataConsistencyObserver) i.next();
+                        o.dataIsConsistent();
+                    }
+                    consistencyListeners.clear();
+                }
+            }
+        }
 
         public Vector listDataNames(String prefix) {
             Vector result = new Vector();

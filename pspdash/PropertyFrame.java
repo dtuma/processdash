@@ -233,33 +233,38 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         if (pendingVector != null) {
             String dataDir = dashboard.getDirectory();
+            dashboard.data.startInconsistency();
 
-            for (int i = 0; i < pendingVector.size(); i++) {
-                if (pendingVector.elementAt (i) instanceof PendingDataChange) {
-                    PendingDataChange p = (PendingDataChange)pendingVector.elementAt (i);
-                    switch (p.changeType) {
-                    case PendingDataChange.CREATE:
-                        if (p.srcFile == null)
-                            createEmptyFile(dataDir + p.destFile);
-                        else
-                            createDataFile(dataDir + p.destFile, p.srcFile);
+            try {
+                for (int i = 0; i < pendingVector.size(); i++) {
+                    if (pendingVector.elementAt (i) instanceof PendingDataChange) {
+                        PendingDataChange p=(PendingDataChange)pendingVector.elementAt(i);
+                        switch (p.changeType) {
+                        case PendingDataChange.CREATE:
+                            if (p.srcFile == null)
+                                createEmptyFile(dataDir + p.destFile);
+                            else
+                                createDataFile(dataDir + p.destFile, p.srcFile);
 
-                        if (p.newPrefix != null)
-                            dashboard.openDatafile (p.newPrefix, p.destFile);
-                        break;
+                            if (p.newPrefix != null)
+                                dashboard.openDatafile (p.newPrefix, p.destFile);
+                            break;
 
-                    case PendingDataChange.DELETE:
-                        dashboard.data.closeDatafile (p.oldPrefix);
-                        break;
+                        case PendingDataChange.DELETE:
+                            dashboard.data.closeDatafile (p.oldPrefix);
+                            break;
 
-                    case PendingDataChange.CHANGE:
-                        dashboard.data.renameData (p.oldPrefix, p.newPrefix);
-                        break;
+                        case PendingDataChange.CHANGE:
+                            dashboard.data.renameData (p.oldPrefix, p.newPrefix);
+                            break;
+                        }
                     }
+                    incrementProgressDialog();
                 }
-                incrementProgressDialog();
+                pendingVector.removeAllElements();
+            } finally {
+                dashboard.data.finishInconsistency();
             }
-            pendingVector.removeAllElements();
         }
 
         dashboard.refreshHierarchy();

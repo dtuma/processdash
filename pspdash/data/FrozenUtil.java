@@ -29,16 +29,20 @@ package pspdash.data;
 class FrozenUtil {
 
     public String currentSaveString = null;
-    public String formerSaveString = null;
+    private String formerSaveString = null;
     public boolean formerEditable = true;
+
+    private static final char BEGIN     = '#';
+    private static final char MID       = '\u0001';
+    private static final String DEFAULT = "DEFAULT";
 
     public FrozenUtil() {}
 
     public FrozenUtil(String s) throws MalformedValueException {
-        if (s == null || s.length() == 0 || s.charAt(0) != '#')
+        if (s == null || s.length() == 0 || s.charAt(0) != BEGIN)
             throw new MalformedValueException();
 
-        int pos = s.indexOf('');
+        int pos = s.indexOf(MID);
         if (pos == -1) throw new MalformedValueException();
 
         currentSaveString = s.substring(1, pos);
@@ -54,12 +58,40 @@ class FrozenUtil {
 
     public String buildSaveString() {
         StringBuffer result = new StringBuffer();
-        result.append("#").append(currentSaveString).append('');
+        result.append(BEGIN).append(currentSaveString).append(MID);
         if (!formerEditable)
             result.append("=");
         result.append(formerSaveString);
 
         return result.toString();
+    }
+
+    /** Make certain to properly set formerEditable BEFORE calling
+     *  this routine!
+     */
+    public void setFormer(String former, String defaultVal) {
+        if (formerEditable == false &&
+            defaultVal != null && defaultVal.startsWith("="))
+            defaultVal = defaultVal.substring(1);
+
+        if (former.equals(defaultVal))
+            formerSaveString = DEFAULT;
+        else
+            formerSaveString = former;
+    }
+
+    public String getFormer(String defaultVal) {
+        if (formerSaveString.equals(DEFAULT)) {
+            if (defaultVal == null)
+                return "null";
+            else if (defaultVal.startsWith("=")) {
+                formerEditable = true;
+                defaultVal = defaultVal.substring(1);
+            }
+            return defaultVal;
+
+        } else
+            return formerSaveString;
     }
 
 }
