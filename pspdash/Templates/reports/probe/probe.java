@@ -135,6 +135,12 @@ public class probe extends TinyCGIBase {
 
 
     protected void doGet() {
+        String page = getParameter(PAGE);
+        if (page == null) {
+            out.print("Location: intro.shtm\r\n\r\n");
+            return;
+        }
+
         out.print("Content-type: text/html\r\n"+
                   "Expires: 0\r\n\r\n");
 
@@ -147,9 +153,6 @@ public class probe extends TinyCGIBase {
             printNeedSizeEstimatingTemplate();
             return;
         }
-
-        String page = getParameter(PAGE);
-        if (page == null) page = INPUT_PAGE;
 
         HistData data = new HistData(getDataRepository(), getPrefix());
         printHeader();
