@@ -193,16 +193,17 @@ wrong?</B>
 
 <P>For the "Export to Excel" functionality to work seamlessly, you must have 
 the ".IQY" file type properly set up on your system.  This setup is normally 
-performed by Microsoft Office during the installation process for Excel.</p>
+performed by Microsoft Office during the installation process for Excel
+(although, notably, certain releases of Office 97 do not perform this
+setup).</p>
 
 <P>If the IQY file type is not properly set up, clicking the "Export to 
 Excel" links may instead cause Notepad to appear with a short, three-line 
 text file. Alternatively, that three line text file might appear in an Excel 
 spreadsheet.</p>
 
-<P>If you encounter such problems, try reinstalling Excel.  If that does not 
-solve the problem, you might try configuring the IQY file type manually. If
-all else fails, add the following line to your <a
+<P>If you encounter such problems, the simplest fix is to add the
+following line to your <a
 href="../AdvancedTopics/ConfigurationFile.html">configuration file</a>:</p>
 
 <pre> excel.exportMethod=mime</pre>
