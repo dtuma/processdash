@@ -61,6 +61,13 @@ public class TaskScheduleChooser
             displayChooseTemplateDialog(dash, templates);
     }
 
+    public boolean isDisplayable() {
+        return (dialog != null && dialog.isDisplayable());
+    }
+    public void toFront() {
+        if (dialog != null) { dialog.show(); dialog.toFront(); }
+    }
+
 
     public void displayNewTemplateDialog(PSPDashboard dash) {
         this.dash = dash;

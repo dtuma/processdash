@@ -50,6 +50,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     DefectEditor   defect_frame = null;
     ImportExport   impexp_frame = null;
     ProbeDialog    probe_dialog = null;
+    TaskScheduleChooser task_chooser = null;
+
 
     static String FILE_SEP = null;
     static final String ANALYSIS_URL = "/To+Date/PSP/All//reports/index.htm";
@@ -239,7 +241,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void startTaskDialog() {
         if (parent.getProperties() != null) {
-            new TaskScheduleChooser(parent);
+            if (task_chooser != null && task_chooser.isDisplayable())
+                task_chooser.toFront();
+            else
+                task_chooser = new TaskScheduleChooser(parent);
         }
     }
 
