@@ -130,14 +130,22 @@ public class DefectDialog extends JDialog implements ActionListener,
         g.gridy = 3;   g.insets = bottom_margin;   g.anchor = g.NORTHWEST;
         g.gridwidth = 1;
 
-        phase_injected = phaseComboBox(defectPath);
+
+        int prefixLength = defectPath.path().length() + 1;
+        String defaultRemovalPhase =
+            parent.currentPhase.path().substring(prefixLength);
+        phase_removed = phaseComboBox(defectPath, defaultRemovalPhase);
+
+        String defaultInjectionPhase =
+            guessInjectionPhase(phase_removed, defaultRemovalPhase);
+        phase_injected = phaseComboBox(defectPath, defaultInjectionPhase);
+
         phase_injected.insertItemAt("Before Development", 0);
         g.gridx = 0;   layout.setConstraints(phase_injected, g);
         panel.add(phase_injected);
 
-        phase_removed = phaseComboBox(defectPath);
         phase_removed.addItem("After Development");
-        g.gridx = 1; g.gridwidth = 2; layout.setConstraints(phase_removed, g);
+        g.gridx = 1; g.gridwidth =2; layout.setConstraints(phase_removed, g);
         panel.add(phase_removed);
 
                                 // fifth row
@@ -305,12 +313,12 @@ public class DefectDialog extends JDialog implements ActionListener,
             }
     }
 
-    private JComboBox phaseComboBox(PropertyKey defectPath) {
+    private JComboBox phaseComboBox(PropertyKey defectPath,
+                                    String selectedChild) {
         JComboBox result = new JComboBox();
 
         int prefixLength = defectPath.path().length() + 1;
-        String item = null,
-            selectedChild = parent.currentPhase.path().substring(prefixLength);
+        String item = null;
         Enumeration leafNames = parent.getProperties().getLeafNames(defectPath);
 
         while (leafNames.hasMoreElements()) {
@@ -327,6 +335,78 @@ public class DefectDialog extends JDialog implements ActionListener,
         }
 
         return result;
+    }
+
+    /** Make an educated guess about which injection phase might correspond
+     *  to the given removal phase.
+     *
+     * Currently, this just guesses the phase immediately preceeding the
+     * removal phase.  In the future, it might read a user setting
+     */
+    private String guessInjectionPhase(JComboBox phases, String removalPhase)
+    {
+        String result, mappedGuess, onePhase;
+
+        int pos = removalPhase.lastIndexOf('/');
+        if (pos == -1)
+            mappedGuess = (String) INJ_REM_PAIRS.get(removalPhase);
+        else
+            mappedGuess =
+                (String) INJ_REM_PAIRS.get(removalPhase.substring(pos+1));
+
+        int i = phases.getItemCount();
+        while (i-- > 0)
+            if (removalPhase.equals(phases.getItemAt(i))) break;
+
+        result = null;
+        while (i-- > 0) {
+            onePhase = (String) phases.getItemAt(i);
+            if (phaseMatches(onePhase, mappedGuess))
+                return onePhase;
+            if (result == null &&
+                !onePhase.endsWith(" Review") &&
+                !onePhase.endsWith(" Inspection") &&
+                !onePhase.endsWith("Compile") &&
+                !onePhase.endsWith("Test"))
+                // remember the first non-quality, non-failure phase
+                // we find before the removalPhase.
+                result = onePhase;
+        }
+        if (result == null)
+            result = removalPhase;
+
+        return result;
+    }
+
+    private boolean phaseMatches(String fullName, String phaseName) {
+        if (fullName == null || phaseName == null) return false;
+
+        int pos = fullName.lastIndexOf('/');
+        if (pos != -1)
+            fullName = fullName.substring(pos+1);
+
+        return fullName.equalsIgnoreCase(phaseName);
+    }
+
+    private static Map INJ_REM_PAIRS;
+    static {
+        HashMap phaseMap = new HashMap();
+        String userSetting = Settings.getVal("defectDialog.phaseMap");
+        if (userSetting != null) {
+            StringTokenizer tok = new StringTokenizer(userSetting, "|");
+            String phasePair, rem, inj;
+            int pos;
+            while (tok.hasMoreTokens()) {
+                phasePair = tok.nextToken();
+                pos = phasePair.indexOf("=>");
+                if (pos != -1) {
+                    inj = phasePair.substring(0, pos).trim();
+                    rem = phasePair.substring(pos+2).trim();
+                    phaseMap.put(rem, inj);
+                }
+            }
+        }
+        INJ_REM_PAIRS = Collections.unmodifiableMap(phaseMap);
     }
 
     private void hide_popups() {
@@ -377,11 +457,47 @@ public class DefectDialog extends JDialog implements ActionListener,
         super.dispose();
     }
 
+    private boolean checkSequence() {
+        if ("false".equalsIgnoreCase
+            (Settings.getVal("defectDialog.restrictSequence")))
+            return true;
+
+        // Ensure that the user isn't removing a defect before it is
+        // injected.
+        String injected = (String)phase_injected.getSelectedItem();
+        String removed  = (String)phase_removed.getSelectedItem();
+
+        int numOptions = phase_injected.getItemCount();
+        String option;
+        for (int i = 0;  i < numOptions;  i++) {
+            option = (String) phase_injected.getItemAt(i);
+            if (option.equalsIgnoreCase(injected))
+                return true;
+            if (option.equalsIgnoreCase(removed)) {
+                JOptionPane.showMessageDialog(this, SEQUENCE_ERROR_MSG,
+                                              "Sequence Error",
+                                              JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        }
+        // We shouldn't get here...
+        return true;
+    }
+    private static final String [] SEQUENCE_ERROR_MSG = {
+        "It is impossible to remove a defect before it has",
+        "been injected!  Please double-check the injection",
+        "and removal phases you have selected, and change",
+        "them so the defect is not removed in an earlier",
+        "phase than when it was injected." };
+
+
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == activeRefreshTimer) {
             refreshFixTimeFromStopwatch();
         } else if (e.getSource() == OKButton) {
-            maybePopDialog(); save(); dispose();
+            if (checkSequence()) {
+                maybePopDialog(); save(); dispose();
+            }
         } else if (e.getSource() == CancelButton) {
             maybePopDialog(); dispose();
         } else if (e.getSource() == defectTimerButton) {
