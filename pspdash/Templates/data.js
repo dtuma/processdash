@@ -206,10 +206,12 @@ var IEfieldNum = 0;             // start numbering elements with 0.
 
 function IEsetupReadOnly(elem) {
   if (elem.dataFld != null && IEDataAppl.readyState > 0) {
-    if (elem.readOnly = (! IEDataAppl.isEditable(elem.dataFld))) {
+    if (! IEDataAppl.isEditable(elem.dataFld)) {
+      elem.readOnly = true;
       elem.style.backgroundColor = IEDataAppl.readOnlyColor();
       elem.tabIndex = -1;
     } else {
+      elem.readOnly = false;
       elem.style.backgroundColor = "";
       elem.tabIndex = "";
     }
@@ -354,35 +356,6 @@ function MSIEversion() {
  ***                      Netscape definitions                       ***
  ***********************************************************************/
 
-/*
- * Note about our current version of Netscape:
- *
- * There appear to be bugs in netscape's JavaScript event handling code.
- * 1.   In a windows environment, attempting to set more than one event
- *      handler on an object causes all but the last event handler to be
- *      forgotten.  (consequence: TEXT fields cannot have both KeyPress
- *      handlers and Blur / Change handlers.  Thus, the only way to both
- *      prevent input on read-only fields and track changes to fields is to
- *      set window.onKeyPress to handleEvent() above.)
- * 2.   In a UNIX environment, many events captured by the window seem to have
- *      their target attributes undefined.  (consequence: you cannot trap
- *      KeyPress events at the window level and handle them, because after
- *      you catch them you cannot determine which target they were bound for.
- *      Thus, the only way to examine events sent to TEXT fields is to set
- *      handlers on the individual elements.)
- * A careful reading of the two bugs above help you to see that no one event
- * handling approach will currently work for both platforms.  Hopefully these
- * bugs will be fixed soon.
- *
- * In the meantime, this eventMethod variable is provided to choose the event
- * handling method.  If you can type in read-only fields, or if changing a
- * data value does not cause dependent values to be recalculated, change the
- * value of this variable to one of the constants below.
- */
-var CAPTURE_ELEMENT_EVENTS = 1;
-var CAPTURE_WINDOW_EVENTS = 2;
-var eventMethod = CAPTURE_ELEMENT_EVENTS;
-
 var pageContainsElements = false;
 	 
 /*
@@ -400,9 +373,9 @@ function NScheckEditable() {
   }
   
   if ((typeof(this.isEditable) == "object") &&
-      (this.isEditable == false))
+      ((this.isEditable == false) || (this.isEditable.toString() == 0)))
     return false;
-  else	
+  else
     return true;
 }
 
@@ -420,31 +393,7 @@ function NSchangeNotify()  {
   }
   if (document.applets["NSDataAppl"] != null)
     document.applets["NSDataAppl"].notifyListener(this);
-  return true;
-}
-
-
-/*
- * This routine is a combination of checkEditable and changeNotify.  It must
- * be set as a capturing event handler on the window, not as an event handler
- * on individual elements.  It will block events from reaching any object 
- * which has its "isEditable" property set to false.  Otherwise, it will
- * route the event, and when the events effects are completed, it will invoke
- * the notifyListener method on the DataApplet.
- */
-
-function NShandleEvent(e) {
-  if (debug) java.lang.System.out.println("handleEvent called by "+e.target);
-
-  if ((typeof(e.target.isEditable) != "undefined") &&
-      (e.target.isEditable == false))
-    return false;
-  else {
-    var returnValue = routeEvent(e);
-  if (document.applets["NSDataAppl"] != null)
-    document.applets["NSDataAppl"].notifyListener(e.target);
-    return returnValue;
-  }
+  return NScheckEditable();
 }
 
 
@@ -460,26 +409,30 @@ function NSregisterElement(elem) {
   if (elem.name.toLowerCase() == "requiredtag")
     requiredTag = elem.value;
 
-  else if (eventMethod == CAPTURE_ELEMENT_EVENTS)
+  else
     switch (elem.type.toLowerCase()) {
 
     case "select-one" :
     case "select-multiple":
       if (debug) document.writeln("Setting "+elem.name+".onChange<BR>");
-      elem.onChange = NSchangeNotify;
+      elem.onchange = NSchangeNotify;
       break;
 
     case "text" :
     case "textarea" :
       if (debug) document.writeln("Setting "+elem.name+".onKeyDown<BR>");
-      elem.onKeyDown = NScheckEditable;
-      if (debug) document.writeln("Setting "+elem.name+".onBlur<BR>");
-      elem.onBlur = NSchangeNotify;
+      elem.onkeydown = NScheckEditable;
+      if (debug) document.writeln("Setting "+elem.name+".onChange<BR>");
+      elem.onchange = NSchangeNotify;
+      break;
+
+    case "checkbox":
+      elem.onclick = NSchangeNotify;
       break;
 
     default:
       // elem is of type HIDDEN, RESET, SUBMIT, FILEUPLOAD, PASSWORD,
-      // BUTTON, CHECKBOX, or RADIO.  no event handlers need to be setup
+      // BUTTON, or RADIO.  no event handlers need to be setup
       // for these elements.
     }
 }
@@ -494,21 +447,6 @@ function NSregisterElementObj() { this.func = NSregisterElement; }
 function NSSetup() {
 
   if (debug) document.writeln("<p>Setting up under Netscape, ");
-
-  /*
-   * The next lines of code capture and handle events at the window level.
-   */
-  if (eventMethod == CAPTURE_ELEMENT_EVENTS) {
-    if (debug) document.writeln("capturing events on individual elements.");
-    window.captureEvents(Event.CLICK);
-    window.onClick=NShandleEvent;
-  } else if (eventMethod == CAPTURE_WINDOW_EVENTS) {
-    if (debug) document.writeln("capturing events at the window level.");
-    window.captureEvents(Event.CLICK | Event.KEYPRESS | Event.BLUR);
-    window.onClick=NShandleEvent;
-    window.onKeyPress = NScheckEditable;
-    window.onBlur = NSchangeNotify;
-  }
 
   elementIterate(new NSregisterElementObj());
 

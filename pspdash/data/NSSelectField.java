@@ -41,7 +41,7 @@ class NSSelectField extends NSField {
         super(element, data, dataPath);
 
                                     // fill the optionList value with the various
-        optionList = new Vector();	// OPTIONs that are a part of this SELECT tag.
+        optionList = new Vector();  // OPTIONs that are a part of this SELECT tag.
         formOptions = (JSObject) element.getMember("options");
         JSObject option;
         int numOptions = ((Double)formOptions.getMember("length")).intValue();
@@ -77,8 +77,10 @@ class NSSelectField extends NSField {
     private static String getOptionValue(JSObject formOptions, int idx) {
         JSObject option = (JSObject) formOptions.getSlot(idx);
         String result = (String) option.getMember("value");
-        if (result.length() == 0)
+        if (result.length() == 0) {
             result = (String) option.getMember("text");
+            if (result != null) result = result.trim();
+        }
 
         return result;
     }

@@ -27,25 +27,58 @@
 package pspdash.data;
 
 
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.Vector;
 import netscape.javascript.JSObject;
 
 
 class NSFieldManager implements HTMLFieldManager {
 
     JSObject window = null;
-    Hashtable inputListeners = null;
+    Vector inputListeners = null;
     Repository data = null;
     String dataPath = null;
+    DelayedNotifier notifier = null;
     boolean isRunning, unlocked;
 
+
+    private class DelayedNotifier extends Thread {
+        Vector itemsToNotify = new Vector();
+        public void run() {
+            while (true) {
+                try {
+                    synchronized (this) {
+                        // wait indefinitely until someone notifies us
+                        if (itemsToNotify.size() == 0) wait();
+                    }
+                    // then wait a tenth of a second more.
+                    sleep(100);
+                } catch (InterruptedException ie) {}
+
+                // finally, trigger userEvent() on all the registered fields.
+                while (itemsToNotify.size() > 0) {
+                    NSField f = (NSField) itemsToNotify.elementAt(0);
+                    itemsToNotify.removeElementAt(0);
+                    f.userEvent();
+                }
+            }
+        }
+        public synchronized void addField(NSField f) {
+            if (f != null) {
+                itemsToNotify.addElement(f);
+                notify();
+            }
+        }
+    }
 
 
     NSFieldManager(DataApplet a) throws Exception {
         isRunning = true;
-        inputListeners = new Hashtable();
+        inputListeners = new Vector();
         unlocked = a.unlocked();
+
+        notifier = new DelayedNotifier();
+        notifier.setDaemon(true);
+        notifier.start();
 
         // First order of business: get the current browser window object.
         // Sometimes this will fail if the browser is slow in coming up,
@@ -77,6 +110,7 @@ class NSFieldManager implements HTMLFieldManager {
         JSObject document = (JSObject) window.getMember("document");
         JSObject formList = (JSObject) document.getMember("forms");
 
+        int elemNum = 0;
         if (formList != null) {
             int numForms = ((Double)formList.getMember("length")).intValue();
             for (int formIdx = 0;   formIdx < numForms; formIdx++) {
@@ -86,7 +120,7 @@ class NSFieldManager implements HTMLFieldManager {
                 for (int elementIdx = 0;  elementIdx < numElements;  elementIdx++) {
                     if (!isRunning) return; // abort if we have been terminated
                     reinititializeFormElement
-                        ((JSObject)elementList.getSlot(elementIdx));
+                        ((JSObject)elementList.getSlot(elementIdx), elemNum++);
                 }
             }
         }
@@ -101,9 +135,9 @@ class NSFieldManager implements HTMLFieldManager {
 
         try {
             // debug("erasing listeners...");
-            Enumeration listeners = inputListeners.keys();
-            while (listeners.hasMoreElements())
-                destroyInputListener((JSObject)listeners.nextElement());
+            for (int i = inputListeners.size();   i-- > 0; )
+                destroyInputListener(i);
+
         } catch (Exception e) { printError(e); }
         window = null;
         inputListeners = null;
@@ -112,16 +146,20 @@ class NSFieldManager implements HTMLFieldManager {
     }
 
 
+    private void destroyInputListener(int pos) {
+        NSField f = null;
+        try {
+            f = (NSField) inputListeners.elementAt(pos);
+            inputListeners.setElementAt(null, pos);
+        } catch (ArrayIndexOutOfBoundsException e) {}
 
-    private void destroyInputListener(JSObject element) {
-        NSField f = (NSField)inputListeners.remove(element);
         if (f != null)
             f.dispose(data != null);
     }
 
 
-    public void reinititializeFormElement(JSObject element) {
-        destroyInputListener(element);
+    public void reinititializeFormElement(JSObject element, int pos) {
+        destroyInputListener(pos);
         HTMLField f = null;
 
         try {
@@ -130,8 +168,11 @@ class NSFieldManager implements HTMLFieldManager {
             if ("text".equalsIgnoreCase(elementType) ||
                 "hidden".equalsIgnoreCase(elementType) ||
                 "textarea".equalsIgnoreCase(elementType))
-                f = new NSTextField(element, data, dataPath);
-
+                {
+                    if (!"requiredTag".equalsIgnoreCase
+                        ((String)element.getMember("name")))
+                        f = new NSTextField(element, data, dataPath);
+                }
             else if ("checkbox".equalsIgnoreCase(elementType))
                 f = new NSCheckboxField(element, data, dataPath);
 
@@ -141,18 +182,26 @@ class NSFieldManager implements HTMLFieldManager {
             // etc.
 
             if (f != null) {
-                inputListeners.put(element, f);
+                while (inputListeners.size() < pos+1)
+                    inputListeners.addElement(null);
+                inputListeners.setElementAt(f, pos);
+                element.setMember(INDEX_ATTR, new Integer(pos));
                 if (unlocked) f.unlock();
             }
         } catch (Exception e) {}
     }
+    private static final String INDEX_ATTR = "dashIndex";
 
 
     public void notifyListener(Object element) {
         // debug("notifyListener called by " + (String)element.getMember("name"));
-        NSField f = (NSField)inputListeners.get(element);
-        if (f != null)
-            f.userEvent();
+        NSField f = null;
+
+        Object pos = ((JSObject) element).getMember(INDEX_ATTR);
+        if (pos instanceof Integer)
+            f = (NSField) inputListeners.elementAt(((Integer) pos).intValue());
+
+        notifier.addField(f);
     }
 
     protected void printError(Exception e) {
