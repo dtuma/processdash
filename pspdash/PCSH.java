@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -38,7 +38,7 @@ import javax.swing.JFrame;
  * Provides quick access to many common code snippets, while insulating
  * dashboard code from the javax.help.* classes.
  */
-class PCSH {
+public class PCSH {
 
     public static void enableHelpKey(JFrame frame, String id) {
         getHelpProvider().enableHelpKey(frame.getRootPane(), id);
@@ -69,18 +69,37 @@ class PCSH {
     }
 
     private static DashHelpProvider DEFAULT_INSTANCE = null;
+    private static TinyWebServer WEB_SERVER = null;
+
+    public static void setHelpProvider(DashHelpProvider p) {
+        if (DEFAULT_INSTANCE == null ||
+            DEFAULT_INSTANCE instanceof SimpleHelpProvider)
+            DEFAULT_INSTANCE = p;
+    }
+
+    static void setWebServer(TinyWebServer w) {
+        WEB_SERVER = w;
+    }
 
     public static DashHelpProvider getHelpProvider() {
+        // first, attempt to create the help broker directly.  This
+        // will succeed only if the JavaHelp classes are in the system
+        // classpath.
         if (DEFAULT_INSTANCE == null) try {
             Class c = Class.forName("pspdash.DashHelpBroker");
             DEFAULT_INSTANCE = (DashHelpProvider) c.newInstance();
-        } catch (Throwable e) {
+        } catch (Throwable e) { }
+
+        // next, attempt to create a help broker via a JavaHelp add-on
+        if (DEFAULT_INSTANCE == null && WEB_SERVER != null) try {
+            WEB_SERVER.getRequest("/help/createBroker.class", false);
+        } catch (Throwable e) { }
+
+        if (DEFAULT_INSTANCE == null) {
             DEFAULT_INSTANCE = new SimpleHelpProvider();
         }
 
         return DEFAULT_INSTANCE;
     }
-
-
 
 }
