@@ -83,21 +83,23 @@ public class EVTask implements DataListener {
     }
 
     /** Add a child task to this EVTask. */
-    public void add(EVTask child) {
+    public boolean add(EVTask child) {
         if (children.contains(child))
-            return;
+            return false;
 
         child.parent = this;
         children.add(child);
+        return true;
     }
 
     /** Add a child task to this EVTask. */
-    public void add(int pos, EVTask child) {
+    public boolean add(int pos, EVTask child) {
         if (children.contains(child))
-            return;
+            return false;
 
         child.parent = this;
         children.add(pos, child);
+        return true;
     }
 
     public int remove(EVTask child) {
@@ -120,8 +122,17 @@ public class EVTask implements DataListener {
     public boolean equals(Object obj) {
         if (!(obj instanceof EVTask)) return false;
         EVTask that = (EVTask) obj;
-        return (this.fullName == that.fullName ||
-                (this.fullName != null && fullName.equals(that.fullName)));
+        if ("".equals(this.fullName))
+            // compare root nodes by examining their node name.
+            return cmpStrings(this.name, that.name);
+        else
+            // compare regular nodes by examining their full name.
+            return cmpStrings(this.fullName, that.fullName);
+    }
+    private boolean cmpStrings(String a, String b) {
+        if (a == b) return true;
+        if (a != null) return a.equals(b);
+        return false;
     }
 
     /** Creates an EVTask for the tasks in the hierarchy at the given path */
