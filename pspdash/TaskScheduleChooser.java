@@ -113,7 +113,6 @@ public class TaskScheduleChooser
             optionPane.createDialog(parent, title).show();
 
             button = optionPane.getValue();
-            System.out.println("Button selected was " + button);
             if (button == null || button == CANCEL ||
                 button == JOptionPane.UNINITIALIZED_VALUE)
                 return null;    // user cancel
