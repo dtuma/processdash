@@ -58,6 +58,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/dts.java \
 	Templates/reports/bar.java \
 	Templates/reports/excel.java \
+	Templates/reports/ev.java \
 	Templates/reports/line.java \
 	Templates/reports/pie.java \
 	Templates/reports/xy.java \
@@ -125,7 +126,7 @@ $(SIZEEST_COPIES): Templates/psp1/sizeest.class
 
 Templates/reports/pie.class: $(BIN)/com/jrefinery/chart/PiePlot.class
 
-Templates/reports/xy.class: $(BIN)/com/jrefinery/chart/XYPlot.class
+Templates/reports/xy.class: $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)/com/jrefinery/chart/DataSources.class
 
 $(CGI_CLASSES) : %.class : %.java
 	$(JAVAC) \
@@ -178,6 +179,7 @@ $(BIN)/pspdash/%.class: %.java
 	    -d $(BIN) \
 	    $^
 
+DataSources.class: $(BIN)/com/jrefinery/chart/DataSources.class
 XYPlot.class: $(BIN)/com/jrefinery/chart/XYPlot.class
 PiePlot.class: $(BIN)/com/jrefinery/chart/PiePlot.class
 
