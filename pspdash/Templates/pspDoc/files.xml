@@ -36,6 +36,22 @@
         Please enter the complete path to the document.  This document should
         already exist; the dashboard cannot create it automatically.</var>
 
+  <file name="Operational Scenarios"
+        path="[Operational Scenario Filename]"
+	defaultPath="Operational Scenarios.rtf" templatePath="C66.rtf"/>
+
+  <file name="Functional Specification"
+        path="[Functional Specification Filename]"
+        defaultPath="Functional Specification.rtf" templatePath="C68.rtf"/>
+
+  <file name="State Specification"
+        path="[State Specification Filename]"
+        defaultPath="State Specification.rtf" templatePath="C70.rtf"/>
+
+  <file name="Logic Specification"
+        path="[Logic Specification Filename]"
+        defaultPath="Logic Specification.rtf" templatePath="C72.rtf"/>
+
   <!-- add more lines here for additional files -->
 
   <!-- support requirements statement? -->
