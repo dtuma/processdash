@@ -2386,6 +2386,9 @@ public class DataRepository implements Repository {
                 if (defaultValues == null)
                     defaultValues = new HashMap();
 
+                // make a set of all the data element names defined in defaultValues
+                Set defaultValueNames = new HashSet(defaultValues.keySet());
+
                 // If the data file has a prefix, write it as a comment to the
                 // two temporary output files.
                 if (datafile.prefix != null && datafile.prefix.length() > 0) try {
@@ -2396,7 +2399,7 @@ public class DataRepository implements Repository {
                 datafile.dirtyCount = 0;
 
                 Iterator k = getKeys();
-                String name, valStr, defaultValStr;
+                String name = null, valStr, defaultValStr;
                 Object defaultVal;
                 DataElement element;
                 SaveableData value;
@@ -2415,6 +2418,7 @@ public class DataRepository implements Repository {
                         if (value != null) {
                             try {
                                 name = name.substring(prefixLength);
+                                defaultValueNames.remove(name);
 
                                 valStr = value.saveString();
                                 if (valStr == null || valStr.length() == 0) continue;
@@ -2448,6 +2452,28 @@ public class DataRepository implements Repository {
                             }
                         }
                     }
+                }
+                k = defaultValueNames.iterator();
+                while (k.hasNext()) try {
+                    name = (String) k.next();
+                    defaultVal = defaultValues.get(name);
+
+                    if (defaultVal == null) continue;
+                    if (defaultVal instanceof String) {
+                        defaultValStr = (String) defaultVal;
+                        if (defaultValStr.equals("null") ||
+                            defaultValStr.equals("=null") ||
+                            defaultValStr.startsWith(SIMPLE_RENAME_PREFIX) ||
+                            defaultValStr.startsWith(PATTERN_RENAME_PREFIX))
+                            continue;
+                    }
+
+                    out.write(name);
+                    out.write("=null");
+                    out.newLine();
+                } catch (IOException e) {
+                    System.err.println("IOException " + e + " while writing " +
+                                       name + " to " + datafile.file.getPath());
                 }
 
                 try {
