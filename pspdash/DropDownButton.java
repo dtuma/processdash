@@ -35,6 +35,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -46,14 +48,14 @@ public class DropDownButton extends Box {
     private boolean dropDownEnabled = false;
     private boolean mainRunsDefaultMenuOption = true;
     private ImageIcon enabledDownArrow, disDownArrow;
-    private JMenu menu;
+    private DropDownMenu menu;
     private MainButtonListener mainButtonListener = new MainButtonListener();
 
 
     public DropDownButton(JButton mainButton) {
         super(BoxLayout.X_AXIS);
 
-        menu = new JMenu();
+        menu = new DropDownMenu();
         menu.getPopupMenu().addContainerListener(new MenuContainerListener());
         JMenuBar bar = new JMenuBar();
         bar.add(menu);
@@ -74,10 +76,11 @@ public class DropDownButton extends Box {
             (getClass().getResource("down-arrow-dis.gif"));
         dropDownButton = new JButton(disDownArrow);
         dropDownButton.setDisabledIcon(disDownArrow);
-        dropDownButton.addActionListener(new DropDownListener());
+        dropDownButton.addMouseListener(new DropDownListener());
         dropDownButton.setMaximumSize(new Dimension(11,100));
         dropDownButton.setMinimumSize(new Dimension(11,10));
         dropDownButton.setPreferredSize(new Dimension(11,10));
+        dropDownButton.setFocusPainted(false);
         add(dropDownButton);
 
         setEnabled(false);
@@ -144,13 +147,14 @@ public class DropDownButton extends Box {
     }
 
     /** This object responds to events on the drop-down button. */
-    private class DropDownListener implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            if (menu.isPopupMenuVisible())
-                menu.setPopupMenuVisible(false);
-            else if (dropDownEnabled)
-                menu.doClick(0);
+    private class DropDownListener extends MouseAdapter {
+        public void mouseClicked(MouseEvent e) {
+            if (dropDownEnabled) menu.doClick(0);
         }
+        public void mousePressed(MouseEvent e) {
+            if (dropDownEnabled) menu.dispatchMouseEvent(e);
+        }
+        public void mouseReleased(MouseEvent e) { }
     }
 
     /** This object watches for insertion/deletion of menu items in
@@ -196,6 +200,12 @@ public class DropDownButton extends Box {
 
         public boolean isBorderOpaque() {
             return b.isBorderOpaque();
+        }
+    }
+
+    private class DropDownMenu extends JMenu {
+        public void dispatchMouseEvent(MouseEvent e) {
+            processMouseEvent(e);
         }
     }
 }
