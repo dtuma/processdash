@@ -103,9 +103,19 @@ public class TaskScheduleDialog
         ToolTipTableCellRendererProxy.installHeaderToolTips
             (treeTable, EVTaskList.toolTips);
                                 // set default widths for the columns
-        for (int i = 0;  i < EVTaskList.colWidths.length;  i++)
-            treeTable.getColumnModel().getColumn(i)
-                .setPreferredWidth(EVTaskList.colWidths[i]);
+        boolean showCumColumns = Settings.getBool
+            ("ev.showCumulativeTaskData", false);
+        for (int i = 0;  i < EVTaskList.colWidths.length;  i++) {
+            int width = EVTaskList.colWidths[i];
+            if (!showCumColumns &&
+                (i == EVTaskList.PLAN_CUM_TIME_COLUMN ||
+                 i == EVTaskList.PLAN_CUM_VALUE_COLUMN)) {
+                width = 0;
+                treeTable.getColumnModel().getColumn(i).setMinWidth(0);
+                treeTable.getColumnModel().getColumn(i).setMaxWidth(0);
+            }
+            treeTable.getColumnModel().getColumn(i).setPreferredWidth(width);
+        }
         configureEditor(treeTable);
 
         // Create a JTable to display the schedule list.
@@ -159,7 +169,7 @@ public class TaskScheduleDialog
                     confirmClose(true); }});
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        frame.setSize(new Dimension(700, 600));
+        frame.setSize(new Dimension((showCumColumns ? 700 : 630), 600));
         frame.show();
 
         // if the task list is empty, open the add task dialog immediately.
@@ -201,7 +211,7 @@ public class TaskScheduleDialog
         // button margins: 2 pixels top and bottom, 14 left and right.
 
         deleteTaskButton = new JButton
-            (isRollup ? "Remove Schedule" : "Delete Task");
+            (isRollup ? "Remove Schedule" : "Remove Task");
         deleteTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     deleteTask(); }});
@@ -500,7 +510,8 @@ public class TaskScheduleDialog
                 if (result instanceof JComponent)
                     ((JComponent) result).setToolTipText(errorStr);
                 if (errorStr != null)
-                    result.setForeground(Color.red);
+                    result.setForeground(errorStr.startsWith(" ")
+                                         ? Color.orange : Color.red);
                 Font f = getFont(errorStr != null, result);
                 if (f != null) result.setFont(f);
 
@@ -579,7 +590,8 @@ public class TaskScheduleDialog
             if (result instanceof JComponent)
                 ((JComponent) result).setToolTipText(errorStr);
             if (errorStr != null)
-                result.setForeground(Color.red);
+                result.setForeground(errorStr.startsWith(" ")
+                                     ? Color.orange : Color.red);
             Font f = getFont(errorStr != null, result);
             if (f != null) result.setFont(f);
 
@@ -801,6 +813,13 @@ public class TaskScheduleDialog
         return result;
     }
 
+    private class FocusHighlighter implements FocusListener {
+        JTextField f;
+        FocusHighlighter(JTextField field) { f = field; }
+        public void focusGained(FocusEvent e) { f.selectAll(); }
+        public void focusLost(FocusEvent e) { }
+    }
+
     private String importNewSharedSchedule() {
         String urlStr = "http://";
         String passwordStr = "";
@@ -811,7 +830,9 @@ public class TaskScheduleDialog
             // ask the user for the relevant information to locate the
             // schedule.
             JTextField url = new JTextField(urlStr, 40);
+            url.addFocusListener(new FocusHighlighter(url));
             JTextField password = new JPasswordField(passwordStr, 10);
+            password.addFocusListener(new FocusHighlighter(password));
             Object message = new Object[] {
                 errorMessage,
                 "Enter the following information for the shared schedule:",
@@ -836,7 +857,7 @@ public class TaskScheduleDialog
                 continue;
             }
             try {
-                u = new URL(urlStr);
+                u = new URL(urlStr + XML_QUERY_SUFFIX);
             } catch (MalformedURLException mue) {
                 errorMessage = "That URL is invalid.";
                 continue;
@@ -892,8 +913,7 @@ public class TaskScheduleDialog
 
         do {
             localName = (String) JOptionPane.showInputDialog
-                (frame, "Enter the local name for the schedule: (FIXME)",
-                 "Enter Name for Imported Schedule",
+                (frame, LOCAL_NAME_PROMPT, "Enter Name for Imported Schedule",
                  JOptionPane.PLAIN_MESSAGE, null, null, localName);
             if (localName != null)
                 localName = localName.replace('/', ' ').trim();
@@ -901,10 +921,14 @@ public class TaskScheduleDialog
         importedSchedule.setLocalAttr(EVTaskListCached.LOCAL_NAME_ATTR,
                                       localName);
 
-        // return the name of the
+        // return the name of the cached schedule object
         return EVTaskListCached.buildTaskListName(importedSchedule.getID(),
                                                   localName);
     }
+    private static final String XML_QUERY_SUFFIX = "?xml";
+    private static final String[] LOCAL_NAME_PROMPT = {
+        "What name should be used to describe this schedule",
+        "when it appears in the schedule list?" };
 
     /** delete the currently selected task.
      *
