@@ -51,7 +51,8 @@ public class EVTaskListXMLAbstract extends EVTaskList {
                               String errorMessage) {
         if (xmlDoc == null) {
             if (errorMessage == null)
-                errorMessage = resources.getString("Invalid_Schedule");
+                errorMessage = resources.getString
+                    ("TaskList.Invalid_Schedule_Error_Message");
             createErrorRootNode(displayName, errorMessage);
             return false;
         } else if (xmlDoc.equals(xmlSource) &&
@@ -94,7 +95,8 @@ public class EVTaskListXMLAbstract extends EVTaskList {
             System.err.println("Got exception: " +e);
             e.printStackTrace();
             if (errorMessage == null)
-                errorMessage = resources.getString("Invalid_Schedule");
+                errorMessage = resources.getString
+                    ("TaskList.Invalid_Schedule_Error_Message");
             createErrorRootNode(displayName, errorMessage);
             return false;
         }

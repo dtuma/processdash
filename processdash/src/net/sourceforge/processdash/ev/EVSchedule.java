@@ -58,7 +58,7 @@ public class EVSchedule implements TableModel {
 
     public static final Date NEVER = new Date(Long.MAX_VALUE);
     public static final Date A_LONG_TIME_AGO = new Date(0);
-    static Resources resources = Resources.getDashBundle("TaskScheduleDialog");
+    static Resources resources = Resources.getDashBundle("EV");
 
     public interface Listener {
         public void evScheduleChanged();
@@ -1034,7 +1034,7 @@ public class EVSchedule implements TableModel {
     private static DateFormat dateFormatter =
         DateFormat.getDateInstance(DateFormat.MEDIUM);
     private static final String NEVER_STRING =
-        resources.getString("Date_Never");
+        resources.getString("Schedule.Date_Never");
 
 
     ///
@@ -1049,11 +1049,11 @@ public class EVSchedule implements TableModel {
     protected static final int TIME_W = 50; // width for time columns
     protected static final int PCT_W  = 40; // width for percentage columns
     public static final String[] colNames =
-        resources.getStrings("Schedule_Column_Name_", COLUMN_KEYS);
+        resources.getStrings("Schedule.Columns.", COLUMN_KEYS, ".Name");
     public static final int[] colWidths =
-        resources.getInts("Schedule_Column_Width_", COLUMN_KEYS);
+        resources.getInts("Schedule.Columns.", COLUMN_KEYS, ".Width");
     public static final String[] TOOL_TIPS =
-        resources.getStrings("Schedule_Column_Tooltip_", COLUMN_KEYS);
+        resources.getStrings("Schedule.Columns.", COLUMN_KEYS, ".Tooltip");
 
     public static final int FROM_COLUMN           = 0;
     public static final int TO_COLUMN             = 1;
@@ -1220,7 +1220,8 @@ public class EVSchedule implements TableModel {
         Number getYValue(int itemIndex);
     }
 
-    private static final String PLAN_LABEL = resources.getString("Plan_Label");
+    private static final String PLAN_LABEL = resources.getString
+        ("Schedule.Plan_Label");
     private abstract class PlanChartSeries implements ChartSeries {
         public String getSeriesName() { return PLAN_LABEL; }
         public int getItemCount() { return getRowCount()+1; }
@@ -1229,7 +1230,7 @@ public class EVSchedule implements TableModel {
     }
 
     private static final String ACTUAL_LABEL =
-        resources.getString("Actual_Label");
+        resources.getString("Schedule.Actual_Label");
     private abstract class ActualChartSeries implements ChartSeries {
         public String getSeriesName() { return ACTUAL_LABEL; }
         public int getItemCount() {
@@ -1248,7 +1249,7 @@ public class EVSchedule implements TableModel {
     }
 
     private static final String FORECAST_LABEL =
-        resources.getString("Forecast_Label");
+        resources.getString("Schedule.Forecast_Label");
     protected class ForecastChartSeries implements ChartSeries {
         Number currentYVal, forecastYVal, forecastYValLow, forecastYValHigh;
         Number currentXVal, forecastXVal;
@@ -1467,11 +1468,11 @@ public class EVSchedule implements TableModel {
     }
 
     private static final String PLAN_VALUE_LABEL =
-        resources.getString("Plan_Value_Label");
+        resources.getString("Schedule.Plan_Value_Label");
     private static final String ACTUAL_VALUE_LABEL =
-        resources.getString("Actual_Value_Label");
+        resources.getString("Schedule.Actual_Value_Label");
     private static final String ACTUAL_TIME_LABEL =
-        resources.getString("Actual_Time_Label");
+        resources.getString("Schedule.Actual_Time_Label");
 
 
     /** XYDataSource for charting cost and schedule on one chart.

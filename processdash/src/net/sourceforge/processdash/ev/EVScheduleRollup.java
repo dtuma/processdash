@@ -372,7 +372,7 @@ public class EVScheduleRollup extends EVSchedule {
     }
 
     private static final String OPTIMIZED_LABEL =
-        resources.getString("Optimized_Label");
+        resources.getString("Schedule.Optimized_Label");
     private class OptForecastChartSeries extends ForecastChartSeries {
         public String getSeriesName() { return OPTIMIZED_LABEL; }
         protected Date getForecastDate() {

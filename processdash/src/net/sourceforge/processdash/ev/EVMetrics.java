@@ -409,7 +409,7 @@ public class EVMetrics implements TableModel {
 
 
 
-    static Resources resources = Resources.getDashBundle("EVMetrics");
+    static Resources resources = Resources.getDashBundle("EV");
     static Map formatCaches = Collections.synchronizedMap(new HashMap());
 
     protected String getResourcePrefix() { return null; }
@@ -426,12 +426,12 @@ public class EVMetrics implements TableModel {
         }
         public void loadResources(String resourcePrefix, String key) {
             if (metricName == null)
-                metricName = resources.getString(key + "_Name");
+                metricName = resources.getString("Metrics." + key + ".Name");
             if (resourcePrefix != null)
                 key = resourcePrefix + key;
-            shortFormat = getFmt(key + "_Short_FMT",  shortFormat);
-            medFormat   = getFmt(key + "_Medium_FMT", medFormat);
-            fullFormat  = getFmt(key + "_Full_FMT",   fullFormat);
+            shortFormat = getFmt("Metrics." + key + ".Short_FMT", shortFormat);
+            medFormat   = getFmt("Metrics." + key + ".Medium_FMT", medFormat);
+            fullFormat  = getFmt("Metrics." + key + ".Full_FMT",   fullFormat);
         }
         private MessageFormat getFmt(String key, MessageFormat defVal)
         {
@@ -636,24 +636,24 @@ public class EVMetrics implements TableModel {
         return result;
     }
 
-    private static String ONE_YEAR = resources.getString("One_Year");
+    private static String ONE_YEAR = resources.getString("Metrics.One_Year");
     private static MessageFormat YEARS_FMT =
-        new MessageFormat(resources.getString("Years_FMT"));
-    private static String ONE_MONTH = resources.getString("One_Month");
+        new MessageFormat(resources.getString("Metrics.Years_FMT"));
+    private static String ONE_MONTH = resources.getString("Metrics.One_Month");
     private static MessageFormat MONTHS_FMT =
-        new MessageFormat(resources.getString("Months_FMT"));
-    private static String ONE_WEEK = resources.getString("One_Week");
+        new MessageFormat(resources.getString("Metrics.Months_FMT"));
+    private static String ONE_WEEK = resources.getString("Metrics.One_Week");
     private static MessageFormat WEEKS_FMT =
-        new MessageFormat(resources.getString("Weeks_FMT"));
-    private static String ONE_DAY = resources.getString("One_Day");
+        new MessageFormat(resources.getString("Metrics.Weeks_FMT"));
+    private static String ONE_DAY = resources.getString("Metrics.One_Day");
     private static MessageFormat DAYS_FMT =
-        new MessageFormat(resources.getString("Days_FMT"));
-    private static String ONE_HOUR = resources.getString("One_Hour");
+        new MessageFormat(resources.getString("Metrics.Days_FMT"));
+    private static String ONE_HOUR = resources.getString("Metrics.One_Hour");
     private static MessageFormat HOURS_FMT =
-        new MessageFormat(resources.getString("Hours_FMT"));
-    private static String ONE_MINUTE = resources.getString("One_Minute");
+        new MessageFormat(resources.getString("Metrics.Hours_FMT"));
+    private static String ONE_MINUTE = resources.getString("Metrics.One_Minute");
     private static MessageFormat MINUTES_FMT =
-        new MessageFormat(resources.getString("Minutes_FMT"));
+        new MessageFormat(resources.getString("Metrics.Minutes_FMT"));
 
     static final int MINUTE_MILLIS = 60 /*seconds*/ * 1000 /*millis*/;
     static final int MINUTE        = 1;
@@ -755,13 +755,13 @@ public class EVMetrics implements TableModel {
 
 
     private static String NAME_HEADING =
-        resources.getString("Column_Heading_Name");
+        resources.getString("Metrics.Column_Heading.Name");
     private static String SHORT_HEADING =
-        resources.getString("Column_Heading_Short");
+        resources.getString("Metrics.Column_Heading.Short");
     private static String MEDIUM_HEADING =
-        resources.getString("Column_Heading_Medium");
+        resources.getString("Metrics.Column_Heading.Medium");
     private static String FULL_HEADING =
-        resources.getString("Column_Heading_Full");
+        resources.getString("Metrics.Column_Heading.Full");
 
     public String getColumnName(int columnIndex) {
         switch (columnIndex) {

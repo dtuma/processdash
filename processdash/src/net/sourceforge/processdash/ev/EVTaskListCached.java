@@ -58,7 +58,8 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
     private boolean openXML() {
         if (object == null) {
             createErrorRootNode
-                (localName, resources.getString("Cannot_Open_Schedule_Error"));
+                (localName,
+                 resources.getString("TaskList.Cannot_Open_Schedule_Error"));
             return false;
         }
 
@@ -68,8 +69,8 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
             errorMessage = object.getErrorMessage();
             String errorPrefix =
                 (object.olderThanAge(5)
-                 ? resources.getString("Out_Of_Date_Error")
-                 : " " + resources.getString("Out_Of_Date_Warning")) + " ";
+                 ? resources.getString("TaskList.Out_Of_Date_Error")
+                 : " " + resources.getString("TaskList.Out_Of_Date_Warning")) + " ";
             if (errorMessage == null)
                 errorMessage = errorPrefix;
             else if (xmlDoc != null)
