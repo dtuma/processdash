@@ -45,22 +45,22 @@ public class EVTask implements DataListener {
     public static final String DATE_COMPLETED_DATA_NAME = "Completed";
 
     public interface Listener {
-        public void fireEVNodeChanged(EVTask node);
+        public void evNodeChanged(EVTask node);
     }
 
     EVTask parent = null;
     ArrayList children = new ArrayList();
 
     String name, fullName;
-    double planTime, planValue, cumPlanTime, cumPlanValue,
-        actualTime, valueEarned;
+    double planTime,  cumPlanTime,  actualTime;  // expressed in minutes
+    double planValue, cumPlanValue, valueEarned; // expressed in minutes
     Date planDate, dateCompleted;
     boolean planTimeEditable, planTimeNull, dateCompletedEditable;
     Listener listener;
 
     DataRepository data;
 
-    /** Creates an EVTask suitable for the root of an EVTaskList. */
+    /** Creates an EVTask suitable for the root of an EVTaskList.  */
     public EVTask(String rootName) {
         this.name = rootName;
         this.fullName = "";
@@ -425,7 +425,14 @@ public class EVTask implements DataListener {
         return false;
     }
 
-    public void recalcLocal() {
+    /** If this node is the root node of an EVTaskList rollup, this will
+     *  recalculate it.
+     *
+     * <b>Important:</b> the children of this node (which are
+     * themselves root nodes of other EVTaskLists) should already be
+     * recalculated before calling this method.
+     */
+    public void recalcRollupNode() {
         EVTask child;
 
         planTime = cumPlanTime = actualTime = 0.0;
@@ -443,7 +450,7 @@ public class EVTask implements DataListener {
             planValue += child.planValue;
             cumPlanValue += child.cumPlanValue;
             valueEarned += child.valueEarned;
-            /*
+
             // rollup plan date should be the max of all the plan dates.
             planDate = EVScheduleRollup.maxDate(planDate, child.planDate);
 
@@ -455,7 +462,6 @@ public class EVTask implements DataListener {
             else if (dateCompleted != null)
                 dateCompleted = EVScheduleRollup.maxDate
                     (dateCompleted, child.dateCompleted);
-            */
         }
         if (dateCompleted == EVSchedule.A_LONG_TIME_AGO)
             dateCompleted = null;
@@ -494,6 +500,17 @@ public class EVTask implements DataListener {
     }
 
     protected void notifyListener() {
-        if (listener != null) listener.fireEVNodeChanged(this);
+        Listener l = listener;
+        if (l != null) l.evNodeChanged(this);
+    }
+
+    public void destroy() {
+        if (listener != null) {
+            listener = null;
+            data.deleteDataListener(this);
+        }
+        for (int i=children.size();   i-- > 0; )
+            getChild(i).destroy();
+        children.clear();
     }
 }
