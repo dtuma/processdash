@@ -150,30 +150,42 @@ public class sizeest extends pspdash.TinyCGIBase {
             dataNames[e] = prefix + "/" + dataElements[e];
 
         DataRepository data = getDataRepository();
+        ArrayList populatedRows = new ArrayList();
 
-        int maxRow = -1, i;
+        int rowNum, lastPopulatedRow, i;
+        rowNum = lastPopulatedRow = -1;
     ROW:
         while (true) {
-            maxRow++;
+            rowNum++;
             i = dataNames.length;
             while (i-- > 0)
-                if (data.getValue(replaceNum(dataNames[i], maxRow)) != null)
+                if (data.getValue(replaceNum(dataNames[i], rowNum)) != null) {
+                    lastPopulatedRow = rowNum;
+                    populatedRows.add(new Integer(rowNum));
                     continue ROW;
-            break ROW;
+                }
+            // if we haven't seen any data for 20 consecutive rows,
+            // we can safely conclude that there is no more data.
+            if (rowNum - lastPopulatedRow > 20)
+                break ROW;
         }
 
+        Iterator p = populatedRows.iterator();
+        while (p.hasNext())
+            out.print(replaceNum(template, ((Integer) p.next()).intValue()));
+
+        int extraRows = 0;
+
         if (parameters.get(queryArg) != null)
-            maxRow += addRows;
+            extraRows = addRows;
         else
-            maxRow += padRows;
+            extraRows = padRows;
 
-        if (maxRow < minRows)
-            maxRow = minRows;
+        extraRows = Math.max(extraRows, minRows - populatedRows.size());
 
-        for (int rowNum = 0;  rowNum < maxRow;  rowNum++)
-            out.print(replaceNum(template, rowNum));
+        for (int e = 0;  e < extraRows;   e++)
+            out.print(replaceNum(template, lastPopulatedRow+e+1));
     }
-
 
     /** find and replace occurrences of "#//#" with a number */
     protected String replaceNum(String template, int replacement) {
