@@ -134,16 +134,36 @@ to estimate time:</p>
    use your best engineering judgement to make the estimate.</td></tr>
 </table></p>
 
+<p>Unlike other wizards you may have used in the past, the PROBE Wizard 
+updates the data in the dashboard whenever you click the Continue button to 
+move onward (that is why there is no Cancel button on the Wizard).  If you 
+make a mistake while using the Wizard, you'll have to use the Back button to 
+go back and fix it, or make the change manually on the Size Estimating 
+Template.  Of course, you can always just run the PROBE Wizard a second 
+time.</p> 
+
 <h2>PROBE Wizard Step 5</h2>
 
 <p>At this point, you are finished making your estimates.  Step 5 encourages 
 you to check the estimates to make sure that they make sense.</p>
 
-<p>Assuming all is well and you click the finish button, the estimates you 
-generated with the PROBE Wizard will be placed back on the Size Estimating 
-Template automatically.</p>
-
 <p><center><img src="../../Images/ProbeWizard5.png"></center></p>
+
+<p>Clicking Finish dismisses the PROBE Wizard.</p>
+
+<p>The PROBE Wizard also has a bit of intelligence built into it to make sure 
+you don't make gross errors in estimation.  If your estimated time for the 
+given amount of LOC is hugely different than what your historical data would 
+indicate, the Wizard lets you know that you have probably made an error.  It 
+then sends you back to the size estimation step (step 3), or you can choose 
+to go directly back to the time estimation step (step 4).</p>
+
+<p><center><img src="../../Images/ProbeWizardPoorEstimate.png"></center></p>
+
+<p>If you know that the numbers are fine (if, for instance, this is a 
+completely different kind of development effort and your historical data 
+won't be reliable) you can always manually enter your estimate on the Size 
+Estimating Template</p> 
 
 </BODY>
 </HTML>
