@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -52,10 +52,16 @@ public class DefectEditor extends Component
     protected JSplitPane      splitPane;
     protected DataRepository  data;
     protected Vector          currentLog   = new Vector();
-    protected JButton editButton, deleteButton, closeButton;
+    protected JButton editButton, deleteButton, closeButton, dtsEditButton;
+    protected JComboBox dtsSelector;
 //  protected UserWarning     warnUser;
 
     ResourceBundle resources = Resources.getBundle("pspdash.DefectEditor");
+    String inheritTypeSelection, typeSelectionTooltip;
+    boolean buildingDtsSelector = false;
+
+
+    static final String DTS_EDIT_URL = "/dash/dtsEdit.class";
 
     //
     // member functions
@@ -88,30 +94,13 @@ public class DefectEditor extends Component
 
         /* Create the JTreeModel. */
         treeModel = new PropTreeModel (new DefaultMutableTreeNode ("root"), null);
-
-        /* Create the tree. */
-        tree = new JTree(treeModel);
         treeModel.fill (useProps);
-        tree.expandRow (0);
-        tree.setShowsRootHandles (true);
-        tree.setEditable(false);
-        tree.addTreeSelectionListener (this);
-        tree.setRootVisible(false);
-        tree.setRowHeight(-1);      // Make tree ask for the height of each row.
 
-        /* Put the Tree in a scroller. */
-        JScrollPane sp = new JScrollPane
-            (ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        sp.setPreferredSize(new Dimension(300, 300));
-        sp.getViewport().add(tree);
-
-        /* And show it. */
+        /* Create and show the visual components. */
         panel.setLayout(new BorderLayout());
-//    panel.add("North", constructFilterPanel());
-        panel.add("Center", splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                                                       sp, constructEditPanel()));
-//    panel.add("South", constructControlPanel());
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                                   constructTreePanel(), constructEditPanel());
+        panel.add("Center", splitPane);
 
         frame.addWindowListener( new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -127,6 +116,118 @@ public class DefectEditor extends Component
         //frame.pack();
         frame.setSize(new Dimension(frameWidth, frameHeight));
         frame.show();
+    }
+
+    JComponent constructTreePanel() {
+        /* Create the tree. */
+        tree = new JTree(treeModel);
+        tree.expandRow (0);
+        tree.setShowsRootHandles (true);
+        tree.setEditable(false);
+        tree.addTreeSelectionListener (this);
+        tree.setRootVisible(false);
+        tree.setRowHeight(-1);      // Make tree ask for the height of each row.
+
+        /* Put the Tree in a scroller. */
+        JScrollPane sp = new JScrollPane
+            (ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        sp.setPreferredSize(new Dimension(300, 280));
+        sp.getViewport().add(tree);
+
+        /* Create the type standard selection widget */
+        inheritTypeSelection = resources.getString("Inherit_Type");
+        typeSelectionTooltip = resources.getString("Type_Selector_Tooltip");
+
+        JPanel selectorPanel = new JPanel(false);
+        JLabel typeLabel = new JLabel(resources.getString("Type_Selector_Label"));
+        typeLabel.setToolTipText(typeSelectionTooltip);
+        selectorPanel.add(typeLabel);
+
+        dtsSelector = new JComboBox();
+        dtsSelector.setRenderer(new DtsListCellRenderer());
+        dtsSelector.setActionCommand ("dts");
+        dtsSelector.addActionListener (this);
+        selectorPanel.add(dtsSelector);
+
+        dtsEditButton = new JButton(resources.getString("Edit_Types_Button"));
+        dtsEditButton.setToolTipText(resources.getString("Edit_Types_Tooltip"));
+        dtsEditButton.setActionCommand ("dtsEdit");
+        dtsEditButton.addActionListener (this);
+        selectorPanel.add(dtsEditButton);
+
+        JPanel result = new JPanel();
+        result.setLayout(new BorderLayout());
+        result.setPreferredSize(new Dimension(300, 300));
+        result.add("Center", sp);
+        result.add("South", selectorPanel);
+        return result;
+    }
+
+    void refreshDefectTypeSelector() {
+        String selectedPath = getSelectedPath();
+        if (selectedPath.length() == 0) {
+            dtsSelector.setEnabled(false);
+            return;
+        }
+
+        buildingDtsSelector = true;
+        String selectedType = DefectTypeStandard.getSetting(data, selectedPath);
+        int selectedItem = 0;
+
+        String[] standards = DefectTypeStandard.getDefinedStandards(data);
+        dtsSelector.removeAllItems();
+        dtsSelector.addItem(inheritTypeSelection);
+
+        for (int i = 0;   i < standards.length;   i++) {
+            dtsSelector.addItem(standards[i]);
+            if (selectedType != null && selectedType.equals(standards[i]))
+                selectedItem = i+1;
+        }
+
+        if (selectedItem == 0 && selectedType != null) {
+            selectedItem = dtsSelector.getItemCount();
+            dtsSelector.addItem("\t" + selectedType);
+            dtsSelector.setForeground(Color.red);
+            dtsSelector.setToolTipText
+                (resources.getString("Nonexistent_Type_Tooltip"));
+        } else {
+            dtsSelector.setForeground(Color.black);
+            dtsSelector.setToolTipText(typeSelectionTooltip);
+        }
+
+        dtsSelector.setEnabled(true);
+        dtsSelector.setSelectedIndex(selectedItem);
+        buildingDtsSelector = false;
+    }
+
+    private class DtsListCellRenderer extends DefaultListCellRenderer {
+        public Component getListCellRendererComponent(JList list,
+                                                      Object value,
+                                                      int index,
+                                                      boolean isSelected,
+                                                      boolean cellHasFocus) {
+            boolean hasError = false;
+            if (value instanceof String && ((String) value).startsWith("\t")) {
+                hasError = true;
+                value = ((String) value).substring(1);
+            }
+
+            Component result = super.getListCellRendererComponent
+                (list, value, index, isSelected, cellHasFocus);
+
+            setForeground(hasError ? Color.red : Color.black);
+
+            return result;
+        }
+    }
+
+    String getSelectedPath() {
+        DefaultMutableTreeNode selected = getSelectedNode();
+        if (selected == null) return "";
+
+        PropertyKey key = treeModel.getPropKey (useProps, selected.getPath());
+        return (key == null ? "" : key.path());
     }
 
 
@@ -319,6 +420,8 @@ public class DefectEditor extends Component
 
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
+        if (cmd == null) return;
+
         DefectDialog dlg;
         DefectListEntry dle;
 
@@ -359,6 +462,17 @@ public class DefectEditor extends Component
                 }
                 pjob.end();
             }
+
+        } else if (cmd.equals("dts")) {
+            if (buildingDtsSelector) return;
+            String type = (String) dtsSelector.getSelectedItem();
+            if (type == inheritTypeSelection) type = null;
+            if (type == null || !type.startsWith("\t"))
+                DefectTypeStandard.saveDefault(data, getSelectedPath(), type);
+            refreshDefectTypeSelector();
+
+        } else if (cmd.equals("dtsEdit")) {
+            Browser.launch(DTS_EDIT_URL);
         }
     }
 
@@ -370,20 +484,15 @@ public class DefectEditor extends Component
         String[] columns = new String[] {
             "Project", "ID", "Type", "Injected", "Removed",
             "Time", "Fix", "Description", "Date" };
-        String[] tooltips = new String[columns.length];
-        for (int i = columns.length;   i-- > 0; ) {
-            tooltips[i] = resources.getString(columns[i] + "_Tooltip");
-            columns[i]  = resources.getString(columns[i]);
-        }
 
         retPanel.setLayout(new BorderLayout());
         table = new ValidatingTable
-            (columns,
+            (Resources.getStrings(resources, "Column_Name_", columns),
              null,
              new int[] {200, 25,  80,
                         100, 100, 40,
                         30,  200, 100},
-             tooltips,
+             Resources.getStrings(resources, "Column_Tooltip_", columns),
              null, null, 0, true, null,
              new boolean[] {false, false, false, // no columns editable
                             false, false, false,
@@ -456,6 +565,7 @@ public class DefectEditor extends Component
         if (tp == null) {           // deselection
             tree.clearSelection();
             applyFilter ();
+            refreshDefectTypeSelector();
             return;
         }
         Object [] path = tp.getPath();
@@ -463,6 +573,7 @@ public class DefectEditor extends Component
 
         Prop val = useProps.pget (key);
         applyFilter ();
+        refreshDefectTypeSelector();
     }
 
     public void valueChanged(ListSelectionEvent e) {

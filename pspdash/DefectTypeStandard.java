@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,6 +28,7 @@ package pspdash;
 
 import pspdash.data.DataRepository;
 import pspdash.data.SaveableData;
+import pspdash.data.SimpleData;
 import pspdash.data.StringData;
 import javax.swing.*;
 import java.util.*;
@@ -105,7 +106,9 @@ public class DefectTypeStandard extends OptionList {
                 names.add(name.substring(DATA_PREFIX.length()));
         }
         String[] result = new String[names.size()];
-        return (String[]) names.toArray(result);
+        result = (String[]) names.toArray(result);
+        Arrays.sort(result, String.CASE_INSENSITIVE_ORDER);
+        return result;
     }
 
     public static void save(String defectTypeName,
@@ -138,18 +141,34 @@ public class DefectTypeStandard extends OptionList {
                                    String defectTypeName) {
         data = r;
 
-        // if no defect type was passed in, do nothing.
-        if (defectTypeName == null || defectTypeName.length() == 0)
-            return;
-        // if the named defect type does not exist, do nothing.
-        if (data.getSimpleValue(DATA_PREFIX + defectTypeName) == null &&
+        // if an empty string was passed in for the defect type, use
+        // null instead.
+        if (defectTypeName != null && defectTypeName.length() == 0)
+            defectTypeName = null;
+
+        // if a nonexistent defect type was named, do nothing.
+        if (defectTypeName != null &&
+            data.getSimpleValue(DATA_PREFIX + defectTypeName) == null &&
             Settings.getVal("defectType." + defectTypeName) == null)
             return;
 
         if (path == null) path = "";
 
         String dataName = data.createDataName(path, SETTING_DATA_NAME);
-        data.putValue(dataName, StringData.create(defectTypeName));
+        data.putValue(dataName,
+                      (defectTypeName == null ? null
+                       : StringData.create(defectTypeName)));
+    }
+
+    public static String getSetting(DataRepository r, String path) {
+        data = r;
+        if (path == null) path = "";
+        String dataName = data.createDataName(path, SETTING_DATA_NAME);
+        SimpleData defectSetting = data.getSimpleValue(dataName);
+        String result = null;
+        if (defectSetting != null) result = defectSetting.format();
+        if (result != null && result.length() == 0) result = null;
+        return result;
     }
 
 
