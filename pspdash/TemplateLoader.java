@@ -45,6 +45,7 @@ package pspdash;
 import pspdash.data.DataRepository;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.io.*;
 import java.util.*;
 import java.net.JarURLConnection;
@@ -322,6 +323,26 @@ public class TemplateLoader {
             else
                 return null;
         } catch (IndexOutOfBoundsException ioobe) {}
+        return null;
+    }
+
+    public static URL resolveURL(String url) {
+        URLConnection result = resolveURLConnection(url);
+        return (result == null ? null : result.getURL());
+    }
+
+    public static URLConnection resolveURLConnection(String url) {
+        URL [] roots = getTemplateURLs();
+        if (url.startsWith("/")) url = url.substring(1);
+        URL u;
+        URLConnection result;
+        for (int i = 0;  i < roots.length;  i++) try {
+            u = new URL(roots[i], url);
+            result = u.openConnection();
+            result.connect();
+            return result;
+        } catch (IOException ioe) { }
+
         return null;
     }
 }
