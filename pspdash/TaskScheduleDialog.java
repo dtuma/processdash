@@ -28,7 +28,6 @@ package pspdash;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
-import javax.swing.Timer;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
@@ -42,7 +41,7 @@ import java.util.Date;
 import java.util.EventObject;
 
 public class TaskScheduleDialog
-    implements EVTaskList.Listener, EVSchedule.Listener, ActionListener
+    implements EVTask.Listener, EVTaskList.RecalcListener, EVSchedule.Listener
 {
 
     /** Model for the JTreeTable */
@@ -53,8 +52,6 @@ public class TaskScheduleDialog
     protected JTable scheduleTable;
     /** Frame containing everything */
     protected JFrame frame;
-    /** timer for triggering recalculations */
-    protected Timer recalcTimer;
     /** the dashboard */
     protected PSPDashboard dash;
     protected String taskListName;
@@ -64,19 +61,22 @@ public class TaskScheduleDialog
         deletePeriodButton, chartButton, reportButton, closeButton,
         saveButton;
 
-    protected JDialog chartDialog = null;
+    protected JFrame chartDialog = null;
 
 
-    public TaskScheduleDialog(PSPDashboard dash, String taskListName) {
+    public TaskScheduleDialog(PSPDashboard dash, String taskListName,
+                              boolean createRollup) {
         // Create the frame and set an appropriate icon
         frame = new JFrame("Task and Schedule");
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
 
         // Create the earned value model.
-        model = new EVTaskList(taskListName, dash.data, dash.props, true);
+        model = new EVTaskList(taskListName, dash.data, dash.props,
+                               createRollup, true);
         model.recalc();
-        model.addEVTaskListListener(this);
+        model.setNodeListener(this);
+        model.addRecalcListener(this);
         model.getSchedule().setListener(this);
 
         // Create a JTreeTable to display the task list.
@@ -103,12 +103,15 @@ public class TaskScheduleDialog
                 .setPreferredWidth(EVSchedule.colWidths[i]);
         configureEditor(scheduleTable);
 
+        boolean isRollup = isRollup();
+        if (isRollup) frame.setTitle("Task and Schedule Rollup");
+
         Box topBox = newVBox
             (new JScrollPane(treeTable,
                              JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                              JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
              Box.createVerticalStrut(2),
-             buildTaskButtons(),
+             buildTaskButtons(isRollup),
              Box.createVerticalStrut(2));
 
         Box bottomBox = newVBox
@@ -116,8 +119,8 @@ public class TaskScheduleDialog
                              JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                              JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
              Box.createVerticalStrut(2),
-             buildScheduleButtons(),
-             Box.createVerticalStrut(2),
+             isRollup ? null : buildScheduleButtons(),
+             isRollup ? null : Box.createVerticalStrut(2),
              buildMainButtons());
 
         JSplitPane jsp = new JSplitPane
@@ -137,14 +140,13 @@ public class TaskScheduleDialog
 
         frame.setSize(new Dimension(630, 600));
         frame.show();
-        recalcTimer = new Timer(Integer.MAX_VALUE, this);
-        recalcTimer.setInitialDelay(1000);
-        recalcTimer.setRepeats(false);
 
         // if the task list is empty, open the add task dialog immediately.
         if (((EVTask) model.getRoot()).isLeaf())
             addTask();
     }
+
+    private boolean isRollup() { return model.isRollup(); }
 
     private boolean isDirty = false;
     protected void setDirty(boolean dirty) {
@@ -153,17 +155,19 @@ public class TaskScheduleDialog
         closeButton.setText(isDirty ? "Cancel" : "Close");
     }
 
-    protected Component buildTaskButtons() {
+    protected Component buildTaskButtons(boolean isRollup) {
         Box result = Box.createHorizontalBox();
         result.add(Box.createHorizontalGlue());
-        addTaskButton = new JButton("Add Task...");
+        addTaskButton = new JButton
+            (isRollup ? "Add Schedule..." : "Add Task...");
         addTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     addTask(); }});
         result.add(addTaskButton);
         result.add(Box.createHorizontalGlue());
 
-        deleteTaskButton = new JButton("Delete Task...");
+        deleteTaskButton = new JButton
+            (isRollup ? "Delete Schedule..." : "Delete Task...");
         deleteTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     deleteTask(); }});
@@ -171,7 +175,8 @@ public class TaskScheduleDialog
         result.add(deleteTaskButton);
         result.add(Box.createHorizontalGlue());
 
-        moveUpButton = new JButton("Move Task Up");
+        moveUpButton = new JButton
+            (isRollup ? "Move Schedule Up" : "Move Task Up");
         moveUpButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     moveTaskUp(); }});
@@ -179,7 +184,8 @@ public class TaskScheduleDialog
         result.add(moveUpButton);
         result.add(Box.createHorizontalGlue());
 
-        moveDownButton = new JButton("Move Task Down");
+        moveDownButton = new JButton
+            (isRollup ? "Move Schedule Down" : "Move Task Down");
         moveDownButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     moveTaskDown(); }});
@@ -464,15 +470,14 @@ public class TaskScheduleDialog
     }
 
 
-    public void evNodeChanged(EVTaskList.Event e) {
-        TreePath tp = new TreePath(e.getNode().getPath());
+    public void evNodeChanged(EVTask node) {
+        TreePath tp = new TreePath(node.getPath());
         int row = treeTable.getTree().getRowForPath(tp);
         if (row != -1) {
             AbstractTableModel model =
                 (AbstractTableModel) treeTable.getModel();
             model.fireTableChanged(new TableModelEvent(model, row));
         }
-        recalcTimer.restart();
     }
 
     public void evScheduleChanged() {
@@ -480,13 +485,13 @@ public class TaskScheduleDialog
         recalcAll();
     }
 
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == recalcTimer) recalcAll();
-    }
     protected void recalcAll() {
         // recalculate all the data. This will automatically fire
         // appropriate events on the EVSchedule table.
         model.recalc();
+    }
+
+    public void evRecalculated(EventObject e) {
 
         // We have to manually generate events for the JTreeTable,
         // since it has installed some wrapper object to convert the
@@ -506,16 +511,35 @@ public class TaskScheduleDialog
      *  then add the selected task to the task list as a child of the
      *  task tree root. */
     protected void addTask() {
-        NodeSelectionDialog dialog = new NodeSelectionDialog
-            (frame, dash.props, "Add Task",
-             "Choose a project/task to add to the task list", "Add", null);
-        if (model.addTask(dialog.getSelectedPath(), dash.data,
-                          dash.props, true)) {
+        String path = null;
+        if (isRollup()) {
+            path = chooseTaskList();
+        } else {
+            NodeSelectionDialog dialog = new NodeSelectionDialog
+                (frame, dash.props, "Add Task",
+                 "Choose a project/task to add to the task list", "Add", null);
+            path = dialog.getSelectedPath();
+        }
+        if (path != null && model.addTask(path, dash.data, dash.props, true)) {
             treeTable.getTree().expandRow(0);
             setDirty(true);
             recalcAll();
             enableTaskButtons();
         }
+    }
+
+    private String chooseTaskList() {
+        String[] taskListNames = EVTaskList.findTaskLists(dash.data, true);
+        JList taskLists = new JList(taskListNames);
+        JScrollPane sp = new JScrollPane(taskLists);
+        sp.setPreferredSize(new Dimension(200, 200));
+        Object message = new Object[] {
+            "Choose a task & schedule template:", sp };
+        if (JOptionPane.showConfirmDialog(frame, message, "Add Schedule",
+                                          JOptionPane.OK_CANCEL_OPTION)
+            == JOptionPane.OK_OPTION)
+            return (String) taskLists.getSelectedValue();
+        return null;
     }
 
     /** Delete the currently selected task.
@@ -536,14 +560,17 @@ public class TaskScheduleDialog
     }
     protected boolean confirmDelete(TreePath selPath) {
         EVTask task = (EVTask) selPath.getLastPathComponent();
-        String fullName = task.getFullName();
+        String fullName = isRollup() ? task.getName() : task.getFullName();
         String[] message = new String[] {
-            "Are you certain you want to delete the task,",
+            "Are you certain you want to delete the " +
+                (isRollup() ? "schedule," : "task,"),
             "        '" + fullName + "'",
             "from this task list?" };
         return (JOptionPane.showConfirmDialog
-                (frame, message, "Delete Task?", JOptionPane.YES_NO_OPTION,
-                 JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION);
+                (frame, message,
+                 isRollup() ? "Delete Schedule?" : "Delete Task?",
+                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+                == JOptionPane.YES_OPTION);
     }
 
     /** Swap the currently selected task with its previous sibling.
@@ -652,6 +679,8 @@ public class TaskScheduleDialog
     }
 
     protected void enableScheduleButtons() {
+        if (isRollup()) return;
+
         boolean enableDelete = false, enableInsert = false;
         int[] rows = scheduleTable.getSelectedRows();
         enableInsert = (rows != null && rows.length > 0);
@@ -667,6 +696,9 @@ public class TaskScheduleDialog
     protected void close() {
         TaskScheduleChooser.close(taskListName);
         frame.dispose();
+        model.setNodeListener(null);
+        model.removeRecalcListener(this);
+        model.getSchedule().setListener(null);
         model = null;
         treeTable = null;
         scheduleTable = null;
@@ -688,9 +720,10 @@ public class TaskScheduleDialog
             }*/
 
     public void showChart() {
-        if (chartDialog != null)
+        if (chartDialog != null && chartDialog.isDisplayable()) {
             chartDialog.show();
-        else
+            chartDialog.toFront();
+        } else
             chartDialog = new TaskScheduleChart(this);
     }
 

@@ -26,9 +26,11 @@
 
 package pspdash;
 
+import java.awt.event.*;
 import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.*;
@@ -42,36 +44,56 @@ import pspdash.data.SimpleData;
 import pspdash.data.ListData;
 
 public class EVTaskList extends AbstractTreeTableModel
-    implements EVTask.Listener
+    implements EVTask.Listener, ActionListener, PSPProperties.Listener
 {
 
     public static final String MAIN_DATA_PREFIX = "/Task-Schedule/";
     public static final String TASK_ORDINAL_PREFIX = "TST_";
     public static final String EST_HOURS_DATA_NAME = "Planned Hours";
+    public static final String TASK_LISTS_DATA_NAME = "Task Lists";
 
 
     protected String taskListName;
     protected DataRepository data;
     protected PSPProperties hierarchy;
     protected EVSchedule schedule;
+    protected Vector evTaskLists = null;
+    /** timer for triggering recalculations */
+    protected Timer recalcTimer;
 
+    /**
+     * @param taskListName the name of the task list. This will be a simple
+     *    string, not containing any '/' characters.
+     */
     public EVTaskList(String taskListName,
                       DataRepository data,
                       PSPProperties hierarchy,
+                      boolean createRollup,
                       boolean willNeedChangeNotification) {
         super(null);
 
         this.taskListName = taskListName;
         this.data = data;
         this.hierarchy = hierarchy;
-        if (willNeedChangeNotification)
-            listeners = Collections.synchronizedList(new ArrayList());
-        else
-            listeners = null;
+        if (willNeedChangeNotification) {
+            recalcListeners = Collections.synchronizedSet(new HashSet());
+
+            recalcTimer = new Timer(Integer.MAX_VALUE, this);
+            recalcTimer.setInitialDelay(1000);
+            recalcTimer.setRepeats(false);
+        }
 
         root = new EVTask(taskListName);
-        addTasksFromData(data, taskListName);
-        schedule = getSchedule(data, taskListName);
+
+        if (isRollup(data, taskListName) ||
+            (createRollup && !isPlain(data, taskListName))) {
+            evTaskLists = new Vector();
+            addTaskListsFromData(data, hierarchy, taskListName);
+            schedule = new EVScheduleRollup(evTaskLists);
+        } else {
+            addTasksFromData(data, taskListName);
+            schedule = getSchedule(data, taskListName);
+        }
     }
 
     private void addTasksFromData(DataRepository data, String taskListName) {
@@ -92,10 +114,12 @@ public class EVTaskList extends AbstractTreeTableModel
 
         // now add each task found to the task list.
         i = tasks.values().iterator();
-        boolean willNeedChangeNotification = (listeners != null);
+        boolean willNeedChangeNotification = (recalcListeners != null);
         while (i.hasNext())
             addTask((String) i.next(), data, hierarchy,
                     willNeedChangeNotification);
+
+        hierarchy.addHierarchyListener(this);
     }
     private EVSchedule getSchedule(DataRepository data, String taskListName) {
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
@@ -109,10 +133,40 @@ public class EVTaskList extends AbstractTreeTableModel
             return new EVSchedule();
     }
 
+    private void addTaskListsFromData(DataRepository data,
+                                      PSPProperties hierarchy,
+                                      String taskListName) {
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
+        String dataName =
+            data.createDataName(globalPrefix, TASK_LISTS_DATA_NAME);
+        SimpleData listVal = data.getSimpleValue(dataName);
+        ListData list = null;
+        if (listVal instanceof ListData)
+            list = (ListData) listVal;
+        else if (listVal instanceof StringData)
+            list = ((StringData) listVal).asList();
+
+        if (list == null) return;
+        for (int i = 0;   i < list.size();   i++) {
+            taskListName = (String) list.get(i);
+            EVTaskList taskList =
+                new EVTaskList(taskListName, data, hierarchy, false, false);
+            ((EVTask) root).add((EVTask) taskList.root);
+            evTaskLists.add(taskList);
+        }
+    }
+
 
     public void save() { save(taskListName); }
 
     public void save(String newName) {
+        if (isRollup())
+            saveRollup(newName);
+        else
+            savePlain(newName);
+    }
+
+    protected void savePlain(String newName) {
         // First, compile a list of all the elements in the datafile that
         // were previously used to save this task list.  (That way we'll
         // know what we need to delete.)
@@ -142,6 +196,7 @@ public class EVTaskList extends AbstractTreeTableModel
             dataName = data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
             data.putValue(dataName, schedule.getSaveList());
             oldNames.remove(dataName);
+            taskListName = newName;
         }
 
         // Finally, delete any old unused data elements.
@@ -150,13 +205,46 @@ public class EVTaskList extends AbstractTreeTableModel
             data.removeValue((String) i.next());
     }
 
+    protected void saveRollup(String newName) {
+        String dataName;
+
+        // First, erase the data element that used to hold the list of
+        // task lists.
+        if (!taskListName.equals(newName)) {
+            dataName = data.createDataName(MAIN_DATA_PREFIX + taskListName,
+                                           TASK_LISTS_DATA_NAME);
+            data.putValue(dataName, null);
+        }
+
+        // Now, save the rollup to the repository with the new name.
+        if (newName != null) {
+            dataName = data.createDataName(MAIN_DATA_PREFIX + newName,
+                                           TASK_LISTS_DATA_NAME);
+            ListData list = new ListData();
+            Iterator i = evTaskLists.iterator();
+            while (i.hasNext())
+                list.add(((EVTaskList) i.next()).taskListName);
+
+            data.putValue(dataName, list);
+            taskListName = newName;
+        }
+    }
+
+
+
     public static String[] findTaskLists(DataRepository data) {
+        return findTaskLists(data, false);
+    }
+    public static String[] findTaskLists(DataRepository data,
+                                         boolean excludeRollups) {
         TreeSet result = new TreeSet();
         Iterator i = data.getKeys();
         String dataName;
         while (i.hasNext()) {
             dataName = (String) i.next();
             if (dataName.startsWith(MAIN_DATA_PREFIX)) {
+                if (excludeRollups && dataName.endsWith(TASK_LISTS_DATA_NAME))
+                    continue;
                 dataName = dataName.substring(MAIN_DATA_PREFIX.length());
                 int slashPos = dataName.indexOf('/');
                 dataName = dataName.substring(0, slashPos);
@@ -172,6 +260,39 @@ public class EVTaskList extends AbstractTreeTableModel
         return ret;
     }
 
+
+
+    public boolean isRollup() {
+        return evTaskLists != null;
+    }
+
+    public static boolean isRollup(DataRepository data, String taskListName) {
+        String dataName = data.createDataName(MAIN_DATA_PREFIX + taskListName,
+                                              TASK_LISTS_DATA_NAME);
+        return data.getSimpleValue(dataName) != null;
+    }
+    public static boolean isPlain(DataRepository data, String taskListName) {
+        String dataName = data.createDataName(MAIN_DATA_PREFIX + taskListName,
+                                              EST_HOURS_DATA_NAME);
+        return data.getSimpleValue(dataName) != null;
+    }
+
+    public static String cleanupName(String taskListDataName) {
+        // Strip all initial text up to and including the "main data prefix."
+        int pos = taskListDataName.indexOf(MAIN_DATA_PREFIX);
+        if (pos != -1)
+            taskListDataName = taskListDataName.substring
+                (pos + MAIN_DATA_PREFIX.length());
+
+        // Strip all final text following the "/" character.
+        pos = taskListDataName.indexOf('/');
+        if (pos != -1)
+            taskListDataName = taskListDataName.substring(0, pos);
+
+        return taskListDataName;
+    }
+
+
     public EVSchedule getSchedule() { return schedule; }
 
     public boolean addTask(String path,
@@ -181,8 +302,17 @@ public class EVTaskList extends AbstractTreeTableModel
         if (path == null || path.length() == 0) return false;
 
         // create the new task and add it.
-        EVTask newTask = new EVTask(path, data, hierarchy,
-                                    willNeedChangeNotification ? this : null);
+        EVTask newTask;
+        if (isRollup()) {
+            EVTaskList taskList = new EVTaskList(path, data, hierarchy,
+                                                 false, false);
+            evTaskLists.add(taskList);
+            ((EVScheduleRollup) schedule).addSchedule(taskList.schedule);
+            newTask = (EVTask) taskList.root;
+        } else {
+            newTask = new EVTask(path, data, hierarchy,
+                                 willNeedChangeNotification ? this : null);
+        }
         ((EVTask) root).add(newTask);
 
         // send the appropriate TreeModel event.
@@ -202,6 +332,12 @@ public class EVTaskList extends AbstractTreeTableModel
         EVTask child  = (EVTask) path.getPathComponent(pathLen-1);
         int pos = parent.remove(child);
 
+        if (isRollup()) {
+            EVTaskList taskList = (EVTaskList) evTaskLists.remove(pos);
+            ((EVScheduleRollup) schedule).removeSchedule(taskList.schedule);
+        }
+        child.destroy();
+
         // send the appropriate TreeModel event.
         int[] childIndices = new int[] { pos };
         Object[] children = new Object[] { child };
@@ -216,6 +352,10 @@ public class EVTaskList extends AbstractTreeTableModel
 
         // make the change
         r.moveUp(pos);
+        if (isRollup()) {
+            Object taskList = evTaskLists.remove(pos);
+            evTaskLists.insertElementAt(taskList, pos-1);
+        }
 
         // send the appropriate TreeModel event.
         int[] childIndices = new int[] { pos-1, pos };
@@ -229,42 +369,113 @@ public class EVTaskList extends AbstractTreeTableModel
     /// Change notification support
     //////////////////////////////////////////////////////////////////////
 
-    /** Defines the interface for an object that listens to changes in
-     * the <b>values</b> in an EVTaskList.
+    EVTask.Listener evNodeListener = null;
+    public void setNodeListener(EVTask.Listener l) { evNodeListener = l; }
+    public void evNodeChanged(EVTask node) {
+        if (evNodeListener != null) evNodeListener.evNodeChanged(node);
+        if (recalcTimer    != null) recalcTimer.restart();
+    }
+
+    /** Defines the interface for an object that listens for recalculations
+     *  that occur in an EVTaskList.
      *
-     * Note: this only allows for notification of changes to values in
-     * the task list - not to the structure of the task list.  To be
+     * Note: this only allows for notification of recalculation
+     * events - not to the structure of the task list.  To be
      * notified of such changes, register as a TreeModelListener.
      */
-    public interface Listener {
-        /** Data has changed for one node in the task list */
-        public void evNodeChanged(Event e);
+    public interface RecalcListener {
+        /** The task list has been recalculated. */
+        public void evRecalculated(EventObject e);
     }
-
-    /** Notification event object */
-    public class Event {
-        private EVTask node;
-        public Event(EVTask node) { this.node = node; }
-        public EVTask getNode() { return node; }
-        public EVTaskList getList() { return EVTaskList.this; }
+    Set recalcListeners = null;
+    public synchronized void addRecalcListener(RecalcListener l) {
+        if (recalcListeners != null)
+            recalcListeners.add(l);
     }
-
-    List listeners = null;
-    public void addEVTaskListListener(Listener l)    { listeners.add(l);    }
-    public void removeEVTaskListListener(Listener l) { listeners.remove(l); }
-    public void fireEVNodeChanged(EVTask node) {
-        if (listeners != null  && listeners.size() > 0) {
-            Event e = new Event(node);
-            for (int i = 0;  i < listeners.size();  i++)
-                ((Listener) listeners.get(i)).evNodeChanged(e);
+    public void removeRecalcListener(RecalcListener l) {
+        if (recalcListeners != null) {
+            recalcListeners.remove(l);
+            maybeDispose();
         }
     }
+    private boolean someoneCares() {
+        return (recalcListeners != null && !recalcListeners.isEmpty());
+    }
+    protected void fireEvRecalculated() {
+        if (someoneCares()) {
+            EventObject e = new EventObject(this);
+            Iterator i = recalcListeners.iterator();
+            while (i.hasNext())
+                ((RecalcListener) i.next()).evRecalculated(e);
+        }
+    }
+    public void actionPerformed(ActionEvent e) {
+        if (recalcTimer != null && e.getSource() == recalcTimer &&
+            someoneCares())
+            recalc();
+    }
+
+    private void maybeDispose() {
+        if (recalcListeners == null) return;
+        if (recalcListeners.isEmpty()) {
+            System.out.println("disposing!");
+            hierarchy.removeHierarchyListener(this);
+            ((EVTask) root).destroy();
+        }
+    }
+    public void hierarchyChanged(PSPProperties.Event e) {
+        if (someoneCares()) {
+            EVTask r = (EVTask) root;
+
+            // delete all the previous children.
+            int n = r.getNumChildren();
+            int[] childIndices = new int[n];
+            Object[] children = new Object[n];
+            while (n-- > 0)
+                children[(childIndices[n] = n)] = r.getChild(n);
+            r.destroy();
+            fireTreeNodesRemoved
+                (this, ((EVTask) r).getPath(), childIndices, children);
+
+            // add the new kids.
+            addTasksFromData(data, taskListName);
+            fireTreeStructureChanged(this, r.getPath(), null, null);
+            recalc();
+        }
+    }
+
+
+
+
     private double totalPlanTime;
     public void recalc() {
+        System.out.println("recalculating " + taskListName);
+        if (isRollup())
+            recalcRollup();
+        else
+            recalcSimple();
+
+        totalPlanTime = schedule.getMetrics().totalPlan();
+        fireEvRecalculated();
+    }
+
+    protected void recalcSimple() {
         TimeLog log = new TimeLog();
         try { log.readDefault(); } catch (IOException ioe) {}
         ((EVTask) root).recalc(schedule, log);
-        totalPlanTime = ((EVTask) root).planTime;
+    }
+
+    protected void recalcRollup() {
+        // Recalculate all the subschedules.
+        Iterator i = evTaskLists.iterator();
+        while (i.hasNext())
+            ((EVTaskList) i.next()).recalc();
+
+        // Recalculate the root node.
+        ((EVTask) root).recalcRollupNode();
+
+        // Recalculate the rollup schedule.
+        ((EVScheduleRollup) schedule).recalc();
     }
 
 
@@ -455,6 +666,11 @@ public class EVTaskList extends AbstractTreeTableModel
                 }
             }
         }
+    }
+
+    public void finalize() throws Throwable {
+        System.out.println("finalizing EVTaskList " + taskListName);
+        super.finalize();
     }
 
 }

@@ -29,54 +29,78 @@ package pspdash;
 import java.awt.Component;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.*;
+import java.text.DecimalFormatSymbols;
+import java.util.EventObject;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import com.jrefinery.chart.*;
 import com.jrefinery.chart.event.DataSourceChangeListener;
 import com.jrefinery.chart.event.DataSourceChangeEvent;
 
-public class TaskScheduleChart extends JDialog {
+public class TaskScheduleChart extends JFrame
+    implements EVTaskList.RecalcListener, ComponentListener {
 
-    TaskScheduleDialog parent;
+    EVTaskList taskList;
+    EVSchedule schedule;
+    JTabbedPane tabPane;
 
     public TaskScheduleChart(TaskScheduleDialog parent) {
-        super(parent.frame, "EV Chart - " + parent.taskListName);
-        this.parent = parent;
+        super("EV Chart - " + parent.taskListName);
+        setIconImage(parent.frame.getIconImage());
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        taskList = parent.model;
+        taskList.addRecalcListener(this);
+        schedule = taskList.getSchedule();
 
-        JTabbedPane tabPane = new JTabbedPane();
+        tabPane = new JTabbedPane();
         tabPane.addTab("Earned Value", buildValueChart());
         tabPane.addTab("Direct Hours", buildTimeChart());
         tabPane.addTab("Combined",     buildCombinedChart());
         tabPane.addTab("Statistics",   buildStatsTable());
+        tabPane.addComponentListener(this);
 
         getContentPane().add(tabPane);
         pack();
         show();
     }
+    public void dispose() {
+        super.dispose();
+        taskList.removeRecalcListener(this);
+    }
+    public void evRecalculated(EventObject e) {}
+
 
     private JFreeChartPanel buildTimeChart() {
-        return buildChart(parent.model.getSchedule().getTimeChartData());
+        return buildChart(schedule.getTimeChartData());
     }
 
     private JFreeChartPanel buildValueChart() {
-        return buildChart(parent.model.getSchedule().getValueChartData());
+        return buildChart(schedule.getValueChartData());
     }
 
     private JFreeChartPanel buildCombinedChart() {
-        return buildChart(parent.model.getSchedule().getCombinedChartData());
+        return buildChart(schedule.getCombinedChartData());
     }
 
     private JFreeChartPanel buildChart(XYDataSource data) {
         JFreeChart chart = JFreeChart.createTimeSeriesChart(data);
         chart.setTitle((Title) null);
+        charts[numCharts]   = chart;
+        legends[numCharts++] = chart.getLegend();
         data.addChangeListener(new DataChangeWrapper(chart));
         JFreeChartPanel panel = new JFreeChartPanel(chart);
         return panel;
     }
 
+    JFreeChart charts[] = new JFreeChart[3];
+    Legend legends[] = new Legend[3];
+    int numCharts = 0;
+
     private Component buildStatsTable() {
-        EVMetrics m = parent.model.getSchedule().getMetrics();
+        EVMetrics m = schedule.getMetrics();
 
         JTable table = new JTable(m);
         table.removeColumn(table.getColumnModel().getColumn(3));
@@ -95,8 +119,49 @@ public class TaskScheduleChart extends JDialog {
 
 
 
+
+
+    public void componentMoved(ComponentEvent e) {}
+    public void componentShown(ComponentEvent e) {}
+    public void componentHidden(ComponentEvent e) {}
+    public void componentResized(ComponentEvent e) {
+        adjustTabNames(tabPane.getWidth());
+    }
+
+    private static final String[][] tabNames = {
+        { "%", (new DecimalFormatSymbols()).getCurrencySymbol(), "&", "#" },
+        { "EV", "Hours", "Both", "Stats" },
+        { "Earned Value", "Direct Hours", "Combined", "Statistics" }};
+    private static final int FULL = 2;
+    private static final int MED = 1;
+    private static final int SHORT = 0;
+    private int currentStyle = FULL;
+
+    private void adjustTabNames(int width) {
+        int style = (width > 325 ? FULL : (width > 170 ? MED : SHORT));
+        synchronized (this) {
+            if (style == currentStyle) return;
+            currentStyle = style;
+        }
+
+        for (int i=tabNames[style].length;   i-- > 0; )
+            tabPane.setTitleAt(i, tabNames[style][i]);
+        for (int i=0;   i < charts.length;   i++) {
+            charts[i].setLegend(style != FULL ? null : legends[i]);
+            adjustAxis(charts[i].getPlot().getAxis(Plot.HORIZONTAL_AXIS),
+                       style != FULL);
+            adjustAxis(charts[i].getPlot().getAxis(Plot.VERTICAL_AXIS),
+                       style == SHORT);
+        }
+    }
+    private void adjustAxis(Axis a, boolean chromeless) {
+        a.setShowTickLabels(!chromeless);
+        a.setShowTickMarks(!chromeless);
+    }
+
+
     private class DescriptionPane extends JTextArea
-        implements ListSelectionListener
+        implements ListSelectionListener, TableModelListener
     {
         EVMetrics metrics;
         ListSelectionModel selectionModel;
@@ -106,11 +171,14 @@ public class TaskScheduleChart extends JDialog {
             setLineWrap(true); setWrapStyleWord(true); setEditable(false);
             doResize();
             metrics = m;
+            metrics.addTableModelListener(this);
             selectionModel = sm;
             selectionModel.addListSelectionListener(this);
         }
 
-        public void valueChanged(ListSelectionEvent e) {
+        public void valueChanged(ListSelectionEvent e) { refreshText(); }
+        public void tableChanged(TableModelEvent e)    { refreshText(); }
+        public void refreshText() {
             String descr = (String) metrics.getValueAt
                 (selectionModel.getMinSelectionIndex(), EVMetrics.FULL);
             setText(descr);

@@ -96,7 +96,9 @@ public class EVMetrics implements TableModel {
                 this.planTime += planTime * periodPercent;
         }
     }
-    public void recalcComplete() { fireTableChanged(null); }
+    public void recalcComplete() {
+        fireTableChanged(new TableModelEvent(this, 0, getRowCount()-1));
+    }
 
 
     public double earnedValue() { return earnedValueTime; }

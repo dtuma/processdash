@@ -69,23 +69,46 @@ public class TaskScheduleChooser
 
         String taskName = getTemplateName
             (dash, "Create New Schedule",
-             "Choose a name for the new task & schedule template:");
+             "Choose a name for the new task & schedule template:", true);
 
         open(dash, taskName);
     }
 
+    private static final String[] ROLLUP_OPTIONS = {
+        "Create Schedule", "Create EV Roll-up" };
+    private static final String OK = "OK";
+    private static final String CANCEL = "Cancel";
     protected String getTemplateName(Component parent,
-                                     String title, String prompt) {
+                                     String title, String prompt,
+                                     boolean showRollupOptions) {
 
         String taskName = "";
-        Object message = prompt;
+        Object message = prompt, button;
+        Object options[];
+        JComboBox rollupOption = null;
+        if (showRollupOptions) {
+            rollupOption = new JComboBox(ROLLUP_OPTIONS);
+            options = new Object[] {
+                rollupOption, new JLabel("      "), OK, CANCEL };
+        } else
+            options = new Object[] { OK, CANCEL };
+        JTextField inputField = new JTextField();
+
+
         while (true) {
-            taskName = (String) JOptionPane.showInputDialog
-                (parent, message, title,
-                 JOptionPane.PLAIN_MESSAGE, null, null, taskName);
+            JOptionPane optionPane = new JOptionPane
+                (new Object[] { message, inputField },
+                 JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
+                 null, options);
+            optionPane.createDialog(parent, title).show();
 
+            button = optionPane.getValue();
+            System.out.println("Button selected was " + button);
+            if (button == null || button == CANCEL ||
+                button == JOptionPane.UNINITIALIZED_VALUE)
+                return null;    // user cancel
 
-            if (taskName == null) return null; // user cancelled input
+            taskName = (String) inputField.getText();
 
             taskName = taskName.trim();
 
@@ -107,8 +130,11 @@ public class TaskScheduleChooser
             else
                 break;
         }
+        if (rollupOption != null && rollupOption.getSelectedIndex() == 1)
+            taskName = ROLLUP_PREFIX + taskName;
         return taskName;
     }
+    public static final String ROLLUP_PREFIX = " ";
 
     private boolean templateExists(String taskListName) {
         String [] taskLists = EVTaskList.findTaskLists(dash.data);
@@ -167,13 +193,21 @@ public class TaskScheduleChooser
     public static void open(PSPDashboard dash, String taskListName) {
         if (taskListName == null)
             return;
+
+        boolean createRollup = false;
+        if (taskListName.startsWith(ROLLUP_PREFIX)) {
+            createRollup = true;
+            taskListName = taskListName.substring(ROLLUP_PREFIX.length());
+        }
+
         TaskScheduleDialog d =
             (TaskScheduleDialog) openWindows.get(taskListName);
         if (d != null)
             d.show();
         else
             openWindows.put(taskListName,
-                            new TaskScheduleDialog(dash, taskListName));
+                            new TaskScheduleDialog(dash, taskListName,
+                                                   createRollup));
     }
 
     static void close(String taskListName) {
@@ -213,11 +247,12 @@ public class TaskScheduleChooser
         String newName = getTemplateName
             (dialog, "Rename Schedule",
              "Choose a new name for the task & schedule template '" +
-             taskListName + "':");
+             taskListName + "':", false);
 
         if (newName != null) {
             EVTaskList taskList =
-                new EVTaskList(taskListName, dash.data, dash.props, false);
+                new EVTaskList(taskListName, dash.data, dash.props,
+                               false, false);
             taskList.save(newName);
             refreshList();
             dialog.toFront();
@@ -237,7 +272,8 @@ public class TaskScheduleChooser
                                           JOptionPane.QUESTION_MESSAGE)
             == JOptionPane.YES_OPTION) {
             EVTaskList taskList =
-                new EVTaskList(taskListName, dash.data, dash.props, false);
+                new EVTaskList(taskListName, dash.data, dash.props,
+                               false, false);
             taskList.save(null);
             refreshList();
             dialog.toFront();

@@ -28,6 +28,8 @@ package pspdash;
 import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.EventObject;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
@@ -115,6 +117,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
             value = (Prop)src.get (key);
             put (new PropertyKey (key), new Prop (value));
         }
+        //fireHierarchyChanged();
     }
 
     public Prop pget (PropertyKey key) {
@@ -133,6 +136,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         Prop val = (Prop) super.remove (key);
         if (val == null)
             val = new Prop ();
+        //else
+        //fireHierarchyChanged();
         return val;
     }
 
@@ -175,6 +180,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         else
             move (oldChild, child);
         put (parent, val);
+        //fireHierarchyChanged();
     }
 
     // This routine will add the given child
@@ -186,6 +192,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         val.addChild (child, childIndex);
         put (child, pget (child));
         put (parent, val);
+        //fireHierarchyChanged();
     }
 
     // This routine will remove the given child
@@ -197,6 +204,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         if (oldChild != null)
             remove (oldChild);
         put (parent, val);
+        //fireHierarchyChanged();
     }
 
     private PropertyKey findExistingKey (PropertyKey key, String s) {
@@ -263,6 +271,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
             super.remove(fromKey);
             put (toKey, aProp);
         }
+        //fireHierarchyChanged();
     }
 
     public void remove (PropertyKey key) {
@@ -278,6 +287,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
 
             super.remove(key);
         }
+
+        //fireHierarchyChanged();
     }
 
     public void copy (PropertyKey fromKey,
@@ -290,6 +301,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
             copy (fc, tc);
         }
         put (toKey, aProp);
+        //fireHierarchyChanged();
     }
 
     public Vector load (InputStream propStream) throws IOException {
@@ -318,6 +330,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         }
 
         if (close) in.close();
+
+        //fireHierarchyChanged();
 
         v = new Vector();
         scanForDataFiles(v, PropertyKey.ROOT);
@@ -510,6 +524,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         loadXMLNode(XMLUtils.parse(in).getDocumentElement(),
                     templates, null, null);
 
+        //fireHierarchyChanged();
+
         Vector v = new Vector();
         scanForDataFiles(v, PropertyKey.ROOT);
         if (v.isEmpty()) v = null;
@@ -519,6 +535,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     public void loadXMLTemplate (Element e) throws SAXException {
         e.setAttribute(NAME_ATTR, "top");
         loadXMLNode(e, null, null, null);
+        //fireHierarchyChanged();
     }
 
     private void scanForDataFiles(Vector v, PropertyKey key) {
@@ -788,6 +805,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
                 (new PendingDataChange(null, newfile, null));
         }
         put (toKey, aProp);
+        //fireHierarchyChanged();
     }
 
 
@@ -942,6 +960,31 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     }
     public int compare(Object o1, Object o2) {
         return comparePaths((String) o1, (String) o2);
+    }
+
+
+    // Listener support
+
+    public class Event extends EventObject { Event(Object o) { super(o); } }
+    public interface Listener {
+        public void hierarchyChanged(Event e);
+    }
+
+    HashSet listeners = null;
+    public synchronized void addHierarchyListener(Listener l) {
+        if (listeners == null) listeners = new HashSet();
+        listeners.add(l);
+    }
+    public void removeHierarchyListener(Listener l) {
+        if (listeners != null) listeners.remove(l);
+    }
+    protected void fireHierarchyChanged() {
+        if (listeners != null  && !listeners.isEmpty()) {
+            Event e = new Event(this);
+            Iterator i = listeners.iterator();
+            while (i.hasNext())
+                ((Listener) i.next()).hierarchyChanged(e);
+        }
     }
 
 }

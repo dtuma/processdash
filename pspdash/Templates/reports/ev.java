@@ -130,6 +130,7 @@ public class ev extends CGIChartBase {
                     new EVTaskList(taskListName,
                                    getDataRepository(),
                                    getPSPProperties(),
+                                   false,  // don't try to create a rollup
                                    false); // change notification not required
                 evModel.recalc();
             }
