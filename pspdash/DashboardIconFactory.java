@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,8 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.Image;
+import java.io.File;
+import java.net.URL;
 
 import javax.swing.Icon;
 
@@ -37,9 +39,12 @@ public class DashboardIconFactory {
 
     private static Image windowIconImage = null;
     public static Image getWindowIconImage() {
-        if (windowIconImage == null)
-            windowIconImage = Toolkit.getDefaultToolkit().createImage
-                (DashboardIconFactory.class.getResource("icon32.gif"));
+        if (windowIconImage == null) {
+            windowIconImage = loadFileImage("icon32.gif");
+            if (windowIconImage == null)
+                windowIconImage = Toolkit.getDefaultToolkit().createImage
+                    (DashboardIconFactory.class.getResource("icon32.gif"));
+        }
         return windowIconImage;
     }
 
@@ -74,6 +79,20 @@ public class DashboardIconFactory {
         // to allow for localization of icons.
         return null;
     }
+
+    private static Image loadFileImage(String filename) {
+        try {
+            File f = new File(filename);
+            if (!f.isFile() || !f.canRead())
+                return null;
+
+            return Toolkit.getDefaultToolkit().createImage(filename);
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
     private static class ContinueIcon implements Icon {
 
