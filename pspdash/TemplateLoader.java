@@ -51,6 +51,7 @@ public class TemplateLoader {
     private static final String TEMPLATE_SUFFIX = ".template";
     private static final String XML_TEMPLATE_SUFFIX = "-template.xml";
     private static final String DATAFILE_SUFFIX = ".globaldata";
+    private static final String FILTER_SUFFIX = "filter.class";
     private static final String TEMPLATE_DIR = "Templates/";
 
     private static long templateTimestamp = 0;
@@ -149,6 +150,9 @@ public class TemplateLoader {
                     debug("loading template: " + filename);
                     loadProcessTemplate(templates, jarFile, false);
                     foundTemplates = true;
+                } else if (filename.endsWith(FILTER_SUFFIX)) {
+                    debug("loading language filter: " + filename);
+                    loadLanguageFilter(file.getName());
                 } else if (filename.endsWith(DATAFILE_SUFFIX)) {
                     try {
                         debug("loading data: " + filename);
@@ -202,6 +206,9 @@ public class TemplateLoader {
                 } catch (IOException ioe) {
                     debug("unable to load process template: " + f);
                 }
+            } else if (filename.endsWith(FILTER_SUFFIX)) {
+                debug("loading language filter: " + filename);
+                loadLanguageFilter(f.getName());
             } else if (filename.endsWith(DATAFILE_SUFFIX)) {
                 try {
                     debug("loading data: " + f);
@@ -216,6 +223,16 @@ public class TemplateLoader {
         }
         return foundTemplates;
     }
+
+    private static List languageFilters = new ArrayList();
+    public static List getLanguageFilters() { return languageFilters; }
+    private static void loadLanguageFilter(String filename) {
+        int pos = filename.lastIndexOf('/');
+        if (pos != -1) filename = filename.substring(pos + 1);
+        if (!languageFilters.contains(filename))
+            languageFilters.add(0, filename);
+    }
+
 
     private static void loadProcessTemplate(PSPProperties templates,
                                             InputStream in, boolean close)

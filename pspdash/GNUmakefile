@@ -48,6 +48,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/control/startTiming.java \
 	Templates/control/stopTiming.java \
 	Templates/dash/file.java \
+	Templates/dash/pspdiff.java \
 	Templates/dash/selectRollup.java \
 	Templates/reports/psp/r3c.java \
 	Templates/reports/psp/r4.java \
@@ -62,7 +63,9 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/line.java \
 	Templates/reports/pie.java \
 	Templates/reports/xy.java \
-	Templates/reports/table.java
+	Templates/reports/table.java \
+	Templates/CFilter.java \
+	Templates/DefaultFilter.java
 CGI_CLASSES=$(subst .java,.class,$(CGI_JAVA))
 SIZEEST_COPIES=Templates/psp1.1/sizeest.class \
 	Templates/psp1.0.1/sizeest.class \

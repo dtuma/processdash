@@ -147,6 +147,10 @@ public class TinyWebServer extends Thread {
         }
     }
 
+    ResourcePool getCGIPool(String path) {
+        return (ResourcePool) cgiCache.get(path);
+    }
+
     private class TinyWebThread extends Thread {
 
         Socket clientSocket = null;

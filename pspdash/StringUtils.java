@@ -106,6 +106,27 @@ public class StringUtils
 
     }
 
+    public static final void findAndReplace(StringBuffer text,
+                                            String find,
+                                            String replace) {
+
+        if ((text == null) ||
+            (find == null) ||
+            (replace == null))
+        {
+            throw new NullPointerException(
+                "findAndReplace doesn't work on nulls.");
+        }
+
+        int findLength = find.length(), replaceLength = replace.length();
+        int pos = 0, replaceStart = indexOf(text, find);
+        while (replaceStart != -1) {
+            text.replace(replaceStart, replaceStart+findLength, replace);
+            pos = replaceStart + replaceLength;
+            replaceStart = indexOf(text, find, pos);
+        }
+    }
+
     /**
         Breaks a string down to chunks of a given size or less.
         It will try and break chunks on standard symbols like the space,
