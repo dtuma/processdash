@@ -99,7 +99,7 @@ Plan Summary</H2>
 <!--#endif-->
 </TR>
 
-<!--#if [Productivity] -->
+<!--#if defined [Productivity] -->
 <TR>
 <TD>Productivity</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Productivity"></TD>
@@ -152,8 +152,8 @@ Plan Summary</H2>
 <!--#endif-->
 </TR>
 
-<!--#if [Defect Density] -->
-<!--#if [Last_Failure_Phase] -->
+<!--#if defined [Defect Density] -->
+<!--#if defined [Last_Failure_Phase] -->
 <TR>
 <TD><!--#echo [Last_Failure_Phase] --> Defect Density</TD>
 <TD><INPUT TYPE=text SIZE=7
@@ -177,7 +177,7 @@ Plan Summary</H2>
 </TR>
 <!--#endif [Defect Density] -->
 
-<!--#if [Yield] -->
+<!--#if defined [Yield] -->
 <TR>
 <TD>Yield %</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Yield	%"></TD>
@@ -188,7 +188,7 @@ Plan Summary</H2>
 </TR>
 <!--#endif-->
 
-<!--#if [% Appraisal COQ] -->
+<!--#if defined [% Appraisal COQ] -->
 <TR>
 <TD>% Appraisal COQ</TD>
 <TD><INPUT TYPE=text SIZE=7
@@ -202,7 +202,7 @@ Plan Summary</H2>
 </TR>
 <!--#endif-->
 
-<!--#if [% Failure COQ] -->
+<!--#if defined [% Failure COQ] -->
 <TR>
 <TD>% Failure COQ</TD>
 <TD><INPUT TYPE=text SIZE=7
@@ -214,7 +214,7 @@ Plan Summary</H2>
 <!--#endif-->
 </TR>
 
-<!--#if [% Appraisal COQ] -->
+<!--#if defined [% Appraisal COQ] -->
 <TR>
 <TD>COQ A/F Ratio</TD>
 <TD><INPUT TYPE=text SIZE=7 MANUALFOR="8A" NAME="Estimated AFR"></TD>
@@ -226,7 +226,7 @@ Plan Summary</H2>
 <!--#endif [% Appraisal COQ] -->
 <!--#endif [% Failure COQ] -->
 
-<!--#if [Size] -->
+<!--#if defined [Size] -->
 <TR>
 <TD>Size Estimating Error</TD>
 <TD></TD>
@@ -328,7 +328,7 @@ Plan Summary</H2>
 
 
 
-<!--#if [Defects Injected] -->
+<!--#if defined [Defects Injected] -->
 
 <H2>Defects Injected</H2>
 
@@ -387,7 +387,7 @@ Plan Summary</H2>
 <!--#endif [Defects Injected] -->
 
 
-<!--#if [Defects Removed] -->
+<!--#if defined [Defects Removed] -->
 
 <H2>Defects Removed</H2>
 
@@ -444,7 +444,7 @@ Plan Summary</H2>
 </TABLE>
 
 
-<!--#if [Quality_Phase_List] -->
+<!--#if defined [Quality_Phase_List] -->
 <H2>Defect Removal Efficiency</H2>
 
 <TABLE>
@@ -452,7 +452,7 @@ Plan Summary</H2>
 <TR>
 <TD ALIGN=LEFT VALIGN=TOP>&nbsp;</TD>
 
-<!--#if [Defect Density]-->
+<!--#if defined [Defect Density]-->
     <TD <!--#if rollup -->COLSPAN=2<!--#else-->COLSPAN=3<!--#endif-->
         ALIGN=CENTER VALIGN=BOTTOM><B>Defect Density</b><BR>(Def/KLOC)</TD>
     <TD>&nbsp;</TD>
@@ -468,7 +468,7 @@ Plan Summary</H2>
 
 <TR>
 <TD ALIGN=LEFT VALIGN=TOP>&nbsp;</TD>
-<!--#if [Defect Density]-->
+<!--#if defined [Defect Density]-->
     <TD ALIGN=CENTER><B>Plan</B></TD>
     <TD ALIGN=CENTER><B>Actual</B></TD>
     <!--#if not rollup--><TD ALIGN=CENTER><B>To Date</B></TD><!--#endif-->
@@ -484,7 +484,7 @@ Plan Summary</H2>
 </TR>
 
 <!-- the ugly stunt I'm pulling on the next line (with improperly
-nested if and for blocks) is is taking advantage of currently relaxed
+nested if and for blocks) is taking advantage of currently relaxed
 logic in the HTMLPreprocessor class and is *not* guaranteed to work
 indefinitely.  (Don't try this at home!) 
      Basically, it has the effect of textually replacing the string "4"
@@ -499,7 +499,7 @@ anything and will be discarded by the HTMLPreprocessor). -->
    <TR>
    <TD><!--#echo value="QPhase" --></TD>
 
-   <!--#if [Defect Density]-->
+   <!--#if defined [Defect Density]-->
       <TD><INPUT TYPE=text SIZE=4 NAME="QPhase/Estimated Defect Density"></TD>
       <TD><INPUT TYPE=text SIZE=4 NAME="QPhase/Defect Density"></TD>
       <!--#if not rollup -->
@@ -517,7 +517,7 @@ anything and will be discarded by the HTMLPreprocessor). -->
    <!--#endif-->
    <TD>&nbsp;</TD>
 
-   <!--#if [QPhase/DRL] -->
+   <!--#if defined [QPhase/DRL] -->
       <TD><INPUT TYPE=text SIZE=4 NAME="QPhase/Estimated DRL"></TD>
       <TD><INPUT TYPE=text SIZE=4 NAME="QPhase/DRL"></TD>
       <!--#if not rollup -->
@@ -542,7 +542,7 @@ anything and will be discarded by the HTMLPreprocessor). -->
 <!--#if not rollup -->
 <span class="doNotPrint">
 View <A HREF="../reports/timelog.class">Time Recording Log</A>
-<!--#if [Defects Removed] -->
+<!--#if defined [Defects Removed] -->
 or <A HREF="../reports/defectlog.class">Defect Recording Log</A>
 <!--#endif [Defects Removed] -->
 </span>
