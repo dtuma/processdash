@@ -729,6 +729,38 @@ public class TemplateLoader {
         return null;
     }
 
+
+    /** Looks through the various loaded templates, and determines which
+     * absolute URLs the given String maps to.  The URLs are returned in
+     * search order: the first item in the array corresponds to the URL
+     * which would be returned by a call to {@link #resolveURL(String)}.
+     * If the given URL does not map to any real resource, returns a
+     * zero-length array.
+     *
+     * Note: since this locates resources which are known to exist, it must
+     * make a connection to that URL.  However, the named resources are not
+     * downloaded, and are not interpreted.  In particular, if a resulting URL
+     * names a CGI script, that script will not be executed;  the URL
+     * connection made is only looking at the file, not loading or running the
+     * class named within.
+     */
+    public static URL[] resolveURLs(String url) {
+        Vector result = new Vector();
+
+        URL [] roots = getTemplateURLs();
+        if (url.startsWith("/")) url = url.substring(1);
+        URL u;
+        URLConnection conn;
+        for (int i = 0;  i < roots.length;  i++) try {
+            u = new URL(roots[i], url);
+            conn = u.openConnection();
+            conn.connect();
+            result.add(u);
+        } catch (IOException ioe) { }
+
+        return (URL[]) result.toArray(new URL[0]);
+    }
+
     private static void processTimestamp(long time) {
         if (time > templateTimestamp)
             templateTimestamp = time;

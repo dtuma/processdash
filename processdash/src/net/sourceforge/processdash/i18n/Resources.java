@@ -25,7 +25,7 @@
 
 package net.sourceforge.processdash.i18n;
 
-import java.net.URL;
+
 import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -34,10 +34,10 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringMapper;
 import net.sourceforge.processdash.util.StringUtils;
+
 
 public class Resources extends ResourceBundle implements StringMapper {
 
@@ -158,34 +158,10 @@ public class Resources extends ResourceBundle implements StringMapper {
         return dialogIndicatorFormat.format(new Object[] { value });
     }
 
-    private static class SafeTemplateClassLoader extends ClassLoader {
-
-        protected Class findClass(String name) throws ClassNotFoundException {
-            throw new ClassNotFoundException(name);
-        }
-        protected URL findResource(String name) {
-            name = name.replace('$', '.');
-            return findResourceImpl(name);
-        }
-        protected URL findResourceImpl(String mappedName) {
-            if (!mappedName.startsWith("/"))
-                mappedName = "/" + mappedName;
-            mappedName = "Templates" + mappedName;
-            return Resources.class.getClassLoader().getResource(mappedName);
-        }
-
-    }
-
-    private static class TemplateClassLoader extends SafeTemplateClassLoader {
-        protected URL findResourceImpl(String mappedName) {
-            return TemplateLoader.resolveURL(mappedName);
-        }
-    }
-
     private static ClassLoader makeResourceLoader() {
         try {
             Class.forName("org.w3c.dom.Element");
-            return new TemplateClassLoader();
+            return new MergingTemplateClassLoader();
         } catch (Throwable t) { }
         System.out.println("XML classes unavailable - using safe loader");
         return new SafeTemplateClassLoader();
