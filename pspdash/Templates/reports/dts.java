@@ -64,7 +64,10 @@ public class dts extends TinyCGIBase {
             out.println("    <TD VALIGN=baseline>" + description +
                         "</TD></TR>");
         }
-        out.println("</TABLE>");
+        out.println("</TABLE>\n"+
+                    "<p class='doNotPrint'>"+
+                    "<a href='/dash/dtsEdit.class'><i>Create/Edit Defect"+
+                    " Type Standards</i></a></p>");
         if ("PSP - text".equals(name) || "PSP - numbers".equals(name))
             out.println(COPYRIGHT_NOTICE);
         out.println("</BODY></HTML>");
