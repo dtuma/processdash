@@ -63,7 +63,8 @@ public class HTMLPreprocessor {
              (String) env.get("PATH_TRANSLATED"), env, null);
         QueryParser p = new QueryParser();
         try {
-            p.parseInput((String) env.get("QUERY_STRING"));
+            p.parseInput((String) env.get("SCRIPT_PATH"),
+                         (String) env.get("QUERY_STRING"));
         } catch (IOException ioe) {}
         params = p.getParameters();
     }
@@ -1028,8 +1029,8 @@ public class HTMLPreprocessor {
         protected boolean supportQueryFiles() {
             return false;
         }
-        public void parseInput(String query) throws IOException {
-            super.parseInput(query);
+        public void parseInput(String context, String query) throws IOException {
+            super.parseInput(context, query);
         }
         public Map getParameters() {
             return parameters;
