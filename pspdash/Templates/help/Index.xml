@@ -46,6 +46,7 @@
      <indexitem text="sharing password" target="TaskScheduleCollaboration.sharePassword"/>
    </indexitem>
    <indexitem text="level of effort tasks" target="TaskScheduleSteps.loe"/>
+   <indexitem text="prediction ranges" target="TaskScheduleRanges"/>
  </indexitem>
  <indexitem text="entering data" target="EnteringData"/>
  <indexitem text="exporting data" target="ExportingData">
