@@ -174,7 +174,7 @@ Plan Summary</h2>
 <!--#if not rollup -->
 [!--#if [Subtask_List] --] 
 <TR>
-<TD></TD>
+<TD><a href="sizeForm.class"><i>edit size data...</i></a></TD>
 <TD ALIGN=CENTER COLSPAN=2><B>This node only</B></TD>
 <TD ALIGN=CENTER COLSPAN=2 class=subtask><B>Including subtasks</B></TD>
 <!--#if USE_TO_DATE_DATA --><TD></TD><!--#endif-->
@@ -221,6 +221,18 @@ Plan Summary</h2>
 <TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/HLD Pages">&nbsp;</TD>
 <!--#if USE_TO_DATE_DATA -->
 <TD><INPUT TYPE=text SIZE=7 NAME="HLD Pages To Date"></TD>
+<!--#endif--><!--#endif-->
+</TR>
+
+<TR>
+<TD>Text Pages</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Text Pages"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Text Pages"></TD>
+<!--#if not rollup -->
+<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Text Pages"></TD>
+<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Text Pages">&nbsp;</TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Text Pages To Date"></TD>
 <!--#endif--><!--#endif-->
 </TR>
 
@@ -280,8 +292,8 @@ Plan Summary</h2>
 
 <TR>
 <TD>Requirements Pages</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="[Estimated Inspected Req Pages]UNLOCK"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="[Inspected Req Pages]UNLOCK"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected Req Pages"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected Req Pages"></TD>
 <TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected Req Pages"></TD>
 <TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected Req Pages">&nbsp;</TD>
 <!--#if USE_TO_DATE_DATA -->
@@ -291,8 +303,8 @@ Plan Summary</h2>
 
 <TR>
 <TD>HLD Pages</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="[Estimated Inspected HLD Pages]UNLOCK"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="[Inspected HLD Pages]UNLOCK"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected HLD Pages"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected HLD Pages"></TD>
 <TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected HLD Pages"></TD>
 <TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected HLD Pages">&nbsp;</TD>
 <!--#if USE_TO_DATE_DATA -->
@@ -301,9 +313,20 @@ Plan Summary</h2>
 </TR>
 
 <TR>
+<TD>Text Pages</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected Text Pages"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected Text Pages"></TD>
+<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected Text Pages"></TD>
+<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected Text Pages">&nbsp;</TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected Text Pages To Date"></TD>
+<!--#endif-->
+</TR>
+
+<TR>
 <TD>Detailed Design Lines</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="[Estimated Inspected DLD Lines]UNLOCK"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="[Inspected DLD Lines]UNLOCK"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected DLD Lines"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected DLD Lines"></TD>
 <TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected DLD Lines"></TD>
 <TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected DLD Lines">&nbsp;</TD>
 <!--#if USE_TO_DATE_DATA -->
@@ -313,8 +336,8 @@ Plan Summary</h2>
 
 <TR>
 <TD>New &amp; Changed LOC</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="[Estimated Inspected New &amp; Changed LOC]UNLOCK"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="[Inspected New &amp; Changed LOC]UNLOCK"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected New &amp; Changed LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected New &amp; Changed LOC"></TD>
 <TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected New &amp; Changed LOC"></TD>
 <TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected New &amp; Changed LOC">&nbsp;</TD>
 <!--#if USE_TO_DATE_DATA -->
