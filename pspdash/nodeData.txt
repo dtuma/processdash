@@ -23,6 +23,8 @@ sumUp(Defects Removed);
 
 #endif
 
+[PATH/Completed] = maxDate("Completed", [PATH/Child_List]);
+
 /*
  * Should we calculate anything else? Like defect injection/removal rates,
  * or defect removal efficiencies?
