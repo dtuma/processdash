@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -28,6 +29,8 @@ public class archive extends TinyCGIBase {
     private String base;
     private String boundary;
     private HashSet seenURIs;
+    private HashMap safeUriMap;
+    private int itemNumber;
 
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
@@ -159,12 +162,23 @@ public class archive extends TinyCGIBase {
         if (startingURI == null)
             throw new NullPointerException();
 
-        // We don't actually use the correct URL to the dashboard - if we did,
-        // missing items would automatically get loaded from the running
-        // dashboard.
+        // the URL we use needs to be generally recognizable and
+        // parseable as a URL.  It does not have to correspond to any
+        // real URL, however.  I intentionally don't use the real
+        // URLs, for two reasons:
+        // 1) Using real URLs means that items missing from the
+        //    archive might get loaded on the fly from the running
+        //    dashboard, which misrepresents archiving functionality
+        // 2) Some valid URLs seem to confuse internet explorer. For
+        //    example, a url containing the string "%23" (the URL encoded
+        //    version of "#") seems to confuse IE enough that it fails to
+        //    locate the identically named mime part within the archive.
         base = "http://localhost:9999";
         boundary = createBoundary();
         seenURIs = new HashSet();
+        safeUriMap = new HashMap();
+        itemNumber = 0;
+        getSafeURL(startingURI);
 
         writeMimeHeader();
         writeItemAndRecurse(startingURI);
@@ -284,7 +298,7 @@ public class archive extends TinyCGIBase {
         out.print(CRLF + "--" + boundary + CRLF);
         out.print("Content-Type: " + contentType + CRLF);
         out.print("Content-Transfer-Encoding: binary" + CRLF);
-        out.print("Content-Location: " + base + uri + CRLF + CRLF);
+        out.print("Content-Location: " + getSafeURL(uri) + CRLF + CRLF);
         out.flush();
     }
 
@@ -352,11 +366,12 @@ public class archive extends TinyCGIBase {
                     try {
                         subURI = (String) i.next();
                         URL u = new URL(baseURL, subURI);
+                        String safeURL = getSafeURL(u.getFile());
 
                         StringUtils.findAndReplace
-                            (html, "'"+subURI+"'", "'"+u.toString()+"'");
+                            (html, "'"+subURI+"'", "'"+safeURL+"'");
                         StringUtils.findAndReplace
-                            (html, "\""+subURI+"\"", "\""+u.toString()+"\"");
+                            (html, "\""+subURI+"\"", "\""+safeURL+"\"");
 
                     } catch (Exception e) {}
             }
@@ -385,6 +400,15 @@ public class archive extends TinyCGIBase {
             }
 
         } catch (IOException ioe) {}
+    }
+
+    private String getSafeURL(String uri) {
+        String result = (String) safeUriMap.get(uri);
+        if (result == null) {
+            result = base + "/item" + itemNumber++;
+            safeUriMap.put(uri, result);
+        }
+        return result;
     }
 
     private int findFormScriptStart(String html) {
