@@ -32,7 +32,7 @@
         <res src="files/JHLicense.html" id="CondHTMLLicencePanel1.licence"/>
         <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
         <res src="files/text-eng.xml" id="text.xml"/>
-        <!-- res src="files/text-jpn.xml" id="text.xml_jpn"/ -->
+        <res src="files/text-jpn.xml" id="text.xml_jpn"/>
 
         <!-- additional resources -->
     </resources>
