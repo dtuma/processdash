@@ -194,7 +194,7 @@
 
 <!--#if defined [% Appraisal COQ] -->
 <TR>
-<TD><!--#echo Appraisal_COQ --></TD>
+<TD>% Appraisal COQ</TD>
 <TD><INPUT TYPE=text SIZE=7
     MANUALFOR="8A" NAME="Estimated % Appraisal COQ	%"></TD>
 <TD><INPUT TYPE=text SIZE=7
@@ -208,7 +208,7 @@
 
 <!--#if defined [% Failure COQ] -->
 <TR>
-<TD><!--#echo Failure_COQ --></TD>
+<TD>% Failure COQ</TD>
 <TD><INPUT TYPE=text SIZE=7
     MANUALFOR="8A" NAME="Estimated % Failure COQ	%"></TD>
 <TD><INPUT TYPE=text SIZE=7 MANUALFOR="8A" NAME="% Failure COQ	%"></TD>
