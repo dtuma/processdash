@@ -28,41 +28,17 @@ import pspdash.AbstractLanguageFilter;
 
 import java.io.PrintWriter;
 
-public class CFilter extends AbstractLanguageFilter {
+public class ShFilter extends AbstractLanguageFilter {
 
-    private static final String[] COMMENT_STARTERS = { "//", "/*" };
+    private static final String[] COMMENT_STARTERS = { "#" };
     protected String[] getCommentStarters() { return COMMENT_STARTERS; }
 
-    private static final String[] COMMENT_ENDERS   = { "\n", "*/" };
+    private static final String[] COMMENT_ENDERS   = { "\n" };
     protected String[] getCommentEnders()   { return COMMENT_ENDERS; }
 
     private static final String[] FILENAME_ENDINGS = {
-        ".c", ".cpp", ".c++", ".h", ".java" };
+        ".pl", ".sh", ".bash" };
     protected String[] getDefaultFilenameEndings() {
         return FILENAME_ENDINGS;
     }
-
-    private boolean countBraces = false;
-
-    protected void setOptions(String options) {
-        countBraces = (options.indexOf("+{") != -1);
-    }
-
-    public boolean isSignificant(String line) {
-        line = line.trim();
-        switch (line.length()) {
-        case 0: return false;
-        case 1: return (countBraces ||
-                        "{}".indexOf(line.charAt(0)) == -1);
-        default: return true;
-        }
-    }
-
-    protected String[][] getOptions() { return OPTIONS; }
-    protected String[][] OPTIONS = {
-        { "+{", ("Count a curly brace on a line by itself "+
-                 "as a line of code.") },
-        { "-{", ("Do not count a curly brace on a line by itself "+
-                 "as a line of code <b>(default)</b>.") }
-    };
 }
