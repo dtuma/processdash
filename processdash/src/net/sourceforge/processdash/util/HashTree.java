@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import net.sourceforge.processdash.data.repository.RepositoryDataName;
+
 
 
 // 77305 MB is the mem usage to beat.
@@ -47,23 +49,23 @@ import java.util.NoSuchElementException;
 public class HashTree {
 
     /** The character used to split apart key strings */
-    private static final char SEPARATOR_CHAR = '/';
-    private static final String SEPARATOR = "/";
+    protected static final char SEPARATOR_CHAR = '/';
+    protected static final String SEPARATOR = "/";
 
     /** The name used to refer to the parent of a context */
-    private static final String PARENT_NAME = "..";
-    private static final String PARENT_PREFIX = PARENT_NAME + SEPARATOR;
+    protected static final String PARENT_NAME = "..";
+    protected static final String PARENT_PREFIX = PARENT_NAME + SEPARATOR;
     private static final String PARENT_COMPONENT =
         SEPARATOR + PARENT_NAME + SEPARATOR;
 
     /** The default capacity of a HashTree node */
-    private static final int DEFAULT_CAPACITY = 4;
+    protected static final int DEFAULT_CAPACITY = 4;
 
     /** The default capacity of a HashTree nodes attributes table */
     private static final int DEFAULT_ATTR_CAPACITY = 4;
 
     /** The contents of this node of the HashTree */
-    private HashMap contents;
+    protected HashMap contents;
 
     /** Attribute values associated with this node */
     private HashMap attributes;
@@ -271,9 +273,9 @@ public class HashTree {
             throw new IllegalArgumentException
                 ("Cannot replace self using put operation");
 
-        if (key.endsWith(SEPARATOR) && !(value instanceof HashTree))
+        if (key.endsWith(SEPARATOR) && !isValidHashTreeNode(value))
             throw new IllegalArgumentException
-                ("Key names a context, but value is not a HashTree");
+                ("Key names a context, but value is not a valid HashTree");
 
         return putImpl2(key, value);
     }
@@ -301,7 +303,7 @@ public class HashTree {
         String subKey = key.substring(0, slashPos);
         HashTree subHash = (HashTree) contents.get(subKey);
         if (subHash == null) {
-            subHash = new HashTree(this, DEFAULT_CAPACITY);
+            subHash = newHashTreeNode();
             contents.put(subKey.intern(), subHash);
         }
 
@@ -322,6 +324,15 @@ public class HashTree {
         }
     }
     */
+
+
+
+    protected HashTree newHashTreeNode() {
+        return new HashTree(this, DEFAULT_CAPACITY);
+    }
+    protected boolean isValidHashTreeNode(Object obj) {
+        return (obj instanceof HashTree);
+    }
 
 
 
@@ -352,7 +363,7 @@ public class HashTree {
 
 
     /** Remove "../" sequences from the given key. */
-    static String canonicalizeKey(String key) {
+    protected static String canonicalizeKey(String key) {
         if (key.equals(PARENT_NAME))
             return PARENT_PREFIX;
         if (key.endsWith(SEPARATOR+PARENT_NAME))
