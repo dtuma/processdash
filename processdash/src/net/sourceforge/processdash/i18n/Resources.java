@@ -51,20 +51,25 @@ public class Resources extends ResourceBundle {
     }
 
     protected Object handleGetObject(String key) {
-        try {
-            if (bundlePrefix != null)
-                key = bundlePrefix + "." + key;
+        Object result = null;
 
-            Object result = delegate.getObject(key);
+        // first try appending the bundle prefix, if present.
+        if (bundlePrefix != null) try {
+            String prefixedKey = bundlePrefix + "." + key;
+            result = delegate.getObject(prefixedKey);
+        } catch (MissingResourceException mre) { }
 
-            if (result instanceof String)
-                return interpolate((String) result);
-            else
-                return result;
-        } catch (MissingResourceException mre) {
-            return null;
-        }
+        // if no prefix, or if prefixed key not found, lookup the plain key.
+        if (result == null) try {
+            result = delegate.getObject(key);
+        } catch (MissingResourceException mre) { }
+
+        if (result instanceof String)
+            return interpolate((String) result, false);
+        else
+            return result;
     }
+
     public Enumeration getKeys() {
         // this isn't exactly accurate.  It won't include the
         // inherited keys from our parent.
@@ -91,7 +96,7 @@ public class Resources extends ResourceBundle {
 
     private static final String VAR_START_PAT = "${";
     private static final String VAR_END_PAT = "}";
-    protected String interpolate(String s) {
+    public String interpolate(String s, boolean html) {
         while (true) {
             int beg = s.indexOf(VAR_START_PAT);
             if (beg == -1) return s;
@@ -101,6 +106,8 @@ public class Resources extends ResourceBundle {
 
             String var = s.substring(beg+VAR_START_PAT.length(), end);
             String replacement = getString(var);
+            if (html)
+                replacement = HTMLUtils.escapeEntities(replacement);
             s = s.substring(0, beg) + replacement +
                 s.substring(end+VAR_END_PAT.length());
         }
