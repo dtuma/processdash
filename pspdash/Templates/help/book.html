@@ -170,6 +170,7 @@ BODY { color: black; background-color: white }
 <tr><td></td><td></td><td><b>3.6.5.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_5_">Entering a description</a></td></tr>
 <tr><td></td><td></td><td><b>3.6.6.</b>&nbsp;</td><td colspan=7><a href="#para_3_6_6_">Fixing multiple defects at a time</a></td></tr>
 <tr><td></td><td><b>3.7.</b>&nbsp;</td><td colspan=8><a href="#para_3_7_">Using the Defect Log Editor</a></td></tr>
+<tr><td></td><td></td><td><b>3.7.1.</b>&nbsp;</td><td colspan=7><a href="#para_3_7_1_">Configuring Defect Type Standards</a></td></tr>
 <tr><td></td><td><b>3.8.</b>&nbsp;</td><td colspan=8><a href="#para_3_8_">The "C" (configure) menu</a></td></tr>
 <tr><td><b>4.</b>&nbsp;</td><td colspan=9><a href="#para_4_">Postmortem analysis</a></td></tr>
 <tr><td></td><td><b>4.1.</b>&nbsp;</td><td colspan=8><a href="#para_4_1_">Counting LOC</a></td></tr>
@@ -4275,6 +4276,29 @@ button becomes active.  Clicking the Edit button will bring up the same
 dialog box used to enter defects.  All the defect data can be changed using 
 this dialog.  For help using the defect entry dialog please see the <a href="#doc31_top">Entering defects</A> help topic.</P>
 
+<h3><a name="para_3_7_1_"></a>3.7.1. Configuring Defect Type Standards</h3>
+
+<p>The dashboard will allow you to configure the &quot;defect type
+standards&quot; that you would like to use for various projects.
+
+<P>Defect type standards are associated with projects hierarchically.
+By default, projects just inherit the standard chosen by their parent.
+In addition, there is a &quot;global default&quot; defect type
+standard that is inherited when no other settings have been chosen.
+
+<P>As you select various branches in the project hierarchy, a
+component at the bottom of the left pane will show you the defect type
+standard setting in effect for the highlighted branch.  You can select
+a different defect type standard from the drop-down list provided.
+The new value you select will become the default defect type standard
+for the highlighted branch of your project hierarchy.
+
+<p>Click on the &quot;More...&quot; button at the bottom of the left pane to: 
+<ul>
+<li>Edit an existing defect type standard
+<li>Create a new defect type standard
+<li>Change the global default defect type standard
+</ul>
 
 <!-- DISCLAIMER -->
 
