@@ -41,7 +41,7 @@
  TARGET=sizeinst HREF="sizeinst.htm"><I>(instructions...)</I></A></FONT></H1>
 <FORM NAME=sizeest>
 
-<INPUT TYPE=HIDDEN NAME="requiredTag" value=psp1>
+<INPUT TYPE=HIDDEN NAME="requiredTag" value="psp1.0.1">
 
 <TABLE>
 <TR>
@@ -93,7 +93,7 @@
 <!--BaseAdditions-->
 
 <tr>
-<TD><INPUT TYPE=text NAME="Base Additions/#//#/Description	s"></TD>
+<TD><INPUT TYPE=text SIZE=38 NAME="Base Additions/#//#/Description	s"></TD>
 <TD><SELECT NAME="Base Additions/#//#/Type	s">
 <OPTION>
 <OPTION>Calculation
@@ -143,7 +143,7 @@
 <!--NewObjects-->
 
 <tr>
-<TD><INPUT TYPE=text NAME="New Objects/#//#/Description	s"></TD>
+<TD><INPUT TYPE=text SIZE=38 NAME="New Objects/#//#/Description	s"></TD>
 <TD><SELECT NAME="New Objects/#//#/Type	s">
 <OPTION>
 <OPTION>Calculation
@@ -212,33 +212,71 @@
 </TR>
 
 <TR>
-<TD colspan=4>Estimated Object LOC (E): E = BA + NO + M</TD>
+<TD colspan=2>Estimated Object LOC (E):</TD>
+<TD colspan=2>E = BA + NO + M&nbsp;</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Object LOC"></TD>
 <TD></TD><TD></TD><TD></TD>
 </TR>
 <TR>
-<TD colspan=4>Estimated New &amp; Changed LOC (N): <span class=dash>(use probe tool)</span></TD>
+<TD colspan=2>Regression Parameters: <span class=dash>(use probe tool)</span></TD>
+<TD colspan=2>&nbsp;<i>B</i><sub>0</sub> (size)&nbsp;</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Beta0"></TD>
+<TD></TD><TD></TD><TD></TD>
+</TR>
+<TR>
+<TD colspan=2>Regression Parameters: <span class=dash>(use probe tool)</span></TD>
+<TD colspan=2>&nbsp;<i>B</i><sub>1</sub> (size)&nbsp;</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Beta1"></TD>
+<TD></TD><TD></TD><TD></TD>
+</TR>
+<TR>
+<TD colspan=2>Estimated New &amp; Changed LOC (N): <span class=dash>(use probe tool)</span></TD>
+<TD colspan=2>&nbsp;N = <i>B</i><sub>0</sub> + <i>B</i><sub>1</sub> * E&nbsp;</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC"></TD>
 <TD></TD><TD></TD><TD></TD>
 </TR>
 <TR>
-<TD colspan=4>Upper Prediction Interval: <span class=dash>(use probe tool)</span></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max LOC"></TD>
+<TD colspan=2>Estimated Total LOC (T):</TD>
+<TD colspan=2>&nbsp;T = N + B - D - M + R&nbsp;</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Total LOC"></TD>
 <TD></TD><TD></TD><TD></TD>
 </TR>
 <TR>
-<TD colspan=4>Lower Prediction Interval: <span class=dash>(use probe tool)</span></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min LOC"></TD>
-<TD></TD><TD></TD><TD></TD>
-</TR>
-<TR>
-<TD colspan=4>Estimated Total New Reused</TD>
+<TD colspan=4>Estimated Total New Reused (sum of <span class=colHdr><span class=dash>NR</span></span> LOC):</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated New Reused LOC"></TD>
 <TD></TD><TD></TD><TD></TD>
 </TR>
 <TR>
-<TD colspan=4>Estimated Total LOC (T): T = N + B - D - M + R</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Total LOC"></TD>
+<TD colspan=2>Prediction Range: <span class=dash>(use probe tool)</span></TD>
+<TD colspan=2>&nbsp;Range&nbsp;</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Range"></TD>
+<TD></TD><TD></TD><TD></TD>
+</TR>
+<TR>
+<TD colspan=2>Upper Prediction Interval: <span class=dash>(use probe tool)</span></TD>
+<TD colspan=2>&nbsp;UPI = N + Range&nbsp;</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max LOC"></TD>
+<TD></TD><TD></TD><TD></TD>
+</TR>
+<TR>
+<TD colspan=2>Lower Prediction Interval: <span class=dash>(use probe tool)</span></TD>
+<TD colspan=2>&nbsp;LPI = N - Range&nbsp;</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min LOC"></TD>
+<TD></TD><TD></TD><TD></TD>
+</TR>
+<TR>
+<TD colspan=4>Prediction Interval Percent:</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Interval Percent	%"></TD>
+<TD></TD><TD></TD><TD></TD>
+</TR>
+<TR>
+<TD colspan=4><span class=dash>PROBE Method Selected: (use probe tool)</span></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/Probe Method	s"></TD>
+<TD></TD><TD></TD><TD></TD>
+</TR>
+<TR>
+<TD colspan=4><span class=dash>r<sup>2</sup>: (use probe tool)</span></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC/R Squared"></TD>
 <TD></TD><TD></TD><TD></TD>
 </TR>
 </TABLE>
@@ -248,7 +286,7 @@
 Publishing Company, Inc.  Used by permission.</I></FONT>
 
 
-<SCRIPT SRC="/0/data.js">
+<SCRIPT SRC="/data.js">
 document.writeln("<P>Problem loading the script!");
 </SCRIPT>
 
