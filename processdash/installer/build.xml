@@ -153,7 +153,7 @@ Authors:
     <target name="instructor" depends="init"
             description="Create an installation CD for PSP instructors">
         <antcall target="install-CD">
-            <param name="install.flags" value="pspForEng"/>
+            <param name="install.flags" value="pspForEng,noProc"/>
 	    <param name="qualifier" value="instr"/>
 	</antcall>
     </target>
@@ -207,13 +207,22 @@ pdash-install-${qualifier}-${version}.jar
     <target name="rebuild">
         <ant dir=".." inheritAll="false"/>
 	<available file="../dist/pspProc.jar" property="have.pspProc.jar"/>
-	<fail unless="have.pspProc.jar" message="pspProc.jar is missing"/>
+	<fail unless="have.pspProc.jar"
+	    message="pspProc.jar is missing - to ignore, run &quot;ant plain&quot;"/>
 	<available file="../dist/pspForEng.jar" property="have.pspForEng.jar"/>
 	<fail unless="have.pspForEng.jar" message="pspForEng.jar is missing"/>
 	<available file="../dist/pspdash.jar" property="have.pspdash.jar"/>
 	<fail unless="have.pspdash.jar" message="pspdash.jar is missing"/>
     </target>
 
+
+    <target name="plain"
+        description="Create an installer that does not contain psp processes">
+        <property name="have.pspProc.jar" value="ignore"/>
+        <property name="install.flags" value="noProc"/>
+	<antcall target="rebuild"/>
+	<antcall target="offline"/>
+    </target>
 
 
     <target name="clean">

@@ -101,7 +101,7 @@ The Process Dashboard is distributed under the terms of the GNU General Public L
         </pack>
 	
         <pack name="PSP(SM) Processes" id="pspProc" required="no"
-	      excludeIf="pspForEng">
+	      excludeIf="noProc">
             <description>Templates, scripts, and forms supporting the Personal Software Process(SM).
 
 This module incorporates templates, scripts, and other materials from the book by Watts S. Humphrey, A Discipline for Software Engineering.  Copyright (c) 1995 by Addison-Wesley.  These materials are reproduced with the permission of the publisher.
