@@ -205,6 +205,14 @@ public class PSPDashboard extends JFrame implements WindowListener {
             }
         }catch (Exception e) { debug("open datafiles failed!"); };
 
+        configure_button = new ConfigureButton(this);
+        PCSH.enableHelpKey(this, "QuickOverview");
+        pause_button = new PauseButton(this);
+        defect_button = new DefectButton(this);
+        script_button = new ScriptButton(this);
+        getContentPane().add(hierarchy_menubar = new JMenuBar());
+        completion_button = new CompletionButton(this);
+
         // open the global data file.
         try {
             data.openDatafile("", property_directory + "global.dat");
@@ -225,13 +233,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
         webServer.setData(data);
         webServer.setProps(props);
 
-        configure_button = new ConfigureButton(this);
-        PCSH.enableHelpKey(this, "QuickOverview");
-        pause_button = new PauseButton(this);
-        defect_button = new DefectButton(this);
-        script_button = new ScriptButton(this);
-        getContentPane().add(hierarchy_menubar = new JMenuBar());
-        completion_button = new CompletionButton(this);
         hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
 
         if (!brokenData.isEmpty())
@@ -247,10 +248,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
     private void displayBrokenDataWarning() {
         JList brokenList = new JList(brokenData);
         BROKEN_DATA_WARNING[2] = new JScrollPane(brokenList);
-        //String [] brokenList = new String[brokenData.size()];
-        //        for (int i = brokenList.length;  i-- > 0; )
-        //brokenList[i] = BULLET + brokenData.elementAt(i);
-
         JOptionPane.showMessageDialog(null, BROKEN_DATA_WARNING,
                                       "Missing data files",
                                       JOptionPane.ERROR_MESSAGE);
