@@ -45,6 +45,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/control/raiseWindow.java \
 	Templates/control/setPath.java \
 	Templates/control/showenv.java \
+	Templates/control/showConsole.java \
 	Templates/control/showTaskSchedule.java \
 	Templates/control/startTiming.java \
 	Templates/control/stopTiming.java \
