@@ -371,6 +371,10 @@ public class EVTask implements DataListener {
         else
             return "";
     }
+    private String taskError = null;
+    public boolean hasTaskError() { return taskError != null; }
+    public String getTaskError() { return taskError; }
+    public void setTaskError(String err) { taskError = err; }
 
 
     /** Gets the path from the root to the receiver. */
@@ -432,6 +436,8 @@ public class EVTask implements DataListener {
         schedule.getMetrics().reset(schedule.getStartDate(), effDate,
                                     schedule.getPeriodStart(effDate),
                                     schedule.getPeriodEnd(effDate));
+        checkForNodeErrors(schedule.getMetrics(), 0,
+                           new ArrayList(), new ArrayList());
         recalcMetrics(schedule.getMetrics());
         schedule.getMetrics().recalcComplete(schedule);
         schedule.firePreparedEvents();
@@ -539,6 +545,40 @@ public class EVTask implements DataListener {
                 getChild(i).recalcPlanDates(schedule);
             planDate = getChild(getNumChildren()-1).planDate;
         }
+    }
+
+    public void checkForNodeErrors(EVMetrics metrics, int depth,
+                                   List rootChildList,
+                                   List otherNodeList) {
+        switch (depth) {
+        case 0:                 // this is the root
+            break;
+
+        case 1:                 // this is a child of the root.
+            if (rootChildList.contains(this) || otherNodeList.contains(this)) {
+                metrics.addError("The task \"" + fullName + "\" appears in "+
+                                 "the task list more than once.", this);
+                setTaskError("Duplicate task");
+            } else
+                setTaskError(null);
+            rootChildList.add(this);
+            break;
+
+        default:
+            int pos = rootChildList.indexOf(this);
+            if (pos != -1) {
+                EVTask t = (EVTask) rootChildList.get(pos);
+                metrics.addError("The task \"" + t.fullName + "\" appears in "+
+                                 "the task list more than once.", t);
+                t.setTaskError("Duplicate task");
+            }
+            setTaskError(null);
+            otherNodeList.add(this);
+        }
+
+        for (int i = 0;   i < getNumChildren();   i++)
+            getChild(i).checkForNodeErrors(metrics, depth+1,
+                                           rootChildList, otherNodeList);
     }
 
     public void recalcMetrics(EVMetrics metrics) {
