@@ -98,14 +98,14 @@ public class GUIInstaller extends InstallerBase
                     // add the GUI install data
                     loadGUIInstallData();
 
+        // Checks the Java version
+        checkJavaVersion();
+
         // Sets up the GUI L&F
         loadLookAndFeel();
 
         // Loads the suitable langpack
         loadLangPack();
-
-        // Checks the Java version
-        checkJavaVersion();
 
         // create the resource manager (after the language selection!)
         ResourceManager.create (this.installdata);
@@ -140,6 +140,15 @@ public class GUIInstaller extends InstallerBase
         if (version.compareTo(required) < 0)
         {
             try {
+                // Make our best guess of the right langpack, and load it.
+                // (This is necessary because the language selection screen has
+                // not yet been displayed at this point.)
+                String defaultLang = LocaleMapper.getISO3forDefaultLocale();
+                LocaleDatabase langpack = new LocaleDatabase
+                    (getClass().getResourceAsStream("/langpacks/"+defaultLang+".xml"));
+                if (!"eng".equals(defaultLang))
+                    langpack.loadXML(getClass().getResourceAsStream("/langpacks/eng.xml"));
+
                 String[] args = new String[] {
                     installdata.info.getAppName(),
                     installdata.info.getAppVersion(),
@@ -148,13 +157,12 @@ public class GUIInstaller extends InstallerBase
                     System.getProperty("java.vendor.url")
                 };
                 String title = MessageFormat.format
-                    (installdata.langpack.getString("installer.javaversion.title"), args);
+                    (langpack.getString("installer.javaversion.title"), args);
                 String[] message = split(MessageFormat.format
-                    (installdata.langpack.getString("installer.javaversion.info"), args));
+                    (langpack.getString("installer.javaversion.info"), args));
                 JOptionPane.showMessageDialog(null, message,
                     title, JOptionPane.ERROR_MESSAGE);
             } catch (Exception e) {
-                e.printStackTrace();
                 System.out.println("Can't install !");
                 System.out.println("> The minimum Java version required is " +
                                    required);
