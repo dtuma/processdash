@@ -40,19 +40,30 @@ public class DoubleData implements SimpleData, NumberData {
     public DoubleData(double v, boolean e) { value = v;   editable = e; }
 
     public DoubleData(String s) throws MalformedValueException {
+        if (s == null || s.length() == 0)
+            throw new MalformedValueException();
         try {
             if (s.charAt(0) == '?') {
                 defined = false;
                 s = s.substring(1);
             }
+            // NOTE: we cannot use the Double.parseDouble method here, because
+            // it was introduced in Java 1.2;  this class must run inside
+            // Internet Explorer, which only provides Java 1.1 support.
             value = Double.valueOf(s).doubleValue();
         } catch (Exception e) {
-            if ("NaN".equals(s))
-                value = Double.NaN;
+            // why aren't the Double.toString and the Double.valueOf methods
+            // symmetric?
+            if      (NAN_STR.equals(s))   value = Double.NaN;
+            else if (P_INF_STR.equals(s)) value = Double.POSITIVE_INFINITY;
+            else if (N_INF_STR.equals(s)) value = Double.NEGATIVE_INFINITY;
             else
                 throw new MalformedValueException();
         }
     }
+    static final String NAN_STR   = Double.toString(Double.NaN);
+    static final String P_INF_STR = Double.toString(Double.POSITIVE_INFINITY);
+    static final String N_INF_STR = Double.toString(Double.NEGATIVE_INFINITY);
 
     public DoubleData(int i)    { value = (double)i; }
     public DoubleData(double d) { value = d; }
@@ -91,7 +102,7 @@ public class DoubleData implements SimpleData, NumberData {
          * round off value appropriately. Numbers are rounded away from zero,
          * to the number of digits specified by numDecimalPoints.
          */
-        value += (value>0 ? 0.5 : -0.5) * Math.pow(0.1, numDecimalPoints);
+        value += (value>=0 ? 0.5 : -0.5) * Math.pow(0.1, numDecimalPoints);
 
         if (numDecimalPoints == 0)
             return Integer.toString((int)value);
@@ -115,7 +126,13 @@ public class DoubleData implements SimpleData, NumberData {
         while (length > 1 && (fraction.charAt(length-1) == '0'))
             fraction.setLength(--length);
 
-        return (Integer.toString((int)value) + "." + fraction.toString());
+        StringBuffer result = new StringBuffer();
+        if (value < 0.0) {
+            result.append("-");
+            value = value * -1.0;
+        }
+        result.append((int) value).append(".").append(fraction.toString());
+        return result.toString();
     }
 
     public String formatNumber(int numDecimalPoints) {
