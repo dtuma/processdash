@@ -4,6 +4,9 @@ DASHJAR = ../../../pspdash/build/pspdash.jar
 all:
 	$(JAVAC) -classpath $(DASHJAR) *.java
 
+clean:
+	rm *~ *.class
+
 process:
 	rm -f /cygdrive/c/temp/pfeTest/Test-v2.zip
 	/cygdrive/c/java/sun/jdk1.3/bin/java -cp "$(DASHJAR);." GenerateTestProcess
