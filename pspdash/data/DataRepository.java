@@ -1154,7 +1154,7 @@ public class DataRepository implements Repository {
                             if (sd instanceof DateData) {
                                 value = ((DateData)sd).formatDate();
                             } else if (sd instanceof StringData) {
-                                value = ((StringData)sd).getString();
+                                value = StringData.escapeString(((StringData)sd).getString());
                                 // } else if (sd instanceof DoubleData) {
                                 // value = ((DoubleData)sd).formatNumber(3);
                             } else if (sd != null)
@@ -1469,12 +1469,11 @@ public class DataRepository implements Repository {
                          !value.saveString().equals(oldValue.saveString()))) {
 
                         // This data element has been changed and should be saved.
-                        if (d.datafile == PHANTOM_DATAFILE) {
+
+                        if (d.datafile == PHANTOM_DATAFILE)
                             // move the item OUT of the phantom datafile so it will be saved.
                             d.datafile = guessDataFile(name);
-                            if (value != null && value.saveString().length() ==0)
-                                System.out.println("phantom:old="+oldValue+",new="+value);
-                        }
+
                         datafileModified(d.datafile);
                     }
 
@@ -1855,30 +1854,6 @@ public class DataRepository implements Repository {
         }
 
         private final Hashtable defaultDefinitions = new Hashtable();
-    /*
-        public void putDefaultData(String datafile, Map defaultDefns) {
-            defaultDefinitions.put("<" + datafile + ">", defaultDefns);
-
-            System.out.println("default data for <" + datafile + "> :");
-            Iterator i = defaultDefns.entrySet().iterator();
-            String val; Object v;
-            while (i.hasNext()) {
-                Map.Entry e = (Map.Entry) i.next();
-                v = e.getValue();
-                if (v instanceof SaveableData)
-                    val = ((SaveableData) v).saveString();
-                else if (v instanceof CompiledScript)
-                    val = ((CompiledScript) v).saveString();
-                else if (v == null)
-                    val = "null";
-                else
-                    val = v.getClass().getName();
-
-                System.out.println(e.getKey() + "=" + val);
-            }
-            System.out.println("\n");
-        }
-            */
 
         public void registerDefaultData(DefinitionFactory d,
                                         String datafile,
@@ -1923,7 +1898,7 @@ public class DataRepository implements Repository {
                 o = ((SearchFactory) valueObj).buildFor(name, this, "");
 
             if (o != null) {
-                globalDataDefinitions.put(name, valueObj);
+                globalDataDefinitions.put(name.substring(1), valueObj);
                 putValue(name, o);
             }
         }
@@ -2215,21 +2190,6 @@ public class DataRepository implements Repository {
 
             if (mountedPhantomData != null)
                 mountedPhantomData.put(dataPrefix, values);
-
-            /* We have a problem - no data in the phantom datafile will ever be
-                saved, so if people edit any of the editable values, their edits
-                will be discarded.
-            Iterator i = values.entrySet().iterator();
-            Map.Entry e;
-            String dataName;
-            while (i.hasNext()) {
-                e = (Map.Entry) i.next();
-                if (e.getValue() instanceof SimpleData) {
-                    dataName = createDataName(dataPrefix, (String) e.getKey());
-                    putGlobalValue(dataName, dataPrefix, e.getValue());
-                }
-            }
-            */
         }
 
         void mountImportedData(String dataPrefix, Map values)
