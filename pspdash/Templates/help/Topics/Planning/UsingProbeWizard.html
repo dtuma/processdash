@@ -9,7 +9,141 @@
 <P>The PROBE Wizard provides assistance in making estimates by guiding you 
 through the common PROBE scenarios that are required in the various PSP 
 scripts.  The PROBE Wizard can be opened by clicking on the link found on the 
-<a href="UsingSizeEstimatingTemplate.html">Size Estimating Template</a>.
+<a href="UsingSizeEstimatingTemplate.html">Size Estimating Template</a>.</p>
+
+<p>When the PROBE Wizard is activated, it starts with a welcoming screen that 
+reminds you of the nature of estimating with the PROBE method.</p>
+
+<p><center><img src="../../Images/QSProbeWizardStartup.png"></center></p>
+
+<h2>PROBE Wizard Step 1</h2>
+<p>Step 1 in the PROBE method is to verify that the Estimated Object 
+LOC number is accurate.  The Wizard shows you the number you have input on 
+the Size Estimating Template and asks you to verify that this is indeed a 
+good estimate.</p>
+
+<h2>PROBE Wizard Step 2</h2>
+<p>Step 2 is to verify your historical data.  The PROBE Wizard puts up a 
+table of numbers that shows your estimations from previous PSP projects.</p>
+
+<p><center><img src="../../Images/ProbeWizard2.png"></center></p>
+
+<p>On this pane, you can exclude data points that you know to be "outliers" 
+statistically.  By clicking on the checkboxes at the end of each row, you can 
+exclude any data point that you know does not represent your normal work 
+processes.  If you are not completely sure about the consequences of 
+excluding outlier data, you should probably leave all of the boxes 
+unchecked.</p>
+
+<h2>PROBE Wizard Step 3</h2>
+<p>Step 3 is to estimate the size of the new development effort.  The PROBE 
+method (as implemented by the Process Dashboard) outlines 5 ways to estimate 
+size:</p>
+
+<p><table border=0 cellpadding=2 hspace=5>
+
+ <tr valign="top"><td>A</td>
+  <td>Estimate size based on a good correlation between previous Estimated 
+   Object LOC data and Actual New and Changed LOC data. This method is the 
+   most preferred method, but can only be used if you have sufficient data 
+   that correlates well.</td>
+ </tr>
+
+ <tr valign="top"><td>B</td>
+  <td>If Object LOC estimates do not correlate well enough to use method A, 
+   PROBE suggests estimating size based on a good correlation between 
+   previous Estimated New and Changed LOC data and Actual New and Changed LOC 
+   data. Again, this method can only be used if you have sufficient data that 
+   correlates well.</td>
+ </tr>
+
+ <tr valign="top"><td>C1</td>
+  <td>If neither of the data pairings for methods A and B correlate, but you 
+   do have Estimated Object LOC data, you can use that data to do the 
+   estimate.  This method requires at least some Estimated Object LOC data be 
+   recorded.</td>
+ </tr>
+
+ <tr valign="top"><td>C2</td>
+  <td>If you do not have any Estimated Object LOC, but you do have Estimated 
+   New and Changed LOC data, you can use that data to do the estimate.  This 
+   method requires at least some Estimated New and Changed LOC data be 
+   recorded.</td>
+
+ <tr valign="top"><td>D</td>
+  <td>If you have no historical data, method D just indicates that you should 
+   use your best engineering judgement to make the estimate.</td></tr>
+</table></p>
+
+<p>The Wizard will present all of these possibilities to you in decreasing 
+order of preference based on how well each method seems to track (or 
+correlates) with your historical data.  You just have to choose the method 
+you would like to follow by picking from a set of radio boxes.</p>
+
+<p><center><img src="../../Images/ProbeWizard3.png"></center></p>
+
+<p>The Wizard also has links to explanatory help windows that will pop up and 
+give you more detail about the different types of calculations that it is 
+doing to generate the different estimates.  These links are shown in <font 
+color="blue">blue text</font>.</p>
+
+<h2>PROBE Wizard Step 4</h2>
+<p>Step 4 is very similar to step 3, except the estimation is for time 
+instead of size.  The same basic set of methods is available, and the Wizard 
+will offer each data estimate in decreasing order of preference.</p>
+
+<p>The PROBE method (as implemented by the Process Dashboard) outlines 6 ways 
+to estimate time:</p>
+
+<p><table border=0 cellpadding=2 hspace=5>
+
+ <tr valign="top"><td>A</td>
+  <td>Estimate time based on a good correlation between previous Estimated 
+   Object LOC data and Actual time data. This method is the most preferred 
+   method, but can only be used if you have sufficient data that correlates 
+   well.</td>
+ </tr>
+
+ <tr valign="top"><td>B</td>
+  <td>If Object LOC estimates do not correlate well enough to use method A, 
+   PROBE suggests estimating time based on a good correlation between 
+   previous Estimated New and Changed LOC data and Actual time data. Again, 
+   this method can only be used if you have sufficient data that correlates 
+   well.</td>
+ </tr>
+
+ <tr valign="top"><td>C1</td>
+  <td>If neither of the data pairings for methods A and B correlate, but you 
+   do have Estimated Object LOC data, you can use that data to do the 
+   estimate.  This method requires at least some Estimated Object LOC data be 
+   recorded.</td>
+ </tr>
+
+ <tr valign="top"><td>C2</td>
+  <td>If you do not have any Estimated Object LOC, but you do have Estimated 
+   New and Changed LOC data, you can use that data to do the estimate.  This 
+   method requires at least some Estimated New and Changed LOC data be 
+   recorded.</td>
+
+ <tr valign="top"><td>C3</td>
+  <td>If you only have Actual Time and Size data, you can use that data to do 
+   the estimate.</td>
+
+ <tr valign="top"><td>D</td>
+  <td>If you have no historical data, method D just indicates that you should 
+   use your best engineering judgement to make the estimate.</td></tr>
+</table></p>
+
+<h2>PROBE Wizard Step 5</h2>
+
+<p>At this point, you are finished making your estimates.  Step 5 encourages 
+you to check the estimates to make sure that they make sense.</p>
+
+<p>Assuming all is well and you click the finish button, the estimates you 
+generated with the PROBE Wizard will be placed back on the Size Estimating 
+Template automatically.</p>
+
+<p><center><img src="../../Images/ProbeWizard5.png"></center></p>
 
 </BODY>
 </HTML>

@@ -44,7 +44,9 @@ that input field.</P>
 <p>The dashboard uses various visual cues to show you where data is missing 
 or where a calculated value could not be completed.  Here is a partial screen 
 shot of the Size Estimating Template that shows several of the ways the 
-dashboard indicates incomplete or bad data.</p>
+dashboard indicates incomplete or bad data.  NOTE: this screen shot is from 
+the Internet Explorer browser.  Your browser may not be color coded in 
+exactly the same way.</p>
 
 <p><center><img src="../../Images/ShowMissingFields.png"></center></p>
 
@@ -81,14 +83,39 @@ telling your browser to reload the HTML page.</P>
 
 <P>If you edit the value in an input field, and related data items don't
 recalculate, the data is probably <I>frozen</I>. Remember that when you
-mark the planning phase of a PSP project complete, all the
-&quot;Planned&quot; data elements are baselined and stop recalculating.
-Similarly, when you mark a PSP project complete, the &quot;Actual&quot; and
-&quot;To Date&quot; data elements will freeze and stop recalculating. So if
-you expect formulas to recalculate and they don't, check to make certain
-that the planning phase and the entire project are <U>not</U> marked
-complete. For more information, see the <A HREF="DataFreezing.html">Data
-Freezing</A> help topic.</P>
+mark the planning phase of a PSP project complete, all the Planned data 
+elements are baselined and stop recalculating.  Similarly, when you mark a 
+PSP project complete, the Actual and To Date data elements will freeze and 
+stop recalculating. So if you expect formulas to recalculate and they don't, 
+check to make certain that the planning phase and the entire project are 
+<U>not</U> marked complete. For more information, see the <A 
+HREF="DataFreezing.html">Data Freezing</A> help topic.</P>
+
+<a name="unlock"></a><h2>Read-only data fields</h2>
+
+<P>The Process Dashboard automatically calculates many data elements for
+you.  Normally, these calculated data values are not directly editable, but
+rather they will update when other data elements to which they are related
+get updated.  If you are using Internet Explorer, these values are
+displayed with a grey background.</p>
+
+<P>Sometimes you may decide that you want to override one or more of these 
+calculated values.  You can "unlock" these read-only data elements by 
+clicking on the &quot;<u>Unlock read-only data</u>&quot; link at the bottom 
+of the page.  Unlocking read-only data will make all the elements on the page 
+editable, allowing you to override calculated values with your own.</p> 
+
+<P>Unlocking read-only data is useful for times when you intentionally want 
+to override a calculation, but it is not without risk.  Once you have 
+overridden a calculation, it will no longer automatically update in response 
+to changes in related data items.  In addition, related calculations may no 
+longer add up like you would normally expect.  Therefore, this feature should 
+be used with caution.</p> 
+
+<p>After you have overridden a calculation with some value, you may decide
+that you want the old calculation back.  Just type 
+<code>DEFAULT</code> in the input field, and when you leave the field the old 
+calculation will be restored.</p>
 
 <h2>Exporting form data</h2>
 
@@ -110,38 +137,12 @@ the page. This will open the form in Excel, where you can reference the
 data in Excel charts and equations. For more information on the Excel
 export feature, see the <A
 HREF="../PostmortemAnalysis/ExportingData.html#excel">Exporting your data</A>
-help topic. <b>Important:</b> the Excel version of
-the form contains <i>exported</i> data only.  If you edit values in the
-Excel spreadsheet, your changes will not be imported back into the Process
-Dashboard. To change a data value in the Process Dashboard, you must make
-the change in a dashboard form.</p>
+help topic.</p>
 
-<h2>Read-only data fields</h2>
-
-<P>The Process Dashboard automatically calculates many data elements for
-you.  Normally, these calculated data values are not directly editable, but
-rather they will update when other data elements to which they are related
-get updated.  If you are using Internet Explorer, these values are
-displayed with a grey background.</p>
-
-<P><A NAME="unlock"></A>Sometimes you may decide that you want to <b> 
-override</b> one or more of these calculated values.  You can "unlock" these 
-read-only data elements by clicking on the &quot;<u>Unlock read-only 
-data</u>&quot; link at the bottom of the page.  Unlocking read-only data will 
-make all the elements on the page editable, allowing you to override 
-calculated values with your own.</p>
-
-<P>Unlocking read-only data is useful for times when you intentionally want
-to override a calculation, but it is not without risk.  Once you have
-overridden a calculation, it will no longer automatically update in
-response to changes in related data items.  In addition, related
-calculations may no longer add up like you would normally expect.
-Therefore, this feature should be used with caution.</p>
-
-<p>After you have overridden a calculation with some value, you may decide
-that you want the old calculation back.  Just type 
-<code><b>DEFAULT</b></code> in the input field, and when you leave the field 
-the old calculation will be restored.</p>
+<p><b>Important:</b> the Excel version of the form contains <i>exported</i> 
+data only.  If you edit values in the Excel spreadsheet, your changes will 
+not be imported back into the Process Dashboard. To change a data value in 
+the Process Dashboard, you must make the change in a dashboard form.</p>
 
 </BODY>
 </HTML>
