@@ -204,9 +204,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void startTimeLog() {
         if (parent.getProperties() != null) {
-            if (time_frame != null)
+            if (time_frame != null) {
+                time_frame.setSelectedNode(parent.getCurrentPhase());
                 time_frame.show();
-            else
+            } else
                 time_frame = new TimeLogEditor(parent,
                                                this,
                                                parent.getProperties());
@@ -215,9 +216,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void startDefectLog() {
         if (parent.getProperties() != null) {
-            if (defect_frame != null)
+            if (defect_frame != null) {
+                defect_frame.setSelectedPhase(parent.getCurrentPhase());
                 defect_frame.showIt();
-            else
+            } else
                 defect_frame = new DefectEditor(parent,
                                                 this,
                                                 parent.getProperties());
