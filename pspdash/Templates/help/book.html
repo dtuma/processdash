@@ -204,6 +204,8 @@ BODY { color: black; background-color: white }
 <tr><td></td><td></td><td><b>6.5.2.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_2_">Step 2: Create an XML definition for your process</a></td></tr>
 <tr><td></td><td></td><td><b>6.5.3.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_3_">Step 3: Save your XML process descriptor</a></td></tr>
 <tr><td></td><td></td><td><b>6.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_4_">Step 4: Restart the dashboard</a></td></tr>
+<tr><td></td><td></td><td><b>6.5.5.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_5_">Advanced/Optional: Defining HTML scripts</a></td></tr>
+<tr><td></td><td></td><td><b>6.5.6.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_6_">Additional Advanced Topics</a></td></tr>
 <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td></tr>
 </table>
 <div>
@@ -1188,21 +1190,26 @@ software:</P>
 <UL>
  <LI>The Java Runtime Environment, version 1.3 or greater (available from Sun 
    Microsystems at <u>http://java.sun.com/j2se/1.3/jre</u>)</li>
- <LI><STRONG><U>One</U></STRONG> of the following web browsers 
-   (<B><I>Internet Explorer is preferred</I></B>). 
+
+ <LI><STRONG><U>One</U></STRONG> of the following web browsers:
   <UL>
    <LI>Internet Explorer 4.0 or greater (available from Microsoft at 
       <u>http://www.microsoft.com/windows/ie/default.htm</u>) If you choose 
-      to perform a custom installation of IE, make certain to install the "Data
-    Binding" option.</li>
+      to perform a custom installation of IE, make certain to install the
+      "Data Binding" option.</li>
+
    <LI>Netscape 4.7 (available from Netscape at 
-      <u>http://home.netscape.com/download/archive.html</u>). 
-      <B><STRONG>Note:</STRONG></B> Netscape 6.0 is 
-      <B><STRONG>not</STRONG></B> currently compatible with the dashboard.</LI>
+      <u>http://home.netscape.com/download/archive.html</u>), or greater.
+      On Windows systems, the dashboard can now integrate with Netscape 6
+      and Netscape 7 (available from Netscape at
+      <u>http://home.netscape.com/download</u>).</LI>
+
   </UL>
+
  <LI>Make certain that Java and JavaScript are enabled in your browser. (This 
    is typically the default setting, so you usually don't need to worry about 
    enabling these unless you explicitly disabled them in the past.)</li>
+
  <LI>If you connect to the internet via a proxy server, you may need to tell 
    your browser to bypass the proxy for the address "localhost". The 
    instructions below may not apply to your browser word-for-word, but should 
@@ -1231,8 +1238,8 @@ process that describes your system:</P>
    follow the <A href="#doc13_upgrade">upgrade instructions</A>.</li>
  <LI>If you are running Windows, and your <U>default</U> web browser is one 
    of the web browsers listed above, choose the <A href="#doc13_simplewindowsinstallation">simple windows installation</A>.</li>
- <LI>If you are running Windows, and your default web browser is Netscape 
-   6.0, choose the <A href="#doc13_customwindowsinstallation">custom windows 
+ <LI>If you are running Windows, and your default web browser is not listed
+   above, choose the <A href="#doc13_customwindowsinstallation">custom windows 
    installation</A>.</li>
  <LI>If you are running Linux or some other flavor of Unix (including MacOS
   X), choose the <A href="#doc13_unixinstallation">unix installation</A>.</li>
@@ -1304,24 +1311,10 @@ add-on process sets.</p>
 <HR>
 
 <H3><a name="para_1_7_6_"></a>1.7.6. <A name="doc13_customwindowsinstallation"></A>Custom Windows Installation </H3>
-<P>Netscape 6.0 is currently not capable of supporting the process dashboard. 
-If you are a Netscape 6.0 user, don't worry - you don't need to give up your 
-favorite browser. You still have two options for running the dashboard: </P>
 
-<UL>
- <LI>Netscape will allow you to have several versions of Communicator 
-   installed on your computer without conflict. So you can install Netscape 
-   4.7 on your computer for use with the dashboard, and keep using Netscape 
-   6.0 as your system-default web browser.</li>
- <LI>Or, you can avoid installing multiple versions of Netscape by using 
-   Internet Explorer with the dashboard while keeping Netscape 6.0 as your 
-   system default. (Unless you really dislike IE, this may be the simplest 
-   option. And for what it's worth, IE does work better with the dashboard 
-   than Netscape.)</LI>
-</UL>
-
-<P>Choose between the options above, and make certain you have an appropriate 
-browser installed on your system. Then follow the instructions below: </P>
+<P>Even if your system default browser is not listed above, you can still
+use the dashboard.  Choose a browser from the list of supported browsers
+above, and install it on your system. Then follow the instructions below:</P>
 
 <OL>
  <LI>Download and run the Process Dashboard Installer from 
@@ -1340,8 +1333,8 @@ browser installed on your system. Then follow the instructions below: </P>
    </TR>
   </TABLE>
 
-  if you want the dashboard to display scripts and forms in Internet Explorer 
-   (recommended), or
+  if you want the dashboard to display scripts and forms in Internet Explorer,
+  or
   <TABLE cellSpacing=0 cellPadding=0 width="75%" align=center border=0>
    <TR>
     <TD>browser.command=<EM>C:/Program Files/Netscape/Communicator/Program/Netscape.exe</EM></TD>
@@ -1411,6 +1404,10 @@ cd ~/path/to/your/personal/data/directory<br>
  <li>The dashboard is now compatible with version 1.4 and higher of
    the Java Runtime Environment.</li>
 
+ <li>The dashboard now contains support for Netscape 6 and higher on
+   Windows platforms, and is also compatible with the Sun Java Plug-in
+   in Internet Explorer.</li>
+
  <li>The task and schedule planning tool now contains built-in support
    for collaboration! You can share your schedules with your
    co-workers, your manager, and/or your customer, and keep them
@@ -1420,6 +1417,9 @@ cd ~/path/to/your/personal/data/directory<br>
 
  <li>The task and schedule planning tool helps you to avoid several
    common planning mistakes.</li>
+
+ <li>The hierarchy editor now includes a toolbar to facilitate the
+  editing of your work breakdown structure.</li>
 
  <li>Numerous user interface enhancements make the hierarchy editor,
    the time log editor, and the defect log editor easier to use.</li>
@@ -4595,6 +4595,9 @@ in Netscape versus the way it is handled in Internet Explorer.</p>
  <LI><a href="#doc38_NoServer">My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</A></LI>
  <LI><a href="#doc38_SunPlugin">My web browser is able to show the forms, but none of the entry blanks have any information.  What is wrong?</a></li>
 
+ <LI><a href="#doc38_ChooseJVM">I have several versions of the Java Runtime Environment on my computer. How
+  can I tell the dashboard which one to use?</a></li>
+
 </ul>
 
 <h2><a name="para_5_2_"></a>5.2. Online forms</h2>
@@ -4700,6 +4703,21 @@ problem:</p>
 please send us an email at 
 <em>processdash-devel@lists.sourceforge.net</em></p> and we will attempt to 
 help you with the problem.
+
+<P><hr><A NAME="doc38_ChooseJVM"></A><b>I have several versions of the Java Runtime
+Environment on my computer. How can I tell the dashboard which one to use?</b>
+
+<P>(These instructions apply to Windows.)&nbsp;
+<ol>
+  <li>Right-click on the icon you use to run the dashboard, and choose
+    Properties</li>
+  <li>The &quot;Target&quot; field will contain &quot;C:\Program Files\Process
+    Dashboard\pspdash.jar&quot;. Change it to read (all on one line):<br><br>
+      <code><FONT SIZE="-2">&quot;C:\Program&nbsp;Files\JavaSoft\JRE\1.3.1\bin\java&quot; -jar &quot;C:\Program&nbsp;Files\Process&nbsp;Dashboard\pspdash.jar&quot;</font></code><br><br>
+    (Of course, you may need to modify the path to the &quot;java&quot; program
+    if it is slightly different on your computer.)
+     </li>
+</ol>
 
 <P><hr><A NAME="doc38_TwoForms"></A><b>If I have a dashboard script or form open,
 and I click the script button to open another form, the new form appears in
@@ -4885,8 +4903,8 @@ prompt you to save it (not very helpful). To solve this problem, you must:</P>
 
 <OL>
   <LI>Obtain a program capable of editing rich text files, and install it
-   on your machine. ("Star Office" is one possibility; it is free and runs 
-   on Linux.)</LI>
+   on your machine. ("Open Office" is one possibility; it is free and runs 
+   on Linux. Visit <u>http://www.openoffice.org/</u>)</LI>
   <LI>Configure your web browser, and tell it that files ending with ".rtf"
    and/or files of mime type "application/rtf" should be opened with the 
    program you just installed.</LI>
@@ -5930,7 +5948,22 @@ incorporate process improvements simply by altering the set of activities in
 each phase. Remember also that when you enact your process, you will have to 
 collect time and defect data with phase-level granularity. If you break your 
 process up into a zillion tasks that each take only a minute, you will go 
-crazy just trying to log time accurately.</P>
+crazy just trying to log time accurately. Therefore, if your custom process
+contains more than a dozen phases, it's most likely subdivided too far.</P>
+
+<P>Here's another way to think about this: the dashboard is a useful tool
+because it seamlessly integrates your <b>process script</b> and your <b>metrics
+collection framework</b>. By tying the two things together, you have all the
+tools you need at your fingertips to enact the process. But as a result, this
+means that when you create a custom dashboard process, you must understand and
+think about your custom process from both perspectives. Many people are able to
+easily think up a script for their process, but you must <u>also</u> take time
+to think about your metrics collection framework. The phases you choose in your
+custom process define the "buckets" in your metrics collection
+framework. If you choose these phases thoughtfully, it will allow room for your
+process to grow and improve. On the other hand, if you choose phases that
+correspond one-to-one with activities in your process, you may find that your
+custom process quickly becomes obsolete.</P>
 
 <P><B>Choose abbreviations for long phase names.</B> When you write your 
 process script, you may have phases with verbose names like "High Level 
@@ -5985,7 +6018,7 @@ ends with <code>&lt;/template&gt;</code>. The template tag must have a
 <B>unique</B> names. Also, template names cannot contain the "/" character. 
 If you will be collecting defects with your process, you should include the 
 "<CODE>defectLog</CODE>" attribute as shown above (and remember that XML is 
-case-sensitive, so "<CODE>defect<U>l</U>og</CODE>" will not work).</P>
+case-sensitive, so "<CODE>defect<U><B>l</B></U>og</CODE>" will not work).</P>
 
 <P>Between the <code>&lt;template&gt;</code> tags, list the phases in order. 
 Each phase is described with a <code>&lt;phase&gt;</code> tag. The phase tag 
@@ -6051,10 +6084,112 @@ you will automatically have:</P>
  <LI>A custom project plan summary form for your process</LI>
 </UL>
 
+<h3><a name="para_6_5_5_"></a>6.5.5. Advanced/Optional: Defining HTML scripts</h3>
+
+<P>Defining HTML scripts for your process and its phases is easy to
+do. Here is an example of an XML description file for a PSP0 process,
+with HTML script definitions added. The text in blue is identical to
+the example shown in step 2 above; the black text illustrates the
+additions:</P>
+
+<TABLE BORDER="1" WIDTH="100%">
+ <TR>
+  <TD WIDTH="100%">
+   <PRE>
+<FONT COLOR="#0000FF">&lt;?xml version='1.0'?&gt;
+
+&lt;dashboard-process-template&gt;
+   &lt;template name="PSP0" defectLog="true"
+             </FONT>htmlID="top"<FONT COLOR="#0000FF">&gt;</FONT>
+
+      &lt;html ID="sum"
+            title="Project Plan Summary"
+	    href="dash/summary.shtm"/&gt;
+      &lt;html ID="top"
+            title="PSP0 Process Script"
+	    href="psp0/script.html"/&gt;
+      &lt;html ID="plan"
+            title="PSP0 Planning Script"
+	    href="psp0/planning.html"/&gt;
+      &lt;html ID="dev"
+            title="PSP0 Development Script"
+	    href="psp0/develop.html"/&gt;
+      &lt;html ID="pm"
+            title="PSP0 Postmortem Script"
+	    href="psp0/postmort.html"/&gt;
+
+<FONT COLOR="#0000FF">      &lt;phase name="Planning"   type="plan"
+             </FONT>htmlID="plan"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Design"     type="dld"
+             </FONT>htmlID="dev"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Code"       type="code"
+             </FONT>htmlID="dev"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Compile"    type="comp"
+             </FONT>htmlID="dev"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Test"       type="ut"
+             </FONT>htmlID="dev"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Postmortem" type="pm"
+             </FONT>htmlID="pm"<FONT COLOR="#0000FF">/&gt;
+   &lt;/template&gt;
+&lt;/dashboard-process-template&gt;</FONT>
+   </PRE>
+  </TD>
+ </TR>
+</TABLE>
+
+<P>So right after your <code>&lt;template&gt;</code> tag, you list all
+the HTML pages that you want to appear on the script button's drop
+down menu, in order. (Note that you don't have to list every HTML page
+used by your process - just the ones that you want to appear on the
+script button menu.) For each HTML page, you state:</P>
+
+<ul>
+
+  <li>the title (which should usually match the
+    <code>&lt;title&gt;</code> of the HTML page in question); this
+    title will be displayed in the script button's drop-down menu</li>
+
+  <li>the href to the page, relative to the "Templates" directory</li>
+
+  <li>a unique ID for the HTML page (these only need to be unique
+    within a given process <code>&lt;template&gt;</code>)</li>
+
+</ul>
+
+<p>Then you (optionally) associate these HTML pages with the phases by
+adding an <code>htmlID</code> attribute which names the ID of the HTML
+page associated with that phase. You can have HTML pages that aren't
+associated with any phase, and vice versa. You can even associate an
+HTML page with the <code>&lt;template&gt;</code> tag, as shown above;
+then any phases which don't specify an <code>htmlID</code> of their
+own will inherit that <code>htmlID</code>.</p>
+
+<p>Of course, before the dashboard will be able to open any of these
+HTML pages, you must actually create them and place them appropriately
+underneath the "Templates" directory. You can use your favorite HTML
+editor to create these pages; if you have a program like Microsoft
+Word, it is capable of saving files in HTML format. Since the hrefs
+are interpreted relative to the "Templates" directory, for this
+example we would need to create a directory called "psp0" underneath
+the "Templates" directory, and put files in that directory called
+"script.html", "planning.html", "develop.html", and
+"postmort.html".</p>
+
+<p>The file "dash/summary.shtm" is special. It names an HTML file that
+is shipped with the dashboard. When you don't name any HTML files for
+your process, the dashboard assigns it "dash/summary.shtm" by default.
+(This is why you could create an XML template file, specify no HTML
+files, and still get a project plan summary form automatically.)
+However, as soon as you include <code>&lt;html&gt;</code> tags in your
+template definition, the dashboard will no longer automatically assign
+it "dash/summary.shtm", so you must manually include this entry to
+ensure that you can view a plan summary form for your process.</p>
+
+<h3><a name="para_6_5_6_"></a>6.5.6. Additional Advanced Topics</h3>
+
 <P>That should be enough to get you started! For more advanced topics like</P>
 
 <UL>
- <LI>Defining HTML scripts for the phases of your process</LI>
  <LI>Defining custom forms</LI>
  <LI>Generating charts and tables of your data</LI>
  <LI>Defining custom calculations (or altering the existing calculations) for 
@@ -6064,8 +6199,11 @@ you will automatically have:</P>
  <LI>Writing custom language filters for the LOC counter</LI>
 </UL>
 
-<P>Check back on our website and download the <I>Process Authoring Manual</I>
-when it becomes available.</P>
+<P>Check back on our website and download the <I>Process Authoring
+Manual</I> when it becomes available. In the meantime, if you have a
+pressing need to understand one of these advanced topics, send email
+to the development team at
+<i>processdash-devel@lists.sourceforge.net</i>.</P>
 
 </div>
 <div>
