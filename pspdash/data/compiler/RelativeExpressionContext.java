@@ -27,6 +27,7 @@ package pspdash.data.compiler;
 
 import pspdash.data.DataRepository;
 import pspdash.data.SimpleData;
+import pspdash.data.StringData;
 
 
 /** This class creates a local namespace around another expression
@@ -53,6 +54,9 @@ public class RelativeExpressionContext implements ExpressionContext {
             // If the dataName is the local variable [_], don't try to
             // localize it or change it in any way
             ;
+
+        else if (dataName.equals(PREFIXVAR_NAME))
+            return StringData.create(prefix);
 
         else
             // Non-bracketed names should be interpreted in the context
