@@ -28,6 +28,7 @@ package pspdash;
 
 import pspdash.data.DataRepository;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
@@ -129,6 +130,24 @@ public class TinyCGIBase implements TinyCGI {
         } finally {
             env.put("SCRIPT_PATH", scriptPath);
         }
+    }
+
+    public String resolveRelativeURI(String context, String uri) {
+        if (uri == null || uri.startsWith("/") || uri.startsWith("http:"))
+            return uri;
+
+        try {
+            if (!context.startsWith("http:"))
+                context = "http://unimportant" + context;
+            URL cntxt = new URL(context);
+            URL file = new URL(cntxt, uri);
+            return file.getFile();
+        } catch (MalformedURLException mue) {
+            return uri;
+        }
+    }
+    public String resolveRelativeURI(String uri) {
+        return resolveRelativeURI((String) env.get("REQUEST_URI"), uri);
     }
 
     private String[] append(String [] array, String element) {
