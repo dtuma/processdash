@@ -42,7 +42,7 @@ PropertyKey<top/PSP for Engineers/3A><Postmortem>=Prop[][][psp0.1/postmort.htm][
 
 # Program 4A
 
-PropertyKey<top/PSP for Engineers><4A>=Prop[true][PSP1-PFE-4A][pspForEng/4A/summary.htm;pspForEng/4A/sizeest.htm;pspForEng/4A/script.htm][pspForEng/4A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers/4A><Planning>][PropertyKey<top/PSP for Engineers/4A><Design>][PropertyKey<top/PSP for Engineers/4A><Code>][PropertyKey<top/PSP for Engineers/4A><Compile>][PropertyKey<top/PSP for Engineers/4A><Test>][PropertyKey<top/PSP for Engineers/4A><Postmortem>]
+PropertyKey<top/PSP for Engineers><4A>=Prop[true][PSP1-PFE-4A][pspForEng/4A/summary.htm;pspForEng/4A/sizeest.class;pspForEng/4A/script.htm][pspForEng/4A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers/4A><Planning>][PropertyKey<top/PSP for Engineers/4A><Design>][PropertyKey<top/PSP for Engineers/4A><Code>][PropertyKey<top/PSP for Engineers/4A><Compile>][PropertyKey<top/PSP for Engineers/4A><Test>][PropertyKey<top/PSP for Engineers/4A><Postmortem>]
 PropertyKey<top/PSP for Engineers/4A><Planning>=Prop[][][pspForEng/4A/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/4A><Design>=Prop[][][pspForEng/4A/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/4A><Code>=Prop[][][pspForEng/4A/develop.htm][][ME<>][0][0]
@@ -53,7 +53,7 @@ PropertyKey<top/PSP for Engineers/4A><Postmortem>=Prop[][][pspForEng/4A/postmort
 
 # Program 5A
 
-PropertyKey<top/PSP for Engineers><5A>=Prop[true][PSP1.1-PFE-5A][pspForEng/5A/summary.htm;pspForEng/5A/sizeest.htm;pspForEng/5A/script.htm][pspForEng/5A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers/5A><Planning>][PropertyKey<top/PSP for Engineers/5A><Design>][PropertyKey<top/PSP for Engineers/5A><Code>][PropertyKey<top/PSP for Engineers/5A><Compile>][PropertyKey<top/PSP for Engineers/5A><Test>][PropertyKey<top/PSP for Engineers/5A><Postmortem>]
+PropertyKey<top/PSP for Engineers><5A>=Prop[true][PSP1.1-PFE-5A][pspForEng/5A/summary.htm;pspForEng/5A/sizeest.class;pspForEng/5A/script.htm][pspForEng/5A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers/5A><Planning>][PropertyKey<top/PSP for Engineers/5A><Design>][PropertyKey<top/PSP for Engineers/5A><Code>][PropertyKey<top/PSP for Engineers/5A><Compile>][PropertyKey<top/PSP for Engineers/5A><Test>][PropertyKey<top/PSP for Engineers/5A><Postmortem>]
 PropertyKey<top/PSP for Engineers/5A><Planning>=Prop[][][pspForEng/5A/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/5A><Design>=Prop[][][pspForEng/5A/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/5A><Code>=Prop[][][pspForEng/5A/develop.htm][][ME<>][0][0]
@@ -83,7 +83,7 @@ PropertyKey<top/PSP for Engineers/R4><Postmortem>=Prop[][][][][ME<>][0][0]
 
 # Program 7A
 
-PropertyKey<top/PSP for Engineers><7A>=Prop[true][PSP2-PFE-7A][pspForEng/7A/summary.htm;pspForEng/7A/sizeest.htm;pspForEng/7A/script.htm][pspForEng/7A/dataFile.txt][M<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers/7A><Planning>][PropertyKey<top/PSP for Engineers/7A><Design>][PropertyKey<top/PSP for Engineers/7A><Design Review>][PropertyKey<top/PSP for Engineers/7A><Code>][PropertyKey<top/PSP for Engineers/7A><Code Review>][PropertyKey<top/PSP for Engineers/7A><Compile>][PropertyKey<top/PSP for Engineers/7A><Test>][PropertyKey<top/PSP for Engineers/7A><Postmortem>]
+PropertyKey<top/PSP for Engineers><7A>=Prop[true][PSP2-PFE-7A][pspForEng/7A/summary.htm;pspForEng/7A/sizeest.class;pspForEng/7A/script.htm][pspForEng/7A/dataFile.txt][M<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers/7A><Planning>][PropertyKey<top/PSP for Engineers/7A><Design>][PropertyKey<top/PSP for Engineers/7A><Design Review>][PropertyKey<top/PSP for Engineers/7A><Code>][PropertyKey<top/PSP for Engineers/7A><Code Review>][PropertyKey<top/PSP for Engineers/7A><Compile>][PropertyKey<top/PSP for Engineers/7A><Test>][PropertyKey<top/PSP for Engineers/7A><Postmortem>]
 PropertyKey<top/PSP for Engineers/7A><Planning>=Prop[][][pspForEng/7A/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/7A><Design>=Prop[][][pspForEng/7A/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/7A><Design Review>=Prop[][][pspForEng/7A/develop.htm][][ME<>][0][0]
@@ -96,7 +96,7 @@ PropertyKey<top/PSP for Engineers/7A><Postmortem>=Prop[][][pspForEng/7A/postmort
 
 # Program 8A
 
-PropertyKey<top/PSP for Engineers><8A>=Prop[true][PSP2.1-PFE-8A][pspForEng/8A/summary.htm;pspForEng/8A/sizeest.htm;pspForEng/8A/script.htm][pspForEng/8A/dataFile.txt][M<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers/8A><Planning>][PropertyKey<top/PSP for Engineers/8A><Design>][PropertyKey<top/PSP for Engineers/8A><Design Review>][PropertyKey<top/PSP for Engineers/8A><Code>][PropertyKey<top/PSP for Engineers/8A><Code Review>][PropertyKey<top/PSP for Engineers/8A><Compile>][PropertyKey<top/PSP for Engineers/8A><Test>][PropertyKey<top/PSP for Engineers/8A><Postmortem>]
+PropertyKey<top/PSP for Engineers><8A>=Prop[true][PSP2.1-PFE-8A][pspForEng/8A/summary.htm;pspForEng/8A/sizeest.class;pspForEng/8A/script.htm][pspForEng/8A/dataFile.txt][M<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers/8A><Planning>][PropertyKey<top/PSP for Engineers/8A><Design>][PropertyKey<top/PSP for Engineers/8A><Design Review>][PropertyKey<top/PSP for Engineers/8A><Code>][PropertyKey<top/PSP for Engineers/8A><Code Review>][PropertyKey<top/PSP for Engineers/8A><Compile>][PropertyKey<top/PSP for Engineers/8A><Test>][PropertyKey<top/PSP for Engineers/8A><Postmortem>]
 PropertyKey<top/PSP for Engineers/8A><Planning>=Prop[][][pspForEng/8A/planning.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/8A><Design>=Prop[][][pspForEng/8A/develop.htm][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/8A><Design Review>=Prop[][][pspForEng/8A/develop.htm][][ME<>][0][0]
