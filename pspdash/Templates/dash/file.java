@@ -278,7 +278,12 @@ public class file extends TinyCGIBase {
     /** Send an HTTP REDIRECT message. */
     private void redirectTo(String filename, File result) {
         try {
-            if ("redirect".equals(docOpenSetting))
+            boolean remoteRequest = false;
+            try {
+                DashController.checkIP(env.get("REMOTE_ADDR"));
+            } catch (IOException ioe) { remoteRequest = true; }
+
+            if (remoteRequest || "redirect".equals(docOpenSetting))
                 out.print("Location: " + result.toURL() + "\r\n\r\n");
             else {
                 // open the document using the Browser class.
