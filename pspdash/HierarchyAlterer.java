@@ -146,6 +146,42 @@ public class HierarchyAlterer implements ItemListener {
     }
 
 
+    /** Delete the given node, and all its children, from the hierarchy.
+     *
+     * WARNING: hierarchy constraints are ignored by this method.
+     * Thus, no checks are performed to prevent templates from being
+     * illegally deleted (e.g. deleting a read only phase underneath a
+     * structured process).  However, this <b>will</b> refuse to
+     * delete the root node of the hierarchy.
+     */
+    public void deleteNode(String path) throws HierarchyAlterationException {
+        if (path == null || path.length() < 2)
+            throw new HierarchyAlterationException("Illegal to delete node");
+
+        beginChanges();
+        try {
+            doDeleteNode(dashboard, path);
+        } finally {
+            endChanges();
+        }
+    }
+
+    private void doDeleteNode(PSPDashboard dash, String path) {
+        PSPProperties props = dash.props;
+        PropertyKey node = props.findExistingKey(path);
+        if (node == null) return;
+
+        PropertyKey parent = node.getParent();
+        if (parent == null) return;
+
+        Prop val = props.pget(parent);
+        for (int i = val.getNumChildren();   i-- > 0; )
+            if (val.getChild(i) == node) {
+                props.removeChildKey(parent, i);
+                break;
+            }
+    }
+
     /* Not yet implemented.
     public void renameNode(PSPDashboard dash, String oldPath, String newPath)
         throws HierarchyAlterationException
