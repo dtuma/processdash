@@ -100,6 +100,6 @@ javax/help/JHelp.class: help.jar
 
 clean:
 	rm -f pspdash.jar *~
-	rm -rf pspdash Templates com META-INF
+	rm -rf pspdash Templates com META-INF javax
 
 FORCE:
