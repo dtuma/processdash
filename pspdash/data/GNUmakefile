@@ -52,7 +52,7 @@ EXTRAS=AdditionFunction.class SubtractionFunction.class \
  OrFunction.class NotFunction.class EqualsFunction.class \
  LessThanFunction.class GreaterThanFunction.class \
  LessThanOrEqualsFunction.class GreaterThanOrEqualsFunction.class \
- NotEqualsFunction.class
+ NotEqualsFunction.class ResultSet.class
 
 ######################################################################
 # targets
