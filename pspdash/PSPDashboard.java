@@ -60,7 +60,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     ConsoleWindow consoleWindow = new ConsoleWindow();
     ObjectCache objectCache;
     private ErrorReporter brokenData;
-    ResourceBundle resources;
+    Resources resources;
 
     boolean paused = true;
     String timeLogName        = "time.log";
@@ -104,13 +104,16 @@ public class PSPDashboard extends JFrame implements WindowListener {
         data.setRealizationPolicy(Settings.getVal("autoRealization"));
         if ("true".equalsIgnoreCase(Settings.getVal("dataFreezing.disabled")))
             data.disableFreezing();
-        aum = new AutoUpdateManager();
-        templates = TemplateLoader.loadTemplates(data, aum);
-        resources = Resources.getBundle("pspdash.PSPDashboard");
+        templates = TemplateLoader.loadTemplates(data);
+        aum = new AutoUpdateManager(TemplateLoader.getPackages());
+        resources = Resources.getDashBundle("pspdash.PSPDashboard");
         InternalSettings.loadLocaleSpecificDefaults(resources);
         DateFormatter.init();
+        Translator.init();
+        LookAndFeelSettings.loadLocalizedSettings();
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
-        versionNumber = aum.getPackageVersion("pspdash");
+        versionNumber = TemplateLoader.getPackageVersion("pspdash");
+        System.out.println("Process Dashboard version " + versionNumber);
         setTitle(title != null ? title : resources.getString("Window_Title"));
 
         // start the http server.
@@ -226,8 +229,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
         // open all the datafiles that were specified in the properties file.
         brokenData = new ErrorReporter
             (resources.getString("Broken_Data_Title"),
-             Resources.getStrings(resources, "Broken_Data_Header"),
-             Resources.getStrings(resources, "Broken_Data_Footer"));
+             resources.getStrings("Broken_Data_Header"),
+             resources.getStrings("Broken_Data_Footer"));
         data.startInconsistency();
         try {
             if (v != null) {
@@ -311,9 +314,9 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         JOptionPane.showMessageDialog
             (null,
-             Resources.format("\n", resources, "Corrupt_Statefile_Warning_FMT",
-                              e.getLocalizedMessage(), filename,
-                              new Integer(lineNum)),
+             resources.formatStrings("Corrupt_Statefile_Warning_FMT",
+                                     e.getLocalizedMessage(), filename,
+                                     new Integer(lineNum)),
              resources.getString("Corrupt_Statefile_Title"),
              JOptionPane.ERROR_MESSAGE);
     }
@@ -333,13 +336,13 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
     private static void ensureJRE13() {
         String versionNum = System.getProperty("java.version");
-        if (versionNum.startsWith("1.2")) {
-            ResourceBundle res = Resources.getBundle("pspdash.PSPDashboard");
+        if (DashPackage.compareVersions(versionNum, "1.3") < 0) {
+            Resources res = Resources.getDashBundle("pspdash.PSPDashboard");
             String vendorURL = System.getProperty("java.vendor.url");
             JOptionPane.showMessageDialog
                 (null,
-                 Resources.format("\n", res, "JRE_Requirement_Message_FMT",
-                                  versionNum, vendorURL),
+                 res.formatStrings("JRE_Requirement_Message_FMT",
+                                   versionNum, vendorURL),
                  res.getString("JRE_Requirement_Title"),
                  JOptionPane.ERROR_MESSAGE);
             Browser.launch(vendorURL);
@@ -348,7 +351,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     boolean addTemplateJar(String jarfileName) {
-        if (!TemplateLoader.addTemplateJar(data, templates, jarfileName, aum))
+        if (!TemplateLoader.addTemplateJar(data, templates, jarfileName))
             return false;
 
         URL [] templateRoots = TemplateLoader.getTemplateURLs();

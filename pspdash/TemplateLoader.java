@@ -26,6 +26,7 @@
 
 package pspdash;
 
+import pspdash.DashPackage.InvalidDashPackage;
 import pspdash.data.DataRepository;
 import pspdash.data.compiler.Compiler;
 import java.net.MalformedURLException;
@@ -60,8 +61,7 @@ public class TemplateLoader {
 
     private static long templateTimestamp = 0;
 
-    static PSPProperties loadTemplates(DataRepository data,
-                                       AutoUpdateManager aum) {
+    static PSPProperties loadTemplates(DataRepository data) {
         PSPProperties templates = new PSPProperties(null);
 
         template_url_list = null;
@@ -91,7 +91,7 @@ public class TemplateLoader {
                 // from the end of the URL.
                 String jarFileURL = templateDirURL.substring
                     (4, templateDirURL.indexOf('!'));
-                searchJarForTemplates(templates, jarFileURL, data, aum);
+                searchJarForTemplates(templates, jarFileURL, data);
             }
         }
 
@@ -102,10 +102,18 @@ public class TemplateLoader {
         return templates;
     }
 
+    /** Add a specific template to the search list.
+     *
+     * Note: this bypasses the package consistency checking that is
+     * normally performed.  The package will be added even if it is
+     * incompatible with the current version of the dashboard.  In
+     * addition, if it makes another dashboard package obsolete, that
+     * package will not be removed.  The package named will be added
+     * to the beginning of the search list.
+     */
     static boolean addTemplateJar(DataRepository data,
                                   PSPProperties templates,
-                                  String jarfileName,
-                                  AutoUpdateManager aum) {
+                                  String jarfileName) {
         try {
             // compute the "template url" of the jarfile.
             File jarfile = new File(jarfileName);
@@ -119,7 +127,7 @@ public class TemplateLoader {
                     return true;
 
             // find and process templates in the jarfile.
-            if (searchJarForTemplates(templates, jarURL, data, aum)) {
+            if (searchJarForTemplates(templates, jarURL, data)) {
 
                 // add applicable rollup templates. (This will regenerate
                 // other rollup templates, but that shouldn't hurt anything.)
@@ -136,6 +144,11 @@ public class TemplateLoader {
                              template_url_list.length);
             new_list[0] = jarfileTemplateURL;
             template_url_list = new_list;
+
+            // create a dash package and add it to our list
+            try {
+                dashPackages.add(0, new DashPackage(jarfileTemplateURL));
+            } catch (InvalidDashPackage idp) {}
 
             return true;
 
@@ -192,15 +205,13 @@ public class TemplateLoader {
 
     private static boolean searchJarForTemplates(PSPProperties templates,
                                                  String jarURL,
-                                                 DataRepository data,
-                                                 AutoUpdateManager aum) {
+                                                 DataRepository data) {
         boolean foundTemplates = false;
         try {
             debug("searching for templates in " + jarURL);
 
             JarInputStream jarFile =
                 new JarInputStream((new URL(jarURL)).openStream());
-            aum.addPackage(jarURL, jarFile.getManifest());
 
             ZipEntry file;
             String filename;
@@ -332,12 +343,11 @@ public class TemplateLoader {
             root = doc.getDocumentElement();
         } catch (SAXException se) {
             String message = XMLUtils.exceptionMessage(se);
-            ResourceBundle r = Resources.getBundle("pspdash.Templates");
+            Resources r = Resources.getDashBundle("pspdash.Templates");
             if (message == null)
-                message = Resources.format(r, "Error_FMT", filename);
+                message = r.format("Error_FMT", filename);
             else
-                message = Resources.format(r, "Error_Message_FMT",
-                                           filename, message);
+                message = r.format("Error_Message_FMT", filename, message);
             logTemplateError(message);
             return;
         }
@@ -362,6 +372,7 @@ public class TemplateLoader {
     protected static void debug(String msg) {
         // System.out.println("TemplateLoader: " + msg);
     }
+
 
     /** Returns a list of URLs to templates, in logical search order.
      *
@@ -517,77 +528,132 @@ public class TemplateLoader {
     }
 
     private static void filterURLList(Vector urls) {
-        // load template package information about each of the
-        // URLs in the list.
-        TemplatePackage[] packages = new TemplatePackage[urls.size()];
-        for (int i = 0;   i < packages.length;   i++)
-            packages[i] = new TemplatePackage((URL) urls.get(i));
-
-        // build a listing of the most current version number for
-        // each template package id.
-        Map versionNumbers = new HashMap();
-        for (int i = 0;   i < packages.length;   i++)
-            packages[i].storeVersion(versionNumbers);
-
-        // find the obsolete packages in the list, and set them to
-        // null.
-        for (int i = 0;   i < packages.length;   i++)
-            if (packages[i].isObsolete(versionNumbers))
-                packages[i] = null;
-
-        // for each obsolete package, remove its url from the list.
-        for (int i = packages.length;   i-- > 0; )
-            if (packages[i] == null)
-                urls.remove(i);
+        deleteDuplicates(urls);
+        Map packages = makePackages(urls);
+        removeIncompatiblePackages(packages, urls);
+        deleteObsoletePackages(packages, urls);
+        dashPackages = new ArrayList(packages.keySet());
     }
 
-    private static class TemplatePackage {
-        String jarURL;
-        String id;
-        String version;
+    private static void deleteDuplicates(Vector list) {
+        Set itemsSeen = new HashSet();
+        Iterator i = list.iterator();
+        while (i.hasNext()) {
+            Object item = i.next();
+            if (itemsSeen.contains(item))
+                i.remove();
+            else
+                itemsSeen.add(item);
+        }
+    }
 
-        /** Load information about the
-         */
-        public TemplatePackage(URL u) {
-            this.jarURL = u.toString();
-            try {
-                if (jarURL.startsWith("jar:"))
-                    // Strip "jar:" from the beginning and the "!/Templates/"
-                    // from the end of the URL.
-                    jarURL = jarURL.substring(4, jarURL.indexOf('!'));
+    private static Map makePackages(Vector urls) {
+        HashMap result = new HashMap();
+        Iterator i = urls.iterator();
+        while (i.hasNext()) try {
+            URL url = (URL) i.next();
+            result.put(new DashPackage(url), url);
+        } catch (DashPackage.InvalidDashPackage idp) {}
+        return result;
+    }
 
-                u = new URL(jarURL);
-                JarInputStream jarFile = new JarInputStream(u.openStream());
-                Manifest manifest = jarFile.getManifest();
-
-                this.id = AutoUpdateManager.getPackageID(manifest);
-                this.version = AutoUpdateManager.getPackageVersion(manifest);
-                jarFile.close();
-            } catch (Exception ioe) {
-                ioe.printStackTrace();
-                id = version = null;
+    /** Remove add-ons that are incompatible with this version of the
+     * dashboard. */
+    private static void removeIncompatiblePackages(Map packages, Vector urls) {
+        String dashVersion = getDashboardVersion(packages);
+        Iterator i = packages.keySet().iterator();
+        while (i.hasNext()) {
+            DashPackage pkg = (DashPackage) i.next();
+            if (pkg.isIncompatible(dashVersion)) {
+                Object url = packages.get(pkg);
+                urls.remove(url);
+                i.remove();
             }
         }
+    }
 
-        public void storeVersion(Map versionNumbers) {
-            if (id == null) return;
-            String maxVersion = (String) versionNumbers.get(id);
+    private static String getDashboardVersion(Map packages) {
+        // look through the packages for one with the id "pspdash".
+        Iterator i = packages.keySet().iterator();
+        while (i.hasNext()) {
+            DashPackage pkg = (DashPackage) i.next();
+            if ("pspdash".equals(pkg.id))
+                return pkg.version;
+        }
+
+        // look through the packages for a locale-specific "pspdash"
+        // distribution
+        i = packages.keySet().iterator();
+        while (i.hasNext()) {
+            DashPackage pkg = (DashPackage) i.next();
+            if (pkg.id != null && pkg.id.startsWith("pspdash_"))
+                return pkg.version;
+        }
+
+        return null;            // shouldn't happen...
+    }
+
+    private static void deleteObsoletePackages(Map packages, Vector urls) {
+        Map versionNumbers = getMaxVersionNumbers(packages);
+        Iterator i = packages.keySet().iterator();
+        while (i.hasNext()) {
+            DashPackage pkg = (DashPackage) i.next();
+            String versionToUse = (String) versionNumbers.get(pkg.id);
+            if (DashPackage.compareVersions(pkg.version, versionToUse) < 0) {
+                Object url = packages.get(pkg);
+                urls.remove(url);
+                i.remove();
+            }
+        }
+    }
+
+    private static Map getMaxVersionNumbers(Map packages) {
+        HashMap versionNumbers = new HashMap();
+        Iterator i = packages.keySet().iterator();
+        while (i.hasNext()) {
+            DashPackage pkg = (DashPackage) i.next();
+            String maxVersion = (String) versionNumbers.get(pkg.id);
             if (maxVersion == null ||
-                AutoUpdateManager.compareVersions(version, maxVersion) > 0)
-                versionNumbers.put(id, version);
+                DashPackage.compareVersions(pkg.version, maxVersion) > 0)
+                versionNumbers.put(pkg.id, pkg.version);
+        }
+        return versionNumbers;
+    }
+
+
+
+    private static ArrayList dashPackages = new ArrayList();
+
+    /** Returns a list of all the packages currently installed.
+     */
+    public static List getPackages() {
+        return Collections.unmodifiableList(dashPackages);
+    }
+
+
+    /** Return the version number of an installed package, or null if
+     *  the package is not installed. */
+    public static String getPackageVersion(String packageID) {
+        if (packageID == null) return null;
+
+        // look through the packages for an exact match.
+        Iterator i = dashPackages.iterator();
+        DashPackage pkg;
+        while (i.hasNext()) {
+            pkg = (DashPackage) i.next();
+            if (packageID.equals(pkg.id))
+                return pkg.version;
         }
 
-        public boolean isObsolete(Map versionNumbers) {
-            if (id == null) return false;
-            String versionToUse = (String) versionNumbers.get(id);
-            if (versionToUse == null ||
-                AutoUpdateManager.compareVersions(version, versionToUse) < 0) {
-                System.out.println("Ignoring obsolete add-on " + jarURL);
-                return true;
-            }
-            versionNumbers.remove(id);
-            return false;
+        // look through the packages for a locale-specific match
+        i = dashPackages.iterator();
+        while (i.hasNext()) {
+            pkg = (DashPackage) i.next();
+            if (pkg.id != null && pkg.id.startsWith(packageID + "_"))
+                return pkg.version;
         }
+
+        return null;
     }
 
 
@@ -776,9 +842,8 @@ public class TemplateLoader {
                 scriptMaps.put(ID, (v = new Vector()));
 
             if (v.size() == 0) {
-                String planSummaryName = Resources.format
-                    (Resources.getBundle("pspdash.Templates"),
-                     "Plan_Summary_Name_FMT", ID);
+                String planSummaryName = Resources.getDashBundle
+                    ("pspdash.Templates").format("Plan_Summary_Name_FMT", ID);
                 v.addElement(new ScriptID("dash/summary.shtm", null,
                                           planSummaryName));
 
@@ -826,11 +891,11 @@ public class TemplateLoader {
     private static ErrorReporter errorReporter = null;
     public synchronized static void logTemplateError(String error) {
         if (errorReporter == null) {
-            ResourceBundle r = Resources.getBundle("pspdash.Templates");
+            Resources r = Resources.getDashBundle("pspdash.Templates");
             errorReporter = new ErrorReporter
                 (r.getString("Error_Title"),
-                 Resources.getStrings(r, "Error_Header"),
-                 Resources.getStrings(r, "Error_Footer"));
+                 r.getStrings("Error_Header"),
+                 r.getStrings("Error_Footer"));
         }
         errorReporter.logError(error);
     }
