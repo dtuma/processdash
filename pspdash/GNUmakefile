@@ -40,6 +40,9 @@ CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
 
 CGI_JAVA=Templates/psp1/sizeest.java
 CGI_CLASSES=$(subst .java,.class,$(CGI_JAVA))
+SIZEEST_COPIES=Templates/psp1.1/sizeest.class \
+	Templates/psp2/sizeest.class \
+	Templates/psp2.1/sizeest.class
 
 # build platform dependency
 BUILD_PLATFORM ?= CYGWIN
@@ -74,8 +77,10 @@ data: FORCE
 pspdash: PSPDashboard.class $(CLASS_FILES)
 
 
-cgi-scripts: $(CGI_CLASSES)
-	@cp Templates/psp1/sizeest.class Templates/psp1.1
+cgi-scripts: $(CGI_CLASSES) $(SIZEEST_COPIES)
+
+$(SIZEEST_COPIES): Templates/psp1/sizeest.class
+	cp Templates/psp1/sizeest.class $@
 
 $(CGI_CLASSES) : %.class : %.java
 	$(JAVAC) \
