@@ -83,14 +83,15 @@ com/oroinc/text/perl/Perl5Util.class: PerlTools.jar
 	$(JAR) -xf PerlTools.jar
 
 # unzip the JFreeChart jarfile.
-jfreechart: com/jrefinery/chart/JFreeChart.class com/jrefinery/chart/XYPlot.class
+jfreechart: com/jrefinery/chart/JFreeChart.class com/jrefinery/chart/XYPlot.class com/jrefinery/chart/PiePlot.class
 
 com/jrefinery/chart/JFreeChart.class: jfreechart.jar
 	$(JAR) -xf jfreechart.jar
-	rm -rf com/jrefinery/util com/jrefinery/chart/ui com/jrefinery/chart/XYPlot.class
+	rm -rf com/jrefinery/util com/jrefinery/chart/ui com/jrefinery/chart/XYPlot.class com/jrefinery/chart/PiePlot.class
 
-com/jrefinery/chart/XYPlot.class: ../Templates/reports/XYPlot.java
-	cd ..; $(MAKE) XYPlot.class
+com/jrefinery/chart/%.class: ../Templates/reports/%.java
+	cd ..; $(MAKE) XYPlot.class PiePlot.class
+
 
 clean:
 	rm -f pspdash.jar *~
