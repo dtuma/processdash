@@ -91,7 +91,7 @@ public class DoubleData implements SimpleData, NumberData {
             return "ERROR";
 
         if (numDecimalPoints == AUTO_DECIMAL)
-            if (value-((int)value) == 0.0)
+            if (value-((int)value) == 0.0 || value <= -100 || value >= 100)
                 numDecimalPoints = 0;
             else if (value > -10 && value < 10)
                 numDecimalPoints = 2;
