@@ -55,7 +55,7 @@ public class HTTPUtils {
         if (pos == -1)
             return contentType + "; charset=" + newCharset;
         else
-            return contentType.substring(pos+8) + newCharset;
+            return contentType.substring(0, pos+8) + newCharset;
     }
 
 
