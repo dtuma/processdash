@@ -17,7 +17,9 @@ public class GenerateTestProcess extends TinyCGIBase {
         CustomProcess process = new CustomProcess();
         process.setName("Test");
         process.setVersion("2");
-        File dest = new File(process.getJarName());
+        String dir = getParameter("dir");
+        File dest = new File(dir);
+        dest = new File(dest, process.getJarName());
         CustomProcessPublisher.publish(process, dest, getTinyWebServer());
     }
 
@@ -25,7 +27,7 @@ public class GenerateTestProcess extends TinyCGIBase {
         "http://localhost:2468/team/GenerateTestProcess.class";
     public static void main(String[] args) {
         try {
-            URL u = new URL(THIS_URL);
+            URL u = new URL(THIS_URL + "?dir=" + URLEncoder.encode(args[0]));
             URLConnection conn = u.openConnection();
             conn.connect();
             InputStream result = conn.getInputStream();
