@@ -43,7 +43,7 @@ NON_CLASS_FILES=continue.gif \
 		state
 INSTALLED_FILES=$(addprefix pspdash/,$(NON_CLASS_FILES))
 
-TEMPLATE_FILES:=$(shell cd ..; find Templates -type f -print | fgrep -v CVS | fgrep -v .java | fgrep -v '~' | fgrep -v .cvsignore)
+TEMPLATE_FILES:=$(shell cd ..; find Templates -type f -print | grep -v -f build/template-ignore)
 
 all: pspdash.jar
 
