@@ -7,11 +7,14 @@
   <tocitem image="TopLevelIcon" target="QuickOverview" text="Process Dashboard Help">
     <tocitem text="Overview">
       <tocitem target="QuickOverview" text="Quick overview of the Dashboard" />
-      <tocitem target="QuickStartPSP0" text="Quick start example: PSP0"/>
+      <tocitem target="QuickStartPSP1" text="Quick start example: PSP1"/>
+<!--
       <tocitem target="QuickStartPSP3" text="Quick start example: PSP3"/>
+-->
       <tocitem target="GoalsOfPSPAndDashboard" text="The overall goals of the PSP and the Process Dashboard"/>
       <tocitem target="Help" text="Getting help"/>
       <tocitem target="HowToInstall" text="Installation instructions"/>
+      <tocitem target="GPL" text="GNU Public License"/>
     </tocitem>
 
     <tocitem text="Planning">
@@ -45,8 +48,11 @@
 
     <tocitem text="Advanced Topics">
       <tocitem target="ConfigurationFile" text="The configuration file"/>
+
+<!-- 
       <tocitem target="ModifyingExistingProcesses" text="Modifying the existing processes"/>
       <tocitem target="CreatingNewProcesses" text="Creating your own processes"/>
+-->
     </tocitem>
 
   </tocitem>

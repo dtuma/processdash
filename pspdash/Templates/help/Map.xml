@@ -11,7 +11,7 @@
   <mapID target="QuickOverview" url="Topics/Overview/QuickOverview.html" />
   <mapID target="HowToInstall" url="Topics/Overview/HowToInstall.html" />
   <mapID target="GoalsOfPSPAndDashboard" url="Topics/Overview/GoalsOfPSPAndDashboard.html" />
-  <mapID target="QuickStartPSP0" url="Topics/Overview/QuickStartPSP0.html" />
+  <mapID target="QuickStartPSP1" url="Topics/Overview/QuickStartPSP1.html" />
   <mapID target="QuickStartPSP3" url="Topics/Overview/QuickStartPSP3.html" />
 
   <mapID target="Planning" url="Topics/Planning/Planning.html" />
@@ -41,5 +41,6 @@
   <mapID target="ModifyingExistingProcesses" url="Topics/AdvancedTopics/ModifyingExistingProcesses.html" />
   <mapID target="Exit" url="Topics/Execution/Exit.html" />
   <mapID target="Help" url="Topics/Execution/UsingHelp.html" />
+  <mapID target="GPL" url="gpl.htm" />
 
 </map>

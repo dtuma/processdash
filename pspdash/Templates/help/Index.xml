@@ -13,8 +13,10 @@
     <indexitem text="Overview">
       <indexitem target="HowToInstall" text="Installation instructions"/>
       <indexitem target="GoalsOfPSPAndDashboard" text="Overall goals of the PSP and the Dashboard"/>
-      <indexitem target="QuickStartPSP0" text="Quick start example: PSP0"/>
+      <indexitem target="QuickStartPSP1" text="Quick start example: PSP1"/>
+<!--
       <indexitem target="QuickStartPSP3" text="Quick start example: PSP3"/>
+-->
     </indexitem>
 
     <indexitem text="Planning">
