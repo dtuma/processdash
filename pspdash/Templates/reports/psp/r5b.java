@@ -32,7 +32,10 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
-import com.jrefinery.chart.JFreeChart;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
 
 public class r5b extends CGIChartBase implements DefectAnalyzer.Task {
 
@@ -42,8 +45,19 @@ public class r5b extends CGIChartBase implements DefectAnalyzer.Task {
 
     /** Create a vertical bar chart. */
     public JFreeChart createChart() {
-        JFreeChart chart =
-            JFreeChart.createVerticalBarChart(data.catDataSource());
+        JFreeChart chart = null;
+        if (get3DSetting()) {
+            chart = ChartFactory.createBarChart3D
+                (null, null, null, data.catDataSource(),
+                 PlotOrientation.VERTICAL, false, false, false);
+            chart.getPlot().setForegroundAlpha(ALPHA);
+
+        } else {
+            chart = ChartFactory.createBarChart
+                (null, null, null, data.catDataSource(),
+                 PlotOrientation.VERTICAL, false, false, false);
+        }
+
         setupCategoryChart(chart);
         return chart;
     }

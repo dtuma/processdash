@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,9 +21,11 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-import com.jrefinery.chart.*;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
 
 
 public class bar extends pspdash.CGIChartBase {
@@ -37,10 +39,10 @@ public class bar extends pspdash.CGIChartBase {
         if ((direction != null && direction.toLowerCase().startsWith("hor"))
             || parameters.get("horizontal") != null)
             vertical = false;
-        if (vertical)
-            chart = JFreeChart.createVerticalBarChart(data.catDataSource());
-        else
-            chart = JFreeChart.createHorizontalBarChart(data.catDataSource());
+        chart = ChartFactory.createBarChart3D
+            (null, null, null, data.catDataSource(),
+             (vertical ? PlotOrientation.VERTICAL : PlotOrientation.HORIZONTAL),
+             true, false, false);
 
         setupCategoryChart(chart);
 

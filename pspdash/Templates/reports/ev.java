@@ -37,7 +37,11 @@ import java.util.Iterator;
 import java.util.Map;
 import javax.swing.table.TableModel;
 
-import com.jrefinery.chart.*;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.Legend;
+import org.jfree.data.XYDataset;
+
 
 /** CGI script for reporting earned value data in HTML.
  */
@@ -347,7 +351,7 @@ public class ev extends CGIChartBase {
             parameters.put(name, value);
     }
 
-    XYDataSource xydata;
+    XYDataset xydata;
 
     /** Generate jpeg data for the plan-vs-actual time chart */
     public void writeTimeChart() throws IOException {
@@ -383,7 +387,9 @@ public class ev extends CGIChartBase {
 
     /** Create a time series chart. */
     public JFreeChart createChart() {
-        JFreeChart chart = JFreeChart.createTimeSeriesChart(xydata);
+        JFreeChart chart = TaskScheduleChart.createChart(xydata);
+        if (parameters.get("hideLegend") == null)
+            chart.getLegend().setAnchor(Legend.EAST);
         return chart;
     }
 
@@ -407,7 +413,7 @@ public class ev extends CGIChartBase {
     }
 
     /** Display excel-based data for drawing a chart */
-    protected void writeChartData(XYDataSource xydata, int maxSeries) {
+    protected void writeChartData(XYDataset xydata, int maxSeries) {
         // First, print the table header.
         out.print("<html><body><table border>\n");
         int seriesCount = xydata.getSeriesCount();

@@ -26,7 +26,8 @@
 package pspdash;
 
 import java.util.*;
-import com.jrefinery.chart.XYDataSource;
+
+import org.jfree.data.XYDataset;
 
 /** This class represents a schedule that has been rolled up from
  *  several subschedules. (Note: at this time it only supports the
@@ -406,7 +407,7 @@ public class EVScheduleRollup extends EVSchedule {
                 numSeries = 4;
         }
     }
-    public XYDataSource getValueChartData() {
+    public XYDataset getValueChartData() {
         ValueChartData result = new RollupValueChartData();
         result.recalc();
         return result;

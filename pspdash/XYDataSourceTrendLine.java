@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,13 +21,15 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
 import java.util.Vector;
-import com.jrefinery.chart.*;
-import com.jrefinery.chart.event.DataSourceChangeListener;
+
+import org.jfree.data.DatasetChangeListener;
+import org.jfree.data.DatasetGroup;
+import org.jfree.data.XYDataset;
 
 import pspdash.data.LinearRegression;
 
@@ -36,7 +38,7 @@ import pspdash.data.LinearRegression;
  *
  * Note: Change notification is not yet supported.
  */
-public class XYDataSourceLineWrapper implements XYDataSource {
+public class XYDataSourceTrendLine implements XYDataset {
 
     private static final Double ZERO = new Double(0);
 
@@ -47,11 +49,11 @@ public class XYDataSourceLineWrapper implements XYDataSource {
     protected String lineName;
 
     /** The XYDataSource that we are adding the line to. */
-    protected XYDataSource source;
+    protected XYDataset source;
 
 
 
-    public XYDataSourceLineWrapper(XYDataSource src, String lineName) {
+    public XYDataSourceTrendLine(XYDataset src, String lineName) {
         this.source = src;
         this.lineName = lineName;
         minX = minY = maxX = maxY = ZERO;
@@ -78,47 +80,45 @@ public class XYDataSourceLineWrapper implements XYDataSource {
     // DataSource interface
 
     public int getSeriesCount() {
-        return source.getSeriesCount() +
-            (badValue(minY.doubleValue()) ? 0 : 1);
+        return (badValue(minY.doubleValue()) ? 0 : 1);
     }
 
     public String getSeriesName(int seriesIndex) {
-        if (seriesIndex < source.getSeriesCount())
-            return source.getSeriesName(seriesIndex);
-        else
-            return lineName;
+        return (seriesIndex == 0 ? lineName : null);
     }
 
-    public void addChangeListener(DataSourceChangeListener listener) {}
-    public void removeChangeListener(DataSourceChangeListener listener) {}
+    public void addChangeListener(DatasetChangeListener listener) {
+        source.addChangeListener(listener);
+    }
+    public void removeChangeListener(DatasetChangeListener listener) {
+        source.removeChangeListener(listener);
+    }
 
     // XYDataSource interface
 
     public Number getXValue(int seriesIndex, int itemIndex) {
-        if (seriesIndex < source.getSeriesCount())
-            return source.getXValue(seriesIndex, itemIndex);
-        else
+        if (seriesIndex == 0)
             return (itemIndex == 0 ? minX : maxX);
+        else
+            return null;
     }
 
     public Number getYValue(int seriesIndex, int itemIndex) {
-        if (seriesIndex < source.getSeriesCount())
-            return source.getYValue(seriesIndex, itemIndex);
-        else {
-            if (itemIndex == -1) return null;
+        if (seriesIndex == 0)
             return (itemIndex == 0 ? minY : maxY);
-        }
+        else
+            return null;
     }
 
     public int getItemCount(int seriesIndex) {
-        if (seriesIndex < source.getSeriesCount())
-            return source.getItemCount(seriesIndex);
-        else
+        if (seriesIndex == 0)
             return 2;
+        else
+            return 0;
     }
 
-    private static class RegressionLine extends XYDataSourceLineWrapper {
-        public RegressionLine(XYDataSource src, int seriesNum) {
+    private static class RegressionLine extends XYDataSourceTrendLine {
+        public RegressionLine(XYDataset src, int seriesNum) {
             super(src, "Trend");
 
             Vector data = new Vector();
@@ -150,16 +150,15 @@ public class XYDataSourceLineWrapper implements XYDataSource {
     }
 
 
-    public static XYDataSource addRegressionLine(XYDataSource src) {
-        return addRegressionLine(src, 0);
+    public static XYDataset getRegressionLine(XYDataset src) {
+        return getRegressionLine(src, 0);
     }
-    public static XYDataSource addRegressionLine(XYDataSource src,
-                                                 int seriesNum) {
+    public static XYDataset getRegressionLine(XYDataset src, int seriesNum) {
         return new RegressionLine(src, seriesNum);
     }
 
     private static class AverageLine extends RegressionLine {
-        public AverageLine(XYDataSource src, int num) { super(src, num); }
+        public AverageLine(XYDataset src, int num) { super(src, num); }
         protected void resetLine(LinearRegression regress,
                                  double minX, double maxX) {
             setLineSlope(0, regress.y_avg / regress.x_avg, minX, maxX);
@@ -167,13 +166,19 @@ public class XYDataSourceLineWrapper implements XYDataSource {
     }
 
 
-    public static XYDataSource addAverageLine(XYDataSource src) {
-        return addAverageLine(src, 0);
+    public static XYDataset getAverageLine(XYDataset src) {
+        return getAverageLine(src, 0);
     }
-    public static XYDataSource addAverageLine(XYDataSource src,
-                                              int seriesNum) {
+    public static XYDataset getAverageLine(XYDataset src, int seriesNum) {
         return new AverageLine(src, seriesNum);
     }
 
+    public DatasetGroup getGroup() {
+        return source.getGroup();
+    }
+
+    public void setGroup(DatasetGroup group) {
+        source.setGroup(group);
+    }
 
 }

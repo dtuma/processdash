@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,39 +21,43 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-import java.awt.Font;
-import com.jrefinery.chart.*;
-import com.jrefinery.chart.RadarPlot;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.RadarPlot;
+import org.jfree.data.CategoryDataset;
+import org.jfree.data.DatasetUtilities;
+import org.jfree.data.PieDataset;
+
 
 
 public class radar extends pspdash.CGIChartBase {
 
-    /** Create a  line chart. */
+    /** Create a radar chart. */
     public JFreeChart createChart() {
-        if (data.numCols() == 1) data = data.transpose();
-        Plot plot = null;
-        try {
-            plot = new RadarPlot(null);
-        } catch (AxisNotCompatibleException ance) { return null; }
+        CategoryDataset catData = data.catDataSource();
+        PieDataset pieData = null;
+        if (catData.getRowCount() == 1)
+            pieData = DatasetUtilities.createPieDatasetForRow(catData, 0);
+        else
+            pieData = DatasetUtilities.createPieDatasetForColumn(catData, 0);
 
-        JFreeChart chart =
-            new JFreeChart("Radar Chart", new Font("Arial", Font.BOLD, 24),
-                           data.catDataSource(), plot);
-        chart.setLegend(null);
+        RadarPlot plot = new RadarPlot(pieData);
+        JFreeChart chart = new JFreeChart
+            (null, JFreeChart.DEFAULT_TITLE_FONT, plot, false);
 
         if (parameters.get("skipAxisLabels") != null)
-            ((RadarPlot) plot).setDrawAxisLabels(false);
-        /*
-        if (parameters.get("ellipse") != null)
-            plot.setDrawCircle(false);
+            plot.setShowAxisLabels(false);
+        String interiorGap = getParameter("interiorGap");
+        if (interiorGap != null) try {
+            plot.setInteriorGap(Integer.parseInt(interiorGap) / 100.0);
+        } catch (NumberFormatException e) {}
         String interiorSpacing = getParameter("interiorSpacing");
         if (interiorSpacing != null) try {
-            plot.setInteriorSpacing(Integer.parseInt(interiorSpacing));
+            plot.setInteriorGap(Integer.parseInt(interiorSpacing) / 200.0);
         } catch (NumberFormatException e) {}
-
-        */
 
         return chart;
     }

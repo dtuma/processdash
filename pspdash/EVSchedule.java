@@ -30,10 +30,12 @@ import java.text.DateFormat;
 import javax.swing.table.*;
 import javax.swing.event.*;
 
-import com.jrefinery.chart.RangeInfo;
-import com.jrefinery.chart.XYDataSource;
-import com.jrefinery.chart.event.DataSourceChangeListener;
-import com.jrefinery.chart.event.DataSourceChangeEvent;
+import org.jfree.data.AbstractDataset;
+import org.jfree.data.DatasetChangeEvent;
+import org.jfree.data.DatasetChangeListener;
+import org.jfree.data.Range;
+import org.jfree.data.RangeInfo;
+import org.jfree.data.XYDataset;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -1184,6 +1186,8 @@ public class EVSchedule implements TableModel {
         public Number getMaximumRangeValue() { return high; }
 
         public String toString() { return String.valueOf(value); }
+
+        public Range getValueRange() { return null; }
     }
 
     protected interface ChartSeries {
@@ -1286,7 +1290,9 @@ public class EVSchedule implements TableModel {
 
     /** Base class for implementing XYDataSource funtionality.
      */
-    private class ChartData implements XYDataSource, TableModelListener {
+    private class ChartData extends AbstractDataset
+        implements XYDataset, TableModelListener
+    {
         ChartSeries [] series;
         boolean needsRecalc = true;
         protected void recalc() {}
@@ -1311,14 +1317,14 @@ public class EVSchedule implements TableModel {
 
         // support DataSourceChangeListener notification
         private ArrayList listenerList = null;
-        public void addChangeListener(DataSourceChangeListener l) {
+        public void addChangeListener(DatasetChangeListener l) {
             if (listenerList == null) listenerList = new ArrayList();
             synchronized (listenerList) {
                 if (listenerList.size() == 0) addTableModelListener(this);
                 if (!listenerList.contains(l)) listenerList.add(l);
             }
         }
-        public void removeChangeListener(DataSourceChangeListener l) {
+        public void removeChangeListener(DatasetChangeListener l) {
             if (listenerList == null) return;
             synchronized (listenerList) {
                 if (listenerList.remove(l) && listenerList.size() == 0)
@@ -1327,13 +1333,13 @@ public class EVSchedule implements TableModel {
         }
         public void fireChangeEvent() {
             if (listenerList == null) return;
-            DataSourceChangeEvent e = null;
+            DatasetChangeEvent e = null;
             Object [] listeners = listenerList.toArray();
             // Process the listeners last to first, notifying
             // those that are interested in this event
             for (int i = listeners.length; i-- > 0; ) {
-                if (e == null) e = new DataSourceChangeEvent(this);
-                ((DataSourceChangeListener)listeners[i]).dataSourceChanged(e);
+                if (e == null) e = new DatasetChangeEvent(this, this);
+                ((DatasetChangeListener)listeners[i]).datasetChanged(e);
             }
         }
 
@@ -1380,7 +1386,7 @@ public class EVSchedule implements TableModel {
         int numSeries = 3;
         public int getSeriesCount() { maybeRecalc(); return numSeries; }
     }
-    public XYDataSource getTimeChartData() { return new TimeChartData(); }
+    public XYDataset getTimeChartData() { return new TimeChartData(); }
 
 
 
@@ -1430,8 +1436,12 @@ public class EVSchedule implements TableModel {
         public int getSeriesCount() { maybeRecalc(); return numSeries; }
         public Number getMinimumRangeValue() { return ZERO; }
         public Number getMaximumRangeValue() { return ONE_HUNDRED; }
+        public Range getValueRange() {
+            return new Range(getMinimumRangeValue().doubleValue(),
+                getMaximumRangeValue().doubleValue());
+        }
     }
-    public XYDataSource getValueChartData() {
+    public XYDataset getValueChartData() {
         ValueChartData result = new ValueChartData();
         result.recalc();
         return result;
@@ -1461,6 +1471,6 @@ public class EVSchedule implements TableModel {
                         return ACTUAL_TIME_LABEL; } };
         }
     }
-    public XYDataSource getCombinedChartData() {
+    public XYDataset getCombinedChartData() {
         return new CombinedChartData(); }
 }

@@ -1,8 +1,34 @@
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 2003 Software Process Dashboard Initiative
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+//
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
+
+
 /*
  * Radar chart plotter, designed for drawing quality profiles
  */
 
-package com.jrefinery.chart;
+package org.jfree.chart.plot;
 
 
 import java.awt.Graphics2D;
@@ -26,12 +52,16 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java.text.DecimalFormat;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Iterator;
-import com.jrefinery.chart.*;
-import com.jrefinery.chart.event.*;
+
+import org.jfree.chart.plot.PlotRenderingInfo;
+import org.jfree.chart.event.PlotChangeEvent;
+import org.jfree.data.PieDataset;
 
 /**
  * A plot that displays data in the form of a radar chart, using data
@@ -71,19 +101,25 @@ public class RadarPlot extends Plot {
     /** The maximum interior gap (currently 30%). */
     public static final double MAX_AXIS_LABEL_GAP = 0.30;
 
+    /** The default stroke for the series line */
+    public static final Stroke DEFAULT_LINE_STROKE = new BasicStroke(3.0f);
+
     /** A magic color object used to designate adaptive coloring, based
      *  on the computed quality index */
     public static final Paint ADAPTIVE_COLORING = new Color(0);
 
+    /** The dataset for the radar chart. */
+    private PieDataset dataset;
+
     /** The amount of space left around the outside of the radar
         chart, expressed as a percentage. */
-    protected double interiorGapPercent;
+    protected double interiorGap;
 
-    /** Flag determining whether to draw an ellipse or a perfect circle. */
-    protected boolean circular;
+//    /** Flag determining whether to draw an ellipse or a perfect circle. */
+//    protected boolean circular;
 
     /** The radius as a percentage of the available drawing area. */
-    protected double radiusPercent;
+    protected double radius;
 
     /** The font used to display the axis labels. */
     protected Font axisLabelFont;
@@ -93,160 +129,148 @@ public class RadarPlot extends Plot {
 
     /** The gap between the labels and the radar axes, as a
         percentage of the radius. */
-    protected double axisLabelGapPercent;
-
-    /** The color to use to draw the data polygon */
-    protected Paint radarSeriesPaint;
+    protected double axisLabelGap;
 
     /** Whether or not axis labels should be drawn */
-    protected boolean drawAxisLabels = true;
+    protected boolean showAxisLabels;
+
+    /** The color used to paint the axis lines (i.e. spokes) */
+    protected Paint axisPaint;
+
+    /** The stroke used to paint the axis lines (i.e. spokes) */
+    protected Stroke axisStroke;
+
+    /** The color used to paint the grid lines */
+    protected Paint gridLinePaint;
+
+    /** The stroke used to paint the grid lines */
+    protected Stroke gridLineStroke;
+
+    /** The color to use to draw the data polygon */
+    protected Paint plotLinePaint;
+
+    /** The stroke used to draw the data polygon */
+    protected Stroke plotLineStroke;
 
     /**
      * Constructs a new radar chart, using default attributes as required.
      */
-    public RadarPlot(JFreeChart chart) throws AxisNotCompatibleException {
-        this(chart,
-             new Insets(0, 5, 5, 5),
-             Color.white,
-             null,
-             1.0f,
-             new BasicStroke(1),
-             Color.gray,
-             1.0f,
-             RadarPlot.DEFAULT_INTERIOR_GAP,
-             true, // circular
-             DEFAULT_RADIUS,
-             DEFAULT_AXIS_LABEL_FONT,
-             DEFAULT_AXIS_LABEL_PAINT,
-             DEFAULT_AXIS_LABEL_GAP,
-             ADAPTIVE_COLORING);
+    public RadarPlot() {
+        this(null);
     }
 
+    public RadarPlot(PieDataset dataset) {
+        super();
+        this.dataset = dataset;
+        initialise();
+    }
 
-    /**
-     * Constructs a radar chart.
-     * @param chart The chart that the plot belongs to;
-     * @param insets Amount of blank space around the plot area.
-     * @param backgroundPaint An optional color for the plot's background.
-     * @param backgroundImage An optional image for the plot's background.
-     * @param backgroundAlpha Alpha-transparency for the plot's background.
-     * @param outlineStroke The Stroke used to draw an outline around the plot.
-     * @param outlinePaint The color used to draw an outline around the plot.
-     * @param foregroundAlpha The alpha-transparency for the plot.
-     * @param interiorGapPercent The interior gap (space for labels) as a
-     *        percentage of the available space.
-     * @param circular Flag indicating whether the radar chart is circular or
-     *        elliptical.
-     * @param radiusPercent The radius of the radar chart, as a percentage of
-     *        the available space (after accounting for interior gap).
-     * @param axisLabelFont The font for the axis labels.
-     * @param axisLabelPaint The color for the axis labels.
-     * @param axisLabelGapPercent The space between the radar axes and
-     *        the labels.
-     */
-    public RadarPlot(JFreeChart chart, Insets insets, Paint backgroundPaint,
-                     Image backgroundImage, float backgroundAlpha,
-                     Stroke outlineStroke, Paint outlinePaint,
-                     float foregroundAlpha, double interiorGapPercent,
-                     boolean circular, double radiusPercent,
-                     Font axisLabelFont, Paint axisLabelPaint,
-                     double axisLabelGapPercent, Paint dataPaint)
-        throws AxisNotCompatibleException {
+    private void initialise() {
+        this.interiorGap = DEFAULT_INTERIOR_GAP;
+//        this.circular = true;
+        this.radius = DEFAULT_RADIUS;
+        this.showAxisLabels = true;
+        this.axisLabelFont = DEFAULT_AXIS_LABEL_FONT;
+        this.axisLabelPaint = DEFAULT_AXIS_LABEL_PAINT;
+        this.axisLabelGap = DEFAULT_AXIS_LABEL_GAP;
+//        this.itemLabelGenerator = null;
+//        this.urlGenerator = null;
 
-        super(chart, new BlankAxis(), new BlankAxis(), insets,
-              backgroundPaint, outlineStroke, outlinePaint);
-
-        this.interiorGapPercent = interiorGapPercent;
-        this.circular = circular;
-        this.radiusPercent = radiusPercent;
-        this.axisLabelFont = axisLabelFont;
-        this.axisLabelPaint = axisLabelPaint;
-        this.axisLabelGapPercent = axisLabelGapPercent;
-        this.radarSeriesPaint = dataPaint;
-        setInsets(insets);
-
+        this.plotLinePaint = ADAPTIVE_COLORING;
+        this.axisPaint = Color.black;
+        this.axisStroke = DEFAULT_OUTLINE_STROKE;
+        this.gridLinePaint = Color.lightGray;
+        this.gridLineStroke = DEFAULT_OUTLINE_STROKE;
+        this.plotLineStroke = DEFAULT_LINE_STROKE;
+        setForegroundAlpha(0.5f);
+        setInsets(new Insets(0, 5, 5, 5));
     }
 
     /**
-     * Returns the interior gap, measures as a percentage of the
+     * Returns the interior gap, measured as a percentage of the
      * available drawing space.
-     * @return The interior gap, measured as a percentage of the
-     * available drawing space.
-     */
-    public double getInteriorGapPercent() {
-        return this.interiorGapPercent;
+     *
+     * @return The gap percentage.  */
+    public double getInteriorGap() {
+        return this.interiorGap;
     }
 
     /**
-     * Sets the interior gap percent.
+     * Sets the interior gap.
+     *
+     * @param percent The gap.
      */
-    public void setInteriorGapPercent(double percent) {
+    public void setInteriorGap(double percent) {
 
         // check arguments...
-        if ((percent<0.0) || (percent>MAX_INTERIOR_GAP)) {
-            throw new IllegalArgumentException
-                ("RadarPlot.setInteriorGapPercent(double): "
-                 +"percentage outside valid range.");
+        if ((percent < 0.0) || (percent > MAX_INTERIOR_GAP)) {
+            throw new IllegalArgumentException(
+                "RadarPlot.setInteriorGap(double): percentage "+
+                "outside valid range.");
         }
 
         // make the change...
-        if (this.interiorGapPercent!=percent) {
-            this.interiorGapPercent = percent;
+        if (this.interiorGap != percent) {
+            this.interiorGap = percent;
             notifyListeners(new PlotChangeEvent(this));
         }
 
     }
 
-    /**
-     * Returns a flag indicating whether the radar chart is circular,
-     * or stretched into an elliptical shape.
-     * @return A flag indicating whether the radar chart is circular.
-     */
-    public boolean isCircular() {
-        return circular;
-    }
+//    /**
+//     * Returns a flag indicating whether the pie chart is circular, or
+//     * stretched into an elliptical shape.
+//     *
+//     * @return a flag indicating whether the pie chart is circular.
+//     */
+//    public boolean isCircular() {
+//        return circular;
+//    }
+//
+//    /**
+//     * A flag indicating whether the pie chart is circular, or stretched
+//     * into an elliptical shape.
+//     *
+//     * @param flag  the new value.
+//     */
+//    public void setCircular(boolean flag) {
+//
+//        // no argument checking required...
+//        // make the change...
+//        if (circular != flag) {
+//            circular = flag;
+//            notifyListeners(new PlotChangeEvent(this));
+//        }
+//
+//    }
 
     /**
-     * A flag indicating whether the radar chart is circular, or
-     * stretched into an elliptical shape.
-     * @param flag The new value.
-     */
-    public void setCircular(boolean flag) {
-
-        // no argument checking required...
-        // make the change...
-        if (circular!=flag) {
-            circular = flag;
-            this.notifyListeners(new PlotChangeEvent(this));
-        }
-
-    }
-
-    /**
-     * Returns the radius percentage.
+     * Returns the radius (a percentage of the available space).
+     *
      * @return The radius percentage.
      */
-    public double getRadiusPercent() {
-        return this.radiusPercent;
+    public double getRadius() {
+        return this.radius;
     }
 
     /**
-     * Sets the radius percentage.
-     * @param percent The new value.
+     * Sets the radius.
+     *
+     * @param percent  the new value.
      */
-    public void setRadiusPercent(double percent) {
+    public void setRadius(double percent) {
 
         // check arguments...
-        if ((percent<=0.0) || (percent>MAX_RADIUS)) {
-            throw new IllegalArgumentException
-                ("RadarPlot.setRadiusPercent(double): "
-                 +"percentage outside valid range.");
+        if ((percent <= 0.0) || (percent > MAX_RADIUS)) {
+            throw new IllegalArgumentException(
+                "RadarPlot.setRadius(double): percentage "+
+                "outside valid range.");
         }
 
         // make the change (if necessary)...
-        if (this.radiusPercent!=percent) {
-            this.radiusPercent = percent;
-            this.notifyListeners(new PlotChangeEvent(this));
+        if (this.radius != percent) {
+            this.radius = percent;
+            notifyListeners(new PlotChangeEvent(this));
         }
 
     }
@@ -318,7 +342,7 @@ public class RadarPlot extends Plot {
      * @return The plot line paint.
      */
     public Paint getPlotLinePaint() {
-        return this.radarSeriesPaint;
+        return this.plotLinePaint;
     }
 
     /**
@@ -337,8 +361,8 @@ public class RadarPlot extends Plot {
         }
 
         // make the change...
-        if (!this.radarSeriesPaint.equals(paint)) {
-            this.radarSeriesPaint = paint;
+        if (!this.plotLinePaint.equals(paint)) {
+            this.plotLinePaint = paint;
             notifyListeners(new PlotChangeEvent(this));
         }
 
@@ -348,32 +372,51 @@ public class RadarPlot extends Plot {
      * Returns the axis label gap, measures as a percentage of the radius.
      * @return The axis label gap, measures as a percentage of the radius.
      */
-    public double getAxisLabelGapPercent() {
-        return this.axisLabelGapPercent;
+    public double getAxisLabelGap() {
+        return this.axisLabelGap;
     }
 
     /**
      * Sets the axis label gap percent.
      */
-    public void setAxisLabelGapPercent(double percent) {
+    public void setAxisLabelGap(double percent) {
 
         // check arguments...
         if ((percent<0.0) || (percent>MAX_AXIS_LABEL_GAP)) {
             throw new IllegalArgumentException
-                ("RadarPlot.setAxisLabelGapPercent(double): "
+                ("RadarPlot.setAxisLabelGap(double): "
                  +"percentage outside valid range.");
         }
 
         // make the change...
-        if (this.axisLabelGapPercent!=percent) {
-            this.axisLabelGapPercent = percent;
+        if (this.axisLabelGap!=percent) {
+            this.axisLabelGap = percent;
             notifyListeners(new PlotChangeEvent(this));
         }
 
     }
 
-    public void setDrawAxisLabels(boolean draw) {
-        drawAxisLabels = draw;
+    /**
+     * Returns the show axis labels flag.
+     *
+     * @return the show axis label flag.
+     */
+    public boolean getShowAxisLabels () {
+        return (this.showAxisLabels);
+    }
+
+    /**
+     * Sets the show axis labels flag.
+     * <P>
+     * Notifies registered listeners that the plot has been changed.
+     *
+     * @param flag  the new show axis labels flag.
+     */
+    public void setShowAxisLabels(boolean flag) {
+        if (this.showAxisLabels != flag) {
+            this.showAxisLabels = flag;
+            notifyListeners(new PlotChangeEvent(this));
+        }
     }
 
     /**
@@ -382,17 +425,20 @@ public class RadarPlot extends Plot {
      * Provided for convenience.
      * @return The dataset for the plot, cast as a CategoryDataSource.
      */
-    public CategoryDataSource getDataset() {
-        return (CategoryDataSource)chart.getDataSource();
+    public PieDataset getPieDataset() {
+        return dataset;
     }
-    public CategoryDataSource getDataSource() { return getDataset(); }
 
     /**
-     * Returns a collection of the categories in the dataset.
-     * @return A collection of the categories in the dataset.
+     * Returns a collection of the section keys (or categories) in the dataset.
+     *
+     * @return the categories.
      */
-    public Collection getCategories() {
-        return getDataset().getCategories();
+    public Collection getKeys() {
+        if (dataset != null)
+            return Collections.unmodifiableCollection(dataset.getKeys());
+        else
+            return null;
     }
 
     /**
@@ -401,9 +447,10 @@ public class RadarPlot extends Plot {
      * @param g2 The graphics device.
      * @param plotArea The area within which the plot should be drawn.
      */
-    public void draw(Graphics2D g2, Rectangle2D plotArea) {
-
+    public void draw(Graphics2D g2, Rectangle2D plotArea,
+                     PlotRenderingInfo info) {
         // adjust for insets...
+        Insets insets = getInsets();
         if (insets!=null) {
             plotArea.setRect(plotArea.getX()+insets.left,
                              plotArea.getY()+insets.top,
@@ -411,44 +458,71 @@ public class RadarPlot extends Plot {
                              plotArea.getHeight()-insets.top-insets.bottom);
         }
 
-        // draw the outline and background
-        drawOutlineAndBackground(g2, plotArea);
+        if (info != null) {
+            info.setPlotArea(plotArea);
+            info.setDataArea(plotArea);
+        }
+
+        drawBackground(g2, plotArea);
+        drawOutline(g2, plotArea);
+
+        Shape savedClip = g2.getClip();
+        g2.clip(plotArea);
+
+        Composite originalComposite = g2.getComposite();
+        g2.setComposite(AlphaComposite.getInstance
+                        (AlphaComposite.SRC_OVER, getForegroundAlpha()));
+
+        if (this.dataset != null) {
+            drawRadar(g2, plotArea, info, 0, this.dataset);
+        } else {
+            drawNoDataMessage(g2, plotArea);
+        }
+
+        g2.clip(savedClip);
+        g2.setComposite(originalComposite);
+
+        drawOutline(g2, plotArea);
+
+    }
+
+
+
+    protected void drawRadar(Graphics2D g2, Rectangle2D plotArea,
+                             PlotRenderingInfo info, int pieIndex,
+                             PieDataset data) {
 
         // adjust the plot area by the interior spacing value
-        double gapHorizontal = plotArea.getWidth()*this.interiorGapPercent;
-        double gapVertical = plotArea.getHeight()*this.interiorGapPercent;
-        double radarX = plotArea.getX()+gapHorizontal/2;
-        double radarY = plotArea.getY()+gapVertical/2;
-        double radarW = plotArea.getWidth()-gapHorizontal;
-        double radarH = plotArea.getHeight()-gapVertical;
+        double gapHorizontal = plotArea.getWidth() * this.interiorGap;
+        double gapVertical = plotArea.getHeight() * this.interiorGap;
+        double radarX = plotArea.getX() + gapHorizontal / 2;
+        double radarY = plotArea.getY() + gapVertical / 2;
+        double radarW = plotArea.getWidth() - gapHorizontal;
+        double radarH = plotArea.getHeight() - gapVertical;
 
         // make the radar area a square if the radar chart is to be circular...
         // NOTE that non-circular radar charts are not currently supported.
         if (true) { //circular) {
-            double min = Math.min(radarW, radarH)/2;
-            radarX = (radarX+radarX+radarW)/2 - min;
-            radarY = (radarY+radarY+radarH)/2 - min;
-            radarW = 2*min;
-            radarH = 2*min;
+            double min = Math.min(radarW, radarH) / 2;
+            radarX = (radarX + radarX + radarW) / 2 - min;
+            radarY = (radarY + radarY + radarH) / 2 - min;
+            radarW = 2 * min;
+            radarH = 2 * min;
         }
 
-        double radius = radarW/2;
-        double centerX = radarX + radarW/2;
-        double centerY = radarY + radarH/2;
+        double radius = radarW / 2;
+        double centerX = radarX + radarW / 2;
+        double centerY = radarY + radarH / 2;
 
         Rectangle2D radarArea = new Rectangle2D.Double
             (radarX, radarY, radarW, radarH);
 
         // plot the data (unless the dataset is null)...
-        CategoryDataSource data = (CategoryDataSource)chart.getDataSource();
-        if (data != null) {
+        if ((data != null) && (data.getKeys().size() > 0)) {
 
-            Shape savedClip = g2.getClip();
-            g2.clip(plotArea);
-
-            // get a sorted collection of categories...
-            Object category = data.getCategories().iterator().next();
-            int numAxes = data.getSeriesCount();
+            // get a list of categories...
+            List keys = data.getKeys();
+            int numAxes = keys.size();
 
             // draw each of the axes on the radar chart, and register
             // the shape of the radar line.
@@ -459,12 +533,13 @@ public class RadarPlot extends Plot {
             GeneralPath gridShape =
                 new GeneralPath(GeneralPath.WIND_NON_ZERO, numAxes+1);
 
-            Paint axisPaint = Color.black;
-            Paint gridPaint = Color.lightGray;
-            g2.setStroke(new BasicStroke());
+            int axisNumber = -1;
+            Iterator iterator = keys.iterator();
+            while (iterator.hasNext()) {
+                Comparable currentKey = (Comparable) iterator.next();
+                axisNumber++;
+                Number dataValue = data.getValue(currentKey);
 
-            for (int axisNumber = 0;   axisNumber < numAxes;   axisNumber++) {
-                Number dataValue = data.getValue(axisNumber, category);
                 double value =
                     (dataValue != null ? dataValue.doubleValue() : 0);
                 if (value > 1 || Double.isNaN(value) ||
@@ -478,6 +553,7 @@ public class RadarPlot extends Plot {
 
                 // draw the spoke
                 g2.setPaint(axisPaint);
+                g2.setStroke(axisStroke);
                 Line2D line = new Line2D.Double
                     (centerX, centerY, centerX + deltaX, centerY + deltaY);
                 g2.draw(line);
@@ -493,11 +569,11 @@ public class RadarPlot extends Plot {
                                      (float)(deltaY*value));
                 }
 
-                if (drawAxisLabels) {
+                if (showAxisLabels) {
                     // draw the label
-                    double labelX = centerX + deltaX*(1+axisLabelGapPercent);
-                    double labelY = centerY + deltaY*(1+axisLabelGapPercent);
-                    String label = data.getSeriesName(axisNumber);
+                    double labelX = centerX + deltaX*(1+axisLabelGap);
+                    double labelY = centerY + deltaY*(1+axisLabelGap);
+                    String label = currentKey.toString();
                     drawLabel(g2, radarArea, label, axisNumber, labelX,
                               labelY);
                 }
@@ -508,7 +584,8 @@ public class RadarPlot extends Plot {
 
             // draw five gray concentric gridlines
             g2.translate(centerX, centerY);
-            g2.setPaint(gridPaint);
+            g2.setPaint(gridLinePaint);
+            g2.setStroke(gridLineStroke);
             for (int i = 5;   i > 0;   i--) {
                 Shape scaledGrid = gridShape.createTransformedShape
                     (AffineTransform.getScaleInstance(i / 5.0, i/5.0));
@@ -516,8 +593,8 @@ public class RadarPlot extends Plot {
             }
 
             // get the color for the plot shape.
-            Paint dataPaint = radarSeriesPaint;
-            if (radarSeriesPaint == ADAPTIVE_COLORING) {
+            Paint dataPaint = plotLinePaint;
+            if (dataPaint == ADAPTIVE_COLORING) {
                 //multiplier = Math.exp(Math.log(multiplier) * 2 / numAxes);
                 dataPaint = getMultiplierColor((float)multiplier);
             }
@@ -525,10 +602,12 @@ public class RadarPlot extends Plot {
             // compute a slightly transparent version of the plot color for
             // the fill.
             Paint dataFill = null;
-            if (dataPaint instanceof Color)
-                dataFill = new Color(((Color)dataPaint).getRed(),
-                                     ((Color)dataPaint).getGreen(),
-                                     ((Color)dataPaint).getBlue(), 100);
+            if (dataPaint instanceof Color &&
+                getForegroundAlpha() != 1.0)
+                dataFill = new Color(((Color)dataPaint).getRed() / 255f,
+                                     ((Color)dataPaint).getGreen() / 255f,
+                                     ((Color)dataPaint).getBlue() / 255f,
+                                     getForegroundAlpha());
             else
                 dataFill = dataPaint;
 
@@ -537,12 +616,11 @@ public class RadarPlot extends Plot {
             g2.setPaint(dataFill);
             g2.fill(lineShape);
             g2.setPaint(dataPaint);
-            g2.setStroke(new BasicStroke(3.0f));
+            g2.setStroke(plotLineStroke);
             g2.draw(lineShape);
 
             // cleanup the graphics context.
             g2.translate(-centerX, -centerY);
-            g2.setClip(savedClip);
         }
     }
 
@@ -602,27 +680,6 @@ public class RadarPlot extends Plot {
         return "Radar Chart";
     }
 
-    /**
-     * Returns true if the axis is compatible with the radar chart,
-     * and false otherwise.  Since a radar plot requires no axes, only
-     * a null axis is compatible.
-     * @param axis The axis.
-     */
-    public boolean isCompatibleHorizontalAxis(Axis axis) {
-        if (axis==null) return true;
-        else return false;
-    }
-
-    /**
-     * Returns true if the axis is compatible with the radar chart,
-     * and false otherwise.  Since a radar plot requires no axes, only
-     * a null axis is compatible.
-     * @param axis The axis.
-     */
-    public boolean isCompatibleVerticalAxis(Axis axis) {
-        if (axis==null) return true;
-        else return false;
-    }
 
     /**
      * A zoom method that does nothing.

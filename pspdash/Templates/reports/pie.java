@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,34 +21,58 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-import com.jrefinery.chart.*;
-import com.jrefinery.chart.PiePlot;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.data.CategoryDataset;
+import org.jfree.data.DatasetUtilities;
+import org.jfree.data.PieDataset;
 
 
 public class pie extends pspdash.CGIChartBase {
 
     /** Create a  line chart. */
     public JFreeChart createChart() {
-        if (data.numCols() == 1) data = data.transpose();
-        JFreeChart chart = JFreeChart.createPieChart(data.catDataSource());
+        CategoryDataset catData = data.catDataSource();
+        PieDataset pieData = null;
+        if (catData.getRowCount() == 1)
+            pieData = DatasetUtilities.createPieDatasetForRow(catData, 0);
+        else
+            pieData = DatasetUtilities.createPieDatasetForColumn(catData, 0);
 
-        PiePlot plot = (PiePlot)chart.getPlot();
+        JFreeChart chart = null;
+        if (get3DSetting()) {
+            chart = ChartFactory.createPie3DChart
+                (null, pieData, true, false, false);
+            chart.getPlot().setForegroundAlpha(ALPHA);
+        } else {
+            chart = ChartFactory.createPieChart
+                (null, pieData, true, false, false);
+        }
+
+        PiePlot plot = (PiePlot) chart.getPlot();
         if (parameters.get("skipWedgeLabels") != null)
-            plot.setDrawWedgeLabels(false);
+            plot.setSectionLabelType(PiePlot.NO_LABELS);
         else if (parameters.get("wedgeLabelFontSize") != null) try {
             float fontSize =
                 Float.parseFloat(getParameter("wedgeLabelFontSize"));
-            plot.setWedgeLabelFont
-                (plot.getWedgeLabelFont().deriveFont(fontSize));
+            plot.setSeriesLabelFont
+                (plot.getSeriesLabelFont().deriveFont(fontSize));
         } catch (Exception lfe) {}
         if (parameters.get("ellipse") != null)
-            plot.setDrawCircle(false);
+            plot.setCircular(true);
+        else
+            plot.setCircular(false);
 
+        String interiorGap = getParameter("interiorGap");
+        if (interiorGap != null) try {
+            plot.setInteriorGap(Integer.parseInt(interiorGap) / 100.0);
+        } catch (NumberFormatException e) {}
         String interiorSpacing = getParameter("interiorSpacing");
         if (interiorSpacing != null) try {
-            plot.setInteriorSpacing(Integer.parseInt(interiorSpacing));
+            plot.setInteriorGap(Integer.parseInt(interiorSpacing) / 200.0);
         } catch (NumberFormatException e) {}
 
         return chart;

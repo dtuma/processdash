@@ -28,7 +28,6 @@ package pspdash;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.*;
 import java.text.DecimalFormatSymbols;
@@ -37,9 +36,13 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import com.jrefinery.chart.*;
-import com.jrefinery.chart.event.DataSourceChangeListener;
-import com.jrefinery.chart.event.DataSourceChangeEvent;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.Legend;
+import org.jfree.chart.axis.Axis;
+import org.jfree.data.XYDataset;
 
 public class TaskScheduleChart extends JFrame
     implements EVTaskList.RecalcListener, ComponentListener {
@@ -47,10 +50,6 @@ public class TaskScheduleChart extends JFrame
     EVTaskList taskList;
     EVSchedule schedule;
     JTabbedPane tabPane;
-
-    public static Color[] SERIES_COLORS = {
-            Color.red, Color.blue, Color.green, Color.orange, Color.cyan,
-            Color.magenta, Color.yellow, Color.pink, Color.lightGray };
 
     static Resources resources =
         Resources.getDashBundle("pspdash.TaskScheduleChart");
@@ -83,27 +82,33 @@ public class TaskScheduleChart extends JFrame
     public void evRecalculated(EventObject e) {}
 
 
-    private JFreeChartPanel buildTimeChart() {
+    private ChartPanel buildTimeChart() {
         return buildChart(schedule.getTimeChartData());
     }
 
-    private JFreeChartPanel buildValueChart() {
+    private ChartPanel buildValueChart() {
         return buildChart(schedule.getValueChartData());
     }
 
-    private JFreeChartPanel buildCombinedChart() {
+    private ChartPanel buildCombinedChart() {
         return buildChart(schedule.getCombinedChartData());
     }
 
-    private JFreeChartPanel buildChart(XYDataSource data) {
-        JFreeChart chart = JFreeChart.createTimeSeriesChart(data);
-        chart.setTitle((Title) null);
-        chart.setSeriesPaint(SERIES_COLORS);
-        charts[numCharts]   = chart;
+    private ChartPanel buildChart(XYDataset data) {
+        JFreeChart chart = createChart(data);
+        charts[numCharts]    = chart;
         legends[numCharts++] = chart.getLegend();
-        data.addChangeListener(new DataChangeWrapper(chart));
-        JFreeChartPanel panel = new JFreeChartPanel(chart);
+        ChartPanel panel = new ChartPanel(chart);
         return panel;
+    }
+
+    public static JFreeChart createChart(XYDataset data) {
+        JFreeChart chart = ChartFactory.createTimeSeriesChart
+                    (null, null, null, data, true, true, false);
+        RangeXYItemRenderer renderer = new RangeXYItemRenderer();
+        renderer.setSeriesPaint(3, Color.orange);
+        chart.getXYPlot().setRenderer(renderer);
+        return chart;
     }
 
     JFreeChart charts[] = new JFreeChart[3];
@@ -183,15 +188,15 @@ public class TaskScheduleChart extends JFrame
             tabPane.setTitleAt(i, TAB_NAMES[style][i]);
         for (int i=0;   i < charts.length;   i++) {
             charts[i].setLegend(style != FULL ? null : legends[i]);
-            adjustAxis(charts[i].getPlot().getAxis(Plot.HORIZONTAL_AXIS),
+            adjustAxis(charts[i].getXYPlot().getRangeAxis(),
                        style != FULL);
-            adjustAxis(charts[i].getPlot().getAxis(Plot.VERTICAL_AXIS),
+            adjustAxis(charts[i].getXYPlot().getDomainAxis(),
                        style == SHORT);
         }
     }
     private void adjustAxis(Axis a, boolean chromeless) {
-        a.setShowTickLabels(!chromeless);
-        a.setShowTickMarks(!chromeless);
+        a.setTickLabelsVisible(!chromeless);
+        a.setTickMarksVisible(!chromeless);
     }
 
 
@@ -227,21 +232,4 @@ public class TaskScheduleChart extends JFrame
         }
     }
 
-
-
-    // We shouldn't need to have this class, but the JFreeChart code
-    // has a bug.  When the data source is modified, it fails to
-    // correctly resize the chart axes.  It <b>will</b> resize if the
-    // data source is replaced.  So rather than just registering for
-    // change notification, we have to create this intermediary that
-    // listens for data source changes and responds by resetting the
-    // chart's data source.
-
-    private class DataChangeWrapper implements DataSourceChangeListener {
-        JFreeChart chart;
-        public DataChangeWrapper(JFreeChart c) { chart = c; }
-        public void dataSourceChanged(DataSourceChangeEvent event) {
-            chart.setDataSource(chart.getDataSource());
-        }
-    }
 }

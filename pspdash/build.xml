@@ -97,6 +97,9 @@ Authors:
   <property name="ie.cab" value="${build}/Templates/${applet.file}.cab"/>
   <property name="hb.dir" value="${build}/hb"/>
 
+  <property name="jfreechart.jar" value="${lib}/jfreechart-0.9.13.jar"/>
+  <property name="jcommon.jar"    value="${lib}/jcommon-0.8.8.jar"/>
+
 
 
   <property name="build.sysclasspath" value="ignore"/>
@@ -106,7 +109,8 @@ Authors:
     <pathelement location="${build}"/>
     <pathelement location="${lib}/distlib.jar"/>
     <pathelement location="${lib}/jregex.jar"/>
-    <pathelement location="${lib}/jfreechart.jar"/>
+    <pathelement location="${jfreechart.jar}"/>
+    <pathelement location="${jcommon.jar}"/>
   </path>
 
 
@@ -259,20 +263,18 @@ Authors:
 
   <target name="jfreechart" depends="-jfreechart-depend"
           unless="jfreechart.upToDate"
-          description="Compile the jfreechart classes we override.">
+          description="Compile our custom jfreechart plot class.">
     <javac srcdir="${templates}/reports" destdir="${build}"
-           debug="${debug}" classpath="${lib}/jfreechart.jar">
-      <include name="*Plot.java"/>
-      <include name="DataSources.java"/>
+           debug="${debug}" classpath="${jfreechart.jar}">
+      <include name="RadarPlot.java"/>
     </javac>
   </target>
 
   <target name="-jfreechart-depend">
     <uptodate property="jfreechart.upToDate">
-      <srcfiles dir= "${templates}/reports"
-                includes="*Plot.java DataSources.java"/>
+      <srcfiles dir= "${templates}/reports" includes="RadarPlot.java"/>
       <mapper type="glob" from="*.java"
-              to="../../${build}/com/jrefinery/chart/*.class"/>
+              to="../../${build}/org/jfree/chart/plot/*.class"/>
     </uptodate>
   </target>
 
@@ -411,8 +413,7 @@ Authors:
            destdir="${build}/Templates/reports" debug="${debug}"
            classpathref="build.classpath">
       <include name="*.java"/>
-      <exclude name="*Plot.java"/>
-      <exclude name="DataSources.java"/>
+      <exclude name="RadarPlot.java"/>
     </javac>
 
     <!-- make a copy of the excel cgi script so the filename ends in .iqy -->
@@ -445,7 +446,7 @@ Authors:
       </manifest>
 
       <!-- include the compiled files and cgi scripts -->
-      <fileset dir="${build}" includes="com/ pspdash/ Templates/"
+      <fileset dir="${build}" includes="org/ pspdash/ Templates/"
                excludes="Templates/reports/excel.class **/*Test.class"/>
 
       <!-- include important non-class files in the pspdash directory -->
@@ -458,15 +459,8 @@ Authors:
       </fileset>
 
       <!-- include the contents of the libraries we use -->
-      <zipfileset src="${lib}/jfreechart.jar">
-        <exclude name="**/XYPlot.class"/>
-        <exclude name="**/PiePlot.class"/>
-        <exclude name="**/DataSources.class"/>
-        <exclude name="com/jrefinery/util/"/>
-        <exclude name="com/jrefinery/chart/ui/"/>
-        <exclude name="meta-inf/"/>
-        <exclude name="META-INF/"/>
-      </zipfileset>
+      <zipfileset src="${jcommon.jar}"/>
+      <zipfileset src="${jfreechart.jar}"/>
 
       <zipfileset src="${lib}/jregex.jar"    excludes="META-INF/ meta-inf/"/>
       <zipfileset src="${lib}/distlib.jar"

@@ -33,7 +33,15 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import com.jrefinery.chart.*;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.StandardLegend;
+import org.jfree.chart.TextTitle;
+import org.jfree.chart.axis.Axis;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.PlotOrientation;
 
 import pspdash.data.DataRepository;
 import pspdash.data.ResultSet;
@@ -74,27 +82,26 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
 
         chromeless = (parameters.get("chromeless") != null);
         JFreeChart chart = createChart();
-        chart.setSeriesPaint(TaskScheduleChart.SERIES_COLORS);
 
         int width = getIntSetting("width");
         int height = getIntSetting("height");
         Color initGradColor  = getColorSetting("initGradColor");
         Color finalGradColor = getColorSetting("finalGradColor");
-        chart.setChartBackgroundPaint(new GradientPaint
+        chart.setBackgroundPaint(new GradientPaint
             (0, 0, initGradColor, width, height, finalGradColor));
         if (parameters.get("hideOutline") != null)
             chart.getPlot().setOutlinePaint(INVISIBLE);
 
         String title = getSetting("title");
         if (chromeless || title == null || title.length() == 0)
-            chart.setTitle((Title) null);
+            chart.setTitle((TextTitle) null);
         else {
             chart.setTitle(Translator.translate(title));
             String titleFontSize = getSetting("titleFontSize");
             if (titleFontSize != null) try {
                 float fontSize = Float.parseFloat(titleFontSize);
-                StandardTitle t = (StandardTitle) chart.getTitle();
-                t.setTitleFont(t.getTitleFont().deriveFont(fontSize));
+                TextTitle t = chart.getTitle();
+                t.setFont(t.getFont().deriveFont(fontSize));
             } catch (Exception tfe) {}
         }
 
@@ -105,44 +112,49 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
             String legendFontSize = getSetting("legendFontSize");
             if (l != null && legendFontSize != null) try {
                 float fontSize = Float.parseFloat(legendFontSize);
-                l.setSeriesFont(l.getSeriesFont().deriveFont(fontSize));
+                l.setItemFont(l.getItemFont().deriveFont(fontSize));
             } catch (Exception lfe) {}
         }
 
 
-        Axis xAxis = chart.getPlot().getAxis(Plot.HORIZONTAL_AXIS);
-        if (parameters.get("hideTickLabels") != null||
-            parameters.get("hideXTickLabels") != null) {
-            xAxis.setShowTickLabels(false);
-        } else if (parameters.get("tickLabelFontSize") != null ||
-                   parameters.get("xTickLabelFontSize") != null) {
-            String tfs = getParameter("xTickLabelFontSize");
-            if (tfs == null) tfs = getParameter("tickLabelFontSize");
-            float fontSize = Float.parseFloat(tfs);
-            xAxis.setTickLabelFont
-                (xAxis.getTickLabelFont().deriveFont(fontSize));
+
+        Axis xAxis = getHorizontalAxis(chart);
+        if (xAxis != null) {
+            if (parameters.get("hideTickLabels") != null||
+                parameters.get("hideXTickLabels") != null) {
+                xAxis.setTickLabelsVisible(false);
+            } else if (parameters.get("tickLabelFontSize") != null ||
+                       parameters.get("xTickLabelFontSize") != null) {
+                String tfs = getParameter("xTickLabelFontSize");
+                if (tfs == null) tfs = getParameter("tickLabelFontSize");
+                float fontSize = Float.parseFloat(tfs);
+                xAxis.setTickLabelFont
+                    (xAxis.getTickLabelFont().deriveFont(fontSize));
+            }
         }
 
-        Axis yAxis = chart.getPlot().getAxis(Plot.VERTICAL_AXIS);
-        if (parameters.get("hideTickLabels") != null||
-            parameters.get("hideYTickLabels") != null) {
-            yAxis.setShowTickLabels(false);
-        } else if (parameters.get("tickLabelFontSize") != null ||
-                   parameters.get("yTickLabelFontSize") != null) {
-            String tfs = getParameter("yTickLabelFontSize");
-            if (tfs == null) tfs = getParameter("tickLabelFontSize");
-            float fontSize = Float.parseFloat(tfs);
-            yAxis.setTickLabelFont
-                (yAxis.getTickLabelFont().deriveFont(fontSize));
+        Axis yAxis = getVerticalAxis(chart);
+        if (yAxis != null) {
+            if (parameters.get("hideTickLabels") != null||
+                parameters.get("hideYTickLabels") != null) {
+                yAxis.setTickLabelsVisible(false);
+            } else if (parameters.get("tickLabelFontSize") != null ||
+                       parameters.get("yTickLabelFontSize") != null) {
+                String tfs = getParameter("yTickLabelFontSize");
+                if (tfs == null) tfs = getParameter("tickLabelFontSize");
+                float fontSize = Float.parseFloat(tfs);
+                yAxis.setTickLabelFont
+                    (yAxis.getTickLabelFont().deriveFont(fontSize));
+            }
         }
 
         String axisFontSize = getSetting("axisLabelFontSize");
         if (axisFontSize != null) try {
             float fontSize = Float.parseFloat(axisFontSize);
-            Axis a = chart.getPlot().getAxis(Plot.HORIZONTAL_AXIS);
-            a.setLabelFont(a.getLabelFont().deriveFont(fontSize));
-            a = chart.getPlot().getAxis(Plot.VERTICAL_AXIS);
-            a.setLabelFont(a.getLabelFont().deriveFont(fontSize));
+            if (xAxis != null)
+                xAxis.setLabelFont(xAxis.getLabelFont().deriveFont(fontSize));
+            if (yAxis != null)
+                yAxis.setLabelFont(yAxis.getLabelFont().deriveFont(fontSize));
         } catch (Exception afs) {}
 
 
@@ -183,11 +195,35 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
         } catch (Exception e) {}
         return Color.decode(Settings.getVal(SETTING_PREFIX +name));
     }
+    protected static float ALPHA = 1.0f;
+    protected boolean get3DSetting() {
+        String setting = getSetting("3d");
+
+        if ("false".equalsIgnoreCase(setting))
+            return false;
+
+        if ("true".equalsIgnoreCase(setting)) {
+            ALPHA = 1.0f;
+            return true;
+        }
+
+        if (setting != null) try {
+            ALPHA = Float.parseFloat(setting);
+            return true;
+        } catch (Exception e) { }
+
+        ALPHA = 1.0f;
+        return true;
+    }
+
 
     protected void setupCategoryChart(JFreeChart chart) {
 
-        Axis horizAxis = chart.getPlot().getAxis(Plot.HORIZONTAL_AXIS);
-        Axis vertAxis  = chart.getPlot().getAxis(Plot.VERTICAL_AXIS);
+        if (!(chart.getPlot() instanceof CategoryPlot)) return;
+        CategoryPlot cp = chart.getCategoryPlot();
+
+        CategoryAxis catAxis = cp.getDomainAxis();
+        ValueAxis otherAxis  = cp.getRangeAxis();
 
         if (!chromeless) {
             String catAxisLabel = data.getColName(0);
@@ -203,20 +239,12 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
 
             String catLabels = getParameter("categoryLabels");
 
-            if (horizAxis instanceof HorizontalCategoryAxis) {
-                horizAxis.setLabel(catAxisLabel);
-                vertAxis.setLabel(otherAxisLabel);
-                if ("vertical".equalsIgnoreCase(catLabels))
-                    ((HorizontalCategoryAxis) horizAxis)
-                        .setVerticalCategoryLabels(true);
-                else if ("none".equalsIgnoreCase(catLabels))
-                    horizAxis.setShowTickLabels(false);
-            } else {
-                horizAxis.setLabel(otherAxisLabel);
-                vertAxis.setLabel(catAxisLabel);
-                if ("none".equalsIgnoreCase(catLabels))
-                    vertAxis.setShowTickLabels(false);
-            }
+            catAxis.setLabel(catAxisLabel);
+            otherAxis.setLabel(otherAxisLabel);
+            if ("vertical".equalsIgnoreCase(catLabels))
+                catAxis.setVerticalCategoryLabels(true);
+            else if ("none".equalsIgnoreCase(catLabels))
+                catAxis.setTickLabelsVisible(false);
         }
 
         if (data.numCols() == 1) {
@@ -230,4 +258,24 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
 
     /** Create some specific type of chart */
     public abstract JFreeChart createChart();
+
+    protected Axis getHorizontalAxis(JFreeChart chart) {
+        return getAxis(chart, PlotOrientation.HORIZONTAL);
+    }
+
+    protected Axis getVerticalAxis(JFreeChart chart) {
+        return getAxis(chart, PlotOrientation.VERTICAL);
+    }
+
+    protected Axis getAxis(JFreeChart chart, PlotOrientation dir) {
+        try {
+            CategoryPlot p = chart.getCategoryPlot();
+            if (dir.equals(p.getOrientation()))
+                return p.getRangeAxis();
+            else
+                return p.getDomainAxis();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

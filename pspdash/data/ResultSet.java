@@ -25,11 +25,16 @@
 
 package pspdash.data;
 
-import com.jrefinery.chart.CategoryDataSource;
-import com.jrefinery.chart.XYDataSource;
-import com.jrefinery.chart.event.DataSourceChangeListener;
 
 import java.util.*;
+
+import org.jfree.chart.renderer.AbstractCategoryItemRenderer;
+import org.jfree.data.AbstractDataset;
+import org.jfree.data.CategoryDataset;
+import org.jfree.data.DatasetChangeListener;
+import org.jfree.data.DefaultCategoryDataset;
+import org.jfree.data.XYDataset;
+
 import pspdash.data.compiler.Compiler;
 import pspdash.EscapeString;
 import pspdash.Translator;
@@ -678,56 +683,60 @@ public class ResultSet {
     }
 
 
-    private class Category {
-        int rowNum;
-        public Category(int rowNum) { this.rowNum = rowNum; }
-        public String toString() { return asString(data[rowNum][0]); }
+    private class Category implements Comparable {
+        int ordinal;
+        String value;
+        public Category(int ord, String val) {
+            this.ordinal = ord;
+            this.value = val;
+        }
+        public String toString() {
+            return value;
+        }
+        public int compareTo(Object o) {
+            return ((Category) o).ordinal - ordinal;
+        }
+        public boolean equals(Object o) {
+            return ordinal == ((Category) o).ordinal;
+        }
+        public int hashCode() {
+            return ordinal;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////
     // CategoryDataSource
     ////////////////////////////////////////////////////////////////////////
 
-    protected class RSCategoryDataSource implements CategoryDataSource {
-        /** Returns the number of series in the data source. */
-        public int getSeriesCount() { return numCols(); }
-        /** Returns the name of the specified series (zero-based). */
-        public String getSeriesName(int seriesIndex) {
-            return getColName(seriesIndex+1); }
-        /* The following methods are not applicable for us */
-        public void addChangeListener(DataSourceChangeListener listener) {}
-        public void removeChangeListener(DataSourceChangeListener listener) {}
-
-        /** Returns the value for the specified series (zero-based index) and
-         * category. */
-        public Number getValue(int seriesIndex, Object category) {
-            return getNumber(((Category) category).rowNum, seriesIndex+1);
+    protected class RSCategoryDataSource extends DefaultCategoryDataset
+    {
+        RSCategoryDataSource() {
+            for (int row = 1;   row <= numRows();   row++) {
+                Category rowCat = new Category(row, getRowName(row));
+                for (int col = 1;   col <= numCols();   col++) {
+                    Category colCat = new Category(col-1000, getColName(col));
+                    addValue(getNumber(row, col), colCat, rowCat);
+                }
+            }
         }
-        /** Returns a list of the categories in the data source */
-        public List getCategories() {
-            ArrayList result = new ArrayList();
-            for (int row=1;  row <= numRows();  row++)
-                result.add(new Category(row));
-            return result;
-        }
-        /** Returns the number of categories in the data source. */
-        public int getCategoryCount() { return numRows(); }
     }
 
-    public CategoryDataSource catDataSource() {
+    public CategoryDataset catDataSource() {
         ensureOneRow();
         return new RSCategoryDataSource();
     }
 
-    protected class RSXYDataSource implements XYDataSource {
+    protected class RSXYDataSource extends AbstractDataset
+        implements XYDataset
+    {
         /** Returns the number of series in the data source. */
         public int getSeriesCount() { return numCols() - 1; }
         /** Returns the name of the specified series (zero-based). */
         public String getSeriesName(int seriesIndex) {
             return getColName(seriesIndex+2); }
         /* The following methods are not applicable for us */
-        public void addChangeListener(DataSourceChangeListener listener) {}
-        public void removeChangeListener(DataSourceChangeListener listener) {}
+        public void addChangeListener(DatasetChangeListener listener) {}
+        public void removeChangeListener(DatasetChangeListener listener) {}
 
         /** Returns the x-value for the specified series and item */
         public Number getXValue(int seriesIndex, int itemIndex) {
@@ -743,7 +752,7 @@ public class ResultSet {
     }
     private static Double ZERO = new Double(0.0);
 
-    public XYDataSource xyDataSource() {
+    public XYDataset xyDataSource() {
         ensureOneRow();         // ensure SOME data exists.
         sortBy(1, false);       // ensure data is sorted by X, ascending.
         return new RSXYDataSource();
