@@ -24,6 +24,7 @@
 // E-Mail POC:  ken.raisor@hill.af.mil
 
 import com.jrefinery.chart.*;
+import com.jrefinery.chart.PiePlot;
 
 
 public class pie extends pspdash.CGIChartBase {
