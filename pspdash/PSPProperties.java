@@ -276,6 +276,10 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
     }
 
     public Vector load (InputStream propStream) throws IOException {
+        return load(propStream, true);
+    }
+    public Vector load (InputStream propStream, boolean close)
+        throws IOException {
 
         String line;
         Vector v = null;
@@ -299,7 +303,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
                 }
             }
         }
-        in.close();
+        if (close) in.close();
         return v;
     }
 
@@ -515,19 +519,19 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
 
     public String datapath(PropertyKey key) {
 
-        while (key != null)			// walk up the tree until you find
-            if (hasDataFile(pget(key)))	// the first node with a datafile,
-                return key.path();		// and return that node's path.
+        while (key != null)                 // walk up the tree until you find
+            if (hasDataFile(pget(key)))       // the first node with a datafile,
+                return key.path();              // and return that node's path.
             else
                 key = key.getParent();
 
-        return null;		// if no datafile was found in this key's
+        return null;                // if no datafile was found in this key's
                                     // ancestry, return null.
     }
 
     public DefectLogID defectLog(PropertyKey key, String property_directory) {
                                   // walk up the tree until you find the
-        String defectLogFilename;	// first node with a defect log.
+        String defectLogFilename;   // first node with a defect log.
         while (key != null) {
             defectLogFilename = pget(key).getDefectLog();
             if (defectLogFilename != null && defectLogFilename.length() != 0)
@@ -537,7 +541,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         }
 
                                     // if no defect log was found in this key's
-        return null;		// ancestry, return null.
+        return null;                // ancestry, return null.
     }
 
     // gets all the applicable script IDs for the script button

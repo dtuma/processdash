@@ -25,8 +25,7 @@
 
 package pspdash;
 
-
-public class PropertyKey {
+public class PropertyKey implements Comparable {
 
     private static final String ROOT_NAME = "top";
 
@@ -46,7 +45,7 @@ public class PropertyKey {
     }
 
     public int hashCode() {
-        if (myHashCode == null)	// cache value to avoid recomputation
+        if (myHashCode == null)     // cache value to avoid recomputation
             myHashCode = new Integer(key().hashCode());
         return myHashCode.intValue();
     }
@@ -106,7 +105,7 @@ public class PropertyKey {
     }
 
     public String path () {
-        try {			// start 1 char past ROOT (start w/SEPARATOR)
+        try {                       // start 1 char past ROOT (start w/SEPARATOR)
             return key().substring(ROOT_NAME.length());
         } catch (Exception e) {
             return SEPARATOR;
@@ -140,5 +139,11 @@ public class PropertyKey {
 
         return new PropertyKey (parent, name);
     }
+
+    public int compareTo(Object o) {
+        PropertyKey that = (PropertyKey) o;
+        return this.key().compareTo(that.key());
+    }
+
 
 }

@@ -64,7 +64,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     JMenuBar hierarchy_menubar = null;
 
     PSPProperties props;
-    PSPProperties templates = new PSPProperties(null);
+    PSPProperties templates = null;
     DataRepository data = null;
     TinyWebServer webServer = null;
 
@@ -74,7 +74,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
     String starting_dir       = "";
     String property_directory = null;
     String propertiesFile     = DEFAULT_PROP_FILE;
-    String template_directory = null;
     static final String TEMPLATES_FILE = "state";
     PropertyKey currentPhase  = null;
 
@@ -98,11 +97,12 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         // create the data repository.
         data = new DataRepository();
-        template_directory = Settings.getDir("templates.directory", true);
-        data.addDatafileSearchDir(template_directory);
+        templates = TemplateLoader.loadTemplates(data);
 
         // start the http server.
         try {
+            String template_directory =
+                Settings.getDir("templates.directory", true);
             if (template_directory != null)
                 // if the user has specified a Templates directory,
                 // serve http requests out of that directory.
@@ -156,13 +156,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
             debug("read default props failed!");
         } }
 
-        try {
-            if (null == getClass().getResourceAsStream("/Templates/data.js"))
-                debug("Having trouble finding resources...are you using JRE 1.3?");
-        } catch (Exception resTestExcp) {
-            debug("Having trouble finding resources...are you using JRE 1.3?");
-        }
-
         // open all the datafiles that were specified in the properties file.
         try {
             if (v != null) {
@@ -173,14 +166,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
                 }
             }
         }catch (Exception e) { debug("open datafiles failed!"); };
-
-        try {
-            if (template_directory != null)
-                templates.load(template_directory + TEMPLATES_FILE);
-            else
-                templates.load(getClass().getResourceAsStream
-                               (TEMPLATES_CLASSPATH + "/" + TEMPLATES_FILE));
-        } catch (Exception e) { debug("template read failed!"); };
 
         configure_button = new ConfigureButton(this);
         pause_button = new PauseButton(this);
@@ -253,10 +238,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
     public String getDirectory() {
         return (property_directory != null) ? property_directory : "";
-    }
-
-    public String getTemplateDirectory() {
-        return (template_directory != null) ? template_directory : "";
     }
 
     public PSPProperties getProperties() {
