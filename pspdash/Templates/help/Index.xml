@@ -72,6 +72,7 @@
  <indexitem text="reused objects" target="UsingSizeEstimatingTemplate.reusedObjects"/>
  <indexitem text="script button" target="AccessingScripts">
   <indexitem text="pull down" target="AccessingScripts.pullDown"/>
+  <indexitem text="script browser" target="AccessingScripts.scriptBrowser"/>
  </indexitem>
  <indexitem text="significance" target="UsingProbeTool.significance"/>
  <indexitem text="size estimating template" target="UsingSizeEstimatingTemplate"/>
@@ -79,6 +80,7 @@
  <indexitem text="time log" target="UsingTimeLogEditor">
   <indexitem text="date filter" target="UsingTimeLogEditor.dateFilter"/>
   <indexitem text="summarize" target="UsingTimeLogEditor.summarize"/>
+  <indexitem text="time card view" target="UsingTimeLogEditor.TimeCardView"/>
   <indexitem text="updateInterval" target="ConfigurationFile.timelog.updateInterval"/>
  </indexitem>
  <indexitem text="timer, dashboard" target="PlayPause">
