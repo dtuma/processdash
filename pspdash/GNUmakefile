@@ -41,6 +41,9 @@ CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
 CGI_JAVA=Templates/psp1/sizeest.java
 CGI_CLASSES=$(subst .java,.class,$(CGI_JAVA))
 
+# build platform dependency
+BUILD_PLATFORM ?= CYGWIN
+
 ######################################################################
 # targets
 ######################################################################

@@ -97,6 +97,6 @@ com/oroinc/text/perl/Perl5Util.class: PerlTools.jar
 
 clean:
 	rm -f pspdash.jar *~
-	rm -rf pspdash Templates
+	rm -rf pspdash Templates com
 
 FORCE:

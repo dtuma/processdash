@@ -38,6 +38,12 @@ MSJAVAC ?= //C/java/ms/SDK4.0/bin/jvc.exe
 JAVAC   ?= //C/java/sun/jdk1.2.2/bin/javac.exe
 JAR     ?= //C/java/sun/jdk1.2.2/bin/jar.exe
 
+# where are the MS specific jars?
+MSJARS  ?= ../../msjars
+
+# build platform dependency
+BUILD_PLATFORM ?= CYGWIN
+
 # If using javac from JDK1.3, we need these dependencies.  They won't get 
 # automatically compiled even though they are explicitly imported by 
 # ValueFactory.
@@ -63,6 +69,7 @@ data: DataRepository.class $(EXTRAS)
 
 
 IE:
+ifeq ($(BUILD_PLATFORM),CYGWIN)
 	mkdir -p $(BIN_IE)
 	rm -rf $(BIN_IE)/pspdash
 	$(MSJAVAC) \
@@ -82,7 +89,25 @@ IE:
 	    /d $(BIN_DATA) \
 	    OLEDBListenerWrapper.java \
 	    OLEDBDSLWrapper.java
-
+else
+	mkdir -p $(BIN_IE)
+	rm -rf $(BIN_IE)/pspdash
+	$(JAVAC) \
+	    -classpath $(SRC):$(MSJARS)/msclasseszip.jar:$(MSJARS)/msospclasses.jar:$(MSJARS)/mswfcclasses.jar \
+	    -d $(BIN_IE) \
+	    IEDataApplet.java \
+	    IEFieldManager.java \
+	    OLEDBAlertWindow.java \
+	    ../Settings.java \
+	    ../DateFormatter.java
+	rm -f $(BIN_IE)/pspdash/data/OLEDBDSLWrapper.class \
+	      $(BIN_IE)/pspdash/data/OLEDBListenerWrapper.class
+	$(JAVAC) \
+	    -classpath $(SRC):$(MSJARS)/msclasseszip.jar:$(MSJARS)/msospclasses.jar:$(MSJARS)/mswfcclasses.jar \
+	    -d $(BIN_DATA) \
+	    OLEDBListenerWrapper.java \
+	    OLEDBDSLWrapper.java
+endif
 
 NS:
 	mkdir -p $(BIN_NS)
@@ -96,9 +121,9 @@ NS:
 
 
 clean:
-	rm -rf $(BIN_DATA)/pspdash/data
-	rm -rf $(BIN_IE)/pspdash
-	rm -rf $(BIN_NS)/pspdash
+	rm -rf $(BIN_DATA)/pspdash
+	rm -rf $(BIN_IE)
+	rm -rf $(BIN_NS)
 
 
 new: clean all
