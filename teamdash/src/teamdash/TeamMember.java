@@ -1,10 +1,11 @@
 
-
 package teamdash;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
 
@@ -12,7 +13,6 @@ import pspdash.XMLUtils;
 
 
 /** Holds information about a individual member of a project team.
- * 
  */
 public class TeamMember implements Cloneable {
 
@@ -31,7 +31,7 @@ public class TeamMember implements Cloneable {
     /** public TeamMember() { } */
 
     /** Create a new team member.
-     * 
+     *
      * A default time allocation of 20 hours per week will be used.
      * @param name the name of the individual
      * @param initials the person's initials
@@ -77,7 +77,14 @@ public class TeamMember implements Cloneable {
 
     // getter/setter for the initials property.
     public String getInitials() { return initials; }
-    public void setInitials(String initials) { this.initials = trim(initials); }
+    public void setInitials(String initials) {
+        Matcher m = LETTERS.matcher(initials);
+        StringBuffer result = new StringBuffer();
+        while (m.find())
+            result.append(m.group());
+        this.initials = trim(result.toString());
+    }
+    private static final Pattern LETTERS = Pattern.compile("[a-zA-Z]+");
 
     // getter/setter for the color property.
     public Color getColor() {
@@ -127,7 +134,7 @@ public class TeamMember implements Cloneable {
 
     /** Look to see if this team member is similar to another team member
      * object.
-     * 
+     *
      * @param that another team member object to compare to.
      * @param considerInitials if true, this method will take the initials into
      * consideration during the comparison.
