@@ -14,6 +14,7 @@ import
 Import-template.xml
 PSP1_0_1.template
 psp1.0.1
+PSP1_0_1-template.xml
 dataFileCheck.pl
 batchEdit.pl
 text
