@@ -1,7 +1,7 @@
 = Defect Removal Profile query
 
 title=Defect Removal Profile
-for==[DRP_Phase_List]
+for==[/<!--#echo var='Process_ID' encoding='data' -->/DRP_Phase_List]
 categoryLabels=vertical
 units==Defects/KLOC
 headerComment==(Defects/KLOC)
