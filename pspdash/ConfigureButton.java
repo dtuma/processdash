@@ -63,6 +63,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static final String TASK_DIALOG      = "Task & Schedule";
     static final String DATA_ANALYSIS    = "Data Analysis";
     static final String IMPORT_EXPORT    = "Export";
+    static final String CONSOLE_WINDOW   = "Console Window";
     static final String HELP_FRAME       = "Help";
     static final String ABOUT_DIALOG     = "About";
     static final String EXIT_PROGRAM     = "Exit";
@@ -73,9 +74,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         { TIME_LOG_FRAME,   "UsingTimeLogEditor" },
         { DEFECT_LOG_FRAME, "UsingDefectLogEditor" },
         { PROBE_DIALOG,     "UsingProbeTool" },
-        { TASK_DIALOG, "TaskAndSchedule???" }, // disabled
+        { TASK_DIALOG,      "TaskAndSchedule???" },
         { DATA_ANALYSIS,    "DataChartsAndReports" },
         { IMPORT_EXPORT,    "ExportingData" },
+        { CONSOLE_WINDOW,   null },
         { HELP_FRAME,       null },
         { ABOUT_DIALOG,     null },
         { EXIT_PROGRAM,     null } };
@@ -202,6 +204,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void startDataAnalysis() { Browser.launch(ANALYSIS_URL); }
 
+    public void showConsole() { parent.consoleWindow.show(); }
+
     public void startHelp() { PCSH.displayHelpTopic("QuickOverview"); }
 
     public void startAboutDialog() { new AboutDialog(parent, ABOUT_URL); }
@@ -230,6 +234,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             startDataAnalysis ();
         } else if (cmd.equals(IMPORT_EXPORT)) {
             startImportExport ();
+        } else if (cmd.equals(CONSOLE_WINDOW)) {
+            showConsole ();
         } else if (cmd.equals(HELP_FRAME)) {
             startHelp ();
         } else if (cmd.equals(ABOUT_DIALOG)) {
