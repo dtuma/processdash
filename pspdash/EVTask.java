@@ -71,6 +71,7 @@ public class EVTask implements DataListener {
      * of effort.
      */
     double planLevelOfEffort = NOT_LEVEL_OF_EFFORT;
+    double rollupLevelOfEffort = 0;
 
     public static final int NOT_LEVEL_OF_EFFORT = -1;
     public static final int ANCESTOR_LEVEL_OF_EFFORT = 0;
@@ -306,16 +307,11 @@ public class EVTask implements DataListener {
         fullName = (parentName == null ? "" : parentName + "/" + name);
 
         planValue = EVSchedule.getXMLNum(e, "pt");
-        if (e.hasAttribute("ptt"))
-            planTime = EVSchedule.getXMLNum(e, "ptt");
-        else
-            planTime = planValue;
+        planTime = EVSchedule.getXMLNum(e, "ptt", planValue);
         topDownPlanTime = bottomUpPlanTime = planTime;
         actualTime = EVSchedule.getXMLNum(e, "at");
-        if (e.hasAttribute("adt"))
-            actualDirectTime = EVSchedule.getXMLNum(e, "adt");
-        else
-            actualDirectTime = actualTime;
+        actualDirectTime = EVSchedule.getXMLNum(e, "adt", actualTime);
+        actualCurrentTime = EVSchedule.getXMLNum(e, "act", actualTime);
         planDate = EVSchedule.getXMLDate(e, "pd");
         dateCompleted = EVSchedule.getXMLDate(e, "cd");
         if (e.hasAttribute("loe"))
@@ -620,7 +616,10 @@ public class EVTask implements DataListener {
     public String getFullName() { return fullName; }
     public String getPlanTime() {
         if (planLevelOfEffort == ANCESTOR_LEVEL_OF_EFFORT) return "";
-        else if (planLevelOfEffort > 0) return formatPercent(planLevelOfEffort);
+        else if (rollupLevelOfEffort > 0)
+            return formatPercent(rollupLevelOfEffort);
+        else if (planLevelOfEffort > 0)
+            return formatPercent(planLevelOfEffort);
         else return formatTime(planTime);
     }
     public String getPlanDirectTime() {
@@ -1075,6 +1074,8 @@ public class EVTask implements DataListener {
             result.append("' ptt='").append(planTime);
         if (actualTime != actualDirectTime)
             result.append("' adt='").append(actualDirectTime);
+        if (actualCurrentTime != actualTime)
+            result.append("' act='").append(actualCurrentTime);
         if (planDate != null)
             result.append("' pd='").append(EVSchedule.saveDate(planDate));
         if (dateCompleted != null)

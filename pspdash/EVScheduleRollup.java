@@ -272,6 +272,8 @@ public class EVScheduleRollup extends EVSchedule {
         }
     }
 
+
+
     public Date getHypotheticalDate(double cumPlanTime) {
         if (!calcHypotheticalDates) return null;
 

@@ -158,6 +158,22 @@ public class EVTaskListRollup extends EVTaskList {
         evTaskLists.insertElementAt(taskList, pos-1);
     }
 
+    protected void fireEvRecalculated() {
+        if (someoneCares()) {
+            EVTask rootTask = (EVTask) root;
+            int size = rootTask.getNumChildren();
+            int[] childIndexes = new int[size];
+            Object[] children = new Object[size];
+            while (size-- > 0) {
+                childIndexes[size] = size;
+                children[size] = rootTask.getChild(size);
+            }
+            fireTreeStructureChanged(this, rootTask.getPath(),
+                                     childIndexes, children);
+        }
+        super.fireEvRecalculated();
+    }
+
 
 
     public static boolean validName(String taskListName) {

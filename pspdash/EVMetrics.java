@@ -610,6 +610,7 @@ public class EVMetrics implements TableModel {
             .append("' evt='").append(earnedValueTime)
             .append("' at='").append(actualTime)
             .append("' pt='").append(planTime)
+            .append("' it='").append(indirectTime)
             .append("' start='").append(EVSchedule.saveDate(startDate))
             .append("' eff='").append(EVSchedule.saveDate(currentDate))
             .append("'");
@@ -619,6 +620,7 @@ public class EVMetrics implements TableModel {
         earnedValueTime = EVSchedule.getXMLNum(e, "evt");
         actualTime      = EVSchedule.getXMLNum(e, "at");
         planTime        = EVSchedule.getXMLNum(e, "pt");
+        indirectTime    = EVSchedule.getXMLNum(e, "it");
         startDate       = EVSchedule.getXMLDate(e, "start");
         currentDate     = EVSchedule.getXMLDate(e, "eff");
     }

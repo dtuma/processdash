@@ -391,6 +391,7 @@ public class EVSchedule implements TableModel {
         recalcCumPlanTimes();
         recalcCumActualTimes();
         setEffectiveDate(getXMLDate(e, "eff"));
+        setLevelOfEffort(getXMLNum(e, "loe"));
         metrics.recalcComplete(this);
     }
 
@@ -463,7 +464,16 @@ public class EVSchedule implements TableModel {
     static String saveDate(Date d) { return "@" + d.getTime(); }
     static Date parseDate(String d) {
         if (!d.startsWith("@")) throw new IllegalArgumentException();
-        return new Date(Long.parseLong(d.substring(1)));
+        long when = Long.parseLong(d.substring(1));
+        if (when == 0) return A_LONG_TIME_AGO;
+        if (when == Long.MAX_VALUE) return NEVER;
+        return new Date(when);
+    }
+    static double getXMLNum(Element e, String attrName, double defVal) {
+        if (e.hasAttribute(attrName))
+            return getXMLNum(e, attrName);
+        else
+            return defVal;
     }
     static double getXMLNum(Element e, String attrName) {
         try {
@@ -481,6 +491,8 @@ public class EVSchedule implements TableModel {
     public synchronized void saveToXML(StringBuffer result) {
         result.append("<schedule");
         metrics.saveToXML(result);
+        if (directPercentage != 1.0)
+            result.append(" loe='").append(1.0-directPercentage).append("'");
         result.append(">");
         Iterator i = periods.iterator();
         while (i.hasNext())
@@ -670,6 +682,9 @@ public class EVSchedule implements TableModel {
             toolTips[PLAN_TIME_COLUMN] = TOOL_TIPS[PLAN_DTIME_COLUMN];
             toolTips[TIME_COLUMN] = TOOL_TIPS[DTIME_COLUMN];
         }
+    }
+    public double getLevelOfEffort() {
+        return 1.0 - directPercentage;
     }
 
     private Date effectiveDate = null;

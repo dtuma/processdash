@@ -26,6 +26,9 @@
 
 package pspdash;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 public class EVCalculatorRollup extends EVCalculator {
@@ -60,6 +63,9 @@ public class EVCalculatorRollup extends EVCalculator {
         // Recalculate the root node.
         recalcRollupNode();
 
+        // adjust level of effort percentages
+        calculateLevelOfEffort();
+
         // Recalculate the rollup schedule.
         schedule.recalc();
     }
@@ -93,6 +99,62 @@ public class EVCalculatorRollup extends EVCalculator {
         }
 //        if (taskRoot.dateCompleted == EVSchedule.A_LONG_TIME_AGO)
 //            taskRoot.dateCompleted = null;
+    }
+
+    private void calculateLevelOfEffort() {
+        double rTotalTime = 0;
+        double rIndirectTime = 0;
+        Iterator i = evTaskLists.iterator();
+        while (i.hasNext()) {
+            EVSchedule s = ((EVTaskList) i.next()).getSchedule();
+            double sDirectTime = s.getMetrics().totalPlan();
+            double sLOE = s.getLevelOfEffort();
+            double sTotalTime = sDirectTime / (1 - sLOE);
+            if (!Double.isInfinite(sTotalTime) && !Double.isNaN(sTotalTime)) {
+                rTotalTime += sTotalTime;
+                rIndirectTime += (sTotalTime * sLOE);
+            }
+        }
+
+        if (rTotalTime == 0 || rIndirectTime == 0)
+            schedule.setLevelOfEffort(0);
+        else
+            schedule.setLevelOfEffort(rIndirectTime / rTotalTime);
+
+        i = evTaskLists.iterator();
+        while (i.hasNext()) {
+            EVTaskList tl = (EVTaskList) i.next();
+            EVSchedule s = tl.getSchedule();
+            double sDirectTime = s.getMetrics().totalPlan();
+            double sLOE = s.getLevelOfEffort();
+            double sTotalTime = sDirectTime / (1 - sLOE);
+            double sFraction = sTotalTime / rTotalTime;
+            if (!Double.isInfinite(sFraction) && !Double.isNaN(sFraction))
+                scaleLevelOfEffort((EVTask) tl.getRoot(), sFraction);
+        }
+    }
+
+    private void scaleLevelOfEffort(EVTask task, double ratio) {
+        if (task.isLevelOfEffortTask())
+            task.rollupLevelOfEffort = task.planLevelOfEffort * ratio;
+        else
+            task.rollupLevelOfEffort = -1;
+
+        for (int i = task.getNumChildren();   i-- > 0;  )
+            scaleLevelOfEffort(task.getChild(i), ratio);
+    }
+
+    public List getEVLeaves() {
+        if (evLeaves == null) {
+            evLeaves = new ArrayList();
+            Iterator i = evTaskLists.iterator();
+            while (i.hasNext()) {
+                EVTaskList taskList = (EVTaskList) i.next();
+                evLeaves.addAll(taskList.calculator.getEVLeaves());
+            }
+        }
+
+        return evLeaves;
     }
 
 }
