@@ -9,20 +9,36 @@
 <P>You can use the time log editor to correct mistakes you might make when 
 timing your activities.</P>
 
-<p><img src="../../Images/TimeLogEditor.jpg"></p>
+<p><img src="../../Images/TimeLogEditor.png"></p>
 
-<h3>Project hierarchy</h3>
+<h2>Project hierarchy</h2>
 <P>The left pane shows the current project hierarchy.  Picking various 
 branches on the hierarchy will limit the time entries displayed to just those 
 on the branch chosen.</P>
 
-<h3>Date filter</h3>
-<P>The two entries on the top labeled filter provide a date filtering on the 
-time entries display.  The format of the date entry depends upon Java 
-localization settings, which can be overridden by an entry in the 
-configuration file.</P>
+<h2>Date filter</h2>
+<P>Above the split pane is a set of controls that provide a date filtering on 
+the time entries display.  Once the desired span of dates has been chosen, 
+clicking the "Apply Filter" button will restrict the data shown to the range 
+of dates specified.</p>
 
-<h3>Time entries</h3>
+<P>The Apply Filter button has a pulldown control that provides for several 
+common date filters.</p>
+
+<p><img src="../../Images/ShowTimeLogFilterPullDown.png"></p>
+
+<P>To the left of the "From" entry box and the right of the "To" entry box 
+are double arrowed buttons.  These buttons will jump the date filtering 
+forward and backward by a unit of time equal to the current filtering date 
+range.  For example, if you have filtered the data in the Time Log such that 
+only one week of data is showing, pressing these buttons will cause the 
+filtering to move backward or forward by one week at a time.</p>
+
+<P>The "From" and "To" entry boxes are places where specific dates can be 
+entered.  The format of the date entry depends upon Java localization 
+settings, which can be overridden by an entry in the configuration file.</P>
+
+<h2>Time entries</h2>
 <P>To change data in the time entries, just pick on the element that you 
 would like to change.  The elements in the time entries pane are editable.  
 The "Logged To" column shows the process phase to which the time was logged.  
@@ -32,7 +48,7 @@ changes with the original entries if they are accidentally changed.  The
 shows the length of time spent in the activity.  The "Int" column shows the 
 amount of time that the given activity was interrupted.</P>
 
-<h3>Control buttons</h3>
+<h2>Control buttons</h2>
 <P>The Add and Delete buttons allow the addition and deletion of time 
 entries.</P>
 
