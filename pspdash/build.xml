@@ -3,7 +3,7 @@
 <!-- ===================================================================
 
 PSP Dashboard - Data Automation Tool for PSP-like processes
-Copyright (C) 1999  United States Air Force
+Copyright (C) 2003 Software Process Dashboard Initiative
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@ Attn: PSP Dashboard Group
 6137 Wardleigh Road
 Hill AFB, UT 84056-5843
 
-E-Mail POC:  ken.raisor@hill.af.mil
+E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 ========================================================================
 
@@ -115,7 +115,7 @@ Authors:
     <path refid="build.classpath"/>
     <pathelement location="${lib}/PerlTools.jar"/>
   </path>
-    
+
 
 
   <target name="init">
@@ -148,7 +148,7 @@ Authors:
 
     <!-- javac srcdir="${src}" destdir="${build}" debug="${debug}"
            classpathref="build.perl.classpath"
-	   includes="pspdash/Perl5Util.java"/ -->
+           includes="pspdash/Perl5Util.java"/ -->
 
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
@@ -168,10 +168,10 @@ Authors:
 
   <target name="javahelp-broker" depends="compile" if="javahelp.jhjar"
           description="Compile the built-in context-sensitive help support">
-    <javac srcdir="${src}" destdir="${build}" debug="${debug}"> 
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}">
        <classpath>
          <path refid="build.classpath"/>
-	 <pathelement location="${javahelp.jhjar}"/>
+         <pathelement location="${javahelp.jhjar}"/>
        </classpath>
        <include name="pspdash/DashHelpBroker.java"/>
     </javac>
@@ -183,11 +183,11 @@ Authors:
           description="Compile the add-on context-sensitive help support">
     <!-- compile the bootstrap cgi script -->
     <mkdir dir="${build}/Templates/help"/>
-    <javac srcdir="${templates}/help" destdir="${templates}/help" 
+    <javac srcdir="${templates}/help" destdir="${templates}/help"
            debug="${debug}">
        <classpath>
          <path refid="build.classpath"/>
-	 <pathelement location="${javahelp.jhjar}"/>
+         <pathelement location="${javahelp.jhjar}"/>
        </classpath>
        <include name="createBroker.java"/>
     </javac>
@@ -196,17 +196,17 @@ Authors:
     <jar destfile="${build}/dashHelp.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
-	<attribute name="Dash-Pkg-ID" value="DashHelp"/>
-	<attribute name="Dash-Pkg-Version" value="1.0"/>
-	<attribute name="Dash-Pkg-Name"
-		   value="JavaHelp&#x2122; from Sun Microsystems"/>
-	<attribute name="Dash-Pkg-URL"
-	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
+        <attribute name="Dash-Pkg-ID" value="dashHelp"/>
+        <attribute name="Dash-Pkg-Version" value="1.0"/>
+        <attribute name="Dash-Pkg-Name"
+                   value="JavaHelp(TM) from Sun Microsystems"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
       </manifest>
 
       <!-- include the bootstrap cgi script -->
       <fileset dir="${templates}/.."
-      	       includes="Templates/help/createBroker.class"/>
+               includes="Templates/help/createBroker.class"/>
 
       <!-- include the contents of the javahelp distribution -->
       <zipfileset src="${javahelp.jhjar}" excludes="META-INF/ meta-inf/"/>
@@ -239,15 +239,15 @@ Authors:
           description="Check to see if the parser needs regenerating.">
     <uptodate property="parser.upToDate"
               srcfile="${compiler}/grammar.txt"
-	      targetfile="${compiler}/parser/Parser.java"/>
+              targetfile="${compiler}/parser/Parser.java"/>
   </target>
 
 
 
   <target name="jfreechart" depends="-jfreechart-depend"
-  	  unless="jfreechart.upToDate"
+          unless="jfreechart.upToDate"
           description="Compile the jfreechart classes we override.">
-    <javac srcdir="${templates}/reports" destdir="${build}" 
+    <javac srcdir="${templates}/reports" destdir="${build}"
            debug="${debug}" classpath="${lib}/jfreechart.jar">
       <include name="*Plot.java"/>
       <include name="DataSources.java"/>
@@ -310,7 +310,7 @@ Authors:
     </copy>
   </target>
 
-  <property name="plug.path" 
+  <property name="plug.path"
             value="Templates/help/Topics/Troubleshooting/DataApplet"/>
   <property name="plug.dir"     value="${pspdash}/${plug.path}"/>
   <property name="plug.destdir" value="${build}/${plug.path}"/>
@@ -335,7 +335,7 @@ Authors:
   <target name="-PluginRedirector-depend" depends="init">
     <uptodate property="PluginRedirector.upToDate"
               srcfile="${plug.dir}/SunPlugin.java"
-	      targetfile="${plug.jar}"/>
+              targetfile="${plug.jar}"/>
   </target>
 
 
@@ -361,32 +361,32 @@ Authors:
     <mkdir dir="${build}/Templates/psp3"/>
     <javac srcdir="${templates}/psp3" destdir="${build}/Templates/psp3"
            classpathref="build.classpath" debug="${debug}"
-	   includes="cyclesum.java"/>
+           includes="cyclesum.java"/>
 
     <!-- compile the generic plan summary form -->
     <mkdir dir="${build}/Templates/generic"/>
     <javac srcdir="${templates}/generic" destdir="${build}/Templates/generic"
            classpathref="build.classpath" debug="${debug}"
-	   includes="summary.java"/>
+           includes="summary.java"/>
 
     <!-- compile the cgi scripts in the "control" subdirectory -->
     <mkdir dir="${build}/Templates/control"/>
     <javac srcdir="${templates}/control" destdir="${build}/Templates/control"
            classpathref="build.classpath" debug="${debug}"
-	   includes="*.java"/>
+           includes="*.java"/>
 
     <!-- compile the cgi scripts in the "dash" subdirectory -->
     <mkdir dir="${build}/Templates/dash"/>
     <javac srcdir="${templates}/dash" destdir="${build}/Templates/dash"
            classpathref="build.classpath" debug="${debug}"
-	   includes="*.java"/>
+           includes="*.java"/>
 
     <!-- compile the cgi scripts in the "reports/psp" subdirectory -->
     <mkdir dir="${build}/Templates/reports/psp"/>
     <javac srcdir="${templates}/reports/psp"
            destdir="${build}/Templates/reports/psp"
            classpathref="build.classpath" debug="${debug}"
-	   includes="*.java"/>
+           includes="*.java"/>
 
     <!-- compile the probe wizard -->
     <mkdir dir="${build}/Templates/reports/probe"/>
@@ -425,11 +425,11 @@ Authors:
       <!-- specify the manifest file contents -->
       <manifest>
         <attribute name="Main-Class" value="pspdash.PSPDashboard"/>
-	<attribute name="Dash-Pkg-ID" value="pspdash"/>
-	<attribute name="Dash-Pkg-Version" value="${version}"/>
-	<attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
-	<attribute name="Dash-Pkg-URL"
-	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
+        <attribute name="Dash-Pkg-ID" value="pspdash"/>
+        <attribute name="Dash-Pkg-Version" value="${version}"/>
+        <attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
       </manifest>
 
       <!-- include the compiled files and cgi scripts -->
@@ -442,18 +442,18 @@ Authors:
       <!-- include the template files -->
       <fileset dir="${pspdash}">
         <include name="Templates/"/>
-	<excludesfile name="${lib}/fileset-template-ignore.txt"/>
+        <excludesfile name="${lib}/fileset-template-ignore.txt"/>
       </fileset>
 
       <!-- include the contents of the libraries we use -->
       <zipfileset src="${lib}/jfreechart.jar">
         <exclude name="**/XYPlot.class"/>
-	<exclude name="**/PiePlot.class"/>
-	<exclude name="**/DataSources.class"/>
-	<exclude name="com/jrefinery/util/"/>
-	<exclude name="com/jrefinery/chart/ui/"/>
-	<exclude name="meta-inf/"/>
-	<exclude name="META-INF/"/>
+        <exclude name="**/PiePlot.class"/>
+        <exclude name="**/DataSources.class"/>
+        <exclude name="com/jrefinery/util/"/>
+        <exclude name="com/jrefinery/chart/ui/"/>
+        <exclude name="meta-inf/"/>
+        <exclude name="META-INF/"/>
       </zipfileset>
 
       <!-- zipfileset src="${lib}/PerlTools.jar" excludes="META-INF/ meta-inf/"/ -->
@@ -470,7 +470,7 @@ Authors:
   <!-- =================================================================== -->
   <!-- Update the JavaHelp                                                 -->
   <!-- =================================================================== -->
-  <target name="javahelp" 
+  <target name="javahelp"
           depends="init,-javahelp-depend,-javahelp-index,-javahelp-book"/>
 
   <!-- invoke the jhindexer -->
@@ -488,7 +488,7 @@ Authors:
     <pathconvert property=".jhfilelist" pathsep=":" dirsep="/">
       <path>
         <fileset dir="${help}" includes="Topics/**/*.html"
-	 excludes="Topics/Overview/disc-eng.html"/>
+         excludes="Topics/Overview/disc-eng.html"/>
       </path>
     </pathconvert>
     <echo message="${.jhfilelist}" file="${help}/help.config"/>
@@ -551,7 +551,7 @@ Authors:
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
   </target>
-    
+
 </project>
 
 <!--
@@ -562,24 +562,24 @@ Still missing items:
 From pspdash/GNUmakefile:
 
 SCR_DCR_FILES=Templates/SCR.globalData \
-	Templates/SCR.template \
-	Templates/DCR.template \
-	Templates/Insp.template \
-	Templates/SCR/*.* \
-	Templates/SCRcycle/*.* \
-	Templates/DCR/*.* \
-	Templates/Inspection/*.*
+        Templates/SCR.template \
+        Templates/DCR.template \
+        Templates/Insp.template \
+        Templates/SCR/*.* \
+        Templates/SCRcycle/*.* \
+        Templates/DCR/*.* \
+        Templates/Inspection/*.*
 
 add-on-scripts: build/SCR-DCR.jar
 
 build/SCR-DCR.jar: Templates/SCR/manifest $(SCR_DCR_FILES)
-	$(JAR) cfm build/SCR-DCR.jar Templates/SCR/manifest $(SCR_DCR_FILES)
+        $(JAR) cfm build/SCR-DCR.jar Templates/SCR/manifest $(SCR_DCR_FILES)
 
 DISABLED_WARNINGS=directory-index,img-alt,extension-attribute,extension-markup,attribute-delimiter
 
 weblint:
-	weblint -d $(DISABLED_WARNINGS) Templates | \
-	grep -v -f weblint-ignore
+        weblint -d $(DISABLED_WARNINGS) Templates | \
+        grep -v -f weblint-ignore
 
 
 -->
