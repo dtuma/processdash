@@ -30,10 +30,12 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
 import javax.swing.event.*;
+import javax.swing.plaf.metal.MetalIconFactory;
 import javax.swing.table.*;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -537,7 +539,9 @@ public class TaskScheduleDialog
 
         private Font regular = null, bold = null;
 
-        public TaskJTreeTableCellRenderer(TreeCellRenderer r) { super(); }
+        public TaskJTreeTableCellRenderer(TreeCellRenderer r) {
+            super();
+        }
         private Font getFont(boolean bold, Component c) {
             if (this.regular == null) {
                 Font base = c.getFont();
@@ -584,10 +588,12 @@ public class TaskScheduleDialog
             String errorStr = null;
 
             TreePath path = tree.getPathForRow(row);
+            EVTask node = null;
             if (path != null && model != null)
                 errorStr = ((EVTaskList) model).getErrorStringAt
-                    (path.getLastPathComponent(),
+                    (node = (EVTask) path.getLastPathComponent(),
                      EVTaskList.TASK_COLUMN);
+
 
             if (result instanceof JComponent)
                 ((JComponent) result).setToolTipText(errorStr);
@@ -597,7 +603,124 @@ public class TaskScheduleDialog
             Font f = getFont(errorStr != null, result);
             if (f != null) result.setFont(f);
 
+            if (node != null && node.isUserPruned()) {
+                result.setEnabled(false);
+                if (result instanceof JLabel)
+                    ((JLabel) result).setDisabledIcon(getPrunedIcon(expanded, leaf));
+            }
+
             return result;
+        }
+        private Icon prunedOpenIcon = null;
+        private Icon prunedClosedIcon = null;
+        private Icon prunedLeafIcon = null;
+
+        private Icon getPrunedIcon(boolean expanded, boolean leaf) {
+            if (leaf) {
+                if (prunedLeafIcon == null)
+                    prunedLeafIcon = pruneIcon(getLeafIcon(), getDefaultLeafIcon(), 8);
+                return prunedLeafIcon;
+            } else if (expanded) {
+                if (prunedOpenIcon == null)
+                    prunedOpenIcon = pruneIcon(getOpenIcon(), getDefaultOpenIcon(), 8);
+                return prunedOpenIcon;
+            } else {
+                if (prunedClosedIcon == null)
+                    prunedClosedIcon = pruneIcon(getClosedIcon(), getDefaultClosedIcon(), 8);
+                return prunedClosedIcon;
+            }
+        }
+        private Icon pruneIcon(Icon icon, Icon alt, int y) {
+            if (icon == null) icon = alt;
+            if (icon == null) return null;
+            BufferedIcon result = new BufferedIcon(this, icon);
+//            result.applyFilter(new GrayFilter(true, 85));
+            result.applyFilter(PHANTOM_FILTER);
+            result.setDecorator(new PruneDecorationIcon(), y);
+            return result;
+        }
+    }
+
+    private static class BufferedIcon implements Icon {
+        protected Image image = null;
+        protected int width = 16, height = 16;
+        protected Icon decoration = null;
+        private int decorationOffset = 0;
+
+        public BufferedIcon() {}
+
+        public BufferedIcon(Component c, Icon originalIcon) {
+            width = originalIcon.getIconWidth();
+            height = originalIcon.getIconHeight();
+            image = new BufferedImage(width, height,
+                                      BufferedImage.TYPE_INT_ARGB);
+            Graphics imageG = image.getGraphics();
+            originalIcon.paintIcon(c, imageG, 0, 0);
+            imageG.dispose();
+        }
+
+        public int getIconWidth() { return width; }
+        public int getIconHeight() { return height; }
+        protected void doPaint(Component c, Graphics g) {}
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            if (image == null) {
+                image = new BufferedImage(getIconWidth(), getIconHeight(),
+                                          BufferedImage.TYPE_INT_ARGB);
+                Graphics imageG = image.getGraphics();
+                doPaint(c,imageG);
+                imageG.dispose();
+            }
+            g.drawImage(image, x, y, null);
+            if (decoration != null) {
+                int decorationHeight = decoration.getIconHeight();
+                decoration.paintIcon(c, g, 0, decorationOffset);
+            }
+        }
+
+        public void applyFilter(RGBImageFilter filter) {
+            ImageProducer prod =
+                new FilteredImageSource(image.getSource(), filter);
+            this.image = Toolkit.getDefaultToolkit().createImage(prod);
+        }
+
+        public void setDecorator(Icon decoration, int y) {
+            this.decoration = decoration;
+            this.decorationOffset = y;
+        }
+    }
+
+    // filter for creating "error" icons.  Converts to light monochrome.
+    private static PhantomFilter PHANTOM_FILTER = new PhantomFilter();
+    private static class PhantomFilter extends RGBImageFilter {
+        public PhantomFilter() { canFilterIndexColorModel = true; }
+
+        public int filterRGB(int x, int y, int rgb) {
+            // Use NTSC conversion formula.
+            int gray = (int)(0.30 * ((rgb >> 16) & 0xff) +
+                             0.59 * ((rgb >> 8) & 0xff) +
+                             0.11 * (rgb & 0xff));
+            // mix one part gray with two parts white to brighten.
+            gray = (gray + 255 + 255) / 3;
+
+            if (gray < 0) gray = 0;
+            if (gray > 255) gray = 255;
+            return (rgb & 0xff000000) | (0x010101 * gray);
+        }
+    }
+
+
+    private class PruneDecorationIcon implements Icon {
+        public int getIconWidth() { return 7; }
+        public int getIconHeight() { return 7; }
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(Color.red);
+            g.drawLine(x,   y,   x+6, y+6);
+            g.drawLine(x,   y+1, x+5, y+6);
+            g.drawLine(x+1, y,   x+6, y+5);
+            g.drawLine(x,   y+6, x+6, y);
+            g.drawLine(x,   y+5, x+5, y);
+            g.drawLine(x+1, y+6, x+6, y+1);
         }
     }
 

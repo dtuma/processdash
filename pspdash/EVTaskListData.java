@@ -110,6 +110,8 @@ public class EVTaskListData extends EVTaskList
     }
 
     public void save(String newName) {
+        EVTask r = (EVTask) root;
+
         // First, compile a list of all the elements in the datafile that
         // were previously used to save this task list.  (That way we'll
         // know what we need to delete.)
@@ -129,7 +131,6 @@ public class EVTaskListData extends EVTaskList
         if (newName != null) {
             globalPrefix = MAIN_DATA_PREFIX + newName;
             ordinalPrefix = TASK_ORDINAL_PREFIX + newName;
-            EVTask r = (EVTask) root;
             for (int j = r.getNumChildren();  j-- > 0;  ) {
                 dataName = data.createDataName(r.getChild(j).getFullName(),
                                                ordinalPrefix);
@@ -146,6 +147,9 @@ public class EVTaskListData extends EVTaskList
         i = oldNames.iterator();
         while (i.hasNext())
             data.removeValue((String) i.next());
+
+        // allow our tasks to do the same thing.
+        r.saveData(newName);
     }
 
     public void hierarchyChanged(PSPProperties.Event e) {
@@ -174,7 +178,7 @@ public class EVTaskListData extends EVTaskList
                                    PSPProperties hierarchy,
                                    ObjectCache cache,
                                    boolean willNeedChangeNotification) {
-        EVTask newTask = new EVTask(path, data, hierarchy,
+        EVTask newTask = new EVTask(taskListName, path, data, hierarchy,
                                     willNeedChangeNotification ? this : null);
         if (((EVTask) root).add(newTask))
             return newTask;

@@ -26,6 +26,7 @@
 package pspdash;
 
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,6 +51,8 @@ public class EVTask implements DataListener {
     public static final String ACT_TIME_DATA_NAME       = "Time";
     public static final String DATE_COMPLETED_DATA_NAME = "Completed";
     public static final String IGNORE_PLAN_TIME_NAME    = "Rollup Tag";
+    private static final String LEVEL_OF_EFFORT_PREFIX  = "TST-LOE_";
+    private static final String LEAF_ORDINAL_PREFIX  = "TST-LEAF_";
 
     public interface Listener {
         public void evNodeChanged(EVTask node);
@@ -58,7 +61,12 @@ public class EVTask implements DataListener {
     EVTask parent = null;
     ArrayList children = new ArrayList();
 
-    String name, fullName;
+    String name, fullName, taskListName;
+    double planLevelOfEffort = -1;
+    int savedLeafOrdinal = 0;
+    int leafOrdinal = 0;
+
+
     double planTime,  cumPlanTime,  actualTime;  // expressed in minutes
     double actualNodeTime, valueEarned;          // expressed in minutes
     double topDownPlanTime, bottomUpPlanTime;    // expressed in minutes
@@ -149,20 +157,21 @@ public class EVTask implements DataListener {
     }
 
     /** Creates an EVTask for the tasks in the hierarchy at the given path */
-    public EVTask(String hierarchyPath, DataRepository data,
+    public EVTask(String taskListName, String hierarchyPath, DataRepository data,
                   PSPProperties hierarchy, Listener listener) {
-        this(null, hierarchyPath.substring(1), hierarchyPath, null, data,
-             hierarchy, listener);
+        this(null, taskListName, hierarchyPath.substring(1), hierarchyPath,
+             null, data, hierarchy, listener);
     }
 
 
-    protected EVTask(EVTask parent, String name, String fullName,
-                     PropertyKey key, DataRepository data,
+    protected EVTask(EVTask parent, String taskListName, String name,
+                     String fullName, PropertyKey key, DataRepository data,
                      PSPProperties hierarchy, Listener listener)
     {
         this.parent = parent;
         this.name = name;
         this.fullName = fullName;
+        this.taskListName = taskListName;
         this.data = data;
         this.listener = listener;
 
@@ -172,6 +181,9 @@ public class EVTask implements DataListener {
             setPlanTime(getValue(PLAN_TIME_DATA_NAME));
 
         setActualTime(getValue(ACT_TIME_DATA_NAME));
+
+        setLevelOfEffort(getValue(getLevelOfEffortDataname()));
+        loadLeafOrdinal();
 
         addChildrenFromHierarchy(fullName, key, data, hierarchy, listener);
 
@@ -198,8 +210,9 @@ public class EVTask implements DataListener {
             int numKids = hierarchy.getNumChildren(key);
             for (int i = 0;   i < numKids;  i++) {
                 PropertyKey child = hierarchy.getChildKey(key, i);
-                children.add(new EVTask(this, child.name(), child.path(),
-                                        child, data, hierarchy, listener));
+                children.add(new EVTask(this, taskListName,
+                                        child.name(), child.path(), child,
+                                        data, hierarchy, listener));
                 addedChild = true;
             }
         }
@@ -228,9 +241,10 @@ public class EVTask implements DataListener {
         }
     }
 
-    protected SimpleData getValue(String name) {
+    protected SimpleData getValue(String name) { return getValue(name, true); }
+    protected SimpleData getValue(String name, boolean notify) {
         String dataName = data.createDataName(fullName, name);
-        if (listener != null)
+        if (notify && listener != null)
             data.addDataListener(dataName, this, false);
         return data.getSimpleValue(dataName);
     }
@@ -267,6 +281,87 @@ public class EVTask implements DataListener {
         planTimeEditable = planTimeUndefined = false;
     }
 
+    private String getLevelOfEffortDataname() {
+        return LEVEL_OF_EFFORT_PREFIX + taskListName;
+    }
+
+    public boolean isLevelOfEffortTask() {
+        return (planLevelOfEffort >= 0);
+    }
+
+    private void setLevelOfEffort(SimpleData levelOfEffort) {
+        if (levelOfEffort instanceof NumberData) {
+            planLevelOfEffort = ((NumberData) levelOfEffort).getDouble();
+            if (!(planLevelOfEffort > 0 && planLevelOfEffort < 1))
+                planLevelOfEffort = -1;
+        } else {
+            planLevelOfEffort = -1;
+        }
+    }
+
+    private void userSetLevelOfEffort(String value) {
+        double p = -1;
+
+        if (value == null || value.trim().length() == 0) {
+            p = 0;
+        } else try {
+            Number percentage = percentFormatter.parse(value);
+            p = percentage.doubleValue();
+        } catch (ParseException e) {}
+
+        if (p == 0) {
+            planLevelOfEffort = -1;
+            // erase the level of effort in the data repository
+            data.userPutValue
+                (data.createDataName(fullName, getLevelOfEffortDataname()),
+                 null);
+        } else if (p > 0 && p < 1) {
+            planLevelOfEffort = p;
+            // save this level of effort to the data repository
+            data.userPutValue
+                (data.createDataName(fullName, getLevelOfEffortDataname()),
+                 new DoubleData(planLevelOfEffort, true));
+        }
+    }
+
+
+    private void loadLeafOrdinal() {
+        SimpleData d = getValue(LEAF_ORDINAL_PREFIX + taskListName);
+        if (d instanceof NumberData)
+            leafOrdinal = savedLeafOrdinal = ((NumberData) d).getInteger();
+    }
+
+    /** Save any structural data about this node to the repository.
+     */
+    void saveData(String newTaskListName) {
+        if (fullName != null) {
+            String oldDataName = null;
+            if (savedLeafOrdinal != 0)
+                oldDataName = LEAF_ORDINAL_PREFIX + taskListName;
+
+            if (newTaskListName != null && leafOrdinal != 0) {
+                String newDataName = LEAF_ORDINAL_PREFIX + newTaskListName;
+                if (newDataName.equals(oldDataName)) oldDataName = null;
+                if (leafOrdinal != savedLeafOrdinal || oldDataName != null) {
+                    SimpleData d = new DoubleData(leafOrdinal, false);
+                    String dataName = data.createDataName(fullName, newDataName);
+                    data.putValue(dataName, d);
+                }
+            }
+
+            if (oldDataName != null) {
+                String dataName = data.createDataName(fullName, oldDataName);
+                data.putValue(dataName, null);
+            }
+        }
+
+        taskListName = newTaskListName;
+        savedLeafOrdinal = leafOrdinal;
+
+        for (int i = 0;   i < getNumChildren();   i++)
+            getChild(i).saveData(newTaskListName);
+    }
+
     protected void setActualDate(SimpleData date) {
         if (date instanceof DateData) {
             dateCompleted = ((DateData) date).getValue();
@@ -299,7 +394,10 @@ public class EVTask implements DataListener {
     }
 
     public void userSetPlanTime(Object aValue) {
-        if (plannedTimeIsEditable() && aValue instanceof String) {
+        if ((aValue instanceof String && ((String) aValue).trim().endsWith("%")) ||
+            (isLevelOfEffortTask() && (aValue == null || "".equals(aValue)))) {
+            userSetLevelOfEffort((String) aValue);
+        } else if (plannedTimeIsEditable() && aValue instanceof String) {
             long planTime = -1;
 
             // parse the value to obtain a number of minutes
@@ -320,6 +418,7 @@ public class EVTask implements DataListener {
                 data.userPutValue(data.createDataName(fullName,
                                                       PLAN_TIME_DATA_NAME),
                                   new DoubleData(planTime, true));
+                userSetLevelOfEffort(null);
             } else {
                 this.planTime = topDownPlanTime = bottomUpPlanTime;
                 data.userPutValue(data.createDataName(fullName,
@@ -327,9 +426,11 @@ public class EVTask implements DataListener {
                                   null);
                 planTimeNull = true;
                 planTimeUndefined = false;
+                userSetLevelOfEffort(null);
             }
         }
     }
+
     public void userSetActualDate(Object aValue) {
         if (completionDateIsEditable()) {
             String dataName =
@@ -357,7 +458,7 @@ public class EVTask implements DataListener {
     static String formatPercent(double percent) {
         if (Double.isNaN(percent) || Double.isInfinite(percent))
             percent = 0;
-        if (percent >= 100 || percent <= 100)
+        if (true || percent > 0.99 || percent < -0.99)
             return intPercentFormatter.format(percent);
         else
             return percentFormatter.format(percent);
@@ -393,9 +494,14 @@ public class EVTask implements DataListener {
     public String toString() { return name; }
     public String getName() { return name; }
     public String getFullName() { return fullName; }
-    public String getPlanTime() { return formatTime(planTime); }
+    public String getPlanTime() {
+        if (planLevelOfEffort == 0) return "- %";
+        else if (planLevelOfEffort > 0) return formatPercent(planLevelOfEffort);
+        else return formatTime(planTime);
+    }
     public boolean hasPlanTimeError() {
-        return hasTopDownBottomUpError() || planTimeIsMissing();
+        return (!isLevelOfEffortTask() &&
+                (hasTopDownBottomUpError() || planTimeIsMissing()));
     }
     private boolean hasTopDownBottomUpError() {
         return (bottomUpPlanTime > 0) &&
@@ -414,20 +520,37 @@ public class EVTask implements DataListener {
     }
     public String getActualTime() { return formatTime(actualTime); }
     public String getPlanValue(double totalPlanTime) {
-        return formatPercent(planTime/totalPlanTime); }
-    public String getCumPlanTime() { return formatTime(cumPlanTime); }
+        if (isLevelOfEffortTask()) return "";
+        return formatPercent(planTime/totalPlanTime);
+    }
+    public String getCumPlanTime() {
+        if (isLevelOfEffortTask()) return "";
+        return formatTime(cumPlanTime);
+    }
     public String getCumPlanValue(double totalPlanTime) {
-        return formatPercent(cumPlanTime/totalPlanTime); }
-    public Date getPlanDate() { return planDate; }
-    public Date getActualDate() { return dateCompleted; }
+        if (isLevelOfEffortTask()) return "";
+        return formatPercent(cumPlanTime/totalPlanTime);
+    }
+    public Date getPlanDate() {
+        if (isLevelOfEffortTask()) return null;
+        return planDate;
+    }
+    public Date getActualDate() {
+        if (isLevelOfEffortTask()) return null;
+        return dateCompleted;
+    }
     public String getPercentComplete() {
-        if (valueEarned == 0) return "";
-        else return formatIntPercent(valueEarned / planTime); }
+        if (valueEarned == 0 || isLevelOfEffortTask()) return "";
+        else return formatIntPercent(valueEarned / planTime);
+    }
     public String getPercentSpent() {
-        if (actualTime == 0) return "";
-        else return formatIntPercent(actualTime / planTime); }
+        if (actualTime == 0 || isLevelOfEffortTask()) return "";
+        else return formatIntPercent(actualTime / planTime);
+    }
     public String getValueEarned(double totalPlanTime) {
-        if (dateCompleted != null || valueEarned != 0.0)
+        if (isLevelOfEffortTask())
+            return "";
+        else if (dateCompleted != null || valueEarned != 0.0)
             return formatPercent(valueEarned/totalPlanTime);
         else
             return "";
@@ -806,6 +929,8 @@ public class EVTask implements DataListener {
             setActualTime(e.getValue());
         else if (DATE_COMPLETED_DATA_NAME.equals(dataName))
             setActualDate(e.getValue());
+        else if (dataName.startsWith(LEVEL_OF_EFFORT_PREFIX))
+            setLevelOfEffort(e.getValue());
         else
             return false;
         return true;
@@ -855,5 +980,9 @@ public class EVTask implements DataListener {
     }
     static boolean containsNode(List list, EVTask node) {
         return indexOfNode(list, node) != -1;
+    }
+
+    public boolean isUserPruned() {
+        return leafOrdinal == -1;
     }
 }
