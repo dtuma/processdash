@@ -85,6 +85,15 @@ public class Timer {
         interruptTime = 0;
     }
 
+    public void setElapsed(long seconds) {
+        if (isRunning()) {
+            stop();
+            elapsedTime = seconds;
+            start();
+        } else
+            elapsedTime = seconds;
+    }
+
     public double minutesElapsedDouble() {
         if (startTime == null) {
             return (double)elapsedTime / 60.0;
