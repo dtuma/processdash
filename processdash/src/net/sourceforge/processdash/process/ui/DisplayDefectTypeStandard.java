@@ -27,13 +27,17 @@
 package net.sourceforge.processdash.process.ui;
 
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 public class DisplayDefectTypeStandard extends TinyCGIBase {
 
     private static final String NAME = "name";
+    private static final Resources resources =
+        Resources.getDashBundle("Defects.Standard.Display");
 
     /** Generate CGI script output. */
     protected void writeContents() {
@@ -47,14 +51,19 @@ public class DisplayDefectTypeStandard extends TinyCGIBase {
                 (getPrefix(), getDataRepository());
 
         String name = defectTypeStandard.getName();
-        String title = (name == null ? "" : " (" + name + ")");
+        if (name == null) name = "";
+        String title = resources.format("Title_FMT", name);
 
         out.println("<HTML><HEAD>" + cssLinkHTML());
-        out.println("<TITLE>Defect Type Standard" + title + "</TITLE>");
+        out.println("<TITLE>" + title + "</TITLE>");
         out.println("</HEAD><BODY>");
-        out.println("<H1>Defect Type Standard" + title + "</H1>");
-        out.println("<TABLE BORDER><TR><TD><B>Type</B></TD>");
-        out.println("    <TD><B>Description</B></TD></TR>");
+        out.println("<H1>" + title + "</H1>");
+        out.print("<TABLE BORDER><TR><TD><B>");
+        out.print(resources.getString("Type"));
+        out.println("</B></TD>");
+        out.print("    <TD><B>");
+        out.print(resources.getString("Description"));
+        out.println("</B></TD></TR>");
 
         String type, description;
         for (int i=0;  i<defectTypeStandard.options.size();  i++) {
@@ -62,14 +71,18 @@ public class DisplayDefectTypeStandard extends TinyCGIBase {
             description = (String) defectTypeStandard.comments.get(type);
             if (description == null) description = "&nbsp;";
 
-            out.println("<TR><TD VALIGN=baseline>" + type + "</TD>");
-            out.println("    <TD VALIGN=baseline>" + description +
-                        "</TD></TR>");
+            out.print("<TR><TD VALIGN=baseline>");
+            out.print(HTMLUtils.escapeEntities(type));
+            out.println("</TD>");
+            out.print("    <TD VALIGN=baseline>");
+            out.print(HTMLUtils.escapeEntities(description));
+            out.println("</TD></TR>");
         }
         out.println("</TABLE>\n"+
                     "<p class='doNotPrint'>"+
-                    "<a href='/dash/dtsEdit.class'><i>Create/Edit Defect"+
-                    " Type Standards</i></a></p>");
+                    "<a href='/dash/dtsEdit.class'><i>"+
+                    resources.getHTML("Create_Edit_Link")+
+                    "</i></a></p>");
         if ("PSP - text".equals(name) || "PSP - numbers".equals(name))
             out.println(COPYRIGHT_NOTICE);
         out.println("</BODY></HTML>");
