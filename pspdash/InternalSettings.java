@@ -88,6 +88,7 @@ public class InternalSettings extends Settings {
         settings = fsettings = new FileProperties(defaults, propertyComments);
 
         String filename = getSettingsFilename();
+        boolean needToSave = false;
 
         try {
             if (settingsFile != null && settingsFile.length() != 0) {
@@ -114,11 +115,13 @@ public class InternalSettings extends Settings {
 
             homedir = cwd;
             settingsFile = homedir + sep + filename;
+            needToSave = true;
         }
         InternalSettings.settingsFile = settingsFile;
         fsettings.setFilename(settingsFile);
         fsettings.setHeader(PROPERTIES_FILE_HEADER);
         fsettings.setKeepingStrangeKeys(true);
+        if (needToSave) saveSettings();
     }
     private static final String getSettingsFilename() {
         if (System.getProperty("os.name").toUpperCase().startsWith("WIN"))
@@ -147,6 +150,10 @@ public class InternalSettings extends Settings {
             settings.put(name, value);
         serializable = null;
 
+        saveSettings();
+    }
+
+    private static void saveSettings() {
         if (fsettings != null) try {
             fsettings.writeToFile();
         } catch (Exception e) { }
