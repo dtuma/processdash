@@ -26,6 +26,7 @@
 package pspdash;
 
 import java.awt.Dimension;
+import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
 
@@ -44,6 +45,21 @@ public class ConsoleWindow extends JFrame {
 
     public ConsoleWindow(boolean install) {
         super("Console Output");
+        JMenuBar menubar = new JMenuBar();
+        setJMenuBar(menubar);
+
+        JMenuItem item = new JMenuItem("Copy");
+        item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    textArea.selectAll(); textArea.copy(); } });
+        menubar.add(item);
+
+        item = new JMenuItem("Clear");
+        item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    textArea.setText(null); } });
+        menubar.add(item);
+
         textArea = new JTextArea();
         textArea.setEditable(false);
         textArea.setCaretColor(textArea.getBackground());
