@@ -46,6 +46,7 @@ public class TinyWebServer extends Thread {
     DataRepository data = null;
 
     Hashtable cgiLoaderMap = new Hashtable();
+    Hashtable addOnLoaderMap = new Hashtable();
     Hashtable cgiCache = new Hashtable();
     MD5 md5 = new MD5();
     boolean allowRemoteConnections = false;
@@ -92,14 +93,74 @@ public class TinyWebServer extends Thread {
         } catch (UnknownHostException uhe) {}
     }
 
-    private class CGILoader extends ClassLoader {
+    private ClassLoader getParentClassLoader(String url) {
+        if (!url.startsWith("jar:")) return null;
+        int pos = url.lastIndexOf("!/Templates");
+        if (pos == -1) return null;
+        url = url.substring(0, pos+2);
+        synchronized (addOnLoaderMap) {
+            ClassLoader result = (ClassLoader) addOnLoaderMap.get(url);
+            if (result == null) try {
+                result = new AddOnClassLoader(url);
+                addOnLoaderMap.put(url, result);
+            } catch (Exception e) {}
+            return result;
+        }
+    }
+
+    private class AddOnClassLoader extends ClassLoader {
         URL base;
-        public CGILoader(String path) {
+        public AddOnClassLoader(String path) {
+            super();
+            init(path);
+        }
+        protected AddOnClassLoader(String path, ClassLoader parent) {
+            super(parent);
+            init(path);
+        }
+        private void init(String path) {
             try {
                 base = new URL(path);
             } catch (Exception e) {
                 base = null;
             }
+        }
+        protected Class findClass(String name) throws ClassNotFoundException {
+            if (name.startsWith("Templates."))
+                throw new ClassNotFoundException(name);
+
+            try {
+                name = name.replace('.', '/');
+                URL classURL = new URL(base, name + ".class");
+                URLConnection conn = classURL.openConnection();
+                conn.connect();
+
+                byte [] defn = slurpContents(conn.getInputStream() , true);
+                Class result = defineClass(name, defn, 0, defn.length);
+                resolveClass(result);
+                return result;
+            } catch (Exception e) {
+                throw new ClassNotFoundException(name);
+            }
+        }
+        protected URL findResource(String name) {
+            try {
+                URL resourceURL = new URL(base, name);
+                URLConnection conn = resourceURL.openConnection();
+                conn.connect();
+                return resourceURL;
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    }
+
+    private class CGILoader extends AddOnClassLoader {
+        public CGILoader(String path) {
+            super(path);
+        }
+        public CGILoader(String path, ClassLoader parent) {
+            super(path, parent);
         }
         public Class loadFromConnection(URLConnection conn)
             throws IOException, ClassFormatError
@@ -131,20 +192,10 @@ public class TinyWebServer extends Thread {
             }
             return result;
         }
-
         protected Class findClass(String name) throws ClassNotFoundException {
-            try {
-                URL classURL = new URL(base, name + ".class");
-                URLConnection conn = classURL.openConnection();
-                conn.connect();
-
-                byte [] defn = slurpContents(conn.getInputStream() , true);
-                Class result = defineClass(name, defn, 0, defn.length);
-                resolveClass(result);
-                return result;
-            } catch (Exception e) {
+            if (name.indexOf('.') != -1)
                 throw new ClassNotFoundException(name);
-            }
+            return super.findClass(name);
         }
     }
 
@@ -531,10 +582,18 @@ public class TinyWebServer extends Thread {
             int end = path.lastIndexOf('/');
             path = path.substring(0, end+1);
 
-            CGILoader result = (CGILoader) cgiLoaderMap.get(path);
-            if (result == null)
-                cgiLoaderMap.put(path, result = new CGILoader(path));
-            return result;
+            synchronized (cgiLoaderMap) {
+                CGILoader result = (CGILoader) cgiLoaderMap.get(path);
+                if (result == null) {
+                    ClassLoader parent = getParentClassLoader(path);
+                    if (parent == null)
+                        result = new CGILoader(path);
+                    else
+                        result = new CGILoader(path, parent);
+                    cgiLoaderMap.put(path, result);
+                }
+                return result;
+            }
         }
 
 
@@ -1196,6 +1255,7 @@ public class TinyWebServer extends Thread {
     /** Clear the classloader caches, so classes will be reloaded.
      */
     public void clearClassLoaderCaches() {
+        addOnLoaderMap.clear();
         cgiLoaderMap.clear();
         cgiCache.clear();
     }
