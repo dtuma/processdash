@@ -30,6 +30,8 @@ import java.text.DateFormat;
 import javax.swing.table.*;
 import javax.swing.event.*;
 
+import pspdash.data.ListData;
+
 public class EVSchedule implements TableModel {
 
     public static final Date NEVER = new Date(Long.MAX_VALUE);
@@ -83,7 +85,7 @@ public class EVSchedule implements TableModel {
         }
 
         public void setBeginDate(Object value) {
-            if (previous != null) {
+            if (previous != null && !previous.endDate.equals(value)) {
                 automatic = false;
                 previous.setPeriodEnd(value);
             }
@@ -146,6 +148,9 @@ public class EVSchedule implements TableModel {
                     }
 
                 } else if (value instanceof Date) {
+                    // if no change has been made, exit.
+                    if (endDate.equals(value)) return;
+
                     // delete any preceeding periods which begin AFTER the
                     // new end date of this period.
                     while (previous != null &&
@@ -184,7 +189,7 @@ public class EVSchedule implements TableModel {
             if (value instanceof String) {
                 // parse the value to obtain a number of minutes
                 long planTime = TimeLogEditor.parseTime((String) value);
-                if (planTime != -1) {
+                if (planTime != -1 && planTime != this.planTime) {
                     this.planTime = planTime;
                     clearAutomaticFlag();
                     recalcCumPlanTimes();
@@ -226,6 +231,23 @@ public class EVSchedule implements TableModel {
         add(new Period(end, minutes));
     }
 
+    public EVSchedule(ListData saveList) {
+        if (saveList == null || saveList.size() < 3 ||
+            (saveList.size() & 1) != 1)
+            throw new IllegalArgumentException();
+
+        Date d = parseDate((String) saveList.get(0));
+        add(new Period(d, 0.0));
+        double time;
+        for (int i = 1;   i < saveList.size();   i += 2) {
+            time = Double.parseDouble((String) saveList.get(i));
+            d = parseDate((String) saveList.get(i+1));
+            add(new Period(d, time));
+        }
+        recalcCumPlanTimes();
+        // double-check to ensure that dates are increasing?
+    }
+
     protected synchronized void add(Period p) {
         p.previous = getLast();
         periods.add(p);
@@ -262,6 +284,27 @@ public class EVSchedule implements TableModel {
         } catch (NoSuchElementException nsee) {
             return null;
         }
+    }
+
+    public synchronized ListData getSaveList() {
+        ListData result = new ListData();
+        result.add(saveDate(get(0).endDate));
+        Period p;
+        for (int i = 1;   i < periods.size();  i++) {
+            p = get(i);
+            if (p.automatic)
+                break;
+            result.add(Double.toString(p.planTime));
+            result.add(saveDate(p.endDate));
+        }
+        result.setImmutable();
+        return result;
+    }
+
+    private String saveDate(Date d) { return "@" + d.getTime(); }
+    private Date parseDate(String d) {
+        if (!d.startsWith("@")) throw new IllegalArgumentException();
+        return new Date(Long.parseLong(d.substring(1)));
     }
 
     public synchronized Date getPlannedCompletionDate(double cumPlanTime,

@@ -159,11 +159,11 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     private static final Object CONFIRM_CLOSE_MSG =
         "Do you want to save the changes you made to the time log?";
     public void confirmClose(boolean showCancel) {
-        saveRevertOrCancel(showCancel);
-        frame.setVisible (false);   // close the time log window.
+        if (saveRevertOrCancel(showCancel))
+            frame.setVisible (false);   // close the time log window.
     }
 
-    public void saveRevertOrCancel(boolean showCancel) {
+    public boolean saveRevertOrCancel(boolean showCancel) {
         if (isDirty())
             switch (JOptionPane.showConfirmDialog
                     (frame, CONFIRM_CLOSE_MSG, "Save Changes?",
@@ -171,7 +171,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                                 : JOptionPane.YES_NO_OPTION)) {
             case JOptionPane.CLOSED_OPTION:
             case JOptionPane.CANCEL_OPTION:
-                return;                 // do nothing and abort.
+                return false;                 // do nothing and abort.
 
             case JOptionPane.YES_OPTION:
                 save();                 // save changes.
@@ -180,6 +180,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             case JOptionPane.NO_OPTION:
                 reload();               // revert changes.
             }
+        return true;
     }
 
     protected boolean dirtyFlag = false;

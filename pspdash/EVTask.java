@@ -254,6 +254,7 @@ public class EVTask implements DataListener {
     public EVTask getParent() { return parent; }
     public String toString() { return name; }
     public String getName() { return name; }
+    public String getFullName() { return fullName; }
     public String getPlanTime() { return formatTime(planTime); }
     public String getActualTime() { return formatTime(actualTime); }
     public String getPlanValue() { return formatPercent(planValue); }

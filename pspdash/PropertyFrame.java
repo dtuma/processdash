@@ -218,6 +218,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         dashboard.releaseTimeLogEntry(null);
         configureButton.saveOrRevertTimeLog();
+        TaskScheduleChooser.closeAll();
 
         oldProps = new PSPProperties(useProps.dataPath);
         oldProps.copy(readProps);

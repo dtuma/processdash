@@ -34,10 +34,20 @@ import javax.swing.table.*;
 import javax.swing.tree.TreePath;
 
 import pspdash.data.DataRepository;
+import pspdash.data.DataComparator;
+import pspdash.data.DoubleData;
+import pspdash.data.StringData;
+import pspdash.data.SimpleData;
+import pspdash.data.ListData;
 
 public class EVTaskList extends AbstractTreeTableModel
     implements EVTask.Listener
 {
+
+    public static final String MAIN_DATA_PREFIX = "/Task-Schedule/";
+    public static final String TASK_ORDINAL_PREFIX = "TST_";
+    public static final String EST_HOURS_DATA_NAME = "Planned Hours";
+
 
     protected String taskListName;
     protected DataRepository data;
@@ -49,7 +59,6 @@ public class EVTaskList extends AbstractTreeTableModel
                       PSPProperties hierarchy,
                       boolean willNeedChangeNotification) {
         super(null);
-        schedule = new EVSchedule();
 
         this.taskListName = taskListName;
         this.data = data;
@@ -60,16 +69,113 @@ public class EVTaskList extends AbstractTreeTableModel
             listeners = null;
 
         root = new EVTask(taskListName);
-        addTask("/Project", data, hierarchy, willNeedChangeNotification);
+        addTasksFromData(data, taskListName);
+        schedule = getSchedule(data, taskListName);
+    }
+
+    private void addTasksFromData(DataRepository data, String taskListName) {
+        // search for tasks that belong to the named task list.
+        SortedMap tasks = new TreeMap(DataComparator.instance);
+        String ordinalPrefix = "/" + TASK_ORDINAL_PREFIX + taskListName;
+        Iterator i = data.getKeys();
+        String dataName, path;
+        SimpleData value;
+        while (i.hasNext()) {
+            dataName = (String) i.next();
+            if (!dataName.endsWith(ordinalPrefix)) continue;
+            value = data.getSimpleValue(dataName);
+            path = dataName.substring
+                (0, dataName.length() - ordinalPrefix.length());
+            tasks.put(value, path);
+        }
+
+        // now add each task found to the task list.
+        i = tasks.values().iterator();
+        boolean willNeedChangeNotification = (listeners != null);
+        while (i.hasNext())
+            addTask((String) i.next(), data, hierarchy,
+                    willNeedChangeNotification);
+    }
+    private EVSchedule getSchedule(DataRepository data, String taskListName) {
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
+        String dataName =
+            data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
+        SimpleData d = data.getSimpleValue(dataName);
+        if (d instanceof StringData) d = ((StringData) d).asList();
+        if (d instanceof ListData)
+            return new EVSchedule((ListData) d);
+        else
+            return new EVSchedule();
+    }
+
+
+    public void save() { save(taskListName); }
+
+    public void save(String newName) {
+        // First, compile a list of all the elements in the datafile that
+        // were previously used to save this task list.  (That way we'll
+        // know what we need to delete.)
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
+        String ordinalPrefix = "/" + TASK_ORDINAL_PREFIX + taskListName;
+        Iterator i = data.getKeys();
+        Set oldNames = new HashSet();
+        String dataName;
+        while (i.hasNext()) {
+            dataName = (String) i.next();
+            if (dataName.startsWith(globalPrefix) ||
+                dataName.endsWith(ordinalPrefix))
+                oldNames.add(dataName);
+        }
+
+        // Now, save the data to the repository.
+        globalPrefix = MAIN_DATA_PREFIX + newName;
+        ordinalPrefix = TASK_ORDINAL_PREFIX + newName;
+        EVTask r = (EVTask) root;
+        for (int j = r.getNumChildren();  j-- > 0;  ) {
+            dataName = data.createDataName(r.getChild(j).getFullName(),
+                                           ordinalPrefix);
+            data.putValue(dataName, new DoubleData(j, false));
+            oldNames.remove(dataName);
+        }
+        dataName = data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
+        data.putValue(dataName, schedule.getSaveList());
+        oldNames.remove(dataName);
+
+        // Finally, delete any old unused data elements.
+        i = oldNames.iterator();
+        while (i.hasNext())
+            data.removeValue((String) i.next());
+    }
+
+    public static String[] findTaskLists(DataRepository data) {
+        TreeSet result = new TreeSet();
+        Iterator i = data.getKeys();
+        String dataName;
+        while (i.hasNext()) {
+            dataName = (String) i.next();
+            if (dataName.startsWith(MAIN_DATA_PREFIX)) {
+                dataName = dataName.substring(MAIN_DATA_PREFIX.length());
+                int slashPos = dataName.indexOf('/');
+                dataName = dataName.substring(0, slashPos);
+                result.add(dataName);
+            }
+        }
+
+        String[] ret = new String[result.size()];
+        i = result.iterator();
+        int j = 0;
+        while (i.hasNext())
+            ret[j++] = (String) i.next();
+        return ret;
     }
 
     public EVSchedule getSchedule() { return schedule; }
 
-    public void addTask(String path,
+    public boolean addTask(String path,
                         DataRepository data,
                         PSPProperties hierarchy,
                         boolean willNeedChangeNotification) {
-        if (path == null || path.length() == 0) return;
+        if (path == null || path.length() == 0) return false;
 
         // create the new task and add it.
         EVTask newTask = new EVTask(path, data, hierarchy,
@@ -81,6 +187,7 @@ public class EVTaskList extends AbstractTreeTableModel
         Object[] children = new Object[] { newTask };
         fireTreeNodesInserted
             (this, ((EVTask) root).getPath(), childIndices, children);
+        return true;
     }
 
     public boolean removeTask(TreePath path) {

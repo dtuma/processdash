@@ -427,6 +427,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     protected void quit() {
+        TaskScheduleChooser.closeAll();
         if (data != null)
             data.saveAllDatafiles();
         ImportExport.exportAll(this, Settings.getVal("export.data"));

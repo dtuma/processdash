@@ -27,6 +27,7 @@
 package pspdash;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import javax.swing.Timer;
 import javax.swing.border.*;
 import javax.swing.event.*;
@@ -37,6 +38,7 @@ import java.awt.event.*;
 import java.text.NumberFormat;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.EventObject;
 
 public class TaskScheduleDialog
     implements EVTaskList.Listener, EVSchedule.Listener, ActionListener
@@ -54,20 +56,21 @@ public class TaskScheduleDialog
     protected Timer recalcTimer;
     /** the dashboard */
     protected PSPDashboard dash;
+    protected String taskListName;
 
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
-        deletePeriodButton;
+        deletePeriodButton, closeButton, saveButton;
 
 
-    public TaskScheduleDialog(PSPDashboard dash) {
+    public TaskScheduleDialog(PSPDashboard dash, String taskListName) {
         // Create the frame and set an appropriate icon
         frame = new JFrame("Task and Schedule");
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
 
         // Create the earned value model.
-        model = new EVTaskList("My Task List", dash.data, dash.props, true);
+        model = new EVTaskList(taskListName, dash.data, dash.props, true);
         model.recalc();
         model.addEVTaskListListener(this);
         model.getSchedule().setListener(this);
@@ -83,6 +86,7 @@ public class TaskScheduleDialog
         for (int i = 0;  i < EVTaskList.colWidths.length;  i++)
             treeTable.getColumnModel().getColumn(i)
                 .setPreferredWidth(EVTaskList.colWidths[i]);
+        configureEditor(treeTable);
 
         // Create a JTable to display the schedule list.
         scheduleTable = new ScheduleJTable(model.getSchedule());
@@ -93,6 +97,7 @@ public class TaskScheduleDialog
         for (int i = 0;  i < EVSchedule.colWidths.length;  i++)
             scheduleTable.getColumnModel().getColumn(i)
                 .setPreferredWidth(EVSchedule.colWidths[i]);
+        configureEditor(scheduleTable);
 
         Box topBox = newVBox
             (new JScrollPane(treeTable,
@@ -108,7 +113,8 @@ public class TaskScheduleDialog
                              JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
              Box.createVerticalStrut(2),
              buildScheduleButtons(),
-             Box.createVerticalStrut(2));
+             Box.createVerticalStrut(2),
+             buildMainButtons());
 
         JSplitPane jsp = new JSplitPane
             (JSplitPane.VERTICAL_SPLIT, true, topBox, bottomBox);
@@ -116,12 +122,31 @@ public class TaskScheduleDialog
         frame.getContentPane().add(jsp);
 
         this.dash = dash;
+        this.taskListName = taskListName;
+        setDirty(false);
+
+
+        frame.addWindowListener( new WindowAdapter() {
+                public void windowClosing(WindowEvent e) {
+                    confirmClose(true); }});
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         frame.setSize(new Dimension(630, 600));
         frame.show();
         recalcTimer = new Timer(Integer.MAX_VALUE, this);
         recalcTimer.setInitialDelay(1000);
         recalcTimer.setRepeats(false);
+
+        // if the task list is empty, open the add task dialog immediately.
+        if (((EVTask) model.getRoot()).isLeaf())
+            addTask();
+    }
+
+    private boolean isDirty = false;
+    protected void setDirty(boolean dirty) {
+        isDirty = dirty;
+        saveButton.setEnabled(isDirty);
+        closeButton.setText(isDirty ? "Cancel" : "Close");
     }
 
     protected Component buildTaskButtons() {
@@ -200,6 +225,25 @@ public class TaskScheduleDialog
         return result;
     }
 
+    protected Component buildMainButtons() {
+        JPanel result = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+        result.setBorder(BorderFactory.createRaisedBevelBorder());
+
+        closeButton = new JButton("Close");
+        closeButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    confirmClose(true); }});
+        result.add(closeButton);
+
+        saveButton = new JButton("Save");
+        saveButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    save(); }});
+        result.add(saveButton);
+
+        return result;
+    }
+
     private Box newHBox(Component a, Component b) {
         Box result = Box.createHorizontalBox();
         result.add(a); result.add(b);
@@ -207,19 +251,23 @@ public class TaskScheduleDialog
     }
 
     private Box newVBox(Component a, Component b) {
-        return newVBox(a, b, null, null); }
+        return newVBox(a, b, null, null, null); }
     private Box newVBox(Component a, Component b, Component c) {
-        return newVBox(a, b, c, null); }
+        return newVBox(a, b, c, null, null); }
     private Box newVBox(Component a, Component b, Component c, Component d) {
+        return newVBox(a, b, c, d, null); }
+    private Box newVBox(Component a, Component b, Component c, Component d,
+                        Component e) {
         Box result = Box.createVerticalBox();
         if (a != null) result.add(a);
         if (b != null) result.add(b);
         if (c != null) result.add(c);
         if (d != null) result.add(d);
+        if (e != null) result.add(e);
         return result;
     }
 
-    public void show() { frame.show(); }
+    public void show() { frame.show(); frame.toFront(); }
 
 
     private Color mixColors(Color a, Color b, float r) {
@@ -282,6 +330,16 @@ public class TaskScheduleDialog
                 return getTree().isExpanded(row);
             }
         }
+
+        public Component prepareEditor(TableCellEditor editor,
+                                       int row,
+                                       int column) {
+            Component result = super.prepareEditor(editor, row, column);
+            result.setBackground(selectedEditableColor);
+            if (result instanceof JTextComponent)
+                ((JTextComponent) result).selectAll();
+            return result;
+        }
     }
 
     class ScheduleJTable extends JTable {
@@ -323,6 +381,16 @@ public class TaskScheduleDialog
                 return model.rowIsAutomatic(row);
             }
         }
+
+        public Component prepareEditor(TableCellEditor editor,
+                                       int row,
+                                       int column) {
+            Component result = super.prepareEditor(editor, row, column);
+            result.setBackground(selectedEditableColor);
+            if (result instanceof JTextComponent)
+                ((JTextComponent) result).selectAll();
+            return result;
+        }
     }
 
     class ShadedTableCellRenderer extends DefaultTableCellRenderer {
@@ -349,12 +417,22 @@ public class TaskScheduleDialog
                                                        int column) {
             Component result = super.getTableCellRendererComponent
                 (table, value, isSelected, hasFocus, row, column);
+            Color bg = null;
             if (isSelected)
-                result.setBackground(selectedBackgroundColor);
+                result.setBackground(bg = selectedBackgroundColor);
             else
-                result.setBackground(backgroundColor);
+                result.setBackground(bg = backgroundColor);
             result.setForeground(useAltForeground(row) ?
                                  altForeground : table.getForeground());
+
+            // This step is necessary because the DefaultTableCellRenderer
+            // may have incorrectly set the "opaque" flag.
+            if (result instanceof JComponent) {
+                boolean colorMatch = (bg != null) &&
+                    ( bg.equals(table.getBackground()) ) && table.isOpaque();
+                ((JComponent)result).setOpaque(!colorMatch);
+            }
+
             return result;
         }
 
@@ -381,7 +459,10 @@ public class TaskScheduleDialog
         recalcTimer.restart();
     }
 
-    public void evScheduleChanged() { recalcAll(); }
+    public void evScheduleChanged() {
+        setDirty(true);
+        recalcAll();
+    }
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == recalcTimer) recalcAll();
@@ -412,9 +493,13 @@ public class TaskScheduleDialog
         NodeSelectionDialog dialog = new NodeSelectionDialog
             (frame, dash.props, "Add Task",
              "Choose a project/task to add to the task list", "Add", null);
-        model.addTask(dialog.getSelectedPath(), dash.data, dash.props, true);
-        recalcAll();
-        enableTaskButtons();
+        if (model.addTask(dialog.getSelectedPath(), dash.data,
+                          dash.props, true)) {
+            treeTable.getTree().expandRow(0);
+            setDirty(true);
+            recalcAll();
+            enableTaskButtons();
+        }
     }
 
     /** Delete the currently selected task.
@@ -428,6 +513,7 @@ public class TaskScheduleDialog
 
         // make the change.
         if (model.removeTask(selPath)) {
+            setDirty(true);
             recalcAll();
             enableTaskButtons();
         }
@@ -443,6 +529,7 @@ public class TaskScheduleDialog
 
         // make the change.
         if (model.moveTaskUp(selectedTaskPos(selPath))) {
+            setDirty(true);
             recalcAll();
 
             // reselect the item that moved.
@@ -461,6 +548,7 @@ public class TaskScheduleDialog
 
         // make the change.
         if (model.moveTaskUp(selectedTaskPos(selPath)+1)) {
+            setDirty(true);
             recalcAll();
 
             // reselect the item that moved.
@@ -520,17 +608,20 @@ public class TaskScheduleDialog
 
     protected void addScheduleRow() {
         model.getSchedule().addRow();
+        setDirty(true);
     }
     protected void insertScheduleRow() {
         int[] rows = scheduleTable.getSelectedRows();
         if (rows == null || rows.length == 0) return;
         model.getSchedule().insertRow(rows[0]);
+        setDirty(true);
     }
     protected void deleteScheduleRows() {
         int[] rows = scheduleTable.getSelectedRows();
         if (rows == null || rows.length == 0) return;
         for (int i = rows.length;  i-- > 0; )
             model.getSchedule().deleteRow(rows[i]);
+        setDirty(true);
     }
 
     protected void enableScheduleButtons() {
@@ -545,4 +636,55 @@ public class TaskScheduleDialog
         insertPeriodButton.setEnabled(enableInsert);
         deletePeriodButton.setEnabled(enableDelete);
     }
+
+    protected void close() {
+        TaskScheduleChooser.close(taskListName);
+        frame.dispose();
+        model = null;
+        treeTable = null;
+        scheduleTable = null;
+    }
+
+    protected void save() {
+        model.save();
+        setDirty(false);
+    }
+
+    protected void configureEditor(JTable table) {
+        //configureEditor(table.getDefaultEditor(String.class));
+        //configureEditor(table.getDefaultEditor(Date.class));
+    }/*
+    protected void configureEditor(TableCellEditor e) {
+        if (e instanceof DefaultCellEditor)
+            //((DefaultCellEditor)e).setClickCountToStart(1);
+            ((DefaultCellEditor)e).addCellEditorListener(this);
+            }*/
+
+    private static final Object CONFIRM_CLOSE_MSG =
+        "Do you want to save the changes you made to this " +
+        "task & schedule template?";
+
+    public void confirmClose(boolean showCancel) {
+        if (saveOrCancel(showCancel))
+            close();
+    }
+    public boolean saveOrCancel(boolean showCancel) {
+        if (isDirty)
+            switch (JOptionPane.showConfirmDialog
+                    (frame, CONFIRM_CLOSE_MSG, "Save Changes?",
+                     showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
+                                : JOptionPane.YES_NO_OPTION)) {
+            case JOptionPane.CLOSED_OPTION:
+            case JOptionPane.CANCEL_OPTION:
+                return false;                 // do nothing and abort.
+
+            case JOptionPane.NO_OPTION:
+                return true;
+
+            case JOptionPane.YES_OPTION:
+                save();                 // save changes.
+            }
+        return true;
+    }
+
 }
