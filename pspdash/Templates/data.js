@@ -96,6 +96,7 @@ function elementIterate(funcObj) {
 
 function escStr(s) { return s.replace(/\\/g,"\\\\").replace(/\t/g, "\\t"); }
 
+
 /*
  * Should read-only data be unlocked?
  */
@@ -106,10 +107,51 @@ var unlockURL;
 if (unlocked) {
   unlockURL = window.location.href.replace(/unlock/, "")
               .replace(/([?&])&/, "$1").replace(/[?&]$/, "");
-} else if (window.location.search == "") {
-  unlockURL = window.location.href + "?unlock";
+  unlockHTML =
+    '<A HREF="javascript:gotoUnLockURL();">Lock read-only data</A>';
 } else {
-  unlockURL = window.location.href + "&unlock";
+  if (window.location.search == "") {
+    unlockURL = window.location.href + "?unlock";
+  } else {
+    unlockURL = window.location.href + "&unlock";
+  }
+  unlockHTML = 
+    '<A HREF="javascript:displayUnlockWarning();">Unlock read-only data</A>';
+}
+
+
+/*
+ * Functions used for unlocking
+ */
+
+function displayUnlockWarning() {
+if (window.confirm
+ ("The Process Dashboard automatically calculates many data elements\n" +
+  "for you.  Normally, these calculated data values are not editable.\n" +
+  "Choosing to unlock read-only data will make these elements editable,\n" +
+  "allowing you to override the calculated value with your own.\n\n" +
+
+  "Unlocking read-only data is useful for times when you intentionally\n" +
+  "want to override a calculation, but it is not without risk.  Once you\n" +
+  "have overridden a calculation, it will no longer automatically update\n" +
+  "in response to changes in related data items.  In addition, related\n" +
+  "calculations may no longer add up like you would normally expect.\n\n" +
+
+  "Are you sure you would like to unlock read-only data?"))
+  displayDefaultMessage();
+}
+
+function displayDefaultMessage() {
+  window.alert
+ ("After you have overridden a calculation with some value, you may\n" +
+  "decide that you want the old calculation back.  Just type\n" +
+  "        DEFAULT\n" +
+  "in the input field, and when you leave the field the old calculation\n" +
+  "will be restored.");
+  gotoUnLockURL();
+}
+function gotoUnLockURL() {
+  window.location.replace(unlockURL);
 }
 
 
@@ -242,9 +284,7 @@ function IEsetup() {
       document.writeln('<param name=unlock value=true>');
     document.writeln('</applet>');
 
-    document.write('<A HREF="' + unlockURL + '">');
-    document.write(unlocked ? "Lock" : "Unlock");
-    document.writeln(" read-only data</A>");
+    document.write(unlockHTML);
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
     IEDataAppl.ondatasetchanged  = IEscanForReadOnly;
@@ -447,9 +487,7 @@ function NSSetup() {
       document.writeln('<param name=unlock value=true>');
     document.writeln('</applet>');
 
-    document.write('<A HREF="' + unlockURL + '">');
-    document.write(unlocked ? "Lock" : "Unlock");
-    document.writeln(" read-only data</A>");
+    document.write(unlockHTML);
   }
 }
 

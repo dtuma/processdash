@@ -38,6 +38,8 @@ public class RepositoryServer extends Thread {
     ServerSocket serverSocket = null;
     Vector serverThreads = new Vector();
 
+    private static final String RESTORE_DEFAULT_TOKEN =
+        DataInterpreter.RESTORE_DEFAULT_TOKEN.saveString();
 
     private class RepositoryServerThread extends Thread implements DataListener {
 
@@ -136,8 +138,11 @@ public class RepositoryServer extends Thread {
                 else if (methodName.equals("putValue")) {
                     dataName = in.readLine();     // debug("    arg is "+dataName);
                     value = in.readLine();        // debug("    arg is "+value);
-                    data.putValue(dataName,
-                                  ValueFactory.create(null, value, null, null));
+                    if (RESTORE_DEFAULT_TOKEN.equals(value))
+                        data.restoreDefaultValue(dataName);
+                    else
+                        data.putValue(dataName,
+                                      ValueFactory.create(null, value, null, null));
                 }
                                         // removeValue
                 else if (methodName.equals("removeValue")) {

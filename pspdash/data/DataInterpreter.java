@@ -48,6 +48,13 @@ abstract class DataInterpreter implements DataListener {
     protected boolean noConnection = false;
     HTMLField consumer = null;
 
+    /** A string which the user can type into a data field to restore the
+     * calculated default value for this data element. */
+    public static final String RESTORE_DEFAULT_COMMAND = "DEFAULT";
+    // possible future enhancement - read this from the user Settings?
+
+    public static final StringData RESTORE_DEFAULT_TOKEN =
+        StringData.create(RESTORE_DEFAULT_COMMAND);
 
     DataInterpreter(Repository r, String name, boolean readOnly) {
         data = r;
@@ -139,6 +146,8 @@ abstract class DataInterpreter implements DataListener {
                 String strval = newValue.toString();
                 if (strval == null || strval.length() == 0)
                     value = (optional ? null : getNullValue());
+                else if (strval.equals(RESTORE_DEFAULT_COMMAND))
+                    value = RESTORE_DEFAULT_TOKEN;
                 else
                     setString(strval);
             }

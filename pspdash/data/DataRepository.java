@@ -1534,30 +1534,17 @@ public class DataRepository implements Repository {
             }
         }
 
-        public void putSimpleValueOrDefault(String name, String value)
-            throws MalformedValueException
-        {
-            System.out.println("putSimpleValueOrDefault("+value+")");
-            if ("?NaN".equals(value) || "null".equals(value)) {
-                DataElement d = (DataElement) data.get(name);
-                String defaultValue = lookupDefaultValue(name, d);
-                System.out.println("defaultValue is "+defaultValue);
-                if (defaultValue != null) {
-                    SaveableData o = null;
-                    String prefix = (d.datafile == null ? "" : d.datafile.prefix);
-                    try {
-                        o = ValueFactory.create(name, defaultValue, this, prefix);
-                    } catch (MalformedValueException mfe) {
-                        o = new MalformedData(defaultValue);
-                    }
-                    putValue(name, o);
-                    return;
-                }
-            }
+        public void restoreDefaultValue(String name) {
 
-            // if value is not "null", or if there is no default, just create
-            // the simple value and store it in the repository.
-            putValue(name, ValueFactory.create(null, value, null, null));
+            DataElement d = (DataElement) data.get(name);
+            Object defaultValue = lookupDefaultValueObject(name, d);
+
+            SaveableData value = null;
+            if (defaultValue != null) {
+                String prefix = (d.datafile == null ? "" : d.datafile.prefix);
+                value = instantiateValue(name, prefix, defaultValue, false);
+            }
+            putValue(name, value);
         }
 
 
