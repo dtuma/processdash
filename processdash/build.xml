@@ -88,7 +88,6 @@ Authors:
   <property name="debug"      value="on"/>
 
   <property name="src"        value="src"/>
-  <property name="pspdash"    value="${src}/pspdash"/>
   <property name="processdash" value="${src}/net/sourceforge/processdash"/>
   <property name="data"       value="${processdash}/data"/>
   <property name="compiler"   value="${data}/compiler"/>
@@ -150,8 +149,8 @@ Authors:
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
            classpathref="build.classpath">
       <include name="net/**/*.java"/>
-      <include name="pspdash/**/*.java"/>
-      <exclude name="net/sourceforge/processdash/ui/help/DashHelpBroker*.java"/>
+      <exclude
+          name="net/sourceforge/processdash/ui/help/DashHelpBroker*.java"/>
       <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ns.txt"/>
@@ -226,7 +225,7 @@ Authors:
                    value="http://processdash.sourceforge.net/cgi-bin/update"/>
       </manifest>
 
-      <fileset dir="${pspdash}">
+      <fileset dir=".">
         <include name="Templates/Import-template.xml"/>
         <include name="Templates/import/dataFile.txt"/>
         <include name="Templates/import/import.htm"/>
@@ -301,9 +300,7 @@ Authors:
       <includesfile name="${lib}/fileset-applet-extra.txt"/>
       <includesfile name="${lib}/fileset-ns.txt"/>
     </javac>
-    <!-- fixme...unnecessary?
-    <copy file="${pspdash}/timing.wav" todir="${ns.dir}/pspdash"/> -->
-    <jar destfile="${ns.jar}" basedir="${ns.dir}" includes="pspdash/ net/"/>
+    <jar destfile="${ns.jar}" basedir="${ns.dir}" includes="net/"/>
   </target>
 
 
@@ -317,7 +314,8 @@ Authors:
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
-        <attribute name="Main-Class" value="pspdash.PSPDashboard"/>
+        <attribute name="Main-Class"
+	    value="net.sourceforge.processdash.ProcessDashboard"/>
         <attribute name="Dash-Pkg-ID" value="pspdash"/>
         <attribute name="Dash-Pkg-Version" value="${version}"/>
         <attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
@@ -328,7 +326,6 @@ Authors:
       <!-- include the compiled files and cgi scripts -->
       <fileset dir="${build}" excludesfile="${lib}/fileset-nonclass.txt">
           <include name="org/"/>
-          <include name="pspdash/"/>
           <include name="Templates/"/>
           <include name="net/"/>
 	  <exclude name="**/*Test.class"/>
@@ -336,7 +333,7 @@ Authors:
 	  <exclude name="net/**/PspForEngFilter.class"/>
       </fileset>
 
-      <!-- include important non-class files in the pspdash directory -->
+      <!-- include important non-class files in the src directory -->
       <fileset dir="${src}" includesfile="${lib}/fileset-nonclass.txt"/>
 
       <!-- include the template files -->
