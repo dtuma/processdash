@@ -136,8 +136,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         /* And show it. */
         panel.setLayout(new BorderLayout());
         panel.add("North", constructFilterPanel());
-        panel.add("West", sp);
-        panel.add("Center", constructEditPanel());
+        panel.add("Center", new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                                           sp, constructEditPanel()));
         panel.add("South", constructControlPanel());
 
         frame.addWindowListener( new WindowAdapter() {
@@ -731,6 +731,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                            "The elapsed time(minutes)",
                            "The interrupt time(minutes)"},
              null, this, 0, true, null, null);
+        table.table.getTableHeader().setReorderingAllowed(false);
         retPanel.add ("Center", table);
 
         JPanel btnPanel = new JPanel(false);
