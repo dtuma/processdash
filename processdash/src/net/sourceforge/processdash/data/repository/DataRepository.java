@@ -2079,7 +2079,15 @@ public class DataRepository implements Repository {
                 try {
                     o = ValueFactory.createQuickly(name, value, this, dataPrefix);
                 } catch (MalformedValueException mfe) {
-                    o = new MalformedData(value);
+                    // TODO: temporary fix to allow old PSP for Engineers add-on to
+                    // work in 1.7
+                    if ("![(&&\tCompleted)]".equals(value)) {
+                        valueObj = Compiler.compile("[Completed]");
+                        o = new CompiledFunction(name, (CompiledScript) valueObj,
+                                                 this, dataPrefix);
+                    } else {
+                        o = new MalformedData(value);
+                    }
                 }
                 if (readOnly && o != null) o.setEditable(false);
             }

@@ -725,7 +725,15 @@ public class WebServer extends Thread {
                     pool = new CGIPool(path, clz);
                     cgiCache.put(path, pool);
                 } catch (Throwable t) {
-                    return null;
+                    // TODO: temporary fix to allow the old PSP for Engineers
+                    // add-on to work with v1.7
+                    String file = conn.getURL().getFile();
+                    if (file != null && file.endsWith("/sizeest.class")) {
+                        pool = new CGIPool(path, net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate.class);
+                        cgiCache.put(path, pool);
+                    } else {
+                        return null;
+                    }
                 }
             }
             return (TinyCGI) pool.get();
