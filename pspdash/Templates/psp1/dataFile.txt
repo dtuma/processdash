@@ -47,19 +47,6 @@ PSP0.1==0.0
 
 
 ==
-== Automatically compute Estimated Time by phase.
-==
-
-Planning/Estimated Time==![(*	Estimated Time	/Planning/% Time To Date)]
-Design/Estimated Time==![(*	Estimated Time	/Design/% Time To Date)]
-Code/Estimated Time==![(*	Estimated Time	/Code/% Time To Date)]
-Compile/Estimated Time==![(*	Estimated Time	/Compile/% Time To Date)]
-Test/Estimated Time==![(*	Estimated Time	/Test/% Time To Date)]
-Postmortem/Estimated Time==![(*	Estimated Time	/Postmortem/% Time To Date)]
-
-
-
-==
 == Data Elements to track LOC.
 ==
 
