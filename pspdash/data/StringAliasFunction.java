@@ -76,7 +76,7 @@ class StringAliasFunction extends StringData implements DataListener {
 
     public void dispose() {
         myName = aliasOf = saveValue = null;
-        data.deleteDataListener(this);
+        if (data != null) data.deleteDataListener(this);
         data = null;
     }
 }
