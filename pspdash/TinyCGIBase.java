@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -36,18 +36,21 @@ import java.util.*;
 
 public class TinyCGIBase implements TinyCGI {
 
+    static String DEFAULT_CHARSET = "ISO-8859-1";
+
     protected InputStream inStream = null;
     protected OutputStream outStream = null;
     protected PrintWriter out = null;
     protected Map env = null;
     protected Map parameters = new HashMap();
+    protected String charset = DEFAULT_CHARSET;
 
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
     {
         this.inStream = in;
         this.outStream = out;
-        this.out = new PrintWriter(out);
+        this.out = new PrintWriter(new OutputStreamWriter(outStream, charset));
         this.env = env;
         parameters.clear();
         parseInput((String) env.get("QUERY_STRING"));
@@ -311,7 +314,7 @@ public class TinyCGIBase implements TinyCGI {
      * a special header, or might need to vary the header on the fly.
      */
     protected void writeHeader() {
-        out.print("Content-type: text/html\r\n\r\n");
+        out.print("Content-type: text/html; charset="+charset+"\r\n\r\n");
         // flush in case writeContents wants to use outStream instead of out.
         out.flush();
     }
