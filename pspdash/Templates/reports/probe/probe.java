@@ -73,15 +73,18 @@ public class probe extends TinyCGIBase {
         out.print("Need Size Estimating Template.");
     }
 
+    private static final String HEADER_HTML =
+        "<html><head><title>PROBE Report</title>\n"+
+        "<script>function popup() {\n"+
+        "   var newWin = "+
+        "       window.open('','popup','width=430,height=330,dependent=1');\n"+
+        "   newWin.focus();\n"+
+        "}</script>\n"+
+        "</head><body><h1>PROBE Report</h1>\n";
+
     protected void printHeader(String prefix, HistData data, double estObjLOC){
-        out.print("<html><head><title>PROBE Report</title>\n"+
-                  "<script>function popup() {\n"+
-                  "   var newWin = window.open('','popup','width=430,height=330,dependent=1');\n"+
-                  "   newWin.focus();\n"+
-                  "}</script>\n"+
-                  "</head><body><h1>PROBE Report</h1>\n<h2>");
-        out.print(prefix);
-        out.print("</h2>\n");
+        out.print(HEADER_HTML);
+        out.print("<h2>" + prefix + "</h2>\n");
         printDataTable(data);
         printEstObjLOC(prefix, estObjLOC);
         out.print("<form action='probe.class' method=post>");
@@ -138,7 +141,7 @@ public class probe extends TinyCGIBase {
                                               ACT_NC, "C1", "size"));
         sizeMethods.add(new AveragingMethod  (data, estObjLOC, EST_NC,
                                               ACT_NC, "C2", "size"));
-        //sizeMethods.add(new SizeMethodD (data, estObjLOC));
+        sizeMethods.add(new MethodD (data, estObjLOC, "size"));
 
         printMethods(sizeMethods);
     }
@@ -165,7 +168,7 @@ public class probe extends TinyCGIBase {
                     observations.clear();
                     return (rating < 0.0 ? rating
                             : Method.PROBE_METHOD_D + 0.00001); } });
-        //timeMethods.add(new TimeMethodD (data, estObjLOC));
+        timeMethods.add(new MethodD (data, estObjLOC, "time"));
 
         printMethods(timeMethods);
     }
@@ -180,6 +183,7 @@ public class probe extends TinyCGIBase {
         while (i.hasNext()) {
             ((Method) i.next()).printRow(out, isBest);
             isBest = false;
+            if (i.hasNext()) out.print(DIVIDER);
         }
 
         out.print("</table>\n\n\n");
@@ -190,6 +194,9 @@ public class probe extends TinyCGIBase {
     private boolean badDouble(double d) {
         return Double.isNaN(d) || Double.isInfinite(d);
     }
+    private static final String DIVIDER =
+        "<tr><td></td><td bgcolor='#c0c0c0'>" +
+        "<img src='line.png' width=1 height=1></td><td></td></tr>\n";
 
 
     public static final int EST_OBJ  = HistData.EST_OBJ_LOC;

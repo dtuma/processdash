@@ -71,6 +71,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/probe/probe.java \
 	Templates/reports/probe/HistData.java \
 	Templates/reports/probe/Method.java \
+	Templates/reports/probe/MethodD.java \
 	Templates/reports/probe/AveragingMethod.java \
 	Templates/reports/probe/RegressionMethod.java \
 	Templates/CFilter.java \

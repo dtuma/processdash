@@ -101,14 +101,14 @@ class Method implements Comparable {
 
 
     public void printRow(PrintWriter out, boolean isBest) {
-        out.print("<tr><td valign=top>");
+        out.print("<tr><td valign=middle>");
 
         if (getRating() > 0)
             printOption(out, isBest);
         else
             out.print(NBSP);
 
-        out.print("</td><td valign=top>");
+        out.print("</td><td valign=middle>&nbsp;<br>");
 
         Iterator i;
         if (errorMessages.size() != 0) {
@@ -135,7 +135,7 @@ class Method implements Comparable {
                 out.println((String) i.next());
         }
 
-        out.print("</td><td valign=top>");
+        out.print("<br>&nbsp;</td><td valign=middle>");
 
         if (getRating() > CANNOT_CALCULATE)
             printChart(out);
@@ -171,8 +171,8 @@ class Method implements Comparable {
         printField(out, FLD_PERCENT, qual, percent);
         printField(out, FLD_CORRELATION, qual, rSquared);
     }
-    private void printField(PrintWriter out, String name,
-                            String qual, double value) {
+    protected void printField(PrintWriter out, String name,
+                              String qual, double value) {
         out.print("<input type='hidden' name='");
         out.print(qual);
         out.print(name);
