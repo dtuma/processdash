@@ -58,8 +58,8 @@ public class DefectEditor extends Component
     //
     // member functions
     //
-    private void debug(String msg) {
-        System.out.println("TimeLogEditor:" + msg);
+    private static void debug(String msg) {
+        System.out.println("DefectEditor:" + msg);
     }
 
 
@@ -158,7 +158,7 @@ public class DefectEditor extends Component
     public void reloadAll(PSPProperties newProps) {
         useProps.copy(newProps);
         treeModel.reload (useProps);
-        reload();
+        treeModel.nodeStructureChanged((TreeNode) treeModel.getRoot());
         applyFilter();
     }
 
@@ -421,53 +421,50 @@ public class DefectEditor extends Component
         maybeEnableButtons();
     }
 
-//    public static void rename(PSPProperties oldProps, PSPProperties newProps,
-//                              String oldPrefix, String newPrefix) {
-//      PropertyKey oldKey = PropertyKey.fromPath(oldPrefix);
-//      if (oldProps.pget(oldKey).getDefectLog() != null)
-//        // if the node addressed by oldProps owns its own defect log, we
-//        // don't need to worry.
-//        return;
+    public static void rename(PSPProperties oldProps, PSPProperties newProps,
+                              String oldPrefix, String newPrefix,
+                              PSPDashboard dashboard) {
+        PropertyKey oldKey = PropertyKey.fromPath(oldPrefix);
+        String oldLogName = oldProps.pget(oldKey).getDefectLog();
+        if (oldLogName != null && oldLogName.length() > 0) {
+            // if the node addressed by oldProps owns its own defect log, we
+            // don't need to worry.
+            return;
+        }
 
-//      DefectLogID oldLog = useProps.defectLog(oldKey, dashboard.getDirectory());
-//      if (oldLog == null)
-//        // if the node addressed by oldProps doesn't have a defect log,
-//        // we don't need to worry.
-//        return;
+        DefectLogID oldLog = oldProps.defectLog(oldKey, dashboard.getDirectory());
+        if (oldLog == null) {
+            // if the node addressed by oldProps doesn't have a defect log,
+            // we don't need to worry.
+            return;
+        }
 
-//      String logPath = oldLog.path.path();
-//      oldPrefix = oldPrefix.substring(logPath.length() + 1);
+        String logPath = oldLog.path.path();
+        oldPrefix = oldPrefix.substring(logPath.length() + 1);
 
-//      PropertyKey newKey = PropertyKey.fromPath(newPrefix);
-//      DefectLogID newLog = useProps.defectLog(newKey, dashboard.getDirectory());
-//      if (newLog == null)
-//        // Should this ever happen???
-//        return;
-//      String newLogPath = newLog.path.path();
-//      newPrefix = newPrefix.substring(newLogPath.length() + 1);
+        PropertyKey newKey = PropertyKey.fromPath(newPrefix);
+        DefectLogID newLog = newProps.defectLog(newKey, dashboard.getDirectory());
+        if (newLog == null) {
+            // Should this ever happen???
+            return;
+        }
+        String newLogPath = newLog.path.path();
+        newPrefix = newPrefix.substring(newLogPath.length() + 1);
 
-//      if (oldPrefix.equals(newPrefix))
-//        // if the name change was limited to nodes that are ancestors of
-//        // the node owning the defect log, we don't need to worry.
-//        return;
+        if (oldPrefix.equals(newPrefix)) {
+            // if the name change was limited to nodes that are ancestors of
+            // the node owning the defect log, we don't need to worry.
+            return;
+        }
 
-//      if (!oldLog.filename.equals(newLog.filename)) {
-//        System.err.println("Eeek!");
-//        return;
-//      }
+        if (!oldLog.filename.equals(newLog.filename)) {
+            // Should this ever happen???
+            return;
+        }
 
-//      DefectLog log = new DefectLog(newLog.filename, newPath, data, dashboard)
-
-//      if (!newPrefix.startsWith(logPath)) // this test is inadequate!
-//        return;
-
-//          if (logid != null && logid.path != key) {
-//            key = logid.path;
-//            String defectLogPath = key.path();
-//            extraPathFilter = selectedPath.substring(defectLogPath.length()+1);
-//          }
-
-//    }
+        DefectLog log = new DefectLog(newLog.filename, newLogPath, null, null);
+        log.performInternalRename(oldPrefix, newPrefix);
+    }
 
     public class DefectListID {
         public PropertyKey pk;

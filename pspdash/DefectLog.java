@@ -345,4 +345,25 @@ public class DefectLog {
         }
     }
 
+    public void performInternalRename(String oldPrefix, String newPrefix) {
+        Defect defects[] = readDefects();
+        int oldPrefixLen = oldPrefix.length();
+        Defect d;
+
+        for (int i = defects.length;  i-- > 0; ) {
+            d = defects[i];
+            if (phaseMatches(d.phase_injected, oldPrefix))
+                d.phase_injected= newPrefix + d.phase_injected.substring(oldPrefixLen);
+            if (phaseMatches(d.phase_removed, oldPrefix))
+                d.phase_removed = newPrefix + d.phase_removed.substring(oldPrefixLen);
+        }
+
+        save(defects);
+    }
+
+    private boolean phaseMatches(String phase, String prefix) {
+        if (phase == null) return false;
+        return (phase.equals(prefix) || phase.startsWith(prefix + "/"));
+    }
+
 }

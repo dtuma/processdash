@@ -119,7 +119,9 @@ public class PSPDashboard extends JFrame implements WindowListener {
         property_directory = prop_file.getParent() + Settings.sep;
         try {
             default_directory = prop_file.getParentFile().getCanonicalPath();
-        } catch (IOException ioe) {}
+        } catch (IOException ioe) {
+            default_directory = prop_file.getParentFile().getAbsolutePath();
+        }
         DefectAnalyzer.setDataDirectory(property_directory);
         TimeLog.setDefaultFilename(getTimeLog());
 

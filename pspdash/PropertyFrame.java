@@ -271,7 +271,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                             break;
 
                         case PendingDataChange.CHANGE:
-                            //DefectEditor.rename(oldProps,useProps,p.oldPrefix,p.newPrefix);
+                            DefectEditor.rename
+                                (oldProps, useProps, p.oldPrefix, p.newPrefix, dashboard);
                             timelog.rename (p.oldPrefix, p.newPrefix);
                             dashboard.data.renameData (p.oldPrefix, p.newPrefix);
                             break;
