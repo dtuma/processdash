@@ -36,14 +36,25 @@ public class RobustFileWriter extends Writer {
     Writer out, backup;
 
     public RobustFileWriter(String destFile) throws IOException {
-        this(new File(destFile));
+        this(new File(destFile), null);
+    }
+
+    public RobustFileWriter(String destFile, String encoding)
+        throws IOException {
+        this(new File(destFile), encoding);
     }
 
     public RobustFileWriter(File destFile) throws IOException {
-        this(destFile.getParent(), destFile.getName());
+        this(destFile, null);
     }
 
-    public RobustFileWriter(String directory, String filename)
+    public RobustFileWriter(File destFile, String encoding)
+        throws IOException
+    {
+        this(destFile.getParent(), destFile.getName(), encoding);
+    }
+
+    public RobustFileWriter(String directory, String filename, String encoding)
         throws IOException
     {
         File parentDir = new File(directory);
@@ -52,8 +63,15 @@ public class RobustFileWriter extends Writer {
         destFile   = new File(parentDir, filename);
         outFile    = new File(parentDir, OUT_PREFIX    + filename);
         backupFile = new File(parentDir, BACKUP_PREFIX + filename);
-        out    = new FileWriter(outFile);
-        backup = new FileWriter(backupFile);
+        if (encoding == null) {
+            out    = new FileWriter(outFile);
+            backup = new FileWriter(backupFile);
+        } else {
+            out = new OutputStreamWriter
+                (new FileOutputStream(outFile), encoding);
+            backup = new OutputStreamWriter
+                (new FileOutputStream(backupFile), encoding);
+        }
     }
 
     public void write(char[] cbuf, int off, int len) throws IOException {
