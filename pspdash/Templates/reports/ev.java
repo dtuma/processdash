@@ -48,6 +48,7 @@ public class ev extends CGIChartBase {
     public static final String XML_PARAM = "xml";
     public static final String TIME_CHART = "time";
     public static final String VALUE_CHART = "value";
+    public static final String VALUE_CHART2 = "value2";
     public static final String COMBINED_CHART = "combined";
 
 
@@ -115,6 +116,8 @@ public class ev extends CGIChartBase {
                     writeHTML();
             } else if (TIME_CHART.equals(tableType))
                 writeTimeTable();
+            else if (VALUE_CHART2.equals(tableType))
+                writeValueTable2();
             else if (VALUE_CHART.equals(tableType))
                 writeValueTable();
             else if (COMBINED_CHART.equals(tableType))
@@ -390,23 +393,30 @@ public class ev extends CGIChartBase {
     }
 
     public void writeTimeTable() {
-        writeChartData(evModel.getSchedule().getTimeChartData());
+        writeChartData(evModel.getSchedule().getTimeChartData(), 3);
     }
 
     public void writeValueTable() {
-        writeChartData(evModel.getSchedule().getValueChartData());
+        writeChartData(evModel.getSchedule().getValueChartData(), 3);
+    }
+
+    public void writeValueTable2() {
+        EVSchedule s = evModel.getSchedule();
+        int maxSeries = 3;
+        if (s instanceof EVScheduleRollup) maxSeries = 4;
+        writeChartData(s.getValueChartData(), maxSeries);
     }
 
     public void writeCombinedTable() {
-        writeChartData(evModel.getSchedule().getCombinedChartData());
+        writeChartData(evModel.getSchedule().getCombinedChartData(), 3);
     }
 
     /** Display excel-based data for drawing a chart */
-    protected void writeChartData(XYDataSource xydata) {
+    protected void writeChartData(XYDataSource xydata, int maxSeries) {
         // First, print the table header.
         out.print("<html><body><table border>\n");
         int seriesCount = xydata.getSeriesCount();
-        if (seriesCount > 3) seriesCount = 3;
+        if (seriesCount > maxSeries) seriesCount = maxSeries;
         if (parameters.get("nohdr") == null) {
             out.print("<tr><td>Date</td>");
             // print out the series names in the data source.
@@ -418,6 +428,8 @@ public class ev extends CGIChartBase {
             if (seriesCount < 1) out.print("<td>Plan</td>");
             if (seriesCount < 2) out.print("<td>Actual</td>");
             if (seriesCount < 3) out.print("<td>Forecast</td>");
+            if (seriesCount < 4 && maxSeries == 4)
+                                 out.print("<td>Optimized</td>");
             out.println("</tr>");
         }
 
@@ -444,7 +456,7 @@ public class ev extends CGIChartBase {
                 out.println("</tr>");
             }
         }
-        if (seriesCount < 3) {
+        if (seriesCount < maxSeries) {
             Date d = new Date();
             if (seriesCount > 0)
                 d = new Date(xydata.getXValue(0,0).longValue());
@@ -455,6 +467,10 @@ public class ev extends CGIChartBase {
             if (seriesCount < 2) s.append("0");
             s.append("</td><td>");
             if (seriesCount < 3) s.append("0");
+            if (maxSeries == 4) {
+                s.append("</td><td>");
+                if (seriesCount < 4) s.append("0");
+            }
             s.append("</td></tr>\n");
             out.print(s.toString());
             out.print(s.toString());
