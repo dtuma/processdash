@@ -75,7 +75,7 @@ public class OptionList {
     }
 
     public JComboBox getAsComboBox() {
-        JComboBox result = new JComboBox(options);
+        JComboBox result = new JComboBox((Vector) options.clone());
 
         if (!comments.isEmpty()) {
             ToolTipCellRenderer renderer = new ToolTipCellRenderer();
