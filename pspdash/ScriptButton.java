@@ -79,17 +79,50 @@ class ScriptButton extends DropDownButton {
         paths = v;
         getMenu().removeAll();
         ScriptID id;
+        String dataPath = null;
+        boolean useSubmenus = useSubmenus(paths);
+        JMenu destMenu = getMenu();
 
         // populate the popup menu with items for each script.
-        if (paths != null) for (int i = 0;  i < paths.size();  i++) {
-            id = (ScriptID) paths.elementAt (i);
-            getMenu().add(new ScriptMenuItem(id));
-            if (i == 0) getMenu().addSeparator();
+        if (paths != null && paths.size() > 0) {
+
+            // add the current (default) menu.
+            destMenu.add(new ScriptMenuItem((ScriptID) paths.elementAt (0)));
+            destMenu.addSeparator();
+
+            // add menu items for the rest of the scripts
+            for (int i = 1;  i < paths.size();  i++) {
+                id = (ScriptID) paths.elementAt (i);
+                if (id.getDataPath() == null || id.getScript() == null)
+                    continue;
+                if (!id.getDataPath().equals(dataPath)) {
+                    dataPath = id.getDataPath();
+                    if (useSubmenus) {
+                        int pos = dataPath.lastIndexOf('/');
+                        destMenu = new JMenu(dataPath.substring(pos+1));
+                        getMenu().add(destMenu);
+                    } else if (i > 1) {
+                        destMenu.addSeparator();
+                    }
+                }
+                destMenu.add(new ScriptMenuItem(id));
+            }
+            getMenu().addSeparator();
         }
 
-        if (paths.size() > 0)
-            getMenu().addSeparator();
         getMenu().add(moreItem);
+    }
+    private boolean useSubmenus(Vector v) {
+        if (v == null || v.size() < 15) return false;
+        String dataPath = ((ScriptID) paths.elementAt (0)).getDataPath();
+        String newDataPath;
+        for (int i = v.size();   i-- > 1; ) {
+            newDataPath = ((ScriptID) paths.elementAt (i)).getDataPath();
+            if (dataPath != null && !dataPath.equals(newDataPath))
+                return true;
+            dataPath = newDataPath;
+        }
+        return false;
     }
 
     /** ScriptMenuItem is an extended JMenuItem class with built-in
