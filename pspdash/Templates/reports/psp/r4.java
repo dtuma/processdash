@@ -59,6 +59,7 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         "    TD { text-align:center; vertical-align: baseline }\n" +
         "    .header { font-weight: bold; vertical-align:bottom }\n" +
         "    .footnote { font-size: small; font-style:italic }\n" +
+        "    @media print { .doNotPrint { display: none } }\n" +
         "</STYLE></HEAD>\n" +
         "<BODY><H1>%path%</H1><H2>Report R4</H2>";
 
@@ -127,7 +128,8 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         printD24("Total", totals);
 
         out.println("</TABLE>");
-        out.println("<P><A HREF=\"../excel.iqy\"><I>Export to Excel</I></A>");
+        out.println("<P class='doNotPrint'><A HREF=\"../excel.iqy\"><I>Export"+
+                    " to Excel</I></A></P>");
         if (strict) {
             String query = (String) env.get("QUERY_STRING");
             query = StringUtils.findAndReplace(query, "strict", "notstrict");
@@ -137,8 +139,9 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
         out.println("</BODY></HTML>");
     }
     protected static final String FOOTNOTE =
-        "<P class=footnote>To reduce clutter, and omit completely empty " +
-        "rows from the tables above, <A HREF='r4.class?%qs%'>click here</A>.";
+        "<P class=footnote><span class=doNotPrint>To reduce clutter, "+
+        "and omit completely empty rows from the tables above, " +
+        "<A HREF='r4.class?%qs%'>click here</A></span></P>.";
 
     protected void printD23(String param, String label, int [] row) {
         String dt = param;

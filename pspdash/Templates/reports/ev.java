@@ -241,10 +241,12 @@ public class ev extends CGIChartBase {
         writeHTMLTable("SCHEDULE", s, s.toolTips);
 
         out.print("<p class='doNotPrint'>");
+        out.print(EXPORT_HTML1);
         if (!parameters.containsKey("EXPORT"))
-            out.print(EXPORT_HTML);
+            out.print(EXPORT_HTML2);
         if (getDataRepository().getValue("/Enable_EV_Week_form") != null)
             out.print(OPT_FOOTER_HTML);
+        out.print("</p>");
         out.print(FOOTER_HTML2);
     }
     protected void writeMetric(EVMetrics m, int i) {
@@ -263,7 +265,7 @@ public class ev extends CGIChartBase {
             out.write(interpretation);
             out.write(" ");
         }
-        out.write("<a href='javascript:alert(\"");
+        out.write("<a class='doNotPrint' href='javascript:alert(\"");
         out.write(explanation);
         out.write("\");'>More...</a>)</I></td></tr>\n");
     }
@@ -276,14 +278,16 @@ public class ev extends CGIChartBase {
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
     static final String SEPARATE_CHARTS_HTML =
+        "<pre>"+
         "<img src='ev.class?"+CHART_PARAM+"="+VALUE_CHART+COLOR_PARAMS+"'>" +
         "<img src='ev.class?"+CHART_PARAM+"="+TIME_CHART+COLOR_PARAMS+
-        "&width=320&hideLegend'><br>\n";
+        "&width=320&hideLegend'></pre>\n";
     static final String COMBINED_CHARTS_HTML =
         "<img src='ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
-    static final String EXPORT_HTML =
+    static final String EXPORT_HTML1 =
         "<a href=\"../reports/excel.iqy\"><i>Export text to Excel</i></a>" +
-        "&nbsp; &nbsp; &nbsp; &nbsp;" +
+        "&nbsp; &nbsp; &nbsp; &nbsp;";
+    static final String EXPORT_HTML2 =
         "<a href='ev.xls'><i>Export charts to Excel</i></a>" +
         "&nbsp; &nbsp; &nbsp; &nbsp;";
     static final String OPT_FOOTER_HTML =
