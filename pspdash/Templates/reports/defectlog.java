@@ -57,14 +57,16 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
         "<TD>FixDefect</TD>\n" +
         "<TD>Description</TD></TR>";
 
-    private static final String END_TEXT =
+    private static final String TABLE_END_TEXT =
         "</TABLE>" +
         "<P class='doNotPrint'><A HREF=\"excel.iqy\"><I>Export to" +
-        " Excel</I></A></P>"+
+        " Excel</I></A></P>";
+    private static final String DISCLAIMER_TEXT =
         "<P class=doNotPrint><I>This view of the defect log is read-only. " +
         "To add entries to the defect log, use the defect button on the " +
         "dashboard. To edit or delete defects, use the defect log editor " +
-        "(accessible from the Configuration menu of the dashboard).</I></P>" +
+        "(accessible from the Configuration menu of the dashboard).</I></P>";
+    private static final String END_TEXT =
         "</BODY></HTML>";
 
     /** Generate CGI script output. */
@@ -103,6 +105,9 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
         else
             DefectAnalyzer.run(getPSPProperties(), path, this);
 
+        out.print(TABLE_END_TEXT);
+        if (!parameters.containsKey("noDisclaimer"))
+                out.print(DISCLAIMER_TEXT);
         out.println(END_TEXT);
     }
 

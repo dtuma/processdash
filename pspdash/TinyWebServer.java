@@ -262,13 +262,10 @@ public class TinyWebServer extends Thread {
                 run();
                 if (exceptionEncountered instanceof IOException)
                     throw (IOException) exceptionEncountered;
-                if (exceptionEncountered != null) try {
-                    // this construct will cause the exception chaining
-                    // mechanism to be invoked in Java 1.4, but will still
-                    // compile and run in Java 1.3
-                    throw exceptionEncountered;
-                } catch (Exception ee) {
-                    throw new IOException();
+                if (exceptionEncountered != null) {
+                        IOException ioe = new IOException();
+                        ioe.initCause(exceptionEncountered);
+                    throw ioe;
                 }
 
                 return ((ByteArrayOutputStream) outputStream).toByteArray();

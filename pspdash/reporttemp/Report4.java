@@ -67,7 +67,9 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
         "    .footnote { font-size: small; font-style:italic }\n" +
         "    @media print { .doNotPrint { display: none } }\n" +
         "</STYLE></HEAD>\n" +
-        "<BODY><H1>%path%</H1><H2>${R4.Title}</H2>";
+        "<BODY><H1>%path%</H1>";
+    private static final String TITLE_TEXT =
+        "<H2>${R4.Title}</H2>";
 
     protected static final String FOOTNOTE =
         "<P class=footnote><span class=doNotPrint>" +
@@ -103,31 +105,36 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
     protected void writeHTMLHeader(String path) {
-        String header = interpolate(HEADER_TEXT, true);
-        header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
-        header = StringUtils.findAndReplace
-            (header, "%path%",
-             HTMLUtils.escapeEntities(path));
-        out.println(header);
+        if (!parameters.containsKey(INCLUDABLE_PARAM)) {
+                String header = interpolate(HEADER_TEXT, true);
+                header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
+                header = StringUtils.findAndReplace
+                    (header, "%path%",
+                     HTMLUtils.escapeEntities(path));
+                out.println(header);
+        }
+        printRes(TITLE_TEXT);
     }
 
 
     private void writeHTMLFooter() {
-        printRes("<P class='doNotPrint'><A HREF=\"" +
-                 PATH_TO_REPORTS+"excel.iqy\"><I>" +
-                 "${Export_to_Excel}</I></A></P>");
-        if (strict) {
-            String query = (String) env.get("QUERY_STRING");
-            query = StringUtils.findAndReplace(query, "strict", "notstrict");
-            String script = (String) env.get("SCRIPT_NAME");
-            script = script.substring(script.lastIndexOf('/')+1);
-            String anchor = "<A HREF='" + script + "?" + query + "'>";
-            String footnote = interpolate(FOOTNOTE, false);
-            footnote = StringUtils.findAndReplace(footnote, "<A>", anchor);
-            footnote = StringUtils.findAndReplace(footnote, "<a>", anchor);
-            out.println("<P><HR>" + footnote);
+        if (!parameters.containsKey(INCLUDABLE_PARAM)) {
+                printRes("<P class='doNotPrint'><A HREF=\"" +
+                         PATH_TO_REPORTS+"excel.iqy\"><I>" +
+                         "${Export_to_Excel}</I></A></P>");
+                if (strict) {
+                    String query = (String) env.get("QUERY_STRING");
+                    query = StringUtils.findAndReplace(query, "strict", "notstrict");
+                    String script = (String) env.get("SCRIPT_NAME");
+                    script = script.substring(script.lastIndexOf('/')+1);
+                    String anchor = "<A HREF='" + script + "?" + query + "'>";
+                    String footnote = interpolate(FOOTNOTE, false);
+                    footnote = StringUtils.findAndReplace(footnote, "<A>", anchor);
+                    footnote = StringUtils.findAndReplace(footnote, "<a>", anchor);
+                    out.println("<P><HR>" + footnote);
+                }
+                out.println("</BODY></HTML>");
         }
-        out.println("</BODY></HTML>");
     }
 
 
@@ -136,12 +143,7 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
         writeD23Header();
 
         // write table data
-        String defectLogParam = (String) env.get("QUERY_STRING");
-        if (defectLogParam == null)
-            defectLogParam = "";
-        else if (PATH_TO_REPORTS.length() > 0)
-            defectLogParam = StringUtils.findAndReplace
-                (defectLogParam, "qf="+PATH_TO_REPORTS, "qf=");
+        String defectLogParam = getDefectLogParam();
 
         Iterator defectTypes = defectCounts.keySet().iterator();
         String defectType;
@@ -157,7 +159,7 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
     }
 
 
-    private void writeD23Header() {
+        private void writeD23Header() {
         out.print("<H3>");
         out.print(resources.getHTML("R4.D23.Title"));
         out.println("</H3>");
@@ -209,10 +211,13 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
                     isEmptyRow(row, remCategories))
                 return;
         }
-        out.println("<TR><TD><A HREF=\"" + PATH_TO_REPORTS +
-                    "defectlog.class?" + dt +"\">" +
-                    HTMLUtils.escapeEntities(label) +
-                    "</A></TD>");
+        out.print("<TR><TD>");
+        if (!exporting())
+                out.print("<A HREF=\"" + PATH_TO_REPORTS + "defectlog.class?" + dt +"\">");
+        out.print(HTMLUtils.escapeEntities(label));
+        if (!exporting())
+                out.print("</A>");
+                out.println("</TD>");
 
         Iterator i;
         for (i = injCategories.iterator();   i.hasNext(); )
@@ -277,7 +282,7 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
     protected String fc(String dt, int [] row, Category cat) {
         int col = categories.indexOf(cat);
         if (row[col] == 0) return NA;
-        if (dt == null) return Integer.toString(row[col]);
+        if (dt == null || exporting()) return Integer.toString(row[col]);
         return "<A HREF=\"" + PATH_TO_REPORTS + "defectlog.class?"
             + cat.getFilter() + "&" + dt + "\">" + row[col] + "</A>";
     }

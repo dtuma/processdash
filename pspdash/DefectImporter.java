@@ -26,6 +26,9 @@
 package pspdash;
 
 import java.io.BufferedReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -33,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -92,16 +96,23 @@ public class DefectImporter implements DefectXmlConstants {
 
                 Defect d = new Defect();
                 d.date = XMLUtils.getXMLDate(e, DATE_ATTR);
-                d.number = e.getAttribute(NUM_ATTR);
+                d.number = ""; // e.getAttribute(NUM_ATTR);
                 d.defect_type = e.getAttribute(TYPE_ATTR);
                 d.phase_injected = e.getAttribute(INJECTED_ATTR);
                 d.phase_removed = e.getAttribute(REMOVED_ATTR);
                 d.fix_time = e.getAttribute(FIX_TIME_ATTR);
-                d.fix_defect = e.getAttribute(FIX_DEFECT_ATTR);
+                d.fix_defect = massageFixDefect(e.getAttribute(FIX_DEFECT_ATTR));
                 d.description = e.getAttribute(DESCRIPTION_ATTR);
 
                 l.add(d);
             }
+        }
+
+        private String massageFixDefect(String fd) {
+                if (fd != null && fd.trim().length() > 0)
+                        return "Yes";
+                else
+                        return " ";
         }
 
         private List getList(String path) {
@@ -130,18 +141,25 @@ public class DefectImporter implements DefectXmlConstants {
             }
         }
 
-        Iterator i = keys.iterator();
-        while (i.hasNext()) {
-            String key = (String) i.next();
-            if (key.endsWith(DEFECT_LIST_ELEM)) {
+        List defects = new LinkedList();
+        for (Iterator i = keys.iterator(); i.hasNext();) {
+                        String key = (String) i.next();
+                        if (key.endsWith(DEFECT_LIST_ELEM)) {
                 List defectList = (List) importedDefects.get(key);
                 String defectPath = key.substring
                     (0, key.length() - DEFECT_LIST_ELEM.length());
                 defectPath = rerootPath(data, defectPath, wbsIdMap);
-                for (Iterator j = defectList.iterator(); j.hasNext();)
-                    t.analyze(defectPath, (Defect) j.next());
+                for (Iterator j = defectList.iterator(); j.hasNext();) {
+                        defects.add(new DefectToAnalyze(defectPath, (Defect) j.next()));
+                }
             }
         }
+
+        Collections.sort(defects);
+        for (Iterator i = defects.iterator(); i.hasNext();) {
+                        DefectToAnalyze defect = (DefectToAnalyze) i.next();
+                        t.analyze(defect.path, defect.defect);
+                }
     }
 
     private static Map buildWbsIdMap(PSPProperties props, DataRepository data) {
@@ -181,10 +199,45 @@ public class DefectImporter implements DefectXmlConstants {
             return defectPath;
 
         String wbsID = wbsIdSimpleValue.format();
-        String result = (String) wbsIdMap.get(wbsID);
-        if (result == null)
-            return defectPath;
-        else
-            return result;
+        while (wbsID != null && wbsID.length() > 0) {
+                String result = (String) wbsIdMap.get(wbsID);
+                if (result != null)
+                        return result;
+                wbsID = DataRepository.chopPath(wbsID);
+        }
+        return defectPath;
+    }
+
+    private static class DefectToAnalyze implements Comparable {
+        public String path;
+        public Defect defect;
+
+                public DefectToAnalyze(String path, Defect defect) {
+                        this.path = path;
+                        this.defect = defect;
+                }
+
+                public int compareTo(Object o) {
+                        DefectToAnalyze that = (DefectToAnalyze) o;
+                        int result = this.path.compareTo(that.path);
+                        if (result != 0)
+                                return result;
+
+                        Date thisDate = this.defect.date;
+                        Date thatDate = that.defect.date;
+                        if (thisDate != null) {
+                                if (thatDate != null)
+                                        result = thisDate.compareTo(thatDate);
+                                else
+                                        result = 1;
+                        } else {
+                                if (thatDate != null)
+                                        result = -1;
+                                else
+                                        result = 0;
+                        }
+
+                        return result;
+                }
     }
 }

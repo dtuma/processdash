@@ -110,7 +110,7 @@ public class excel extends pspdash.TinyCGIBase {
 
         // If no query parameters were sent to this request, use the
         // uri of the referer.
-        if (uri.indexOf('?') == -1 && referer != null) try {
+        if ((uri.indexOf('?') == -1 || uri.endsWith("?fullPage")) && referer != null) try {
             return (new URL(referer)).getFile();
         } catch (MalformedURLException mue) {}
 

@@ -32,6 +32,7 @@ import java.util.List;
 
 import pspdash.HTMLUtils;
 import pspdash.Resources;
+import pspdash.StringUtils;
 import pspdash.TinyCGIBase;
 import pspdash.Translator;
 import pspdash.data.DataRepository;
@@ -46,6 +47,18 @@ public class AnalysisPage extends TinyCGIBase {
 
     protected static final String PATH_TO_REPORTS = "../";
 
+
+        protected String getDefectLogParam() {
+                String defectLogParam = (String) env.get("QUERY_STRING");
+        if (defectLogParam == null)
+            defectLogParam = "";
+        else if (PATH_TO_REPORTS.length() > 0)
+            defectLogParam = StringUtils.findAndReplace
+                (defectLogParam, "qf="+PATH_TO_REPORTS, "qf=");
+        defectLogParam = StringUtils.findAndReplace
+            (defectLogParam, "&"+INCLUDABLE_PARAM, "");
+                return defectLogParam;
+        }
 
     protected ListData getProcessList(String listName) {
         String dataName = DataRepository.createDataName(getPrefix(), listName);
@@ -72,48 +85,6 @@ public class AnalysisPage extends TinyCGIBase {
         return val == null ? "" : val.format();
     }
 
-//    protected boolean metricIsDefined(String name) {
-//        String dataName = DataRepository.createDataName(getPrefix(), name);
-//        return getDataRepository().getValue(dataName) != null;
-//    }
-//
-//    protected String interpolate(String text) {
-//        return StringUtils.interpolate(this, text);
-//    }
-//    protected void interpOut(String text) {
-//        out.write(interpolate(text));
-//    }
-//
-//    protected String fmtArg(String name, Object value) {
-//        return name + "=" + HTMLUtils.urlEncode((String) value);
-//    }
-//
-//    protected String getSizeAbbrLabel() {
-//        String sizeMetric = getProcessString("SIZE_METRIC_NAME_ABBR");
-//        String displayName = Translator.translate(sizeMetric);
-//        return displayName;
-//    }
-//
-//    protected String getCumPhaseSum(ListData phases, String thruPhase, String dataElem) {
-//        StringBuffer result = new StringBuffer();
-//        result.append("sumFor(\"").append(escData(dataElem)).append("\", \"\u0002");
-//        for (int i = 0;   i < phases.size();   i++) {
-//            String phase = (String) phases.get(i);
-//            result.append(escData(phase)).append('\u0002');
-//            if (phase.equals(thruPhase))
-//                break;
-//        }
-//        result.append("\")");
-//        return result.toString();
-//    }
-//
-//    protected String getCumPhaseSumPct(ListData phases, String thruPhase, String dataElem) {
-//        StringBuffer result = new StringBuffer();
-//        result.append(getCumPhaseSum(phases, thruPhase, dataElem))
-//            .append(" / [").append(escData(dataElem)).append("]");
-//        return result.toString();
-//    }
-//
     protected String getAggrSizeLabel() {
         return Translator.translate
             (getProcessString("AGGR_SIZE_METRIC_NAME_ABBR"));
@@ -153,4 +124,12 @@ public class AnalysisPage extends TinyCGIBase {
             return rem;
         }
     }
+
+
+        public static final String INCLUDABLE_PARAM = "includable";
+
+
+        public boolean exporting() {
+                return parameters.containsKey("EXPORT");
+        }
 }
