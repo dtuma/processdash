@@ -42,6 +42,7 @@ CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
 CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/psp3/cyclesum.java \
 	Templates/generic/summary.java \
+	Templates/control/raiseWindow.java \
 	Templates/reports/psp/r3c.java \
 	Templates/reports/psp/r4.java \
 	Templates/reports/psp/r5a.java \
