@@ -61,7 +61,7 @@ public class TaskScheduleDialog
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
         deletePeriodButton, chartButton, reportButton, closeButton,
-        saveButton, recalcButton, explodeTaskButton;
+        saveButton, recalcButton, explodeTaskButton, errorButton;
 
     protected JFrame chartDialog = null;
 
@@ -279,6 +279,14 @@ public class TaskScheduleDialog
         }
         */
 
+        errorButton = new JButton("Errors");
+        errorButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    displayErrorDialog(getErrors()); }});
+        errorButton.setBackground(Color.red);
+        errorButton.setVisible(getErrors() != null);
+        result.add(errorButton);
+
         chartButton = new JButton("Chart");
         chartButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -396,8 +404,12 @@ public class TaskScheduleDialog
             readOnly = new TaskTableRenderer(getSelectionBackground(),
                                              getBackground(),
                                              expandedColor);
-        }
 
+            TaskJTreeTableCellRenderer r =
+                new TaskJTreeTableCellRenderer(getTree().getCellRenderer());
+            getTree().setCellRenderer(r);
+            ToolTipManager.sharedInstance().registerComponent(getTree());
+        }
 
         public TableCellRenderer getCellRenderer(int row, int column) {
             TableCellRenderer result = super.getCellRenderer(row, column);
@@ -465,6 +477,72 @@ public class TaskScheduleDialog
             result.setBackground(selectedEditableColor);
             if (result instanceof JTextComponent)
                 ((JTextComponent) result).selectAll();
+            return result;
+        }
+    }
+
+    class TaskJTreeTableCellRenderer
+        extends javax.swing.tree.DefaultTreeCellRenderer {
+
+        private Font regular = null, bold = null;
+
+        public TaskJTreeTableCellRenderer(TreeCellRenderer r) { super(); }
+        private Font getFont(boolean bold, Component c) {
+            if (this.regular == null) {
+                Font base = c.getFont();
+                this.regular = base.deriveFont(Font.PLAIN);
+                this.bold    = base.deriveFont(Font.BOLD);
+            }
+            return (bold ? this.bold : this.regular);
+        }
+
+        /**
+         * Overrides <code>DefaultTreeCellRenderer.getPreferredSize</code> to
+         * return a wider preferred size value.
+         *
+         * Without this method, nodes displayed in bold text are
+         * sometimes truncated (with "..." at the end of the label),
+         * presumably because DefaultTreeCellRenderer doesn't expect
+         * the font to be changing.
+         *
+         * Since we display in a JTreeTable table and our preferred
+         * width is typically ignored entirely, we could really ask
+         * for as large a preferred width as we want and not worry
+         * that we'll be given too much horizontal space.
+         */
+        public Dimension getPreferredSize() {
+            Dimension        retDimension = super.getPreferredSize();
+
+            if(retDimension != null)
+                retDimension = new Dimension((int) (retDimension.width * 1.1),
+                                             retDimension.height);
+            return retDimension;
+        }
+
+        public Component getTreeCellRendererComponent(JTree tree,
+                                                      Object value,
+                                                      boolean selected,
+                                                      boolean expanded,
+                                                      boolean leaf,
+                                                      int row,
+                                                      boolean hasFocus)
+        {
+            Component result = super.getTreeCellRendererComponent
+                (tree, value, selected, expanded, leaf, row, hasFocus);
+            String errorStr = null;
+
+            TreePath path = tree.getPathForRow(row);
+            if (path != null)
+                errorStr = ((EVTaskList) model).getErrorStringAt
+                    (path.getLastPathComponent(),
+                     EVTaskList.TASK_COLUMN);
+
+            if (result instanceof JComponent)
+                ((JComponent) result).setToolTipText(errorStr);
+            if (errorStr != null)
+                result.setForeground(Color.red);
+            result.setFont(getFont(errorStr != null, result));
+
             return result;
         }
     }
@@ -610,6 +688,9 @@ public class TaskScheduleDialog
         // rows may have changed to or from automatic rows, update the
         // buttons appropriately.
         enableScheduleButtons();
+
+        // Display the error button if necessary.
+        maybeDisplayErrorButton();
 
         // highlight any errors in the EVModel if they exist.
         highlightErrors(getErrors());
@@ -856,6 +937,10 @@ public class TaskScheduleDialog
 
         insertPeriodButton.setEnabled(enableInsert);
         deletePeriodButton.setEnabled(enableDelete);
+    }
+
+    protected void maybeDisplayErrorButton() {
+        errorButton.setVisible(getErrors() != null);
     }
 
     protected void close() {
