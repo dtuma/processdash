@@ -2,12 +2,18 @@
 
 <file-list>
 
-<file name="Coding Standard" templatePath="/Templates/pspDoc/C29.rtf"
+<file name="Coding Standard" disabledTemplatePath="/Templates/pspDoc/C29.rtf"
       path="[/{Project/Language} Coding Standard Document]"/>
+ <var name="[/{Project/Language} Coding Standard Document]">
+      Please enter the complete path to the document.  This document should
+      already exist; the dashboard cannot create it automatically.</var>
 
 <directory name="PSP Project Document Directory"
-           path="[PSP Project Document Directory]"
-	   templatePath="/Templates/pspDoc">
+           templatePath="/Templates/pspDoc"
+           path="[PSP Project Document Directory]">
+      <var name="[PSP Project Document Directory]">
+           Please enter the complete path to a directory where you would like
+           to store documents pertaining to this PSP Project.</var>
 
   <file name="PIP Form" path="[PIP Form Filename]"
         defaultPath="Process Improvement Proposal.rtf" templatePath="C27.rtf"/>
@@ -15,21 +21,25 @@
   <file name="Test Report" path="[Test Report Filename]"
         defaultPath="Test Report.rtf" templatePath="C37.rtf"/>
 
-  <file name="Design Review Checklist" path="[Design Review Checklist]"
+  <file name="Design Review Checklist"
+        path="[Design Review Checklist Filename]"
         defaultPath="Design Review Checklist.rtf"
 	templatePath="[/{Project/Language} Design Review Checklist Template]"/>
+   <var name="[/{Project/Language} Design Review Checklist Template]">
+        Please enter the complete path to the document.  This document should
+        already exist; the dashboard cannot create it automatically.</var>
 
-  <file name="Code Review Checklist" path="[Code Review Checklist]"
+  <file name="Code Review Checklist" path="[Code Review Checklist Filename]"
         defaultPath="Code Review Checklist.rtf"
 	templatePath="[/{Project/Language} Code Review Checklist Template]"/>
+   <var name="[/{Project/Language} Code Review Checklist Template]">
+        Please enter the complete path to the document.  This document should
+        already exist; the dashboard cannot create it automatically.</var>
 
   <!-- add more lines here for additional files -->
 
   <!-- support requirements statement? -->
   <!-- support conceptual design? -->
-
-  <!-- task planning and schedule planning templates would not be external
-       documents, but would be integrated into dashboard -->
 
 </directory>
 
