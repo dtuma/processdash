@@ -86,6 +86,9 @@ class BetaVersionSetup {
         "   'C' menu contains a shortcut to the bug report form.)",
         BULLET + " If you use this software with real-world project data, do so",
         "   with caution and doublecheck the calculations.",
+        BULLET + " Please check the website http://processdash.sourceforge.net,",
+        "   and download the final release of version "+VERSION+" when it becomes",
+        "   available.",
         "Thank you for your willingness to evaluate this beta release! The",
         "Process Dashboard development team appreciates your support." };
 
