@@ -36,13 +36,15 @@ class BetaVersionSetup {
     private static final boolean enable = true;
     public static final String VERSION = "1.4";
 
-
     /** Build a submenu containing beta-related options, and add it to
      * <code>menu</code> */
     public static final void addSubmenu(JMenu menu) {
         if (enable) {
             JMenu betaMenu = new JMenu(VERSION + "-beta");
             menu.add(betaMenu);
+
+            // workaround jre 1.3 bug...reference http://developer.java.sun.com/developer/bugParade/bugs/4280243.html
+            betaMenu.enableInputMethods(false);
 
             // add a "submit bug report" menu option
             JMenuItem menuItem = new JMenuItem("Submit bug report");
