@@ -392,6 +392,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     public static final String HTML_NODE_NAME = "html";
     public static final String ID_ATTR = "ID";
     public static final String NO_DATAFILE = "none";
+    public static final String NO_HREF = "none";
 
     public static final String XML_HEADER =
         "<?xml version='1.0' encoding='UTF-8'?>";
@@ -474,7 +475,9 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
             val.setID(theid);
 
             // Store the defined script href.
-            val.setScriptFile(e.getAttribute(HTML_HREF_ATTR));
+            String href = e.getAttribute(HTML_HREF_ATTR);
+            if (!NO_HREF.equals(href))
+                val.setScriptFile(href);
 
             // Store the applicable constraint.
             String constraints = e.getAttribute(CONSTRAINTS_ATTR);
