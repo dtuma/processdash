@@ -25,6 +25,7 @@
 
 package pspdash.data;
 
+import java.io.ObjectStreamException;
 
 public class TagData implements SimpleData {
 
@@ -50,4 +51,6 @@ public class TagData implements SimpleData {
     public boolean test()                      { return true;         }
 
     public String toString()                   { return "TAG";        }
+
+    Object readResolve() throws ObjectStreamException { return INSTANCE; }
 }
