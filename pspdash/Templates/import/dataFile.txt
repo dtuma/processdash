@@ -128,7 +128,7 @@ combine(Defects Removed);
  * as "undefined", so it will show up on summary forms as "?????".
  */
 
-[Completed] = ?@43200000;
+[Completed] = ?@50000000;
 
 
 /*
