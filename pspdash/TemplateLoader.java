@@ -60,9 +60,10 @@ public class TemplateLoader {
     private static long templateTimestamp = 0;
 
     static PSPProperties loadTemplates(DataRepository data,
-                                              AutoUpdateManager aum) {
+                                       AutoUpdateManager aum) {
         PSPProperties templates = new PSPProperties(null);
 
+        template_url_list = null;
         URL[] roots = getTemplateURLs();
 
         String templateDirURL;
@@ -510,7 +511,7 @@ public class TemplateLoader {
     /** Looks through the various loaded templates, and determines which
      * absolute URL the given String maps to.  If the given URL does not
      * map to any real resource, returns null.
-     * 
+     *
      * Note: since this locates a resource which is known to exist, it must
      * make a connection to that URL.  However, the named resource is not
      * downloaded, and is not interpreted.  In particular, if the resulting URL
@@ -526,7 +527,7 @@ public class TemplateLoader {
     /** Looks through the various loaded templates, determines which
      * absolute URL the given String maps to, and returns a connection to that
      * URL.  If the given URL does not map to any real resource, returns null.
-     * 
+     *
      * Note: although this opens a connection to the named URL, it does not
      * interpret the results.  In particular, if the resulting URL names a CGI
      * script, that script will not be executed; the URL connection
