@@ -99,7 +99,7 @@ public class CustomProcessPublisher {
         }
         parameters.put("Phase_List_ALL", phaseList);
 
-        parameters.put("USE_TO_DATE_DATA", "t");
+        // parameters.put("USE_TO_DATE_DATA", "t");
     }
 
     private String lastPhaseID;
