@@ -453,16 +453,18 @@ public class DataRepository implements Repository {
             }
 
             private volatile boolean notifierIsInconsistent = false;
+            private final boolean ENABLE_NOTIFICATION_BASED_INCONSISTENCY = false;
             private void checkConsistency() {
-                synchronized (notifications) {
-                    boolean isInconsistent = !notifications.isEmpty();
-                    if (isInconsistent == notifierIsInconsistent) return;
-                    notifierIsInconsistent = isInconsistent;
-                    if (notifierIsInconsistent)
-                        startInconsistency();
-                    else
-                        finishInconsistency();
-                }
+                if (ENABLE_NOTIFICATION_BASED_INCONSISTENCY)
+                    synchronized (notifications) {
+                        boolean isInconsistent = !notifications.isEmpty();
+                        if (isInconsistent == notifierIsInconsistent) return;
+                        notifierIsInconsistent = isInconsistent;
+                        if (notifierIsInconsistent)
+                            startInconsistency();
+                        else
+                            finishInconsistency();
+                    }
             }
 
             private boolean fireEvent() {
