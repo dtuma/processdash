@@ -15,6 +15,9 @@
  <LI><a href="FAQ.html#NoServer">My web browser displays an error message when I try to view a script/form/chart/report/etc.  What is wrong?</A></LI>
  <LI><a href="FAQ.html#SunPlugin">My web browser is able to show the forms, but none of the entry blanks have any information.  What is wrong?</a></li>
 
+ <LI><a href="#ChooseJVM">I have several versions of the Java Runtime Environment on my computer. How
+  can I tell the dashboard which one to use?</a></li>
+
 </ul>
 
 <h2>Online forms</h2>
@@ -124,6 +127,21 @@ problem:</p>
 please send us an email at 
 <em>processdash-devel@lists.sourceforge.net</em></p> and we will attempt to 
 help you with the problem.
+
+<P><hr><A NAME="ChooseJVM"></A><b>I have several versions of the Java Runtime
+Environment on my computer. How can I tell the dashboard which one to use?</b>
+
+<P>(These instructions apply to Windows.)&nbsp;
+<ol>
+  <li>Right-click on the icon you use to run the dashboard, and choose
+    Properties</li>
+  <li>The &quot;Target&quot; field will contain &quot;C:\Program Files\Process
+    Dashboard\pspdash.jar&quot;. Change it to read (all on one line):<br><br>
+      <code><FONT SIZE="-2">&quot;C:\Program&nbsp;Files\JavaSoft\JRE\1.3.1\bin\java&quot; -jar &quot;C:\Program&nbsp;Files\Process&nbsp;Dashboard\pspdash.jar&quot;</font></code><br><br>
+    (Of course, you may need to modify the path to the &quot;java&quot; program
+    if it is slightly different on your computer.)
+     </li>
+</ol>
 
 <P><hr><A NAME="TwoForms"></A><b>If I have a dashboard script or form open,
 and I click the script button to open another form, the new form appears in
