@@ -306,6 +306,7 @@ public class TinyWebServer extends Thread {
 
         private void discardHeader() throws IOException {
             // read the rest of the request header and discard it.
+            String line;
             while (null != (line = in.readLine()))
                 if (line.length() == 0)
                     break;
@@ -422,16 +423,16 @@ public class TinyWebServer extends Thread {
         if (path == null || path.length() == 0)
             throw new IOException("Path must be specified");
 
+        if (path.startsWith("/")) path = path.substring(1);
+        if (!path.endsWith("/"))  path = path + "/";
         Enumeration e = getClass().getClassLoader().getResources(path);
         Vector v = new Vector();
         while (e.hasMoreElements())
             v.addElement(e.nextElement());
         int i = v.size();
         roots = new URL[i];
-        while (i-- > 0) {
+        while (i-- > 0)
             roots[i] = (URL) v.elementAt(i);
-            System.out.println("root: " + roots[i]);
-        }
 
         DEFAULT_ENV.put("SERVER_PORT", "" + port);
         serverSocket = new ServerSocket(port);
