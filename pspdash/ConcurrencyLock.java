@@ -160,35 +160,26 @@ public class ConcurrencyLock {
      * data in the given directory.
      */
     private void showWarningDialog(String directory) {
-        DUPLICATE_DASH_MSG[2] = "        " + directory;
-        JOptionPane.showMessageDialog(null, DUPLICATE_DASH_MSG,
-                                      "Data Sharing Violation",
-                                      JOptionPane.ERROR_MESSAGE);
+        Resources r = Resources.getDashBundle("pspdash.PSPDashboard");
+        JOptionPane.showMessageDialog
+            (null,
+             r.formatStrings("Data_Sharing_Violation_Message_FMT", directory),
+             r.getString("Data_Sharing_Violation_Title"),
+             JOptionPane.ERROR_MESSAGE);
     }
-    private static String[] DUPLICATE_DASH_MSG = {
-        "Someone on another machine is already running the",
-        "Process Dashboard for the data in the directory",
-        "",
-        "To ensure data integrity, this instance of the",
-        "dashboard will exit."};
 
 
     /** Display a dialog to the user indicating failure to
      * create a lock file in the given directory.
      */
     private void showFailureDialog(String directory) {
-        LOCK_FAILURE_MSG[2] = "        " + directory;
-        JOptionPane.showMessageDialog(null, LOCK_FAILURE_MSG,
-                                      "Fatal Error",
-                                      JOptionPane.ERROR_MESSAGE);
+        Resources r = Resources.getDashBundle("pspdash.PSPDashboard");
+        JOptionPane.showMessageDialog
+            (null,
+             r.formatStrings("Lock_Failure_Message_FMT", directory),
+             r.getString("Lock_Failure_Title"),
+             JOptionPane.ERROR_MESSAGE);
     }
-    private static String[] LOCK_FAILURE_MSG = {
-        "The Process Dashboard was unable to create a",
-        "lock file for the data in the directory",
-        "",
-        "Check to ensure that the directory exists, and",
-        "that you have write permission to the directory,",
-        "then start the dashboard again." };
 
 
     /** Release this concurrency lock.
