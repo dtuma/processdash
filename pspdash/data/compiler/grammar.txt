@@ -12,8 +12,8 @@ Helpers
     not_star_slash = [not_star - '/'];
 
     sign = '+' | '-';
-    float = '-'? digit_sequence? '.' digit_sequence;
-    integer = '-'? digit_sequence '.'?;
+    float = digit_sequence? '.' digit_sequence;
+    integer = digit_sequence '.'?;
     unusual_num = 'NaN' | '-'? 'Infinity';
 
     cr = 13;
