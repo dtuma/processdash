@@ -643,19 +643,22 @@ public class probe extends TinyCGIBase {
                       "<p style='margin-left:1cm'>Your estimates for size "+
                       "and time translate into a planned productivity of ");
             out.print(formatNumber(estProductivity));
-            out.print(" LOC/Hr.  This is ");
-            if (estProductivity > histProductivity + workDev)
-                out.print("significantly greater than");
-            else if (estProductivity < histProductivity - workDev)
-                out.print("significantly less than");
-            else
-                out.print("comparable to");
-            out.print(" your historical productivity of ");
-            out.print(formatNumber(histProductivity));
-            out.print(" LOC/Hr");
-            if (histDev > 0)
-                out.print(" (" +PLUS_MINUS+" "+ formatNumber(histDev) + ")");
-            out.print(".</p>\n");
+            out.print(" LOC/Hr.  ");
+            if (!badDouble(histProductivity)) {
+                out.print("This is ");
+                if (estProductivity > histProductivity + workDev)
+                    out.print("significantly greater than");
+                else if (estProductivity < histProductivity - workDev)
+                    out.print("significantly less than");
+                else
+                    out.print("comparable to");
+                out.print(" your historical productivity of ");
+                out.print(formatNumber(histProductivity));
+                out.print(" LOC/Hr");
+                if (histDev > 0)
+                    out.print(" (" +PLUS_MINUS+" "+formatNumber(histDev)+")");
+                out.print(".</p>\n");
+            }
         }
 
         out.print("</body></html>\n");
