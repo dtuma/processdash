@@ -11,8 +11,8 @@ d1==1.0  /* [ignored but necessary] */
 h2==Compile
 d2==Compile/DRL
 
-h3==Code Rev.
+h3==Code Review
 d3==Code Review/DRL
 
-h4==Des. Rev.
+h4==Design Review
 d4==Design Review/DRL

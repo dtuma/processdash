@@ -13,10 +13,10 @@ h2=Compile
 d2==Compile/Cumulative Defect Removal %
 f2==100%
 
-h3=Code Rev.
+h3=Code Review
 d3==Code Review/Cumulative Defect Removal %
 f3==100%
 
-h4=Des. Rev.
+h4=Design Review
 d4==Design Review/Cumulative Defect Removal %
 f4==100%

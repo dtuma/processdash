@@ -5,8 +5,8 @@ qf=../compProj.rpt
 title=Design Review Rate vs. Process Yield
 
 d1==Design Review/Appraisal Rate
-h1==Design Review LOC/Hour
+h1==Design Review LOC/Hr
 
 d2==Yield
-h2=Yield
+h2==Yield %
 f2==100%
