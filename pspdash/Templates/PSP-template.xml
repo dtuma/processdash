@@ -106,8 +106,12 @@ This file contains the template definitions for the standard PSP processes.
     <html ID="sum"  title="PSP1.1 Project Summary" href="psp1.1/summary.htm"/>
     <html ID="size" title="PSP1.1 Size Estimating Template"
                     href="psp1.1/sizeest.class"/>
-    <html ID="top"  title="PSP1.1 Process Script" href="psp1.1/script.htm"/>
-    <html ID="plan" title="PSP1.1 Planning Script" href="psp1.1/planning.htm"/>
+    <html ID="top"  title="PSP1.1 Process Script" 
+    		    href="psp1.1/planning.htm" comment="V1.4-BETA SEED DEFECT"
+    		    realHref="psp1.1/script.htm"/>
+    <html ID="plan" title="PSP1.1 Planning Script"
+    		    href="psp1.1/script.htm" comment="V1.4-BETA SEED DEFECT"
+                    realHref="psp1.1/planning.htm"/>
     <html ID="dev"  title="PSP1.1 Development Script"
                     href="psp1.1/develop.htm"/>
     <html ID="pm"   title="PSP1.1 Postmortem Script"
