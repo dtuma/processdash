@@ -1,5 +1,4 @@
 
-
 package teamdash;
 
 import java.awt.Color;
@@ -17,7 +16,7 @@ import org.w3c.dom.NodeList;
 
 
 /** Represents the list of team members assigned to a team project.
- * 
+ *
  * This implements <code>TableModel</code> so the team can be displayed in
  * an editable table.
  */
@@ -33,7 +32,7 @@ public class TeamMemberList extends AbstractTableModel {
     /** The list of team members */
     private ArrayList teamMembers = new ArrayList();
     /** True if we should always keep an empty team member at the end of
-         * the list */
+     * the list */
     private boolean autoNewRow = true;
 
     /** Creates a team member list with one empty team member at the end. */
@@ -41,8 +40,8 @@ public class TeamMemberList extends AbstractTableModel {
         addNewRow();
     }
 
-    /** Create a team member list from the information in the given XML element.
-         */
+    /** Create a team member list from the information in the given
+     * XML element.  */
     public TeamMemberList(Element e) {
         NodeList nodes = e.getElementsByTagName(TeamMember.TAG_NAME);
         for (int i = 0;   i < nodes.getLength();   i++)
@@ -59,7 +58,7 @@ public class TeamMemberList extends AbstractTableModel {
      */
     public void maybeAddEmptyRow() {
         int rows = getRowCount();
-        if (hasValue(getValueAt(rows-1, NAME_COLUMN)))
+        if (rows == 0 || hasValue(getValueAt(rows-1, NAME_COLUMN)))
             addNewRow();
     }
 
@@ -170,7 +169,7 @@ public class TeamMemberList extends AbstractTableModel {
     }
 
     /** Add a new, empty team member to the end of the list.  Use the
-         * first available unused color. */
+     * first available unused color. */
     private void addNewRow() {
         int newRowNum = getRowCount();
         Color c = getFirstUnusedColor();
@@ -178,8 +177,8 @@ public class TeamMemberList extends AbstractTableModel {
         fireTableRowsInserted(newRowNum, newRowNum);
     }
 
-    /** Find the first color in the DEFAULT_COLORS list which has not been
-         * used by any team member in this list. */
+    /** Find the first color in the DEFAULT_COLORS list which has not
+     * been used by any team member in this list. */
     private Color getFirstUnusedColor() {
         HashSet usedColors = new HashSet();
         Iterator i = teamMembers.iterator();
@@ -241,10 +240,12 @@ public class TeamMemberList extends AbstractTableModel {
 
             String init = m.getInitials();
             if (init == null)
-                addError(errors, "You must enter initials for each team member");
+                addError(errors,
+                         "You must enter initials for each team member");
             else if (initials.contains(init))
-                addError(errors, "More than one team member has the initials '"
-                         + init + "'");
+                addError(errors,
+                         "More than one team member has the initials '" +
+                         init + "'");
             initials.add(init);
         }
 
@@ -258,16 +259,15 @@ public class TeamMemberList extends AbstractTableModel {
     }
 
 
-    //// Methods allowing the
 
 
     /** An object describing a change in a team member list.
-     * 
+     *
      * If the <code>before</code> object is null, this describes the addition
      * of a team member to a list. If the <code>after</code> object is null,
      * this describes the deletion of a team member to a list.  Otherwise, it
      * describes a change to an existing team member.
-     * 
+     *
      * For deletions and changes, the description field contains a user-
      * readable description of the change.
      */
@@ -315,8 +315,8 @@ public class TeamMemberList extends AbstractTableModel {
     }
 
     /** Try to find a team member in the given list which looks similar to
-         * the one passed in.
-     * 
+     * the one passed in.
+     *
      * @param t a team member to find a match for
      * @param l a list of team members to look in
      * @param search if 0, two team members will be considered a "match" only
@@ -337,7 +337,7 @@ public class TeamMemberList extends AbstractTableModel {
     }
 
     /** notify any registered InitialsListeners about the any changes to
-         * initials found in the given list. */
+     * initials found in the given list. */
     public void publishChanges(Delta[] changes) {
         if (changes == null || changes.length == 0)
             return;
