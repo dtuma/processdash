@@ -58,8 +58,8 @@ Build Instructions:
 
 Most useful targets:
 
- - jar      -> creates the "pspdash.jar" package in "./build/out"
- - compile  -> recompiles the main dashboard classes
+ - jar      - > creates the "pspdash.jar" package in "./build/out"
+ - compile  - > recompiles the main dashboard classes
 
 
 Authors:
