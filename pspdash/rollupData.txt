@@ -46,7 +46,7 @@ undefine([ROLLUP_ID Rollup Eligible]);
     iff([Rollup_Language_Filter_On],
 	"[Project/Language] == \"" & esc([Rollup_Language]) & "\""),
     iff([Rollup_Keyword_Filter_On],
-	"match(\"" & esc([Rollup_Keyword]) & "\", [Project/Keywords])"),
+	"match(\"|" & esc([Rollup_Keyword]) & "|i\", [Project/Keywords])"),
     iff([Rollup_Prefix_Filter_On],
 	"startsWith(\"" & esc([Rollup_Prefix]) & "\")"),
     iff([Rollup_Date_Filter_On] || [Rollup_Language_Filter_On] ||
