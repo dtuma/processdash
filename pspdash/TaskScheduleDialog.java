@@ -46,6 +46,7 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 public class TaskScheduleDialog
     implements EVTask.Listener, EVTaskList.RecalcListener, EVSchedule.Listener
@@ -72,11 +73,14 @@ public class TaskScheduleDialog
 
     protected JFrame chartDialog = null;
 
+    protected ResourceBundle resources =
+        Resources.getBundle("pspdash.TaskScheduleDialog");
+
 
     public TaskScheduleDialog(PSPDashboard dash, String taskListName,
                               boolean createRollup) {
         // Create the frame and set an appropriate icon
-        frame = new JFrame("Task and Schedule");
+        frame = new JFrame(resources.getString("Window_Title"));
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
         PCSH.enableHelpKey(frame, "UsingTaskSchedule");
@@ -138,7 +142,8 @@ public class TaskScheduleDialog
         showHideDirectColumns();
 
         boolean isRollup = isRollup();
-        if (isRollup) frame.setTitle("Task and Schedule Rollup");
+        if (isRollup)
+            frame.setTitle(resources.getString("Rollup_Window_Title"));
 
         JScrollPane sp;
         sp = new JScrollPane(treeTable,
@@ -207,14 +212,16 @@ public class TaskScheduleDialog
     protected void setDirty(boolean dirty) {
         isDirty = dirty;
         saveButton.setEnabled(isDirty);
-        closeButton.setText(isDirty ? "Cancel" : "Close");
+        closeButton.setText(isDirty ? Resources.getString("Cancel")
+                                    : Resources.getString("Close"));
     }
 
     protected Component buildTaskButtons(boolean isRollup) {
         Box result = Box.createHorizontalBox();
         result.add(Box.createHorizontalGlue());
         addTaskButton = new JButton
-            (isRollup ? "Add Schedule..." : "Add Task...");
+            (isRollup ? resources.getString("Add_Schedule")
+                      : resources.getString("Add_Task"));
         addTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     addTask(); }});
@@ -223,7 +230,8 @@ public class TaskScheduleDialog
         // button margins: 2 pixels top and bottom, 14 left and right.
 
         deleteTaskButton = new JButton
-            (isRollup ? "Remove Schedule" : "Remove Task");
+            (isRollup ? resources.getString("Remove_Schedule")
+                      : resources.getString("Remove_Task"));
         deleteTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     deleteTask(); }});
@@ -232,7 +240,8 @@ public class TaskScheduleDialog
         result.add(Box.createHorizontalGlue());
 
         moveUpButton = new JButton
-            (isRollup ? "Move Schedule Up" : "Move Task Up");
+            (isRollup ? resources.getString("Move_Schedule_Up")
+                      : resources.getString("Move_Task_Up"));
         moveUpButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     moveTaskUp(); }});
@@ -241,7 +250,8 @@ public class TaskScheduleDialog
         result.add(Box.createHorizontalGlue());
 
         moveDownButton = new JButton
-            (isRollup ? "Move Schedule Down" : "Move Task Down");
+            (isRollup ? resources.getString("Move_Schedule_Down")
+                      : resources.getString("Move_Task_Down"));
         moveDownButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     moveTaskDown(); }});
@@ -250,7 +260,7 @@ public class TaskScheduleDialog
         result.add(Box.createHorizontalGlue());
 
         if (!isRollup) {
-            flatViewCheckbox = new JCheckBox("Flat View");
+            flatViewCheckbox = new JCheckBox(resources.getString("Flat_View"));
             flatViewCheckbox.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         toggleFlatView(); }});
@@ -274,14 +284,15 @@ public class TaskScheduleDialog
         Box result = Box.createHorizontalBox();
         result.add(Box.createHorizontalGlue());
 
-        addPeriodButton = new JButton("Add Row");
+        addPeriodButton = new JButton(resources.getString("Add_Schedule_Row"));
         addPeriodButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     addScheduleRow(); }});
         result.add(addPeriodButton);
         result.add(Box.createHorizontalGlue());
 
-        insertPeriodButton = new JButton("Insert Row");
+        insertPeriodButton = new JButton
+            (resources.getString("Insert_Schedule_Row"));
         insertPeriodButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     insertScheduleRow(); }});
@@ -289,7 +300,8 @@ public class TaskScheduleDialog
         result.add(insertPeriodButton);
         result.add(Box.createHorizontalGlue());
 
-        deletePeriodButton = new JButton("Delete Row");
+        deletePeriodButton = new JButton
+            (resources.getString("Delete_Schedule_Row"));
         deletePeriodButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     deleteScheduleRows(); }});
@@ -315,7 +327,7 @@ public class TaskScheduleDialog
                            Box.createVerticalStrut(2)), BorderLayout.CENTER);
         box.add(Box.createHorizontalStrut(2));
 
-        collaborateButton = new JButton("Collaborate");
+        collaborateButton = new JButton(resources.getString("Collaborate"));
         collaborateButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     showCollaborationWizard(); }});
@@ -333,7 +345,7 @@ public class TaskScheduleDialog
         }
         */
 
-        errorButton = new JButton("Errors");
+        errorButton = new JButton(resources.getString("Errors"));
         errorButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     displayErrorDialog(getErrors()); }});
@@ -343,28 +355,28 @@ public class TaskScheduleDialog
         box.add(errorButton);
         box.add(Box.createHorizontalStrut(2));
 
-        chartButton = new JButton("Chart");
+        chartButton = new JButton(resources.getString("Chart"));
         chartButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     showChart(); }});
         box.add(chartButton);
         box.add(Box.createHorizontalStrut(2));
 
-        reportButton = new JButton("Report");
+        reportButton = new JButton(resources.getString("Report"));
         reportButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     showHTML(); }});
         box.add(reportButton);
         box.add(Box.createHorizontalStrut(2));
 
-        closeButton = new JButton("Close");
+        closeButton = new JButton(Resources.getString("Close"));
         closeButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     confirmClose(true); }});
         box.add(closeButton);
         box.add(Box.createHorizontalStrut(2));
 
-        saveButton = new JButton("Save");
+        saveButton = new JButton(Resources.getString("Save"));
         saveButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     save(); }});
@@ -419,17 +431,14 @@ public class TaskScheduleDialog
     protected void displayErrorDialog(Map errors) {
         if (errors == null || errors.size() == 0) return;
         ErrorReporter err = new ErrorReporter
-            ("Problems with Task List / Schedule",
-             "There are problems with this earned value schedule:",
-             ERR_DIALOG_POST_MSG);
+            (resources.getString("Error_Dialog_Title"),
+             StringUtils.split(resources.getString("Error_Dialog_Head"), "\n"),
+             StringUtils.split(resources.getString("Error_Dialog_Foot"), "\n"));
         Iterator i = errors.keySet().iterator();
         while (i.hasNext())
             err.logError((String) i.next());
         err.done();
     }
-    private static final String[] ERR_DIALOG_POST_MSG = {
-             "Until you correct these problems, calculations",
-             "may be incorrect." };
 
 
     private Color mixColors(Color a, Color b, float r) {
@@ -637,14 +646,16 @@ public class TaskScheduleDialog
             if (node != null && node.isUserPruned()) {
                 result.setForeground(PHANTOM_COLOR);
                 if (errorStr == null && result instanceof JComponent)
-                    ((JComponent) result).setToolTipText("Task removed");
+                    ((JComponent) result).setToolTipText
+                        (resources.getString("Task_Removed_Tooltip"));
                 if (result instanceof JLabel)
                     ((JLabel) result).setIcon(getPrunedIcon(expanded, leaf));
             } else if (node != null && node.isChronologicallyPruned()) {
                 result.setForeground(SEPIA);
                 if (errorStr == null && result instanceof JComponent)
                     ((JComponent) result).setToolTipText
-                        ("Previously completed task");
+                        (resources.getString
+                         ("Previously_Completed_Task_Tooltip"));
                 if (result instanceof JLabel)
                     ((JLabel) result).setIcon(getChronIcon(expanded, leaf));
             }
@@ -986,8 +997,11 @@ public class TaskScheduleDialog
             path = chooseTaskList();
         } else {
             NodeSelectionDialog dialog = new NodeSelectionDialog
-                (frame, dash.props, "Add Task",
-                 "Choose a project/task to add to the task list", "Add", null);
+                (frame, dash.props,
+                 resources.getString("Add_Task_Dialog_Title"),
+                 resources.getString("Add_Task_Dialog_Instructions"),
+                 resources.getString("Add_Task_Dialog_Button"),
+                 null);
             path = dialog.getSelectedPath();
         }
         if (path != null && model.addTask(path, dash.data, dash.props,
@@ -999,19 +1013,23 @@ public class TaskScheduleDialog
         }
     }
 
-    private static final String IMPORT_NEW = "Import a shared schedule... ";
 
     private String chooseTaskList() {
-        String[] taskListNames = insertElem
-            (EVTaskList.findTaskLists(dash.data, true, true), IMPORT_NEW);
+        String[] taskListNames =
+            EVTaskList.findTaskLists(dash.data, true, true);
+        taskListNames = insertElem
+            (taskListNames,
+             resources.getString("Import_New_Schedule_Option"));
         String[] taskListDisplayNames = getDisplayNames(taskListNames);
         JList taskLists = new JList(taskListDisplayNames);
         JScrollPane sp = new JScrollPane(taskLists);
         sp.setPreferredSize(new Dimension(200, 200));
         Object message = new Object[] {
-            "Choose a task & schedule template:", sp };
-        if (JOptionPane.showConfirmDialog(frame, message, "Add Schedule",
-                                          JOptionPane.OK_CANCEL_OPTION)
+            resources.getString("Add_Schedule_Dialog_Instructions"), sp };
+        if (JOptionPane.showConfirmDialog
+            (frame, message,
+             resources.getString("Add_Schedule_Dialog_Title"),
+             JOptionPane.OK_CANCEL_OPTION)
             == JOptionPane.OK_OPTION) {
             int selIndex = taskLists.getSelectedIndex();
             if (selIndex == -1)
@@ -1062,14 +1080,18 @@ public class TaskScheduleDialog
             url.addFocusListener(new FocusHighlighter(url));
             JTextField password = new JPasswordField(passwordStr, 10);
             password.addFocusListener(new FocusHighlighter(password));
+            String urlLabel = resources.getString("Import_Schedule_URL");
+            String passwordLabel =
+                resources.getString("Import_Schedule_Password");
             Object message = new Object[] {
                 errorMessage,
-                "Enter the following information for the shared schedule:",
-                newHBox(new JLabel("  URL: "), url),
-                newHBox(new JLabel("  Password: "), password) };
-            if (JOptionPane.showConfirmDialog(frame, message,
-                                              "Import Shared Schedule",
-                                              JOptionPane.OK_CANCEL_OPTION)
+                resources.getString("Import_Schedule_Instructions"),
+                newHBox(new JLabel("  "+urlLabel+" "), url),
+                newHBox(new JLabel("  "+passwordLabel+" "), password) };
+            if (JOptionPane.showConfirmDialog
+                (frame, message,
+                 resources.getString("Import_Schedule_Dialog_Title"),
+                 JOptionPane.OK_CANCEL_OPTION)
                 != JOptionPane.OK_OPTION)
                 // if the user didn't hit the OK button, return null.
                 return null;
@@ -1078,17 +1100,19 @@ public class TaskScheduleDialog
             passwordStr = password.getText();
 
             if (urlStr == null || urlStr.trim().length() == 0) {
-                errorMessage = "You must enter a URL.";
+                errorMessage = resources.getString
+                    ("Import_Schedule_URL_Missing");
                 continue;
             }
             if (urlStr.indexOf("/ev+/") != -1) {
-                errorMessage = "You entered the URL for a published schedule, not a shared schedule.";
+                errorMessage = resources.getString("Import_Schedule_Pub_URL");
                 continue;
             }
             try {
                 u = new URL(urlStr.trim() + XML_QUERY_SUFFIX);
             } catch (MalformedURLException mue) {
-                errorMessage = "That URL is invalid.";
+                errorMessage = resources.getString
+                    ("Import_Schedule_URL_Invalid");
                 continue;
             }
             break;
@@ -1119,7 +1143,8 @@ public class TaskScheduleDialog
             // if we weren't able to interpret the fetched schedule,
             // record an error message.
             if (remoteName == null)
-                errorMessage = "The URL does not point to a valid schedule.";
+                errorMessage =
+                    resources.getString("Import_Schedule_Invalid_Schedule");
         }
 
         // if there was any error, ask the user if they want to continue.
@@ -1127,13 +1152,13 @@ public class TaskScheduleDialog
             errorMessage = CachedURLObject.translateMessage
                 (errorMessage, getImportErrorMessageMap());
             Object message = new Object[] {
-                "Couldn't open the schedule:",
+                resources.getString("Import_Schedule_Error_Header"),
                 "    " + errorMessage,
-                "Do you want to add the schedule anyway?" };
-            if (JOptionPane.showConfirmDialog(frame, message,
-                                              "Couldn't Open Schedule",
-                                              JOptionPane.YES_NO_OPTION,
-                                              JOptionPane.ERROR_MESSAGE)
+                resources.getString("Import_Schedule_Error_Footer") };
+            if (JOptionPane.showConfirmDialog
+                (frame, message,
+                 resources.getString("Import_Schedule_Error_Title"),
+                 JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE)
                 != JOptionPane.YES_OPTION)
                 return null;
         }
@@ -1142,11 +1167,16 @@ public class TaskScheduleDialog
         String localName = remoteName;
         String owner = (String) importedSchedule.getLocalAttr
             (CachedURLObject.OWNER_ATTR);
-        if (owner != null) localName += (" (" + owner + ")");
+        if (owner != null)
+            localName = Resources.format
+                (resources, "Imported_Schedule_Name_FMT", localName, owner);
 
         do {
             localName = (String) JOptionPane.showInputDialog
-                (frame, LOCAL_NAME_PROMPT, "Enter Name for Imported Schedule",
+                (frame,
+                 StringUtils.split(resources.getString
+                                   ("Imported_Schedule_Name_Prompt"), "\n"),
+                 resources.getString("Imported_Schedule_Name_Dialog_Title"),
                  JOptionPane.PLAIN_MESSAGE, null, null, localName);
             if (localName != null)
                 localName = localName.replace('/', ' ').trim();
@@ -1159,9 +1189,6 @@ public class TaskScheduleDialog
                                                   localName);
     }
     private static final String XML_QUERY_SUFFIX = "?xml";
-    private static final String[] LOCAL_NAME_PROMPT = {
-        "What name should be used to describe this schedule",
-        "when it appears in the schedule list?" };
     private static Map IMPORT_ERROR_MESSAGE_MAP = null;
     private Map getImportErrorMessageMap() {
         if (IMPORT_ERROR_MESSAGE_MAP == null) {
