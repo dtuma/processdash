@@ -36,6 +36,7 @@ class NSSelectField extends NSField {
     Vector optionList = null;
     JSObject formOptions = null;
 
+    private static boolean USE_DOUBLE = true;
 
     public NSSelectField(JSObject element, Repository data, String dataPath) {
         super(element, data, dataPath);
@@ -59,11 +60,35 @@ class NSSelectField extends NSField {
     public void setSelection(String text) {
         if (element != null && optionList != null) {
             for (int idx = optionList.size();   idx-- > 0; )
-                if (text.equals((String)optionList.elementAt(idx))) {
-                    element.setMember("selectedIndex", new Double(idx));
+                if (stringEquals(text, (String)optionList.elementAt(idx))) {
+                    element.setMember("selectedIndex", makeInt(idx));
+
+                    // check to see if our changes took.
+                    int resultingValue = NSFieldManager.intValue
+                        (element.getMember("selectedIndex"));
+                    if (idx != resultingValue) {
+                        // if the changes didn't take, try the other approach.
+                        USE_DOUBLE = !USE_DOUBLE;
+                        element.setMember("selectedIndex", makeInt(idx));
+                    }
+
                     return;
                 }
         }
+    }
+
+    private boolean stringEquals(String a, String b) {
+        if ((a == null || a.length() == 0) &&
+            (b == null || b.length() == 0)) return true;
+        if (a == null) return false;
+        return a.equals(b);
+    }
+
+    private Object makeInt(int i) {
+        if (USE_DOUBLE)
+            return new Double(i);
+        else
+            return new Integer(i);
     }
 
     public String getSelection() {
@@ -85,5 +110,8 @@ class NSSelectField extends NSField {
         }
 
         return result;
+    }
+    private void debug(String message) {
+        System.out.println(message);
     }
 }
