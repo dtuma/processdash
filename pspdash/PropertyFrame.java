@@ -169,9 +169,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         /* Create the tree. */
         tree = new JTree(treeModel);
         treeModel.fill (useProps);
-        tree.expandRow (0);
+        //tree.expandRow (0);
         tree.setShowsRootHandles (true);
         tree.setEditable(true);
+        tree.setInvokesStopCellEditing(true);
         treeModel.useTreeModelListener (true);
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
@@ -285,7 +286,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     }
 
                                 // make sure root is expanded
-    public void expandRoot () { tree.expandRow (0); }
+    public void expandRoot () { /* tree.expandRow (0); */ }
 
     /** Construct a menu. */
     private JMenuBar constructMenuBar() {
@@ -312,6 +313,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         revertMenuItem = menu.add(new JMenuItem("Revert"));
         revertMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                tree.getSelectionModel().clearSelection();
                 revertProperties ();    // reset properties
                                         // remove listener while reloading
                 treeModel.useTreeModelListener (false);
@@ -375,6 +377,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                                Vector  templateChildren,
                                String  myID) {
         addNodeMenu.setPopupMenuVisible (children || siblings);
+        addNodeMenu.setEnabled(children || siblings);
         addNodeAboveMenuItem.setEnabled (siblings);
         addNodeBelowMenuItem.setEnabled (siblings);
         addNodeChildMenuItem.setEnabled (children);
@@ -495,6 +498,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         JMenuItem menuItem;
         String    val;
         PropertyKey tKey = PropertyKey.ROOT;
+        boolean enableMenu = false;
 
         addTemplateMenu.removeAll(); // clear the JMenu
 
@@ -523,9 +527,11 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             }
             val = templates.getChildName (tKey, ii);
 //      System.out.println("Update: passed " + val);
+            enableMenu = true;
             menuItem = addTemplateMenu.add(new JMenuItem(val));
             menuItem.addActionListener(new AddTemplateAction());
         }
+        addTemplateMenu.setEnabled(enableMenu);
     }
 
     /**
@@ -648,8 +654,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     }
 
 
-    public void copyTemplate (DefaultMutableTreeNode destParent,
-                              String                 templateName) {
+    public TreeNode copyTemplate(DefaultMutableTreeNode destParent,
+                                 String                 templateName) {
         //recursive copy of node, children and properties
         PropertyKey parent = treeModel.getPropKey (useProps,
                                                    destParent.getPath ());
@@ -701,6 +707,13 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         treeModel.reload (useProps);
         expandRoot ();
         treeModel.useTreeModelListener (true);
+
+        int numChildren = treeModel.getChildCount(destParent);
+        int [] children = new int[numChildren];
+        while (numChildren-- > 0) children[numChildren] = numChildren;
+        treeModel.nodesChanged(destParent, children);
+
+        return (TreeNode) treeModel.getChild(destParent, newIndex);
     }
 
 
@@ -746,10 +759,12 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             }
 
             /* Let the treemodel know. */
-            treeModel.insertNodeInto(new DefaultMutableTreeNode (newCName (parent)),
-                                     parent, newIndex);
-            if ( ! tree.isExpanded (0))
-                tree.expandRow(0);
+            DefaultMutableTreeNode newNode =
+                new DefaultMutableTreeNode (newCName (parent));
+            treeModel.insertNodeInto(newNode, parent, newIndex);
+            startEditingNode(newNode);
+            /*if ( ! tree.isExpanded (0))
+                tree.expandRow(0); */
 
             setDirty (true);
         }
@@ -781,10 +796,12 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             newIndex = treeModel.getChildCount(parent);
 
             /* Let the treemodel know. */
-            treeModel.insertNodeInto(new DefaultMutableTreeNode (newCName (parent)),
-                                     parent, newIndex);
-            if ( ! tree.isExpanded (0))
-                tree.expandRow(0);
+            DefaultMutableTreeNode newNode =
+                new DefaultMutableTreeNode (newCName (parent));
+            treeModel.insertNodeInto(newNode, parent, newIndex);
+            startEditingNode(newNode);
+            /*if ( ! tree.isExpanded (0))
+                tree.expandRow(0);*/
 
             /* recompute the template menu. */
             valueChanged(null);
@@ -822,10 +839,12 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             }
 
             /* Let the treemodel know. */
-            treeModel.insertNodeInto(new DefaultMutableTreeNode (newCName (parent)),
-                                     parent, newIndex);
-            if ( ! tree.isExpanded (0))
-                tree.expandRow(0);
+            DefaultMutableTreeNode newNode =
+                new DefaultMutableTreeNode (newCName (parent));
+            treeModel.insertNodeInto(newNode, parent, newIndex);
+            startEditingNode(newNode);
+            /*if ( ! tree.isExpanded (0))
+                tree.expandRow(0);*/
 
             setDirty (true);
         }
@@ -844,15 +863,15 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             if (lastItem != null) {
                 String param = e.paramString ();
                 String templateName = param.substring (param.indexOf ('=')+1);
-                copyTemplate (lastItem, templateName);
+                TreeNode newNode = copyTemplate (lastItem, templateName);
+
+                /* recompute the template menu. */
+                valueChanged(null);
+                setDirty (true);
+
+                treeModel.nodeChanged(newNode);
+                startEditingNode(newNode);
             }
-            if ( ! tree.isExpanded (0))
-                tree.expandRow(0);
-
-            /* recompute the template menu. */
-            valueChanged(null);
-
-            setDirty (true);
         }
     } // End of PropertyFrame.AddTemplateAction
 
@@ -872,4 +891,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         }
     } // End of PropertyFrame.RemoveAction
 
+    private void startEditingNode(TreeNode node) {
+        TreePath path = new TreePath(treeModel.getPathToRoot(node));
+        tree.setSelectionPath(path);
+        if (tree.isEditable())
+            tree.startEditingAtPath(path);
+    }
 }
