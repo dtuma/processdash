@@ -52,6 +52,7 @@ Design/Time==0.0
 Code/Time==0.0
 Compile/Time==0.0
 Test/Time==0.0
+Postmortem/Time==0.0
 Time==![(+	~.*/Time)]
 
 
@@ -81,10 +82,3 @@ Test/Defects Removed==0.0
 Postmortem/Defects Removed==0.0
 After Development/Defects Removed=0.0
 Defects Removed==![(+	~.*/Defects Removed)]
-
-
-=
-= Miscellaneous data elements
-=
-
-Started=@now
