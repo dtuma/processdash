@@ -39,18 +39,21 @@ public class Inherit extends AbstractFunction {
         String name = asStringVal(getArg(arguments, 0));
         if (prefix == null || name == null || name.length() == 0) return null;
 
+        while (prefix.endsWith("/"))
+            prefix = prefix.substring(0, prefix.length()-1);
+
         String variable;
         Object result;
         int pos;
 
         while (true) {
-            variable = prefix + "/" + name;
-            result = context.get(variable);
-            if (result != null) return result;
-
             if (prefix == null || prefix.length() == 0) return null;
             pos = prefix.lastIndexOf('/');
             prefix = (pos == -1 ? "" : prefix.substring(0, pos));
+
+            variable = prefix + "/" + name;
+            result = context.get(variable);
+            if (result != null) return result;
         }
     }
 }
