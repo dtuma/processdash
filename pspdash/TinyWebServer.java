@@ -483,6 +483,7 @@ public class TinyWebServer extends Thread {
             throws TinyWebThreadException
         {
             try {
+                discardHeader();
                 sendHeaders( status, title, "text/html", -1, -1, null);
                 out.write("<HTML><HEAD><TITLE>" + status + " " + title +
                           "</TITLE></HEAD>\n<BODY BGCOLOR=\"#cc9999\"><H4>" +
@@ -674,8 +675,15 @@ public class TinyWebServer extends Thread {
         else
             DEFAULT_ENV.put(TinyCGI.DATA_REPOSITORY, data);
     }
-    public void allowRemoteConnections(boolean flag) {
-        this.allowRemoteConnections = flag;
+    public void allowRemoteConnections(String setting) {
+        this.allowRemoteConnections = "true".equalsIgnoreCase(setting);
+
+        /* in the future, if better remote host filtering is desired,
+         * this would be the place to put it.  For example instead of
+         * "true", meaning "allow connections from any host", a user
+         * might be able to supply a comma-separated list of hostnames.
+         * Just add logic here to parse the setting, and logic in the
+         * checkIP() method to act in accordance with the settings. */
     }
 
 
