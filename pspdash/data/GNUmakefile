@@ -30,11 +30,12 @@ SRC = ../..
 # DO NOT place these in directories along with source code - the directories
 # themselves will be nuked by code below.
 BIN_DATA = ../build
-BIN_IE = ../Templates/IE
-BIN_NS = ../Templates/NS
+BIN_IE = ../build/IE
+BIN_NS = ../build/NS
 
 # Commands to run JDK tools
 MSJAVAC ?= //C/java/ms/SDK4.0/bin/jvc.exe
+MSCAB   ?= //c/java/ms/SDK4.0/bin/cabarc.exe
 JAVAC   ?= //C/java/sun/jdk1.2.2/bin/javac.exe
 JAR     ?= //C/java/sun/jdk1.2.2/bin/jar.exe
 
@@ -74,9 +75,9 @@ data: DataRepository.class $(EXTRAS)
 
 
 IE:
-ifeq ($(BUILD_PLATFORM),CYGWIN)
 	mkdir -p $(BIN_IE)
-	rm -rf $(BIN_IE)/pspdash
+	rm -rf $(BIN_IE)/pspdash $(BIN_IE)/DataApplet.cab
+ifeq ($(BUILD_PLATFORM),CYGWIN)
 	$(MSJAVAC) \
 	    /cp:p $(SRC) \
 	    /cp:p c:/WINDOWS/java/CLASSES/classes.zip \
@@ -94,9 +95,8 @@ ifeq ($(BUILD_PLATFORM),CYGWIN)
 	    /d $(BIN_DATA) \
 	    OLEDBListenerWrapper.java \
 	    OLEDBDSLWrapper.java
+	cd $(BIN_IE); $(MSCAB) -r -p n DataApplet.cab pspdash\\*
 else
-	mkdir -p $(BIN_IE)
-	rm -rf $(BIN_IE)/pspdash
 	$(JAVAC) \
 	    -classpath '$(SRC)$(DS)$(MSJARS)/msclasseszip.jar$(DS)$(MSJARS)/msospclasses.jar$(DS)$(MSJARS)/mswfcclasses.jar' \
 	    -d $(BIN_IE) \
@@ -116,13 +116,14 @@ endif
 
 NS:
 	mkdir -p $(BIN_NS)
-	rm -rf $(BIN_NS)/pspdash
+	rm -rf $(BIN_NS)/pspdash $(BIN_NS)/DataApplet.jar
 	$(JAVAC) \
 	    -classpath ../build/java40.jar \
 	    -deprecation \
 	    -sourcepath $(SRC) \
 	    -d $(BIN_NS) \
 	    NSDataApplet.java
+	cd $(BIN_NS); $(JAR) cf DataApplet.jar pspdash
 
 
 clean:
