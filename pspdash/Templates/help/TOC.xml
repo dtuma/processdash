@@ -4,60 +4,60 @@
          "http://java.sun.com/products/javahelp/toc_1_0.dtd">
 
 <toc version="1.0">
-  <tocitem image="TopLevelIcon" target="QuickOverview" text="Process Dashboard Help">
-    <tocitem text="Overview">
-      <tocitem target="QuickOverview" text="Quick overview of the Dashboard" />
-      <tocitem target="ProcessScripts" text="The process scripts" />
+  <tocitem image="DashIcon" target="QuickOverview" text="Process Dashboard Help">
+    <tocitem image="BookIcon" text="Overview">
+      <tocitem image="PageIcon" target="QuickOverview" text="Quick overview of the Dashboard" />
+      <tocitem image="PageIcon" target="ProcessScripts" text="The process scripts" />
 
-      <tocitem text="Quick start example: PSP1.1">
-         <tocitem target="QuickStartPSP1" text="Quick start example: PSP1.1"/>
-         <tocitem target="QSCreatingTheProject" text="Step 1: Creating the project"/>
-         <tocitem target="QSPlanningTheProject" text="Step 2: Planning the project"/>
-         <tocitem target="QSDesigningTheProgram" text="Step 3: Designing the program"/>
-         <tocitem target="QSWritingTheCode" text="Step 4: Writing the code"/>
-         <tocitem target="QSCompilingTheProgram" text="Step 5: Compiling the program"/>
-         <tocitem target="QSTestingTheProgram" text="Step 6: Testing the program"/>
-         <tocitem target="QSPostmortem" text="Step 7: Postmortem"/>
+      <tocitem image="BookIcon" text="Quick start example: PSP1.1">
+         <tocitem image="PageIcon" target="QuickStartPSP1" text="Quick start example: PSP1.1"/>
+         <tocitem image="PageIcon" target="QSCreatingTheProject" text="Step 1: Creating the project"/>
+         <tocitem image="PageIcon" target="QSPlanningTheProject" text="Step 2: Planning the project"/>
+         <tocitem image="PageIcon" target="QSDesigningTheProgram" text="Step 3: Designing the program"/>
+         <tocitem image="PageIcon" target="QSWritingTheCode" text="Step 4: Writing the code"/>
+         <tocitem image="PageIcon" target="QSCompilingTheProgram" text="Step 5: Compiling the program"/>
+         <tocitem image="PageIcon" target="QSTestingTheProgram" text="Step 6: Testing the program"/>
+         <tocitem image="PageIcon" target="QSPostmortem" text="Step 7: Postmortem"/>
       </tocitem>
 
-      <tocitem target="GoalsOfPSPAndDashboard" text="The overall goals of the PSP and the Process Dashboard"/>
-      <tocitem target="Help" text="Getting help"/>
-      <tocitem target="HowToInstall" text="Installation instructions"/>
-      <tocitem target="GPL" text="GNU Public License"/>
+      <tocitem image="PageIcon" target="GoalsOfPSPAndDashboard" text="The overall goals of the PSP and the Process Dashboard"/>
+      <tocitem image="PageIcon" target="Help" text="Getting help"/>
+      <tocitem image="PageIcon" target="HowToInstall" text="Installation instructions"/>
+      <tocitem image="PageIcon" target="GPL" text="GNU Public License"/>
     </tocitem>
 
-    <tocitem text="Planning">
-      <tocitem target="Planning" text="Why you should plan"/>
-      <tocitem target="EnteringData" text="Entering data into the dashboard"/>
-      <tocitem target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
-      <tocitem target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
-      <tocitem target="UsingProbeTool" text="Using the PROBE Tool"/>
+    <tocitem image="BookIcon" text="Planning">
+      <tocitem image="PageIcon" target="Planning" text="Why you should plan"/>
+      <tocitem image="PageIcon" target="EnteringData" text="Entering data into the dashboard"/>
+      <tocitem image="PageIcon" target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
+      <tocitem image="PageIcon" target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
+      <tocitem image="PageIcon" target="UsingProbeTool" text="Using the PROBE Tool"/>
     </tocitem>
 
-    <tocitem text="Running the Dashboard">
-      <tocitem target="HierarchyMenus" text="Navigating the Hierarchy menus"/>
-      <tocitem target="AccessingScripts" text="Accessing the online PSP scripts"/>
-      <tocitem target="PlayPause" text="Using the Play/Pause button to time your work"/>
-      <tocitem target="CompletionButton" text="Completing tasks with the completion button"/>
-      <tocitem target="UsingTimeLogEditor" text="Editing Time data" />
-      <tocitem target="EnteringDefects" text="Entering Defects"/>
-      <tocitem target="UsingDefectLogEditor" text="Editing Defect data"/>
-      <tocitem target="ConfigureMenu" text="The 'C' (configure) menu"/>
+    <tocitem image="BookIcon" text="Running the Dashboard">
+      <tocitem image="PageIcon" target="HierarchyMenus" text="Navigating the Hierarchy menus"/>
+      <tocitem image="PageIcon" target="AccessingScripts" text="Accessing the online PSP scripts"/>
+      <tocitem image="PageIcon" target="PlayPause" text="Using the Play/Pause button to time your work"/>
+      <tocitem image="PageIcon" target="CompletionButton" text="Completing tasks with the completion button"/>
+      <tocitem image="PageIcon" target="UsingTimeLogEditor" text="Editing Time data" />
+      <tocitem image="PageIcon" target="EnteringDefects" text="Entering Defects"/>
+      <tocitem image="PageIcon" target="UsingDefectLogEditor" text="Editing Defect data"/>
+      <tocitem image="PageIcon" target="ConfigureMenu" text="The 'C' (configure) menu"/>
     
     </tocitem>
 
-    <tocitem text="Postmortem Analysis">
-      <tocitem target="PostmortemAnalysis" text="Why you should have a postmortem"/>
-      <tocitem target="DataChartsAndReports" text="Creating reports and charts"/>
-      <tocitem target="ExportingData" text="Exporting your data"/>
+    <tocitem image="BookIcon" text="Postmortem Analysis">
+      <tocitem image="PageIcon" target="PostmortemAnalysis" text="Why you should have a postmortem"/>
+      <tocitem image="PageIcon" target="DataChartsAndReports" text="Creating reports and charts"/>
+      <tocitem image="PageIcon" target="ExportingData" text="Exporting your data"/>
     </tocitem>
 
-    <tocitem text="TroubleShooting">
-      <tocitem target="FAQ" text="FAQ - Frequently Asked Questions"/>
+    <tocitem image="BookIcon" text="TroubleShooting">
+      <tocitem image="PageIcon" target="FAQ" text="FAQ - Frequently Asked Questions"/>
     </tocitem>
 
-    <tocitem text="Advanced Topics">
-      <tocitem target="ConfigurationFile" text="The configuration file"/>
+    <tocitem image="BookIcon" text="Advanced Topics">
+      <tocitem image="PageIcon" target="ConfigurationFile" text="The configuration file"/>
 
 <!-- 
       <tocitem target="ModifyingExistingProcesses" text="Modifying the existing processes"/>

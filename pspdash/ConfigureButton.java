@@ -33,6 +33,7 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Dimension;
 import java.awt.event.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -45,15 +46,15 @@ import java.io.File;
 import java.net.URL;
 
 class ConfigureButton extends JMenuBar implements ActionListener {
-    PSPDashboard  parent       = null;
-    PropertyFrame prop_frame   = null;
-    TaskTemplate  task_frame   = null;
-    TimeLogEditor time_frame   = null;
-    DefectEditor  defect_frame = null;
-    ImportExport  impexp_frame = null;
-    ProbeDialog   probe_dialog = null;
-    HelpSet       hs           = null;
-    HelpBroker    hb           = null;
+    PSPDashboard   parent       = null;
+    PropertyFrame  prop_frame   = null;
+    TaskTemplate   task_frame   = null;
+    TimeLogEditor  time_frame   = null;
+    DefectEditor   defect_frame = null;
+    ImportExport   impexp_frame = null;
+    ProbeDialog    probe_dialog = null;
+    HelpSet        hs           = null;
+    DashHelpBroker hb           = null;
 
     static String FILE_SEP = null;
     static final String ANALYSIS_URL = "/reports/index.htm";
@@ -124,7 +125,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             hs = new HelpSet(null,hsURL);
             //System.out.println("Found help set at " + hsURL);
 
-            hb = hs.createHelpBroker();
+            hb = new DashHelpBroker(hs);
+
+            // set the size for the display
+            hb.setSize(new Dimension(600,450));
 
             CSH.setHelpIDString(helpItem ,"QuickOverview");
 

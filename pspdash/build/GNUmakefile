@@ -109,8 +109,8 @@ com/jrefinery/chart/%.class: ../Templates/reports/%.java
 # unzip the JavaHelp jarfile
 jhelp: javax/help/JHelp.class
 
-javax/help/JHelp.class: help.jar
-	$(JAR) -xf help.jar
+javax/help/JHelp.class: jh.jar
+	$(JAR) -xf jh.jar
 
 clean:
 	rm -f pspdash.jar *~
