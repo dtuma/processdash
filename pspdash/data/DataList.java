@@ -348,13 +348,19 @@ abstract class DataList {
 
                                         // find the data Element it turns on or off.
                 String dataName = (String) dataWatchers.get(name);
+                boolean conditionWasTrue = isActiveDataElement(dataName);
 
-                if (conditionIsTrue)
+                if (conditionIsTrue) {
+                    if (!conditionWasTrue)
+                        data.addActiveDataListener(dataName, this, customerName);
                     dataList.put(dataName, condDataList.get(dataName));
-                else
+                } else {
                     dataList.remove(dataName);
+                    if (conditionWasTrue)
+                        data.removeDataListener(dataName, this);
+                }
 
-                                          // the set of active data has now changed, so
+                                        // the set of active data has now changed, so
                 return true;            // we need to recalculate.
             }
                                       // if we made it to here, the data element
@@ -411,8 +417,7 @@ abstract class DataList {
                     // create conditional function in repository
                     data.maybeCreateValue(dataCondName, condExpr, "");
 
-                    // addActiveDataListener for dataName & dataCondName
-                    data.addActiveDataListener(dataName, this, customerName);
+                    // addActiveDataListener for dataCondName
                     data.addActiveDataListener(dataCondName, this, customerName);
                 }
             } catch (MalformedPerl5PatternException m) {
