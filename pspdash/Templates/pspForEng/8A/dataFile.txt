@@ -2,6 +2,10 @@
 #include <pspForEng/progData.txt>
 undefine([Use_Rollup]);
 
+= Consult our parent for the appropriate "To Date" subset.
+
+[PSP To Date Subset Prefix] = [../Rollup_Name];
+
 = Students must manually calculate appraisal COQ for program 8A.
 
 8A Estimated % Appraisal COQ=?NaN

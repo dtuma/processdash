@@ -9,10 +9,34 @@ pspForEng==TAG
 PSPFORENG==TAG
 node==TAG
 
-[Rollup_Name] = [^];
+
+== Make a list of the PSP Projects in *this* PSP for Engineers hierarchy.
 
 [Project_List] = filter(startsWith([^]), [/PSP/Project List]);
-[Rollup_List] = filter(eval([Rollup_Filter], [_]), [Project_List]);
+
+
+== Check to see if the user wants To Date data restarted.  (This choice
+== would be saved with the data for program 7A.)
+
+[7A_Program_Name] =
+    index(0, filter(indirect([_] &/ "PSPFORENG_7A_TAG"), [Project_List]));
+[Reset_To_Date_Data] = indirect([7A_Program_Name] &/ "Reset_To_Date_Data");
+
+= Based on that user choice, decide which rollup should be used by 
+= programs 7A - 10A.
+
+[Rollup_Name] = iff([Reset_To_Date_Data], [^], "/To Date/PSP/All");
+
+
+== Make *this* rollup sum projects from higher PSP processes. 
+
+[Rollup_List] = filter([psp2] || [psp2.1] || [psp3],
+                       [/To Date/PSP/All/Rollup_List]);
+
+== Since *this* is a fairly odd rollup, we don't want it to appear as
+== a rollup choice on plan summary forms.
+
+undefine([PSP Rollup Tag]);
 
 
 = There is no place for students to enter size data for program 1A.

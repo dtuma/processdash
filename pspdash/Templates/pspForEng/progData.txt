@@ -2,9 +2,11 @@
 = Common data definitions for all 10 programs
 =
 
-= Hardcode the rollup prefix to be our parent.
+= Use "/To Date/PSP/All" for PROBE data, even when a different
+= subset prefix is in effect (e.g. 7A - 10A).
 
-[PSP To Date Subset Prefix] = [../Rollup_Name];
+[PROBE_SUBSET] = "/To Date/PSP/All";
+
 
 = Inherit the language setting from the "PSP for Engineers" datafile.
 
