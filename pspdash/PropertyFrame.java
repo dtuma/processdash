@@ -191,9 +191,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         frame.addWindowListener( new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                dispose();
+                confirmClose(true);
             }
         });
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         frame.pack();
         frame.show();
@@ -248,8 +249,28 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         frame.toFront();
     }
 
+    private static final Object CONFIRM_CLOSE_MSG =
+        "Do you want to save the changes you made to the hierarchy?";
+    public void confirmClose(boolean showCancel) {
+        if (isDirty())
+            switch (JOptionPane.showConfirmDialog
+                    (frame, CONFIRM_CLOSE_MSG, "Save Changes?",
+                     showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
+                                : JOptionPane.YES_NO_OPTION)) {
+            case JOptionPane.CLOSED_OPTION:
+            case JOptionPane.CANCEL_OPTION:
+                return;                 // do nothing and abort.
+
+            case JOptionPane.YES_OPTION:
+                saveProperties();       // save changes.
+            }
+
+        dispose();                  // close the hierarchy editor window.
+    }
+
     public void dispose() {
         frame.setVisible(false);
+        frame.dispose();
         configureButton.removePropertyFrame();
         frame = null;
         tree = null;
@@ -279,7 +300,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         menuItem = menu.add(new JMenuItem("Close"));
         menuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                frame.setVisible (false);
+                confirmClose(true);
             }});
 
         saveMenuItem = menu.add(new JMenuItem("Save"));
@@ -340,7 +361,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         return null;
     }
 
+    protected boolean dirtyFlag = false;
+    protected boolean isDirty() { return dirtyFlag; }
     protected void setDirty (boolean isDirty) {
+        dirtyFlag = isDirty;
         saveMenuItem.setEnabled (isDirty);
         revertMenuItem.setEnabled (isDirty);
     }

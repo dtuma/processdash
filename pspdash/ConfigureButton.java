@@ -108,6 +108,13 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         FILE_SEP = prop.getProperty ("file.separator");
     }
 
+    public void quit () {
+        if (prop_frame != null) {
+            prop_frame.confirmClose(false);
+            prop_frame = null;
+        }
+    }
+
 //  public void setHistoryItem(String label, String dest) {
 //    update history portion of popup menu here (save where?????)
 //  }
