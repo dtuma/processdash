@@ -5,3 +5,6 @@ CVS
 \.log$
 excel\.class$
 \.pre$
+SCR.template
+DCR.template
+Insp.template
