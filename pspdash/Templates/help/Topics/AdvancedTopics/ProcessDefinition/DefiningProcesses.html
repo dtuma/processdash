@@ -6,9 +6,20 @@
 
 <H1>Defining your own processes for use in the Process Dashboard</H1>
 
+
+<!-- How to define your own custom process
+   * An overview of the process definition architecture: explain the three
+     pieces to the puzzle and how they fit together:
+      * "-template.xml" files define the *structure* of the process
+      * optional HTML files provide process scripts and forms
+      * optional data files define custom calculations for your process
+     Also explain how the dashboard locates these files (i.e., where should
+     you put these files, and how can you share them with your co-workers) -->
+
+
 <P>The dashboard has been designed from the ground up to support custom 
 processes.  The PSP scripts and forms that you see are not hard-coded into 
-the tool; instead, they are dynamically loaded from simple HTML and text 
+the tool. Instead, they are dynamically loaded from simple HTML and text 
 files.  Thus, it is possible to create your own custom process scripts, 
 forms, and data that will be dynamically integrated into the dashboard.</P>
 
@@ -20,13 +31,13 @@ creating a simple, custom process is not difficult. Just follow these
 steps:</P>
 
 <OL>
- <LI><A HREF="#step1">Identify your process structure</A></LI>
- <LI><A HREF="#step2">Create an XML definition for your process</A></LI>
- <LI><A HREF="#step3">Save your XML process descriptor</A></LI>
- <LI><A HREF="#step4">Restart the dashboard</A></LI>
+ <LI><A HREF="#ProcessStructure">Identify your process structure</A></LI>
+ <LI><A HREF="#XmlDef">Create an XML definition for your process</A></LI>
+ <LI><A HREF="#XmlDesc">Save your XML process descriptor</A></LI>
+ <LI><A HREF="#Restart">Restart the dashboard</A></LI>
 </OL>
 
-<H2><A NAME="step1">Step 1: Identify your process structure</A></H2>
+<H2><A NAME="ProcessStructure">Step 1: Identify your process structure</A></H2>
 
 <P>What steps do you want to include in your process? The standard PSP0 
 process, of course, includes the phases Planning, Design, Code, Compile, 
@@ -35,20 +46,20 @@ phases that your process will include.</P>
 
 <P>Think this through carefully. Remember how you had to restart your "To 
 Date" data when you graduated from PSP1.1 to PSP2? The same truth applies 
-here. Once you have defined a custom process and used it to the dashboard, 
+here. Once you have defined a custom process and used it in the dashboard, 
 even slight changes to the process definition will invalidate all your 
 historical data. In fact, once you create a process definition and use it to 
 perform a project, you can no longer even change the names of the phases 
 without losing historical data.</P>
 
-<P>If your process definition is still immature and evolving, it is better to 
-use the <A HREF="../../Overview/ProcessScripts.html#generic">Generic 
-process</A> for a while. As you begin creating your own custom process 
-definitions, the flexibility of the generic process will allow you to 
-radically change your process from one task to the next in response to 
-process improvement proposals.  Once you decide upon and finalize the <u>list 
-of phases</u> in your process, you are ready to begin using a custom 
-process.</P>
+<P>If your process definition is still immature and evolving, it is probably 
+better to use the <A 
+HREF="../../Overview/ProcessScripts.html#generic">Generic process</A> for a 
+while. As you begin creating your own custom process definitions, the 
+flexibility of the generic process will allow you to radically change your 
+process from one task to the next in response to process improvement 
+proposals.  Once you decide upon and finalize the <u>list of phases</u> in 
+your process, you are ready to begin using a custom process.</P>
 
 <P>Some guidelines to consider as you identify your process phases:</P>
 
@@ -58,12 +69,12 @@ contains several different steps (obtain requirements, make size estimate,
 make resource estimate, create schedule, etc.). The PSP process definition 
 does not break each of these steps into its own phase! Herein lies the 
 difference between a <B>phase</B> and an <B>activity</B>. By carefully 
-defining the high level <B>phases</B> in the process, Watts is free to 
-incorporate process improvements simply by altering the set of 
-<B>activities</B> in each phase. Remember also that when you enact your 
-process, you will have to collect time and defect data with phase-level 
-granularity. If you break your process up into a zillion tasks that each take 
-only a minute, you will go crazy just trying to log time accurately.</P>
+defining the high level phases in the process, Watts Humphrey was free to 
+incorporate process improvements simply by altering the set of activities in 
+each phase. Remember also that when you enact your process, you will have to 
+collect time and defect data with phase-level granularity. If you break your 
+process up into a zillion tasks that each take only a minute, you will go 
+crazy just trying to log time accurately.</P>
 
 <P><B>Choose abbreviations for long phase names.</B> When you write your 
 process script, you may have phases with verbose names like "High Level 
@@ -73,20 +84,20 @@ navigate to that phase. An abbreviation like "HLD Review" may be more
 appropriate. You can still refer to the phase by its unabbreviated name when 
 you create your HTML process scripts and forms.</P>
 
-<P><B>Include Planning and Postmortem phases.</B> In his book, Watts 
+<P><B>Include Planning and Postmortem phases.</B> In his book, Watts Humphrey
 encourages you to always include these phases in any process you define.  The 
 planning phase serves an obvious purpose of estimating size, cost, schedule, 
 risk, etc. The postmortem phase allows you to ensure accurate collection of 
 data and capture process improvement proposals.</P> 
 
-<H2><A NAME="step2">Step 2: Create an XML definition for your process</A></H2>
+<H2><A NAME="XmlDef">Step 2: Create an XML definition for your process</A></H2>
 
-<P>The dashboard understands process structure that is described in XML 
-format. <B>The discussion below assumes that you are familiar with XML</B>; 
-if this is not the case, please go read a nice tutorial on XML before 
+<P>The dashboard understands a process structure that is described in XML 
+format. <B>The discussion below assumes that you are familiar with XML.</B> 
+If this is not the case, please go read a nice tutorial on XML before 
 proceeding!!</P> 
 
-<P> Here is an example of an XML description file for a PSP0 process:</P>
+<P>Here is an example of an XML description file for a PSP0 process:</P>
 <TABLE BORDER="1" WIDTH="100%">
  <TR>
   <TD WIDTH="100%">
@@ -115,18 +126,18 @@ defined. (The file above only defines one process template.)</P>
 <P>A process definition begins with the <code>&lt;template&gt;</code> tag and 
 ends with <code>&lt;/template&gt;</code>. The template tag must have a 
 "<code>name</code>" attribute, and all of the processes you define must have 
-<B>unique</B> names. Template names cannot contain the "/" character. If you 
-will be collecting defects with your process, you should include the 
+<B>unique</B> names. Also, template names cannot contain the "/" character. 
+If you will be collecting defects with your process, you should include the 
 "<CODE>defectLog</CODE>" attribute as shown above (and remember that XML is 
 case-sensitive, so "<CODE>defect<U>l</U>og</CODE>" will not work).</P>
-
 
 <P>Between the <code>&lt;template&gt;</code> tags, list the phases in order. 
 Each phase is described with a <code>&lt;phase&gt;</code> tag. The phase tag 
 must have a "<code>name</code>" attribute, and all of the phase names must be 
-<B>unique</B>. Phase names cannot contain the "/" character. The phase type 
-can optionally be specified with the "<CODE>type</CODE>" attribute. Valid 
-phase types include:</P>
+<B>unique</B>. As was true of template names, phase names cannot contain the 
+"/" character. The phase type can optionally be specified with the 
+"<CODE>type</CODE>" attribute. Valid phase types include:</P>
+
 
 <UL>
  <LI><B>Appraisal phase types:</B> <tt>appraisal reqinsp hldr hldrinsp dldr 
@@ -142,11 +153,11 @@ phase, you can omit it for others. If you do specify phase types, the
 dashboard will be able to intelligently calculate metrics like Yield, A/FR, 
 and Defect removal efficiency.</P> 
 
-<H2><A NAME="step3">Step 3: Save your XML process descriptor</A></H2>
+<H2><A NAME="XmlDesc">Step 3: Save your XML process descriptor</A></H2>
 
 <P>Once your XML process descriptor is complete, it is time to save it 
-somewhere <A HREF="HowDashboardFindsFiles.html">where the dashboard can find 
-it</A>. Follow these steps:</P>
+somewhere <A HREF="HowDashboardFindsFiles.html#FindFiles">where the dashboard 
+can find it</A>. Follow these steps:</P>
 
 <ol>
  <li>Find your pspdash.jar file (on Windows machines, it is probably located 
@@ -169,7 +180,7 @@ for more information. Keep in mind that the dashboard will search for
 "<code><b>-template.xml</b></code>" files in the "Templates" directories only 
 - subdirectories will not be searched.</P>
 
-<H2><A NAME="step4">Step 4: Restart the dashboard</A></H2>
+<H2><A NAME="Restart">Step 4: Restart the dashboard</A></H2>
 
 <P>Once your XML process descriptor is in place, it is necessary to shut down 
 the dashboard and restart it for the new process to be found.  Once found, 

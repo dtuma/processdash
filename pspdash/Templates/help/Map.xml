@@ -105,7 +105,6 @@
 
 <!-- new stuff for 1.4 -->
 
-  <mapID target="MinorProcessChanges" url="Topics/AdvancedTopics/MinorProcessChanges.html"/>
   <mapID target="DefiningOwnProcesses" url="Topics/AdvancedTopics/ProcessDefinition/DefiningProcesses.html"/>
   <mapID target="ThinkProcessesThrough" url="Topics/AdvancedTopics/ProcessDefinition/ThinkProcessesThrough.html"/>
   <mapID target="CreateProcessStepByStep" url="Topics/AdvancedTopics/ProcessDefinition/StepByStep.html"/>

@@ -7,110 +7,107 @@
 <a name="OverwritingScript"></a><h1>Making a change to a script</h1>
 
 <p>Perhaps the built-in PSP processes suit you well, but you'd like to make 
-some small tweak to one of the HTML scripts.  For example, you might like to</p>
+some small tweak to one of the HTML scripts.  For example, you might like to 
+add company specific instructions to some of the steps (to run a code 
+analyzer perhaps).</p>
 
 <p>When you're viewing the page in question, you notice it has the URL:</p>
 
-<tt>http://localhost:2468/Project+Path//<b>psp2.1/develop.htm</b></tt>
+<p><code>http://localhost:2468/Project+Path//<b>psp2.1/develop.htm</b></code></p>
+
+<p>This example uses the PSP2.1 process - other processes will have other text in place of "psp2.1".</p>
 
 <p>Take the following steps:</p>
 <ol>
- <li>find your pspdash.jar file
- <li>create a directory alongside it called "Templates"
- <li>create a subdirectory called "psp2.1"
- <li>save the current version of the HTML file to the psp2.1 subdirectory.
- <li>edit it to your heart's content using the HTML editor of your choice.
+ <li>Find your pspdash.jar file (if you are running on Windows, it should be 
+   specified in the shortcut that launches the dashboard -- if you are 
+   running on Unix, you should know where the pspdash.jar is located based on 
+   where you installed the dashboard!).</li>
+ <li>Create a directory alongside it called "Templates".</li>
+ <li>Create a subdirectory within "Templates" called "psp2.1".</li>
+ <li>Save the current version of the HTML file to the psp2.1 subdirectory. 
+   This can be done by choosing "File <img src="../../../Images/rarrow.png"> 
+   Save As..." from within your web browser.</li>
+ <li>Edit it to your heart's content using the HTML editor of your choice.</li>
 </ol>
 
 <p>Now, every time you visit that page, for any applicable project in your 
 hierarchy, the dashboard will show you the page containing your custom 
 changes.</p>
 
-<H1>How the Dashboard finds process files</H1>
+<a name="FindFiles"></a><H1>How the Dashboard finds process files</H1>
 
-When it starts, the dashboard searches for process files and add-ins
-and dynamically loads them.  
+<p>When it starts, the dashboard searches for process files and add-ins and 
+dynamically loads them.  Also, every time you request a web page from 
+<code>http://localhost:2468/</code>, the dashboard is using this same search 
+mechanism.</p>
 
-Also, every time you request a web page from
-<code>http://localhost:2468/</code>, the dashboard is using this same
-search mechanism.
+<p>The dashboard searches for files in the following locations, in the 
+following order:</p>
 
-The dashboard searches for files in the following locations, in the following order:<ol>
+<ol>
+ <li>Look first in the directory specified by the user setting 
+   "templates.directory" (should end in "Templates").</li>
 
- <LI>Look first in the directory specified by the user setting
-     "templates.directory" (should end in "Templates").
+ <li>Next, look in any JAR files contained in that directory.</li>
 
- <LI>Next, look in any JAR files contained in that directory.
+ <li>Next, look in any JAR files contained in the parent of that 
+   directory.</li> 
 
- <LI>Next, look in any JAR files contained in the parent of that
-     directory.
+ <li>If there is a Templates directory alongside the pspdash.jar file, look 
+   there, first for the file, then for JARs containing the file.</li>
 
- <LI>If there is a Templates directory alongside the pspdash.jar file,
-     look there, first for the file, then for JARs containing the file.
+ <li>If there are any JAR files next to the pspdash.jar file, look in 
+   them.</li>
 
- <LI>If there are any JAR files next to the pspdash.jar file, look in
-     them.
+ <li>Finally, look in the classpath (which includes the pspdash.jar file, and 
+   contains all the built-in processes).</li>
+</ol>
 
- <LI>Finally, look in the classpath (which includes the pspdash.jar
-     file, and contains all the built-in processes).
-</OL>
-
-When looking for a particular file, the dashboard will search in the
-above locations and stop as soon as it finds a matching file.
-
-<p>
-This means that if you want to customize anything that appears in a
-process templates directory, you can.  Just create your custom version
-and put it in a location earlier on the search list.
-
-<p>
-The sections below give some practical examples of how you can use
-this mechanism.
+<p>When looking for a particular file, the dashboard will search in the above 
+locations and stop as soon as it finds a matching file. This means that if 
+you want to customize anything that appears in a process templates directory, 
+you can.  Just create your custom version and put it in a location earlier on 
+the search list.</p> 
 
 <h2>Sharing changes with team members</h2>
 
-if you're working with a team, and everyone on your team would like access
-to the latest and greatest changes, do the following:<ol>
+<p>If you're working with a team, and everyone on your team would like access 
+to changes you have made to a process script, you can do the following:</p>
 
-<li>Create a directory somewhere out on a shared network drive, called
-    "Templates" (for example: 
-    "<code>T:\Common\Our Team Folder\Templates</code>")
-<li>Have each person on your team edit their configuration file, and add
-    a line for the "templates.directory" setting. (for example:
-    "<code>templates.directory=T:\\Common\\Our Team Folder\\Templates</code>"
-    - notice the double backslashes.)
-<li>Put custom versions of files underneath this team templates directory.
-    For example, you could put:<ul>
-    <li>HTML files overriding files that are built into the dashboard
-    <li>LanguageFilters defining custom LOC counters
-    <li>template.xml files defining team processes
-    <li>datafiles and HTML scripts/forms supporting those team processes
-    </ul>
-    and when you make changes to these items, everyone will get them
-    automatically. (But see the note below.)
+<ol>
+ <li>Create a directory somewhere out on a shared network drive, called 
+   "Templates" (for example: "<code>T:\Common\Our Team 
+   Folder\Templates</code>" on a Windows network, or 
+   "<code>/usr/shared/OurTeam/Templates</code>" on a Unix network)</li>
+ <li>Have each person on your team edit their configuration file, and add a 
+   line for the "templates.directory" setting. (for example: 
+   "<code>templates.directory=T:\\Common\\Our Team Folder\\Templates</code>" 
+   - the double backslashes are required on Windows systems; Unix systems can 
+   just use single forward slashes).</li>
+ <li>Put custom versions of files underneath this team templates directory.  
+   For example, you could put:
+  <ul>
+   <li>HTML files overriding files that are built into the dashboard</li>
+   <li>LanguageFilters defining custom LOC counters</li>
+   <li><a href="DefiningProcesses.html#XmlDef">template.xml</a> files 
+      defining team processes</li>
+   <li>Data files and HTML scripts/forms supporting those team <a 
+      href="DefiningProcesses.html">processes</a></li> 
+  </ul>
+   and when you make changes to these items, everyone on the team will see 
+   them automatically (except as noted below).</li>
 </ol>
 
 <h2>Some files are only read at start up</h2>
 
-When you change HTML files, everyone will see your changes
-immediately.  The very next time they view the HTML page in question,
-they will see your changes.
-
-<p>Some other files, however, the dashboard will only read once.  For
-example, template.xml files, datafiles, and LOC counters will only be
-read once, when the dashboard starts up.  If you make changes to these
-files, people will have to shut down and restart their dashboard to
-see your changes.
-
-
-<!-- How to define your own custom process
-   * An overview of the process definition architecture: explain the three
-     pieces to the puzzle and how they fit together:
-      * "-template.xml" files define the *structure* of the process
-      * optional HTML files provide process scripts and forms
-      * optional data files define custom calculations for your process
-     Also explain how the dashboard locates these files (i.e., where should
-     you put these files, and how can you share them with your co-workers) -->
+<p>When you change HTML files, everyone will see your changes immediately.  
+The very next time they view the HTML page in question, they will see your 
+changes.  Other files, however, the dashboard will only read once.  For 
+example, template.xml files, datafiles, and LOC counters will only be read 
+once, when the dashboard starts up.  If you make changes to these files, 
+people will have to shut down and restart their dashboard to see your 
+changes.</p>
 
 </BODY>
 </HTML>
