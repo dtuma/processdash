@@ -96,10 +96,14 @@ public class defectlog extends TinyCGIBase implements DefectAnalyzer.Task {
         out.println(END_TEXT);
     }
 
+    private boolean phaseMatches(String a, String b) {
+        return (a.equalsIgnoreCase(b) || a.endsWith("/" + b));
+    }
+
     public void analyze(String path, Defect d) {
         if ((typeFilt != null && !d.defect_type.equalsIgnoreCase(typeFilt)) ||
-            (injFilt != null && !d.phase_injected.equalsIgnoreCase(injFilt)) ||
-            (remFilt != null && !d.phase_removed.equalsIgnoreCase(remFilt)))
+            (injFilt != null && !phaseMatches(d.phase_injected, injFilt)) ||
+            (remFilt != null && !phaseMatches(d.phase_removed, remFilt)))
             return;
 
         out.println("<TR>");
