@@ -211,11 +211,13 @@ public class r4 extends TinyCGIBase implements DefectAnalyzer.Task {
 
         if (!test(d.phase_injected, "Compile") &&
             !test(d.phase_injected, "Test") &&
+            !test(d.phase_injected, "Reassessment") &&
             !test(d.phase_injected, "Postmortem"))
             if (d.phase_removed.endsWith("Compile")) {
                 increment(row, PRESENT_AT_COMP_ENTRY);
                 increment(row, FOUND_IN_COMPILE);
             } else if (d.phase_removed.endsWith("Test") ||
+                       d.phase_removed.endsWith("Reassessment") ||
                        d.phase_removed.endsWith("Postmortem"))
                 increment(row, PRESENT_AT_COMP_ENTRY);
     }
