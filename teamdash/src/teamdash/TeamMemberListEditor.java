@@ -11,7 +11,7 @@ import javax.swing.table.*;
 
 public class TeamMemberListEditor extends JPanel {
 
-    private TeamMemberList teamMemberList;
+    TeamMemberList teamMemberList;
 
     public TeamMemberListEditor() {
         // create the table model

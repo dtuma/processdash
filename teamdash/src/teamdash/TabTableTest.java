@@ -30,7 +30,7 @@ public class TabTableTest {
 
         frame.getContentPane().add(makeTable());
 
-        frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.show();
         System.out.println("bounds="+tp.getBoundsAt(0));
@@ -45,7 +45,7 @@ public class TabTableTest {
         sp.setDividerLocation(80);
         //sp.setOpaque(false);
         //sp.setVisible(false);
-        sp.addPropertyChangeListener(sp.DIVIDER_LOCATION_PROPERTY,
+        sp.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY,
                                      new DividerListener());
         //sp.setMaximumSize(new Dimension(1000, 1000));
         //sp.setDividerSize(3);

@@ -1,4 +1,3 @@
-
 package teamdash.wbs;
 
 import java.awt.Color;
@@ -23,11 +22,9 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-
 /** Class to display the WBS editor panel
  */
 public class WBSTabPanel extends JPanel {
-
 
     WBSJTable wbsTable;
     DataJTable dataTable;
@@ -37,10 +34,12 @@ public class WBSTabPanel extends JPanel {
     ArrayList tableColumnModels = new ArrayList();
     GridBagLayout layout;
 
-
     /** Create a WBSTabPanel */
-    public WBSTabPanel(WBSModel wbs, DataTableModel data,
-                       Map iconMap, JMenu iconMenu) {
+    public WBSTabPanel(
+        WBSModel wbs,
+        DataTableModel data,
+        Map iconMap,
+        JMenu iconMenu) {
         setOpaque(false);
         setLayout(layout = new GridBagLayout());
 
@@ -55,27 +54,28 @@ public class WBSTabPanel extends JPanel {
         splitPane.setDividerLocation(200);
     }
 
-
     /** Add a tab to the tab panel
      * @param tabName The name to display on the tab
      * @param columnNames The columns to display when this tab is selected
      * @throws IllegalArgumentException if <code>columnNames</code> names
      *    a column which cannot be found
      */
-    public void addTab(String tabName, String columnIDs[],
-                       String[] columnNames) throws IllegalArgumentException
-    {
+    public void addTab(
+        String tabName,
+        String columnIDs[],
+        String[] columnNames)
+        throws IllegalArgumentException {
 
         DataTableModel tableModel = (DataTableModel) dataTable.getModel();
         TableColumnModel columnModel = new DefaultTableColumnModel();
 
-        for (int i = 0;   i < columnNames.length;   i++) {
+        for (int i = 0; i < columnNames.length; i++) {
             int columnIndex = tableModel.findColumn(columnIDs[i]);
             if (columnIndex == -1)
                 columnIndex = tableModel.findColumn(columnNames[i]);
             if (columnIndex == -1)
-                throw new IllegalArgumentException
-                    ("No column with ID " + columnIDs[i]);
+                throw new IllegalArgumentException(
+                    "No column with ID " + columnIDs[i]);
 
             TableColumn tableColumn = new TableColumn(columnIndex);
             String name = columnNames[i];
@@ -96,8 +96,11 @@ public class WBSTabPanel extends JPanel {
 
 
     /** Create the JTables and perform necessary setup */
-    private void makeTables(WBSModel wbs, DataTableModel data,
-                            Map iconMap, JMenu iconMenu) {
+    private void makeTables(
+        WBSModel wbs,
+        DataTableModel data,
+        Map iconMap,
+        JMenu iconMenu) {
         // create the WBS table to display the hierarchy
         wbsTable = new WBSJTable(wbs, iconMap, iconMenu);
         // create the table to display hierarchy data
@@ -109,15 +112,15 @@ public class WBSTabPanel extends JPanel {
         dataTable.setRowHeight(wbsTable.getRowHeight());
     }
 
-
     /** Create and install the splitter component. */
     private void makeSplitter() {
         splitPane =
             new MagicSplitter(JSplitPane.HORIZONTAL_SPLIT, false, 70, 70);
-        splitPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        splitPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         splitPane.setDividerLocation(205);
-        splitPane.addPropertyChangeListener
-            (JSplitPane.DIVIDER_LOCATION_PROPERTY, new DividerListener());
+        splitPane.addPropertyChangeListener(
+            JSplitPane.DIVIDER_LOCATION_PROPERTY,
+            new DividerListener());
         //splitPane.setDividerSize(3);
 
         GridBagConstraints c = new GridBagConstraints();
@@ -131,21 +134,22 @@ public class WBSTabPanel extends JPanel {
         layout.setConstraints(splitPane, c);
     }
 
-
     /** Create and install the scroll pane component. */
     private void makeScrollPane() {
         // create a vertical scroll bar
-        scrollPane = new JScrollPane(dataTable,
-                                     JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                                     JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane =
+            new JScrollPane(
+                dataTable,
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         // remove the borders from the scroll pane
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         // we need to add an explicit border for the scroll bar in Java 1.3,
         // otherwise its right edge vanishes when we remove the border from
         // the scrollPane.
         if (System.getProperty("java.version").startsWith("1.3"))
-            scrollPane.getVerticalScrollBar().setBorder
-                (BorderFactory.createMatteBorder(0, 0, 0, 1, Color.darkGray));
+            scrollPane.getVerticalScrollBar().setBorder(
+                BorderFactory.createMatteBorder(0, 0, 0, 1, Color.darkGray));
 
         // make the WBS table the "row header view" of the scroll pane.
         scrollPane.setRowHeaderView(wbsTable);
@@ -165,7 +169,6 @@ public class WBSTabPanel extends JPanel {
         layout.setConstraints(scrollPane, c);
     }
 
-
     /** Create and install the tabbed pane component. */
     private void makeTabbedPane() {
         tabbedPane = new JTabbedPane();
@@ -182,7 +185,6 @@ public class WBSTabPanel extends JPanel {
         layout.setConstraints(tabbedPane, c);
     }
 
-
     /** Listen for changes to the tab selection, and install the corresponding
      * table column model. */
     private final class TabListener implements ChangeListener {
@@ -194,19 +196,23 @@ public class WBSTabPanel extends JPanel {
         }
     }
 
-
     /** This component displays a splitter bar (along the lines of JSplitPane)
      * but doesn't display anything on either side of the bar. Instead, these
      * areas are transparent, allowing other components to show through.
      */
     private final class MagicSplitter extends JSplitPane {
-        public MagicSplitter(int newOrientation, boolean newContinuousLayout,
-                             int firstCompMinSize, int secondCompMinSize) {
-            super(newOrientation, newContinuousLayout,
-                  new EmptyComponent(new Dimension(firstCompMinSize,
-                                                   firstCompMinSize)),
-                  new EmptyComponent(new Dimension(secondCompMinSize,
-                                                   secondCompMinSize)));
+        public MagicSplitter(
+            int newOrientation,
+            boolean newContinuousLayout,
+            int firstCompMinSize,
+            int secondCompMinSize) {
+            super(
+                newOrientation,
+                newContinuousLayout,
+                new EmptyComponent(
+                    new Dimension(firstCompMinSize, firstCompMinSize)),
+                new EmptyComponent(
+                    new Dimension(secondCompMinSize, secondCompMinSize)));
             setOpaque(false);
         }
         /** Limit contains() to the area owned by the splitter bar.  This
@@ -215,11 +221,10 @@ public class WBSTabPanel extends JPanel {
          */
         public boolean contains(int x, int y) {
             int l = getDividerLocation();
-            int diff = x-l;
+            int diff = x - l;
             return (diff > 0 && diff < getDividerSize());
         }
     }
-
 
     /** Listen for changes in the position of the divider, and resize other
      * objects in this panel appropriately
@@ -236,7 +241,7 @@ public class WBSTabPanel extends JPanel {
             col.setPreferredWidth(dividerLocation - 5);
             // add an extra 20 pixels to the width of the JScrollPane's
             // row header, to allow space for the splitter bar.
-            Dimension d = new Dimension(dividerLocation+15, 100);
+            Dimension d = new Dimension(dividerLocation + 15, 100);
             wbsTable.setPreferredScrollableViewportSize(d);
 
             // resize the tabbed pane to fit on the right side of the divider.
@@ -253,23 +258,31 @@ public class WBSTabPanel extends JPanel {
         }
     }
 
-
     /** Display an invisible component with a certain minimum/preferred size.
     */
     private final class EmptyComponent extends JComponent {
         private Dimension d, m;
         public EmptyComponent(Dimension d) {
-            this(d, new Dimension(3000,3000));
+            this(d, new Dimension(3000, 3000));
         }
         public EmptyComponent(Dimension d, Dimension m) {
             this.d = d;
             this.m = m;
         }
-        public Dimension getMaximumSize() { return m; }
-        public Dimension getMinimumSize() { return d; }
-        public Dimension getPreferredSize() { return d; }
-        public boolean isOpaque() { return false; }
-        public void paint(Graphics g) {}
+        public Dimension getMaximumSize() {
+            return m;
+        }
+        public Dimension getMinimumSize() {
+            return d;
+        }
+        public Dimension getPreferredSize() {
+            return d;
+        }
+        public boolean isOpaque() {
+            return false;
+        }
+        public void paint(Graphics g) {
+        }
     }
 
 }

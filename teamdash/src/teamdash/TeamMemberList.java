@@ -3,8 +3,16 @@
 package teamdash;
 
 import java.awt.Color;
-import java.util.*;
-import javax.swing.table.*;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.table.AbstractTableModel;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 
 public class TeamMemberList extends AbstractTableModel {
@@ -14,6 +22,12 @@ public class TeamMemberList extends AbstractTableModel {
 
     public TeamMemberList() {
         addNewRow();
+    }
+
+    public TeamMemberList(Element e) {
+        NodeList nodes = e.getElementsByTagName(TeamMember.TAG_NAME);
+        for (int i = 0;   i < nodes.getLength();   i++)
+            teamMembers.add(new TeamMember((Element) nodes.item(i)));
     }
 
     public static final int NAME_COLUMN = 0;
@@ -81,7 +95,51 @@ public class TeamMemberList extends AbstractTableModel {
 
     private void addNewRow() {
         int newRowNum = getRowCount();
-        teamMembers.add(new TeamMember(null, null, null));
+        Color c = Color.darkGray;
+        if (newRowNum < DEFAULT_COLORS.length)
+            c = Color.decode(DEFAULT_COLORS[newRowNum]);
+        teamMembers.add(new TeamMember(null, null, c));
         fireTableRowsInserted(newRowNum, newRowNum);
+    }
+
+    public void getAsXML(Writer out) throws IOException {
+        out.write("<"+ATTR_NAME+">\n");
+        Iterator i = teamMembers.iterator();
+        while (i.hasNext()) {
+            TeamMember m = (TeamMember) i.next();
+            if (!m.isEmpty())
+                m.getAsXML(out);
+        }
+        out.write("</"+ATTR_NAME+">\n");
+    }
+    private static final String ATTR_NAME = "teamList";
+    private static final String[] DEFAULT_COLORS = {
+        "#9933ff", // lavender
+        "#6666ff", // pale blue
+        "#00ccff", // pale cyan
+        "#66ff99", // pale green
+        "#ffff66", // pale yellow
+        "#ffcc66", // pale orange
+        "#660066", // dark purple
+        "#000066", // navy
+        "#0000ff", // blue
+        "#00ff00", // green
+        "#cccc00", // mustard
+        "#996633", // light brown
+        "#993366", // purple
+        "#003366", // slate blue
+        "#006666", // green-blue
+        "#339933", // medium green
+        "#003300", // dark green
+        "#663300"  // brown
+    };
+    public List getTeamMembers() {
+        ArrayList result = new ArrayList();
+        Iterator i = teamMembers.iterator();
+        while (i.hasNext()) {
+            TeamMember m = (TeamMember) i.next();
+            if (!m.isEmpty()) result.add(m);
+        }
+        return result;
     }
 }

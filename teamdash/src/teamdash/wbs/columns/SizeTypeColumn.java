@@ -61,7 +61,7 @@ public class SizeTypeColumn extends AbstractDataColumn {
         dataModel.addDataColumn(new EditableSizeColumn(dataModel));
 
         // create LOC accounting columns.
-        SizeAccountingColumnSet.create(dataModel, "LOC", new LOCPruner());
+        SizeAccountingColumnSet.create(dataModel, "LOC", new LOCPruner(), null);
 
         // create size accounting columns for various document types.
         Iterator i = SIZE_METRICS.entrySet().iterator();
@@ -74,7 +74,7 @@ public class SizeTypeColumn extends AbstractDataColumn {
             String id = (String) e.getValue();
 
             SizeAccountingColumnSet.create
-                (dataModel, id, new DocSizePruner(docType));
+                (dataModel, id, new DocSizePruner(docType), null); //docType);
         }
 
         // create aliasing columns

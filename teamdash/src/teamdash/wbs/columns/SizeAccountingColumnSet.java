@@ -7,26 +7,35 @@ import teamdash.wbs.WBSNode;
 
 public class SizeAccountingColumnSet {
 
-    public static void create(DataTableModel model, String id, Pruner p)
+    public static void create(DataTableModel model, String id, Pruner p,
+                              String editableType)
     {
-        createColumn(model, getBaseID(id), p);     // create "Base" column
-        createColumn(model, getDeletedID(id), p);  // create "Deleted" column
-        createColumn(model, getModifiedID(id), p); // create "Modified" column
-        createColumn(model, getAddedID(id), p);    // create "Added" column
-        createColumn(model, getReusedID(id), p);   // create "Reused" column
+        createColumn(model, getBaseID(id), p, editableType);     // create "Base" column
+        createColumn(model, getDeletedID(id), p, editableType);  // create "Deleted" column
+        createColumn(model, getModifiedID(id), p, editableType); // create "Modified" column
+        createColumn(model, getAddedID(id), p, editableType);    // create "Added" column
+        createColumn(model, getReusedID(id), p, editableType);   // create "Reused" column
 
         // create "New & Changed" column
-        model.addDataColumn(new NewChangedSizeColumn(model, id));
+        CalculatedDataColumn c = new NewChangedSizeColumn(model, id);
+        if (editableType != null) c = new NodeTypeColumnFilter(c, editableType);
+        model.addDataColumn(c);
 
         // create "Total" column
-        model.addDataColumn(new TotalSizeColumn(model, id));
+        c = new TotalSizeColumn(model, id);
+        if (editableType != null) c = new NodeTypeColumnFilter(c, editableType);
+        model.addDataColumn(c);
     }
 
-    private static void createColumn(DataTableModel m, String name, Pruner p) {
+    private static void createColumn(DataTableModel m, String name, Pruner p,
+                                     String editableType) {
         TopDownBottomUpColumn column =
             new TopDownBottomUpColumn(m, name, name, p);
         column.setHideInheritedValues(true);
-        m.addDataColumn(column);
+        if (editableType == null)
+            m.addDataColumn(column);
+        else
+            m.addDataColumn(new NodeTypeColumnFilter(column, editableType));
     }
 
     public static String getBaseID(String id)     { return "Base-"     + id; }
@@ -150,12 +159,74 @@ public class SizeAccountingColumnSet {
             return NumericDataValue.parse(dataModel.getValueAt(node, column));
         }
 
-        protected double getValueForNode(WBSNode node) {
+        public Object getValueAt(WBSNode node) {
             double base    = getVal(node, baseColumn);
             double deleted = getVal(node, deletedColumn);
             double added   = getVal(node, addedColumn);
             double reused  = getVal(node, reusedColumn);
-            return base - deleted + added + reused;
+            double total   = base - deleted + added + reused;
+
+            return new NumericDataValue(total, false);
+        }
+    }
+
+    private static class NodeTypeColumnFilter implements CalculatedDataColumn {
+
+        CalculatedDataColumn column;
+        String editableType;
+
+        public NodeTypeColumnFilter(CalculatedDataColumn c,
+                                    String editableType) {
+            this.column = c;
+            this.editableType = editableType;
+        }
+
+        public boolean recalculate() {
+            return column.recalculate();
+        }
+        public String[] getDependentColumnIDs() {
+            return column.getDependentColumnIDs();
+        }
+        public String[] getAffectedColumnIDs() {
+            return column.getAffectedColumnIDs();
+        }
+        public void storeDependentColumn(String ID, int columnNumber) {
+            column.storeDependentColumn(ID, columnNumber);
+        }
+        public String getColumnID() {
+            return column.getColumnID();
+        }
+        public String getColumnName() {
+            return column.getColumnName();
+        }
+        public Class getColumnClass() {
+            return column.getColumnClass();
+        }
+
+        protected boolean isFiltered(WBSNode node) {
+            return !editableType.equals(node.getType());
+        }
+        public boolean isCellEditable(WBSNode node) {
+            // if our delegate says the column isn't editable, they're right.
+            if (!column.isCellEditable(node)) return false;
+            // if we aren't filtering this node, then it's editable.
+            if (!isFiltered(node)) return true;
+            // if this node has a zero or NaN value, it isn't editable.
+            return NumericDataValue.parse(column.getValueAt(node)) > 0;
+        }
+
+        public Object getValueAt(WBSNode node) {
+            NumericDataValue result =
+                (NumericDataValue) column.getValueAt(node);
+            if (result == null) return result;
+            if (isFiltered(node) && !(result.value > 0)) {
+                result.isEditable = false;
+                result.isInvisible = true;
+            }
+            return result;
+        }
+        public void setValueAt(Object aValue, WBSNode node) {
+            column.setValueAt(aValue, node);
         }
     }
 }

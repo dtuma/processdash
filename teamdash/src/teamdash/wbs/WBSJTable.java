@@ -65,6 +65,8 @@ public class WBSJTable extends JTable {
 
         editor = new WBSNodeEditor(this, model, iconMap, iconMenu);
         setDefaultEditor(WBSNode.class, editor);
+        // work around Sun Java bug 4709394
+        putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 
         installCustomActions(this);
         installTableActions();

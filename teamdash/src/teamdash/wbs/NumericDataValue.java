@@ -12,16 +12,16 @@ public class NumericDataValue {
     public double expectedValue;
 
     public NumericDataValue(double v) {
-        this(v, true, false, null, Double.NaN);
+        this(v, true, false, null, v);
     }
 
     public NumericDataValue(double v, boolean editable) {
-        this(v, editable, false, null, Double.NaN);
+        this(v, editable, false, null, v);
     }
 
     public NumericDataValue(double v, boolean editable, boolean invisible,
                             String error) {
-        this(v, editable, invisible, error, Double.NaN);
+        this(v, editable, invisible, error, v);
     }
 
     public NumericDataValue(double v, boolean editable, boolean invisible,

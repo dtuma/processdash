@@ -56,5 +56,11 @@ public class IntList {
         String result = b.toString();
         return result.substring(0, result.length()-1);
     }
+    public boolean contains(int num) {
+        for (int i=0;   i < size();   i++)
+            if (contents[i] == num)
+                return true;
+        return false;
+    }
 
 }

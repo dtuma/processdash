@@ -15,7 +15,7 @@ public class TTest {
 
         JFrame frame = new JFrame("TTest");
         frame.getContentPane().add(sp);
-        frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.show();
     }

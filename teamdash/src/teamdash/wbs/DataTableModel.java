@@ -13,7 +13,6 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
-import teamdash.wbs.columns.NewAndChangedLOCColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TopDownBottomUpColumn;
 
@@ -51,8 +50,8 @@ public class DataTableModel extends AbstractTableModel {
 
     private void initializeColumnDependencies() {
         // create the dependency matrix and populate it with "false" values.
-        // allocate some extra space for future added columns.
-        int numColumns = columns.size() + 10;
+        // //allocate some extra space for future added columns.
+        int numColumns = columns.size();
         dependencies = new boolean[numColumns][numColumns];
         for (int x = 0;   x < numColumns;   x++)
             for (int y = 0;   y < numColumns;   y++)
@@ -111,12 +110,14 @@ public class DataTableModel extends AbstractTableModel {
 
     public void addDataColumn(DataColumn column) {
         columns.add(column);
-        // TODO : if the dependencies are already computed, update them.
+        // if the dependencies are already computed, update them.
+        if (dependencies != null)
+            initializeColumnDependencies();
     }
 
     private void buildDataColumns() {
 
-        addDataColumn(new NewAndChangedLOCColumn(this));
+        //addDataColumn(new NewAndChangedLOCColumn(this));
         SizeTypeColumn.createSizeColumns(this);
 
         for (char c = 'B';   c <= 'Z';   c++)

@@ -20,7 +20,10 @@ implements CalculatedDataColumn {
     }
 
     public boolean recalculate() { return true; }
-    public boolean isCellEditable(WBSNode node) { return true; }
+    public boolean isCellEditable(WBSNode node) {
+        NumericDataValue value = (NumericDataValue) getValueAt(node);
+        return (value == null || value.isEditable);
+    }
 
 
     public void storeDependentColumn(String ID, int columnNumber) {
@@ -33,6 +36,8 @@ implements CalculatedDataColumn {
         NumericDataValue value =
             (NumericDataValue) dataModel.getValueAt(node, newChangedColumn);
         if (value != null && value.isEditable)
+            return value;
+        if (SizeTypeColumn.SIZE_METRICS.get(node.getType()) != null)
             return value;
 
         double number = node.getNumericAttribute(ATTR_NAME);

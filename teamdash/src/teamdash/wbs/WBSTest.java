@@ -1,6 +1,7 @@
 
 package teamdash.wbs;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -8,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
@@ -18,6 +20,10 @@ import javax.swing.JTable;
 
 import org.w3c.dom.Document;
 import pspdash.XMLUtils;
+import teamdash.TeamMember;
+import teamdash.TeamMemberList;
+import teamdash.wbs.columns.TeamMemberTimeColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 
 public class WBSTest implements WindowListener {
@@ -32,6 +38,7 @@ public class WBSTest implements WindowListener {
 
     JTable table;
     WBSModel model;
+    TeamMemberList teamList;
 
     private static final String[][] nodes = {
         { " A",  "Software Component" },
@@ -76,6 +83,14 @@ public class WBSTest implements WindowListener {
                                        nodes[i][0].trim().length()),
                                   true));
     }
+    private void loadTeam() {
+        try {
+            Document doc = XMLUtils.parse(new FileInputStream("team.xml"));
+            teamList = new TeamMemberList(doc.getDocumentElement());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public WBSTest(String filename, boolean ignored) {
         buildModel(filename);
@@ -92,6 +107,7 @@ public class WBSTest implements WindowListener {
 
     public WBSTest(String filename) {
         buildModel(filename);
+        loadTeam();
         DataTableModel data = new DataTableModel(model);
 
         Map iconMap = buildIconMap();
@@ -104,8 +120,10 @@ public class WBSTest implements WindowListener {
         for (int i = 0;   i < iconMenuItems.length;  i++)
             iconMenu.add(new JMenuItem(iconMenuItems[i]));
         WBSTabPanel table = new WBSTabPanel(model, data, iconMap, iconMenu);
-        table.addTab("Vowels", new String[] {"N&C LOC", "E", "I", "O", "U" },
-                    new String[] { "LOC", "Echo","India","Oscar","Uniform" });
+        //table.addTab("Vowels", new String[] {"N&C LOC", "E", "I", "O", "U" },
+        //            new String[] { "LOC", "Echo","India","Oscar","Uniform" });
+
+
         table.addTab("Size",
                      new String[] { "Size", "Size-Units", "N&C-LOC", "N&C-Text Pages",
                                     "N&C-Reqts Pages", "N&C-HLD Pages", "N&C-DLD Lines" },
@@ -117,18 +135,45 @@ public class WBSTest implements WindowListener {
                      new String[] { "Units",  "Base", "Deleted", "Modified", "Added",
                                     "Reused", "N&C", "Total" });
 
-        String[] s = new String[] { "Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q" };
-        table.addTab("Last", s, s);
+        List teamMembers = teamList.getTeamMembers();
+        int teamSize = teamMembers.size();
+        String[] teamColumnIDs = new String[teamSize+1];
+        String[] teamColumnNames = new String[teamSize+1];
+        DataTableModel dataModel = (DataTableModel) table.dataTable.getModel();
+        dataModel.addDataColumn(new TeamTimeColumn(dataModel));
+        for (int i = 0;   i < teamMembers.size();   i++) {
+            TeamMember m = (TeamMember) teamMembers.get(i);
+            TeamMemberTimeColumn col = new TeamMemberTimeColumn(dataModel, m);
+            dataModel.addDataColumn(col);
+            teamColumnIDs[i+1] = col.getColumnID();
+            teamColumnNames[i+1] = m.getInitials();
+        }
+        teamColumnIDs[0] = "Time";
+        teamColumnNames[0] = "Team";
+        table.addTab("Time", teamColumnIDs, teamColumnNames);
+
+        String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
+        table.addTab("Defects", s, s);
+
+
+        TeamTimePanel teamTime = new TeamTimePanel(teamList, dataModel);
 
         //JScrollPane sp = new JScrollPane(table);
 
         JFrame frame = new JFrame("WBSTest");
         frame.getContentPane().add(table);
+        frame.getContentPane().add(teamTime, BorderLayout.SOUTH);
         //frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(this);
         frame.pack();
         frame.show();
+        /*
+        long beg = System.currentTimeMillis();
+        for (int j = 1000; j-- > 0;)
+            table.paint();
+        long end = System.currentTimeMillis();
+        System.out.println("paint time (ms): "+ (end-beg));    */
     }
 
     private Map buildIconMap() {
