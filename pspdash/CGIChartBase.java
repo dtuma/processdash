@@ -33,9 +33,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import com.sun.image.codec.jpeg.JPEGCodec;
-import com.sun.image.codec.jpeg.JPEGEncodeParam;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
 import com.jrefinery.chart.*;
 
 import pspdash.data.DataRepository;
@@ -115,10 +112,9 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
         Graphics2D g2 = img.createGraphics();
         chart.draw(g2, new Rectangle2D.Double(0, 0, width, height));
         g2.dispose();
-        JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(outStream);
-        JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(img);
-        param.setQuality(1.0f,true);
-        encoder.encode(img,param);
+
+        JpegEncoder jpegEncoder = new JpegEncoder(img, 100, outStream);
+        jpegEncoder.Compress();
         outStream.flush();
         outStream.close();
     }
