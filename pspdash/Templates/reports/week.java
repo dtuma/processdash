@@ -56,6 +56,10 @@ public class week extends TinyCGIBase {
             throw new IOException("No EV task list specified.");
         taskListName = taskListName.substring(1);
 
+        // strip the "publishing prefix" if it is present.
+        if (taskListName.startsWith("ev /"))
+            taskListName = taskListName.substring(4);
+
         // Load and recalculate the named earned value model.
         EVTaskList evModel =
             new EVTaskList(taskListName,
