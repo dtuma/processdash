@@ -152,6 +152,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
             // read the default properties file, which simply contains
             // nodes for "Project" and "Non Project".
             v = props.load(getClass().getResourceAsStream(DEFAULT_PROP_FILE));
+            displayFirstTimeUserHelp();
         } catch (Exception e2) {
             // this is a serious problem that should never happen if the
             // dashboard is installed correctly.
@@ -195,6 +196,12 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
         webServer.setData(data);
         webServer.setProps(props);
+    }
+
+    private static final String FIRST_TIME_HELP_URL =
+        ScriptButton.URL_PREFIX + "0/help/first-use.htm";
+    private void displayFirstTimeUserHelp() {
+        new AboutDialog(null, "Welcome", FIRST_TIME_HELP_URL);
     }
 
     public void openDatafile (String prefix, String dataFile) {
