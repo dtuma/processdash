@@ -25,10 +25,19 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.util.*;
 import java.text.DateFormat;
-import javax.swing.table.*;
-import javax.swing.event.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
+import javax.swing.event.EventListenerList;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 
 import org.jfree.data.AbstractDataset;
 import org.jfree.data.DatasetChangeEvent;
@@ -171,10 +180,10 @@ public class EVSchedule implements TableModel {
         private long millisecondsInDay(Date d) {
             Calendar c = Calendar.getInstance();
             c.setTime(d);
-            long hours = c.get(c.HOUR_OF_DAY);
-            long minutes = hours * 60L + c.get(c.MINUTE);
-            long seconds = minutes * 60L + c.get(c.SECOND);
-            long ms = seconds * 1000L + c.get(c.MILLISECOND);
+            long hours = c.get(Calendar.HOUR_OF_DAY);
+            long minutes = hours * 60L + c.get(Calendar.MINUTE);
+            long seconds = minutes * 60L + c.get(Calendar.SECOND);
+            long ms = seconds * 1000L + c.get(Calendar.MILLISECOND);
             return ms;
         }
         protected void setPeriodEnd(Object value) {
@@ -337,7 +346,7 @@ public class EVSchedule implements TableModel {
     public EVSchedule() { this(20.0); }
     public EVSchedule(double hours) {
         Calendar c = Calendar.getInstance();
-        c.set(c.DAY_OF_WEEK, 1);
+        c.set(Calendar.DAY_OF_WEEK, 1);
 
         Date begin = truncDate(c.getTime());
         long beginTime = begin.getTime();
@@ -351,8 +360,8 @@ public class EVSchedule implements TableModel {
     private static Date truncDate(Date d) {
         Calendar c = Calendar.getInstance();
         c.setTime(d);
-        c.set(c.HOUR_OF_DAY, 0); c.set(c.MINUTE, 0);
-        c.set(c.SECOND, 0); c.set(c.MILLISECOND, 0);
+        c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
         return c.getTime();
     }
 
@@ -853,9 +862,9 @@ public class EVSchedule implements TableModel {
 
         long firstDSTOffset, secondDSTOffset;
         calendar.setTime(new Date(first));
-        firstDSTOffset = calendar.get(calendar.DST_OFFSET);
+        firstDSTOffset = calendar.get(Calendar.DST_OFFSET);
         calendar.setTime(new Date(second));
-        secondDSTOffset = calendar.get(calendar.DST_OFFSET);
+        secondDSTOffset = calendar.get(Calendar.DST_OFFSET);
 
         return firstDSTOffset - secondDSTOffset;
     }

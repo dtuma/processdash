@@ -26,16 +26,13 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.awt.event.*;
-import java.net.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.tree.TreePath;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 
 import pspdash.data.DataRepository;
-import pspdash.data.StringData;
 import pspdash.data.SimpleData;
+import pspdash.data.StringData;
 
 public class EVTaskListXML extends EVTaskListXMLAbstract {
 
@@ -148,7 +145,7 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
             taskListName = taskListName.substring(pos+XMLID_FLAG.length());
         }
 
-        String dataName = data.createDataName(taskListName, XML_DATA_NAME);
+        String dataName = DataRepository.createDataName(taskListName, XML_DATA_NAME);
         SimpleData value = data.getSimpleValue(dataName);
         if (!(value instanceof StringData) && taskListID != null) {
             dataName = getDataNameForID(data, taskListID);

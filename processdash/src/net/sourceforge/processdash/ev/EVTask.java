@@ -345,7 +345,7 @@ public class EVTask implements DataListener {
 
     protected SimpleData getValue(String name) { return getValue(name, true); }
     protected SimpleData getValue(String name, boolean notify) {
-        String dataName = data.createDataName(fullName, name);
+        String dataName = DataRepository.createDataName(fullName, name);
         if (notify && listener != null)
             data.addDataListener(dataName, this, false);
         return data.getSimpleValue(dataName);
@@ -419,13 +419,13 @@ public class EVTask implements DataListener {
             planLevelOfEffort = NOT_LEVEL_OF_EFFORT;
             // erase the level of effort in the data repository
             data.userPutValue
-                (data.createDataName(fullName, getLevelOfEffortDataname()),
+                (DataRepository.createDataName(fullName, getLevelOfEffortDataname()),
                  null);
         } else if (p > 0 && p < 1) {
             planLevelOfEffort = p;
             // save this level of effort to the data repository
             data.userPutValue
-                (data.createDataName(fullName, getLevelOfEffortDataname()),
+                (DataRepository.createDataName(fullName, getLevelOfEffortDataname()),
                  new DoubleData(planLevelOfEffort, true));
         }
     }
@@ -479,13 +479,15 @@ public class EVTask implements DataListener {
             if (newDataName.equals(oldDataName)) oldDataName = null;
             if (newValue != savedValue || oldDataName != null) {
                 SimpleData d = new DoubleData(newValue, false);
-                String dataName = data.createDataName(fullName, newDataName);
+                String dataName =
+                    DataRepository.createDataName(fullName, newDataName);
                 data.putValue(dataName, d);
             }
         }
 
         if (oldDataName != null) {
-            String dataName = data.createDataName(fullName, oldDataName);
+            String dataName =
+                DataRepository.createDataName(fullName, oldDataName);
             data.putValue(dataName, null);
         }
     }
@@ -507,7 +509,7 @@ public class EVTask implements DataListener {
             // number, or a calculation.  We aren't interested in
             // calculations - just simple numbers.
             String dataName =
-                data.createDataName(fullName, ACT_TIME_DATA_NAME);
+                DataRepository.createDataName(fullName, ACT_TIME_DATA_NAME);
             Object val = data.getValue(dataName);
             if (val != null &&
                 (!(val instanceof DoubleData) ||
@@ -544,14 +546,14 @@ public class EVTask implements DataListener {
                 this.planTime = topDownPlanTime = bottomUpPlanTime = planTime;
                 planTimeNull = planTimeUndefined = false;
                 // save those minutes to the data repository
-                data.userPutValue(data.createDataName(fullName,
-                                                      PLAN_TIME_DATA_NAME),
+                data.userPutValue(DataRepository.createDataName
+                                  (fullName, PLAN_TIME_DATA_NAME),
                                   new DoubleData(planTime, true));
                 userSetLevelOfEffort(null);
             } else {
                 this.planTime = topDownPlanTime = bottomUpPlanTime;
-                data.userPutValue(data.createDataName(fullName,
-                                                      PLAN_TIME_DATA_NAME),
+                data.userPutValue(DataRepository.createDataName
+                                  (fullName, PLAN_TIME_DATA_NAME),
                                   null);
                 planTimeNull = true;
                 planTimeUndefined = false;
@@ -562,8 +564,8 @@ public class EVTask implements DataListener {
 
     public void userSetActualDate(Object aValue) {
         if (completionDateIsEditable()) {
-            String dataName =
-                data.createDataName(fullName, DATE_COMPLETED_DATA_NAME);
+            String dataName = DataRepository.createDataName
+                (fullName, DATE_COMPLETED_DATA_NAME);
 
             // save the Date object to the data repository
             if (aValue instanceof Date) {

@@ -26,28 +26,24 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.awt.event.*;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.Timer;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import javax.swing.tree.TreePath;
 
 import pspdash.ObjectCache;
 import pspdash.PSPProperties;
-import pspdash.PSPProperties.Event;
-import pspdash.PSPProperties.Listener;
-import pspdash.data.DataRepository;
 import pspdash.data.DataComparator;
+import pspdash.data.DataRepository;
 import pspdash.data.DoubleData;
-import pspdash.data.StringData;
-import pspdash.data.SimpleData;
 import pspdash.data.ListData;
+import pspdash.data.SimpleData;
+import pspdash.data.StringData;
 
 public class EVTaskListData extends EVTaskList
     implements PSPProperties.Listener
@@ -107,7 +103,7 @@ public class EVTaskListData extends EVTaskList
     private EVSchedule getSchedule(DataRepository data, String taskListName) {
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
         String dataName =
-            data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
+            DataRepository.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
         SimpleData d = data.getSimpleValue(dataName);
         if (d instanceof StringData) d = ((StringData) d).asList();
         if (d instanceof ListData)
@@ -119,7 +115,8 @@ public class EVTaskListData extends EVTaskList
      */
     protected void loadID(String taskListName) {
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
-        String dataName = data.createDataName(globalPrefix, ID_DATA_NAME);
+        String dataName = DataRepository.createDataName
+            (globalPrefix, ID_DATA_NAME);
 
         SimpleData d = data.getSimpleValue(dataName);
         if (d != null) {
@@ -138,8 +135,8 @@ public class EVTaskListData extends EVTaskList
             // because this is a new task list, but because this is the
             // first time the list has been opened.  In the latter case,
             // we need to save the unique ID.
-            String scheduleDataName =
-                data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
+            String scheduleDataName = DataRepository.createDataName
+                (globalPrefix, EST_HOURS_DATA_NAME);
             if (data.getValue(scheduleDataName) != null) {
                 // getting to this point indicates that this task list is
                 // not new - it has been previously saved to the repository.
@@ -172,17 +169,19 @@ public class EVTaskListData extends EVTaskList
             globalPrefix = MAIN_DATA_PREFIX + newName;
             ordinalPrefix = TASK_ORDINAL_PREFIX + newName;
             for (int j = r.getNumChildren();  j-- > 0;  ) {
-                dataName = data.createDataName(r.getChild(j).getFullName(),
-                                               ordinalPrefix);
+                dataName = DataRepository.createDataName
+                    (r.getChild(j).getFullName(), ordinalPrefix);
                 data.putValue(dataName, new DoubleData(j, false));
                 oldNames.remove(dataName);
             }
             // save the schedule
-            dataName = data.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
+            dataName = DataRepository.createDataName
+                (globalPrefix, EST_HOURS_DATA_NAME);
             data.putValue(dataName, schedule.getSaveList());
             oldNames.remove(dataName);
             // save the task list unique ID
-            dataName = data.createDataName(globalPrefix, ID_DATA_NAME);
+            dataName = DataRepository.createDataName
+                (globalPrefix, ID_DATA_NAME);
             data.putValue(dataName, StringData.create(taskListID));
             oldNames.remove(dataName);
 
@@ -296,8 +295,8 @@ public class EVTaskListData extends EVTaskList
     }
 
     public static boolean exists(DataRepository data, String taskListName) {
-        String dataName = data.createDataName(MAIN_DATA_PREFIX + taskListName,
-                                              EST_HOURS_DATA_NAME);
+        String dataName = DataRepository.createDataName
+            (MAIN_DATA_PREFIX + taskListName, EST_HOURS_DATA_NAME);
         return data.getSimpleValue(dataName) != null;
     }
 
