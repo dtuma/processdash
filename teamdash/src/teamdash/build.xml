@@ -1,8 +1,18 @@
 
 <project default="compile" basedir=".">
 
-  <target name="compile">
-    <javac srcdir=".." destdir=".." includes="teamdash/**/*.java" debug="true"/>
+  <target name="init">
+    <mkdir dir="../bin"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir=".." destdir="../bin" includes="teamdash/**/*.java"
+           debug="true">
+      <classpath>
+	 <pathelement location="../bin"/>
+	 <pathelement location="../../../pspdash/build/out/pspdash.jar"/>
+      </classpath>
+    </javac>
   </target>
 
 </project>
