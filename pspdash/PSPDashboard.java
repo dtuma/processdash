@@ -34,8 +34,6 @@ import java.io.*;
 import java.net.URL;
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import pspdash.data.DataRepository;
 import pspdash.data.DataImporter;
@@ -176,14 +174,16 @@ public class PSPDashboard extends JFrame implements WindowListener {
         // open and load the properties file.
         props = new PSPProperties(property_directory);
         Vector v = null;
-        SAXException se = null;
+        Exception saxException = null;
         if (prop_file.exists()) {
             try {
                 // try to load the user's existing properties file.
                 try {
                     v = props.loadXML(propertiesFile, templates);
-                } catch (SAXException se1) {
-                    se = se1;
+                } catch (Exception se1) {
+                    if (!safeInstanceof(se1, "org.xml.sax.SAXException"))
+                        throw se1;
+                    saxException = se1;
                     props.load(propertiesFile);
                     props.runV1_4Hack();
                     props.saveXML(propertiesFile, null);
@@ -193,12 +193,13 @@ public class PSPDashboard extends JFrame implements WindowListener {
             } catch (Exception e) {
                 // this is a serious problem, indicating a corrupt
                 // state file.  Display a warning to the user, then exit.
-                if (se != null) e = se;
+                if (saxException != null) e = saxException;
                 propertiesFile = prop_file.getAbsolutePath();
                 try {
                     propertiesFile = prop_file.getCanonicalPath();
                 } catch (Exception e2) {}
-                displayCorruptStateFileWarning(propertiesFile, e);
+                PSPProperties.displayCorruptStateFileWarning
+                    (resources, propertiesFile, e);
                 System.exit(0);
             }
         } else {
@@ -300,25 +301,19 @@ public class PSPDashboard extends JFrame implements WindowListener {
         new AboutDialog(null, resources.getString("Welcome_Dialog_Title"),
                         FIRST_TIME_HELP_URL);
     }
+    private boolean safeInstanceof(Object c, String className) {
+        Class clz = c.getClass();
+        while (clz != null) {
+            if (clz.getName().equals(className)) return true;
+            clz = clz.getSuperclass();
+        }
+        return false;
+    }
 
 
     private static final String BULLET = "\u2022 ";
     private static final String COMPLETION_FLAG_SETTING =
         "internal.ranCompletionFlagCleanup";
-
-    private void displayCorruptStateFileWarning(String filename, Exception e) {
-        int lineNum = -1;
-        if (e instanceof SAXParseException)
-            lineNum = ((SAXParseException) e).getLineNumber();
-
-        JOptionPane.showMessageDialog
-            (null,
-             resources.formatStrings("Corrupt_Statefile_Warning_FMT",
-                                     e.getLocalizedMessage(), filename,
-                                     new Integer(lineNum)),
-             resources.getString("Corrupt_Statefile_Title"),
-             JOptionPane.ERROR_MESSAGE);
-    }
 
     public void openDatafile (String prefix, String dataFile) {
         try {
@@ -335,14 +330,15 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
     private static void ensureJRE13() {
         String versionNum = System.getProperty("java.version");
-        if (DashPackage.compareVersions(versionNum, "1.3") < 0) {
+        String req = "1.4";
+        if (DashPackage.compareVersions(versionNum, req) < 0) {
             Resources res = Resources.getDashBundle("pspdash.PSPDashboard");
             String vendorURL = System.getProperty("java.vendor.url");
             JOptionPane.showMessageDialog
                 (null,
                  res.formatStrings("JRE_Requirement_Message_FMT",
-                                   versionNum, vendorURL),
-                 res.getString("JRE_Requirement_Title"),
+                                   versionNum, vendorURL, req),
+                 res.format("JRE_Requirement_Title_FMT", req),
                  JOptionPane.ERROR_MESSAGE);
             Browser.launch(vendorURL);
             System.exit(0);

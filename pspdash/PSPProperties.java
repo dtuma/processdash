@@ -48,6 +48,7 @@ import java.io.PrintWriter;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.ItemSelectable;
+import javax.swing.JOptionPane;
 import javax.swing.event.EventListenerList;
 import org.w3c.dom.Document;
 import org.w3c.dom.DOMException;
@@ -55,6 +56,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 public class PSPProperties extends Hashtable implements ItemSelectable,
                                                         Comparator {
@@ -946,6 +948,21 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     public void orderedDump (PrintWriter out, Vector filt) {
         orderedDump (out, PropertyKey.ROOT, filt);
     }
+
+    static void displayCorruptStateFileWarning(Resources resources,
+                                               String filename, Exception e) {
+          int lineNum = -1;
+          if (e instanceof SAXParseException)
+              lineNum = ((SAXParseException) e).getLineNumber();
+
+          JOptionPane.showMessageDialog
+              (null,
+               resources.formatStrings("Corrupt_Statefile_Warning_FMT",
+                                       e.getLocalizedMessage(), filename,
+                                       new Integer(lineNum)),
+               resources.getString("Corrupt_Statefile_Title"),
+               JOptionPane.ERROR_MESSAGE);
+        }
 
 
 
