@@ -34,13 +34,16 @@ class PercentInterpreter extends DoubleInterpreter {
         super(r, name, numDigits, readOnly);
     }
 
+    public static String getString(double value, int numDigits) {
+        String result = DoubleData.formatNumber(value * 100.0, numDigits);
+        return (result.startsWith("ERR")) ? result : result + "%";
+    }
+
 
     public String getString() {
-        if (value instanceof DoubleData && value.isDefined()) {
-            String result = DoubleData.formatNumber
-                (((DoubleData) value).value * 100.0, numDigits);
-            return (result.startsWith("ERR")) ? result : result + "%";
-        } else
+        if (value instanceof DoubleData && value.isDefined())
+            return getString(((DoubleData) value).value, numDigits);
+        else
             return super.getString();
     }
 

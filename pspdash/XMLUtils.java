@@ -90,19 +90,7 @@ public class XMLUtils {
     }
 
     public static String escapeAttribute(String value) {
-        StringTokenizer tok = new StringTokenizer(value, "<>&'\"", true);
-        StringBuffer result = new StringBuffer();
-        String token;
-        while (tok.hasMoreTokens()) {
-            token = tok.nextToken();
-            if      ("<".equals(token))  result.append("&lt;");
-            else if (">".equals(token))  result.append("&gt;");
-            else if ("&".equals(token))  result.append("&amp;");
-            else if ("'".equals(token))  result.append("&apos;");
-            else if ("\"".equals(token)) result.append("&quot;");
-            else                         result.append(token);
-        }
-        return result.toString();
+        return HTMLUtils.escapeEntities(value);
     }
 
     public static boolean hasValue(String val) {

@@ -114,6 +114,7 @@ DATA_FILES=$(COMMON_FILES) \
 	DeferredData.java \
 	DivisionFunction.java \
 	EqualsFunction.java \
+	FormToHTML.java \
 	FrozenData.java \
 	FrozenUtil.java \
 	GreaterThanFunction.java \

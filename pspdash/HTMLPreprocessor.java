@@ -475,41 +475,7 @@ public class HTMLPreprocessor {
         /** parse the inner contents of the directive as a set of
          * attrName=attrValue pairs */
         private Map parseAttributes() {
-            HashMap result = new HashMap();
-            if (isNull(contents)) return result;
-            String attrs = contents, name, value;
-            int equalsPos, spacePos;
-            while ((equalsPos = attrs.indexOf('=')) != -1) {
-                name = attrs.substring(0, equalsPos).trim();
-                attrs = attrs.substring(equalsPos+1).trim();
-                if (attrs.length() == 0) break;
-
-                int endPos;
-                if (attrs.charAt(0) == '\'' || attrs.charAt(0) == '"') {
-                    endPos = attrs.indexOf(attrs.charAt(0), 1);
-                    if (endPos == -1) {
-                        value = attrs; attrs = "";
-                    } else {
-                        value = attrs.substring(1, endPos);
-                        attrs = attrs.substring(endPos+1);
-                    }
-                } else if (attrs.charAt(0) == '[') {
-                    endPos = attrs.indexOf(']', 1);
-                    if (endPos == -1) {
-                        value = attrs; attrs = "";
-                    } else {
-                        value = attrs.substring(0, endPos+1);
-                        attrs = attrs.substring(endPos+1);
-                    }
-                } else {
-                    endPos = whitespacePos(attrs);
-                    if (endPos == -1) endPos = attrs.length();
-                    value = attrs.substring(0, endPos);
-                    attrs = attrs.substring(endPos);
-                }
-                result.put(name, value);
-            }
-            return result;
+            return HTMLUtils.parseAttributes(contents);
         }
 
         public void rename(String newName) {

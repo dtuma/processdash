@@ -247,6 +247,10 @@ public class StringUtils
     /** Performs the equivalent of buf.toString().indexOf(str, fromIndex),
      *  but is much more memory efficient. */
     public static int indexOf(StringBuffer buf, String str, int fromIndex) {
+        return indexOf(buf, str, fromIndex, false);
+    }
+    public static int indexOf(StringBuffer buf, String str, int fromIndex,
+                              boolean ignoreCase) {
         int count = buf.length();
         int max = count - str.length();
         if (fromIndex >= count) {
@@ -258,13 +262,15 @@ public class StringUtils
         if (fromIndex < 0) fromIndex = 0;
         if (str.length() == 0) return fromIndex;
 
+        if (ignoreCase) str = str.toLowerCase();
         char first = str.charAt(0);
         int i = fromIndex;
 
     startSearchForFirstChar:
         while (true) {
             /* Look for first character. */
-            while (i <= max && buf.charAt(i) != first)
+            while (i <= max &&
+                   (ignoreCase ? lower_(buf.charAt(i)) : buf.charAt(i)) != first)
                 i++;
             if (i > max)
                 return -1;
@@ -274,15 +280,18 @@ public class StringUtils
             int end = j + str.length() - 1;
             int k = 1;
             while (j < end) {
-                if (buf.charAt(j++) != str.charAt(k++)) {
+                if ((ignoreCase ? lower_(buf.charAt(j)) : buf.charAt(j))
+                      != str.charAt(k++)) {
                     i++;
                     /* Look for str's first char again. */
                     continue startSearchForFirstChar;
                 }
+                j++;
             }
             return i; /* Found whole string. */
         }
     }
+    private static final char lower_(char c) { return Character.toLowerCase(c); }
 
     /** Performs the equivalent of buf.toString().lastIndexOf(str), but is
      *  much more memory efficient. */

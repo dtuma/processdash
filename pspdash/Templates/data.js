@@ -108,7 +108,7 @@ if (unlocked) {
   unlockURL = window.location.href.replace(/unlock/, "")
               .replace(/([?&])&/, "$1").replace(/[?&]$/, "");
   unlockHTML =
-    '<A HREF="javascript:gotoUnLockURL();">Lock read-only data</A>';
+    '<br><A HREF="javascript:gotoUnLockURL();">Lock read-only data</A>';
 } else {
   if (window.location.search == "") {
     unlockURL = window.location.href + "?unlock";
@@ -116,7 +116,7 @@ if (unlocked) {
     unlockURL = window.location.href + "&unlock";
   }
   unlockHTML = 
-    '<A HREF="javascript:displayUnlockWarning();">Unlock read-only data</A>';
+    '<br><A HREF="javascript:displayUnlockWarning();">Unlock read-only data</A>';
 }
 
 
@@ -152,6 +152,29 @@ function displayDefaultMessage() {
 }
 function gotoUnLockURL() {
   window.location.replace(unlockURL);
+}
+
+/*
+ * Functions used for exporting
+ */
+
+function eesc(str) {
+    str = escape(str);
+    str = str.replace(/\//g, "%2F");
+    str = str.replace(/\./g, "%2E");
+    str = str.replace(/\+/g, "%2B");
+    return str;
+}
+
+function writeExportHTML() {
+    document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;Export to: ");
+    document.writeln("<A HREF='/reports/form2html.class'>HTML</A>");
+    var url = eesc(window.location.pathname)
+    url = "/reports/form2html.class?uri=" + url;
+    url = eesc(url);
+	
+    document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+ 
+		     "&foo=bar.iqy'>Excel</A>");
 }
 
 
@@ -285,6 +308,7 @@ function IEsetup() {
     document.writeln('</applet>');
 
     document.write(unlockHTML);
+    writeExportHTML();
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
     IEDataAppl.ondatasetchanged  = IEscanForReadOnly;
@@ -488,6 +512,7 @@ function NSSetup() {
     document.writeln('</applet>');
 
     document.write(unlockHTML);
+    writeExportHTML();
   }
 }
 
