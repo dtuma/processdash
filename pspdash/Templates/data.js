@@ -194,6 +194,16 @@ function writeHelpLink() {
   document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<A HREF='/help/Topics/Planning/EnteringData.html' TARGET='_blank'><I>Help...</I></A>");
 }
 
+function writeFooter() {
+    if (!SILENT) {
+	document.write('<span class=doNotPrint>');
+	document.write(unlockHTML);
+	writeExportHTML();
+	writeHelpLink();
+	document.write('</span>');
+    }
+}
+
 
 
 /***********************************************************************
@@ -329,13 +339,7 @@ function IEsetup() {
     document.writeln('<param name=docURL value="'+window.location.href+'">');
     document.writeln('</applet>');
 
-    if (!SILENT) {
-	document.write('<span class=doNotPrint>');
-	document.write(unlockHTML);
-	writeExportHTML();
-	writeHelpLink();
-	document.write('</span>');
-    }
+    writeFooter();
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
     IEDataAppl.ondatasetchanged  = IEscanForReadOnly;
@@ -377,12 +381,12 @@ var pageContainsElements = false;
  */
 
 function NScheckEditable() {
-  if (debug) {
+/*if (debug) {
     java.lang.System.out.print("NScheckEditable called by ");
     java.lang.System.out.print(this);
     java.lang.System.out.print(", isEditable = ");
     java.lang.System.out.println(this.isEditable);
-  }
+  }*/
   
   if (this.className == "readOnlyElem")
     return false;
@@ -398,12 +402,14 @@ function NScheckEditable() {
  */
 
 function NSchangeNotify()  {
-  if (debug) {
+/*if (debug) {
     java.lang.System.out.print("NSchangeNotify called by ");
     java.lang.System.out.println(this);
-  }
+  }*/
   if (document.applets["NSDataAppl"] != null)
-    document.applets["NSDataAppl"].notifyListener(this);
+    document.applets["NSDataAppl"].notifyListener(this, this.id);
+  else if (document.all && document.all.NSDataAppl)
+    document.all.NSDataAppl.notifyListener(this, this.id);
   return NScheckEditable();
 }
 
@@ -420,7 +426,7 @@ function NSregisterElement(elem) {
   if (elem.name.toLowerCase() == "requiredtag")
     requiredTag = elem.value;
 
-  else
+  else if (elem.name && elem.name.indexOf("NOT_DATA") == -1)
     switch (elem.type.toLowerCase()) {
 
     case "select-one" :
@@ -474,13 +480,41 @@ function NSSetup() {
     document.writeln('<param name=docURL value="'+window.location.href+'">');
     document.writeln('</applet>');
 
-    if (!SILENT) {
-	document.write('<span class=doNotPrint>');
-	document.write(unlockHTML);
-	writeExportHTML();
-	writeHelpLink();
-	document.write('</span>');
-    }
+    writeFooter();
+  }
+}
+
+
+/*
+ * Top-level setup procedure to force the use of the sun plugin.
+ */
+
+function ForcePlugInSetup() {
+
+  if (debug) document.writeln("<p>Setting up in IE, forcing use of plug-in ");
+
+  elementIterate(new NSregisterElementObj());
+
+  if (pageContainsElements == true) {
+    if (debug) document.writeln("<p>creating applet.");
+    document.writeln
+	('<object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" '+
+	     'width="1" height="1" id="NSDataAppl" '+
+  	     'codebase="http://java.sun.com/products/plugin/1.3.0_02/jinstall-130_02-win32.cab#Version=1,3,0,2">'+
+	     '<param name=CODE value="pspdash.data.NSDataApplet">'+
+	     '<param name=ARCHIVE value="/DataApplet14.jar">'+
+	     '<param name=NAME value="NSDataAppl">'+
+	     '<param name=type value="application/x-java-applet;version=1.3">'+
+  	     '<param name=MAYSCRIPT value=true>');
+	 
+    if (requiredTag != "")
+      document.writeln('<param name=requiredTag value="' + requiredTag +'">');
+    if (unlocked)
+      document.writeln('<param name=unlock value=true>');
+    document.writeln('<param name=docURL value="'+window.location.href+'">');
+    document.writeln('</object>');
+
+    writeFooter();
   }
 }
 
@@ -505,9 +539,16 @@ function isWindows() {
   return ( (agt.indexOf("win")!=-1) || (agt.indexOf("16bit")!=-1) )
 }
 
-function notUsingPlugIn() {
-  return (window.location.search.indexOf("UsingJavaPlugIn") == -1);
+function lookForToken(token) {
+    if (window.location.search.indexOf(token) != -1) {
+	document.cookie = ("DataApplet="+token+"; path=/");
+	return true;
+    }
+    return (document.cookie.indexOf("DataApplet="+token) != -1);
 }
+
+function usingPlugIn() { return lookForToken("UsingJavaPlugIn"); }
+function forcePlugIn() { return lookForToken("ForceJavaPlugIn"); }
 
 
 /***********************************************************************
@@ -518,20 +559,19 @@ function notUsingPlugIn() {
 if (debug) document.writeln("Starting setup process.");
 
 if (MSIEversion() >= 4) {
-  if (isWindows() && notUsingPlugIn())
-    IEsetup();
-  else
-    NSSetup();
+    if (isWindows() == false)
+	NSSetup();
+    else if (forcePlugIn())
+	ForcePlugInSetup();
+    else if (usingPlugIn())
+	NSSetup();
+    else
+	IEsetup();
 }
-/*
-else if (NSversion() >= 5) // Netscape 6 uses "5" as its major version number
-  top.location.pathname =
-    "/help/Topics/Troubleshooting/DataApplet/NS6.htm";
-*/
 else if (NSversion() >= 4)
-  NSSetup();
+    NSSetup();
 else
-  top.location.pathname =
-    "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";
+    top.location.pathname =
+        "/help/Topics/Troubleshooting/DataApplet/OtherBrowser.htm";
 
 if (debug) document.writeln("<p>done with data.js.");
