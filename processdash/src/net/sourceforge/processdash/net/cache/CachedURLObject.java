@@ -29,6 +29,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Date;
 import java.util.ResourceBundle;
+import java.util.MissingResourceException;
 
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.net.http.*;
@@ -176,13 +177,20 @@ public class CachedURLObject extends CachedObject {
     public static String translateMessage(ResourceBundle resources,
                                           String prefix,
                                           String errorKey) {
-        String resourceKey = prefix + errorKey;
-        String result = resources.getString(resourceKey);
-        if (result != null) return result;
+        try {
+            String resourceKey = prefix + errorKey;
+            String result = resources.getString(resourceKey);
+            if (result != null) return result;
+        } catch (MissingResourceException mre) {}
 
         if (RESOURCES == null)
             RESOURCES = Resources.getDashBundle("CachedURLObject");
-        result = RESOURCES.getString(errorKey);
-        return result == null ? errorKey : result;
+
+        try {
+            String result = RESOURCES.getString(errorKey);
+            if (result != null) return result;
+        } catch (MissingResourceException mre) {}
+
+        return errorKey;
     }
 }
