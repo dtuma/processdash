@@ -34,22 +34,33 @@ E-Mail POC:  ken.raisor@hill.af.mil
 Notes:
    This is a build file for use with the Jakarta Ant build tool.
 
+
 Prerequisites:
 
-   jakarta-ant from http://jakarta.apache.org
+   * jakarta-ant from http://jakarta.apache.org
+
+   * (optional) If you install javahelp on your system and set the
+     environment variable "JAVAHELP_HOME", this script will detect
+     it and compile in support for context-sensitive help. (Otherwise,
+     it will just compile the web browser-based help support.)
+
+   * (optional) To compile support for internet explorer, you must have
+     the microsoft compiler and cabarc tool installed and in your path.
+
 
 Build Instructions:
    To build, run
 
-     java org.apache.tools.ant.Main <target>
+     ant <target>
 
    on the directory where this file is located with the target you want.
 
+
 Most useful targets:
 
- - compile  -> creates the "soap.jar" package in "./build/lib"
- - javadocs -> creates the javadocs in "./build/javadocs"
- - dist     -> creates the complete binary distribution
+ - jar      -> creates the "pspdash.jar" package in "./build/out"
+ - compile  -> recompiles the main dashboard classes
+
 
 Authors:
   David Tuma, with help and advice from David Li <david@d11e.com>
@@ -60,14 +71,22 @@ Authors:
 
 <project default="jar" basedir=".">
 
+  <property environment="env"/>
+
+  <property name="version"    value="1.5.0.1"/>
+
+  <property name="debug"      value="on"/>
+
   <property name="src"        value=".."/>
   <property name="pspdash"    value="${src}/pspdash"/>
   <property name="data"       value="${pspdash}/data"/>
   <property name="compiler"   value="${data}/compiler"/>
   <property name="templates"  value="${pspdash}/Templates"/>
+  <property name="help"       value="${templates}/help"/>
+  <property name="helpsearch" value="${help}/JavaHelpSearch"/>
 
   <property name="build"      value="build/out"/>
-  <property name="lib"        value="${src}/pspdash/build"/>
+  <property name="lib"        value="${pspdash}/build"/>
 
   <property name="applet.filename" value="DataApplet15"/>
   <property name="ns.dir" value="${build}/NS"/>
@@ -75,12 +94,14 @@ Authors:
   <property name="ie.dir" value="${build}/IE"/>
   <property name="ie.cab" value="${build}/Templates/${applet.filename}.cab"/>
 
+  <property name="build.sysclasspath" value="ignore"/>
+
   <path id="build.classpath">
-    <pathelement path="${build}"/>
-    <pathelement path="${lib}/PerlTools.jar"/>
-    <pathelement path="${lib}/jfreechart.jar"/>
-    <pathelement path="${lib}/jaxp.jar"/>
-    <pathelement path="${lib}/crimson.jar"/>
+    <pathelement location="${build}"/>
+    <pathelement location="${lib}/PerlTools.jar"/>
+    <pathelement location="${lib}/jfreechart.jar"/>
+    <pathelement location="${lib}/jaxp.jar"/>
+    <pathelement location="${lib}/crimson.jar"/>
   </path>
 
 
@@ -90,8 +111,18 @@ Authors:
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
-    <available property="javahelp.installed"
-               classname="javax.help.DefaultHelpBroker"/>
+    <mkdir dir="${build}/Templates"/>
+    <!-- See whether this is running on Windows -->
+    <condition property="isWindows">
+      <os family="windows"/>
+    </condition>
+    <!-- Check to see if optional packages are present -->
+    <available property="javahelp.jhindexerjar"
+               file ="${env.JAVAHELP_HOME}/javahelp/bin/jhindexer.jar"
+               value="${env.JAVAHELP_HOME}/javahelp/bin/jhindexer.jar"/>
+    <available property="javahelp.jhalljar"
+               file ="${env.JAVAHELP_HOME}/javahelp/lib/jhall.jar"
+               value="${env.JAVAHELP_HOME}/javahelp/lib/jhall.jar"/>
     <available property="nsobject.support"
                file="${java.home}/lib/jaws.jar"/>
   </target>
@@ -101,21 +132,27 @@ Authors:
   <target name="compile" depends="init,parser"
         description="Compile the main dashboard classes" >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" classpathref="build.classpath">
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}"
+           classpathref="build.classpath">
       <include name="pspdash/*.java"/>
       <include name="pspdash/data/**/*.java"/>
       <exclude name="pspdash/DashHelpBroker.java"/>
-      <excludesfile name="list-applet-only.txt"/>
-      <excludesfile name="list-ie.txt"/>
-      <excludesfile name="list-ns.txt"/>
-      <excludesfile name="list-dom.txt"/>
+      <excludesfile name="${lib}/fileset-applet-only.txt"/>
+      <excludesfile name="${lib}/fileset-ie.txt"/>
+      <excludesfile name="${lib}/fileset-ns.txt"/>
+      <excludesfile name="${lib}/fileset-dom.txt"/>
     </javac>
   </target>
 
-  <target name="javahelp-broker" depends="compile" if="javahelp.installed"
+  <target name="javahelp-broker" depends="compile" if="javahelp.jhalljar"
           description="Compile the context-sensitive help support">
-    <javac srcdir="${src}" destdir="${build}" classpathref="build.classpath"
-       includes="pspdash/DashHelpBroker.java"/>
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}"> 
+       <classpath>
+         <path refid="build.classpath"/>
+	 <pathelement location="${javahelp.jhalljar}"/>
+       </classpath>
+       <include name="pspdash/DashHelpBroker.java"/>
+     </javac>
   </target>
 
 
@@ -153,8 +190,8 @@ Authors:
   <target name="jfreechart" depends="-jfreechart-depend"
   	  unless="jfreechart.upToDate"
           description="Compile the jfreechart classes we override.">
-    <javac srcdir="${templates}/reports" destdir="${build}"
-           classpath="${lib}/jfreechart.jar">
+    <javac srcdir="${templates}/reports" destdir="${build}" 
+           debug="${debug}" classpath="${lib}/jfreechart.jar">
       <include name="*Plot.java"/>
       <include name="DataSources.java"/>
     </javac>
@@ -174,24 +211,25 @@ Authors:
   <target name="NSDataApplet" depends="init" if="nsobject.support"
           description="Compile the data applet support for netscape">
     <mkdir dir="${ns.dir}"/>
-    <javac srcdir="${src}" destdir="${ns.dir}" 
+    <javac srcdir="${src}" destdir="${ns.dir}" debug="${debug}"
            classpath="${java.home}/lib/jaws.jar">
-      <includesfile name="list-applet-only.txt"/>
-      <includesfile name="list-applet-extra.txt"/>
-      <includesfile name="list-ns.txt"/>
+      <includesfile name="${lib}/fileset-applet-only.txt"/>
+      <includesfile name="${lib}/fileset-applet-extra.txt"/>
+      <includesfile name="${lib}/fileset-ns.txt"/>
     </javac>
     <jar destfile="${ns.jar}" basedir="${ns.dir}" includes="pspdash/"/>
   </target>
 
 
 
-  <target name="IEDataApplet" depends="init" 
+  <target name="IEDataApplet" depends="init" if="isWindows"
           description="Compile the data applet support for internet explorer">
     <mkdir dir="${ie.dir}"/>
-    <javac srcdir="${src}" destdir="${ie.dir}" compiler="microsoft">
-      <includesfile name="list-applet-only.txt"/>
-      <includesfile name="list-applet-extra.txt"/>
-      <includesfile name="list-ie.txt"/>
+    <javac srcdir="${src}" destdir="${ie.dir}" compiler="microsoft"
+           failonerror="false" debug="${debug}">
+      <includesfile name="${lib}/fileset-applet-only.txt"/>
+      <includesfile name="${lib}/fileset-applet-extra.txt"/>
+      <includesfile name="${lib}/fileset-ie.txt"/>
     </javac>
     <cab cabfile="${ie.cab}" basedir="${ie.dir}" includes="pspdash/"
          excludes="pspdash/data/OLEDB*Wrapper.class"/>
@@ -208,7 +246,8 @@ Authors:
     <!-- compile the cgi script for the size estimating template -->
     <mkdir dir="${build}/Templates/psp1"/>
     <javac srcdir="${templates}/psp1" destdir="${build}/Templates/psp1"
-           classpathref="build.classpath" includes="sizeest.java"/>
+           classpathref="build.classpath" debug="${debug}"
+           includes="sizeest.java"/>
     <!-- make a copy for each process that uses the size est template -->
     <copy file="${build}/Templates/psp1/sizeest.class"
           todir="${build}/Templates/psp1.1"/>
@@ -222,38 +261,43 @@ Authors:
     <!-- compile the psp3 cycle summary form -->
     <mkdir dir="${build}/Templates/psp3"/>
     <javac srcdir="${templates}/psp3" destdir="${build}/Templates/psp3"
-           classpathref="build.classpath" includes="cyclesum.java"/>
+           classpathref="build.classpath" debug="${debug}"
+	   includes="cyclesum.java"/>
 
     <!-- compile the generic plan summary form -->
     <mkdir dir="${build}/Templates/generic"/>
     <javac srcdir="${templates}/generic" destdir="${build}/Templates/generic"
-           classpathref="build.classpath" includes="summary.java"/>
+           classpathref="build.classpath" debug="${debug}"
+	   includes="summary.java"/>
 
     <!-- compile the cgi scripts in the "control" subdirectory -->
     <mkdir dir="${build}/Templates/control"/>
     <javac srcdir="${templates}/control" destdir="${build}/Templates/control"
-           classpathref="build.classpath" includes="*.java"/>
+           classpathref="build.classpath" debug="${debug}"
+	   includes="*.java"/>
 
     <!-- compile the cgi scripts in the "dash" subdirectory -->
     <mkdir dir="${build}/Templates/dash"/>
     <javac srcdir="${templates}/dash" destdir="${build}/Templates/dash"
-           classpathref="build.classpath" includes="*.java"/>
+           classpathref="build.classpath" debug="${debug}"
+	   includes="*.java"/>
 
     <!-- compile the cgi scripts in the "reports/psp" subdirectory -->
     <mkdir dir="${build}/Templates/reports/psp"/>
     <javac srcdir="${templates}/reports/psp"
            destdir="${build}/Templates/reports/psp"
-           classpathref="build.classpath" includes="*.java"/>
+           classpathref="build.classpath" debug="${debug}"
+	   includes="*.java"/>
 
     <!-- compile the probe wizard -->
     <mkdir dir="${build}/Templates/reports/probe"/>
     <javac srcdir="${templates}/reports/probe"
-           destdir="${build}/Templates/reports/probe"
+           destdir="${build}/Templates/reports/probe" debug="${debug}"
            classpathref="build.classpath" includes="*.java"/>
 
     <!-- compile the cgi scripts in the "reports" subdirectory -->
     <javac srcdir="${templates}/reports"
-           destdir="${build}/Templates/reports"
+           destdir="${build}/Templates/reports" debug="${debug}"
            classpathref="build.classpath">
       <include name="*.java"/>
       <exclude name="*Plot.java"/>
@@ -265,29 +309,40 @@ Authors:
           tofile="${build}/Templates/reports/excel.iqy"/>
 
     <!-- compile the language filters in the base "Templates" directory -->
-    <javac srcdir="${templates}" destdir="${build}/Templates"
+    <javac srcdir="${templates}" destdir="${build}/Templates" debug="${debug}"
            classpathref="build.classpath" includes="*Filter.java"/>
 
   </target>
 
+  <target name="optional" depends="javahelp-broker,NSDataApplet,IEDataApplet"/>
 
 
-  <target name="jar" depends="init,compile,javahelp-broker,jfreechart,cgi-scripts"
+
+  <target name="jar"
+          depends="init,compile,optional,jfreechart,cgi-scripts,javahelp"
           description="Make the jarfile for distribution">
-    <jar destfile="${build}/pspdash.jar" manifest="${lib}/manifest"
-         duplicate="fail">
+    <jar destfile="${build}/pspdash.jar" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Main-Class" value="pspdash.PSPDashboard"/>
+	<attribute name="Dash-Pkg-ID" value="pspdash"/>
+	<attribute name="Dash-Pkg-Version" value="${version}"/>
+	<attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
+	<attribute name="Dash-Pkg-URL"
+	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
 
       <!-- include the compiled files and cgi scripts -->
       <fileset dir="${build}" includes="com/ pspdash/ Templates/"
                excludes="Templates/reports/excel.class"/>
 
       <!-- include important non-class files in the pspdash directory -->
-      <fileset dir="${src}" includesfile="list-nonclass.txt"/>
+      <fileset dir="${src}" includesfile="${lib}/fileset-nonclass.txt"/>
 
       <!-- include the template files -->
       <fileset dir="${pspdash}">
         <include name="Templates/"/>
-	<excludesfile name="list-template-ignore.txt"/>
+	<excludesfile name="${lib}/fileset-template-ignore.txt"/>
       </fileset>
 
       <!-- include the contents of the libraries we use -->
@@ -297,11 +352,83 @@ Authors:
 	<exclude name="**/DataSources.class"/>
 	<exclude name="com/jrefinery/util/"/>
 	<exclude name="com/jrefinery/chart/ui/"/>
+	<exclude name="meta-inf/"/>
+	<exclude name="META-INF/"/>
       </zipfileset>
       <zipfileset src="${lib}/PerlTools.jar" excludes="META-INF/ meta-inf/"/>
-      <zipfileset src="${lib}/jaxp.jar" excludes="META-INF/ meta-inf/"/>
-      <zipfileset src="${lib}/crimson.jar" excludes="META-INF/ meta-inf/"/>
+      <zipfileset src="${lib}/jaxp.jar"      excludes="META-INF/ meta-inf/"/>
+      <zipfileset src="${lib}/crimson.jar"   excludes="META-INF/ meta-inf/"/>
     </jar>
+  </target>
+
+
+
+  <!-- =================================================================== -->
+  <!-- Update the JavaHelp                                                 -->
+  <!-- =================================================================== -->
+  <target name="javahelp" 
+          depends="init,-javahelp-depend,-javahelp-index,-javahelp-book"/>
+
+  <!-- invoke the jhindexer -->
+  <target name="-javahelp-index" depends="init,-javahelp-depend"
+          if="javahelp.jhindexerjar" unless="javahelp.upToDate">
+    <!-- delete the previous contents of the JavaHelpSearch dir -->
+    <delete>
+      <fileset dir="${helpsearch}" includes="*"/>
+    </delete>
+
+    <!-- refresh the help.config file -->
+    <pathconvert property=".jhbasedir" pathsep=":" dirsep="/">
+      <path id=".jhbasedir.path" path="${help}"/>
+    </pathconvert>
+    <pathconvert property=".jhfilelist" pathsep=":" dirsep="/">
+      <path>
+        <fileset dir="${help}" includes="Topics/**/*.html"/>
+      </path>
+    </pathconvert>
+    <echo message="${.jhfilelist}" file="${help}/help.config"/>
+    <replace file="${help}/help.config" token="${.jhbasedir}/" value="File "/>
+    <replace file="${help}/help.config">
+      <replacetoken>:</replacetoken>
+      <replacevalue><![CDATA[
+]]></replacevalue>
+    </replace>
+
+    <!-- invoke jhindexer to rebuild the help indexes -->
+    <java jar="${javahelp.jhindexerjar}" dir="${help}" fork="true">
+      <arg value="-c"/>
+      <arg value="help.config"/>
+    </java>
+  </target>
+
+  <!-- regenerate the "book.html" file -->
+  <target name="-javahelp-book" depends="-javahelp-depend"
+          unless="javahelp.upToDate">
+    <echo message="TODO: rebuild book.html"/>
+  </target>
+
+  <!-- check to see if help needs updating -->
+  <target name="-javahelp-depend">
+    <uptodate property="javahelp.upToDate" targetfile="${helpsearch}/TMAP">
+      <srcfiles dir="${help}">
+        <include name="**/*.html"/>
+        <include name="**/*.htm"/>
+        <include name="*.xml"/>
+        <include name="PSPDash.hs"/>
+      </srcfiles>
+    </uptodate>
+  </target>
+
+
+  <!-- =================================================================== -->
+  <!-- Cleans everything                                                   -->
+  <!-- =================================================================== -->
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete quiet="true" dir="${compiler}/lexer"/>
+    <delete quiet="true" dir="${compiler}/parser"/>
+    <delete quiet="true" dir="${compiler}/node"/>
+    <delete quiet="true" dir="${compiler}/analysis"/>
   </target>
     
 </project>
