@@ -299,7 +299,7 @@ public class file extends TinyCGIBase {
                 out.print("Location: " + result.toURL() + "\r\n\r\n");
             else {
                 // open the document using the Browser class.
-                Browser.launch(result.toURL().toString());
+                Browser.openDoc(result.toURL().toString());
 
                 // now print a null document which takes the user back to
                 // the original page they were viewing.
