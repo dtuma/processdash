@@ -11,12 +11,33 @@
         str = str.replace(/\+/g, "%2B");
         return str;
     }
+    function textToHTML(text) {
+        return text.replace(/&/, "&amp;").replace(/</, "&lt;")
+            .replace(/>/, "&gt;").replace(/"/, "&quot;"); //");
+    }
 
-    function writeMailtoLink() {
+    
+    function getExtURL(file) {
 	var url = window.location.href;
+	if (window.location.search == "?")
+	    url = url.substring(0, url.length - 1);
 	url = url.replace(/localhost/,
 	                  "[!--#include file='/dash/serverName.class' --]");
-	url =  url.replace(/team_tools.shtm/, "setup/join.shtm");
+	url = url.replace(/team_tools.shtm/, file);
+	return url;
+    }
+
+    function writeHrefLink(file) {
+        var url = getExtURL(file);
+	document.write("<a href='" + url + "'>" + textToHTML(url) + "</a>");
+    }
+
+    function writePlanLink() { writeHrefLink("team_summary.shtm"); }
+
+    function writeJoinLink() { writeHrefLink("setup/join.shtm");   }
+
+    function writeMailtoLink() {
+	var url = getExtURL("setup/join.shtm");
         document.write("<a href='mailto:?subject=Join%20Team%20Project&body=A%20new%20team%20project%20has%20been%20created%3b%20please%20visit%0d%0a%20%20%20%20"+eesc(url)+"%0d%0ato%20join%20this%20project%2e'>click on this link</a>");
     }
 
@@ -62,7 +83,25 @@
 <input type=submit name="submit" value="Sync Work Breakdown Structure">
 </form>
 
-<p>To make it easy for individual team members to join this project,
+
+<h3>Useful Hyperlinks</h3>
+
+<p><b><i>(Note: These hyperlinks will only work while this dashboard
+is running.  If you shut down the dashboard, people trying to visit
+these hyperlinks will see a &quot;Page Not Found / Cannot Find
+Server&quot; error message.)</i></b>
+
+
+<p>Members of your team (and other interested individuals) can view
+the current plan summary for this project (including the current
+earned value status) by visiting:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script> writePlanLink(); </script>
+
+
+<p>Team members can join this project by pointing their web browser to:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script> writeJoinLink(); </script>
+
+<br>To make it easy for individual team members to join this project,
 you can <script> writeMailtoLink(); </script> to send them an email
 with instructions.
 
