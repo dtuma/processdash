@@ -5414,12 +5414,29 @@ the # character.</p>
     only exist in the PSP template to help you perform the
     calculations manually; when the computer is performing the
     calculations, they don't provide much value and simply take up
-    space.  If you wish, you can display them by setting this
+    space.)  If you wish, you can display them by setting this
     to true.<br>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Example:</td><td>ev.showCumulativeTaskData=true</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>ev.sortCompletedTasks</strong><br>
+
+    As you complete tasks in an earned value schedule, the dashboard will use
+    that information to improve the quality of the planned completion dates
+    for the remaining tasks.  It does this by internally reordering the list
+    of tasks so completed tasks appear at the beginning of the task list, in
+    the order they were actually completed.  To disable this behavior, and
+    calculate planned completion dates based on explicit task order alone, set
+    this to false.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>ev.sortCompletedTasks=false</td></tr>
    </table>
  </li>
  <br>
