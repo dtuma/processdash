@@ -19,7 +19,7 @@
   </target>
 
   <target name="javadoc" description="build javadoc">
-    <javadoc packagenames="teamdash.*"
+    <javadoc packagenames="teamdash.*" private="true"
      sourcepath=".." 
      destdir="../doc">
      </javadoc>
