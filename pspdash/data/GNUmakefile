@@ -122,6 +122,7 @@ DATA_FILES=$(COMMON_FILES) \
 	GreaterThanFunction.java \
 	GreaterThanOrEqualsFunction.java \
 	IfList.java \
+	InterpolatingFilter.java \
 	InvalidDatafileFormat.java \
 	LessThanFunction.java \
 	LessThanOrEqualsFunction.java \

@@ -83,3 +83,11 @@ combine(Defects Removed);
 
 [FreezeFlag/.*Estimated.*] == [Planning/Completed] or [Completed];
 [FreezeFlag/.* To Date]    == [Completed];
+
+
+
+/*
+ * Constants for use with external document integration
+ */
+[FILES_XML] = "/pspDoc/files.xml";
+[PSP Project Document Directory] = "?????";

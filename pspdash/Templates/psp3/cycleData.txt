@@ -35,7 +35,7 @@
 */
 
 #include <psp3/psp2_1data.txt>
-undefine([PSP Project], [PSP Rollup Eligible]);
+undefine([PSP Project], [PSP Rollup Eligible], [Process_ID]);
 [psp3cycle] == TAG;
 [PSP3cycle] == TAG;
 

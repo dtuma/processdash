@@ -40,3 +40,5 @@
 
 [Defects Injected per Hour] = 60 * [Defects Injected] / [Time];
 [Defects Removed per Hour]  = 60 * [Defects Removed] / [Time];
+
+undefine([Process_ID]);

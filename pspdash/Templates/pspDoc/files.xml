@@ -1,0 +1,17 @@
+<?xml version='1.0'?>
+
+<file-list>
+
+<directory name="PSP Project Document Directory"
+           path="[PSP Project Document Directory]"
+	   templatePath="/Templates/pspDoc">
+
+  <file name="PIP Form" path="[PIP Form Filename]"
+        defaultPath="Process Improvement Proposal.rtf"
+	templatePath="PIP.rtf"/>
+
+  <!-- add more lines here for additional files -->
+
+</directory>
+
+</file-list>

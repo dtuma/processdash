@@ -1,6 +1,7 @@
 // -*- mode:c -*-
 
 [TEMPLATE_ID Tag] == TAG;
+[Process_ID] = "TEMPLATE_ID";
 
 [CPI] = [Estimated Time] / [Time];
 

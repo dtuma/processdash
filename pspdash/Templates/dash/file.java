@@ -35,6 +35,7 @@
 
 import pspdash.*;
 import pspdash.data.DataRepository;
+import pspdash.data.InterpolatingFilter;
 import pspdash.data.ListData;
 import pspdash.data.StringData;
 
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -145,6 +147,9 @@ public class file extends TinyCGIBase {
     public static final String TEMPLATE_VAL_ATTR = "templateVal";
     public static final String DIRECTORY_TAG_NAME = "directory";
 
+    public static final String TEMPLATE_ROOT_WIN = "\\Templates\\";
+    public static final String TEMPLATE_ROOT_UNIX = "/Templates/";
+
 
     protected void writeHeader() {}
 
@@ -211,7 +216,19 @@ public class file extends TinyCGIBase {
             return;
         }
 
-        if (template == null || !template.exists()) {
+        String templateURL = null;
+
+        if (isTemplateURL(template)) try {
+            // if this template begins with one of the template roots, it
+            // isn't really a file at all, but is actually a pseudo-URL.
+            templateURL = template.toURL().toString();
+            templateURL = templateURL.substring
+                (templateURL.indexOf(TEMPLATE_ROOT_UNIX) +
+                 TEMPLATE_ROOT_UNIX.length() - 1);
+        } catch (MalformedURLException mue) {}
+
+
+        if (template == null || (templateURL == null && !template.exists())) {
             // if we could not locate the template because we need the user
             // to enter more information, display a form.
             displayNeedInfoForm(filename, template, true);
@@ -227,7 +244,7 @@ public class file extends TinyCGIBase {
                                       resultDir.getPath() + "'.");
                 return;
             }
-        if (copyFile(template, result) == false) {
+        if (copyFile(template, templateURL, result) == false) {
             sendCopyTemplateError("Could not copy '" + template.getPath() +
                                   "' to '" + result.getPath() + "'.");
             return;
@@ -248,17 +265,30 @@ public class file extends TinyCGIBase {
     }
 
     /** Copy a file. */
-    private boolean copyFile(File template, File result) {
+    private boolean copyFile(File template, String templateURL, File result) {
         if (template == result) return true;
-        if (!template.isFile()) return true;
+        if (templateURL == null && !template.isFile()) return true;
         try {
-            InputStream in = new FileInputStream(template);
+            InputStream in = openInput(template, templateURL);
+            // Should we read some flag in the file to decide whether
+            // or not to use an InterpolatingFilter?
+            in = new InterpolatingFilter(in, getDataRepository(), getPrefix());
             OutputStream out = new FileOutputStream(result);
             copyFile(in, out);
             return true;
         } catch (IOException ioe) { }
         return false;
     }
+
+    private InputStream openInput(File template, String templateURL)
+        throws IOException
+    {
+        if (templateURL != null)
+            return new ByteArrayInputStream(getRequest(templateURL, true));
+        else
+            return new FileInputStream(template);
+    }
+
 
     /** Copy a file. */
     private void copyFile(InputStream in, OutputStream out)
@@ -270,6 +300,13 @@ public class file extends TinyCGIBase {
             out.write(buffer, 0, bytesRead);
         in.close();
         out.close();
+    }
+
+    private boolean isTemplateURL(File f) {
+        if (f == null) return false;
+        String path = f.getPath();
+        return (path.startsWith(TEMPLATE_ROOT_WIN) ||
+                path.startsWith(TEMPLATE_ROOT_UNIX));
     }
 
     private boolean foundTemplate, isDirectory;
@@ -387,7 +424,7 @@ public class file extends TinyCGIBase {
         // that path is absolute.  If it isn't, resolve it relative to the
         // parent path.
         File f = new File(selfPath);
-        if (f.isAbsolute())
+        if (f.isAbsolute() || isTemplateURL(f))
             foundTemplate = isTemplate;
         else {
             foundTemplate = (foundTemplate || isTemplate);
