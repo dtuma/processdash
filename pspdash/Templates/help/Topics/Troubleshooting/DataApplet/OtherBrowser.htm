@@ -4,6 +4,7 @@
 <TITLE>Problem with browser</TITLE>
 <style>
  li { padding-bottom: .5cm }
+ pre { margin-left: 1cm }
 </style>
 </head>
 <BODY>
@@ -46,11 +47,11 @@ made that browser your system default, you're done. Otherwise, continue.
 <code><!--#include file="/control/showenv.class?config" --></code>)
 and add one of the following lines to that file:
 
-<pre>     browser.command=<font color="#FF0000">C:/Program Files/Internet Explorer/IExplore.exe</font></pre>
+<pre>browser.command=<font color="#FF0000">C:/Program Files/Internet Explorer/IExplore.exe</font></pre>
 
 if you want the dashboard to display scripts and forms in Internet Explorer, or
 
-<pre>     browser.command=<font color="#FF0000">C:/Program Files/Netscape/Communicator/Program/Netscape.exe</font></pre>
+<pre>browser.command=<font color="#FF0000">C:/Program Files/Netscape/Communicator/Program/Netscape.exe</font></pre>
 
 to use Netscape. <b>NOTE: make certain to edit the browser path</b> (the
 part in red above) so it correctly points to the executable for the browser
@@ -83,12 +84,7 @@ or double backslashes (&quot;<code><font
 
 <!--#if ERROR_MESSAGE -->
 
-<h2>Diagnostic Information</h2>
-
-<p>When attempting to initialize the data integration features, your
-browser encountered the following error:</p>
-
-<PRE><!--#echo var="ERROR_MESSAGE" encoding="html" --></PRE>
+<hr><h2>Diagnostic Information</h2>
 
 <!--#if HTTP_USER_AGENT -->
 
@@ -97,6 +93,19 @@ browser encountered the following error:</p>
 <PRE><!--#echo var="HTTP_USER_AGENT" encoding="html" --></PRE>
 
 <!--#endif-->
+
+<!--#if JAVA_VERSION -->
+
+<p>Your browser's java environment is:</p>
+
+<PRE><!--#echo var="JAVA_VERSION" encoding="html" --></PRE>
+
+<!--#endif-->
+
+<p>When attempting to initialize the data integration features, your
+browser encountered the following error:</p>
+
+<PRE><!--#echo var="ERROR_MESSAGE" encoding="html" --></PRE>
 
 <p>This information may help dashboard developers to pinpoint the
 problem your browser is having, and work around that problem in a
