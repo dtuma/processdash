@@ -121,7 +121,7 @@ abstract class DataList {
         }
 
         private void handleDataEvent(DataEvent e) {
-            if (e.getName().equals(dataName))	// needed?
+            if (e.getName().equals(dataName)) // needed?
                 dataList.put(dataName, new DataListValue(e.getValue()));
             else
                 System.err.println
@@ -152,7 +152,7 @@ abstract class DataList {
         RepositoryListener {
 
         PatternWatcher() {
-            dataName = dataName.substring(1);		// remove "~" from beginning
+            dataName = dataName.substring(1);         // remove "~" from beginning
             String prefixUsed = null;
 
             // if the dataName starts with "/", prepend "^" for completeness.
@@ -166,6 +166,10 @@ abstract class DataList {
             // otherwise, we need to add the prefix to the beginning.
             else
                 re = "^"+ ValueFactory.regexpQuote(prefixUsed=prefix) +"/"+ dataName;
+
+            // if the regexp doesn't end with a $, add one.
+            if (!re.endsWith("$"))
+                re = re + "$";
 
             // convert the regexp into a perl pattern match.
             re = "m\n" + re + "\ns";
@@ -232,7 +236,7 @@ abstract class DataList {
     private class ConditionWatcher implements Handler, DataListener,
         RepositoryListener {
 
-        String condition = null;	// the conditional expression
+        String condition = null;    // the conditional expression
         Hashtable condDataList = null;
         Hashtable dataWatchers = null;
 
@@ -243,7 +247,7 @@ abstract class DataList {
             StringBuffer condExp = new StringBuffer("![(&&");
             String prefixUsed = null;
 
-            dataName = dataName.substring(1);		// remove "~" from beginning
+            dataName = dataName.substring(1);         // remove "~" from beginning
 
             // if the dataName starts with "^", remove it for now.
             if (dataName.charAt(0) == '^')
@@ -285,10 +289,11 @@ abstract class DataList {
             }
             condExp.append(")]");
 
-            if (re.endsWith("$"))
-                condition = "s\n^" + re + "\n" + condExp.toString() + "\ns";
-            else
-                condition = "s\n^" + re + ".*$\n" + condExp.toString() + "\ns";
+            // if the regexp doesn't end with a $, add one.
+            if (!re.endsWith("$"))
+                re = re + "$";
+
+            condition = "s\n^" + re +  "\n" + condExp.toString() + "\ns";
 
             re = "m\n^" + re + "\ns";
 
@@ -296,16 +301,16 @@ abstract class DataList {
         }
 
         private String addPrefixToVariable(String arg, int number) {
-            if (arg.startsWith("[(") ||			// function operator
-                arg.startsWith("\"") ||			// string literal
-                arg.startsWith("@")  ||			// date literal
-                arg.startsWith("/")  ||			// absolute path var
-                arg.startsWith("~/") ||			// abs. path pattern
-                arg.startsWith("~^") ||			// abs. path pattern
-                "0123456789-+.".indexOf(arg.charAt(0)) != -1)	// number literal
+            if (arg.startsWith("[(") ||                       // function operator
+                arg.startsWith("\"") ||                       // string literal
+                arg.startsWith("@")  ||                       // date literal
+                arg.startsWith("/")  ||                       // absolute path var
+                arg.startsWith("~/") ||                       // abs. path pattern
+                arg.startsWith("~^") ||                       // abs. path pattern
+                "0123456789-+.".indexOf(arg.charAt(0)) != -1) // number literal
                 return "\t" + arg;
-            else				// this is a relative variable name.
-                return "\t$" + number + arg; 	// prepend $number
+            else                              // this is a relative variable name.
+                return "\t$" + number + arg;    // prepend $number
         }
 
         private boolean isActiveDataElement(String name) {
@@ -322,14 +327,14 @@ abstract class DataList {
             DataListValue val = new DataListValue(e.getValue());
 
                                               // store this value in our internal
-            condDataList.put(name, val);	// data list (condDataList)
+            condDataList.put(name, val);      // data list (condDataList)
 
                                               // if this data element is already
-            if (isActiveDataElement(name)) {	// in the master data list,
-                dataList.put(name, val);	// update its value there, and
-                return true;			// signal the need to recalculate.
+            if (isActiveDataElement(name)) {  // in the master data list,
+                dataList.put(name, val);        // update its value there, and
+                return true;                    // signal the need to recalculate.
 
-            } else if (isCondition(name)) {	// if this data element is a condition,
+            } else if (isCondition(name)) {   // if this data element is a condition,
 
                                       // interpret it as a boolean value.
                 DoubleData conditionValue = (DoubleData) e.getValue();
@@ -345,11 +350,11 @@ abstract class DataList {
                     dataList.remove(dataName);
 
                                           // the set of active data has now changed, so
-                return true;		// we need to recalculate.
+                return true;            // we need to recalculate.
             }
                                       // if we made it to here, the data element
                                       // was a regular, non-active element, and
-            return false;		// thus we do not need to recalculate.
+            return false;             // thus we do not need to recalculate.
         }
 
 
