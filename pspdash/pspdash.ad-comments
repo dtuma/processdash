@@ -88,6 +88,21 @@ defectDialog.autostart=If this property is set to "true", the defect dialog \
 	for this property means the user must manually press the "Start \
 	Timing" button to begin the timer for fixing the defect.
 
+defectDialog.phaseMap=The following property describes common defect \
+	injection/removal patterns.  It should be a list of phase pairs; \
+	the pairs should be separated from each other by "|" characters. \
+	Each pair should be of the form "phase A=>phase B"; each pair is \
+	interpreted to mean "Often defects are injected in phase A, and \
+	removed in phase B."  When you remove a defect during phase B of a \
+	process, it will then use phase A as the default injection phase.
+
+defectDialog.restrictSequence=If this property is set to "true" (the \
+	default), the defect dialog will check injection and removal phases \
+	to ensure that defects are NOT removed before they are injected. \
+	(You might want to disable this feature if you make use of iterative \
+	processes where the real-life task sequence does not strictly follow \
+	the order the of nodes in the hierarchy.)
+
 defectTypeStandard=The name of the default defect type standard.
 
 excel.exportMethod=The method to use for exporting data into Excel. If this \
