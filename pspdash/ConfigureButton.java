@@ -202,6 +202,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         prop_frame = null;
     }
 
+    public boolean isHierarchyEditorOpen() {
+        return prop_frame != null;
+    }
+
     protected void startProbeDialog () {
         if (probe_dialog != null)
             probe_dialog.show();
