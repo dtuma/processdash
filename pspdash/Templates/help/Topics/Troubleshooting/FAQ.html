@@ -67,9 +67,30 @@ open connection is closed as well.  When this occurs, the form immediately
 displays "NO CONNECTION" to let you know that your changes are no longer making
 it back to the dashboard's data repository. To fix the problem, you must
 <OL>
- <LI>restart the dashboard, then</li>
+ <LI>restart the dashboard</li>
  <LI>click the refresh button on your browser.</li>
 </OL></P>
+
+<P>If the dashboard <em>is running</em> and you are still getting "NO 
+CONNECTION" in the data elements, it could be that the data port that the 
+dashboard is trying to use is already taken on your machine.  Normally the 
+dashboard will search for an open port to establish the connection, making 
+this kind of problem unlikely.  However, if you have overridden this behavior 
+in the configuration file the dashboard will not search for a port and may be 
+experiencing a conflict with some other process on your machine.  To fix this 
+problem, you must</p>
+<OL>
+ <LI>stop the dashboard</li>
+ <LI>remove the following line from your configuration file:
+  <pre>
+   http.port=&lt;some port number&gt;
+  </pre>
+ </li>
+ <li>restart the dashboard</li>
+</ol>
+
+<P>This will allow the dashboard to search for an available communications 
+port.</p>
 
 <P><HR><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B></P>
 <P>Any time the dashboard runs into an error (like divide-by-zero) when
@@ -102,7 +123,7 @@ spreadsheet.</p>
 
 <P>If you encounter such problems, try reinstalling Excel.  If that does not 
 solve the problem, add the following line to your <a
-href="#WhereIsConfig">configuration file</a>:</p>
+href="../AdvancedTopics/ConfigurationFile.html">configuration file</a>:</p>
 
 <pre>
  excel.exportMethod=mime
@@ -111,8 +132,8 @@ href="#WhereIsConfig">configuration file</a>:</p>
 <P><HR><a name="WhereIsConfig"></A><B>Where is the configuration file located?</B></P>
 <P>The configuration file is named <code>.pspdash</code> on Unix systems and
 <code>pspdash.ini</code> on Windows systems.  It can be located in either of
-two places: the user's data directory or (on Unix systems) the user's home
-directory.  The dashboard looks in the data directory first, then in the user's
+two places: the user's data directory or the user's home directory (on Unix 
+systems).  The dashboard looks in the data directory first, then in the user's
 home directory.  To find out exactly where your configuration file is located,
 choose "About" from the configuration menu, then click on the link for "user
 settings". See the <a
@@ -123,11 +144,11 @@ can be defined there.</P>
 <P><HR><a name="NoSubmit"></A><B>Why is there no "submit" button on the HTML forms?</B></P>
 <P>The HTML forms used by the dashboard are continually "live".  There is no 
 need to press a submit button to send your data to the dashboard.  Simply 
-enter your data where necessary, and the dashboard will record it.  (However,
+enter your data where necessary, and the dashboard will record it.  However,
 after editing a data field, it is usually necessary to leave that field for
 your changes to take effect.  You can press the TAB button or click somewhere
-else on the page, and you should see other data elements
-</P>
+else on the page. If the data you are changing is related to other data items 
+on the page, you should see the other data elements update.</P>
 
 
 <P><HR><a name="TimerUpdate"></a><B>I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</b></P>
@@ -136,7 +157,13 @@ else on the page, and you should see other data elements
 dashboard will not create an entry in the time log until you have spent a full
 minute there; this is by design.  For a more detailed explanation, see the
 help topic for the <a href="../Execution/PlayPause.html#timelogdelay">play /
-pause button</a>.
+pause button</a>.</P>
+
+<P>Also, the dashboard will make a quiet "tick" sound whenever the timer 
+starts and when a new project or project phase is chosen by the hierarchy 
+menus when the timer is running. If you do not hear this sound, check the 
+state of the play / pause button.</p> 
+
 
 <P><HR><a name="FrozenData"></a><B>I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</b></P>
 <P>The dashboard will "freeze" your planning data once you have completed the 
