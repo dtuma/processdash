@@ -26,6 +26,9 @@
 package pspdash;
 
 import java.util.Date;
+import java.util.TreeMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.text.MessageFormat;
 
 
@@ -39,6 +42,7 @@ public class EVMetricsRollup extends EVMetrics {
         totalSchedulePlanTime = totalScheduleActualTime = 0.0;
         currentDate = effectiveDate;
         startDate = independentForecastDate = null;
+        errors = null;
     }
 
     public void addMetrics(EVMetrics that) {
@@ -53,6 +57,21 @@ public class EVMetricsRollup extends EVMetrics {
         this.independentForecastDate =
             EVScheduleRollup.maxDate(this.independentForecastDate,
                                      that.independentForecastDate());
+        if (that.errors != null) {
+            if (this.errors == null)
+                this.errors = new TreeMap();
+            String qualifier = that.errorQualifier;
+            if (qualifier == null || qualifier.length() == 0)
+                this.errors.putAll(that.errors);
+            else {
+                Iterator i = that.errors.entrySet().iterator();
+                while (i.hasNext()) {
+                    Map.Entry e = (Map.Entry) i.next();
+                    this.errors.put(qualifier + e.getKey(),
+                                    e.getValue());
+                }
+            }
+        }
     }
     public void recalcComplete(EVSchedule s) {
         recalcOptimizedPlanDate(s);
