@@ -781,7 +781,7 @@ public class TemplateLoader {
             scriptMaps.put(id, (v = new Vector()));
 
         Element htmlPage;
-        String htmlID, htmlName, htmlHref;
+        String htmlID, htmlName, htmlHref, htmlPackage;
         int htmlPagesLen = htmlPages.getLength();
 
         for (int i=0;  i<htmlPagesLen;  i++) try {
@@ -791,6 +791,10 @@ public class TemplateLoader {
                 // Print out an error message?
                 continue;
             }
+            htmlPackage = htmlPage.getAttribute(HTML_PACKAGE_ATTR);
+            if (hasValue(htmlPackage) &&
+                getPackageVersion(htmlPackage) == null)
+                continue;
 
             if (hasValue(htmlID = htmlPage.getAttribute(ID_ATTR)))
                 result.put(htmlID, htmlHref);
@@ -866,6 +870,7 @@ public class TemplateLoader {
     private static final String HTML_ID_ATTR   = "htmlID";
     private static final String HTML_NAME_ATTR = "title";
     private static final String HTML_HREF_ATTR = PSPProperties.HTML_HREF_ATTR;
+    private static final String HTML_PACKAGE_ATTR = "inPackage";
     private static final String ID_ATTR   = PSPProperties.ID_ATTR;
     static final String NAME_ATTR = PSPProperties.NAME_ATTR;
 

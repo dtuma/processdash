@@ -393,6 +393,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     public static final String HTML_HREF_ATTR = "href";
     public static final String CONSTRAINTS_ATTR = "constraints";
     public static final String IMAGINARY_NODE_ATTR = "imaginary";
+    public static final String IMAGINARY_UNLESS_ATTR = "imaginaryUnless";
 
     public static final String TEMPLATE_NODE_NAME = "template";
     public static final String HTML_NODE_NAME = "html";
@@ -427,6 +428,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         String nodeType = e.getTagName();
         if (HTML_NODE_NAME.equals(nodeType)) return null;
         if (e.hasAttribute(IMAGINARY_NODE_ATTR)) return null;
+        if (shouldPrune(e.getAttribute(IMAGINARY_UNLESS_ATTR))) return null;
 
         String nodeName = e.getAttribute(NAME_ATTR);
         if (nodeName == null || nodeName.length() == 0)
@@ -510,6 +512,12 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
         // Save this node into the hashtable.
         put(key, val);
         return key;
+    }
+
+    private boolean shouldPrune(String requiresTemplate) {
+        return (requiresTemplate != null &&
+                requiresTemplate.length() != 0 &&
+                TemplateLoader.getPackageVersion(requiresTemplate) == null);
     }
 
     private String getChildIDFromTemplate(String nodeName,
