@@ -54,7 +54,8 @@ public class Browser {
                        maybeFixupURLForWindows(url));
                 Runtime.getRuntime().exec(cmd);
             } else {
-                cmd = "netscape -remote openURL(" + url + ")";
+                String windowName = ", window" + System.currentTimeMillis();
+                cmd = "netscape -remote openURL(" + url + windowName + ")";
 
                 Process p = Runtime.getRuntime().exec(cmd);
 
@@ -198,6 +199,10 @@ public class Browser {
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.3  2001/02/06 22:36:51  tuma
+ * When launching something in a netscape browser, always open it in a
+ * new window - don't reuse existing windows.
+ *
  * Revision 1.2  2001/02/06 19:21:52  tuma
  * on windows, copy needed classfiles into the Trustlib directory if
  * they aren't already there.
