@@ -29,7 +29,8 @@ package net.sourceforge.processdash.ui.web.reports;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
+
+import net.sourceforge.processdash.util.HTMLUtils;
 
 import pspdash.TinyCGIBase;
 import pspdash.data.FormToHTML;
@@ -41,7 +42,7 @@ public class FormReport extends TinyCGIBase {
         String uri = getURI(), prefix = "";
         int slashPos = uri.indexOf("//");
         if (slashPos != -1)
-            prefix = URLDecoder.decode(uri.substring(0, slashPos));
+            prefix = HTMLUtils.urlDecode(uri.substring(0, slashPos));
 
         byte [] contents = getTinyWebServer().getRequest(uri, true);
         StringBuffer results = new StringBuffer(new String(contents, "UTF-8"));
