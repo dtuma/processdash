@@ -82,6 +82,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     static final long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
 
     boolean tableContainsRows = false;
+    boolean selectedNodeHasNoChildren = false;
 
     //
     // member functions
@@ -355,6 +356,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         table.doResizeRepaint();
         if (resetTimes)
             setTimes();
+
+        addButton.setEnabled(tableContainsRows || selectedNodeHasNoChildren);
     }
 
     // This method implements utilTableValidator
@@ -364,6 +367,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                              String     newValue) {
         if (validateCell != null)
             return false;
+        // FIXME: if the newValue is identical to the old value, don't set the
+        // dirty flag.
         boolean rv = true;
         TimeLogEntry tle;
         try {
@@ -466,6 +471,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
         ((VTableModel)table.table.getModel()).addRow(aRow);
         tableContainsRows = true;
+        addButton.setEnabled(true);
         currentLog.addElement (tl.add (tle));
         setDirty(true);
         setTimes ();
@@ -516,6 +522,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
              String.valueOf (tle.minutesInterrupt)};
         model.addRow(aRow);
         tableContainsRows = true;
+        addButton.setEnabled(true);
         currentLog.addElement (tl.add (tle));
         setDirty(true);
         setTimes ();
@@ -525,13 +532,13 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     public void deleteSelectedRow () {
         JTable aTable = table.table;
         VTableModel model = (VTableModel)aTable.getModel();
-        int rowBasedOn = aTable.getSelectedRow();
-        if (rowBasedOn == -1) {
-            if ((rowBasedOn = aTable.getEditingRow()) == -1)
-                return;
-            else
-                aTable.editingStopped (new ChangeEvent("Deleting row: Stop edit"));
-        }
+        int selectedRow = aTable.getSelectedRow();
+        int editingRow  = aTable.getEditingRow();
+        int rowBasedOn = (selectedRow != -1 ? selectedRow : editingRow);
+        if (rowBasedOn == -1) return;
+        if (editingRow != -1)
+            aTable.editingStopped (new ChangeEvent("Deleting row: Stop edit"));
+
         TimeLogEntry tle = (TimeLogEntry)currentLog.elementAt (rowBasedOn);
         model.removeRow (rowBasedOn);
         try {
@@ -541,6 +548,9 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         setDirty(true);
         setTimes ();
         postTimeChange (tle.key, - tle.minutesElapsed);
+
+        tableContainsRows = (model.getRowCount() > 0);
+        addButton.setEnabled(tableContainsRows || selectedNodeHasNoChildren);
     }
 
     protected void summarize() {
@@ -626,6 +636,12 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         retPanel.add (saveButton);
         saveButton.addActionListener (new SaveAction ());
 
+        JButton closeButton = new JButton("Close");
+        retPanel.add(closeButton);
+        closeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { confirmClose(true); }
+            });
+
         return retPanel;
     }
 
@@ -689,9 +705,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         PropertyKey key = treeModel.getPropKey (useProps, path);
 
         Prop val = useProps.pget (key);
+        selectedNodeHasNoChildren = (val.getNumChildren() == 0);
         applyFilter (false);
-
-        addButton.setEnabled(tableContainsRows || val.getNumChildren() == 0);
     }
 
 
