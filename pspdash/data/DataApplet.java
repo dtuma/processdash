@@ -32,7 +32,7 @@ import java.applet.Applet;
 
 public class DataApplet extends java.applet.Applet {
 
-    boolean isRunning = false;
+    volatile boolean isRunning = false;
     RepositoryClient data = null;
     String dataPrefix = null;
     String requiredTag = null;
