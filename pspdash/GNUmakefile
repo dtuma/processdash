@@ -51,6 +51,7 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/control/stopTiming.java \
 	Templates/dash/file.java \
 	Templates/dash/pspdiff.java \
+	Templates/dash/pspdiffDialog.java \
 	Templates/dash/selectRollup.java \
 	Templates/reports/psp/r3c.java \
 	Templates/reports/psp/r4.java \
