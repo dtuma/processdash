@@ -100,7 +100,14 @@ class PercentageFunction extends DoubleData implements DataListener {
         else
             return;
 
-        value = numeratorValue / denominatorValue;
+        if (Double.isNaN(numeratorValue) || Double.isNaN(denominatorValue))
+            value = Double.NaN;
+        else if (Double.isInfinite(numeratorValue) ||
+                 Double.isInfinite(denominatorValue) ||
+                 denominatorValue == 0)
+            value = Double.POSITIVE_INFINITY;
+        else
+            value = numeratorValue / denominatorValue;
 
         if (myName != null)
             data.putValue(myName, this);
