@@ -25,6 +25,7 @@
 
 
 import pspdash.data.DataRepository;
+import pspdash.StringUtils;
 import pspdash.TinyWebServer;
 import java.io.*;
 import java.util.*;
@@ -40,6 +41,11 @@ public class sizeest extends pspdash.TinyCGIBase {
     private static final String CUT_END   = "<!--end-->";
     private static final String PAGE_TITLE =
         "\n<TITLE>Size Estimating Template</TITLE>\n";
+    private static final String PLAN_FLAG = "\tp";
+    private static final String ACTUAL_FLAG = "\ta";
+    private static final String READONLY_FLAG = "\tr";
+    private static final String EDITABLE_FLAG = "\t";
+
 
     private void init() throws IOException {
         try {
@@ -103,12 +109,18 @@ public class sizeest extends pspdash.TinyCGIBase {
     protected void writeContents() throws IOException {
         if (needsInit || parameters.get("init") != null) init();
 
+        boolean freezeActual = hasValue("Completed");
+        boolean freezePlan = freezeActual || hasValue("Planning/Completed");
+
         out.write(partA);
-        writeTable(baseRow,   baseData,   "moreBase",   1, 0, 5);
+        writeTable(fixupRow(baseRow, freezePlan, freezeActual),
+                   baseData,   "moreBase",   1, 0, 5);
         out.write(replaceNum(partB, uniqueNumber));
-        writeTable(newRow,    newData,    "moreNew",    1, 0, 5);
+        writeTable(fixupRow(newRow, freezePlan, freezeActual),
+                   newData,    "moreNew",    1, 0, 5);
         out.write(replaceNum(partC, uniqueNumber));
-        writeTable(reusedRow, reusedData, "moreReused", 1, 0, 3);
+        writeTable(fixupRow(reusedRow, freezePlan, freezeActual),
+                   reusedData, "moreReused", 1, 0, 3);
         out.write(replaceNum(partD, uniqueNumber++));
     }
 
@@ -163,18 +175,29 @@ public class sizeest extends pspdash.TinyCGIBase {
     }
 
 
-    /** find and replace occurrences of a string within buf */
-    protected String replace(String template, String text, String replacement)
-    {
-        int pos, len = text.length();
-        StringBuffer buf = new StringBuffer(template);
-        while ((pos = buf.toString().indexOf(text)) != -1)
-            buf.replace(pos, pos+len, replacement);
-        return buf.toString();
-    }
     /** find and replace occurrences of "#//#" with a number */
     protected String replaceNum(String template, int replacement) {
-        return replace(template, "#//#", Integer.toString(replacement));
+        return StringUtils.findAndReplace
+            (template, "#//#", Integer.toString(replacement));
+    }
+
+    /** fixup a row template based upon freeze flags. */
+    protected String fixupRow(String row, boolean freezePlan,
+                              boolean freezeActual) {
+        row = StringUtils.findAndReplace
+            (row, PLAN_FLAG,   freezePlan   ? READONLY_FLAG : EDITABLE_FLAG);
+        row = StringUtils.findAndReplace
+            (row, ACTUAL_FLAG, freezeActual ? READONLY_FLAG : EDITABLE_FLAG);
+        return row;
+    }
+
+    /** @return true if the data element named by prefix/name is nonnull. */
+    protected boolean hasValue(String name) {
+        String prefix = (String) env.get("PATH_TRANSLATED");
+        DataRepository data = getDataRepository();
+
+        String dataName = data.createDataName(prefix, name);
+        return (data.getSimpleValue(dataName) != null);
     }
 
 }
