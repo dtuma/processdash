@@ -34,6 +34,7 @@
 
   <mapID target="CommonProblems" url="Topics/Troubleshooting/CommonProblems.html" />
   <mapID target="ErrorMessages" url="Topics/Troubleshooting/ErrorMessages.html" />
+  <mapID target="FAQ" url="Topics/Troubleshooting/FAQ.html" />
 
   <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
   <mapID target="CreatingNewProcesses" url="Topics/AdvancedTopics/CreatingNewProcesses.html" />

@@ -2,8 +2,47 @@
 <TITLE>Using the time log editor</TITLE>
 <BODY>
 
-<H1>Work in progress</H1>
-You are looking at the beginnings of a help system for the Process Dashboard.
+<H1>Using the time log editor</H1>
+
+<P>You can use the time log editor to correct mistakes you might make when 
+timing your activities.</P>
+
+<img src="../../Images/TimeLogEditor.jpg">
+
+<P>The left pane shows the current project hierarchy.  Picking various 
+branches on the hierarchy will limit the time entries displayed to just those 
+on the branch chosen.</P>
+
+<P>The two entries on the top labeled filter provide a date filtering on the 
+time entries display.  The dates should be entered in MM/DD/YYYY format.</P>
+
+<P>To change data in the time entries, just pick on the element that you 
+would like to change.  The elements in the time entries pane are editable.  
+The "Logged To" column shows the process phase to which the time was logged.  
+These entries should <em>NOT</em> be edited.  The editor will replace any 
+changes with the original entries if they are accidentally changed.  The 
+"Start T" column shows the start time for the activity.  The "Delta" column 
+shows the length of time spent in the activity.  The "Int" column shows the 
+amount of time that the given activity was interrupted.</P>
+
+<P>The Add and Delete buttons allow the addition and deletion of time 
+entries.</P>
+
+<P>The Save and Revert buttons will save the changes or revert the entries to 
+their previous values.</P>
+
+<P>The Summarize button will collapse all time entries that were logged to 
+the same process phase into one entry.  The Dashboard will create new entries 
+each time that it starts recording time in a given process phase (i.e. when a 
+process phase is left and then returned to again for more time measurement).  
+This function will allow you to collaspe all the duplicates.</P>
+
+<P>NOTE: the Java component that is used to show the table of values will 
+allow the rearrangement of the columns via a click and drag.  <B><EM>THIS 
+BEHAVIOR IS NOT SUPPORTED!!</EM></B>  Moving the columns around, editing the 
+data in those columns, and saving the changes will corrupt your data 
+respository!!</P> 
+
 
 <!-- DISCLAIMER -->
 

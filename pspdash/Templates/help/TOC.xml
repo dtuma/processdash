@@ -29,7 +29,7 @@
       <tocitem target="UsingTimeLogEditor" text="Editing Time data" />
       <tocitem target="EnteringDefects" text="Entering Defects"/>
       <tocitem target="UsingDefectLogEditor" text="Editing Defect data"/>
-      <tocitem target="ConfigureMenu" text="The Configuration menu"/>
+      <tocitem target="ConfigureMenu" text="The 'C' (configure) menu"/>
     
     </tocitem>
 
@@ -40,8 +40,7 @@
     </tocitem>
 
     <tocitem text="TroubleShooting">
-      <tocitem target="CommonProblems" text="Common problems you may run into"/>
-      <tocitem target="ErrorMessages" text="Error messages"/>
+      <tocitem target="FAQ" text="FAQ - Frequently Asked Questions"/>
     </tocitem>
 
     <tocitem text="Advanced Topics">

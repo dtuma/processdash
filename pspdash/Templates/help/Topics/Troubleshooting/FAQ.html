@@ -1,0 +1,101 @@
+<HTML>
+<TITLE>Frequently Asked Questions</TITLE>
+<BODY>
+
+<H1>Frequently Asked Questions</H1>
+
+<P>This is a list of Frequently Asked Questions about the Process Dashboard</P>
+
+<UL>
+ <LI><a href="FAQ.html#NoConnection">All my data elements say "NO CONNECTION".  What is wrong?</A></LI>
+ <LI><a href="FAQ.html#ERROR">Some of my data elements say "ERROR".  What is wrong?</A></LI>
+ <LI><a href="FAQ.html#WhereIsConfig">Where is the configuration file located?</A></LI>
+ <LI><a href="FAQ.html#NoSubmit">Why is there no "submit" button on the HTML forms?</A></LI>
+ <LI><a href="FAQ.html#TimerUpdate">I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</A></LI>
+ <LI><a href="FAQ.html#FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
+ <LI><a href="FAQ.html#Website">Where can I get the latest information about the Process Dashboard?</A></LI>
+ <LI><a href="FAQ.html#BugReport">I think I've found a bug.  Whom do I contact?</A></LI>
+</UL>
+
+<HR>
+
+<P><a name="NoConnection"></a><B>All my data elements say "NO CONNECTION".  What is wrong?</B></P>
+<P>The scripting on the web pages that connects the web browser to the 
+dashboard will return "NO CONNECTION" when the dashboard is not running.  The 
+dashboard actually contains a very small HTTP server that provides all the 
+web content and thus the content cannot be displayed when the dashboard is 
+not running.</P>
+
+<P><a name="ERROR"></a><B>Some of my data elements say "ERROR".  What is wrong?</B>
+<P>Any time the dashboard runs into an error trying to calculate a particular 
+data value, "ERROR" will show up in the web browser for that data element.  
+Many times this is due to having a very small number of usable data points 
+recorded by the dashboard.  For instance, if you start the dashboard for the 
+first time and try to look at Process Summary forms for a PSP2.1 process, the 
+"% To Date" fields will be filled with "ERROR".  This is because the total 
+amount of time recorded in the tool is 0.  The percentage calculation 
+attempts to divide by zero and returns the error.</P>
+
+<P>Another problem can contribute to this condition as well.  If you are not 
+in the habit of clicking the little "completion" button at the right end of 
+the dashboard, some (or all) of your data will be ignored by the dashboard 
+when creating reports and graphs.  The reporting features of the dashboard 
+only report tasks that are marked as complete.  See the <a 
+href="../Execution/CompletionButton.html">Using the Completion Button</a> 
+help topic for more information.</P>
+
+<P><a name="WhereIsConfig"></A><B>Where is the configuration file located?</B></P>
+<P>The configuration file is named .pspdash on Unix systems and pspdash.ini 
+on Windows systems.  It can be located in either of two places: the user's 
+data directory or in the same directory as the pspdash.jar file.  The 
+dashboard looks in the data directory first, then in the pspdash.jar 
+installation directory.  See the <a 
+href="../AdvancedTopics/ConfigurationFile.html">configuration file</A> help 
+topic for more information about the configuration file and the settings that 
+can be defined there.</P>
+
+<P><a name="NoSubmit"></A><B>Why is there no "submit" button on the HTML forms?</B></P>
+<P>The HTML forms used by the dashboard are continually "live".  There is no 
+need to press a submit button to send your data to the dashboard.  Simply 
+enter your data where necessary, and the dashboard will record it.</P>
+
+<P><a name="TimerUpdate"></a><B>I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</b></P>
+<P>Unlike the data input fields and various fields that can be calculated, 
+the elements that report time on the reports do not update continually.  
+However, they do get updated eventually.  The form will show changes to the 
+time measurement approximately every five minutes.  Also, when a change is 
+made from one process phase to another the timing numbers get updated.</P>
+
+<P><a name="FormsColors"></a><b>What is the significance of the different text colors on the PSP process scripts and forms?</b></p>
+<P>In his book <I>A Discipline for Software Engineering</I> where he outlines 
+the Personal Software Process, Watts Humphrey introduces the various process 
+elements for doing PSP work in a graduated manner.  Each PSP process is built 
+upon the previous one.  As a way of showing which process elements were added 
+to the previous process definition, the forms in the book highlight the new 
+process elements.  These highlighted elements return to normal text at the 
+next process level.</P>
+
+<P>In our attempt to make our online forms as identical to the PSP forms as 
+possible, we have included that detail.  However, there are many places where 
+the Process Dashboard makes certain steps on the scripts and forms 
+unnecessary (e.g. instructions to sum up various data items -- the dashboard 
+sums them for you).  Also there are places where the dashboard slightly 
+changes the way certain steps are performed (e.g. instead of performing a 
+PROBE calculation, the PROBE tool should be used).  In these cases, the color 
+in the forms changes to indicate this slight departure from the "true PSP 
+forms".</P>
+
+<P><a name="Website"></a><b>Where can I get the latest information about the Process Dashboard?</b></p>
+<P>The latest developments in the development of the Process Dashboard, 
+including the latest version can be found at 
+http://processdash.sourceforge.net.</p>
+
+<P><a name="BugReport"></a><B>I think I've found a bug.  Whom do I contact?</b></p>
+<P>You can fill out a bug form on our web site at 
+http://sourceforge.net/bugs/?group_id=9858 or if you would rather send us an 
+email, write to processdash-devel@lists.sourceforge.net</p>
+
+<!-- DISCLAIMER -->
+
+</BODY>
+</HTML>
