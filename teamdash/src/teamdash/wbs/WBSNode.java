@@ -21,6 +21,8 @@ public class WBSNode implements Cloneable {
     private WBSModel wbsModel;
     /** The name of this node */
     private String name;
+    /** A number uniquely identifying this node */
+    private int uniqueID;
     /** The type of this node */
     private String type;
     /** The indentation depth of this node */
@@ -36,6 +38,7 @@ public class WBSNode implements Cloneable {
     public WBSNode(WBSModel model, String name, String type,
                    int level, boolean expanded) {
         this.wbsModel = model;
+        setUniqueID(-1); // not very unique - but let WBSModel fix it.
         setName(name);
         setType(type);
         setIndentLevel(level);
@@ -48,6 +51,7 @@ public class WBSNode implements Cloneable {
     public WBSNode(WBSModel model, Element e) {
         this.wbsModel = model;
         setName(e.getAttribute(NAME_ATTR));
+        setUniqueID(XMLUtils.getXMLInt(e, ID_ATTR));
         setType(e.getAttribute(TYPE_ATTR));
         setIndentLevel(XMLUtils.getXMLInt(e, INDENT_ATTR));
         setExpanded(XMLUtils.hasValue(e.getAttribute(EXPAND_ATTR)));
@@ -69,6 +73,17 @@ public class WBSNode implements Cloneable {
      * @param newName the new name for this node.  */
     public void setName(String newName) { this.name = newName; }
 
+    /** Get the unique ID of this node.
+     * @return the unique ID of this node.  */
+    public int getUniqueID() {
+        return uniqueID;
+    }
+
+    /** Set the unique ID of this node.
+     * @param uniqueID the new ID for this node. */
+    public void setUniqueID(int uniqueID) {
+        this.uniqueID = uniqueID;
+    }
 
     /** Get the type of this node.
      * @return the type of this node.  */
@@ -151,12 +166,23 @@ public class WBSNode implements Cloneable {
     /** Write an XML representation of this node to the given
      * <code>Writer</code> object. */
     public void getAsXML(Writer out) throws IOException {
+        getAsXML(out, false);
+    }
+    /** Write an XML representation of this node to the given
+     * <code>Writer</code> object.
+     * @param out the Writer to write the XML to
+     * @param full <code>true</code> to dump all attributes, including
+     * transient attributes;  <code>false</code> to dump only "authoritative"
+     * attributes. */
+    public void getAsXML(Writer out, boolean full) throws IOException {
         // write the opening wbsNode tag.
         String indentation = SPACES.substring
             (0, Math.min(2 * (indentLevel + 1), SPACES.length()));
         out.write(indentation);
         out.write("<"+ELEMENT_NAME+" "+NAME_ATTR+"='");
         out.write(XMLUtils.escapeAttribute(getName()));
+        out.write("' "+ID_ATTR+"='");
+        out.write(Integer.toString(uniqueID));
         if (getType() != null) {
             out.write("' "+TYPE_ATTR+"='");
             out.write(XMLUtils.escapeAttribute(getType()));
@@ -176,12 +202,14 @@ public class WBSNode implements Cloneable {
             e = (Map.Entry) i.next();
             name = (String) e.getKey();
             // attributes with an underscore in their name are
-            // calculated values that need not be saved.
-            if (name.indexOf('_') != -1) continue;
+            // calculated values that need not be saved unless the
+            // "full" parameter is true.
+            if (!full && name.indexOf('_') != -1) continue;
 
             v = e.getValue();
             if (v == null) continue;
             value = v.toString();
+            if (value == null || value.length() == 0) continue;
 
             out.write(">\n");   // close previous tag
             out.write(indentation);
@@ -243,6 +271,7 @@ public class WBSNode implements Cloneable {
     // constants used in creating/parsing XML
     public static final String ELEMENT_NAME = "wbsNode";
     private static final String NAME_ATTR = "name";
+    private static final String ID_ATTR = "id";
     private static final String TYPE_ATTR = "type";
     private static final String INDENT_ATTR = "indentLevel";
     private static final String EXPAND_ATTR = "expanded";
@@ -250,4 +279,6 @@ public class WBSNode implements Cloneable {
     private static final String VALUE_ATTR = "value";
     private static final String SPACES =
         "                                                            ";
+
+
 }

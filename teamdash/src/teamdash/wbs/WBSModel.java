@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
@@ -102,6 +103,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         if (rootNodeName == null || rootNodeName.trim().length() == 0)
             rootNodeName = "Team Project";
         add(new WBSNode(this, rootNodeName, "Project", 0, true));
+        getRoot().setUniqueID((new Random()).nextInt() & 0xffffff);
         add(new WBSNode(this, "Software Component", "Software Component",
                         1, true));
         validator = new WBSModelValidator(this);
@@ -118,8 +120,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
     /** Add a node to the end of this work breakdown structure.
      */
-    public void add(WBSNode node) {
-        wbsNodes.add(node);
+    public synchronized void add(WBSNode node) {
+        wbsNodes.add(makeNodeIDUnique(node));
         recalcRows();
     }
 
@@ -131,7 +133,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
      * from the <code>beforeRow</code> parameter if it contained an invalid
      * value)
      */
-    public int add(int beforeRow, WBSNode newNode) {
+    public synchronized int add(int beforeRow, WBSNode newNode) {
         // don't insert anything before the root node
         if (beforeRow < 1) beforeRow = 1;
 
@@ -143,7 +145,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         } else {
             int beforePos = rows[beforeRow];
-            wbsNodes.add(beforePos, newNode);
+            wbsNodes.add(beforePos, makeNodeIDUnique(newNode));
             recalcRows();
             return beforeRow;
         }
@@ -274,6 +276,44 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         for (int i = 0;   i < descendantIndexes.size();   i++)
             result[i] = (WBSNode) wbsNodes.get(descendantIndexes.get(i));
         return result;
+    }
+
+    private int maxID = 0;
+
+    private synchronized WBSNode makeNodeIDUnique(WBSNode node) {
+
+        int currentID = node.getUniqueID();
+        boolean isUnique = (currentID > 0);
+        int oneID;
+
+        // look through the node list to see if any existing nodes have
+        // the same ID as this node.  While we're at it, find the largest
+        // node ID in use. (This will generally be the ID of the root node,
+        // but we won't take any chances.)
+        Iterator i = wbsNodes.iterator();
+        while (i.hasNext()) {
+            oneID = ((WBSNode) i.next()).getUniqueID();
+            maxID = Math.max(maxID, oneID);
+            if (oneID == currentID)
+                isUnique = false;
+        }
+
+        if (!isUnique) {
+            if (wbsNodes.isEmpty())
+                node.setUniqueID(maxID+1);
+            else {
+                node.setUniqueID(getRoot().getUniqueID());
+                getRoot().setUniqueID(maxID+1);
+            }
+        }
+
+        return node;
+    }
+    private synchronized List makeNodesIDUnique(List nodes) {
+        Iterator i = nodes.iterator();
+        while (i.hasNext())
+            makeNodeIDUnique((WBSNode) i.next());
+        return nodes;
     }
 
     private int[] rows;
@@ -537,11 +577,11 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         if (beforeRow < 0 || beforeRow >= rows.length)
             // if the insertion point is illegal, just append nodes to
             // the end of the list.
-            wbsNodes.addAll(nodesToInsert);
+            wbsNodes.addAll(makeNodesIDUnique(nodesToInsert));
 
         else {
             int beforePos = rows[beforeRow];
-            wbsNodes.addAll(beforePos, nodesToInsert);
+            wbsNodes.addAll(beforePos, makeNodesIDUnique(nodesToInsert));
         }
 
         recalcRows(false);
@@ -662,7 +702,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         int insertAfter = destPos;
         if (destDescendants != null && destDescendants.size() > 0)
             insertAfter = destDescendants.get(destDescendants.size() - 1);
-        wbsNodes.addAll(insertAfter + 1, nodesToInsert);
+        wbsNodes.addAll(insertAfter + 1, makeNodesIDUnique(nodesToInsert));
 
         // make certain some of the inserted nodes are visible.
         destNode.setExpanded(true);
