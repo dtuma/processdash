@@ -16,34 +16,50 @@ import org.w3c.dom.Element;
 import teamdash.process.CustomProcess;
 
 
+/** Keep track of information the wbs editor needs to know about the
+ * defined team process.
+ */
 public class TeamProcess {
 
+    /** An immutable list of the names of the phases in this
+     * process (Strings) */
     private List phases;
+
+    /** An immutable map of phase names to phase types. */
     private Map phaseTypes;
+
+    /** An immutable map of node types to node icons. */
     private Map iconMap;
 
 
 
+    /** Contruct a team process from information in the given XML element.
+     */
     public TeamProcess(Element xml) {
         buildPhases(xml);
         buildIcons();
     }
 
+
+    /** Return a list of the phases in this process. */
     public List getPhases() {
         return phases;
     }
 
+
+    /** Return the canonical "phase type" for a given phase. */
     public String getPhaseType(String phase) {
-        String result =(String) phaseTypes.get(phase);
+        String result = (String) phaseTypes.get(phase);
         if (result == null && phase.endsWith(" Task"))
             result = (String) phaseTypes.get
                 (phase.substring(0, phase.length()-5));
         return result;
     }
 
-    private final String[] SIZE_UNITS = new String[] {
-            "LOC","Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
 
+    /** For a task of the given phase, which size metric is the most
+     * appropriate to use for generating a time estimate?
+     */
     public String getPhaseSizeMetric(String phase) {
         String type = getPhaseType(phase);
         if (type == null) return SIZE_UNITS[0];
@@ -54,15 +70,25 @@ public class TeamProcess {
         return SIZE_UNITS[0];
     }
 
+
+    /** Return the icon map for this process. */
     public Map getIconMap() {
         return iconMap;
     }
 
+
+    /** Build a menu containing valid node types. */
     public JMenu getNodeTypeMenu() {
         return buildMenu();
     }
 
+
+    /** Extract information about the phases in this process from the
+     * given XML stream.  It should contain a process definition that
+     * can be recognized by the CustomProcess class.
+     */
     private void buildPhases(Element xml) {
+        // open the custom process.
         CustomProcess process = null;
         if (xml != null) try {
             process = new CustomProcess(xml);
@@ -77,13 +103,20 @@ public class TeamProcess {
         while (i.hasNext()) {
             CustomProcess.CustomPhase phase =
                 (CustomProcess.CustomPhase) i.next();
+            // add each phase name to our list.
             phases.add(phase.name);
+            // add each phase type to our map.
             phaseTypes.put(phase.name, phase.type);
         }
+        // make these items immutable.
         phases = Collections.unmodifiableList(phases);
         phaseTypes = Collections.unmodifiableMap(phaseTypes);
     }
 
+
+    /** Create icons for all the valid node types, and store them in the
+     * icon map.
+     */
     private void buildIcons() {
         iconMap = new HashMap();
 
@@ -96,13 +129,16 @@ public class TeamProcess {
         iconMap.put("Workflow", IconFactory.getWorkflowIcon());
         iconMap.put(null, IconFactory.getTaskIcon(c));
 
+        // create a spectrum of icons for each phase.
         int numPhases = phases.size();
         for (int phaseNum = 0; phaseNum < numPhases; phaseNum++) {
             String phase = (String) phases.get(phaseNum);
             String type = getPhaseType(phase);
-            Color phaseColor = getPhaseColor(phaseNum, numPhases-1);
+            Color phaseColor = getPhaseColor(phaseNum, numPhases);
             iconMap.put(phase + " Task", IconFactory.getTaskIcon(phaseColor));
 
+            // create icons for the various documents - match the
+            // document color to the corresponding phase.
             if ("REQ".equals(type) && !iconMap.containsKey(REQ_DOC))
                 iconMap.put(REQ_DOC, IconFactory.getDocumentIcon(phaseColor));
             if ("HLD".equals(type) && !iconMap.containsKey(HLD_DOC))
@@ -111,6 +147,8 @@ public class TeamProcess {
                 iconMap.put(DLD_DOC, IconFactory.getDocumentIcon(phaseColor));
         }
 
+        // If we didn't find any phases corresponding to the various
+        // document types, create document icons with default colors.
         if (!iconMap.containsKey(REQ_DOC))
             iconMap.put(REQ_DOC,
                         IconFactory.getDocumentIcon(new Color(204, 204, 0)));
@@ -121,6 +159,7 @@ public class TeamProcess {
             iconMap.put(DLD_DOC,
                         IconFactory.getDocumentIcon(new Color(102, 255, 102)));
 
+        // make the icon map immutable.
         iconMap = Collections.unmodifiableMap(iconMap);
     }
 
@@ -130,68 +169,29 @@ public class TeamProcess {
     private static final String HLD_DOC = "High Level Design Document";
     private static final String DLD_DOC = "Detailed Design Document";
 
-    private static final boolean INCLUDE_PURPLE = false;
 
-    /** Calculate the appropriate for displaying a particular phase. */
+    /** Calculate the appropriate color for displaying a particular phase. */
     private Color getPhaseColor(int phaseNum, int numPhases) {
-        double a, r, g, b;
+        float r = (phaseNum * (COLOR_SPECTRUM.length-1)) / (float) numPhases;
+        int offset = (int) Math.floor(r);
+        r -= offset;
 
-        a = norm(phaseNum, 0, numPhases);
-
-        if (INCLUDE_PURPLE) {
-
-            if (a > 0.8) {        // blend from dark blue to purple.
-                r = 128 * norm(a, 0.8, 1.0);
-                g = 63 * norm(a, 1.0, 0.8);
-                b = 255;
-            } else if (a > 0.6) { // blend from cyan to dark blue.
-                r = 0;
-                g = 255 - 192 * norm(a, 0.6, 0.8);
-                b = 255;
-            } else if (a > 0.40) { // blend from green to cyan.
-                r = 0;
-                g = 255;
-                b = 255 * norm(a, 0.4, 0.6);
-            } else if (a > 0.2) { // blend from yellow to green
-                r = 255 * norm(a, 0.4, 0.2);
-                g = 255;
-                b = 0;
-            } else { // blend from orange to yellow.
-                r = 255;
-                g = 255 - 128 * norm(a, 0.2, 0.0);
-                b = 0;
-            }
-
-        } else {
-
-            if (a > 0.75) { // blend from cyan to dark blue.
-                r = 0;
-                g = 255 - 192 * norm(a, 0.75, 1.0);
-                b = 255;
-            } else if (a > 0.50) { // blend from green to cyan.
-                r = 0;
-                g = 255;
-                b = 255 * norm(a, 0.5, 0.75);
-            } else if (a > 0.25) { // blend from yellow to green
-                r = 255 * norm(a, 0.5, 0.25);
-                g = 255;
-                b = 0;
-            } else { // blend from orange to yellow.
-                r = 255;
-                g = 255 - 128 * norm(a, 0.25, 0.0);
-                b = 0;
-            }
-
-        }
-        return new Color((int) r, (int) g, (int) b);
+        return IconFactory.mixColors
+            (COLOR_SPECTRUM[offset+1], COLOR_SPECTRUM[offset], r);
     }
 
-    /** Perform a simple linear transform.  Calculate a linear transform
-     * that maps a to 0 and b to 1; then return the mapping for w. */
-    private static double norm(double w, double a, double b) {
-        return (w - a) / (b - a);
-    }
+    private static final Color[] COLOR_SPECTRUM = {
+        Color.orange, //new Color(255, 128, 0),
+        Color.yellow,
+        Color.green,
+        Color.cyan,
+        new Color(0, 63, 255),
+        new Color(128, 0, 255) };
 
+
+
+    /** Build a menu containing all the valid node types.
+     */
     private JMenu buildMenu() {
         JMenu taskSubmenu = new JMenu("Tasks");
 
@@ -215,35 +215,14 @@ public class TeamProcess {
         return nodeTypeMenu;
     }
 
+
+    // A list of menu items to put in the main icon menu.
     private static final String[] iconMenuItems =
         { SW_COMP, GEN_DOC, REQ_DOC, HLD_DOC, DLD_DOC };
-/*
-    public static String[][] defaultPhases = {
-        { "Management and Miscellaneous", "Misc", "MGMT" },
-        { "Launch and Strategy", "Strategy", "STRAT" },
-        { "Planning", "Planning", "PLAN" },
-        { "Requirements", "Reqts", "REQ" },
-        { "System Test Plan", "Sys Test Plan", "STP" },
-        { "Requirements Inspection", "Reqts Inspect", "REQINSP" },
-        { "High-Level Design", "HLD", "HLD" },
-        { "Integration Test Plan", "Int Test Plan", "ITP" },
-        { "HLD Review", "HLD Review", "HLDRINSP" },
-        { "HLD Inspection", "HLD Inspect", "HLDRINSP" },
-        { "Detailed Design", "Design", "DLD" },
-        { "Detailed Design Review", "Design Review", "DLDR" },
-        { "Test Development", "Test Devel", "TD" },
-        { "Detailed Design Inspection", "Design Inspect", "DLDINSP" },
-        { "Code", "Code", "CODE" },
-        { "Code Review", "Code Review", "CR" },
-        { "Compile", "Compile", "COMP" },
-        { "Code Inspection", "Code Inspect", "CODEINSP" },
-        { "Unit Test", "Test", "UT" },
-        { "Build and Integration Test", "Int Test", "IT" },
-        { "System Test", "Sys Test", "ST" },
-        { "Documentation", "Documentation", "DOC" },
-        { "Acceptance Test", "Accept Test", "AT" },
-        { "Postmortem", "Postmortem", "PM" },
-        { "Product Life", "Product Life", "PL" }
-    };
-    */
+
+    // This is hardcoded for now, and must agree with the list in
+    // teamdash.wbs.columns.SizeTypeColumn
+    private final String[] SIZE_UNITS = new String[] {
+            "LOC","Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
+
 }
