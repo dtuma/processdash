@@ -173,6 +173,11 @@ Design Review/DRL To Date=null
 Code Review/DRL To Date=null
 Compile/DRL To Date=null
 
+
+= Redefine the freeze flag for actual size.
+
+FreezeFlag/[0-9AB ]*(Base|Deleted|Modified|Added|Reused|New & Changed|Total|New Reused|Base Additions|New Objects|Object) LOC==![(&&	Reassessment/Completed)]
+
 = We do not need these freeze flags any longer.
 
 FreezeFlag/.*Estimated.*=null

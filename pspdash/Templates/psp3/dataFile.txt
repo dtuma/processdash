@@ -231,8 +231,6 @@ Test/leaf=null
 Test/node=null
 
 
-FreezeFlag/.*(New )?Reused LOC==![(&&	Completed)]
-
 ==
 == Local copies of To Date data
 ==

@@ -91,8 +91,11 @@ L[O]C=>~Total LOC
 == Freeze flags for the entire project
 ==
 
-FreezeFlag/.*(Base|Deleted|Modified|New & Changed|Total) LOC==![(&&	Completed)]
-FreezeFlag/(New )?Reused LOC==![(&&	Completed)]
+= NOTE: if you change the regular expression for this freeze flag, it is
+= essential that you make the matching change to the redefinition of this
+= freeze flag, in <psp3/cycleData.txt>.
+FreezeFlag/[0-9AB ]*(Base|Deleted|Modified|Added|Reused|New & Changed|Total|New Reused|Base Additions|New Objects|Object) LOC==![(&&	Completed)]
+
 
 ==
 == Local copies of To Date data

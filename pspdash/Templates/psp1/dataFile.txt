@@ -94,12 +94,6 @@ Defects per KLOC==![(/	Defects Injected	New & Changed KLOC)]
 
 
 ==
-== Freeze flags for the entire project
-==
-
-FreezeFlag/(New )?Reused LOC=null
-
-==
 == Local copies of To Date data
 ==
 
