@@ -137,7 +137,7 @@ class BetaVersionSetup {
 
 
     private static String getVersion() {
-        return TemplateLoader.getPackageVersion("pspdash");
+        return PSPDashboard.getVersionNumber();
     }
 
 }
