@@ -82,13 +82,14 @@ public class EVSchedule implements TableModel {
 
         public String getPlanTime() { return formatTime(planTime); }
         public String getCumPlanTime() { return formatTime(cumPlanTime); }
-        public String getCumPlanValue() { return formatPercent(cumPlanValue); }
+        public String getCumPlanValue(double totalPlanTime) {
+            return formatPercent(cumPlanValue/totalPlanTime); }
         public String getActualTime() { return formatTime(actualTime); }
         public String getCumActualTime() {
             return formatTime(cumActualTime);
         }
-        public String getCumEarnedValue() {
-            return formatPercent(cumEarnedValue);
+        public String getCumEarnedValue(double totalPlanTime) {
+            return formatPercent(cumEarnedValue/totalPlanTime);
         }
 
         public void setBeginDate(Object value) {
@@ -700,13 +701,14 @@ public class EVSchedule implements TableModel {
         case TO_COLUMN:             return p.getEndDate();
         case PLAN_TIME_COLUMN:      return p.getPlanTime();
         case PLAN_CUM_TIME_COLUMN:  return p.getCumPlanTime();
-        case PLAN_CUM_VALUE_COLUMN: return p.getCumPlanValue();
+        case PLAN_CUM_VALUE_COLUMN: return p.getCumPlanValue(totalPlan());
         case TIME_COLUMN:           return p.getActualTime();
         case CUM_TIME_COLUMN:       return p.getCumActualTime();
-        case CUM_VALUE_COLUMN:      return p.getCumEarnedValue();
+        case CUM_VALUE_COLUMN:      return p.getCumEarnedValue(totalPlan());
         }
         return null;
     }
+    private double totalPlan() { return metrics.totalPlan(); }
 
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         Period p = get(rowIndex+1);
@@ -929,15 +931,20 @@ public class EVSchedule implements TableModel {
      */
     private class ValueChartData extends ChartData implements RangeInfo {
         public ValueChartData() {
+            double mult = 100.0 / totalPlan();
             series = new ChartSeries[3];
-            series[0] = new PlanValueSeries(100.0);
-            series[1] = new ActualValueSeries(100.0);
+            series[0] = plan = new PlanValueSeries(mult);
+            series[1] = actual = new ActualValueSeries(mult);
             series[2] = forecast = new ForecastChartSeries();
         }
         ForecastChartSeries forecast;
+        PlanValueSeries plan;
+        ActualValueSeries actual;
         public void recalc() {
+            double mult = 100.0 / totalPlan();
+            plan.mult = actual.mult = mult;
             forecast.recalc();
-            forecast.currentYVal = new Double(getLast().cumEarnedValue * 100);
+            forecast.currentYVal = new Double(getLast().cumEarnedValue * mult);
             forecast.forecastYVal = ONE_HUNDRED;
             numSeries = (forecast.getItemCount() == 0 ? 2 : 3);
         }
@@ -958,20 +965,12 @@ public class EVSchedule implements TableModel {
     private class CombinedChartData extends ChartData {
         public CombinedChartData() {
             series = new ChartSeries[3];
-            series[0] = planValueSeries = new PlanValueSeries(1.0) {
+            series[0] = new PlanValueSeries(1.0 / 60.0) {
                     public String getSeriesName() { return "Plan Value"; } };
-            series[1] = actualValueSeries = new ActualValueSeries(1.0) {
+            series[1] = new ActualValueSeries(1.0 / 60.0) {
                     public String getSeriesName() { return "Actual Value"; } };
             series[2] = new ActualTimeSeries() {
                     public String getSeriesName() { return "Actual Time"; } };
-            recalc();
-        }
-        PlanValueSeries planValueSeries;
-        ActualValueSeries actualValueSeries;
-        protected void recalc() {
-            double totPlanTime = getLast().cumPlanTime / 60.0;
-            planValueSeries.mult = totPlanTime;
-            actualValueSeries.mult =  totPlanTime;
         }
     }
     public XYDataSource getCombinedChartData() {

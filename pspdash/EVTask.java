@@ -257,14 +257,16 @@ public class EVTask implements DataListener {
     public String getFullName() { return fullName; }
     public String getPlanTime() { return formatTime(planTime); }
     public String getActualTime() { return formatTime(actualTime); }
-    public String getPlanValue() { return formatPercent(planValue); }
+    public String getPlanValue(double totalPlanTime) {
+        return formatPercent(planValue/totalPlanTime); }
     public String getCumPlanTime() { return formatTime(cumPlanTime); }
-    public String getCumPlanValue() { return formatPercent(cumPlanValue); }
+    public String getCumPlanValue(double totalPlanTime) {
+        return formatPercent(cumPlanValue/totalPlanTime); }
     public Date getPlanDate() { return planDate; }
     public Date getActualDate() { return dateCompleted; }
-    public String getValueEarned() {
+    public String getValueEarned(double totalPlanTime) {
         if (dateCompleted != null || valueEarned != 0.0)
-            return formatPercent(valueEarned);
+            return formatPercent(valueEarned/totalPlanTime);
         else
             return "";
     }
@@ -298,7 +300,7 @@ public class EVTask implements DataListener {
         recalcPlanCumTime(0.0);
         recalcActualTimes();
         recalcDateCompleted();
-        recalcPlanValue(cumPlanTime);
+        recalcPlanValue();
         schedule.prepForEvents();
         schedule.cleanUp();
         Date now = new Date();
@@ -350,9 +352,9 @@ public class EVTask implements DataListener {
         return actualTime;
     }
 
-    public void recalcPlanValue(double totalTime) {
-        planValue = planTime / totalTime;
-        cumPlanValue = cumPlanTime / totalTime;
+    public void recalcPlanValue() {
+        planValue = planTime;
+        cumPlanValue = cumPlanTime;
 
         if (isLeaf())
             valueEarned = (dateCompleted == null ? 0 : planValue);
@@ -360,7 +362,7 @@ public class EVTask implements DataListener {
             valueEarned = 0;
             // for nonleaves, ask each of our children to recalc.
             for (int i = 0;   i < getNumChildren();   i++) {
-                getChild(i).recalcPlanValue(totalTime);
+                getChild(i).recalcPlanValue();
                 valueEarned += getChild(i).valueEarned;
             }
         }
@@ -421,6 +423,42 @@ public class EVTask implements DataListener {
                     return true;
 
         return false;
+    }
+
+    public void recalcLocal() {
+        EVTask child;
+
+        planTime = cumPlanTime = actualTime = 0.0;
+        planValue = cumPlanValue = valueEarned = 0.0;
+        planDate = null;
+        dateCompleted = EVSchedule.A_LONG_TIME_AGO;
+
+        for (int i = children.size();   i-- > 0;  ) {
+            child = getChild(i); // For each child,
+
+            // accumulate numeric task data.
+            planTime += child.planTime;
+            cumPlanTime += child.cumPlanTime;
+            actualTime += child.actualTime;
+            planValue += child.planValue;
+            cumPlanValue += child.cumPlanValue;
+            valueEarned += child.valueEarned;
+            /*
+            // rollup plan date should be the max of all the plan dates.
+            planDate = EVScheduleRollup.maxDate(planDate, child.planDate);
+
+            // rollup completion date should be the max of all the
+            // completion dates, unless one or more of them is null -
+            // then it should be null.
+            if (child.dateCompleted == null)
+                dateCompleted = null;
+            else if (dateCompleted != null)
+                dateCompleted = EVScheduleRollup.maxDate
+                    (dateCompleted, child.dateCompleted);
+            */
+        }
+        if (dateCompleted == EVSchedule.A_LONG_TIME_AGO)
+            dateCompleted = null;
     }
 
     //

@@ -259,10 +259,12 @@ public class EVTaskList extends AbstractTreeTableModel
                 ((Listener) listeners.get(i)).evNodeChanged(e);
         }
     }
+    private double totalPlanTime;
     public void recalc() {
         TimeLog log = new TimeLog();
         try { log.readDefault(); } catch (IOException ioe) {}
         ((EVTask) root).recalc(schedule, log);
+        totalPlanTime = ((EVTask) root).planTime;
     }
 
 
@@ -371,12 +373,12 @@ public class EVTaskList extends AbstractTreeTableModel
         case TASK_COLUMN:           return n.getName();
         case PLAN_TIME_COLUMN:      return n.getPlanTime();
         case ACT_TIME_COLUMN:       return n.getActualTime();
-        case PLAN_VALUE_COLUMN:     return n.getPlanValue();
+        case PLAN_VALUE_COLUMN:     return n.getPlanValue(totalPlanTime);
         case PLAN_CUM_TIME_COLUMN:  return n.getCumPlanTime();
-        case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue();
+        case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanTime);
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
-        case VALUE_EARNED_COLUMN:   return n.getValueEarned();
+        case VALUE_EARNED_COLUMN:   return n.getValueEarned(totalPlanTime);
         }
         return null;
     }
