@@ -71,6 +71,16 @@ dateTimeFormat=MMM dd, yyyy hh:mm:ss aaa|MMM dd, yyyy hh:mm:ss aaa z
 #
 defectDialog.autostart=true
 
+
+#
+# If this property is set to "simple", the PROBE dialog will only display
+# data elements relating to the standard PROBE methods A,B,C, and D. If
+# this setting has any other value, PROBE will display an exhaustive list
+# of data elements choices for correlating.
+#
+probeDialog.dataList=simple
+
+
 #
 # If the following property is set to "true", the probe dialog box
 # will automatically filter the list of data points so that it only
@@ -78,12 +88,14 @@ defectDialog.autostart=true
 #
 probeDialog.onlyCompleted=true
 
+
 #
 # For data privacy reasons, http connections are rejected unless they
 # originate from localhost.  To accept http connections from remote
 # hosts, set this property to true.
 #
 http.allowRemote=false
+
 
 #
 # Data names to be suppressed from user-visible data lists (by default).
@@ -96,7 +108,28 @@ http.allowRemote=false
 hiddenData=PSP Project|PSP Phase|\\% Time|Started|Completed|.*\d+|.* To Date|DRL|Total Time|LOC|Owner|PSP To Date Data|.* per .*
 
 
-probe.dataList=simple
+#
+# Policy for auto-realization of data. To save time and memory, formulas
+# are not immediately calculated when the dashboard opens.  Instead,
+# they are calculated (realized) at some later time.  This realization
+# always occurs automatically when their value must be displayed for the
+# first time on a chart, form, or report.  In addition, a background
+# process runs when the the dashboard starts, and slowly calculates
+# formulas.  If this setting has the value "full", all data will be
+# automatically realized by this background process.  If this setting
+# has the value "min", only global (e.g.  "To Date" data is
+# auto-realized (the default). If this setting has the value "none", no
+# data will be auto-realized.  If you are on a slow computer, and you
+# notice irritating delays the first time you view a chart, form, or
+# report, try using the "full" option.  If you experience irritating
+# delays when saving edits to the hierarchy, try using the "min" or
+# "none" options.
+#
+autoRealization=min
+
+#
+# Default settings for charts
+#
 
 chart.width=400
 chart.height=300
