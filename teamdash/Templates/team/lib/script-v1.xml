@@ -4,7 +4,7 @@
     This file contains instructions on how to generate a custom process.
 -->
 
-<generation-script name="script-v1"
+<generation-script name="script-v2"
       inDirectory="/team/lib"
       outDirectory="/Templates/<!--#echo Process_ID -->">
 
@@ -61,9 +61,7 @@
 
     <!-- forms for use on the individual side -->
     <file in="expanding_indiv_plan_summary.htm" encoding="html"
-          out="plan_summary.shtm">
-        <param name="UNLOCK" value="u" replace="true"/>
-    </file>
+          out="plan_summary.shtm"/>
     <file in="summary_redirect.htm" out="summary.shtm"/>
     <file in="quality_summary.htm" encoding="html"
           out="quality_summary.shtm"/>
@@ -83,7 +81,6 @@
     <file in="plan_summary.htm" encoding="html"
           out="rollup_plan_summary.shtm">
 	<param name="rollup" value="true"/>
-        <param name="UNLOCK" value="" replace="true"/>
     </file>
     <file in="quality_summary.htm" encoding="html"
           out="rollup_quality_summary.shtm">
@@ -130,5 +127,10 @@
 	      out="setup/Filename"/>
     <!--#endfor-->
 
+    <!-- Files for the size inventory form -->
+    <file in="/team/setup/sizeForm.class" encoding="binary" 
+          out="sizeForm.class"/>
+    <file in="/team/setup/sizeForm.shtm" encoding="html" 
+          out="sizeForm.shtm"/>
 
 </generation-script>
