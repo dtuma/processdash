@@ -1,5 +1,5 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 import pspdash.AbstractLanguageFilter;
 import pspdash.PSPDiff;
@@ -110,9 +110,9 @@ public class pspdiff extends TinyCGIBase implements TinyCGIHighVolume {
 
         // print line describing the language filter in use
         LanguageFilter filter = diff.getFilter();
-        out.print("<p><i>Using</i><tt><b> ");
+        out.print("<p><i>Using </i><tt><b>");
         out.print(AbstractLanguageFilter.getFilterName(filter));
-        out.print(" </b></tt><i>filter");
+        out.print("</b></tt><i> filter");
         String options = getParameter("options");
         if (options != null && options.length() > 0) {
             out.print(" with options</i><tt><b> ");
@@ -135,7 +135,8 @@ public class pspdiff extends TinyCGIBase implements TinyCGIHighVolume {
         printMetricsRow("Deleted",       diff.getDeleted());
         printMetricsRow("Modified",      diff.getModified());
         printMetricsRow("Added",         diff.getAdded());
-        printMetricsRow("New & Changed", diff.getAdded() + diff.getModified());
+        printMetricsRow("New &amp; Changed",
+                                         diff.getAdded() + diff.getModified());
         printMetricsRow("Total",         diff.getTotal());
         out.println("</table>");
     }
