@@ -44,15 +44,38 @@ public class DateFormatter {
     static protected Vector dateOnlyFormats = new Vector ();
     static protected Vector dateTimeFormats = new Vector ();
 
-    static protected SimpleDateFormat defaultFormat =
-        (SimpleDateFormat)DateFormat.getDateInstance (DateFormat.LONG);
+    static protected DateFormat defaultDateFormats[] = {
+        DateFormat.getDateInstance(DateFormat.LONG),
+        DateFormat.getDateInstance(DateFormat.MEDIUM),
+        DateFormat.getDateInstance(DateFormat.SHORT),
+        DateFormat.getDateInstance(DateFormat.FULL) };
+
+    static protected DateFormat defaultDateTimeFormats[] = {
+        DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG),
+        DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM),
+        DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT),
+        DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.FULL),
+        DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG),
+        DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM),
+        DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT),
+        DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.FULL),
+        DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG),
+        DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM),
+        DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT),
+        DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.FULL),
+        DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.LONG),
+        DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.MEDIUM),
+        DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT),
+        DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL) };
 
     static protected SimpleDateFormat sdf = new SimpleDateFormat ();
 
 
     public static String formatDateTime (Date d) {
-        if (dateTimeFormats.size() == 0)
-            return defaultFormat.format(d);
+        if (d == null)
+            return "";
+        else if (dateTimeFormats.size() == 0)
+            return defaultDateTimeFormats[0].format(d);
         else {
             sdf.applyPattern ((String)dateTimeFormats.elementAt (0));
             return sdf.format(d);
@@ -63,7 +86,7 @@ public class DateFormatter {
         if (d == null)
             return "";
         if (dateOnlyFormats.size() == 0)
-            return defaultFormat.format(d);
+            return defaultDateFormats[0].format(d);
         else {
             sdf.applyPattern ((String)dateOnlyFormats.elementAt (0));
             return sdf.format(d);
@@ -71,13 +94,6 @@ public class DateFormatter {
     }
 
     public static Date parseDateTime (String s) {
-        if (dateTimeFormats.size() == 0)
-            try {
-                return defaultFormat.parse (s);
-            } catch (Exception e) {
-                System.err.println("Error parsing default:"+e);
-                return null;
-            }
         for (int i = 0; i < dateTimeFormats.size(); i++)
             try {
                 sdf.applyPattern ((String)dateTimeFormats.elementAt (i));
@@ -88,21 +104,35 @@ public class DateFormatter {
                 sdf.applyPattern ((String)dateOnlyFormats.elementAt (i));
                 return sdf.parse (s);
             } catch (Exception e) {}
+        for (int i = 0; i < defaultDateTimeFormats.length; i++)
+            try {
+                return defaultDateTimeFormats[i].parse(s);
+            } catch (Exception e) {}
+        for (int i = 0; i < defaultDateFormats.length; i++)
+            try {
+                return defaultDateFormats[i].parse(s);
+            } catch (Exception e) {}
         return null;
     }
 
     public static Date parseDate (String s) {
-        if (dateOnlyFormats.size() == 0)
-            try {
-                return defaultFormat.parse (s);
-            } catch (Exception e) {
-                System.err.println("Error parsing default:"+e);
-                return null;
-            }
         for (int i = 0; i < dateOnlyFormats.size(); i++)
             try {
                 sdf.applyPattern ((String)dateOnlyFormats.elementAt (i));
                 return sdf.parse (s);
+            } catch (Exception e) {}
+        for (int i = 0; i < dateTimeFormats.size(); i++)
+            try {
+                sdf.applyPattern ((String)dateTimeFormats.elementAt (i));
+                return sdf.parse (s);
+            } catch (Exception e) {}
+        for (int i = 0; i < defaultDateFormats.length; i++)
+            try {
+                return defaultDateFormats[i].parse(s);
+            } catch (Exception e) {}
+        for (int i = 0; i < defaultDateTimeFormats.length; i++)
+            try {
+                return defaultDateTimeFormats[i].parse(s);
             } catch (Exception e) {}
         return null;
     }
@@ -118,7 +148,10 @@ public class DateFormatter {
         while (st.hasMoreElements())
             dateTimeFormats.addElement (st.nextToken ());
         sdf.setTimeZone(TimeZone.getDefault());
-        defaultFormat.setTimeZone(TimeZone.getDefault());
+        for (int i=defaultDateTimeFormats.length;  i-- > 0; )
+            defaultDateTimeFormats[i].setTimeZone(TimeZone.getDefault());
+        for (int i=defaultDateFormats.length;  i-- > 0; )
+            defaultDateFormats[i].setTimeZone(TimeZone.getDefault());
     }
 
 }
