@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
 
 public abstract class AbstractLinearConfidenceInterval
     extends AbstractConfidenceInterval
+    implements TargetedConfidenceInterval
 {
 
     protected double beta0, beta1;
@@ -77,6 +78,12 @@ public abstract class AbstractLinearConfidenceInterval
 
     protected abstract void calcBetaParameters();
     protected abstract void calcViability();
+
+    public void calcViability(double target, double minimumProb) {
+        if (target < getLPI(minimumProb) || target > getUPI(minimumProb))
+            viability = SERIOUS_PROBLEM;
+    }
+
 
 
     public void dataPointsComplete() {
