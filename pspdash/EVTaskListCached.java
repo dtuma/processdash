@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -64,7 +64,8 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
 
     private boolean openXML() {
         if (object == null) {
-            createErrorRootNode(localName, "Cannot open schedule.");
+            createErrorRootNode
+                (localName, getRes("Cannot_Open_Schedule_Error"));
             return false;
         }
 
@@ -73,8 +74,8 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
         if (object.olderThanAge(3)) {
             errorMessage = object.getErrorMessage();
             String errorPrefix = (object.olderThanAge(5)
-                                  ? "This schedule is out of date. "
-                                  : " Schedule may be out of date. ");
+                                  ? getRes("Out_Of_Date_Error")
+                                  : " " + getRes("Out_Of_Date_Warning")) + " ";
             if (errorMessage == null)
                 errorMessage = errorPrefix;
             else if (xmlDoc != null)
@@ -83,6 +84,10 @@ public class EVTaskListCached extends EVTaskListXMLAbstract {
 
 
         return openXML(xmlDoc, localName, errorMessage);
+    }
+    private String getRes(String key) {
+        Resources r = Resources.getDashBundle("pspdash.TaskScheduleDialog");
+        return r.getString(key);
     }
 
 
