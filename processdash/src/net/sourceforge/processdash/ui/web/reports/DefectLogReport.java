@@ -29,47 +29,49 @@ package net.sourceforge.processdash.ui.web.reports;
 
 import java.util.HashSet;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
 public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task {
 
+    private static final Resources resources =
+        Resources.getDashBundle("Defects.Report");
+
     private String typeFilt, injFilt, remFilt;
     private HashSet projectList;
 
     private static final String HEADER_TEXT =
-        "<HTML><HEAD><TITLE>Defect Log%for owner%%for path%</TITLE>%css%\n" +
+        "<HTML><HEAD><TITLE>${Title}%for owner%%for path%</TITLE>%css%\n" +
         "<STYLE>\n" +
         "    @media print { TD { font-size: 8pt } }\n" +
         "    TABLE { empty-cells: show }\n" +
         "    .header { font-weight: bold }\n" +
         "    TD { vertical-align: baseline }\n" +
         "</STYLE></HEAD>\n" +
-        "<BODY><H1>Defect Log%for path%</H1>\n";
+        "<BODY><H1>${Title}%for path%</H1>\n";
     private static final String START_TEXT =
         "<TABLE BORDER><TR class=header>\n" +
-        "<TD>Project/Task</TD>\n" +
-        "<TD>Date</TD>\n" +
-        "<TD>ID</TD>\n" +
-        "<TD>Type</TD>\n" +
-        "<TD>Injected</TD>\n" +
-        "<TD>Removed</TD>\n" +
-        "<TD>FixTime</TD>\n" +
-        "<TD>FixDefect</TD>\n" +
-        "<TD>Description</TD></TR>";
+        "<TD>${Project}</TD>\n" +
+        "<TD>${Date}</TD>\n" +
+        "<TD>${ID}</TD>\n" +
+        "<TD>${Type}</TD>\n" +
+        "<TD>${Injected}</TD>\n" +
+        "<TD>${Removed}</TD>\n" +
+        "<TD>${FixTime}</TD>\n" +
+        "<TD>${FixDefect}</TD>\n" +
+        "<TD>${Description}</TD></TR>";
 
     private static final String END_TEXT =
         "</TABLE>" +
-        "<P class='doNotPrint'><A HREF=\"excel.iqy\"><I>Export to" +
-        " Excel</I></A></P>"+
-        "<P class=doNotPrint><I>This view of the defect log is read-only. " +
-        "To add entries to the defect log, use the defect button on the " +
-        "dashboard. To edit or delete defects, use the defect log editor " +
-        "(accessible from the Configuration menu of the dashboard).</I></P>" +
+        "<P class='doNotPrint'><A HREF=\"excel.iqy\"><I>" +
+        "${Export_to_Excel}</I></A></P>" +
+        "<P class=doNotPrint><I>${Caveat}</I></P>" +
         "</BODY></HTML>";
 
     /** Generate CGI script output. */
@@ -79,7 +81,7 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         String title = For(path);
         String owner = For(getOwner());
 
-        String header = HEADER_TEXT;
+        String header = resources.interpolate(HEADER_TEXT, true);
         header = StringUtils.findAndReplace(header, "%for owner%", owner);
         header = StringUtils.findAndReplace(header, "%for path%", title);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
@@ -90,16 +92,19 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         remFilt  = getParameter("rem");
 
         if (typeFilt != null || injFilt != null || remFilt != null) {
-            out.println("Filtered to show only defects:<UL>");
+            out.println(resources.getHTML("Filter.Header") + "<UL>");
             if (typeFilt != null)
-                out.println("<LI>Of type &quot;" + typeFilt + "&quot;");
+                out.println("<LI>" + HTMLUtils.escapeEntities
+                            (resources.format("Filter.Type_FMT", typeFilt)));
             if (injFilt != null)
-                out.println("<LI>Injected in &quot;" + injFilt + "&quot;");
+                out.println("<LI>" + HTMLUtils.escapeEntities
+                            (resources.format("Filter.Injected_FMT", injFilt)));
             if (remFilt != null)
-                out.println("<LI>Removed in &quot;" + remFilt + "&quot;");
+                out.println("<LI>" + HTMLUtils.escapeEntities
+                            (resources.format("Filter.Removed_FMT", remFilt)));
             out.println("</UL><P>");
         }
-        out.print(START_TEXT);
+        out.print(resources.interpolate(START_TEXT, true));
 
         String forParam = getParameter("for");
         if (forParam != null && forParam.length() > 0)
@@ -108,12 +113,12 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         else
             DefectAnalyzer.run(getPSPProperties(), path, this);
 
-        out.println(END_TEXT);
+        out.println(resources.interpolate(END_TEXT, true));
     }
 
     private String For(String phrase) {
         if (phrase != null && phrase.length() > 1)
-            return " for " + phrase;
+            return resources.format("For_FMT", phrase);
         else
             return "";
     }
