@@ -41,4 +41,17 @@ public class ShFilter extends AbstractLanguageFilter {
     protected String[] getDefaultFilenameEndings() {
         return FILENAME_ENDINGS;
     }
+
+    protected int doubleCheckFileContents(String contents, int match) {
+        // if C programmers begin their program with a compiler
+        // directive instead of a comment, that compiler directive
+        // could be misinterpreted as a sh-style comment.  Detect that
+        // scenario and return LANGUAGE_MISMATCH.
+        if (contents.startsWith("#define") ||
+            contents.startsWith("#include") ||
+            contents.startsWith("#if"))
+            return LANGUAGE_MISMATCH;
+        else
+            return match;
+    }
 }

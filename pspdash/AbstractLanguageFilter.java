@@ -64,21 +64,28 @@ public class AbstractLanguageFilter implements LanguageFilter {
         }
 
         if (contents != null && contents.length() > 0) {
+            contents = contents.trim();     // skip initial whitespace.
+
             String[] commentStarters = getCommentStarters();
             if (commentStarters != null) {
-                contents = contents.trim();     // skip initial whitespace.
                 for (int i = commentStarters.length;   i-- > 0; )
                     if (startsWithIgnoreCase(contents, commentStarters[i])) {
                         result += 30;
                         break;
                     }
-                }
+            }
+
+            result = doubleCheckFileContents(contents, result);
         }
 
         if (result > 0)
             setOptions(options == null ? "" : options);
 
         return result;
+    }
+
+    protected int doubleCheckFileContents(String contents, int match) {
+        return match;
     }
 
     protected boolean endsWithIgnoreCase(String s, String e) {

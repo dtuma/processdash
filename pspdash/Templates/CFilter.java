@@ -65,4 +65,16 @@ public class CFilter extends AbstractLanguageFilter {
         { "-{", ("Do not count a curly brace on a line by itself "+
                  "as a line of code <b>(default)</b>.") }
     };
+
+    protected int doubleCheckFileContents(String contents, int match) {
+        // C programmers might begin their program with a compiler
+        // directive instead of a comment - detect that and add in the
+        // related points.
+        if (contents.startsWith("#include") ||
+            contents.startsWith("#define") ||
+            contents.startsWith("#if"))
+            return match + 30;
+        else
+            return match;
+    }
 }
