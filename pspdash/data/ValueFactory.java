@@ -48,6 +48,9 @@ import pspdash.data.LessThanOrEqualsFunction;
 import pspdash.data.GreaterThanOrEqualsFunction;
 import pspdash.data.NotEqualsFunction;
 
+import pspdash.data.compiler.CompiledScript;
+import pspdash.data.compiler.Compiler;
+
 
 
 class ValueFactory {
@@ -172,11 +175,11 @@ class ValueFactory {
         if (value.charAt(0) == '!')
             return new DeferredData(name, value, r, prefix);
         else if (value.charAt(0) == '#')
-            return createFrozen(name, value, r, prefix);
+            return new FrozenData(name, value, r, prefix);
         else if (value.charAt(0) == '{') {
+            return new CompiledFunction(name, value, r, prefix);
             // FIXME: compile and return a value?
-            System.err.println("ValueFactory was asked to compile a new style expression!");
-            return null;
+            //System.err.println("ValueFactory was asked to compile a new style expression!");
         } else
             return createSimple(value);
     }
@@ -200,16 +203,16 @@ class ValueFactory {
 
 
 
-    public static SimpleData createFrozen
-        (String name, String value, DataRepository r, String prefix)
-        throws MalformedValueException {
+//      public static SimpleData createFrozen
+//          (String name, String value, DataRepository r, String prefix)
+//          throws MalformedValueException {
 
-        switch (flagChar(value, 1)) {
-        case '@': return new FrozenDate(name, value, r, prefix);
-        case '"': return new FrozenString(name, value, r, prefix);
-        default:  return new FrozenDouble(name, value, r, prefix);
-        }
-    }
+//          switch (flagChar(value, 1)) {
+//          case '@': return new FrozenDate(name, value, r, prefix);
+//          case '"': return new FrozenString(name, value, r, prefix);
+//          default:  return new FrozenDouble(name, value, r, prefix);
+//          }
+//      }
 
 
 
