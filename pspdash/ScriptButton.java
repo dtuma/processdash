@@ -42,7 +42,6 @@ class ScriptButton extends JButton {
     ImageIcon enabled_icon = null;
     ImageIcon disabled_icon = null;
     String browserCommand = null;
-    String URLprefix = null;
     String scriptFilename = null;
     String path  = null;
     Vector paths = null; // A list of valid script paths for the popup menu
@@ -50,6 +49,8 @@ class ScriptButton extends JButton {
     Rectangle rv = new Rectangle();
     Point popupOrigin;
     int menuIndex;  // keeps track of the last menu item selected, -1 if none.
+
+    public static final String URL_PREFIX = "http://localhost:2468/";
 
     ScriptButton(PSPDashboard dash) {
         super();
@@ -68,7 +69,6 @@ class ScriptButton extends JButton {
         addMouseListener(scriptButtonMouseListener);
 
         browserCommand = Settings.getVal("browser.command");
-        URLprefix = Settings.getVal("templates.URL.prefix");
         dash.getContentPane().add(this);
     }
 
@@ -114,17 +114,13 @@ class ScriptButton extends JButton {
 
     protected void viewScript (String theScript, String thePath) {
         if (theScript != null) {
-            String url = URLprefix+"/"+theScript+"?"+parent.data.getID(thePath);
+            String url = URL_PREFIX + parent.data.getID(thePath) + "/" + theScript;
 
             try {
-                String[] command = {browserCommand, url};
-                Process p = Runtime.getRuntime().exec(command);
-            } catch (java.io.IOException ex) {
+                Browser.launch(url);
+            } catch (Exception e) {
                 System.err.println
-                    ("caught IOException when trying to run web browser.");
-            } catch (SecurityException ex) {
-                System.err.println
-                    ("caught SecurityException when trying to run web browser.");
+                    ("Caught exception when trying to run web browser: " + e);
             }
         }
     }
