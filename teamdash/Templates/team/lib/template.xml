@@ -40,12 +40,8 @@
 	   setup wizard to create an instance of this template.
        <!--#endbreak comment-->
 
-    <html ID="sump" href="PID/rollup_plan_summary.shtm"
-        title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
-    <html ID="sumq" href="PID/rollup_quality_summary.shtm"
-        title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
-    <html ID="charts" href="PID/charts.shtm"
-        title="<!--#echo Full_Name --> Analysis Charts"/>
+    <html ID="sum" href="PID/team_summary.shtm"
+        title="<!--#echo Full_Name --> Project Summary"/>
     <html ID="team" href="PID/team_tools.shtm"
         title="Team Project Tools and Settings"/>
 
@@ -124,6 +120,8 @@
 
     <html ID="sump" href="PID/plan_summary.shtm"
         title="<!--#echo Full_Name --> Project Plan Summary"/>
+    <html ID="size" href="PID/sizeForm.class"
+        title="<!--#echo Full_Name --> Size Inventory"/>
     <!-- html ID="sumq" href="PID/quality_summary.shtm"
         title="<!--#echo Full_Name --> Project Quality Summary"/ -->
     <!-- html ID="top" href="PID/script.htm"
