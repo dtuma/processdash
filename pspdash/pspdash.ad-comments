@@ -130,6 +130,11 @@ export.data=A set of instructions for automatic export of data. This property \
 
 ev.enableRollup=If true, enable the rollup of earned value.
 
+ev.simpleForecastDate=If true, use simple, published earned value formulas \
+	to calculate "independent forecast date".  By default, use the \
+	additional information present in the schedule to improve the \
+	quality of the forecast.
+
 extDoc.openMethod=If this is set to "redirect", then an HTTP redirect \
 	message will be used to open external documents.
 
