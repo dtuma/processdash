@@ -16,24 +16,106 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 
+/** Represents the list of team members assigned to a team project.
+ * 
+ * This implements <code>TableModel</code> so the team can be displayed in
+ * an editable table.
+ */
 public class TeamMemberList extends AbstractTableModel {
 
+    /** A special interface for people wanting to be alerted to changes in
+     * the initials of any existing team member. */
+    public interface InitialsListener {
+        public void initialsChanged(String oldInitials, String newInitials);
+    }
+
+
+    /** The list of team members */
     private ArrayList teamMembers = new ArrayList();
+    /** True if we should always keep an empty team member at the end of
+         * the list */
     private boolean autoNewRow = true;
 
+    /** Creates a team member list with one empty team member at the end. */
     public TeamMemberList() {
         addNewRow();
     }
 
+    /** Create a team member list from the information in the given XML element.
+         */
     public TeamMemberList(Element e) {
         NodeList nodes = e.getElementsByTagName(TeamMember.TAG_NAME);
         for (int i = 0;   i < nodes.getLength();   i++)
             teamMembers.add(new TeamMember((Element) nodes.item(i)));
     }
 
+    /** Create a cloned copy of the given team member list */
     public TeamMemberList(TeamMemberList list) {
         this.teamMembers = copyTeamMemberList(list.teamMembers);
     }
+
+    /** Add an empty team member to the bottom of the list if the last member
+     * in the list is not currently empty.
+     */
+    public void maybeAddEmptyRow() {
+        int rows = getRowCount();
+        if (hasValue(getValueAt(rows-1, NAME_COLUMN)))
+            addNewRow();
+    }
+
+    /** Get a list of all the non-empty team members.
+     */
+    public List getTeamMembers() {
+        ArrayList result = new ArrayList();
+        Iterator i = teamMembers.iterator();
+        while (i.hasNext()) {
+            TeamMember m = (TeamMember) i.next();
+            if (!m.isEmpty()) result.add(m);
+        }
+        return result;
+    }
+
+    /** Alter this team list so it contains the nonempty members
+     * in the given list. */
+    public void copyFrom(TeamMemberList newMembers) {
+        this.teamMembers = copyTeamMemberList(newMembers.getTeamMembers());
+        fireTableDataChanged();
+    }
+
+
+    /** Clone a List of team members. */
+    private ArrayList copyTeamMemberList(List list) {
+        ArrayList result = new ArrayList();
+        Iterator i = list.iterator();
+        while (i.hasNext())
+            result.add(((TeamMember) i.next()).clone());
+        return result;
+    }
+
+
+
+
+    /** Serialize this team member list to XML and write it to the given
+     * Writer.
+     */
+    public void getAsXML(Writer out) throws IOException {
+        out.write("<"+TAG_NAME+">\n");
+        Iterator i = teamMembers.iterator();
+        while (i.hasNext()) {
+            TeamMember m = (TeamMember) i.next();
+            if (!m.isEmpty())
+                m.getAsXML(out);
+        }
+        out.write("</"+TAG_NAME+">\n");
+    }
+    // the XML tag name identifying the team member list.
+    private static final String TAG_NAME = "teamList";
+
+
+
+    ////////////////////////////////////////////////////////////////////////
+    //// information and methods to implement the TableModel interface
+    ////////////////////////////////////////////////////////////////////////
 
     public static final int NAME_COLUMN = 0;
     public static final int INITIALS_COLUMN = 1;
@@ -45,18 +127,11 @@ public class TeamMemberList extends AbstractTableModel {
     private static final Class[] columnClass = {
         String.class, String.class, Color.class, Double.class };
 
-
+    public int getRowCount()            { return teamMembers.size(); }
     public int getColumnCount()         { return columnNames.length; }
     public String getColumnName(int c)  { return columnNames[c];     }
     public Class getColumnClass(int c)  { return columnClass[c];     }
-
-    private TeamMember get(int r) {
-        return (TeamMember) teamMembers.get(r);
-    }
-
-    public int getRowCount() {
-        return teamMembers.size();
-    }
+    public boolean isCellEditable(int row, int col) { return true; }
 
     public Object getValueAt(int row, int column) {
         TeamMember m = get(row);
@@ -74,15 +149,7 @@ public class TeamMemberList extends AbstractTableModel {
         switch (column) {
         case NAME_COLUMN:
             m.setName((String) aValue);
-            if (autoNewRow) maybeAddEmptyRow(); /*
-            Object currentVal = getValueAt(row, NAME_COLUMN);
-            // if both values are empty, there is nothing to do.
-            if (!hasValue(currentVal) && !hasValue(aValue)) break;
-            // if the value has not changed, there is nothing to do.
-            if (hasValue(aValue) && aValue.equals(currentVal)) break;
-            m.setName((String) aValue);
-            if (autoNewRow && hasValue(aValue) && (row + 1 == getRowCount()))
-                addNewRow(); */
+            if (autoNewRow) maybeAddEmptyRow();
             break;
 
         case INITIALS_COLUMN: m.setInitials((String) aValue); break;
@@ -90,21 +157,20 @@ public class TeamMemberList extends AbstractTableModel {
         case HOURS_COLUMN: m.setHoursPerWeek((Double) aValue); break;
         }
     }
+
+
+    /** Convenience method to retrieve a particular team member. */
+    private TeamMember get(int r) {
+        return (TeamMember) teamMembers.get(r);
+    }
+    /** Convenience method to determine whether a string has a non-null,
+     * non-whitespace, non-empty value. */
     private boolean hasValue(Object s) {
         return (s instanceof String && ((String)s).trim().length() > 0);
     }
 
-    public void maybeAddEmptyRow() {
-        int rows = getRowCount();
-        if (hasValue(getValueAt(rows-1, NAME_COLUMN)))
-            addNewRow();
-    }
-
-
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return true;
-    }
-
+    /** Add a new, empty team member to the end of the list.  Use the
+         * first available unused color. */
     private void addNewRow() {
         int newRowNum = getRowCount();
         Color c = getFirstUnusedColor();
@@ -112,6 +178,8 @@ public class TeamMemberList extends AbstractTableModel {
         fireTableRowsInserted(newRowNum, newRowNum);
     }
 
+    /** Find the first color in the DEFAULT_COLORS list which has not been
+         * used by any team member in this list. */
     private Color getFirstUnusedColor() {
         HashSet usedColors = new HashSet();
         Iterator i = teamMembers.iterator();
@@ -126,17 +194,8 @@ public class TeamMemberList extends AbstractTableModel {
          return Color.darkGray;
     }
 
-    public void getAsXML(Writer out) throws IOException {
-        out.write("<"+ATTR_NAME+">\n");
-        Iterator i = teamMembers.iterator();
-        while (i.hasNext()) {
-            TeamMember m = (TeamMember) i.next();
-            if (!m.isEmpty())
-                m.getAsXML(out);
-        }
-        out.write("</"+ATTR_NAME+">\n");
-    }
-    private static final String ATTR_NAME = "teamList";
+    /** A list of 18 colors that look mutually unique. (This was really hard
+     * to create!) */
     private static final String[] DEFAULT_COLORS = {
         "#9933ff", // lavender
         "#6666ff", // pale blue
@@ -157,79 +216,12 @@ public class TeamMemberList extends AbstractTableModel {
         "#003300", // dark green
         "#663300"  // brown
     };
-    public List getTeamMembers() {
-        ArrayList result = new ArrayList();
-        Iterator i = teamMembers.iterator();
-        while (i.hasNext()) {
-            TeamMember m = (TeamMember) i.next();
-            if (!m.isEmpty()) result.add(m);
-        }
-        return result;
-    }
 
-    private ArrayList copyTeamMemberList(List list) {
-        ArrayList result = new ArrayList();
-        Iterator i = list.iterator();
-        while (i.hasNext())
-            result.add(((TeamMember) i.next()).clone());
-        return result;
-    }
 
-    public class Delta {
-        TeamMember before, after;
-        String description;
-        public Delta(TeamMember bef, TeamMember aft, String d) {
-            before = bef;   after = aft;   description = d;
-        }
-        public String toString() { return description; }
-    }
-    public Delta[] calculateDelta(TeamMemberList newMembers) {
-        ArrayList origList =  new ArrayList(this.teamMembers);
-        ArrayList newList =  new ArrayList(newMembers.teamMembers);
-        ArrayList deltas = new ArrayList();
-        for (int search = 0;   search < 2;   search++) {
-            Iterator i = origList.iterator();
-            while (i.hasNext()) {
-                TeamMember origMember = (TeamMember) i.next();
-                Delta d = findTeamMember(origMember, newList, search);
-                if (d != null) {
-                    i.remove();
-                    newList.remove(d.after);
-                    if (d.description.length() > 0) deltas.add(d);
-                }
-            }
-        }
-        if (origList.size() > 0) {
-            Iterator i = origList.iterator();
-            while (i.hasNext()) {
-                TeamMember t = (TeamMember) i.next();
-                deltas.add(new Delta(t, null, "Delete " + t.getName()));
-            }
-        }
 
-        if (deltas.size() == 0) return null;
-        return (Delta[]) deltas.toArray(new Delta[0]);
-    }
-    private Delta findTeamMember(TeamMember t, ArrayList l, int search) {
-        Iterator i = l.iterator();
-        while (i.hasNext()) {
-            TeamMember s = (TeamMember) i.next();
-            String diff = t.compareToMember(s, search == 1);
-            if (diff != null)
-                return new Delta(t, s, diff);
-        }
-        return null;
-    }
 
-    public void copyFrom(TeamMemberList newMembers) {
-        this.teamMembers = copyTeamMemberList(newMembers.getTeamMembers());
-        fireTableDataChanged();
-    }
 
-    private void addError(ArrayList errList, String err) {
-        if (!errList.contains(err)) errList.add(err);
-    }
-
+    /** Check this team list for errors and invalid values */
     public Object[] getErrors() {
         HashSet names = new HashSet();
         HashSet initials = new HashSet();
@@ -260,6 +252,92 @@ public class TeamMemberList extends AbstractTableModel {
         return errors.toArray();
     }
 
+    /** Add a string to the list if it isn't already present */
+    private void addError(ArrayList errList, String err) {
+        if (!errList.contains(err)) errList.add(err);
+    }
+
+
+    //// Methods allowing the
+
+
+    /** An object describing a change in a team member list.
+     * 
+     * If the <code>before</code> object is null, this describes the addition
+     * of a team member to a list. If the <code>after</code> object is null,
+     * this describes the deletion of a team member to a list.  Otherwise, it
+     * describes a change to an existing team member.
+     * 
+     * For deletions and changes, the description field contains a user-
+     * readable description of the change.
+     */
+    public class Delta {
+        TeamMember before, after;
+        String description;
+        public Delta(TeamMember bef, TeamMember aft, String d) {
+            before = bef;   after = aft;   description = d;
+        }
+        public String toString() { return description; }
+    }
+
+    /** Compare this team member list to a new, altered team member list and
+     * return a list of any significant changes that have been made. (A
+     * significant change is either deletion of an existing team member, or a
+     * change to the name or initials of an exising team member.) If no
+     * significant changes have been made, returns null.
+     */
+    public Delta[] calculateDelta(TeamMemberList newMembers) {
+        ArrayList origList =  new ArrayList(this.teamMembers);
+        ArrayList newList =  new ArrayList(newMembers.teamMembers);
+        ArrayList deltas = new ArrayList();
+        for (int search = 0;   search < 2;   search++) {
+            Iterator i = origList.iterator();
+            while (i.hasNext()) {
+                TeamMember origMember = (TeamMember) i.next();
+                Delta d = findTeamMember(origMember, newList, search);
+                if (d != null) {
+                    i.remove();
+                    newList.remove(d.after);
+                    if (d.description.length() > 0) deltas.add(d);
+                }
+            }
+        }
+        if (origList.size() > 0) {
+            Iterator i = origList.iterator();
+            while (i.hasNext()) {
+                TeamMember t = (TeamMember) i.next();
+                deltas.add(new Delta(t, null, "Delete " + t.getName()));
+            }
+        }
+
+        if (deltas.size() == 0) return null;
+        return (Delta[]) deltas.toArray(new Delta[0]);
+    }
+
+    /** Try to find a team member in the given list which looks similar to
+         * the one passed in.
+     * 
+     * @param t a team member to find a match for
+     * @param l a list of team members to look in
+     * @param search if 0, two team members will be considered a "match" only
+     * if their names are equal. if 1, two team members will "match" if their
+     * initials are equal.
+     * @return Delta null if no matching team member could be found.
+     * Otherwise, a Delta object comparing two team members.
+     */
+    private Delta findTeamMember(TeamMember t, ArrayList l, int search) {
+        Iterator i = l.iterator();
+        while (i.hasNext()) {
+            TeamMember s = (TeamMember) i.next();
+            String diff = t.compareToMember(s, search == 1);
+            if (diff != null)
+                return new Delta(t, s, diff);
+        }
+        return null;
+    }
+
+    /** notify any registered InitialsListeners about the any changes to
+         * initials found in the given list. */
     public void publishChanges(Delta[] changes) {
         if (changes == null || changes.length == 0)
             return;
@@ -274,9 +352,6 @@ public class TeamMemberList extends AbstractTableModel {
         }
     }
 
-    public interface InitialsListener {
-        public void initialsChanged(String oldInitials, String newInitials);
-    }
 
     private HashSet initialsListeners = null;
     public void addInitialsListener(InitialsListener l) {
