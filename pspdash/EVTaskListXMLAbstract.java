@@ -88,9 +88,9 @@ public class EVTaskListXMLAbstract extends EVTaskList {
                         (errorMessage, (EVTask) root);
             }
 
-            // minimally recalculate the schedule.
-            ((EVTask) root).simpleRecalc(schedule);
-            totalPlanValue = schedule.getMetrics().totalPlan();
+            // create a calculator to minimally recalculate the schedule.
+            boolean reorder = !"false".equals(docRoot.getAttribute("rct"));
+            calculator = new EVCalculatorXML((EVTask) root, schedule, reorder);
 
             // keep a record of the xml doc we parsed for future efficiency.
             xmlSource = xmlDoc;

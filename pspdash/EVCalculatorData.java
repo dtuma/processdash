@@ -39,8 +39,7 @@ public class EVCalculatorData extends EVCalculator {
 
     private EVTask taskRoot;
     private EVSchedule schedule;
-    private Date scheduleStartDate, effectiveDate, completionDate;
-    private boolean reorderCompletedTasks = false;
+    private Date effectiveDate, completionDate;
 
     public EVCalculatorData(EVTask root, EVSchedule schedule) {
         this.taskRoot = root;
@@ -61,6 +60,8 @@ public class EVCalculatorData extends EVCalculator {
         effectiveDate = getEffectiveDate();
         evLeaves = new LinkedList();
         getEVLeaves(taskRoot);
+        if (containsTaskOrdinals(taskRoot))
+            assignTaskOrdinals(taskRoot, 1);
         sortEVLeafList(evLeaves);
 //        debugEVLeafList(evLeaves);
 
@@ -100,6 +101,32 @@ public class EVCalculatorData extends EVCalculator {
     }
 
 
+    private boolean containsTaskOrdinals(EVTask task) {
+        if (task.taskOrdinal > 0) return true;
+        for (int i = 0;   i < task.getNumChildren();   i++)
+            if (containsTaskOrdinals(task.getChild(i)))
+                return true;
+
+        return false;
+    }
+
+    private int assignTaskOrdinals(EVTask task, int defaultOrdinal) {
+
+        if (task.isLevelOfEffortTask())
+            return defaultOrdinal;
+
+        if (task.taskOrdinal != EVTask.INFER_FROM_CONTEXT)
+            defaultOrdinal = task.taskOrdinal;
+        else if (EVTask.containsNode(evLeaves, task))
+            task.taskOrdinal = defaultOrdinal;
+
+        for (int i = 0;   i < task.getNumChildren();   i++)
+            defaultOrdinal = assignTaskOrdinals
+                (task.getChild(i), defaultOrdinal);
+
+        return defaultOrdinal;
+    }
+
     protected void resetData() {
         resetRootData(taskRoot);
         resetData(taskRoot);
@@ -114,25 +141,6 @@ public class EVCalculatorData extends EVCalculator {
             for (int i = 0;   i < task.getNumChildren();   i++)
                 resetData(task.getChild(i));
         }
-    }
-
-    protected void pruneNodes(EVTask task, boolean parentIsPruned) {
-        // inherit prune value from parent.
-        boolean taskIsPruned = parentIsPruned;
-        if (task.taskOrdinal > 0)
-            // this task has been "unpruned"
-            taskIsPruned = false;
-        else if (task.taskOrdinal == EVTask.USER_PRUNED)
-            // this task has been explicitly pruned.
-            taskIsPruned = true;
-        else {
-            task.taskOrdinal =
-                (taskIsPruned ? EVTask.ANCESTOR_PRUNED
-                              : EVTask.INFER_FROM_CONTEXT);
-        }
-
-        for (int i = 0;   i < task.getNumChildren();   i++)
-            pruneNodes(task.getChild(i), taskIsPruned);
     }
 
     protected double calculateLevelOfEffort(EVTask task) {
@@ -184,67 +192,6 @@ public class EVCalculatorData extends EVCalculator {
     }
 
 
-    protected void getEVLeaves(EVTask task) {
-        if (task.isEVLeaf()) {
-            if (!task.isUserPruned() && !task.isLevelOfEffortTask())
-                evLeaves.add(task);
-        } else {
-            for (int i = 0;   i < task.getNumChildren();   i++)
-                getEVLeaves(task.getChild(i));
-        }
-    }
-
-    protected void sortEVLeafList(List evLeaves) {
-        Collections.sort(evLeaves, new EVLeafComparator(evLeaves));
-    }
-
-    private class EVLeafComparator implements Comparator {
-        private List origOrder;
-        private EVLeafComparator(List origList) {
-            origOrder = new LinkedList(origList);
-        }
-        public int compare(Object o1, Object o2) {
-            EVTask t1 = (EVTask) o1;
-            EVTask t2 = (EVTask) o2;
-
-            // put completed tasks at the front of the list, in order of
-            // completion
-            int result = compareDates(t1.dateCompleted, t2.dateCompleted);
-            if (result != 0) return result;
-
-            // next, order by task ordinal
-            result = t1.taskOrdinal - t2.taskOrdinal;
-            if (result != 0) return result;
-
-            // finally, return items in the order they appeared in the
-            // original list.
-            result = origOrder.indexOf(t1) - origOrder.indexOf(t2);
-            return result;
-        }
-        private int compareDates(Date a, Date b) {
-            if (!reorderCompletedTasks) {
-                if (a != null && a.compareTo(scheduleStartDate) > 0) a = null;
-                if (b != null && b.compareTo(scheduleStartDate) > 0) b = null;
-            }
-            if (a == b) return 0;
-            if (a == null) return 1;
-            if (b == null) return -1;
-            return a.compareTo(b);
-        }
-        public boolean equals(Object obj) {
-            return this == obj;
-        }
-    }
-
-
-    public void debugEVLeafList(List evLeaves) {
-        System.out.println("EV Leaves:");
-        Iterator i = evLeaves.iterator();
-        while (i.hasNext()) {
-            EVTask element = (EVTask) i.next();
-            System.out.println(element.fullName);
-        }
-    }
 
     protected TimeLog readTimeLog() {
         TimeLog log = new TimeLog();
@@ -368,17 +315,6 @@ public class EVCalculatorData extends EVCalculator {
 
 
     private void recalculateTaskHierarchy(EVTask task) {
-        /*boolean isEVLeaf = EVTask.containsNode(evLeaves, task);
-        if (isEVLeaf || task.isLeaf()) {
-            task.actualCurrentTime = task.actualNodeTime;
-            if (!task.isLeaf())
-                sumUpBumChildrenOfEVLeaf(task);
-            else if (isEVLeaf)
-                task.actualDirectTime = task.actualNodeTime;
-            task.actualTime = task.actualNodeTime + task.actualPreTime;
-            return;
-        }*/
-
         for (int i = task.getNumChildren();   i-- > 0;   )
             recalculateTaskHierarchy(task.getChild(i));
 

@@ -26,6 +26,8 @@
 
 package pspdash;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -35,6 +37,8 @@ import java.util.List;
 public abstract class EVCalculator {
 
     protected List evLeaves;
+    protected Date scheduleStartDate;
+    protected boolean reorderCompletedTasks = true;
 
     /*
     public EVCalculator(String taskListName, EVTask root, EVSchedule schedule) {
@@ -49,12 +53,63 @@ public abstract class EVCalculator {
         return evLeaves;
     }
 
+    protected void sortEVLeafList(List evLeaves) {
+        Collections.sort(evLeaves, new EVLeafComparator(evLeaves));
+    }
+
+    private class EVLeafComparator implements Comparator {
+        private List origOrder;
+        private EVLeafComparator(List origList) {
+            origOrder = new LinkedList(origList);
+        }
+        public int compare(Object o1, Object o2) {
+            EVTask t1 = (EVTask) o1;
+            EVTask t2 = (EVTask) o2;
+
+            // put completed tasks at the front of the list, in order of
+            // completion
+            int result = compareDates(t1.dateCompleted, t2.dateCompleted);
+            if (result != 0) return result;
+
+            // next, order by task ordinal
+            result = t1.taskOrdinal - t2.taskOrdinal;
+            if (result != 0) return result;
+
+            // finally, return items in the order they appeared in the
+            // original list.
+            result = origOrder.indexOf(t1) - origOrder.indexOf(t2);
+            return result;
+        }
+        private int compareDates(Date a, Date b) {
+            if (!reorderCompletedTasks) {
+                if (a != null && a.compareTo(scheduleStartDate) > 0) a = null;
+                if (b != null && b.compareTo(scheduleStartDate) > 0) b = null;
+            }
+            if (a == b) return 0;
+            if (a == null) return 1;
+            if (b == null) return -1;
+            return a.compareTo(b);
+        }
+        public boolean equals(Object obj) {
+            return this == obj;
+        }
+    }
+
+
+    public void debugEVLeafList(List evLeaves) {
+        System.out.println("EV Leaves:");
+        Iterator i = evLeaves.iterator();
+        while (i.hasNext()) {
+            EVTask element = (EVTask) i.next();
+            System.out.println(element.fullName);
+        }
+    }
 
     protected void resetRootData(EVTask taskRoot) {
         taskRoot.topDownPlanTime = taskRoot.bottomUpPlanTime = 0;
         taskRoot.dateCompleted = null;
         taskRoot.dateCompletedEditable = false;
-        taskRoot.taskOrdinal = 1;
+        //taskRoot.taskOrdinal = 1;
     }
 
     protected void resetNodeData(EVTask task) {
@@ -108,6 +163,41 @@ public abstract class EVCalculator {
         if (b == null) return a;
         if (a.compareTo(b) > 0) return a;
         return b;
+    }
+
+
+    protected void pruneNodes(EVTask task, boolean parentIsPruned) {
+        // inherit prune value from parent.
+        boolean taskIsPruned = parentIsPruned;
+        if (task.pruningFlag == EVTask.USER_UNPRUNED) {
+            // this task has been explicitly "unpruned"
+            taskIsPruned = false;
+            if (parentIsPruned == false)
+                // use INFER_FROM_CONTEXT if it would have the same effect
+                // as an explicit unpruning.
+                task.pruningFlag = EVTask.INFER_FROM_CONTEXT;
+        } else if (task.pruningFlag == EVTask.USER_PRUNED)
+            // this task has been explicitly pruned.
+            taskIsPruned = true;
+        else {
+            task.pruningFlag =
+                (taskIsPruned ? EVTask.ANCESTOR_PRUNED
+                              : EVTask.INFER_FROM_CONTEXT);
+        }
+
+        for (int i = 0;   i < task.getNumChildren();   i++)
+            pruneNodes(task.getChild(i), taskIsPruned);
+    }
+
+
+    protected void getEVLeaves(EVTask task) {
+        if (task.isEVLeaf()) {
+            if (!task.isUserPruned() && !task.isLevelOfEffortTask())
+                evLeaves.add(task);
+        } else {
+            for (int i = 0;   i < task.getNumChildren();   i++)
+                getEVLeaves(task.getChild(i));
+        }
     }
 
 }

@@ -248,7 +248,9 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public String getAsXML() {
         StringBuffer result = new StringBuffer();
-        result.append("<EVModel>");
+        result.append("<EVModel rct='")
+            .append(calculator.reorderCompletedTasks)
+            .append("'>");
         ((EVTask) root).saveToXML(result);
         schedule.saveToXML(result);
         result.append("</EVModel>");
@@ -600,7 +602,14 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     private class SimpleTableModel implements TableModel {
-        private List rowList = ((EVTask) root).getLeafTasks();
+        private List rowList = null;
+
+        public SimpleTableModel() {
+            if (calculator != null)
+                rowList = calculator.getEVLeaves();
+            if (rowList == null || rowList.isEmpty())
+                rowList = ((EVTask) root).getLeafTasks();
+        }
 
         public int getRowCount() { return rowList.size(); }
         public int getColumnCount() {

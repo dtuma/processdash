@@ -53,6 +53,7 @@ public class EVTask implements DataListener {
     public static final String IGNORE_PLAN_TIME_NAME    = "Rollup Tag";
     private static final String LEVEL_OF_EFFORT_PREFIX  = "TST-LOE_";
     private static final String TASK_ORDINAL_PREFIX  = "TST-TSK#_";
+    private static final String TASK_PRUNING_PREFIX  = "TST-PRUNED_";
 
     public interface Listener {
         public void evNodeChanged(EVTask node);
@@ -75,23 +76,35 @@ public class EVTask implements DataListener {
     public static final int ANCESTOR_LEVEL_OF_EFFORT = 0;
 
 
-    /** Value indicating user-requested reordering/restructuring of the task
-     * list.  Values of interest:<ul>
+    /** Value indicating user-requested reordering of the task list.
+     * Values of interest:<ul>
      *
      * <li>0 - indicates that the order is unknown and needs to be inferred
      *     from the context of this node.
      * <li>&gt;= 1 - the order of this node in the list
+     */
+    int taskOrdinal = INFER_FROM_CONTEXT;
+    int savedTaskOrdinal = INFER_FROM_CONTEXT;
+
+    /** Value indicating user-requested pruning of the task list.
+     * Values of interest:<ul>
+     *
+     * <li>0 - indicates that the pruning state is unknown and needs to be
+     *     inferred from the context of this node.
      * <li>-1 - indicates that the user has explicitly pruned this node.
      * <li>-2 - indicates that this node has inherited its pruned status from
      *     an ancestor.
+     *  <li>1 - indicates that the user has explicitly un-pruned this node.
+     *</ul>
      */
-    int taskOrdinal = INFER_FROM_CONTEXT;
+    int pruningFlag = INFER_FROM_CONTEXT;
+    int savedPruningFlag = INFER_FROM_CONTEXT;
 
     public static final int INFER_FROM_CONTEXT = 0;
     public static final int USER_PRUNED = -1;
     public static final int ANCESTOR_PRUNED = -2;
+    public static final int USER_UNPRUNED = 1;
 
-    int savedTaskOrdinal = 0;
 
     /** The time (minutes) the user plans to spend in this node, taken
      * directly from the data repository. */
@@ -251,7 +264,7 @@ public class EVTask implements DataListener {
         setActualTime(getValue(ACT_TIME_DATA_NAME));
 
         setLevelOfEffort(getValue(getLevelOfEffortDataname()));
-        loadLeafOrdinal();
+        loadStructuralData();
 
         addChildrenFromHierarchy(fullName, key, data, hierarchy, listener);
 
@@ -309,7 +322,11 @@ public class EVTask implements DataListener {
             planLevelOfEffort = EVSchedule.getXMLNum(e, "loe");
         if (e.hasAttribute("ord"))
             taskOrdinal = (int) EVSchedule.getXMLNum(e, "ord");
+        if (e.hasAttribute("prune"))
+            pruningFlag = (int) EVSchedule.getXMLNum(e, "prune");
+
         planTimeEditable = planTimeNull = planTimeUndefined = false;
+        actualPreTime = 0;
 
         NodeList subTasks = e.getChildNodes();
         int len = subTasks.getLength();
@@ -409,43 +426,65 @@ public class EVTask implements DataListener {
     }
 
 
-    private void loadLeafOrdinal() {
+    private void loadStructuralData() {
         SimpleData d = getValue(TASK_ORDINAL_PREFIX + taskListName);
         if (d instanceof NumberData)
             taskOrdinal = savedTaskOrdinal = ((NumberData) d).getInteger();
+
+        d = getValue(TASK_PRUNING_PREFIX + taskListName);
+        if (d instanceof NumberData)
+            pruningFlag = savedPruningFlag = ((NumberData) d).getInteger();
     }
 
     /** Save any structural data about this node to the repository.
      */
-    void saveData(String newTaskListName) {
-        if (fullName != null && fullName.length() > 0) {
-            String oldDataName = null;
-            if (savedTaskOrdinal != INFER_FROM_CONTEXT)
-                oldDataName = TASK_ORDINAL_PREFIX + taskListName;
+    void saveStructuralData(String newTaskListName) {
 
-            if (newTaskListName != null && taskOrdinal != INFER_FROM_CONTEXT &&
-                taskOrdinal != ANCESTOR_PRUNED) {
-                String newDataName = TASK_ORDINAL_PREFIX + newTaskListName;
-                if (newDataName.equals(oldDataName)) oldDataName = null;
-                if (taskOrdinal != savedTaskOrdinal || oldDataName != null) {
-                    SimpleData d = new DoubleData(taskOrdinal, false);
-                    String dataName = data.createDataName(fullName, newDataName);
-                    data.putValue(dataName, d);
-                }
-            }
+        saveDataElement(taskListName, newTaskListName, TASK_ORDINAL_PREFIX,
+            savedTaskOrdinal, taskOrdinal, INFER_FROM_CONTEXT);
 
-            if (oldDataName != null) {
-                String dataName = data.createDataName(fullName, oldDataName);
-                data.putValue(dataName, null);
-            }
-        }
+        int effectivePruningFlag = pruningFlag;
+        if (effectivePruningFlag == ANCESTOR_PRUNED)
+            effectivePruningFlag = INFER_FROM_CONTEXT;
+        saveDataElement(taskListName, newTaskListName, TASK_PRUNING_PREFIX,
+            savedPruningFlag, effectivePruningFlag, INFER_FROM_CONTEXT);
 
         taskListName = newTaskListName;
         savedTaskOrdinal = taskOrdinal;
+        savedPruningFlag = effectivePruningFlag;
 
         for (int i = 0;   i < getNumChildren();   i++)
-            getChild(i).saveData(newTaskListName);
+            getChild(i).saveStructuralData(newTaskListName);
     }
+
+
+
+    private void saveDataElement(String oldTaskListName,
+        String newTaskListName, String dataNamePrefix, int savedValue,
+        int newValue, int defaultValue)
+    {
+        if (fullName == null || fullName.length() == 0) return;
+
+        String oldDataName = null;
+        if (savedValue != defaultValue)
+            oldDataName = dataNamePrefix + oldTaskListName;
+
+        if (newTaskListName != null && newValue != defaultValue) {
+            String newDataName = dataNamePrefix + newTaskListName;
+            if (newDataName.equals(oldDataName)) oldDataName = null;
+            if (newValue != savedValue || oldDataName != null) {
+                SimpleData d = new DoubleData(newValue, false);
+                String dataName = data.createDataName(fullName, newDataName);
+                data.putValue(dataName, d);
+            }
+        }
+
+        if (oldDataName != null) {
+            String dataName = data.createDataName(fullName, oldDataName);
+            data.putValue(dataName, null);
+        }
+    }
+
 
     protected void setActualDate(SimpleData date) {
         if (date instanceof DateData) {
@@ -735,7 +774,7 @@ public class EVTask implements DataListener {
         schedule.getMetrics().recalcComplete(schedule);
         schedule.firePreparedEvents();
     }
-*/
+
     public void simpleRecalc(EVSchedule schedule) {
         recalcPlanTimes();
         recalcPlanCumTime(0.0);
@@ -745,7 +784,6 @@ public class EVTask implements DataListener {
 //      checkForScheduleErrors(schedule.getMetrics(), schedule);
     }
 
-/*
     public Date getTestingEffDate() {
         String setting = Settings.getVal("ev.effectiveDate");
         if (setting == null) return null;
@@ -783,6 +821,7 @@ public class EVTask implements DataListener {
         return bottomUpPlanTime;
     }
 
+/*
     public double recalcPlanCumTime(double prevCumTime) {
         if (isLeaf())
             // for leaves, add our plan time to the total.
@@ -803,7 +842,6 @@ public class EVTask implements DataListener {
         return cumPlanValue;
     }
 
-/*
     public double recalcActualTimes() {
         actualTime = actualNodeTime;
         if (!isLeaf()) {
@@ -813,7 +851,6 @@ public class EVTask implements DataListener {
         }
         return actualTime;
     }
-*/
 
     public void recalcPlanValue() {
 
@@ -832,6 +869,7 @@ public class EVTask implements DataListener {
             }
         }
     }
+*/
 
     public void recalcDateCompleted() {
         if (isLeaf()) return;
@@ -1035,14 +1073,19 @@ public class EVTask implements DataListener {
             .append("' at='").append(actualTime);
         if (planTime != planValue)
             result.append("' ptt='").append(planTime);
+        if (actualTime != actualDirectTime)
+            result.append("' adt='").append(actualDirectTime);
         if (planDate != null)
             result.append("' pd='").append(EVSchedule.saveDate(planDate));
         if (dateCompleted != null)
             result.append("' cd='").append(EVSchedule.saveDate(dateCompleted));
         if (isLevelOfEffortTask())
             result.append("' loe='").append(planLevelOfEffort);
-        if (taskOrdinal != -1)
+        if (taskOrdinal != INFER_FROM_CONTEXT)
             result.append("' ord='").append(taskOrdinal);
+        if (pruningFlag != INFER_FROM_CONTEXT &&
+            pruningFlag != ANCESTOR_PRUNED)
+            result.append("' prune='").append(pruningFlag);
 
         if (isLeaf())
             result.append("'/>");
@@ -1076,7 +1119,7 @@ public class EVTask implements DataListener {
     }
 
     public boolean isUserPruned() {
-        return (taskOrdinal == USER_PRUNED || taskOrdinal == ANCESTOR_PRUNED);
+        return (pruningFlag == USER_PRUNED || pruningFlag == ANCESTOR_PRUNED);
     }
     protected boolean isTotallyPruned() {
         return (isUserPruned() && planValue == 0);
@@ -1084,9 +1127,9 @@ public class EVTask implements DataListener {
 
     public void setUserPruned(boolean prune) {
         if (prune)
-            taskOrdinal = USER_PRUNED;
-        else if (taskOrdinal == USER_PRUNED || taskOrdinal == ANCESTOR_PRUNED)
-            taskOrdinal = 1; // fixme - we need to assign this a value that places it in the right place in the task order.
+            pruningFlag = USER_PRUNED;
+        else if (pruningFlag == USER_PRUNED || pruningFlag == ANCESTOR_PRUNED)
+            pruningFlag = USER_UNPRUNED;
     }
 
     public EVTask getTaskForPath(String fullPath) {

@@ -150,7 +150,7 @@ public class EVTaskListData extends EVTaskList
             data.removeValue((String) i.next());
 
         // allow our tasks to do the same thing.
-        r.saveData(newName);
+        r.saveStructuralData(newName);
     }
 
     public void hierarchyChanged(PSPProperties.Event e) {
