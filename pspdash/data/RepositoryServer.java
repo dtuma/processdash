@@ -33,6 +33,7 @@ import java.util.Vector;
 
 public class RepositoryServer extends Thread {
 
+    int port = 2467;
     DataRepository data = null;
     ServerSocket serverSocket = null;
     Vector serverThreads = new Vector();
@@ -90,64 +91,69 @@ public class RepositoryServer extends Thread {
         }
 
         private void printError(Exception e) {
-            System.err.println("Exception: " + e);
-            e.printStackTrace(System.err);
+            if (threadIsRunning) {
+                System.err.println("Exception: " + e);
+                e.printStackTrace(System.err);
+            }
         }
 
+        private volatile boolean threadIsRunning = true;
+
         public void run() {
-            boolean running = true;
             String methodName = null;
             String dataName = null;
             String value = null;
             String prefix = null;
 
-            while (running) try {
+            while (threadIsRunning) try {
                 // debug("reading from socket...");
                 try {
                     methodName = in.readLine();
                 } catch (SocketException se) {
-                    System.err.println ("socket error, dying...");
-                    printError (se);
-                    running = false;
+                    if (threadIsRunning) {
+                        System.err.println ("socket error, dying...");
+                        printError (se);
+                    }
+                    threadIsRunning = false;
                 }
                 // debug("method is "+methodName);
 
                                         // quit
                 if (methodName == null || methodName.equals("quit"))
-                    running = false;
+                    threadIsRunning = false;
 
                                           // putValue
                 else if (methodName.equals("putValue")) {
-                    dataName = in.readLine();	// debug("    arg is "+dataName);
-                    value = in.readLine();	// debug("    arg is "+value);
+                    dataName = in.readLine();     // debug("    arg is "+dataName);
+                    value = in.readLine();        // debug("    arg is "+value);
                     data.putValue(dataName,
                                   ValueFactory.create(null, value, null, null));
                 }
                                         // removeValue
                 else if (methodName.equals("removeValue")) {
-                    dataName = in.readLine();	// debug("    arg is "+dataName);
+                    dataName = in.readLine();     // debug("    arg is "+dataName);
                     data.removeValue(dataName);
                 }
                                         // addDataListener
                 else if (methodName.equals("addDataListener")) {
-                    dataName = in.readLine();	// debug("    arg is "+dataName);
+                    dataName = in.readLine();     // debug("    arg is "+dataName);
                     data.addDataListener(dataName, this);
                 }
                                         // removeDataListener
                 else if (methodName.equals("removeDataListener")) {
-                    dataName = in.readLine();	// debug("    arg is "+dataName);
+                    dataName = in.readLine();     // debug("    arg is "+dataName);
                     data.removeDataListener(dataName, this);
                 }
 
                 else if (methodName.equals("maybeCreateValue")) {
-                    dataName = in.readLine();	// debug("    arg is "+dataName);
-                    value = in.readLine();	// debug("    arg is "+value);
-                    prefix = in.readLine();	// debug("    arg is "+prefix);
+                    dataName = in.readLine();     // debug("    arg is "+dataName);
+                    value = in.readLine();        // debug("    arg is "+value);
+                    prefix = in.readLine();       // debug("    arg is "+prefix);
                     data.maybeCreateValue(dataName, value, prefix);
                 }
 
                 else if (methodName.equals("listDataNames")) {
-                    prefix = in.readLine();	// debug("    arg is "+prefix);
+                    prefix = in.readLine();       // debug("    arg is "+prefix);
                     Vector dataNames = data.listDataNames(prefix);
                     synchronized (out) {
                         out.writeObject(dataNames);
@@ -198,7 +204,8 @@ public class RepositoryServer extends Thread {
         }
 
         public void quit() {
-            stop();
+            threadIsRunning = false;
+            interrupt();
             cleanup();
         }
     }
@@ -209,25 +216,33 @@ public class RepositoryServer extends Thread {
     }
 
     private void printError(Exception e) {
-        System.err.println("Exception: " + e);
-        e.printStackTrace(System.err);
+        if (serverIsRunning) {
+            System.err.println("Exception: " + e);
+            e.printStackTrace(System.err);
+        }
     }
 
     public RepositoryServer(DataRepository r) {
         try {
             data = r;
             // debug("creating serverSocket...");
-            serverSocket = new ServerSocket(2467);
+            serverSocket = new ServerSocket(port);
             // debug("done.");
         } catch (IOException e) { printError(e); }
     }
+
+    public int getPort() {
+        return port;
+    }
+
+    private volatile boolean serverIsRunning = true;
 
     public void run() {
         Socket clientSocket = null;
 
         if (serverSocket == null) return;
 
-        while (true) try {
+        while (serverIsRunning) try {
             // debug("accepting...");
             clientSocket = serverSocket.accept();
             // debug("got a connection.");
@@ -254,11 +269,11 @@ public class RepositoryServer extends Thread {
     }
 
     public synchronized void quit() {
-        stop();
+        serverIsRunning = false;
+        interrupt();
 
         for (int i = serverThreads.size();   i-- > 0; )
-            ((RepositoryServerThread) serverThreads.elementAt(i)).stop();
+            ((RepositoryServerThread) serverThreads.elementAt(i)).quit();
     }
 
 }
-
