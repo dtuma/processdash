@@ -14,6 +14,10 @@ value. You can open the task and schedule tool by selecting the
 &quot;Task &amp; Schedule&quot; option on the
 <a href="../Execution/ConfigureMenu.html">configure menu</a>.</P>
 
+<p>For more guidance in creating an earned value schedule, see the
+<a href="TaskScheduleSteps.html">Creating a schedule step by step</a>
+help topic.</p>
+
 <P>If you haven't created any schedules, the dashboard will immediately
 jump to the Create New Schedule dialog which will allow you to create one. 
 If you have already created at least one schedule, a Task &amp; Schedule
@@ -34,8 +38,8 @@ you want to add to the schedule.</p>
 <p><center><img src="../../Images/AddTaskToSchedule.png"></center></p>
 
 <p>All the tasks that are to be tracked within the schedule must come from 
-the project hierarchy defined using the <a 
-href="UsingHierarchyEditor.html">Hierarchy Editor</a>.  You can track 
+the project hierarchy defined using the 
+<a href="UsingHierarchyEditor.html">Hierarchy Editor</a>.  You can track 
 progress against PSP projects, projects you have made using custom process 
 scripts or add-on process sets, or even against just a hierarchy of task 
 names that are not associated with a particular process in the dashboard.  
@@ -61,8 +65,12 @@ the abbreviated heading stands for.</p>
 <P>While this help topic won't get into all the details of earned value 
 tracking, briefly here are the items that are shown in the upper window:</p>
 
-<p><b>Planned Time (PT):</b> This is the amount of time you have planned for 
-the given task.</p>
+<p><b>Planned Time (PT):</b> This is the amount of time you have
+planned for the given task.  Generally this will be displayed in hours
+and minutes.  However, if this field is editable, you can enter a
+percentage instead of a duration to mark this task as a 
+&quot;<a href="TaskScheduleSteps.html#loe">level of effort</a>&quot;
+task.</p>
 
 <p><b>Time</b> This is the actual amount of time spent on a given task.</p>
 
@@ -75,7 +83,7 @@ half of the Task &amp; Schedule tool to determine an ending date.</p>
 
 <p><b>Date:</b> This is the actual completion date.  It will be filled in 
 automatically when you mark the task complete via the <a 
-href="../Execution/CompletionButton.html">Completion Button</a></p>
+href="../Execution/CompletionButton.html">Completion Button</a>.</p>
 
 <p><b>Percent Complete (%C):</b> This is the percent complete for the
 current task.  Many people are accustomed to informally estimating
@@ -107,7 +115,9 @@ this task has earned.  <i>Remember that earned value measures are not counted
 until the task is marked as complete.</i></p>
 
 
-<p><b>Note:</b> The columns listed above are sufficient for most
+<table border cellpadding="10px"><tr><td>
+
+<b>Note:</b> The columns listed above are sufficient for most
 simple planning.  As a result, the task list will usually only display
 the columns listed above.  For advanced planning, however, some
 additional information must also be displayed.  Therefore, the
@@ -152,6 +162,7 @@ task to date, no matter when that time was spent.  In contrast, the
 &quot;Actual Direct Time&quot; column displays the amount of effort
 you have spent as part of <u>this schedule</u>.</p>
 
+</td></tr></table>
 
 
 <h2>Columns in the Schedule List</h2>
@@ -169,7 +180,7 @@ to using time periods of one week in length, but you can edit the To
 field to create time periods of any length (e.g. months, days, or even
 hours).</p>
 
-<p><b>Planned Direct Time (PT):</b> This is the amount of time that will be 
+<p><b>Planned Time (PT):</b> This is the amount of time that will be 
 applied to the tasks in the task list during the calendar time period 
 selected by the From and To fields.  It defaults to 20 hours, but can be set 
 to whatever number you think is accurate for the amount of time you will 
@@ -184,8 +195,8 @@ Time of the given time period, plus the times of all previous periods.</p>
 <p><b>Cumulative Planned Value (CPV):</b> This shows cumulatively the amount 
 of earned value that is planned for the given time period.</p>
 
-<p><b>Actual Direct Time (Time):</b> This shows the actual amount of direct 
-time spent on the tasks in the schedule during the given time period.</p>
+<p><b>Actual Time (Time):</b> This shows the actual amount of time
+spent on the tasks in the schedule during the given time period.</p>
 
 <p><b>Cumulative Actual Direct Time (CT):</b> This shows the actual amount of 
 direct time spent on task during the given time period cumulatively.</p>
@@ -193,166 +204,31 @@ direct time spent on task during the given time period cumulatively.</p>
 <p><b>Actual Cumulative Earned Value (EV):</b> This shows the amount of earned 
 value actually earned during the given time period cumulatively.</p>
 
+<table border cellpadding="10px"><tr><td>
 
-<h1>Creating a schedule step by step</h1>
+<b>Note:</b> The columns listed above are sufficient for most
+simple planning.  As a result, the schedule list will usually only
+display the columns listed above.  However, if your task list contains
+any &quot;level of effort&quot; tasks, then &quot;time&quot; and
+&quot;direct time&quot; will no longer be the same.  As a result, the
+following columns will automatically appear:</p>
 
-<p>The Task &amp; Schedule tool tries to make entering all the data necessary 
-for project planning and tracking as painless as possible.  It fills in many 
-of the columns automatically. The following discussion will show how to 
-create a schedule step by step.</p>
+<p><b>Planned Direct Time (PDT):</b> The first column, labeled
+&quot;PT,&quot; will display the total amount of time you plan to
+spend during this period on <i>ALL</i> tasks in the task list; this
+column, however, will show how much time is available after
+subtracting time for &quot;level of effort&quot; tasks.</p>
 
-<h2>Step 1: Add tasks to the task list</h2>
+<p><b>Percent Indirect Time (%I):</b> This shows the percentage of your
+total actual time that you spent on &quot;level of effort&quot; tasks.</p>
 
-<p>To create a schedule, you decide what tasks you want included in the 
-schedule, and add them with the Add Task button. You can add any node in 
-your hierarchy to the task list; it will be added, along with all its 
-children, recursively. As an improvement over the traditional task planning 
-template, the dashboard displays your task list in a hierarchical fashion. 
-You can expand and contract this hierarchical view to get coarser- or 
-finer-grained data. </p>
+<p><b>Actual Direct Time (DTime):</b> The &quot;Time&quot; column will
+display the total amount of time you actually spent on <i>ALL</i>
+tasks in the task list.  This column, however, will subtract out time
+spent on &quot;level of effort&quot; tasks to show how much time you
+spent on tasks that earn value.</p>
 
-<h3>The relationship between the Hierarchy Editor and the Task &amp; Schedule 
-tool</h3>
-
-<p>It is also worth pointing out that if you edit your hierarchy in the 
-future (using the <a href="UsingHierarchyEditor.html">hierarchy editor</a>), 
-your changes will automatically propagate into affected task lists. For 
-example, if you add a node named "Release 3.0" to a task list, then in the 
-future if you were to create/delete subtasks underneath "Release 3.0", they 
-would automatically appear in the task list / disappear from the task 
-list.</p>
-
-<p>Changes made in the hierarchy automatically get reflected into the 
-schedule, because the schedule is basically a listing of the tasks/projects 
-in the dashboard.  However, if you remove a task in the Task &amp; Schedule 
-tool, it does <i>NOT</i> get removed from the task hierarchy of the process 
-dashboard (as defined using the <a href="UsingHierarchyEditor">Hierarchy 
-Editor</a>).  All you will have done is removed the task from the schedule, 
-not deleted it entirely from the dashboard.  Deletion of tasks or projects 
-from the dashboard itself must be done from the <a 
-href="UsingHierarchyEditor.html">Hierarchy Editor</a>.</p> 
-
-<h3>Editing the task list</h3>
-
-<p>Once you have added tasks to the task list, you can use the Remove
-Task button to remove them.  If you remove a <U>top-level</U> task, it
-will be removed from the task list entirely.  (Top-level tasks are the
-tasks that you explicitly added using the Add Task button; in the task
-list, they appear as immediate children of the root of the tree.)  If
-you remove a <u>child</u> of a top-level task, it will be
-&quot;pruned&quot; out of the task list hierarchy, along with all of
-its children.  You can highlight any pruned task (including children
-of a pruned task) and click the Restore Task button to add it back to
-the task list.</p>
-
-<p>The planned completion dates displayed in the task list are based
-upon the order you plan to complete the tasks.  It is unlikely that
-you plan to complete the tasks in the order they appear in the
-hierarchy.  Therefore, there are two ways to indicate the planned
-order of tasks.  First, you can change the relative order of top-level
-tasks by highlighting them and using the Move Task Up/Down buttons.
-For more fine-grained control, check the Flat View checkbox.  This
-will replace the hierarchical view of the task list with a flat view
-of the &quot;leaf&quot; tasks that have not yet been completed.  You
-can then use the Move Task Up/Down buttons to reorder these tasks.
-You should generally try to put the tasks in chronological order (the
-first task in the list should be the one you plan to work on first,
-and so on).</p>
-
-<H2>Step 2: Estimate task time </H2>
-
-<P>Once tasks are added to the task list, the dashboard will look up 
-information like the planned time, actual time, etc. from the appropriate 
-Project Plan Summary forms (if applicable), and display it in the 
-appropriate boxes. You can click on any value with a yellow background and 
-edit it, and the change will appear immediately on the associated Project 
-Plan Summary form.  Similarly, if you edit one of these values on a Project 
-Plan Summary form, the new value will automatically appear here in the task 
-list.</P> 
-
-
-<H2>Step 3: Estimate calendar time</H2>
-
-<P>To generate a schedule, the dashboard needs to know how much time you plan 
-to spend working on these tasks, and when you plan to spend it. This 
-information is displayed in the bottom portion of the window. Each row in the 
-table represents a time period. These time periods are consecutive; each time 
-period begins when the previous time period ends.</P> 
-
-<P>Think about how much time you have available to work on the tasks listed 
-in your task list. Describe a time period by entering the dates it will start 
-and stop, and in the "PT" (Planned Time) column enter the number of hours you 
-think you can spend during that time period.</P> 
-
-<P>Most of the time people have fairly predictable schedules - for example, 
-you might say "I'm going to spend 20 hours a week on this until it gets 
-done." Since this is the most common situation, the schedule will, by 
-default, grow automatically to meet the demand. You don't have to manually 
-add rows to your schedule until there are enough hours to cover the tasks - 
-instead, the schedule template will automatically duplicate the final row in 
-the table until there are enough hours. You can easily see where the 
-automatic portion of the schedule starts because the automatic rows are 
-displayed with a medium gray font. Thus, the black rows in the schedule 
-template are rows that you have manually created/edited, and the gray rows 
-are the ones which have been automatically added to meet the time 
-requirements.</p>
-
-<p><center><img src="../../Images/TaskScheduleTimes.png"></center></p>
-
-<p><A NAME="shortSchedule"></A>You can disable this automatic schedule 
-expansion simply by making the final manual row in your schedule contain zero 
-planned hours.  The dashboard recognizes that infinite duplications of the 
-"zero" row will not help you get any more hours, so it leaves the schedule 
-short and assigns some of your tasks the planned completion date of 
-"never".</p> 
-
-<P>As in the task list, editable cells have a yellow background.  Since time 
-periods are contiguous, editing the "To" value on one row will cause the 
-"From" value on the following row to change accordingly.  Similarly, editing 
-the "From" value on one row will cause the "To" value on the previous row to 
-change. If you make changes to the last black row (which is used as a 
-template and copied to make all the subsequent gray rows), all of the gray 
-rows will be regenerated accordingly. If you edit a value in one of the gray 
-rows, it (and all of the rows before it) will become "real", and the row in 
-question will become the new "template row" upon which subsequent gray rows 
-will be based.</P>
-
-<P>If you need to extend the schedule past its optimal completion date, click 
-the Add Row button to create a new row at the bottom of your schedule. The 
-Insert Row button will split the currently selected time period into two 
-separate rows, while the Delete Row will merge the currently selected time 
-period with the one that follows it. Note that it isn't possible to delete 
-an automatically generated row. If you want to to force your schedule to 
-end early, you should do so by entering 0 planned hours for the final time 
-period, as described <A HREF="#shortSchedule">above</A>.</P> 
-
-<a name="progress"></a><H2>Step 4: Track your progress</H2>
-
-<P>With the list of tasks and the calendar of available time in place, the 
-dashboard will calculate planned completion dates for each task. As you work, 
-you should:</P>
-
-<UL>
- <LI>Accurately log time against tasks using the <A 
-   HREF="../Execution/PlayPause.html">Play/Pause button</A> and the <A 
-   HREF="../Execution/UsingTimeLogEditor.html">Time Log Editor</A>. Time 
-   logged against tasks in your task list will appear in the Actual Time
-   columns of the task list and schedule list.</LI>
- <LI>Mark tasks complete using the <A 
-   HREF="../Execution/CompletionButton.html">Completion Checkbox</A>. When 
-   tasks are marked complete, the completion date will appear in the task 
-   list, and you will earn the planned value for that task.</LI>
-</UL>
-
-<P></a>While your project is in progress, you can click on the "Chart" button 
-for access to earned value charts and numerical analyses:</P>
-
-<p><center><img src="../../Images/TaskChartValue.png"></center></P>
-
-<P><center><img src="../../Images/TaskChartStats.png"></center></p>
-
-<P>If you prefer, you can view this information in HTML, and even export it 
-Excel, by clicking the Report button.</p>
+</td></tr></table>
 
 <H2>The Save Button</H2>
 
@@ -391,8 +267,8 @@ from adding one task to multiple different schedules.</P>
 should always add up in a hierarchical manner; that is, the planned time for 
 a parent node should always be equal to the sum of the planned times for all 
 its children. This is almost always the case for the PSP processes that come 
-with the dashboard. However, if you have <A 
-HREF="EnteringData.html#unlock">unlocked</A> your data and overwritten 
+with the dashboard. However, if you have
+<A HREF="EnteringData.html#unlock">unlocked</A> your data and overwritten 
 calculations, times may no longer sum up correctly.  This problem can also
 occur if you are using plain hierarchy "nodes" to describe tasks, and you
 subdivide a node after estimating its time.  When this occurs, the 

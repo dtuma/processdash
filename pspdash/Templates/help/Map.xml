@@ -121,6 +121,8 @@
   <mapID target="UnlockReadOnly" url="Topics/Planning/EnteringData.html#unlock"/>
   <mapID target="ExportingFromForms" url="Topics/Planning/EnteringData.html#exporting"/>
   <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
+  <mapID target="TaskScheduleSteps" url="Topics/Planning/TaskScheduleSteps.html" />
+  <mapID target="TaskScheduleSteps.loe" url="Topics/Planning/TaskScheduleSteps.html#loe" />
   <mapID target="TaskScheduleCollaboration" url="Topics/Planning/TaskScheduleCollaboration.html" />
   <mapID target="TaskScheduleCollaboration.publishPassword" url="Topics/Planning/TaskScheduleCollaboration.html#publishPassword" />
   <mapID target="TaskScheduleCollaboration.publishFinish" url="Topics/Planning/TaskScheduleCollaboration.html#publishFinish" />
