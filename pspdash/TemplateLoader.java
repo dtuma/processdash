@@ -100,6 +100,43 @@ public class TemplateLoader {
         return templates;
     }
 
+    static void addTemplateJar(DataRepository data,
+                               PSPProperties templates,
+                               String jarfileName,
+                               AutoUpdateManager aum) {
+        try {
+            // compute the "template url" of the jarfile.
+            File jarfile = new File(jarfileName);
+            String jarURL = jarfile.toURL().toString();
+            URL jarfileTemplateURL = jarfileTemplateURL(jarURL);
+
+            // if the jar url is already in the list of template urls,
+            // then nothing needs to be done.
+            for (int i = template_url_list.length;   i-- > 0; )
+                if (jarfileTemplateURL.equals(template_url_list[i]))
+                    return;
+
+            // find and process templates in the jarfile.
+            if (searchJarForTemplates(templates, jarURL, data, aum)) {
+
+                // add applicable rollup templates. (This will regenerate
+                // other rollup templates, but that shouldn't hurt anything.)
+                generateRollupTemplates(templates, data);
+
+                // recreate the process root.
+                createProcessRoot(templates);
+            }
+
+            // insert the new url at the beginning of the template list.
+            List l = Arrays.asList(template_url_list);
+            l.add(0, jarURL);
+            template_url_list = urlListToArray(l);
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
 
     /** Dynamically create templates for any orphaned data rollups.
      */
@@ -352,16 +389,18 @@ public class TemplateLoader {
                                ioe);
         }
 
-        int i = result.size();
-        URL[] roots = new URL[i];
-        debug("The template roots (in reverse order) are:");
+        template_url_list = urlListToArray(result);
+        return template_url_list;
+    }
+    private static URL[] urlListToArray(List list) {
+        int i = list.size();
+        URL[] result = new URL[i];
+        debug("The template result (in reverse order) are:");
         while (i-- > 0) {
-            roots[i] = (URL) result.elementAt(i);
-            debug(roots[i].toString());
+            result[i] = (URL) list.get(i);
+            debug(result[i].toString());
         }
-
-        template_url_list = roots;
-        return roots;
+        return result;
     }
     private static URL[] template_url_list = null;
     private static final String JARFILE_NAME = "pspdash.jar";
@@ -419,9 +458,14 @@ public class TemplateLoader {
             if ((lname.endsWith(".jar") || lname.endsWith(".zip"))) {
                 processTimestamp(dirContents[i]);
                 if (!isDashboardJarfile(dirContents[i]))
-                    v.add(new URL("jar:" + name + "!/" + TEMPLATE_DIR));
+                    v.add(jarfileTemplateURL(name));
             }
         } catch (MalformedURLException mue) {}
+    }
+    private static URL jarfileTemplateURL(String jarfileURL)
+        throws MalformedURLException
+    {
+        return new URL("jar:" + jarfileURL + "!/" + TEMPLATE_DIR);
     }
     /** Figure out what directory contains the pspdash.jar file. */
     private static String getBaseDir() {
