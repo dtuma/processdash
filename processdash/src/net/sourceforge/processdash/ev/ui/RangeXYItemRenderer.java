@@ -74,6 +74,18 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
                          CrosshairInfo crosshairInfo,
                          int pass) {
 
+        // the next two lines "pretend" to invoke the method in the superclass
+        // that we are overriding.  In reality this code vanishes due to the
+        // conditional compilation feature in Java (the FALSE_VALUE_... is
+        // a constant evaluating to false).  However, it must still compile
+        // or we'll get an error;  this error alerts us to the fact that the
+        // signature of the overridden method has changed (and we need to
+        // change to match).
+        if (FALSE_VALUE_FOR_OVERRIDE_CHECK)
+            super.drawItem
+                (g2, state, dataArea, info, plot, domainAxis, rangeAxis,
+                 dataset, series, item, crosshairInfo, pass);
+
         Paint paint = getItemPaint(series, item);
         Stroke seriesStroke = getItemStroke(series, item);
         g2.setPaint(paint);
@@ -130,9 +142,9 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
                     double transY1high = rangeAxis.translateValueToJava2D
                         (y1r.getMaximumRangeValue().doubleValue(),
                          dataArea, yAxisLocation);
-                    drawRange(g2, line, paint, seriesStroke,
-                              transX1, transY1low,
-                              transX1, transY1high);
+                    drawItemRangeGradient(g2, line, paint, seriesStroke,
+                                          transX1, transY1low,
+                                          transX1, transY1high);
 
                 } else if (x1n instanceof RangeInfo) {
                     RangeInfo x1r = (RangeInfo) x1n;
@@ -142,9 +154,9 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
                     double transX1high = domainAxis.translateValueToJava2D
                         (x1r.getMaximumRangeValue().doubleValue(),
                          dataArea, xAxisLocation);
-                    drawRange(g2, line, paint, seriesStroke,
-                              transX1low, transY1,
-                              transX1high, transY1);
+                    drawItemRangeGradient(g2, line, paint, seriesStroke,
+                                          transX1low, transY1,
+                                          transX1high, transY1);
 
                 } else if (line.intersects(dataArea)) {
                     g2.draw(line);
@@ -153,10 +165,10 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
         }
     }
 
-    private void drawRange(Graphics2D g2, Line2D line,
-                           Paint paint, Stroke stroke,
-                           double x2, double y2,
-                           double x3, double y3) {
+    private void drawItemRangeGradient(Graphics2D g2, Line2D line,
+                                       Paint paint, Stroke stroke,
+                                       double x2, double y2,
+                                       double x3, double y3) {
         Line2D edge1, edge2, mainLine;
         Polygon fillArea;
         Stroke mainLineStroke, edgeLineStroke;
@@ -253,4 +265,5 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
         return new Point2D.Double(x1 + dx * fraction, y1 + dy * fraction);
     }
 
+    private static final boolean FALSE_VALUE_FOR_OVERRIDE_CHECK = false;
 }
