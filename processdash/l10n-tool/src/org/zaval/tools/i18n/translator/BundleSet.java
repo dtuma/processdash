@@ -41,11 +41,18 @@
  */
 package org.zaval.tools.i18n.translator;
 
+import java.text.MessageFormat;
 import java.util.*;
+
+import org.zaval.io.PropertiesFile;
 
 class BundleSet
 implements TranslatorConstants
 {
+
+    static final String BROKEN_FORMAT_SUFFIX = "!broken";
+    public static final String FORMAT_SUFFIX = "_FMT";
+    
     private Vector items;
     private Vector lng;
     
@@ -236,5 +243,54 @@ implements TranslatorConstants
         if(j<0) return;
         base = base.substring(0, j) + "_" + lang.getLangId() + base.substring(j);
         lang.setLangFile(base);
+    }
+
+    
+    public Properties getProperties(String lng) {
+        Properties p = new PropertiesFile();
+        for(int j=0;j<getItemCount();++j){
+           BundleItem bi = getItem(j);
+           String value = bi.getTranslation(lng); 
+           if (value!=null && value.trim().length() != 0) {
+               String key = bi.getId();
+               key = maybeAddBrokenSuffix(key, value);
+               p.setProperty(key, value);
+           }
+        }
+        return p;
+    }
+    
+    public void putProperties(String lng, String prefix, Properties p) {
+       Iterator iter = p.entrySet().iterator();
+       while (iter.hasNext()) {
+           Map.Entry element = (Map.Entry) iter.next();
+           String dname = (String) element.getKey();
+           String value = (String) element.getValue();
+           if (prefix != null) 
+               dname = prefix + TranslatorConstants.KEY_SEPARATOR + dname;
+           dname = maybeRemoveBrokenSuffix(dname);
+           addKey(dname);
+           updateValue(dname, lng, value);
+           getItem(dname).setComment(null);
+       }
+    }
+   
+    private String maybeRemoveBrokenSuffix(String dname) {
+        if (dname.endsWith(BROKEN_FORMAT_SUFFIX)) {
+            int len = dname.length() - BROKEN_FORMAT_SUFFIX.length();
+            dname = dname.substring(0, len); 
+        }
+        return dname;
+    }
+    
+    private String maybeAddBrokenSuffix(String key, String val) {
+        if (key.endsWith(FORMAT_SUFFIX))
+            try {
+                new MessageFormat(val);
+            } catch (Exception e) {
+                // the user supplied a broken/invalid message format.
+                key = key + BROKEN_FORMAT_SUFFIX;
+            }
+        return key;
     }
 }

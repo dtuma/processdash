@@ -48,6 +48,7 @@ class LangState
 {
     TextAreaWrap tf;
     boolean hidden = false;
+    boolean ignoreMissing = false;
     IELabel label;
     String name;
     CheckboxMenuItem box;

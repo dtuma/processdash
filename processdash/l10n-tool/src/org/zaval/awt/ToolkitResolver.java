@@ -42,6 +42,7 @@
 package org.zaval.awt;
 
 import java.awt.*;
+import java.net.URL;
 
 public class ToolkitResolver
 implements ImageResolver
@@ -55,11 +56,15 @@ implements ImageResolver
 
    public Image getImage(String str, Component listener)
    {
-      Image i = kit.getImage(str);
+      Image i = null;
       MediaTracker track = new MediaTracker(listener);
       try{
-         track.addImage(i,0);
-         track.waitForID(0);
+         URL u = ToolkitResolver.class.getResource("/org/zaval/images/"+str);
+         if (u != null) {
+            i = kit.getImage(u);
+            track.addImage(i,0);
+            track.waitForID(0);
+         }
       }
       catch(Exception e){
          i = null;
@@ -69,6 +74,12 @@ implements ImageResolver
 
    public Image getImage(String str)
    {
-      return kit.getImage(str);
+       try{
+          URL u = ToolkitResolver.class.getResource("/org/zaval/images/"+str);
+          if (u != null)
+              return kit.getImage(u);
+       } catch (Exception e) {}
+       return null;
    }
+   
 }

@@ -51,6 +51,8 @@ public class SafeResourceBundle
    public static final String START_VAR = "[%";
    public static final String FINISH_VAR = "%]";
 
+   private boolean isDesiredLanguage;
+
    public SafeResourceBundle( String resName, Locale loc)
    {
       try{
@@ -59,12 +61,23 @@ public class SafeResourceBundle
             Locale.setDefault( new Locale( "en", "US" ));
             rb = ResourceBundle.getBundle( resName );
             Locale.setDefault( saved );
+            isDesiredLanguage = true;
          }
-         else rb = ResourceBundle.getBundle( resName, loc );
+         else {
+             rb = ResourceBundle.getBundle( resName, loc );
+             String langFound = rb.getLocale().getLanguage();
+             if (langFound == null || langFound.length() == 0)
+                 langFound = "en";
+             isDesiredLanguage = langFound.equals(loc.getLanguage());
+         }
       }
       catch( Exception e ){
         System.err.println(resName + ": resource not found");
       }
+   }
+   
+   public boolean isDesiredLanguage() {
+       return isDesiredLanguage;
    }
 
    public String getString( String k )

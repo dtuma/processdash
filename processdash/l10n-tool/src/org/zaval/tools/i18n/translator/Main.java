@@ -48,18 +48,30 @@ import org.zaval.util.SafeResourceBundle;
 
 public class Main
 {
+   private static Translator t = null;
+    
    public static void main( String arg[] )
    throws Exception
    {
-      File f = new File(".");
-      String path = f.getAbsolutePath();
-      Translator t = new Translator( path.substring( 0, path.length() - 1 ) +
-         "images/", new SafeResourceBundle("jrc-editor", Locale.getDefault()) );
-      Dimension gdz = Toolkit.getDefaultToolkit().getScreenSize();
-      int optimalX = gdz.width / 4 * 3;
-      int optimalY = gdz.height / 4 * 3;
-      t.move( (gdz.width - optimalX) / 2, (gdz.height - optimalY) / 2 );
-      t.resize( optimalX, optimalY );
-      t.show();
+      if (t == null) {
+          t = new Translator( new SafeResourceBundle(Translator.BUNDLE_NAME, Locale.getDefault()) );
+          Dimension gdz = Toolkit.getDefaultToolkit().getScreenSize();
+          int optimalX = gdz.width / 4 * 3;
+          int optimalY = gdz.height / 4 * 3;
+          t.move( (gdz.width - optimalX) / 2, (gdz.height - optimalY) / 2 );
+          t.resize( optimalX, optimalY );
+          t.show();
+          if (arg.length > 0) {
+              t.clear();
+              t.readResources(arg[0], false);
+          }
+      } else {
+          t.show();
+      }
+   }
+   
+   static void setFilter(Comparator filter) {
+       if (t != null)
+           t.setTranslationNeededTester(filter);
    }
 }

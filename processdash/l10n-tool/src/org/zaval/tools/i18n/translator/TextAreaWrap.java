@@ -107,8 +107,10 @@ public class TextAreaWrap
 
     public TextAreaWrap()
     {
-        flavor = PJAVA;
+        //flavor = PJAVA;
+        flavor = NATIVE;
         String kind = System.getProperty("inputControls");
+        if(kind!=null && kind.equals("java")) flavor = PJAVA;
         if(kind!=null && kind.equals("native")) flavor = NATIVE;
         initControls();
     }
@@ -121,7 +123,7 @@ public class TextAreaWrap
 
     private void initControls()
     {
-        if(flavor==NATIVE) tf2 = new TextArea("", 3, 20, TextArea.SCROLLBARS_NONE);
+        if(flavor==NATIVE) tf2 = new TextArea("", 3, 20, TextArea.SCROLLBARS_VERTICAL_ONLY);
         else tf1 = new EmulatedTextArea( true, false, 3, 20 );
     }
 
@@ -162,5 +164,12 @@ public class TextAreaWrap
         }
         if(getControl().getInputContext()!=null)
             getControl().getInputContext().setCharacterSubsets(usedInputs);
+    }
+
+    public void setEditable(boolean editable) {
+        if (flavor == NATIVE)
+            tf2.setEditable(editable);
+        else
+            tf1.setEditable(editable);
     }
 }

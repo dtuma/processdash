@@ -149,7 +149,10 @@ implements LayoutManager
 
    public void setEnabled(int j, boolean state)
    {
-      Component c = (Component)v.elementAt(j);
+      if (j >= v.size()) return;
+      Object o = v.elementAt(j);
+      if (!(o instanceof Component)) return;
+      Component c = (Component) o;
       if(state) c.enable();
       else c.disable();
    }

@@ -42,16 +42,21 @@
 package org.zaval.tools.i18n.translator;
 
 import java.io.*;
-import java.awt.*;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
-import org.zaval.util.SafeResourceBundle;
+import org.zaval.io.PropertiesFile;
 
 class BundleManager
 implements TranslatorConstants
 {
+   private static final String BASE_PREFIX = "Templates/resources/";
    private BundleSet set;
-
+   private Map prefixes = null;
+   private String dontSaveLang = null;
+   
    BundleManager()
    {
       set = new BundleSet();
@@ -67,6 +72,10 @@ implements TranslatorConstants
    BundleSet getBundle()
    {
     return set;
+   }
+   
+   public void setBaseLang(String lang) {
+       dontSaveLang = lang;
    }
 
    String dirName(String fn)
@@ -116,6 +125,10 @@ implements TranslatorConstants
          File f2 = new File( dir + fs[i] );
          if ( !f2.isDirectory() ) res.addElement( fs[i] );
       }
+      Collections.sort(res);
+      if (baseFileName.equals(Translator.BUNDLE_NAME))
+          res.insertElementAt(baseFileName + RES_EXTENSION, 0);
+          
       return res;
    }
 
@@ -143,6 +156,63 @@ implements TranslatorConstants
    }
 
    private void readResource( String fullName, String lang)
+   throws IOException
+   {
+       set.addLanguage(lang);
+       set.getLanguage(lang).setLangFile(fullName);
+       
+       if (fullName.endsWith(RES_EXTENSION))
+           readPropResource(fullName, lang);
+       else if (fullName.endsWith(ZIP_EXTENSION) || fullName.endsWith(JAR_EXTENSION))
+           readZipResources(fullName, lang);
+       else
+           oldreadResource(fullName, lang);
+   }
+
+   private void readPropResource( String fullName, String lang ) throws IOException {       
+       readPropResource(new FileInputStream(fullName), lang, null);
+   }
+   
+   private void readPropResource( InputStream inStream, String lang, String prefix )
+      throws IOException
+   {
+       Properties p = new Properties();
+       p.load(inStream);
+       
+       set.putProperties(lang, prefix, p);
+   }
+
+   private String pathToPrefix(String fullName) {
+       String cleanedName = dirName(fullName) + purifyFileName(fullName);
+       if (cleanedName.startsWith("/"))
+           cleanedName = cleanedName.substring(1);
+       if (cleanedName.startsWith(BASE_PREFIX))
+           cleanedName = cleanedName.substring(BASE_PREFIX.length());
+       cleanedName = cleanedName.replace
+           ('/', TranslatorConstants.KEY_SEPARATOR);
+       return cleanedName;
+   }
+   
+   private void readZipResources(String fullName, String lang) throws IOException {
+      ZipInputStream zipIn = new ZipInputStream(new FileInputStream(fullName));
+      if (prefixes == null)
+          prefixes = new TreeMap();
+      
+       ZipEntry file;
+       String filename;
+       while ((file = zipIn.getNextEntry()) != null) {           
+           filename = file.getName();
+           if (!filename.toLowerCase().endsWith(RES_EXTENSION))
+               continue;
+           String prefix = pathToPrefix(filename);
+           prefixes.put(prefix, filename);
+           String fileLang = determineLanguage(filename);
+           readPropResource(zipIn, fileLang, prefix);
+       }
+       zipIn.close();
+   }
+
+   private void oldreadResource( String fullName, String lang)
    throws IOException
    {
       Vector lines = getLines( fullName );
@@ -286,13 +356,16 @@ implements TranslatorConstants
       int j, k = set.getLangCount();
       for(j=0;j<k;++j){
          LangItem lang = set.getLanguage(j);
+         if (dontSaveLang != null && dontSaveLang.equals(lang.getLangId()))
+             continue;
+         
          store(lang.getLangId(), fileName);
       }
    }
 
    void store(String lng, String fn)
    throws IOException
-   {
+   {      
       LangItem lang = set.getLanguage(lng);
       if(fn==null) fn = lang.getLangFile();
       else{
@@ -309,14 +382,100 @@ implements TranslatorConstants
          return;
       }
 
-      Vector lines = set.store(lang.getLangId());
-      if ( fn.endsWith( RES_EXTENSION ) ){
-         PrintStream f = new PrintStream(new FileOutputStream(fn));
-         for( int j = 0; j < lines.size(); j++ )
-            f.print( toEscape( (String) lines.elementAt( j ) ) + System.getProperty("line.separator") );
-         f.close();
-      }
-      else{
+      if ( fn.endsWith( RES_EXTENSION ) )
+          storeProperties(fn, lang);
+      else if (fn.endsWith( ZIP_EXTENSION ) || fn.endsWith(JAR_EXTENSION))
+          storeZip(fn, lang);
+      else
+         storeOther(fn, lang);
+   }
+
+   private void storeProperties(String fn, LangItem lang) throws IOException {
+       Properties p = set.getProperties(lang.getLangId());
+
+       FileOutputStream out = new FileOutputStream(fn);
+       storeProperties(out, p);
+       out.close();
+   }
+
+   
+   private void storeProperties(OutputStream out, Properties p) throws IOException {
+       PrintWriter w = new PrintWriter(out);
+       w.println("# Java Resource Bundle");
+       w.println("# Modified by Zaval JRC Editor (C) Zaval CE Group");
+       w.println("# http://www.zaval.org/products/jrc-editor/");
+       w.flush();
+       
+       p.store(out, " ");
+   }
+
+   private void storeZip(String fn, LangItem lang) throws IOException {
+       Properties p = set.getProperties(lang.getLangId());
+       if (p.isEmpty()) {
+           File f = new File (fn);
+           f.delete();
+           return;
+       }
+       
+       ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(fn));
+       storeLangInZip(lang, p, zipOut);
+       zipOut.close();
+   }
+
+   private void storeLangInZip(LangItem lang, Properties p, ZipOutputStream zipOut) throws IOException {
+    Iterator i = prefixes.entrySet().iterator();
+       while (i.hasNext()) {
+          Map.Entry e = (Map.Entry) i.next();
+          String prefix = (String) e.getKey();
+          String filename = (String) e.getValue();
+          Properties filt = filterProperties(p, prefix);
+          if (filt.isEmpty()) continue;
+          filename = dirName(filename) + purifyFileName(filename) + "_" + lang.getLangId() + RES_EXTENSION;
+          if (filename.startsWith("/")) filename = filename.substring(1);
+          zipOut.putNextEntry(new ZipEntry(filename));
+          storeProperties(zipOut, filt);
+          zipOut.closeEntry();
+       }
+   }
+
+   void storeAllInZip(String zipFileName)
+   throws IOException
+   {   
+       ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFileName));  
+
+       int j, k = set.getLangCount();
+       for(j=0;j<k;++j){
+          LangItem lang = set.getLanguage(j);
+          if (dontSaveLang != null && dontSaveLang.equals(lang.getLangId()))
+              continue;
+       
+          Properties p = set.getProperties(lang.getLangId());
+          storeLangInZip(lang, p, zipOut);
+       }
+       zipOut.close();
+   }
+
+
+    private Properties filterProperties(Properties p, String prefix) {
+        prefix = prefix + TranslatorConstants.KEY_SEPARATOR;
+        Properties result = new PropertiesFile();
+        Iterator i = p.entrySet().iterator();
+        while (i.hasNext()) {
+            Map.Entry prop = (Map.Entry) i.next();
+            String name = (String) prop.getKey();
+            if (!name.startsWith(prefix))
+                continue;
+            name = name.substring(prefix.length());
+            String value = (String) prop.getValue();
+            if (value == null || value.trim().length() == 0) 
+                continue;
+            result.setProperty(name, value);
+        }
+        return result;
+    }
+
+    private void storeOther(String fn, LangItem lang) throws FileNotFoundException, IOException {
+        Vector lines = set.store(lang.getLangId());
          FileOutputStream f = new FileOutputStream( fn );
          f.write( 0xFF );
          f.write( 0xFE );
@@ -334,6 +493,6 @@ implements TranslatorConstants
             f.write( 0x00 );
          }
          f.close();
-      }
-   }
+    }
+
 }
