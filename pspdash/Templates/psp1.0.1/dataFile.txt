@@ -40,21 +40,3 @@ undefine([PSP1 Tag], [psp1], [PSP1]);
 [psp1.0.1] == TAG;
 [PSP1.0.1] == TAG;
 [Process_ID] = "PSP1.0.1";
-
-
-/*
- * local copies of To Date data
- */
-
-Design Review/Time To Date==![(#=	/Design Review/Time To Date)]
-Design Review/% Time To Date==![(#=	/Design Review/% Time To Date)]
-Code Review/Time To Date==![(#=	/Code Review/Time To Date)]
-Code Review/% Time To Date==![(#=	/Code Review/% Time To Date)]
-Design Review/Defects Injected To Date==![(#=	/Design Review/Defects Injected To Date)]
-Design Review/% Defects Injected To Date==![(#=	/Design Review/% Defects Injected To Date)]
-Code Review/Defects Injected To Date==![(#=	/Code Review/Defects Injected To Date)]
-Code Review/% Defects Injected To Date==![(#=	/Code Review/% Defects Injected To Date)]
-Design Review/Defects Removed To Date==![(#=	/Design Review/Defects Removed To Date)]
-Design Review/% Defects Removed To Date==![(#=	/Design Review/% Defects Removed To Date)]
-Code Review/Defects Removed To Date==![(#=	/Code Review/Defects Removed To Date)]
-Code Review/% Defects Removed To Date==![(#=	/Code Review/% Defects Removed To Date)]
