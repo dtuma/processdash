@@ -39,9 +39,9 @@ import javax.swing.table.*;
 import javax.swing.event.*;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.ev.ci.*;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.FormatUtil;
 
 import org.w3c.dom.Element;
 
@@ -700,7 +700,7 @@ public class EVMetrics implements TableModel {
         return f.format(new Object[] { formatNumber(number) } );
     }
     public static String formatNumber(double number) {
-        return DoubleData.formatNumber(number);
+        return FormatUtil.formatNumber(number);
     }
 
 

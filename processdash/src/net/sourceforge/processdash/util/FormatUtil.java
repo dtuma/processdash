@@ -26,13 +26,19 @@
 package net.sourceforge.processdash.util;
 
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Date;
+
 
 // TODO: move all reusable formatting/parsing logic into this class
 // (e.g. dates, numbers, percentages, etc.)
 
 public class FormatUtil {
+
+    /*
+     * fields and methods for formatting dates
+     */
 
     private static DateFormat DATE_FORMAT = DateFormat.getDateInstance();
 
@@ -68,6 +74,50 @@ public class FormatUtil {
         } catch (ParseException e) {
             return null;
         }
+    }
+
+
+    /*
+     * fields and methods for formatting decimals
+     */
+
+    public static final int AUTO_DECIMAL = AdaptiveNumberFormat.AUTO_DECIMAL;
+
+    private static AdaptiveNumberFormat NUMBER_FORMAT =
+        new AdaptiveNumberFormat(NumberFormat.getNumberInstance(), 3);
+
+    public static String formatNumber(double value) {
+        return formatNumber(value, AUTO_DECIMAL);
+    }
+
+    public static String formatNumber(double value, int numDecimalPoints) {
+        return NUMBER_FORMAT.format(value, numDecimalPoints);
+    }
+
+    public static double parseNumber(String number) throws ParseException {
+        return NUMBER_FORMAT.parse(number.trim()).doubleValue();
+    }
+
+
+    /*
+     * fields and methods for formatting percentages
+     */
+
+    private static AdaptiveNumberFormat PERCENT_FORMAT =
+        new AdaptiveNumberFormat(NumberFormat.getPercentInstance(), 3);
+
+    public static String formatPercent(double percent) {
+        return formatPercent(percent, AUTO_DECIMAL);
+    }
+    public static String formatPercent(double percent, int digits) {
+        return PERCENT_FORMAT.format(percent, digits);
+    }
+
+    public static double parsePercent(String percent) throws ParseException {
+        try {
+            return PERCENT_FORMAT.parse(percent.trim()).doubleValue();
+        } catch (Exception e) {}
+        return NUMBER_FORMAT.parse(percent.trim()).doubleValue() / 100;
     }
 
 }

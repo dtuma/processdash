@@ -34,7 +34,6 @@ import java.util.Map;
 
 import javax.swing.table.TableModel;
 
-import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
@@ -43,6 +42,7 @@ import net.sourceforge.processdash.log.ui.TimeLogEditor;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -289,7 +289,7 @@ public class EVWeekReport extends TinyCGIBase {
         out.print(actual);
         out.print("</td><td>");
         if (!Double.isInfinite(fraction) && !Double.isNaN(fraction))
-            out.print(DoubleData.formatNumber(fraction));
+            out.print(FormatUtil.formatNumber(fraction));
         else
             out.print("&nbsp;");
         out.println("</td>");
@@ -315,7 +315,7 @@ public class EVWeekReport extends TinyCGIBase {
                   (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
         out.print("</td><td>");
         if (actualTime > 0)
-            out.print(DoubleData.formatNumber(planTime/actualTime));
+            out.print(FormatUtil.formatNumber(planTime/actualTime));
         else
             out.print("&nbsp;");
         out.println("</td></tr>");

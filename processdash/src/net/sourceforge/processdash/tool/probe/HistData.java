@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -39,6 +38,7 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 
@@ -285,6 +285,6 @@ class HistData {
         return Double.isNaN(d) || Double.isInfinite(d);
     }
     public static String formatNumber(double num) {
-        return DoubleData.formatNumber(num);
+        return FormatUtil.formatNumber(num);
     }
 }

@@ -51,7 +51,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.DataCorrelator;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -60,6 +59,7 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.DataComboBox;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
+import net.sourceforge.processdash.util.FormatUtil;
 
 
 public class ProbeDialog extends JFrame implements
@@ -346,10 +346,10 @@ public class ProbeDialog extends JFrame implements
     }
 
     private String format(double value, int numDecimalPoints) {
-        String result = DoubleData.formatNumber(value, numDecimalPoints);
-        if (result.startsWith("#"))
+        if (Double.isInfinite(value) || Double.isNaN(value))
             return notEnoughData;
-        return result;
+        else
+            return FormatUtil.formatNumber(value, numDecimalPoints);
     }
 
     // these variables name elements in the data repository, and

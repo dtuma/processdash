@@ -29,6 +29,7 @@ package net.sourceforge.processdash.data.applet;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.MalformedValueException;
 import net.sourceforge.processdash.data.repository.Repository;
+import net.sourceforge.processdash.util.FormatUtil;
 
 
 public class PercentInterpreter extends DoubleInterpreter {
@@ -38,26 +39,21 @@ public class PercentInterpreter extends DoubleInterpreter {
         super(r, name, numDigits, readOnly);
     }
 
-    public static String getString(double value, int numDigits) {
-        // REFACTOR Move this logic into a shared utility class
-        String result = DoubleData.formatNumber(value * 100.0, numDigits);
-        return (result.startsWith("#") ? result : result + "%");
-    }
-
 
     public String getString() {
         if (value instanceof DoubleData && value.isDefined())
-            return getString(((DoubleData) value).getDouble(), numDigits);
+            return FormatUtil.formatPercent(((DoubleData) value).getDouble(), numDigits);
         else
             return super.getString();
     }
 
+
     public void setString(String s) throws MalformedValueException {
-        // remove final "%" if it is present, then parse as usual.
-        if (s != null) s = s.replace('%', ' ').trim();
-        DoubleData d = new DoubleData(s);
-        d = new DoubleData(d.getDouble() / 100.0);
-        value = d;
+        try {
+            value = new DoubleData(FormatUtil.parsePercent(s.trim()), true);
+        } catch (Exception e) {
+            throw new MalformedValueException();
+        }
     }
 
 }

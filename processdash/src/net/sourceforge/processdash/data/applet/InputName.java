@@ -25,7 +25,7 @@
 
 package net.sourceforge.processdash.data.applet;
 
-import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.util.FormatUtil;
 
 // import netscape.javascript.JSObject;
 
@@ -73,7 +73,7 @@ public class InputName {
             char c = flags.charAt(--pos);
             if ((c <= '9') && (c >= '0')) return (c - '0');
         }
-        return DoubleData.AUTO_DECIMAL;
+        return FormatUtil.AUTO_DECIMAL;
     }
 
     public String toString() {

@@ -30,7 +30,7 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Vector;
 
-import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.util.FormatUtil;
 
 
 
@@ -316,7 +316,7 @@ class Method implements Comparable {
             return "1";
     }
 
-    String formatNumber(double num) { return DoubleData.formatNumber(num); }
+    String formatNumber(double num) { return FormatUtil.formatNumber(num); }
     boolean badDouble(double d) {
         return Double.isNaN(d) || Double.isInfinite(d);
     }

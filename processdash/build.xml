@@ -430,6 +430,17 @@ Authors:
   </target>
 
 
+  <target name="check-res">
+    <taskdef name="rescheck"
+        classname="net.sourceforge.processdash.OrphanedResources"
+	classpath="../../misc/workspace/dash-ant/bin"/>
+    <rescheck dir="Templates">
+      <include name="**/*.properties"/>
+      <exclude name="resources/LookAndFeelSettings_*.properties"/>
+      <exclude name="resources/Translator_*.properties"/>
+    </rescheck>
+  </target>
+
   <!-- =================================================================== -->
   <!-- Cleans everything                                                   -->
   <!-- =================================================================== -->

@@ -25,7 +25,7 @@
 
 package net.sourceforge.processdash.data;
 
-import java.lang.Math;
+import net.sourceforge.processdash.util.FormatUtil;
 
 
 
@@ -86,61 +86,8 @@ public class DoubleData implements SimpleData, NumberData {
         return result;
     }
 
-    public static final int AUTO_DECIMAL = -1;
-
-    public static final String NAN_STRING = "#VALUE!";
-    public static final String INF_STRING = "#DIV/0!";
-    public static String formatNumber(double value, int numDecimalPoints) {
-        if (Double.isNaN(value))      return NAN_STRING;
-        if (Double.isInfinite(value)) return INF_STRING;
-
-        if (numDecimalPoints == AUTO_DECIMAL)
-            if (value-((int)value) == 0.0 || value <= -100 || value >= 100)
-                numDecimalPoints = 0;
-            else if (value > -10 && value < 10)
-                numDecimalPoints = 2;
-            else
-                numDecimalPoints = 1;
-
-        /*
-         * round off value appropriately. Numbers are rounded away from zero,
-         * to the number of digits specified by numDecimalPoints.
-         */
-        value += (value>=0 ? 0.5 : -0.5) * Math.pow(0.1, numDecimalPoints);
-
-        if (numDecimalPoints == 0)
-            return Integer.toString((int)value);
-
-                                  // First, calculate the fractional part of
-                                  // the value, and make a string from it.
-        StringBuffer fraction =
-            new StringBuffer(Integer.toString
-                             ((int)(Math.abs(value - (int)value) *
-                                    Math.pow(10.0, numDecimalPoints))));
-
-                                  // pad the front of the string with the
-                                  // appropriate number of zeros.
-        int numPadZeros = numDecimalPoints - fraction.length();
-        while (numPadZeros-- > 0)
-            fraction.insert(0, '0');
-
-                                // if the value ends with several zeros, they
-                                // are unnecessary, and can be removed.
-        int length = fraction.length();
-        while (length > 1 && (fraction.charAt(length-1) == '0'))
-            fraction.setLength(--length);
-
-        StringBuffer result = new StringBuffer();
-        if (value < 0.0) {
-            result.append("-");
-            value = value * -1.0;
-        }
-        result.append((int) value).append(".").append(fraction.toString());
-        return result.toString();
-    }
-
     public String formatNumber(int numDecimalPoints) {
-        return formatNumber(getDouble(), numDecimalPoints);
+        return FormatUtil.formatNumber(getDouble(), numDecimalPoints);
     }
 
     public String toString() {
@@ -148,11 +95,7 @@ public class DoubleData implements SimpleData, NumberData {
     }
 
     public String format() {
-        return formatNumber(getDouble());
-    }
-
-    public static String formatNumber(double value) {
-        return formatNumber(value, AUTO_DECIMAL);
+        return FormatUtil.formatNumber(getDouble());
     }
 
     public SimpleData parse(String val) throws MalformedValueException {

@@ -18,4 +18,5 @@ net/sourceforge/processdash/data/repository/RemoteException.java
 net/sourceforge/processdash/data/repository/Repository.java
 net/sourceforge/processdash/util/FormatUtil.java
 net/sourceforge/processdash/util/FlexibleDateFormat.java
+net/sourceforge/processdash/util/AdaptiveNumberFormat.java
 pspdash/Settings.java

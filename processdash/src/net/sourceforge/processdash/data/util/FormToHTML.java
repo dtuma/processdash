@@ -32,6 +32,7 @@ import java.util.Map;
 import net.sourceforge.processdash.data.*;
 import net.sourceforge.processdash.data.applet.*;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -166,9 +167,9 @@ public class FormToHTML {
             int numDigits = inputName.digitFlag();
             double val = ((NumberData) value).getDouble();
             if (inputName.hasFlag('%') || inputName.name.indexOf('%') != -1)
-                result = PercentInterpreter.getString(val, numDigits);
+                result = FormatUtil.formatPercent(val, numDigits);
             else
-                result = DoubleData.formatNumber(val, numDigits);
+                result = FormatUtil.formatNumber(val, numDigits);
         } else if (value != null)
             result = value.format();
         result = HTMLUtils.escapeEntities(result);
