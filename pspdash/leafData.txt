@@ -78,4 +78,12 @@
     [PATH/Appraisal Rate] = 60 * [Size] / [PATH/Time];
 
 #endif // IS_APPRAISAL_PHASE
+
+    [Estimated Size] = ?0;
+    [Size] = ?0;
+    [Size Estimating Error] = ([Size] - [Estimated Size]) / [Estimated Size];
+
+    [Estimated Aggregate Size] = [Estimated Size];
+    [Aggregate Size] = [Size];
+
 #endif // PROCESS_HAS_SIZE
