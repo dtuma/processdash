@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 /** No-op implementation of the LanguageFilter interface.
  */
@@ -118,8 +119,24 @@ public class AbstractLanguageFilter implements LanguageFilter {
         writeOptions(new PrintWriter(out));
     }
     protected void writeOptions(PrintWriter out) {
-        out.println("<p><i>No options available.</i></p>");
+        String[][] options = getOptions();
+        if (options == null)
+            out.println("<p><i>No options available.</i></p>");
+        else {
+            out.println("<table border>");
+            for (int i = 0;   i < options.length;   i++) {
+                String[] option = options[i];
+                if (option == null || option.length != 2) continue;
+                out.print("<tr><td align=center><tt>");
+                out.print(option[0]);
+                out.print("</tt></td>\n<td><i>");
+                out.print(option[1]);
+                out.println("</td></tr>");
+            }
+            out.println("</table>");
+        }
     }
+    protected String[][] getOptions() { return null; }
 
 
 
@@ -168,6 +185,39 @@ public class AbstractLanguageFilter implements LanguageFilter {
 
     protected String[] getCommentStarters() { return null; }
     protected String[] getCommentEnders()   { return null; }
-    protected String[] getFilenameEndings() { return null; }
+    protected String[] getDefaultFilenameEndings() { return null; }
+
+    protected String[] getFilenameEndings() {
+        String className = getClass().getName();
+        if (endsWithIgnoreCase(className, "filter"))
+            className = className.substring(0, className.length() - 6);
+        String settingName = "pspdiff.suffix." + className.toLowerCase();
+        return buildArrayFromUserSetting
+            (settingName, "", getDefaultFilenameEndings());
+    }
+
+
+    protected String[] buildArrayFromUserSetting(String setting,
+                                                 String delimiters,
+                                                 String[] extra) {
+        setting = Settings.getVal(setting);
+        if (setting == null || setting.length() == 0) return extra;
+
+        StringTokenizer tok = new StringTokenizer(setting, delimiters);
+        int count = tok.countTokens() + (extra == null ? 0 : extra.length);
+        String[] result = new String[count];
+
+        // copy user-specified tokens into the result array.
+        count = 0;
+        while (tok.hasMoreTokens())
+            result[count++] = tok.nextToken();
+
+        // copy options in the extra parameter into the result array
+        if (extra != null)
+            for (int i = 0;   i < extra.length;   i++)
+                result[count++] = extra[i];
+
+        return result;
+    }
 
 }

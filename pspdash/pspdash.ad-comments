@@ -166,6 +166,18 @@ probeDialog.onlyCompleted=If this property is set to "true", the probe \
 	dialog box will automatically filter the list of data points so \
 	that it only contains tasks which are marked as completed.
 
+pspdiff.suffix.c=a space-separated list of filename extensions (e.g. \
+	".c .h .java") which signal that a file contains C/Java source code.
+
+pspdiff.suffix.pascal=a space-separated list of filename extensions (e.g. \
+	".pas") which signal that a file contains Pascal source code.
+
+pspdiff.suffix.sh=a space-separated list of filename extensions (e.g. \
+	".pl .sh") which signal that a file contains perl or sh source code.
+
+pspdiff.suffix.sql=a space-separated list of filename extensions (e.g. \
+	".sql .ada") which signal that a file contains SQL or Ada source code.
+
 stateFile=The default location for the user's state file.
 
 templates.directory=The location of the system-wide template files. \
