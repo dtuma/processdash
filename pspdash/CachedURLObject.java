@@ -47,7 +47,7 @@ public class CachedURLObject extends CachedObject {
     public static final String COULD_NOT_CONNECT =
         "Couldn't connect to the remote computer.";
 
-    public static final String OWNER_HEADER_FIELD = "ProcessDash-Owner";
+    public static final String OWNER_HEADER_FIELD = "Dash-Owner-Name";
     public static final String OWNER_ATTR = "Owner";
 
 
