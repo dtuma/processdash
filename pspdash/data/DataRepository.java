@@ -212,8 +212,7 @@ public class DataRepository implements Repository {
                         value = ((DeferredData) value).realize();
                     } catch (ClassCastException e) {
                     } catch (MalformedValueException e) {
-                        printError(e);
-                        value = null;
+                        value = new MalformedData(value.saveString());
                     }
                 }
             }
@@ -776,8 +775,7 @@ public class DataRepository implements Repository {
                 } else
                     putValue(name, v);
             } catch (MalformedValueException e) {
-                printError(e);
-                d.setValue(null);
+                d.setValue(new MalformedData(value));
             }
         }
 
@@ -1177,7 +1175,7 @@ public class DataRepository implements Repository {
                 } catch (MalformedValueException mfe) {
                     System.err.println("Data value for '"+dataPrefix+"/"+name+
                                        "' in file '"+datafilePath+"' is malformed.");
-                    continue;
+                    o = new MalformedData(value);
                 }
                 if (!fileEditable || !dataEditable)
                     if (o != null) o.setEditable(false);
