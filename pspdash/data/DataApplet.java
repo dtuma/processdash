@@ -119,16 +119,16 @@ public class DataApplet extends java.applet.Applet
     public void stop() {
         isRunning = false;
         try {
+            if (mgr != null) {
+                mgr.dispose(false);
+                mgr = null;
+            }
             if (data != null) {
                 debug("data is not null; unregistering listener...");
                 data.removeRepositoryClientListener(this);
                 debug("quitting data...");
                 data.quit();
                 data = null;
-            }
-            if (mgr != null) {
-                mgr.dispose(false);
-                mgr = null;
             }
         } catch (Exception e) { printError(e); }
 
