@@ -46,6 +46,10 @@ public class WorkflowEditor {
         frame.toFront();
     }
 
+    public void hide() {
+        frame.setVisible(false);
+    }
+
 
     private void buildTable() {
         // create the WBSJTable, then set its model to the workflow data model.
