@@ -10,6 +10,14 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableCellRenderer;
 
+/** Default renderer for displaying {@link NumericDataValue}s in a
+ * {@link DataTableModel}.
+ *
+ * This renderer can optionally make numbers invisible.  It can
+ * display numbers in grey if they are read-only.  Finally, it can
+ * display erroneous values in a special color with a descriptive
+ * tooltip.
+ */
 class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
 
     public DataTableCellNumericRenderer() {
@@ -32,27 +40,34 @@ class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
         Color errorColor = null;
 
         if (number != null) {
+            // extract informatio from the NumericDataValue object.
             display = number.isInvisible ? "" : number.toString();
             errorMsg = number.errorMessage;
             errorColor = number.errorColor;
             readOnly = (number.isEditable == false);
         }
 
+        // ask our superclass for an appropriate renderer component.
         Component result = super.getTableCellRendererComponent
             (table, display, isSelected, hasFocus, row, column);
 
+        // change the foreground color for read-only or erroneous values.
         result.setForeground
             (getForegroundColor(errorMsg, errorColor, readOnly));
 
+        // use a bold font for erroneous values.
         Font f = getFont(errorMsg != null, result);
         if (f != null) result.setFont(f);
 
         if (result instanceof JComponent)
+            // set or remove a descriptive tooltip
             ((JComponent) result).setToolTipText(errorMsg);
 
         return result;
     }
 
+    /** Determine the appropriate foreground color based on the conditions
+     * supplied */
     protected Color getForegroundColor(String errorMsg, Color errorColor,
                                        boolean readOnly) {
         if (errorMsg != null)
@@ -62,6 +77,7 @@ class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
     }
 
 
+    /** construct, cache, and return bold and normal fonts */
     protected Font getFont(boolean bold, Component c) {
         if (this.regular == null) {
             Font base = c.getFont();
