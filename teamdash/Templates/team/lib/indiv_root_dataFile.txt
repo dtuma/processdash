@@ -12,7 +12,7 @@
 
 [Indiv_Initials] = "tttt";
 [EXPORT_FILE] = 
-    iff([Team_Directory] == "Enter network directory path", null,
+    iff([Team_Directory] == "Enter network directory path", "",
         [Team_Directory] & [file_sep] & "data" & [file_sep] &
         [Indiv_Initials] & "-data.txt");
 
