@@ -110,7 +110,7 @@ public class TaskScheduleDialog
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
         deletePeriodButton, chartButton, reportButton, closeButton,
-        saveButton, recalcButton, errorButton,
+        saveButton, recalcButton, errorButton, indivChartButton,
         collaborateButton;
     protected JCheckBox flatViewCheckbox;
 
@@ -399,6 +399,17 @@ public class TaskScheduleDialog
         errorButton.setVisible(getErrors() != null);
         box.add(errorButton);
         box.add(Box.createHorizontalStrut(2));
+
+        if (isRollup) {
+            indivChartButton = new JButton
+                (resources.getString("Buttons.Indiv_Chart"));
+            indivChartButton.setEnabled(false);
+            indivChartButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        showIndivChart(); }});
+            box.add(indivChartButton);
+            box.add(Box.createHorizontalStrut(2));
+        }
 
         chartButton = new JButton(resources.getString("Buttons.Chart"));
         chartButton.addActionListener(new ActionListener() {
@@ -1431,7 +1442,7 @@ public class TaskScheduleDialog
 
 
     protected void enableTaskButtons(TreePath selectionPath) {
-        boolean enableDelete = false,
+        boolean enableDelete = false, enableIndiv = false,
             enableUp = false, enableDown = false, isPruned = false;
         int pos = selectedTaskPos(selectionPath, model);
         if (pos != -1) {
@@ -1439,6 +1450,7 @@ public class TaskScheduleDialog
 
             isPruned = false;
             enableDelete = true;
+            enableIndiv  = true;
             enableUp     = (pos > 0);
             enableDown   = (pos < numKids-1);
 
@@ -1458,6 +1470,9 @@ public class TaskScheduleDialog
                  : resources.getString("Buttons.Remove_Task"));
         moveUpButton     .setEnabled(enableUp);
         moveDownButton   .setEnabled(enableDown);
+
+        if (indivChartButton != null)
+            indivChartButton.setEnabled(enableIndiv);
     }
 
     protected void toggleFlatView() {
@@ -1593,7 +1608,17 @@ public class TaskScheduleDialog
             chartDialog.show();
             chartDialog.toFront();
         } else
-            chartDialog = new TaskScheduleChart(this);
+            chartDialog = new TaskScheduleChart(model);
+    }
+
+    public void showIndivChart() {
+        TreePath selectionPath = treeTable.getTree().getSelectionPath();
+        if (selectionPath == null) return;
+        int pos = selectedTaskPos(selectionPath, model);
+        if (pos == -1) return;
+        EVTaskList indivSchedule =
+            ((EVTaskListRollup) model).getSubSchedule(pos);
+        new TaskScheduleChart(indivSchedule);
     }
 
     public static final String CHART_URL = "//reports/ev.class";

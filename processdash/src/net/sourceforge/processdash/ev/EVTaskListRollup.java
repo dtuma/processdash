@@ -138,6 +138,11 @@ public class EVTaskListRollup extends EVTaskList {
         }
     }
 
+    public EVTaskList getSubSchedule(int pos) {
+        if (pos < 0 || pos >= evTaskLists.size()) return null;
+        return (EVTaskList) evTaskLists.get(pos);
+    }
+
     public EVTask createAndAddTask(String path,
                                    DataRepository data,
                                    DashHierarchy hierarchy,

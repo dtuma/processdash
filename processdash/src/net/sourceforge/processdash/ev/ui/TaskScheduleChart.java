@@ -70,12 +70,12 @@ public class TaskScheduleChart extends JFrame
 
     static Resources resources = Resources.getDashBundle("EV.Chart");
 
-    public TaskScheduleChart(TaskScheduleDialog parent) {
-        super(resources.format("Window_Title_FMT", parent.taskListName));
+    public TaskScheduleChart(EVTaskList tl) {
+        super(resources.format("Window_Title_FMT", tl.getDisplayName()));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         setIconImage(DashboardIconFactory.getWindowIconImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        taskList = parent.model;
+        taskList = tl;
         taskList.addRecalcListener(this);
         schedule = taskList.getSchedule();
 

@@ -236,6 +236,10 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
 
+    public String getDisplayName() {
+        return getDisplayName(taskListName);
+    }
+
     public static String getDisplayName(String taskListName) {
         int slashPos = taskListName.lastIndexOf('/');
         if (slashPos == -1)
