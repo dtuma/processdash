@@ -104,10 +104,14 @@ class MethodD extends Method {
             out.print(formatNumber(estimate));
         else
             out.print(formatNumber(estimate/60));
-        out.print("' size='7' onFocus='select_"+purpose+"D();'><tt>" + NBSP);
+        out.print("' size='7'");
+        if (!isOnly)
+            out.print(" onFocus='select_"+purpose+"D();'");
+        out.print("><tt>" + NBSP);
         out.print(("size".equals(purpose)) ? "LOC" : "Hours");
         out.print(NBSP + NBSP + NBSP + "</tt>\n");
-        out.print(StringUtils.findAndReplace(SCRIPT, "PURPOSE", purpose));
+        if (!isOnly)
+            out.print(StringUtils.findAndReplace(SCRIPT, "PURPOSE", purpose));
         printField(out, FLD_BETA0, qual, -1);
         printField(out, FLD_BETA1, qual, -1);
         printField(out, FLD_RANGE, qual, -1);
