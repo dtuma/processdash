@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -34,13 +34,12 @@ import javax.swing.*;
 class BetaVersionSetup {
 
     private static final boolean enable = false;
-    public static final String VERSION = "1.5";
 
     /** Build a submenu containing beta-related options, and add it to
      * <code>menu</code> */
     public static final void addSubmenu(JMenu menu) {
         if (enable) {
-            JMenu betaMenu = new JMenu(VERSION + "-beta");
+            JMenu betaMenu = new JMenu(getVersion() + "-beta");
             menu.add(betaMenu);
 
             // workaround jre 1.3 bug...reference http://developer.java.sun.com/developer/bugParade/bugs/4280243.html
@@ -70,29 +69,33 @@ class BetaVersionSetup {
             // directory.  This will only happen once, the first time
             // this beta version is run.
             File backupDirectory =
-                new File(property_directory, "backup_" + VERSION);
+                new File(property_directory, "backup_" + getVersion());
             if (!backupDirectory.exists() && backupDirectory.mkdir())
                 copyDir(new File(property_directory), backupDirectory);
 
+            String message[] = StringUtils.split
+                (StringUtils.findAndReplace(BETA_WARNING_MESSAGE, "VERSION",
+                                            getVersion()),
+                 "\n");
+
             // display a beta warning message to the user.
-            JOptionPane.showMessageDialog(null, BETA_WARNING_MESSAGE,
-                                          "Beta software",
+            JOptionPane.showMessageDialog(null, message, "Beta software",
                                           JOptionPane.WARNING_MESSAGE);
         }
     }
-    private static final String BULLET = "\u2022 ";
-    private static String[] BETA_WARNING_MESSAGE = {
-        "This is a beta release of the Process Dashboard.",
-        BULLET + " Please be watchful for unusual behavior; if you encounter a",
-        "   bug, please submit a bug report.  (The '"+VERSION+"-beta' menu on the",
-        "   'C' menu contains a shortcut to the bug report form.)",
-        BULLET + " If you use this software with real-world project data, do so",
-        "   with caution and doublecheck the calculations.",
-        BULLET + " Please check the website http://processdash.sourceforge.net,",
-        "   and download the final release of version "+VERSION+" when it becomes",
-        "   available.",
-        "Thank you for your willingness to evaluate this beta release! The",
-        "Process Dashboard development team appreciates your support." };
+    private static final String BULLET = "\u2022  ";
+    private static String BETA_WARNING_MESSAGE =
+        "This is a beta release of the Process Dashboard.\n" +
+        BULLET+"Please be watchful for unusual behavior; if you encounter\n"+
+        "   a bug, please submit a bug report.  (The 'VERSION-beta' menu on\n"+
+        "   the 'C' menu contains a shortcut to the bug report form.)\n"+
+        BULLET+"If you use this software with real-world project data, do\n"+
+        "   so with caution and doublecheck the calculations.\n"+
+        BULLET+"Please check the website http://processdash.sourceforge.net\n"+
+        "   and download the final release of version VERSION when it\n"+
+        "   becomes available.\n"+
+        "Thank you for your willingness to evaluate this beta release! The\n"+
+        "Process Dashboard development team appreciates your support.";
 
 
     /** Copy all the files in a directory.
@@ -129,6 +132,12 @@ class BetaVersionSetup {
             System.err.println("Couldn't copy file '" + srcFile +
                                "' to directory '" + destDir + "'");
         }
+    }
+
+
+
+    private static String getVersion() {
+        return TemplateLoader.getPackageVersion("pspdash");
     }
 
 }

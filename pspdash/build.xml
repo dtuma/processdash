@@ -73,7 +73,7 @@ Authors:
 
   <property environment="env"/>
 
-  <property name="version"    value="1.5.1"/>
+  <property name="version"    value="1.5.2.1"/>
 
   <property name="debug"      value="on"/>
 
@@ -156,6 +156,8 @@ Authors:
       <include name="pspdash/*.java"/>
       <include name="pspdash/data/**/*.java"/>
       <exclude name="pspdash/DashHelpBroker.java"/>
+      <exclude name="pspdash/AbstractLinearConfidenceInterval.java"/>
+      <exclude name="pspdash/LinearRegressionConfidenceInterval.java"/>
       <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ie.txt"/>
@@ -496,8 +498,10 @@ Authors:
     </pathconvert>
     <pathconvert property=".jhfilelist" pathsep=":" dirsep="/">
       <path>
-        <fileset dir="${help}" includes="Topics/**/*.html"
-         excludes="Topics/Overview/disc-eng.html"/>
+        <fileset dir="${help}" includes="Topics/**/*.html">
+	  <exclude name="Topics/Overview/disc-eng.html"/>
+	  <exclude name="Topics/AdvancedTopics/ProcessDefinition/DataFileFunctions.html"/>
+        </fileset>
       </path>
     </pathconvert>
     <echo message="${.jhfilelist}" file="${help}/help.config"/>
@@ -569,20 +573,6 @@ Still missing items:
 
 ============================================================
 From pspdash/GNUmakefile:
-
-SCR_DCR_FILES=Templates/SCR.globalData \
-        Templates/SCR.template \
-        Templates/DCR.template \
-        Templates/Insp.template \
-        Templates/SCR/*.* \
-        Templates/SCRcycle/*.* \
-        Templates/DCR/*.* \
-        Templates/Inspection/*.*
-
-add-on-scripts: build/SCR-DCR.jar
-
-build/SCR-DCR.jar: Templates/SCR/manifest $(SCR_DCR_FILES)
-        $(JAR) cfm build/SCR-DCR.jar Templates/SCR/manifest $(SCR_DCR_FILES)
 
 DISABLED_WARNINGS=directory-index,img-alt,extension-attribute,extension-markup,attribute-delimiter
 
