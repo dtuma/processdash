@@ -93,7 +93,8 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
     private static final String TEXT_FILE_NAME                = "Shortcuts.txt";
 
     /** The name of the XML file that specifies the shortcuts */
-    private static final String SPEC_FILE_NAME                = "shortcutSpec.xml";
+    private static final String SPEC_FILE_NAME_PREFIX         = "shortcutSpec";
+    private static final String SPEC_FILE_NAME_SUFFIX         = ".xml";
 
 
     // ------------------------------------------------------
@@ -110,6 +111,7 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
     private static final String SPEC_ATTRIBUTE_DEFAULT_GROUP  = "defaultName";
     private static final String SPEC_ATTRIBUTE_LOCATION       = "location";
     private static final String SPEC_ATTRIBUTE_NAME           = "name";
+    private static final String SPEC_ATTRIBUTE_ID             = "id";
     private static final String SPEC_ATTRIBUTE_SUBGROUP       = "subgroup";
     private static final String SPEC_ATTRIBUTE_DESCRIPTION    = "description";
     private static final String SPEC_ATTRIBUTE_TARGET         = "target";
@@ -475,20 +477,31 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
  /*--------------------------------------------------------------------------*/
     private void readShortcutSpec () throws Exception
     {
+        spec = null;
+        haveShortcutSpec = false;
+        for (int i = 0;   i < 10;   i++) try {
+            String resourceName = SPEC_FILE_NAME_PREFIX +
+                (i == 0 ? "" : Integer.toString(i)) +
+                SPEC_FILE_NAME_SUFFIX;
+            readShortcutSpec(resourceName);
+        } catch (Exception e) {
+            // no error
+        }
+    }
+    private void readShortcutSpec (String resourceName) throws Exception
+    {
         // open an input stream
         InputStream input = null;
         try
         {
-            input = parent.getResource (SPEC_FILE_NAME);
+            input = parent.getResource (resourceName);
         }
         catch (Exception exception)
         {
-            haveShortcutSpec = false;
             return;
         }
         if (input == null)
         {
-            haveShortcutSpec = false;
             return;
         }
 
@@ -499,11 +512,20 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
         parser.setReader    (new StdXMLReader (input));
 
         // get the data
-        spec = (XMLElement) parser.parse ();
+        XMLElement oneSpec = (XMLElement) parser.parse ();
+        if (oneSpec != null) {
+            haveShortcutSpec = true;
+            if (spec == null)
+                spec = oneSpec;
+            else {
+                Enumeration e = oneSpec.enumerateChildren();
+                while (e.hasMoreElements())
+                    spec.addChild((XMLElement) e.nextElement());
+            }
+        }
 
         // close the stream
         input.close ();
-        haveShortcutSpec = true;
     }
  /*--------------------------------------------------------------------------*/
  /**
@@ -771,8 +793,8 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
  * If the list of selected packs is empty then <code>true</code> is always
  * returnd. The same is true if the <code>packs</code> list is empty.
  *
- * @param     packs  a <code>Vector</code> of <code>String</code>s. Each of
- *                   the strings denotes a pack for which the schortcut
+ * @param     packs  a <code>Vector</code> of <code>XMLElement</code>s. Each of
+ *                   the elements denotes a pack for which the schortcut
  *                   should be created if the pack is actually installed.
  *
  * @return    <code>true</code> if the shortcut is required for at least
@@ -788,7 +810,8 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
     *--------------------------------------------------------------------------*/
     private boolean shortcutRequiredFor (Vector packs)
     {
-        String selected;
+        String selectedName;
+        String selectedID;
         String required;
 
         if (packs.size () == 0)
@@ -798,14 +821,20 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
 
         for (int i = 0; i < idata.selectedPacks.size (); i++)
         {
-            selected = ((Pack)idata.selectedPacks.get (i)).name;
+            selectedName = ((Pack)idata.selectedPacks.get (i)).name;
+            selectedID = ((Pack)idata.selectedPacks.get (i)).id;
 
             for (int k = 0; k < packs.size (); k++)
             {
-                required = (String)((XMLElement)packs.elementAt (k)).getAttribute (SPEC_ATTRIBUTE_NAME, "");
-                if (selected.equals (required))
-                {
-                    return (true);
+                XMLElement element = (XMLElement)packs.elementAt (k);
+                required = element.getAttribute (SPEC_ATTRIBUTE_NAME, "");
+                if (selectedName.equals (required))
+                    return true;
+
+                if (selectedID != null) {
+                    required = element.getAttribute (SPEC_ATTRIBUTE_ID, "");
+                    if (selectedID.equals (required))
+                        return true;
                 }
             }
         }
