@@ -170,7 +170,9 @@ public class DoubleData implements SimpleData, NumberData {
     }
     public boolean test() {
         // should NaN and Infinity count as true values?
-        return (getDouble() != 0.0);
+        return (getDouble() != 0.0 &&
+                !Double.isNaN(value) &&
+                !Double.isInfinite(value));
     }
 
     public SaveableData getEditable(boolean editable) {
