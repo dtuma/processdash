@@ -256,7 +256,10 @@ public class PSPDashboard extends JFrame implements WindowListener {
         webServer.setProps(props);
 
         hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
-        hierarchy.cleanupCompletionFlags();
+        if (Settings.getVal(COMPLETION_FLAG_SETTING) == null) {
+            hierarchy.cleanupCompletionFlags();
+            InternalSettings.set(COMPLETION_FLAG_SETTING, "true");
+        }
 
         ErrorReporter.brokenData.done();
         ErrorReporter.templates.done();
@@ -268,6 +271,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     private static final String BULLET = "\u2022 ";
+    private static final String COMPLETION_FLAG_SETTING =
+        "internal.ranCompletionFlagCleanup";
 
     private void displayCorruptStateFileWarning(String filename,
                                                 Exception e) {
