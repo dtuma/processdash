@@ -33,32 +33,46 @@
 ==
 
 
-=
-= The following elements identify the data in this file as belonging to
-= a PSP0 process. 
-=
+==
+== The following elements identify the data in this file as belonging to
+== a PSP0 process. 
+==
 
 psp0==1.0
 PSP0==1.0
 
 
-=
-= Data Elements to track Time.
-=
+==
+== Data Elements to track Time.
+==
+
+= Estimated Time
 
 Estimated Time=0.0
+
+= Actual Time
+
 Planning/Time==0.0
 Design/Time==0.0
 Code/Time==0.0
 Compile/Time==0.0
 Test/Time==0.0
 Postmortem/Time==0.0
-Time==![(+	~.*/Time)]
+Time==![(+	Planning/Time	Design/Time	Code/Time	Compile/Time	Test/Time	Postmortem/Time)]
+
+= Actual % Time.
+
+Planning/% Time==![(/	Planning/Time	Time)]
+Design/% Time==![(/	Design/Time	Time)]
+Code/% Time==![(/	Code/Time	Time)]
+Compile/% Time==![(/	Compile/Time	Time)]
+Test/% Time==![(/	Test/Time	Time)]
+Postmortem/% Time==![(/	Postmortem/Time	Time)]
 
 
-=
-= Data Elements to track defects injected
-=
+==
+== Data Elements to track defects injected
+==
 
 Before Development/Defects Injected=0.0
 Planning/Defects Injected==0.0
@@ -67,12 +81,12 @@ Code/Defects Injected==0.0
 Compile/Defects Injected==0.0
 Test/Defects Injected==0.0
 Postmortem/Defects Injected==0.0
-Defects Injected==![(+	~.*/Defects Injected)]
+Defects Injected==![(+	Planning/Defects Injected	Design/Defects Injected	Code/Defects Injected	Compile/Defects Injected	Test/Defects Injected	Postmortem/Defects Injected)]
 
 
-=
-= Data Elements to track defects removed
-=
+==
+== Data Elements to track defects removed
+==
 
 Planning/Defects Removed==0.0
 Design/Defects Removed==0.0
@@ -81,4 +95,4 @@ Compile/Defects Removed==0.0
 Test/Defects Removed==0.0
 Postmortem/Defects Removed==0.0
 After Development/Defects Removed=0.0
-Defects Removed==![(+	~.*/Defects Removed)]
+Defects Removed==![(+	Planning/Defects Removed	Design/Defects Removed	Code/Defects Removed	Compile/Defects Removed	Test/Defects Removed	Postmortem/Defects Removed)]
