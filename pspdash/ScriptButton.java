@@ -113,7 +113,7 @@ class ScriptButton extends DropDownButton {
         getMenu().add(moreItem);
     }
     private boolean useSubmenus(Vector v) {
-        if (v == null || v.size() < 15) return false;
+        if (v == null || v.size() < 2) return false;
         String dataPath = ((ScriptID) paths.elementAt (0)).getDataPath();
         String newDataPath;
         for (int i = v.size();   i-- > 1; ) {
