@@ -65,7 +65,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
     static final String FORUM_URL =
         "http://sourceforge.net/forum/forum.php?forum_id=30753";
 
-    Resources resources = Resources.getDashBundle("ProcessDashboard");
+    Resources resources = Resources.getDashBundle("ProcessDashboard.Menu");
 
                                   // menu labels
     static final String HIERARCHY_FRAME  = "Hierarchy";
@@ -74,27 +74,29 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
     static final String PROBE_DIALOG     = "PROBE";
     static final String TASK_DIALOG      = "Task_&_Schedule";
     static final String DATA_ANALYSIS    = "Data_Analysis";
+    static final String TOOL_MENU        = "Tools";
     static final String IMPORT_EXPORT    = "Export";
-    static final String HELP_MENU        = "Help";
+    static final String HELP_MENU        = "Help.Help";
     static final String EXIT_PROGRAM     = "Exit";
 
-    static final String HELP_FRAME     = "Help_Topics";
-    static final String HELP_SEARCH    = "Search";
-    static final String HELP_PRINT     = "Printable_Users_Manual";
-    static final String HELP_ABOUT     = "About_Process_Dashboard";
-    static final String HELP_BUG       = "Submit_bug_report";
-    static final String HELP_FORUM     = "Online_help_forum";
-    static final String HELP_CONSOLE   = "View_debugging_output";
+    static final String HELP_FRAME     = "Help.Help_Topics";
+    static final String HELP_SEARCH    = "Help.Search";
+    static final String HELP_PRINT     = "Help.Printable_Users_Manual";
+    static final String HELP_ABOUT     = "Help.About_Process_Dashboard";
+    static final String HELP_BUG       = "Help.Submit_bug_report";
+    static final String HELP_FORUM     = "Help.Online_help_forum";
+    static final String HELP_CONSOLE   = "Help.View_debugging_output";
 
                                   // menu labels & cmd text (see above)
     static final String [][] menuItems = {
         { HIERARCHY_FRAME,  "UsingHierarchyEditor" },
         { TIME_LOG_FRAME,   "UsingTimeLogEditor" },
         { DEFECT_LOG_FRAME, "UsingDefectLogEditor" },
-        { PROBE_DIALOG,     "UsingProbeTool" },
+//    { PROBE_DIALOG,     "UsingProbeTool" },
         { TASK_DIALOG,      "TaskAndSchedule???" },
         { DATA_ANALYSIS,    "DataChartsAndReports" },
-        { IMPORT_EXPORT,    "ExportingData" },
+//    { IMPORT_EXPORT,    "ExportingData" },
+        { TOOL_MENU,        null },
         { HELP_MENU,        null },
         { EXIT_PROGRAM,     null } };
 
@@ -123,6 +125,8 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
             s = menuItems[ii][0];
             if (HELP_MENU.equals(s))
                 addHelpMenu(menu);
+            else if (TOOL_MENU.equals(s))
+                addToolMenu(menu);
             else
                 menu.add(makeMenuItem(s));
 
@@ -143,6 +147,18 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
         result.setActionCommand(text);
         result.addActionListener(this);
         return result;
+    }
+
+    private void addToolMenu(JMenu menu) {
+        JMenu toolMenu = new JMenu(resources.getString(TOOL_MENU));
+        menu.add(toolMenu);
+
+        // workaround jre 1.3 bug...reference http://developer.java.sun.com/developer/bugParade/bugs/4280243.html
+        toolMenu.enableInputMethods(false);
+
+        toolMenu.add(makeMenuItem(PROBE_DIALOG));
+        toolMenu.add(makeMenuItem(IMPORT_EXPORT));
+//    toolMenu.add(makeMenuItem(HELP_FORUM));
     }
 
     private void addHelpMenu(JMenu menu) {
@@ -272,8 +288,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
     public void showPrintableManual() { Browser.launch(PRINT_URL); }
 
     public void startAboutDialog() {
-        new AboutDialog(parent, resources.getString("About_Process_Dashboard"),
-                        ABOUT_URL);
+        new AboutDialog(parent, resources.getString(HELP_ABOUT), ABOUT_URL);
     }
 
     public void submitBug () { Browser.launch(BUG_URL); }

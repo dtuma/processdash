@@ -77,7 +77,7 @@ public class PauseButton extends DropDownButton implements ActionListener {
         PCSH.enableHelpKey(getMenu(), "PlayPause");
         loadUserSettings();
 
-        Resources res = Resources.getDashBundle("ProcessDashboard");
+        Resources res = Resources.getDashBundle("ProcessDashboard.Pause");
         pause_string = res.getString("Pause_String");
         pause_tip = res.getString("Pause_Tip");
         continue_string = res.getString("Continue_String");

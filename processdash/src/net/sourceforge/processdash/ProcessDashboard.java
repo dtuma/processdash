@@ -249,9 +249,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         // open all the datafiles that were specified in the properties file.
         brokenData = new ErrorReporter
-            (resources.getString("Broken_Data_Title"),
-             resources.getStrings("Broken_Data_Header"),
-             resources.getStrings("Broken_Data_Footer"));
+            (resources.getString("Errors.Broken_Data_Title"),
+             resources.getStrings("Errors.Broken_Data_Header"),
+             resources.getStrings("Errors.Broken_Data_Footer"));
         data.startInconsistency();
         try {
             if (v != null) {
@@ -354,7 +354,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         String versionNum = System.getProperty("java.version");
         String req = "1.4";
         if (DashPackage.compareVersions(versionNum, req) < 0) {
-            Resources res = Resources.getDashBundle("ProcessDashboard");
+            Resources res = Resources.getDashBundle("ProcessDashboard.Errors");
             String vendorURL = System.getProperty("java.vendor.url");
             JOptionPane.showMessageDialog
                 (null,

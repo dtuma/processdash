@@ -964,10 +964,10 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
 
           JOptionPane.showMessageDialog
               (null,
-               resources.formatStrings("Corrupt_Statefile_Warning_FMT",
+               resources.formatStrings("Errors.Corrupt_Statefile_Warning_FMT",
                                        e.getLocalizedMessage(), filename,
                                        new Integer(lineNum)),
-               resources.getString("Corrupt_Statefile_Title"),
+               resources.getString("Errors.Corrupt_Statefile_Title"),
                JOptionPane.ERROR_MESSAGE);
         }
 
