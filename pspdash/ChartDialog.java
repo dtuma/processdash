@@ -29,6 +29,7 @@ package pspdash;
 import pspdash.data.DataCorrelator;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
@@ -40,7 +41,8 @@ public class ChartDialog extends JDialog {
     Vector names, points;
     ChartCanvas chart;
     JTable table;
-    VTableModel tableModel;
+    Vector titles;
+    DefaultTableModel tableModel;
 
 
     public ChartDialog (Frame parent,
@@ -59,31 +61,14 @@ public class ChartDialog extends JDialog {
         if (labelX == null) labelX = "-";
         if (labelY == null) labelY = "-";
 
-        table = new JTable ();
-        tableModel = new VTableModel(new boolean[] {false, false, false});
-        table.setModel (tableModel);
+        titles = new Vector();
+        titles.add("Task/Project");
+        titles.add(labelX);
+        titles.add(labelY);
+
+        tableModel = new DefaultTableModel(dataArray(names, points), titles);
+        table = new JTable (tableModel);
         table.setMinimumSize (new Dimension (0,0));
-
-        Vector titles = new Vector();
-        TableColumn newColumn = new TableColumn(0);
-        newColumn.setHeaderValue ("node");
-        table.addColumn(newColumn);
-        tableModel.addColumn("node", null);
-        titles.addElement ("node");
-
-        newColumn = new TableColumn(1);
-        table.addColumn(newColumn);
-        tableModel.addColumn(labelX, null);
-        newColumn.setHeaderValue (labelX);
-        titles.addElement (labelX);
-
-        newColumn = new TableColumn(2);
-        table.addColumn(newColumn);
-        tableModel.addColumn(labelY, null);
-        newColumn.setHeaderValue (labelY);
-        titles.addElement (labelY);
-
-        tableModel.setDataVector (dataArray(names, points), titles);
 
         JScrollPane scrollpane = new JScrollPane(table);
         scrollpane.setMinimumSize (new Dimension (0,0));
@@ -120,22 +105,19 @@ public class ChartDialog extends JDialog {
         names  = (corr == null) ? null : corr.getDataNames();
         points = (corr == null) ? null : corr.getDataPoints();
 
-        //set column headers
-        TableColumnModel tcm = table.getColumnModel();
-//    tcm.getColumn (0).setHeaderValue ("node");
-        tcm.getColumn (1).setHeaderValue (labelX);
-        tcm.getColumn (2).setHeaderValue (labelY);
+        // set the column names
+        titles.setElementAt(labelX, 1);
+        titles.setElementAt(labelY, 2);
 
         //set column data
-        VTableModel vtm = (VTableModel)table.getModel();
         double db[];
         int rr;
         for (rr = table.getRowCount() - 1; rr >= 0; rr--)
-            vtm.removeRow (rr);
+            tableModel.removeRow (rr);
         if (names != null)
             for (rr = 0; rr < names.size(); rr++) {
                 db = (double[])points.elementAt(rr);
-                vtm.addRow (new Object[]
+                tableModel.addRow (new Object[]
                             {names.elementAt(rr),
                              new Double (db[0]),
                              new Double (db[1])});
@@ -277,6 +259,23 @@ public class ChartDialog extends JDialog {
             }
         }
 
+
+        /**
+         * A utility method for drawing text vertically.
+         */
+        protected void drawVerticalString(String text, Graphics2D g2, float x, float y) {
+
+            AffineTransform saved = g2.getTransform();
+
+            // apply a 90 degree rotation
+            AffineTransform rotate = AffineTransform.getRotateInstance(-Math.PI/2, x, y);
+            g2.transform(rotate);
+            g2.drawString(text, x, y);
+
+            g2.setTransform(saved);
+
+        }
+
         public int xPoint (double x, int left, double xMult) {
             return left + (int)((x - minX) * xMult);
         }
@@ -319,12 +318,17 @@ public class ChartDialog extends JDialog {
                               cBounds.y - 1 + cBounds.height - fm.getMaxDescent());
                 cBounds.height -= cHigh + 2;
             }
-            if (labelY != null) {
-                paintVString (g, labelY, cBounds.x + 1, cHigh + 2, cHigh);
-                cBounds.x += cWide + 2;  cBounds.width -= cWide + 2;
-            }
+            if (labelY != null)
+                if (g instanceof Graphics2D) {
+                    drawVerticalString(labelY, (Graphics2D) g,
+                                       cBounds.x + 1 + cHigh, cBounds.height - 20);
+                    cBounds.x += cHigh + 2;  cBounds.width -= cHigh + 2;
+                } else {
+                    paintVString (g, labelY, cBounds.x + 1, cHigh + 2, cHigh);
+                    cBounds.x += cWide + 2;  cBounds.width -= cWide + 2;
+                }
 
-                                      // calc tick boundaries
+                                        // calc tick boundaries
             Rectangle xTicks, yTicks;
             xTicks = new Rectangle (cBounds.x, cBounds.y + cBounds.height - TICK_DIM,
                                     cBounds.width, TICK_DIM);
