@@ -46,15 +46,17 @@ PSP0=null
 
 
 ==
-== Data Elements to track Estimated Time by phase.
+== Automatically compute Estimated Time by phase.
 ==
 
-Planning/Estimated Time=0.0
-Design/Estimated Time=0.0
-Code/Estimated Time=0.0
-Compile/Estimated Time=0.0
-Test/Estimated Time=0.0
-Postmortem/Estimated Time=0.0
+Planning/Estimated Time==![(*	Estimated Time	/Planning/% Time To Date)]
+Design/Estimated Time==![(*	Estimated Time	/Design/% Time To Date)]
+Design Review/Estimated Time==![(*	Estimated Time	/Design Review/% Time To Date)]
+Code/Estimated Time==![(*	Estimated Time	/Code/% Time To Date)]
+Code Review/Estimated Time==![(*	Estimated Time	/Code Review/% Time To Date)]
+Compile/Estimated Time==![(*	Estimated Time	/Compile/% Time To Date)]
+Test/Estimated Time==![(*	Estimated Time	/Test/% Time To Date)]
+Postmortem/Estimated Time==![(*	Estimated Time	/Postmortem/% Time To Date)]
 
 
 ==
