@@ -55,61 +55,23 @@ link will expand the form with more entries if chosen.</p>
 reused objects section of the form, so we will skip that section as well.</P>
 
 <P>Moving on to the size calculation, we need to calculate the estimated new 
-&amp; changed LOC via the PROBE tool.  The PROBE tool is accessed from the 
-"C" menu.</P>
+&amp; changed LOC using PROBE. There are at least two ways to do this: with
+the PROBE Wizard or with the PROBE tool.&nbsp; (The PROBE Wizard automates
+the standard PSP PROBE process, and is simpler to use; the PROBE tool is
+more complex to use but provides more power for custom statistical
+analyses.) For this example, we will use the PROBE Wizard. After you
+complete the top portion of the Size Estimating Template, you can launch
+the PROBE wizard by clicking on the hyperlink halfway down the page.</P>
 
-<p><center><img src="../../Images/QSProbeBefore.png"></center></p>
+<p ALIGN="center"><IMG BORDER="0" SRC="../../Images/ProbeWizardLink.png"
+WIDTH="386" HEIGHT="138"></p>
 
-<P>The PROBE script gives several ways to calculate an estimate.  We would 
-like to know if we can use linear regression, i.e. do our data correlate 
-well?  The PROBE tool can tell us at a glance. The top pulldown control has 
-all the standard PROBE methods available.  When it first appears, the PROBE 
-dialog has already chosen "PROBE Method A for Size", and we can see already 
-that our data do not correlate by the r<sup>2</sup> and p values shown in 
-red.  That makes sense, since method A requires historical data for estimated 
-object LOC, which we don't have by the time we do Program 5A. We can quickly 
-check the other PROBE methods just by choosing a method in the pulldown.</p>
-
-<P>When we try method B, the numbers don't look much better, so we're forced
-to use method C.  The dashboard provides two method C's for size: C1 and C2.  
-These are very analogous to the different C methods that are available in the 
-standard PSP estimating procedure for Time estimation.  C1 needs to have 
-historical data for estimated object LOC, so that won't be usable.  We will 
-use C2.</p>
-
-<P>The right hand column of numbers shows data for method C2, the averaging 
-method.  It has already set <i>B</i><sub>0</sub> to 0.0, and has done the 
-calculation of <i>B</i><sub>1</sub> for you.</p>
-
-<P>Moving forward with method C2, we need to enter our estimated object LOC 
-from the Size Estimating Template into the PROBE tool.  Entering 164.3 into 
-the estimate blank gives us the following screen.</p>
-
-<p><center><img src="../../Images/QSProbeAfter.png"></center></p>
-
-<P>Our projected New &amp; Changed LOC for this project should be 120.39.  We 
-can also record the values of <i>B</i><sub>0</sub> and <i>B</i><sub>1</sub>, 
-the Prediction Interval percent (70%), and the method chosen (C2) on the Size 
-Estimating Template form under the Size heading.  The other values requested 
-on the form (prediction range, UPI, LPI, and r<sup>2</sup>) don't apply to 
-method C2 since they are by-products of a regression fit.  We can leave them 
-as they are.</p>
-
-<P>We can now use the PROBE tool to attempt a correlation between Estimated New 
-&amp; Changed LOC and total development time.  Again, we can investigate the 
-different methods to see if our data correlates.  Again, our data does not 
-correlate well enough to use methods A or B, so we are left with the C 
-methods.  C2 is the correct choice again because we don't have estimates of 
-object LOC to use as a basis.</p>
-
-<p><center><img src="../../Images/QSProbeAfterTime.png"></center></p>
-
-<P>Our projected Time estimated for this project should be 337.69 minutes.  
-We record this value as well as the other values as before 
-(<i>B</i><sub>0</sub>, <i>B</i><sub>1</sub>, prediction interval, and probe 
-method).  And again, we can skip the linear regression parameters.</p> 
-
-<p>After our planning efforts on this form it looks like the following:</p>
+<P>The PROBE script gives several ways to calculate an estimate. The PROBE
+Wizard displays these methods side by side and ranks them, advising us
+which method may be the most reliable. By simply following the prompts, we
+decide in this example to select method C2 for size and then choose C2 for
+time. As we make these choices, the resulting values are automatically
+written into the appropriate fields of the Size Estimating Template. After our planning efforts on this form it looks like the following:</p>
 
 <p><center><img src="../../Images/QSSizeEstimatingTemplateDone.png"></center></p>
 
