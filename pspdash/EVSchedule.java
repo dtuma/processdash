@@ -616,10 +616,9 @@ public class EVSchedule implements TableModel {
             return NEVER;
 
         Iterator i = periods.iterator();
-        i.next();
         while (i.hasNext()) {
             Period p = (Period) i.next();
-            if (p.cumPlanDirectTime < cumPlanTime)
+            if (p.cumPlanDirectTime < cumPlanTime || p.previous == null)
                 continue;
 
             double prevCumPlanTime = p.previous.cumPlanDirectTime;
@@ -1144,6 +1143,26 @@ public class EVSchedule implements TableModel {
     protected static final Double ZERO = new Double(0.0);
     protected static final Double ONE_HUNDRED = new Double(100.0);
 
+    protected static class NumericRange extends Number implements RangeInfo {
+
+        Number value, low, high;
+
+        public NumericRange(Number value, Number low, Number high) {
+            this.value = value;
+            this.low = low;
+            this.high = high;
+        }
+
+        public int intValue() { return value.intValue(); }
+        public long longValue() { return value.longValue(); }
+        public float floatValue() { return value.floatValue(); }
+        public double doubleValue() { return value.doubleValue(); }
+
+        public Number getMinimumRangeValue() { return low; }
+
+        public Number getMaximumRangeValue() { return high; }
+    }
+
     protected interface ChartSeries {
         /** Returns the name of the specified series (zero-based). */
         String getSeriesName();
@@ -1185,7 +1204,7 @@ public class EVSchedule implements TableModel {
     private static final String FORECAST_LABEL =
         resources.getString("Forecast_Label");
     protected class ForecastChartSeries implements ChartSeries {
-        Number currentYVal, forecastYVal;
+        Number currentYVal, forecastYVal, forecastYValLow, forecastYValHigh;
         Number currentXVal, forecastXVal;
         int itemCount = 2;
         public String getSeriesName() { return FORECAST_LABEL; }
@@ -1199,14 +1218,26 @@ public class EVSchedule implements TableModel {
         public void recalc() {
             itemCount = 2;
             currentXVal = dateToLong(effectiveDate);
-            forecastXVal = dateToLong(getForecastDate());
+            forecastXVal = dateToLong(getForecastDate(), getForecastDateLPI(),
+                                      getForecastDateUPI());
             if (itemCount == 2 &&
                 (notLessThan(currentXVal, forecastXVal) ||
                  notLessThan(currentYVal, forecastYVal)))
                 itemCount = 0;
+            else if (okayNumber(forecastYValLow) &&
+                     okayNumber(forecastYValHigh))
+                forecastYVal = new NumericRange(forecastYVal, forecastYValLow,
+                                                forecastYValHigh);
         }
         protected Date getForecastDate() {
             return metrics.independentForecastDate();
+        }
+        protected Date getForecastDateLPI() { return null; }
+        protected Date getForecastDateUPI() { return null; }
+        private boolean okayNumber(Number n) {
+            return (n != null &&
+                    !Double.isNaN(n.doubleValue()) &&
+                    !Double.isInfinite(n.doubleValue()));
         }
         private boolean notLessThan(Number a, Number b) {
             if (a == null || b == null) return true;
@@ -1214,9 +1245,18 @@ public class EVSchedule implements TableModel {
             return true;
         }
         private Number dateToLong(Date d) {
-            if (d != null) return new Long(d.getTime());
-            itemCount = 0;
-            return null;
+            return dateToLong(d, null, null);
+        }
+        private Number dateToLong(Date d, Date l, Date h) {
+            if (d == null) {
+                itemCount = 0;
+                return null;
+            }
+            Number result = new Long(d.getTime());
+            if (l != null && h != null)
+                result = new NumericRange(result, new Long(l.getTime()),
+                                          new Long(h.getTime()));
+            return result;
         }
     }
 
@@ -1299,12 +1339,17 @@ public class EVSchedule implements TableModel {
         }
         ForecastChartSeries forecast;
         public void recalc() {
-            forecast.currentYVal = new Double(getLast().cumActualDirectTime / 60.0);
-            forecast.forecastYVal = new Double
-                (checkDouble(metrics.independentForecastCost() / 60.0));
+            forecast.currentYVal = makeTime(getLast().cumActualDirectTime);
+            forecast.forecastYVal = makeTime
+                (checkDouble(metrics.independentForecastCost()));
+            forecast.forecastYValLow = makeTime
+                (metrics.independentForecastCostLPI());
+            forecast.forecastYValHigh = makeTime
+                (metrics.independentForecastCostUPI());
             forecast.recalc();
             if (forecast.getItemCount() == 0) numSeries = 2;
         }
+        private Number makeTime(double d) { return new Double(d / 60.0); }
         private double checkDouble(double d) {
             numSeries = ((Double.isNaN(d) || Double.isInfinite(d)) ? 2 : 3);
             return d;
@@ -1336,7 +1381,12 @@ public class EVSchedule implements TableModel {
             series = new ChartSeries[3];
             series[0] = plan = new PlanValueSeries(mult);
             series[1] = actual = new ActualValueSeries(mult);
-            series[2] = forecast = new ForecastChartSeries();
+            series[2] = forecast = new ForecastChartSeries() {
+                    protected Date getForecastDateLPI() {
+                        return metrics.independentForecastDateLPI(); }
+                    protected Date getForecastDateUPI() {
+                        return metrics.independentForecastDateUPI(); }
+                };
         }
         ForecastChartSeries forecast;
         PlanValueSeries plan;

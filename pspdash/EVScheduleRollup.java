@@ -375,6 +375,12 @@ public class EVScheduleRollup extends EVSchedule {
         protected Date getForecastDate() {
             return ((EVMetricsRollup) metrics).optimizedForecastDate();
         }
+        protected Date getForecastDateLPI() {
+            return  ((EVMetricsRollup) metrics).optimizedForecastDateLPI();
+        }
+        protected Date getForecastDateUPI() {
+            return  ((EVMetricsRollup) metrics).optimizedForecastDateUPI();
+        }
     }
 
     private class RollupValueChartData extends ValueChartData {

@@ -120,8 +120,22 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
                         Point2D current = new Point2D.Double(xx, yy);
                         if (isScatter) {
                             lines.add(new Bar(xx-3, yy-3, 6.0, 6.0, s, Color.black, p));
+                        } else if (y instanceof RangeInfo) {
+                            double yylow = getVerticalValueAxis().translatedValue
+                                (((RangeInfo) y).getMinimumRangeValue(), plotArea);
+                            double yyhigh = getVerticalValueAxis().translatedValue
+                                (((RangeInfo) y).getMaximumRangeValue(), plotArea);
+                            lines.add(new LineRange(prev.getX(), prev.getY(), xx, yy, xx, yylow, xx, yyhigh, s, p));
                         } else if (prev!=null) {
-                            lines.add(new Line(prev.getX(), prev.getY(), current.getX(), current.getY(), s, p));
+                            if (x instanceof RangeInfo) {
+                                double xxlow = getHorizontalValueAxis().translatedValue
+                                    (((RangeInfo) x).getMinimumRangeValue(), plotArea);
+                                double xxhigh = getHorizontalValueAxis().translatedValue
+                                    (((RangeInfo) x).getMaximumRangeValue(), plotArea);
+                                lines.add(new LineRange(prev.getX(), prev.getY(), xx, yy, xxlow, yy, xxhigh, yy, s, p));
+                            } else {
+                                lines.add(new Line(prev.getX(), prev.getY(), current.getX(), current.getY(), s, p));
+                            }
                         }
                         prev = current;
                     }
@@ -205,6 +219,8 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
                 g2.setPaint(l.getPaint());
                 g2.setStroke(l.getStroke());
                 g2.draw(l.getLine());
+            } else if (o instanceof LineRange) {
+                ((LineRange) o).draw(g2);
             } else {
                 Bar b = (Bar) o;
                 Rectangle2D barArea = b.getArea();
@@ -283,6 +299,100 @@ public class XYPlot extends Plot implements HorizontalValuePlot, VerticalValuePl
             return DataSources.getMaximumRangeValue(data);
         }
         else return null;
+    }
+
+    private static class LineRange {
+        int[] x, y;
+        Stroke mainLineStroke, edgeLineStroke;
+        Paint mainLinePaint, edgeLinePaint, fillPaint;
+        public LineRange(double x0, double y0,
+                         double x1, double y1,
+                         double x2, double y2,
+                         double x3, double y3,
+                         Stroke outlineStroke,
+                         Paint mainLinePaint) {
+            x = new int[4];   y = new int[4];
+            x[0] = (int) x0;  x[1] = (int) x2;  x[2] = (int) x1;  x[3] = (int) x3;
+            y[0] = (int) y0;  y[1] = (int) y2;  y[2] = (int) y1;  y[3] = (int) y3;
+            this.mainLinePaint = mainLinePaint;
+            if (mainLinePaint instanceof Color) {
+                Color c = (Color) mainLinePaint;
+                //        Color dark = transp(c, 0.8);
+                //        Color light = transp(c, 0.01);
+                Color dark = transp(c, calcAlpha(c));
+                Color light = transp(c, 0.01);
+                this.edgeLinePaint = this.fillPaint = c;
+                try {
+                    this.fillPaint = new GradientPaint
+                        (gradientStart(x0, y0, x1, y1, x2, y2, x3, y3), light,
+                         new Point2D.Double(x1, y1), dark, true);
+                } catch (Exception e) { }
+
+            } else {
+                this.edgeLinePaint = this.fillPaint = mainLinePaint;
+            }
+
+            if (outlineStroke instanceof BasicStroke) {
+                float lineWidth = ((BasicStroke) outlineStroke).getLineWidth();
+                this.edgeLineStroke = new BasicStroke(lineWidth / 2);
+                this.mainLineStroke = new BasicStroke(lineWidth * 2);
+            } else {
+                this.edgeLineStroke = outlineStroke;
+            }
+
+        }
+
+        public void draw(Graphics2D g2) {
+            g2.setPaint(fillPaint);
+            g2.fillPolygon(x, y, 4);
+
+            g2.setStroke(edgeLineStroke);
+            g2.setPaint(edgeLinePaint);
+            g2.drawLine(x[0], y[0], x[1], y[1]);
+            g2.drawLine(x[0], y[0], x[3], y[3]);
+
+            g2.setStroke(mainLineStroke);
+            g2.setPaint(mainLinePaint);
+            g2.drawLine(x[0], y[0], x[2], y[2]);
+        }
+
+        private double calcAlpha(Color c) {
+            double gray = (0.30 * c.getRed() +
+                           0.59 * c.getGreen() +
+                           0.11 * c.getBlue()) / 255;
+            // the brighter the color, the higher an alpha value we need.
+            // the darker the color, the lower an alpha value we need.
+            // green (0.59) should become 0.3;  yellow (0.89) should map to 0.8
+            double result = 0.123 / (1 - gray);
+            return (result > 0 && result < 1) ? result : 0.3;
+        }
+
+        private Color transp(Color c, double alpha) {
+            return new Color
+                (c.getRed(), c.getGreen(), c.getBlue(), (int) (255 * alpha));
+        }
+
+        private Point2D gradientStart(double x0, double y0,
+                                      double x1, double y1,
+                                      double x2, double y2,
+                                      double x3, double y3) {
+            double dy = x0 - x1;
+            double dx = y1 - y0;
+            double startLen = Math.sqrt(dy * dy + dx * dx);
+            if (startLen == 0) throw new IllegalArgumentException();
+
+            Line2D line = new Line2D.Double(x0, y0, x1, y1);
+            double len2 = line.ptLineDist(x2, y2);
+            double len3 = line.ptLineDist(x3, y3);
+            double len = 10;
+            len = Math.max(len, len2);
+            len = Math.max(len, len3);
+
+            double fraction = len / startLen;
+
+            return new Point2D.Double(x1 + dx * fraction, y1 + dy * fraction);
+        }
+
     }
 
 }
