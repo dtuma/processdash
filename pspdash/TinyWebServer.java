@@ -265,7 +265,7 @@ public class TinyWebServer extends Thread {
                 String initial_mime_type =
                     getMimeTypeFromName(conn.getURL().getFile());
                 if (SERVER_PARSED_MIME_TYPE.equals(initial_mime_type))
-                    servePreprocessedFile(conn, null, 0);
+                    servePreprocessedFile(conn);
                 else if (CGI_MIME_TYPE.equals(initial_mime_type))
                     serveCGI(conn);
                 else
@@ -595,7 +595,7 @@ public class TinyWebServer extends Thread {
 
             if (mime_type.startsWith("text/html") &&
                 containsServerParseOverride(buffer, numBytes))
-                servePreprocessedFile(conn, buffer, numBytes);
+                servePreprocessedFile(content, buffer, numBytes);
 
             else {
                 discardHeader();
@@ -621,22 +621,30 @@ public class TinyWebServer extends Thread {
 
 
         /** Serve up a server-parsed html file. */
-        private void servePreprocessedFile(URLConnection conn,
-                                           byte [] extra, int numBytes)
+        private void servePreprocessedFile(URLConnection conn)
             throws TinyWebThreadException, IOException
         {
-            String content =
-                preprocessTextFile(conn, extra, numBytes).toString();
-            discardHeader();
+            String content = preprocessTextFile(conn.getInputStream(),null,0);
             sendHeaders(200, "OK", "text/html", content.length(), -1, null);
             out.write(content);
         }
 
-        private String preprocessTextFile(URLConnection conn,
+
+        /** Serve up a server-parsed html file. */
+        private void servePreprocessedFile(InputStream in,
+                                           byte [] extra, int numBytes)
+            throws TinyWebThreadException, IOException
+        {
+            String content = preprocessTextFile(in, extra, numBytes);
+            sendHeaders(200, "OK", "text/html", content.length(), -1, null);
+            out.write(content);
+        }
+
+        private String preprocessTextFile(InputStream in,
                                           byte [] extra, int numBytes)
             throws TinyWebThreadException, IOException
         {
-            byte[] rawContent = slurpContents(conn.getInputStream(), true);
+            byte[] rawContent = slurpContents(in, true);
             if (extra != null && numBytes > 0) {
                 byte [] totalContent = new byte[numBytes + rawContent.length];
                 System.arraycopy(extra, 0, totalContent, 0, numBytes);
@@ -886,19 +894,15 @@ public class TinyWebServer extends Thread {
         throws IOException
     {
         byte [] result = null;
-        synchronized (slurpBuffer) {
-            slurpBuffer.reset();
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = in.read(buffer)) != -1)
-                slurpBuffer.write(buffer, 0, bytesRead);
-            result = slurpBuffer.toByteArray();
-        }
+        ByteArrayOutputStream slurpBuffer = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) != -1)
+            slurpBuffer.write(buffer, 0, bytesRead);
+        result = slurpBuffer.toByteArray();
         if (close) try { in.close(); } catch (IOException ioe) {}
         return result;
     }
-    private static ByteArrayOutputStream slurpBuffer =
-        new ByteArrayOutputStream();
 
 
     /** Utility routine: readLine from an InputStream.
