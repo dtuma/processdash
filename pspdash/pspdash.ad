@@ -169,3 +169,5 @@ chart.width=400
 chart.height=300
 chart.initGradColor=#ffffff
 chart.finalGradColor=#7777ff
+
+backup.enabled=true
