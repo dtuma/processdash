@@ -140,6 +140,8 @@ public class ErrorReporter {
              "The most likely cause of this problem is that you created",
              "the above projects/tasks based on an add-on process set,",
              "then deleted the file containing that add-on process set.",
+             "If you use add-on process sets located in a network directory,",
+             "this problem could also occur when the network is unavailable.",
              "The recommended course of action is to shut down the",
              "dashboard, reinstall the add-on process set, then restart the",
              "dashboard.  Until you do this, the data for these",
