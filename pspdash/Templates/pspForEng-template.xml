@@ -1,0 +1,47 @@
+<?xml version='1.0'?>
+
+<!--
+
+PSP Dashboard - Data Automation Tool for PSP-like processes
+Copyright (C) 1999  United States Air Force
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+The author(s) may be contacted at:
+OO-ALC/TISHD
+Attn: PSP Dashboard Group
+6137 Wardleigh Road
+Hill AFB, UT 84056-5843
+
+E-Mail POC:  ken.raisor@hill.af.mil
+
+
+This file exists for the sole purpose of precaching names for the 
+"PSP For Engineers" copies of the Size Estimating Template.
+
+-->
+
+<dashboard-process-template>
+  <template name="Imaginary pspForEng Template" imaginary="true">
+    <html ID="size4A" title="PSP1 Size Estimating Template"
+                      href="pspForEng/4A/sizeest.class"/>
+    <html ID="size5A" title="PSP1.1 Size Estimating Template"
+                      href="pspForEng/5A/sizeest.class"/>
+    <html ID="size7A" title="PSP2 Size Estimating Template"
+                      href="pspForEng/7A/sizeest.class"/>
+    <html ID="size8A" title="PSP2.1 Size Estimating Template"
+                      href="pspForEng/8A/sizeest.class"/>
+  </template>
+</dashboard-process-template>
