@@ -156,8 +156,8 @@ class CNfa2Dfa
 	    /* Main loop of CDTrans creation. */
 	    while (null != (dfa = get_unmarked()))
 	      {
-		System.out.print(".");
-		System.out.flush();
+		//System.out.print(".");
+		//System.out.flush();
 		
 		if (CUtility.DEBUG)
 		  {
