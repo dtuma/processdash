@@ -24,6 +24,10 @@ you should click the dialog's OK button to ensure that all the
 dashboard instances in this team project remain in agreement on the
 process definition.</b></p>
 
+<p>When your team is ready to begin the project launch planning
+process, go to the <a href="../team_tools.shtm">Team Project Tools</a>
+page for access to advanced team planning tools.</p>
+
 <table width='100%'><tr><td width='100%' align='right' nowrap>
 <input type=button name=cancel value='Close'
        onClick='window.close();'>
