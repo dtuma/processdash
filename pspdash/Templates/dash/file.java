@@ -55,6 +55,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.MissingResourceException;
 import java.util.StringTokenizer;
 
 import org.xml.sax.SAXException;
@@ -151,8 +153,14 @@ public class file extends TinyCGIBase {
     public static final String TEMPLATE_VAL_ATTR = "templateVal";
     public static final String DIRECTORY_TAG_NAME = "directory";
 
+    public static final String DISPLAY_NAME_PROP = "_Display_Name";
+    public static final String COMMENT_PROP = "_Comment";
+
     public static final String TEMPLATE_ROOT_WIN = "\\Templates\\";
     public static final String TEMPLATE_ROOT_UNIX = "/Templates/";
+
+    private static final ResourceBundle resources =
+        Resources.getBundle("dash.file");
 
 
     protected void writeHeader() {}
@@ -214,8 +222,10 @@ public class file extends TinyCGIBase {
                 // if the user is asking for a directory but it
                 // doesn't exist, create it for them.
                 if (!result.mkdirs()) {
-                    sendCopyTemplateError("Could not create the directory '" +
-                                          result.getPath() + "'.");
+                    String message = Resources.format
+                        (resources, "Create_Directory_Error_FMT",
+                         HTMLUtils.escapeEntities(result.getPath()));
+                    sendCopyTemplateError(message);
                     return;
                 }
             }
@@ -274,13 +284,18 @@ public class file extends TinyCGIBase {
         File resultDir = result.getParentFile();
         if (!resultDir.exists())
             if (!resultDir.mkdirs()) {
-                sendCopyTemplateError("Could not create the directory '" +
-                                      resultDir.getPath() + "'.");
+                String message = Resources.format
+                    (resources, "Create_Directory_Error_FMT",
+                     HTMLUtils.escapeEntities(resultDir.getPath()));
+                sendCopyTemplateError(message);
                 return;
             }
         if (copyFile(template, templateURL, result) == false) {
-            sendCopyTemplateError("Could not copy '" + template.getPath() +
-                                  "' to '" + result.getPath() + "'.");
+            String message = Resources.format
+                (resources, "Copy_File_Error_FMT",
+                 HTMLUtils.escapeEntities(template.getPath()),
+                 HTMLUtils.escapeEntities(result.getPath()));
+            sendCopyTemplateError(message);
             return;
         }
 
@@ -656,13 +671,17 @@ public class file extends TinyCGIBase {
         private String commentText = null;
         public void lookupExtraInfo(Element e) {
             if (e == null) return;
-            Document doc = e.getOwnerDocument();
-            if (doc == null) return;
+            displayName = getProp(e, metaName + DISPLAY_NAME_PROP, null);
+            commentText = getProp(e, metaName + COMMENT_PROP, null);
 
-            e = (new FileFinder("[" + metaName + "]", doc)).file;
-            if (e != null) {
-                displayName = e.getAttribute("displayName");
-                commentText = XMLUtils.getTextContents(e);
+            if (displayName == null && commentText == null) {
+                Document doc = e.getOwnerDocument();
+                if (doc == null) return;
+                e = (new FileFinder("[" + metaName + "]", doc)).file;
+                if (e != null) {
+                    displayName = e.getAttribute("displayName");
+                    commentText = XMLUtils.getTextContents(e);
+                }
             }
         }
         public String getDisplayName() { return displayName; }
@@ -670,6 +689,21 @@ public class file extends TinyCGIBase {
     }
 
 
+    private String getProp(Element e, String resName, String defValue) {
+        if (e == null) return defValue;
+
+        Document doc = e.getOwnerDocument();
+        if (doc == null) return defValue;
+
+        ResourceBundle bundle = (ResourceBundle) resourceMap.get(doc);
+        if (bundle == null) return defValue;
+
+        resName = resName.replace(' ', '_');
+        try {
+            return resolveMetaReferences(bundle.getString(resName));
+        } catch (MissingResourceException mre) {}
+        return defValue;
+    }
 
 
     /** Display an error message, stating that the XML document list does
@@ -677,20 +711,21 @@ public class file extends TinyCGIBase {
      */
     private void sendNoSuchFileMessage(String filename) {
         super.writeHeader();
+        String title = resources.getString("No_Such_File_Title");
+        String filenameDisplayName = HTMLUtils.escapeEntities(filename);
+        String message = Resources.format
+            (resources, "No_Such_File_Message_FMT", filenameDisplayName);
         out.print
-            ("<html><head><title>No such file</title></head>\n" +
-             "<body><h1>No such file</h1>\n" +
-             "None of the document description files\n" +
-             "contain an entry for any file named &quot;");
-        out.print(filename);
-        out.print("&quot;.</body></html>");
+            ("<html><head><title>"+title+"</title></head>\n" +
+             "<body><h1>"+title+"</h1>\n" + message + "</body></html>");
     }
 
     private void sendCopyTemplateError(String message) {
         super.writeHeader();
+        String title = resources.getString("Problem_Copying_Template_Title");
         out.print
-            ("<html><head><title>Problem copying template</title></head>\n" +
-             "<body><h1>Problem copying template</h1>\n");
+            ("<html><head><title>"+title+"</title></head>\n" +
+             "<body><h1>"+title+"</h1>\n");
         out.print(message);
         out.print("</body></html>");
     }
@@ -702,20 +737,25 @@ public class file extends TinyCGIBase {
                                      boolean isTemplate,
                                      int reason, Element e) {
         super.writeHeader();
-        out.print("<html><head><title>Enter File Information</title></head>\n"+
-                  "<body><h1>Enter File Information</h1>\n");
+        String title = resources.getString("Enter_File_Information_Title");
+        String message;
+        out.print("<html><head><title>"+title+"</title></head>\n"+
+                  "<body><h1>"+title+"</h1>\n");
         if (file != null && reason != CREATE_CONFIRM) {
-            out.print("The dashboard tried to find the ");
-            out.print(isTemplate ? "<b>template</b>" : "file");
-            out.print(" in the following location: <PRE>        ");
-            out.print(file.getPath());
-            out.println("</PRE>but no such file exists.<P>");
+            message = Resources.format
+                (resources, "Missing_File_Message_FMT",
+                 HTMLUtils.escapeEntities(file.getPath()),
+                 new Integer(isTemplate ? 1 : 0));
+            out.println(message);
+            out.print("<P>");
         }
-        out.print("Please provide the following information to ");
-        out.print(reason == CREATE_CONFIRM ? "create" : "help locate");
-        out.print(" the '");
-        out.print(filename);
-        out.println(isTemplate ? "' template." : "'.");
+        String filenameDisplayName = HTMLUtils.escapeEntities
+            (getProp(e, filename + DISPLAY_NAME_PROP, filename));
+        message = Resources.format
+            (resources, "Provide_Info_Prompt_FMT", filenameDisplayName,
+             new Integer(isTemplate ? 1 : 0),
+             new Integer(reason));
+        out.println(message);
 
         out.print("<form method='POST' action='");
         out.print((String) env.get("SCRIPT_PATH"));
@@ -775,16 +815,20 @@ public class file extends TinyCGIBase {
         Settings.getVal("extDoc.openMethod");
 
 
-    /** an XML document describing the various files that can be served up
-     *  by this CGI script.
+    /** a collection of XML documents describing the various files
+     *  that can be served up by this CGI script.
      */
     protected static Hashtable documentMap = new Hashtable();
+
+    /** A mapping of the XML documents to associated ResourceBundles.
+     */
+    protected static Hashtable resourceMap = new Hashtable();
 
     protected Document getDocumentTree(String url) throws IOException {
         Document result = null;
         if (parameters.get("init") == null)
             result = (Document) documentMap.get(url);
-        if (result == null)
+        if (result == null) {
             try {
                 result = XMLUtils.parse
                     (new ByteArrayInputStream(getRequest(url, true)));
@@ -794,6 +838,23 @@ public class file extends TinyCGIBase {
                 // FIXME: display error message
                 return null;
             }
+            try {
+                String resourceName = url;
+                int dotPos = resourceName.lastIndexOf('.');
+                if (dotPos != -1) {
+                    resourceName = resourceName.substring(0, dotPos);
+                    dotPos = resourceName.indexOf('.');
+                    if (dotPos != -1)
+                        resourceName = StringUtils.findAndReplace
+                            (resourceName, ".", "%2e");
+                }
+                resourceName = resourceName.replace('/', '.');
+                if (resourceName.startsWith("."))
+                    resourceName = resourceName.substring(1);
+                ResourceBundle bundle = Resources.getBundle(resourceName);
+                resourceMap.put(result, bundle);
+            } catch (Exception e) {}
+        }
         return result;
     }
 
