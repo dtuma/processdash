@@ -266,8 +266,13 @@ public class DashPackage {
     }
     private static double vNum(String num) {
         double result = 0;
-        if (num.endsWith("b")) {
-            num = num.substring(0, num.length()-1);
+        if (num.indexOf('b') != -1) {
+            for (int i = 0;   i < num.length();   i++) {
+                if ("0123456789".indexOf(num.charAt(i)) == -1) {
+                    num = num.substring(0, i);
+                    break;
+                }
+            }
             result = -0.1;
         }
         try {
