@@ -34,7 +34,6 @@ public abstract class ResourcePool {
     public ResourcePool() {
         availableResources = new Stack();
         busyResources      = new Stack();
-        availableResources.push(createNewResource());
     }
 
     protected abstract Object createNewResource();
@@ -45,7 +44,7 @@ public abstract class ResourcePool {
             result = createNewResource();
         else
             result = availableResources.pop();
-        busyResources.push(result);
+        if (result != null) busyResources.push(result);
         return result;
     }
 
