@@ -184,7 +184,7 @@ Yield To Date==![(/	[(+	Planning/Defects Removed To Date	Design/Defects Removed 
 Test/Defects Removed per KLOC To Date==![(/	Test/Defects Removed To Date	KLOC To Date)]
 % Appraisal COQ To Date==![(/	[(+	Design Review/Time To Date	Design Inspection/Time To Date	Code Review/Time To Date	Code Inspection/Time To Date)]	Time To Date)]
 % Failure COQ To Date==![(/	[(+	Compile/Time To Date	Test/Time To Date)]	Time To Date)]
-% New Reused To Date==![(/	New Reused LOC To Date	LOC To Date)]
+% New Reused To Date==![(/	New Reused LOC To Date	New & Changed LOC To Date)]
 % Reused To Date==![(/	Reused LOC To Date	LOC To Date)]
 AFR To Date==![(/	% Appraisal COQ To Date	% Failure COQ To Date)]
 CPI To Date==![(/	Estimated Time To Date	Time To Date)]
