@@ -37,14 +37,12 @@
 
   <file name="Design Review Checklist"
         path="[Design Review Checklist Filename]"
-        defaultPath="Design Review Checklist.rtf"
 	templatePath="[/{Project/Language} Design Review Checklist Template]"/>
    <var name="[/{Project/Language} Design Review Checklist Template]">
         Please enter the complete path to the document.  This document should
         already exist; the dashboard cannot create it automatically.</var>
 
   <file name="Code Review Checklist" path="[Code Review Checklist Filename]"
-        defaultPath="Code Review Checklist.rtf"
 	templatePath="[/{Project/Language} Code Review Checklist Template]"/>
    <var name="[/{Project/Language} Code Review Checklist Template]">
         Please enter the complete path to the document.  This document should
