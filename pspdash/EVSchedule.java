@@ -998,10 +998,10 @@ public class EVSchedule implements TableModel {
         }
         ForecastChartSeries forecast;
         public void recalc() {
-            forecast.recalc();
             forecast.currentYVal = new Double(getLast().cumActualTime / 60.0);
             forecast.forecastYVal = new Double
                 (checkDouble(metrics.independentForecastCost() / 60.0));
+            forecast.recalc();
             if (forecast.getItemCount() == 0) numSeries = 2;
         }
         private double checkDouble(double d) {
@@ -1043,9 +1043,9 @@ public class EVSchedule implements TableModel {
         public void recalc() {
             double mult = 100.0 / totalPlan();
             plan.mult = actual.mult = mult;
-            forecast.recalc();
             forecast.currentYVal = new Double(getLast().cumEarnedValue * mult);
             forecast.forecastYVal = ONE_HUNDRED;
+            forecast.recalc();
             numSeries = (forecast.getItemCount() == 0 ? 2 : 3);
         }
         int numSeries = 3;

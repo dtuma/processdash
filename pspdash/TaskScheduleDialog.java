@@ -61,7 +61,7 @@ public class TaskScheduleDialog
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
         deletePeriodButton, chartButton, reportButton, closeButton,
-        saveButton, recalcButton;
+        saveButton, recalcButton, explodeTaskButton;
 
     protected JFrame chartDialog = null;
 
@@ -185,13 +185,23 @@ public class TaskScheduleDialog
         result.add(Box.createHorizontalGlue());
 
         deleteTaskButton = new JButton
-            (isRollup ? "Delete Schedule..." : "Delete Task...");
+            (isRollup ? "Delete Schedule" : "Delete Task");
         deleteTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     deleteTask(); }});
         deleteTaskButton.setEnabled(false);
         result.add(deleteTaskButton);
         result.add(Box.createHorizontalGlue());
+
+        if (!isRollup) {
+            explodeTaskButton = new JButton("Explode Task");
+            explodeTaskButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        explodeTask(); }});
+            explodeTaskButton.setEnabled(false);
+            result.add(explodeTaskButton);
+            result.add(Box.createHorizontalGlue());
+        }
 
         moveUpButton = new JButton
             (isRollup ? "Move Schedule Up" : "Move Task Up");
@@ -679,6 +689,47 @@ public class TaskScheduleDialog
                 == JOptionPane.YES_OPTION);
     }
 
+    /** Explode the currently selected task.
+     *
+     * Will only operate on tasks that are immediate children of the
+     * task tree root.
+     */
+    protected void explodeTask() {
+        TreePath selPath = treeTable.getTree().getSelectionPath();
+        if (selPath == null || selPath.getPathCount() != 2) return;
+
+        // make the change.
+        if (confirmExplode(selPath) && model.explodeTask(selPath)) {
+            setDirty(true);
+            recalcAll();
+            enableTaskButtons();
+        }
+    }
+    protected boolean confirmExplode(TreePath selPath) {
+        EVTask task = (EVTask) selPath.getLastPathComponent();
+        String fullName = task.getFullName();
+        String[] message = new String[] {
+            "By default, the task list is displayed hierarchically.",
+            "If this prevents you from arranging tasks in the order",
+            "they will be performed, you can \"explode\" items in your",
+            "task list.",
+            " ",
+            "\"Exploding\" a task replaces the hierarchically organized",
+            "task with a flat list of all its children.  You can",
+            "then rearrange the children at will, but you will no",
+            "longer be able to view them in the task list hierarchically.",
+            "In addition, items added to that hierarchy in the future",
+            "will no longer be automatically added to your task list.",
+            " ",
+            "Are you certain you want to explode the task,",
+            "        '" + fullName + "'",
+            "in this task list?" };
+        return (JOptionPane.showConfirmDialog
+                (frame, message, "Explode Task?",
+                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+                == JOptionPane.YES_OPTION);
+    }
+
     /** Swap the currently selected task with its previous sibling.
      *
      * Will only operate on tasks that are immediate children of the
@@ -751,7 +802,8 @@ public class TaskScheduleDialog
     }
 
     protected void enableTaskButtons(TreePath selectionPath) {
-        boolean enableDelete = false, enableUp = false, enableDown = false;
+        boolean enableDelete = false, enableExplode = false,
+            enableUp = false, enableDown = false;
         int pos = selectedTaskPos(selectionPath);
         if (pos != -1) {
             int numKids = ((EVTask) model.getRoot()).getNumChildren();
@@ -759,10 +811,14 @@ public class TaskScheduleDialog
             enableDelete = true;
             enableUp     = (pos > 0);
             enableDown   = (pos < numKids-1);
+
+            enableExplode = (((EVTask) selectionPath.getLastPathComponent())
+                             .getNumChildren() > 0);
         }
-        deleteTaskButton.setEnabled(enableDelete);
-        moveUpButton    .setEnabled(enableUp);
-        moveDownButton  .setEnabled(enableDown);
+        deleteTaskButton .setEnabled(enableDelete);
+        explodeTaskButton.setEnabled(enableExplode);
+        moveUpButton     .setEnabled(enableUp);
+        moveDownButton   .setEnabled(enableDown);
     }
 
 

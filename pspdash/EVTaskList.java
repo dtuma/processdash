@@ -416,6 +416,45 @@ public class EVTaskList extends AbstractTreeTableModel
         return true;
     }
 
+    public boolean explodeTask(TreePath path) {
+        // for now, only remove tasks which are children of the root.
+        int pathLen = path.getPathCount();
+        if (pathLen != 2) return false;
+
+        EVTask parent = (EVTask) path.getPathComponent(pathLen-2);
+        EVTask child  = (EVTask) path.getPathComponent(pathLen-1);
+        if (child.getNumChildren() == 0) return false;
+        int pos = parent.remove(child);
+
+        List leafTasks = child.getLeafTasks();
+        int[] insertedIndicies = new int[leafTasks.size()];
+        Object[] insertedChildren = new Object[leafTasks.size()];
+        Iterator i = leafTasks.iterator();
+        EVTask leaf;
+        int leafNum = 0;
+        while (i.hasNext()) {
+            leaf = (EVTask) i.next();
+            leaf.getParent().remove(leaf);
+            leaf.name = leaf.fullName.substring(1);
+            parent.add(pos+leafNum, leaf);
+
+            insertedIndicies[leafNum] = leafNum + pos;
+            insertedChildren[leafNum] = leaf;
+            leafNum++;
+        }
+        child.destroy();
+
+        // send the appropriate TreeModel events.
+        int[] removedIndices = new int[] { pos };
+        Object[] removedChildren = new Object[] { child };
+        EVTask[] parentPath = ((EVTask) parent).getPath();
+        fireTreeNodesRemoved
+            (this, parentPath, removedIndices, removedChildren);
+        fireTreeNodesInserted
+            (this, parentPath, insertedIndicies, insertedChildren);
+        return true;
+    }
+
     public boolean moveTaskUp(int pos) {
         EVTask r = (EVTask) root;
         if (pos < 1 || pos >= r.getNumChildren()) return false;

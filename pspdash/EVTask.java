@@ -28,6 +28,7 @@ package pspdash;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import org.w3c.dom.Element;
@@ -90,6 +91,15 @@ public class EVTask implements DataListener {
         children.add(child);
     }
 
+    /** Add a child task to this EVTask. */
+    public void add(int pos, EVTask child) {
+        if (children.contains(child))
+            return;
+
+        child.parent = this;
+        children.add(pos, child);
+    }
+
     public int remove(EVTask child) {
         int pos = children.indexOf(child);
         if (pos != -1)
@@ -105,6 +115,13 @@ public class EVTask implements DataListener {
             children.set(childPos-1, b);
             children.set(childPos,   a);
         }
+    }
+
+    public boolean equals(Object obj) {
+        if (!(obj instanceof EVTask)) return false;
+        EVTask that = (EVTask) obj;
+        return (this.fullName == that.fullName ||
+                (this.fullName != null && fullName.equals(that.fullName)));
     }
 
     /** Creates an EVTask for the tasks in the hierarchy at the given path */
@@ -360,6 +377,24 @@ public class EVTask implements DataListener {
             retNodes[retNodes.length - depth] = aNode;
         }
         return retNodes;
+    }
+
+
+    /** Get a list of the leaf tasks under this task.
+     *
+     * elements in the list will be EVTask objects.
+     */
+    public List getLeafTasks() {
+        ArrayList result = new ArrayList();
+        getLeafTasks(result);
+        return result;
+    }
+    protected void getLeafTasks(List list) {
+        if (isLeaf())
+            list.add(this);
+        else
+            for (int i = 0;   i < getNumChildren();   i++)
+                getChild(i).getLeafTasks(list);
     }
 
 
