@@ -357,7 +357,8 @@ public class HierarchyButton implements ActionListener {
 
         // cleanup the flag for this node in the hierarchy
         String flagName = getCompletedDataname(key);
-        parent.data.putValue(flagName, null);
+        if (parent.data.getValue(flagName) != null)
+            parent.data.putValue(flagName, null);
 
         // recurse through the hierarchy tree.
         while (i-- > 0)
