@@ -57,6 +57,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     AutoUpdateManager aum = null;
     ConsoleWindow consoleWindow = new ConsoleWindow();
     ObjectCache objectCache;
+    private ErrorReporter brokenData;
     ResourceBundle resources;
 
     boolean paused = true;
@@ -218,6 +219,10 @@ public class PSPDashboard extends JFrame implements WindowListener {
             } catch (Exception e) {}
 
         // open all the datafiles that were specified in the properties file.
+        brokenData = new ErrorReporter
+            (resources.getString("Broken_Data_Title"),
+             split(resources.getString("Broken_Data_Header")),
+             split(resources.getString("Broken_Data_Footer")));
         data.startInconsistency();
         try {
             if (v != null) {
@@ -279,8 +284,8 @@ public class PSPDashboard extends JFrame implements WindowListener {
             InternalSettings.set(COMPLETION_FLAG_SETTING, "true");
         }
 
-        ErrorReporter.brokenData.done();
-        ErrorReporter.templates.done();
+        brokenData.done();
+        TemplateLoader.templates.done();
     }
 
     private static final String FIRST_TIME_HELP_URL = "/help/first-use.htm";
@@ -312,7 +317,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         try {
             data.openDatafile (prefix, property_directory + dataFile);
         } catch (FileNotFoundException fnfe) {
-            ErrorReporter.brokenData.logError(prefix);
+            brokenData.logError(prefix);
         } catch (Exception exc) {
             System.err.println("when opening datafile, '" + dataFile +
                                "' for path '" + prefix +
@@ -485,6 +490,10 @@ public class PSPDashboard extends JFrame implements WindowListener {
     public static String getVersionNumber() { return versionNumber; }
 
     static SplashScreen ss = null;
+
+    private static final String[] split(String s) {
+        return StringUtils.split(s, "\n");
+    }
 
     public static void dropSplashScreen() {
         if (ss != null) ss.okayToDispose();
