@@ -82,7 +82,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
          new String ("PROBE"),
          //     new String ("Task & Schedule"),
          new String ("Data Analysis"),
-         new String ("Import/Export"),
+         new String ("Export"),
          new String ("Help"),
          new String ("About"),
          new String ("Exit")};
@@ -122,7 +122,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             URL hsURL = TemplateLoader.resolveURL(HELPSET_PATH);
 
             hs = new HelpSet(null,hsURL);
-            System.out.println("Found help set at " + hsURL);
+            //System.out.println("Found help set at " + hsURL);
 
             hb = hs.createHelpBroker();
 
