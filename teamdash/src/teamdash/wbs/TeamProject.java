@@ -114,8 +114,10 @@ public class TeamProject {
     private void openWBS() {
         try {
             Element xml = openXML(new File(directory, WBS_FILENAME));
-            if (xml != null) wbs = new WBSModel(xml);
-            projectName = wbs.getRoot().getName();
+            if (xml != null) {
+                wbs = new WBSModel(xml);
+                projectName = wbs.getRoot().getName();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
