@@ -43,6 +43,11 @@ MSJARS  ?= ../../msjars
 
 # build platform dependency
 BUILD_PLATFORM ?= CYGWIN
+ifeq ($(BUILD_PLATFORM),CYGWIN)
+   DS=;
+else
+   DS=:
+endif
 
 # If using javac from JDK1.3, we need these dependencies.  They won't get 
 # automatically compiled even though they are explicitly imported by 
@@ -93,7 +98,7 @@ else
 	mkdir -p $(BIN_IE)
 	rm -rf $(BIN_IE)/pspdash
 	$(JAVAC) \
-	    -classpath $(SRC):$(MSJARS)/msclasseszip.jar:$(MSJARS)/msospclasses.jar:$(MSJARS)/mswfcclasses.jar \
+	    -classpath '$(SRC)$(DS)$(MSJARS)/msclasseszip.jar$(DS)$(MSJARS)/msospclasses.jar$(DS)$(MSJARS)/mswfcclasses.jar' \
 	    -d $(BIN_IE) \
 	    IEDataApplet.java \
 	    IEFieldManager.java \
@@ -103,7 +108,7 @@ else
 	rm -f $(BIN_IE)/pspdash/data/OLEDBDSLWrapper.class \
 	      $(BIN_IE)/pspdash/data/OLEDBListenerWrapper.class
 	$(JAVAC) \
-	    -classpath $(SRC):$(MSJARS)/msclasseszip.jar:$(MSJARS)/msospclasses.jar:$(MSJARS)/mswfcclasses.jar \
+	    -classpath '$(SRC)$(DS)$(MSJARS)/msclasseszip.jar$(DS)$(MSJARS)/msospclasses.jar$(DS)$(MSJARS)/mswfcclasses.jar' \
 	    -d $(BIN_DATA) \
 	    OLEDBListenerWrapper.java \
 	    OLEDBDSLWrapper.java
@@ -152,7 +157,7 @@ $(CLASS_FILES) : %.class : $(BIN_DATA)/pspdash/data/%.class
 
 $(BIN_DATA)/pspdash/data/%.class: %.java
 	$(JAVAC) \
-	    -classpath '../build/PerlTools.jar;../build/jfreechart.jar' \
+	    -classpath '../build/PerlTools.jar$(DS)../build/jfreechart.jar' \
 	    -deprecation \
 	    -sourcepath $(SRC) \
 	    -d $(BIN_DATA) \

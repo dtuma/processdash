@@ -50,6 +50,11 @@ SIZEEST_COPIES=Templates/psp1.1/sizeest.class \
 
 # build platform dependency
 BUILD_PLATFORM ?= CYGWIN
+ifeq ($(BUILD_PLATFORM),CYGWIN)
+   DS=;
+else
+   DS=:
+endif
 
 ######################################################################
 # targets
@@ -88,7 +93,7 @@ $(SIZEEST_COPIES): Templates/psp1/sizeest.class
 
 $(CGI_CLASSES) : %.class : %.java
 	$(JAVAC) \
-	    -classpath 'build;build/PerlTools.jar;build/jfreechart.jar' \
+	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar' \
 	    -deprecation \
 	    -d $(dir $^) \
 	    $^
@@ -124,7 +129,7 @@ $(CLASS_FILES) : %.class : $(BIN)/pspdash/%.class
 
 $(BIN)/pspdash/%.class: %.java
 	$(JAVAC) \
-	    -classpath 'build;build/PerlTools.jar;build/jfreechart.jar' \
+	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar' \
 	    -deprecation \
             -sourcepath $(SRC) \
 	    -d $(BIN) \
@@ -134,7 +139,7 @@ XYPlot.class: $(BIN)/com/jrefinery/chart/XYPlot.class
 
 $(BIN)/com/jrefinery/chart/XYPlot.class: Templates/reports/XYPlot.java
 	$(JAVAC) \
-	    -classpath 'build;build/PerlTools.jar;build/jfreechart.jar' \
+	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar' \
 	    -deprecation \
             -sourcepath $(SRC) \
 	    -d $(BIN) \

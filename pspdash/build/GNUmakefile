@@ -94,6 +94,6 @@ com/jrefinery/chart/XYPlot.class: ../Templates/reports/XYPlot.java
 
 clean:
 	rm -f pspdash.jar *~
-	rm -rf pspdash Templates com
+	rm -rf pspdash Templates com META-INF
 
 FORCE:
