@@ -29,68 +29,67 @@
 == Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
 == Created:	Thu Jan  8 16:34:18 1998
 ==
-== Description: This data file collects data from all other datafiles.
-==
+== Description: This data file collects data from all other datafiles. 
+
+
+
+
 
 Owner="Enter your name
 
-PSP To Date Data=="Total
+PSP To Date Data==1.0
+
+
+
 
 ==
 ==  Data Elements to track LOC to Date
 ==
 
-Base LOC To Date==![(+	~/.*/{Completed}Base LOC$)]
-Added LOC To Date==![(+	~/.*/{Completed}Added LOC$)]
-Deleted LOC To Date==![(+	~/.*/{Completed}Deleted LOC$)]
-Modified LOC To Date==![(+	~/.*/{Completed}Modified LOC$)]
-New & Changed LOC To Date==![(+	~/.*/{Completed}New & Changed LOC$)]
+Base LOC To Date==![(+	~/.*/{Completed}{PSP Project}Base LOC)]
+Added LOC To Date==![(+	~/.*/{Completed}{PSP Project}Added LOC)]
+Deleted LOC To Date==![(+	~/.*/{Completed}{PSP Project}Deleted LOC)]
+Modified LOC To Date==![(+	~/.*/{Completed}{PSP Project}Modified LOC)]
+New & Changed LOC To Date==![(+	~/.*/{Completed}{PSP Project}New & Changed LOC)]
 New & Changed KLOC To Date==![(/	New & Changed LOC To Date	1000)]
-New Reused LOC To Date==![(+	~/.*/{Completed}New Reused LOC$)]
-Reused LOC To Date==![(+	~/.*/{Completed}Reused LOC$)]
+New Reused LOC To Date==![(+	~/.*/{Completed}{PSP Project}New Reused LOC)]
+Reused LOC To Date==![(+	~/.*/{Completed}{PSP Project}Reused LOC)]
+LOC To Date==![(+	~/.*/{Completed}{PSP Project}LOC)]
 KLOC To Date==![(/	LOC To Date	1000)]
-LOC To Date==![(+	~/.*/{Completed}LOC$)]
-LOC per Hour To Date==![(*	60	[(/	New & Changed LOC To Date	Time To Date)])]
+LOC per Hour To Date==![(/	New & Changed LOC To Date	Time To Date	0.0166667)]
 
 
 ==
 == Data Elements to track Time to Date
 ==
 
-Estimated Time To Date==![(+	~/.*/{Completed}Estimated Time$)]
-Planning/Time To Date==![(+	~/.*/{Completed}Planning/Time$)]
-Design/Time To Date==![(+	~/.*/{Completed}Design/Time$)]
-VHLD/Time To Date==![(+	~/.*/{Completed}VHLD/Time$)]
-HLD/Time To Date==![(+	~/.*/{Completed}HLD/Time$)]
-HLDR/Time To Date==![(+	~/.*/{Completed}HLDR/Time$)]
-Design Review/Time To Date==![(+	~/.*/{Completed}Design Review/Time$)]
-Design Inspection/Time To Date==![(+	~/.*/{Completed}Design Inspection/Time$)]
-DCR Review/Time To Date==![(+	~/.*/{Completed}DCR Review/Time$)]
-DCR Inspection/Time To Date==![(+	~/.*/{Completed}DCR Inspection/Time$)]
-Code/Time To Date==![(+	~/.*/{Completed}Code/Time$)]
-Code Review/Time To Date==![(+	~/.*/{Completed}Code Review/Time$)]
-Compile/Time To Date==![(+	~/.*/{Completed}Compile/Time$)]
-Test/Time To Date==![(+	~/.*/{Completed}Test/Time$)]
-Test Plans/Time To Date==![(+	~/.*/{Completed}Test Plans/Time$)]
-Postmortem/Time To Date==![(+	~/.*/{Completed}Postmortem/Time$)]
+Estimated Time To Date==![(+	~/.*/{Completed}{PSP Project}Estimated Time)]
+
+Planning/Time To Date==![(+	~/.*/{Completed}{PSP Project}Planning/Time)]
+High Level Design/Time To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design/Time)]
+High Level Design Review/Time To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design Review/Time)]
+Design/Time To Date==![(+	~/.*/{Completed}{PSP Project}Design/Time)]
+Design Review/Time To Date==![(+	~/.*/{Completed}{PSP Project}Design Review/Time)]
+Code/Time To Date==![(+	~/.*/{Completed}{PSP Project}Code/Time)]
+Code Review/Time To Date==![(+	~/.*/{Completed}{PSP Project}Code Review/Time)]
+Compile/Time To Date==![(+	~/.*/{Completed}{PSP Project}Compile/Time)]
+Test/Time To Date==![(+	~/.*/{Completed}{PSP Project}Test/Time)]
+Reassessment/Time To Date==![(+	~/.*/{Completed}{PSP Project}Reassessment/Time)]
+Postmortem/Time To Date==![(+	~/.*/{Completed}{PSP Project}Postmortem/Time)]
 Time To Date==![(+	~[^/]*/Time To Date)]
 
 == % Time To Date
 
 Planning/% Time To Date==![(/	Planning/Time To Date	Time To Date)]
+High Level Design/% Time To Date==![(/	High Level Design/Time To Date	Time To Date)]
+High Level Design Review/% Time To Date==![(/	High Level Design Review/Time To Date	Time To Date)]
 Design/% Time To Date==![(/	Design/Time To Date	Time To Date)]
-VHLD/% Time To Date==![(/	VHLD/Time To Date	Time To Date)]
-HLD/% Time To Date==![(/	HLD/Time To Date	Time To Date)]
-HLDR/% Time To Date==![(/	HLDR/Time To Date	Time To Date)]
 Design Review/% Time To Date==![(/	Design Review/Time To Date	Time To Date)]
-Design Inspection/% Time To Date==![(/	Design Inspection/Time To Date	Time To Date)]
-DCR Review/% Time To Date==![(/	DCR Review/Time To Date	Time To Date)]
-DCR Inspection/% Time To Date==![(/	DCR Inspection/Time To Date	Time To Date)]
 Code/% Time To Date==![(/	Code/Time To Date	Time To Date)]
 Code Review/% Time To Date==![(/	Code Review/Time To Date	Time To Date)]
 Compile/% Time To Date==![(/	Compile/Time To Date	Time To Date)]
 Test/% Time To Date==![(/	Test/Time To Date	Time To Date)]
-Test Plans/% Time To Date==![(/	Test Plans/Time To Date	Time To Date)]
+Reassessment/% Time To Date==![(/	Reassessment/Time To Date	Time To Date)]
 Postmortem/% Time To Date==![(/	Postmortem/Time To Date	Time To Date)]
 
 
@@ -98,22 +97,17 @@ Postmortem/% Time To Date==![(/	Postmortem/Time To Date	Time To Date)]
 == Data Elements to track Defects Injected
 ==
 
-Before Development/Defects Injected To Date==![(+	~/.*/{Completed}Before Development/Defects Injected$)]
-Planning/Defects Injected To Date==![(+	~/.*/{Completed}Planning/Defects Injected$)]
-Design/Defects Injected To Date==![(+	~/.*/{Completed}Design/Defects Injected$)]
-VHLD/Defects Injected To Date==![(+	~/.*/{Completed}VHLD/Defects Injected$)]
-HLD/Defects Injected To Date==![(+	~/.*/{Completed}HLD/Defects Injected$)]
-HLDR/Defects Injected To Date==![(+	~/.*/{Completed}HLDR/Defects Injected$)]
-DCR Review/Defects Injected To Date==![(+	~/.*/{Completed}DCR Review/Defects Injected$)]
-DCR Inspection/Defects Injected To Date==![(+	~/.*/{Completed}DCR Inspection/Defects Injected$)]
-Test Plans/Defects Injected To Date==![(+	~/.*/{Completed}Test Plans/Defects Injected$)]
-Design Review/Defects Injected To Date==![(+	~/.*/{Completed}Design Review/Defects Injected$)]
-Design Inspection/Defects Injected To Date==![(+	~/.*/{Completed}Design Inspection/Defects Injected$)]
-Code/Defects Injected To Date==![(+	~/.*/{Completed}Code/Defects Injected$)]
-Code Review/Defects Injected To Date==![(+	~/.*/{Completed}Code Review/Defects Injected$)]
-Compile/Defects Injected To Date==![(+	~/.*/{Completed}Compile/Defects Injected$)]
-Test/Defects Injected To Date==![(+	~/.*/{Completed}Test/Defects Injected$)]
-Postmortem/Defects Injected To Date==![(+	~/.*/{Completed}Postmortem/Defects Injected$)]
+Before Development/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Before Development/Defects Injected)]
+Planning/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Planning/Defects Injected)]
+High Level Design/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design/Defects Injected)]
+High Level Design Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design Review/Defects Injected)]
+Design/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Design/Defects Injected)]
+Design Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Design Review/Defects Injected)]
+Code/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Code/Defects Injected)]
+Code Review/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Code Review/Defects Injected)]
+Compile/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Compile/Defects Injected)]
+Test/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Test/Defects Injected)]
+Postmortem/Defects Injected To Date==![(+	~/.*/{Completed}{PSP Project}Postmortem/Defects Injected)]
 Defects Injected To Date==![(-	~[^/]*/Defects Injected To Date	Before Development/Defects Injected To Date)]
 Defects Injected per KLOC To Date==![(/	Defects Injected To Date	KLOC To Date)]
 Defects per KLOC To Date==![(/	Defects Injected To Date	KLOC To Date)]
@@ -122,61 +116,47 @@ Defects per KLOC To Date==![(/	Defects Injected To Date	KLOC To Date)]
 
 Before Development/% Defects Injected To Date==![(/	Before Development/Defects Injected To Date	Defects Injected To Date)]
 Planning/% Defects Injected To Date==![(/	Planning/Defects Injected To Date	Defects Injected To Date)]
+High Level Design/% Defects Injected To Date==![(/	High Level Design/Defects Injected To Date	Defects Injected To Date)]
+High Level Design Review/% Defects Injected To Date==![(/	High Level Design Review/Defects Injected To Date	Defects Injected To Date)]
 Design/% Defects Injected To Date==![(/	Design/Defects Injected To Date	Defects Injected To Date)]
 Design Review/% Defects Injected To Date==![(/	Design Review/Defects Injected To Date	Defects Injected To Date)]
-Design Inspection/% Defects Injected To Date==![(/	Design Inspection/Defects Injected To Date	Defects Injected To Date)]
 Code/% Defects Injected To Date==![(/	Code/Defects Injected To Date	Defects Injected To Date)]
 Code Review/% Defects Injected To Date==![(/	Code Review/Defects Injected To Date	Defects Injected To Date)]
 Compile/% Defects Injected To Date==![(/	Compile/Defects Injected To Date	Defects Injected To Date)]
-Postmortem/% Defects Injected To Date==![(/	Postmortem/Defects Injected To Date	Defects Injected To Date)]
 Test/% Defects Injected To Date==![(/	Test/Defects Injected To Date	Defects Injected To Date)]
-VHLD/% Defects Injected To Date==![(/	VHLD/Defects Injected To Date	Defects Injected To Date)]
-HLD/% Defects Injected To Date==![(/	HLD/Defects Injected To Date	Defects Injected To Date)]
-HLDR/% Defects Injected To Date==![(/	HLDR/Defects Injected To Date	Defects Injected To Date)]
-DCR Review/% Defects Injected To Date==![(/	DCR Review/Defects Injected To Date	Defects Injected To Date)]
-DCR Inspection/% Defects Injected To Date==![(/	DCR Inspection/Defects Injected To Date	Defects Injected To Date)]
-Test Plans/% Defects Injected To Date==![(/	Test Plans/Defects Injected To Date	Defects Injected To Date)]
+Postmortem/% Defects Injected To Date==![(/	Postmortem/Defects Injected To Date	Defects Injected To Date)]
 
 
 ==
 == Data Elements to track Defects Removed
 ==
 
-Planning/Defects Removed To Date==![(+	~/.*/{Completed}Planning/Defects Removed$)]
-Design/Defects Removed To Date==![(+	~/.*/{Completed}Design/Defects Removed$)]
-Design Review/Defects Removed To Date==![(+	~/.*/{Completed}Design Review/Defects Removed$)]
-Design Inspection/Defects Removed To Date==![(+	~/.*/{Completed}Design Inspection/Defects Removed$)]
-Code/Defects Removed To Date==![(+	~/.*/{Completed}Code/Defects Removed$)]
-Code Review/Defects Removed To Date==![(+	~/.*/{Completed}Code Review/Defects Removed$)]
-Compile/Defects Removed To Date==![(+	~/.*/{Completed}Compile/Defects Removed$)]
-Test/Defects Removed To Date==![(+	~/.*/{Completed}Test/Defects Removed$)]
-Postmortem/Defects Removed To Date==![(+	~/.*/{Completed}Postmortem/Defects Removed$)]
-After Development/Defects Removed To Date==![(+	~/.*/{Completed}After Development/Defects Removed$)]
-VHLD/Defects Removed To Date==![(+	~/.*/{Completed}VHLD/Defects Removed$)]
-HLD/Defects Removed To Date==![(+	~/.*/{Completed}HLD/Defects Removed$)]
-HLDR/Defects Removed To Date==![(+	~/.*/{Completed}HLDR/Defects Removed$)]
-DCR Review/Defects Removed To Date==![(+	~/.*/{Completed}DCR Review/Defects Removed$)]
-DCR Inspection/Defects Removed To Date==![(+	~/.*/{Completed}DCR Inspection/Defects Removed$)]
-Test Plans/Defects Removed To Date==![(+	~/.*/{Completed}Test Plans/Defects Removed$)]
+
+Planning/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Planning/Defects Removed)]
+High Level Design/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design/Defects Removed)]
+High Level Design Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}High Level Design Review/Defects Removed)]
+Design/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Design/Defects Removed)]
+Design Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Design Review/Defects Removed)]
+Code/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Code/Defects Removed)]
+Code Review/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Code Review/Defects Removed)]
+Compile/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Compile/Defects Removed)]
+Test/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Test/Defects Removed)]
+Postmortem/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}Postmortem/Defects Removed)]
+After Development/Defects Removed To Date==![(+	~/.*/{Completed}{PSP Project}After Development/Defects Removed)]
 Defects Removed To Date==![(+	~[^/]*/Defects Removed To Date)]
 
 == % Defects Removed To Date
 
 Planning/% Defects Removed To Date==![(/	Planning/Defects Removed To Date	Defects Removed To Date)]
+High Level Design/% Defects Removed To Date==![(/	High Level Design/Defects Removed To Date	Defects Removed To Date)]
+High Level Design Review/% Defects Removed To Date==![(/	High Level Design Review/Defects Removed To Date	Defects Removed To Date)]
 Design/% Defects Removed To Date==![(/	Design/Defects Removed To Date	Defects Removed To Date)]
 Design Review/% Defects Removed To Date==![(/	Design Review/Defects Removed To Date	Defects Removed To Date)]
-Design Inspection/% Defects Removed To Date==![(/	Design Inspection/Defects Removed To Date	Defects Removed To Date)]
 Code/% Defects Removed To Date==![(/	Code/Defects Removed To Date	Defects Removed To Date)]
 Code Review/% Defects Removed To Date==![(/	Code Review/Defects Removed To Date	Defects Removed To Date)]
 Compile/% Defects Removed To Date==![(/	Compile/Defects Removed To Date	Defects Removed To Date)]
 Test/% Defects Removed To Date==![(/	Test/Defects Removed To Date	Defects Removed To Date)]
 Postmortem/% Defects Removed To Date==![(/	Postmortem/Defects Removed To Date	Defects Removed To Date)]
-VHLD/% Defects Removed To Date==![(/	VHLD/Defects Removed To Date	Defects Removed To Date)]
-HLD/% Defects Removed To Date==![(/	HLD/Defects Removed To Date	Defects Removed To Date)]
-HLDR/% Defects Removed To Date==![(/	HLDR/Defects Removed To Date	Defects Removed To Date)]
-DCR Review/% Defects Removed To Date==![(/	DCR Review/Defects Removed To Date	Defects Removed To Date)]
-DCR Inspection/% Defects Removed To Date==![(/	DCR Inspection/Defects Removed To Date	Defects Removed To Date)]
-Test Plans/% Defects Removed To Date==![(/	Test Plans/Defects Removed To Date	Defects Removed To Date)]
 After Development/% Defects Removed To Date==![(/	After Development/Defects Removed To Date	Defects Removed To Date)]
 
 
@@ -197,10 +177,10 @@ Compile/DRL To Date==![(/	Compile/Defects Removed per Hour To Date	Test/Defects 
 == Data Elements to Track Overall Process Metrics 
 ==
 
-Yield To Date==![(/	[(+	Planning/Defects Removed To Date	Design/Defects Removed To Date	Design Review/Defects Removed To Date	Design Inspection/Defects Removed To Date	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]	Defects Removed To Date)]
+Yield To Date==![(/	[(+	Planning/Defects Removed To Date	High Level Design/Defects Removed To Date	High Level Design Review/Defects Removed To Date	Design/Defects Removed To Date	Design Review/Defects Removed To Date	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]	Defects Removed To Date)]
 Test/Defects Removed per KLOC To Date==![(/	Test/Defects Removed To Date	New & Changed KLOC To Date)]
 Defects Removed per KLOC To Date==![(/	Defects Removed To Date	New & Changed KLOC To Date)]
-% Appraisal COQ To Date==![(/	[(+	Design Review/Time To Date	Design Inspection/Time To Date	Code Review/Time To Date	Code Inspection/Time To Date)]	Time To Date)]
+% Appraisal COQ To Date==![(/	[(+	High Level Design Review/Time To Date	Design Review/Time To Date	Code Review/Time To Date)]	Time To Date)]
 % Failure COQ To Date==![(/	[(+	Compile/Time To Date	Test/Time To Date)]	Time To Date)]
 % New Reused To Date==![(/	New Reused LOC To Date	New & Changed LOC To Date)]
 % Reused To Date==![(/	Reused LOC To Date	LOC To Date)]

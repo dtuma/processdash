@@ -1,0 +1,188 @@
+=============================================================================
+== PSP Dashboard - Data Automation Tool for PSP-like processes
+== Copyright (C) 1999  United States Air Force
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 2
+== of the License, or (at your option) any later version.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, write to the Free Software
+== Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+== 
+== The author(s) may be contacted at:
+== OO-ALC/TISHD
+== Attn: PSP Dashboard Group
+== 6137 Wardleigh Road
+== Hill AFB, UT 84056-5843
+== 
+== E-Mail POC:  ken.raisor@hill.af.mil
+
+=============================================================================
+== Title:	$Id$
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Thu Jan  8 16:34:18 1998
+==
+== Description: This data file collects data from all other datafiles. /*
+== 
+== This file should be run through the c preprocessor to create the actual
+== global data file, "PSP.globalData" */
+
+
+Owner="Enter your name
+
+PSP To Date Data==1.0
+
+#define sumUp(Name) Name To Date==![(+	~/.*/{Completed}{PSP Project}Name)]
+#define phasePercent(Phase,Name) Phase/% Name To Date==![(/	Phase/Name To Date	Name To Date)]
+
+==
+==  Data Elements to track LOC to Date
+==
+
+sumUp(Base LOC)
+sumUp(Added LOC)
+sumUp(Deleted LOC)
+sumUp(Modified LOC)
+sumUp(New & Changed LOC)
+New & Changed KLOC To Date==![(/	New & Changed LOC To Date	1000)]
+sumUp(New Reused LOC)
+sumUp(Reused LOC)
+sumUp(LOC)
+KLOC To Date==![(/	LOC To Date	1000)]
+LOC per Hour To Date==![(/	New & Changed LOC To Date	Time To Date	0.0166667)]
+
+
+==
+== Data Elements to track Time to Date
+==
+
+sumUp(Estimated Time)
+
+sumUp(Planning/Time)
+sumUp(High Level Design/Time)
+sumUp(High Level Design Review/Time)
+sumUp(Design/Time)
+sumUp(Design Review/Time)
+sumUp(Code/Time)
+sumUp(Code Review/Time)
+sumUp(Compile/Time)
+sumUp(Test/Time)
+sumUp(Reassessment/Time)
+sumUp(Postmortem/Time)
+Time To Date==![(+	~[^/]*/Time To Date)]
+
+== % Time To Date
+
+phasePercent(Planning,Time)
+phasePercent(High Level Design,Time)
+phasePercent(High Level Design Review,Time)
+phasePercent(Design,Time)
+phasePercent(Design Review,Time)
+phasePercent(Code,Time)
+phasePercent(Code Review,Time)
+phasePercent(Compile,Time)
+phasePercent(Test,Time)
+phasePercent(Reassessment,Time)
+phasePercent(Postmortem,Time)
+
+
+==
+== Data Elements to track Defects Injected
+==
+
+sumUp(Before Development/Defects Injected)
+sumUp(Planning/Defects Injected)
+sumUp(High Level Design/Defects Injected)
+sumUp(High Level Design Review/Defects Injected)
+sumUp(Design/Defects Injected)
+sumUp(Design Review/Defects Injected)
+sumUp(Code/Defects Injected)
+sumUp(Code Review/Defects Injected)
+sumUp(Compile/Defects Injected)
+sumUp(Test/Defects Injected)
+sumUp(Postmortem/Defects Injected)
+Defects Injected To Date==![(-	~[^/]*/Defects Injected To Date	Before Development/Defects Injected To Date)]
+Defects Injected per KLOC To Date==![(/	Defects Injected To Date	KLOC To Date)]
+Defects per KLOC To Date==![(/	Defects Injected To Date	KLOC To Date)]
+
+== % Defects Injected To Date
+
+phasePercent(Before Development,Defects Injected)
+phasePercent(Planning,Defects Injected)
+phasePercent(High Level Design,Defects Injected)
+phasePercent(High Level Design Review,Defects Injected)
+phasePercent(Design,Defects Injected)
+phasePercent(Design Review,Defects Injected)
+phasePercent(Code,Defects Injected)
+phasePercent(Code Review,Defects Injected)
+phasePercent(Compile,Defects Injected)
+phasePercent(Test,Defects Injected)
+phasePercent(Postmortem,Defects Injected)
+
+
+==
+== Data Elements to track Defects Removed
+==
+
+
+sumUp(Planning/Defects Removed)
+sumUp(High Level Design/Defects Removed)
+sumUp(High Level Design Review/Defects Removed)
+sumUp(Design/Defects Removed)
+sumUp(Design Review/Defects Removed)
+sumUp(Code/Defects Removed)
+sumUp(Code Review/Defects Removed)
+sumUp(Compile/Defects Removed)
+sumUp(Test/Defects Removed)
+sumUp(Postmortem/Defects Removed)
+sumUp(After Development/Defects Removed)
+Defects Removed To Date==![(+	~[^/]*/Defects Removed To Date)]
+
+== % Defects Removed To Date
+
+phasePercent(Planning,Defects Removed)
+phasePercent(High Level Design,Defects Removed)
+phasePercent(High Level Design Review,Defects Removed)
+phasePercent(Design,Defects Removed)
+phasePercent(Design Review,Defects Removed)
+phasePercent(Code,Defects Removed)
+phasePercent(Code Review,Defects Removed)
+phasePercent(Compile,Defects Removed)
+phasePercent(Test,Defects Removed)
+phasePercent(Postmortem,Defects Removed)
+phasePercent(After Development,Defects Removed)
+
+
+==
+== Data Elements to calculate Defect Removal Efficiency
+==
+
+Design Review/Defects Removed per Hour To Date==![(*	60	[(/	Design Review/Defects Removed To Date	Design Review/Time To Date)])]
+Code Review/Defects Removed per Hour To Date==![(*	60	[(/	Code Review/Defects Removed To Date	Code Review/Time To Date)])]
+Compile/Defects Removed per Hour To Date==![(*	60	[(/	Compile/Defects Removed To Date	Compile/Time To Date)])]
+Test/Defects Removed per Hour To Date==![(*	60	[(/	Test/Defects Removed To Date	Test/Time To Date)])]
+Design Review/DRL To Date==![(/	Design Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
+Code Review/DRL To Date==![(/	Code Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
+Compile/DRL To Date==![(/	Compile/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
+
+
+==
+== Data Elements to Track Overall Process Metrics 
+==
+
+Yield To Date==![(/	[(+	Planning/Defects Removed To Date	High Level Design/Defects Removed To Date	High Level Design Review/Defects Removed To Date	Design/Defects Removed To Date	Design Review/Defects Removed To Date	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]	Defects Removed To Date)]
+Test/Defects Removed per KLOC To Date==![(/	Test/Defects Removed To Date	New & Changed KLOC To Date)]
+Defects Removed per KLOC To Date==![(/	Defects Removed To Date	New & Changed KLOC To Date)]
+% Appraisal COQ To Date==![(/	[(+	High Level Design Review/Time To Date	Design Review/Time To Date	Code Review/Time To Date)]	Time To Date)]
+% Failure COQ To Date==![(/	[(+	Compile/Time To Date	Test/Time To Date)]	Time To Date)]
+% New Reused To Date==![(/	New Reused LOC To Date	New & Changed LOC To Date)]
+% Reused To Date==![(/	Reused LOC To Date	LOC To Date)]
+AFR To Date==![(/	% Appraisal COQ To Date	% Failure COQ To Date)]
+CPI To Date==![(/	Estimated Time To Date	Time To Date)]
