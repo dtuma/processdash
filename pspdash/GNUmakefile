@@ -55,7 +55,6 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/reports/psp/r4.java \
 	Templates/reports/psp/r5a.java \
 	Templates/reports/psp/r5b.java \
-	Templates/reports/timecard.java \
 	Templates/reports/timelog.java \
 	Templates/reports/defectlog.java \
 	Templates/reports/dts.java \
