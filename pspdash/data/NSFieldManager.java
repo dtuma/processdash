@@ -111,11 +111,14 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
             }
         }
 
+            // Discard any previous input listeners
+            for (int i = inputListeners.size();   i-- > 0; )
+                destroyInputListener(i);
+
         // Now walk through our list of elements and initialize them.
         for (int elemNum = 0;   elemNum < allElements.size();   elemNum++) {
             if (!isRunning) return; // abort if we have been terminated
-            reinititializeFormElement
-                ((JSObject)allElements.elementAt(elemNum), elemNum);
+            reinititializeFormElement((JSObject)allElements.elementAt(elemNum));
         }
 
         debug("initialization complete.");
@@ -151,11 +154,15 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
     }
 
 
-    public void reinititializeFormElement(JSObject element, int pos) {
-        destroyInputListener(pos);
+    public void reinititializeFormElement(JSObject element) {
         HTMLField f = null;
 
         try {
+            int pos = -1;
+            String id = (String) element.getMember(INDEX_ATTR);
+            if (id == null || !id.startsWith(ELEM_ID_PREFIX)) return;
+            pos = Integer.parseInt(id.substring(ELEM_ID_PREFIX.length()));
+
             String elementType = (String)element.getMember("type");
             String elementName = (String)element.getMember("name");
             debug("Initializing a "+elementType+" element named "+elementName);
@@ -179,8 +186,6 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
                 while (inputListeners.size() < pos+1)
                     inputListeners.addElement(null);
                 inputListeners.setElementAt(f, pos);
-                debug("setting element "+INDEX_ATTR);
-                element.setMember(INDEX_ATTR, ELEM_ID_PREFIX + pos);
                 debug("customizing element");
                 if (unlocked) f.unlock();
                 if (f.i != null && f.i.isActive()) f.i.setChangeListener(this);

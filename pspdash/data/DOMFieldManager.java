@@ -39,7 +39,8 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
     Repository data = null;
     String dataPath = null;
     DOMDelayedRedrawer redrawer = null;
-    boolean isRunning, unlocked;
+    volatile boolean isRunning;
+    boolean unlocked;
     DataApplet applet = null;
 
     public DOMFieldManager(DataApplet a) throws Exception {
@@ -75,8 +76,8 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
                     doInitialize(accessor);
                     return null;
                 } } );
-        } catch (DOMAccessException dae) {
-            printError(dae);
+        } catch (Exception e) {
+            printError(e);
         }
 
         debug("initialization complete.");
@@ -106,14 +107,19 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
                 }
             }
 
+            // Discard any previous input listeners
+            for (int i = inputListeners.size();   i-- > 0; )
+                destroyInputListener(i);
+
             // Now walk through our list of elements and initialize them.
             for (int elemNum = 0;   elemNum < allElements.size();   elemNum++) {
                 if (!isRunning) return; // abort if we have been terminated
-                reinititializeFormElement
-                    ((HTMLElement)allElements.elementAt(elemNum), elemNum);
+                reinititializeFormElement((HTMLElement)allElements.elementAt(elemNum));
             }
 
         } catch (Exception e) { printError(e); }
+
+        if (isRunning) redrawer.start();
     }
 
 
@@ -153,12 +159,16 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
     }
 
 
-    public void reinititializeFormElement(HTMLElement element, int pos) {
-        destroyInputListener(pos);
+    public void reinititializeFormElement(HTMLElement element) {
         HTMLField f = null;
         HTMLInputElement input = null;
 
         try {
+            int pos = -1;
+            String id = element.getId();
+            if (id == null || !id.startsWith(ELEM_ID_PREFIX)) return;
+            pos = Integer.parseInt(id.substring(ELEM_ID_PREFIX.length()));
+
             if (element instanceof HTMLInputElement) {
                 input = (HTMLInputElement) element;
                 String inputType = input.getType();
@@ -191,8 +201,6 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
                 while (inputListeners.size() < pos+1)
                     inputListeners.addElement(null);
                 inputListeners.setElementAt(f, pos);
-                debug("setting element id");
-                element.setId(ELEM_ID_PREFIX + pos);
                 debug("customizing element");
                 if (unlocked) f.unlock();
                 if (f.i != null && f.i.isActive()) f.i.setChangeListener(this);
