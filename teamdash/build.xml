@@ -16,9 +16,6 @@
   </target>
 
   <target name="jar" depends="filelist.txt">
-    <!-- exec executable="perl" dir="Templates/team/setup">
-      <arg value="makeList.pl"/>
-    </exec -->
     <jar destfile="TeamTools.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
@@ -31,7 +28,7 @@
       </manifest>
 
       <!-- include the compiled files -->
-      <fileset dir="src/bin">
+      <fileset dir="bin">
         <include name="teamdash/**/*.class"/>
         <include name="teamdash/**/*.png"/>
         <include name="teamdash/**/*.gif"/>

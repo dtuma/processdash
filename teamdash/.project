@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>teamdash</name>
+	<name>teamdash1.6</name>
 	<comment></comment>
 	<projects>
+		<project>pspdash</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

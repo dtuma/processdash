@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-    <classpathentry kind="src" path=""/>
-    <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JRE1.3"/>
-    <classpathentry kind="src" path="/pspdash"/>
-    <classpathentry kind="lib" path="/pspdash/src/pspdash/build/crimson.jar"/>
-    <classpathentry kind="lib" path="/pspdash/src/pspdash/build/jaxp.jar"/>
-    <classpathentry kind="output" path=""/>
-</classpath>
