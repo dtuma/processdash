@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -152,7 +152,8 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
         SimpleData value = data.getSimpleValue(dataName);
         if (!(value instanceof StringData) && taskListID != null) {
             dataName = getDataNameForID(data, taskListID);
-            value = data.getSimpleValue(dataName);
+            if (dataName != null)
+                value = data.getSimpleValue(dataName);
         }
 
         if (value instanceof StringData)
