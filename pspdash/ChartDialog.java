@@ -322,7 +322,7 @@ public class ChartDialog extends JDialog {
                 if (g instanceof Graphics2D) {
                     drawVerticalString(labelY, (Graphics2D) g,
                                        cBounds.x + 1 + cHigh, cBounds.height - 20);
-                    cBounds.x += cHigh + 2;  cBounds.width -= cHigh + 2;
+                    cBounds.x += cHigh*2;  cBounds.width -= cHigh * 2;
                 } else {
                     paintVString (g, labelY, cBounds.x + 1, cHigh + 2, cHigh);
                     cBounds.x += cWide + 2;  cBounds.width -= cWide + 2;
