@@ -6,8 +6,100 @@
 
 <H1>Using Multiple "To Date" Data Sets</H1>
 
-<!-- How to create and use multiple sets of "To Date" data  -->
-                                       
+<PRE>paragraph stating why you would want multiple "To Date"
+data sets. mention reasons like:
+* segregating data from work in different programming
+  languages
+* rolling up data from all the subprojects that make up a
+  given project
+</PRE>
+
+<H2>Creating Multiple "To Date" Data Sets</H2>
+
+<p>Extra "To Date" data sets are created in much the same way you would 
+create a new project.  To create additional "To Date" data sets,
+<ol>
+<li>Open the Hierarchy Editor.
+<li>Choose a location on your hierarchy where you would like to create the
+    additional data set.
+<li>From the "Edit" menu, choose "Add Template", then "Rollup PSP Data".
+<li>A node will appear in your hierarchy for the "To Date" data set. Give it
+    a descriptive name, like "Java Projects" or "Project Foobar".
+<li>From the "File" menu, choose "Save".
+</ol>
+
+Note - there is always a "default" rollup, defined automatically by
+the dashboard, which is called "/To Date/PSP/All".  This rollup will
+not appear in your hierarchy, but its data will be available for use
+by projects in your hierarchy.
+
+<H2>Customizing "To Date" Data Sets</H2>
+
+<p>When you first create a new "To Date" data set, it will (by
+default) be rolling up data from all completed PSP projects.
+Therefore, the first thing you'll probably want to do is customize the
+filter which is used to generate the list of projects that it will
+roll up data from.  To do this:
+<ol>
+<li>Use the hierarchy buttons to navigate to the "To Date" data set.
+<li>Click the drop-down button to the right of the script button, and
+    choose "Edit Data Rollup Filter".
+<li>A form will appear in your web browser to let you edit the expression
+    which is used to filter the project list.  To make life easier, some
+    common filter criteria are displayed:<ul>
+    <li>Only rollup projects completed after a certain date
+    <li>Only rollup projects written with a certain language
+    <li>Only rollup projects with certain keywords
+    <li>Only rollup projects whose hierarchy path starts with a
+        certain string
+    </ul>
+<li>You can check the appropriate boxes, and edit the details for each
+    criteria.  When you're done, click the "Filter!" button. This button 
+    will compute the corresponding filter expression, and put it in the
+    box below.  This will also cause the "list of included projects" to
+    recalculate, showing you all the projects in your hierarchy that meet
+    the criteria.
+
+<li>If you feel comfortable with the data expression syntax, you can
+    edit the filter expression directly.  After you make changes to
+    the expression, you'll have to move the cursor out of the text
+    area (by hitting TAB or by clicking somewhere on the HTML page
+    background) for the included project list to recalculate.<BR>
+    <B>TIP:</B> If the included project list is empty and you don't
+    think it should be, you may have a syntax error in your filter
+    expression.  A syntax error in your expression will essentially be
+    treated the same as the expression "false".  Note, however, that
+    an empty included project list does not automatically mean your
+    filter expression syntax is bad - it may be a valid expression, and
+    there just might not be any projects that meet the criteria.
+</ol>
+    
+<H2>Viewing Rolled Up Data</H2>    
+
+<PRE>
+* navigate to a data rollup
+* click the script button
+* the Data Analysis center will appear, showing the data
+  from the projects in the rollup.
+</PRE>
+
+<H2>Using Alternate "To Date" Data Sets</H2>
+
+<p>Once you have created an additional data rollup set, you will
+notice that all of your PSP project plan summaries will contain an
+extra drop-down list.  This drop down list is located in the "Project
+Settings" section of the plan summary form.  The drop-down list is
+labeled "Base 'To Date' PSP data on:", and the drop down list will
+contain all the PSP data rollup objects you have defined, plus the
+extra "default" rollup, which is called "/To Date/PSP/All".  Choosing
+a different rollup from this list will cause all this project to
+use that rollup for calculating data in the "Plan" and "To Date" columns.
+
+<p><B>TIP:</B> remember that data in the plan column freezes when
+planning is marked complete, and data in the "To Date" columns freezes
+when the project is marked complete.  Therefore, if Planning and/or
+the entire project is marked complete when you alter the drop-down,
+the data in the "Plan" and "To Date" columns will not recalculate.
 
 </BODY>
 </HTML>

@@ -6,6 +6,102 @@
 
 <H1>How the Dashboard finds process files</H1>
 
+When it starts, the dashboard searches for process files and add-ins
+and dynamically loads them.  
+
+Also, every time you request a web page from
+<code>http://localhost:2468/</code>, the dashboard is using this same
+search mechanism.
+
+The dashboard searches for files in the following locations, in the following order:<ol>
+
+ <LI>Look first in the directory specified by the user setting
+     "templates.directory" (should end in "Templates").
+
+ <LI>Next, look in any JAR files contained in that directory.
+
+ <LI>Next, look in any JAR files contained in the parent of that
+     directory.
+
+ <LI>If there is a Templates directory alongside the pspdash.jar file,
+     look there, first for the file, then for JARs containing the file.
+
+ <LI>If there are any JAR files next to the pspdash.jar file, look in
+     them.
+
+ <LI>Finally, look in the classpath (which includes the pspdash.jar
+     file, and contains all the built-in processes).
+</OL>
+
+When looking for a particular file, the dashboard will search in the
+above locations and stop as soon as it finds a matching file.
+
+<p>
+This means that if you want to customize anything that appears in a
+process templates directory, you can.  Just create your custom version
+and put it in a location earlier on the search list.
+
+<p>
+The sections below give some practical examples of how you can use
+this mechanism.
+
+<h2>Overwriting a script</h2>
+
+Perhaps the built-in PSP processes suit you well, but you'd like to
+make some small tweak to one of the HTML scripts.  For example, you
+might like to ...think of and insert cheesy script change here...
+
+<p> When you're viewing the page in question, you notice it has the URL:
+
+<tt>http://localhost:2468/Project+Path//<b>psp2.1/develop.htm</b></tt>
+
+Take the following steps:<ol>
+<li>find your pspdash.jar file
+<li>create a directory alongside it called "Templates"
+<li>create a subdirectory called "psp2.1"
+<li>save the current version of the HTML file to the psp2.1 subdirectory.
+<li>edit it to your heart's content using the HTML editor of your choice.
+</ol>
+
+Now, every time you visit that page, for any project in your hierarchy,
+the dashboard will show you the page containing your custom changes.
+
+<h2>Sharing changes with team members</h2>
+
+if you're working with a team, and everyone on your team would like access
+to the latest and greatest changes, do the following:<ol>
+
+<li>Create a directory somewhere out on a shared network drive, called
+    "Templates" (for example: 
+    "<code>T:\Common\Our Team Folder\Templates</code>")
+<li>Have each person on your team edit their configuration file, and add
+    a line for the "templates.directory" setting. (for example:
+    "<code>templates.directory=T:\\Common\\Our Team Folder\\Templates</code>"
+    - notice the double backslashes.)
+<li>Put custom versions of files underneath this team templates directory.
+    For example, you could put:<ul>
+    <li>HTML files overriding files that are built into the dashboard
+    <li>LanguageFilters defining custom LOC counters
+    <li>template.xml files defining team processes
+    <li>datafiles and HTML scripts/forms supporting those team processes
+    </ul>
+    and when you make changes to these items, everyone will get them
+    automatically. (But see the note below.)
+</ol>
+
+<h2>Some files are only read at start up</h2>
+
+When you change HTML files, everyone will see your changes
+immediately.  The very next time they view the HTML page in question,
+they will see your changes.
+
+<p>Some other files, however, the dashboard will only read once.  For
+example, template.xml files, datafiles, and LOC counters will only be
+read once, when the dashboard starts up.  If you make changes to these
+files, people will have to shut down and restart their dashboard to
+see your changes.
+
+
 <!-- How to define your own custom process
    * An overview of the process definition architecture: explain the three
      pieces to the puzzle and how they fit together:
