@@ -190,6 +190,9 @@ public class PSPDashboard extends JFrame implements WindowListener {
                 ("when generating default datafile, caught exception "+exc);
             exc.printStackTrace(System.err);
         }
+
+        webServer.setData(data);
+        webServer.setProps(props);
     }
 
     public void openDatafile (String prefix, String dataFile) {
