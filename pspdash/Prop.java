@@ -176,7 +176,8 @@ class Prop
     }
 
     public String uniqueChildName (String baseName) {
-        String aName = unqualifiedName(baseName);
+        baseName = unqualifiedName(baseName);
+        String aName = baseName;
         int index = 1;
         while ( !isUniqueChildName (aName))
             aName = baseName + (index++);
