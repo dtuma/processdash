@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -106,16 +106,17 @@ public class XMLUtils {
     }
 
     public static String exceptionMessage(Exception e) {
-        String message = e.getMessage();
+        String message = e.getLocalizedMessage();
+        if (message == null) message = e.getMessage();
         if (message == null) return null;
 
         if (e instanceof SAXParseException) {
-            int line = ((SAXParseException) e).getLineNumber();
-            int column = ((SAXParseException) e).getColumnNumber();
-            if (line != -1 && column != -1)
-                message += " (on line " +line+ ", column " +column+")";
-            else if (line != -1)
-                message += " (on line " +line+ ")";
+            SAXParseException spe = (SAXParseException) e;
+            message = Resources.format(Resources.getBundle("pspdash.Misc"),
+                                       "XML_Exception_FMT",
+                                       message,
+                                       new Integer(spe.getLineNumber()),
+                                       new Integer(spe.getColumnNumber()));
         }
 
         return message;
