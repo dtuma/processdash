@@ -27,7 +27,6 @@
 package net.sourceforge.processdash.ui.web;
 
 import pspdash.MultipartRequest;
-import pspdash.ObjectCache;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,6 +35,7 @@ import java.util.*;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;

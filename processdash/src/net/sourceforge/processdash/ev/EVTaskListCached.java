@@ -26,8 +26,8 @@
 
 package net.sourceforge.processdash.ev;
 
-import pspdash.CachedObject;
-import pspdash.ObjectCache;
+import net.sourceforge.processdash.net.cache.CachedObject;
+import net.sourceforge.processdash.net.cache.ObjectCache;
 
 public class EVTaskListCached extends EVTaskListXMLAbstract {
 

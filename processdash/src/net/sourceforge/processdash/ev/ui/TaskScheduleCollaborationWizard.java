@@ -63,6 +63,7 @@ import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -70,7 +71,6 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.util.Base64;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
-import pspdash.ObjectCache;
 
 
 /**

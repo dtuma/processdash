@@ -49,10 +49,10 @@ import javax.swing.tree.TreePath;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 
-import pspdash.ObjectCache;
 
 public class EVTaskList extends AbstractTreeTableModel
     implements EVTask.Listener, ActionListener

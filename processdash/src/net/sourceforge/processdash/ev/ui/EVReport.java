@@ -37,6 +37,7 @@ import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
@@ -47,7 +48,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.Legend;
 import org.jfree.data.XYDataset;
 
-import pspdash.CachedURLObject;
 
 
 /** CGI script for reporting earned value data in HTML.

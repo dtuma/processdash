@@ -32,7 +32,6 @@ import java.net.URL;
 import java.text.*;
 
 import pspdash.DashPackage;
-import pspdash.ObjectCache;
 import pspdash.Settings;
 import pspdash.TemplateLoader;
 
@@ -42,6 +41,7 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.*;
 import net.sourceforge.processdash.i18n.*;
+import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.ui.web.*;
 import net.sourceforge.processdash.util.*;
 

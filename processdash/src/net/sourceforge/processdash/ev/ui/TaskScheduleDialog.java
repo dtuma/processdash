@@ -75,6 +75,8 @@ import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.cache.CachedObject;
+import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
@@ -85,8 +87,6 @@ import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import pspdash.CachedObject;
-import pspdash.CachedURLObject;
 import pspdash.Settings;
 
 public class TaskScheduleDialog

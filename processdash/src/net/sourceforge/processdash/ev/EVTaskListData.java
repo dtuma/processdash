@@ -43,8 +43,8 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.net.cache.ObjectCache;
 
-import pspdash.ObjectCache;
 
 public class EVTaskListData extends EVTaskList
     implements DashHierarchy.Listener
