@@ -130,6 +130,10 @@ export.data=A set of instructions for automatic export of data. This property \
 
 ev.enableRollup=If true, enable the rollup of earned value.
 
+ev.showCumulativeTaskData=If true, show the "cumulative planned value" \
+	and "cumulative planned time" columns in the earned value task \
+	list. These columns are hidden by default.
+
 ev.simpleForecastDate=If true, use simple, published earned value formulas \
 	to calculate "independent forecast date".  By default, use the \
 	additional information present in the schedule to improve the \
@@ -145,6 +149,9 @@ hiddenData=Data names to be suppressed from user-visible data lists (by \
 http.allowRemote=For data privacy reasons, http connections are rejected \
 	unless they originate from localhost.  To accept http connections \
 	from remote hosts, set this property to true.
+
+http.hostname=When the dashboard crafts an URL to an item on this \
+	dashboard instance, it will use this host name.
 
 http.port=The port number where the dashboard should listen for incoming \
 	http connections.  If left unset, port 2468 will be used. (Note: \
