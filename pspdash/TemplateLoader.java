@@ -146,7 +146,7 @@ public class TemplateLoader {
                                                    String jarURL) {
         boolean foundTemplates = false;
         try {
-            debug("searching for templates in " + jarURL);
+            // debug("searching for templates in " + jarURL);
             ZipInputStream jarFile =
                 new ZipInputStream((new URL(jarURL)).openStream());
 
@@ -157,7 +157,7 @@ public class TemplateLoader {
                 if (filename.startsWith(TEMPLATE_DIR.toLowerCase()) &&
                     filename.endsWith(TEMPLATE_SUFFIX) &&
                     filename.lastIndexOf('/') == 9) {
-                    debug("loading template: " + filename);
+                    // debug("loading template: " + filename);
                     templates.load(jarFile, false);
                     foundTemplates = true;
                 }
@@ -172,7 +172,7 @@ public class TemplateLoader {
 
     protected static boolean searchDirForTemplates(PSPProperties templates,
                                                    String directoryName) {
-        debug("searching for templates in " + directoryName);
+        // debug("searching for templates in " + directoryName);
         File[] process_templates = new File(directoryName).listFiles();
         if (process_templates == null) return false;
 
@@ -182,7 +182,7 @@ public class TemplateLoader {
         while (i-- > 0) {
             f = process_templates[i];
             if (f.getName().toLowerCase().endsWith(TEMPLATE_SUFFIX)) try {
-                debug("loading template: " + f);
+                // debug("loading template: " + f);
                 templates.load(new FileInputStream(f));
                 foundTemplates = true;
             } catch (IOException ioe) {
