@@ -217,7 +217,11 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         });
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        frame.pack();
+        loadCustomDimensions();
+        if (frameHeight == -1)
+            frame.pack();
+        else
+            frame.setSize(new Dimension(frameWidth, frameHeight));
         frame.show();
         useProps.addItemListener (this);
     }
@@ -432,6 +436,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     }
 
     public void dispose() {
+        saveCustomDimensions();
         frame.setVisible(false);
         frame.dispose();
         configureButton.removePropertyFrame();
@@ -446,6 +451,27 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         saveMenuItem = revertMenuItem = deleteMenuItem = null;
         moveUpAction = moveDownAction = cutAction = pasteAction =
             addNodeAboveAction = addNodeBelowAction = addNodeChildAction = null;
+    }
+
+    private static final String DIMENSION_SETTING_NAME =
+        "hierarchyEditor.dimensions";
+    private int frameWidth, frameHeight = -1;
+    private void loadCustomDimensions() {
+        String setting = Settings.getVal(DIMENSION_SETTING_NAME);
+        if (setting != null && setting.length() > 0) try {
+            StringTokenizer tok = new StringTokenizer(setting, ",");
+            frameWidth = Integer.parseInt(tok.nextToken());
+            frameHeight = Integer.parseInt(tok.nextToken());
+        } catch (Exception e) {}
+        if (frameHeight == -1) {
+            frameWidth = frameHeight = -1;
+        }
+    }
+    private void saveCustomDimensions() {
+        frameWidth = frame.getSize().width;
+        frameHeight = frame.getSize().height;
+        InternalSettings.set(DIMENSION_SETTING_NAME,
+                             frameWidth + "," + frameHeight);
     }
 
                                 // make sure root is expanded
