@@ -45,6 +45,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Vector;
 import java.util.Stack;
 import com.oroinc.text.perl.MalformedPerl5PatternException;
@@ -70,6 +72,10 @@ public class DataRepository implements Repository {
 
         Hashtable PathIDMap = new Hashtable(20);
         Hashtable IDPathMap = new Hashtable(20);
+
+        HashSet dataElementNameSet = new HashSet();
+        Set dataElementNameSet_ext =
+            Collections.unmodifiableSet(dataElementNameSet);
 
         /** Sets the policy for auto-realization of deferred data. Possible values:
          *  Boolean.TRUE - auto realize all data
@@ -1169,6 +1175,7 @@ public class DataRepository implements Repository {
             while (dataNames.hasMoreElements()) {
                 name =  (String) dataNames.nextElement();
                 value = (String) values.get(name);
+                dataElementNameSet.add(name);
                 name = dataPrefix + "/" + name;
 
                 if (value.startsWith("=")) {
@@ -1581,5 +1588,7 @@ public class DataRepository implements Repository {
             if (dataServer != null)
                 dataServer.deletePrefix(oldPrefix);
         }
+
+        public Set getDataElementNameSet() { return dataElementNameSet_ext; }
 
 }
