@@ -302,12 +302,16 @@ public class ev extends CGIChartBase {
     void writeHTMLTable(String name, TableModel t, String[] toolTips) {
         int numCols = t.getColumnCount();
         int numRows = t.getRowCount();
+        boolean[] hide = new boolean[numCols];
 
         // print the header row for the table.
         out.print("<table BORDER=1 name='");
         out.print(name);
         out.print("'><tr>");
         for (int c = 0;   c < numCols;   c++) {
+            String columnName = t.getColumnName(c);
+            hide[c] = columnName.endsWith(" ");
+            if (hide[c]) continue;
             out.print("<td");
             if (toolTips != null) {
                 out.print(" title='");
@@ -315,7 +319,7 @@ public class ev extends CGIChartBase {
                 out.print("'");
             }
             out.print("><b>");
-            out.print(encodeHTML(t.getColumnName(c)));
+            out.print(encodeHTML(columnName));
             out.print("</b></td>\n");
         }
         out.print("</tr>\n\n");
@@ -324,6 +328,7 @@ public class ev extends CGIChartBase {
         for (int r = 0;   r < numRows;   r++) {
             out.print("<tr>");
             for (int c = 0;   c < numCols;   c++) {
+                if (hide[c]) continue;
                 out.print("<td>");
                 out.print(encodeHTML(t.getValueAt(r, c)));
                 out.print("</td>");
