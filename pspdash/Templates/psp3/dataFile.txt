@@ -45,24 +45,58 @@ psp2.1==0.0
 PSP2.1==0.0
 
 
+== NEEDS WORK: how should (time/defect) estimates be made for HLD?
+== Check for guidance from PSP book.  Currently, my best guess would
+== be to use a linear relationship based on time/defects per N&C KLOC.
+
 ==
-== Three new phases: High Level Design, High Level Design Review, and
-== Reassessment. Detailed Design wil be picked up via the Design tag from 
-== earlier levels.
+== Two new phases: High Level Design and High Level Design Review
 == 
+
+High Level Design/PSP Phase==20.0
+High Level Design Review/PSP Phase==25.0
 
 = Estimated time
 
 High Level Design/Estimated Time==![(*	Estimated Time	/High Level Design/% Time To Date)]
-High Level Design Review/Estimated Time==![(*	Estimated Time	/High Level Design/% Time To Date)]
-= No estimations done for reassessment
+High Level Design Review/Estimated Time==![(*	Estimated Time	/High Level Design Review/% Time To Date)]
+PM/Estimated Time==![(+	Postmortem/Estimated Time	Reassessment/Estimated Time)]
+
+= Sum up estimated time by phase from cycles
+
+Design/Estimated Time==![(+	~.*/Design/Estimated Time)]
+Design Review/Estimated Time==![(+	~.*/Design Review/Estimated Time)]
+Code/Estimated Time==![(+	~.*/Code/Estimated Time)]
+Code Review/Estimated Time==![(+	~.*/Code Review/Estimated Time)]
+Compile/Estimated Time==![(+	~.*/Compile/Estimated Time)]
+Test/Estimated Time==![(+	~.*/Test/Estimated Time)]
+Reassessment/Estimated Time==![(+	~.*/Reassessment/Estimated Time)]
+
+Cycles/Estimated Time==![(+	~.*/{psp3cycle}Estimated Time)]
+
+
 
 = Actual time
 
 High Level Design/Time==0.0
 High Level Design Review/Time==0.0
-Reassessment/Time==0.0
-Time==![(+	Planning/Time	High Level Design/Time	High Level Design Review/Time	Design/Time	Design Review/Time	Code/Time	Code Review/Time	Compile/Time	Test/Time	Reassessment/Time	Postmortem/Time)]
+Design/Total Time==![(+	High Level Design/Time	High Level Design Review/Time	Design/Time	Design Review/Time)]
+PM/Time==![(+	Postmortem/Time	Reassessment/Time)]
+
+= Sum up time by phase from cycles
+
+Design/Time==![(+	~.*/Design/Time)]
+Design Review/Time==![(+	~.*/Design Review/Time)]
+Code/Time==![(+	~.*/Code/Time)]
+Code Review/Time==![(+	~.*/Code Review/Time)]
+Compile/Time==![(+	~.*/Compile/Time)]
+Test/Time==![(+	~.*/Test/Time)]
+Reassessment/Time==![(+	~.*/Reassessment/Time)]
+
+Cycles/Time==![(+	~.*/{psp3cycle}Time)]
+
+Time==![(+	Planning/Time	High Level Design/Time	High Level Design Review/Time	Cycles/Time	Postmortem/Time)]
+
 
 = Actual % Time.
 
@@ -74,16 +108,38 @@ High Level Design Review/% Time==![(/	High Level Design Review/Time	Time)]
 
 High Level Design/Defects Injected==0.0
 High Level Design Review/Defects Injected==0.0
-Reassessment/Defects Injected==0.0
-Defects Injected==![(+	Planning/Defects Injected	High Level Design/Defects Injected	High Level Design Review/Defects Injected	Design/Defects Injected	Design Review/Defects Injected	Code/Defects Injected	Code Review/Defects Injected	Compile/Defects Injected	Test/Defects Injected	Reassessment/Defects Injected	Postmortem/Defects Injected)]
+Defects Injected==![(+	Planning/Defects Injected	High Level Design/Defects Injected	High Level Design Review/Defects Injected	~.*/{psp3cycle}Defects Injected	Postmortem/Defects Injected)]
+
+= Sum up defects injected by phase from cycles
+
+Design/Defects Injected==![(+	~.*/Design/Defects Injected)]
+Design Review/Defects Injected==![(+	~.*/Design Review/Defects Injected)]
+Code/Defects Injected==![(+	~.*/Code/Defects Injected)]
+Code Review/Defects Injected==![(+	~.*/Code Review/Defects Injected)]
+Compile/Defects Injected==![(+	~.*/Compile/Defects Injected)]
+Test/Defects Injected==![(+	~.*/Test/Defects Injected)]
+Reassessment/Defects Injected==![(+	~.*/Reassessment/Defects Injected)]
+
+Cycles/Defects Injected==![(+	~.*/{psp3cycle}Defects Injected)]
 
 = Actual Defects Removed
 
 High Level Design/Defects Removed==0.0
 High Level Design Review/Defects Removed==0.0
-Reassessment/Defects Removed==0.0
-Defects Injected==![(+	Planning/Defects Removed	High Level Design/Defects Removed	High Level Design Review/Defects Removed	Design/Defects Removed	Design Review/Defects Removed	Code/Defects Removed	Code Review/Defects Removed	Compile/Defects Removed	Test/Defects Removed	Reassessment/Defects Removed	Postmortem/Defects Removed)]
 
+Defects Removed==![(+	Planning/Defects Removed	High Level Design/Defects Removed	High Level Design Review/Defects Removed	~.*/{psp3cycle}Defects Removed	Postmortem/Defects Removed)]
+
+= Sum up defects removed by phase from cycles
+
+Design/Defects Removed==![(+	~.*/Design/Defects Removed)]
+Design Review/Defects Removed==![(+	~.*/Design Review/Defects Removed)]
+Code/Defects Removed==![(+	~.*/Code/Defects Removed)]
+Code Review/Defects Removed==![(+	~.*/Code Review/Defects Removed)]
+Compile/Defects Removed==![(+	~.*/Compile/Defects Removed)]
+Test/Defects Removed==![(+	~.*/Test/Defects Removed)]
+Reassessment/Defects Removed==![(+	~.*/Reassessment/Defects Removed)]
+
+Cycles/Defects Removed==![(+	~.*/{psp3cycle}Defects Removed)]
 
 ==
 == Estimate "Defects Injected" from historical "To Date" data
@@ -93,6 +149,19 @@ High Level Design/Estimated Defects Injected==![(*	Estimated Defects Injected	/H
 High Level Design Review/Estimated Defects Injected==![(*	Estimated Defects Injected	/High Level Design Review/% Defects Injected To Date)]
 = no estimates done on reassessment
 
+= Sum up estimated defects injected by phase from cycles
+
+Design/Estimated Defects Injected==![(+	~.*/Design/Estimated Defects Injected)]
+Design Review/Estimated Defects Injected==![(+	~.*/Design Review/Estimated Defects Injected)]
+Code/Estimated Defects Injected==![(+	~.*/Code/Estimated Defects Injected)]
+Code Review/Estimated Defects Injected==![(+	~.*/Code Review/Estimated Defects Injected)]
+Compile/Estimated Defects Injected==![(+	~.*/Compile/Estimated Defects Injected)]
+Test/Estimated Defects Injected==![(+	~.*/Test/Estimated Defects Injected)]
+Reassessment/Estimated Defects Injected==![(+	~.*/Reassessment/Estimated Defects Injected)]
+
+Cycles/Estimated Defects Injected==![(+	~.*/{psp3cycle}Estimated Defects Injected)]
+
+
 ==
 == Estimate "Defects Removed" from historical "To Date" data
 ==
@@ -101,9 +170,14 @@ High Level Design/Estimated Defects Removed==![(*	Estimated Defects Removed	/Hig
 High Level Design Review/Estimated Defects Removed==![(*	Estimated Defects Removed	/High Level Design Review/% Defects Removed To Date)]
 = no estimates done on reassessment
 
+= Sum up estimated defects removed by phase from cycles
 
-==
-== rollup reassessment times into the postmortem total
-==
+Design/Estimated Defects Removed==![(+	~.*/Design/Estimated Defects Removed)]
+Design Review/Estimated Defects Removed==![(+	~.*/Design Review/Estimated Defects Removed)]
+Code/Estimated Defects Removed==![(+	~.*/Code/Estimated Defects Removed)]
+Code Review/Estimated Defects Removed==![(+	~.*/Code Review/Estimated Defects Removed)]
+Compile/Estimated Defects Removed==![(+	~.*/Compile/Estimated Defects Removed)]
+Test/Estimated Defects Removed==![(+	~.*/Test/Estimated Defects Removed)]
+Reassessment/Estimated Defects Removed==![(+	~.*/Reassessment/Estimated Defects Removed)]
 
-PostmortemT/Time==![(+	Postmortem/Time	Reassessment/Time)]
+Cycles/Estimated Defects Removed==![(+	~.*/{psp3cycle}Estimated Defects Removed)]
