@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.*;
 
+import com.oroinc.text.perl.Perl5Util;
+
 
 /** Class for performing server-side includes and other preprocessing on
  *  HTML files.
@@ -44,6 +46,7 @@ public class HTMLPreprocessor {
     DataRepository data;
     Map env, params;
     String prefix;
+    String defaultEchoEncoding = null;
 
 
     public HTMLPreprocessor(TinyWebServer web, DataRepository data, Map env) {
@@ -68,6 +71,7 @@ public class HTMLPreprocessor {
     /** preprocess the given content, and return the result. */
     public String preprocess(String content) throws IOException {
         StringBuffer text = new StringBuffer(content);
+        cachedTestExpressions.clear();
 
         numberBlocks(text, "foreach", "endfor", null, null);
         numberBlocks(text, "if", "endif", "else", "elif");
@@ -83,6 +87,8 @@ public class HTMLPreprocessor {
                 processForeachDirective(dir);
             else if (blockMatch("if", dir.directive))
                 processIfDirective(dir);
+            else if ("incr".equals(dir.directive))
+                processIncrDirective(dir);
             else
                 dir.replace("");
             pos = dir.end;
@@ -125,21 +131,41 @@ public class HTMLPreprocessor {
             value = (isNull(var) ? "" : getString(var));
         }
 
-        // What encoding would they like?
-        encoding = echo.getAttribute("encoding");
-        if ("none".equalsIgnoreCase(encoding))
-            ; // perform no encoding.
-        else if ("url".equalsIgnoreCase(encoding)) {
-            // url encode the value
-            value = URLEncoder.encode(value);
-            value = StringUtils.findAndReplace(value, "%2F", "/");
-            value = StringUtils.findAndReplace(value, "%2f", "/");
-        } else
-            // default: HTML entity encoding
-            value = web.encodeHtmlEntities(value);
+        // Apply the requested encoding(s)
+        String encodings = echo.getAttribute("encoding");
+        if (encodings == null) encodings = defaultEchoEncoding;
+        value = applyEncodings(value, encodings);
 
         // replace the echo directive with the resulting value.
         echo.replace(value);
+    }
+    public void setDefaultEchoEncoding(String enc) {
+        defaultEchoEncoding = enc;
+    }
+    public static String applyEncodings(String value, String encodings) {
+        if (encodings == null || "none".equalsIgnoreCase(encodings))
+            return value;
+        StringTokenizer tok = new StringTokenizer(encodings, ",");
+        String encoding;
+        while (tok.hasMoreTokens()) {
+            encoding = tok.nextToken();
+
+            if ("url".equalsIgnoreCase(encoding)) {
+                // url encode the value
+                value = URLEncoder.encode(value);
+                value = StringUtils.findAndReplace(value, "%2F", "/");
+                value = StringUtils.findAndReplace(value, "%2f", "/");
+            } else if ("xml".equalsIgnoreCase(encoding))
+                // encode the value as an xml entity
+                value = XMLUtils.escapeAttribute(value);
+            else if ("data".equalsIgnoreCase(encoding))
+                value = AutoData.esc(value);
+            else
+                // default: HTML entity encoding
+                value = HTMLUtils.escapeEntities(value);
+        }
+
+        return value;
     }
 
 
@@ -227,7 +253,7 @@ public class HTMLPreprocessor {
                                 // if this is an else clause
         if (blockMatch("else", ifdir.directive) ||
                                 // or if the test expression was true,
-            ifTest(cleanup(ifdir.contents)))
+            ifTest(ifdir.contents))
         {
             endif.replace("");  // delete the endif
             if (elsedir.matches()) // delete the entire else clause if present
@@ -252,24 +278,136 @@ public class HTMLPreprocessor {
 
     Map cachedTestExpressions = new HashMap();
     private boolean ifTest(String expression) {
+        expression = expression.replace('\n',' ').replace('\t',' ').trim();
         Boolean result = (Boolean) cachedTestExpressions.get(expression);
         if (result == null) {
             boolean test = false;
             boolean reverse = false;
-            String symbolName = expression;
+            boolean containsIncrementedVar = false;
 
-            if (symbolName.startsWith("not") &&
-                whitespacePos(symbolName) == 3) {
-                reverse = true;
-                symbolName = cleanup(symbolName.substring(4));
+            // if the expression contains multiple OR clauses, evaluate
+            // them individually and return true if one is true.
+            int orPos = expression.indexOf(" || ");
+            if (orPos != -1) {
+                expression = expression + " || ";
+                String subExpr;
+                while (orPos != -1) {
+                    subExpr = expression.substring(0, orPos);
+                    if (ifTest(subExpr)) return true;
+                    expression = expression.substring(orPos+4);
+                    orPos = expression.indexOf(" || ");
+                }
+                return false;
             }
 
-            if (!isNull(symbolName)) test = !isNull(getString(symbolName));
-            if (reverse)             test = !test;
+            RelationalExpression re = parseRelationalExpression(expression);
+            if (re != null) {
+                test = re.test();
+                containsIncrementedVar = re.containsIncrementedVar;
+            } else {
+                String symbolName = cleanup(expression);
+                if (symbolName.startsWith("not") &&
+                    whitespacePos(symbolName) == 3) {
+                    reverse = true;
+                    symbolName = cleanup(symbolName.substring(4));
+                }
+                if (incrVariables.contains(symbolName))
+                    containsIncrementedVar = true;
+
+                if (!isNull(symbolName)) test = !isNull(getString(symbolName));
+                if (reverse)             test = !test;
+            }
             result = test ? Boolean.TRUE : Boolean.FALSE;
-            cachedTestExpressions.put(expression, result);
+            if (!containsIncrementedVar)
+                cachedTestExpressions.put(expression, result);
         }
         return result.booleanValue();
+    }
+
+    private class RelationalExpression {
+        public String lhs, operator, rhs;
+        public boolean containsIncrementedVar = false;
+        public boolean test() {
+            if (lhs.length() == 0 || rhs.length() == 0) {
+                System.err.println
+                    ("malformed relational expression - aborting.");
+                return false;
+            }
+            String lhval = getVal(lhs);
+            String rhval = getVal(rhs);
+
+            if ("eq".equals(operator)) return eq(lhval, rhval);
+            if ("ne".equals(operator)) return !eq(lhval, rhval);
+            if ("=~".equals(operator)) return matches(lhval, rhval);
+            if ("!~".equals(operator)) return !matches(lhval, rhval);
+            if ("gt".equals(operator)) return gt(lhval, rhval);
+            if ("lt".equals(operator)) return lt(lhval, rhval);
+            if ("ge".equals(operator))
+                return gt(lhval, rhval) || eq(lhval, rhval);
+            if ("le".equals(operator))
+                return lt(lhval, rhval) || eq(lhval, rhval);
+            return false;
+        }
+        private String getVal(String t) {
+            if (t.startsWith("'")) return cleanup(t);
+            t = cleanup(t);
+            if (incrVariables.contains(t)) containsIncrementedVar = true;
+            return getString(cleanup(t));
+        }
+        private boolean eq(String l, String r) {
+            return ((l == null && r == null) || (l != null && l.equals(r))); }
+        private boolean lt(String l, String r) {
+            return (l != null && r != null && l.compareTo(r) < 0); }
+        private boolean gt(String l, String r) {
+            return (l != null && r != null && l.compareTo(r) > 0); }
+        private boolean matches(String l, String r) {
+            if (l == null || r == null) return false;
+            boolean result = false;
+            Perl5Util perl = null;
+            try {
+                String re = "m\n" + r + "\n";
+                perl = PerlPool.get();
+                result = perl.match(re, l);
+            } catch (Exception e) {
+            } finally {
+                PerlPool.release(perl);
+            }
+            return result;
+        }
+    }
+    private RelationalExpression parseRelationalExpression(String expr) {
+        if (expr == null) return null;
+        expr = expr.replace('\n', ' ').replace('\t', ' ');
+        int pos = expr.indexOf(" eq ");
+        if (pos == -1) pos = expr.indexOf(" ne ");
+        if (pos == -1) pos = expr.indexOf(" =~ ");
+        if (pos == -1) pos = expr.indexOf(" !~ ");
+        if (pos == -1) pos = expr.indexOf(" lt ");
+        if (pos == -1) pos = expr.indexOf(" le ");
+        if (pos == -1) pos = expr.indexOf(" gt ");
+        if (pos == -1) pos = expr.indexOf(" ge ");
+        if (pos == -1) return null;
+
+        RelationalExpression result = new RelationalExpression();
+        result.lhs = expr.substring(0, pos).trim();
+        result.operator = expr.substring(pos+1, pos+3);
+        result.rhs = expr.substring(pos+4).trim();
+        return result;
+    }
+
+    private HashSet incrVariables = new HashSet();
+    private void processIncrDirective(DirectiveMatch incrDir) {
+        String varName = cleanup(incrDir.contents);
+        int numberValue = 0;
+
+        Object param = params.get(varName);
+        if (param instanceof String) try {
+            numberValue = Integer.parseInt((String) param) + 1;
+        } catch (NumberFormatException nfe) {}
+        params.put(varName, Integer.toString(numberValue));
+        incrVariables.add(varName);
+
+        incrDir.replace("");
     }
 
     /** search for blocks created by matching start and end directives, and
@@ -349,6 +487,10 @@ public class HTMLPreprocessor {
             SimpleData d = getSimpleValue(listName);
             if (d instanceof ListData)   return (ListData) d;
             if (d instanceof StringData) return ((StringData) d).asList();
+            if (d instanceof SimpleData) {
+                ListData result = new ListData();
+                result.add(d.format());
+            }
             return EMPTY_LIST;
         } else {
             // listName names an environment variable or parameter
@@ -365,6 +507,9 @@ public class HTMLPreprocessor {
             if (param != null)
                 for (int i = 0;   i < param.length;   i++)
                     result.add(param[i]);
+            else if (params.get(listName) instanceof String)
+                result.add((String) params.get(listName));
+
             return result;
         }
     }
@@ -401,6 +546,7 @@ public class HTMLPreprocessor {
 
     /** lookup a named value in the data repository. */
     private SimpleData getSimpleValue(String name) {
+        if (data == null) return null;
         return data.getSimpleValue(data.createDataName(prefix, name));
     }
 
