@@ -200,6 +200,7 @@ public class DataImporter extends Thread {
     }
 
     private static Object parseValue(String value) {
+        SimpleData result;
 
         // is it a tag?
         if ("TAG".equalsIgnoreCase(value))
@@ -210,21 +211,30 @@ public class DataImporter extends Thread {
             return ImmutableDoubleData.READ_ONLY_ZERO;
         if ("NaN".equals(value))
             return ImmutableDoubleData.READ_ONLY_NAN;
+        if (DoubleData.P_INF_STR.equals(value) ||
+            DoubleData.N_INF_STR.equals(value))
+            return ImmutableDoubleData.DIVIDE_BY_ZERO;
         if (value.length() > 0) switch (value.charAt(0)) {
         case '0': case '1': case '2': case '3': case '4': case '5': case '6':
         case '7': case '8': case '9': case '-': case '+': case '.': case ',':
             try {
-                return new DoubleData(value);
+                result = new DoubleData(value);
+                result.setEditable(false);
+                return result;
             } catch (MalformedValueException mfe) {}
         }
 
         // next, try to interpret the string as a date.
         try {
-            return DateData.create(value);
+            result = DateData.create(value);
+            result.setEditable(false);
+            return result;
         } catch (MalformedValueException mfe) {}
 
         // give up and interpret it as a plain string.
-        return StringData.create(StringData.unescapeString(value));
+        result = StringData.create(StringData.unescapeString(value));
+        result.setEditable(false);
+        return result;
     }
 
 }
