@@ -35,6 +35,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.swing.JCheckBox;
@@ -77,6 +78,21 @@ public class AutoUpdateManager {
         if (manifest != null) try {
             packages.add(new DashPackage(filename, manifest));
         } catch (InvalidDashPackage idp) {}
+    }
+
+    /** Return the version number of an installed package, or null if
+     *  the package is not installed. */
+    public String getPackageVersion(String packageID) {
+        if (packageID == null) return null;
+
+        Iterator i = packages.iterator();
+        DashPackage pkg;
+        while (i.hasNext()) {
+            pkg = (DashPackage) i.next();
+            if (packageID.equals(pkg.id))
+                return pkg.version;
+        }
+        return null;
     }
 
     /** Possibly perform a check for updates */
