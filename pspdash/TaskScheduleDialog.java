@@ -107,18 +107,23 @@ public class TaskScheduleDialog
         boolean isRollup = isRollup();
         if (isRollup) frame.setTitle("Task and Schedule Rollup");
 
-        Box topBox = newVBox
-            (new JScrollPane(treeTable,
+        JScrollPane sp;
+        sp = new JScrollPane(treeTable,
                              JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
+                             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        sp.setPreferredSize(new Dimension(10, 10));
+        Box topBox = newVBox
+            (sp,
              Box.createVerticalStrut(2),
              buildTaskButtons(isRollup),
              Box.createVerticalStrut(2));
 
-        Box bottomBox = newVBox
-            (new JScrollPane(scheduleTable,
+        sp = new JScrollPane(scheduleTable,
                              JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
+                             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        sp.setPreferredSize(new Dimension(10, 10));
+        Box bottomBox = newVBox
+            (sp,
              Box.createVerticalStrut(2),
              isRollup ? null : buildScheduleButtons(),
              isRollup ? null : Box.createVerticalStrut(2),
@@ -273,6 +278,10 @@ public class TaskScheduleDialog
                 public void actionPerformed(ActionEvent e) {
                     save(); }});
         result.add(saveButton);
+
+        Dimension size = result.getMinimumSize();
+        size.width = 2000;
+        result.setMaximumSize(size);
 
         return result;
     }
