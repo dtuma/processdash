@@ -98,6 +98,7 @@ public class ChartDialog extends JDialog {
                                         true,
                                         chart,
                                         scrollpane);
+        jsp.setResizeWeight(0.5);
 
         getContentPane().add(jsp, "Center");
 
