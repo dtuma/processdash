@@ -133,7 +133,7 @@ public class XMLUtils {
 
 
     public static String saveDate(Date d) { return "@" + d.getTime(); }
-    private static Date parseDate(String d) throws IllegalArgumentException {
+    public static Date parseDate(String d) throws IllegalArgumentException {
         if (!d.startsWith("@")) throw new IllegalArgumentException();
         return new Date(Long.parseLong(d.substring(1)));
     }
