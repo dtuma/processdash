@@ -902,6 +902,15 @@ public class EVSchedule implements TableModel {
             itemCount = 2;
             currentXVal = dateToLong(effectiveDate);
             forecastXVal = dateToLong(metrics.independentForecastDate());
+            if (itemCount == 2 &&
+                (notLessThan(currentXVal, forecastXVal) ||
+                 notLessThan(currentYVal, forecastYVal)))
+                itemCount = 0;
+        }
+        private boolean notLessThan(Number a, Number b) {
+            if (a == null || b == null) return true;
+            if (a.doubleValue() < b.doubleValue()) return false;
+            return true;
         }
         private Number dateToLong(Date d) {
             if (d != null) return new Long(d.getTime());
