@@ -74,8 +74,7 @@ public class TemplateLoader {
 
                 // strip "file:" from the beginning of the url.
                 String dirname = templateDirURL.substring(5);
-                if (searchDirForTemplates(templates, dirname, data))
-                    data.addDatafileSearchDir(dirname);
+                searchDirForTemplates(templates, dirname, data);
 
             } else {
                 /* If the /Templates directory found is in a jar somewhere,

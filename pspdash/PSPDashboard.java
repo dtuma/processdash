@@ -99,6 +99,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
         data = new DataRepository();
         data.setRealizationPolicy(Settings.getVal("autoRealization"));
         templates = TemplateLoader.loadTemplates(data);
+        data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
 
         // start the http server.
         try {

@@ -38,7 +38,8 @@ all: pspForEng.jar
 DIR=Templates/pspForEng
 JAR_CONTENTS=Templates/pspForEng.template \
 	$(DIR)/dataFile.txt \
-	$(DIR)/*A/*.*
+	$(DIR)/*A/*.* \
+	$(DIR)/R*/dataFile.txt
 pspForEng.jar: prog2A prog4A prog5A prog7A prog8A dataFile.txt ../pspForEng.template
 	cd ../..; $(JAR) -cf $(DIR)/pspForEng.jar $(JAR_CONTENTS)
 

@@ -36,6 +36,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -448,12 +450,12 @@ public class DataRepository implements Repository {
                 while (fireEvent()) {}
             }
         }
-    private static final String CIRCULARITY_TOKEN = "CIRCULARITY_TOKEN";
+        private static final String CIRCULARITY_TOKEN = "CIRCULARITY_TOKEN";
 
 
 
         DataNotifier dataNotifier;
-        Vector templateDirs = new Vector();
+        URL [] templateURLs = null;
 
 
         public DataRepository() {
@@ -488,17 +490,8 @@ public class DataRepository implements Repository {
         }
 
 
-        public void addDatafileSearchDir(String directory) {
-                                    // ignore null input.
-            if (directory == null) return;
-
-                                      // add final directory separator if it
-                                      // isn't already there.
-            if (!directory.endsWith(File.separator))
-                directory = directory + File.separator;
-
-                                        // append path to search list.
-            templateDirs.addElement(directory);
+        public void setDatafileSearchURLs(URL[] templateURLs) {
+            this.templateURLs = templateURLs;
         }
 
 
@@ -910,19 +903,20 @@ public class DataRepository implements Repository {
                                               // strip <> chars
                 path = path.substring(1, path.length()-1);
 
-                                        // look in each search directory
-                                        // until we find the named file
-                for (Enumeration t = templateDirs.elements(); t.hasMoreElements(); )
-                    if ((file = new File(((String)t.nextElement() + path))).exists())
-                        return new FileInputStream(file);
+                URL u;
+                URLConnection conn;
+                                        // look in each template URL until we
+                                        // find the named file
+                for (int i = 0;  i < templateURLs.length;  i++) try {
+                    u = new URL(templateURLs[i], path);
+                    conn = u.openConnection();
+                    conn.connect();
+                    result = conn.getInputStream();
+                    return result;
+                } catch (IOException ioe) { }
 
-                                            // try locating the file in the classpath
-                result = DataRepository.class.getResourceAsStream
-                    ("/Templates/" + path);
-                if (result != null) return result;
-
-                                        // couldn't find the file in any search
-                                        // directory - give up.
+                                        // couldn't find the file in any template
+                                        // URL - give up.
                 throw new FileNotFoundException("<" + path + ">");
             }
 
