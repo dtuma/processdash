@@ -53,13 +53,18 @@ class CompletionButton extends JCheckBox implements ActionListener {
         update();
     }
     public void update() {
-        DateData d = (DateData) parent.data.getValue(dataName);
+        Object d = parent.data.getValue(dataName);
         if (d == null) {
+            setEnabled(true);
             setSelected(false);
             setToolTipText("Click to mark this phase completed");
-        } else {
+        } else if (d instanceof DateData) {
+            setEnabled(true);
             setSelected(true);
-            setToolTipText(d.formatDate());
+            setToolTipText(((DateData)d).formatDate());
+        } else {
+            setSelected(false);
+            setEnabled(false);
         }
     }
 
