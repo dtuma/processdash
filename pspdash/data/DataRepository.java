@@ -52,6 +52,7 @@ import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Stack;
+import com.oroinc.text.perl.Perl5Util;
 import com.oroinc.text.perl.MalformedPerl5PatternException;
 
 
@@ -481,7 +482,7 @@ public class DataRepository implements Repository {
         DataNotifier dataNotifier;
 
 
-
+        private static Perl5Util perl = new Perl5Util();
         private class DataFreezer extends Thread implements RepositoryListener,
                                                             DataConsistencyObserver
         {
@@ -835,8 +836,8 @@ public class DataRepository implements Repository {
                     try {
                         if (isFreezeFlagElement(dataName))
                             return;           // don't freeze freeze flags!
-                        if (!ValueFactory.perl.match(freezeRegexp, dataName))
-                            return;
+                        if (!perl.match(freezeRegexp, dataName))
+                            return;           // only freeze data which matches the regexp.
                     } catch (MalformedPerl5PatternException m) {
                         //The user has given a bogus pattern!
                         System.out.println("The regular expression for " + freezeFlagName +
@@ -1584,7 +1585,7 @@ public class DataRepository implements Repository {
                 while (valueNames.hasMoreElements()) {
                     valueName = (String) valueNames.nextElement();
                     try {
-                        valueRename = ValueFactory.perl.substitute(re, valueName);
+                        valueRename = perl.substitute(re, valueName);
                         if (!valueName.equals(valueRename))
                             renamingOperations.put(valueRename, valueName);
                     } catch (MalformedPerl5PatternException mpe) {
@@ -1714,6 +1715,7 @@ public class DataRepository implements Repository {
                 }
                 // Try again to open this datafile. Most errors are transient,
                 // caused by incredibly infrequent thread-related problems.
+                debug("when opening "+datafilePath+" caught error "+e+", retrying.");
                 datafiles.remove(dataFile);
                 openDatafile(dataPrefix, datafilePath);
                 synchronized (OPENDATAFILE_ERROR_DEPTH_LOCK) {

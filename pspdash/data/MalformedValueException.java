@@ -25,4 +25,7 @@
 
 package pspdash.data;
 
-class MalformedValueException extends Exception {}
+class MalformedValueException extends Exception {
+    public MalformedValueException()           { super();    }
+    public MalformedValueException(String msg) { super(msg); }
+}

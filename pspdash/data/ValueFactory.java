@@ -51,7 +51,7 @@ import pspdash.data.NotEqualsFunction;
 
 class ValueFactory {
 
-    static Perl5Util perl;
+    private static Perl5Util perl;
     static final String doublePattern =
         "m\n^-?\\d+\\.\\d+([eE](\\+|-)\\d+)?|-?NaN|-?Infinity$\n";
     static final String integerPattern = "m\n^[-+]?[0-9]+$\n";
@@ -156,6 +156,8 @@ class ValueFactory {
                 return parseFunction(name, value, r, prefix);
             } catch (MalformedValueException mve) {
                 System.err.println("Malformed value: " + name + " = " + value);
+                if (mve.getMessage() != null)
+                    System.err.println("-----error was: " + mve.getMessage());
                 throw mve;
             }
         } else
@@ -231,7 +233,9 @@ class ValueFactory {
             return (SaveableData) (constructor.newInstance(parameters));
 
         } catch (Exception e) {
-            throw new MalformedValueException();
+            //e.printStackTrace();
+            //debug ("parseSimpleFunc("+n+","+v+","+s+","+p+")");
+            throw new MalformedValueException(e + " in parseSimpleFunc()");
         }
 
     }
@@ -253,9 +257,9 @@ class ValueFactory {
         while (! perl.match(isSimpleFunction, expression)) {
             try {
                 if (!perl.match(containsSimpleFunction, expression))
-                    throw new MalformedValueException();
+                    throw new MalformedValueException("mismatched parenthesis");
             } catch (MalformedPerl5PatternException e) {
-                throw new MalformedValueException();
+                throw new MalformedValueException(e.toString());
             }
 
             pre = perl.preMatch();
@@ -267,7 +271,7 @@ class ValueFactory {
                 parseSimpleFunc(tempname, func, null, r, prefix);
             } catch (MalformedValueException e) {
                 r.removeValue(tempname);
-                throw new MalformedValueException();
+                throw e;//new MalformedValueException();
             }
             expression = pre + tempname + post;
 

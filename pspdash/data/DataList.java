@@ -26,6 +26,7 @@
 package pspdash.data;
 
 
+import com.oroinc.text.perl.Perl5Util;
 import com.oroinc.text.perl.MalformedPerl5PatternException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -34,6 +35,7 @@ import java.util.Vector;
 
 abstract class DataList {
 
+    private static Perl5Util perl = new Perl5Util();
     String dataName = null;
     String prefix = null;
     String customerName = null;
@@ -205,7 +207,7 @@ abstract class DataList {
 
         public void dataAdded(DataEvent e) {
             try {
-                if (ValueFactory.perl.match(re, e.getName())) {
+                if (perl.match(re, e.getName())) {
                     dataList.put(e.getName(), new DataListValue(null)); // needed?
                     data.addActiveDataListener(e.getName(), this, customerName);
                 }
@@ -388,38 +390,40 @@ abstract class DataList {
 
         public void dataAdded(DataEvent e) {
             String condExpr = null;
+            String dataName = e.getName();
             try {
-                if (ValueFactory.perl.match(re, e.getName())) {
-                    String dataName = e.getName();
+                synchronized (perl) {
+                    if (!perl.match(re, dataName))
+                        return;
 
                     // use pattern substitution to compute expression for conditional
-                    condExpr = ValueFactory.perl.substitute(condition, dataName);
-
-                    // System.out.println("dataAdded():");
-                    // System.out.println("   customer = '" + customerName + "'");
-                    // System.out.println("   dataName = '" + dataName + "'");
-                    // System.out.println("   condition = '" + condExpr +"'");
-                    // System.out.println("");
-
-                    // get a new data name for the conditional expression
-                    String dataCondName = data.anonymousPrefix + "_Conditional/" +
-                        makeNiceName(condExpr);
-
-                    // add the dataCondName -> dataName pair to watched data
-                    dataWatchers.put(dataCondName, dataName);
-
-                    // add dataName to the condDataList with null value
-                    condDataList.put(dataName, new DataListValue(null));
-
-                    // add dataCondName to the condDataList with DoubleData 0
-                    condDataList.put(dataCondName, new DataListValue(new DoubleData(0)));
-
-                    // create conditional function in repository
-                    data.maybeCreateValue(dataCondName, condExpr, "");
-
-                    // addActiveDataListener for dataCondName
-                    data.addActiveDataListener(dataCondName, this, customerName);
+                    condExpr = perl.substitute(condition, dataName);
                 }
+
+                // System.out.println("dataAdded():");
+                // System.out.println("   customer = '" + customerName + "'");
+                // System.out.println("   dataName = '" + dataName + "'");
+                // System.out.println("   condition = '" + condExpr +"'");
+                // System.out.println("");
+
+                // get a new data name for the conditional expression
+                String dataCondName = data.anonymousPrefix + "_Conditional/" +
+                    makeNiceName(condExpr);
+
+                // add the dataCondName -> dataName pair to watched data
+                dataWatchers.put(dataCondName, dataName);
+
+                // add dataName to the condDataList with null value
+                condDataList.put(dataName, new DataListValue(null));
+
+                // add dataCondName to the condDataList with DoubleData 0
+                condDataList.put(dataCondName, new DataListValue(new DoubleData(0)));
+
+                // create conditional function in repository
+                data.maybeCreateValue(dataCondName, condExpr, "");
+
+                // addActiveDataListener for dataCondName
+                data.addActiveDataListener(dataCondName, this, customerName);
             } catch (MalformedPerl5PatternException m) {
                 System.err.println("MalformedPerl5PatternException: " + re);
                 re = null;
