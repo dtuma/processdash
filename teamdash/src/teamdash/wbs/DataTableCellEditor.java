@@ -6,6 +6,7 @@ import java.awt.Component;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.text.JTextComponent;
 
 /** Default cell editor for the data table.
  *
@@ -41,6 +42,10 @@ class DataTableCellEditor extends DefaultCellEditor {
         this.columnName = table.getColumnName(column);
         this.table = table;
         UndoList.addCellEditor(table, this);
+
+        // select all the text in the component (users are used to this)
+        if (result instanceof JTextComponent)
+            ((JTextComponent) result).selectAll();
 
         return result;
     }
