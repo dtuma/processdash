@@ -40,6 +40,7 @@ CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
 
 CGI_JAVA=Templates/psp1/sizeest.java \
 	Templates/psp3/cyclesum.java \
+	Templates/generic/summary.java \
 	Templates/reports/psp/r3c.java \
 	Templates/reports/psp/r4.java \
 	Templates/reports/psp/r5a.java \
@@ -121,6 +122,8 @@ $(CGI_CLASSES) : %.class : %.java $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)
 	    -deprecation \
 	    -d $(dir $<) \
 	    $<
+
+add-on-scripts: build/SCR-DCR.jar
 
 build/SCR-DCR.jar: $(SCR_DCR_FILES)
 	$(JAR) cf build/SCR-DCR.jar $(SCR_DCR_FILES)
