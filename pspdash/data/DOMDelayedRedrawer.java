@@ -41,7 +41,6 @@ class DOMDelayedRedrawer extends Thread implements DOMAction {
         this.service = service;
         this.itemsToNotify = new Vector();
         setDaemon(true);
-        start();
     }
 
 
@@ -53,12 +52,14 @@ class DOMDelayedRedrawer extends Thread implements DOMAction {
                     // wait indefinitely until someone notifies us
                     if (itemsToNotify.size() == 0) wait();
                 }
-                // then wait a fraction of a second more.
-                sleep(50);
             } catch (InterruptedException ie) {}
 
-            if (isRunning && itemsToNotify.size() > 0)
-                service.invokeLater(this);
+            if (isRunning && itemsToNotify.size() > 0) try {
+                // wait a fraction of a second more
+                sleep(50);
+                // then perform the queued redraw notifications
+                service.invokeAndWait(this);
+            } catch (Exception e) {}
         }
     }
 
@@ -77,6 +78,9 @@ class DOMDelayedRedrawer extends Thread implements DOMAction {
         synchronized (this) {
             notify();
         }
+        if (this.isAlive()) try {
+            this.join();
+        } catch (Exception e) {}
     }
 
 
