@@ -52,7 +52,7 @@ import pspdash.data.NotEqualsFunction;
 
 class ValueFactory {
 
-    private static ResourcePool perlPool;
+    public static ResourcePool perlPool;
     static final String doublePattern =
         "m\n^-?\\d+\\.\\d+([eE](\\+|-)\\d+)?|-?NaN|-?Infinity$\n";
     static final String integerPattern = "m\n^[-+]?[0-9]+$\n";

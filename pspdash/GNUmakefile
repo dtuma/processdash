@@ -112,7 +112,7 @@ help-search: FORCE
 	cd Templates/help; $(JHINDEXER) -c help.config
 endif
 
-pspdash: PSPDashboard.class $(CLASS_FILES) Templates/PSP.globalData
+pspdash: PSPDashboard.class $(CLASS_FILES)
 
 
 cgi-scripts: $(CGI_CLASSES) $(SIZEEST_COPIES) Templates/reports/excel.iqy
@@ -134,9 +134,6 @@ build/SCR-DCR.jar: Templates/SCR/manifest $(SCR_DCR_FILES)
 
 Templates/reports/excel.iqy: Templates/reports/excel.class
 	cp Templates/reports/excel.class Templates/reports/excel.iqy
-
-Templates/PSP.globalData: Templates/PSP.globalData.pre
-	cpp -E -x c Templates/PSP.globalData.pre -o Templates/PSP.globalData -P -traditional
 
 clean:
 	cd build; $(MAKE) clean

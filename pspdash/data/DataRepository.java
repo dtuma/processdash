@@ -1439,6 +1439,7 @@ public class DataRepository implements Repository {
             BufferedReader in = new BufferedReader(new InputStreamReader(datafile));
             String line, name, value;
             int equalsPosition;
+            CppFilter filtIn = null;
 
             try {
                 line = in.readLine();
@@ -1475,9 +1476,11 @@ public class DataRepository implements Repository {
                     line = in.readLine();
                 }
 
+                filtIn = new CppFilter(in);
+
                 // find a line with a valid = assignment and load its data into
                 // the destination Hashtable
-                for( ;  line != null;  line = in.readLine()) {
+                for( ;  line != null;  line = filtIn.readLine()) {
                     if (line.startsWith("=") || line.trim().length() == 0)
                         continue;
 
@@ -1494,6 +1497,7 @@ public class DataRepository implements Repository {
                 }
             }
             finally {
+                if (filtIn != null) filtIn.dispose();
                 if (close) in.close();
             }
 

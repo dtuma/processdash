@@ -96,6 +96,7 @@ DATA_FILES=$(COMMON_FILES) \
 	AndFunction.java \
 	ArgumentList.java \
 	ComparisonFunction.java \
+	CppFilter.java \
 	DataComparator.java \
 	DataConsistencyObserver.java \
 	DataList.java \
