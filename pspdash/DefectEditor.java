@@ -129,7 +129,7 @@ public class DefectEditor extends Component
 
 
     public void updateDefectLog (DefectLog dl) {
-        System.out.println("In updateDefectLog");
+        //System.out.println("In updateDefectLog");
         Defect[] defects = dl.readDefects();
         PropertyKey pKey;
         DefectListID dlid;
@@ -138,9 +138,9 @@ public class DefectEditor extends Component
             dlid = (DefectListID)values.nextElement();
             if (areEqual(dlid.dl.defectLogFilename, dl.defectLogFilename) &&
                 areEqual(dlid.dl.dataPrefix, dl.dataPrefix)) {
-                System.out.println(" Found Log:" + dlid.pk.path());
-                for (int ii = 0; ii < defects.length; ii++)
-                    System.out.println("  " + ii + ":" + defects[ii].toString());
+                //System.out.println(" Found Log:" + dlid.pk.path());
+                //for (int ii = 0; ii < defects.length; ii++)
+                //System.out.println("  " + ii + ":" + defects[ii].toString());
                 defectLogs.put (dlid.pk,
                                 new DefectListID (dlid.pk, dl, defects));
                 break;
