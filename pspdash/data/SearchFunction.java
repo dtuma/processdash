@@ -44,7 +44,7 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
     protected CompiledScript script;
     protected DataRepository data;
     protected ListData value, externalValue;
-    private boolean initialized = false;
+    private volatile boolean valueQueried = false;
 
     /** a list of the conditions created by this SearchFunction. */
     protected Set condList = Collections.synchronizedSet(new HashSet());
@@ -64,7 +64,6 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
         this.value.setEditable(false);
 
         data.addRepositoryListener(this, start);
-        initialized = true;
     }
 
     private String maybeAddSlash(String name) {
@@ -108,8 +107,8 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
         if (script == null) {
             // We don't have a script - all elements should be implicitly
             // added.
-            value.setAdd(dataPrefix);
-            doNotify();
+            if (value.setAdd(dataPrefix))
+                doNotify();
 
         } else {
             // We need to see if this element matches the expression.
@@ -124,8 +123,8 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
             // If the condition evaluates to true, add this prefix to our
             // value.
             if (test(condition.getSimpleValue())) {
-                value.setAdd(dataPrefix);
-                doNotify();
+                if (value.setAdd(dataPrefix))
+                    doNotify();
             }
 
             // Listen for changes to this condition expression.
@@ -195,7 +194,7 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
     }
 
     protected void doNotify() {
-        if (initialized) {
+        if (valueQueried) {
             externalValue = new ListData(value);
             data.putValue(name, this);
         }
@@ -210,6 +209,7 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
     public String saveString() { return ""; }
 
     public SimpleData getSimpleValue() {
+        valueQueried = true;
         return externalValue;
     }
 
