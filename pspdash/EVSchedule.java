@@ -219,6 +219,7 @@ public class EVSchedule implements TableModel {
     }
 
     Vector periods = new Vector();
+    EVMetrics metrics = new EVMetrics();
 
     public EVSchedule() {
         Calendar c = Calendar.getInstance();
@@ -270,8 +271,6 @@ public class EVSchedule implements TableModel {
             periods.add(p);
         }
     }
-
-
 
     protected synchronized void add(Period p) {
         p.previous = getLast();
@@ -331,6 +330,47 @@ public class EVSchedule implements TableModel {
         if (!d.startsWith("@")) throw new IllegalArgumentException();
         return new Date(Long.parseLong(d.substring(1)));
     }
+
+    protected synchronized Period get(Date when) {
+        long time = when.getTime();
+        Period p;
+        for (int i = periods.size();  i-- > 1; ) {
+            p = get(i);
+            if (p != null && p.getBeginDate().getTime() < time)
+                return p;
+        }
+        return null;
+    }
+
+    public synchronized Date getPeriodStart(Date when) {
+        Period p = get(when);
+        return (p == null ? null : p.getBeginDate());
+    }
+
+    public synchronized Date getPeriodEnd(Date when) {
+        Period p = get(when);
+        return (p == null ? null : p.endDate);
+    }
+
+    /*
+    public Date getForecastCompletionDate() {
+        if (effectivePeriod == 0)
+            return null;
+
+        Period p = get(effectivePeriod);
+        long endDate = p.endDate.getTime();
+        double earnedValue = p.cumEarnedValue;
+        if (earnedValue == 0.0) return null;
+
+        p = get(0);
+        long elapsedTime = endDate - p.endDate.getTime();
+        if (elapsedTime == 0) return null;
+
+        double rate = earnedValue / elapsedTime;
+        long timeLeft = (long) ((1.0 - earnedValue) / rate);
+        return new Date(endDate + timeLeft);
+    }
+    */
 
     public synchronized Date getPlannedCompletionDate(double cumPlanTime,
                                                       double cumPlanValue) {
@@ -416,6 +456,24 @@ public class EVSchedule implements TableModel {
             }
         }
     }
+
+    private Date effectiveDate = null;
+    private int effectivePeriod = 0;
+    public synchronized void setEffectiveDate(Date d) {
+        effectiveDate = d;
+        effectivePeriod = 0;
+        long time = d.getTime();
+        Period p;
+        for (int i = periods.size();  i-- > 0; ) {
+            p = get(i);
+            if (p != null && p.endDate.getTime() < time) {
+                effectivePeriod = i+1;
+                return;
+            }
+        }
+    }
+    public Date getStartDate() { return get(0).endDate; }
+    public EVMetrics getMetrics() { return metrics; }
 
     /** look at the final row in the schedule, and maybe bump it up.
      *
@@ -531,7 +589,7 @@ public class EVSchedule implements TableModel {
         prepForEvents();
         Period p = null;
         int i;
-        for (i = 1;  i < periods.size();  i++) {
+        for (i = 0;  i < periods.size();  i++) {
             p = get(i);
             p.cumPlanValue = p.cumEarnedValue = 0;
             p.actualTime   = p.cumActualTime  = 0;
@@ -719,31 +777,79 @@ public class EVSchedule implements TableModel {
     private static final Double ZERO = new Double(0.0);
     private static final Double ONE_HUNDRED = new Double(100.0);
 
+    private interface ChartSeries {
+        /** Returns the name of the specified series (zero-based). */
+        String getSeriesName();
+        /** Returns the number of items in the specified series */
+        int getItemCount();
+        /** Returns the x-value for the specified series and item */
+        Number getXValue(int itemIndex);
+        /** Returns the y-value for the specified series and item */
+        Number getYValue(int itemIndex);
+    }
+
+    private abstract class PlanChartSeries implements ChartSeries {
+        public String getSeriesName() { return "Plan"; }
+        public int getItemCount() { return getRowCount()+1; }
+        public Number getXValue(int itemIndex) {
+            return new Long(get(itemIndex).endDate.getTime()); }
+    }
+
+    private abstract class ActualChartSeries implements ChartSeries {
+        public String getSeriesName() { return "Actual"; }
+        public int getItemCount() { return effectivePeriod+1; }
+        public Number getXValue(int itemIndex) {
+            Date d;
+            if (itemIndex < effectivePeriod)
+                d = get(itemIndex).endDate;
+            else
+                d = effectiveDate;
+            return new Long(d.getTime());
+        }
+    }
+
+    private class ForecastChartSeries implements ChartSeries {
+        public String getSeriesName() { return "Forecast"; }
+        public int getItemCount() { return 2; }
+        public Number getXValue(int itemIndex) {
+            Date d;
+            if (itemIndex == 0)
+                d = effectiveDate;
+            else
+                d = metrics.independentForecastDate();
+            return new Long(d.getTime());
+        }
+        public Number getYValue(int itemIndex) {
+            return (itemIndex == 0 ? currentYVal : forecastYVal);
+        }
+        Number currentYVal, forecastYVal;
+    }
+
 
     /** Base class for implementing XYDataSource funtionality.
      */
     private class ChartData implements XYDataSource, TableModelListener {
+        ChartSeries [] series;
         boolean needsRecalc = true;
         protected void recalc() {}
+        protected void maybeRecalc() {
+            if (needsRecalc) { recalc(); needsRecalc = false; } }
         /** Returns the number of series in the data source. */
-        public int getSeriesCount() { return 2; }
+        public int getSeriesCount() { maybeRecalc(); return series.length; }
         /** Returns the name of the specified series (zero-based). */
-        public String getSeriesName(int seriesIndex) {
-            return (seriesIndex == 0 ? "Plan" : "Actual"); }
+        public String getSeriesName(int seriesIndex) { maybeRecalc();
+            return series[seriesIndex].getSeriesName(); }
         /** Returns the number of items in the specified series */
-        public int getItemCount(int seriesIndex) { return getRowCount()+1; }
-
+        public int getItemCount(int seriesIndex) { maybeRecalc();
+            return series[seriesIndex].getItemCount(); }
         /** Returns the x-value for the specified series and item */
         public Number getXValue(int seriesIndex, int itemIndex) {
-            return new Long(get(itemIndex).endDate.getTime()); }
+            maybeRecalc(); return series[seriesIndex].getXValue(itemIndex); }
         /** Returns the y-value for the specified series and item */
         public Number getYValue(int seriesIndex, int itemIndex) {
-            if (needsRecalc) { recalc(); needsRecalc = false; }
+            maybeRecalc();
             if (itemIndex == -1) return null;
-            //if (itemIndex == 0)  return ZERO;
-            return getYVal(seriesIndex, itemIndex);
-        }
-        public Number getYVal(int seriesIndex, int itemIndex) { return ZERO; }
+            return series[seriesIndex].getYValue(itemIndex); }
 
         // support DataSourceChangeListener notification
         private ArrayList listenerList = null;
@@ -780,68 +886,98 @@ public class EVSchedule implements TableModel {
         }
     }
 
+    private class PlanTimeSeries extends PlanChartSeries {
+        public Number getYValue(int itemIndex) {
+            return new Double(get(itemIndex).cumPlanTime / 60.0); } }
+    private class ActualTimeSeries extends ActualChartSeries {
+        public Number getYValue(int itemIndex) {
+            return new Double(get(itemIndex).cumActualTime / 60.0); } }
 
     /** XYDataSource for charting plan vs actual direct hours.
      */
     private class TimeChartData extends ChartData {
-        public Number getYVal(int seriesIndex, int itemIndex) {
-            Period p = get(itemIndex);
-            if (seriesIndex == 1 &&
-                System.currentTimeMillis() < p.getBeginDate().getTime())
-                return null;
-
-            double result = (seriesIndex==0 ? p.cumPlanTime : p.cumActualTime);
-            return new Double(result / 60.0);
+        public TimeChartData() {
+            series = new ChartSeries[3];
+            series[0] = new PlanTimeSeries();
+            series[1] = new ActualTimeSeries();
+            series[2] = forecast = new ForecastChartSeries();
         }
+        ForecastChartSeries forecast;
+        public void recalc() {
+            forecast.currentYVal = new Double(getLast().cumActualTime / 60.0);
+            forecast.forecastYVal = new Double
+                (checkDouble(metrics.independentForecastCost() / 60.0));
+            if (forecast.getXValue(1) == null) numSeries = 2;
+        }
+        private double checkDouble(double d) {
+            numSeries = ((Double.isNaN(d) || Double.isInfinite(d)) ? 2 : 3);
+            return d;
+        }
+        int numSeries = 3;
+        public int getSeriesCount() { maybeRecalc(); return numSeries; }
     }
     public XYDataSource getTimeChartData() { return new TimeChartData(); }
+
+
+
+    private class PlanValueSeries extends PlanChartSeries {
+        double mult;
+        PlanValueSeries(double m) { mult = m; }
+        public Number getYValue(int itemIndex) {
+            return new Double(get(itemIndex).cumPlanValue * mult); } }
+    private class ActualValueSeries extends ActualChartSeries {
+        double mult;
+        ActualValueSeries(double m) { mult = m; }
+        public Number getYValue(int itemIndex) {
+            return new Double(get(itemIndex).cumEarnedValue * mult); } }
 
 
     /** XYDataSource for charting plan vs actual earned value.
      */
     private class ValueChartData extends ChartData implements RangeInfo {
-        public Number getYVal(int seriesIndex, int itemIndex) {
-            Period p = get(itemIndex);
-            if (seriesIndex == 1 &&
-                System.currentTimeMillis() < p.getBeginDate().getTime())
-                return null;
-
-            double result=(seriesIndex==0 ? p.cumPlanValue : p.cumEarnedValue);
-            return new Double(result * 100.0);
+        public ValueChartData() {
+            series = new ChartSeries[3];
+            series[0] = new PlanValueSeries(100.0);
+            series[1] = new ActualValueSeries(100.0);
+            series[2] = forecast = new ForecastChartSeries();
         }
+        ForecastChartSeries forecast;
+        public void recalc() {
+            forecast.currentYVal = new Double(getLast().cumEarnedValue * 100);
+            forecast.forecastYVal = ONE_HUNDRED;
+            numSeries = (forecast.getXValue(1) == null ? 2 : 3);
+        }
+        int numSeries = 3;
+        public int getSeriesCount() { maybeRecalc(); return numSeries; }
         public Number getMinimumRangeValue() { return ZERO; }
         public Number getMaximumRangeValue() { return ONE_HUNDRED; }
     }
-    public XYDataSource getValueChartData() { return new ValueChartData(); }
+    public XYDataSource getValueChartData() {
+        ValueChartData result = new ValueChartData();
+        result.recalc();
+        return result;
+    }
 
 
     /** XYDataSource for charting cost and schedule on one chart.
      */
     private class CombinedChartData extends ChartData {
-        public int getSeriesCount() { return 3; }
-        public String getSeriesName(int seriesIndex) {
-            switch (seriesIndex) {
-            case 0: return "Plan Value";
-            case 1: return "Actual Value";
-            case 2: return "Actual Time";
-            }
-            return null;
+        public CombinedChartData() {
+            series = new ChartSeries[3];
+            series[0] = planValueSeries = new PlanValueSeries(1.0) {
+                    public String getSeriesName() { return "Plan Value"; } };
+            series[1] = actualValueSeries = new ActualValueSeries(1.0) {
+                    public String getSeriesName() { return "Actual Value"; } };
+            series[2] = new ActualTimeSeries() {
+                    public String getSeriesName() { return "Actual Time"; } };
         }
-        public Number getYVal(int seriesIndex, int itemIndex) {
-            Period p = get(itemIndex);
-            if (seriesIndex > 0 &&
-                System.currentTimeMillis() < p.getBeginDate().getTime())
-                return null;
-
-            switch (seriesIndex) {
-            case 0: return new Double(p.cumPlanValue * totPlanTime / 60.0);
-            case 1: return new Double(p.cumEarnedValue * totPlanTime / 60.0);
-            case 2: return new Double(p.cumActualTime / 60.0);
-            }
-            return ZERO;
+        PlanValueSeries planValueSeries;
+        ActualValueSeries actualValueSeries;
+        protected void recalc() {
+            double totPlanTime = getLast().cumPlanTime;
+            planValueSeries.mult = totPlanTime / 60.0;
+            actualValueSeries.mult =  totPlanTime / 60.0;
         }
-        private double totPlanTime;
-        protected void recalc() { totPlanTime = getLast().cumPlanTime; }
     }
     public XYDataSource getCombinedChartData() {
         return new CombinedChartData(); }

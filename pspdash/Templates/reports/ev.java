@@ -44,6 +44,8 @@ public class ev extends CGIChartBase {
     public static final String VALUE_CHART = "value";
     public static final String COMBINED_CHART = "combined";
 
+    private static final int MED = EVMetrics.MEDIUM;
+
     boolean drawingChart;
 
     /** Write the CGI header.
@@ -146,15 +148,49 @@ public class ev extends CGIChartBase {
         out.print(StringUtils.findAndReplace
                   (SEPARATE_CHARTS_HTML, TASK_LIST_VAR, taskListURL));
 
+        EVSchedule s = evModel.getSchedule();
+        EVMetrics  m = s.getMetrics();
+
+        out.print("<table>");
+        writeMetric("Cost Variance", m.costVariance(MED));
+        writeMetric("Cost Variance %", m.costVariancePercentage(MED));
+        writeMetric("Cost Performance Index", m.costPerformanceIndex(MED));
+
+        writeMetric("Schedule Variance", m.scheduleVariance(MED));
+        writeMetric("Schedule Variance %", m.scheduleVariancePercentage(MED));
+        writeMetric("Schedule Variance Duration",
+                    m.scheduleVarianceDuration(MED));
+        writeMetric("Schedule Performance Index",
+                    m.schedulePerformanceIndex(MED));
+
+        writeMetric("Percent Complete", m.percentComplete(MED));
+        writeMetric("Percent Spent", m.percentSpent(MED));
+        writeMetric("To Complete Performance Index",
+                    m.toCompletePerformanceIndex(MED));
+        writeMetric("Improvement Ratio", m.improvementRatio(MED));
+
+        writeMetric("Forecast Cost", m.independentForecastCost(MED));
+        writeMetric("Forecast Duration", m.independentForecastDuration(MED));
+        writeMetric("Forecast Completion Date",
+                    m.independentForecastDate(MED));
+        out.print("</table>");
+
         out.print("<h2>Task Template</h2>\n");
         writeHTMLTable("TASK", evModel.getSimpleTableModel(),
                        evModel.toolTips);
 
-        EVSchedule s = evModel.getSchedule();
         out.print("<h2>Schedule Template</h2>\n");
         writeHTMLTable("SCHEDULE", s, s.toolTips);
 
         out.print(FOOTER_HTML);
+    }
+    protected void writeMetric(String name, String value) {
+        if (value == null) return;
+        out.write("<tr><td><b>");
+        out.write(name);
+        out.write(":&nbsp;</b></td><td>");
+        out.write(value);
+        out.write("</td></tr>\n");
     }
 
     static final String TASK_LIST_VAR = "%taskListName%";
