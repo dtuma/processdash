@@ -99,6 +99,7 @@ Authors:
 
 
   <property name="build.sysclasspath" value="ignore"/>
+  <property name="build.compiler" value="javac1.3"/>
 
   <path id="build.classpath">
     <pathelement location="${build}"/>
