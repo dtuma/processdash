@@ -105,7 +105,7 @@ Authors:
 
   <property name="jfreechart.jar" value="${lib}/jfreechart-0.9.15.jar"/>
   <property name="jcommon.jar"    value="${lib}/jcommon-0.9.0.jar"/>
-  <property name="jrc.jar"        value="../jrc-editor-1.3.1/jrc-editor.jar"/>
+  <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
 
 
@@ -339,6 +339,9 @@ Authors:
     <taskdef name="i18n-generateTranslator"
         classname="net.sourceforge.processdash.i18n.GenerateTranslator"
 	classpath="${libsrc}"/>
+    <taskdef name="cvszip"
+        classname="net.sourceforge.processdash.CVSZip"
+	classpath="${libsrc}"/>
   </target>
 
 
@@ -347,7 +350,7 @@ Authors:
 
 
 
-  <target name="jar" depends="init,compile,optional,javahelp"
+  <target name="jar" depends="init,compile,optional,javahelp,l10n-tool"
           description="Make the jarfile for distribution">
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
@@ -389,7 +392,7 @@ Authors:
       <zipfileset src="${jfreechart.jar}"/>
       <zipfileset src="${lib}/jregex.jar"/>
       <zipfileset src="${lib}/distlib.jar" excludes="**/*.java"/>
-      <zipfileset src="${jrc.jar}"/>
+      <zipfileset src="${l10n-tool.jar}"/>
     </jar>
   </target>
 
@@ -469,9 +472,18 @@ Authors:
   </target>
 
 
+  <!-- =================================================================== -->
+  <!-- Internationalization / Localization                                 -->
+  <!-- =================================================================== -->
+
+  <target name="l10n-tool">
+    <ant dir="l10n-tool" inheritAll="false"/>
+  </target>
+
   <target name="check-res" depends="ant-tasks">
     <i18n-orphans dir="Templates" includes="**/*.properties"/>
   </target>
+
 
   <!-- =================================================================== -->
   <!-- Cleans everything                                                   -->
@@ -490,11 +502,20 @@ Authors:
     <delete quiet="true" file="${dist}/dashHelp.jar"/>
     <delete quiet="true" file="${dist}/importPSP.jar"/>
     <delete quiet="true" file="${dist}/pspForEng.jar"/>
+    <delete quiet="true" file="${dist}/pdash-src-*.zip"/>
     <delete><fileset dir="${libsrc}" includes="**/*.class"/></delete>
   </target>
 
+
+  <!-- =================================================================== -->
+  <!-- Create distributable files                                          -->
+  <!-- =================================================================== -->
   <target name="dist"
       depends="jar,javahelp-addon,import-addon,pspForEng-addon"/>
+
+  <target name="dist-src" depends="ant-tasks">
+    <cvszip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"/>
+  </target>
 
 </project>
 
