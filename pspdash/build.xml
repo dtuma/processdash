@@ -298,7 +298,12 @@ Authors:
           description="Compile the data applet support for internet explorer">
     <mkdir dir="${ie.dir}"/>
     <javac srcdir="${src}" destdir="${ie.dir}" compiler="microsoft"
+           includeAntRuntime="no" includeJavaRuntime="no" target="1.1"
            failonerror="false" debug="${debug}">
+      <bootclasspath>
+         <pathelement location="c:\Windows\java\classes\classes.zip"/>
+         <pathelement location="c:\Winnt\java\classes\classes.zip"/>
+      </bootclasspath>
       <includesfile name="${lib}/fileset-applet-only.txt"/>
       <includesfile name="${lib}/fileset-applet-extra.txt"/>
       <includesfile name="${lib}/fileset-ie.txt"/>
