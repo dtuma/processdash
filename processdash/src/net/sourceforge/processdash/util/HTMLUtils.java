@@ -26,6 +26,9 @@
 package net.sourceforge.processdash.util;
 
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -55,6 +58,24 @@ public class HTMLUtils {
         value = StringUtils.findAndReplace(value, "&apos;", "'");
         value = StringUtils.findAndReplace(value, "&amp;",  "&");
         return value;
+    }
+
+    public static String urlEncode(String s) {
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // can't happen
+            return null;
+        }
+    }
+
+    public static String urlDecode(String s) {
+        try {
+            return URLDecoder.decode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // can't happen
+            return null;
+        }
     }
 
     /** parse the inner contents of a tag as a set of
