@@ -209,18 +209,24 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         readProps.copy (useProps);
         setDirty (false);
 
-        if (pendingVector != null && pendingVector.size() > 0) {
-            createProgressDialog(pendingVector.size());
+        int tasksToPerform = 1;
+        if (pendingVector != null)
+            tasksToPerform += pendingVector.size();
 
-            // do work in a different thread - otherwise we steal time from
-            // the awt event pump and nothing gets redrawn.
-            Thread t = new Thread() {
-                public void run() { savePendingVector(); }
-                };
-            t.start();
+        createProgressDialog(tasksToPerform);
 
-            showProgressDialog();     // this call will block until complete.
-        }
+        // do work in a different thread - otherwise we steal time from
+        // the awt event pump and nothing gets redrawn.
+        Thread t = new Thread() {
+            public void run() {
+                savePendingVector();
+                updateNodesAndLeaves();
+                closeProgressDialog();
+            }
+            };
+        t.start();
+
+        showProgressDialog();     // this call will block until complete.
     }
 
     public void savePendingVector() {
@@ -255,9 +261,64 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             }
             pendingVector.removeAllElements();
         }
-        closeProgressDialog();
 
         dashboard.refreshHierarchy();
+    }
+
+    private HashSet nodesAndLeaves;
+    private void readNodesAndLeaves() {
+        nodesAndLeaves = new HashSet();
+        Iterator dataNames = dashboard.data.getKeys();
+        String name;
+
+        while (dataNames.hasNext()) {
+            name = (String) dataNames.next();
+            if (name.endsWith(NODE_TAG) || name.endsWith(LEAF_TAG))
+                nodesAndLeaves.add(name);
+        }
+        /* "Pretend" that the data item "/node" is set.  We never want
+         * that element to be set; claiming that it IS set will
+         * effectively prevent setNodesAndLeaves() from setting it.
+         */
+        nodesAndLeaves.add(NODE_TAG);
+    }
+
+    public static final String NODE_TAG = "/node";
+    public static final String LEAF_TAG = "/leaf";
+
+    private void setNodesAndLeaves(PropertyKey key) {
+        String path = key.path();
+        String name;
+
+        // set the "node" tag on every node
+        name = path + NODE_TAG;
+        if (nodesAndLeaves.remove(name) == false)
+            dashboard.data.putValue(name, dashboard.data.TAG);
+
+        // set or unset the leaf tag, if applicable.
+        int numChildren = useProps.getNumChildren(key);
+        name = path + LEAF_TAG;
+        if (numChildren == 0) {
+            if (nodesAndLeaves.remove(name) == false)
+                dashboard.data.putValue(name, dashboard.data.TAG);
+        } else {
+            while (numChildren-- > 0)
+                                      // recursively process all children.
+                setNodesAndLeaves(useProps.getChildKey(key, numChildren));
+        }
+    }
+
+    private void clearNodesAndLeaves() {
+        Iterator i = nodesAndLeaves.iterator();
+        while (i.hasNext())
+            dashboard.data.removeValue((String) i.next());
+    }
+
+    private void updateNodesAndLeaves() {
+        readNodesAndLeaves();
+        setNodesAndLeaves(PropertyKey.ROOT);
+        clearNodesAndLeaves();
+        incrementProgressDialog();
     }
 
     private JDialog progressDialog = null;
