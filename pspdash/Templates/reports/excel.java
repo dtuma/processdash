@@ -37,10 +37,6 @@ public class excel extends pspdash.TinyCGIBase {
     }
 
     protected void writeContents() throws IOException {
-        String queryString = (String) env.get("QUERY_STRING");
-        if (queryString == null || queryString.length() == 0)
-            queryString = "qf=export.rpt";
-
         out.println("WEB");
         out.println("1");
         String hostPort = (String) env.get("HTTP_HOST");
@@ -52,8 +48,8 @@ public class excel extends pspdash.TinyCGIBase {
         String uri = (String) env.get("REQUEST_URI");
         uri = StringUtils.findAndReplace(uri, "/excel.iqy",   "/table.class");
         uri = StringUtils.findAndReplace(uri, "/excel.class", "/table.class");
-        out.print("http://" + hostPort + uri);
-        out.println(queryString);
+        if (uri.indexOf('?') == -1) uri = uri + "?qf=export.rpt";
+        out.println("http://" + hostPort + uri);
     }
 
 }
