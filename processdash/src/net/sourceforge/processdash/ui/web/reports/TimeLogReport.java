@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 
 import net.sourceforge.processdash.hier.*;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.ui.web.*;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -39,30 +40,29 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class TimeLogReport extends TinyCGIBase {
 
+    private static final Resources resources =
+        Resources.getDashBundle("Time.Report");
+
     private static final String START_TEXT =
-        "<HTML><HEAD><TITLE>Time Log%for owner%%for path%</TITLE>%css%\n" +
+        "<HTML><HEAD><TITLE>${Title}%for owner%%for path%</TITLE>%css%\n" +
         "<STYLE>\n" +
         "    TABLE { empty-cells: show }\n" +
         "    .header { font-weight: bold }\n" +
         "    TD { vertical-align: baseline }\n" +
         "</STYLE></HEAD>\n" +
-        "<BODY><H1>Time Log%for path%</H1>\n" +
+        "<BODY><H1>${Title}%for path%</H1>\n" +
         "<TABLE BORDER><TR class=header>\n" +
-        "<TD>Project/Task</TD>\n" +
-        "<TD>Phase</TD>\n" +
-        "<TD>Start Time</TD>\n" +
-        "<TD>Elapsed</TD>\n" +
-        "<TD>Interrupt</TD>\n" +
-        "<TD>Comment</TD></TR>\n";
+        "<TD>${Project__Task}</TD>\n" +
+        "<TD>${Phase}</TD>\n" +
+        "<TD>${Start_Time}</TD>\n" +
+        "<TD>${Elapsed}</TD>\n" +
+        "<TD>${Interrupt}</TD>\n" +
+        "<TD>${Comment}</TD></TR>\n";
 
     private static final String DISCLAIMER =
-        "<P class=doNotPrint><A HREF=\"excel.iqy\"><I>Export to" +
-        " Excel</I></A></P>"+
-        "<P class=doNotPrint><I>This view of the time log is read-only. To " +
-        "add entries to the time log, use the play/pause button on the " +
-        "dashboard. To edit or delete time log entries, use the time log " +
-        "editor (accessible from the Configuration menu of the " +
-        "dashboard).</I></P>";
+        "<P class=doNotPrint><A HREF=\"excel.iqy\"><I>" +
+        "${Export_to_Excel}</I></A></P>"+
+        "<P class=doNotPrint><I>${Caveat}</I></P>";
 
 
     /** Generate CGI script output. */
@@ -73,6 +73,7 @@ public class TimeLogReport extends TinyCGIBase {
         String owner = For(getOwner());
 
         String header = START_TEXT;
+        header = resources.interpolate(header, true);
         header = StringUtils.findAndReplace(header, "%for owner%", owner);
         header = StringUtils.findAndReplace(header, "%for path%", title);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
@@ -108,14 +109,14 @@ public class TimeLogReport extends TinyCGIBase {
         out.println("</TABLE>");
 
         if (parameters.get("skipFooter") == null)
-            out.print(DISCLAIMER);
+            out.print(resources.interpolate(DISCLAIMER, true));
 
         out.println("</BODY></HTML>");
     }
 
     private String For(String phrase) {
         if (phrase != null && phrase.length() > 1)
-            return " for " + phrase;
+            return resources.format("For_FMT", phrase);
         else
             return "";
     }
