@@ -117,8 +117,11 @@ public class DefectEditor extends Component
             }
         });
 
+        setSelectedPhase(dash.getCurrentPhase());
+
         applyFilter();
-        frame.pack();
+        //frame.pack();
+        frame.setSize(new Dimension(800, 400));
         frame.show();
     }
 
@@ -499,6 +502,34 @@ public class DefectEditor extends Component
             this.dl = dl;
             this.defect = defect;
         }
+    }
+
+    /** Expand the hierarchy so that the given node is visible and selected.
+     */
+    public void setSelectedNode(PropertyKey path) {
+        if (path == null) return;
+        DefaultMutableTreeNode node =
+            (DefaultMutableTreeNode) treeModel.getNodeForKey(useProps, path);
+        if (node == null) return;
+
+        TreePath tp = new TreePath(node.getPath());
+        tree.clearSelection();
+        tree.scrollPathToVisible(tp);
+        tree.addSelectionPath(tp);
+    }
+    private boolean hasDefLog(PropertyKey phase) {
+        if (phase == null) return false;
+        Prop prop = useProps.pget(phase);
+        String defLogName = prop.getDefectLog ();
+        return (defLogName != null && defLogName.length() > 0);
+    }
+    public void setSelectedPhase(PropertyKey phase) {
+        if (phase == null) return;
+        PropertyKey parent = phase.getParent();
+        if (!hasDefLog(phase) && hasDefLog(parent))
+            setSelectedNode(parent);
+        else
+            setSelectedNode(phase);
     }
 
 }
