@@ -63,7 +63,7 @@ PSP1_FILES=$(notdir $(wildcard ../psp1/*.*htm))
 PROG_3B_FILES=$(addprefix 3B/,$(PSP1_FILES))
 prog3B: $(PROG_3B_FILES) 3B/sizeest.class
 $(PROG_3B_FILES): 3B/% : ../psp1/%
-	$(PERL) -p filter cut4A $< > $@
+	$(PERL) -p filter cut3B $< > $@
 
 
 ######################################################################
