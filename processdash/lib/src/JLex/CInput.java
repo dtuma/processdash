@@ -1,6 +1,8 @@
 
 package JLex;
 
+import java.io.IOException;
+
 
 /***************************************************************
   Class: CInput
@@ -130,5 +132,9 @@ class CInput
 
 	m_line_index = 0;
 	return NOT_EOF;
+      }
+
+      public void close() throws IOException {
+          m_input.close();
       }
 }
