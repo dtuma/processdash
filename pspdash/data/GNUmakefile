@@ -118,6 +118,7 @@ DATA_FILES=$(COMMON_FILES) \
 	MultiplicationFunction.java \
 	NotEqualsFunction.java \
 	NotFunction.java \
+	NumberAliasFunction.java \
 	NumberFunction.java \
 	OrFunction.java \
 	PrefixHierarchy.java \
@@ -128,8 +129,10 @@ DATA_FILES=$(COMMON_FILES) \
 	ResultSet.java \
 	SimpleList.java \
 	SortedList.java \
+	StringAliasFunction.java \
 	SubtractionFunction.java \
 	SumList.java \
+	TagData.java \
 	ValueFactory.java
 
 IE_CLASSES=$(subst .java,.class,$(IE_FILES))
@@ -177,8 +180,8 @@ $(BIN_IE)/pspdash/data/%.class: %.java
 	    /cp:p c:/WINDOWS/java/CLASSES/classes.zip \
 	    /d $(BIN_IE) \
 	    $(IE_FILES)
-	mv -f $(BIN_IE)/pspdash/data/OLEDBDSLWrapper.class $(BIN_DATA)
-	mv -f $(BIN_IE)/pspdash/data/OLEDBListenerWrapper.class $(BIN_DATA)
+	mv -f $(BIN_IE)/pspdash/data/OLEDBDSLWrapper.class $(BIN_DATA)/pspdash/data
+	mv -f $(BIN_IE)/pspdash/data/OLEDBListenerWrapper.class $(BIN_DATA)/pspdash/data
 	cd $(BIN_IE); $(MSCAB) -r -p n DataApplet.cab pspdash\\*
 
 endif
