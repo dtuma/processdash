@@ -29,23 +29,18 @@ import java.io.*;
 import java.net.*;
 import java.util.Date;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import org.w3c.dom.*;
 
 public class CachedURLObject extends CachedObject {
 
-    public static final String PASSWORD_MISSING =
-        "You must supply a username and password to retrieve this item.";
-    public static final String PASSWORD_INCORRECT =
-        "The username and password you provided are not correct.";
-    public static final String NOT_FOUND =
-        "There is no existing item by this name.";
-    public static final String COULD_NOT_RETRIEVE =
-        "The dashboard could not retrieve this item.";
-    public static final String NO_SUCH_HOST =
-        "Couldn't find the remote computer.";
-    public static final String COULD_NOT_CONNECT =
-        "Couldn't connect to the remote computer.";
+    public static final String PASSWORD_MISSING = "Password_Missing";
+    public static final String PASSWORD_INCORRECT = "Password_Incorrect";
+    public static final String NOT_FOUND = "Not_Found";
+    public static final String COULD_NOT_RETRIEVE = "Could_Not_Retrieve";
+    public static final String NO_SUCH_HOST = "No_Such_Host";
+    public static final String COULD_NOT_CONNECT = "Could_Not_Connect";
 
     public static final String OWNER_HEADER_FIELD = "Dash-Owner-Name";
     public static final String OWNER_ATTR = "Owner";
@@ -173,10 +168,18 @@ public class CachedURLObject extends CachedObject {
     }
 
 
+    private static ResourceBundle RESOURCES = null;
 
-    public static String translateMessage(String errorMessage, Map m) {
-        String result = (String) m.get(errorMessage);
-        return result == null ? errorMessage : result;
+    public static String translateMessage(ResourceBundle resources,
+                                          String prefix,
+                                          String errorKey) {
+        String resourceKey = prefix + errorKey;
+        String result = resources.getString(resourceKey);
+        if (result != null) return result;
+
+        if (RESOURCES == null)
+            RESOURCES = Resources.getBundle("pspdash.CachedURLObject");
+        result = RESOURCES.getString(errorKey);
+        return result == null ? errorKey : result;
     }
-
 }

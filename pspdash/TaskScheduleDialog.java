@@ -1152,7 +1152,7 @@ public class TaskScheduleDialog
         // if there was any error, ask the user if they want to continue.
         if (errorMessage != null) {
             errorMessage = CachedURLObject.translateMessage
-                (errorMessage, getImportErrorMessageMap());
+                (resources, "Import_Schedule_", errorMessage);
             Object message = new Object[] {
                 resources.getString("Import_Schedule_Error_Header"),
                 "    " + errorMessage,
@@ -1191,20 +1191,6 @@ public class TaskScheduleDialog
                                                   localName);
     }
     private static final String XML_QUERY_SUFFIX = "?xml";
-    // localized to here
-    private static Map IMPORT_ERROR_MESSAGE_MAP = null;
-    private Map getImportErrorMessageMap() {
-        if (IMPORT_ERROR_MESSAGE_MAP == null) {
-            IMPORT_ERROR_MESSAGE_MAP = new HashMap();
-            IMPORT_ERROR_MESSAGE_MAP.put
-                (CachedURLObject.PASSWORD_MISSING,
-                 "You must supply a password to retrieve this item.");
-            IMPORT_ERROR_MESSAGE_MAP.put
-                (CachedURLObject.PASSWORD_INCORRECT,
-                 "The password you provided is not correct.");
-        }
-        return IMPORT_ERROR_MESSAGE_MAP;
-    }
 
     /** delete the currently selected task.
      */
@@ -1236,14 +1222,17 @@ public class TaskScheduleDialog
     protected boolean confirmDelete(TreePath selPath) {
         EVTask task = (EVTask) selPath.getLastPathComponent();
         String fullName = isRollup() ? task.getName() : task.getFullName();
-        String[] message = new String[] {
-            "Are you certain you want to delete the " +
-                (isRollup() ? "schedule," : "task,"),
-            "        '" + fullName + "'",
-            "from this task list?" };
+        String[] message =
+            Resources.format("\n", resources,
+                             isRollup()
+                                 ? "Confirm_Delete_Schedule_Prompt_FMT"
+                                 : "Confirm_Delete_Task_Prompt_FMT",
+                             fullName);
         return (JOptionPane.showConfirmDialog
                 (frame, message,
-                 isRollup() ? "Delete Schedule?" : "Delete Task?",
+                 isRollup()
+                     ? resources.getString("Confirm_Delete_Schedule_Title")
+                     : resources.getString("Confirm_Delete_Task_Title"),
                  JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
                 == JOptionPane.YES_OPTION);
     }
@@ -1252,7 +1241,6 @@ public class TaskScheduleDialog
      *
      * Will only operate on tasks that are immediate children of the
      * task tree root.
-     */
     protected void explodeTask() {
         TreePath selPath = treeTable.getTree().getSelectionPath();
         if (selPath == null || selPath.getPathCount() != 2) return;
@@ -1288,6 +1276,7 @@ public class TaskScheduleDialog
                  JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
                 == JOptionPane.YES_OPTION);
     }
+     */
 
     /** Swap the currently selected task with its previous sibling.
      *
@@ -1331,10 +1320,6 @@ public class TaskScheduleDialog
             int row = treeTable.getTree().getRowForPath(selPath);
             SwingUtilities.invokeLater(new RowSelectionTask(row));
         }
-    }
-
-    private void notYetImplemented() {
-        JOptionPane.showMessageDialog(treeTable, "Not yet implemented");
     }
 
 
@@ -1391,7 +1376,7 @@ public class TaskScheduleDialog
 
 
     protected void enableTaskButtons(TreePath selectionPath) {
-        boolean enableDelete = false, enableExplode = false,
+        boolean enableDelete = false,
             enableUp = false, enableDown = false, isPruned = false;
         int pos = selectedTaskPos(selectionPath, model);
         if (pos != -1) {
@@ -1402,8 +1387,6 @@ public class TaskScheduleDialog
             enableUp     = (pos > 0);
             enableDown   = (pos < numKids-1);
 
-            enableExplode = (((EVTask) selectionPath.getLastPathComponent())
-                             .getNumChildren() > 0);
         } else if (!isRollup() && selectionPath != null &&
                    selectionPath.getPathCount() > 2) {
             enableDelete = true;
@@ -1414,7 +1397,9 @@ public class TaskScheduleDialog
         addTaskButton    .setEnabled(true);
         deleteTaskButton .setEnabled(enableDelete);
         if (!isRollup())
-            deleteTaskButton.setText(isPruned ? "Restore Task" : "Remove Task");
+            deleteTaskButton.setText(isPruned
+                                        ? resources.getString("Restore_Task")
+                                        : resources.getString("Remove_Task"));
         moveUpButton     .setEnabled(enableUp);
         moveDownButton   .setEnabled(enableDown);
     }
@@ -1563,9 +1548,6 @@ public class TaskScheduleDialog
         }
     }
 
-    private static final Object CONFIRM_CLOSE_MSG =
-        "Do you want to save the changes you made to this " +
-        "task & schedule template?";
 
     public void confirmClose(boolean showCancel) {
         if (saveOrCancel(showCancel))
@@ -1574,7 +1556,9 @@ public class TaskScheduleDialog
     public boolean saveOrCancel(boolean showCancel) {
         if (isDirty)
             switch (JOptionPane.showConfirmDialog
-                    (frame, CONFIRM_CLOSE_MSG, "Save Changes?",
+                    (frame,
+                     resources.getString("Confirm_Close_Prompt"),
+                     resources.getString("Confirm_Close_Title"),
                      showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
                                 : JOptionPane.YES_NO_OPTION)) {
             case JOptionPane.CLOSED_OPTION:
