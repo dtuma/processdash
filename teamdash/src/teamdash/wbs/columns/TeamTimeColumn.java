@@ -2,12 +2,17 @@ package teamdash.wbs.columns;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.ErrorValue;
 import teamdash.wbs.IntList;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -22,17 +27,20 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     RateColumn rateColumn;
     TimePerPersonColumn timePerPersonColumn;
     NumPeopleColumn numPeopleColumn;
+    ResourcesColumn resourcesColumn;
 
 
     public TeamTimeColumn(DataTableModel m) {
         super(m, "Time", "Time");
         this.dependentColumns = new String[] { "Task Size", "Task Size Units" };
         this.teamMemberColumns = new IntList();
+        this.preferredWidth = 55;
 
         // create and add our interrelated columns.
         m.addDataColumn(rateColumn = new RateColumn());
         m.addDataColumn(timePerPersonColumn = new TimePerPersonColumn());
         m.addDataColumn(numPeopleColumn = new NumPeopleColumn());
+        m.addDataColumn(resourcesColumn = new ResourcesColumn());
     }
 
 
@@ -465,11 +473,13 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         WBSNode node;
         double time;
         int column;
+        String initials;
 
         public IndivTime(WBSNode node, int column) {
             this.node = node;
             this.column = column;
             this.time = safe(parse(dataModel.getValueAt(node, column)));
+            this.initials = dataModel.getColumnName(column);
         }
 
         public void setTime(double newTime) {
@@ -480,6 +490,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         public void multiplyTime(double ratio) {
             if (time > 0)
                 setTime(time * ratio);
+        }
+        public StringBuffer appendTimeString(StringBuffer buf) {
+            buf.append(initials)
+                .append("(").append(NumericDataValue.format(time)).append(")");
+            return buf;
+        }
+        public void setTime(HashMap times) {
+            time = safe(parse(times.get(initials.toLowerCase())));
+            dataModel.setValueAt(new Double(time), node, column);
         }
     }
 
@@ -534,6 +553,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     private class RateColumn extends DependentColumn {
         public RateColumn() {
             super("Rate");
+            this.preferredWidth = 60;
         }
         protected Object getValueAtLeaf(LeafNodeData nodeData) {
             return new NumericDataValue(nodeData.rate);
@@ -549,6 +569,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     private class TimePerPersonColumn extends DependentColumn {
         public TimePerPersonColumn() {
             super("Hrs/Indiv", "Time Per Person");
+            this.preferredWidth = 60;
         }
         protected Object getValueAtLeaf(LeafNodeData nodeData) {
             return new NumericDataValue(nodeData.timePerPerson);
@@ -564,6 +585,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     private class NumPeopleColumn extends DependentColumn {
         public NumPeopleColumn() {
             super("# People", "Number of People");
+            this.preferredWidth = 60;
         }
         protected Object getValueAtLeaf(LeafNodeData nodeData) {
             return new NumericDataValue(nodeData.numPeople);
@@ -575,6 +597,71 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             nodeData.userSetNumPeople(value);
         }
     }
+
+
+
+    /** A column representing the initials of people assigned to a task. */
+    private class ResourcesColumn extends AbstractDataColumn
+            implements CalculatedDataColumn
+    {
+        public ResourcesColumn() {
+            this.columnID = this.columnName = "Assigned To";
+            this.preferredWidth = 200;
+        }
+
+        public boolean isCellEditable(WBSNode node) {
+            // default behavior: only leaf nodes are editable.
+            return (getLeafNodeData(node) != null);
+        }
+
+        public Object getValueAt(WBSNode node) {
+            LeafNodeData leafData = getLeafNodeData(node);
+            if (leafData != null)
+                return getValueForTimes(leafData.individualTimes);
+            else
+                return new ReadOnlyValue
+                    (getValueForTimes(getIndivTimes(node)));
+        }
+
+        public boolean recalculate() { return true; }
+        public void storeDependentColumn(String ID, int columnNumber) {}
+
+        private Object getValueForTimes(IndivTime[] times) {
+            StringBuffer result = new StringBuffer();
+            for (int i = 0;   i < times.length;   i++)
+                if (times[i].time > 0)
+                    times[i].appendTimeString(result.append(", "));
+
+            if (result.length() == 0)
+                return UNASSIGNED;
+            else
+                return result.toString().substring(2);
+        }
+        public void setValueAt(Object aValue, WBSNode node) {
+            LeafNodeData leafData = getLeafNodeData(node);
+            if (leafData == null) return;
+            Double defaultTime = new Double(leafData.timePerPerson);
+
+            HashMap times = new HashMap();
+            if (aValue instanceof String) {
+                Matcher m = TIME_SETTING_PATTERN.matcher((String) aValue);
+                while (m.find()) {
+                    Object initials = m.group(1).toLowerCase();
+                    Object value = m.group(2);
+                    if (value == null) value = defaultTime;
+                    times.put(initials, value);
+                }
+            }
+
+            for (int i = leafData.individualTimes.length;   i-- > 0; )
+                leafData.individualTimes[i].setTime(times);
+        }
+    }
+    private static Object UNASSIGNED = new ErrorValue
+        ("???", "Task needs to be assigned to individual(s)");
+    private static Pattern TIME_SETTING_PATTERN =
+        Pattern.compile("([a-zA-Z]+)[^a-zA-Z0-9\\.]*([0-9\\.]+)?");
+
 
 
     public static boolean isLeafTask(WBSModel wbsModel, WBSNode node) {
