@@ -1680,12 +1680,13 @@ public class DataRepository implements Repository {
                 if (defaultDefns != null)
                     result.putAll(defaultDefns.getDefinitions(DataRepository.this));
 
+                if (!isImaginaryDatafileName(datafile))
                 // the null in the next line is a bug! it has no effect on
                 // #include <> statements, but effectively prevents #include ""
                 // statements from working (in other words, include directives
                 // relative to the current file.  Such directives are not
                 // currently used by the dashboard, so nothing will break.)
-                loadDatafile(datafile, findDatafile(datafile, null), result, true);
+                    loadDatafile(datafile, findDatafile(datafile, null), result, true);
 
                 // Although we aren't technically done creating this datafile,
                 // we need to store it in the cache before calling
@@ -1998,7 +1999,9 @@ public class DataRepository implements Repository {
                                         String imaginaryFilename) {
             if (datafile != null && datafile.length() > 0) {
                 defaultDefinitions.put(bracket(datafile), d);
-                defaultDefinitions.put(bracket(imaginaryFilename), bracket(datafile));
+                if (imaginaryFilename != null)
+                    defaultDefinitions.put(bracket(imaginaryFilename),
+                                           bracket(datafile));
             } else
                 includedFileCache.put(bracket(imaginaryFilename), d);
             definitionsDirty = true;
@@ -2020,6 +2023,15 @@ public class DataRepository implements Repository {
 
         public String getAliasDatafileName(String rollupID) {
             return "ROLLUP-ALIAS:" + rollupID;
+        }
+
+        public String getImaginaryDatafileName(String templateID) {
+            return templateID + "?dataFile.txt";
+        }
+        boolean isImaginaryDatafileName(String dataFile) {
+            return (dataFile != null &&
+                    (dataFile.endsWith("?dataFile.txt") ||
+                     dataFile.endsWith("?dataFile.txt>")));
         }
 
         private Hashtable globalDataDefinitions = new Hashtable();

@@ -103,6 +103,7 @@ public class RollupAutoData extends AutoData {
             if (definitions != null)
                 return;
         } catch (Exception e) {
+            e.printStackTrace();
             return;
         }
         Map rollupDefinitions = new HashMap();

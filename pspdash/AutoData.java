@@ -87,7 +87,7 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
         }
 
         // Construct an imaginary datafile name based upon the template ID.
-        String imaginaryFilename = templateID + "?dataFile.txt";
+        String imaginaryFilename = data.getImaginaryDatafileName(templateID);
 
         // If the user did not specify a datafile name, use the
         // imaginary datafile name.
@@ -122,22 +122,30 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
         // create an AutoData object and register it with the DataRepository.
         TemplateAutoData result = new TemplateAutoData
             (template, templateID, usesRollup, definesRollup, dataFile);
-        data.registerDefaultData(result, dataFile, imaginaryFilename);
+        if (XMLUtils.hasValue(dataFile))
+            data.registerDefaultData(result, dataFile, imaginaryFilename);
+        else
+            data.registerDefaultData(result, imaginaryFilename, null);
 
         // If the user requested the definition of rollup data sets, create
         // a rollup AutoData object and register it with the DataRepository.
         if (definesRollup != null) {
+            String rollupBasedOn = dataFile;
+            if (!XMLUtils.hasValue(rollupBasedOn))
+                rollupBasedOn = imaginaryFilename;
+
             String rollupDataFile =
                 template.getAttribute(ROLLUP_DATAFILE_ATTR);
-            imaginaryFilename = data.getRollupDatafileName(definesRollup);
-
+            String imagRollupFilename =
+                data.getRollupDatafileName(definesRollup);
             RollupAutoData rollupResult = new RollupAutoData
-                (definesRollup, dataFile, rollupDataFile);
-            data.registerDefaultData(rollupResult, null, imaginaryFilename);
+                (definesRollup, rollupBasedOn, rollupDataFile);
+            data.registerDefaultData(rollupResult, null, imagRollupFilename);
 
-            imaginaryFilename = data.getAliasDatafileName(definesRollup);
+            String imagAliasFilename =
+                data.getAliasDatafileName(definesRollup);
             DefinitionFactory aliasResult = rollupResult.getAliasAutoData();
-            data.registerDefaultData(aliasResult, null, imaginaryFilename);
+            data.registerDefaultData(aliasResult, null, imagAliasFilename);
 
             // Keep track of the rollups we have created.
             rollupsDefined.add(definesRollup);
@@ -168,24 +176,41 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
         Iterator i = orphans.iterator();
         while (i.hasNext()) {
             String rollupID = (String) i.next();
-            //System.out.println("Generating rollup template: " + rollupID);
-            result.append(StringUtils.findAndReplace
-                          (ROLLUP_TEMPLATE_XML, "RID",
-                           XMLUtils.escapeAttribute(rollupID)));
+             //System.out.println("Generating rollup template: " + rollupID);
+            StringBuffer xml = new StringBuffer(ROLLUP_TEMPLATE_XML);
+            StringUtils.findAndReplace
+                (xml, "RID", XMLUtils.escapeAttribute(rollupID));
+
+            replaceRollupResource(xml, "Rollup_Template_Name", rollupID);
+            replaceRollupResource(xml, "Project_Summary_Name", rollupID);
+            replaceRollupResource(xml, "Edit_Filter_Name", rollupID);
+            replaceRollupResource(xml, "Rollup_Phase_Name", rollupID);
+
+            result.append(xml.toString());
         }
         result.append("</dashboard-process-template>");
 
         return result.toString();
     }
+    private static ResourceBundle resources = null;
+    private static void replaceRollupResource(StringBuffer buf, String key,
+                                              String rollupID) {
+        if (resources == null)
+            resources = Resources.getBundle("pspdash.AutoData");
+
+        String val = Resources.format(resources, key+"_FMT", rollupID);
+        StringUtils.findAndReplace(buf, key, XMLUtils.escapeAttribute(val));
+    }
     private static final String ROLLUP_TEMPLATE_XML =
-        "<template name='Rollup RID Data' ID='Rollup RID Data' "+
+        "<template name='Rollup_Template_Name' ID='Rollup RID Data' "+
         "          dataFile='ROLLUP:RID' defineRollup='no'>" +
-        "   <html ID='sum' title='RID Rollup Project Summary' " +
+        "   <html ID='sum' title='Project_Summary_Name' " +
         "         href='dash/summary.shtm?rollup'/>" +
-        "   <html ID='config' title='Edit Data Rollup Filter' " +
+        "   <html ID='config' title='Edit_Filter_Name' " +
         "         href='dash/rollupFilter.shtm'/>" +
-        "   <phase name='Analyze Rollup Data'/>" +
+        "   <phase name='Rollup_Phase_Name'/>" +
         "</template>";
+
 
 
     /** Get the contents of a file as a string.  The file is loaded from the
