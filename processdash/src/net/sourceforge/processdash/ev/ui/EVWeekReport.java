@@ -34,10 +34,11 @@ import java.util.Map;
 
 import javax.swing.table.TableModel;
 
-import pspdash.EVMetrics;
-import pspdash.EVSchedule;
-import pspdash.EVScheduleRollup;
-import pspdash.EVTaskList;
+import net.sourceforge.processdash.ev.EVMetrics;
+import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ev.EVScheduleRollup;
+import net.sourceforge.processdash.ev.EVTaskList;
+
 import pspdash.StringUtils;
 import pspdash.TimeLogEditor;
 import pspdash.TinyCGIBase;

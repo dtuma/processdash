@@ -29,9 +29,10 @@ package net.sourceforge.processdash.ev.ci;
 import java.util.Iterator;
 import java.util.List;
 
+import net.sourceforge.processdash.ev.EVTask;
+
 import org.w3c.dom.Element;
 
-import pspdash.EVTask;
 
 
 public class EVCostConfidenceInterval extends LinearRatioConfidenceInterval {

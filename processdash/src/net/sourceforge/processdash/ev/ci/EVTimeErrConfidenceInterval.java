@@ -28,7 +28,8 @@ package net.sourceforge.processdash.ev.ci;
 
 import java.util.Date;
 
-import pspdash.EVSchedule;
+import net.sourceforge.processdash.ev.EVSchedule;
+
 
 
 public class EVTimeErrConfidenceInterval extends DelegatingConfidenceInterval {

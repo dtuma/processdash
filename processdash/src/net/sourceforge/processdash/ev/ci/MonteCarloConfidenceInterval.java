@@ -26,7 +26,6 @@
 
 package net.sourceforge.processdash.ev.ci;
 
-import pspdash.DoubleList;
 import DistLib.uniform;
 
 
