@@ -39,6 +39,7 @@ public class Min extends AbstractFunction {
     {
         SimpleData result = null;
 
+        arguments = collapseLists(arguments, 0);
         for (int i = 0;  i < arguments.size();  i++)
             if (result == null ||
                 result.greaterThan(getArg(arguments, i)))

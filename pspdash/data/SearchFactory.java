@@ -35,7 +35,7 @@ import pspdash.data.compiler.node.TIdentifier;
 import pspdash.data.compiler.node.PValue;
 import pspdash.data.compiler.analysis.DepthFirstAdapter;
 
-class SearchFactory {
+class SearchFactory implements ListFunction {
 
     protected PValue expression;
     protected String start, tag, saveString;

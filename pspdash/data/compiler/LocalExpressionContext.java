@@ -25,26 +25,43 @@
 
 package pspdash.data.compiler;
 
-import  pspdash.data.SimpleData;
+import pspdash.data.ListData;
+import pspdash.data.SimpleData;
+import pspdash.data.StringData;
 
 import java.util.List;
 
-public class Max extends AbstractFunction {
+/** This class creates a local namespace around another expression
+ *  context, allowing the data element [_] to be locally set.
+ */
+public class LocalExpressionContext implements ExpressionContext {
 
-    /** Perform a procedure call.
-     *
-     * This method <b>must</b> be thread-safe.
-     */
-    public Object call(List arguments, ExpressionContext context)
-    {
-        SimpleData result = null;
+    public static final String LOCALVAR_NAME = "_";
 
-        arguments = collapseLists(arguments, 0);
-        for (int i = 0;  i < arguments.size();  i++)
-            if (result == null ||
-                result.lessThan(getArg(arguments, i)))
-                result = getArg(arguments, i);
+    private ExpressionContext context;
+    private SimpleData localValue = null;
 
-        return result;
+    public LocalExpressionContext(ExpressionContext context) {
+        this.context = context;
+    }
+
+    public void setLocalValue(SimpleData value) {
+        localValue = value;
+    }
+
+    public void setLocalValue(Object v) {
+        if (v instanceof SimpleData)
+            setLocalValue((SimpleData) v);
+        else if (v instanceof String)
+            setLocalValue(StringData.create((String) v));
+        else
+            setLocalValue(null);
+    }
+
+    public SimpleData get(String dataName) {
+        if ("_".equals(dataName))
+            return localValue;
+        else
+            return context.get(dataName);
     }
 }

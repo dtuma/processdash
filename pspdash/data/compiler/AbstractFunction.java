@@ -30,6 +30,7 @@ import pspdash.data.StringData;
 import pspdash.data.NumberData;
 import pspdash.data.ListData;
 import java.util.List;
+import java.util.ArrayList;
 
 public class AbstractFunction implements Function {
 
@@ -37,20 +38,51 @@ public class AbstractFunction implements Function {
         return null;            // null operation, meant to be overridden.
     }
 
-    protected SimpleData getArg(List arguments, int pos) {
+    protected static SimpleData getArg(List arguments, int pos) {
         return getArg(arguments, pos, null);
     }
-    protected SimpleData getArg(List arguments, int pos, SimpleData defVal) {
+    protected static SimpleData getArg(List arguments, int pos,
+                                       SimpleData defVal) {
         if (arguments.size() > pos)
             return (SimpleData) arguments.get(pos);
         else
             return defVal;
     }
 
+    protected static SimpleData getLocal(ExpressionContext context) {
+        return context.get(LocalExpressionContext.LOCALVAR_NAME);
+    }
+    protected static SimpleData getArgOrLocal(List arguments, int pos,
+                                              ExpressionContext context) {
+        if (arguments.size() < pos+1)
+            return getLocal(context);
+        else
+            return getArg(arguments, pos);
+    }
+
     protected static ListData asList(SimpleData l) {
         if (l instanceof ListData)   return (ListData) l;
         if (l instanceof StringData) return ((StringData) l).asList();
         return null;
+    }
+
+    protected static List collapseLists(List arguments, int pos) {
+        List result = new ArrayList();
+        SimpleData arg;
+        ListData argList;
+        for (; pos < arguments.size();  pos++)
+            appendToList(result, getArg(arguments, pos));
+        return result;
+    }
+
+    private static void appendToList(List result, Object data) {
+        if (data instanceof StringData)
+            data = ((StringData) data).asList();
+        if (data instanceof ListData)
+            for (int i=0;  i < ((ListData) data).size();  i++)
+                appendToList(result, ((ListData) data).get(i));
+        else if (data != null)
+            result.add(data);
     }
 
     protected static double asDouble(SimpleData s) {

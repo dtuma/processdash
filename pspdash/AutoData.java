@@ -30,22 +30,18 @@ import pspdash.data.DataRepository;
 import pspdash.data.DefinitionFactory;
 import pspdash.data.ListData;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 
-/** Automatically defines data for a process, based on its XML template.
+/** Automatically defines various types of data.
  */
-public class AutoData implements DefinitionFactory {
+public abstract class AutoData implements DefinitionFactory {
+
 
     /** Create and register AutoData objects for all the templates in
      *the XML document.
@@ -66,6 +62,7 @@ public class AutoData implements DefinitionFactory {
             registerTemplate((Element) templates.item(i), data);
     }
 
+
     /** Create and register an AutoData object for a single XML template.
      */
     public static void registerTemplate(Element template, DataRepository data)
@@ -84,262 +81,69 @@ public class AutoData implements DefinitionFactory {
             template.setAttribute(ID_ATTR, templateID);
         }
 
-        // If the user did not specify a datafile name, invent an imaginary
-        // datafile on their behalf.
-        boolean isImaginary = !XMLUtils.hasValue(dataFile);
-        if (isImaginary) {
-            dataFile = templateID + "?dataFile.txt";
-            template.setAttribute(DATAFILE_ATTR, dataFile);
-        }
+        // Construct an imaginary datafile name based upon the template ID.
+        String imaginaryFilename = templateID + "?dataFile.txt";
+
+        // If the user did not specify a datafile name, use the
+        // imaginary datafile name.
+        if (!XMLUtils.hasValue(dataFile))
+            template.setAttribute(DATAFILE_ATTR, imaginaryFilename);
+
+        // See if this template defines a rollup dataset.
+        String definesRollup = template.getAttribute(DEFINE_ROLLUP_ATTR);
+        String usesRollup = template.getAttribute(USES_ROLLUP_ATTR);
+
+        if (!XMLUtils.hasValue(definesRollup))
+            if (!XMLUtils.hasValue(usesRollup))
+                // if both values are missing, assume the templateID for both.
+                definesRollup = usesRollup = templateID;
+            else
+                // if usesRollup has a value but definesRollup does
+                // not, assume the value "no" for definesRollup.
+                definesRollup = null;
+
+        else if ("no".equalsIgnoreCase(definesRollup))
+            // "no" for definesRollup is a special value indicating
+            // no rollup should be defined based upon this template.
+            definesRollup = null;
+
+        else
+            if (!XMLUtils.hasValue(usesRollup))
+                // if definesRollup has a value but usesRollup does not, assume
+                // that the template uses the same rollup it defines.
+                usesRollup = definesRollup;
+
 
         // create an AutoData object and register it with the DataRepository.
-        AutoData result = new AutoData(template, templateID, dataFile);
-        data.registerDefaultData(result, dataFile, isImaginary);
+        TemplateAutoData result = new TemplateAutoData
+            (template, templateID, usesRollup, definesRollup, dataFile);
+        data.registerDefaultData(result, dataFile, imaginaryFilename);
+
+        // If the user requested the definition of rollup data sets, create
+        // a rollup AutoData object and register it with the DataRepository.
+        if (definesRollup != null) {
+            String rollupDataFile =
+                template.getAttribute(ROLLUP_DATAFILE_ATTR);
+            imaginaryFilename = data.getRollupDatafileName(definesRollup);
+
+            RollupAutoData rollupResult = new RollupAutoData
+                (definesRollup, dataFile, rollupDataFile);
+            data.registerDefaultData(rollupResult, null, imaginaryFilename);
+
+            imaginaryFilename = data.getAliasDatafileName(definesRollup);
+            DefinitionFactory aliasResult = rollupResult.getAliasAutoData();
+            data.registerDefaultData(aliasResult, null, imaginaryFilename);
+
+            // FIXME: Also need to create templates for letting the
+            // user define additional rollups
+        }
     }
 
 
-    private Element template;
-    private String templateID;
-    private String dataFile;
-    private Map definitions = null;
-
-    private AutoData(Element template, String templateID, String dataFile) {
-        this.template = template;
-        this.templateID = templateID;
-        this.dataFile = dataFile;
-    }
-
-    /** Create the default data definitions for the template
-     *  represented by this AutoData object.
+    /** Get the contents of a file as a string.  The file is loaded from the
+     * classpath and must be in the same package as this class.
      */
-    public Map getDefinitions(DataRepository data) {
-        if (definitions != null) return definitions;
-
-        Map dataDefinitions = new HashMap();
-        StringBuffer globalDataHeader = new StringBuffer(1024);
-        globalDataHeader.append("#define TEMPLATE_ID ")
-            .append(esc(templateID)).append("\n");
-        // Eventually, we will look at the template and dynamically
-        // determine whether or not to #define the next two tokens,
-        // but for now we'll just do it.
-        globalDataHeader.append("#define PROCESS_HAS_SIZE\n")
-            .append("#define PROCESS_HAS_DEFECTS\n");
-
-        // Go get the data about the phases in this process.
-        PhaseLister phases = new PhaseLister();
-        phases.run(template);
-        phases.commit();
-
-        // Were any phases found in this template?
-        if (phases.all.size() > 0) {
-            globalDataHeader.append("#define PROCESS_HAS_PHASES\n");
-            dataDefinitions.put(PHASE_LIST_ELEM, phases.all);
-
-            // Were any failure phases defined?
-            if (phases.failure.size() > 0) {
-                globalDataHeader.append("#define PROCESS_HAS_FAILURE\n");
-                dataDefinitions.put(FAIL_LIST_ELEM, phases.failure);
-                String lastFailurePhase =
-                    (String) phases.failure.get(phases.failure.size()-1);
-                globalDataHeader.append("#define LAST_FAILURE_PHASE ")
-                    .append(esc(lastFailurePhase)).append("\n");
-
-                // Yield is only meaningful if failure phases have been
-                // defined - otherwise, it would always be 100%.
-                if (phases.yield.size() > 0) {
-                    globalDataHeader.append("#define PROCESS_HAS_YIELD\n");
-                    dataDefinitions.put(YIELD_LIST_ELEM, phases.yield);
-                }
-            }
-
-            // Were any appraisal phases defined?
-            if (phases.appraisal.size() > 0) {
-                globalDataHeader.append("#define PROCESS_HAS_APPRAISAL\n");
-                dataDefinitions.put(APPR_LIST_ELEM, phases.appraisal);
-            }
-        }
-
-        buildDefaultData(template, "", data, dataDefinitions,
-                         globalDataHeader.length(), globalDataHeader);
-
-        // Fill in data for the entire process.
-        StringBuffer processData = globalDataHeader;
-        defineIterMacro(processData, "FOR_EACH_PHASE", phases.all);
-        defineIterMacro(processData, "FOR_EACH_APPR_PHASE", phases.appraisal);
-        defineIterMacro(processData, "FOR_EACH_FAIL_PHASE", phases.failure);
-        defineIterMacro(processData, "FOR_EACH_YIELD_PHASE", phases.yield);
-        data.putDefineDeclarations(dataFile, processData.toString());
-
-        processData.append("\n").append(PROCESS_DATA);
-        parseDefinitions(data, processData.toString(), dataDefinitions);
-
-        definitions = dataDefinitions;
-        return dataDefinitions;
-    }
-
-    private void buildDefaultData(Element node, String path,
-                                  DataRepository data, Map definitions,
-                                  int globalDataLength,
-                                  StringBuffer nodeDefinitions)
-    {
-        if (!isProcessNode(node)) return;
-
-        // Iterate over the children of this element.
-        NodeList children = node.getChildNodes();
-        ListData childList = newEmptyList();
-        Node c; Element child;
-        for (int i=0;  i<children.getLength();  i++) {
-            c = children.item(i);
-            if (c instanceof Element && isProcessNode((Element) c)) {
-                child = (Element) c;
-                String childName =
-                    pathConcat(path, child.getAttribute(NAME_ATTR));
-                childList.add(childName);
-                buildDefaultData(child, childName, data, definitions,
-                                 globalDataLength, nodeDefinitions);
-            }
-        }
-        childList.setImmutable();
-
-        // truncate the nodeDefinitions StringBuffer so it only
-        // contains the global data definitions (probably unnecessary,
-        // but a wise and safe thing to do).
-        nodeDefinitions.setLength(globalDataLength);
-
-        if (XMLUtils.hasValue(path))
-            nodeDefinitions.append("#define ").append(PATH_MACRO)
-                .append(" ").append(esc(path)).append("\n");
-        if (node.hasAttribute(PSPProperties.IMAGINARY_NODE_ATTR))
-            nodeDefinitions.append("#define IS_IMAGINARY_NODE\n");
-
-        if (childList.size() > 0) {
-            definitions.put(pathConcat(path, CHILD_LIST_ELEM), childList);
-            nodeDefinitions.append(NODE_DATA);
-        } else {
-            // This is a phase.
-
-            // #define various symbols based on the nature of this phase.
-            String phaseType = node.getAttribute(AutoData.PHASE_TYPE_ATTR);
-            if (XMLUtils.hasValue(phaseType)) {
-                phaseType = cleanupPhaseType(phaseType);
-                nodeDefinitions.append("#define IS_")
-                    .append(phaseType.toUpperCase()).append("_PHASE\n");
-                if (isAppraisal(phaseType))
-                    nodeDefinitions.append("#define IS_APPRAISAL_PHASE\n")
-                        .append("#define IS_QUALITY_PHASE\n");
-                else if (isFailure(phaseType))
-                    nodeDefinitions.append("#define IS_FAILURE_PHASE\n")
-                        .append("#define IS_QUALITY_PHASE\n");
-                else if (isOverhead(phaseType))
-                    nodeDefinitions.append("#define IS_OVERHEAD_PHASE\n");
-                else if (isDevelopment(phaseType))
-                    nodeDefinitions.append("#define IS_DEVELOPMENT_PHASE\n");
-            }
-
-            nodeDefinitions.append(LEAF_DATA);
-        }
-
-        String finalData = nodeDefinitions.toString();
-        if (!XMLUtils.hasValue(path))
-            finalData = StringUtils.findAndReplace
-                (finalData, PATH_MACRO + "/", "");
-        /*
-        System.out.println("For " + templateID+"->"+path + ", data is");
-        System.out.println("------------------------------------------------");
-        System.out.println(finalData);
-        System.out.println("------------------------------------------------");
-        */
-
-        parseDefinitions(data, finalData, definitions);
-
-        // truncate the nodeDefinitions StringBuffer so it only
-        // contains the global data definitions.
-        nodeDefinitions.setLength(globalDataLength);
-    }
-
-    private void parseDefinitions(DataRepository data,
-                                  String definitions, Map dest) {
-        try {
-            data.parseDatafile(definitions, dest);
-        } catch (Exception e) {
-            System.err.println("Exception when generating default data: " + e);
-            System.err.println("Datafile BEG:-------------------------------");
-            System.err.println(definitions);
-            System.err.println("Datafile END:-------------------------------");
-        }
-    }
-
-    private static void defineIterMacro(StringBuffer buf,
-                                        String macroName,
-                                        ListData list) {
-        buf.append("#define ").append(macroName).append("(macro)");
-        for (int i = 0;  i < list.size();  i++)
-            buf.append(" macro(").append(list.get(i)).append(")");
-        if (list.size() == 0)
-            buf.append("/* */");
-        buf.append("\n");
-    }
-
-    private static String cleanupPhaseType(String phaseType) {
-        phaseType = StringUtils.findAndReplace(phaseType, " ", "");
-        phaseType = StringUtils.findAndReplace(phaseType, "\t", "");
-        return phaseType;
-    }
-
-    private static final String[] APPR_TYPES = {
-        "appraisal","reqinsp","hldr","hldrinsp","dldr","dldinsp","cr","codeinsp" };
-    private static final Set APPR_TYPE_SET =
-        Collections.unmodifiableSet(new HashSet(Arrays.asList(APPR_TYPES)));
-
-    static boolean isAppraisal(String type) {
-        return APPR_TYPE_SET.contains(type.toLowerCase());
-    }
-
-    private static final String[] FAIL_TYPES = {
-        "failure", "comp", "ut", "it", "st", "at" };
-    private static final Set FAIL_TYPE_SET =
-        Collections.unmodifiableSet(new HashSet(Arrays.asList(FAIL_TYPES)));
-
-    static boolean isFailure(String type) {
-        return FAIL_TYPE_SET.contains(type.toLowerCase());
-    }
-
-    private static final String[] OVER_TYPES = {
-        "mgmt", "strat", "plan", "pm" };
-    private static final Set OVER_TYPE_SET =
-        Collections.unmodifiableSet(new HashSet(Arrays.asList(OVER_TYPES)));
-
-    static boolean isOverhead(String type) {
-        return OVER_TYPE_SET.contains(type.toLowerCase());
-    }
-
-    private static final String[] DEV_TYPES = {
-        "req", "stp", "itp", "td", "hld", "dld", "code", "pl", "doc" };
-    private static final Set DEV_TYPE_SET =
-        Collections.unmodifiableSet(new HashSet(Arrays.asList(DEV_TYPES)));
-
-    static boolean isDevelopment(String type) {
-        return DEV_TYPE_SET.contains(type.toLowerCase());
-    }
-
-
-
-    static ListData newEmptyList() {
-        ListData result = new ListData();
-        result.setEditable(false);
-        return result;
-    }
-    private static String pathConcat(String prefix, String node) {
-        if (prefix == null || prefix.length() == 0) return node;
-        return prefix + "/" + node;
-    }
-
-
-    private static String LEAF_DATA    = getFileContents("leafData.txt");
-    private static String NODE_DATA    = getFileContents("nodeData.txt");
-    private static String PROCESS_DATA = getFileContents("processData.txt");
-
-    private static String getFileContents(String filename) {
+    protected static String getFileContents(String filename) {
         try {
             URL url = AutoData.class.getResource(filename);
             URLConnection conn = url.openConnection();
@@ -351,104 +155,56 @@ public class AutoData implements DefinitionFactory {
         }
     }
 
-    public static boolean isProcessNode(Element e) {
-        String tagName = e.getTagName();
-        return ("node".equals(tagName) ||
-                "phase".equals(tagName) ||
-                "template".equals(tagName));
+
+    /** Ask the DataRepository to parse a string containing data definitions.
+     */
+    protected static void parseDefinitions(DataRepository data,
+                                           String definitions, Map dest) {
+        try {
+            data.parseDatafile(definitions, dest);
+        } catch (Exception e) {
+            System.err.println("Exception when generating default data: " + e);
+            System.err.println("Datafile BEG:-------------------------------");
+            System.err.println(definitions);
+            System.err.println("Datafile END:-------------------------------");
+        }
     }
 
 
-    private static final String PATH_MACRO = "PATH";
-    private static final String CHILD_LIST_ELEM = "Child_List";
-    private static final String YIELD_LIST_ELEM = "Yield_Phase_List";
-    private static final String FAIL_LIST_ELEM  = "Failure_Phase_List";
-    private static final String APPR_LIST_ELEM  = "Appraisal_Phase_List";
-    private static final String PHASE_LIST_ELEM = "Phase_List";
-    private static final String DATAFILE_ATTR = PSPProperties.DATAFILE_ATTR;
-    private static final String NO_DATAFILE = "none";
-    private static final String DATA_EXTENT_ATTR = "autoData";
-    static final String PHASE_TYPE_ATTR = "type";
-    private static final String ID_ATTR   = PSPProperties.ID_ATTR;
-    static final String NAME_ATTR = PSPProperties.NAME_ATTR;
+    /** Construct an empty list. */
+    protected static ListData newEmptyList() {
+        ListData result = new ListData();
+        result.setEditable(false);
+        return result;
+    }
 
-    private static final String TEMPLATE_NODE_NAME =
-        PSPProperties.TEMPLATE_NODE_NAME;
 
+    /** Concatenate two portions of a hierarchy path. */
+    protected static String pathConcat(String prefix, String node) {
+        if (prefix == null || prefix.length() == 0) return node;
+        return prefix + "/" + node;
+    }
+
+
+    /** Escape a string for use in a datafile either as a data element
+     * name or as a string literal.
+     */
     public static String esc(String arg) {
         return EscapeString.escape(arg, '\\', "'\"[]");
     }
 
-    /** Analyze an XML template to find the various phases in the process.
+
+    /** Various string constants used by the XML scanning logic.
      */
-    private class PhaseLister extends XMLDepthFirstIterator {
+    protected static final String TEMPLATE_NODE_NAME =
+        PSPProperties.TEMPLATE_NODE_NAME;
+    protected static final String DATAFILE_ATTR = PSPProperties.DATAFILE_ATTR;
+    protected static final String NO_DATAFILE = "none";
+    protected static final String DATA_EXTENT_ATTR = "autoData";
+    protected static final String ID_ATTR   = PSPProperties.ID_ATTR;
+    static final String NAME_ATTR = PSPProperties.NAME_ATTR;
+    protected static final String DEFINE_ROLLUP_ATTR = "defineRollup";
+    protected static final String USES_ROLLUP_ATTR = "usesRollup";
+    protected static final String ROLLUP_DATAFILE_ATTR = "rollupDataFile";
 
-        ListData all, yield, appraisal, failure, nodes;
-        String lastNameSeen = null;
-
-        public PhaseLister() {
-            all = newEmptyList();
-            yield = newEmptyList();
-            appraisal = newEmptyList();
-            failure = newEmptyList();
-        }
-
-        public void commit() {
-            all.setImmutable();
-            yield.setImmutable();
-            appraisal.setImmutable();
-            failure.setImmutable();
-        }
-
-        public int getOrdering() { return POST; }
-
-        public String getPathAttributeName(Element e) {
-            return (isProcessNode(e) ? NAME_ATTR : null);
-        }
-
-        public void caseElement(Element e, List path) {
-            if (AutoData.isProcessNode(e)) {
-                String nodeName = concatPath(path, false);
-                if (lastNameSeen == null ||
-                    lastNameSeen.startsWith(nodeName) == false) {
-
-                    // add this phase to the complete list.
-                    all.add(nodeName);
-
-                    // Determine whether this phase should be added to the
-                    // appraisal, failure, and/or yield lists.
-                    String phaseType =
-                        e.getAttribute(AutoData.PHASE_TYPE_ATTR);
-                    if (AutoData.isFailure(phaseType))
-                        failure.add(nodeName);
-                    else if (AutoData.isAppraisal(phaseType))
-                        appraisal.add(nodeName);
-
-                    if (failure.size() == 0) yield.add(nodeName);
-                }
-                lastNameSeen = nodeName;
-            }
-        }
-
-
-        public String concatPath(List path, boolean includeFirst) {
-            if (path.isEmpty()) return "";
-
-            Iterator i = path.iterator();
-            if (!includeFirst) i.next();
-
-            StringBuffer buffer = new StringBuffer();
-            String component;
-            while (i.hasNext()) {
-                component = (String) i.next();
-                if (component != null && component.length() > 0)
-                    buffer.append("/").append(component);
-            }
-            String result = buffer.toString();
-            if (result.length() > 0)
-                return result.substring(1);
-            else
-                return "";
-        }
-    }
 }

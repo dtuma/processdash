@@ -25,26 +25,15 @@
 
 package pspdash.data.compiler;
 
-import  pspdash.data.SimpleData;
+import pspdash.data.ListData;
+import pspdash.data.SimpleData;
+import pspdash.data.StringData;
 
 import java.util.List;
 
-public class Max extends AbstractFunction {
+public class Map extends Filter {
 
-    /** Perform a procedure call.
-     *
-     * This method <b>must</b> be thread-safe.
-     */
-    public Object call(List arguments, ExpressionContext context)
-    {
-        SimpleData result = null;
-
-        arguments = collapseLists(arguments, 0);
-        for (int i = 0;  i < arguments.size();  i++)
-            if (result == null ||
-                result.lessThan(getArg(arguments, i)))
-                result = getArg(arguments, i);
-
-        return result;
+    protected void handleItem(ListData result, Object local, Object val) {
+        result.add(val);
     }
 }

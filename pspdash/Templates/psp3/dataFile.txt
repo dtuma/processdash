@@ -43,11 +43,12 @@
  * Two new phases: HLD and HLD Review
  */ 
 
-[Normalized_Estimated_Time] = [Estimated Time] / [/Normalization %/Time/PSP3];
-[Normalized_Estimated_Defects_Injected] =
-       [Estimated Defects Injected] / [/Normalization %/Defects Injected/PSP3];
-[Normalized_Estimated_Defects_Removed] =
-       [Estimated Defects Removed] / [/Normalization %/Defects Removed/PSP3];
+[Normalized_Estimated_Time] = [Estimated Time] /
+    [Normalization %/Time/PSP3 To Date];
+[Normalized_Estimated_Defects_Injected] = [Estimated Defects Injected] /
+    [Normalization %/Defects Injected/PSP3 To Date];
+[Normalized_Estimated_Defects_Removed] = [Estimated Defects Removed] /
+    [Normalization %/Defects Removed/PSP3 To Date];
 
 // Estimate time and defect data for HLD and HLD Review.
 
@@ -56,22 +57,22 @@
 // be to use a linear relationship based on time/defects per N&C KLOC.
 
 [HLD/Estimated Time] =
-    [Normalized_Estimated_Time] * [/HLD/% Time To Date];
+    [Normalized_Estimated_Time] * [HLD/%/Time To Date];
 [HLD Review/Estimated Time] =
-    [Normalized_Estimated_Time] * [/HLD Review/% Time To Date];
+    [Normalized_Estimated_Time] * [HLD Review/%/Time To Date];
 
 [HLD/Estimated Defects Injected] =
     [Normalized_Estimated_Defects_Injected] *
-    [/HLD/% Defects Injected To Date];
+    [HLD/%/Defects Injected To Date];
 [HLD Review/Estimated Defects Injected] =
     [Normalized_Estimated_Defects_Injected] *
-    [/HLD Review/% Defects Injected To Date];
+    [HLD Review/%/Defects Injected To Date];
 
 [HLD/Estimated Defects Removed] =
-    [Normalized_Estimated_Defects_Removed] * [/HLD/% Defects Removed To Date];
+    [Normalized_Estimated_Defects_Removed] * [HLD/%/Defects Removed To Date];
 [HLD Review/Estimated Defects Removed] =
     [Normalized_Estimated_Defects_Removed] *
-    [/HLD Review/% Defects Removed To Date];
+    [HLD Review/%/Defects Removed To Date];
 
 
 [Design/Total Time] =
@@ -112,17 +113,3 @@ sumUp(Reassessment);
 sumForCycles(Time);
 sumForCycles(Defects Injected);
 sumForCycles(Defects Removed);
-
-
-/*
- * Local copies of To Date data
- */
-
-HLD/Time To Date==![(#=	/HLD/Time To Date)]
-HLD Review/Time To Date==![(#=	/HLD Review/Time To Date)]
-HLD/Defects Injected To Date==![(#=	/HLD/Defects Injected To Date)]
-HLD Review/Defects Injected To Date==![(#=	/HLD Review/Defects Injected To Date)]
-HLD/Defects Removed To Date==![(#=	/HLD/Defects Removed To Date)]
-HLD Review/Defects Removed To Date==![(#=	/HLD Review/Defects Removed To Date)]
-HLD Review/Defects Removed per Hour To Date==![(#=	/HLD Review/Defects Removed per Hour To Date)]
-HLD Review/DRL To Date==![(#=	/HLD Review/DRL To Date)]

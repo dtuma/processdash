@@ -83,6 +83,7 @@ public class DateData implements SimpleData {
         return result;
     }
 
+
     public String formatDate() {
         return DateFormatter.formatDateTime(value);
     }
@@ -91,6 +92,7 @@ public class DateData implements SimpleData {
         return new Date(value.getTime());
     }
 
+    public String toString() { return format(); }
     public String format() { return formatDate(); }
     public SimpleData parse(String val) throws MalformedValueException {
         return (val == null || val.length() == 0) ? null : create(val);

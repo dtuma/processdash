@@ -224,9 +224,9 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
     public long scanTask (TaskEntry te) { // fill in 'slurp'able data fields
         String thePath = te.taskName.path();
 
-        NumberData pt = (NumberData)data.getValue (thePath + PLANNED_TIME);
+        NumberData pt = (NumberData)data.getSimpleValue (thePath + PLANNED_TIME);
         te.plannedTime = ((pt == null) ? 0 : pt.getInteger());
-        DateData ad = (DateData)data.getValue (thePath + COMPLETED_TIME);
+        DateData ad = (DateData)data.getSimpleValue (thePath + COMPLETED_TIME);
         te.actualDate = ((ad == null) ? null : ad.getValue());
         return te.plannedTime;
     }
@@ -571,7 +571,7 @@ public class TaskTemplate extends Object implements TreeSelectionListener, Table
             case 2:                   // Planned Time
                 try {
                     String thePath = te.taskName.path();
-                    DoubleData pt = (DoubleData)data.getValue (thePath + PLANNED_TIME);
+                    DoubleData pt = (DoubleData)data.getSimpleValue (thePath + PLANNED_TIME);
                     if ((pt == null) || (pt.isEditable())) {
                         long lv = parseTime (newValue);
                         if (lv >= 0) {

@@ -1494,6 +1494,7 @@ public class DataRepository implements Repository {
         private final Hashtable includedFileCache = new Hashtable();
 
         private Map getIncludedFileDefinitions(String datafile) {
+            //debug("getIncludedFileDefinitions("+datafile+")");
             Object definitions = includedFileCache.get(datafile);
             if (definitions instanceof DefinitionFactory) {
                 definitions = ((DefinitionFactory) definitions).getDefinitions(this);
@@ -1502,6 +1503,69 @@ public class DataRepository implements Repository {
             }
             return (Map) definitions;
         }
+
+        /** Get the definitions for the given includable datafile, loading
+         *  them if necessary.
+         */
+        public Map loadIncludedFileDefinitions(String datafile)
+            throws FileNotFoundException, IOException, InvalidDatafileFormat
+        {
+            //debug("loadIncludedFileDefinitions("+datafile+")");
+            datafile = bracket(datafile);
+
+            Map result = getIncludedFileDefinitions(datafile);
+            if (result == null) {
+                result = new HashMap();
+
+                // Lookup any applicable default data definitions.
+                DefinitionFactory defaultDefns =
+                    (DefinitionFactory) defaultDefinitions.get(datafile);
+                if (defaultDefns != null)
+                    result.putAll(defaultDefns.getDefinitions(DataRepository.this));
+
+                // the null in the next line is a bug! it has no effect on
+                // #include <> statements, but effectively prevents #include ""
+                // statements from working (in other words, include directives
+                // relative to the current file.  Such directives are not
+                // currently used by the dashboard, so nothing will break.)
+                loadDatafile(datafile, findDatafile(datafile, null), result, true);
+
+                // Although we aren't technically done creating this datafile,
+                // we need to store it in the cache before calling
+                // insertRollupDefinitions to avoid entering an infinite loop.
+                includedFileCache.put(datafile, result);
+
+                // check to see if the datafile requests a rollup
+                Object rollupIDval = result.get("Use_Rollup");
+                if (rollupIDval instanceof StringData) {
+                    String rollupID = ((StringData) rollupIDval).getString();
+                    insertRollupDefinitions(result, rollupID);
+                }
+
+                result = Collections.unmodifiableMap(result);
+                includedFileCache.put(datafile, result);
+            }
+
+            return result;
+        }
+
+        private void insertRollupDefinitions(Map definitions, String rollupID) {
+            // FIXME: handle lists
+            try {
+                String aliasDatafile = getAliasDatafileName(rollupID);
+
+                // Get the set of alias definitions
+                Map aliasDefinitions = loadIncludedFileDefinitions(aliasDatafile);
+
+                if (aliasDefinitions != null) {
+                    Map result = new HashMap();
+                    result.putAll(aliasDefinitions);
+                    result.putAll(definitions);
+                    definitions.putAll(result);
+                }
+            } catch (Exception e) {}
+        }
+
 
         String lookupDefaultValue(String dataName, DataElement element) {
             // if the user didn't bother to look up the data element, look
@@ -1595,8 +1659,9 @@ public class DataRepository implements Repository {
                     throw new LoadingException
                         (new InvalidDatafileFormat(ce.getMessage()));
                 }
+                Object val = null;
                 if (!script.isConstant())
-                    dest.put(name, script);
+                    val = script;
                 else {
                     SimpleData constant = script.getConstant();
                     if (constant == null)
@@ -1604,9 +1669,13 @@ public class DataRepository implements Repository {
                     else {
                         if (node.getAssignop() instanceof AReadOnlyAssignop)
                             constant = (SimpleData) constant.getEditable(false);
-                        dest.put(name, constant);
+                        val = constant;
                     }
                 }
+                if (name.startsWith("/"))
+                    putGlobalValue(name, val);
+                else if (val != null)
+                    dest.put(name, val);
             }
 
             /** Process an old style declaration. */
@@ -1650,32 +1719,13 @@ public class DataRepository implements Repository {
                              " paths are no longer supported."));
                 }
 
-                Map cachedIncludeFile = getIncludedFileDefinitions(inheritedDatafile);
-
-                if (cachedIncludeFile == null) try {
-                    cachedIncludeFile = new HashMap();
-
-                    // Lookup any applicable default data definitions.
-                    DefinitionFactory defaultDefns =
-                        (DefinitionFactory) defaultDefinitions.get(inheritedDatafile);
-                    if (defaultDefns != null)
-                        cachedIncludeFile.putAll
-                            (defaultDefns.getDefinitions(DataRepository.this));
-
-                    // the null in the next line is a bug! it has no effect on
-                    // #include <> statements, but effectively prevents #include ""
-                    // statements from working (in other words, include directives
-                    // relative to the current file.  Such directives are not
-                    // currently used by the dashboard, so nothing will break.)
-                    loadDatafile(inheritedDatafile,
-                                 findDatafile(inheritedDatafile, null),
-                                 cachedIncludeFile, true);
-                    cachedIncludeFile = Collections.unmodifiableMap(cachedIncludeFile);
-                    includedFileCache.put(inheritedDatafile, cachedIncludeFile);
+                try {
+                    Map cachedIncludeFile =
+                        loadIncludedFileDefinitions(inheritedDatafile);
+                    dest.putAll(cachedIncludeFile);
                 } catch (Exception e) {
                     throw new LoadingException(e);
                 }
-                dest.putAll(cachedIncludeFile);
             }
 
             public void caseAUndefineDeclaration(AUndefineDeclaration node) {
@@ -1709,6 +1759,7 @@ public class DataRepository implements Repository {
                                     Map dest, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
+            //debug("loadDatafile("+filename+")");
             // Initialize data, file, and read buffer.
             String inheritedDatafile = null;
             BufferedReader in = new BufferedReader(datafile);
@@ -1730,9 +1781,11 @@ public class DataRepository implements Repository {
                 tree.apply(loader);
 
             } catch (ParserException pe) {
-                throw new InvalidDatafileFormat(pe.getMessage());
+                throw new InvalidDatafileFormat("Could not parse " + filename + "; " +
+                                                pe.getMessage());
             } catch (LexerException le) {
-                throw new InvalidDatafileFormat(le.getMessage());
+                throw new InvalidDatafileFormat("Could not parse " + filename + "; " +
+                                                le.getMessage());
             } catch (LoadingException load) {
                 Exception root = load.getRoot();
                 if (root instanceof FileNotFoundException)
@@ -1742,6 +1795,7 @@ public class DataRepository implements Repository {
                 if (root instanceof InvalidDatafileFormat)
                     throw (InvalidDatafileFormat) root;
                 System.err.println("Unusual exception when loading file: " + root);
+                root.printStackTrace();
                 throw new IOException(root.getMessage());
             } finally {
                 if (close) in.close();
@@ -1757,7 +1811,7 @@ public class DataRepository implements Repository {
 
         private final Hashtable defineDeclarations = new Hashtable();
         public void putDefineDeclarations(String datafile, String decls) {
-            defineDeclarations.put("<" + datafile + ">", decls);
+            defineDeclarations.put(bracket(datafile), decls);
         }
 
         private final Hashtable defaultDefinitions = new Hashtable();
@@ -1787,11 +1841,25 @@ public class DataRepository implements Repository {
             */
 
         public void registerDefaultData(DefinitionFactory d,
-                                        String datafile, boolean isImaginary) {
-            if (isImaginary)
-                includedFileCache.put("<" + datafile + ">", d);
-            else
-                defaultDefinitions.put("<" + datafile + ">", d);
+                                        String datafile,
+                                        String imaginaryFilename) {
+            //debug("registerDefaultData("+datafile+","+imaginaryFilename+")");
+            includedFileCache.put(bracket(imaginaryFilename), d);
+
+            if (datafile != null && datafile.length() > 0)
+                defaultDefinitions.put(bracket(datafile), d);
+        }
+        private String bracket(String filename) {
+            if (filename == null || filename.startsWith("<")) return filename;
+            return "<" + filename + ">";
+        }
+
+        public String getRollupDatafileName(String rollupID) {
+            return "ROLLUP:" + rollupID;
+        }
+
+        public String getAliasDatafileName(String rollupID) {
+            return "ROLLUP-ALIAS:" + rollupID;
         }
 
         private Hashtable globalDataDefinitions = new Hashtable();
@@ -1799,6 +1867,25 @@ public class DataRepository implements Repository {
         public void addGlobalDefinitions(InputStream datafile, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
             loadDatafile(null, datafile, globalDataDefinitions, close);
+        }
+
+        private void putGlobalValue(String name, Object valueObj) {
+            DataElement e = (DataElement) data.get(name);
+            if (e != null && e.getImmediateValue() != null)
+                return;                 // don't overwrite existing values?
+
+            SaveableData o = null;
+            if (valueObj instanceof SimpleData)
+                o = (SimpleData) valueObj;
+            else if (valueObj instanceof CompiledScript)
+                o = new CompiledFunction(name, (CompiledScript) valueObj, this, "");
+            else if (valueObj instanceof SearchFactory)
+                o = ((SearchFactory) valueObj).buildFor(name, this, "");
+
+            if (o != null) {
+                globalDataDefinitions.put(name, valueObj);
+                putValue(name, o);
+            }
         }
 
         /** Perform renaming operations found in the values map.
@@ -1913,8 +2000,8 @@ public class DataRepository implements Repository {
             }
             return dataWasRenamed;
         }
-        private static final String SIMPLE_RENAME_PREFIX = "<=";
-        private static final String PATTERN_RENAME_PREFIX = ">~";
+        public static final String SIMPLE_RENAME_PREFIX = "<=";
+        public static final String PATTERN_RENAME_PREFIX = ">~";
 
 
         public void openDatafile(String dataPrefix, String datafilePath)
@@ -1930,119 +2017,162 @@ public class DataRepository implements Repository {
             dataFile.inheritsFrom =
                 loadDatafile(null, new FileInputStream(dataFile.file),
                              values, true);
-            boolean dataModified;
-            boolean registerDataNames = (dataPrefix.length() > 0);
 
             // perform any renaming operations that were requested in the datafile
-            dataModified = performRenames(values);
+            boolean dataModified = performRenames(values);
 
                                     // only add the datafile element if the
                                     // loadDatafile process was successful
             datafiles.addElement(dataFile);
 
-            startInconsistency();
+                                    // mount the data in the repository.
+            mountData(dataFile, dataPrefix, values);
 
+            if (dataModified)       // possibly mark the file as modified.
+                datafileModified(dataFile);
+        }
+
+        private void mountData(DataFile dataFile, String dataPrefix, Map values)
+            throws InvalidDatafileFormat
+        {
             try {
+                startInconsistency();
+
+                // register the names of data elements in this file IF this is not
+                // global data.
+                boolean registerDataNames = (dataFile!=null && dataPrefix.length()>0);
+
+                boolean dataModified = false, successful = false;
+                String datafilePath = "internal data";
+                boolean fileEditable = true;
+
+                if (dataFile != null && dataFile.file != null) {
+                    datafilePath = dataFile.file.getPath();
+                    fileEditable = dataFile.file.canWrite();
+                }
                 if (dataPrefix.equals(realizeDeferredDataFor))
                     realizeDeferredDataFor = dataFile;
 
-                boolean fileEditable = dataFile.file.canWrite();
-                boolean dataEditable = true;
+                int retryCount = 10;
+                while (!successful && retryCount-- > 0) try {
+                    boolean dataEditable;
 
-                String localName, name, value;
-                Object valueObj;
-                SaveableData o;
-                DataElement d;
+                    Map.Entry defn;
+                    String localName, name, value;
+                    Object valueObj;
+                    SaveableData o;
+                    DataElement d;
 
-                Enumeration dataNames = values.keys();
-                while (dataNames.hasMoreElements()) {
-                    localName = (String) dataNames.nextElement();
-                    valueObj = values.get(localName);
-                    name = createDataName(dataPrefix, localName);
+                    Iterator dataDefinitions = values.entrySet().iterator();
+                    while (dataDefinitions.hasNext()) {
+                        defn = (Map.Entry) dataDefinitions.next();
+                        localName = (String) defn.getKey();
+                        valueObj = defn.getValue();
+                        name = createDataName(dataPrefix, localName);
+                        o = null;
 
-                    if (valueObj instanceof SimpleData) {
-                        o = (SimpleData) valueObj;
-                        dataEditable = true;
-                    } else if (valueObj instanceof CompiledScript) {
-                        o = new CompiledFunction(name, (CompiledScript) valueObj,
-                                                 this, dataPrefix);
-                        dataEditable = true;
-                    } else if (valueObj instanceof SearchFactory) {
-                        o = ((SearchFactory) valueObj).buildFor(name, this, dataPrefix);
-                        dataEditable = true;
-                    } else {
-                        value = (String) valueObj;
-                        if (value.startsWith("=")) {
-                            dataEditable = false;
-                            value = value.substring(1);
-                        } else
-                            dataEditable = true;
+                        if (valueObj instanceof SimpleData) {
+                            o = (SimpleData) valueObj;
+                            if (!fileEditable) o = o.getEditable(false);
+                        } else if (valueObj instanceof CompiledScript) {
+                            o = new CompiledFunction(name, (CompiledScript) valueObj,
+                                                     this, dataPrefix);
+                        } else if (valueObj instanceof SearchFactory) {
+                            o = ((SearchFactory) valueObj).buildFor(name, this, dataPrefix);
+                        } else if (valueObj != null) {
+                            value = (String) valueObj;
+                            if (value.startsWith("=")) {
+                                dataEditable = false;
+                                value = value.substring(1);
+                            } else
+                                dataEditable = true;
 
-                        if (value.equalsIgnoreCase("@now"))
-                            dataModified = true;
-                        try {
-                            o = ValueFactory.createQuickly(name, value, this, dataPrefix);
-                        } catch (MalformedValueException mfe) {
-                            System.err.println("Data value for '"+name+
-                                               "' in file '"+datafilePath+"' is malformed.");
-                            o = new MalformedData(value);
+                            if (value.equalsIgnoreCase("@now"))
+                                dataModified = true;
+                            try {
+                                o = ValueFactory.createQuickly(name, value, this, dataPrefix);
+                            } catch (MalformedValueException mfe) {
+                                System.err.println("Data value for '"+name+"' in file '"+
+                                                   datafilePath+"' is malformed.");
+                                o = new MalformedData(value);
+                            }
+                            if (!fileEditable || !dataEditable)
+                                if (o != null) o.setEditable(false);
                         }
+
+                        d = (DataElement)data.get(name);
+                        if (d == null) {
+                            if (o != null) d = add(name, o, dataFile, true);
+                        } else {
+                                              // this prevents the putValue logic from
+                            d.datafile = null;  // marking the datafile as modified
+                            putValue(name, o);
+                            d.datafile = dataFile;
+                        }
+                        // this is necessary because the mechanisms above which set the
+                        // value of a DataElement do so AFTER setting the datafile.
+                        if (dataFile==realizeDeferredDataFor && o instanceof DeferredData)
+                            dataRealizer.addElement(d);
+
+                        if (registerDataNames &&
+                            // FIXME: this logic is broken now that CompiledScript
+                            // objects exist
+                            (o instanceof DoubleData || o instanceof DeferredData))
+                            dataElementNameSet.add(localName);
                     }
-                    if (!fileEditable || !dataEditable)
-                        if (o != null) o.setEditable(false);
-                    d = (DataElement)data.get(name);
-                    if (d == null) {
-                        if (o != null) d = add(name, o, dataFile, true);
+
+                    if (dataModified)
+                        datafileModified(dataFile);
+
+                    // make a call to getID.  We don't need the resulting value, but
+                    // having made the call will cause an ID to be mapped for this
+                    // prefix.  This is necessary to allow users to bring up HTML pages
+                    // from their browser's history or bookmark list.
+                    //
+                    getID(dataPrefix);
+                    // debug("openDatafile done");
+                    successful = true;
+
+                } catch (Throwable e) {
+                    if (retryCount > 0) {
+                        // Try again to open this datafile. Most errors are transient,
+                        // caused by incredibly infrequent thread-related problems.
+                        debug("when opening "+datafilePath+" caught error "+e+
+                              ", retrying.");
+                        e.printStackTrace();
                     } else {
-                                          // this prevents the putValue logic from
-                        d.datafile = null;  // marking the datafile as modified
-                        putValue(name, o);
-                        d.datafile = dataFile;
+                        // We've done our best, but after 10 tries, we still can't open
+                        // this datafile.  Give up and throw an exception.
+                        dataFile.file = null;
+                        closeDatafile(dataPrefix);
+                        throw new InvalidDatafileFormat("Caught unexpected exception "+e);
                     }
-                    // this is necessary because the mechanisms above which set the
-                    // value of a DataElement do so AFTER setting the datafile.
-                    if (dataFile == realizeDeferredDataFor && o instanceof DeferredData)
-                        dataRealizer.addElement(d);
-
-                    if (registerDataNames &&
-                        (o instanceof DoubleData || o instanceof DeferredData))
-                        dataElementNameSet.add(localName);
                 }
 
-                if (dataModified)
-                    datafileModified(dataFile);
-
-                // make a call to getID.  We don't need the resulting value, but
-                // having made the call will cause an ID to be mapped for this
-                // prefix.  This is necessary to allow users to bring up HTML pages
-                // from their browser's history or bookmark list.
-                //
-                getID(dataPrefix);
-                // debug("openDatafile done");
-            } catch (Throwable e) {
-                if (OPENDATAFILE_ERROR_DEPTH > 10) {
-                    dataFile.file = null;
-                    closeDatafile(dataPrefix);
-                    throw new IOException("Caught unexpected exception " + e);
-                }
-                synchronized (OPENDATAFILE_ERROR_DEPTH_LOCK) {
-                    OPENDATAFILE_ERROR_DEPTH++;
-                }
-                // Try again to open this datafile. Most errors are transient,
-                // caused by incredibly infrequent thread-related problems.
-                debug("when opening "+datafilePath+" caught error "+e+", retrying.");
-                datafiles.remove(dataFile);
-                try {
-                    openDatafile(dataPrefix, datafilePath);
-                    debug("...successfully opened "+datafilePath);
-                } finally {
-                    synchronized (OPENDATAFILE_ERROR_DEPTH_LOCK) {
-                        OPENDATAFILE_ERROR_DEPTH--; }
-                }
             } finally {
                 finishInconsistency();
             }
         }
+
+        public void mountPhantomData(String dataPrefix, Map values)
+            throws InvalidDatafileFormat
+        {
+            // It is important to mount the data with *some* datafile - if a
+            // data element's datafile is null, it is considered transient and
+            // can be deleted at any time if no one is listening to its value.
+            mountData(getPhantomDataFile(), dataPrefix, values);
+        }
+
+        private DataFile getPhantomDataFile() {
+            if (PHANTOM_DATAFILE == null) {
+                DataFile d = new DataFile();
+                d.prefix = "";
+                PHANTOM_DATAFILE = d;
+            }
+            return PHANTOM_DATAFILE;
+        }
+        private DataFile PHANTOM_DATAFILE = null;
+
         private final Object OPENDATAFILE_ERROR_DEPTH_LOCK = new Object();
         private volatile int OPENDATAFILE_ERROR_DEPTH = 0;
 
@@ -2198,6 +2328,10 @@ public class DataRepository implements Repository {
 
 
         public void addDataListener(String name, DataListener dl) {
+            addDataListener(name, dl, true);
+        }
+
+        public void addDataListener(String name, DataListener dl, boolean notify) {
             DataElement d;
             synchronized (data) {
                 // lookup the element.
@@ -2216,12 +2350,18 @@ public class DataRepository implements Repository {
             if (!d.dataListenerList.contains(dl))
                 d.dataListenerList.addElement(dl);
 
-            dataNotifier.addEvent(name, d, dl);
+            if (notify)
+                dataNotifier.addEvent(name, d, dl);
         }
 
         public void addActiveDataListener
             (String name, DataListener dl, String dataListenerName) {
-            addDataListener(name, dl);
+            addActiveDataListener(name, dl, dataListenerName, true);
+        }
+
+        public void addActiveDataListener
+            (String name, DataListener dl, String dataListenerName, boolean notify) {
+            addDataListener(name, dl, notify);
             activeData.put(dl, dataListenerName);
         }
 
@@ -2465,7 +2605,7 @@ public class DataRepository implements Repository {
 
         public static final String PARENT_PREFIX = "../";
 
-        private static String chopPath(String path) {
+        public static String chopPath(String path) {
             if (path == null) return null;
             int slashPos = path.lastIndexOf('/');
             if (slashPos == path.length() - 1)

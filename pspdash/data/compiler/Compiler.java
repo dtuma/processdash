@@ -191,6 +191,19 @@ public class Compiler extends DepthFirstAdapter {
         outAUnaryMinusLevel1Expr(node);
     }
 
+    public void caseAScript1FunctionCall(AScript1FunctionCall node)
+    {
+        inAScript1FunctionCall(node);
+        add(FunctionCall.PUSH_STACK_MARKER);
+        if(node.getScript() != null)
+            node.getScript().apply(this);
+        if(node.getArglist() != null)
+            node.getArglist().apply(this);
+        if(node.getScript1FunctionName() != null)
+            node.getScript1FunctionName().apply(this);
+        outAScript1FunctionCall(node);
+    }
+
     public void caseAFunctionCall(AFunctionCall node)
     {
         inAFunctionCall(node);
@@ -224,6 +237,8 @@ public class Compiler extends DepthFirstAdapter {
 
     public void caseTFunctionName(TFunctionName node) {
         add(FunctionCall.get(node.getText())); }
+    public void caseTScript1FunctionName(TScript1FunctionName node) {
+        add(FunctionCall.get(node.getText())); }
     public void caseTIdentifier(TIdentifier node) {
         add(new PushVariable(trimDelim(node))); }
     public void caseTStringLiteral(TStringLiteral node) {
@@ -250,6 +265,10 @@ public class Compiler extends DepthFirstAdapter {
         add(new PushConstant(TagData.getInstance())); }
     public void caseTNull(TNull node) {
         add(new PushConstant(null)); }
+
+    public void caseASimpleScript(ASimpleScript node) {
+        add(new PushObject(compile(node.getValue())));
+    }
 
     /** Convenience routine for adding an instruction to the script */
     private void add(Instruction i) { script.add(i); }

@@ -54,10 +54,3 @@ undefine([PSP0.1 Tag], [psp0.1], [PSP0.1]);
 [Estimated LOC per Hour] = [Estimated Productivity];
 [LOC per Hour]           = [Productivity];
 [Defects per KLOC]       = [Defect Density];
-
-
-/*
- * Local copies of To Date data
- */
-
-LOC per Hour To Date==![(#=	/LOC per Hour To Date)]

@@ -35,7 +35,7 @@
 */
 
 #include <psp3/psp2_1data.txt>
-undefine([PSP Project]);
+undefine([PSP Project], [PSP Rollup Eligible]);
 [psp3cycle] == TAG;
 [PSP3cycle] == TAG;
 
@@ -45,13 +45,13 @@ undefine([PSP Project]);
  */ 
 
 [Normalized_Estimated_Time] =
-        [Estimated Time] / [/Normalization %/Time/PSP3cycle];
+        [Estimated Time] / [Normalization %/Time/PSP3cycle To Date];
 [Normalized_Estimated_Defects_Injected] =
         [Estimated Defects Injected] / 
-        [/Normalization %/Defects Injected/PSP3cycle];
+        [Normalization %/Defects Injected/PSP3cycle To Date];
 [Normalized_Estimated_Defects_Removed] =
         [Estimated Defects Removed] / 
-        [/Normalization %/Defects Removed/PSP3cycle];
+        [Normalization %/Defects Removed/PSP3cycle To Date];
 
 
 /*
@@ -94,6 +94,66 @@ undefine([LOC per Hour To Date], [ESTIMATED Time To Date], [Time To Date],
   [Test/Defects Removed per Hour To Date], [Design Review/DRL To Date],
   [Code Review/DRL To Date], [Compile/DRL To Date],
   [% Appraisal COQ To Date], [% Failure COQ To Date], [AFR To Date],
+  [% COQ To Date], [Added LOC To Date], [Aggregate Size To Date],
+  [Base Additions LOC To Date], [Base LOC To Date], 
+  [Code Review/Appraisal Rate To Date], 
+  [Code Review/Cumulative Defect Removal % To Date],
+  [Code Review/Defect Density To Date],
+  [Code/Combined Defects Injected To Date],
+  [Code/Combined Defects Removed To Date],
+  [Code/Combined Estimated Time To Date],
+  [Code/Combined Time To Date], [Code/Cumulative Defect Injection % To Date],
+  [Code/Defect Injection Density To Date],
+  [Code/Defects Injected per Hour To Date],
+  [Compile/Cumulative Defect Removal % To Date],
+  [Compile/Defect Density To Date], [Defect Density To Date],
+  [Defects Removed per KLOC To Date], [Deleted LOC To Date],
+  [Design Review/Appraisal Rate To Date],
+  [Design Review/Cumulative Defect Removal % To Date],
+  [Design Review/Defect Density To Date],
+  [Design/Combined Defects Injected To Date],
+  [Design/Combined Defects Removed To Date],
+  [Design/Combined Estimated Time To Date],
+  [Design/Combined Time To Date],
+  [Design/Cumulative Defect Injection % To Date],
+  [Design/Defect Injection Density To Date],
+  [Design/Defects Injected per Hour To Date], [Design/Total Time To Date],
+  [Estimated % New Reused To Date], [Estimated % Reused To Date],
+  [Estimated Added LOC To Date], [Estimated Aggregate Size To Date],
+  [Estimated Base Additions LOC To Date], [Estimated Base LOC To Date],
+  [Estimated Defects Injected To Date], [Estimated Defects Removed To Date],
+  [Estimated Deleted LOC To Date], [Estimated Modified LOC To Date],
+  [Estimated New & Changed KLOC To Date],
+  [Estimated New & Changed LOC To Date], [Estimated New Objects LOC To Date],
+  [Estimated New Reused LOC To Date], [Estimated Object LOC To Date],
+  [Estimated Reused LOC To Date], [Estimated Size To Date],
+  [Estimated Time To Date], [Estimated Total LOC To Date],
+  [HLD Review/Appraisal Rate To Date], [HLD Review/DRL To Date],
+  [HLD Review/Defect Density To Date], [HLD Review/Defects Injected To Date],
+  [HLD Review/Defects Removed To Date],
+  [HLD Review/Defects Removed per Hour To Date], [HLD Review/Time To Date],
+  [HLD/Defect Injection Density To Date], [HLD/Defects Injected To Date],
+  [HLD/Defects Injected per Hour To Date], [HLD/Defects Removed To Date],
+  [HLD/Time To Date], [Modified LOC To Date], [New & Changed KLOC To Date],
+  [New Objects LOC To Date], [Normalization %/Defects Injected/PSP0-2 To Date],
+  [Normalization %/Defects Injected/PSP3 To Date],
+  [Normalization %/Defects Injected/PSP3cycle To Date],
+  [Normalization %/Defects Removed/PSP0-2 To Date],
+  [Normalization %/Defects Removed/PSP3 To Date],
+  [Normalization %/Defects Removed/PSP3cycle To Date],
+  [Normalization %/Time/PSP0-2 To Date], [Normalization %/Time/PSP3 To Date],
+  [Normalization %/Time/PSP3cycle To Date],
+  [Normalized_Estimated_Defects_Injected To Date],
+  [Normalized_Estimated_Defects_Removed To Date],
+  [Normalized_Estimated_Time To Date], [Object LOC To Date],
+  [PM/Defects Injected To Date], [PM/Defects Removed To Date],
+  [PM/Estimated Time To Date], [PM/Time To Date],
+  [Postmortem/Defects Injected To Date], [Postmortem/Defects Removed To Date],
+  [Productivity To Date], [Reassessment/Defects Injected To Date],
+  [Reassessment/Defects Removed To Date], [Reassessment/Time To Date],
+  [Size Estimating Error To Date], [Size To Date],
+  [Test/Cumulative Defect Removal % To Date], [Test/Defect Density To Date],
+  [Time Estimating Error To Date], [Time To Date],
   [% Reused To Date], [% New Reused To Date]
 );
 

@@ -45,12 +45,3 @@ undefine([PSP2 Tag], [psp2], [PSP2]);
  */
 
 (Base Additions|New Objects|Reused Objects)/([^0-9]+) (\d+)=>~$1/$3/$2
-
-
-/*
- * Local copies of To Date data
- */
-
-% Appraisal COQ To Date==![(#=	/% Appraisal COQ To Date)]
-% Failure COQ To Date==![(#=	/% Failure COQ To Date)]
-AFR To Date==![(#=	/AFR To Date)]

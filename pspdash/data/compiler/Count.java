@@ -40,14 +40,6 @@ public class Count extends AbstractFunction {
      */
     public Object call(List arguments, ExpressionContext context)
     {
-        double result = 0.0;
-
-        ListData list;
-        for (int i = arguments.size();  i-- > 0;  ) {
-            list = asList(getArg(arguments, i));
-            if (list == null) continue;
-            result += list.size();
-        }
-        return new DoubleData(result);
+        return new DoubleData(collapseLists(arguments, 0).size());
     }
 }

@@ -168,7 +168,8 @@ default: data
 data: parser $(DATA_CLASS_FILES)
 
 $(BIN_DATA)/pspdash/data/%.class: %.java
-	$(JAVAC) \
+	@echo "********** Compiling data classes..."
+	@$(JAVAC) \
 	    -classpath '../build/PerlTools.jar$(DS)../build/jfreechart.jar' \
 	    -deprecation \
 	    -sourcepath $(SRC) \
@@ -190,7 +191,8 @@ $(BIN_IE)/pspdash/data/%.class: %.java
 	mkdir -p $(BIN_IE)
 	mkdir -p $(BIN_DATA)/pspdash/data
 #	rm -rf $(BIN_IE)/pspdash $(BIN_IE)/DataApplet.cab
-	$(MSJAVAC) \
+	@echo "********** Compiling IEDataApplet..."
+	@$(MSJAVAC) \
 	    /cp:p $(SRC) \
 	    /cp:p c:/WINDOWS/java/CLASSES/classes.zip \
 	    /d $(BIN_IE) \
@@ -207,7 +209,8 @@ NS: $(NS_CLASS_FILES)
 $(BIN_NS)/pspdash/data/%.class: %.java
 	mkdir -p $(BIN_NS)
 #	rm -rf $(BIN_NS)/pspdash $(BIN_NS)/DataApplet.jar
-	$(JAVAC) \
+	@echo "********** Compiling NSDataApplet..."
+	@$(JAVAC) \
 	    -classpath ../build/java40.jar \
 	    -deprecation \
 	    -sourcepath $(SRC) \

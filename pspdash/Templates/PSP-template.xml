@@ -33,7 +33,7 @@ This file contains the template definitions for the standard PSP processes.
 -->
 
 <dashboard-process-template>
-  <template name="PSP0" ID="PSP0" defectLog="true" 
+  <template name="PSP0" ID="PSP0" defectLog="true" usesRollup="PSP"
             dataFile="psp0/dataFile.txt" htmlID="top"
             constraints="{Design Review(2){Code Review(-3)">
     <html ID="sum"  title="PSP0 Project Summary"    href="psp0/summary.htm"/>
@@ -58,7 +58,7 @@ This file contains the template definitions for the standard PSP processes.
   <template name="Code Review" ID="Code Review" dataFile="none"
             constraints="MED{}PSP0}PSP0.1}PSP1}PSP1.1}PSP0.1-PFE-2A}PSP1-PFE-4A}PSP1.1-PFE-5A}PSP0.1-MSE-2A}PSP1-MSE-3B" />
 
-  <template name="PSP0.1" ID="PSP0.1" defectLog="true" 
+  <template name="PSP0.1" ID="PSP0.1" defectLog="true" usesRollup="PSP"
             dataFile="psp0.1/dataFile.txt" htmlID="top"
             constraints="{Design Review(2){Code Review(-3)">
     <html ID="sum"  title="PSP0.1 Project Summary" href="psp0.1/summary.htm"/>
@@ -79,7 +79,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 
-  <template name="PSP1" ID="PSP1" defectLog="true" 
+  <template name="PSP1" ID="PSP1" defectLog="true" usesRollup="PSP"
             dataFile="psp1/dataFile.txt" htmlID="top"
             constraints="{Design Review(2){Code Review(-3)">
     <html ID="sum"  title="PSP1 Project Summary"    href="psp1/summary.htm"/>
@@ -100,7 +100,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 
-  <template name="PSP1.1" ID="PSP1.1" defectLog="true" 
+  <template name="PSP1.1" ID="PSP1.1" defectLog="true" usesRollup="PSP"
             dataFile="psp1.1/dataFile.txt" htmlID="top"
             constraints="{Design Review(2){Code Review(-3)">
     <html ID="sum"  title="PSP1.1 Project Summary" href="psp1.1/summary.htm"/>
@@ -123,7 +123,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 
-  <template name="PSP2" ID="PSP2" defectLog="true" 
+  <template name="PSP2" ID="PSP2" defectLog="true" usesRollup="PSP"
             dataFile="psp2/dataFile.txt" htmlID="top"
             constraints="{Design Inspection(3){Code Inspection(-2)">
     <html ID="sum"  title="PSP2 Project Summary" href="psp2/summary.htm"/>
@@ -146,7 +146,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Postmortem"    htmlID="pm"   type="pm"/>
   </template>
 
-  <template name="PSP2.1" ID="PSP2.1" defectLog="true" 
+  <template name="PSP2.1" ID="PSP2.1" defectLog="true" usesRollup="PSP"
             dataFile="psp2.1/dataFile.txt" htmlID="top"
             constraints="{Design Inspection(3){Code Inspection(-2)">
     <html ID="sum"  title="PSP2.1 Project Summary" href="psp2.1/summary.htm"/>
@@ -169,7 +169,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Postmortem"    htmlID="pm"   type="pm"/>
   </template>
 
-  <template name="PSP3" ID="PSP3" defectLog="true"
+  <template name="PSP3" ID="PSP3" defectLog="true" usesRollup="PSP"
             dataFile="psp3/dataFile.txt" htmlID="top"
             constraints="{PSP3cycle(-1){HLD Inspection(3)">
     <html ID="sum"  title="PSP3 Project Summary" href="psp3/summary.htm"/>
@@ -198,7 +198,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 
-  <template name="PSP3cycle" ID="PSP3cycle"
+  <template name="PSP3cycle" ID="PSP3cycle" defineRollup="no"
             dataFile="psp3/cycleData.txt" htmlID="top"
             constraints="{Design Inspection(2){Code Inspection(-2)}PSP3">
     <phase name="Design"        type="dld"/>
@@ -209,5 +209,8 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Test"          type="ut"/>
     <phase name="Reassessment"  type="pm"/>
   </template>
+
+  <template name="PSP Data Rollup Prototype" imaginary="true"
+            dataFile="psp3/rollupData.txt" defineRollup="PSP"/>
 
 </dashboard-process-template>

@@ -50,6 +50,8 @@ public class Eval extends AbstractFunction {
         if (expression == null || expression.length() == 0)
             return null;
 
+        String prefix = asString(getArg(arguments, 1));
+
         CompiledScript script = (CompiledScript) scriptCache.get(expression);
         if (script == null) {
             if (scriptCache.containsKey(expression))
@@ -66,6 +68,8 @@ public class Eval extends AbstractFunction {
 
         try {
             Stack stack = new ListStack();
+            if (prefix != null)
+                context = new RelativeExpressionContext(context, prefix);
             script.run(stack, context);
             return stack.pop();
         } catch (ExecutionException ee) {

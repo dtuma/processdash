@@ -97,3 +97,16 @@
     [Last_Failure_Phase] == "LAST_FAILURE_PHASE";
 
 #endif
+
+#ifdef USES_ROLLUP_ID
+
+    [Use_Rollup] == "USES_ROLLUP_ID";
+    [USES_ROLLUP_ID Rollup Eligible] = tag;
+
+#endif // USES_ROLLUP_ID
+
+#ifdef DEFINE_ROLLUP_ID
+
+    [DEFINE_ROLLUP_ID Rollup Eligible] = tag;
+
+#endif // DEFINE_ROLLUP_ID

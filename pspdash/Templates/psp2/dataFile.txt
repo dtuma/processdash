@@ -44,14 +44,14 @@ undefine([PSP1.1 Tag], [psp1.1], [PSP1.1]);
  * Estimate defects injected and removed from historical "To Date" data
  */
 
-[Estimated Defects per KLOC] = [/Defects Injected per KLOC To Date];
+[Estimated Defects per KLOC] = [Defect Density To Date];
 [Estimated Defects Injected] =
         [Estimated New & Changed KLOC] * [Estimated Defects per KLOC];
 [Estimated Defects Removed]  = [Estimated Defects Injected];
 
 
-[Normalized_Estimated_Defects_Injected] = 
-    [Estimated Defects Injected] / [/Normalization %/Defects Injected/PSP0-2];
+[Normalized_Estimated_Defects_Injected] = [Estimated Defects Injected] /
+    [Normalization %/Defects Injected/PSP0-2 To Date];
 [Normalized_Estimated_Defects_Removed] =
     [Normalized_Estimated_Defects_Injected];
 
@@ -60,10 +60,10 @@ undefine([PSP1.1 Tag], [psp1.1], [PSP1.1]);
 #define estimateDefects(Phase)						      \
   [Phase/Estimated Defects Injected] =					      \
         [Normalized_Estimated_Defects_Injected] *			      \
-        [/Phase/% Defects Injected To Date];				      \
+        [Phase/%/Defects Injected To Date];				      \
   [Phase/Estimated Defects Removed] =					      \
         [Normalized_Estimated_Defects_Removed] *			      \
-        [/Phase/% Defects Removed To Date];
+        [Phase/%/Defects Removed To Date];
 
 FOR_EACH_PHASE(estimateDefects);
 
@@ -72,10 +72,10 @@ FOR_EACH_PHASE(estimateDefects);
 
 [Before Development/Estimated Defects Injected] =
         [Estimated Defects Injected] *
-	[/Before Development/% Defects Injected To Date];
+	[Before Development/%/Defects Injected To Date];
 [After Development/Estimated Defects Removed] =
 	[Normalized_Estimated_Defects_Removed] *
-	[/After Development/% Defects Removed To Date];
+	[After Development/%/Defects Removed To Date];
 
 
 
@@ -88,19 +88,3 @@ FOR_EACH_PHASE(estimateDefects);
 
 [Estimated Defects Removed per KLOC] = [Estimated Defect Density];
 [Defects Removed per KLOC] = [Defect Density];
-
-
-/*
- * Local copies of To Date data
- */
-
-Test/Defects Removed per KLOC To Date==![(#=	/Test/Defects Removed per KLOC To Date)]
-Defects per KLOC To Date==![(#=	/Defects per KLOC To Date)]
-Yield To Date==![(#=	/Yield To Date)]
-Design Review/Defects Removed per Hour To Date==![(#=	/Design Review/Defects Removed per Hour To Date)]
-Code Review/Defects Removed per Hour To Date==![(#=	/Code Review/Defects Removed per Hour To Date)]
-Compile/Defects Removed per Hour To Date==![(#=	/Compile/Defects Removed per Hour To Date)]
-Test/Defects Removed per Hour To Date==![(#=	/Test/Defects Removed per Hour To Date)]
-Design Review/DRL To Date==![(#=	/Design Review/DRL To Date)]
-Code Review/DRL To Date==![(#=	/Code Review/DRL To Date)]
-Compile/DRL To Date==![(#=	/Compile/DRL To Date)]

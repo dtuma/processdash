@@ -1,0 +1,35 @@
+// -*- mode:c -*-
+
+// Flag this data set as a rollup.
+[Rollup Tag] = tag;
+[ROLLUP_ID Rollup Tag] = tag;
+
+/*
+ * Cancel the "rollup eligible" tag.  (Note - is this really what we
+ * want to do?  This makes it where people cannot roll-up rolled-up
+ * data.  Usually, they wouldn't want to - in fact, it might normally
+ * be tricky to avoid doubly rolling up data.  If we go ahead and
+ * cancel the rollup eligible tag, people could always just overwrite
+ * the [Rollup_List] element with the exact list of things they want
+ * rolled up.)
+ */
+undefine([ROLLUP_ID Rollup Eligible]);
+
+// Compute a global list of all projects which can be rolled up with
+// this consolidator.
+[/ROLLUP_ID/Project List] = search("/", "ROLLUP_ID Rollup Eligible");
+
+// Compute a global list of all rollup datasets created using this
+// consolidator.
+[/ROLLUP_ID/Rollup Instance List] = search("/", "ROLLUP_ID Rollup Tag");
+
+// Start To Date data as of noon GMT on January 1, 1970
+[Rollup As Of Date] = ?@43200000;
+
+// By default, select all of the projects that have been marked Completed
+// *after* the "Rollup As Of Date".
+[Rollup_Filter] = "[Completed] > [{Rollup As Of Date}]";
+
+// Filter the list of projects based upon the rollup filter.
+[Rollup_List] =
+    filter(eval([Rollup_Filter], [_]), [/ROLLUP_ID/Project List]);

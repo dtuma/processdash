@@ -25,26 +25,19 @@
 
 package pspdash.data.compiler;
 
-import  pspdash.data.SimpleData;
+class PushObject implements Instruction {
 
-import java.util.List;
+    private Object value;
 
-public class Max extends AbstractFunction {
+    public PushObject(Object o) {
+        value = o;
+    }
 
-    /** Perform a procedure call.
-     *
-     * This method <b>must</b> be thread-safe.
-     */
-    public Object call(List arguments, ExpressionContext context)
-    {
-        SimpleData result = null;
+    public void execute(Stack stack, ExpressionContext context) {
+        stack.push(value);
+    }
 
-        arguments = collapseLists(arguments, 0);
-        for (int i = 0;  i < arguments.size();  i++)
-            if (result == null ||
-                result.lessThan(getArg(arguments, i)))
-                result = getArg(arguments, i);
-
-        return result;
+    public String toString() {
+        return "push " + (value == null ? "null" : value.toString());
     }
 }

@@ -44,6 +44,7 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
     protected CompiledScript script;
     protected DataRepository data;
     protected ListData value, externalValue;
+    protected int chopTagLength;
     private volatile boolean valueQueried = false;
 
     /** a list of the conditions created by this SearchFunction. */
@@ -60,6 +61,7 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
         this.data = data;
         this.prefix = prefix;
         this.value = this.externalValue = new ListData();
+        chopTagLength = (this.tag.startsWith("/") ? this.tag.length() : 0);
 
         this.value.setEditable(false);
 
@@ -67,7 +69,10 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
     }
 
     private String maybeAddSlash(String name) {
-        return (name.startsWith("/") ? name : "/" + name);
+        if (name.startsWith("/") || name.startsWith(" ") || name.length() == 0)
+            return name;
+        else
+            return "/" + name;
     }
 
     private static final String CONDITION_NAME = "_SearchCondition_///";
@@ -79,14 +84,16 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
         synchronized (SearchFunction.class) {
             id = UNIQUE_ID++;
         }
-        return data.createDataName(prefix, CONDITION_NAME + id);
+        return data.createDataName(DataRepository.anonymousPrefix + prefix,
+                                   CONDITION_NAME + id);
     }
 
     /** Return the prefix that corresponds to the named condition expression */
     private String getConditionPrefix(String conditionName) {
         int pos = conditionName.indexOf(CONDITION_NAME);
         if (pos == -1) return null;
-        return conditionName.substring(0, pos-1);
+        return conditionName.substring(DataRepository.anonymousPrefix.length(),
+                                       pos-1);
     }
 
     /** If the dataName is a matching tag, return the corresponding prefix.
@@ -94,8 +101,13 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
     private String getTagPrefix(String dataName) {
         if (!dataName.endsWith(tag)) return null;
         if (!dataName.startsWith(start)) return null;
-        return dataName.substring(0, dataName.length() - tag.length());
+        return dataName.substring(0, dataName.length() - chopTagLength);
     }
+
+    /** A collection of threads for whom we are currently handling
+     *  thread events.
+     */
+    private Set eventThreads = Collections.synchronizedSet(new HashSet());
 
     public void dataAdded(DataEvent e) {
         String dataName = e.getName();
@@ -104,6 +116,10 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
 
         // If we got this far, this data element matches the start and the tag.
 
+        /*
+        if (eventThreads.add(Thread.currentThread()) == false)
+            return;             // Guard against infinite loops.
+        */
         if (script == null) {
             // We don't have a script - all elements should be implicitly
             // added.
@@ -130,12 +146,19 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
             // Listen for changes to this condition expression.
             data.addActiveDataListener(condName, this, name);
         }
+
+        eventThreads.remove(Thread.currentThread());
     }
 
     public void dataRemoved(DataEvent e) {
         String dataName = e.getName();
         String dataPrefix = getTagPrefix(dataName);
         if (dataPrefix == null) return;
+
+        /*
+        if (eventThreads.add(Thread.currentThread()) == false)
+            return;             // Guard against infinite loops.
+        */
 
         String condNamePrefix = dataPrefix + "/" + CONDITION_NAME;
 
@@ -152,6 +175,8 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
 
         if (value.remove(dataPrefix))
             doNotify();
+
+        eventThreads.remove(Thread.currentThread());
     }
 
 

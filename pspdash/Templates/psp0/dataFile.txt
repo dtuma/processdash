@@ -83,37 +83,3 @@ combine(Defects Removed);
 
 [FreezeFlag/.*Estimated.*] == [Planning/Completed] or [Completed];
 [FreezeFlag/.* To Date]    == [Completed];
-
-/*
- * Local copies of To Date data
- */
-
-Planning/Time To Date==![(#=	/Planning/Time To Date)]
-Design/Time To Date==![(#=	/Design/Time To Date)]
-Design Review/Time To Date==![(#=	/Design Review/Time To Date)]
-Code/Time To Date==![(#=	/Code/Time To Date)]
-Code Review/Time To Date==![(#=	/Code Review/Time To Date)]
-Compile/Time To Date==![(#=	/Compile/Time To Date)]
-Test/Time To Date==![(#=	/Test/Time To Date)]
-Postmortem/Time To Date==![(#=	/Postmortem/Time To Date)]
-Time To Date==![(#=	/Time To Date)]
-
-Before Development/Defects Injected To Date==![(#=	/Before Development/Defects Injected To Date)]
-Planning/Defects Injected To Date==![(#=	/Planning/Defects Injected To Date)]
-Design/Defects Injected To Date==![(#=	/Design/Defects Injected To Date)]
-Design Review/Defects Injected To Date==![(#=	/Design Review/Defects Injected To Date)]
-Code/Defects Injected To Date==![(#=	/Code/Defects Injected To Date)]
-Code Review/Defects Injected To Date==![(#=	/Code Review/Defects Injected To Date)]
-Compile/Defects Injected To Date==![(#=	/Compile/Defects Injected To Date)]
-Test/Defects Injected To Date==![(#=	/Test/Defects Injected To Date)]
-Defects Injected To Date==![(#=	/Defects Injected To Date)]
-
-Planning/Defects Removed To Date==![(#=	/Planning/Defects Removed To Date)]
-Design/Defects Removed To Date==![(#=	/Design/Defects Removed To Date)]
-Design Review/Defects Removed To Date==![(#=	/Design Review/Defects Removed To Date)]
-Code/Defects Removed To Date==![(#=	/Code/Defects Removed To Date)]
-Code Review/Defects Removed To Date==![(#=	/Code Review/Defects Removed To Date)]
-Compile/Defects Removed To Date==![(#=	/Compile/Defects Removed To Date)]
-Test/Defects Removed To Date==![(#=	/Test/Defects Removed To Date)]
-Defects Removed To Date==![(#=	/Defects Removed To Date)]
-After Development/Defects Removed To Date==![(#=	/After Development/Defects Removed To Date)]

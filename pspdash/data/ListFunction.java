@@ -23,28 +23,11 @@
 //
 // E-Mail POC:  ken.raisor@hill.af.mil
 
-package pspdash.data.compiler;
+package pspdash.data;
 
-import  pspdash.data.SimpleData;
+import java.io.Serializable;
 
-import java.util.List;
-
-public class Max extends AbstractFunction {
-
-    /** Perform a procedure call.
-     *
-     * This method <b>must</b> be thread-safe.
-     */
-    public Object call(List arguments, ExpressionContext context)
-    {
-        SimpleData result = null;
-
-        arguments = collapseLists(arguments, 0);
-        for (int i = 0;  i < arguments.size();  i++)
-            if (result == null ||
-                result.lessThan(getArg(arguments, i)))
-                result = getArg(arguments, i);
-
-        return result;
-    }
-}
+/** This is a tagging interface; its presence indicates that a data
+ *  element prototype is a function that computes a list.
+ */
+public interface ListFunction { }

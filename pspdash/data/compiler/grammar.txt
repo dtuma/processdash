@@ -20,7 +20,7 @@ Helpers
     lf = 10;
     tab = 9;
 
-    escape_sequence = '\' ''' | '\"' | '\\' | '\n' | '\t' | '\[' | '\]';
+    escape_sequence = '\' ''' | '\"' | '\\' | '\n' | '\t' | '\[' | '\]' | '\/';
 
     i_char = [not_crlf - [['[' + ']'] + '\']] | escape_sequence; //'
     i_char_sequence = i_char+;
@@ -73,6 +73,8 @@ Helpers
     undefine = u n d e f i n e;
     null = n u l l;
     tag = t a g;
+    filter = f i l t e r;
+    map = m a p;
 
 States
    b, // beginning of line
@@ -85,6 +87,8 @@ Tokens
     {b->i, i} comma = ',';
     {b->i, i} l_par = '(';
     {b->i, i} r_par = ')';
+    {b->i, i} l_brace = '{';
+    {b->i, i} r_brace = '}';
     {b->i, i} mult = '*';
     {b->i, i} div = '/';
     {b->i, i} plus = '+';
@@ -99,7 +103,7 @@ Tokens
     {b->i, i} lt = '<' | lt;
     {b->i, i} lteq = '<=' | lteq;
     {b->i, i} gt = '>' | gt;
-    {b->i, i} gteq = '>=' gteq;
+    {b->i, i} gteq = '>=' | gteq;
     {b->i, i} logic_and = '&&' | and;
     {b->i, i} logic_or = '||' | or;
     {b->i, i} semicolon = ';';
@@ -114,6 +118,7 @@ Tokens
     {b->i, i} tag = tag;
     {b->i, i} search = search;
     {b->i, i} undefine = undefine;
+    {b->i, i} script1_function_name = filter | map;
     {b->i, i} function_name = nondigit+;
 
     {b->i, i} blank = (tab | ' ')+;
@@ -135,7 +140,7 @@ Ignored Tokens
 
 Productions
 
-  datafile = declaration+;
+  datafile = declaration*;
 
   declaration =
     {empty} semicolon |
@@ -157,7 +162,14 @@ Productions
     {date} date_literal |
     {null} null |
     {tag} tag |
+//  {block} block |
     {expression} expression;
+
+//  block =
+//    {simple} l_brace script r_brace;
+
+  script =
+    {simple} value;
 
   expression =
     {numeric} level7_expr;
@@ -223,6 +235,7 @@ Productions
 
 
   function_call =
+    {script1} script1_function_name l_par script comma arglist? r_par |
     function_name l_par arglist? r_par;
 
   arglist =

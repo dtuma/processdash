@@ -26,10 +26,9 @@
 package pspdash.data.compiler;
 
 import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
 import pspdash.data.DoubleData;
-import pspdash.data.ListData;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class Sumfor extends AbstractFunction {
@@ -45,23 +44,16 @@ public class Sumfor extends AbstractFunction {
         String name = asString(getArg(arguments, 0));
         if (name == null) return null;
 
-        SimpleData namedElement;
-        ListData list;
+        Iterator i = collapseLists(arguments, 1).iterator();
         String path, dataName;
-        for (int i = arguments.size();  i-- > 1;  ) {
+        while (i.hasNext()) {
+            path = asStringVal(i.next());
+            if (path == null) continue;
 
-            list = asList(getArg(arguments, i));
-            if (list == null) continue;
-
-            for (int j = list.size();  j-- > 0; ) {
-                path = asStringVal(list.get(j));
-                if (path == null) continue;
-
-                dataName = DataRepository.createDataName(path, name);
-                val = asDouble(context.get(dataName));
-                if (!Double.isNaN(val) && !Double.isInfinite(val))
-                    result += val;
-            }
+            dataName = DataRepository.createDataName(path, name);
+            val = asDouble(context.get(dataName));
+            if (!Double.isNaN(val) && !Double.isInfinite(val))
+                result += val;
         }
         return new DoubleData(result);
     }

@@ -45,10 +45,10 @@ undefine([PSP0 Tag], [psp0], [PSP0]);
  */
 
 [Normalized_Estimated_Time] ==
-        [Estimated Time] / [/Normalization %/Time/PSP0-2];
+        [Estimated Time] / [Normalization %/Time/PSP0-2 To Date];
 
 #define estimateTime(Phase) \
-[Phase/Estimated Time] = [Normalized_Estimated_Time] * [/Phase/% Time To Date];
+[Phase/Estimated Time] = [Normalized_Estimated_Time] * [Phase/%/Time To Date];
 
 FOR_EACH_PHASE(estimateTime);
 
@@ -93,13 +93,3 @@ L[O]C=>~Total LOC
 // essential that you make the matching change to the redefinition of this
 //= freeze flag, in <psp3/cycleData.txt>.
 [FreezeFlag/\[0-9AB \]*(Base|Deleted|Modified|Added|Reused|New & Changed|Total|New Reused|Base Additions|New Objects|Object) LOC] = [Completed];
-
-
-/*
- * Local copies of To Date data
- */
-
-Reused LOC To Date==![(#=	/Reused LOC To Date)]
-New & Changed LOC To Date==![(#=	/New & Changed LOC To Date)]
-Total LOC To Date==![(#=	/Total LOC To Date)]
-New Reused LOC To Date==![(#=	/New Reused LOC To Date)]

@@ -50,13 +50,3 @@ undefine([PSP1 Tag], [psp1], [PSP1]);
 
 [% Reused]     = [Reused LOC]     / [Total LOC];
 [% New Reused] = [New Reused LOC] / [New & Changed LOC];
-
-/*
- * Local copies of To Date data
- */
-
-ESTIMATED Time To Date==![(#=	/Estimated Time To Date)]
-Time To Date==![(#=	/Time To Date)]
-CPI To Date==![(#=	/CPI To Date)]
-% Reused To Date==![(#=	/% Reused To Date)]
-% New Reused To Date==![(#=	/% New Reused To Date)]

@@ -25,11 +25,13 @@
 
 package pspdash.data.compiler;
 
-import  pspdash.data.SimpleData;
+import pspdash.data.DataRepository;
+import pspdash.data.ListData;
 
+import java.util.Iterator;
 import java.util.List;
 
-public class Max extends AbstractFunction {
+public class Listfor extends AbstractFunction {
 
     /** Perform a procedure call.
      *
@@ -37,14 +39,20 @@ public class Max extends AbstractFunction {
      */
     public Object call(List arguments, ExpressionContext context)
     {
-        SimpleData result = null;
+        ListData result = new ListData();
 
-        arguments = collapseLists(arguments, 0);
-        for (int i = 0;  i < arguments.size();  i++)
-            if (result == null ||
-                result.lessThan(getArg(arguments, i)))
-                result = getArg(arguments, i);
+        String name = asString(getArg(arguments, 0));
+        if (name == null) return null;
 
+        Iterator i = collapseLists(arguments, 1).iterator();
+        String path, dataName;
+        while (i.hasNext()) {
+            path = asStringVal(i.next());
+            if (path == null) continue;
+
+            dataName = DataRepository.createDataName(path, name);
+            result.addAll(asList(context.get(dataName)));
+        }
         return result;
     }
 }

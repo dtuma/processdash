@@ -25,11 +25,11 @@
 
 package pspdash.data.compiler;
 
-import  pspdash.data.SimpleData;
+import pspdash.data.ImmutableDoubleData;
 
 import java.util.List;
 
-public class Max extends AbstractFunction {
+public class Startswith extends AbstractFunction {
 
     /** Perform a procedure call.
      *
@@ -37,14 +37,15 @@ public class Max extends AbstractFunction {
      */
     public Object call(List arguments, ExpressionContext context)
     {
-        SimpleData result = null;
+        String p = asString(getArg(arguments, 0));
+        if (p == null) return ImmutableDoubleData.TRUE;
 
-        arguments = collapseLists(arguments, 0);
-        for (int i = 0;  i < arguments.size();  i++)
-            if (result == null ||
-                result.lessThan(getArg(arguments, i)))
-                result = getArg(arguments, i);
+        String s = asString(getArgOrLocal(arguments, 1, context));
+        if (s == null) return ImmutableDoubleData.FALSE;
 
-        return result;
+        if (s.startsWith(p))
+            return ImmutableDoubleData.TRUE;
+        else
+            return ImmutableDoubleData.FALSE;
     }
 }

@@ -25,11 +25,13 @@
 
 package pspdash.data.compiler;
 
-import  pspdash.data.SimpleData;
+import pspdash.data.ListData;
+import pspdash.data.SimpleData;
 
+import java.util.Iterator;
 import java.util.List;
 
-public class Max extends AbstractFunction {
+public class Filter extends AbstractFunction {
 
     /** Perform a procedure call.
      *
@@ -37,14 +39,31 @@ public class Max extends AbstractFunction {
      */
     public Object call(List arguments, ExpressionContext context)
     {
-        SimpleData result = null;
+        CompiledScript script = null;
+        try {
+            script = (CompiledScript) arguments.get(0);
+        } catch (ClassCastException cce) { }
+        if (script == null) return null;
 
-        arguments = collapseLists(arguments, 0);
-        for (int i = 0;  i < arguments.size();  i++)
-            if (result == null ||
-                result.lessThan(getArg(arguments, i)))
-                result = getArg(arguments, i);
-
+        ListData result = new ListData();
+        LocalExpressionContext lContext = new LocalExpressionContext(context);
+        ListStack stack = new ListStack();
+        Iterator i = collapseLists(arguments, 1).iterator();
+        Object item;
+        while (i.hasNext()) try {
+            lContext.setLocalValue(item = i.next());
+            stack.clear();
+            script.run(stack, lContext);
+            handleItem(result, item, stack.pop());
+        } catch (Exception e) {}
         return result;
+    }
+
+    protected void handleItem(ListData result, Object local, Object val) {
+        if (test(val)) result.add(local);
+    }
+
+    private static boolean test(Object o) {
+        return (o instanceof SimpleData && ((SimpleData) o).test());
     }
 }

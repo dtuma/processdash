@@ -116,6 +116,7 @@ public class StringData implements SimpleData {
 
     public void dispose() {}
 
+    public String toString() { return format(); }
     public String format() { return getString(); }
     public SimpleData parse(String val) throws MalformedValueException {
         return (val == null || val.length() == 0) ? null : create(val);
