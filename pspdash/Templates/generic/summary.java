@@ -164,6 +164,8 @@ public class summary extends pspdash.TinyCGIBase {
         }
         text = replace(text, UNIT_TAG, unit);
         text = replace(text, UNITS_TAG, units);
+        text = replace(text, "PATH_TRANSLATED",
+                       (String) env.get("PATH_TRANSLATED"));
 
         out.print(text);
     }
