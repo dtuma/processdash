@@ -40,8 +40,8 @@ JAR_CONTENTS=Templates/pspForEng.template \
 	$(DIR)/dataFile.txt \
 	$(DIR)/*A/*.* \
 	$(DIR)/R*/dataFile.txt
-pspForEng.jar: prog2A prog4A prog5A prog7A prog8A dataFile.txt ../pspForEng.template
-	cd ../..; $(JAR) -cf $(DIR)/pspForEng.jar $(JAR_CONTENTS)
+pspForEng.jar: prog2A prog4A prog5A prog7A prog8A manifest dataFile.txt ../pspForEng.template
+	cd ../..; $(JAR) -cfm $(DIR)/pspForEng.jar $(DIR)/manifest $(JAR_CONTENTS)
 
 ######################################################################
 # Build the files for program 2A, from PSP0.1
