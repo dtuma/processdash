@@ -54,6 +54,12 @@ public class excel extends pspdash.TinyCGIBase {
         out.println("WEB");
         out.println("1");
         out.println(getURL());
+
+        // write optional settings?
+        if (parameters.get("fullPage") != null) {
+            out.println();
+            out.println("Selection=EntirePage");
+        }
     }
 
     protected void writeHTML() throws IOException {
