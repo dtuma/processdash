@@ -247,11 +247,15 @@ implements TranslatorConstants
 
     
     public Properties getProperties(String lng) {
+        return getProperties(lng, null);
+    }
+    public Properties getProperties(String lng, BundleSet defaultTranslations) {
         Properties p = new PropertiesFile();
         for(int j=0;j<getItemCount();++j){
            BundleItem bi = getItem(j);
            String value = bi.getTranslation(lng); 
-           if (value!=null && value.trim().length() != 0) {
+           if (value!=null && value.trim().length() != 0 &&
+               !isDefaultValue(bi, defaultTranslations, lng)) {
                String key = bi.getId();
                key = maybeAddBrokenSuffix(key, value);
                p.setProperty(key, value);
@@ -260,6 +264,17 @@ implements TranslatorConstants
         return p;
     }
     
+    private boolean isDefaultValue(BundleItem bi1, BundleSet defaultTranslations, String lng) {
+        if (defaultTranslations == null) return false;
+        BundleItem bi2 = defaultTranslations.getItem(bi1.getId());
+        if (bi2 == null) return false;
+        String value1 = bi1.getTranslation(lng);
+        String value2 = bi2.getTranslation(lng);
+        if (value1 != null && value1.equals(value2))
+            return true;
+        return false;
+    }
+
     public void putProperties(String lng, String prefix, Properties p) {
        Iterator iter = p.entrySet().iterator();
        while (iter.hasNext()) {
