@@ -2,8 +2,9 @@
 BODY { color: black;
       background-color: white }
 
-/* Remove the annoying space that appears above and below bulleted lists */
+/* Remove the annoying space that appears above and below lists */
 UL { margin-top: 0pt; margin-bottom: 0pt }
+OL { margin-top: 0pt; margin-bottom: 0pt }
 
 /* style for instructions that are new to the current PSP level */
 .newPsp { font-style: italic;
