@@ -270,7 +270,9 @@ function IEregisterElement(elem) {
     if (elem.name.toLowerCase() == "requiredtag") // <INPUT> element, save the
       requiredTag = elem.value;                   // requiredTag value.
 
-    else if (elem.dataSrc == "") {         // if elem isn't already bound,
+    else if (elem.name &&
+	     elem.name.indexOf("NOT_DATA") == -1 &&
+             elem.dataSrc == "") {         // if elem isn't already bound,
       elem.dataSrc = "#IEDataAppl";        // bind it to the IEDataApplet
       elem.dataFld = "field" + IEfieldNum; // with a new, unique dataFld value,
       ieFields[IEfieldNum] = elem;         // and add info about the element to

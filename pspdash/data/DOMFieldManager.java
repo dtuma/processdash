@@ -162,24 +162,27 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
             if (element instanceof HTMLInputElement) {
                 input = (HTMLInputElement) element;
                 String inputType = input.getType();
+                if (nameToAvoid(input.getName())) return;
+
                 if ("text".equalsIgnoreCase(inputType) ||
                     "hidden".equalsIgnoreCase(inputType))
-                {
-                    if (!"requiredTag".equalsIgnoreCase(input.getName()))
-                        f = new DOMTextField
-                            (service, redrawer, element, data, dataPath);
-                }
+                    f = new DOMTextField
+                        (service, redrawer, element, data, dataPath);
+
                 else if ("checkbox".equalsIgnoreCase(inputType))
                     f = new DOMCheckboxField
                         (service, redrawer, element, data, dataPath);
 
-            } else if (element instanceof HTMLSelectElement)
+            } else if (element instanceof HTMLSelectElement) {
+                if (nameToAvoid(((HTMLSelectElement) element).getName())) return;
                 f = new DOMSelectField
                     (service, redrawer, element, data, dataPath);
 
-            else if (element instanceof HTMLTextAreaElement)
+            } else if (element instanceof HTMLTextAreaElement) {
+                if (nameToAvoid(((HTMLTextAreaElement) element).getName())) return;
                 f = new DOMTextAreaField
                     (service, redrawer, element, data, dataPath);
+            }
 
             // etc.
 
@@ -199,6 +202,11 @@ class DOMFieldManager implements HTMLFieldManager, DataListener {
         }
     }
     private static final String ELEM_ID_PREFIX = "dashelem_";
+    private boolean nameToAvoid(String name) {
+        return (name == null || name.length() == 0 ||
+                name.indexOf("NOT_DATA") != -1 ||
+                "requiredTag".equalsIgnoreCase(name));
+    }
 
 
     public void notifyListener(Object id) {

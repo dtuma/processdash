@@ -157,16 +157,15 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
 
         try {
             String elementType = (String)element.getMember("type");
-            debug("Initializing a "+elementType+" element named "+
-                  element.getMember("name"));
+            String elementName = (String)element.getMember("name");
+            debug("Initializing a "+elementType+" element named "+elementName);
+            if (nameToAvoid(elementName)) return;
+
             if ("text".equalsIgnoreCase(elementType) ||
                 "hidden".equalsIgnoreCase(elementType) ||
                 "textarea".equalsIgnoreCase(elementType))
-                {
-                    if (!"requiredTag".equalsIgnoreCase
-                        ((String)element.getMember("name")))
-                        f = new NSTextField(element, data, dataPath);
-                }
+                f = new NSTextField(element, data, dataPath);
+
             else if ("checkbox".equalsIgnoreCase(elementType))
                 f = new NSCheckboxField(element, data, dataPath);
 
@@ -192,6 +191,11 @@ class NSFieldManager implements HTMLFieldManager, DataListener {
     }
     private static final String INDEX_ATTR = "id";
     private static final String ELEM_ID_PREFIX = "dashelem_";
+    private boolean nameToAvoid(String name) {
+        return (name == null || name.length() == 0 ||
+                name.indexOf("NOT_DATA") != -1 ||
+                "requiredTag".equalsIgnoreCase(name));
+    }
 
 
     public void notifyListener(Object id) {
