@@ -423,7 +423,15 @@ public class PSPDashboard extends JFrame implements WindowListener {
     }
 
     void exitProgram() {
-        quit();
+        try {
+            quit();
+        } catch (Throwable t) {
+            // if the shutdown sequence encounters an uncaught exception,
+            // display an error message, but still exit.
+            System.err.println
+                ("When shutting down, encountered the exception " + t);
+            t.printStackTrace();
+        }
         System.exit(0);
     }
 
