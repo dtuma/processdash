@@ -1717,9 +1717,12 @@ public class DataRepository implements Repository {
                 // caused by incredibly infrequent thread-related problems.
                 debug("when opening "+datafilePath+" caught error "+e+", retrying.");
                 datafiles.remove(dataFile);
-                openDatafile(dataPrefix, datafilePath);
-                synchronized (OPENDATAFILE_ERROR_DEPTH_LOCK) {
-                    OPENDATAFILE_ERROR_DEPTH--;
+                try {
+                    openDatafile(dataPrefix, datafilePath);
+                    debug("...successfully opened "+datafilePath);
+                } finally {
+                    synchronized (OPENDATAFILE_ERROR_DEPTH_LOCK) {
+                        OPENDATAFILE_ERROR_DEPTH--; }
                 }
             } finally {
                 finishInconsistency();
