@@ -84,16 +84,6 @@ abstract class DOMField extends HTMLField {
             boolean readOnly = !isEditable();
             setReadOnly(readOnly);
             element.setClassName(readOnly ? "readOnlyElem" : "editableElem");
-
-            if (DataApplet.nsVersion() > 4 &&
-                element instanceof ElementCSSInlineStyle)
-                try {
-                    CSSStyleDeclaration style =
-                        ((ElementCSSInlineStyle) element).getStyle();
-                    style.setProperty("backgroundColor",
-                                      (isEditable() ? "#ffffff" : "#cccccc"),
-                                      "");
-                } catch (Exception e) {}
         }
     }
 
