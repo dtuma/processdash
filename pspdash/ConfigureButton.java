@@ -56,6 +56,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     static String FILE_SEP = null;
     static final String ANALYSIS_URL = "/To+Date/PSP/All//reports/index.htm";
     static final String ABOUT_URL    = "/help/Topics/Overview/about.htm";
+    static final String PRINT_URL    = "/help/book.html";
     static final String BUG_URL =
         "http://sourceforge.net/tracker/?group_id=9858&atid=109858";
     static final String FORUM_URL =
@@ -74,6 +75,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     static final String HELP_FRAME     = "Help Topics";
     static final String HELP_SEARCH    = "Search";
+    static final String HELP_PRINT     = "Printable User's Manual";
     static final String HELP_ABOUT     = "About Process Dashboard";
     static final String HELP_BUG       = "Submit bug report";
     static final String HELP_FORUM     = "Online help forum";
@@ -147,6 +149,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
         helpMenu.add(makeMenuItem(HELP_FRAME));
         helpMenu.add(makeMenuItem(HELP_SEARCH));
+        helpMenu.add(makeMenuItem(HELP_PRINT));
         helpMenu.add(makeMenuItem(HELP_ABOUT));
         helpMenu.addSeparator();
         helpMenu.add(makeMenuItem(HELP_BUG));
@@ -256,6 +259,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void startHelpSearch() { PCSH.displaySearchTab(); }
 
+    public void showPrintableManual() { Browser.launch(PRINT_URL); }
+
     public void startAboutDialog() { new AboutDialog(parent, ABOUT_URL); }
 
     public void submitBug () { Browser.launch(BUG_URL); }
@@ -292,6 +297,8 @@ class ConfigureButton extends JMenuBar implements ActionListener {
             startHelp ();
         } else if (cmd.equals(HELP_SEARCH)) {
             startHelpSearch ();
+        } else if (cmd.equals(HELP_PRINT)) {
+            showPrintableManual ();
         } else if (cmd.equals(HELP_ABOUT)) {
             startAboutDialog ();
         } else if (cmd.equals(HELP_BUG)) {
