@@ -1558,6 +1558,7 @@ public class DataRepository implements Repository {
 
         private Map getIncludedFileDefinitions(String datafile) {
             //debug("getIncludedFileDefinitions("+datafile+")");
+            datafile = followDatafileRedirections(datafile);
             Object definitions = includedFileCache.get(datafile);
             if (definitions instanceof DefinitionFactory) {
                 definitions = ((DefinitionFactory) definitions).getDefinitions(this);
@@ -1565,6 +1566,17 @@ public class DataRepository implements Repository {
                 includedFileCache.put(datafile, definitions);
             }
             return (Map) definitions;
+        }
+
+        /** Check in the defaultDefinitions map for any requested redirections.
+         */
+        private String followDatafileRedirections(String datafile) {
+            Object def = datafile;
+            while (def instanceof String) {
+                datafile = (String) def;
+                def = defaultDefinitions.get(datafile);
+            }
+            return datafile;
         }
 
         /** Get the definitions for the given includable datafile, loading
@@ -1577,18 +1589,15 @@ public class DataRepository implements Repository {
             datafile = bracket(datafile);
 
             // Check in the defaultDefinitions map for any requested redirections.
-            Object def = datafile;
-            while (def instanceof String) {
-                datafile = (String) def;
-                def = defaultDefinitions.get(datafile);
-            }
+            datafile = followDatafileRedirections(datafile);
 
             Map result = getIncludedFileDefinitions(datafile);
             if (result == null) {
                 result = new HashMap();
 
                 // Lookup any applicable default data definitions.
-                DefinitionFactory defaultDefns = (DefinitionFactory) def;
+                DefinitionFactory defaultDefns =
+                    (DefinitionFactory) defaultDefinitions.get(datafile);
                 if (defaultDefns != null)
                     result.putAll(defaultDefns.getDefinitions(DataRepository.this));
 
@@ -2298,19 +2307,22 @@ public class DataRepository implements Repository {
                     return;
                 }
 
-                Map defaultValues;
+                Map defaultValues = null;
 
                 // if the data file has an include statement, write it to the
                 // the two temporary output files.
                 if (datafile.inheritsFrom != null) {
                     defaultValues = getIncludedFileDefinitions(datafile.inheritsFrom);
+                    if (defaultValues == null)
+                        System.err.println("No inherited definitions for " +
+                                           datafile.inheritsFrom);
                     try {
                         out.write(includeTag + datafile.inheritsFrom);
                         out.newLine();
                     } catch (IOException e) {}
-                } else {
-                    defaultValues = new HashMap();
                 }
+                if (defaultValues == null)
+                    defaultValues = new HashMap();
 
                 // If the data file has a prefix, write it as a comment to the
                 // two temporary output files.
