@@ -36,7 +36,7 @@ all: pspForEng.jar
 # Build the jar file for distributing this process set.
 
 DIR=Templates/pspForEng
-JAR_CONTENTS=Templates/pspForEng.template \
+JAR_CONTENTS=Templates/pspForEng.template Templates/pspForEng-template.xml \
 	$(DIR)/index.htm $(DIR)/toc.htm \
 	$(DIR)/dataFile.txt \
 	$(DIR)/progData.txt \
