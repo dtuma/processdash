@@ -2,26 +2,19 @@
 package teamdash.wbs;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JTable;
 
 import org.w3c.dom.Document;
 import pspdash.XMLUtils;
-import teamdash.TeamMember;
 import teamdash.TeamMemberList;
 import teamdash.TeamProcess;
-import teamdash.wbs.columns.TeamMemberTimeColumn;
-import teamdash.wbs.columns.TeamTimeColumn;
 
 
 public class WBSTest implements WindowListener {
@@ -54,12 +47,7 @@ public class WBSTest implements WindowListener {
         { " L",  "Task" },
         { "M",  "Software Component" },
         { "N", "Task" } };
-    /*private static final String[] iconMenuItems = {
-        "Software Component",
-        "General Document",
-        "Requirements Document",
-        "High Level Design Document",
-        "Detailed Design Document" };*/
+
 
     private void buildModel(String filename) {
         if (filename != null) try {
@@ -109,7 +97,7 @@ public class WBSTest implements WindowListener {
     public WBSTest(String filename) {
         buildModel(filename);
         loadTeam();
-        DataTableModel data = new DataTableModel(model);
+        DataTableModel data = new DataTableModel(model, teamList);
 
         WBSTabPanel table = new WBSTabPanel(model, data, teamProcess);
 
@@ -124,23 +112,9 @@ public class WBSTest implements WindowListener {
                                     "Reused", "N&C", "Total" },
                      new String[] { "Units",  "Base", "Deleted", "Modified", "Added",
                                     "Reused", "N&C", "Total" });
-
-        List teamMembers = teamList.getTeamMembers();
-        int teamSize = teamMembers.size();
-        String[] teamColumnIDs = new String[teamSize+1];
-        String[] teamColumnNames = new String[teamSize+1];
-        DataTableModel dataModel = (DataTableModel) table.dataTable.getModel();
-        dataModel.addDataColumn(new TeamTimeColumn(dataModel));
-        for (int i = 0;   i < teamMembers.size();   i++) {
-            TeamMember m = (TeamMember) teamMembers.get(i);
-            TeamMemberTimeColumn col = new TeamMemberTimeColumn(dataModel, m);
-            dataModel.addDataColumn(col);
-            teamColumnIDs[i+1] = col.getColumnID();
-            teamColumnNames[i+1] = m.getInitials();
-        }
-        teamColumnIDs[0] = "Time";
-        teamColumnNames[0] = "Team";
-        table.addTab("Time", teamColumnIDs, teamColumnNames);
+        table.addTab("Time",
+                     new String[] { "Time", WBSTabPanel.TEAM_MEMBER_TIMES_ID },
+                     new String[] { "Team", "" });
 
         table.addTab("Time Calc",
                      new String[] { "Size", "Size-Units", "Rate", "Hrs/Indiv", "# People", "Time", "111-Time", "222-Time", "333-Time" },
@@ -151,7 +125,7 @@ public class WBSTest implements WindowListener {
         table.addTab("Defects", s, s);
 
 
-        TeamTimePanel teamTime = new TeamTimePanel(teamList, dataModel);
+        TeamTimePanel teamTime = new TeamTimePanel(teamList, data);
 
         JFrame frame = new JFrame("WBSTest");
         frame.getContentPane().add(table);
@@ -162,28 +136,6 @@ public class WBSTest implements WindowListener {
         frame.show();
     }
 
-/*
-    private Map buildIconMap() {
-        Map result = new HashMap();
-        Color c = new Color(204, 204, 255);
-        result.put("Project", IconFactory.getProjectIcon());
-        result.put("Software Component",
-                   IconFactory.getSoftwareComponentIcon());
-        result.put("Requirements Document",
-                   IconFactory.getDocumentIcon(new Color(204, 204, 0)));
-        result.put("High Level Design Document",
-                   IconFactory.getDocumentIcon(new Color(153, 153, 255)));
-        result.put("Detailed Design Document",
-                   IconFactory.getDocumentIcon(new Color(102, 255, 102)));
-        result.put("General Document",
-                   IconFactory.getDocumentIcon(Color.white));
-        result.put("Task", IconFactory.getTaskIcon(c));
-        result.put("PSP Task", IconFactory.getPSPTaskIcon(c));
-        result.put(null, IconFactory.getTaskIcon(c));
-
-        return result;
-    }
-*/
 
     // implementation of java.awt.event.WindowListener interface
 

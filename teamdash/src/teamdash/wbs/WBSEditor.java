@@ -1,27 +1,33 @@
 package teamdash.wbs;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.util.List;
-import javax.swing.JFrame;
 
-import teamdash.TeamMember;
+import javax.swing.AbstractAction;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import teamdash.TeamProject;
-import teamdash.wbs.columns.TeamMemberTimeColumn;
-import teamdash.wbs.columns.TeamTimeColumn;
 
 public class WBSEditor implements WindowListener {
 
     TeamProject teamProject;
     JFrame frame;
+    TeamTimePanel teamTimePanel;
 
     public WBSEditor(TeamProject teamProject) {
         this.teamProject = teamProject;
 
         WBSModel model = teamProject.getWBS();
-        DataTableModel data = new DataTableModel(model);
+        DataTableModel data = new DataTableModel
+            (model, teamProject.getTeamMemberList());
         WBSTabPanel table = new WBSTabPanel(model, data, teamProject.getTeamProcess());
 
         table.addTab("Size",
@@ -36,43 +42,62 @@ public class WBSEditor implements WindowListener {
                      new String[] { "Units",  "Base", "Deleted", "Modified", "Added",
                                     "Reused", "N&C", "Total" });
 
-        List teamMembers = teamProject.getTeamMemberList().getTeamMembers();
-        int teamSize = teamMembers.size();
-        String[] teamColumnIDs = new String[teamSize+1];
-        String[] teamColumnNames = new String[teamSize+1];
-        DataTableModel dataModel = (DataTableModel) table.dataTable.getModel();
-        dataModel.addDataColumn(new TeamTimeColumn(dataModel));
-        for (int i = 0;   i < teamMembers.size();   i++) {
-            TeamMember m = (TeamMember) teamMembers.get(i);
-            TeamMemberTimeColumn col = new TeamMemberTimeColumn(dataModel, m);
-            dataModel.addDataColumn(col);
-            teamColumnIDs[i+1] = col.getColumnID();
-            teamColumnNames[i+1] = m.getInitials();
-        }
-        teamColumnIDs[0] = "Time";
-        teamColumnNames[0] = "Team";
-        table.addTab("Time", teamColumnIDs, teamColumnNames);
+        table.addTab("Time",
+                     new String[] { "Time", WBSTabPanel.TEAM_MEMBER_TIMES_ID },
+                     new String[] { "Team", "" });
 
         table.addTab("Time Calc",
-                     new String[] { "Size", "Size-Units", "Rate", "Hrs/Indiv", "# People", "Time", "111-Time", "222-Time", "333-Time" },
-                     new String[] { "Size", "Units", "Rate", "Hrs/Indiv", "# People",
+                     new String[] { "Phase", "Size", "Size-Units", "Rate", "Hrs/Indiv", "# People", "Time", "111-Time", "222-Time", "333-Time" },
+                     new String[] { "Phase", "Size", "Units", "Rate", "Hrs/Indiv", "# People",
                          "Time", "111", "222", "333" });
 
         String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         table.addTab("Defects", s, s);
 
 
-        TeamTimePanel teamTime =
-            new TeamTimePanel(teamProject.getTeamMemberList(), dataModel);
+        teamTimePanel =
+            new TeamTimePanel(teamProject.getTeamMemberList(), data);
+        teamTimePanel.setVisible(false);
 
-        JFrame frame = new JFrame
+        frame = new JFrame
             (teamProject.getProjectName() + " - Work Breakdown Structure");
+        frame.setJMenuBar(buildMenuBar());
         frame.getContentPane().add(table);
-        frame.getContentPane().add(teamTime, BorderLayout.SOUTH);
+        frame.getContentPane().add(teamTimePanel, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(this);
         frame.pack();
         frame.show();
+    }
+
+    private JMenuBar buildMenuBar() {
+        JMenuBar result = new JMenuBar();
+
+        result.add(buildFileMenu());
+        result.add(buildEditMenu());
+        result.add(buildWorkflowMenu());
+        result.add(buildViewMenu());
+
+        return result;
+    }
+    private JMenu buildFileMenu() {
+        JMenu result = new JMenu("File");
+        result.add(new SaveAction());
+        result.add(new CloseAction());
+        return result;
+    }
+    private JMenu buildEditMenu() {
+        JMenu result = new JMenu("Edit");
+        return result;
+    }
+    private JMenu buildWorkflowMenu() {
+        JMenu result = new JMenu("Workflow");
+        return result;
+    }
+    private JMenu buildViewMenu() {
+        JMenu result = new JMenu("View");
+        result.add(new ShowTeamTimePanelMenuItem());
+        return result;
     }
 
     public void windowOpened(WindowEvent e) {}
@@ -92,6 +117,33 @@ public class WBSEditor implements WindowListener {
             filename = args[0];
 
         new WBSEditor(new TeamProject(new File(filename), "Team Project"));
+    }
+
+    private class SaveAction extends AbstractAction {
+        public SaveAction() { super("Save"); }
+        public void actionPerformed(ActionEvent e) {
+            teamProject.save();
+        }
+    }
+
+    private class CloseAction extends AbstractAction {
+        public CloseAction() { super("Close"); }
+        public void actionPerformed(ActionEvent e) {
+            teamProject.save();
+            System.exit(0);
+        }
+    }
+
+    private class ShowTeamTimePanelMenuItem extends JCheckBoxMenuItem
+    implements ChangeListener {
+        public ShowTeamTimePanelMenuItem() {
+            super("Show Bottom Up Time Panel");
+            addChangeListener(this);
+        }
+        public void stateChanged(ChangeEvent e) {
+            teamTimePanel.setVisible(getState());
+            frame.invalidate();
+        }
     }
 
 }

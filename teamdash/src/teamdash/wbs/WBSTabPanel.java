@@ -28,6 +28,8 @@ import teamdash.*;
  */
 public class WBSTabPanel extends JPanel {
 
+    public static final String TEAM_MEMBER_TIMES_ID = "TeamMemberTimes";
+
     WBSJTable wbsTable;
     DataJTable dataTable;
     JScrollPane scrollPane;
@@ -79,6 +81,11 @@ public class WBSTabPanel extends JPanel {
         TableColumnModel columnModel = new DefaultTableColumnModel();
 
         for (int i = 0; i < columnNames.length; i++) {
+            if (TEAM_MEMBER_TIMES_ID.equals(columnIDs[i])) {
+                tableModel.addTeamMemberTimes(columnModel);
+                continue;
+            }
+
             int columnIndex = tableModel.findColumn(columnIDs[i]);
             if (columnIndex == -1)
                 columnIndex = tableModel.findColumn(columnNames[i]);

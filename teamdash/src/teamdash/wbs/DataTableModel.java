@@ -12,8 +12,13 @@ import javax.swing.Timer;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
 
+import teamdash.TeamMemberList;
+import teamdash.wbs.columns.PhaseColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
+import teamdash.wbs.columns.TeamMemberColumnManager;
+import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.TopDownBottomUpColumn;
 
 
@@ -32,8 +37,10 @@ public class DataTableModel extends AbstractTableModel {
     private Set dirtyColumns;
     /** A timer for triggering recalculations */
     private Timer recalcJanitorTimer;
+    /** Object which manages columns for team members */
+    private TeamMemberColumnManager memberColumnManager;
 
-    public DataTableModel(WBSModel wbsModel) {
+    public DataTableModel(WBSModel wbsModel, TeamMemberList teamList) {
         this.wbsModel = wbsModel;
         wbsModel.addTableModelListener(new TableModelEventRepeater());
 
@@ -44,7 +51,7 @@ public class DataTableModel extends AbstractTableModel {
         recalcJanitorTimer.setRepeats(false);
         recalcJanitorTimer.setInitialDelay(3000);
 
-        buildDataColumns();
+        buildDataColumns(teamList);
         initializeColumnDependencies();
     }
 
@@ -125,10 +132,17 @@ public class DataTableModel extends AbstractTableModel {
             initializeColumnDependencies();
     }
 
-    private void buildDataColumns() {
 
-        //addDataColumn(new NewAndChangedLOCColumn(this));
+    public void addTeamMemberTimes(TableColumnModel columnModel) {
+        memberColumnManager.addToColumnModel(columnModel);
+    }
+
+    private void buildDataColumns(TeamMemberList teamList) {
+
         SizeTypeColumn.createSizeColumns(this);
+        addDataColumn(new PhaseColumn());
+        addDataColumn(new TeamTimeColumn(this));
+        memberColumnManager = new TeamMemberColumnManager(this, teamList);
 
         for (char c = 'B';   c <= 'Z';   c++)
             addDataColumn(new TopDownBottomUpColumn

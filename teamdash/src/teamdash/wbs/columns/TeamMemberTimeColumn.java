@@ -13,7 +13,7 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn {
     public TeamMemberTimeColumn(DataTableModel dataModel,
                                 TeamMember teamMember) {
         super(dataModel,
-              teamMember.getInitials() + "-Time",
+              teamMember.getInitials(),
               teamMember.getInitials() + "-Time");
         this.teamMember = teamMember;
     }
