@@ -144,7 +144,7 @@ public class RepositoryClient extends Thread implements Repository {
 
                 // debug(listeners.size() + " listeners to notify.");
                 enum = listeners.elements();
-                while (enum.hasMoreElements()) try {
+                while (enum.hasMoreElements() && isRunning) try {
                     ((DataListener)enum.nextElement()).dataValueChanged(e);
                 } catch (RemoteException ex) { printError(ex); }
             }
