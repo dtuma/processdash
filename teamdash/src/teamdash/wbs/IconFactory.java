@@ -118,9 +118,12 @@ public class IconFactory {
      */
     public static Color mixColors(Color a, Color b, float r) {
         float s = 1.0f - r;
-        return new Color((a.getRed()   * r + b.getRed()   * s) / 255f,
-                         (a.getGreen() * r + b.getGreen() * s) / 255f,
-                         (a.getBlue()  * r + b.getBlue()  * s) / 255f);
+        return new Color(colorComp(a.getRed()   * r + b.getRed()   * s),
+                         colorComp(a.getGreen() * r + b.getGreen() * s),
+                         colorComp(a.getBlue()  * r + b.getBlue()  * s));
+    }
+    private static final float colorComp(float f) {
+        return Math.min(1f, Math.max(0f, f / 255f));
     }
 
 
