@@ -137,7 +137,7 @@ Addison-Wesley requires that you consent to an additional license agreement to d
         </pack>
 
         <pack name="JavaHelp(TM) Help Browser" id="javaHelp" required="no"
-            unless="noHelp">
+              excludeIf="noHelp">
             <description>Help browser from Sun Microsystems.
 
 This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced browsing of the Process Dashboard help documentation, including full-text search capabilities.
