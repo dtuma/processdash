@@ -36,6 +36,9 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.*;
 import javax.swing.tree.TreePath;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import pspdash.data.DataRepository;
 import pspdash.data.DataComparator;
 import pspdash.data.DoubleData;
@@ -51,6 +54,7 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final String TASK_ORDINAL_PREFIX = "TST_";
     public static final String EST_HOURS_DATA_NAME = "Planned Hours";
     public static final String TASK_LISTS_DATA_NAME = "Task Lists";
+    public static final String XML_DATA_NAME = "XML Task List";
 
 
     protected String taskListName;
@@ -60,6 +64,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected Vector evTaskLists = null;
     /** timer for triggering recalculations */
     protected Timer recalcTimer;
+
 
     /**
      * @param taskListName the name of the task list. This will be a simple
@@ -82,6 +87,8 @@ public class EVTaskList extends AbstractTreeTableModel
             recalcTimer.setInitialDelay(1000);
             recalcTimer.setRepeats(false);
         }
+
+        if (openXML(data, taskListName)) return;
 
         root = new EVTask(taskListName);
 
@@ -109,6 +116,10 @@ public class EVTaskList extends AbstractTreeTableModel
             value = data.getSimpleValue(dataName);
             path = dataName.substring
                 (0, dataName.length() - ordinalPrefix.length());
+
+            // If this is an imported data item not corresponding to any
+            // real hierarchy node, ignore it.
+            if (hierarchy.findExistingKey(path) == null) continue;
             tasks.put(value, path);
         }
 
@@ -155,6 +166,33 @@ public class EVTaskList extends AbstractTreeTableModel
             evTaskLists.add(taskList);
         }
     }
+
+    private boolean openXML(DataRepository data, String taskListName) {
+        String dataName = data.createDataName(taskListName, XML_DATA_NAME);
+        SimpleData value = data.getSimpleValue(dataName);
+        if (!(value instanceof StringData))
+            return false;
+        String xmlDoc = value.format();
+        if (xmlDoc.equals(xmlSource)) return true;
+
+        try {
+            Document doc = XMLUtils.parse(xmlDoc);
+            Element docRoot = doc.getDocumentElement();
+            root = new EVTask((Element) docRoot.getFirstChild());
+            schedule = new EVSchedule((Element) docRoot.getLastChild());
+            ((EVTask) root).name = cleanupName(taskListName);
+            ((EVTask) root).simpleRecalc();
+            totalPlanTime = schedule.getMetrics().totalPlan();
+            xmlSource = xmlDoc;
+            return true;
+        } catch (Exception e) {
+            System.err.println("Got exception: " +e);
+            e.printStackTrace();
+            return false;
+        }
+    }
+    private String xmlSource = null;
+    private boolean isXML() { return xmlSource != null; }
 
 
     public void save() { save(taskListName); }
@@ -230,13 +268,30 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
+    public String getAsXML() {
+        StringBuffer result = new StringBuffer();
+        result.append("<EVModel>");
+        ((EVTask) root).saveToXML(result);
+        schedule.saveToXML(result);
+        result.append("</EVModel>");
+        System.out.print(result.toString());
+        return result.toString();
+    }
+
 
 
     public static String[] findTaskLists(DataRepository data) {
-        return findTaskLists(data, false);
+        return findTaskLists(data, false, false);
     }
     public static String[] findTaskLists(DataRepository data,
-                                         boolean excludeRollups) {
+                                         boolean excludeRollups,
+                                         boolean includeImports) {
+        /*
+            let findTaskLists return a full path to imported schedules.
+            save that full path in rollup task list names.
+            make the name pretty when displaying it to the user.
+
+         */
         TreeSet result = new TreeSet();
         Iterator i = data.getKeys();
         String dataName;
@@ -249,6 +304,10 @@ public class EVTaskList extends AbstractTreeTableModel
                 int slashPos = dataName.indexOf('/');
                 dataName = dataName.substring(0, slashPos);
                 result.add(dataName);
+            } else if (includeImports && dataName.indexOf(MAIN_DATA_PREFIX)>0){
+                int slashPos = dataName.lastIndexOf('/');
+                dataName = dataName.substring(0, slashPos);
+                result.add(dataName);
             }
         }
 
@@ -258,6 +317,13 @@ public class EVTaskList extends AbstractTreeTableModel
         while (i.hasNext())
             ret[j++] = (String) i.next();
         return ret;
+    }
+    public static String getDisplayName(String taskListName) {
+        int slashPos = taskListName.lastIndexOf('/');
+        if (slashPos == -1)
+            return taskListName;
+        else
+            return taskListName.substring(slashPos+1);
     }
 
 
@@ -274,6 +340,10 @@ public class EVTaskList extends AbstractTreeTableModel
     public static boolean isPlain(DataRepository data, String taskListName) {
         String dataName = data.createDataName(MAIN_DATA_PREFIX + taskListName,
                                               EST_HOURS_DATA_NAME);
+        return data.getSimpleValue(dataName) != null;
+    }
+    public static boolean isXML(DataRepository data, String taskListName) {
+        String dataName = data.createDataName(taskListName, XML_DATA_NAME);
         return data.getSimpleValue(dataName) != null;
     }
 
@@ -450,7 +520,9 @@ public class EVTaskList extends AbstractTreeTableModel
     private double totalPlanTime;
     public void recalc() {
         System.out.println("recalculating " + taskListName);
-        if (isRollup())
+        if (isXML())
+            openXML(data, taskListName);
+        else if (isRollup())
             recalcRollup();
         else
             recalcSimple();

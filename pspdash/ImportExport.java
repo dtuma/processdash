@@ -46,6 +46,9 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import java.util.*;
 
+import pspdash.data.SimpleData;
+import pspdash.data.StringData;
+
 public class ImportExport extends JDialog implements ActionListener {
 
     static final int X_DATA = 0;
@@ -267,6 +270,34 @@ public class ImportExport extends JDialog implements ActionListener {
         try {
             out = new PrintWriter(new RobustFileWriter(dest));
 
+            // Find and print any applicable task lists.
+            Iterator i = parent.data.getKeys();
+            Set taskListNames = new HashSet();
+            String name;
+            int pos;
+            while (i.hasNext()) {
+                name = (String) i.next();
+                pos = name.indexOf(TASK_ORD_PREF);
+                if (pos != -1 && Filter.matchesFilter(filter, name))
+                    taskListNames.add(name.substring(pos+TASK_ORD_PREF.length()));
+            }
+            i = taskListNames.iterator();
+            SimpleData o = parent.data.getSimpleValue("/Owner");
+            String owner = (o == null ? "?????" : safeName(o.format()));
+            while (i.hasNext()) {
+                name = (String) i.next();
+                EVTaskList tl = new EVTaskList(name, parent.data, parent.props,
+                                               false, false);
+                tl.recalc();
+                String xml = tl.getAsXML();
+                xml = new String(xml.getBytes("UTF-8"));
+                name = safeName(name) + " (" + owner + ")";
+                out.write(EVTaskList.MAIN_DATA_PREFIX + name + "/" +
+                          EVTaskList.XML_DATA_NAME + ",");
+                out.write(StringData.escapeString(xml));
+                out.println();
+            }
+
             parent.data.dumpRepository(out, filter);
 
             TimeLog tl = new TimeLog();
@@ -278,11 +309,16 @@ public class ImportExport extends JDialog implements ActionListener {
                 if (Filter.matchesFilter (filter, tle.key.path()))
                     out.println(tle.toAbbrevString());
             }
+
         } catch (IOException ioe) {
             fail = true; System.out.println("IOException: " + ioe);
         }
         out.close();
         if (fail) dest.delete();
+    }
+    private static String TASK_ORD_PREF = "/" + EVTaskList.TASK_ORDINAL_PREFIX;
+    private static String safeName(String n) {
+        return n.replace('/', '_').replace(',', '_');
     }
 
     public static void exportAll(PSPDashboard parent, String userSetting) {

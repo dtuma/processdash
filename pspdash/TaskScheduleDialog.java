@@ -59,7 +59,7 @@ public class TaskScheduleDialog
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
         deletePeriodButton, chartButton, reportButton, closeButton,
-        saveButton;
+        saveButton, recalcButton;
 
     protected JFrame chartDialog = null;
 
@@ -121,7 +121,7 @@ public class TaskScheduleDialog
              Box.createVerticalStrut(2),
              isRollup ? null : buildScheduleButtons(),
              isRollup ? null : Box.createVerticalStrut(2),
-             buildMainButtons());
+             buildMainButtons(isRollup));
 
         JSplitPane jsp = new JSplitPane
             (JSplitPane.VERTICAL_SPLIT, true, topBox, bottomBox);
@@ -235,9 +235,19 @@ public class TaskScheduleDialog
         return result;
     }
 
-    protected Component buildMainButtons() {
+    protected Component buildMainButtons(boolean isRollup) {
         JPanel result = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
         result.setBorder(BorderFactory.createRaisedBevelBorder());
+
+        /*
+        if (isRollup) {
+            recalcButton = new JButton("Refresh");
+            recalcButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    recalcAll(); }});
+            result.add(recalcButton);
+        }
+        */
 
         chartButton = new JButton("Chart");
         chartButton.addActionListener(new ActionListener() {
@@ -529,17 +539,27 @@ public class TaskScheduleDialog
     }
 
     private String chooseTaskList() {
-        String[] taskListNames = EVTaskList.findTaskLists(dash.data, true);
-        JList taskLists = new JList(taskListNames);
+        String[] taskListNames =
+            EVTaskList.findTaskLists(dash.data, true, true);
+        String[] taskListDisplayNames = getDisplayNames(taskListNames);
+        JList taskLists = new JList(taskListDisplayNames);
         JScrollPane sp = new JScrollPane(taskLists);
         sp.setPreferredSize(new Dimension(200, 200));
         Object message = new Object[] {
             "Choose a task & schedule template:", sp };
         if (JOptionPane.showConfirmDialog(frame, message, "Add Schedule",
                                           JOptionPane.OK_CANCEL_OPTION)
-            == JOptionPane.OK_OPTION)
-            return (String) taskLists.getSelectedValue();
+            == JOptionPane.OK_OPTION) {
+            int selIndex = taskLists.getSelectedIndex();
+            return (selIndex == -1 ? null : taskListNames[selIndex]);
+        }
         return null;
+    }
+    private String[] getDisplayNames(String[] taskListNames) {
+        String[] result = new String[taskListNames.length];
+        for (int i = result.length;   i-- > 0;  )
+            result[i] = EVTaskList.cleanupName(taskListNames[i]);
+        return result;
     }
 
     /** Delete the currently selected task.

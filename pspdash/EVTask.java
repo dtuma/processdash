@@ -30,6 +30,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Vector;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import pspdash.data.DataRepository;
 import pspdash.data.DataListener;
 import pspdash.data.DataEvent;
@@ -151,6 +155,25 @@ public class EVTask implements DataListener {
             }
         }
         return addedChild;
+    }
+
+    public EVTask(Element e) { this(e, null); }
+    private EVTask(Element e, String parentName) {
+        name = e.getAttribute("name");
+        fullName = (parentName == null ? "" : parentName + "/" + name);
+
+        planTime = planValue = EVSchedule.getXMLNum(e, "pt");
+        actualTime = EVSchedule.getXMLNum(e, "at");
+        planDate = EVSchedule.getXMLDate(e, "pd");
+        dateCompleted = EVSchedule.getXMLDate(e, "cd");
+
+        NodeList subTasks = e.getChildNodes();
+        for (int i=0;   i < subTasks.getLength();   i++) {
+            Node n = subTasks.item(i);
+            if (n instanceof Element &&
+                "task".equals(((Element) n).getTagName()))
+                add(new EVTask((Element) n, fullName));
+        }
     }
 
     protected SimpleData getValue(String name) {
@@ -314,6 +337,11 @@ public class EVTask implements DataListener {
         recalcMetrics(schedule.getMetrics());
         schedule.getMetrics().recalcComplete();
         schedule.firePreparedEvents();
+    }
+
+    public void simpleRecalc() {
+        recalcPlanCumTime(0.0);
+        recalcPlanValue();
     }
 
     protected void resetRootValues() {
@@ -512,5 +540,24 @@ public class EVTask implements DataListener {
         for (int i=children.size();   i-- > 0; )
             getChild(i).destroy();
         children.clear();
+    }
+
+    public void saveToXML(StringBuffer result) {
+        result.append("<task name='").append(XMLUtils.escapeAttribute(name))
+            .append("' pt='").append(planTime)
+            .append("' at='").append(actualTime);
+        if (planDate != null)
+            result.append("' pd='").append(EVSchedule.saveDate(planDate));
+        if (dateCompleted != null)
+            result.append("' cd='").append(EVSchedule.saveDate(dateCompleted));
+
+        if (isLeaf())
+            result.append("'/>");
+        else {
+            result.append("'>");
+            for (int i = 0;   i < getNumChildren();   i++)
+                getChild(i).saveToXML(result);
+            result.append("</task>");
+        }
     }
 }

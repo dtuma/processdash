@@ -34,6 +34,9 @@ import com.jrefinery.chart.RangeInfo;
 import com.jrefinery.chart.XYDataSource;
 import com.jrefinery.chart.event.DataSourceChangeListener;
 import com.jrefinery.chart.event.DataSourceChangeEvent;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import pspdash.data.ListData;
 
@@ -218,6 +221,24 @@ public class EVSchedule implements TableModel {
             } catch (CloneNotSupportedException ncse) { return null; }
         }
 
+        public void saveToXML(StringBuffer result) {
+            result.append("<period end='").append(saveDate(endDate))
+                .append("' pt='").append(planTime)
+                .append("' at='").append(actualTime)
+                .append("' cpv='").append(cumPlanValue)
+                .append("' cev='").append(cumEarnedValue);
+            if (automatic) result.append("' auto='true");
+            result.append("'/>");
+        }
+        public Period(Element e) {
+            endDate = getXMLDate(e, "end");
+            planTime = getXMLNum(e, "pt");
+            actualTime = getXMLNum(e, "at");
+            cumPlanValue = getXMLNum(e, "cpv");
+            cumEarnedValue = getXMLNum(e, "cev");
+            automatic = "true".equals(e.getAttribute("auto"));
+        }
+
         /** Warning - these fields are typically unused, so they
          * rarely contain any real data. Don't expect them to contain
          * anything useful unless you put it there. */
@@ -278,6 +299,20 @@ public class EVSchedule implements TableModel {
         }
     }
 
+    public EVSchedule(Element e) {
+        metrics.loadFromXML(e);
+        NodeList periodNodes = e.getChildNodes();
+        for (int i=0;   i < periodNodes.getLength();   i++) {
+            Node n = periodNodes.item(i);
+            if (n instanceof Element &&
+                "period".equals(((Element) n).getTagName()))
+                add(new Period((Element) n));
+        }
+        recalcCumPlanTimes();
+        recalcCumActualTimes();
+        setEffectiveDate(getXMLDate(e, "eff"));
+    }
+
     protected synchronized void add(Period p) {
         p.previous = getLast();
         periods.add(p);
@@ -331,10 +366,32 @@ public class EVSchedule implements TableModel {
         return result;
     }
 
-    private String saveDate(Date d) { return "@" + d.getTime(); }
-    private Date parseDate(String d) {
+    static String saveDate(Date d) { return "@" + d.getTime(); }
+    static Date parseDate(String d) {
         if (!d.startsWith("@")) throw new IllegalArgumentException();
         return new Date(Long.parseLong(d.substring(1)));
+    }
+    static double getXMLNum(Element e, String attrName) {
+        try {
+            return Double.parseDouble(e.getAttribute(attrName));
+        } catch (Exception exc) { return 0; }
+    }
+    static Date getXMLDate(Element e, String attrName) {
+        String s = e.getAttribute(attrName);
+        if (s == null || s.length() == 0) return null;
+        try {
+            return EVSchedule.parseDate(s);
+        } catch (Exception exc) { return null; }
+    }
+
+    public synchronized void saveToXML(StringBuffer result) {
+        result.append("<schedule");
+        metrics.saveToXML(result);
+        result.append(">");
+        Iterator i = periods.iterator();
+        while (i.hasNext())
+            ((Period) i.next()).saveToXML(result);
+        result.append("</schedule>");
     }
 
     protected synchronized Period get(Date when) {
@@ -450,6 +507,7 @@ public class EVSchedule implements TableModel {
     public synchronized void setEffectiveDate(Date d) {
         effectiveDate = d;
         effectivePeriod = 0;
+        if (effectiveDate == null) return;
         long time = d.getTime();
         Period p;
         for (int i = periods.size();  i-- > 0; ) {
@@ -601,6 +659,16 @@ public class EVSchedule implements TableModel {
             p = get(i);
             cumPlanTime += p.planTime;
             p.cumPlanTime = cumPlanTime;
+        }
+    }
+
+    public synchronized void recalcCumActualTimes() {
+        double cumActualTime = 0;
+        Period p;
+        for (int i = 0;   i < periods.size();   i++) {
+            p = get(i);
+            cumActualTime += p.actualTime;
+            p.cumActualTime = cumActualTime;
         }
     }
 

@@ -29,6 +29,7 @@ import java.util.Date;
 import java.text.MessageFormat;
 import javax.swing.table.*;
 import javax.swing.event.*;
+import org.w3c.dom.Element;
 
 import pspdash.data.DoubleData;
 
@@ -516,4 +517,22 @@ public class EVMetrics implements TableModel {
         }
     }
 
+    public void saveToXML(StringBuffer result) {
+        result
+            .append( " tpt='").append(totalPlanTime)
+            .append("' evt='").append(earnedValueTime)
+            .append("' at='").append(actualTime)
+            .append("' pt='").append(planTime)
+            .append("' start='").append(EVSchedule.saveDate(startDate))
+            .append("' eff='").append(EVSchedule.saveDate(currentDate))
+            .append("'");
+    }
+    public void loadFromXML(Element e) {
+        totalPlanTime   = EVSchedule.getXMLNum(e, "tpt");
+        earnedValueTime = EVSchedule.getXMLNum(e, "evt");
+        actualTime      = EVSchedule.getXMLNum(e, "at");
+        planTime        = EVSchedule.getXMLNum(e, "pt");
+        startDate       = EVSchedule.getXMLDate(e, "start");
+        currentDate     = EVSchedule.getXMLDate(e, "eff");
+    }
 }
