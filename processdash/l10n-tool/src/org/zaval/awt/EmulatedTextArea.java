@@ -494,4 +494,8 @@ implements ScrollObject
      if ( d.width != w ) recalcLines( 0 );
   }
 
+  public void setEditable(boolean b) {
+    // TODO Not yet implemented.    
+  }
+
 }
