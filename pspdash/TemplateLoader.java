@@ -100,10 +100,10 @@ public class TemplateLoader {
         return templates;
     }
 
-    static void addTemplateJar(DataRepository data,
-                               PSPProperties templates,
-                               String jarfileName,
-                               AutoUpdateManager aum) {
+    static boolean addTemplateJar(DataRepository data,
+                                  PSPProperties templates,
+                                  String jarfileName,
+                                  AutoUpdateManager aum) {
         try {
             // compute the "template url" of the jarfile.
             File jarfile = new File(jarfileName);
@@ -114,7 +114,7 @@ public class TemplateLoader {
             // then nothing needs to be done.
             for (int i = template_url_list.length;   i-- > 0; )
                 if (jarfileTemplateURL.equals(template_url_list[i]))
-                    return;
+                    return true;
 
             // find and process templates in the jarfile.
             if (searchJarForTemplates(templates, jarURL, data, aum)) {
@@ -128,13 +128,19 @@ public class TemplateLoader {
             }
 
             // insert the new url at the beginning of the template list.
-            List l = Arrays.asList(template_url_list);
-            l.add(0, jarURL);
-            template_url_list = urlListToArray(l);
+            URL[] new_list = new URL[template_url_list.length + 1];
+            System.arraycopy(template_url_list, 0,      // src
+                             new_list, 1,               // dest
+                             template_url_list.length);
+            new_list[0] = jarfileTemplateURL;
+            template_url_list = new_list;
+
+            return true;
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+        return false;
     }
 
 
@@ -165,10 +171,11 @@ public class TemplateLoader {
     protected static void createProcessRoot(PSPProperties templates) {
         Enumeration nodes = templates.keys();
         Vector processes = new Vector();
-        PropertyKey key;
+        PropertyKey key, parent;
         while (nodes.hasMoreElements()) {
             key = (PropertyKey) nodes.nextElement();
-            if (key.getParent().equals(PropertyKey.ROOT))
+            parent = key.getParent();
+            if (parent != null && parent.equals(PropertyKey.ROOT))
                 processes.add(key);
         }
 
