@@ -29,9 +29,11 @@ import java.util.Stack;
 
 public abstract class ResourcePool {
 
+    String name;
     Stack availableResources, busyResources;
 
-    public ResourcePool() {
+    public ResourcePool(String name) {
+        this.name = name;
         availableResources = new Stack();
         busyResources      = new Stack();
     }
@@ -40,9 +42,11 @@ public abstract class ResourcePool {
 
     public synchronized Object get() {
         Object result = null;
-        if (availableResources.empty())
+        if (availableResources.empty()) {
             result = createNewResource();
-        else
+            //int count = busyResources.size() + 1;
+            //System.err.println(name + " pool contains " + count + " items.");
+        } else
             result = availableResources.pop();
         if (result != null) busyResources.push(result);
         return result;
