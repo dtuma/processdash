@@ -1,0 +1,79 @@
+<!--
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 1999  United States Air Force
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// 
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+// 
+// E-Mail POC:  ken.raisor@hill.af.mil
+-->
+
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="../style.css">
+<TITLE>Edit Data Rollup Filter</TITLE>
+</HEAD>
+<BODY>
+
+<H1><!--#echo var="PATH_TRANSLATED" --></H1>
+<H2>Edit Data Rollup Filter</H2>
+
+<FORM NAME=PLAN>
+
+<INPUT TYPE=hidden NAME=requiredTag VALUE="Rollup Tag">
+
+<TABLE>
+<TR>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Date_Filter_On">&nbsp;Only
+rollup projects <b>completed after</b>:</td>
+<TD><INPUT TYPE=text SIZE=25 NAME="[Rollup As Of Date]d"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Language_Filter_On">&nbsp;Only
+rollup projects <b>written with language</b>:</td>
+<TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Language]s"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Prefix_Filter_On">&nbsp;Only
+rollup projects whose <b>path starts with</b>:</td>
+<TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Prefix]s"></TD>
+</TR>
+</TABLE>
+<P>
+
+<textarea rows=4 cols=50 name="[Rollup_Filter_Prototype]s"></textarea><BR>
+
+Or, you can edit the filter expression directly here:<BR>
+<textarea rows=4 cols=50 name="[Rollup_Filter]s"></textarea><BR>
+
+Here is the resulting list of included projects:<BR>
+<textarea rows=10 cols=80 name="[Printable_Rollup_List]s"></textarea>
+
+</FORM>
+
+
+<SCRIPT LANGUAGE=JavaScript SRC="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</SCRIPT>
+
+</BODY>
+</HTML>

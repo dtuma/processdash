@@ -57,6 +57,7 @@ public class StringData implements SimpleData {
             val.append(s.substring(0, pos));
             switch (s.charAt(pos+1)) {
                 case 'n':         val.append('\n'); break;
+                case 'r':         val.append('\r'); break;
                 case '\\':        val.append('\\'); break;
                 case 't':         val.append('\t'); break;
                 default:          val.append(s.charAt(pos+1)); break;
@@ -77,6 +78,7 @@ public class StringData implements SimpleData {
         for(int pos = 0;   pos < s.length();   pos++)
             switch (c = s.charAt(pos)) {
                 case '\\':    val.append("\\\\"); break;
+                case '\r':    val.append("\\r");  break;
                 case '\n':    val.append("\\n");  break;
                 case '\t':    val.append("\\t");  break;
                 default:      val.append(c);

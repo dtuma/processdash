@@ -17,14 +17,34 @@ undefine([ROLLUP_ID Rollup Eligible]);
 
 // Compute a global list of all projects which can be rolled up with
 // this consolidator.
-[/ROLLUP_ID/Project List] = search("/", "ROLLUP_ID Rollup Eligible");
+[/ROLLUP_ID/Project List] =
+    search("/", "ROLLUP_ID Rollup Eligible", [ROLLUP_ID Rollup Eligible]);
 
 // Compute a global list of all rollup datasets created using this
 // consolidator.
 [/ROLLUP_ID/Rollup Instance List] = search("/", "ROLLUP_ID Rollup Tag");
 
 // Start To Date data as of noon GMT on January 1, 1970
-[Rollup As Of Date] = ?@43200000;
+[Rollup As Of Date] = @43200000;
+[Rollup_Date_Filter_On] = 1;
+[Rollup_Date_Filter] = iff([Rollup_Date_Filter_On],
+    "[Completed] > [{Rollup As Of Date}]", null);
+
+// Make it easy to filter by language
+[Rollup_Language] = "";
+[Rollup_Language_Filter_On] = 0;
+[Rollup_Language_Filter] = iff([Rollup_Language_Filter_On],
+     "match(\"" & esc([Rollup_Language]) & "\", [Project/Language])", null);
+
+// Make it easy to filter by prefix
+[Rollup_Prefix] = "";
+[Rollup_Prefix_Filter_On] = 0;
+[Rollup_Prefix_Filter] =  iff([Rollup_Prefix_Filter_On],
+     "startsWith(\"" & esc([Rollup_Prefix]) & "\")", null);
+
+// Calculate a default filter expression
+[Rollup_Filter_Prototype] = join(" and\n", [Rollup_Date_Filter],
+    [Rollup_Language_Filter], [Rollup_Prefix_Filter]);
 
 // By default, select all of the projects that have been marked Completed
 // *after* the "Rollup As Of Date".
@@ -33,3 +53,5 @@ undefine([ROLLUP_ID Rollup Eligible]);
 // Filter the list of projects based upon the rollup filter.
 [Rollup_List] =
     filter(eval([Rollup_Filter], [_]), [/ROLLUP_ID/Project List]);
+
+[Printable_Rollup_List] = join("\n", [Rollup_List]);

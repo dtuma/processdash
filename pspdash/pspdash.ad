@@ -110,6 +110,17 @@ http.allowRemote=false
 
 
 #
+# The following property lists automatic data import directories.
+# It should be a list of prefix/directory pairs; the pairs should be
+# separated from each other by "|" characters.  Each pair should be of 
+# the form "prefix=>directory/path"; each pair is interpreted to mean
+# "watch directory/path for files, and import them into the dashboard
+# with a name beginning with "/prefix/".
+#
+import.directories=Imported=>./import
+
+
+#
 # Data names to be suppressed from user-visible data lists (by default).
 #
 # The property below should be a series of data name specifications,

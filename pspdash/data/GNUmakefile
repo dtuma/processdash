@@ -108,6 +108,7 @@ DATA_FILES=$(COMMON_FILES) \
 	CppFilterReader.java \
 	DataComparator.java \
 	DataConsistencyObserver.java \
+	DataImporter.java \
 	DataList.java \
 	DataRepository.java \
 	DeferredData.java \

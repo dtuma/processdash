@@ -20,7 +20,7 @@ Helpers
     lf = 10;
     tab = 9;
 
-    escape_sequence = '\' ''' | '\"' | '\\' | '\n' | '\t' | '\[' | '\]' | '\/';
+    escape_sequence = '\' ''' | '\"' | '\\' | '\r' | '\n' | '\t' | '\[' | '\]' | '\/';
 
     i_char = [not_crlf - [['[' + ']'] + '\']] | escape_sequence; //'
     i_char_sequence = i_char+;

@@ -1154,8 +1154,8 @@ public class DataRepository implements Repository {
                                 value = ((DateData)sd).formatDate();
                             } else if (sd instanceof StringData) {
                                 value = ((StringData)sd).getString();
-                            } else if (sd instanceof DoubleData) {
-                                value = ((DoubleData)sd).formatNumber(3);
+                                // } else if (sd instanceof DoubleData) {
+                                // value = ((DoubleData)sd).formatNumber(3);
                             } else if (sd != null)
                                 value = sd.toString();
                             if (value != null)
@@ -2063,7 +2063,7 @@ public class DataRepository implements Repository {
                 datafileModified(dataFile);
         }
 
-        private void mountData(DataFile dataFile, String dataPrefix, Map values)
+        void mountData(DataFile dataFile, String dataPrefix, Map values)
             throws InvalidDatafileFormat
         {
             try {
@@ -2206,6 +2206,42 @@ public class DataRepository implements Repository {
 
             if (mountedPhantomData != null)
                 mountedPhantomData.put(dataPrefix, values);
+
+            /* We have a problem - no data in the phantom datafile will ever be
+                saved, so if people edit any of the editable values, their edits
+                will be discarded.
+            Iterator i = values.entrySet().iterator();
+            Map.Entry e;
+            String dataName;
+            while (i.hasNext()) {
+                e = (Map.Entry) i.next();
+                if (e.getValue() instanceof SimpleData) {
+                    dataName = createDataName(dataPrefix, (String) e.getKey());
+                    putGlobalValue(dataName, dataPrefix, e.getValue());
+                }
+            }
+            */
+        }
+
+        void mountImportedData(String dataPrefix, Map values)
+            throws InvalidDatafileFormat
+        {
+            String prefixToDiscard = null;
+            for (int i = datafiles.size();   i-- != 0; )
+                if (dataPrefix.equals(((DataFile)datafiles.elementAt(i)).prefix)) {
+                    DataFile previousDataFile = (DataFile)datafiles.elementAt(i);
+                    prefixToDiscard = "discard" + previousDataFile.prefix;
+                    previousDataFile.prefix = prefixToDiscard;
+                    break;
+                }
+
+            DataFile dataFile = new DataFile();
+            dataFile.prefix = dataPrefix;
+            datafiles.addElement(dataFile);
+            mountData(dataFile, dataPrefix, values);
+
+            if (prefixToDiscard != null)
+                closeDatafile(prefixToDiscard);
         }
 
         private DataFile getPhantomDataFile() {

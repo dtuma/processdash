@@ -36,6 +36,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import pspdash.data.DataRepository;
+import pspdash.data.DataImporter;
 
 public class PSPDashboard extends JFrame implements WindowListener {
 
@@ -238,6 +239,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
                 ("when generating default datafile, caught exception "+exc);
             exc.printStackTrace(System.err);
         }
+        DataImporter.init(data, Settings.getFile("import.directories"));
         data.finishInconsistency();
         try {
             data.saveDefinitions(new FileOutputStream(serializedDefinitions));

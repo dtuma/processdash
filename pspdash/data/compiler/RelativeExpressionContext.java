@@ -48,6 +48,12 @@ public class RelativeExpressionContext implements ExpressionContext {
             // Names bracketed with {curly braces} should be interpreted
             // relative to the prefix of the original expression context.
             dataName = dataName.substring(1, dataName.length()-1);
+
+        else if (dataName.equals(LocalExpressionContext.LOCALVAR_NAME))
+            // If the dataName is the local variable [_], don't try to
+            // localize it or change it in any way
+            ;
+
         else
             // Non-bracketed names should be interpreted in the context
             // of our prefix.  (Note that createDataName() is already
