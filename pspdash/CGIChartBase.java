@@ -103,15 +103,31 @@ public abstract class CGIChartBase extends pspdash.TinyCGIBase {
             } catch (Exception lfe) {}
         }
 
+
+        Axis xAxis = chart.getPlot().getAxis(Plot.HORIZONTAL_AXIS);
         if (parameters.get("hideTickLabels") != null||
             parameters.get("hideXTickLabels") != null) {
-            Axis a = chart.getPlot().getAxis(Plot.HORIZONTAL_AXIS);
-            a.setShowTickLabels(false);
+            xAxis.setShowTickLabels(false);
+        } else if (parameters.get("tickLabelFontSize") != null ||
+                   parameters.get("xTickLabelFontSize") != null) {
+            String tfs = getParameter("xTickLabelFontSize");
+            if (tfs == null) tfs = getParameter("tickLabelFontSize");
+            float fontSize = Float.parseFloat(tfs);
+            xAxis.setTickLabelFont
+                (xAxis.getTickLabelFont().deriveFont(fontSize));
         }
+
+        Axis yAxis = chart.getPlot().getAxis(Plot.VERTICAL_AXIS);
         if (parameters.get("hideTickLabels") != null||
             parameters.get("hideYTickLabels") != null) {
-            Axis a = chart.getPlot().getAxis(Plot.VERTICAL_AXIS);
-            a.setShowTickLabels(false);
+            yAxis.setShowTickLabels(false);
+        } else if (parameters.get("tickLabelFontSize") != null ||
+                   parameters.get("yTickLabelFontSize") != null) {
+            String tfs = getParameter("yTickLabelFontSize");
+            if (tfs == null) tfs = getParameter("tickLabelFontSize");
+            float fontSize = Float.parseFloat(tfs);
+            yAxis.setTickLabelFont
+                (yAxis.getTickLabelFont().deriveFont(fontSize));
         }
 
         String axisFontSize = getSetting("axisLabelFontSize");
