@@ -47,6 +47,8 @@ class NSSelectField extends NSField {
         int numOptions = ((Double)formOptions.getMember("length")).intValue();
         for (int optIdx = 0;   optIdx < numOptions;   optIdx++)
             optionList.addElement(getOptionValue(formOptions, optIdx));
+
+        if (variantValue != null) paint();
     }
 
 
@@ -55,7 +57,7 @@ class NSSelectField extends NSField {
     public void parse() { variantValue = getSelection(); }
 
     public void setSelection(String text) {
-        if (element != null) {
+        if (element != null && optionList != null) {
             for (int idx = optionList.size();   idx-- > 0; )
                 if (text.equals((String)optionList.elementAt(idx))) {
                     element.setMember("selectedIndex", new Double(idx));
@@ -77,7 +79,7 @@ class NSSelectField extends NSField {
     private static String getOptionValue(JSObject formOptions, int idx) {
         JSObject option = (JSObject) formOptions.getSlot(idx);
         String result = (String) option.getMember("value");
-        if (result.length() == 0) {
+        if (result == null || result.trim().length() == 0) {
             result = (String) option.getMember("text");
             if (result != null) result = result.trim();
         }
