@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Map;
-import java.util.Hashtable;
 import java.util.MissingResourceException;
 import java.text.MessageFormat;
 import javax.swing.table.*;
