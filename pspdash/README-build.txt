@@ -1,3 +1,14 @@
+IMPORTANT NOTICE:
+
+This is the source code for an OBSOLETE version of the Process
+Dashboard.  The current source code under active development is
+located in the "processdash" module of cvs, not the "pspdash" module.
+
+
+
+
+----------------------------------------------------------------------
+
 To build the PSP Dashboard, you will need:
 
    * the Sun JDK, version 1.4.  Set the environment variable
