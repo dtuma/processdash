@@ -61,7 +61,7 @@ public class ProbeDialog extends JDialog implements
 
 
         ProbeDialog(PSPDashboard dash) {
-            super(dash);
+            super(dash, "PROBE");
 
             parent = dash;
             data   = parent.data;
@@ -93,7 +93,7 @@ public class ProbeDialog extends JDialog implements
             xName.addFocusListener(this);
 
 
-            g.gridy++;		// new row
+            g.gridy++;              // new row
 
             c = new JLabel("with");    g.gridx = 0;   g.gridwidth = 1;
             g.weightx = 0;   g.anchor = g.CENTER;   g.fill = g.NONE;
@@ -108,7 +108,7 @@ public class ProbeDialog extends JDialog implements
             yName.addFocusListener(this);
 
 
-            g.gridy++;		// new row: button + blank space
+            g.gridy++;              // new row: button + blank space
             filterButton = new JButton ("Filter...");
             filterButton.setActionCommand("filter");
             filterButton.addActionListener(this);
@@ -118,7 +118,7 @@ public class ProbeDialog extends JDialog implements
             layout.setConstraints(c, g);   panel.add(c);
 
 
-            g.gridy++;		// new row
+            g.gridy++;              // new row
 
             estimateLabel = new JLabel("Estimate");   g.gridx = 0;
             g.gridwidth = 1;   g.weightx = 0;   g.anchor = g.EAST;
@@ -142,17 +142,17 @@ public class ProbeDialog extends JDialog implements
             percent.addFocusListener(this);
 
 
-            g.gridy++;		// new row: blank space
+            g.gridy++;              // new row: blank space
             c = new JLabel(" ");   g.gridx = 0;   g.gridwidth = 5;
             layout.setConstraints(c, g);   panel.add(c);
 
 
-            g.gridy++;		// new row: blank space
+            g.gridy++;              // new row: blank space
             c = new JLabel("L. Regression");
             g.gridx = 0;   g.gridwidth = 2;   g.insets = left_margin;
             layout.setConstraints(c, g);   panel.add(c);
 
-            c = new JLabel("Average");	g.gridx = 2;   g.gridwidth = 2;
+            c = new JLabel("Average");      g.gridx = 2;   g.gridwidth = 2;
             layout.setConstraints(c, g);   panel.add(c);
 
 
@@ -161,7 +161,7 @@ public class ProbeDialog extends JDialog implements
             layout.setConstraints(c, g);   panel.add(c);
 
 
-            g.gridy++;		//new row
+            g.gridy++;              //new row
             g.fill = g.HORIZONTAL;
 
             projection = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
@@ -171,53 +171,53 @@ public class ProbeDialog extends JDialog implements
             layout.setConstraints(Cprojection, g);   panel.add(Cprojection);
 
 
-            g.gridy++;		//new row
+            g.gridy++;              //new row
 
-            beta0 = new JLabel();	g.gridx = 0;   g.gridwidth = 2;
+            beta0 = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
             layout.setConstraints(beta0, g);   panel.add(beta0);
 
-            Cbeta0 = new JLabel();	g.gridx = 2;   g.gridwidth = 2;
+            Cbeta0 = new JLabel();  g.gridx = 2;   g.gridwidth = 2;
             layout.setConstraints(Cbeta0, g);   panel.add(Cbeta0);
 
 
-            g.gridy++;		//new row
+            g.gridy++;              //new row
 
-            beta1 = new JLabel();	g.gridx = 0;   g.gridwidth = 2;
+            beta1 = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
             layout.setConstraints(beta1, g);   panel.add(beta1);
 
-            Cbeta1 = new JLabel();	g.gridx = 2;   g.gridwidth = 2;
+            Cbeta1 = new JLabel();  g.gridx = 2;   g.gridwidth = 2;
             layout.setConstraints(Cbeta1, g);   panel.add(Cbeta1);
 
 
-            g.gridy++;		//new row
+            g.gridy++;              //new row
 
-            rSquared = new JLabel();	g.gridx = 0;   g.gridwidth = 2;
+            rSquared = new JLabel();        g.gridx = 0;   g.gridwidth = 2;
             layout.setConstraints(rSquared, g);   panel.add(rSquared);
             rSquared.setToolTipText
                 ("The measure of how well these data elements correlate.");
 
 
-            g.gridy++;		//new row
+            g.gridy++;              //new row
 
-            significance = new JLabel();	g.gridx = 0;   g.gridwidth = 2;
+            significance = new JLabel();    g.gridx = 0;   g.gridwidth = 2;
             layout.setConstraints(significance, g);  panel.add(significance);
             significance.setToolTipText
                 ("the probability that this correlation could occur by chance.");
 
 
-            g.gridy++;		//new row
+            g.gridy++;              //new row
 
-            variance = new JLabel();	g.gridx = 0;   g.gridwidth = 2;
+            variance = new JLabel();        g.gridx = 0;   g.gridwidth = 2;
             layout.setConstraints(variance, g);   panel.add(variance);
 
 
-            g.gridy++;		// new row
+            g.gridy++;              // new row
 
-            stddev = new JLabel();	g.gridx = 0;   g.gridwidth = 2;
+            stddev = new JLabel();  g.gridx = 0;   g.gridwidth = 2;
             layout.setConstraints(stddev, g);   panel.add(stddev);
 
 
-            g.gridy++;		// new row
+            g.gridy++;              // new row
 
             range = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
             layout.setConstraints(range, g);   panel.add(range);
@@ -229,13 +229,13 @@ public class ProbeDialog extends JDialog implements
             layout.setConstraints(chartButton, g);   panel.add(chartButton);
 
 
-            g.gridy++;		// new row
+            g.gridy++;              // new row
 
             upi = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
             layout.setConstraints(upi, g); panel.add(upi);
 
 
-            g.gridy++;		// new row
+            g.gridy++;              // new row
 
             lpi = new JLabel();   g.gridx = 0;   g.gridwidth = 2;
             layout.setConstraints(lpi, g); panel.add(lpi);
@@ -269,12 +269,12 @@ public class ProbeDialog extends JDialog implements
             variance.setText     ((varText != null) ? varText : "Variance = ????");
             stddev.setText       ((sdText != null)  ? sdText  : "StdDev = ???? ");
 
-            beta0.setEnabled(enableFields);		beta0.invalidate();
-            beta1.setEnabled(enableFields);		beta1.invalidate();
-            stddev.setEnabled(enableFields);		stddev.invalidate();
-            variance.setEnabled(enableFields);	variance.invalidate();
-            rSquared.setEnabled(enableFields);	rSquared.invalidate();
-            significance.setEnabled(enableFields);	significance.invalidate();
+            beta0.setEnabled(enableFields);           beta0.invalidate();
+            beta1.setEnabled(enableFields);           beta1.invalidate();
+            stddev.setEnabled(enableFields);          stddev.invalidate();
+            variance.setEnabled(enableFields);        variance.invalidate();
+            rSquared.setEnabled(enableFields);        rSquared.invalidate();
+            significance.setEnabled(enableFields);    significance.invalidate();
         }
 
         private void setARanges (boolean enableFields,
@@ -287,10 +287,10 @@ public class ProbeDialog extends JDialog implements
             upi.setText        ((upiText != null)  ? upiText : "UPI = ????");
             lpi.setText        ((lpiText != null)  ? lpiText : "LPI = ????");
 
-            projection.setEnabled(enableFields);	projection.invalidate();
-            range.setEnabled(enableFields);		range.invalidate();
-            upi.setEnabled(enableFields);		upi.invalidate();
-            lpi.setEnabled(enableFields);		lpi.invalidate();
+            projection.setEnabled(enableFields);      projection.invalidate();
+            range.setEnabled(enableFields);           range.invalidate();
+            upi.setEnabled(enableFields);             upi.invalidate();
+            lpi.setEnabled(enableFields);             lpi.invalidate();
         }
 
         private void setCFields (boolean enableFields,
@@ -299,15 +299,15 @@ public class ProbeDialog extends JDialog implements
             Cbeta0.setText        ((b0Text != null) ? b0Text  : "Beta0 = ????");
             Cbeta1.setText        ((b1Text != null) ? b1Text  : "Beta1 = ????");
 
-            Cbeta0.setEnabled(enableFields);		Cbeta0.invalidate();
-            Cbeta1.setEnabled(enableFields);		Cbeta1.invalidate();
+            Cbeta0.setEnabled(enableFields);          Cbeta0.invalidate();
+            Cbeta1.setEnabled(enableFields);          Cbeta1.invalidate();
         }
 
         private void setCRanges (boolean enableFields,
                                  String  proText) {
             Cprojection.setText ((proText != null)  ? proText : "Projection = ????");
 
-            Cprojection.setEnabled(enableFields);	Cprojection.invalidate();
+            Cprojection.setEnabled(enableFields);     Cprojection.invalidate();
         }
 
         private void correlate() {
@@ -363,10 +363,10 @@ public class ProbeDialog extends JDialog implements
 
             estimateLabel.setText("Estimate");
             percentLabel.setText("% range");
-            estimateLabel.setEnabled(enableFields);	estimateLabel.invalidate();
-            estimate.setEnabled(enableFields);	estimate.invalidate();
-            percentLabel.setEnabled(enableFields);	percentLabel.invalidate();
-            percent.setEnabled(enableFields);		percent.invalidate();
+            estimateLabel.setEnabled(enableFields);   estimateLabel.invalidate();
+            estimate.setEnabled(enableFields);        estimate.invalidate();
+            percentLabel.setEnabled(enableFields);    percentLabel.invalidate();
+            percent.setEnabled(enableFields);         percent.invalidate();
 
             findRange();
 
