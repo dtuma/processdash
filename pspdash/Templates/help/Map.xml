@@ -65,7 +65,6 @@
   <mapID target="EnteringDefects.timing" url="Topics/Execution/EnteringDefects.html#timing" />
   <mapID target="ConfigurationFile.dateFormat" url="Topics/AdvancedTopics/ConfigurationFile.html#dateFormat" />
   <mapID target="ProcessScripts.generic" url="Topics/Overview/ProcessScripts.html#generic" />
-  <mapID target="ConfigurationFile.hiddenData" url="Topics/AdvancedTopics/ConfigurationFile.html#hiddenData" />
   <mapID target="UsingProbeTool.regression" url="Topics/Planning/UsingProbeTool.html#regression" />
   <mapID target="UsingSizeEstimatingTemplate.newObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#newObjects" />
   <mapID target="UsingSizeEstimatingTemplate.objectLOC" url="Topics/Planning/UsingSizeEstimatingTemplate.html#objectLOC" />
@@ -75,7 +74,6 @@
   <mapID target="PlayPause.pullDown" url="Topics/Execution/PlayPause.html#pullDown" />
   <mapID target="UsingProbeTool.interval" url="Topics/Planning/UsingProbeTool.html#interval" />
   <mapID target="UsingProbeTool.chart" url="Topics/Planning/UsingProbeTool.html#probeDialogChart" />
-  <mapID target="ConfigurationFile.probeDialog.dataList" url="Topics/AdvancedTopics/ConfigurationFile.html#probeDialogDataList" />
   <mapID target="UsingProbeTool.filter" url="Topics/Planning/UsingProbeTool.html#probeDialogFilter" />
   <mapID target="ConfigurationFile.probeDialog.onlyCompleted" url="Topics/AdvancedTopics/ConfigurationFile.html#probeDialogOnlyCompleted" />
   <mapID target="UsingProbeTool.projection" url="Topics/Planning/UsingProbeTool.html#projection" />
@@ -84,7 +82,6 @@
   <mapID target="UsingSizeEstimatingTemplate.reusedObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#reusedObjects" />
   <mapID target="AccessingScripts.pullDown" url="Topics/Execution/AccessingScripts.html#pullDown" />
   <mapID target="UsingProbeTool.significance" url="Topics/Planning/UsingProbeTool.html#significance" />
-  <mapID target="ConfigurationFile.stateFile" url="Topics/AdvancedTopics/ConfigurationFile.html#stateFile" />
   <mapID target="UsingSizeEstimatingTemplate.time" url="Topics/Planning/UsingSizeEstimatingTemplate.html#time" />
   <mapID target="UsingTimeLogEditor.dateFilter" url="Topics/Execution/UsingTimeLogEditor.html#dateFilter" />
   <mapID target="UsingTimeLogEditor.summarize" url="Topics/Execution/UsingTimeLogEditor.html#summarize" />

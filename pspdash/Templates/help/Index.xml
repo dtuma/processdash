@@ -37,7 +37,6 @@
  <indexitem text="generic process" target="ProcessScripts.generic"/>
  <indexitem text="goals" target="GoalsOfPSPAndDashboard"/>
  <indexitem text="help" target="Help"/>
- <indexitem text="hidden data" target="ConfigurationFile.hiddenData"/>
  <indexitem text="hierarchy editor" target="UsingHierarchyEditor"/>
  <indexitem text="hierarchy menus" target="HierarchyMenus"/>
  <indexitem text="installation" target="HowToInstall"/>
@@ -58,7 +57,6 @@
  <indexitem text="prediction interval" target="UsingProbeTool.interval"/>
  <indexitem text="PROBE tool" target="UsingProbeTool">
   <indexitem text="chart" target="UsingProbeTool.chart"/>
-  <indexitem text="dataList" target="ConfigurationFile.probeDialog.dataList"/>
   <indexitem text="filtering data" target="UsingProbeTool.filter"/>
   <indexitem text="onlyCompleted" target="ConfigurationFile.probeDialog.onlyCompleted"/>
  </indexitem>
@@ -77,7 +75,6 @@
  </indexitem>
  <indexitem text="significance" target="UsingProbeTool.significance"/>
  <indexitem text="size estimating template" target="UsingSizeEstimatingTemplate"/>
- <indexitem text="state file" target="ConfigurationFile.stateFile"/>
  <indexitem text="time estimation" target="UsingSizeEstimatingTemplate.time"/>
  <indexitem text="time log" target="UsingTimeLogEditor">
   <indexitem text="date filter" target="UsingTimeLogEditor.dateFilter"/>
