@@ -1503,6 +1503,29 @@ public class DataRepository implements Repository {
             }
         }
 
+        public void valueRecalculated(String name, SaveableData value) {
+
+            if (recursion_depth < MAX_RECURSION_DEPTH) {
+                DataElement d = (DataElement)data.get(name);
+                if (d == null || d.getValue() != value) return;
+
+                recursion_depth++;
+
+                // let the data element know that it is changing.
+                d.setValue(value);
+                // notify any listeners registed for the change
+                dataNotifier.dataChanged(name, d);
+
+                recursion_depth--;
+
+            } else {
+                System.err.println
+                    ("DataRepository detected circular dependency in data,\n" +
+                     "    bailed out after " + MAX_RECURSION_DEPTH + " iterations.");
+                new Exception().printStackTrace(System.err);
+            }
+        }
+
         public void putSimpleValueOrDefault(String name, String value)
             throws MalformedValueException
         {
@@ -1553,13 +1576,19 @@ public class DataRepository implements Repository {
             //debug("loadIncludedFileDefinitions("+datafile+")");
             datafile = bracket(datafile);
 
+            // Check in the defaultDefinitions map for any requested redirections.
+            Object def = datafile;
+            while (def instanceof String) {
+                datafile = (String) def;
+                def = defaultDefinitions.get(datafile);
+            }
+
             Map result = getIncludedFileDefinitions(datafile);
             if (result == null) {
                 result = new HashMap();
 
                 // Lookup any applicable default data definitions.
-                DefinitionFactory defaultDefns =
-                    (DefinitionFactory) defaultDefinitions.get(datafile);
+                DefinitionFactory defaultDefns = (DefinitionFactory) def;
                 if (defaultDefns != null)
                     result.putAll(defaultDefns.getDefinitions(DataRepository.this));
 
@@ -1858,11 +1887,11 @@ public class DataRepository implements Repository {
         public void registerDefaultData(DefinitionFactory d,
                                         String datafile,
                                         String imaginaryFilename) {
-            //debug("registerDefaultData("+datafile+","+imaginaryFilename+")");
-            includedFileCache.put(bracket(imaginaryFilename), d);
-
-            if (datafile != null && datafile.length() > 0)
+            if (datafile != null && datafile.length() > 0) {
                 defaultDefinitions.put(bracket(datafile), d);
+                defaultDefinitions.put(bracket(imaginaryFilename), bracket(datafile));
+            } else
+                includedFileCache.put(bracket(imaginaryFilename), d);
         }
         private String bracket(String filename) {
             if (filename == null || filename.startsWith("<")) return filename;
@@ -2053,9 +2082,10 @@ public class DataRepository implements Repository {
             try {
                 startInconsistency();
 
-                // register the names of data elements in this file IF this is not
-                // global data.
-                boolean registerDataNames = (dataFile!=null && dataPrefix.length()>0);
+                // register the names of data elements in this file IF it is a
+                // regular datafile and is not global data.
+                boolean registerDataNames =
+                    (dataFile!=null && dataFile.file!=null && dataPrefix.length()>0);
 
                 boolean dataModified = false, successful = false;
                 String datafilePath = "internal data";
