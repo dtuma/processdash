@@ -256,15 +256,16 @@ public class DashPackage {
         StringTokenizer v2 = new StringTokenizer(version2, ".+");
 
         while (true) {
-            if (!v1.hasMoreTokens()) return -1;
-            if (!v2.hasMoreTokens()) return 1;
+            if (!v1.hasMoreTokens() && !v2.hasMoreTokens()) return 0;
 
-            double result = vNum(v1.nextToken()) - vNum(v2.nextToken());
+            double result = vNum(v1) - vNum(v2);
             if (result > 0) return 1;
             if (result < 0) return -1;
         }
     }
-    private static double vNum(String num) {
+    private static double vNum(StringTokenizer tok) {
+        if (!tok.hasMoreTokens()) return 0;
+        String num = tok.nextToken();
         double result = 0;
         if (num.indexOf('b') != -1) {
             for (int i = 0;   i < num.length();   i++) {
