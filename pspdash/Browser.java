@@ -22,6 +22,9 @@
 package pspdash;
 
 import java.io.IOException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import javax.swing.JOptionPane;
 
 /**
@@ -30,6 +33,8 @@ import javax.swing.JOptionPane;
  * @version $Id$
  */
 public class Browser {
+
+    static { try { maybeSetupForWindowsIE(); } catch (Exception e) {} }
 
     /**
      * Starts the browser for the current platform.
@@ -128,10 +133,75 @@ public class Browser {
             return false;
         }
     }
+
+    private static File getWindir() {
+        File result = null;
+
+        /* It would be nice to do this, but JRE throws an error, stating that
+         * deprecated method getenv() is no longer supported.
+        String windir = System.getenv("windir");
+        if (windir != null) {
+            result = new File(windir);
+            if (result.isDirectory()) return result;
+        }
+        */
+
+        result = new File("C:\\Windows");
+        if (result.isDirectory()) return result;
+
+        result = new File("C:\\WinNT");
+        if (result.isDirectory()) return result;
+
+        return null;
+    }
+
+    private static void maybeSetupForWindowsIE() throws IOException {
+        if (!isWindows()) return;
+
+        File windir = getWindir();
+        if (windir == null) return;
+
+        File javadir = new File(windir, "JAVA");
+        if (!javadir.isDirectory()) return;
+
+        File trustlibdir = new File(javadir, "Trustlib");
+        if (!trustlibdir.isDirectory()) return;
+
+        File pspdashdir = new File(trustlibdir, "pspdash");
+        if (!(pspdashdir.isDirectory() || pspdashdir.mkdir())) return;
+
+        File datadir = new File(pspdashdir, "data");
+        if (!(datadir.isDirectory() || datadir.mkdir())) return;
+
+        copyClassFile(datadir, "OLEDBDSLWrapper.class");
+        copyClassFile(datadir, "OLEDBListenerWrapper.class");
+    }
+
+    private static void copyClassFile(File destdir, String classFileName)
+        throws IOException
+    {
+        File destFile = new File(destdir, classFileName);
+        if (destFile.exists()) return;
+
+        FileOutputStream out = new FileOutputStream(destFile);
+        InputStream in = Browser.class.getResourceAsStream
+            ("/pspdash/data/" + classFileName);
+
+        byte [] buffer = new byte[3000];
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) > -1)
+            out.write(buffer, 0, bytesRead);
+        out.close();
+        in.close();
+    }
 }
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.2  2001/02/06 19:21:52  tuma
+ * on windows, copy needed classfiles into the Trustlib directory if
+ * they aren't already there.
+ *
  * Revision 1.1  2001/02/05 18:39:15  tuma
  * New code which can kick off the default browser on Windows
  *
