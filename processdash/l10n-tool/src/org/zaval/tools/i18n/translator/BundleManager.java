@@ -466,6 +466,9 @@ implements TranslatorConstants
             if (!name.startsWith(prefix))
                 continue;
             name = name.substring(prefix.length());
+            if (name.indexOf(TranslatorConstants.KEY_SEPARATOR) != -1)
+                continue;
+            
             String value = (String) prop.getValue();
             if (value == null || value.trim().length() == 0) 
                 continue;
