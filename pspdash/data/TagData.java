@@ -35,6 +35,7 @@ public class TagData implements SimpleData {
 
     public boolean isEditable()                { return false;        }
     public void setEditable(boolean e)         {                      }
+    public SaveableData getEditable(boolean e) { return this;         }
     public boolean isDefined()                 { return true;         }
     public void setDefined(boolean d)          {                      }
     public String saveString()                 { return "TAG";        }
@@ -47,4 +48,6 @@ public class TagData implements SimpleData {
     public boolean lessThan(SimpleData val)    { return false;        }
     public boolean greaterThan(SimpleData val) { return !equals(val); }
     public boolean test()                      { return true;         }
+
+    public String toString()                   { return "TAG";        }
 }
