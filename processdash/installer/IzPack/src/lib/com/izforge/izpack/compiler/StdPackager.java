@@ -94,13 +94,13 @@ public class StdPackager extends Packager
      * @return                Description of the Return Value
      * @exception  Exception  Description of the Exception
      */
-    public ZipOutputStream addPack(int packNumber, String name, String targetOs, boolean required,
-                                   String description) throws Exception
+    public OutputStream addPack(int packNumber, String name, String id, String targetOs, boolean required,
+                                String description) throws Exception
     {
         sendMsg("Adding pack #" + packNumber + " : " + name + " ...");
 
         // Adds it in the packs array
-        Pack pack = new Pack(name, description, targetOs, required);
+        Pack pack = new Pack(name, id, description, targetOs, required);
         packs.add(packNumber, pack);
 
         // Returns the suiting output stream

@@ -42,9 +42,6 @@ public class WebPackager extends Packager
     /**  The zipped output stream. */
     protected JarOutputStream outJar;
 
-    /**  The web jar file output stream. */
-    protected JarOutputStream webJar;
-
 
     /**
      *  The constructor.
@@ -65,12 +62,6 @@ public class WebPackager extends Packager
         FileOutputStream outFile = new FileOutputStream(outputFilename);
         outJar = new JarOutputStream(outFile);
         outJar.setLevel(9);
-
-        // Sets up the web output jar stream
-        outputFilename = outputFilename.substring(0, outputFilename.length() - 4) + "_web.jar";
-        outFile = new FileOutputStream(outputFilename);
-        webJar = new JarOutputStream(outFile);
-        webJar.setLevel(9);
 
         // Copies the skeleton installer
         sendMsg("Copying the skeleton installer ...");
@@ -102,20 +93,26 @@ public class WebPackager extends Packager
      * @return                Description of the Return Value
      * @exception  Exception  Description of the Exception
      */
-    public ZipOutputStream addPack(int packNumber, String name, String targetOs, boolean required,
+    public OutputStream addPack(int packNumber, String name, String id, String targetOs, boolean required,
                                    String description) throws Exception
     {
         sendMsg("Adding pack #" + packNumber + " : " + name + " ...");
 
         // Adds it in the packs array
-        Pack pack = new Pack(name, description, targetOs, required);
+        Pack pack = new Pack(name, id, description, targetOs, required);
         packs.add(packNumber, pack);
 
         // Returns the suiting output stream
-        String entryName = "packs/pack" + packNumber;
-        ZipEntry entry = new ZipEntry(entryName);
-        webJar.putNextEntry(entry);
-        return webJar;
+        if (required) {
+            String entryName = "packs/pack" + packNumber;
+            ZipEntry entry = new ZipEntry(entryName);
+            outJar.putNextEntry(entry);
+            return outJar;
+
+        } else {
+            String webPackageFilename = "webpack-" + id + ".obj";
+            return new FileOutputStream(webPackageFilename);
+        }
     }
 
 
@@ -346,10 +343,7 @@ public class WebPackager extends Packager
         // Closes the stream
         outJar.flush();
         outJar.close();
-        webJar.flush();
-        webJar.close();
 
         sendStop();
     }
 }
-
