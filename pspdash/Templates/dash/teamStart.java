@@ -32,6 +32,7 @@ import pspdash.data.SimpleData;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.URLConnection;
 import java.util.*;
@@ -41,7 +42,7 @@ import org.w3c.dom.*;
 
 /** This script bootstraps the startup of a team process setup wizard.
  *
- * It interacts with the uesr just long enough to determine which team
+ * It interacts with the user just long enough to determine which team
  * process definition will be used to perform a team project, then
  * hands control over to the startup wizard for that process.
  *
@@ -85,6 +86,7 @@ public class teamStart extends TinyCGIBase {
     // value indicating we should help an individual join a team project
     private static final String JOIN_PAGE = "join";
     private static final String JOIN_ERROR_URL = "teamStartJoinError.shtm";
+    private static final String JOIN_VERIFY_URL = "teamStartJoinVerify.shtm";
 
 
 
@@ -350,40 +352,78 @@ public class teamStart extends TinyCGIBase {
         String templatePathUNC = getValue(TEMPLATE_UNC);
         String continuationURI = getValue(CONTINUATION_URI);
 
-        String errorMessage = ensureTemplateLoaded
-            (templateID, templatePath, templatePathUNC, continuationURI);
-        if (errorMessage == null) {
+        if (templateIsLoaded(templateID, templatePath,
+                             templatePathUNC, continuationURI)) {
+
+            // the template is already present in the dashboard, so simply
+            // redirect to the continuation URI.
             String prefix = getPrefix();
             if (prefix == null)
                 printRedirect(continuationURI);
             else
                 printRedirect(prefix + "/" + continuationURI);
-        } else
-            printRedirect(JOIN_ERROR_URL + "?errMsg=" +
-                          URLEncoder.encode(errorMessage));
+
+        } else {
+            String errorMessage = initiateTemplateLoad
+                (templateID, templatePath, templatePathUNC, continuationURI);
+            if (errorMessage == null)
+                printRedirect(JOIN_VERIFY_URL);
+            else
+                printRedirect(JOIN_ERROR_URL + "?errMsg=" +
+                              URLEncoder.encode(errorMessage));
+        }
     }
 
-    /** Make certain a particular process template is loaded; if it isn't,
-     * attempt to load it.
+    private boolean templateIsLoaded(String templateID,
+                                     String templatePath,
+                                     String templatePathUNC,
+                                     String continuationURI)
+    {
+        // if we have no loaded template with the given ID, return false.
+        if (DashController.getTemplates().get(templateID) == null)
+            return false;
+
+        // check to see if the continuation URI is a valid resource.  If not,
+        // return false.
+        int pos = continuationURI.indexOf('?');
+        if (pos != -1) continuationURI = continuationURI.substring(0, pos);
+        pos = continuationURI.indexOf('#');
+        if (pos != -1) continuationURI = continuationURI.substring(0, pos);
+        URL url = TemplateLoader.resolveURL(continuationURI);
+        if (url == null) return false;
+
+        // check to see if the continuation URI appears to be provided by
+        // the named templatePath
+        String urlStr = url.toString();
+        if (!urlStr.startsWith("jar:file:")) return false;
+        pos = urlStr.indexOf("!/Templates");
+        if (pos == -1) return false;
+        String urlJarpath = URLDecoder.decode(urlStr.substring(9, pos));
+        File urlJarfile = new File(urlJarpath);
+        File templateJarfile = new File(templatePath);
+        try {
+            if (!urlJarfile.getCanonicalPath().equals
+                 (templateJarfile.getCanonicalPath()))
+                return false;
+        } catch (IOException ioe) {
+            return false;
+        }
+
+        // the template appears to be loaded, and meets all our criteria.
+        return true;
+    }
+
+
+    /** Ask the dashboard to begin the process of loading a new template.
+     * 
      * @return null on success; else an error message describing the
      * problem encountered.
      */
-    protected String ensureTemplateLoaded(String templateID,
-                                          String templatePath,
-                                          String templatePathUNC,
-                                          String continuationURI)
+    private String initiateTemplateLoad(String templateID,
+                                        String templatePath,
+                                        String templatePathUNC,
+                                        String continuationURI)
     {
-        /* Skip this initial step - if a template jarfile was located in
-            more than one place, this could lead to an individual using the
-            wrong one,
-        if (DashController.getTemplates().get(templateID) != null) {
-            // If we have already loaded a template with the given name,
-            // there is nothing to do.
-            return null;
-        }
-        */
-
-        // We need to find and load the necessary process template.
         // Check to ensure that the template is contained in a 'jar'
         // or 'zip' file.
         String suffix =
@@ -411,26 +451,25 @@ public class teamStart extends TinyCGIBase {
             }
         }
 
-        // Load the template definition.
-        if (DashController.loadNewTemplate(templatePath) == false)
-            return "the file couldn't be loaded";
-
-        // One last check: before we redirect the user to the
-        // continuationURI, make certain that it can now be found
-        // in the list of template roots.
-        int pos = continuationURI.indexOf('?');
-        if (pos != -1) continuationURI = continuationURI.substring(0,pos);
-        // TODO: possibly change this to go through the web server instead?
-        if (TemplateLoader.resolveURL(continuationURI) == null)
-            return "the file couldn't be loaded";
-
-
-        // calculate the new template directory, and add it to the
-        // template path
+        // Initiate the loading of the template definition.
         String templateDir = f.getParent();
-        DashController.addTemplateDirToPath(templateDir);
-
+        new TemplateLoadTask(templatePath, templateDir);
         return null;
     }
 
+    /** The DashController.loadNewTemplate method will block, waiting
+     * for user input, so we must run it in a thread so this CGI script
+     * can complete.
+     */
+    private class TemplateLoadTask extends Thread {
+        private String templatePath, templateDir;
+        public TemplateLoadTask(String templatePath, String templateDir) {
+            this.templatePath = templatePath;
+            this.templateDir = templateDir;
+            this.start();
+        }
+        public void run() {
+            DashController.loadNewTemplate(templatePath, templateDir, false);
+        }
+    }
 }
