@@ -6,5 +6,6 @@ CVS
 excel\.class$
 \.pre$
 SCR.template
+SCR.globalData
 DCR.template
 Insp.template
