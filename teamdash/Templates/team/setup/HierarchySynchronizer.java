@@ -374,11 +374,14 @@ public class HierarchySynchronizer {
             return 0;
         }
 
-        protected void putNumber(String path, String name, String value) {
+        protected void putNumber(String path, String name, String value, double ratio) {
             try {
                 if (value == null || value.length() == 0)
                     value = "0";
-                putData(path, name, new DoubleData(value));
+                DoubleData d = new DoubleData(value);
+                if (ratio != 1.0)
+                    d = new DoubleData(d.getDouble() * ratio);
+                putData(path, name, d);
             } catch (Exception e) {}
         }
 
@@ -399,9 +402,8 @@ public class HierarchySynchronizer {
 
             // find out whether this individual is a contributor to the
             // construction of the given document
-            constrPhaseTotal = constrPhasePersonal = 0;
-            sumUpConstructionPhases(node);
-            if (constrPhasePersonal == 0) return;
+            double ratio = getTimeRatio(node, units);
+            if (ratio == 0) return;
 
             // calculate the percentage of the document construction time
             // contributed by this individual
@@ -409,7 +411,7 @@ public class HierarchySynchronizer {
             try {
                 String sizeStr = node.getAttribute("sizeNC");
                 size = Double.parseDouble(sizeStr);
-                size = size * constrPhasePersonal / constrPhaseTotal;
+                size = size * ratio;
             } catch (NumberFormatException nfe) {
                 return;
             }
@@ -504,7 +506,7 @@ public class HierarchySynchronizer {
             if (d != null && d.test()) return;
 
             // save the inspection size data to the project.
-            putNumber(path, EST_SIZE_DATA_NAME, node.getAttribute("inspSize"));
+            putNumber(path, EST_SIZE_DATA_NAME, node.getAttribute("inspSize"), 1.0);
             putData(path, SIZE_UNITS_DATA_NAME,
                     StringData.create("Inspected " + actualSizeUnits));
         }
@@ -562,15 +564,21 @@ public class HierarchySynchronizer {
                 if (d != null && d.test()) return;
             }
 
+            // find out what percentage of this task the user will perform.
+            double ratio = getTimeRatio(node, "LOC");
+
             // save the size data to the project.
             for (int i = 0;   i < sizeAttrNames.length;   i++)
                 putNumber(path, locSizeDataNames[i],
-                          node.getAttribute(sizeAttrNames[i]));
+                          node.getAttribute(sizeAttrNames[i]),
+                          (locSizeDataNeedsRatio[i] ? ratio : 1.0));
         }
     }
 
     private static final String[] sizeAttrNames = new String[] {
         "sizeBase", "sizeDel", "sizeMod", "sizeAdd", "sizeReu", "sizeNC" };
+    private static final boolean[] locSizeDataNeedsRatio = new boolean[] {
+         false,      true,      true,      true,      false,     true    };
     private static final String[] locSizeDataNames = new String[] {
         "Estimated Base LOC",
         "Estimated Deleted LOC",
@@ -599,15 +607,68 @@ public class HierarchySynchronizer {
         "Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
 
 
-    private static final List constructionPhaseTypes = Arrays.asList
+    private static final List ALL_CONSTR_PHASES = Arrays.asList
         (new String[] { "STP", "ITP", "TD", "MGMT", "STRAT", "PLAN", "REQ",
-                        "HLD", "DLD", "DOC" } );
+                        "HLD", "DLD", "CODE", "DOC", "psp" } );
 
-    private double constrPhaseTotal, constrPhasePersonal;
-    private void sumUpConstructionPhases(Element node) {
+    private static final List[] SIZE_CONSTR_PHASES = {
+        Arrays.asList(new String[] {
+            "STP", "ITP", "TD", "MGMT", "STRAT", "PLAN", "DOC", "CODE", "psp" } ),
+        Collections.singletonList("REQ"),
+        Collections.singletonList("HLD"),
+        Arrays.asList(new String[] { "DLD",  "psp" }),
+        Arrays.asList(new String[] { "CODE", "psp" })
+    };
+
+
+
+    private double getTimeRatio(Element node, String units) {
+        List shortList = null;
+        int pos = SIZE_UNITS_LIST.indexOf(units);
+        if (pos != -1) shortList = SIZE_CONSTR_PHASES[pos];
+
+        double result = getTimeRatio(node, shortList);
+        if (Double.isNaN(result))
+            result = getTimeRatio(node, ALL_CONSTR_PHASES);
+
+        while (Double.isNaN(result)) {
+            node = getParentElement(node);
+            if (node == null) break;
+            result = getTimeRatio(node, shortList);
+            if (Double.isNaN(result))
+                result = getTimeRatio(node, ALL_CONSTR_PHASES);
+        }
+
+        if (Double.isNaN(result))
+            return 0;
+        else
+            return result;
+    }
+
+    private Element getParentElement(Element node) {
+        Node n = node;
+        while (true) {
+            n = n.getParentNode();
+            if (n instanceof Element) return (Element) n;
+            if (n == null) return null;
+        }
+    }
+
+    private double getTimeRatio(Element node, List phaseList) {
+        if (phaseList == null) return Double.NaN;
+
+        timeRatioTotal = timeRatioPersonal = 0;
+        sumUpConstructionPhases(node, phaseList);
+        return timeRatioPersonal / timeRatioTotal;
+    }
+
+
+    private double timeRatioTotal, timeRatioPersonal;
+    private void sumUpConstructionPhases(Element node, List phaseList) {
         String phaseType = node.getAttribute(PHASE_TYPE_ATTR);
+        if (phaseType == null) phaseType = node.getTagName();
         String timeAttr = node.getAttribute(TIME_ATTR);
-        if (constructionPhaseTypes.contains(phaseType) &&
+        if (phaseList.contains(phaseType) &&
             timeAttr != null && timeAttr.length() != 0)
             addTimeData(timeAttr);
         NodeList children = node.getChildNodes();
@@ -616,7 +677,7 @@ public class HierarchySynchronizer {
         for (int i = 0;   i < len;   i++) {
             child = (Node) children.item(i);
             if (child instanceof Element)
-                sumUpConstructionPhases((Element) child);
+                sumUpConstructionPhases((Element) child, phaseList);
         }
     }
     private void addTimeData(String attr) {
@@ -627,9 +688,9 @@ public class HierarchySynchronizer {
             if (pos == -1) continue;
             String who = time.substring(0, pos);
             double amount = Double.parseDouble(time.substring(pos+1));
-            constrPhaseTotal += amount;
+            timeRatioTotal += amount;
             if (initials.equals(who))
-                constrPhasePersonal += amount;
+                timeRatioPersonal += amount;
         } catch (NumberFormatException nfe) {}
     }
 
