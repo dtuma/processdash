@@ -72,6 +72,7 @@ public class NodeSelectionDialog extends JDialog
         tree.getSelectionModel().setSelectionMode
             (TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addTreeSelectionListener(this);
+        tree.expandRow (0);
         tree.setRootVisible(false);
         tree.setRowHeight(-1);     // make tree ask for the height of each row.
 

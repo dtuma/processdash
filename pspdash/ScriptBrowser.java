@@ -79,7 +79,7 @@ public class ScriptBrowser extends JDialog
         /* Create the tree. */
         tree = new JTree(treeModel);
         treeModel.fill (useProps);
-        //tree.expandRow (0);
+        tree.expandRow (0);
         tree.setShowsRootHandles (true);
         tree.setEditable(false);
         tree.getSelectionModel().setSelectionMode
