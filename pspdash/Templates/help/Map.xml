@@ -49,6 +49,7 @@
   <mapID target="LOCCounter" url="Topics/PostmortemAnalysis/LOCCounter.html" />
 
   <mapID target="FAQ" url="Topics/Troubleshooting/FAQ.html" />
+  <mapID target="AdvancedTopics" url="Topics/AdvancedTopics/AdvancedTopics.html" />
 
   <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
   <mapID target="Execution" url="Topics/Execution/Execution.html" />

@@ -54,7 +54,7 @@
 
     <tocitem image="PageIcon" target="FAQ" text="Troubleshooting / FAQ"/>
 
-    <tocitem image="BookIcon" target="ConfigurationFile" text="Advanced Topics">
+    <tocitem image="BookIcon" target="AdvancedTopics" text="Advanced Topics">
       <tocitem image="PageIcon" target="ConfigurationFile" text="The configuration file"/>
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>
       <tocitem image="PageIcon" target="DashboardFindsFiles" text="How the dashboard finds the files"/>
