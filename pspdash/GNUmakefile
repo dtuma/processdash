@@ -96,7 +96,7 @@ data: FORCE
 	cd data; $(MAKE) all
 
 
-pspdash: PSPDashboard.class $(CLASS_FILES)
+pspdash: PSPDashboard.class $(CLASS_FILES) Templates/PSP.globalData
 
 
 cgi-scripts: $(CGI_CLASSES) $(SIZEEST_COPIES) Templates/reports/excel.iqy
@@ -114,6 +114,8 @@ $(CGI_CLASSES) : %.class : %.java $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)
 Templates/reports/excel.iqy: Templates/reports/excel.class
 	cp Templates/reports/excel.class Templates/reports/excel.iqy
 
+Templates/PSP.globalData: Templates/PSP.globalData.pre
+	cpp -E -x c Templates/PSP.globalData.pre -o Templates/PSP.globalData -P -traditional
 
 clean:
 	cd build; $(MAKE) clean
