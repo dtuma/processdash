@@ -316,9 +316,11 @@ function IEsetup() {
     document.writeln('</applet>');
 
     if (!SILENT) {
+	document.write('<span class=doNotPrint>');
 	document.write(unlockHTML);
 	writeExportHTML();
 	writeHelpLink();
+	document.write('</span>');
     }
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
@@ -523,9 +525,11 @@ function NSSetup() {
     document.writeln('</applet>');
 
     if (!SILENT) {
+	document.write('<span class=doNotPrint>');
 	document.write(unlockHTML);
 	writeExportHTML();
 	writeHelpLink();
+	document.write('</span>');
     }
   }
 }
