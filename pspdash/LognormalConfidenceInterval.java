@@ -129,7 +129,7 @@ public class LognormalConfidenceInterval extends AbstractConfidenceInterval {
 
         if (Double.isNaN(logmean) || Double.isInfinite(logmean) ||
             Double.isNaN(logstd)  || Double.isInfinite(logstd)  ||
-            numSamples < 2) {
+            numSamples < 3) {
             viability = CANNOT_CALCULATE;
             return;
         }
