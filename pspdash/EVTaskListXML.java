@@ -50,7 +50,7 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
 
         if (!openXML(data, taskListName))
             createErrorRootNode(cleanupName(taskListName),
-                                "Task list missing");
+                                resources.getString("Task_List_Missing"));
     }
 
     private boolean openXML(DataRepository data, String taskListName) {
@@ -63,7 +63,7 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
     public void recalc() {
         if (!openXML(data, taskListName))
             createErrorRootNode(cleanupName(taskListName),
-                                "Task list missing");
+                                resources.getString("Task_List_Missing"));
         super.recalc();
     }
 
