@@ -242,8 +242,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         // the awt event pump and nothing gets redrawn.
         Thread t = new Thread() {
             public void run() {
-                savePendingVector();
-                updateNodesAndLeaves();
+                try {
+                    savePendingVector();
+                    updateNodesAndLeaves();
+                } catch (Throwable t) { t.printStackTrace(); }
                 closeProgressDialog();
                 configureButton.reloadHierarchy(useProps);
             }
