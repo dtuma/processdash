@@ -304,7 +304,6 @@ public class DataRepository implements Repository {
                     return;
 
                 DataListener dl;
-                Hashtable elements;
                 String listenerName;
                 boolean notifyActiveListener;
                 for (int i = dataListenerList.size();  i > 0; ) try {
@@ -316,13 +315,7 @@ public class DataRepository implements Repository {
                         notifyActiveListener = false;
                     else
                         notifyActiveListener = true;
-                    synchronized (notifications) {
-                        elements = ((Hashtable) notifications.get(dl));
-                        if (elements == null)
-                            notifications.put(dl, elements =
-                                              new Hashtable(2));
-                    }
-                    elements.put(name, d);
+                    getElementsForDataListener(dl).put(name, d);
                     if (notifyActiveListener) dataChanged(listenerName, null);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     // Someone has been messing with dataListenerList while we're
@@ -334,6 +327,18 @@ public class DataRepository implements Repository {
                 if (suspended) synchronized(this) { notify(); }
             }
 
+            private Hashtable getElementsForDataListener(DataListener dl) {
+                Hashtable elements = null;
+                synchronized (notifications) {
+                    elements = ((Hashtable) notifications.get(dl));
+                    if (elements == null) {
+                        notifications.put(dl, elements = new Hashtable(2));
+                        checkConsistency();
+                    }
+                }
+                return elements;
+            }
+
             public void addEvent(String name, DataElement d, DataListener dl) {
                 if (name == null || dl == null) return;
 
@@ -341,13 +346,7 @@ public class DataRepository implements Repository {
                 if (listenerName != null)
                     activeListeners.put(listenerName, dl);
 
-                Hashtable elements;
-                synchronized (notifications) {
-                    elements = ((Hashtable) notifications.get(dl));
-                    if (elements == null)
-                        notifications.put(dl, elements = new Hashtable());
-                }
-                elements.put(name, d);
+                getElementsForDataListener(dl).put(name, d);
 
                 fireEvent(dl);
             }
@@ -359,7 +358,10 @@ public class DataRepository implements Repository {
             }
 
             public void deleteDataListener(DataListener dl) {
-                notifications.remove(dl);
+                synchronized (notifications) {
+                    notifications.remove(dl);
+                    checkConsistency();
+                }
                 String listenerName = (String) activeData.get(dl);
                 if (listenerName != null)
                     activeListeners.remove(listenerName);
@@ -446,6 +448,20 @@ public class DataRepository implements Repository {
                     }
                 } finally {
                     synchronized (elements) { elements.notifyAll(); }
+                    checkConsistency();
+                }
+            }
+
+            private volatile boolean notifierIsInconsistent = false;
+            private void checkConsistency() {
+                synchronized (notifications) {
+                    boolean isInconsistent = !notifications.isEmpty();
+                    if (isInconsistent == notifierIsInconsistent) return;
+                    notifierIsInconsistent = isInconsistent;
+                    if (notifierIsInconsistent)
+                        startInconsistency();
+                    else
+                        finishInconsistency();
                 }
             }
 
@@ -516,8 +532,12 @@ public class DataRepository implements Repository {
                     addDataConsistencyObserver(this);
 
                     // Sleep until we're needed again.
-                    try { sleep(Long.MAX_VALUE); } catch (InterruptedException i) {}
+                    if (!terminate)
+                        try { sleep(Long.MAX_VALUE); } catch (InterruptedException i) {}
                 }
+
+                // On termination, make one last sweep for data to freeze.
+                dataIsConsistent();
             }
 
             public void dataIsConsistent() {
@@ -564,15 +584,9 @@ public class DataRepository implements Repository {
                 removeRepositoryListener(this);
 
                 // stop this thread (if the thread is currently awake, this will
-                // not have any immediate effect.)
+                // not have an immediate effect.)
                 terminate = true;
                 interrupt();
-
-                // make certain that all remaining work is completed.  We include
-                // these lines here to implicitly require our caller to wait while
-                // this task is completed.
-                freezeAll();
-                thawAll();
             }
 
             public void dataAdded(DataEvent e) {
@@ -618,7 +632,7 @@ public class DataRepository implements Repository {
                 if (value instanceof FrozenData)
                     return;
 
-                System.out.println("freezing " + dataName);
+                //System.out.println("freezing " + dataName);
 
                 // Determine the prefix of the data element.
                 String prefix = "";
@@ -658,7 +672,7 @@ public class DataRepository implements Repository {
 
                 SaveableData value = element.getImmediateValue(), thawedValue;
                 if (value instanceof FrozenData) {
-                    System.out.println("thawing " + dataName);
+                    //System.out.println("thawing " + dataName);
                     // Thaw the value.
                     thawedValue = ((FrozenData)value).thaw(defVal);
 
@@ -918,11 +932,14 @@ public class DataRepository implements Repository {
         public void finalize() {
             // Command the data freezer to terminate.
             if (dataFreezer != null) dataFreezer.terminate();
-            dataFreezer = null;
-            // Command data realizer to terminate, then wait for it to.
+            // Command data realizer to terminate
             dataRealizer.terminate();
             try {
-                dataRealizer.join(6000);
+                long start = System.currentTimeMillis();
+                // wait up to 6 seconds total for both of the threads to die.
+                dataFreezer.join(6000);
+                long elapsed = System.currentTimeMillis() - start;
+                dataRealizer.join(6000 - elapsed);
             } catch (InterruptedException e) {}
 
             saveAllDatafiles();
@@ -1011,7 +1028,7 @@ public class DataRepository implements Repository {
                 // move - but none of that stuff should be moving.
                 if (value instanceof SimpleData) {
                     newName = newPrefix + name.substring(oldPrefixLen);
-                    System.out.println("renaming " + name + " to " + newName);
+                    //System.out.println("renaming " + name + " to " + newName);
                     putValue(newName, value.getSimpleValue());
                     putValue(name, null);
                 }
@@ -2065,9 +2082,9 @@ public class DataRepository implements Repository {
 
             public void run() {
                 // give things a chance to settle down.
-                //System.out.println("waiting for notifier at " +new java.util.Date());
+                System.out.println("waiting for notifier at " +new java.util.Date());
                 dataNotifier.flush();
-                //System.out.println("notifier done at " + new java.util.Date());
+                System.out.println("notifier done at " + new java.util.Date());
 
                 Iterator i = listenersToNotify.iterator();
                 DataConsistencyObserver o;
