@@ -315,7 +315,8 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         while (dataNames.hasNext()) {
             name = (String) dataNames.next();
-            if (name.endsWith(NODE_TAG) || name.endsWith(LEAF_TAG))
+            if ((name.endsWith(NODE_TAG) || name.endsWith(LEAF_TAG)) &&
+                dashboard.data.getValue(name) == TagData.getInstance())
                 nodesAndLeaves.add(name);
         }
         /* "Pretend" that the data item "/node" is set.  We never want
