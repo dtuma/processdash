@@ -1035,6 +1035,7 @@ public class wizard extends TinyCGIBase {
         Document result = null;
         try {
             URLConnection conn = u.openConnection();
+            conn.setUseCaches(false);
             conn.connect();
             String serverTimeStamp = conn.getHeaderField
                 (TinyWebServer.TIMESTAMP_HEADER);
@@ -1124,6 +1125,7 @@ public class wizard extends TinyCGIBase {
         URL u = buildTeamURLReference(teamURL, urlStr);
         try {
             URLConnection conn = u.openConnection();
+            conn.setUseCaches(false);
             conn.connect();
             int status = ((HttpURLConnection) conn).getResponseCode();
             TinyWebServer.slurpContents(conn.getInputStream(), true);
