@@ -53,7 +53,8 @@ CGI_JAVA=Templates/psp1/sizeest.java \
 CGI_CLASSES=$(subst .java,.class,$(CGI_JAVA))
 SIZEEST_COPIES=Templates/psp1.1/sizeest.class \
 	Templates/psp2/sizeest.class \
-	Templates/psp2.1/sizeest.class
+	Templates/psp2.1/sizeest.class \
+	Templates/psp3/sizeest.class
 
 JFREECHART_JAVA=Templates/reports/XYPlot.java \
 	Templates/reports/PiePlot.java
