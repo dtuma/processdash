@@ -162,6 +162,12 @@ public class TinyCGIBase implements TinyCGI {
     protected String getParameter(String name) {
         return (String) parameters.get(name);
     }
+    /** get the effective prefix, set via the URL */
+    protected String getPrefix() {
+        String result = (String) parameters.get("hierarchyPath");
+        if (result == null) result = (String) env.get("PATH_TRANSLATED");
+        return result;
+    }
     /** Does this CGI script want to support query parameter files?
      * child classes that DO NOT want query parameter support should
      * override this method to return false. */
