@@ -125,8 +125,8 @@ $(CGI_CLASSES) : %.class : %.java $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)
 
 add-on-scripts: build/SCR-DCR.jar
 
-build/SCR-DCR.jar: $(SCR_DCR_FILES)
-	$(JAR) cf build/SCR-DCR.jar $(SCR_DCR_FILES)
+build/SCR-DCR.jar: Templates/SCR/manifest $(SCR_DCR_FILES)
+	$(JAR) cfm build/SCR-DCR.jar Templates/SCR/manifest $(SCR_DCR_FILES)
 
 Templates/reports/excel.iqy: Templates/reports/excel.class
 	cp Templates/reports/excel.class Templates/reports/excel.iqy
