@@ -181,12 +181,12 @@ public class TeamProcess {
     }
 
     private static final Color[] COLOR_SPECTRUM = {
-        Color.orange, //new Color(255, 128, 0),
+        Color.orange,
         Color.yellow,
         Color.green,
         Color.cyan,
-        new Color(0, 63, 255),
-        new Color(128, 0, 255) };
+        new Color(  0, 63, 255),   // blue
+        new Color(170, 85, 255) }; // purple
 
 
 
