@@ -110,7 +110,7 @@ public class DefectDialog extends JDialog
         defect_type = DefectTypeStandard.get
             (defectPath.path(), dash.data).getAsComboBox();
         defect_type.insertItemAt("Choose a type", 0);
-        defect_type.setMaximumRowCount(defect_type.getItemCount());
+        defect_type.setMaximumRowCount(20);
         defect_type.setSelectedIndex(0);
         defect_type.addActionListener(this);
 
