@@ -8,18 +8,32 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import pspdash.XMLUtils;
 
-
+/** This class represents a node in the work breakdown structure hierarchy.
+ */
 public class WBSNode implements Cloneable {
 
+    /** The WBSMode to which this node belongs. */
     private WBSModel wbsModel;
+    /** The name of this node */
+    private String name;
+    /** The type of this node */
+    private String type;
+    /** The indentation depth of this node */
+    private int indentLevel;
+    /** True if this node is expanded, false if it is collapsed */
+    private boolean expanded;
+    /** A collection of attributes containing the data for this node */
+    private Map attributes = new HashMap();
 
-    public WBSNode(WBSModel model,
-                   String name, String type, int level, boolean expanded) {
+
+
+    /** Create a new WBSNode with given characteristics. */
+    public WBSNode(WBSModel model, String name, String type,
+                   int level, boolean expanded) {
         this.wbsModel = model;
         setName(name);
         setType(type);
@@ -27,7 +41,11 @@ public class WBSNode implements Cloneable {
         setExpanded(expanded);
     }
 
-    public WBSNode(Element e) {
+
+
+    /** Create a new WBSNode with information from an XML Element. */
+    public WBSNode(WBSModel model, Element e) {
+        this.wbsModel = model;
         setName(e.getAttribute(NAME_ATTR));
         setType(e.getAttribute(TYPE_ATTR));
         setIndentLevel(XMLUtils.getXMLInt(e, INDENT_ATTR));
@@ -39,8 +57,8 @@ public class WBSNode implements Cloneable {
             setXMLAttribute((Element) nodeAttributes.item(i));
     }
 
+    // Getter/setter methods
 
-    private String name;
 
     /** Get the name of this node.
      * @return The name of this node.  */
@@ -48,14 +66,8 @@ public class WBSNode implements Cloneable {
 
     /** Set the name of this node.
      * @param newName the new name for this node.  */
-    public void setName(String newName) {
-        this.name = newName;
-        //fireNodeChanged(new WBSNodeEvent(this, WBSNodeEvent.NAME_CHANGE));
-    }
+    public void setName(String newName) { this.name = newName; }
 
-
-
-    private String type;
 
     /** Get the type of this node.
      * @return the type of this node.  */
@@ -63,14 +75,8 @@ public class WBSNode implements Cloneable {
 
     /** Set the type of this node
      * @param newType the new type for this node.  */
-    public void setType(String newType) {
-        this.type = newType;
-        //fireNodeChanged(new WBSNodeEvent(this, WBSNodeEvent.TYPE_CHANGE));
-    }
+    public void setType(String newType) { this.type = newType; }
 
-
-
-    private int indentLevel;
 
     /** Get the indentation level of this node.
      * @return the indentation level of this node.  */
@@ -80,9 +86,6 @@ public class WBSNode implements Cloneable {
      * @param newLevel the new indentation level for this node.  */
     public void setIndentLevel(int newLevel) { this.indentLevel = newLevel; }
 
-
-
-    private boolean expanded;
 
     /** Returns true if this node is currently expanded.
      * @return true if this node is expanded.  */
@@ -94,15 +97,23 @@ public class WBSNode implements Cloneable {
     public void setExpanded(boolean expanded) { this.expanded = expanded; }
 
 
-    private Map attributes = new HashMap();
 
+    // Methods to get/set data attributes of the node
+
+
+    /** Get an attribute of type <code>Object</code> */
     public Object getAttribute(String attrName) {
         return attributes.get(attrName);
     }
+    /** Set an attribute of type <code>Object</code> */
     public void setAttribute(String attrName, Object value) {
         attributes.put(attrName, value);
     }
 
+
+    /** Get a numeric attribute.
+     * @return <code>Double.NaN</code> if the named attribute is not set,
+     *   or is not a numeric attribute. */
     public double getNumericAttribute(String attrName) {
         Object value = getAttribute(attrName);
         if (value instanceof Number)
@@ -113,16 +124,31 @@ public class WBSNode implements Cloneable {
 
         return Double.NaN;
     }
+    /** Set a numeric attribute */
     public void setNumericAttribute(String attrName, double value) {
         setAttribute(attrName, new Double(value));
     }
 
-    public void setXMLAttribute(Element attrElement) {
+
+
+    // Methods for conversion to/from XML
+
+
+    /** Extract an attribute name/value pair from the given XML Element,
+     * and store it in the attribute map.
+     *
+     * Note: this stores values in the attribute map as <code>String</code>s,
+     * so all getXXXAttribute methods must be capable of automatically
+     * interpreting <code>String</code> values. */
+    protected void setXMLAttribute(Element attrElement) {
         String name = attrElement.getAttribute(NAME_ATTR);
         String value = attrElement.getAttribute(VALUE_ATTR);
         setAttribute(name, value);
     }
 
+
+    /** Write an XML representation of this node to the given
+     * <code>Writer</code> object. */
     public void getAsXML(Writer out) throws IOException {
         // write the opening wbsNode tag.
         out.write("<"+ELEMENT_NAME+" "+NAME_ATTR+"='");
@@ -163,6 +189,9 @@ public class WBSNode implements Cloneable {
         out.write("</"+ELEMENT_NAME+">");
     }
 
+
+
+    /** Make a copy of this WBSNode. */
     protected Object clone() {
         try {
             WBSNode result = (WBSNode) super.clone();
@@ -173,13 +202,9 @@ public class WBSNode implements Cloneable {
         }
     }
 
-    /*
-    public void fireNodeChanged(WBSNodeEvent e) {
-        wbsModel.fireNodeChanged(e);
-        wbsModel.fireTableDataChanged();//
-    }
-    */
 
+
+    // constants used in creating/parsing XML
     public static final String ELEMENT_NAME = "wbsNode";
     private static final String NAME_ATTR = "name";
     private static final String TYPE_ATTR = "type";
