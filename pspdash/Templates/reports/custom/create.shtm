@@ -46,9 +46,11 @@
 
    function formValue(pos) {
       var elem = document.forms[0].elements[pos];
-      if (elem.type == "select-one")
-         return escape(elem.options[elem.selectedIndex].text);
-      else if (elem.type == "text")
+      if (elem.type == "select-one") {
+         var val = elem.options[elem.selectedIndex].value;
+	 if (!val) val = elem.options[elem.selectedIndex].text;
+         return escape(val);
+      } else if (elem.type == "text")
          return escape(elem.value);
       else
          return "";
