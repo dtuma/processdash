@@ -22,7 +22,7 @@ public class WBSModelValidator implements TableModelListener {
     public void tableChanged(TableModelEvent e) { recalc(); }
 
     public void recalc() {
-        System.out.println("WBSModelValidator.recalc()");
+        //System.out.println("WBSModelValidator.recalc()");
         recalc(wbsModel.getRoot());
     }
 
@@ -34,8 +34,6 @@ public class WBSModelValidator implements TableModelListener {
         if (parent != null) {
             String parentType = parent.getType();
             typeError = checkParentType(type, parentType);
-            if (typeError != null)
-                System.out.println("Type error: " + typeError);
         }
         node.setAttribute(NODE_TYPE_ERROR_ATTR_NAME, typeError);
 

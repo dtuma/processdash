@@ -179,7 +179,7 @@ public class WBSModel extends AbstractTableModel {
         rows = resultList.getAsArray();
         if (notify)
             if (oldRows != null && !fireSimpleRowChangeEvent(oldRows, rows)) {
-                System.out.println("firing table data changed");
+                //System.out.println("firing table data changed");
                 fireTableDataChanged();
             }
     }
@@ -230,16 +230,16 @@ public class WBSModel extends AbstractTableModel {
 
         // Send the resulting simple table change events.
         initialLen--;
-        System.out.println("firing table row updated "+initialLen);
+        //System.out.println("firing table row updated "+initialLen);
         fireTableRowsUpdated(initialLen, initialLen);
         if (diff > 0) {
             if (oldRows == shortRows) {
-                System.out.println("firing table rows inserted "+
-                                   (initialLen+1)+","+(initialLen+diff));
+                //System.out.println("firing table rows inserted "+
+                //                   (initialLen+1)+","+(initialLen+diff));
                 fireTableRowsInserted(initialLen+1, initialLen+diff);
             } else {
-                System.out.println("firing table rows deleted "+(initialLen+1)+
-                                   ","+ (initialLen+diff));
+                //System.out.println("firing table rows deleted "+(initialLen+1)+
+                //                   ","+ (initialLen+diff));
                 fireTableRowsDeleted(initialLen+1, initialLen+diff);
             }
         }
@@ -285,7 +285,6 @@ public class WBSModel extends AbstractTableModel {
         WBSNode n;
 
         IntList allNodesToIndent = getIndexesForRows(rowNumbers, true);
-        System.out.println("need to indent nodes "+allNodesToIndent);
 
         // check to ensure that the indent is legal
         if (delta < 0) {
@@ -294,7 +293,7 @@ public class WBSModel extends AbstractTableModel {
                 int newIndentLevel =
                     ((WBSNode) wbsNodes.get(nodePos)).getIndentLevel() + delta;
                 if (newIndentLevel < 1) {
-                    System.out.println("indent is illegal");
+                    //System.out.println("indent is illegal");
                     return null;
                 }
             }
