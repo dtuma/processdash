@@ -843,8 +843,12 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
                     defaultScript = new ScriptID(scriptFile, datapath(tempKey), null);
             }
 
-            if (Prop.hasValue(templateID = val.getID()))
-                v.addAll(TemplateLoader.getScriptIDs(templateID, datapath(tempKey)));
+            if (Prop.hasValue(templateID = val.getID())) {
+                Vector scriptIDs = TemplateLoader.getScriptIDs
+                    (templateID, datapath(tempKey));
+                if (scriptIDs != null)
+                    v.addAll(scriptIDs);
+            }
 
             tempKey = tempKey.getParent();
         }
