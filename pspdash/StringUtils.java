@@ -86,11 +86,14 @@ public class StringUtils
                 "findAndReplace doesn't work on nulls.");
         }
 
+        // handle degenerate case: if no replacements need to be made,
+        // return the original text unchanged.
+        int replaceStart = text.indexOf(find);
+        if (replaceStart == -1) return text;
+
         int findLength = find.length();
-        int replaceStart;
         StringBuffer toReturn = new StringBuffer();
 
-        replaceStart = text.indexOf(find);
         while (replaceStart != -1)
         {
             toReturn.append(text.substring(0, replaceStart)).append(replace);
