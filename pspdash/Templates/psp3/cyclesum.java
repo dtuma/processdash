@@ -81,6 +81,7 @@ public class cyclesum extends pspdash.TinyCGIBase {
         // WARNING: the "4" on the next line is a magic number which
         // depends on the structure of the PSP3 template.
         int numCycles = props.getNumChildren (self) - 4;
+        if (numCycles < 0) numCycles = 0;
         String [] result = new String[numCycles];
         while (numCycles-- > 0)
             // WARNING: the "3" on the next line is a magic number which
@@ -155,6 +156,7 @@ public class cyclesum extends pspdash.TinyCGIBase {
     /** find and replace occurrences of a string within buf */
     protected String replace(String template, String text, String replacement)
     {
+        if (replacement == null) return template;
         int pos, len = text.length();
         StringBuffer buf = new StringBuffer(template);
         while ((pos = buf.toString().indexOf(text)) != -1)
