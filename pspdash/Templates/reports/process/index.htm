@@ -27,6 +27,7 @@
 -->
 <HTML>
 <HEAD>
+<link rel=stylesheet type="text/css" href="/style.css">
 <TITLE>Process Analysis</TITLE>
 </HEAD>
 <BODY>
@@ -34,14 +35,30 @@
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
 <TABLE><TR><TD><H2>Process Analysis&nbsp;</H2></TD>
 <TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
-<script src="../chart.js">document.write("problem loading chart.js!");</script>
-<script>
-    write("qf=process/productivity.rpt", "qf=small.rpt");
-    write("qf=process/prod-vs-yield.rpt&chart=xy", "qf=small.rpt");
-    write("qf=process/prod-vs-afr.rpt&chart=xy", "qf=small.rpt");
-    write("qf=process/yield-vs-afr.rpt&chart=xy", "qf=small.rpt");
-    write("qf=process/testdef-vs-afr.rpt&chart=xy", "qf=small.rpt");
-    write("qf=process/testdef-vs-yield.rpt&chart=xy", "qf=small.rpt");
-</script>
+
+<!--#set var=q value="qf=process/productivity.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=process/prod-vs-yield.rpt&chart=xy" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=process/prod-vs-afr.rpt&chart=xy" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=process/yield-vs-afr.rpt&chart=xy" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=process/testdef-vs-afr.rpt&chart=xy" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=process/testdef-vs-yield.rpt&chart=xy" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
 </BODY>
 </HTML>

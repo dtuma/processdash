@@ -27,7 +27,7 @@
 -->
 <HTML>
 <HEAD>
-<link rel=stylesheet type="text/css" href="/0/style.css">
+<link rel=stylesheet type="text/css" href="/style.css">
 <TITLE>Plan Analysis</TITLE>
 </HEAD>
 <BODY>
@@ -35,21 +35,50 @@
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
 <TABLE><TR><TD><H2>Plan Analysis&nbsp;</H2></TD>
 <TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
-<script src="../chart.js">document.write("problem loading chart.js!");</script>
-<script>
-    write("qf=plan/size.rpt", "qf=small.rpt");
-    write("qf=plan/size-est-err.rpt", "qf=small.rpt");
-    write("qf=plan/time.rpt", "qf=small.rpt");
-    write("qf=plan/time-est-err.rpt", "qf=small.rpt");
-    write("qf=plan/percent-plan-time.rpt", "qf=small.rpt");
-    write("qf=plan/percent-pm-time.rpt", "qf=small.rpt");
-    write("qf=plan/percent-plpm-time.rpt", "qf=small.rpt");
-    write("qf=plan/percent-comp-time.rpt", "qf=small.rpt");
-    write("qf=plan/percent-test-time.rpt", "qf=small.rpt");
-    write("qf=plan/percent-ct-time.rpt", "qf=small.rpt");
-    write("qf=plan/to-date-time.rpt&chart=pie", "qf=small.rpt&skipWedgeLabels&interiorSpacing=5");
-    // write("qf=defects/desrev-rem.rpt", "qf=small.rpt&titleFontSize=10");
-    // write("qf=defects/comp-vs-test.rpt&chart=xy", "qf=small.rpt");
-</script>
+
+<!--#set var=q value="qf=plan/size.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/size-est-err.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/time.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/time-est-err.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/percent-plan-time.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/percent-pm-time.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/percent-plpm-time.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/percent-comp-time.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/percent-test-time.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/percent-ct-time.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=plan/to-date-time.rpt&chart=pie" #-->
+<!--#set var=small value="qf=small.rpt&skipWedgeLabels&interiorSpacing=5" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
 </BODY>
 </HTML>

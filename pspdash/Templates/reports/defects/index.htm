@@ -27,7 +27,7 @@
 -->
 <HTML>
 <HEAD>
-<link rel=stylesheet type="text/css" href="/0/style.css">
+<link rel=stylesheet type="text/css" href="/style.css">
 <TITLE>Defect Analysis</TITLE>
 </HEAD>
 <BODY>
@@ -35,22 +35,53 @@
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
 <TABLE><TR><TD><H2>Defect Analysis&nbsp;</H2></TD>
 <TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
-<script src="../chart.js">document.write("problem loading chart.js!");</script>
-<script>
-    write("qf=defects/total.rpt", "qf=small.rpt");
-    write("qf=defects/design-inj.rpt", "qf=small.rpt");
-    write("qf=defects/code-inj.rpt", "qf=small.rpt");
-    write("qf=defects/desrev-rem.rpt", "qf=small.rpt&titleFontSize=10");
-    write("qf=defects/coderev-rem.rpt", "qf=small.rpt&titleFontSize=10");
-    write("qf=defects/comp-rem.rpt", "qf=small.rpt");
-    write("qf=defects/test-rem.rpt", "qf=small.rpt");
-    write("qf=defects/percent-inj.rpt", "qf=small.rpt");
-    write("qf=defects/percent-rem.rpt", "qf=small.rpt");
-    write("qf=defects/comp-vs-test.rpt&chart=xy", "qf=small.rpt");
-//    write("qf=defects/to-date-inj.rpt&chart=pie", "qf=small.rpt&titleFontSize=10&hideLegend&interiorSpacing=30");
-//    write("qf=defects/to-date-rem.rpt&chart=pie", "qf=small.rpt&titleFontSize=9&hideLegend&interiorSpacing=30");
-    write("qf=defects/to-date-inj.rpt&chart=pie", "qf=small.rpt&titleFontSize=10&skipWedgeLabels&interiorSpacing=5");
-    write("qf=defects/to-date-rem.rpt&chart=pie", "qf=small.rpt&titleFontSize=9&skipWedgeLabels&interiorSpacing=5");
-</script>
+<!--#set var=q value="qf=defects/total.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/design-inj.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/code-inj.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/desrev-rem.rpt" #-->
+<!--#set var=small value="qf=small.rpt&titleFontSize=10" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/coderev-rem.rpt" #-->
+<!--#set var=small value="qf=small.rpt&titleFontSize=10" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/comp-rem.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/test-rem.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/percent-inj.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/percent-rem.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/comp-vs-test.rpt&chart=xy" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/to-date-inj.rpt&chart=pie" #-->
+<!--#set var=small value="qf=small.rpt&titleFontSize=10&skipWedgeLabels&interiorSpacing=5" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=defects/to-date-rem.rpt&chart=pie" #-->
+<!--#set var=small value="qf=small.rpt&titleFontSize=9&skipWedgeLabels&interiorSpacing=5" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
 </BODY>
 </HTML>

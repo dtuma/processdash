@@ -27,7 +27,7 @@
 -->
 <HTML>
 <HEAD>
-<link rel=stylesheet type="text/css" href="/0/style.css">
+<link rel=stylesheet type="text/css" href="/style.css">
 <TITLE>Quality Analysis</TITLE>
 </HEAD>
 <BODY>
@@ -35,20 +35,42 @@
 <H1><!--#echo var="PATH_TRANSLATED" --></H1>
 <TABLE><TR><TD><H2>Quality Analysis&nbsp;</H2></TD>
 <TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
-<script src="../chart.js">document.write("problem loading chart.js!");</script>
-<script>
-    write("qf=quality/yield.rpt", "qf=small.rpt");
-    write("qf=quality/failure.rpt", "qf=small.rpt");
-    write("qf=quality/appraisal.rpt", "qf=small.rpt");
-    write("qf=quality/total.rpt", "qf=small.rpt");
-    write("qf=quality/afr.rpt", "qf=small.rpt");
-    write("qf=quality/review-rate.rpt", "qf=small.rpt");
-    write("qf=quality/yield-vs-desrev.rpt&chart=xy&titleFontSize=16",
-          "qf=small.rpt&titleFontSize=6");
-    write("qf=quality/yield-vs-coderev.rpt&chart=xy&titleFontSize=16", 
-          "qf=small.rpt&titleFontSize=6");
-    write("qf=quality/yield-vs-revrate.rpt&chart=xy&titleFontSize=14", 
-          "qf=small.rpt&titleFontSize=5&axisLabelFontSize=7");
-</script>
+
+<!--#set var=q value="qf=quality/yield.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=quality/failure.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=quality/appraisal.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=quality/total.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=quality/afr.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=quality/review-rate.rpt" #-->
+<!--#set var=small value="qf=small.rpt" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=quality/yield-vs-desrev.rpt&chart=xy&titleFontSize=16" #-->
+<!--#set var=small value="qf=small.rpt&titleFontSize=6" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=quality/yield-vs-coderev.rpt&chart=xy&titleFontSize=16" #-->
+<!--#set var=small value="qf=small.rpt&titleFontSize=6" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
+<!--#set var=q value="qf=quality/yield-vs-revrate.rpt&chart=xy&titleFontSize=14" #-->
+<!--#set var=small value="qf=small.rpt&titleFontSize=5&axisLabelFontSize=7" #-->
+<!--#include file="../chart.htm" parse="true" #-->
+
 </BODY>
 </HTML>
