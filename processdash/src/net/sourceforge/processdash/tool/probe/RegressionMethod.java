@@ -29,8 +29,9 @@ package net.sourceforge.processdash.tool.probe;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import pspdash.data.Correlation;
-import pspdash.data.LinearRegression;
+import net.sourceforge.processdash.util.Correlation;
+import net.sourceforge.processdash.util.LinearRegression;
+
 
 
 class RegressionMethod extends Method {

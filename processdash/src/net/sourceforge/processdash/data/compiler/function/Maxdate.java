@@ -28,11 +28,11 @@ package net.sourceforge.processdash.data.compiler.function;
 import java.util.Iterator;
 import java.util.List;
 
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
-import pspdash.data.DataRepository;
-import pspdash.data.DateData;
-import pspdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 
 public class Maxdate extends AbstractFunction {
 

@@ -56,6 +56,9 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -68,9 +71,6 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import pspdash.ObjectCache;
 import pspdash.TinyWebServer;
-import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
 
 
 /**

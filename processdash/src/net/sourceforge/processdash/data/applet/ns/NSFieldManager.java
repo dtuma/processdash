@@ -29,11 +29,11 @@ package net.sourceforge.processdash.data.applet.ns;
 
 import java.util.Vector;
 
-import pspdash.data.DataEvent;
-import pspdash.data.DataListener;
-import pspdash.data.Repository;
 
 import net.sourceforge.processdash.data.applet.*;
+import net.sourceforge.processdash.data.repository.DataEvent;
+import net.sourceforge.processdash.data.repository.DataListener;
+import net.sourceforge.processdash.data.repository.Repository;
 import netscape.javascript.JSObject;
 
 

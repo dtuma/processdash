@@ -48,11 +48,11 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import net.sourceforge.processdash.data.util.DataCorrelator;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.ui.help.PCSH;
 
-import pspdash.data.DataCorrelator;
 
 public class ChartDialog extends JDialog {
 

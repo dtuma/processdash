@@ -25,7 +25,7 @@
 
 package net.sourceforge.processdash.data.compiler.function;
 
-import pspdash.data.ListData;
+import net.sourceforge.processdash.data.ListData;
 
 public class Map extends Filter {
 

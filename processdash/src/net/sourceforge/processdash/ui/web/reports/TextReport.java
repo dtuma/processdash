@@ -28,10 +28,10 @@ package net.sourceforge.processdash.ui.web.reports;
 
 import java.io.IOException;
 
+import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
-import pspdash.data.ResultSet;
 
 
 public class TextReport extends TinyCGIBase {

@@ -55,11 +55,11 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.help.PCSH;
 import pspdash.Settings;
-import pspdash.data.DataRepository;
 
 public class TaskScheduleChooser
     implements ActionListener, ListSelectionListener

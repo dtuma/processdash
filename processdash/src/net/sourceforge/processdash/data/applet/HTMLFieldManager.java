@@ -26,7 +26,7 @@
 
 package net.sourceforge.processdash.data.applet;
 
-import pspdash.data.Repository;
+import net.sourceforge.processdash.data.repository.Repository;
 
 public interface HTMLFieldManager {
 

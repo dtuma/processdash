@@ -27,10 +27,10 @@ package net.sourceforge.processdash.data.compiler.function;
 
 import java.util.List;
 
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
 import net.sourceforge.processdash.util.EscapeString;
-import pspdash.data.StringData;
 
 public class Esc extends AbstractFunction {
 

@@ -25,7 +25,7 @@
 
 package net.sourceforge.processdash.data.applet;
 
-import pspdash.data.DoubleData;
+import net.sourceforge.processdash.data.DoubleData;
 
 // import netscape.javascript.JSObject;
 

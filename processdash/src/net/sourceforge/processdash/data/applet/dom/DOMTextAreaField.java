@@ -30,11 +30,11 @@ package net.sourceforge.processdash.data.applet.dom;
 import com.sun.java.browser.dom.DOMService;
 
 import net.sourceforge.processdash.data.applet.*;
+import net.sourceforge.processdash.data.repository.Repository;
 
 import org.w3c.dom.html.HTMLElement;
 import org.w3c.dom.html.HTMLTextAreaElement;
 
-import pspdash.data.Repository;
 
 
 class DOMTextAreaField extends DOMField {

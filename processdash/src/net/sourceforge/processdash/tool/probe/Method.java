@@ -30,7 +30,8 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Vector;
 
-import pspdash.data.DoubleData;
+import net.sourceforge.processdash.data.DoubleData;
+
 
 
 class Method implements Comparable {

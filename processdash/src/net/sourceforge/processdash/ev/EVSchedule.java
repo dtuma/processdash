@@ -39,6 +39,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
 
@@ -52,7 +53,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import pspdash.data.ListData;
 
 public class EVSchedule implements TableModel {
 

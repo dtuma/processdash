@@ -34,6 +34,7 @@ import java.util.Map;
 
 import javax.swing.table.TableModel;
 
+import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
@@ -44,7 +45,6 @@ import net.sourceforge.processdash.util.StringUtils;
 
 import pspdash.TinyCGIException;
 import pspdash.TinyWebServer;
-import pspdash.data.DoubleData;
 
 
 /** CGI script for displaying tasks due in the previous/next week

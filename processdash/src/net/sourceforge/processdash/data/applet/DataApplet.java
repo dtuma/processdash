@@ -27,7 +27,6 @@ package net.sourceforge.processdash.data.applet;
 
 
 import pspdash.Settings;
-import pspdash.data.*;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -37,6 +36,8 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLEncoder;
+
+import net.sourceforge.processdash.data.repository.*;
 
 
 public class DataApplet extends Applet implements RepositoryClientListener {

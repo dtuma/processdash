@@ -31,12 +31,12 @@ import java.util.Vector;
 import com.sun.java.browser.dom.*;
 
 import net.sourceforge.processdash.data.applet.*;
+import net.sourceforge.processdash.data.repository.DataEvent;
+import net.sourceforge.processdash.data.repository.DataListener;
+import net.sourceforge.processdash.data.repository.Repository;
 
 import org.w3c.dom.html.*;
 
-import pspdash.data.DataEvent;
-import pspdash.data.DataListener;
-import pspdash.data.Repository;
 
 
 public class DOMFieldManager implements HTMLFieldManager, DataListener {

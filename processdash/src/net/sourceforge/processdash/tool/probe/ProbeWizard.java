@@ -31,15 +31,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 import pspdash.Settings;
-import pspdash.data.DataRepository;
-import pspdash.data.DoubleData;
-import pspdash.data.NumberData;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
 
 
 public class ProbeWizard extends TinyCGIBase {

@@ -29,11 +29,11 @@ package net.sourceforge.processdash.ui.web.psp;
 
 import java.io.IOException;
 
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 import pspdash.TinyWebServer;
-import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
 
 
 public class HistoricalDataReport extends TinyCGIBase {

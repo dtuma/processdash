@@ -30,12 +30,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import net.sourceforge.processdash.data.DataComparator;
+import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
-import pspdash.data.DataComparator;
-import pspdash.data.DataRepository;
-import pspdash.data.ListData;
-import pspdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 
 public class Sort extends AbstractFunction {
 

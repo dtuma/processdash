@@ -31,7 +31,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import pspdash.data.SimpleData;
+import net.sourceforge.processdash.data.SimpleData;
+
 
 public class CompiledScript implements Serializable {
 

@@ -28,11 +28,12 @@ package net.sourceforge.processdash.data.compiler;
 import java.util.ArrayList;
 import java.util.List;
 
-import pspdash.data.DoubleData;
-import pspdash.data.ListData;
-import pspdash.data.NumberData;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+
 
 public class AbstractFunction implements Function {
 

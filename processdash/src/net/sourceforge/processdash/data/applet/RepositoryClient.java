@@ -26,11 +26,6 @@
 package net.sourceforge.processdash.data.applet;
 
 import pspdash.Settings;
-import pspdash.data.*;
-import pspdash.data.DataEvent;
-import pspdash.data.DataListener;
-import pspdash.data.Repository;
-import pspdash.data.SaveableData;
 
 import java.io.*;
 import java.net.*;
@@ -39,6 +34,9 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.Properties;
+
+import net.sourceforge.processdash.data.*;
+import net.sourceforge.processdash.data.repository.*;
 
 public class RepositoryClient extends Thread implements Repository {
 

@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
@@ -40,8 +42,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 
 import pspdash.DefectTypeStandard;
-import pspdash.data.DoubleData;
-import pspdash.data.ResultSet;
 
 
 public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {

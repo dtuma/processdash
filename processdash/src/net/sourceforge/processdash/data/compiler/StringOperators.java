@@ -25,10 +25,10 @@
 
 package net.sourceforge.processdash.data.compiler;
 
-import pspdash.data.DataRepository;
-import pspdash.data.ListData;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
+import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 
 class StringOperators {
 

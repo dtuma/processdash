@@ -28,9 +28,9 @@ package net.sourceforge.processdash.data.compiler.function;
 import java.util.Iterator;
 import java.util.List;
 
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
-import pspdash.data.StringData;
 
 public class Join extends AbstractFunction {
 

@@ -26,11 +26,11 @@
 
 package net.sourceforge.processdash.data.applet;
 
-import pspdash.data.DoubleData;
-import pspdash.data.ImmutableDoubleData;
-import pspdash.data.MalformedValueException;
-import pspdash.data.Repository;
-import pspdash.data.SimpleData;
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.MalformedValueException;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.Repository;
 
 
 class DoubleInterpreter extends DataInterpreter {

@@ -27,10 +27,10 @@ package net.sourceforge.processdash.data.compiler.function;
 
 import java.util.List;
 
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
-import pspdash.data.DoubleData;
-import pspdash.data.SimpleData;
 
 public class Nvl extends AbstractFunction {
 

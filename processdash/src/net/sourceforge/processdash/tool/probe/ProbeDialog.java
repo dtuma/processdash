@@ -51,6 +51,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.data.util.DataCorrelator;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -58,9 +61,6 @@ import net.sourceforge.processdash.ui.DataComboBox;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 
-import pspdash.data.DataCorrelator;
-import pspdash.data.DataRepository;
-import pspdash.data.DoubleData;
 
 public class ProbeDialog extends JFrame implements
       ActionListener, DocumentListener {

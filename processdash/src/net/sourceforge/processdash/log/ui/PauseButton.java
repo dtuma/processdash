@@ -37,6 +37,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.Icon;
 
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.SaveableData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
@@ -48,10 +52,6 @@ import pspdash.InternalSettings;
 import pspdash.PSPDashboard;
 import pspdash.Settings;
 import pspdash.Timer;
-import pspdash.data.DataRepository;
-import pspdash.data.SaveableData;
-import pspdash.data.DateData;
-import pspdash.data.DoubleData;
 
 
 public class PauseButton extends DropDownButton implements ActionListener {

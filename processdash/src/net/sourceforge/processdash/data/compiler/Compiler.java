@@ -31,17 +31,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.ImmutableStringData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.compiler.analysis.DepthFirstAdapter;
 import net.sourceforge.processdash.data.compiler.lexer.Lexer;
 import net.sourceforge.processdash.data.compiler.node.*;
 import net.sourceforge.processdash.data.compiler.parser.Parser;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.ResourcePool;
-import pspdash.data.DateData;
-import pspdash.data.ImmutableDoubleData;
-import pspdash.data.ImmutableStringData;
-import pspdash.data.StringData;
-import pspdash.data.TagData;
 
 
 public class Compiler extends DepthFirstAdapter {

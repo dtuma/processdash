@@ -27,14 +27,15 @@
 package net.sourceforge.processdash.log;
 
 import pspdash.PSPDashboard;
-import pspdash.data.NumberFunction;
-import pspdash.data.DoubleData;
-import pspdash.data.DataRepository;
 
 import java.io.*;
 import java.text.ParseException;
 import java.util.Hashtable;
 import java.util.Iterator;
+
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.NumberFunction;
+import net.sourceforge.processdash.data.repository.DataRepository;
 
 
 public class DefectLog {

@@ -25,9 +25,9 @@
 
 package net.sourceforge.processdash.data.compiler;
 
-import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 
 
 /** This class creates a local namespace around another expression

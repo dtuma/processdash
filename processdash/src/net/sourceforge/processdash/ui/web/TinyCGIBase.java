@@ -30,13 +30,13 @@ import pspdash.MultipartRequest;
 import pspdash.ObjectCache;
 import pspdash.TinyCGI;
 import pspdash.TinyWebServer;
-import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.util.HTMLUtils;
 

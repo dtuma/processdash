@@ -29,12 +29,12 @@ package net.sourceforge.processdash.ui.web.dash;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
-import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
 
 
 public class GenericPlanSummaryForm extends TinyCGIBase {

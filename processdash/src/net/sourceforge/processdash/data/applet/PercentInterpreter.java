@@ -26,9 +26,9 @@
 
 package net.sourceforge.processdash.data.applet;
 
-import pspdash.data.DoubleData;
-import pspdash.data.MalformedValueException;
-import pspdash.data.Repository;
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.MalformedValueException;
+import net.sourceforge.processdash.data.repository.Repository;
 
 
 public class PercentInterpreter extends DoubleInterpreter {

@@ -26,8 +26,8 @@
 
 package net.sourceforge.processdash.data.applet;
 
-import pspdash.data.*;
-import pspdash.data.Repository;
+
+import net.sourceforge.processdash.data.repository.*;
 
 
 public class InterpreterFactory {

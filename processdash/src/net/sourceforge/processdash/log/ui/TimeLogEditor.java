@@ -45,6 +45,9 @@ import java.io.IOException;
 import javax.swing.tree.*;
 import javax.swing.text.JTextComponent;
 
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.NumberFunction;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
@@ -58,9 +61,6 @@ import net.sourceforge.processdash.util.FormatUtil;
 import pspdash.InternalSettings;
 import pspdash.PSPDashboard;
 import pspdash.Settings;
-import pspdash.data.DataRepository;
-import pspdash.data.NumberFunction;
-import pspdash.data.DoubleData;
 
 
 public class TimeLogEditor extends Object

@@ -29,13 +29,14 @@ package net.sourceforge.processdash.data.applet;
 
 import java.util.Vector;
 
-import pspdash.data.DataEvent;
-import pspdash.data.DataListener;
-import pspdash.data.MalformedValueException;
-import pspdash.data.RemoteException;
-import pspdash.data.Repository;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
+import net.sourceforge.processdash.data.MalformedValueException;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataEvent;
+import net.sourceforge.processdash.data.repository.DataListener;
+import net.sourceforge.processdash.data.repository.RemoteException;
+import net.sourceforge.processdash.data.repository.Repository;
+
 
 
 public abstract class DataInterpreter implements DataListener {

@@ -25,8 +25,8 @@
 
 package net.sourceforge.processdash.data.compiler;
 
-import pspdash.data.ImmutableDoubleData;
-import pspdash.data.SimpleData;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.SimpleData;
 
 public class LogicOperators {
 

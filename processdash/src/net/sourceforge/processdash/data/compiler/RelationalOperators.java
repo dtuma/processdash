@@ -25,8 +25,8 @@
 
 package net.sourceforge.processdash.data.compiler;
 
-import pspdash.data.DoubleData;
-import pspdash.data.SimpleData;
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.SimpleData;
 
 public class RelationalOperators {
 

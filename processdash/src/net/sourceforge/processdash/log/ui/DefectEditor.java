@@ -33,6 +33,7 @@ import java.util.*;
 import java.awt.event.*;
 import javax.swing.tree.*;
 
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -48,7 +49,6 @@ import pspdash.DefectTypeStandard;
 import pspdash.InternalSettings;
 import pspdash.PSPDashboard;
 import pspdash.Settings;
-import pspdash.data.DataRepository;
 
 
 public class DefectEditor extends Component

@@ -39,6 +39,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 
+import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
@@ -51,8 +53,6 @@ import pspdash.DefectTypeStandard;
 import pspdash.PSPDashboard;
 import pspdash.Settings;
 import pspdash.Timer;
-import pspdash.data.ListData;
-import pspdash.data.StringData;
 
 public class DefectDialog extends JDialog
     implements ActionListener, DocumentListener, WindowListener

@@ -26,8 +26,8 @@
 package net.sourceforge.processdash.ui.web.dash;
 
 
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
-import pspdash.data.ImmutableDoubleData;
 
 
 public class ExpandCollapseHierarchy extends TinyCGIBase {

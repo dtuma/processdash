@@ -28,13 +28,13 @@ package net.sourceforge.processdash.log;
 
 import java.util.Map;
 
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 
 import pspdash.Settings;
-import pspdash.data.DataRepository;
-import pspdash.data.ResultSet;
 
 public class DefectAnalyzer {
 

@@ -25,9 +25,9 @@
 
 package net.sourceforge.processdash.data.compiler;
 
-import pspdash.data.SaveableData;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
+import net.sourceforge.processdash.data.SaveableData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 
 /** This class creates a local namespace around another expression
  *  context, allowing the data element [_] to be locally set.

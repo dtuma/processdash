@@ -27,7 +27,7 @@
 package net.sourceforge.processdash.data.applet;
 
 
-import pspdash.data.DataListener;
+import net.sourceforge.processdash.data.repository.DataListener;
 
 
 public abstract class HTMLField {

@@ -29,11 +29,11 @@ package net.sourceforge.processdash.ui.web.dash;
 import java.io.IOException;
 import java.util.TreeSet;
 
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ui.DataComboBox;
 import net.sourceforge.processdash.ui.OptionList;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
-import pspdash.data.DataRepository;
 
 
 /** CGI script for generating data element selection lists.

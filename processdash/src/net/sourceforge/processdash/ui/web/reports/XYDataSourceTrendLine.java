@@ -27,11 +27,12 @@ package net.sourceforge.processdash.ui.web.reports;
 
 import java.util.Vector;
 
+import net.sourceforge.processdash.util.LinearRegression;
+
 import org.jfree.data.DatasetChangeListener;
 import org.jfree.data.DatasetGroup;
 import org.jfree.data.XYDataset;
 
-import pspdash.data.LinearRegression;
 
 
 /** Add a line to an XYDataSource.

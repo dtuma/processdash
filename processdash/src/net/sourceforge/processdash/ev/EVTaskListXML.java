@@ -30,9 +30,10 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
-import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
+
 
 public class EVTaskListXML extends EVTaskListXMLAbstract {
 

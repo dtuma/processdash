@@ -38,12 +38,12 @@ import java.util.Vector;
 
 import javax.swing.JComboBox;
 
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.ui.lib.*;
 import net.sourceforge.processdash.util.*;
 
 import pspdash.Settings;
-import pspdash.data.DataRepository;
 
 
 public class DataComboBox extends JComboBox {

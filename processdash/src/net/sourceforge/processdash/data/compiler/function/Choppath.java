@@ -27,10 +27,10 @@ package net.sourceforge.processdash.data.compiler.function;
 
 import java.util.List;
 
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
-import pspdash.data.DataRepository;
-import pspdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 
 public class Choppath extends AbstractFunction {
 

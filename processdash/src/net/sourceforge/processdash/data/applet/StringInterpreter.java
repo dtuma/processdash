@@ -26,9 +26,9 @@
 
 package net.sourceforge.processdash.data.applet;
 
-import pspdash.data.Repository;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.Repository;
 
 
 class StringInterpreter extends DataInterpreter {

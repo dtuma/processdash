@@ -26,8 +26,6 @@
 package net.sourceforge.processdash.hier;
 
 import pspdash.PSPDashboard;
-import pspdash.data.DataRepository;
-import pspdash.data.TagData;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -35,6 +33,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
+import net.sourceforge.processdash.data.TagData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
 
 /** General purpose class for making <b>simple</b> changes to the hierarchy.

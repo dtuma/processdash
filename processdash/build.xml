@@ -89,9 +89,9 @@ Authors:
 
   <property name="src"        value="src"/>
   <property name="pspdash"    value="${src}/pspdash"/>
-  <property name="data"       value="${pspdash}/data"/>
   <property name="processdash" value="${src}/net/sourceforge/processdash"/>
-  <property name="compiler"   value="${processdash}/data/compiler"/>
+  <property name="data"       value="${processdash}/data"/>
+  <property name="compiler"   value="${data}/compiler"/>
   <property name="templates"  value="Templates"/>
   <property name="help"       value="${templates}/help"/>
   <property name="helpsearch" value="${help}/JavaHelpSearch"/>
@@ -286,25 +286,6 @@ Authors:
 
 
 
-  <target name="jfreechart" depends="-jfreechart-depend"
-          unless="jfreechart.upToDate"
-          description="Compile our custom jfreechart plot class.">
-    <javac srcdir="${templates}/reports" destdir="${build}"
-           debug="${debug}" classpath="${jfreechart.jar}">
-      <include name="RadarPlot.java"/>
-    </javac>
-  </target>
-
-  <target name="-jfreechart-depend">
-    <uptodate property="jfreechart.upToDate">
-      <srcfiles dir= "${templates}/reports" includes="RadarPlot.java"/>
-      <mapper type="glob" from="*.java"
-              to="../../${build}/org/jfree/chart/plot/*.class"/>
-    </uptodate>
-  </target>
-
-
-
   <target name="NSDataApplet" depends="init" if="nsobject.support"
         description="Compile the data applet support for netscape and W3C dom">
     <mkdir dir="${ns.dir}"/>
@@ -331,8 +312,7 @@ Authors:
 
 
 
-  <target name="jar"
-          depends="init,compile,optional,jfreechart,javahelp"
+  <target name="jar" depends="init,compile,optional,javahelp"
           description="Make the jarfile for distribution">
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->

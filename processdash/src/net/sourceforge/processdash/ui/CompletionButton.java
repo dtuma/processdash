@@ -33,11 +33,11 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
 
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.help.PCSH;
 import pspdash.PSPDashboard;
-import pspdash.data.DataRepository;
-import pspdash.data.DateData;
 
 
 public class CompletionButton extends JCheckBox implements ActionListener {

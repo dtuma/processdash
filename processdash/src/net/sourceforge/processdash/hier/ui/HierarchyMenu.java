@@ -29,6 +29,10 @@ package net.sourceforge.processdash.hier.ui;
 import java.awt.event.*;
 import javax.swing.*;
 
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.repository.DataEvent;
+import net.sourceforge.processdash.data.repository.DataListener;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.*;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.*;
@@ -37,10 +41,6 @@ import java.util.*;
 
 import pspdash.PSPDashboard;
 import pspdash.Settings;
-import pspdash.data.DataEvent;
-import pspdash.data.DataListener;
-import pspdash.data.DataRepository;
-import pspdash.data.DateData;
 
 public class HierarchyMenu implements ActionListener {
 

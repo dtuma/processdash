@@ -27,9 +27,9 @@ package net.sourceforge.processdash.data.compiler.function;
 
 import java.util.List;
 
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
-import pspdash.data.ImmutableDoubleData;
 
 public class Startswith extends AbstractFunction {
 

@@ -25,7 +25,7 @@
 
 package net.sourceforge.processdash.data.compiler;
 
-import pspdash.data.SimpleData;
+import net.sourceforge.processdash.data.SimpleData;
 
 class PushConstant implements Instruction {
 

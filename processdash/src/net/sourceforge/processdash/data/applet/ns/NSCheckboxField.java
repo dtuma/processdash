@@ -27,7 +27,7 @@
 package net.sourceforge.processdash.data.applet.ns;
 
 
-import pspdash.data.Repository;
+import net.sourceforge.processdash.data.repository.Repository;
 import netscape.javascript.JSObject;
 
 
