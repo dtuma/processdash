@@ -61,6 +61,7 @@ class DOMCheckboxField extends DOMField {
 
     public void setReadOnly(boolean readOnly) {
         ((HTMLInputElement) element).setReadOnly(readOnly);
+        ((HTMLInputElement) element).setTabIndex(readOnly ? -1 : 0);
     }
 
 }

@@ -51,6 +51,7 @@ class DOMTextAreaField extends DOMField {
     }
     public void setReadOnly(boolean readOnly) {
         ((HTMLTextAreaElement) element).setReadOnly(readOnly);
+        ((HTMLTextAreaElement) element).setTabIndex(readOnly ? -1 : 0);
     }
     public void fetch() { variantValue = i.getString(); }
 

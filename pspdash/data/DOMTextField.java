@@ -50,6 +50,7 @@ class DOMTextField extends DOMField {
     }
     public void setReadOnly(boolean readOnly) {
         ((HTMLInputElement) element).setReadOnly(readOnly);
+        ((HTMLInputElement) element).setTabIndex(readOnly ? -1 : 0);
     }
     public void fetch() { variantValue = i.getString(); }
 
