@@ -1,13 +1,15 @@
 
-import pspdash.*;
-
 import java.io.IOException;
+
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+
 
 public class selectWBS extends selectHier {
 
     // start at the root of the current project.
     protected PropertyKey getStartingKey() {
-        PSPProperties hierarchy = getPSPProperties();
+        DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(getPrefix());
         while (key != null) {
             String id = getID(hierarchy, key);
@@ -24,7 +26,7 @@ public class selectWBS extends selectHier {
     }
 
     // only display team roots and team nodes.
-    protected boolean prune(PSPProperties hierarchy, PropertyKey key) {
+    protected boolean prune(DashHierarchy hierarchy, PropertyKey key) {
         String id = getID(hierarchy, key);
         if (id == null || id.length() == 0) return true;
         if (!id.endsWith("Root") && !id.endsWith("Node")) return true;

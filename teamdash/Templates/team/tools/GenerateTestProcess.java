@@ -6,7 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import teamdash.process.CustomProcess;
 import teamdash.process.CustomProcessPublisher;
 

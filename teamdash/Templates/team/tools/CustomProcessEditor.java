@@ -1,8 +1,8 @@
 
 import java.io.IOException;
 
-import pspdash.DashController;
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 
 public class CustomProcessEditor extends TinyCGIBase {

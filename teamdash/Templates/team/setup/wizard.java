@@ -1,16 +1,43 @@
 
-import pspdash.*;
-import pspdash.data.DataRepository;
-import pspdash.data.DataImporter;
-import pspdash.data.ImmutableStringData;
-import pspdash.data.ImmutableDoubleData;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Map;
+import java.util.Vector;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import org.w3c.dom.*;
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.ImmutableStringData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataImporter;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ev.EVTaskListXML;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.export.ImportExport;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.NetworkDriveList;
+import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /** This wizard sets up a team project.
  *
@@ -188,7 +215,7 @@ public class wizard extends TinyCGIBase {
 
     /** Returns true if the current prefix names a "TeamProjectStub" node */
     protected boolean prefixNamesTeamProjectStub() {
-        PSPProperties hierarchy = getPSPProperties();
+        DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(getPrefix());
         String templateID = hierarchy.getID(key);
         return TEAM_STUB_ID.equals(templateID);
@@ -244,7 +271,7 @@ public class wizard extends TinyCGIBase {
             if (!url.startsWith("jar:file:")) continue;
             int pos = url.indexOf('!');
             if (pos == -1) continue;
-            return URLDecoder.decode(url.substring(9, pos));
+            return HTMLUtils.urlDecode(url.substring(9, pos));
         }
         return null;
     }
@@ -452,7 +479,7 @@ public class wizard extends TinyCGIBase {
         errMsg = errMsg + "you have adequate file permissions to create " +
             "this directory, then click &quot;Next.&quot;  Otherwise, " +
             "enter a different team directory below.";
-        errMsg = URLEncoder.encode(errMsg);
+        errMsg = HTMLUtils.urlEncode(errMsg);
         printRedirect(TEAM_DIR_URL + "?errMsg=" + errMsg);
         return false;
     }
@@ -511,7 +538,7 @@ public class wizard extends TinyCGIBase {
                 "'. Please ensure that you have adequate file permissions " +
                 "to create this file, then click &quot;Next.&quot; " +
                 "Otherwise, enter a different team directory below.";
-            errMsg = URLEncoder.encode(errMsg);
+            errMsg = HTMLUtils.urlEncode(errMsg);
             printRedirect(TEAM_DIR_URL + "?errMsg=" + errMsg);
             return false;
         }
@@ -793,7 +820,7 @@ public class wizard extends TinyCGIBase {
         String templateID = null;
         String prefix = getPrefix();
         if (prefix != null) {
-            PSPProperties props = getPSPProperties();
+            DashHierarchy props = getPSPProperties();
             templateID = props.getID(props.findExistingKey(prefix));
         }
         return (templateID != null && templateID.equals(TEAM_STUB_ID));
@@ -807,7 +834,7 @@ public class wizard extends TinyCGIBase {
         printRedirect(IND_NODE_URL);
     }
     protected void showIndivNodePage(String errMsg) {
-        printRedirect(IND_NODE_URL + "?errMsg=" + URLEncoder.encode(errMsg));
+        printRedirect(IND_NODE_URL + "?errMsg=" + HTMLUtils.urlEncode(errMsg));
     }
 
     /** Possibly store a default name for the project node */
@@ -817,7 +844,7 @@ public class wizard extends TinyCGIBase {
         String teamURL = getValue(TEAM_URL);
         if (teamURL == null) return;
 
-        teamURL = URLDecoder.decode(teamURL);
+        teamURL = HTMLUtils.urlDecode(teamURL);
         int end = teamURL.lastIndexOf("//");
         if (end == -1) return;
 
@@ -859,7 +886,7 @@ public class wizard extends TinyCGIBase {
             return;
         }
         nodeLocation = nodeLocation.trim();
-        PSPProperties hierarchy = getPSPProperties();
+        DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(nodeLocation);
         if (key == null) {
             showIndivNodePage
@@ -1081,7 +1108,7 @@ public class wizard extends TinyCGIBase {
 
         // Check to see if the "team project" is in the same dashboard
         // instance as the "individual project."
-        String remoteTimeStamp =e.getAttribute(TinyWebServer.TIMESTAMP_HEADER);
+        String remoteTimeStamp =e.getAttribute(WebServer.TIMESTAMP_HEADER);
         String localTimeStamp = getTinyWebServer().getTimestamp();
         boolean isLocal = localTimeStamp.equals(remoteTimeStamp);
 
@@ -1114,10 +1141,10 @@ public class wizard extends TinyCGIBase {
             conn.setUseCaches(false);
             conn.connect();
             String serverTimeStamp = conn.getHeaderField
-                (TinyWebServer.TIMESTAMP_HEADER);
+                (WebServer.TIMESTAMP_HEADER);
             result = XMLUtils.parse(conn.getInputStream());
             result.getDocumentElement().setAttribute
-                (TinyWebServer.TIMESTAMP_HEADER, serverTimeStamp);
+                (WebServer.TIMESTAMP_HEADER, serverTimeStamp);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -1198,17 +1225,17 @@ public class wizard extends TinyCGIBase {
         String exportFileName = getValue("EXPORT_FILE");
 
         String urlStr = "setup/wizard.class?"+PAGE+"="+JOIN_TEAM_SCHED_PAGE+
-            "&scheduleName=" + URLEncoder.encode(exportedScheduleName) +
-            "&fileName=" + URLEncoder.encode(exportFileName);
+            "&scheduleName=" + HTMLUtils.urlEncode(exportedScheduleName) +
+            "&fileName=" + HTMLUtils.urlEncode(exportFileName);
         if (scheduleID != null && scheduleID.length() != 0)
-            urlStr = urlStr + "&scheduleID=" + URLEncoder.encode(scheduleID);
+            urlStr = urlStr + "&scheduleID=" + HTMLUtils.urlEncode(scheduleID);
         URL u = buildTeamURLReference(teamURL, urlStr);
         try {
             URLConnection conn = u.openConnection();
             conn.setUseCaches(false);
             conn.connect();
             int status = ((HttpURLConnection) conn).getResponseCode();
-            TinyWebServer.slurpContents(conn.getInputStream(), true);
+            WebServer.slurpContents(conn.getInputStream(), true);
             return (status == 200);
         } catch (Exception e) {}
         return false;
@@ -1223,7 +1250,7 @@ public class wizard extends TinyCGIBase {
         int sslashPos = teamURL.indexOf("//", slashPos);
         // extract the prefix of the team project from the URL.
         String teamProjectPrefix =
-            URLDecoder.decode(teamURL.substring(slashPos, sslashPos));
+            HTMLUtils.urlDecode(teamURL.substring(slashPos, sslashPos));
 
         String dataName = DataRepository.createDataName
             (teamProjectPrefix, "Project_Schedule_Name");
@@ -1237,7 +1264,7 @@ public class wizard extends TinyCGIBase {
     }
 
     protected void showIndivSuccessPage(boolean joinSucceeded) {
-        String prefix = TinyWebServer.urlEncodePath(getPrefix());
+        String prefix = WebServer.urlEncodePath(getPrefix());
         String url = prefix + "/" + env.get("SCRIPT_NAME");
         url = StringUtils.findAndReplace(url, "wizard.class", IND_SUCCESS_URL);
 

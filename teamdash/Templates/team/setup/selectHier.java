@@ -1,8 +1,13 @@
 
-import pspdash.*;
-//import pspdash.data.DataRepository;
 
 import java.io.IOException;
+
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
 
 public class selectHier extends TinyCGIBase {
 
@@ -43,7 +48,7 @@ public class selectHier extends TinyCGIBase {
         out.println("</body></html>");
     }
 
-    protected void printTree(PSPProperties hierarchy, PropertyKey key,
+    protected void printTree(DashHierarchy hierarchy, PropertyKey key,
                              int depth, String rootPath) {
         if (prune(hierarchy, key)) return;
 
@@ -84,7 +89,7 @@ public class selectHier extends TinyCGIBase {
     }
 
 
-    protected String getID(PSPProperties hierarchy, PropertyKey key) {
+    protected String getID(DashHierarchy hierarchy, PropertyKey key) {
         return hierarchy.getID(key);
     }
 
@@ -95,7 +100,7 @@ public class selectHier extends TinyCGIBase {
         out.println("</BODY></HTML>");
     }
 
-    protected boolean prune(PSPProperties hierarchy, PropertyKey key) {
+    protected boolean prune(DashHierarchy hierarchy, PropertyKey key) {
         return false;
     }
 

@@ -1,7 +1,10 @@
 
-import pspdash.*;
-
 import java.io.IOException;
+
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.util.HTMLUtils;
+
 
 public class summaryName extends selectWBS {
 
@@ -29,7 +32,7 @@ public class summaryName extends selectWBS {
         out.print(HTMLUtils.escapeEntities(projectRoot));
         out.println("</h1>");
         out.print("<h2><a target='contents' href=\"");
-        out.print(TinyWebServer.urlEncodePath(projectRoot));
+        out.print(WebServer.urlEncodePath(projectRoot));
         out.print("//");
         out.print(processID);
         out.print("/setup/selectWBSFrame.class\">");

@@ -1,5 +1,6 @@
 
-import pspdash.TinyWebServer;
+import net.sourceforge.processdash.net.http.WebServer;
+
 
 public class selectWBSFrame extends selectWBS {
 
@@ -15,10 +16,10 @@ public class selectWBSFrame extends selectWBS {
         }
 
         out.print("<a target='topFrame' href=\"");
-        out.print(TinyWebServer.urlEncodePath(rootPath));
+        out.print(WebServer.urlEncodePath(rootPath));
         if (relPath != null && relPath.length() > 0) {
             out.print("/");
-            out.print(TinyWebServer.urlEncodePath(relPath));
+            out.print(WebServer.urlEncodePath(relPath));
         }
         out.print("//");
         out.print(processID);

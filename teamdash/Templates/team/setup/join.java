@@ -3,17 +3,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.net.URLDecoder;
 import java.util.Map;
 
-import pspdash.PSPProperties;
-import pspdash.PropertyKey;
-import pspdash.TinyCGIBase;
-import pspdash.TinyCGIException;
-import pspdash.TinyWebServer;
-import pspdash.data.DataRepository;
-import pspdash.data.ImmutableStringData;
-import pspdash.data.SimpleData;
+import net.sourceforge.processdash.data.ImmutableStringData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
+
 
 /** This class helps an individual to join a team project.
  *
@@ -71,7 +72,7 @@ public class join extends TinyCGIBase {
     }
 
     private String makeURI(String filename) {
-        return TinyWebServer.urlEncodePath(getPrefix()) +
+        return WebServer.urlEncodePath(getPrefix()) +
             "//" + getProcessID() + "/setup/" + filename;
     }
 
@@ -102,7 +103,7 @@ public class join extends TinyCGIBase {
      * search upward through the hierarchy to find the project root,
      * and change the active prefix to name that node. */
     protected void maybeReroot() throws TinyCGIException {
-        PSPProperties hierarchy = getPSPProperties();
+        DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(getPrefix());
         boolean rerooted = false;
         String projectRoot = null;
@@ -127,7 +128,7 @@ public class join extends TinyCGIBase {
     protected String getProcessID() {
         String path = (String) env.get("SCRIPT_NAME");
         if (path == null || !path.startsWith("/")) return null;
-        path = URLDecoder.decode(path).substring(1);
+        path = HTMLUtils.urlDecode(path).substring(1);
         int slashPos = path.indexOf('/');
         return path.substring(0, slashPos);
     }

@@ -1,13 +1,13 @@
 
 import java.io.IOException;
-import java.net.URLEncoder;
 
-import pspdash.HTMLUtils;
-import pspdash.PSPProperties;
-import pspdash.PropertyKey;
-import pspdash.StringUtils;
-import pspdash.TinyCGIBase;
-import pspdash.data.DataRepository;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
 
 public class sizeForm extends TinyCGIBase {
 
@@ -19,7 +19,7 @@ public class sizeForm extends TinyCGIBase {
         String prefix = getPrefix();
         if (prefix == null) prefix = "/";
 
-        PSPProperties hierarchy = getPSPProperties();
+        DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(prefix);
 
         String uri = getURI();
@@ -49,7 +49,7 @@ public class sizeForm extends TinyCGIBase {
     }
 
     protected void writeHierarchy
-        (String uri, String prefix, PropertyKey key, PSPProperties hierarchy)
+        (String uri, String prefix, PropertyKey key, DashHierarchy hierarchy)
         throws IOException
     {
         // only display a section for this node if it appears to be
@@ -70,8 +70,8 @@ public class sizeForm extends TinyCGIBase {
 
             StringBuffer url = new StringBuffer();
             url.append(uri)
-                .append("?SUB_PATH=").append(URLEncoder.encode(subPath))
-                .append("&SUB_PATH_=").append(URLEncoder.encode(subPath_))
+                .append("?SUB_PATH=").append(HTMLUtils.urlEncode(subPath))
+                .append("&SUB_PATH_=").append(HTMLUtils.urlEncode(subPath_))
                 .append("&ANCHOR=").append(anchor);
 
             boolean addExtra =
@@ -90,7 +90,7 @@ public class sizeForm extends TinyCGIBase {
             StringBuffer text = new StringBuffer(EXPANSION_SECTION);
             StringUtils.findAndReplace(text, "ANCHOR", anchor);
             StringUtils.findAndReplace
-                (text, "U-PATH", URLEncoder.encode(subPath));
+                (text, "U-PATH", HTMLUtils.urlEncode(subPath));
             String display = subPath;
             if (display.length() == 0) display = "/";
             StringUtils.findAndReplace

@@ -1,5 +1,7 @@
 
-import pspdash.*;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+
 
 public class selectTopNode extends selectHier {
 
@@ -7,7 +9,7 @@ public class selectTopNode extends selectHier {
         return PropertyKey.ROOT;
     }
 
-    protected boolean prune(PSPProperties hierarchy, PropertyKey key) {
+    protected boolean prune(DashHierarchy hierarchy, PropertyKey key) {
         String id = getID(hierarchy, key);
         if (id != null && id.length() > 0) return true;
         return false;

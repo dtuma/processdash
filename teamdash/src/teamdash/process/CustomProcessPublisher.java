@@ -9,24 +9,24 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-import java.util.jar.JarOutputStream;
+
+import net.sourceforge.processdash.net.http.HTMLPreprocessor;
+import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.process.TemplateAutoData;
+import net.sourceforge.processdash.templates.DashPackage;
+import net.sourceforge.processdash.ui.lib.ProgressDialog;
+import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import pspdash.DashPackage;
-import pspdash.HTMLPreprocessor;
-import pspdash.ProgressDialog;
-import pspdash.StringUtils;
-import pspdash.TemplateAutoData;
-import pspdash.TinyWebServer;
-import pspdash.XMLUtils;
 
 
 public class CustomProcessPublisher {
@@ -46,7 +46,7 @@ public class CustomProcessPublisher {
     }
 
     public static void publish(CustomProcess process, File destFile,
-                               TinyWebServer webServer)
+                               WebServer webServer)
         throws IOException {
 
         CustomProcessPublisher pub =
@@ -60,12 +60,12 @@ public class CustomProcessPublisher {
     JarOutputStream zip;
     Writer out;
 
-    TinyWebServer webServer;
+    WebServer webServer;
     HTMLPreprocessor processor;
     HashMap customParams, parameters;
 
 
-    protected CustomProcessPublisher(File destFile, TinyWebServer webServer)
+    protected CustomProcessPublisher(File destFile, WebServer webServer)
         throws IOException
     {
         this.destFile = destFile;

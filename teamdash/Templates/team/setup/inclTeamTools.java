@@ -1,10 +1,11 @@
 import java.io.IOException;
-import java.net.URLEncoder;
 
-import pspdash.TinyCGIBase;
-import pspdash.TinyWebServer;
-import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
+
 
 public class inclTeamTools extends TinyCGIBase {
 
@@ -28,14 +29,14 @@ public class inclTeamTools extends TinyCGIBase {
             }
 
             String directory = d.format();
-            String wbsURL = WBS_EDITOR_URL + URLEncoder.encode(directory);
+            String wbsURL = WBS_EDITOR_URL + HTMLUtils.urlEncode(directory);
             String scriptPath = (String) env.get("SCRIPT_PATH");
             String uri = resolveRelativeURI(scriptPath, wbsURL);
 
             String syncURI = resolveRelativeURI(scriptPath, SYNC_URL);
-            String syncURL = "http://" + TinyWebServer.getHostName() +
+            String syncURL = "http://" + WebServer.getHostName() +
                 ":" + getTinyWebServer().getPort() + syncURI;
-            uri = uri + SYNC_PARAM + URLEncoder.encode(syncURL);
+            uri = uri + SYNC_PARAM + HTMLUtils.urlEncode(syncURL);
 
             outStream.write(getRequest(uri, true));
         } catch (Exception e) {

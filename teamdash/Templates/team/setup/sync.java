@@ -1,18 +1,17 @@
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.List;
 
-import pspdash.DashController;
-import pspdash.HTMLUtils;
-import pspdash.PSPProperties;
-import pspdash.PropertyKey;
-import pspdash.TinyCGIBase;
-import pspdash.TinyCGIException;
-import pspdash.HierarchyAlterer.HierarchyAlterationException;
-import pspdash.data.DataRepository;
-import pspdash.data.SimpleData;
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
+import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 /** CGI script which synchonizes a dashboard hierarchy with a WBS description.
  * 
@@ -93,7 +92,7 @@ public class sync extends TinyCGIBase {
      * If there is no enclosing team project, both will be set to null.
          */
     private void findProject() {
-        PSPProperties hierarchy = getPSPProperties();
+        DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(getPrefix());
         while (key != null) {
             String templateID = hierarchy.getID(key);
@@ -263,7 +262,7 @@ public class sync extends TinyCGIBase {
         out.write("<meta http-equiv='Refresh' CONTENT='0;URL=syncError.shtm?");
         out.write(reason);
         if (value != null)
-            out.write("=" + URLEncoder.encode(value));
+            out.write("=" + HTMLUtils.urlEncode(value));
         if (isTeam)
             out.write("&isTeam");
         out.write("'></head><body></body></html>");

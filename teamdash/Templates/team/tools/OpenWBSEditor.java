@@ -2,9 +2,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import pspdash.DashController;
-import pspdash.HTMLUtils;
-import pspdash.TinyCGIBase;
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 import teamdash.wbs.TeamProject;
 import teamdash.wbs.WBSEditor;
 

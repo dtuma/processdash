@@ -41,9 +41,10 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
-import pspdash.DashController;
-import pspdash.TinyCGIBase;
-import pspdash.TinyWebServer;
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 
 
 public class CustomProcessEditor extends TinyCGIBase {
@@ -66,10 +67,10 @@ public class CustomProcessEditor extends TinyCGIBase {
     JButton insertButton, deleteButton, upButton, downButton;
     JMenuItem newMenuItem, openMenuItem, saveMenuItem, closeMenuItem;
     boolean isDirty = false;
-    TinyWebServer webServer;
+    WebServer webServer;
     File openedFileDir = null;
 
-    public CustomProcessEditor(String prefix, TinyWebServer webServer) {
+    public CustomProcessEditor(String prefix, WebServer webServer) {
         // ignore the prefix for now.
         this.webServer = webServer;
         process = new CustomProcess();

@@ -12,27 +12,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.HierarchyAlterer;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
+import net.sourceforge.processdash.util.XMLUtils;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import pspdash.DashController;
-import pspdash.HierarchyAlterer;
-import pspdash.PSPProperties;
-import pspdash.PropertyKey;
-import pspdash.XMLUtils;
-import pspdash.HierarchyAlterer.HierarchyAlterationException;
-import pspdash.data.DataRepository;
-import pspdash.data.DoubleData;
-import pspdash.data.SimpleData;
-import pspdash.data.StringData;
 
 public class HierarchySynchronizer {
 
     private static final String SYNC_TEAM = "(team)";
 
-    private PSPProperties hierarchy;
+    private DashHierarchy hierarchy;
     private DataRepository data;
     private String projectPath;
     private String processID;
@@ -52,7 +53,7 @@ public class HierarchySynchronizer {
                                  File wbsFile,
                                  String initials,
                                  boolean fullCopyMode,
-                                 PSPProperties hierarchy,
+                                 DashHierarchy hierarchy,
                                  DataRepository data) throws IOException {
         this.projectPath = projectPath;
         this.processID = processID;
