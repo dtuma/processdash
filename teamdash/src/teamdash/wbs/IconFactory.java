@@ -17,18 +17,19 @@ import java.util.Map;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.plaf.metal.MetalIconFactory;
 
 public class IconFactory {
+
+    private static final Color DEFAULT_COLOR = new Color(204, 204, 255);
 
     private IconFactory() {}
 
     public static Icon getProjectIcon() {
-        return new ProjectIcon(new Color(204, 204, 255));
+        return new ProjectIcon(DEFAULT_COLOR);
     }
 
     public static Icon getSoftwareComponentIcon() {
-        return MetalIconFactory.getTreeFloppyDriveIcon();
+        return new SoftwareComponentIcon(DEFAULT_COLOR);
     }
 
     public static Icon getDocumentIcon(Color highlight) {
@@ -97,6 +98,46 @@ public class IconFactory {
 
             g.setColor(Color.black);
             g.drawRect(1, 1, 13, 13);
+        }
+    }
+
+
+    private static class SoftwareComponentIcon extends BufferedIcon {
+
+        Color highlight;
+
+        public SoftwareComponentIcon(Color highlight) {
+            this.highlight = highlight;
+        }
+
+        protected void doPaint(Component c, Graphics g) {
+            // fill in floppy
+            g.setColor(highlight);
+            g.fillRect(2,2, 12,12);
+
+            // draw outline
+            g.setColor(Color.black);
+            g.drawLine( 1, 1, 13, 1);
+            g.drawLine(14, 2, 14,14);
+            g.drawLine( 1,14, 14,14);
+            g.drawLine( 1, 1,  1,14);
+
+            // draw interior lines
+            g.setColor(Color.gray);
+            g.fillRect(5,2, 6,5);
+            g.drawLine(4,8, 11,8);
+            g.drawLine(3,9, 3,13);
+            g.drawLine(12,9, 12,13);
+
+            // draw white parts
+            g.setColor(Color.white);
+            g.fillRect(8,3, 2,3);
+            g.fillRect(4,9, 8,5);
+
+            // draw text on floppy label
+            g.setColor(highlight);
+            g.drawLine(5,10, 9,10);
+            g.drawLine(5,12, 8,12);
         }
     }
 
