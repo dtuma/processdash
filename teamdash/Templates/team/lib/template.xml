@@ -170,19 +170,6 @@
     <html ID="top" href="PID/script.htm"
         title="<!--#echo Full_Name --> Process Script"/>
 
-<!-- FIXME: this is really a hack; in theory we shouldn't know whether there will be a phase called "planning". -->
-
-    <html ID="Planning_script"
-        title="<!--#echo Planning_Long_Name --> Script"
-        href="PID/Planning_script.htm"/>
-    <phase name="<!--#echo Planning_Name -->"
-        type="<!--#echo Planning_Type -->"
-        <!--#if Planning_Size_Metric --> 
-            size="<!--#echo Planning_Size_Metric -->"
-        <!--#endif-->
-	constraints="E{}"
-        htmlID="Planning_script"/>
-
   </template>
 
 
