@@ -1,6 +1,7 @@
 package teamdash;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,6 +18,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableModel;
+import javax.swing.text.JTextComponent;
 
 
 /** A graphical user interface for editing the list of team members.
@@ -122,7 +126,7 @@ public class TeamMemberListEditor implements WindowListener {
     }
 
     private void buildTable() {
-        table = new JTable(teamMemberList);
+        table = new SelectAllJTable(teamMemberList);
 
         //Set up renderer and editor for the Color column.
         ColorCellRenderer.setUpColorRenderer(table);
@@ -174,5 +178,25 @@ public class TeamMemberListEditor implements WindowListener {
         Iterator i = saveListeners.iterator();
         while (i.hasNext())
             ((SaveListener) i.next()).itemSaved(this);
+    }
+
+    private class SelectAllJTable extends JTable {
+
+        public SelectAllJTable(TableModel dm) { super(dm); }
+
+
+        public Component prepareEditor(
+            TableCellEditor editor,
+            int row,
+            int column) {
+
+            Component result = super.prepareEditor(editor, row, column);
+
+            if (result instanceof JTextComponent)
+                ((JTextComponent) result).selectAll();
+
+            return result;
+        }
+
     }
 }
