@@ -194,7 +194,14 @@ public class DashController {
         return dash.configure_button.isHierarchyEditorOpen();
     }
 
-    public static void addTemplateDirToPath(String templateDir) {
+    public static void addTemplateDirToPath(String templateDir,
+                                            boolean create) {
+        if (ImportTemplatePermissionDialog.askUserForPermission
+            (dash, null, templateDir, create) == true)
+            addTemplateDirToTemplatePath(templateDir);
+    }
+
+    private static void addTemplateDirToTemplatePath(String templateDir) {
         if (templateDir == null) return;
         templateDir = templateDir.replace('\\', '/');
 
@@ -231,8 +238,19 @@ public class DashController {
         return false;
     }
 
-    public static boolean loadNewTemplate(String jarfileName) {
-        return dash.addTemplateJar(jarfileName);
+    public static boolean loadNewTemplate(String jarfileName,
+                                          String templateDir,
+                                          boolean create)
+    {
+        if (ImportTemplatePermissionDialog.askUserForPermission
+            (dash, jarfileName, templateDir, create) == false)
+            return false;
+
+        if (dash.addTemplateJar(jarfileName) == false)
+            return false;
+
+        addTemplateDirToTemplatePath(templateDir);
+        return true;
     }
 
     public static HierarchyAlterer getHierarchyAlterer() {
