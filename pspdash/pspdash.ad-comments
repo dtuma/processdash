@@ -40,7 +40,7 @@ autoRealization=Policy for auto-realization of data. To save time and \
 	and slowly calculates formulas.  If this setting has the value \
 	"full", all data will be automatically realized by this background \
 	process.  If this setting has the value "min", only global (e.g. \
-	"To Date" data is auto-realized (the default). If this setting has \
+	"To Date") data is auto-realized (the default). If this setting has \
 	the value "none", no data will be auto-realized.  If you are on a \
 	slow computer, and you notice irritating delays the first time you \
 	view a chart, form, or report, try using the "full" option.  If \
