@@ -26,6 +26,7 @@
 package pspdash.data;
 
 import pspdash.data.compiler.CompiledScript;
+import pspdash.data.compiler.Compiler;
 import pspdash.data.compiler.ExecutionException;
 import pspdash.data.compiler.ExpressionContext;
 import pspdash.data.compiler.ListStack;
@@ -43,6 +44,21 @@ class CompiledFunction implements SaveableData,
     protected ListStack stack = null;
     protected SimpleData value = UNCALCULATED_VALUE;
     protected boolean currentlyCalculating = false;
+
+    public CompiledFunction(String name, String script,
+                            DataRepository r, String prefix)
+        throws MalformedValueException
+    {
+        try {
+            if (script.charAt(0) == '{') script = script.substring(1);
+            this.script = Compiler.compile(script);
+            this.data = r;
+            this.name = name;
+            this.prefix = prefix;
+        } catch (Exception ce) {
+            throw new MalformedValueException();
+        }
+    }
 
     public CompiledFunction(String name, CompiledScript script,
                             DataRepository r, String prefix) {
