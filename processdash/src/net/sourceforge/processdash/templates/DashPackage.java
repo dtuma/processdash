@@ -27,12 +27,16 @@
 package net.sourceforge.processdash.templates;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
 
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
@@ -139,6 +143,10 @@ public class DashPackage {
 
         debug("File: " + filename);
 
+        if (id == null) try {
+            lookForDashManifest();
+        } catch (IOException ioe) {}
+
         if (id==null)
             throw new InvalidDashPackage();
         if (name==null)
@@ -160,7 +168,27 @@ public class DashPackage {
               "\n\tupdateURL = " + updateURL);
     }
 
-    /** Try to download the update information for this package. */
+    private void lookForDashManifest() throws IOException {
+        if (filename == null) return;
+
+        String fn = filename;
+        if (fn.startsWith("file:")) fn = fn.substring(5);
+
+        JarFile jarFile = new JarFile(fn, false);
+        ZipEntry entry = jarFile.getEntry(DASHBOARD_MANIFEST_FILENAME);
+        if (entry == null) return;
+
+        Properties p = new Properties();
+        p.load(jarFile.getInputStream(entry));
+        name      = p.getProperty(NAME_ATTRIBUTE);
+        id        = p.getProperty(ID_ATTRIBUTE);
+        version   = p.getProperty(VERSION_ATTRIBUTE);
+        updateURL = p.getProperty(URL_ATTRIBUTE);
+        requiresDashVersion = p.getProperty(REQUIRE_ATTRIBUTE);
+    }
+
+
+        /** Try to download the update information for this package. */
     public void getUpdateInfo(long now) {
         if (updateURL == null) {
             connectFailed = updateAvailable = false;
@@ -302,4 +330,6 @@ public class DashPackage {
     public static final String NAME_ATTRIBUTE    = "Dash-Pkg-Name";
     public static final String URL_ATTRIBUTE     = "Dash-Pkg-URL";
     public static final String REQUIRE_ATTRIBUTE = "Dash-Pkg-Requires-Version";
+    private static final String DASHBOARD_MANIFEST_FILENAME = "META-INF/PDASH.MF";
+
 }
