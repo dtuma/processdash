@@ -42,7 +42,6 @@ import javax.help.DefaultHelpBroker;
 import javax.help.HelpBroker;
 import javax.help.HelpSet;
 import javax.help.HelpSetException;
-import javax.help.WindowPresentation;
 
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.Browser;
@@ -75,10 +74,16 @@ public class DashHelpBroker extends DefaultHelpBroker
         super.setHelpSet(hs);
         initPresentation();
 
-        WindowPresentation pres = getWindowPresentation();
-        Window w = pres.getHelpWindow();
-        if (w instanceof Frame)
-            ((Frame) w).setIconImage(DashboardIconFactory.getWindowIconImage());
+        try {
+            Window w = getWindowPresentation().getHelpWindow();
+            if (w instanceof Frame)
+                ((Frame) w).setIconImage
+                    (DashboardIconFactory.getWindowIconImage());
+        } catch (Throwable t) {
+            // an old version of JavaHelp in the system classpath will
+            // cause this to fail.  It's no big deal - the window will
+            // just have a different icon.  Life goes on.
+        }
     }
 
 
