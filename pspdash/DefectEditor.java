@@ -106,8 +106,8 @@ public class DefectEditor extends Component
         /* And show it. */
         panel.setLayout(new BorderLayout());
 //    panel.add("North", constructFilterPanel());
-        panel.add("West", sp);
-        panel.add("Center", constructEditPanel());
+        panel.add("Center", new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                                           sp, constructEditPanel()));
 //    panel.add("South", constructControlPanel());
 
         frame.addWindowListener( new WindowAdapter() {
