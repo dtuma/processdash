@@ -38,36 +38,37 @@ public class DefectButton extends JButton implements ActionListener {
     PropertyKey defectPath = null;
 
     DefectButton(PSPDashboard dash) {
-    super();
-    try {
-        enabled_icon = new ImageIcon(getClass().getResource("defect.gif"));
-        disabled_icon = new ImageIcon(getClass().getResource("defectd.gif"));
-        setIcon(enabled_icon);
-        setDisabledIcon(disabled_icon);
-    } catch (Exception e) {
-        setText("Defect");
-    }
-    setMargin (new Insets (1,2,1,2));
-    parent = dash;
-    setEnabled(false);
-    addActionListener(this);
-    dash.getContentPane().add(this);
+        super();
+        try {
+            enabled_icon = new ImageIcon(getClass().getResource("defect.gif"));
+            disabled_icon = new ImageIcon(getClass().getResource("defectd.gif"));
+            setIcon(enabled_icon);
+            setDisabledIcon(disabled_icon);
+        } catch (Exception e) {
+            setText("Defect");
+        }
+        setMargin (new Insets (1,2,1,2));
+        parent = dash;
+        setEnabled(false);
+        setFocusPainted(false);
+        addActionListener(this);
+        dash.getContentPane().add(this);
     }
 
     public void setPaths(DefectLogID defectLog) {
         if (defectLog == null) {
-    defectLogFileName = null;
-        defectPath = null;
+            defectLogFileName = null;
+            defectPath = null;
         } else {
-    defectLogFileName = defectLog.filename;
-    defectPath = defectLog.path;
+            defectLogFileName = defectLog.filename;
+            defectPath = defectLog.path;
         }
         setEnabled(defectLogFileName != null);
     }
 
     public void actionPerformed(ActionEvent e) {
         if (defectLogFileName != null) {
-                  // pop up a defect log dialog
+                                  // pop up a defect log dialog
             DefectDialog d=new DefectDialog(parent, defectLogFileName, defectPath);
         }
     }
