@@ -100,7 +100,13 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         JMenuItem helpItem = null;
         add (menu);
 
-        PCSH.enableHelpKey(this, "ConfigureMenu");
+        /*
+         * I'm commenting out the following line for now.  Although eventually
+         * we will want context-sensitive help for the Configure Menu, the
+         * following line unfortunately causes F1, pressed from the main
+         * dashboard window, to bring up ConfigureMenu help.
+         */
+        //PCSH.enableHelpKey(this, "ConfigureMenu");
 
         BetaVersionSetup.addSubmenu(menu);
 

@@ -71,7 +71,7 @@ public class ScriptBrowser extends JDialog
 
         JPanel panel = new JPanel(true);
         getContentPane().add("Center", panel);
-        //PCSH.enableHelpKey(frame, "UsingDefectLogEditor");
+        PCSH.enableHelpKey(this, "AccessingScripts.scriptBrowser");
 
         /* Create the JTreeModel. */
         treeModel = new PropTreeModel (new DefaultMutableTreeNode ("root"), null);

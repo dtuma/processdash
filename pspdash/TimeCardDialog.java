@@ -91,6 +91,7 @@ public class TimeCardDialog {
         frame.getContentPane().add("Center", sp);
         frame.getContentPane().add("North", buildTopPanel());
         resizeColumns();
+        PCSH.enableHelpKey(frame, "UsingTimeLogEditor.TimeCardView");
 
         frame.pack();
         frame.show();

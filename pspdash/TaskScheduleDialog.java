@@ -70,6 +70,7 @@ public class TaskScheduleDialog
         frame = new JFrame("Task and Schedule");
         frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
                            (getClass().getResource("icon32.gif")));
+        PCSH.enableHelpKey(frame, "UsingTaskSchedule");
 
         // Create the earned value model.
         model = new EVTaskList(taskListName, dash.data, dash.props,
