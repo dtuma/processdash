@@ -104,9 +104,6 @@
   <mapID target="QuickOverview.webServer" url="Topics/Overview/QuickOverview.html#webServer" />
   <mapID target="CompletionButton.freeze" url="Topics/Planning/DataFreezing.html" />
   <mapID target="AccessingScripts.scriptIcons" url="Topics/Execution/AccessingScripts.html#scriptIcons" />
-
-<!-- new stuff for 1.4 -->
-
   <mapID target="DefiningOwnProcesses" url="Topics/AdvancedTopics/ProcessDefinition/DefiningProcesses.html"/>
   <mapID target="DashboardFindsFiles" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html"/>
   <mapID target="DashboardFindsFiles.sharing" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html#sharing"/>
@@ -132,5 +129,6 @@
   <mapID target="Separation" url="Topics/Overview/Separation.html" />
   <mapID target="PermissionLetter" url="Topics/Overview/PermissionLetter.html" />
   <mapID target="RequestLetter" url="Topics/Overview/RequestLetter.html" />
+  <mapID target="LocalizationTool" url="Topics/AdvancedTopics/LocalizationTool.html" />
 
 </map>

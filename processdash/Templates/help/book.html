@@ -204,6 +204,7 @@ BODY { color: black; background-color: white }
 <tr><td></td><td></td><td><b>6.5.4.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_4_">Step 4: Restart the dashboard</a></td></tr>
 <tr><td></td><td></td><td><b>6.5.5.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_5_">Advanced/Optional: Defining HTML scripts</a></td></tr>
 <tr><td></td><td></td><td><b>6.5.6.</b>&nbsp;</td><td colspan=7><a href="#para_6_5_6_">Additional Advanced Topics</a></td></tr>
+<tr><td></td><td><b>6.6.</b>&nbsp;</td><td colspan=8><a href="#para_6_6_">Localization Tool</a></td></tr>
 <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td></tr>
 </table>
 <div>
@@ -7553,6 +7554,71 @@ Manual</I> when it becomes available. In the meantime, if you have a
 pressing need to understand one of these advanced topics, send email
 to the development team at
 <i>processdash-devel@lists.sourceforge.net</i>.</P>
+
+</div>
+<div>
+
+</div>
+<a name="doc55_top"></a><div>
+
+
+<H2><a name="para_6_6_"></a>6.6. Localization Tool</H2>
+
+<P>The dashboard has many users around the world.  To better support
+all our users, we are currently working to internationalize the
+dashboard.  The Process Dashboard includes a Localization Tool that
+you can use to translate dashboard messages into your own language.
+You can open the Localization Tool by selecting &quot;Tools&nbsp;<img src="Images/rarrow.png">&nbsp;Localization Tool&quot; from the
+<a href="#doc44_top">configure menu</a>.</P>
+
+<p><center><img src="Images/LocalizationToolMenu.png"></center></p>
+
+<P>(Note that the menu option for the localization tool will not
+normally appear for English-speaking users.)  The Localization Tool is
+based upon the useful Zaval JRC Editor written by Victor Krapivin and
+others (<u>http://www.zaval.org/products/jrc-editor/</u>).</P>
+
+<P>The localization tool arranges translation keys hierarchically and
+displays the resulting tree on the left.  Exclamation points indicate
+keys that still need to be translated.  When you select a key in this
+tree, the right hand side of the screen displays the English message
+and a place for translation into your native language.</P>
+
+<p><center><img src="Images/LocalizationTool.png"></center></p>
+
+<P>Some translation keys end with the string "_FMT".  The English
+message associated with these keys will contain expressions like
+"{0}".  These translation items are Java MessageFormat strings; at
+runtime, the "{0}" will be replaced with a dynamically generated
+value.  To translate these items correctly, you will need to
+understand the syntax of MessageFormat strings.  For more information
+on MessageFormat syntax, visit
+<u>http://java.sun.com/j2se/1.4.1/docs/api/java/text/MessageFormat.html</u></P>
+
+<P>After you enter translations, click on the Save icon.  Your new
+translations will take effect the next time you restart the process
+dashboard.</P>
+
+<P>The localizations you enter will be saved automatically into a file
+with a name like "pspdash_*.jar".  This file will be saved into the
+directory where you installed the process dashboard (normally
+<u>C:\Program&nbsp;Files\Process&nbsp;Dashboard</u> for Windows
+users).  This file is formatted as a
+<a href="#doc13_addon">Process Dashboard Add-on</a>,
+and can be easily shared with other dashboard users.  Give them a copy
+of the file and instruct them to save it into the directory where they
+installed the Process Dashboard, and they can benefit from your
+translations as well.</P>
+
+<P>If you choose to use the Localization Tool, please consider sending
+a copy of your "pspdash_*.jar" file to the Process Dashboard
+development team.  This will allow users around the world to benefit
+from your translation efforts.</P>
+
+<P><b>Note:</b> <a href="#doc22_top">copyright
+restrictions</a> do not allow for the translation of PSP process
+materials (e.g. scripts and forms) into other languages.  As a result,
+the Localization Tool does not support the translation of these items.</P>
 
 </div>
 <div>

@@ -72,6 +72,7 @@
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>
       <tocitem image="PageIcon" target="DashboardFindsFiles" text="Making changes to the process scripts"/>
       <tocitem image="PageIcon" target="DefiningOwnProcesses" text="Defining your own custom processes"/>
+      <tocitem image="PageIcon" target="LocalizationTool" text="Localization Tool"/>
 
       <!-- tocitem image="PageIcon" target="MinorProcessChanges" text="Making minor changes to the built-in processes"/ -->
 
