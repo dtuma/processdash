@@ -37,7 +37,8 @@ import javax.swing.text.JTextComponent;
 import pspdash.data.DataRepository;
 
 
-public class DefectEditor extends Component implements TreeSelectionListener, ActionListener
+public class DefectEditor extends Component
+    implements TreeSelectionListener, ListSelectionListener, ActionListener
 {
     /** Class Attributes */
     protected JFrame          frame;
@@ -49,6 +50,7 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
     protected ValidatingTable table;
     protected DataRepository  data;
     protected Vector          currentLog   = new Vector();
+    protected JButton editButton, deleteButton, closeButton;
 //  protected UserWarning     warnUser;
 
 
@@ -226,27 +228,49 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
             }
         }
         table.doResizeRepaint();
+        maybeEnableButtons();
+    }
+
+    private DefectListEntry getSelectedDefect() {
+        if (table.table.getSelectedRowCount() > 0) {
+            int row = table.table.getSelectedRow();
+            return (DefectListEntry) currentLog.elementAt (row);
+        } else
+            return null;
     }
 
 
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
         DefectDialog dlg;
+        DefectListEntry dle;
 
         if (cmd.equals("edit")) {
-            if (table.table.getSelectedRowCount() > 0) {
-                int row = table.table.getSelectedRow();
-                DefectListEntry dle = (DefectListEntry)currentLog.elementAt (row);
-                if (dle != null) {
-                    dlg = new DefectDialog
-                        (dashboard,
-                         dashboard.getDirectory() + useProps.pget(dle.pk).getDefectLog(),
-                         dle.pk,
-                         dle.defect);
-                    dlg.setTitle(dle.pk.path());
-                }
+            dle = getSelectedDefect();
+            if (dle != null) {
+                dlg = new DefectDialog
+                    (dashboard,
+                     dashboard.getDirectory() + useProps.pget(dle.pk).getDefectLog(),
+                     dle.pk,
+                     dle.defect);
+                dlg.setTitle(dle.pk.path());
             }
-        } else if (cmd.equals("delete")) { // TBD
+
+        } else if (cmd.equals("delete")) {
+            dle = getSelectedDefect();
+            String number = dle.defect.number;
+            if (number != null) {
+                // display a confirmation dialog
+                if (JOptionPane.showConfirmDialog
+                    (frame,
+                     "Are you certain you want to delete defect #" + number + "?",
+                     "Confirm Defect Deletion", JOptionPane.YES_NO_OPTION) ==
+                    JOptionPane.YES_OPTION)
+                    dle.dl.deleteDefect(number);
+            }
+
+        } else if (cmd.equals("close")) {
+            frame.hide();
 
         } else if (cmd.equals("print")) {  // TBD
             PrintJob pjob = getToolkit().getPrintJob(frame, "Defect Log", null);
@@ -289,35 +313,45 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
                             false, false, false,
                             false, false, false});
         table.table.setRowSelectionAllowed (false);
+        table.table.getSelectionModel().addListSelectionListener(this);
 
         retPanel.add ("Center", table);
 
         JPanel btnPanel = new JPanel(false);
                                     // Should only be available if one
                                     // entry is selected
-        JButton editButton;
         editButton = new JButton ("Edit");
         editButton.setActionCommand ("edit");
         editButton.addActionListener (this);
+        editButton.setEnabled (false);
         btnPanel.add (editButton);
 
                                     // Should only be available if one
                                     // entry is selected
-        button = new JButton ("Delete");
-        button.setActionCommand ("delete");
-        button.addActionListener (this);
-        button.setEnabled (false);
-        btnPanel.add (button);
+        deleteButton = new JButton ("Delete");
+        deleteButton.setActionCommand ("delete");
+        deleteButton.addActionListener (this);
+        deleteButton.setEnabled (false);
+        btnPanel.add (deleteButton);
 
-        button = new JButton ("Print");
-        button.setActionCommand ("print");
-        button.addActionListener (this);
-        button.setEnabled (false);
-        btnPanel.add (button);
+        closeButton = new JButton ("Close");
+        closeButton.setActionCommand ("close");
+        closeButton.addActionListener (this);
+        btnPanel.add (closeButton);
 
         retPanel.add ("South", btnPanel);
 
         return retPanel;
+    }
+
+    private void enableButtons(boolean enable)
+    {
+        editButton.setEnabled (enable);
+        deleteButton.setEnabled (enable);
+    }
+
+    private void maybeEnableButtons() {
+        enableButtons(table.table.getSelectedRowCount() == 1);
     }
 
 
@@ -348,6 +382,10 @@ public class DefectEditor extends Component implements TreeSelectionListener, Ac
 
         Prop val = useProps.pget (key);
         applyFilter ();
+    }
+
+    public void valueChanged(ListSelectionEvent e) {
+        maybeEnableButtons();
     }
 
     public class DefectListID {
