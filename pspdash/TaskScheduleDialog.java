@@ -159,7 +159,7 @@ public class TaskScheduleDialog
         result.add(addTaskButton);
         result.add(Box.createHorizontalGlue());
 
-        deleteTaskButton = new JButton("Delete Task");
+        deleteTaskButton = new JButton("Delete Task...");
         deleteTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     deleteTask(); }});
@@ -512,11 +512,22 @@ public class TaskScheduleDialog
         if (selPath == null || selPath.getPathCount() != 2) return;
 
         // make the change.
-        if (model.removeTask(selPath)) {
+        if (confirmDelete(selPath) && model.removeTask(selPath)) {
             setDirty(true);
             recalcAll();
             enableTaskButtons();
         }
+    }
+    protected boolean confirmDelete(TreePath selPath) {
+        EVTask task = (EVTask) selPath.getLastPathComponent();
+        String fullName = task.getFullName();
+        String[] message = new String[] {
+            "Are you certain you want to delete the task,",
+            "        '" + fullName + "'",
+            "from this task list?" };
+        return (JOptionPane.showConfirmDialog
+                (frame, message, "Delete Task?", JOptionPane.YES_NO_OPTION,
+                 JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION);
     }
 
     /** Swap the currently selected task with its previous sibling.
