@@ -105,6 +105,7 @@ public class Resources extends ResourceBundle {
                 name = "resources" + name.substring(7);
             else if (name.startsWith("/pspdash"))
                 name = "/resources" + name.substring(8);
+            name = name.replace('$', '.');
             return TemplateLoader.resolveURL(name);
         }
 
