@@ -1,9 +1,141 @@
 <HTML>
-<TITLE>JavaHelp Project in progress...</TITLE>
+<TITLE>How To Install</TITLE>
 <BODY>
 
-<H1>Work in progress</H1>
-You are looking at the beginnings of a help system for the Process Dashboard.
+<H1>How To Install</H1>
+<H2>System Requirements</H2>
+<P>The Process Dashboard is 100% Java, and will run on any system with a Java 2 
+compliant virtual machine. This includes Windows, Linux, and Unix systems. (We 
+haven't yet had an opportunity to test it on a Macintosh system, but don't 
+anticipate any problems; we would love to <A 
+href="mailto:processdash-devel@lists.sourceforge.net">hear from</A> a Macintosh 
+user who would like to give the dashboard a try.)&nbsp; For access to forms and 
+scripts, a web browser is also required.</P>
+<P>To use the process dashboard, you must <B>first</B> install the following software:</P>
+<P>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  
+  <TR>
+    <TD vAlign=top width="100%">
+      <UL>
+        <LI>The Java Runtime Environment, version 1.2 or 
+      greater (available from <A target=_blank 
+      href="http://java.sun.com/j2se/1.3/jre/">Sun Microsystems</A>) 
+        <LI><STRONG><U>One</U></STRONG> of the following web browsers 
+        (<B><I>Internet Explorer is preferred</I></B>). 
+        <UL>
+          <LI>Internet Explorer 4.0 or greater 
+          (available from <A target=_blank 
+          href="http://www.microsoft.com/windows/ie/default.htm">Microsoft</A>).&nbsp; 
+          If you choose to perform a custom installation of IE, make certain to 
+          install the "Data Binding" option.
+          <LI>Netscape 4.7 (available from <A 
+          target=_blank 
+          href="http://home.netscape.com/download/archive.html">Netscape</A>).&nbsp;&nbsp;&nbsp; 
+          <B><STRONG>Note:</STRONG></B> Netscape 6.0 is <B><STRONG>not</STRONG></B> currently compatible with the 
+          dashboard.</LI></UL>
+        <LI>Make certain that Java and JavaScript are 
+        enabled in your browser. (This is typically the default setting, so you 
+        usually don't need to worry about enabling these unless you explicitly 
+        disabled them in the past.) 
+        <LI>If you connect to the internet via a proxy 
+        server, you may need to tell your browser to bypass the proxy for the 
+        address "localhost".&nbsp; The instructions below may not apply to your 
+        browser word-for-word, but should hopefully get you pointed in the right 
+        direction: 
+        <UL>
+          <LI>For Internet Explorer, choose 
+          "Tools&nbsp;&gt;&nbsp;Internet&nbsp;Options". Click on the 
+          "Connections" tab, then on the "LAN&nbsp;Settings" button.&nbsp; Make 
+          certain the "Bypass proxy server for local addresses" box is <B><STRONG>checked</STRONG></B>.
+          <LI>For Netscape, choose 
+          "Edit&nbsp;&gt;&nbsp;Preferences".&nbsp; Under the Category 
+          "Advanced&nbsp;&gt;&nbsp;Proxies",&nbsp; click the 
+          "Manual&nbsp;proxy&nbsp;configuration" button, and ensure that the 
+          "No&nbsp;Proxy&nbsp;for" box contains "localhost".</LI></UL>        
+                   
+          </LI></UL></TD></TR>
+  </TABLE>
+  </P>
+<H2>Installation 
+Instructions:</H2>
+<P>Before attempting to install the dashboard, make certain you have installed 
+the required software listed above.&nbsp; Then choose the 
+installation process that describes your system:</P>
+<P>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  
+  <TR>
+    <TD vAlign=baseline width=42>
+      <P>&nbsp;</P></TD>
+    <TD vAlign=top width="100%">
+      <UL>
+        <LI><B><STRONG>If you have previously 
+      installed the dashboard</STRONG></B>,&nbsp;follow the <A 
+      href="upgrade.html">upgrade 
+      instructions</A>. 
+        <LI>If you are 
+        running Windows, and your <U>default</U> web browser is one of the web 
+        browsers listed above, choose the <A 
+        href="simple_windows_installation.html">simple windows 
+        installation</A>. 
+        <LI>If you are running Windows, and your 
+        default web browser is Netscape 6.0, choose the <A 
+        href="custom_windows_installation.html">custom windows 
+        installation</A>. 
+        <LI>If you are running Linux or some other 
+        flavor of Unix , choose the <A href="unix_installation.html">unix 
+        installation</A>. 
+        <LI>If you are running MacOS, <A 
+        href="mailto:processdash-devel@lists.sourceforge.net">contact 
+        us</A>.&nbsp; We would love to help you install the software on your 
+        system, so we can learn what is involved and publish our findings on 
+        this website.<BR></LI></UL>
+      <HR>
+</TD></TR>
+  </TABLE></P>
+
+<H2><A name=add_on></A>Add-on Process Sets</H2>
+<P>The following processes do not come with the dashboard by default, but are 
+easy to install:</P>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  
+  <TR>
+    <TD vAlign=top width="100%">
+      <UL>
+        <LI><A 
+      name=SCRDCR 
+      href="http://prdownloads.sourceforge.net/processdash/SCR-DCR.jar">SCR/DCR</A> - a set of processes (inspired by PSP3) 
+        created by the Hill AFB TaskView team for software development.&nbsp; 
+        (These processes were distributed with version 1.1 of the dashboard, but 
+        are no longer actively 
+      supported.)</LI></UL></TD></TR></TABLE>
+<P>To install an add-on process set:</P>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  
+  <TR>
+    <TD vAlign=top width="100%">
+      <UL>
+        <LI>
+        Locate the 
+      file "   <I>pspdash.jar</I>" on your system.&nbsp; (If you are 
+      on a Windows system, this file is most likely located in the directory 
+      "<I>C:\Program Files\Process 
+      Dashboard</I>".) 
+        <LI>
+        Click on a link above to download the add-on process set. When your 
+        browser asks you whether you want to save the file or open it; choose 
+        <B><I>Save</I></B>.&nbsp; Save the file into the directory you found in 
+        the previous step. (In other words, the <I>pspdash.jar</I> file and the 
+        add-on process file should be side-by-side in the same directory.&nbsp; 
+        <STRONG><I>Do not</I></STRONG> overwrite the <I>pspdash.jar</I> file, just save the process file into 
+        the same directory.)
+        <LI>
+        If the dashboard is running, you will need to restart it for the new 
+        processes to be found. </LI>
+        </UL></TD></TR>
+  </TABLE>
+             
 
 </BODY>
 </HTML>
