@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 1999-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1433,7 +1433,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         listeners.remove(l);
     }
     private void fireHierarchyEditorClosed() {
-        for (Iterator i = listeners.iterator(); i.hasNext();) {
+        for (Iterator i = new LinkedList(listeners).iterator(); i.hasNext();) {
             Listener l = (Listener) i.next();
             l.hierarchyEditorClosed(this);
         }
