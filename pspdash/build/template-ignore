@@ -11,6 +11,7 @@ DCR.template
 Insp.template
 pspForEng
 dataFileCheck.pl
-addDisclaimer.pl
+batchEdit.pl.pl
+text
 disclaimer
 uncap.pl

@@ -109,8 +109,14 @@ build: FORCE
 data: FORCE
 	cd data; $(MAKE) all
 
+# for some reason, jhindexer dies horribly when run from cygwin prompt
+ifeq ($(BUILD_PLATFORM),CYGWIN)
+help-search: FORCE
+	cd Templates/help; cmd /c $(JHINDEXER) Topics
+else
 help-search: FORCE
 	cd Templates/help; $(JHINDEXER) Topics
+endif
 
 pspdash: PSPDashboard.class $(CLASS_FILES) Templates/PSP.globalData
 
