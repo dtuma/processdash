@@ -211,9 +211,9 @@ function IEsetup() {
 
 				// add a data applet to the page.
     document.writeln('<applet id=IEDataAppl'+
-		            ' codebase="/1/IE"' +
 		            ' code=pspdash.data.IEDataApplet'+
 		            ' width=1 height=1>');
+    document.writeln('<param name="cabbase" value="/1/DataApplet.cab">');
     document.writeln(IEparameterString);
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
@@ -410,7 +410,7 @@ function NSSetup() {
   if (pageContainsElements == true) {
     if (debug) document.writeln("<p>creating applet.");
     document.writeln('<applet name=NSDataAppl'+
-		            ' codebase="/1/NS" '+
+		            ' archive="/1/DataApplet.jar" '+
 		            ' code=pspdash.data.NSDataApplet'+
 		            ' width=1 height=1 MAYSCRIPT>');
     if (requiredTag != "")
