@@ -32,8 +32,8 @@ public class Timer {
     public Date createTime = null;
     private Date startTime = null;
     private Date stopTime = null;
-    private long elapsedTime = 0;	 // represented in seconds
-    private long interruptTime = 0;	 // represented in seconds
+    private long elapsedTime = 0;        // represented in seconds
+    private long interruptTime = 0;      // represented in seconds
 
     Timer(boolean running) {
         createTime = new Date();
@@ -106,6 +106,16 @@ public class Timer {
 
     public long minutesElapsed() {
         return (long)minutesElapsedDouble();
+    }
+
+    public double runningMinutesInterrupt() {
+        if (startTime != null) {
+            return (double)interruptTime / 60.0;
+        } else {
+            Date now = new Date();
+            return (double)(((now.getTime() - stopTime.getTime()) / 1000) +
+                            interruptTime) / 60.0;
+        }
     }
 
     public double minutesInterruptDouble() {
