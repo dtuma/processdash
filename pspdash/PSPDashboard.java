@@ -340,6 +340,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     public void refreshHierarchy() {
         hierarchy.delete();
         hierarchy = new HierarchyButton(this, PropertyKey.ROOT);
+        props.fireHierarchyChanged();
     }
 
     public void setCurrentPhase(PropertyKey newPhase) {
