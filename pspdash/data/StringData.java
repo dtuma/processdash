@@ -31,10 +31,15 @@ public class StringData implements SimpleData {
 
     String value = null;
     boolean editable = true;
+    boolean defined = true;
 
-    public StringData() {}
+    public StringData() { value = ""; }
 
     public StringData(String s) throws MalformedValueException {
+        if (s.charAt(0) == '?') {
+            defined = false;
+            s = s.substring(1);
+        }
         if (s.charAt(0) == '\"')
             s = s.substring(1);
         else
@@ -50,10 +55,10 @@ public class StringData implements SimpleData {
         while ((pos = s.indexOf('\\')) != -1) {
             val.append(s.substring(0, pos));
             switch (s.charAt(pos+1)) {
-                case 'n':		val.append('\n'); break;
-                case '\\':	val.append('\\'); break;
-                case 't':		val.append('\t'); break;
-                default:		val.append(s.charAt(pos+1)); break;
+                case 'n':         val.append('\n'); break;
+                case '\\':        val.append('\\'); break;
+                case 't':         val.append('\t'); break;
+                default:          val.append(s.charAt(pos+1)); break;
             };
             s = s.substring(pos+2);
         }
@@ -69,16 +74,18 @@ public class StringData implements SimpleData {
 
         for(int pos = 0;   pos < s.length();   pos++)
             switch (c = s.charAt(pos)) {
-                case '\\':	val.append("\\\\"); break;
-                case '\n':	val.append("\\n");  break;
+                case '\\':    val.append("\\\\"); break;
+                case '\n':    val.append("\\n");  break;
                 case '\t':    val.append("\\t");  break;
-                default:	val.append(c);
+                default:      val.append(c);
             }
 
         return val.toString();
     }
 
-    public String saveString()	{ return saveString(this.value); }
+    public String saveString()  {
+        return (defined ? "" : "?") + saveString(this.value);
+    }
 
     public static String saveString(String value) {
         return "\"" + escapeString(value);
@@ -96,11 +103,14 @@ public class StringData implements SimpleData {
         StringData result = new StringData();
         result.value = value;
         result.editable = editable;
+        result.defined = defined;
         return result;
     }
 
-    public boolean isEditable()	{ return editable; }
+    public boolean isEditable() { return editable; }
     public void setEditable(boolean e) { editable = e; }
+    public boolean isDefined() { return defined; }
+    public void setDefined(boolean d) { defined = d; }
 
     public void dispose() { value = null; }
 

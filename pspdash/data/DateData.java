@@ -34,6 +34,7 @@ public class DateData implements SimpleData {
 
     Date value;
     boolean editable = true;
+    boolean defined = true;
 
 
     public DateData() { value = new Date(); }
@@ -42,6 +43,10 @@ public class DateData implements SimpleData {
 
     public DateData(String s) throws MalformedValueException {
         try {
+            if (s.charAt(0) == '?') {
+                defined = false;
+                s = s.substring(1);
+            }
             if (s.charAt(0) != '@')
                 throw new MalformedValueException();
             if (s.equalsIgnoreCase("@now"))
@@ -53,12 +58,18 @@ public class DateData implements SimpleData {
         }
     }
 
-    public String saveString()		{ return "@" + value.getTime(); }
-    public boolean isEditable()		{ return editable; }
-    public void setEditable(boolean e)	{ editable = e; }
+    public String saveString() {
+        return (defined ? "@" : "?@") + value.getTime();
+    }
+    public boolean isEditable()         { return editable; }
+    public void setEditable(boolean e)  { editable = e; }
+    public boolean isDefined() { return defined; }
+    public void setDefined(boolean d) { defined = d; }
 
     public SimpleData getSimpleValue() {
-        return new DateData(value, editable);
+        DateData result = new DateData(value, editable);
+        if (!defined) result.defined = false;
+        return result;
     }
 
     public void dispose() {
@@ -99,6 +110,6 @@ public class DateData implements SimpleData {
                 (value != null) && (value.after(((DateData)val).value)));
     }
     public boolean test() {
-        return (value != null);
+        return (value != null && value.getTime() > 0);
     }
 }

@@ -31,6 +31,7 @@ public class DeferredData implements SaveableData {
     String name, value, prefix;
     DataRepository data;
     boolean editable;
+    boolean defined = true;
 
     SaveableData o;
 
@@ -56,10 +57,12 @@ public class DeferredData implements SaveableData {
         return o;
     }
 
-    public boolean isEditable()		{ return editable; }
-    public void setEditable(boolean e)	{ editable = e; }
-    public String saveString() 		{ return value; }
-    public SimpleData getSimpleValue() 	{ return null; }
+    public boolean isEditable()           { return editable; }
+    public void setEditable(boolean e)    { editable = e; }
+    public boolean isDefined()            { return true; }
+    public void setDefined(boolean d)     { }
+    public String saveString()            { return value; }
+    public SimpleData getSimpleValue()    { return null; }
 
     public void dispose() {
         name = value = prefix = null;

@@ -173,6 +173,8 @@ class ValueFactory {
 
         if (value.charAt(0) == '!')
             return new DeferredData(name, value, r, prefix);
+        else if (value.charAt(0) == '#')
+            return createFrozen(name, value, r, prefix);
         else
             return createSimple(value);
     }
@@ -184,20 +186,23 @@ class ValueFactory {
 
         if ("null".equals(value))
             return null;
-        else
-            switch (value.charAt(0)) {
+        else {
+            char c = value.charAt(0);
+            if (c == '?') c = value.charAt(1);
+            switch (c) {
             case '@': return new DateData(value);
             case '"': return new StringData(value);
-            case '?':
-                if (value.length() > 1) switch (value.charAt(1)) {
-                case '#': return UndefinedDouble.NaN;
-                case '0': return UndefinedDouble.ZERO;
-                default:  return new UndefinedDouble(value);
-                }
-                throw new MalformedValueException();
-
             default:  return new DoubleData(value);
             }
+        }
+    }
+
+
+
+    public static SimpleData createFrozen
+        (String name, String value, DataRepository r, String prefix)
+        throws MalformedValueException {
+        return null;
     }
 
 

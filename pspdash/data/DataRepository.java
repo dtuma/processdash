@@ -1159,6 +1159,7 @@ public class DataRepository implements Repository {
 
             boolean fileEditable = dataFile.file.canWrite();
             boolean dataEditable = true;
+            // boolean dataDefined = true;
 
             String name, value;
             SaveableData o;
@@ -1176,6 +1177,12 @@ public class DataRepository implements Repository {
                 } else
                     dataEditable = true;
 
+                /*          if (value.startsWith("?")) {
+                    dataDefined = false;
+                    value = value.substring(1);
+                } else
+                dataDefined = true;*/
+
                 if (value.equalsIgnoreCase("@now"))
                     dataModified = true;
                 try {
@@ -1185,8 +1192,10 @@ public class DataRepository implements Repository {
                                        "' in file '"+datafilePath+"' is malformed.");
                     o = new MalformedData(value);
                 }
-                if (!fileEditable || !dataEditable)
-                    if (o != null) o.setEditable(false);
+                if (o != null) {
+                    o.setEditable(fileEditable && dataEditable);
+                    //o.setDefined(dataDefined);
+                }
                 d = (DataElement)data.get(name);
                 if (d == null) {
                     if (o != null) d = add(name, o, dataFile, true);
@@ -1302,7 +1311,9 @@ public class DataRepository implements Repository {
                             try {
                                 name = name.substring(prefixLength);
 
-                                valStr = (value.isEditable()? "" : "=") + value.saveString();
+                                valStr = value.saveString();
+                                //if (!value.isDefined())  valStr = "?" + valStr;
+                                if (!value.isEditable()) valStr = "=" + valStr;
                                 defaultValStr = (String) defaultValues.get(name);
                                 if (valStr.equals(defaultValStr))
                                     continue;

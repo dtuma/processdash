@@ -50,15 +50,90 @@ else
    DS=:
 endif
 
-# If using javac from JDK1.3, we need these dependencies.  They won't get 
-# automatically compiled even though they are explicitly imported by 
-# ValueFactory.
-EXTRAS=AdditionFunction.class SubtractionFunction.class \
- MultiplicationFunction.class DivisionFunction.class AndFunction.class \
- OrFunction.class NotFunction.class EqualsFunction.class \
- LessThanFunction.class GreaterThanFunction.class \
- LessThanOrEqualsFunction.class GreaterThanOrEqualsFunction.class \
- NotEqualsFunction.class ResultSet.class
+COMMON_FILES=DataEvent.java \
+	DataListener.java \
+	DateData.java \
+	DoubleData.java \
+	MalformedValueException.java \
+	NumberData.java \
+	Repository.java \
+	SaveableData.java \
+	SimpleData.java \
+	StringData.java
+
+BROWSER_FILES=../DateFormatter.java \
+	../Settings.java \
+	$(COMMON_FILES) \
+	DataApplet.java \
+	DataInterpreter.java \
+	DateInterpreter.java \
+	DoubleInterpreter.java \
+	ForbiddenException.java \
+	HTMLField.java \
+	HTMLFieldManager.java \
+	InputName.java \
+	InterpreterFactory.java \
+	PercentInterpreter.java \
+	RemoteException.java \
+	RepositoryClient.java \
+	StringInterpreter.java
+
+NS_FILES=$(BROWSER_FILES) \
+	NSCheckboxField.java \
+	NSDataApplet.java \
+	NSField.java \
+	NSFieldManager.java \
+	NSSelectField.java \
+	NSTextField.java
+
+IE_FILES=$(BROWSER_FILES) \
+	IEDataApplet.java \
+	IEFieldManager.java \
+	OLEDBAlertWindow.java
+
+DATA_FILES=$(COMMON_FILES) \
+	AdditionFunction.java \
+	AndFunction.java \
+	ArgumentList.java \
+	ComparisonFunction.java \
+	DataComparator.java \
+	DataList.java \
+	DataRepository.java \
+	DeferredData.java \
+	DivisionFunction.java \
+	EqualsFunction.java \
+	GreaterThanFunction.java \
+	GreaterThanOrEqualsFunction.java \
+	IfList.java \
+	InvalidDatafileFormat.java \
+	LessThanFunction.java \
+	LessThanOrEqualsFunction.java \
+	MalformedData.java \
+	MultiplicationFunction.java \
+	NotEqualsFunction.java \
+	NotFunction.java \
+	NumberFunction.java \
+	OrFunction.java \
+	PrefixHierarchy.java \
+	ProductList.java \
+	RemoteException.java \
+	RepositoryListener.java \
+	RepositoryServer.java \
+	ResultSet.java \
+	SimpleList.java \
+	SortedList.java \
+	SubtractionFunction.java \
+	SumList.java \
+	ValueFactory.java
+
+IE_CLASSES=$(subst .java,.class,$(IE_FILES))
+NS_CLASSES=$(subst .java,.class,$(NS_FILES))
+DATA_CLASSES=$(subst .java,.class,$(DATA_FILES))
+
+IE_CLASS_FILES=$(addprefix $(BIN_IE)/pspdash/data/,$(IE_CLASSES))
+NS_CLASS_FILES=$(addprefix $(BIN_NS)/pspdash/data/,$(NS_CLASSES))
+DATA_CLASS_FILES=$(addprefix $(BIN_DATA)/pspdash/data/,$(DATA_CLASSES))
+
 
 ######################################################################
 # targets
@@ -67,7 +142,16 @@ EXTRAS=AdditionFunction.class SubtractionFunction.class \
 
 default: data
 
-data: DataRepository.class $(EXTRAS)
+data: $(DATA_CLASS_FILES)
+
+$(BIN_DATA)/pspdash/data/%.class: %.java
+	$(JAVAC) \
+	    -classpath '../build/PerlTools.jar$(DS)../build/jfreechart.jar' \
+	    -deprecation \
+	    -sourcepath $(SRC) \
+	    -d $(BIN_DATA) \
+	    $(DATA_FILES)
+
 
 ifneq ($(BUILD_PLATFORM),CYGWIN)
 
@@ -77,42 +161,34 @@ else
 
 all: IE NS data
 
-IE:
+IE: $(IE_CLASS_FILES)
+
+$(BIN_IE)/pspdash/data/%.class: %.java
 	mkdir -p $(BIN_IE)
-	rm -rf $(BIN_IE)/pspdash $(BIN_IE)/DataApplet.cab
+#	rm -rf $(BIN_IE)/pspdash $(BIN_IE)/DataApplet.cab
 	$(MSJAVAC) \
 	    /cp:p $(SRC) \
 	    /cp:p c:/WINDOWS/java/CLASSES/classes.zip \
 	    /d $(BIN_IE) \
-	    IEDataApplet.java \
-	    IEFieldManager.java \
-	    UndefinedDouble.java \
-	    OLEDBAlertWindow.java \
-	    ../Settings.java \
-	    ../DateFormatter.java
-	rm -f $(BIN_IE)/pspdash/data/OLEDBDSLWrapper.class \
-	      $(BIN_IE)/pspdash/data/OLEDBListenerWrapper.class
-	$(MSJAVAC) \
-	    /cp:p $(SRC) \
-	    /cp:p c:/WINDOWS/java/CLASSES/classes.zip \
-	    /d $(BIN_DATA) \
-	    OLEDBListenerWrapper.java \
-	    OLEDBDSLWrapper.java
+	    $(IE_FILES)
+	mv -f $(BIN_IE)/pspdash/data/OLEDBDSLWrapper.class $(BIN_DATA)
+	mv -f $(BIN_IE)/pspdash/data/OLEDBListenerWrapper.class $(BIN_DATA)
 	cd $(BIN_IE); $(MSCAB) -r -p n DataApplet.cab pspdash\\*
 
 endif
 
 
-NS:
+NS: $(NS_CLASS_FILES)
+
+$(BIN_NS)/pspdash/data/%.class: %.java
 	mkdir -p $(BIN_NS)
-	rm -rf $(BIN_NS)/pspdash $(BIN_NS)/DataApplet.jar
+#	rm -rf $(BIN_NS)/pspdash $(BIN_NS)/DataApplet.jar
 	$(JAVAC) \
 	    -classpath ../build/java40.jar \
 	    -deprecation \
 	    -sourcepath $(SRC) \
 	    -d $(BIN_NS) \
-	    UndefinedDouble.java \
-	    NSDataApplet.java
+	    $(NS_FILES)
 	cd $(BIN_NS); $(JAR) cf DataApplet.jar pspdash
 
 
@@ -139,17 +215,17 @@ new: clean all
 ######################################################################
 
 
-JAVA_FILES=$(wildcard *.java)
-CLASS_FILES=$(subst .java,.class,$(JAVA_FILES))
+$(DATA_CLASSES) : %.class : $(BIN_DATA)/pspdash/data/%.class
 
+USED_ELSEWHERE=Correlation.java \
+	DataCorrelator.java \
+	GenericFunction.java \
+	Integrator.java \
+	Inverse.java \
+	LinearRegression.java \
+	OLEDBDSLWrapper.java \
+	OLEDBListenerWrapper.java \
+	StudentsT.java
 
-$(CLASS_FILES) : %.class : $(BIN_DATA)/pspdash/data/%.class
-
-
-$(BIN_DATA)/pspdash/data/%.class: %.java
-	$(JAVAC) \
-	    -classpath '../build/PerlTools.jar$(DS)../build/jfreechart.jar' \
-	    -deprecation \
-	    -sourcepath $(SRC) \
-	    -d $(BIN_DATA) \
-	    $^
+show_missing_files:
+	@echo $(filter-out $(IE_FILES) $(NS_FILES) $(DATA_FILES) $(USED_ELSEWHERE),$(wildcard *.java))

@@ -82,7 +82,7 @@ Postmortem/node==1.0
 
 = Estimated Time
 
-Estimated Time=?#
+Estimated Time=?NaN
 
 = Actual Time
 

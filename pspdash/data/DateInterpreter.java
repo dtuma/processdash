@@ -26,6 +26,7 @@
 
 package pspdash.data;
 
+import java.util.Date;
 
 class DateInterpreter extends DataInterpreter {
 
@@ -43,5 +44,13 @@ class DateInterpreter extends DataInterpreter {
     public void setString(String s) throws MalformedValueException {
         value = DateData.create(s);
     }
+
+
+    public SimpleData getNullValue() {
+        return NULL_VALUE;
+    }
+
+    private static final DateData NULL_VALUE = new DateData(new Date(0), true);
+    static { NULL_VALUE.setDefined(false); }
 
 }

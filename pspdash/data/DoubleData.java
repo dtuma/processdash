@@ -32,6 +32,7 @@ import java.lang.Math;
 public class DoubleData implements SimpleData, NumberData {
 
     double value;
+    boolean defined = true;
     boolean editable = true;
 
     public DoubleData() {}
@@ -40,27 +41,36 @@ public class DoubleData implements SimpleData, NumberData {
 
     public DoubleData(String s) throws MalformedValueException {
         try {
-            value = Integer.valueOf(s).doubleValue();
-        } catch (NumberFormatException e) {
-            try {
-                value = Double.valueOf(s).doubleValue();
-            } catch (NumberFormatException e2) {
-                throw new MalformedValueException();
+            if (s.charAt(0) == '?') {
+                defined = false;
+                s = s.substring(1);
             }
+            value = Double.valueOf(s).doubleValue();
+        } catch (Exception e) {
+            if ("NaN".equals(s))
+                value = Double.NaN;
+            else
+                throw new MalformedValueException();
         }
     }
 
     public DoubleData(int i)    { value = (double)i; }
     public DoubleData(double d) { value = d; }
-    public String saveString()  { return Double.toString(value); }
+    public String saveString()  {
+        return (defined ? "" : "?") + Double.toString(value);
+    }
     public double getDouble()   { return value; }
     public int getInteger()     { return (int)value; }
     public boolean isEditable() { return editable; }
     public void setEditable(boolean e) { editable = e; }
+    public boolean isDefined() { return defined; }
+    public void setDefined(boolean d) { defined = d; }
     public void dispose() {};
 
     public SimpleData getSimpleValue() {
-        return new DoubleData(value, editable);
+        DoubleData result = new DoubleData(value, editable);
+        result.defined = defined;
+        return result;
     }
 
     public static final int AUTO_DECIMAL = -1;

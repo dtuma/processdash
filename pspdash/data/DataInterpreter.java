@@ -88,7 +88,7 @@ abstract class DataInterpreter implements DataListener {
 
     public String getString() {
         if (noConnection) return "NO CONNECTION";
-        if (value == null || value instanceof UndefinedData)
+        if (value == null || !value.isDefined())
             return (optional ? "" : "?????");
         else
             return value.format();
@@ -97,6 +97,8 @@ abstract class DataInterpreter implements DataListener {
 
     public abstract void setBoolean(Boolean b);
     public abstract void setString(String s) throws MalformedValueException;
+
+    public SimpleData getNullValue() { return null; }
 
     public boolean isEditable() {
         return (!noConnection && !readOnly && (value==null || value.isEditable()));
@@ -133,7 +135,7 @@ abstract class DataInterpreter implements DataListener {
             else {
                 String strval = newValue.toString();
                 if (strval == null || strval.length() == 0)
-                    value = null;
+                    value = (optional ? null : getNullValue());
                 else
                     setString(strval);
             }

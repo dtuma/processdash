@@ -36,8 +36,7 @@ class PercentInterpreter extends DoubleInterpreter {
 
 
     public String getString() {
-        if (value instanceof DoubleData &&
-            !(value instanceof UndefinedData)) {
+        if (value instanceof DoubleData && value.isDefined()) {
             String result = DoubleData.formatNumber
                 (((DoubleData) value).value * 100.0, numDigits);
             return (result.startsWith("ERR")) ? result : result + "%";
@@ -51,6 +50,11 @@ class PercentInterpreter extends DoubleInterpreter {
         DoubleData d = new DoubleData(s);
         d.value /= 100.0;
         value = d;
+    }
+
+
+    public SimpleData getNullValue() {
+        return NULL_VAL;
     }
 
 }

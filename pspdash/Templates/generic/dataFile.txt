@@ -53,7 +53,7 @@ Units="Units
 == Data Elements to track Time.
 ==
 
-Estimated Time=?#
+Estimated Time=?NaN
 Time==![(+	~.*/Time)]
 Time Estimating Error==![(/	[(-	Time	Estimated Time)]	Estimated Time)]
 
@@ -72,8 +72,8 @@ Defects Removed==![(+	~.*/Defects Removed)]
 == Data Elements to track size
 ==
 
-Estimated Size=?#
-Size=?#
+Estimated Size=?NaN
+Size=?NaN
 Size Estimating Error==![(/	[(-	Size	Estimated Size)]	Estimated Size)]
 
 

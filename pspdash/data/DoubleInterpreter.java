@@ -55,11 +55,23 @@ class DoubleInterpreter extends DataInterpreter {
 
 
     public String getString() {
-        if (value instanceof DoubleData &&
-            !(value instanceof UndefinedData))
+        if (value instanceof DoubleData && value.isDefined())
             return ((DoubleData) value).formatNumber(numDigits);
         else
             return super.getString();
     }
+
+
+    public SimpleData getNullValue() {
+        DoubleData result = new DoubleData(Double.NaN, true);
+        result.setDefined(false);
+        return result;
+        //System.out.println("NULL_VAL: isDefined()=" + NULL_VAL.isDefined());
+        //return NULL_VAL;
+    }
+
+    protected static final DoubleData NULL_VAL =
+        new DoubleData(Double.NaN, true);
+    static { NULL_VAL.setDefined(false); }
 
 }

@@ -37,10 +37,13 @@ public class MalformedData implements SaveableData {
     }
 
     String saveString;
+    boolean defined = true;
 
     public MalformedData(String value)    { saveString = value;  }
     public boolean isEditable()           { return false;        }
     public void setEditable(boolean e)    {                      }
+    public boolean isDefined()            { return true;         }
+    public void setDefined(boolean d)     {                      }
     public String saveString()            { return saveString;   }
     public SimpleData getSimpleValue()    { return SIMPLE_VALUE; }
     public void dispose()                 { saveString = null;   }

@@ -46,4 +46,12 @@ class StringInterpreter extends DataInterpreter {
         value = StringData.create(s);
     }
 
+
+    public SimpleData getNullValue() {
+        return NULL_VAL;
+    }
+
+    private static final StringData NULL_VAL = new StringData();
+    static { NULL_VAL.setDefined(false); }
+
 }

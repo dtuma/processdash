@@ -50,7 +50,9 @@ class SumList extends DataList {
 
         Enumeration values = dataList.elements();
         while (values.hasMoreElements()) {
-            d = (NumberData) ((DataListValue)values.nextElement()).value;
+            try {
+                d = (NumberData) ((DataListValue)values.nextElement()).value;
+            } catch (ClassCastException cce) { d = null; }
 
             if (d != null && !Double.isNaN(d.getDouble()))
                 value += d.getDouble();

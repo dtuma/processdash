@@ -68,13 +68,13 @@ PM/Estimated Time==![(+	Postmortem/Estimated Time)]
 == Data Elements to track LOC.
 ==
 
-Estimated New & Changed LOC=?#
+Estimated New & Changed LOC=?NaN
 
 Base LOC=0.0
 Deleted LOC=0.0
 Modified LOC=0.0
 Reused LOC=0.0
-Total LOC=?#
+Total LOC=?NaN
 New Reused LOC=0.0
 New & Changed LOC==![(+	Added LOC	Modified LOC)]
 Added LOC==![(-	[(+	Total LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
