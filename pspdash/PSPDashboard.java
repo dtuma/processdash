@@ -273,10 +273,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
     public void windowIconified(WindowEvent w) {}
     public void windowDeiconified(WindowEvent w) {}
     public void windowActivated(WindowEvent w) {}
-
-    public void windowDeactivated(WindowEvent w) {
-        script_button.hidePopup();
-    }
+    public void windowDeactivated(WindowEvent w) {}
 
     public void windowClosing(WindowEvent w) {
         exitProgram();
