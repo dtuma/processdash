@@ -10,3 +10,7 @@ SCR.globalData
 DCR.template
 Insp.template
 pspForEng
+dataFileCheck.pl
+addDisclaimer.pl
+disclaimer
+uncap.pl
