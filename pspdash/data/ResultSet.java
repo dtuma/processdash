@@ -95,7 +95,7 @@ public class ResultSet {
     public SimpleData getData(int row, int col) {
         if (row == 0 || col == 0) throw new ArrayIndexOutOfBoundsException();
         Object o = data[row][col];
-        if (o instanceof NumberData)
+        if (o instanceof NumberData && !(o instanceof UndefinedData))
             return new DoubleData
                 (((NumberData) o).getDouble() * multiplier[col], false);
         else
@@ -137,7 +137,7 @@ public class ResultSet {
         if (row == 0 || col == 0) return data[row][col].toString();
 
         SimpleData d = getData(row, col);
-        if (d == null) return "";
+        if (d == null || d instanceof UndefinedData) return "";
 
         String result = d.format();
         if (result.startsWith("ERR")) return result;
