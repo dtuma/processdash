@@ -35,7 +35,7 @@ public class IconFactory {
         return new ProjectIcon(DEFAULT_COLOR);
     }
 
-    public static Object getWorkflowIcon() {
+    public static Icon getWorkflowIcon() {
         return new WorkflowIcon(DEFAULT_COLOR);
     }
 
@@ -108,13 +108,19 @@ public class IconFactory {
     private static Icon DELETE_ICON = null;
 
     public static Icon getImportIcon() {
-        if (IMPORT_ICON == null) IMPORT_ICON = loadIconResource("import.png");
+        if (IMPORT_ICON == null) {
+//            IMPORT_ICON = loadIconResource("import.png");
+            IMPORT_ICON = new ConcatenatedIcon(new Icon[] { getWorkflowIcon(), getLeftArrowIcon(), getOpenIcon() });
+        }
         return IMPORT_ICON;
     }
     private static Icon IMPORT_ICON = null;
 
     public static Icon getExportIcon() {
-        if (EXPORT_ICON == null) EXPORT_ICON = loadIconResource("export.png");
+        if (EXPORT_ICON == null) {
+//            EXPORT_ICON = loadIconResource("export.png");
+            EXPORT_ICON = new ConcatenatedIcon(new Icon[] { getWorkflowIcon(), getRightArrowIcon(), getOpenIcon() });
+        }
         return EXPORT_ICON;
     }
     private static Icon EXPORT_ICON = null;
@@ -468,6 +474,40 @@ public class IconFactory {
             drawHighlight(g, 2,  0, -1); // bottom shadow
             drawHighlight(g, 3, -1,  0); // right shadow
         }
+    }
+
+
+    /** Icon capable of concatenating several other icons.
+     */
+    private static class ConcatenatedIcon implements Icon {
+
+        private Icon[] icons;
+        int width, height;
+
+        public ConcatenatedIcon(Icon[] icons) {
+            this.icons = icons;
+            this.width = this.height = 0;
+            for (int i = 0; i < icons.length; i++) {
+                this.width += icons[i].getIconWidth();
+                this.height = Math.max(this.height, icons[i].getIconHeight());
+            }
+        }
+
+        public int getIconHeight() {
+            return height;
+        }
+
+        public int getIconWidth() {
+            return width;
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            for (int i = 0; i < icons.length; i++) {
+                icons[i].paintIcon(c, g, x, y);
+                x += icons[i].getIconWidth();
+            }
+        }
+
     }
 
 
