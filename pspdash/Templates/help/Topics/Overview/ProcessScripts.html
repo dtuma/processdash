@@ -121,19 +121,22 @@ At PSP3:
 
 <h2>The "generic" process script</h2>
 <P>Very much of the methodology that is employed by the PSP can be used in 
-other endeavors.  Any kind of work that has measurable size, time, and 
+other endeavors.  Any kind of work that has measurable time, size, and/or
 defects can probably benefit from a PSP-like process.  The generic process 
 scripts attempt to give rudimentary measurement and defect tracking for other 
 work efforts.</p>
 
-<P>The generic process script allows a planning and postmortem phase, and 
-provides a form similar to the Project Plan Summary form.  It allows entry of 
-estimates of time and size, and even lets you enter the size unit.  For 
-example, you could run the generic process to measure and track your progress 
-as you write a technical paper.  The size unit would end up being something 
-related to the work of writing (perhaps pages).  The generic process would 
-capture your productivity rates and allow you to enter defects.  Estimation 
-support would also be available through the PROBE tool.</p>
+<P>The generic process script always contains a planning and a postmortem
+phase.  Additional phases with custom names can be added with the <a
+href="../Planning/UsingHierarchyEditor.html">hierarchy editor</a>.  The
+generic process then creates a tailored project plan summary form.  It allows
+entry of time and size estimates, and even lets you enter the unit of size
+measurement.  For example, you could run the generic process to measure and
+track your progress as you write a technical paper.  The size unit would end
+up being something related to the work of writing (perhaps pages).  The
+generic process would capture your productivity rates and allow you to enter
+defects.  Estimation support would also be available through the PROBE
+tool.</p>
 
 <h2>The "timer" process script</h2>
 <P>The timer process allows for estimating and measuring activities that have 
@@ -141,6 +144,45 @@ only a time aspect to them.  If you regularly perform some kind of task that
 pretty much remains the same each time, you could record estimates and times 
 for that task to attempt to provide some engineering discipline.</p>
 
+<h2>Custom process scripts</h2>
+
+<P>The dashboard has been designed from the ground up to support custom
+processes.  The PSP scripts and forms that you see are not hardcoded into the
+tool; instead, they are dynamically loaded from simple HTML and text files.
+Thus, it is possible to create your own custom process scripts, forms, and
+data that will be dynamically integrated into the dashboard.
+
+<P>A "process wizard," capable of creating a custom process from parameters
+you specify, should be available soon.  Visit our website for details, at
+http://processdash.sourceforge.net/
+
+<h2>Custom process vs Generic process?</h2>
+
+<P>When should you use the generic process, and when should you create a
+custom process?  In general, you should use the generic process:</P>
+
+<UL>
+<LI>If the process for this task is unlikely to be reused in the future (for
+example, because the task at hand is a departure from the work you normally
+do).</LI>
+
+<LI>If the process for this task is still immature and uncertain.  As you
+begin creating your own custom process definitions, the flexibility of the
+generic process will allow you to radically change your process from one task
+to the next in response to process improvement proposals.  Once you decide
+upon and finalize the <u>list of phases</u> in your process, you are ready to
+begin using a custom process script.</LI>
+</UL>
+
+<P>The generic script gives you a lot of flexibility - the phase names and
+other process specifics can change from task to task, or even in the middle of
+a generic project!  This flexibility comes at a price, however: without an
+unchanging process definition, it isn't possible to compare "apples to apples"
+across numerous generic processes.  Therefore, the generic process cannot
+calculate "to date" data like a custom process can.  On the other hand, a
+change to your process definition can potentially invalidate all the
+historical data you've collected, so it is best to wait and define a custom
+process when you feel you've confidently identified its phases.</P>
 
 <!-- DISCLAIMER -->
 
