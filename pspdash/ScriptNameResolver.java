@@ -40,27 +40,31 @@ public class ScriptNameResolver implements ScriptID.NameResolver {
     public ScriptNameResolver(TinyWebServer w) { web = w; }
 
     public String lookup(String scriptFile) {
+        int hashPos = scriptFile.indexOf('#');
+        if (hashPos != -1)
+            scriptFile = scriptFile.substring(0, hashPos);
+
         String result = (String) displayNameCache.get(scriptFile);
         if (result != null)
             return (result.length() == 0 ? null : result);
 
-    try {
-        String text = new String(web.getRequest("/"+scriptFile, true));
+        try {
+            String text = new String(web.getRequest("/"+scriptFile, true));
 
-        int beg = text.indexOf("<TITLE>");
-        if (beg == -1) return null;
-        beg += 7;
+            int beg = text.indexOf("<TITLE>");
+            if (beg == -1) return null;
+            beg += 7;
 
-        int end = text.indexOf("</TITLE>", beg);
-        if (end == -1) return null;
+            int end = text.indexOf("</TITLE>", beg);
+            if (end == -1) return null;
 
-        result = text.substring(beg, end).trim();
-    } catch (Exception e) {
-        // Do nothing.
-    }
+            result = text.substring(beg, end).trim();
+        } catch (Exception e) {
+            // Do nothing.
+        }
 
-    displayNameCache.put(scriptFile, (result == null ? "" : result));
-    return result;
+        displayNameCache.put(scriptFile, (result == null ? "" : result));
+        return result;
     }
 
     public static void precacheName(String scriptFile, String name) {
