@@ -5,6 +5,7 @@
 
 pspForEng==1.0
 PSPFORENG==1.0
+node==1.0
 
 
 = There is no place for students to enter size data for program 1A.
