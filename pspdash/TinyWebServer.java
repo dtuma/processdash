@@ -250,6 +250,11 @@ public class TinyWebServer extends Thread {
                 uri      = tok.nextToken();
                 protocol = tok.nextToken();
 
+                // Check for a valid method
+                if (!"GET".equals(method) && !"POST".equals(method))
+                    sendError(501, "Not Implemented",
+                              "Unsupported Request Method" );
+
                 // break the uri into hierarchy path, file path, and
                 // query string; place the results in the appropriate
                 // object-global variables.
@@ -576,7 +581,8 @@ public class TinyWebServer extends Thread {
         {
             byte[] buffer = new byte[4096];
             InputStream content = conn.getInputStream();
-            int numBytes = content.read(buffer);
+            int numBytes = -1;
+            if (content != null) numBytes = content.read(buffer);
             if (numBytes == -1)
                 sendError( 500, "Internal Error", "Couldn't read file." );
 
