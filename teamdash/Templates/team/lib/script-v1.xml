@@ -45,11 +45,16 @@
 
     <!-- data files for use on the individal side -->
     <file in="indiv_root_dataFile.txt" encoding="data" />
+    <!--#break simplifyingData -->
     <file in="indiv_full_dataFile.txt" encoding="data" />
+    <!--#endbreak simplifyingData -->
+    <file in="indiv_simple_full_dataFile.txt"
+          out="indiv_full_dataFile.txt" encoding="data" />
     <file in="indiv_empty_dataFile.txt" encoding="data" />
 
     <!-- forms for use on the individual side -->
-    <file in="plan_summary.htm" encoding="html" out="plan_summary.shtm">
+    <file in="expanding_indiv_plan_summary.htm" encoding="html"
+          out="plan_summary.shtm">
         <param name="UNLOCK" value="u" replace="true"/>
     </file>
     <file in="summary_redirect.htm" out="summary.shtm"/>
@@ -87,12 +92,10 @@
 
     <!-- core datafile that describes the data structure of the process -->
     <file in="prototype_dataFile.txt" encoding="data"
-          out="prototype_dataFile.txt"/>
-
-    <!-- CGI script for navigating the hierarchy -->
-    <file in="/team/selectHier.class" encoding="binary"
-          out="selectHier.class"/>
-    <file in="hier.png" encoding="binary" />
+          out="prototype_dataFile.txt">
+        <param name="PID" replace="true"
+	       value="<!--#echo var='Process_ID' encoding='data' -->"/>
+    </file>
 
     <!-- query files for various reports -->
     <file in="percent-def-free.rpt" encoding="none" />
@@ -109,5 +112,16 @@
     <!-- the html page displaying charts -->
     <file in="charts.htm" encoding="url" 
           out="charts.shtm" />
+
+    <!-- CGI scripts for navigating the hierarchy -->
+    <file in="/team/setup/selectHier.class" encoding="binary"
+          out="/team/setup/selectHier.class"/>
+    <file in="/team/setup/selectWBS.class" encoding="binary"
+          out="/team/setup/selectWBS.class"/>
+    <file in="/team/setup/selectTopNode.class" encoding="binary"
+          out="/team/setup/selectTopNode.class"/>
+    <file in="hier.png" encoding="binary" />
+
+    <!-- Items for the team project setup wizard -->
 
 </generation-script>
