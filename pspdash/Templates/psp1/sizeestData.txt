@@ -78,7 +78,7 @@
 [Estimated New & Changed LOC/Range] = 0;
 [Estimated Total LOC/Range] = [Estimated New & Changed LOC/Range];
 [Estimated New & Changed LOC/Interval Percent] = 0;
-[Estimated New & Changed LOC/Probe Method] = "D";
+[Estimated New & Changed LOC/Probe Method] = "D  ";
 [Estimated New & Changed LOC/R Squared] = 0;
 
 /*
@@ -113,5 +113,5 @@
 [Estimated Time/Beta1] = 0;
 [Estimated Time/Range] = 0;
 [Estimated Time/Interval Percent] = 0;
-[Estimated Time/Probe Method] = "D";
+[Estimated Time/Probe Method] = "D  ";
 [Estimated Time/R Squared] = 0;
