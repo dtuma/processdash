@@ -88,6 +88,13 @@ public class Browser {
                 cmd = ("rundll32 url.dll,FileProtocolHandler " +
                        maybeFixupURLForWindows(url));
                 Runtime.getRuntime().exec(cmd);
+            } else if (isMac()){
+                try {
+                    BrowserLauncher.openURL(url);
+                } catch (IOException ble) {
+                    System.err.println(ble);
+                    throw ble;
+                }
             } else {
                 String windowName = ",window" + System.currentTimeMillis();
                 cmd = "netscape -remote openURL(" + url + windowName + ")";
@@ -174,6 +181,14 @@ public class Browser {
         }
     }
 
+    /**
+     * Checks if the OS is Macintosh.
+     * @return true if it is, false if it's not.
+     */
+    private static boolean isMac() {
+        return (System.getProperty("mrj.version") != null);
+    }
+
     private static void debug(String msg) {
         // System.out.println("Browser: " + msg);
     }
@@ -181,6 +196,9 @@ public class Browser {
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.3  2003/12/16 23:52:35  tuma
+ * Detect MacOS and use automatically use BrowserLauncher as the default.
+ *
  * Revision 1.2  2003/11/08 21:13:28  tuma
  * Remove "dead" code related to preparing Windows for the IEDataApplet
  *
