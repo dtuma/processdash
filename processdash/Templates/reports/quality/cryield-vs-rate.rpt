@@ -1,9 +1,0 @@
-= Code Review Yield vs Code Review Rate query
-
-qf=../compProj.rpt
-
-
-d1==Code Review/Appraisal Rate
-
-d2==Code Review/% Phase Yield
-f2==100%

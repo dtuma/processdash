@@ -1,7 +1,0 @@
-= % Plan + Postmortem Time query
-
-qf=../compProj.rpt
-
-
-d1==[Planning/%/Time] + [PM/%/Time]
-f1==100%

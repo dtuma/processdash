@@ -1,8 +1,0 @@
-= Test Defects vs. A/FR query
-
-qf=../compProj.rpt
-
-
-d1=AFR
-
-d2==Test/Defect Density

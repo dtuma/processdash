@@ -3,17 +3,25 @@
 =
 
 qf=../compProj.rpt
+rf=../reports
 
-d1==New & Changed LOC
+h1=${New_&_Changed_LOC}
+d1=New & Changed LOC
 
-d2==Defects Removed
+h2=${Defects.Total_Title}
+d2=Defects Removed
 
-d3==Defect Density
+h3=${Defects/KLOC}
+d3=Defect Density
 
-d4==Compile/Defects Removed
+h4=${R3.Compile_Defects}
+d4=Compile/Defects Removed
 
-d5==Compile/Defect Density
+h5=${R3.Compile_Defect_Density}
+d5=Compile/Defect Density
 
-d6==Test/Defects Removed
+h6=${R3.Test_Defects}
+d6=Test/Defects Removed
 
-d7==Test/Defect Density
+h7=${R3.Test_Defect_Density}
+d7=Test/Defect Density

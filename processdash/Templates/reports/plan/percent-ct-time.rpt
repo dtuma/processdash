@@ -1,7 +1,0 @@
-= % Compile + Test Time query
-
-qf=../compProj.rpt
-
-
-d1==[Compile/%/Time] + [Test/%/Time]
-f1==100%

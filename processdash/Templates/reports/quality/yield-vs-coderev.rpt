@@ -1,9 +1,0 @@
-= Yield vs Code Review Rate query
-
-qf=../compProj.rpt
-
-
-d1==Code Review/Appraisal Rate
-
-d2==Yield
-f2==100%

@@ -1,9 +1,0 @@
-= Defect Injection % by Phase query
-
-qf=defects.rpt
-
-d1==Code/Cumulative Defect Injection %
-f1==100%
-
-d2==Design/Cumulative Defect Injection %
-f2==100%

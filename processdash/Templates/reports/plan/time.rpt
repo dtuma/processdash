@@ -1,6 +1,0 @@
-= Actual Time query
-
-qf=../compProj.rpt
-
-
-d1==[Time] / 60

@@ -1,9 +1,0 @@
-= Yield vs Design + Code Review Rate query
-
-qf=../compProj.rpt
-
-
-d1==[New & Changed LOC] * 60 / ([Design Review/Time] + [Code Review/Time])
-
-d2==Yield
-f2==100%

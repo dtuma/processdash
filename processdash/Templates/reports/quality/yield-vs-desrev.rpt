@@ -1,9 +1,0 @@
-= Yield vs Design Review Rate query
-
-qf=../compProj.rpt
-
-
-d1==Design Review/Appraisal Rate
-
-d2==Yield
-f2==100%

@@ -1,7 +1,0 @@
-= Compile vs. Test Defect Density
-
-qf=defects.rpt
-
-d1==Compile/Defect Density
-
-d2==Test/Defect Density
