@@ -1,0 +1,42 @@
+<p><a name="[!--#echo ANCHOR --]"><span class='node'>[!--#echo
+    SUB_PATH --]</span>
+
+<table>
+
+<tr>
+<td class="header">Description</td>
+<td class="header">Size Units</td>
+<td class="header">Plan</td>
+<td class="header">Actual</td>
+</tr>
+
+[!--#foreach name="NUM" list="n" --]
+
+<tr>
+
+<td><input name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Description	s" 
+    type="text" size="40"></td>
+
+<td><select
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Sized_Object_Units	s">
+<option>
+<!--#foreach name=Inspected_ values=",,Inspected ," #-->
+<!--#foreach name=Metric values=",Req Pages,HLD Pages,Text Pages,DLD Lines," #-->
+<option value="Inspected_Metric">Inspected_Metric
+<!--#endfor--><!--#endfor #-->
+<option value="Inspected New & Changed LOC">Inspected LOC
+</select>
+</td>
+
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Estimated Size	o"
+    type="text" size="7"></td>
+
+<td><input name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Size	o"
+    type="text" size="7"></td>
+
+</tr>
+
+[!--#endfor--]
+
+</table>
