@@ -28,6 +28,8 @@ import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.List;
 
+import com.izforge.izpack.installer.ResourceManager;
+
 /**
  *  Represents a Pack.
  *
@@ -83,7 +85,41 @@ public class Pack implements Serializable
      */
     public String toString()
     {
-        return name + " (" + description + ")";
+        return getDisplayName() + " (" + getDisplayDescription() + ")";
+    }
+
+
+    /** Get a (potentially localized) name of this pack.
+     */
+    public String getDisplayName() {
+        if (displayName == null)
+            displayName = getDisplayString("name", name);
+
+        return displayName;
+    }
+    private transient String displayName = null;
+
+
+    /** Get a (potentially localized) description for this pack.
+     */
+    public String getDisplayDescription() {
+        if (displayDescription == null)
+            displayDescription = getDisplayString("description", description);
+
+        return displayDescription;
+    }
+    private transient String displayDescription = null;
+
+
+    private String getDisplayString(String suffix, String defaultVal) {
+        if (id == null)
+            return defaultVal;
+        try {
+            String resName = "pack." + id + "." + suffix;
+            return ResourceManager.getInstance().getTextResource(resName);
+        } catch (Exception e) {
+            return defaultVal;
+        }
     }
 
 
