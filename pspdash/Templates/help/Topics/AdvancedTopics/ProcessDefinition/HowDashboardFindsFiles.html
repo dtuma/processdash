@@ -1,8 +1,30 @@
 <HTML>
 <head>
-<TITLE>How The Dashboard Finds Its Files</TITLE>
+<TITLE>Making changes to the standard scripts</TITLE>
 </head>
 <BODY>
+
+<a name="OverwritingScript"></a><h1>Making a change to a script</h1>
+
+<p>Perhaps the built-in PSP processes suit you well, but you'd like to make 
+some small tweak to one of the HTML scripts.  For example, you might like to</p>
+
+<p>When you're viewing the page in question, you notice it has the URL:</p>
+
+<tt>http://localhost:2468/Project+Path//<b>psp2.1/develop.htm</b></tt>
+
+<p>Take the following steps:</p>
+<ol>
+ <li>find your pspdash.jar file
+ <li>create a directory alongside it called "Templates"
+ <li>create a subdirectory called "psp2.1"
+ <li>save the current version of the HTML file to the psp2.1 subdirectory.
+ <li>edit it to your heart's content using the HTML editor of your choice.
+</ol>
+
+<p>Now, every time you visit that page, for any applicable project in your 
+hierarchy, the dashboard will show you the page containing your custom 
+changes.</p>
 
 <H1>How the Dashboard finds process files</H1>
 
@@ -44,27 +66,6 @@ and put it in a location earlier on the search list.
 <p>
 The sections below give some practical examples of how you can use
 this mechanism.
-
-<a name="OverwritingScript"></a><h2>Overwriting a script</h2>
-
-Perhaps the built-in PSP processes suit you well, but you'd like to
-make some small tweak to one of the HTML scripts.  For example, you
-might like to ...think of and insert cheesy script change here...
-
-<p> When you're viewing the page in question, you notice it has the URL:
-
-<tt>http://localhost:2468/Project+Path//<b>psp2.1/develop.htm</b></tt>
-
-Take the following steps:<ol>
-<li>find your pspdash.jar file
-<li>create a directory alongside it called "Templates"
-<li>create a subdirectory called "psp2.1"
-<li>save the current version of the HTML file to the psp2.1 subdirectory.
-<li>edit it to your heart's content using the HTML editor of your choice.
-</ol>
-
-Now, every time you visit that page, for any applicable project in your hierarchy,
-the dashboard will show you the page containing your custom changes.
 
 <h2>Sharing changes with team members</h2>
 
