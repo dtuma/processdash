@@ -362,7 +362,7 @@ public class EVScheduleRollup extends EVSchedule {
     private class OptForecastChartSeries extends ForecastChartSeries {
         public String getSeriesName() { return OPTIMIZED_LABEL; }
         protected Date getForecastDate() {
-            return ((EVMetricsRollup) metrics).optimizedPlanDate();
+            return ((EVMetricsRollup) metrics).optimizedForecastDate();
         }
     }
 
