@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This library is free software; you can redistribute it and/or
@@ -28,28 +28,24 @@ import pspdash.*;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.io.InputStream;
+import java.awt.Frame;
+import java.awt.Window;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
-import javax.help.*;
+
+import javax.help.CSH;
+import javax.help.DefaultHelpBroker;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
+import javax.help.HelpSetException;
 
 public class createBroker extends DefaultHelpBroker
     implements HelpBroker, DashHelpProvider, TinyCGI {
 
-    public void service(InputStream in, OutputStream out, Map env)
-        throws IOException
-    {
-        PCSH.setHelpProvider(this);
-        out.write("Content-type: text/html\r\n\r\n".getBytes());
-        out.flush();
-    }
-
-
-    /* Code below is copied from pspdash.DashHelpBroker */
 
     public createBroker() throws HelpSetException {
         super();
@@ -72,8 +68,16 @@ public class createBroker extends DefaultHelpBroker
         super.setHelpSet(hs);
         initPresentation();
 
-        frame.setIconImage(Toolkit.getDefaultToolkit().createImage
-            (PSPDashboard.class.getResource("icon32.gif")));
+        try {
+            Window w = getWindowPresentation().getHelpWindow();
+            if (w instanceof Frame)
+                ((Frame) w).setIconImage
+                    (DashboardIconFactory.getWindowIconImage());
+        } catch (Throwable t) {
+            // an old version of JavaHelp in the system classpath will
+            // cause this to fail.  It's no big deal - the window will
+            // just have a different icon.  Life goes on.
+        }
     }
 
 
@@ -104,5 +108,14 @@ public class createBroker extends DefaultHelpBroker
     }
 
     private static final String HELPSET_PATH = "/help/PSPDash.hs";
+
+
+    public void service(InputStream in, OutputStream out, Map env)
+        throws IOException
+    {
+        PCSH.setHelpProvider(this);
+        out.write("Content-type: text/html\r\n\r\n".getBytes());
+        out.flush();
+    }
 
 }

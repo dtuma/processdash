@@ -196,7 +196,7 @@ Authors:
       <!-- specify the manifest file contents -->
       <manifest>
         <attribute name="Dash-Pkg-ID" value="dashHelp"/>
-        <attribute name="Dash-Pkg-Version" value="1.0"/>
+        <attribute name="Dash-Pkg-Version" value="2.0"/>
         <attribute name="Dash-Pkg-Name"
                    value="JavaHelp(TM) from Sun Microsystems"/>
         <attribute name="Dash-Pkg-URL"
