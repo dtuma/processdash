@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 /*
     Still to do -
@@ -304,8 +304,9 @@ public class file extends TinyCGIBase {
 
                 // now print a null document which takes the user back to
                 // the original page they were viewing.
-                out.print("Content-type: text/html\r\n");
-                out.print("Expires: 0\r\n\r\n");
+                out.print("Expires: 0\r\n");
+                super.writeHeader();
+
                 String pageCount = getParameter(PAGE_COUNT_PARAM);
                 int back = -1;
                 if (pageCount != null) back -= pageCount.length();
@@ -675,9 +676,9 @@ public class file extends TinyCGIBase {
      * not contain any file with the requested name.
      */
     private void sendNoSuchFileMessage(String filename) {
+        super.writeHeader();
         out.print
-            ("Content-type: text/html\r\n\r\n" +
-             "<html><head><title>No such file</title></head>\n" +
+            ("<html><head><title>No such file</title></head>\n" +
              "<body><h1>No such file</h1>\n" +
              "None of the document description files\n" +
              "contain an entry for any file named &quot;");
@@ -686,9 +687,9 @@ public class file extends TinyCGIBase {
     }
 
     private void sendCopyTemplateError(String message) {
+        super.writeHeader();
         out.print
-            ("Content-type: text/html\r\n\r\n" +
-             "<html><head><title>Problem copying template</title></head>\n" +
+            ("<html><head><title>Problem copying template</title></head>\n" +
              "<body><h1>Problem copying template</h1>\n");
         out.print(message);
         out.print("</body></html>");
@@ -700,8 +701,8 @@ public class file extends TinyCGIBase {
     private void displayNeedInfoForm(String filename, File file,
                                      boolean isTemplate,
                                      int reason, Element e) {
-        out.print("Content-type: text/html\r\n\r\n" +
-                  "<html><head><title>Enter File Information</title></head>\n"+
+        super.writeHeader();
+        out.print("<html><head><title>Enter File Information</title></head>\n"+
                   "<body><h1>Enter File Information</h1>\n");
         if (file != null && reason != CREATE_CONFIRM) {
             out.print("The dashboard tried to find the ");
