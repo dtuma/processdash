@@ -42,6 +42,8 @@ NON_CLASS_FILES=continue.gif \
 		state
 INSTALLED_FILES=$(addprefix pspdash/,$(NON_CLASS_FILES))
 
+TEMPLATE_FILES:=$(shell cd ..; find Templates -type f -print | fgrep -v CVS | fgrep -v .java | fgrep -v '~')
+
 all: pspdash.jar
 
 install: pspdash.jar
@@ -72,11 +74,12 @@ pspdash.jar: $(INSTALLED_FILES) manifest perltools templates FORCE
 
 # make a local copy of the contents of the templates directory, without
 # CVS stuff or emacs backup~ files.
-templates: FORCE
-	rm -rf Templates
-	cp -R ../Templates .
-	rm -rf `find Templates -name CVS -print`
-	rm -f `find Templates -type f -print | fgrep '~'`
+templates: $(TEMPLATE_FILES)
+
+$(TEMPLATE_FILES) : Templates/% : ../Templates/%
+	@mkdir -p '$(dir Templates/$*)'
+	cp '../Templates/$*' 'Templates/$*'
+
 
 
 # copy non-class files if needed.
@@ -92,20 +95,8 @@ com/oroinc/text/perl/Perl5Util.class: PerlTools.jar
 	$(JAR) -xf PerlTools.jar
 
 
-unused:
-	mkdir -p install/pspdash/data
-	cp pspdash.jar PerlTools.jar install
-	cp ../pspdash.ad install/pspdash.ini
-	cp -R Templates install
-	rm -rf `find install -name CVS -print`
-	mv install/Templates/IE/pspdash/data/OLEDBListenerWrapper.class install/Templates/IE/pspdash/data/OLEDBDSLWrapper.class install/pspdash/data
-	cd install; zip -R pspdash-install.zip pspdash Templates pspdash.ini pspdash.jar PerlTools.jar
-
-
-
-
 clean:
-	rm -f pspdash.jar 
+	rm -f pspdash.jar *~
 	rm -rf pspdash Templates
 
 FORCE:
