@@ -42,6 +42,9 @@ public class WebPackager extends Packager
     /**  The zipped output stream. */
     protected JarOutputStream outJar;
 
+    /** The directory where output should be saved */
+    protected File outputDirectory;
+
 
     /**
      *  The constructor.
@@ -59,7 +62,9 @@ public class WebPackager extends Packager
         sendStart();
 
         // Sets up the zipped output stream
-        FileOutputStream outFile = new FileOutputStream(outputFilename);
+        File outputFile = new File(outputFilename);
+        outputDirectory = outputFile.getParentFile();
+        FileOutputStream outFile = new FileOutputStream(outputFile);
         outJar = new JarOutputStream(outFile);
         outJar.setLevel(9);
 
@@ -111,7 +116,8 @@ public class WebPackager extends Packager
 
         } else {
             String webPackageFilename = "webpack-" + id + ".obj";
-            return new FileOutputStream(webPackageFilename);
+            File packageFile = new File(outputDirectory, webPackageFilename);
+            return new FileOutputStream(packageFile);
         }
     }
 
