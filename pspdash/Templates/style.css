@@ -3,12 +3,12 @@ BODY { color: black;
       background-color: white }
 
 /* style for instructions that are new to the current PSP level */
-SPAN.newPsp { font-style: italic;
-              font-weight: bold }
+.newPsp { font-style: italic;
+          font-weight: bold }
 
 /* style for instructions that don't really apply to the dashboard, or to 
    things that the dashboard takes care of automatically */
-SPAN.nonDash { color: #C0C0C0 }
+.nonDash { color: #C0C0C0 }
 
 /* style for instructions that are specific to the dashboard */
-SPAN.dash { color: red }
+.dash { color: red }
