@@ -27,7 +27,7 @@ package pspdash;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 import java.text.MessageFormat;
 import javax.swing.table.*;
@@ -76,6 +76,11 @@ public class EVMetrics implements TableModel {
      *  where the error was located. */
     protected Map errors = null;
 
+    /** a string that can be prepended to error messages to identify
+     * that they came from this EVMetrics object.
+     */
+    protected String errorQualifier = null;
+
     public void reset(Date start, Date current,
                       Date periodStart, Date periodEnd) {
         totalPlanTime = earnedValueTime = actualTime = planTime = 0.0;
@@ -113,9 +118,13 @@ public class EVMetrics implements TableModel {
         }
     }
     public void addError(String message, EVTask node) {
-        if (errors == null) errors = new HashMap();
+        if (errors == null) errors = new TreeMap();
         errors.put(message, node);
     }
+    public void setErrorQualifier(String qualifier) {
+        errorQualifier = qualifier;
+    }
+    public String getErrorQualifier() { return errorQualifier; }
 
     public void recalcComplete(EVSchedule s) {
         recalcScheduleTime(s);
@@ -243,6 +252,7 @@ public class EVMetrics implements TableModel {
         else
             return Collections.unmodifiableMap(errors);
     }
+
 
 
 
