@@ -74,7 +74,7 @@ Postmortem/% Time==![(/	Postmortem/Time	Time)]
 == Data Elements to track defects injected
 ==
 
-Before Development/Defects Injected=0.0
+Before Development/Defects Injected==0.0
 Planning/Defects Injected==0.0
 Design/Defects Injected==0.0
 Code/Defects Injected==0.0
