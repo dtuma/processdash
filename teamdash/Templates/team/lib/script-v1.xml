@@ -5,7 +5,8 @@
 -->
 
 <generation-script name="script-v2"
-      id="Team" version="1.8.1"
+      id="Team" version="1.9.0"
+      requiresDashboard="1.6.4"
       inDirectory="/team/lib"
       outDirectory="/Templates/<!--#echo Process_ID -->">
 
@@ -87,6 +88,8 @@
           out="rollup_quality_summary.shtm">
 	<param name="rollup" value="true"/>
     </file>
+    <file in="defect_analysis.htm" encoding="html"
+          out="/Templates/reports/analysis/<!--#echo Process_ID -->_defect_reports.shtm"/>
     <file in="autoExport.js" encoding="none"/>
 
     <FILE in="" encoding="html"
