@@ -13,6 +13,11 @@
          <tocitem target="QuickStartPSP1" text="Quick start example: PSP1"/>
          <tocitem target="QSCreatingTheProject" text="Step 1: Creating the project"/>
          <tocitem target="QSPlanningTheProject" text="Step 2: Planning the project"/>
+         <tocitem target="QSDesigningTheProgram" text="Step 3: Designing the program"/>
+         <tocitem target="QSWritingTheCode" text="Step 4: Writing the code"/>
+         <tocitem target="QSCompilingTheProgram" text="Step 5: Compiling the program"/>
+         <tocitem target="QSTestingTheProgram" text="Step 6: Testing the program"/>
+         <tocitem target="QSPostmortem" text="Step 7: Postmortem"/>
       </tocitem>
 
       <tocitem target="GoalsOfPSPAndDashboard" text="The overall goals of the PSP and the Process Dashboard"/>
@@ -25,6 +30,7 @@
       <tocitem target="Planning" text="Why you should plan"/>
       <tocitem target="EnteringData" text="Entering data into the dashboard"/>
       <tocitem target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
+      <tocitem target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
       <tocitem target="UsingProbeTool" text="Using the PROBE Tool"/>
     </tocitem>
 

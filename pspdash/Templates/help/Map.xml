@@ -5,12 +5,20 @@
 <map version="1.0">
   <mapID target="DashIcon" url="Images/pspdash.gif" />
   <mapID target="TopLevelIcon" url="Images/toplevel.gif" />
+
   <mapID target="QuickOverview" url="Topics/Overview/QuickOverview.html" />
   <mapID target="HowToInstall" url="Topics/Overview/HowToInstall.html" />
   <mapID target="GoalsOfPSPAndDashboard" url="Topics/Overview/GoalsOfPSPAndDashboard.html" />
+
   <mapID target="QuickStartPSP1" url="Topics/Overview/QuickStartPSP1.html" />
   <mapID target="QSCreatingTheProject" url="Topics/Overview/QSCreatingTheProject.html" />
   <mapID target="QSPlanningTheProject" url="Topics/Overview/QSPlanningTheProject.html" />
+  <mapID target="QSDesigningTheProgram" url="Topics/Overview/QSDesigningTheProgram.html" />
+  <mapID target="QSWritingTheCode" url="Topics/Overview/QSWritingTheCode.html" />
+  <mapID target="QSCompilingTheProgram" url="Topics/Overview/QSCompilingTheProgram.html" />
+  <mapID target="QSTestingTheProgram" url="Topics/Overview/QSTestingTheProgram.html" />
+  <mapID target="QSPostmortem" url="Topics/Overview/QSPostmortem.html" />
+
   <mapID target="ProcessScripts" url="Topics/Overview/ProcessScripts.html" />
   <mapID target="GPL" url="Topics/Overview/gpl.htm" />
 
@@ -18,6 +26,7 @@
   <mapID target="EnteringData" url="Topics/Planning/EnteringData.html" />
   <mapID target="UsingHierarchyEditor" url="Topics/Planning/UsingHierarchyEditor.html" />
   <mapID target="UsingProbeTool" url="Topics/Planning/UsingProbeTool.html" />
+  <mapID target="UsingSizeEstimatingTemplate" url="Topics/Planning/UsingSizeEstimatingTemplate.html" />
 
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
   <mapID target="PlayPause" url="Topics/Execution/PlayPause.html" />
