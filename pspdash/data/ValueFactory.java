@@ -180,7 +180,11 @@ class ValueFactory {
             return new DeferredData(name, value, r, prefix);
         else if (value.charAt(0) == '#')
             return createFrozen(name, value, r, prefix);
-        else
+        else if (value.charAt(0) == '{') {
+            // FIXME: compile and return a value?
+            System.err.println("ValueFactory was asked to compile a new style expression!");
+            return null;
+        } else
             return createSimple(value);
     }
 

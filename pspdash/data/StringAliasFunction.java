@@ -62,6 +62,7 @@ class StringAliasFunction extends StringData implements DataListener {
             value = null;
             defined = true;
         }
+        asList = null;
 
         if (myName != null)
             data.putValue(myName, this);

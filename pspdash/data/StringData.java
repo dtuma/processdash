@@ -32,6 +32,7 @@ public class StringData implements SimpleData {
     String value = null;
     boolean editable = true;
     boolean defined = true;
+    ListData asList = null;
 
     public StringData() { value = ""; }
 
@@ -136,5 +137,18 @@ public class StringData implements SimpleData {
     }
     public boolean test() {
         return (value != null && value.length() > 0);
+    }
+
+    // Converting a string to a list will be a very common action,
+    // particularly by functions like "sumFor".  Rather than reparsing
+    // the string and building a new ListData object each time, this
+    // routine makes it possible to save the cached list object.
+    //
+    // Any program logic which changes this object's "value" property
+    // should null out the "asList" property at the same time.
+    public ListData asList() {
+        if (asList == null)
+            asList = new ListData(value);
+        return asList;
     }
 }

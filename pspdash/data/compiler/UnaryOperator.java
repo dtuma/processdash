@@ -23,38 +23,35 @@
 //
 // E-Mail POC:  ken.raisor@hill.af.mil
 
-package pspdash;
+package pspdash.data.compiler;
 
-import java.util.Stack;
+import pspdash.data.SimpleData;
 
-public abstract class ResourcePool {
+abstract class UnaryOperator implements Instruction {
 
-    String name;
-    Stack availableResources, busyResources;
+    private String operatorString = null;
 
-    public ResourcePool(String name) {
-        this.name = name;
-        availableResources = new Stack();
-        busyResources      = new Stack();
+    UnaryOperator(String op) {
+        operatorString = op;
     }
 
-    protected abstract Object createNewResource();
-
-    public synchronized Object get() {
-        Object result = null;
-        if (availableResources.empty()) {
-            result = createNewResource();
-            //int count = busyResources.size() + 1;
-            //System.err.println(name + " pool contains " + count + " items.");
-        } else
-            result = availableResources.pop();
-        if (result != null) busyResources.push(result);
-        return result;
+    public void execute(Stack stack, ExpressionContext context)
+        throws ExecutionException
+    {
+        Object operand = null;
+        try {
+            operand = stack.pop();
+        } catch (Exception e) {
+            throw new ExecutionException("execution stack is empty");
+        }
+        try {
+            stack.push(operate((SimpleData) operand));
+        } catch (ClassCastException cce) {
+            throw new ExecutionException("ClassCastException");
+        }
     }
 
-    public synchronized void release(Object resource) {
-        if (resource != null)
-            if (busyResources.remove(resource))
-                availableResources.push(resource);
-    }
+    protected abstract SimpleData operate(SimpleData operand);
+
+    public String toString() { return operatorString; }
 }

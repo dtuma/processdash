@@ -23,38 +23,12 @@
 //
 // E-Mail POC:  ken.raisor@hill.af.mil
 
-package pspdash;
+package pspdash.data.compiler;
 
-import java.util.Stack;
+import pspdash.data.SimpleData;
 
-public abstract class ResourcePool {
+import java.util.*;
 
-    String name;
-    Stack availableResources, busyResources;
-
-    public ResourcePool(String name) {
-        this.name = name;
-        availableResources = new Stack();
-        busyResources      = new Stack();
-    }
-
-    protected abstract Object createNewResource();
-
-    public synchronized Object get() {
-        Object result = null;
-        if (availableResources.empty()) {
-            result = createNewResource();
-            //int count = busyResources.size() + 1;
-            //System.err.println(name + " pool contains " + count + " items.");
-        } else
-            result = availableResources.pop();
-        if (result != null) busyResources.push(result);
-        return result;
-    }
-
-    public synchronized void release(Object resource) {
-        if (resource != null)
-            if (busyResources.remove(resource))
-                availableResources.push(resource);
-    }
+public interface ExpressionContext {
+    public SimpleData get(String dataName);
 }

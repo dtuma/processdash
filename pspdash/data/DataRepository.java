@@ -32,6 +32,7 @@ import java.io.FileInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.PrintWriter;
+import java.io.PushbackReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FileNotFoundException;
@@ -55,6 +56,22 @@ import java.util.Stack;
 import com.oroinc.text.perl.Perl5Util;
 import com.oroinc.text.perl.MalformedPerl5PatternException;
 
+import pspdash.RobustFileWriter;
+
+import pspdash.data.compiler.CompilationException;
+import pspdash.data.compiler.CompiledScript;
+import pspdash.data.compiler.Compiler;
+import pspdash.data.compiler.analysis.DepthFirstAdapter;
+import pspdash.data.compiler.lexer.Lexer;
+import pspdash.data.compiler.lexer.LexerException;
+import pspdash.data.compiler.node.ASearchDeclaration;
+import pspdash.data.compiler.node.AIncludeDeclaration;
+import pspdash.data.compiler.node.ANewStyleDeclaration;
+import pspdash.data.compiler.node.AOldStyleDeclaration;
+import pspdash.data.compiler.node.AReadOnlyAssignop;
+import pspdash.data.compiler.node.Start;
+import pspdash.data.compiler.parser.Parser;
+import pspdash.data.compiler.parser.ParserException;
 
 public class DataRepository implements Repository {
 
@@ -759,7 +776,7 @@ public class DataRepository implements Repository {
                     if (pos == -1) return; // shouldn't happen!
 
                     String prefix = freezeFlagName.substring(0, pos+1);
-                    this.freezeRegexp = "m\n^" + prefix +
+                    this.freezeRegexp = "m\n^" + ValueFactory.regexpQuote(prefix) +
                         freezeFlagName.substring(pos+FREEZE_FLAG_TAG.length()) + "$\n";
 
                     this.initializing = true;
@@ -1475,7 +1492,14 @@ public class DataRepository implements Repository {
 
             int prefixLength = datafile.prefix.length() + 1;
             String nameWithinDataFile = dataName.substring(prefixLength);
-            return (String) defaultValues.get(nameWithinDataFile);
+            Object defaultVal = defaultValues.get(nameWithinDataFile);
+            if (defaultVal == null) return null;
+            if (defaultVal instanceof String) return (String) defaultVal;
+            if (defaultVal instanceof SimpleData)
+                return ((SimpleData) defaultVal).saveString();
+            if (defaultVal instanceof CompiledScript)
+                return ((CompiledScript) defaultVal).saveString();
+            return null;
         }
 
 
@@ -1522,6 +1546,100 @@ public class DataRepository implements Repository {
         }
 
 
+        private class LoadingException extends RuntimeException {
+            Exception root;
+            public LoadingException(Exception e) { root = e; }
+            public Exception getRoot() { return root; }
+        }
+        private class FileLoader extends DepthFirstAdapter {
+            private String inheritedDatafile = null;
+            private Map dest;
+            public FileLoader(Map dest) { this.dest = dest; }
+            public String getInheritedDatafile() { return inheritedDatafile; }
+
+            /** Process a new style declaration. */
+            public void caseANewStyleDeclaration(ANewStyleDeclaration node) {
+                String name = Compiler.trimDelim(node.getIdentifier());
+                CompiledScript script = null;
+                try {
+                    script = Compiler.compile(node.getValue());
+                } catch (CompilationException ce) {
+                    throw new LoadingException
+                        (new InvalidDatafileFormat(ce.getMessage()));
+                }
+                if (!script.isConstant())
+                    dest.put(name, script);
+                else {
+                    SimpleData constant = script.getConstant();
+                    if (constant == null)
+                        dest.remove(name);
+                    else {
+                        if (node.getAssignop() instanceof AReadOnlyAssignop) {
+                            constant = constant.getSimpleValue();
+                            constant.setEditable(false);
+                        }
+                        dest.put(name, constant);
+                    }
+                }
+            }
+
+            /** Process an old style declaration. */
+            public void caseAOldStyleDeclaration(AOldStyleDeclaration node) {
+                String line = node.getOldStyleDeclaration().getText(), name, value;
+                int equalsPosition = line.indexOf('=');
+                if (equalsPosition == -1)
+                    throw new LoadingException
+                        (new InvalidDatafileFormat
+                            ("There is no '=' character on the line: '" + line + "'."));
+
+                name = line.substring(0, equalsPosition);
+                value = line.substring(equalsPosition+1);
+                if (value.equals("null") || value.equals("=null"))
+                    dest.remove(name);
+                else
+                    dest.put(name, value);
+            }
+
+            public void caseASearchDeclaration(ASearchDeclaration node) {
+                dest.put(Compiler.trimDelim(node.getIdentifier()),
+                         new SearchFactory(node));
+            }
+
+            /** Process an include directive. */
+            public void caseAIncludeDeclaration(AIncludeDeclaration node) {
+                String line = node.getIncludeDirective().getText();
+                inheritedDatafile = line.substring(includeTag.length()).trim();
+
+                // Add proper exception handling in case someone is somehow using
+                // the deprecated include syntax.
+                if (inheritedDatafile.startsWith("\"")) {
+                    throw new LoadingException
+                        (new InvalidDatafileFormat
+                            ("datafile #include directives with relative" +
+                             " paths are no longer supported."));
+                }
+
+                Map cachedIncludeFile =
+                    (Map) includedFileCache.get(inheritedDatafile);
+
+                if (cachedIncludeFile == null) try {
+                    cachedIncludeFile = new HashMap();
+                    // the null in the next line is a bug! it has no effect on
+                    // #include <> statements, but effectively prevents #include ""
+                    // statements from working (in other words, include directives
+                    // relative to the current file.  Such directives are not
+                    // currently used by the dashboard, so nothing will break.)
+                    loadDatafile(findDatafile(inheritedDatafile, null),
+                                 cachedIncludeFile, true);
+                    cachedIncludeFile = Collections.unmodifiableMap(cachedIncludeFile);
+                    includedFileCache.put(inheritedDatafile, cachedIncludeFile);
+                } catch (Exception e) {
+                    throw new LoadingException(e);
+                }
+                dest.putAll(cachedIncludeFile);
+            }
+        }
+
         // loadDatafile - opens the file passed to it and looks for "x = y" type
         // statements.  If one is found it associates x with y in the Hashtable
         // dest.  If an include statement is found on the first line, a recursive
@@ -1536,67 +1654,37 @@ public class DataRepository implements Repository {
             BufferedReader in = new BufferedReader(new InputStreamReader(datafile));
             String line, name, value;
             int equalsPosition;
-            CppFilter filtIn = new CppFilter(in);
+            FileLoader loader = new FileLoader(dest);
 
             try {
-                line = filtIn.readLine();
+                CppFilterReader readIn = new CppFilterReader(in);
+                Parser p = new Parser(new Lexer(new PushbackReader(readIn)));
 
-                // if the first line is an include statement, load the data from
-                // the file specified in the include statement.
-                if (line != null && line.startsWith(includeTag)) {
-                    inheritedDatafile = line.substring(includeTag.length()).trim();
+                // Parse the file.
+                Start tree = p.parse();
 
-                    // Add proper exception handling in case someone is somehow using
-                    // the deprecated include syntax.
-                    if (inheritedDatafile.startsWith("\"")) {
-                        throw new InvalidDatafileFormat
-                            ("datafile #include directives with relative" +
-                             " paths are no longer supported.");
-                    }
+                // Apply the file loader.
+                tree.apply(loader);
 
-                    Map cachedIncludeFile =
-                        (Map) includedFileCache.get(inheritedDatafile);
-
-                    if (cachedIncludeFile == null) {
-                        cachedIncludeFile = new HashMap();
-                        // the null in the next line is a bug! it has no effect on
-                        // #include <> statements, but effectively prevents #include ""
-                        // statements from working (in other words, include directives
-                        // relative to the current file.  Such directives are not
-                        // currently used by the dashboard, so nothing will break.)
-                        loadDatafile(findDatafile(inheritedDatafile, null),
-                                     cachedIncludeFile, true);
-                        cachedIncludeFile = Collections.unmodifiableMap(cachedIncludeFile);
-                        includedFileCache.put(inheritedDatafile, cachedIncludeFile);
-                    }
-                    dest.putAll(cachedIncludeFile);
-                    line = filtIn.readLine();
-                }
-
-                // find a line with a valid = assignment and load its data into
-                // the destination Hashtable
-                for( ;  line != null;  line = filtIn.readLine()) {
-                    if (line.startsWith("=") || line.trim().length() == 0)
-                        continue;
-
-                    if ((equalsPosition = line.indexOf('=', 0)) == -1)
-                        throw new InvalidDatafileFormat
-                            ("There is no '=' character on the line: '" + line + "'.");
-
-                    name = line.substring(0, equalsPosition);
-                    value = line.substring(equalsPosition+1);
-                    if (value.equals("null") || value.equals("=null"))
-                        dest.remove(name);
-                    else
-                        dest.put(name, value);
-                }
-            }
-            finally {
-                filtIn.dispose();
+            } catch (ParserException pe) {
+                throw new InvalidDatafileFormat(pe.getMessage());
+            } catch (LexerException le) {
+                throw new InvalidDatafileFormat(le.getMessage());
+            } catch (LoadingException load) {
+                Exception root = load.getRoot();
+                if (root instanceof FileNotFoundException)
+                    throw (FileNotFoundException) root;
+                if (root instanceof IOException)
+                    throw (IOException) root;
+                if (root instanceof InvalidDatafileFormat)
+                    throw (InvalidDatafileFormat) root;
+                System.err.println("Unusual exception when loading file: " + root);
+                throw new IOException(root.getMessage());
+            } finally {
                 if (close) in.close();
             }
 
-            return inheritedDatafile;
+            return loader.getInheritedDatafile();
         }
 
         private Hashtable globalDataDefinitions = new Hashtable();
@@ -1657,6 +1745,7 @@ public class DataRepository implements Repository {
             while (i.hasNext()) {
                 e = (Map.Entry) i.next();
                 name = (String) e.getKey();
+                if (!(e.getValue() instanceof String)) continue;
                 value = (String) e.getValue();
 
                 if (value.startsWith(SIMPLE_RENAME_PREFIX)) {
@@ -1700,17 +1789,18 @@ public class DataRepository implements Repository {
 
             // Now perform the renaming operations.
             String oldName, newName;
+            Object val;
             i = renamingOperations.entrySet().iterator();
             while (!renamingOperations.isEmpty()) {
                 newName = (String) renamingOperations.keySet().iterator().next();
                 oldName = (String) renamingOperations.remove(newName);
-                value   = (String) values.remove(oldName);
-                while (value == null &&
+                val     = values.remove(oldName);
+                while (val == null &&
                        (oldName = (String) renamingOperations.remove(oldName)) != null)
-                    value = (String) values.remove(oldName);
+                    val = values.remove(oldName);
 
-                if (value != null) {
-                    values.put(newName, value);
+                if (val != null) {
+                    values.put(newName, val);
                     dataWasRenamed = true;
                 }
             }
@@ -1752,29 +1842,43 @@ public class DataRepository implements Repository {
                 boolean dataEditable = true;
 
                 String localName, name, value;
+                Object valueObj;
                 SaveableData o;
                 DataElement d;
 
                 Enumeration dataNames = values.keys();
                 while (dataNames.hasMoreElements()) {
                     localName = (String) dataNames.nextElement();
-                    value = (String) values.get(localName);
+                    valueObj = values.get(localName);
                     name = createDataName(dataPrefix, localName);
 
-                    if (value.startsWith("=")) {
-                        dataEditable = false;
-                        value = value.substring(1);
-                    } else
+                    if (valueObj instanceof SimpleData) {
+                        o = (SimpleData) valueObj;
                         dataEditable = true;
+                    } else if (valueObj instanceof CompiledScript) {
+                        o = new CompiledFunction(name, (CompiledScript) valueObj,
+                                                 this, dataPrefix);
+                        dataEditable = true;
+                    } else if (valueObj instanceof SearchFactory) {
+                        o = ((SearchFactory) valueObj).buildFor(name, this, dataPrefix);
+                        dataEditable = true;
+                    } else {
+                        value = (String) valueObj;
+                        if (value.startsWith("=")) {
+                            dataEditable = false;
+                            value = value.substring(1);
+                        } else
+                            dataEditable = true;
 
-                    if (value.equalsIgnoreCase("@now"))
-                        dataModified = true;
-                    try {
-                        o = ValueFactory.createQuickly(name, value, this, dataPrefix);
-                    } catch (MalformedValueException mfe) {
-                        System.err.println("Data value for '"+name+
-                                           "' in file '"+datafilePath+"' is malformed.");
-                        o = new MalformedData(value);
+                        if (value.equalsIgnoreCase("@now"))
+                            dataModified = true;
+                        try {
+                            o = ValueFactory.createQuickly(name, value, this, dataPrefix);
+                        } catch (MalformedValueException mfe) {
+                            System.err.println("Data value for '"+name+
+                                               "' in file '"+datafilePath+"' is malformed.");
+                            o = new MalformedData(value);
+                        }
                     }
                     if (!fileEditable || !dataEditable)
                         if (o != null) o.setEditable(false);
@@ -1861,17 +1965,10 @@ public class DataRepository implements Repository {
                 String fileSep = System.getProperty("file.separator");
 
                 // Create temporary files
-                File tempFile = new File(datafile.file.getParent() +
-                                         fileSep + "tttt_" + datafile.file.getName());
-                File backupFile = new File(datafile.file.getParent() + fileSep +
-                                           "tttt" + datafile.file.getName() );
                 BufferedWriter out;
-                BufferedWriter backup;
 
                 try {
-                    out = new BufferedWriter(new FileWriter(tempFile));
-                    backup = new BufferedWriter(new FileWriter(backupFile));
-
+                    out = new BufferedWriter(new RobustFileWriter(datafile.file));
                 } catch (IOException e) {
                     System.err.println("IOException " + e + " while opening " +
                                        datafile.file.getPath() + "; save aborted");
@@ -1887,8 +1984,6 @@ public class DataRepository implements Repository {
                     try {
                         out.write(includeTag + datafile.inheritsFrom);
                         out.newLine();
-                        backup.write(includeTag + datafile.inheritsFrom);
-                        backup.newLine();
                     } catch (IOException e) {}
                 } else {
                     defaultValues = new HashMap();
@@ -1897,14 +1992,15 @@ public class DataRepository implements Repository {
                 // If the data file has a prefix, write it as a comment to the
                 // two temporary output files.
                 if (datafile.prefix != null && datafile.prefix.length() > 0) try {
-                    out.write   ("= Data for " + datafile.prefix); out.newLine();
-                    backup.write("= Data for " + datafile.prefix); backup.newLine();
+                    out.write("= Data for " + datafile.prefix);
+                    out.newLine();
                 } catch (IOException e) {}
 
                 datafile.dirtyCount = 0;
 
                 Iterator k = getKeys();
                 String name, valStr, defaultValStr;
+                Object defaultVal;
                 DataElement element;
                 SaveableData value;
                 int prefixLength = datafile.prefix.length() + 1;
@@ -1925,7 +2021,22 @@ public class DataRepository implements Repository {
 
                                 valStr = value.saveString();
                                 if (!value.isEditable()) valStr = "=" + valStr;
-                                defaultValStr = (String) defaultValues.get(name);
+                                defaultVal = defaultValues.get(name);
+                                defaultValStr = null;
+                                if (defaultVal instanceof String)
+                                    defaultValStr = (String) defaultVal;
+                                else if (defaultVal instanceof SimpleData) {
+                                    defaultValStr = ((SimpleData) defaultVal).saveString();
+                                    if (!((SimpleData) defaultVal).isEditable())
+                                        defaultValStr = "=" + defaultValStr;
+                                } else if (defaultVal instanceof SearchFactory)
+                                    continue;
+                                else if
+                                    (defaultVal instanceof CompiledScript &&
+                                     value instanceof CompiledFunction &&
+                                     ((CompiledFunction) value).getScript() == defaultVal)
+                                    continue;
+
                                 if (valStr.equals(defaultValStr))
                                     continue;
 
@@ -1933,11 +2044,6 @@ public class DataRepository implements Repository {
                                 out.write('=');
                                 out.write(valStr);
                                 out.newLine();
-
-                                backup.write(name);
-                                backup.write('=');
-                                backup.write(valStr);
-                                backup.newLine();
                             } catch (IOException e) {
                                 System.err.println("IOException " + e + " while writing " +
                                                    name + " to " + datafile.file.getPath());
@@ -1947,19 +2053,9 @@ public class DataRepository implements Repository {
                 }
 
                 try {
-                    // Close the temporary output files
+                    // Close output file
                     out.flush();
                     out.close();
-
-                    backup.flush();
-                    backup.close();
-
-                    // rename out to the real datafile
-                    datafile.file.delete();
-                    tempFile.renameTo(datafile.file);
-
-                    // delete the backup
-                    backupFile.delete();
 
                 } catch (IOException e) {
                     System.err.println("IOException " + e + " while closing " +
@@ -2253,9 +2349,30 @@ public class DataRepository implements Repository {
 
         public Set getDataElementNameSet() { return dataElementNameSet_ext; }
 
+        public static final String PARENT_PREFIX = "../";
+
+        private static String chopPath(String path) {
+            if (path == null) return null;
+            int slashPos = path.lastIndexOf('/');
+            if (slashPos == path.length() - 1)
+                slashPos = path.lastIndexOf('/', slashPos);
+            if (slashPos == -1)
+                return null;
+            else
+                return path.substring(0, slashPos);
+        }
+
         public static String createDataName(String prefix, String name) {
             if (name == null) return null;
             if (name.startsWith("/")) return name.intern();
+            while (name.startsWith(PARENT_PREFIX)) {
+                prefix = chopPath(prefix);
+                if (prefix == null) {
+                    prefix = "";
+                    break;
+                }
+                name = name.substring(PARENT_PREFIX.length());
+            }
             StringBuffer buf = new StringBuffer(prefix.length() + name.length() + 1);
             buf.append(prefix);
             if (!prefix.endsWith("/")) buf.append("/");

@@ -1,3 +1,27 @@
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 1999  United States Air Force
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place -Suite 330, Boston, MA  02111-1307, USA.
+//
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+//
+// E-Mail POC:  ken.raisor@hill.af.mil
 
 package pspdash.data;
 
@@ -27,8 +51,6 @@ public class CppFilter {
         this.in = in;
         this.perl = (Perl5Util) ValueFactory.perlPool.get();
         this.substitutions = new HashMap();
-        //substitutions.put(new Object(), "s/\\t/\t/g");
-        //substitutions.put(new Object(), "s/\\n/\n/g");
     }
 
     public void dispose() {
@@ -44,6 +66,16 @@ public class CppFilter {
             return null;
         }
         if (line.startsWith(DEFINE_DIRECTIVE)) {
+            while (line.endsWith("\\")) {
+                line = line.substring(0, line.length()-1);
+                String extra = in.readLine();
+                if (extra == null) {
+                    dispose();
+                    break;
+                }
+                line = line + extra;
+            }
+
             processDefineDirective(line);
             return "";
         } else

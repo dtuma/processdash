@@ -32,15 +32,24 @@
 == Description: This data file collects data from all other datafiles.
 ==
 
-Owner="Enter your name
+[Owner] = "Enter your name";
 
-PSP To Date Data==TAG
+[PSP To Date Data] = TAG;
 
-= Start To Date data as of noon GMT on January 1, 1970
-To Date As Of=@43200000
+// Start To Date data as of noon GMT on January 1, 1970
+[To Date As Of] = @43200000;
 
-#define sumUp(Name) Name To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Name)]
-#define phasePercent(Phase,Name) Phase/% Name To Date==![(/	Phase/Name To Date	Name To Date)]
+[Completed PSP Projects] =
+        search(".", "PSP Project", [Completed] > [{To Date As Of}]);
+
+#define sumUp(Name) [Name To Date] = \
+        sumFor("Name", [Completed PSP Projects]);
+#define phasePercent(Phase,Name) [Phase/% Name To Date] = \
+        [Phase/Name To Date] / [Name To Date];
+
+[Phase_List] == ",Planning,HLD,HLD Review,Design,Design Review,Code,Code Review,Compile,Test,Postmortem,Reassessment,";
+[Appraisal_Phase_List] == ",HLD Review,Design Review,Code Review,";
+[Failure_Phase_List] == ",Compile,Test,";
 
 ==
 ==  Data Elements to track LOC to Date
@@ -51,12 +60,12 @@ sumUp(Added LOC)
 sumUp(Deleted LOC)
 sumUp(Modified LOC)
 sumUp(New & Changed LOC)
-New & Changed KLOC To Date==![(/	New & Changed LOC To Date	1000)]
+[New & Changed KLOC To Date] = [New & Changed LOC To Date] / 1000;
 sumUp(New Reused LOC)
 sumUp(Reused LOC)
 sumUp(Total LOC)
-KLOC To Date==![(/	LOC To Date	1000)]
-LOC per Hour To Date==![(/	New & Changed LOC To Date	Time To Date	0.0166667)]
+[Total KLOC To Date] = [Total LOC To Date] / 1000;
+[LOC per Hour To Date] = 60 * [New & Changed LOC To Date] / [Time To Date];
 
 
 ==
@@ -70,15 +79,19 @@ sumUp(HLD/Time)
 sumUp(HLD Review/Time)
 sumUp(Design/Time)
 sumUp(Design Review/Time)
-Design/Combined Time To Date==![(+	Design/Time To Date	Design Review/Time To Date)]
+[Design/Combined Time To Date] =
+        [Design/Time To Date] + [Design Review/Time To Date];
 sumUp(Code/Time)
 sumUp(Code Review/Time)
-Code/Combined Time To Date==![(+	Code/Time To Date	Code Review/Time To Date)]
+[Code/Combined Time To Date] =
+        [Code/Time To Date] + [Code Review/Time To Date];
 sumUp(Compile/Time)
 sumUp(Test/Time)
-=Reassessment-Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Reassessment/Time)]
-Postmortem/Time To Date==![(+	~/.*/{>	Completed	/To Date As Of}{PSP Project}Reassessment/Time	~/.*/{>	Completed	/To Date As Of}{PSP Project}Postmortem/Time)]
-Time To Date==![(+	~[^/]*/Time To Date)]
+[Postmortem/Time To Date] = 
+        sumFor("Reassessment/Time", [Completed PSP Projects]) +
+        sumFor("Postmortem/Time",   [Completed PSP Projects]);
+
+[Time To Date] = sumFor("Time To Date", [Phase_List]);
 
 == % Time To Date
 
@@ -87,10 +100,11 @@ phasePercent(HLD,Time)
 phasePercent(HLD Review,Time)
 phasePercent(Design,Time)
 phasePercent(Design Review,Time)
-Design/Combined % Time To Date==![(/	Design/Combined Time To Date	Time To Date)]
+[Design/Combined % Time To Date] =
+        [Design/Combined Time To Date] / [Time To Date];
 phasePercent(Code,Time)
 phasePercent(Code Review,Time)
-Code/Combined % Time To Date==![(/	Code/Combined Time To Date	Time To Date)]
+[Code/Combined % Time To Date] = [Code/Combined Time To Date] / [Time To Date];
 phasePercent(Compile,Time)
 phasePercent(Test,Time)
 phasePercent(Reassessment,Time)
@@ -99,10 +113,13 @@ phasePercent(Postmortem,Time)
 = Compute percentages to use as normalizing factors when spreading time
 = across various sets of PSP phases.
 
-#define PT(Phase) Phase/% Time To Date
-Normalization %/Time/PSP3cycle==![(+	PT(Design)	PT(Design Review)	PT(Code)	PT(Code Review)	PT(Compile)	PT(Test))]
-Normalization %/Time/PSP0-2==![(+	Normalization %/Time/PSP3cycle	PT(Planning)	PT(Postmortem))]
-Normalization %/Time/PSP3==![(+	Normalization %/Time/PSP0-2	PT(HLD)	PT(HLD Review))]
+[Normalization %/Time/PSP3cycle] = sumFor("% Time To Date",
+        ",Design,Design Review,Code,Code Review,Compile,Test,");
+[Normalization %/Time/PSP0-2] = [Normalization %/Time/PSP3cycle] +
+        sumFor("% Time To Date", ",Planning,Postmortem,");
+[Normalization %/Time/PSP3] = [Normalization %/Time/PSP0-2] +
+        sumFor("% Time To Date", ",HLD,HLD Review,");
+
 
 ==
 == Data Elements to track Defects Injected
@@ -114,17 +131,24 @@ sumUp(HLD/Defects Injected)
 sumUp(HLD Review/Defects Injected)
 sumUp(Design/Defects Injected)
 sumUp(Design Review/Defects Injected)
-Design/Combined Defects Injected To Date==![(+	Design/Defects Injected To Date	Design Review/Defects Injected To Date)]
+[Design/Combined Defects Injected To Date] =
+        [Design/Defects Injected To Date] +
+        [Design Review/Defects Injected To Date];
 sumUp(Code/Defects Injected)
 sumUp(Code Review/Defects Injected)
-Code/Combined Defects Injected To Date==![(+	Code/Defects Injected To Date	Code Review/Defects Injected To Date)]
+[Code/Combined Defects Injected To Date] =
+        [Code/Defects Injected To Date] +
+        [Code Review/Defects Injected To Date];
 sumUp(Compile/Defects Injected)
 sumUp(Test/Defects Injected)
 sumUp(Reassessment/Defects Injected)
 sumUp(Postmortem/Defects Injected)
-Defects Injected To Date==![(+	~[^B][^/]*/Defects Injected To Date)]
-Defects Injected per KLOC To Date==![(/	Defects Injected To Date	New & Changed KLOC To Date)]
-Defects per KLOC To Date==![(/	Defects Injected To Date	New & Changed KLOC To Date)]
+
+[Defects Injected To Date] = sumFor("Defects Injected To Date", [Phase_List]);
+[Defects Injected per KLOC To Date] =
+        [Defects Injected To Date] / [New & Changed KLOC To Date];
+[Defects per KLOC To Date] =
+        [Defects Injected To Date] / [New & Changed KLOC To Date];
 
 == % Defects Injected To Date
 
@@ -134,10 +158,14 @@ phasePercent(HLD,Defects Injected)
 phasePercent(HLD Review,Defects Injected)
 phasePercent(Design,Defects Injected)
 phasePercent(Design Review,Defects Injected)
-Design/Combined % Defects Injected To Date==![(/	Design/Combined Defects Injected To Date	Defects Injected To Date)]
+[Design/Combined % Defects Injected To Date] =
+        [Design/Combined Defects Injected To Date] /
+        [Defects Injected To Date];
 phasePercent(Code,Defects Injected)
 phasePercent(Code Review,Defects Injected)
-Code/Combined % Defects Injected To Date==![(/	Code/Combined Defects Injected To Date	Defects Injected To Date)]
+[Code/Combined % Defects Injected To Date] =
+        [Code/Combined Defects Injected To Date] /
+	[Defects Injected To Date];
 phasePercent(Compile,Defects Injected)
 phasePercent(Test,Defects Injected)
 phasePercent(Reassessment,Defects Injected)
@@ -146,10 +174,15 @@ phasePercent(Postmortem,Defects Injected)
 = Compute percentages to use as normalizing factors when spreading defects
 = across various sets of PSP phases.
 
-#define PDI(Phase) Phase/% Defects Injected To Date
-Normalization %/Defects Injected/PSP3cycle==![(+	PDI(Design)	PDI(Design Review)	PDI(Code)	PDI(Code Review)	PDI(Compile)	PDI(Test))]
-Normalization %/Defects Injected/PSP0-2==![(+	Normalization %/Defects Injected/PSP3cycle	PDI(Planning)	PDI(Postmortem))]
-Normalization %/Defects Injected/PSP3==![(+	Normalization %/Defects Injected/PSP0-2	PDI(HLD)	PDI(HLD Review))]
+[Normalization %/Defects Injected/PSP3cycle] =
+        sumFor("% Defects Injected To Date",
+               ",Design,Design Review,Code,Code Review,Compile,Test,");
+[Normalization %/Defects Injected/PSP0-2] =
+        [Normalization %/Defects Injected/PSP3cycle] +
+	sumFor("% Defects Injected To Date", ",Planning,Postmortem,");
+[Normalization %/Defects Injected/PSP3] =
+        [Normalization %/Defects Injected/PSP0-2] +
+	sumFor("% Defects Injected To Date", ",HLD,HLD Review,");
 
 
 ==
@@ -162,16 +195,22 @@ sumUp(HLD/Defects Removed)
 sumUp(HLD Review/Defects Removed)
 sumUp(Design/Defects Removed)
 sumUp(Design Review/Defects Removed)
-Design/Combined Defects Removed To Date==![(+	Design/Defects Removed To Date	Design Review/Defects Removed To Date)]
+[Design/Combined Defects Removed To Date] =
+        [Design/Defects Removed To Date] +
+        [Design Review/Defects Removed To Date];
 sumUp(Code/Defects Removed)
 sumUp(Code Review/Defects Removed)
-Code/Combined Defects Removed To Date==![(+	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]
+[Code/Combined Defects Removed To Date] =
+        [Code/Defects Removed To Date] +
+        [Code Review/Defects Removed To Date];
 sumUp(Compile/Defects Removed)
 sumUp(Test/Defects Removed)
 sumUp(Reassessment/Defects Removed)
 sumUp(Postmortem/Defects Removed)
 sumUp(After Development/Defects Removed)
-Defects Removed To Date==![(+	~[^/]*/Defects Removed To Date)]
+
+[Defects Removed To Date] = sumFor("Defects Removed To Date", [Phase_List]);
+
 
 == % Defects Removed To Date
 
@@ -180,10 +219,12 @@ phasePercent(HLD,Defects Removed)
 phasePercent(HLD Review,Defects Removed)
 phasePercent(Design,Defects Removed)
 phasePercent(Design Review,Defects Removed)
-Design/Combined % Defects Removed To Date==![(/	Design/Combined Defects Removed To Date	Defects Removed To Date)]
+[Design/Combined % Defects Removed To Date] =
+        [Design/Combined Defects Removed To Date] / [Defects Removed To Date];
 phasePercent(Code,Defects Removed)
 phasePercent(Code Review,Defects Removed)
-Code/Combined % Defects Removed To Date==![(/	Code/Combined Defects Removed To Date	Defects Removed To Date)]
+[Code/Combined % Defects Removed To Date] =
+        [Code/Combined Defects Removed To Date] / [Defects Removed To Date];
 phasePercent(Compile,Defects Removed)
 phasePercent(Test,Defects Removed)
 phasePercent(Reassessment,Defects Removed)
@@ -193,24 +234,32 @@ phasePercent(After Development,Defects Removed)
 = Compute percentages to use as normalizing factors when spreading defects
 = across various sets of PSP phases.
 
-#define PDR(Phase) Phase/% Defects Removed To Date
-Normalization %/Defects Removed/PSP3cycle==![(+	PDR(Design)	PDR(Design Review)	PDR(Code)	PDR(Code Review)	PDR(Compile)	PDR(Test))]
-Normalization %/Defects Removed/PSP0-2==![(+	Normalization %/Defects Removed/PSP3cycle	PDR(Planning)	PDR(Postmortem))]
-Normalization %/Defects Removed/PSP3==![(+	Normalization %/Defects Removed/PSP0-2	PDR(HLD)	PDR(HLD Review))]
+[Normalization %/Defects Removed/PSP3cycle] =
+        sumFor("% Defects Removed To Date",
+               ",Design,Design Review,Code,Code Review,Compile,Test,");
+[Normalization %/Defects Removed/PSP0-2] =
+        [Normalization %/Defects Removed/PSP3cycle] +
+	sumFor("% Defects Removed To Date", ",Planning,Postmortem,");
+[Normalization %/Defects Removed/PSP3] =
+        [Normalization %/Defects Removed/PSP0-2] +
+	sumFor("% Defects Removed To Date", ",HLD,HLD Review,");
 
 
 ==
 == Data Elements to calculate Defect Removal Efficiency
 ==
 
-#define defRemPerHr(Phase) Phase/Defects Removed per Hour To Date==![(/	Phase/Defects Removed To Date	Phase/Time To Date	0.0166667)]
+#define defRemPerHr(Phase) [Phase/Defects Removed per Hour To Date] = \
+        60 * [Phase/Defects Removed To Date] / [Phase/Time To Date];
 defRemPerHr(HLD Review)
 defRemPerHr(Design Review)
 defRemPerHr(Code Review)
 defRemPerHr(Compile)
 defRemPerHr(Test)
 
-#define defRemLeverage(Phase) Phase/DRL To Date==![(/	Phase/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
+#define defRemLeverage(Phase) [Phase/DRL To Date] =      \
+        [Phase/Defects Removed per Hour To Date] /       \
+	[Test/Defects Removed per Hour To Date];
 defRemLeverage(HLD Review)
 defRemLeverage(Design Review)
 defRemLeverage(Code Review)
@@ -222,17 +271,24 @@ defRemLeverage(Compile)
 ==
 
 #define DRTD(Phase) Phase/Defects Removed To Date
-#define DRTDR(Phase) DRTD(Phase)	DRTD(Phase Review)
-Yield To Date==![(/	[(+	DRTD(Planning)	DRTDR(HLD)	DRTDR(Design)	DRTDR(Code))]	Defects Removed To Date)]
 
-Test/Defects Removed per KLOC To Date==![(/	DRTD(Test)	New & Changed KLOC To Date)]
-Defects Removed per KLOC To Date==![(/	Defects Removed To Date	New & Changed KLOC To Date)]
-% Appraisal COQ To Date==![(/	[(+	~[^/]* Review/Time To Date)]	Time To Date)]
-% Failure COQ To Date==![(/	[(+	Compile/Time To Date	Test/Time To Date)]	Time To Date)]
-% New Reused To Date==![(/	New Reused LOC To Date	New & Changed LOC To Date)]
-% Reused To Date==![(/	Reused LOC To Date	Total LOC To Date)]
-AFR To Date==![(/	% Appraisal COQ To Date	% Failure COQ To Date)]
-CPI To Date==![(/	Estimated Time To Date	Time To Date)]
+[Yield To Date] = sumFor("Defects Removed To Date",
+        ",Planning,HLD,HLD Review,Design,Design Review,Code,Code Review,") /
+	[Defects Removed To Date];
+
+[Test/Defects Removed per KLOC To Date] =
+        [Test/Defects Removed To Date] / [New & Changed KLOC To Date];
+[Defects Removed per KLOC To Date] =
+        [Defects Removed To Date] / [New & Changed KLOC To Date];
+[% Appraisal COQ To Date] = 
+        sumFor("Time To Date", [Appraisal_Phase_List]) / [Time To Date];
+[% Failure COQ To Date] =
+	sumFor("Time To Date", [Failure_Phase_List]) / [Time To Date];
+[% New Reused To Date] =
+	[New Reused LOC To Date] / [New & Changed LOC To Date];
+[% Reused To Date] = [Reused LOC To Date] / [Total LOC To Date];
+[AFR To Date] = [% Appraisal COQ To Date] / [% Failure COQ To Date];
+[CPI To Date] = [Estimated Time To Date] / [Time To Date];
 
 
 
@@ -240,5 +296,28 @@ CPI To Date==![(/	Estimated Time To Date	Time To Date)]
 == Define the standard PSP Defect Type Standard
 ==
 
-Defect Type Standard/PSP - text="Documentation (comments, messages)|Syntax (spelling, punctuation, typos, instruction formats)|Build, package (change management, library, version control)|Assignment (declaration, duplicate names, scope, limits)|Interface (procedure calls and reference, I/O, user formats)|Checking (error messages, inadequate checks)|Data (structure, content)|Function (logic, pointers, loops, recursion, computation, function defects)|System (configuration, timing, memory)|Environment (design, compile, test, or other support system problems)
-Defect Type Standard/PSP - numbers="10 (Documentation - comments, messages)|20 (Syntax - spelling, punctuation, typos, instruction formats)|30 (Build, package - change management, library, version control)|40 (Assignment - declaration, duplicate names, scope, limits)|50 (Interface - procedure calls and reference, I/O, user formats)|60 (Checking - error messages, inadequate checks)|70 (Data - structure, content)|80 (Function - logic, pointers, loops, recursion, computation, function defects)|90 (System - configuration, timing, memory)|100 (Environment - design, compile, test, or other support system problems)
+[Defect Type Standard/PSP - text] = 
+    "Documentation (comments, messages)|" &
+    "Syntax (spelling, punctuation, typos, instruction formats)|" &
+    "Build, package (change management, library, version control)|" &
+    "Assignment (declaration, duplicate names, scope, limits)|" &
+    "Interface (procedure calls and reference, I/O, user formats)|" &
+    "Checking (error messages, inadequate checks)|" &
+    "Data (structure, content)|" &
+    "Function (logic, pointers, loops, recursion, computation, " & 
+        "function defects)|" &
+    "System (configuration, timing, memory)|" &
+    "Environment (design, compile, test, or other support system problems)";
+
+[Defect Type Standard/PSP - numbers] = "10 (Documentation - comments, messages)|" &
+    "20 (Syntax - spelling, punctuation, typos, instruction formats)|" &
+    "30 (Build, package - change management, library, version control)|" &
+    "40 (Assignment - declaration, duplicate names, scope, limits)|" &
+    "50 (Interface - procedure calls and reference, I/O, user formats)|" &
+    "60 (Checking - error messages, inadequate checks)|" &
+    "70 (Data - structure, content)|" &
+    "80 (Function - logic, pointers, loops, recursion, computation, " &
+         "function defects)|" &
+    "90 (System - configuration, timing, memory)|" &
+    "100 (Environment - design, compile, test, or other support " & 
+         "system problems)";

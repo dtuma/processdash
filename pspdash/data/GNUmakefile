@@ -39,6 +39,8 @@ MSCAB   ?= //c/java/ms/SDK4.0/bin/cabarc.exe
 JAVAC   ?= //C/java/sun/jdk1.2.2/bin/javac.exe
 JAR     ?= //C/java/sun/jdk1.2.2/bin/jar.exe
 
+SABLECC ?= java -cp ../build/sablecc.jar org.sablecc.sablecc.SableCC
+
 # where are the MS specific jars?
 MSJARS  ?= ../../msjars
 
@@ -54,6 +56,7 @@ COMMON_FILES=DataEvent.java \
 	DataListener.java \
 	DateData.java \
 	DoubleData.java \
+	ListData.java \
 	MalformedValueException.java \
 	NumberData.java \
 	Repository.java \
@@ -92,11 +95,14 @@ IE_FILES=$(BROWSER_FILES) \
 	OLEDBAlertWindow.java
 
 DATA_FILES=$(COMMON_FILES) \
+	ActiveExpressionContext.java \
 	AdditionFunction.java \
 	AndFunction.java \
 	ArgumentList.java \
 	ComparisonFunction.java \
+	CompiledFunction.java \
 	CppFilter.java \
+	CppFilterReader.java \
 	DataComparator.java \
 	DataConsistencyObserver.java \
 	DataList.java \
@@ -129,13 +135,25 @@ DATA_FILES=$(COMMON_FILES) \
 	RepositoryListener.java \
 	RepositoryServer.java \
 	ResultSet.java \
+	SearchFactory.java \
+	SearchFunction.java \
 	SimpleList.java \
 	SortedList.java \
 	StringAliasFunction.java \
 	SubtractionFunction.java \
 	SumList.java \
 	TagData.java \
-	ValueFactory.java
+	ValueFactory.java \
+	compiler/Compiler.java \
+	compiler/Count.java \
+	compiler/Defined.java \
+	compiler/Iff.java \
+	compiler/Indirect.java \
+	compiler/LogicOperators.java \
+	compiler/Max.java \
+	compiler/Min.java \
+	compiler/Sumfor.java \
+	compiler/parser/Parser.java
 
 IE_CLASSES=$(subst .java,.class,$(IE_FILES))
 NS_CLASSES=$(subst .java,.class,$(NS_FILES))
@@ -153,7 +171,7 @@ DATA_CLASS_FILES=$(addprefix $(BIN_DATA)/pspdash/data/,$(DATA_CLASSES))
 
 default: data
 
-data: $(DATA_CLASS_FILES)
+data: parser $(DATA_CLASS_FILES)
 
 $(BIN_DATA)/pspdash/data/%.class: %.java
 	$(JAVAC) \
@@ -208,6 +226,17 @@ clean:
 	rm -rf $(BIN_DATA)/pspdash
 	rm -rf $(BIN_IE)
 	rm -rf $(BIN_NS)
+	rm -rf compiler/lexer compiler/parser compiler/node compiler/analysis
+
+parser: compiler/parser/Parser.java
+
+compiler/parser/Parser.java: compiler/grammar.txt
+	rm -rf compiler/lexer compiler/parser compiler/node compiler/analysis
+	$(SABLECC) -d $(SRC) compiler/grammar.txt
+	@mkdir -p $(BIN_DATA)/pspdash/data/compiler/lexer
+	@cp compiler/lexer/lexer.dat $(BIN_DATA)/pspdash/data/compiler/lexer
+	@mkdir -p $(BIN_DATA)/pspdash/data/compiler/parser
+	@cp compiler/parser/parser.dat $(BIN_DATA)/pspdash/data/compiler/parser
 
 
 new: clean all

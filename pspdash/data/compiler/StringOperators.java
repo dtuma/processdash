@@ -23,38 +23,28 @@
 //
 // E-Mail POC:  ken.raisor@hill.af.mil
 
-package pspdash;
+package pspdash.data.compiler;
 
-import java.util.Stack;
+import pspdash.data.DataRepository;
+import pspdash.data.SimpleData;
+import pspdash.data.StringData;
 
-public abstract class ResourcePool {
+class StringOperators {
 
-    String name;
-    Stack availableResources, busyResources;
+    private StringOperators() {}
 
-    public ResourcePool(String name) {
-        this.name = name;
-        availableResources = new Stack();
-        busyResources      = new Stack();
-    }
+    public static final Instruction CONCAT = new BinaryOperator("&") {
+            protected SimpleData operate(SimpleData left, SimpleData right) {
+                if (left == null) return right;
+                if (right == null) return left;
+                return StringData.create(left.format() + right.format());
+            } };
 
-    protected abstract Object createNewResource();
-
-    public synchronized Object get() {
-        Object result = null;
-        if (availableResources.empty()) {
-            result = createNewResource();
-            //int count = busyResources.size() + 1;
-            //System.err.println(name + " pool contains " + count + " items.");
-        } else
-            result = availableResources.pop();
-        if (result != null) busyResources.push(result);
-        return result;
-    }
-
-    public synchronized void release(Object resource) {
-        if (resource != null)
-            if (busyResources.remove(resource))
-                availableResources.push(resource);
-    }
+    public static final Instruction PATHCONCAT = new BinaryOperator("&/") {
+            protected SimpleData operate(SimpleData left, SimpleData right) {
+                if (left == null) return right;
+                if (right == null) return left;
+                return StringData.create(DataRepository.createDataName
+                                         (left.format(), right.format()));
+            } };
 }

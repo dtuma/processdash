@@ -23,38 +23,18 @@
 //
 // E-Mail POC:  ken.raisor@hill.af.mil
 
-package pspdash;
+package pspdash.data.compiler;
 
-import java.util.Stack;
+import java.util.LinkedList;
 
-public abstract class ResourcePool {
+public class ListStack implements Stack {
+    private LinkedList list = new LinkedList();
 
-    String name;
-    Stack availableResources, busyResources;
+    public ListStack() {}
 
-    public ResourcePool(String name) {
-        this.name = name;
-        availableResources = new Stack();
-        busyResources      = new Stack();
-    }
-
-    protected abstract Object createNewResource();
-
-    public synchronized Object get() {
-        Object result = null;
-        if (availableResources.empty()) {
-            result = createNewResource();
-            //int count = busyResources.size() + 1;
-            //System.err.println(name + " pool contains " + count + " items.");
-        } else
-            result = availableResources.pop();
-        if (result != null) busyResources.push(result);
-        return result;
-    }
-
-    public synchronized void release(Object resource) {
-        if (resource != null)
-            if (busyResources.remove(resource))
-                availableResources.push(resource);
-    }
+    public Object pop()          { return list.removeFirst();  }
+    public Object push(Object o) { list.addFirst(o); return o; }
+    public boolean empty()       { return list.isEmpty();      }
+    public Object peek()         { return list.getFirst();     }
+    public void clear()          { list.clear();               }
 }
