@@ -298,6 +298,81 @@ the # character.</p>
  </li>
  <br>
 
+ <li><a name="pspdiffSuffixC"></a><strong>pspdiff.suffix.c</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the C/Java LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".c .h .java") which signal that a file 
+      contains C/Java source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.c .cpp .c++ .h .java</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.c=.c .h .cxx .hxx</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pspdiffSuffixCobol"></a><strong>pspdiff.suffix.cobol</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the Cobol LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".cob") which signal that a file contains 
+      Pascal source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.cob .cbl</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.pascal=.p .pas</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pspdiffSuffixPascal"></a><strong>pspdiff.suffix.pascal</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the Pascal LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".p") which signal that a file contains 
+      Pascal source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.pas</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.pascal=.p .pas</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pspdiffSuffixSh"></a><strong>pspdiff.suffix.sh</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the perl/sh LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".sh") which signal that a file contains perl 
+      or sh source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.pl .sh .bash</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.sh=.sh .pl .pm</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pspdiffSuffixSql"></a><strong>pspdiff.suffix.sql</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the SQL/Ada LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".sql") which signal that a file 
+      contains perl or sh source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.sql .ada .adb .ads</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.sql=.sql .ada</td></tr>
+   </table>
+ </li>
+ <br>
+
  <li><strong>templates.directory</strong><br>
    List of additional directories containing process templates.<BR>
    The dashboard can load process definitions from many locations.
