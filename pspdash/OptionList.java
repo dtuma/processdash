@@ -32,6 +32,7 @@ import java.util.*;
 public class OptionList {
 
     public Vector options;
+    public Map translations;
     public Map comments;
 
     /** Construct a new option list based on the given string.
@@ -44,6 +45,10 @@ public class OptionList {
     public OptionList(String optionString) {
         options = new Vector();
         comments = new HashMap();
+        if (Translator.isTranslating())
+            translations = new HashMap();
+        else
+            translations = null;
 
         StringTokenizer tok = new StringTokenizer(optionString, "|");
         String oneOption, oneComment;
@@ -60,9 +65,13 @@ public class OptionList {
                 }
             }
             this.options.add(oneOption);
+            if (translations != null)
+                translations.put(oneOption, Translator.translate(oneOption));
         }
 
         comments = Collections.unmodifiableMap(comments);
+        if (translations != null)
+            translations = Collections.unmodifiableMap(translations);
     }
 
 
@@ -72,6 +81,15 @@ public class OptionList {
     public OptionList(Collection opts) {
         options = new Vector(opts);
         comments = Collections.EMPTY_MAP;
+        if (Translator.isTranslating()) {
+            translations = new HashMap();
+            Iterator i = options.iterator();
+            while (i.hasNext()) {
+                String item = (String) i.next();
+                String trans = Translator.translate(item);
+                translations.put(item, trans);
+            }
+        }
     }
 
 
@@ -81,10 +99,19 @@ public class OptionList {
             .append(HTMLUtils.escapeEntities(name)).append("'>\n");
         Iterator i = options.iterator();
         String option;
-        while (i.hasNext())
-            result.append("<OPTION>")
-                .append(HTMLUtils.escapeEntities((String) i.next()))
-                .append("\n");
+        while (i.hasNext()) {
+            String elem = (String) i.next();
+            String trans = null;
+            if (translations != null)
+                trans = (String) translations.get(elem);
+            elem = HTMLUtils.escapeEntities(elem);
+
+            if (trans == null)
+                result.append("<OPTION>").append(elem).append("\n");
+            else
+                result.append("<OPTION VALUE='").append(elem).append("'>")
+                    .append(HTMLUtils.escapeEntities(trans)).append("\n");
+        }
         result.append("</SELECT>");
         return result.toString();
     }
@@ -92,17 +119,11 @@ public class OptionList {
     public JComboBox getAsComboBox() {
         JComboBox result = new JComboBox((Vector) options.clone());
 
-        if (!comments.isEmpty()) {
-            ToolTipCellRenderer renderer = new ToolTipCellRenderer();
+        if ((comments != null && !comments.isEmpty()) ||
+            (translations != null && !translations.isEmpty())) {
+            ToolTipCellRenderer renderer =
+                new ToolTipCellRenderer(comments, translations);
             result.setRenderer(renderer);
-
-            Map.Entry oneComment;
-            Iterator i = comments.entrySet().iterator();
-            while (i.hasNext()) {
-                oneComment = (Map.Entry) i.next();
-                renderer.setToolTip((String) oneComment.getKey(),
-                                    (String) oneComment.getValue());
-            }
         }
 
         return result;

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,36 +21,35 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
 
 import java.awt.event.*;
 import javax.swing.*;
+import java.text.Collator;
 import java.util.*;
 import java.io.*;
 import pspdash.data.DataRepository;
-//import com.oroinc.text.perl.Perl5Util;
-//import com.oroinc.text.MalformedCachePatternException;
 
-public class DataComboBox extends JComboBox implements ILessThan {
 
-    static public    String settingName = "hiddenData";
-    static protected String delim       = "|";
-    static protected Vector hiddenData  = null;
+public class DataComboBox extends JComboBox {
+
+    static public    String settingName  = "hiddenData";
+    static protected String delim        = "|";
+    static protected Vector hiddenData   = null;
+    static protected Map    translations = null;
 
     DataComboBox(DataRepository dr) {
         super();
-        setEditable (true);
 
         Iterator i = getAllDataNames(dr).iterator();
         while (i.hasNext())
             addItem((String) i.next());
-    }
 
-    public boolean lessThan(Object oFirst, Object oSecond) {
-        return ((String)oFirst).compareTo ((String)oSecond) < 0;
+        if (translations != null)
+            setRenderer(new ToolTipCellRenderer(null, translations));
     }
 
     private static Set dataNameList = null;
@@ -61,10 +60,17 @@ public class DataComboBox extends JComboBox implements ILessThan {
         if (dataNameList != null) return dataNameList;
 
         Perl5Util perl = PerlPool.get();
-        Set result = new TreeSet();
+        Set result;
         String hiddenDataRE = "m\n(" + Settings.getVal(settingName) + ")\ni";
+        if (Translator.isTranslating()) {
+            translations = new HashMap();
+            result = new TreeSet(new TranslatingSorter());
+        } else {
+            translations = null;
+            result = new TreeSet(String.CASE_INSENSITIVE_ORDER);
+        }
 
-        String dataName;
+        String dataName, trans;
         int sepLoc;
         Iterator dataNames = dr.getDataElementNameSet().iterator();
         while (dataNames.hasNext()) {
@@ -74,8 +80,14 @@ public class DataComboBox extends JComboBox implements ILessThan {
             if (dataName.indexOf("//") != -1) continue;
 
             try {
-                if (!perl.match(hiddenDataRE, dataName))
+                if (!perl.match(hiddenDataRE, dataName)) {
+                    if (translations != null) {
+                        trans = Translator.translate(dataName);
+                        if (trans != dataName)
+                            translations.put(dataName, trans);
+                    }
                     result.add(dataName);
+                }
             } catch (Perl5Util.RegexpException p5ure) {
                 System.err.println("The user setting, 'hiddenData', is not a valid " +
                                    "regular expression.");
@@ -85,7 +97,17 @@ public class DataComboBox extends JComboBox implements ILessThan {
 
         PerlPool.release(perl);
         dataNameList = Collections.unmodifiableSet(result);
+        if (translations != null)
+            translations = Collections.unmodifiableMap(translations);
         return result;
     }
 
+    private static class TranslatingSorter implements Comparator {
+        protected Collator collator = Collator.getInstance();
+        public int compare(Object o1, Object o2) {
+            Object t1 = translations.get(o1); if (t1 == null) t1 = o1;
+            Object t2 = translations.get(o2); if (t2 == null) t2 = o2;
+            return collator.compare(t1, t2);
+        }
+    }
 }
