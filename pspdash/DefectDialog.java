@@ -62,6 +62,8 @@ public class DefectDialog extends JDialog
     private static Stack interruptedDialogs = new Stack();
     /** The defect dialog which was timing most recently. */
     private static DefectDialog activeDialog = null;
+    /** A list of all open defect dialogs. */
+    private static Hashtable defectDialogs = new Hashtable();
     /** A timer object for refreshing the fix time field. */
     private javax.swing.Timer activeRefreshTimer = null;
 
@@ -249,12 +251,35 @@ public class DefectDialog extends JDialog
         setDirty(false);
     }
 
-    DefectDialog(PSPDashboard dash, String defectFilename,
-                 PropertyKey defectPath, Defect defect) {
+    private DefectDialog(PSPDashboard dash, String defectFilename,
+                         PropertyKey defectPath, Defect defect) {
         this(dash, defectFilename, defectPath, false);
         stopTimingDefect();
         setValues(defect);
         setDirty(false);
+    }
+
+    public static DefectDialog getDialogForDefect
+        (PSPDashboard dash, String defectFilename,
+         PropertyKey defectPath, Defect defect)
+    {
+        DefectDialog result = null;
+
+        String comparisonKey = defectFilename + defect.number;
+        result = (DefectDialog) defectDialogs.get(comparisonKey);
+        if (result != null && result.isDisplayable()) return result;
+
+        result = new DefectDialog(dash, defectFilename, defectPath, defect);
+        result.saveDialogInCache();
+
+        return result;
+    }
+
+    private String comparisonKey() {
+        return defectLog.defectLogFilename + defectNumber;
+    }
+    private void saveDialogInCache() {
+        defectDialogs.put(comparisonKey(), this);
     }
 
     public void setDirty(boolean dirty) {
@@ -467,6 +492,7 @@ public class DefectDialog extends JDialog
         if (defectNumber == null) {
             save();
             setDirty(true);
+            saveDialogInCache();
             autoCreated = true;
         }
         DefectDialog d = new DefectDialog(parent, defectFilename, defectPath);
@@ -494,6 +520,7 @@ public class DefectDialog extends JDialog
             activeRefreshTimer = null;
         }
         interruptedDialogs.remove(this); // it might not be there, that's OK
+        defectDialogs.remove(comparisonKey());
         super.dispose();
     }
 

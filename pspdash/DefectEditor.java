@@ -268,6 +268,14 @@ public class DefectEditor extends Component
             return null;
     }
 
+    private DefectDialog getDialogForDefect(DefectListEntry dle) {
+        return DefectDialog.getDialogForDefect
+            (dashboard,
+             dashboard.getDirectory() + useProps.pget(dle.pk).getDefectLog(),
+             dle.pk,
+             dle.defect);
+    }
+
 
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
@@ -277,12 +285,9 @@ public class DefectEditor extends Component
         if (cmd.equals("edit")) {
             dle = getSelectedDefect();
             if (dle != null) {
-                dlg = new DefectDialog
-                    (dashboard,
-                     dashboard.getDirectory() + useProps.pget(dle.pk).getDefectLog(),
-                     dle.pk,
-                     dle.defect);
+                dlg = getDialogForDefect(dle);
                 dlg.setTitle(dle.pk.path());
+                dlg.toFront();
             }
 
         } else if (cmd.equals("delete")) {
@@ -296,6 +301,8 @@ public class DefectEditor extends Component
                      "Confirm Defect Deletion", JOptionPane.YES_NO_OPTION) ==
                     JOptionPane.YES_OPTION)
                     dle.dl.deleteDefect(number);
+                dlg = getDialogForDefect(dle);
+                if (dlg != null) dlg.dispose();
             }
 
         } else if (cmd.equals("close")) {
