@@ -52,7 +52,7 @@ class ConfigureButton extends JMenuBar implements ActionListener {
     ProbeDialog    probe_dialog = null;
 
     static String FILE_SEP = null;
-    static final String ANALYSIS_URL = "/reports/index.htm";
+    static final String ANALYSIS_URL = "/To+Date/PSP/All//reports/index.htm";
     static final String ABOUT_URL    = "/help/Topics/Overview/about.htm";
 
                                   // menu labels
