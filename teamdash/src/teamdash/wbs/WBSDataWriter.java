@@ -231,7 +231,7 @@ public class WBSDataWriter {
             for (int i = 0;   i < SIZE_ACCOUNTING_ATTRS.length;   i++){
                 Object size =
                     dataModel.getValueAt(node, sizeAccountingColumns[i]);
-                writeAttr(out, SIZE_ACCOUNTING_ATTRS[i], formatSize(size));
+                writeAttr(out, SIZE_ACCOUNTING_ATTRS[i], formatNumber(size));
             }
         }
     }
@@ -268,7 +268,7 @@ public class WBSDataWriter {
 
             writeAttr(out, INSP_UNITS_ATTR, units);
             writeAttr(out, INSP_SIZE_ATTR,
-                      formatSize(dataModel.getValueAt(node, column)));
+                      formatNumber(dataModel.getValueAt(node, column)));
         }
     }
 
@@ -292,7 +292,7 @@ public class WBSDataWriter {
         StringBuffer result = new StringBuffer();
         for (int i = 0;   i < teamMemberColumns.size();   i++) {
             int col = teamMemberColumns.get(i);
-            String time = String.valueOf(dataModel.getValueAt(node, col));
+            String time = formatNumber(dataModel.getValueAt(node, col));
             if ("null".equals(time) || "0".equals(time) || "0.0".equals(time))
                 continue;
 
@@ -309,16 +309,16 @@ public class WBSDataWriter {
 
 
 
-
-
-
-    /** Format a size measurement so we can write it in an XML attribute.
+    /** Format a numeric value so we can write it in an XML attribute.
      */
-    private String formatSize(Object size) {
-        if (size == null) return "0";
-        double d = NumericDataValue.parse(size);
+    private String formatNumber(Object value) {
+        if (value == null) return "0";
+        double d = NumericDataValue.parse(value);
         if (Double.isNaN(d) || Double.isInfinite(d)) d = 0;
-        return NumericDataValue.format(d);
+        if (d == Math.floor(d))
+            return Integer.toString((int) d);
+        else
+            return Double.toString(d);
     }
 
 
