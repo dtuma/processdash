@@ -12,6 +12,7 @@ Insp.template
 pspForEng
 pspForMSE
 import
+Import-template.xml
 PSP1_0_1.template
 psp1.0.1
 dataFileCheck.pl
