@@ -42,6 +42,7 @@ NON_CLASS_FILES=continue.gif \
 		script.gif \
 		scriptd.gif \
 		splash.gif \
+		timing.wav \
 		state
 INSTALLED_FILES=$(addprefix pspdash/,$(NON_CLASS_FILES))
 
