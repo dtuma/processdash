@@ -481,7 +481,7 @@ function NSSetup() {
     if (debug) document.writeln("<p>creating applet.");
     document.writeln('<applet id=NSDataAppl name=NSDataAppl'+
 		            ' archive="/'+AppletName+'.jar" '+
-		            ' code=pspdash.data.NSDataApplet'+
+		            ' code=net.sourceforge.processdash.data.applet.DefaultDataApplet'+
 		            ' width=1 height=1 MAYSCRIPT>');
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
@@ -516,7 +516,7 @@ function ForcePlugInSetup() {
 	     'width="1" height="1" id="NSDataAppl" '+
   	     'codebase="http://java.sun.com/products/plugin/autodl/jinstall-1_4-windows-i586.cab#Version=1,4,0,0">'+
 	     '<param name=type value="application/x-java-applet;version=1.4">'+
-	     '<param name=CODE value="pspdash.data.NSDataApplet">'+
+	     '<param name=CODE value="net.sourceforge.processdash.data.applet.DefaultDataApplet">'+
 	     '<param name=ARCHIVE value="/'+AppletName+'.jar">'+
 	     '<param name=NAME value="NSDataAppl">'+
 	     '<param name=scriptable value="true">'+
@@ -585,14 +585,10 @@ ieVersion = MSIEversion();
 nsVersion = NSversion();
 
 if (ieVersion >= 4) {
-    if (isWindows() == false)
-	NSSetup();
-    else if (forcePlugIn())
+    if (forcePlugIn())
 	ForcePlugInSetup();
-    else if (usingPlugIn())
-	NSSetup();
     else
-	IEsetup();
+	NSSetup();
 }
 else if (nsVersion >= 4)
     NSSetup();

@@ -10,10 +10,11 @@ pspdash/data/ListData.java
 pspdash/data/MalformedValueException.java
 pspdash/data/NumberData.java
 pspdash/data/Repository.java
+pspdash/data/RemoteException.java
 pspdash/data/SaveableData.java
 pspdash/data/SimpleData.java
 pspdash/data/StringData.java
 pspdash/data/TagData.java
-pspdash/data/DataInterpreter.java
-pspdash/data/DoubleInterpreter.java
-pspdash/data/PercentInterpreter.java
+net/sourceforge/processdash/data/applet/DataInterpreter.java
+net/sourceforge/processdash/data/applet/DoubleInterpreter.java
+net/sourceforge/processdash/data/applet/PercentInterpreter.java

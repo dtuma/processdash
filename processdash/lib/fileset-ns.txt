@@ -1,2 +1,2 @@
-pspdash/data/NS*.java
-pspdash/data/DOM*.java
+net/sourceforge/processdash/data/applet/ns/*.java
+net/sourceforge/processdash/data/applet/dom/*.java
