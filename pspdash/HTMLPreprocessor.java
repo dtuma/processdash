@@ -890,6 +890,10 @@ public class HTMLPreprocessor {
             if (result instanceof String) return (String) result;
             if (result != null) return result.toString();
 
+                                // look for a user setting
+            result = Settings.getVal(name);
+            if (result != null) return result.toString();
+
             return "";
         }
     }
