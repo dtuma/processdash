@@ -118,6 +118,32 @@ After Development/Estimated Defects Removed==![(*	Estimated Defects Removed	/Aft
 
 
 ==
+== Defect Removal Efficiency metrics
+==
+
+= Estimated Defect Removal Efficiency
+
+Design Review/Estimated Defects Removed per Hour==![(*	60	[(/	Design Review/Estimated Defects Removed	Design Review/Estimated Time)])]
+Code Review/Estimated Defects Removed per Hour==![(*	60	[(/	Code Review/Estimated Defects Removed	Code Review/Estimated Time)])]
+Compile/Estimated Defects Removed per Hour==![(*	60	[(/	Compile/Estimated Defects Removed	Compile/Estimated Time)])]
+Test/Estimated Defects Removed per Hour==![(*	60	[(/	Test/Estimated Defects Removed	Test/Estimated Time)])]
+Design Review/Estimated DRL==![(/	Design Review/Estimated Defects Removed per Hour	Test/Estimated Defects Removed per Hour)]
+Code Review/Estimated DRL==![(/	Code Review/Estimated Defects Removed per Hour	Test/Estimated Defects Removed per Hour)]
+Compile/Estimated DRL==![(/	Compile/Estimated Defects Removed per Hour	Test/Estimated Defects Removed per Hour)]
+
+= Actual Defect Removal Efficiency
+
+Design Review/Defects Removed per Hour==![(*	60	[(/	Design Review/Defects Removed	Design Review/Time)])]
+Code Review/Defects Removed per Hour==![(*	60	[(/	Code Review/Defects Removed	Code Review/Time)])]
+Compile/Defects Removed per Hour==![(*	60	[(/	Compile/Defects Removed	Compile/Time)])]
+Test/Defects Removed per Hour==![(*	60	[(/	Test/Defects Removed	Test/Time)])]
+Design Review/DRL==![(/	Design Review/Defects Removed per Hour	Test/Defects Removed per Hour)]
+Code Review/DRL==![(/	Code Review/Defects Removed per Hour	Test/Defects Removed per Hour)]
+Compile/DRL==![(/	Compile/Defects Removed per Hour	Test/Defects Removed per Hour)]
+
+
+
+==
 == Data Elements to calculate overall process metrics.
 ==
 
@@ -125,12 +151,12 @@ CPI==![(/	Estimated Time	Time)]
 
 = Calculations based on estimated data
 
-Design Review/Estimated Defects Removed per Hour==![(*	60	[(/	Design Review/Estimated Defects Removed	Design Review/Estimated Time)])]
 Test/Estimated Defects Removed per KLOC==![(/	Test/Estimated Defects Removed	Estimated New & Changed KLOC)]
+Estimated Defects Removed per KLOC==![(/	Estimated Defects Removed	Estimated New & Changed KLOC)]
 Estimated Yield==![(/	[(+	Planning/Estimated Defects Removed	Design/Estimated Defects Removed	Design Review/Estimated Defects Removed	Code/Estimated Defects Removed	Code Review/Estimated Defects Removed)]	Estimated Defects Removed)]
 
 = Calculations based on actual data
 
-Design Review/Defects Removed per Hour==![(*	60	[(/	Design Review/Defects Removed	Design Review/Time)])]
 Test/Defects Removed per KLOC==![(/	Test/Defects Removed	New & Changed KLOC)]
+Defects Removed per KLOC==![(/	Defects Removed	New & Changed KLOC)]
 Yield==![(/	[(+	Planning/Defects Removed	Design/Defects Removed	Design Review/Defects Removed	Code/Defects Removed	Code Review/Defects Removed)]	Defects Removed)]

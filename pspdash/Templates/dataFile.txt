@@ -43,6 +43,7 @@ Added LOC To Date==![(+	~/.*/{Completed}Added LOC$)]
 Deleted LOC To Date==![(+	~/.*/{Completed}Deleted LOC$)]
 Modified LOC To Date==![(+	~/.*/{Completed}Modified LOC$)]
 New & Changed LOC To Date==![(+	~/.*/{Completed}New & Changed LOC$)]
+New & Changed KLOC To Date==![(/	New & Changed LOC To Date	1000)]
 New Reused LOC To Date==![(+	~/.*/{Completed}New Reused LOC$)]
 Reused LOC To Date==![(+	~/.*/{Completed}Reused LOC$)]
 KLOC To Date==![(/	LOC To Date	1000)]
@@ -178,11 +179,25 @@ After Development/% Defects Removed To Date==![(/	After Development/Defects Remo
 
 
 ==
+== Data Elements to calculate Defect Removal Efficiency
+==
+
+Design Review/Defects Removed per Hour To Date==![(*	60	[(/	Design Review/Defects Removed To Date	Design Review/Time To Date)])]
+Code Review/Defects Removed per Hour To Date==![(*	60	[(/	Code Review/Defects Removed To Date	Code Review/Time To Date)])]
+Compile/Defects Removed per Hour To Date==![(*	60	[(/	Compile/Defects Removed To Date	Compile/Time To Date)])]
+Test/Defects Removed per Hour To Date==![(*	60	[(/	Test/Defects Removed To Date	Test/Time To Date)])]
+Design Review/DRL To Date==![(/	Design Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
+Code Review/DRL To Date==![(/	Code Review/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
+Compile/DRL To Date==![(/	Compile/Defects Removed per Hour To Date	Test/Defects Removed per Hour To Date)]
+
+
+==
 == Data Elements to Track Overall Process Metrics 
 ==
 
-Yield To Date==![(/	[(+	Planning/Defects Removed To Date	Design/Defects Removed To Date	Design Review/Defects Removed To Date	Design Inspection/Defects Removed To Date	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]	[(+	Compile/Defects Removed To Date	Test/Defects Removed To Date	Postmortem/Defects Removed To Date	After Development/Defects Removed To Date)])]
-Test/Defects Removed per KLOC To Date==![(/	Test/Defects Removed To Date	KLOC To Date)]
+Yield To Date==![(/	[(+	Planning/Defects Removed To Date	Design/Defects Removed To Date	Design Review/Defects Removed To Date	Design Inspection/Defects Removed To Date	Code/Defects Removed To Date	Code Review/Defects Removed To Date)]	Defects Removed To Date)]
+Test/Defects Removed per KLOC To Date==![(/	Test/Defects Removed To Date	New & Changed KLOC To Date)]
+Defects Removed per KLOC To Date==![(/	Defects Removed To Date	New & Changed KLOC To Date)]
 % Appraisal COQ To Date==![(/	[(+	Design Review/Time To Date	Design Inspection/Time To Date	Code Review/Time To Date	Code Inspection/Time To Date)]	Time To Date)]
 % Failure COQ To Date==![(/	[(+	Compile/Time To Date	Test/Time To Date)]	Time To Date)]
 % New Reused To Date==![(/	New Reused LOC To Date	New & Changed LOC To Date)]
