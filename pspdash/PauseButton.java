@@ -138,7 +138,9 @@ public class PauseButton extends DropDownButton implements ActionListener {
 
         } else if (e.getSource() instanceof JMenuItem) {
             JMenuItem item = (JMenuItem) e.getSource();
-            if (!setPath(item.getText()))
+            if (setPath(item.getText()))
+                cont();
+            else
                 getMenu().remove(item);
         } else {
             if (paused) cont(); else pause();
