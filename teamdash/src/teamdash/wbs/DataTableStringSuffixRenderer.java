@@ -4,10 +4,15 @@ import java.awt.Component;
 
 import javax.swing.JTable;
 
+/** This simple renderer appends a fixed string to the end of
+ * displayed values.
+ */
 public class DataTableStringSuffixRenderer extends DataTableCellRenderer {
 
     private String suffix;
 
+    /** Create a renderer to append the given suffix to the end of
+     * displayed values */
     public DataTableStringSuffixRenderer(String suffix) {
         this.suffix = suffix;
     }

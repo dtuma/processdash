@@ -23,7 +23,6 @@ import teamdash.wbs.columns.TaskSizeColumn;
 import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamMemberColumnManager;
 import teamdash.wbs.columns.TeamTimeColumn;
-import teamdash.wbs.columns.TopDownBottomUpColumn;
 
 
 public class DataTableModel extends AbstractTableModel {
@@ -152,7 +151,7 @@ public class DataTableModel extends AbstractTableModel {
     }
 
     /** Add a list of data columns and remove another list of data columns.
-     * 
+     *
      * The changes are made as part of a batch operation, deferring
      * recalculations until all the changes are made.  As a result, this will
      * be much more efficient than a corresponding series of calls to
@@ -191,10 +190,12 @@ public class DataTableModel extends AbstractTableModel {
     }
 
 
+    /** Add time columns for each team member to the given column model. */
     public void addTeamMemberTimes(TableColumnModel columnModel) {
         memberColumnManager.addToColumnModel(columnModel);
     }
 
+    /** Get a list of the column numbers for each team member column. */
     public IntList getTeamMemberColumnIDs() {
         IntList result = new IntList();
         Iterator i = memberColumnManager.getColumns().iterator();
@@ -204,24 +205,27 @@ public class DataTableModel extends AbstractTableModel {
         return result;
     }
 
+
+    /** Create a set of data columns for this data model. */
     protected void buildDataColumns(TeamMemberList teamList,
                                     TeamProcess teamProcess)
     {
-
         SizeTypeColumn.createSizeColumns(this);
         addDataColumn(new PhaseColumn());
         addDataColumn(new TaskSizeColumn(this));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new TeamTimeColumn(this));
         memberColumnManager = new TeamMemberColumnManager(this, teamList);
-
-        for (char c = 'B';   c <= 'Z';   c++)
-            addDataColumn(new TopDownBottomUpColumn
-                          (this, String.valueOf(c), String.valueOf(c)));
     }
 
+    /** Return the work breakdown structure model that this data model
+     * represents. */
     public WBSModel getWBSModel() { return wbsModel; }
 
+
+    /** This class listens for table model events fired by the work
+     * breakdown structure, and sends them to our listeners as well.
+     */
     private class TableModelEventRepeater implements TableModelListener {
         public void tableChanged(TableModelEvent e) {
             // rebroadcast the event as our own.
@@ -230,7 +234,7 @@ public class DataTableModel extends AbstractTableModel {
                  e.getLastRow(), e.getColumn(), e.getType());
             fireTableChanged(newEvent);
 
-            // all calculated column implicitly depend upon the structure
+            // all calculated columns implicitly depend upon the structure
             // of the WBS model, so we'll mark all of our calculated columns
             // as dirty (this will schedule a deferred recalculation operation)
             try {
@@ -313,10 +317,10 @@ public class DataTableModel extends AbstractTableModel {
     }
 
     /** Let the model know that data in a particular column has been changed.
-     * 
+     *
      * The column (and all columns that depend upon it) will be marked as
      * needing recalculation.
-     * 
+     *
      * This will be called automatically by setValueAt(), so normally columns
      * will not need to call this. Calling this method is only necessary when
      * the data in a column has been changed by some external event. */
@@ -370,10 +374,12 @@ public class DataTableModel extends AbstractTableModel {
             finalDepth = --changeDepth;
             if (changeDepth < 0) changeDepth = 0;
         }
+        //When all in-progress data changes complete, trigger a recalculation.
         if (finalDepth == 0) recalcColumns();
     }
 
-    /** This class cleans up after people who neglect to call endChange() */
+    /** This class cleans up after people who neglect to call endChange().
+     */
     private final class RecalcJanitor implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             System.out.println("Someone didn't call endChange - cleaning up");
@@ -385,23 +391,37 @@ public class DataTableModel extends AbstractTableModel {
     }
 
 
+    /** Recalculate data in all dirty columns.
+     */
     private void recalcColumns() {
         recalcJanitorTimer.stop();
         synchronized (dirtyColumns) {
+            // nothing to do?
             if (dirtyColumns.isEmpty()) return;
 
             HashSet waitingColumns = new HashSet();
 
             try {
+                // start a pseudo-change; this way, if recalculating
+                // any column causes it to alter other data, we can be
+                // efficient about our recalculation process and not
+                // have two recalcColumns() methods running simultaneously.
                 beginChange();
+
                 while (!dirtyColumns.isEmpty()) {
+                    // recalculate a single column.
                     waitingColumns.clear();
                     CalculatedDataColumn c =
                         (CalculatedDataColumn) dirtyColumns.iterator().next();
                     recalcColumn(c, waitingColumns);
                 }
+
             } catch (Exception e) {
                 e.printStackTrace();
+                // if we had difficulty recalculating, cancel the recalc by
+                // clearing out the dirtyColumns list. (Otherwise, the
+                // endChange() call two lines below could start an infinite
+                // loop of recalculating and retriggering the exception)
                 dirtyColumns.clear();
             } finally {
                 endChange();
@@ -409,11 +429,23 @@ public class DataTableModel extends AbstractTableModel {
         }
     }
 
+    /** Recalculate a column.
+     *
+     * If the column depends upon any other dirty columns, they will be
+     * recalculated first.  The waitingColumns parameter is used to detect
+     * circular dependencies and avoid infinite recursion.
+     *
+     * @param column the column to recalculate.
+     * @param waitingColumns a list of columns that are waiting on this
+     * column before they can recalculate.
+     */
     private void recalcColumn(CalculatedDataColumn column,
                               Set waitingColumns)
     {
+        // if this column somehow isn't dirty anymore, do nothing.
         if (dirtyColumns.contains(column) == false) return;
 
+        // detect circular dependencies and abort.
         if (waitingColumns.contains(column)) {
             System.out.println("Circular column dependency:"+waitingColumns);
             return;
