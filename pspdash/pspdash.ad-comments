@@ -128,6 +128,8 @@ export.data=A set of instructions for automatic export of data. This property \
 	names begin with one of these prefixes will be exported to the \
 	named file.
 
+ev.enableRollup=If true, enable the rollup of earned value.
+
 hiddenData=Data names to be suppressed from user-visible data lists (by \
 	default).  This property should be a series of regular expressions \
 	matching data names, separated by the vertical bar character '|'.
