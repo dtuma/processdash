@@ -716,7 +716,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 //      System.out.println("Update: passed " + val);
             enableMenu = true;
             menuItem = addTemplateMenu.add(new JMenuItem(val));
-            menuItem.addActionListener(new AddTemplateAction());
+            menuItem.addActionListener(new AddTemplateAction(val));
         }
         addTemplateMenu.setEnabled(enableMenu);
     }
@@ -1079,13 +1079,15 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
      * insertion as a child of the selected node.
      */
     class AddTemplateAction extends Object implements ActionListener {
+        private String templateName;
+        public AddTemplateAction(String templateName) {
+            this.templateName = templateName;
+        }
         // Adds the specified template as a child of the selected item.
         public void actionPerformed(ActionEvent e) {
             DefaultMutableTreeNode          lastItem = getSelectedNode();
 
             if (lastItem != null) {
-                String param = e.paramString ();
-                String templateName = param.substring (param.indexOf ('=')+1);
                 TreeNode newNode = copyTemplate (lastItem, templateName);
 
                 /* recompute the template menu. */
