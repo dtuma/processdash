@@ -75,6 +75,7 @@ public class probe extends TinyCGIBase {
                         "Estimated Min LOC", "Estimated Max LOC");
         maybeSavePosted("time", ESTM_TIME, 60,
                         "Estimated Min Time", "Estimated Max Time");
+        HistData.savePostedData(getDataRepository(), getPrefix(), parameters);
     }
     protected void maybeSavePosted(String what, String where, double mult,
                                    String lpiName, String upiName) {
@@ -144,6 +145,7 @@ public class probe extends TinyCGIBase {
 
         out.print("Content-type: text/html\r\n"+
                   "Expires: 0\r\n\r\n");
+        printHeader();
 
         // Get the estimated object loc which the user entered on
         // their Size Estimating Template
@@ -151,19 +153,21 @@ public class probe extends TinyCGIBase {
         double estNCLOC  = getNumber(ESTM_NC_LOC);
         double estTime   = getNumber(ESTM_TIME);
 
-        HistData data = new HistData(getDataRepository(), getPrefix());
-        printHeader();
-
         if (INPUT_PAGE.equals(page))
             printEstObjLOC(getPrefix(), estObjLOC);
-        if (HIST_PAGE.equals(page))
-            printHistData(getPrefix(), data);
-        if (SIZE_PAGE.equals(page))
-            printSizeSection(data, estObjLOC, estNCLOC);
-        if (TIME_PAGE.equals(page))
-            printTimeSection(data, estObjLOC, estNCLOC, estTime);
-        if (CHECK_PAGE.equals(page))
-            printCheckPage(data, estNCLOC, estTime);
+        else if (HIST_PAGE.equals(page))
+            printHistData(getPrefix(),
+                          new HistData(getDataRepository(), getPrefix(),
+                                       getParameter(SUBSET_PREFIX_NAME)));
+        else {
+            HistData data = new HistData(getDataRepository(), getPrefix());
+            if (SIZE_PAGE.equals(page))
+                printSizeSection(data, estObjLOC, estNCLOC);
+            else if (TIME_PAGE.equals(page))
+                printTimeSection(data, estObjLOC, estNCLOC, estTime);
+            else if (CHECK_PAGE.equals(page))
+                printCheckPage(data, estNCLOC, estTime);
+        }
 
         printFooter();
     }
@@ -232,7 +236,15 @@ public class probe extends TinyCGIBase {
 
     protected void printHistData(String prefix, HistData data) {
         out.print("<h2>Step 2: Verify Historical Data</h2>\n");
-        printDataTable(data);
+
+        // precedence: posted item, saved item, default 1, general default
+        /*
+            String uri = "/0" + env.get("SCRIPT_NAME");
+            uri = uri.substring(0, uri.length() - 6) + ".htm";
+            String text = new String(getRequest(uri, true));
+        */
+
+        data.printDataTable(out);
 
         out.print("<p>If all the information above is correct, press the "+
                   "continue button.\n");
@@ -268,30 +280,6 @@ public class probe extends TinyCGIBase {
 
 
     protected void printDataTable(HistData data) {
-        if (data.resultSet.numRows() == 0) {
-            out.print("<p>You do not have any historical data.</p>");
-            return;
-        }
-        out.print("The PROBE calculations will be based upon the "+
-                  "following set of historical data:<br>&nbsp;\n"+
-                  "<table border style='margin-left:1cm'>"+
-                  "<tr><th>Project/Task</th>"+
-                  "<th>Estimated Object LOC</th>" +
-                  "<th>Estimated New &amp; Changed LOC</th>"+
-                  "<th>Actual New &amp; Changed LOC</th>" +
-                  "<th>Estimated Hours</th>" +
-                  "<th>Actual Hours</th></tr>\n");
-        for (int r = 1;   r <= data.resultSet.numRows();   r++) {
-            out.print("<tr>");
-            out.print("<td nowrap>");
-            out.print(HTMLUtils.escapeEntities(data.resultSet.getRowName(r)));
-            for (int c = 1;   c <= data.resultSet.numCols();   c++) {
-                out.print("</td><td align=center>");
-                out.print(data.resultSet.format(r, c));
-            }
-            out.print("</td></tr>\n");
-        }
-        out.print("</table>\n");
     }
 
     protected void printSizeSection(HistData data, double estObjLOC,
@@ -489,5 +477,8 @@ public class probe extends TinyCGIBase {
     public static final int ACT_NC   = HistData.ACT_NC_LOC;
     public static final int EST_TIME = HistData.EST_TIME;
     public static final int ACT_TIME = HistData.ACT_TIME;
+
+    public static final String SUBSET_PREFIX_NAME =
+        HistData.SUBSET_PREFIX_NAME;
 
 }
