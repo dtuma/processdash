@@ -25,3 +25,5 @@ pspdash/scriptd.gif
 pspdash/splash.png
 pspdash/state
 pspdash/timing.wav
+pspdash/data/compiler/lexer/lexer.dat
+pspdash/data/compiler/parser/parser.dat
