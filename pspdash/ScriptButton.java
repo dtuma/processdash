@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -65,7 +65,8 @@ class ScriptButton extends DropDownButton {
         getButton().setFocusPainted(false);
         parent = dash;
 
-        moreItem = new JMenuItem("More...");
+        moreItem = new JMenuItem(Resources.addDialogIndicator
+                                 (Resources.getString("More")));
         moreItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new ScriptBrowser(ScriptButton.this.parent, true); } } );

@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -54,6 +54,9 @@ public class TaskScheduleChooser
     protected JButton newButton, renameButton, deleteButton,
         cancelButton, okayButton;
 
+    static ResourceBundle resources = Resources.getBundle
+        ("pspdash.TaskScheduleChooser");
+
     TaskScheduleChooser(PSPDashboard dash) {
         this(dash, EVTaskList.findTaskLists(dash.data));
     }
@@ -78,8 +81,8 @@ public class TaskScheduleChooser
         if (dialog != null) dialog.dispose();
 
         String taskName = getTemplateName
-            (dash, "Create New Schedule",
-             "Choose a name for the new task & schedule template:",
+            (dash, resources.getString("New_Schedule_Window_Title"),
+             resources.getString("New_Schedule_Window_Prompt"),
              showRollupOption);
 
         open(dash, taskName);
@@ -87,10 +90,8 @@ public class TaskScheduleChooser
     private static boolean showRollupOption =
         Settings.getBool("ev.enableRollup",false);
 
-    private static final String[] ROLLUP_OPTIONS = {
-        "Create Schedule", "Create EV Roll-up" };
-    private static final String OK = "OK";
-    private static final String CANCEL = "Cancel";
+    private static final String OK = Resources.getString("OK");
+    private static final String CANCEL = Resources.getString("Cancel");
     protected String getTemplateName(Component parent,
                                      String title, String prompt,
                                      boolean showRollupOptions) {
@@ -100,7 +101,10 @@ public class TaskScheduleChooser
         Object options[];
         JComboBox rollupOption = null;
         if (showRollupOptions) {
-            rollupOption = new JComboBox(ROLLUP_OPTIONS);
+            String[] rollupOptions = new String[2];
+            rollupOptions[0] = resources.getString("Create_Schedule_Option");
+            rollupOptions[1] = resources.getString("Create_Rollup_Option");
+            rollupOption = new JComboBox(rollupOptions);
             options = new Object[] {
                 rollupOption, new JLabel("      "), OK, CANCEL };
         } else
@@ -138,14 +142,14 @@ public class TaskScheduleChooser
     public static String checkNewTemplateName(String taskName,
                                               DataRepository data) {
         if (taskName == null || taskName.trim().length() == 0)
-            return "Please enter a template name, or click cancel.";
+            return resources.getString("Name_Missing_Message");
 
         if (taskName.indexOf('/') != -1)
-            return "The template name cannot contain the '/' character.";
+            return resources.getString("Slash_Prohibited_Message");
 
         if (templateExists(taskName, data))
-            return "There is already a template with the name '" +
-                taskName + "'.";
+            return Resources.format
+                (resources, "Duplicate_Name_Message_FMT", taskName);
 
         return null;
     }
@@ -165,9 +169,9 @@ public class TaskScheduleChooser
 
         dialog = new JDialog();
         PCSH.enableHelpKey(dialog, "UsingTaskSchedule.chooser");
-        dialog.setTitle("Open/Create Task & Schedule");
+        dialog.setTitle(resources.getString("Choose_Window_Title"));
         dialog.getContentPane().add
-            (new JLabel("Choose a task & schedule template:"),
+            (new JLabel(resources.getString("Choose_Window_Prompt")),
              BorderLayout.NORTH);
 
         list = new JList(taskLists);
@@ -180,21 +184,24 @@ public class TaskScheduleChooser
                                     BorderLayout.CENTER);
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
-        buttons.add(newButton = new JButton("New..."));
+        buttons.add(newButton = new JButton
+            (Resources.addDialogIndicator(Resources.getString("New"))));
         newButton.addActionListener(this);
 
-        buttons.add(renameButton = new JButton("Rename..."));
+        buttons.add(renameButton = new JButton
+            (Resources.addDialogIndicator(Resources.getString("Rename"))));
         renameButton.addActionListener(this);
         renameButton.setEnabled(false);
 
-        buttons.add(deleteButton = new JButton("Delete..."));
+        buttons.add(deleteButton = new JButton
+            (Resources.addDialogIndicator(Resources.getString("Delete"))));
         deleteButton.addActionListener(this);
         deleteButton.setEnabled(false);
 
-        buttons.add(cancelButton = new JButton("Cancel"));
+        buttons.add(cancelButton = new JButton(Resources.getString("Cancel")));
         cancelButton.addActionListener(this);
 
-        buttons.add(okayButton = new JButton("Open"));
+        buttons.add(okayButton = new JButton(Resources.getString("Open")));
         okayButton.addActionListener(this);
         okayButton.setEnabled(false);
 
@@ -263,9 +270,10 @@ public class TaskScheduleChooser
         if (taskListName == null) return;
 
         String newName = getTemplateName
-            (dialog, "Rename Schedule",
-             "Choose a new name for the task & schedule template '" +
-             taskListName + "':", false);
+            (dialog, resources.getString("Rename_Window_Title"),
+             Resources.format(resources, "Rename_Window_Prompt_FMT",
+                              taskListName),
+             false);
 
         if (newName != null) {
             EVTaskList taskList = EVTaskList.openExisting
@@ -281,13 +289,13 @@ public class TaskScheduleChooser
         String taskListName = (String) list.getSelectedValue();
         if (taskListName == null) return;
 
-        String message = "Are you certain you want to delete the task" +
-            " & schedule template '" + taskListName + "'?";
-        if (JOptionPane.showConfirmDialog(dialog,
-                                          message,
-                                          "Confirm Schedule Deletion",
-                                          JOptionPane.YES_NO_OPTION,
-                                          JOptionPane.QUESTION_MESSAGE)
+        String message = Resources.format
+            (resources, "Delete_Window_Prompt_FMT", taskListName);
+        if (JOptionPane.showConfirmDialog
+            (dialog, message,
+             resources.getString("Delete_Window_Title"),
+             JOptionPane.YES_NO_OPTION,
+             JOptionPane.QUESTION_MESSAGE)
             == JOptionPane.YES_OPTION) {
             EVTaskList taskList = EVTaskList.openExisting
                 (taskListName, dash.data, dash.props, dash.objectCache, false);

@@ -33,18 +33,30 @@ import java.util.ResourceBundle;
 public class Resources {
 
     private static ResourceBundle globalResources = null;
+    private static MessageFormat dialogIndicatorFormat = null;
 
     private Resources() {}
 
     private static void initGlobalResources() {
-        if (globalResources == null)
+        if (globalResources == null) {
             globalResources = getBundle("pspdash.Resources");
+
+        }
     }
 
     public static String getString(String key) {
         initGlobalResources();
         return globalResources.getString(key);
     }
+
+    public static String addDialogIndicator(String value) {
+        if (dialogIndicatorFormat == null)
+            dialogIndicatorFormat = new MessageFormat
+                (getString("Dialog_Indicator_FMT"));
+
+        return dialogIndicatorFormat.format(new Object[] { value });
+    }
+
 
     private static class TemplateClassLoader extends ClassLoader {
 

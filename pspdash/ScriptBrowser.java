@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -53,6 +53,8 @@ public class ScriptBrowser extends JDialog
 
     protected JButton editButton, deleteButton, closeButton;
 
+    ResourceBundle resources = Resources.getBundle("pspdash.Misc");
+
 
     //
     // member functions
@@ -64,7 +66,8 @@ public class ScriptBrowser extends JDialog
 
                                 // constructor
     public ScriptBrowser(PSPDashboard dash, boolean showCurrent) {
-        super(dash, "Script/Form Browser");
+        super(dash);
+        setTitle(resources.getString("Script_Browser_Window_Title"));
 
         dashboard = dash;
         useProps  = dash.getProperties();
@@ -114,13 +117,13 @@ public class ScriptBrowser extends JDialog
 
         Box buttonBox = new Box(BoxLayout.X_AXIS);
         buttonBox.add (Box.createGlue());
-        displayButton = new JButton ("Display");
+        displayButton = new JButton (Resources.getString("Display"));
         displayButton.setActionCommand("display");
         displayButton.addActionListener(this);
         buttonBox.add (displayButton);
         displayButton.setEnabled(false);
         buttonBox.add (Box.createGlue());
-        JButton button = new JButton ("Close");
+        JButton button = new JButton (Resources.getString("Close"));
         button.setActionCommand("close");
         button.addActionListener(this);
         buttonBox.add (button);

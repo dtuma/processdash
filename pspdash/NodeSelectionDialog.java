@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -97,13 +97,13 @@ public class NodeSelectionDialog extends JDialog
     private Component buildButtonPanel(String okayLabel) {
         JPanel result = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 
-        JButton cancelButton = new JButton("Cancel");
+        JButton cancelButton = new JButton(Resources.getString("Cancel"));
         cancelButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     dispose(); }});
         result.add(cancelButton);
 
-        if (okayLabel == null) okayLabel = "Okay";
+        if (okayLabel == null) okayLabel = Resources.getString("OK");
         okayButton = new JButton(okayLabel);
         okayButton.addActionListener(this);
         okayButton.setEnabled(false);
