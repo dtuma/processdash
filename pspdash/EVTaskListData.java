@@ -116,7 +116,7 @@ public class EVTaskListData extends EVTaskList
         // First, compile a list of all the elements in the datafile that
         // were previously used to save this task list.  (That way we'll
         // know what we need to delete.)
-        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName + "/";
         String ordinalPrefix = "/" + TASK_ORDINAL_PREFIX + taskListName;
         Iterator i = data.getKeys();
         Set oldNames = new HashSet();
