@@ -156,11 +156,19 @@ public class CachedURLObject extends CachedObject {
         if (!olderThanAge(maxAge))
             return true;
 
-        if (Ping.ping(url.getHost(), url.getPort(), maxWait))
-            return refresh();
+        switch (Ping.ping(url.getHost(), url.getPort(), maxWait)) {
 
-        errorMessage = NO_SUCH_HOST;
-        return false;
+        case Ping.HOST_NOT_FOUND:
+            errorMessage = NO_SUCH_HOST;
+            return false;
+
+        case Ping.CANNOT_CONNECT:
+            errorMessage = COULD_NOT_CONNECT;
+            return false;
+
+        case Ping.SUCCESS: default:
+            return refresh();
+        }
     }
 
 

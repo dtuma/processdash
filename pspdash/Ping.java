@@ -40,9 +40,16 @@ import java.net.*;
  */
 public class Ping implements Runnable {
 
+    public  static final int HOST_NOT_FOUND = 0;
+    private static final int LOOKING_FOR_HOST = HOST_NOT_FOUND;
+    public  static final int CANNOT_CONNECT = 1;
+    private static final int CONNECTING_TO_HOST = CANNOT_CONNECT;
+    public  static final int SUCCESS = 2;
+
+
     private String hostname;
     private int port;
-    private volatile boolean foundHost = false;
+    private int status;
 
     private Ping(String hostname, int port) {
         this.hostname = hostname;
@@ -51,13 +58,16 @@ public class Ping implements Runnable {
 
     public void run() {
         try {
-            Socket s = new Socket(hostname, port);
-            foundHost = true;
+            status = LOOKING_FOR_HOST;
+            InetAddress addr = InetAddress.getByName(hostname);
+            status = CONNECTING_TO_HOST;
+            Socket s = new Socket(addr, port);
+            status = SUCCESS;
             s.close();
         } catch (Exception e) {}
     }
 
-    public static boolean ping(String hostname, int port, long maxWait) {
+    public static int ping(String hostname, int port, long maxWait) {
         Ping ping = new Ping(hostname, port);
         try {
             Thread t = new Thread(ping);
@@ -65,6 +75,6 @@ public class Ping implements Runnable {
             t.start();
             t.join(maxWait);
         } catch (InterruptedException ie) {}
-        return ping.foundHost;
+        return ping.status;
     }
 }
