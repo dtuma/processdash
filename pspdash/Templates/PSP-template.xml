@@ -47,8 +47,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Code"       htmlID="dev"  type="code"/>
     <phase name="Compile"    htmlID="dev"  type="comp"/>
     <phase name="Test"       htmlID="dev"  type="test"/>
-    <phase name="Postmortem" htmlID="sum"  type="pm"/>
-    <!-- phase name="Postmortem" htmlID="pm"   type="pm"/ -->
+    <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 
   <template name="Design Review" ID="Design Review"
