@@ -119,10 +119,10 @@ public class RepositoryServer extends Thread {
                     methodName = null;
                     methodName = in.readLine();
                 } catch (SocketException se) {
-                    if (threadIsRunning) {
-                        System.err.println ("socket error, dying...");
-                        printError (se);
-                    }
+                    //if (threadIsRunning) {
+                    //  System.err.println ("socket error, dying...");
+                    //  printError (se);
+                    //}
                     threadIsRunning = false;
                 }
                 // debug("method is "+methodName);
