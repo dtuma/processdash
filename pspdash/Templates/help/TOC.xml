@@ -8,9 +8,6 @@
     <tocitem text="Overview">
       <tocitem target="QuickOverview" text="Quick overview of the Dashboard" />
       <tocitem target="QuickStartPSP1" text="Quick start example: PSP1"/>
-<!--
-      <tocitem target="QuickStartPSP3" text="Quick start example: PSP3"/>
--->
       <tocitem target="GoalsOfPSPAndDashboard" text="The overall goals of the PSP and the Process Dashboard"/>
       <tocitem target="Help" text="Getting help"/>
       <tocitem target="HowToInstall" text="Installation instructions"/>
