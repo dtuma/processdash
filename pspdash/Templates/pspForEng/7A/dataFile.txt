@@ -1,0 +1,78 @@
+#include <psp2/dataFile.txt>
+
+= Students must manually calculate test defect density for program 7A.
+
+Test/Estimated Defects Removed per KLOC=0.0
+Test/Defects Removed per KLOC=0.0
+Test/7A Defects Removed per KLOC To Date=0.0
+
+= Students must manually calculate total defect density for program 7A.
+
+Estimated Defects per KLOC=0.0
+Defects per KLOC=0.0
+7A Defects per KLOC To Date=0.0
+
+= Students must manually calculate yield for program 7A.
+
+Estimated Yield=0.0
+Yield=0.0
+7A Yield To Date=0.0
+
+= Students must manually spread their time over the phases for program 7A.
+
+Planning/Estimated Time=0.0
+Design/Estimated Time=0.0
+Design Review/Estimated Time=0.0
+Code/Estimated Time=0.0
+Code Review/Estimated Time=0.0
+Compile/Estimated Time=0.0
+Test/Estimated Time=0.0
+Postmortem/Estimated Time=0.0
+
+= Students must manually estimate defects injected by phase for program 7A.
+
+Before Development/Estimated Defects Injected=0.0
+Planning/Estimated Defects Injected=0.0
+Design/Estimated Defects Injected=0.0
+Design Review/Estimated Defects Injected=0.0
+Code/Estimated Defects Injected=0.0
+Code Review/Estimated Defects Injected=0.0
+Compile/Estimated Defects Injected=0.0
+Test/Estimated Defects Injected=0.0
+Estimated Defects Injected=0.0
+
+= Students must manually estimate defects removed by phase for program 7A.
+
+Planning/Estimated Defects Removed=0.0
+Design/Estimated Defects Removed=0.0
+Design Review/Estimated Defects Removed=0.0
+Code/Estimated Defects Removed=0.0
+Code Review/Estimated Defects Removed=0.0
+Compile/Estimated Defects Removed=0.0
+Test/Estimated Defects Removed=0.0
+After Development/Estimated Defects Removed=0.0
+Estimated Defects Removed=0.0
+
+= Students must manually calculate defect removal efficiency metrics for 7A.
+
+Design Review/Estimated Defects Removed per Hour=0.0
+Design Review/Defects Removed per Hour=0.0
+Design Review/7A Defects Removed per Hour To Date=0.0
+Code Review/Estimated Defects Removed per Hour=0.0
+Code Review/Defects Removed per Hour=0.0
+Code Review/7A Defects Removed per Hour To Date=0.0
+Compile/Estimated Defects Removed per Hour=0.0
+Compile/Defects Removed per Hour=0.0
+Compile/7A Defects Removed per Hour To Date=0.0
+Test/Estimated Defects Removed per Hour=0.0
+Test/Defects Removed per Hour=0.0
+Test/7A Defects Removed per Hour To Date=0.0
+Design Review/Estimated DRL=0.0
+Design Review/DRL=0.0
+Design Review/7A DRL To Date=0.0
+Code Review/Estimated DRL=0.0
+Code Review/DRL=0.0
+Code Review/7A DRL To Date=0.0
+Compile/Estimated DRL=0.0
+Compile/DRL=0.0
+Compile/7A DRL To Date=0.0
