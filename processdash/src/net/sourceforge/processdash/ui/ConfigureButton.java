@@ -39,8 +39,12 @@ import net.sourceforge.processdash.log.ui.*;
 import net.sourceforge.processdash.tool.export.ImportExport;
 import net.sourceforge.processdash.tool.probe.*;
 import net.sourceforge.processdash.ui.help.*;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 import java.awt.event.*;
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.util.Locale;
 import java.util.Properties;
 
 
@@ -158,7 +162,50 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
 
         toolMenu.add(makeMenuItem(PROBE_DIALOG));
         toolMenu.add(makeMenuItem(IMPORT_EXPORT));
-//    toolMenu.add(makeMenuItem(HELP_FORUM));
+        maybeAddTranslationTool(toolMenu);
+    }
+
+    private void maybeAddTranslationTool(JMenu toolMenu) {
+        try {
+            // don't display the translation tool for english users
+            Locale l = Locale.getDefault();
+            String lang = l.getLanguage();
+            if ("en".equals(lang)) return;
+
+            // ensure the translation tool is available
+            Class jrc = Class.forName
+                ("org.zaval.tools.i18n.translator.OpenTranslatorAction");
+            Constructor cstr = jrc.getConstructor
+                (new Class[] { String.class, String.class });
+
+            // get the name of the dashboard jar file
+            String jarfilename = getDashboardJarFileName();
+            if (jarfilename == null) return;
+
+            // create an instance of the action
+            String displayName = resources.getString("Localization_Tool");
+            Action a = (Action) cstr.newInstance
+                (new String[] { jarfilename, displayName });
+            toolMenu.add(a);
+
+        } catch (Throwable t) {}
+    }
+
+    private String getDashboardJarFileName() {
+        String myURL = ConfigureButton.class.getResource
+            ("ConfigureButton.class").toString();
+        // we are expecting a URL like (Windows)
+        // jar:file:/D:/path/to/pspdash.jar!/net/.../ConfigureButton.class
+        // or (Unix)
+        // jar:file:/usr/path/to/pspdash.jar!/net/.../ConfigureButton.class
+        if (myURL.startsWith("jar:file:")) {
+            String jarFileName = myURL.substring(9,myURL.indexOf("!/net/"));
+            jarFileName = HTMLUtils.urlDecode(jarFileName);
+            File jarFile = new File(jarFileName);
+            return jarFile.getPath();
+        }
+
+        return null;
     }
 
     private void addHelpMenu(JMenu menu) {
