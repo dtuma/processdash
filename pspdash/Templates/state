@@ -1,0 +1,157 @@
+#############################################################################
+## PSP Dashboard - Data Automation Tool for PSP-like processes
+## Copyright (C) 1999  United States Air Force
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## as published by the Free Software Foundation; either version 2
+## of the License, or (at your option) any later version.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+## 
+## The author(s) may be contacted at:
+## OO-ALC/TISHD
+## Attn: PSP Dashboard Group
+## 6137 Wardleigh Road
+## Hill AFB, UT 84056-5843
+## 
+## E-Mail POC:  ken.raisor@hill.af.mil
+
+#############################################################################
+## Title:	$Id$
+## Author:	Ken Raisor <kraisor@ulaf3>
+## Created:	Mon Jan  5 16:34:18 1998
+##
+## Description: Template file for PSP process scripts.
+##
+## lines in this file have the following format:
+##    PropertyKey<parentKey><name>=Prop[defectLogFlag][ID][scriptFile] \
+##	   [dataFile][status*][selected][numChildren(N)][child0]...[childN-1]
+##
+## * status = [M][E][<allowedChildIDList(#)][>requiredParentIDList]
+##   M indicates that this node may NOT be moved.
+##   E indicates that this node may NOT be edited / renamed.
+##   <allowedChildIDList   = <aChildID(#)<allowedChildIDList | <aChildID(#)
+##   <aChildID = if present, child ID MUST match an aChildID in the list.
+##   (#) is an optional field, if present, it indicates the offset at which to
+##      insert a new child.  A positive # indicates offset from the beginning
+##      (i.e., (2) indicates that the child should be inserted as child 2),
+##      while a negative # indicates offset from the end (i.e., (-1) 
+##      indicates that the child should be inserted just before the last 
+##      child).  This is only applied / enforced at insertion time.
+##   >requiredParentIDList = >rParentID>requiredParentIDList | >rParentID
+##   >rParentID = if present, parent ID MUST match an rParentID in the list.
+##   All ids refer to the contents of the ID field (listed above).
+##
+
+
+##
+## The root of the templates tree.
+## 
+PropertyKey<><top>=Prop[][][][][][0][8][PropertyKey<top><PSP0>][PropertyKey<top><PSP0.1>][PropertyKey<top><PSP2.1>][PropertyKey<top><SCR>][PropertyKey<top><SCRcycle>][PropertyKey<top><DCR>][PropertyKey<top><Inspection>][PropertyKey<top><Timer>]
+
+
+##
+## Template for an SCR.
+##
+
+PropertyKey<top><SCR>=Prop[true][SCR][SCR/script.htm][SCR/dataFile.txt][<SCRcycle(-2)][0][5][PropertyKey<top/SCR><Planning>][PropertyKey<top/SCR><Design>][PropertyKey<top/SCR><Design Review>][PropertyKey<top/SCR><Postmortem>][PropertyKey<top/SCR><CPT&E>]
+PropertyKey<top/SCR><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCR><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCR><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCR><Postmortem>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCR><CPT&E>=Prop[][][][][ME<>][0][0]
+
+
+##
+## Template for an SCR cycle.
+##
+
+PropertyKey<top><SCRcycle>=Prop[][SCRcycle][SCRcycle/script.htm][SCRcycle/dataFile.txt][<>SCR][0][9][PropertyKey<top/SCRcycle><Design>][PropertyKey<top/SCRcycle><Design Review>][PropertyKey<top/SCRcycle><Design Inspection>][PropertyKey<top/SCRcycle><Code>][PropertyKey<top/SCRcycle><Code Review>][PropertyKey<top/SCRcycle><Compile>][PropertyKey<top/SCRcycle><Code Inspection>][PropertyKey<top/SCRcycle><Test>][PropertyKey<top/SCRcycle><Reassess>]
+PropertyKey<top/SCRcycle><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCRcycle><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCRcycle><Design Inspection>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCRcycle><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCRcycle><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCRcycle><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCRcycle><Code Inspection>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCRcycle><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/SCRcycle><Reassess>=Prop[][][][][ME<>][0][0]
+
+
+##
+## Template for a PSP0 project.
+##
+
+PropertyKey<top><PSP0>=Prop[true][PSP0][psp0/script.htm][psp0/dataFile.txt][<][0][6][PropertyKey<top/PSP0><Planning>][PropertyKey<top/PSP0><Design>][PropertyKey<top/PSP0><Code>][PropertyKey<top/PSP0><Compile>][PropertyKey<top/PSP0><Test>][PropertyKey<top/PSP0><Postmortem>]
+PropertyKey<top/PSP0><Planning>=Prop[][][psp0/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP0><Design>=Prop[][][psp0/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP0><Code>=Prop[][][psp0/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP0><Compile>=Prop[][][psp0/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP0><Test>=Prop[][][psp0/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP0><Postmortem>=Prop[][][psp0/summary.htm][][ME<>][0][0]
+
+
+##
+## Template for a PSP0.1 project.
+##
+
+PropertyKey<top><PSP0.1>=Prop[true][PSP0.1][psp0.1/script.htm][psp0.1/dataFile.txt][<][0][6][PropertyKey<top/PSP0.1><Planning>][PropertyKey<top/PSP0.1><Design>][PropertyKey<top/PSP0.1><Code>][PropertyKey<top/PSP0.1><Compile>][PropertyKey<top/PSP0.1><Test>][PropertyKey<top/PSP0.1><Postmortem>]
+PropertyKey<top/PSP0.1><Planning>=Prop[][][psp0.1/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP0.1><Design>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP0.1><Code>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP0.1><Compile>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP0.1><Test>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP0.1><Postmortem>=Prop[][][psp0.1/postmort.htm][][ME<>][0][0]
+
+
+##
+## Template for a PSP2.1 project.
+##
+
+PropertyKey<top><PSP2.1>=Prop[true][PSP2.1][psp2.1/script.htm][psp2.1/dataFile.txt][<][0][8][PropertyKey<top/PSP2.1><Planning>][PropertyKey<top/PSP2.1><Design>][PropertyKey<top/PSP2.1><Design Review>][PropertyKey<top/PSP2.1><Code>][PropertyKey<top/PSP2.1><Code Review>][PropertyKey<top/PSP2.1><Compile>][PropertyKey<top/PSP2.1><Test>][PropertyKey<top/PSP2.1><Postmortem>]
+PropertyKey<top/PSP2.1><Planning>=Prop[][][psp2.1/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP2.1><Design>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP2.1><Design Review>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP2.1><Code>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP2.1><Code Review>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP2.1><Compile>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP2.1><Test>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP2.1><Postmortem>=Prop[][][psp2.1/postmort.htm][][ME<>][0][0]
+
+
+##
+## Template for a DCR.
+##
+
+PropertyKey<top><DCR>=Prop[true][DCR][DCR/script.htm][DCR/dataFile.txt][<][0][5][PropertyKey<top/DCR><Planning>][PropertyKey<top/DCR><Design>][PropertyKey<top/DCR><Design Review>][PropertyKey<top/DCR><Design Inspection>][PropertyKey<top/DCR><Postmortem>]
+PropertyKey<top/DCR><Planning>=Prop[][][DCR/planning.htm][][ME<>][0][0]
+PropertyKey<top/DCR><Design>=Prop[][][DCR/script.htm][][ME<>][0][0]
+PropertyKey<top/DCR><Design Review>=Prop[][][DCR/script.htm][][ME<>][0][0]
+PropertyKey<top/DCR><Design Inspection>=Prop[][][DCR/script.htm][][ME<>][0][0]
+PropertyKey<top/DCR><Postmortem>=Prop[][][DCR/postmort.htm][][ME<>][0][0]
+
+
+##
+## Template for an Inspection.
+##
+
+PropertyKey<top><Inspection>=Prop[true][Inspection][Inspection/script.htm][Inspection/dataFile.txt][<][0][4][PropertyKey<top/Inspection><Planning>][PropertyKey<top/Inspection><Design Inspection>][PropertyKey<top/Inspection><Code Inspection>][PropertyKey<top/Inspection><Postmortem>]
+PropertyKey<top/Inspection><Planning>=Prop[][][Inspection/script.htm][][ME<>][0][0]
+PropertyKey<top/Inspection><Design Inspection>=Prop[][][Inspection/script.htm][][ME<>][0][0]
+PropertyKey<top/Inspection><Code Inspection>=Prop[][][Inspection/script.htm][][ME<>][0][0]
+PropertyKey<top/Inspection><Postmortem>=Prop[][][Inspection/script.htm][][ME<>][0][0]
+
+
+##
+## Template for a Timer.
+##
+
+PropertyKey<top><Timer>=Prop[][Timer][Timer/script.htm][Timer/dataFile.txt][<][0][0]

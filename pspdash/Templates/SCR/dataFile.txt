@@ -1,0 +1,117 @@
+=============================================================================
+== PSP Dashboard - Data Automation Tool for PSP-like processes
+== Copyright (C) 1999  United States Air Force
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 2
+== of the License, or (at your option) any later version.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, write to the Free Software
+== Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+== 
+== The author(s) may be contacted at:
+== OO-ALC/TISHD
+== Attn: PSP Dashboard Group
+== 6137 Wardleigh Road
+== Hill AFB, UT 84056-5843
+== 
+== E-Mail POC:  ken.raisor@hill.af.mil
+
+=============================================================================
+== Title:	$Id$
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Thu Jan  8 16:34:18 1998
+==
+== Description: This is the data file for a SCR process. 
+==
+
+
+=
+= The following elements identify the data in this file as belonging to
+= a SCR process. 
+=
+
+SCR==1.0
+scr==1.0
+
+
+=
+= Data Elements to track Time.
+=
+
+Planning/Estimated Time=0.0
+Design/Estimated Time=0.0
+Design Review/Estimated Time=0.0
+Cycles Estimated Time==![(-	Estimated Time	Planning/Estimated Time	Design/Estimated Time	Design Review/Estimated Time	Postmortem/Estimated Time	CPT&E/Estimated Time)]
+Postmortem/Estimated Time=0.0
+CPT&E/Estimated Time=0.0
+Estimated Time==![(+	~[^/]+/Estimated Time)]
+
+Planning/Time==0.0
+Design/Time==0.0
+Design Review/Time==0.0
+Cycles Time==![(-	Time	Planning/Time	Design/Time	Design Review/Time	Postmortem/Time	CPT&E/Time)]
+Postmortem/Time==0.0
+CPT&E/Time==0.0
+Time==![(+	~[^/]+/Time)]
+
+
+=
+= Data Elements to track defects injected
+=
+
+Before Development/Estimated Defects Injected=0.0
+Planning/Estimated Defects Injected=0.0
+Design/Estimated Defects Injected=0.0
+Design Review/Estimated Defects Injected=0.0
+CPT&E/Estimated Defects Injected=0.0
+Cycles Estimated Defects Injected==![(-	Estimated Defects Injected	Before Development/Estimated Defects Injected	Planning/Estimated Defects Injected	Design/Estimated Defects Injected	Design Review/Estimated Defects Injected	CPT&E/Estimated Defects Injected)]
+Estimated Defects Injected==![(+	~[^/]+/Estimated Defects Injected)]
+
+Before Development/Defects Injected==0.0
+Planning/Defects Injected==0.0
+Design/Defects Injected==0.0
+Design Review/Defects Injected==0.0
+CPT&E/Defects Injected==0.0
+Cycles Defects Injected==![(-	Defects Injected	Before Development/Defects Injected	Planning/Defects Injected	Design/Defects Injected	Design Review/Defects Injected	CPT&E/Defects Injected)]
+Defects Injected==![(+	~[^/]+/Defects Injected)]
+
+
+=
+= Data Elements to track defects removed
+=
+
+Planning/Estimated Defects Removed=0.0
+Design/Estimated Defects Removed=0.0
+Design Review/Estimated Defects Removed=0.0
+CPT&E/Estimated Defects Removed=0.0
+Cycles Estimated Defects Removed==![(-	Estimated Defects Removed	Planning/Estimated Defects Removed	Design/Estimated Defects Removed	Design Review/Estimated Defects Removed	CPT&E/Estimated Defects Removed)]
+After Development/Estimated Defects Removed=0.0
+Estimated Defects Removed==![(-	~[^/]+/Estimated Defects Removed	After Development/Estimated Defects Removed)]
+
+Planning/Defects Removed==0.0
+Design/Defects Removed==0.0
+Design Review/Defects Removed==0.0
+CPT&E/Defects Removed==0.0
+Cycles Defects Removed==![(-	Defects Removed	Planning/Defects Removed	Design/Defects Removed	Design Review/Defects Removed	CPT&E/Defects Removed)]
+After Development/Defects Removed==0.0
+Defects Removed==![(-	~[^/]+/Defects Removed	After Development/Defects Removed)]
+
+=
+= Data Elements used by SCR Summary Report
+=
+
+
+
+=
+= Miscellaneous data elements
+=
+
+Started=@now

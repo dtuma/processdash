@@ -1,0 +1,264 @@
+// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Copyright (C) 1999  United States Air Force
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+// The author(s) may be contacted at:
+// OO-ALC/TISHD
+// Attn: PSP Dashboard Group
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+//
+// E-Mail POC:  ken.raisor@hill.af.mil
+
+package pspdash.data;
+
+import pspdash.Settings;
+import java.net.*;
+import java.io.*;
+import java.util.Hashtable;
+import java.util.Vector;
+
+public class RepositoryServer extends Thread {
+
+    DataRepository data = null;
+    ServerSocket serverSocket = null;
+    Vector serverThreads = new Vector();
+
+
+    private class RepositoryServerThread extends Thread implements DataListener {
+
+        DataRepository data = null;
+        Socket clientSocket = null;
+        BufferedReader in = null;
+        ObjectOutputStream out = null;
+        public String dataPath = null;
+
+        public RepositoryServerThread(DataRepository data, Socket clientSocket) {
+            this.data = data;
+            this.clientSocket = clientSocket;
+
+            try {
+                // debug("getting output stream...");
+                out = new ObjectOutputStream(clientSocket.getOutputStream());
+
+                // send some ignored data through the streams to test connectivity
+                // debug("writing to output stream...");
+                out.flush();
+
+                // debug("getting input stream...");
+                in = new BufferedReader
+                    (new InputStreamReader(clientSocket.getInputStream()));
+                // debug("reading from input stream...");
+                String ID = in.readLine();
+                String requiredTag = in.readLine();
+                dataPath = data.getPath(ID);
+                if (dataPath == null)
+                    dataPath = "//anonymous//";
+
+                // debug("Done. got both streams.  Writing settings information.");
+
+                out.writeObject(dataPath);
+                if (requiredTag.length() == 0)
+                    out.writeBoolean(true);
+                else
+                    out.writeBoolean(data.getValue(dataPath+"/"+requiredTag) != null);
+                out.writeObject(Settings.getSettings());
+                out.flush();
+
+            } catch (IOException e) { printError(e); }
+
+            try {
+                setName(getName() + "(RepositoryServerThread"+dataPath+")");
+            } catch (Exception e) {}
+        }
+
+        private void debug(String msg) {
+            // System.out.println("RepositoryServerThread: " + msg);
+        }
+
+        private void printError(Exception e) {
+            System.err.println("Exception: " + e);
+            e.printStackTrace(System.err);
+        }
+
+        public void run() {
+            boolean running = true;
+            String methodName = null;
+            String dataName = null;
+            String value = null;
+            String prefix = null;
+
+            while (running) try {
+                // debug("reading from socket...");
+                try {
+                    methodName = in.readLine();
+                } catch (SocketException se) {
+                    System.err.println ("socket error, dying...");
+                    printError (se);
+                    running = false;
+                }
+                // debug("method is "+methodName);
+
+                                        // quit
+                if (methodName == null || methodName.equals("quit"))
+                    running = false;
+
+                                          // putValue
+                else if (methodName.equals("putValue")) {
+                    dataName = in.readLine();	// debug("    arg is "+dataName);
+                    value = in.readLine();	// debug("    arg is "+value);
+                    data.putValue(dataName,
+                                  ValueFactory.create(null, value, null, null));
+                }
+                                        // removeValue
+                else if (methodName.equals("removeValue")) {
+                    dataName = in.readLine();	// debug("    arg is "+dataName);
+                    data.removeValue(dataName);
+                }
+                                        // addDataListener
+                else if (methodName.equals("addDataListener")) {
+                    dataName = in.readLine();	// debug("    arg is "+dataName);
+                    data.addDataListener(dataName, this);
+                }
+                                        // removeDataListener
+                else if (methodName.equals("removeDataListener")) {
+                    dataName = in.readLine();	// debug("    arg is "+dataName);
+                    data.removeDataListener(dataName, this);
+                }
+
+                else if (methodName.equals("maybeCreateValue")) {
+                    dataName = in.readLine();	// debug("    arg is "+dataName);
+                    value = in.readLine();	// debug("    arg is "+value);
+                    prefix = in.readLine();	// debug("    arg is "+prefix);
+                    data.maybeCreateValue(dataName, value, prefix);
+                }
+
+                else if (methodName.equals("listDataNames")) {
+                    prefix = in.readLine();	// debug("    arg is "+prefix);
+                    Vector dataNames = data.listDataNames(prefix);
+                    synchronized (out) {
+                        out.writeObject(dataNames);
+                    }
+                }
+
+                else
+                    System.err.println("RepositoryServerThread: I don't understand " +
+                                       methodName);
+
+            } catch (Exception e) { printError(e); }
+
+            cleanup();
+        }
+
+        public void dataValueChanged(DataEvent e) {
+            try {
+                synchronized (out) {
+                    out.writeObject(e);
+                    out.flush();
+                }
+            } catch (Exception ex) { printError(ex); }
+        }
+
+        public void dataValuesChanged(Vector v) {
+            if (v == null) return;
+
+            synchronized (out) {
+                for (int i = v.size();  i > 0; )
+                    try {
+                        out.writeObject(v.elementAt(--i));
+                    } catch (Exception ex) { printError(ex); }
+
+                try {
+                    out.flush();
+                } catch (Exception ex) { printError(ex); }
+            }
+        }
+
+        private void cleanup() {
+            try {
+                out.close();
+                in.close();
+                clientSocket.close();
+            } catch (IOException e) { printError(e); }
+
+            data.deleteDataListener(this);
+        }
+
+        public void quit() {
+            stop();
+            cleanup();
+        }
+    }
+
+
+    private void debug(String msg) {
+        // System.out.println("RepositoryServer: " + msg);
+    }
+
+    private void printError(Exception e) {
+        System.err.println("Exception: " + e);
+        e.printStackTrace(System.err);
+    }
+
+    public RepositoryServer(DataRepository r) {
+        try {
+            data = r;
+            // debug("creating serverSocket...");
+            serverSocket = new ServerSocket(2467);
+            // debug("done.");
+        } catch (IOException e) { printError(e); }
+    }
+
+    public void run() {
+        Socket clientSocket = null;
+
+        if (serverSocket == null) return;
+
+        while (true) try {
+            // debug("accepting...");
+            clientSocket = serverSocket.accept();
+            // debug("got a connection.");
+
+            RepositoryServerThread newServerThread =
+                new RepositoryServerThread(data, clientSocket);
+            newServerThread.start();
+            serverThreads.addElement(newServerThread);
+
+        } catch (IOException e) {
+            printError(e);
+        }
+    }
+
+    public void deletePrefix(String prefix) {
+        for (int i = serverThreads.size();   i-- > 0; ) {
+            RepositoryServerThread thread =
+                (RepositoryServerThread) serverThreads.elementAt(i);
+            if (thread.dataPath.equals(prefix)) {
+                thread.quit();
+                serverThreads.removeElement(thread);
+            }
+        }
+    }
+
+    public synchronized void quit() {
+        stop();
+
+        for (int i = serverThreads.size();   i-- > 0; )
+            ((RepositoryServerThread) serverThreads.elementAt(i)).stop();
+    }
+
+}
+
