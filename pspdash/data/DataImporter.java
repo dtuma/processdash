@@ -25,15 +25,19 @@
 
 package pspdash.data;
 
-import java.io.IOException;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
+
 
 /* This class imports data files into the repository */
 public class DataImporter extends Thread {
@@ -44,7 +48,8 @@ public class DataImporter extends Thread {
     private String importPrefix;
     private File directory;
     private volatile boolean isRunning = true;
-    private HashMap files = new HashMap();
+    private HashMap modTimes = new HashMap();
+    private HashMap prefixes = new HashMap();
 
     public static void init(DataRepository data, String userSetting) {
         if (userSetting == null || userSetting.length() == 0) return;
@@ -95,38 +100,54 @@ public class DataImporter extends Thread {
 
     private void checkFiles() {
         try {
+            Set currentFiles = new HashSet(modTimes.keySet());
+
             // list the files in the import directory.
             File [] files = directory.listFiles();
 
             // check them all to see if they need importing.
-            for (int i = files.length;  i-- > 0;  )
+            for (int i = files.length;  i-- > 0;  ) {
                 checkFile(files[i]);
+                currentFiles.remove(files[i]);
+            }
+
+            Iterator i = currentFiles.iterator();
+            while (i.hasNext())
+                closeFile((File) i.next());
 
         } catch (IOException ioe) {}
     }
 
     private void checkFile(File f) throws IOException {
-        Long prevModTime = (Long) files.get(f);
+        Long prevModTime = (Long) modTimes.get(f);
         long modTime = f.lastModified();
 
         // If this file is new (we've never seen it before), or if has
         // been modified since we imported it last,
         if (prevModTime == null || prevModTime.longValue() < modTime) {
             importData(f, data);                    // import it, and
-            files.put(f, new Long(modTime));    // save its mod time
+            modTimes.put(f, new Long(modTime));    // save its mod time
         }
+    }
+
+    private void closeFile(File f) {
+        String prefix = (String) prefixes.get(f);
+        if (prefix == null) return;
+        data.closeDatafile(prefix);
     }
 
 
     public void importData(File f, DataRepository data)
         throws IOException
     {
-        System.out.println("imporing " + f);
-        importData(new FileInputStream(f), true, makeExtraPrefix(f), data);
+        String prefix = makePrefix(f);
+        System.out.println("importing " + f);
+        importData(new FileInputStream(f), true, prefix, data);
+        prefixes.put(f, prefix);
     }
 
     public void importData(InputStream inputStream, boolean close,
-                           String extraPrefix, DataRepository data)
+                           String prefix, DataRepository data)
         throws IOException
     {
         BufferedReader in =
@@ -149,15 +170,24 @@ public class DataImporter extends Thread {
         // Protect this data from being viewed via external http requests.
         defns.put("_Password_", ImmutableDoubleData.READ_ONLY_ZERO);
 
-        String prefix = DataRepository.createDataName(importPrefix,
-                                                      extraPrefix);
         try {
-            data.mountImportedData(prefix, defns);
+            // We don't want these threads to flood the data repository
+            // with multiple simultaneous mountImportedData() calls, so
+            // we'll synchronize on a lock object.
+            synchronized(SYNCH_LOCK) {
+                data.mountImportedData(prefix, defns);
+            }
         } catch (InvalidDatafileFormat idf) {}
     }
 
+    private static final Object SYNCH_LOCK = new Object();
+
+    public String makePrefix(File f) throws IOException {
+        return DataRepository.createDataName(importPrefix, makeExtraPrefix(f));
+    }
+
     private static String makeExtraPrefix(File f) throws IOException {
-        return Integer.toString(f.getCanonicalFile().hashCode());
+        return Integer.toString(Math.abs(f.getCanonicalFile().hashCode()));
     }
 
     private static Object parseValue(String value) {

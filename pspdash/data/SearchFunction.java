@@ -29,6 +29,7 @@ import pspdash.data.compiler.CompiledScript;
 import pspdash.data.compiler.Compiler;
 import pspdash.data.compiler.ExecutionException;
 
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -37,7 +38,8 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.Vector;
 
-class SearchFunction implements SaveableData, RepositoryListener, DataListener
+class SearchFunction implements SaveableData, RepositoryListener, DataListener,
+                                Comparator
 {
     protected String name = null, prefix = null;
     protected String start, tag;
@@ -109,6 +111,16 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
      */
     private Set eventThreads = Collections.synchronizedSet(new HashSet());
 
+    private boolean doAdd(String prefix) {
+        int pos = Collections.binarySearch(value.getVector(), prefix, this);
+        if (pos >= 0)
+            return false;
+        else {
+            value.insert(prefix, -1 - pos);
+            return true;
+        }
+    }
+
     public void dataAdded(DataEvent e) {
         String dataName = e.getName();
         String dataPrefix = getTagPrefix(dataName);
@@ -123,7 +135,7 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
         if (script == null) {
             // We don't have a script - all elements should be implicitly
             // added.
-            if (value.setAdd(dataPrefix))
+            if (doAdd(dataPrefix))
                 doNotify();
 
         } else {
@@ -139,7 +151,7 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
             // If the condition evaluates to true, add this prefix to our
             // value.
             if (test(condition.getSimpleValue())) {
-                if (value.setAdd(dataPrefix))
+                if (doAdd(dataPrefix))
                     doNotify();
             }
 
@@ -196,7 +208,7 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
 
         String dataPrefix = getConditionPrefix(dataName);
         if (test(e.getValue()))
-            return value.setAdd(dataPrefix);
+            return doAdd(dataPrefix);
         else
             return value.remove(dataPrefix);
     }
@@ -251,4 +263,8 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
     }
 
     public SaveableData getEditable(boolean editable) { return this; }
+
+    public int compare(Object o1, Object o2) {
+        return data.compareNames(o1+"/tag", o2 + "/tag");
+    }
 }

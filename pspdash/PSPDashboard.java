@@ -193,6 +193,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
                 System.err.println("Couldn't read default state file: " + e);
             }
         }
+        data.setNodeComparator(props);
 
         // possibly reload cached data definitions.
         File serializedDefinitions = new File(property_directory, "defns.ser");

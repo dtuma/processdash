@@ -126,8 +126,8 @@ public class StringData implements SimpleData {
 
     private int cmp(SimpleData val) {
         String v1 = getString(), v2 = ((StringData)val).getString();
-        if (v1 == null) v1 = "";
-        if (v2 == null) v2 = "";
+        v1 = (v1 == null ? "" : v1.toLowerCase());
+        v2 = (v2 == null ? "" : v2.toLowerCase());
         return v1.compareTo(v2);
     }
     public boolean equals(SimpleData val) {

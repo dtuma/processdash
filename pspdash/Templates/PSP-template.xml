@@ -213,4 +213,11 @@ This file contains the template definitions for the standard PSP processes.
   <template name="PSP Data Rollup Prototype" imaginary="true"
             dataFile="psp3/rollupData.txt" defineRollup="PSP"/>
 
+  <template name="Rollup PSP Data" ID="Rollup PSP Data" dataFile="ROLLUP:PSP"
+            defineRollup="no" htmlID="config">
+    <html ID="config" title="Edit Data Rollup Filter"
+          href="dash/rollupFilter.shtm"/>
+    <phase name="Analyze Rollup Data"/>
+  </template>
+
 </dashboard-process-template>

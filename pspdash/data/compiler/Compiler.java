@@ -270,6 +270,10 @@ public class Compiler extends DepthFirstAdapter {
         add(new PushConstant(TagData.getInstance())); }
     public void caseTNull(TNull node) {
         add(new PushConstant(null)); }
+    public void caseTTrue(TTrue node) {
+        add(new PushConstant(ImmutableDoubleData.TRUE)); }
+    public void caseTFalse(TFalse node) {
+        add(new PushConstant(ImmutableDoubleData.FALSE)); }
 
     public void caseASimpleScript(ASimpleScript node) {
         add(new PushObject(compile(node.getValue())));

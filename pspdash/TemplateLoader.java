@@ -247,9 +247,9 @@ public class TemplateLoader {
             return;
         }
 
-        createScriptMaps(root);
-
         AutoData.registerTemplates(root, data);
+
+        createScriptMaps(root);
 
         try {
             PSPProperties template = new PSPProperties(null);

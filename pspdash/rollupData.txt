@@ -27,24 +27,32 @@ undefine([ROLLUP_ID Rollup Eligible]);
 // Start To Date data as of noon GMT on January 1, 1970
 [Rollup As Of Date] = @43200000;
 [Rollup_Date_Filter_On] = 1;
-[Rollup_Date_Filter] = iff([Rollup_Date_Filter_On],
-    "[Completed] > [{Rollup As Of Date}]", null);
 
 // Make it easy to filter by language
 [Rollup_Language] = "";
 [Rollup_Language_Filter_On] = 0;
-[Rollup_Language_Filter] = iff([Rollup_Language_Filter_On],
-     "match(\"" & esc([Rollup_Language]) & "\", [Project/Language])", null);
+
+// Make it easy to filter by keyword
+[Rollup_Keyword] = "";
+[Rollup_Keyword_Filter_On] = 0;
 
 // Make it easy to filter by prefix
 [Rollup_Prefix] = "";
 [Rollup_Prefix_Filter_On] = 0;
-[Rollup_Prefix_Filter] =  iff([Rollup_Prefix_Filter_On],
-     "startsWith(\"" & esc([Rollup_Prefix]) & "\")", null);
 
 // Calculate a default filter expression
-[Rollup_Filter_Prototype] = join(" and\n", [Rollup_Date_Filter],
-    [Rollup_Language_Filter], [Rollup_Prefix_Filter]);
+[Rollup_Filter_Prototype] = join
+   (" and\n", 
+    iff([Rollup_Date_Filter_On], "[Completed] > [{Rollup As Of Date}]"),
+    iff([Rollup_Language_Filter_On],
+	"[Project/Language] == \"" & esc([Rollup_Language]) & "\""),
+    iff([Rollup_Keyword_Filter_On],
+	"match(\"" & esc([Rollup_Keyword]) & "\", [Project/Keywords])"),
+    iff([Rollup_Prefix_Filter_On],
+	"startsWith(\"" & esc([Rollup_Prefix]) & "\")"),
+    iff([Rollup_Date_Filter_On] || [Rollup_Language_Filter_On] ||
+	[Rollup_Prefix_Filter_On] || [Rollup_Keyword_Filter_On],
+	null, "true"));
 
 // By default, select all of the projects that have been marked Completed
 // *after* the "Rollup As Of Date".

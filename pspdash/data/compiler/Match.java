@@ -42,10 +42,12 @@ public class Match extends AbstractFunction {
     public Object call(List arguments, ExpressionContext context)
     {
         String pattern = asString(getArg(arguments, 0));
-        if (pattern == null) return ImmutableDoubleData.TRUE;
+        if (pattern == null || pattern.length() == 0)
+            return ImmutableDoubleData.TRUE;
 
         String text = asString(getArgOrLocal(arguments, 1, context));
-        if (text == null) return ImmutableDoubleData.FALSE;
+        if (text == null || text.length() == 0)
+            return ImmutableDoubleData.FALSE;
 
         Perl5Util perl = PerlPool.get();
         try {

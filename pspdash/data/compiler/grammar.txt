@@ -75,6 +75,8 @@ Helpers
     tag = t a g;
     filter = f i l t e r;
     map = m a p;
+    true = t r u e;
+    false = f a l s e;
 
 States
    b, // beginning of line
@@ -115,6 +117,8 @@ Tokens
     {b->i, i} number_literal = '?'? (float | integer | unusual_num);
     {b->i, i} date_literal = '?'? '@' digit_sequence;
     {b->i, i} null = null;
+    {b->i, i} true = true;
+    {b->i, i} false = false;
     {b->i, i} tag = tag;
     {b->i, i} search = search;
     {b->i, i} undefine = undefine;
@@ -161,6 +165,8 @@ Productions
   value =
     {date} date_literal |
     {null} null |
+    {true} true |
+    {false} false |
     {tag} tag |
 //  {block} block |
     {expression} expression;

@@ -48,6 +48,7 @@ import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -1680,6 +1681,16 @@ public class DataRepository implements Repository {
             public FileLoader(Map dest) { this.dest = dest; }
             public String getInheritedDatafile() { return inheritedDatafile; }
 
+            private void putVal(String name, Object value) {
+                if (name.startsWith("/"))
+                    putGlobalValue(name, value);
+                else if (value == null ||
+                         value.equals("null") || value.equals("=null"))
+                    dest.remove(name);
+                else
+                    dest.put(name, value);
+            }
+
             /** Process a new style declaration. */
             public void caseANewStyleDeclaration(ANewStyleDeclaration node) {
                 String name = Compiler.trimDelim(node.getIdentifier());
@@ -1690,23 +1701,15 @@ public class DataRepository implements Repository {
                     throw new LoadingException
                         (new InvalidDatafileFormat(ce.getMessage()));
                 }
-                Object val = null;
                 if (!script.isConstant())
-                    val = script;
+                    putVal(name, script);
                 else {
                     SimpleData constant = script.getConstant();
-                    if (constant == null)
-                        dest.remove(name);
-                    else {
-                        if (node.getAssignop() instanceof AReadOnlyAssignop)
-                            constant = (SimpleData) constant.getEditable(false);
-                        val = constant;
-                    }
+                    if (constant != null &&
+                        node.getAssignop() instanceof AReadOnlyAssignop)
+                        constant = (SimpleData) constant.getEditable(false);
+                    putVal(name, constant);
                 }
-                if (name.startsWith("/"))
-                    putGlobalValue(name, val);
-                else if (val != null)
-                    dest.put(name, val);
             }
 
             /** Process an old style declaration. */
@@ -1720,20 +1723,17 @@ public class DataRepository implements Repository {
 
                 name = line.substring(0, equalsPosition);
                 value = line.substring(equalsPosition+1);
-                if (value.equals("null") || value.equals("=null"))
-                    dest.remove(name);
-                else
-                    dest.put(name, value);
+                putVal(name, value);
             }
 
             public void caseASearchDeclaration(ASearchDeclaration node) {
-                dest.put(Compiler.trimDelim(node.getIdentifier()),
-                         new SearchFactory(node));
+                putVal(Compiler.trimDelim(node.getIdentifier()),
+                       new SearchFactory(node));
             }
 
             public void caseASimpleSearchDeclaration(ASimpleSearchDeclaration node) {
-                dest.put(Compiler.trimDelim(node.getIdentifier()),
-                         new SearchFactory(node));
+                putVal(Compiler.trimDelim(node.getIdentifier()),
+                       new SearchFactory(node));
             }
 
             /** Process an include directive. */
@@ -2230,7 +2230,9 @@ public class DataRepository implements Repository {
             for (int i = datafiles.size();   i-- != 0; )
                 if (dataPrefix.equals(((DataFile)datafiles.elementAt(i)).prefix)) {
                     DataFile previousDataFile = (DataFile)datafiles.elementAt(i);
-                    prefixToDiscard = "discard" + previousDataFile.prefix;
+                    prefixToDiscard = previousDataFile.prefix;
+                    prefixToDiscard = prefixToDiscard.replace('/', '\\');
+                    prefixToDiscard = '\u0001' + prefixToDiscard.substring(1);
                     previousDataFile.prefix = prefixToDiscard;
                     break;
                 }
@@ -2715,4 +2717,17 @@ public class DataRepository implements Repository {
             return buf.toString().intern();
         }
 
+        private Comparator nodeComparator = null;
+        public void setNodeComparator(Comparator c) { nodeComparator = c; }
+
+        public int compareNames(String name1, String name2) {
+            int result = 0;
+            if (nodeComparator != null)
+                result = nodeComparator.compare(name1, name2);
+
+            if (result == 0)
+                result = name1.compareTo(name2);
+
+            return result;
+        }
 }

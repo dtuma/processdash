@@ -30,6 +30,8 @@ import java.util.Vector;
 
 public class ListData implements SimpleData {
 
+    public static final String PREFERRED_DELIMITERS = ",;|\n";
+
     private Vector list = new Vector();
     private String stringVersion = null;
     private boolean immutable = false;
@@ -46,7 +48,7 @@ public class ListData implements SimpleData {
         if (l.length() > 1) {
             char first = l.charAt(0);
             char last = l.charAt(l.length() - 1);
-            if (first == last)
+            if (first == last && !Character.isLetterOrDigit(first))
                 tok = new StringTokenizer(l, "" + first);
         }
 
@@ -63,6 +65,9 @@ public class ListData implements SimpleData {
     public synchronized void clear() {
         if (immutable) throw new IllegalStateException();
         list.removeAllElements(); stringVersion = null; }
+    public synchronized void insert(Object o, int pos) {
+        if (immutable) throw new IllegalStateException();
+        list.insertElementAt(o, pos); stringVersion = null; }
     public synchronized void add(Object o) {
         if (immutable) throw new IllegalStateException();
         list.addElement(o); stringVersion = null; }
@@ -130,6 +135,11 @@ public class ListData implements SimpleData {
     }
 
     public void setImmutable() { immutable = true; }
+
+    Vector getVector() {
+        if (immutable) throw new IllegalStateException();
+        return list;
+    }
 
     // The following methods implement the SimpleData interface.
 

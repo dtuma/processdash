@@ -29,6 +29,17 @@
 <HEAD>
 <link rel=stylesheet type="text/css" href="../style.css">
 <TITLE>Edit Data Rollup Filter</TITLE>
+
+<SCRIPT>
+   function setvalue() {
+      document.forms[0].elements[11].value =
+         document.forms[0].elements[10].value;
+      if (document.applets["NSDataAppl"] != null)
+         document.applets["NSDataAppl"].notifyListener
+	     (document.forms[0].elements[11]);
+   }
+</SCRIPT>
+
 </HEAD>
 <BODY>
 
@@ -53,19 +64,26 @@ rollup projects <b>written with language</b>:</td>
 </TR>
 
 <TR>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Keyword_Filter_On">&nbsp;Only
+rollup projects <b>with keywords matching</b>:</td>
+<TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Keyword]s"></TD>
+</TR>
+
+<TR>
 <TD><INPUT TYPE=checkbox NAME="Rollup_Prefix_Filter_On">&nbsp;Only
 rollup projects whose <b>path starts with</b>:</td>
 <TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Prefix]s"></TD>
 </TR>
+<tr><td align=center colspan=2><input
+    type=button value="Filter!" onclick="setvalue();"></td></tr>
 </TABLE>
-<P>
 
-<textarea rows=4 cols=50 name="[Rollup_Filter_Prototype]s"></textarea><BR>
+<input type=hidden name="[Rollup_Filter_Prototype]s">
 
-Or, you can edit the filter expression directly here:<BR>
-<textarea rows=4 cols=50 name="[Rollup_Filter]s"></textarea><BR>
+<P>If you wish, you can edit the filter expression directly:<BR>
+<textarea rows=4 cols=80 name="[Rollup_Filter]s"></textarea><BR>
 
-Here is the resulting list of included projects:<BR>
+<P>The resulting list of included projects is:<BR>
 <textarea rows=10 cols=80 name="[Printable_Rollup_List]s"></textarea>
 
 </FORM>
