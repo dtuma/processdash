@@ -40,11 +40,10 @@ import pspdash.data.DataRepository;
 import pspdash.data.StringData;
 import pspdash.data.SimpleData;
 
-public class EVTaskListXML extends EVTaskList {
+public class EVTaskListXML extends EVTaskListXMLAbstract {
 
     public static final String XML_DATA_NAME = "XML Task List";
     protected DataRepository data;
-    private String xmlSource = null;
 
     public EVTaskListXML(String taskListName, DataRepository data) {
         super(taskListName, null, false);
@@ -62,26 +61,6 @@ public class EVTaskListXML extends EVTaskList {
             return false;
         String xmlDoc = value.format();
         return openXML(xmlDoc, cleanupName(taskListName));
-    }
-    private boolean openXML(String xmlDoc, String displayName) {
-        if (xmlDoc.equals(xmlSource)) return true;
-
-        try {
-            Document doc = XMLUtils.parse(xmlDoc);
-            Element docRoot = doc.getDocumentElement();
-            root = new EVTask((Element) docRoot.getFirstChild());
-            schedule = new EVSchedule((Element) docRoot.getLastChild());
-            if (displayName != null)
-                ((EVTask) root).name = displayName;
-            ((EVTask) root).simpleRecalc();
-            totalPlanTime = schedule.getMetrics().totalPlan();
-            xmlSource = xmlDoc;
-            return true;
-        } catch (Exception e) {
-            System.err.println("Got exception: " +e);
-            e.printStackTrace();
-            return false;
-        }
     }
 
     public void recalc() {
