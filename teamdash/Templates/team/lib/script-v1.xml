@@ -21,6 +21,9 @@
     <!-- localize the stylesheet, to enable process-specific overrides -->
     <file in="style.css" encoding="none"/>
 
+    <!-- an empty, overwritable xml file for external document integration -->
+    <file in="files.xml" encoding="none"/>
+
     <!-- html pages for the individual project root node -->
     <file in="indiv_tools.htm" encoding="html" out="indiv_tools.shtm"/>
     <file in="project_parameters.htm" encoding="html" 
