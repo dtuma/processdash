@@ -74,9 +74,10 @@ Deleted LOC=0.0
 Modified LOC=0.0
 Reused LOC=0.0
 LOC=0.0
+Total LOC==![(+	LOC)]
 New Reused LOC=0.0
 New & Changed LOC==![(+	Added LOC	Modified LOC)]
-Added LOC==![(-	[(+	LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
+Added LOC==![(-	[(+	Total LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
 
 
 =
@@ -100,10 +101,3 @@ Test/Defects Removed==0.0
 Postmortem/Defects Removed==0.0
 After Development/Defects Removed=0.0
 Defects Removed==![(+	~.*/Defects Removed)]
-
-
-=
-= Miscellaneous data elements
-=
-
-Started=@now
