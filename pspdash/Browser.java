@@ -34,7 +34,7 @@ import javax.swing.JOptionPane;
  */
 public class Browser {
 
-    static { try { maybeSetupForWindowsIE(); } catch (Exception e) {} }
+    // static { try { maybeSetupForWindowsIE(); } catch (Exception e) {} }
 
     /**
      * Starts the browser for the current platform.
@@ -135,7 +135,7 @@ public class Browser {
         }
     }
 
-    private static File getWindir() {
+    private static File getTrustlibDir() {
         File result = null;
 
         /* It would be nice to do this, but JRE throws an error, stating that
@@ -147,35 +147,40 @@ public class Browser {
         }
         */
 
-        result = new File("C:\\Windows");
+        result = new File("c:\\windows\\java\\trustlib");
         if (result.isDirectory()) return result;
 
-        result = new File("C:\\WinNT");
+        result = new File("c:\\winnt\\java\\trustlib");
         if (result.isDirectory()) return result;
 
         return null;
     }
 
+    private static void debug(String msg) {
+        // System.out.println("Browser: " + msg);
+    }
     private static void maybeSetupForWindowsIE() throws IOException {
+
+        debug("maybeSetupForWindowsIE");
         if (!isWindows()) return;
+        debug("isWindows.");
 
-        File windir = getWindir();
-        if (windir == null) return;
-
-        File javadir = new File(windir, "JAVA");
-        if (!javadir.isDirectory()) return;
-
-        File trustlibdir = new File(javadir, "Trustlib");
-        if (!trustlibdir.isDirectory()) return;
+        File trustlibdir = getTrustlibDir();
+        if (trustlibdir == null) return;
+        debug("got trustlibdir");
 
         File pspdashdir = new File(trustlibdir, "pspdash");
         if (!(pspdashdir.isDirectory() || pspdashdir.mkdir())) return;
+        debug("made pspdashdir");
 
         File datadir = new File(pspdashdir, "data");
         if (!(datadir.isDirectory() || datadir.mkdir())) return;
+        debug("made datadir");
 
         copyClassFile(datadir, "OLEDBDSLWrapper.class");
         copyClassFile(datadir, "OLEDBListenerWrapper.class");
+        debug("copied classes");
+
     }
 
     private static void copyClassFile(File destdir, String classFileName)
@@ -199,6 +204,10 @@ public class Browser {
 /*
  * ChangeLog:
  * $Log$
+ * Revision 1.5  2001/02/08 17:55:48  tuma
+ * disable auto-copy of OLEDB*.class files into trustlib directory; we're
+ * going to do this with an InstallShield script.
+ *
  * Revision 1.4  2001/02/06 23:13:56  tuma
  * bug in prior fix: space before word "windows" was preventing netscape
  * from creating new windows.
