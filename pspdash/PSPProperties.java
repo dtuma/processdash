@@ -243,15 +243,21 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
 
     public void move (PropertyKey fromKey,
                       PropertyKey toKey) {
+        move(fromKey, toKey, true);
+    }
+
+    public void move (PropertyKey fromKey,
+                      PropertyKey toKey,
+                      boolean explicit) {
         Prop aProp = pget (fromKey);
         if (aProp != null) {
             for (int ii = 0; ii < aProp.getNumChildren(); ii++) {
                 PropertyKey fc = aProp.getChild(ii);
                 PropertyKey tc = new PropertyKey (toKey, fc.name());
                 aProp.setChild (tc, ii);
-                move (fc, tc);
+                move (fc, tc, false);
             }
-            if (responsibleForData(fromKey))
+            if (explicit || responsibleForData(fromKey))
                 fireDataFileChange(new PendingDataChange(toKey.path(),
                                                          fromKey.path()));
             super.remove(fromKey);
@@ -777,26 +783,6 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
             fireDataFileChange
                 (new PendingDataChange(null, newfile, null));
         }
-        put (toKey, aProp);
-    }
-
-
-    // Not exactly a copy - really it is more of a move
-    // Main difference between this and 'copyFrom' is that the no new files are
-    // created - they are all re-used...
-    // (also, it is recursive...)  *** TODO ***
-    public void copyExact (PSPProperties fromProps,
-                          PropertyKey   fromKey,
-                          PropertyKey   toKey) {
-        Prop aProp = new Prop (fromProps.pget (fromKey));
-        for (int ii = 0; ii < aProp.getNumChildren(); ii++) {
-            PropertyKey fc = aProp.getChild(ii);
-            PropertyKey tc = new PropertyKey (toKey, fc.name());
-                aProp.setChild (tc, ii);
-            copyFrom (fromProps, fc, tc);
-        }
-        fireDataFileChange
-            (new PendingDataChange(toKey.path(), fromKey.path()));
         put (toKey, aProp);
     }
 
