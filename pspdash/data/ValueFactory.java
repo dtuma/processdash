@@ -188,6 +188,14 @@ class ValueFactory {
             switch (value.charAt(0)) {
             case '@': return new DateData(value);
             case '"': return new StringData(value);
+            case '?':
+                if (value.length() > 1) switch (value.charAt(1)) {
+                case '#': return UndefinedDouble.NaN;
+                case '0': return UndefinedDouble.ZERO;
+                default:  return new UndefinedDouble(value);
+                }
+                throw new MalformedValueException();
+
             default:  return new DoubleData(value);
             }
     }
