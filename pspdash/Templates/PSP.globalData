@@ -100,6 +100,13 @@ Test/% Time To Date==![(/	Test/Time To Date	Time To Date)]
 Reassessment/% Time To Date==![(/	Reassessment/Time To Date	Time To Date)]
 Postmortem/% Time To Date==![(/	Postmortem/Time To Date	Time To Date)]
 
+= Compute percentages to use as normalizing factors when spreading time
+= across various sets of PSP phases.
+
+
+Normalization %/Time/PSP3cycle==![(+	Design/% Time To Date	Design Review/% Time To Date	Code/% Time To Date	Code Review/% Time To Date	Compile/% Time To Date	Test/% Time To Date)]
+Normalization %/Time/PSP0-2==![(+	Normalization %/Time/PSP3cycle	Planning/% Time To Date	Postmortem/% Time To Date)]
+Normalization %/Time/PSP3==![(+	Normalization %/Time/PSP0-2	HLD/% Time To Date	HLD Review/% Time To Date)]
 
 ==
 == Data Elements to track Defects Injected
@@ -140,6 +147,14 @@ Test/% Defects Injected To Date==![(/	Test/Defects Injected To Date	Defects Inje
 Reassessment/% Defects Injected To Date==![(/	Reassessment/Defects Injected To Date	Defects Injected To Date)]
 Postmortem/% Defects Injected To Date==![(/	Postmortem/Defects Injected To Date	Defects Injected To Date)]
 
+= Compute percentages to use as normalizing factors when spreading defects
+= across various sets of PSP phases.
+
+
+Normalization %/Defects Injected/PSP3cycle==![(+	Design/% Defects Injected To Date	Design Review/% Defects Injected To Date	Code/% Defects Injected To Date	Code Review/% Defects Injected To Date	Compile/% Defects Injected To Date	Test/% Defects Injected To Date)]
+Normalization %/Defects Injected/PSP0-2==![(+	Normalization %/Defects Injected/PSP3cycle	Planning/% Defects Injected To Date	Postmortem/% Defects Injected To Date)]
+Normalization %/Defects Injected/PSP3==![(+	Normalization %/Defects Injected/PSP0-2	HLD/% Defects Injected To Date	HLD Review/% Defects Injected To Date)]
+
 
 ==
 == Data Elements to track Defects Removed
@@ -178,6 +193,14 @@ Test/% Defects Removed To Date==![(/	Test/Defects Removed To Date	Defects Remove
 Reassessment/% Defects Removed To Date==![(/	Reassessment/Defects Removed To Date	Defects Removed To Date)]
 Postmortem/% Defects Removed To Date==![(/	Postmortem/Defects Removed To Date	Defects Removed To Date)]
 After Development/% Defects Removed To Date==![(/	After Development/Defects Removed To Date	Defects Removed To Date)]
+
+= Compute percentages to use as normalizing factors when spreading defects
+= across various sets of PSP phases.
+
+
+Normalization %/Defects Removed/PSP3cycle==![(+	Design/% Defects Removed To Date	Design Review/% Defects Removed To Date	Code/% Defects Removed To Date	Code Review/% Defects Removed To Date	Compile/% Defects Removed To Date	Test/% Defects Removed To Date)]
+Normalization %/Defects Removed/PSP0-2==![(+	Normalization %/Defects Removed/PSP3cycle	Planning/% Defects Removed To Date	Postmortem/% Defects Removed To Date)]
+Normalization %/Defects Removed/PSP3==![(+	Normalization %/Defects Removed/PSP0-2	HLD/% Defects Removed To Date	HLD Review/% Defects Removed To Date)]
 
 
 ==

@@ -100,6 +100,13 @@ phasePercent(Test,Time)
 phasePercent(Reassessment,Time)
 phasePercent(Postmortem,Time)
 
+= Compute percentages to use as normalizing factors when spreading time
+= across various sets of PSP phases.
+
+#define PT(Phase) Phase/% Time To Date
+Normalization %/Time/PSP3cycle==![(+	PT(Design)	PT(Design Review)	PT(Code)	PT(Code Review)	PT(Compile)	PT(Test))]
+Normalization %/Time/PSP0-2==![(+	Normalization %/Time/PSP3cycle	PT(Planning)	PT(Postmortem))]
+Normalization %/Time/PSP3==![(+	Normalization %/Time/PSP0-2	PT(HLD)	PT(HLD Review))]
 
 ==
 == Data Elements to track Defects Injected
@@ -140,6 +147,14 @@ phasePercent(Test,Defects Injected)
 phasePercent(Reassessment,Defects Injected)
 phasePercent(Postmortem,Defects Injected)
 
+= Compute percentages to use as normalizing factors when spreading defects
+= across various sets of PSP phases.
+
+#define PDI(Phase) Phase/% Defects Injected To Date
+Normalization %/Defects Injected/PSP3cycle==![(+	PDI(Design)	PDI(Design Review)	PDI(Code)	PDI(Code Review)	PDI(Compile)	PDI(Test))]
+Normalization %/Defects Injected/PSP0-2==![(+	Normalization %/Defects Injected/PSP3cycle	PDI(Planning)	PDI(Postmortem))]
+Normalization %/Defects Injected/PSP3==![(+	Normalization %/Defects Injected/PSP0-2	PDI(HLD)	PDI(HLD Review))]
+
 
 ==
 == Data Elements to track Defects Removed
@@ -178,6 +193,14 @@ phasePercent(Test,Defects Removed)
 phasePercent(Reassessment,Defects Removed)
 phasePercent(Postmortem,Defects Removed)
 phasePercent(After Development,Defects Removed)
+
+= Compute percentages to use as normalizing factors when spreading defects
+= across various sets of PSP phases.
+
+#define PDR(Phase) Phase/% Defects Removed To Date
+Normalization %/Defects Removed/PSP3cycle==![(+	PDR(Design)	PDR(Design Review)	PDR(Code)	PDR(Code Review)	PDR(Compile)	PDR(Test))]
+Normalization %/Defects Removed/PSP0-2==![(+	Normalization %/Defects Removed/PSP3cycle	PDR(Planning)	PDR(Postmortem))]
+Normalization %/Defects Removed/PSP3==![(+	Normalization %/Defects Removed/PSP0-2	PDR(HLD)	PDR(HLD Review))]
 
 
 ==
