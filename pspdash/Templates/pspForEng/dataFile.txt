@@ -30,8 +30,8 @@ node==TAG
 
 == Make *this* rollup sum projects from higher PSP processes under this node.
 
-[Rollup_List] = filter(([psp2] || [psp2.1] || [psp3]) && [Completed],
-	               [Project_List]);
+[Rollup_Filter] = "([psp2] || [psp2.1] || [psp3]) && [Completed]";
+[Rollup_List]   = filter(eval([Rollup_Filter], [_]), [Project_List]);
 
 == Since *this* is a fairly odd rollup, we don't want it to appear as
 == a rollup choice on plan summary forms.
