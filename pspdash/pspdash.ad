@@ -1,20 +1,30 @@
-#
-# The default location for the user's state file.
-#
-stateFile=.\\state
-
-
-#
-# The location of the system-wide template files.
-#
-templates.directory=N:\\PSPDash\\Templates
-templates.URL.prefix=file:/N|/PSPDash/Templates
+# When specifying names of files or directories within this file, use a
+# forward slash as a separator.  It will be translated into an appropriate
+# OS-specific directory separator automatically.
 
 
 #
 # The command to execute to run an HTML browser for script files.
+# If left unset, the default will be:
+#   * Netscape on non-windows platforms (netscape must be in your path)
+#   * The system default browser on Windows.
 #
-browser.command=C:\\Program Files\\Netscape\\Communicator\\Program\\netscape.exe
+#browser.command=C:/Program Files/Internet Explorer/IExplore.exe
+#browser.command=C:/Program Files/Netscape/Communicator/Program/Netscape.exe
+
+
+#
+# The default location for the user's state file.
+#
+stateFile=./state
+
+
+#
+# The location of the system-wide template files.
+# Leave this blank to pull templates from the classpath
+#
+#templates.directory=d:/full/path/to/Templates
+
 
 #
 # Default formats for date and time.
@@ -34,6 +44,13 @@ dateTimeFormat=MMM dd, yyyy hh:mm:ss aaa|MMM dd, yyyy hh:mm:ss aaa z
 # button to begin the timer for fixing the defect.
 #
 defectDialog.autostart=true
+
+#
+# If the following property is set to "true", the probe dialog box
+# will automatically filter the list of data points so that it only
+# contains tasks which are marked as completed.
+#
+probeDialog.onlyCompleted=true
 
 #
 # Data names to be suppressed from user-visible data lists (by default).
