@@ -35,7 +35,6 @@ import java.util.*;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.net.SocketException;
 import java.text.*;
 
 public class TinyWebServer extends Thread {
@@ -281,15 +280,7 @@ public class TinyWebServer extends Thread {
 
             } catch (NoSuchElementException nsee) {
                 sendError( 400, "Bad Request", "No request found." );
-            } catch (SocketException se) {
-                // this is a fairly normal occurrence, caused when the
-                // browser decides to disconnect before we finish
-                // sending the data. Just ignore it.
             } catch (IOException ioe) {
-                if (line != null)
-                    System.err.println("When processing '"+line+
-                                       "', caught "+ioe);
-                ioe.printStackTrace();
                 sendError( 500, "Internal Error", "IO Exception." );
             }
         }
