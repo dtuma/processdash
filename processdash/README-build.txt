@@ -6,7 +6,7 @@ To build the PSP Dashboard, you will need:
    * ant, available from http://ant.apache.org/
 
    * (optional) to compile in support for context-sensitive help, you
-     must install JavaHelp from Sun.  Set the environment variable
+     must install JavaHelp 2.0 from Sun.  Set the environment variable
      JAVAHELP_HOME to point to the javahelp installation directory.
 
 Then simply run "ant" on the file "build.xml" in this directory.

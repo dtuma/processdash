@@ -28,6 +28,7 @@ package net.sourceforge.processdash.ui.help;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,6 +41,7 @@ import javax.help.DefaultHelpBroker;
 import javax.help.HelpBroker;
 import javax.help.HelpSet;
 import javax.help.HelpSetException;
+import javax.help.WindowPresentation;
 
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.Browser;
@@ -72,7 +74,9 @@ public class DashHelpBroker extends DefaultHelpBroker
         super.setHelpSet(hs);
         initPresentation();
 
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        WindowPresentation pres = getWindowPresentation();
+        Frame f = (Frame) pres.getHelpWindow();
+        f.setIconImage(DashboardIconFactory.getWindowIconImage());
     }
 
 
