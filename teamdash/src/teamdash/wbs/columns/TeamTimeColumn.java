@@ -340,6 +340,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
             if (!equal(units, newUnits)) {
                 size = newSize;
+                units = newUnits;
                 recalculateRate();
             } else if (!equal(size, newSize)) {
                 userSetSize(newSize);
