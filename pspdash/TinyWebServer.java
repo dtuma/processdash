@@ -43,7 +43,8 @@ public class TinyWebServer extends Thread {
     Vector serverThreads = new Vector();
     URL [] roots = null;
     DataRepository data = null;
-    CGILoader cgiLoader = new CGILoader();
+
+    Hashtable cgiLoaderMap = new Hashtable();
     Hashtable cgiCache = new Hashtable();
     MD5 md5 = new MD5();
     boolean allowRemoteConnections = false;
@@ -91,6 +92,14 @@ public class TinyWebServer extends Thread {
     }
 
     private class CGILoader extends ClassLoader {
+        URL base;
+        public CGILoader(String path) {
+            try {
+                base = new URL(path);
+            } catch (Exception e) {
+                base = null;
+            }
+        }
         public Class loadFromConnection(URLConnection conn)
             throws IOException, ClassFormatError
         {
@@ -120,6 +129,21 @@ public class TinyWebServer extends Thread {
                 resolveClass(result);
             }
             return result;
+        }
+
+        protected Class findClass(String name) throws ClassNotFoundException {
+            try {
+                URL classURL = new URL(base, name + ".class");
+                URLConnection conn = classURL.openConnection();
+                conn.connect();
+
+                byte [] defn = slurpContents(conn.getInputStream() , true);
+                Class result = defineClass(name, defn, 0, defn.length);
+                resolveClass(result);
+                return result;
+            } catch (Exception e) {
+                throw new ClassNotFoundException(name);
+            }
         }
     }
 
@@ -482,6 +506,25 @@ public class TinyWebServer extends Thread {
             }
         }
 
+        /** Get an appropriate CGILoader for loading a class from the given
+         * connection.
+         */
+        private CGILoader getLoader(URLConnection conn) {
+            // All the cgi classes in a given directory are loaded by
+            // a common classloader.  To find the classloader for this
+            // class, we first extract the "directory" portion of the url
+            // for this connection.
+            String path = conn.getURL().toExternalForm();
+            int end = path.lastIndexOf('/');
+            path = path.substring(0, end+1);
+
+            CGILoader result = (CGILoader) cgiLoaderMap.get(path);
+            if (result == null)
+                cgiLoaderMap.put(path, result = new CGILoader(path));
+            return result;
+        }
+
+
         /** Get a TinyCGI script for a given uri path.
          * @param conn the URLConnection to the ".class" file for the script.
          *   TinyCGI scripts must be java classes in the root package (like
@@ -493,6 +536,7 @@ public class TinyWebServer extends Thread {
             synchronized (cgiCache) {
                 pool = (CGIPool) cgiCache.get(path);
                 if (pool == null) try {
+                    CGILoader cgiLoader = getLoader(conn);
                     pool = new CGIPool
                         (path, cgiLoader.loadFromConnection(conn));
                     cgiCache.put(path, pool);
@@ -1026,6 +1070,44 @@ public class TinyWebServer extends Thread {
         }
         return getRequest(uri, skipHeaders);
     }
+
+
+    /** Parse the HTTP headers in text, and put them into the dest map.
+     *  Returns the number of bytes of header information found and parsed,
+     *  so the body of the HTTP message will begin at that char in text.
+     *
+     * @param text an HTTP message
+     * @param dest a Map where the parsed headers should be stored. The keys
+     * in the map will be field names, converted to upper case.  The values
+     * will be field values.  If a given header is repeated, the values will
+     * be concatenated into a comma separated list, as suggested in RFC2616.
+     * @return the number of bytes parsed out of text
+     *
+     * This isn't 100% compliant with RFC2616; it doesn't allow header values
+     * to be split across multiple lines.
+    public int getHeaders(byte [] text, Map dest) {
+        String line, header, oldVal;
+        StringBuffer value = new StringBuffer();
+        int pos = 0;
+        while (pos < text.length) {
+            line = readLine(text, pos);
+            pos += line.length();
+
+            // if the header line begins with a line termination char,
+            if (line.length() == 0 ||
+                line.charAt(0) == '\r' || line.charAt(0) == '\n')
+                break; // then we've encountered the end of the headers.
+
+            header = parseHeader(line, value).toUpperCase();
+            oldVal = (String) dest.get(header);
+            if (oldVal == null)
+                dest.put(header, value.toString());
+            else
+                dest.put(header, oldVal + "," + value);
+        }
+        return pos;
+    }
+     */
 
     /** Return the number of the port this server is listening on. */
     public int getPort()         { return port; }
