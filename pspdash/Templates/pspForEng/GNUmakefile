@@ -100,7 +100,7 @@ $(PROG_8A_FILES): 8A/% : ../psp2.1/%
 # Make needed copies of the size estimating template class.
 
 SIZEEST_COPIES=$(addsuffix /sizeest.class,4A 5A 7A 8A)
-$(SIZEEST_COPIES): ../psp1/sizeest.class
+$(SIZEEST_COPIES): ../../build/out/Templates/psp1/sizeest.class
 	cp $< $@
 
 # Other miscellaneous targets
