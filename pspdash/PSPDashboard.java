@@ -384,6 +384,12 @@ public class PSPDashboard extends JFrame implements WindowListener {
     public void save() {
         try {
             props.save(propertiesFile, "hierarchical work breakdown structure");
+
+            // the following line is in place for v1.4-beta; it saves a COPY
+            // of the properties file, in the old-style format.  this makes
+            // it at least possible to go back to v1.3, if necessary.
+            props.saveOld(propertiesFile+"-old",
+                          "hierarchical work breakdown structure, in v1.3 format");
         } catch (Exception e) { debug("prop write failed."); }
         if (configure_button != null)
             configure_button.save();
