@@ -26,6 +26,9 @@
 package pspdash.data;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.PrintWriter;
@@ -70,7 +73,7 @@ public class DataRepository implements Repository {
         }
 
         // when adding an element to the data Realizer, also restart it.
-        public void addElement(DataElement e) { dataElements.push(e); resume(); }
+        public void addElement(DataElement e) { dataElements.push(e); interrupt(); }
 
         public void run() {
             // run this thread until ordered to terminate
@@ -79,7 +82,7 @@ public class DataRepository implements Repository {
                 // if there is no data to realize, suspend this thread
                 if (dataElements.isEmpty()) {
                     dataNotifier.highPriority();
-                    suspend();
+                    try { sleep(Long.MAX_VALUE); } catch (InterruptedException i) {}
                 } else try { // otherwise realize the data
                     sleep(100);
                     ((DataElement) dataElements.pop()).maybeRealize();
@@ -96,7 +99,7 @@ public class DataRepository implements Repository {
         // suspended
         public void terminate() {
             terminate = true;
-            resume();
+            interrupt();
         }
 
     }
@@ -177,6 +180,7 @@ public class DataRepository implements Repository {
     private class DataNotifier extends Thread {
         Hashtable notifications = null;
         Hashtable activeListeners = null;
+        private volatile boolean suspended = false;
 
         public DataNotifier() {
             super("DataNotifier");
@@ -226,7 +230,7 @@ public class DataRepository implements Repository {
                 // that is harmless.
             }
 
-            resume();
+            if (suspended) synchronized(this) { notify(); }
         }
 
         public void addEvent(String name, DataElement d, DataListener dl) {
@@ -329,8 +333,14 @@ public class DataRepository implements Repository {
                 if (fireEvent())
                     yield();
                 else
-                    suspend();
+                    doWait();
             }
+        }
+
+        private synchronized void doWait() {
+            suspended = true;
+            try { wait(); } catch (InterruptedException i) {}
+            suspended = false;
         }
 
         public void flush() {
@@ -402,7 +412,12 @@ public class DataRepository implements Repository {
 
         if (datafileName != null) {
 
-            dataServer.suspend();
+            // I'm commenting out this call, and the resume() call below, because they
+            // are deprecated and no longer supported in JDK1.2;  But even worse, they
+            // these two lines really had no effect in JDK1.1.  They look like they shut
+            // down the dataServer, but in reality, all they do is prevent it from accepting
+            // new connections from clients.  (None of the repositoryThreads are suspended.)
+            // dataServer.suspend();
 
             remapIDs(oldPrefix, newPrefix);
 
@@ -416,7 +431,7 @@ public class DataRepository implements Repository {
                 printError(e);
             }
 
-            dataServer.resume();
+            // dataServer.resume();
 
         } else {
             datafile = guessDataFile(oldPrefix+"/foo");
@@ -428,14 +443,14 @@ public class DataRepository implements Repository {
     private void remapDataNames(String oldPrefix, String newPrefix) {
 //  Eventually this needs to rename data values in the global datafile.
 //
-//	Enumeration dataNames = data.keys();
-//	String name;
-//	oldPrefix = oldPrefix + "/";
-//	while (dataNames.hasMoreElements()) {
-//	  name = (String) dataNames.nextElement();
-//	  if (name.startsWith(oldPrefix)) {
-//	    putValue();}
-//	}
+//      Enumeration dataNames = data.keys();
+//      String name;
+//      oldPrefix = oldPrefix + "/";
+//      while (dataNames.hasMoreElements()) {
+//        name = (String) dataNames.nextElement();
+//        if (name.startsWith(oldPrefix)) {
+//          putValue();}
+//      }
     }
 
 
@@ -470,7 +485,7 @@ public class DataRepository implements Repository {
                             out.println(name + "," + value);
                     }
                 } catch (Exception e) {
-//	  System.err.println("Data error:"+e.toString()+" for:"+name);
+//        System.err.println("Data error:"+e.toString()+" for:"+name);
                 }
             }
             Thread.yield();
@@ -590,7 +605,7 @@ public class DataRepository implements Repository {
 
 
     /** remove the named data element.
-     * @param name		the name of the element to remove.
+     * @param name             the name of the element to remove.
      */
     public synchronized void removeValue(String name) {
 
@@ -621,7 +636,7 @@ public class DataRepository implements Repository {
             removedElement.datafile = null;
             if (removedElement.getValue() != null)
                 removedElement.getValue().dispose();
-            removedElement.setValue(null);	   // erase its previous value,
+            removedElement.setValue(null);     // erase its previous value,
             maybeDelete(name, removedElement); // and discard if appropriate.
         }
     }
@@ -670,16 +685,16 @@ public class DataRepository implements Repository {
 //     private void maybeRealize(DataElement d) {
 //
 //       if ((d != null) && (d.value instanceof DeferredData))
-//	synchronized (d) {
-// 	  try {
-// 	    d.value = ((DeferredData) d.value).realize();
-// 	  } catch (ClassCastException e) {
-// 	    // d.value isn't a DeferredData anymore .. someone beat us to it.
-// 	  } catch (MalformedValueException e) {
-// 	    printError(e);
-// 	    d.value = null;
-// 	  }
-//	}
+//      synchronized (d) {
+//        try {
+//          d.value = ((DeferredData) d.value).realize();
+//        } catch (ClassCastException e) {
+//          // d.value isn't a DeferredData anymore .. someone beat us to it.
+//        } catch (MalformedValueException e) {
+//          printError(e);
+//          d.value = null;
+//        }
+//      }
 //     }
 
 
@@ -696,11 +711,11 @@ public class DataRepository implements Repository {
 
 
 //    public final SaveableData getSimpleValue(String name) {
-//	DataElement d = (DataElement)data.get(name);
-//	if (d == null || d.getValue() == null)
-//	  return null;
-//	else
-//	  return d.getSimpleValue();
+//      DataElement d = (DataElement)data.get(name);
+//      if (d == null || d.getValue() == null)
+//        return null;
+//      else
+//        return d.getSimpleValue();
 //    }
 
 
@@ -759,18 +774,26 @@ public class DataRepository implements Repository {
     private static final String includeTag = "#include ";
 
 
-    private String findDatafile(String path, File currentFile) throws
+    private InputStream findDatafile(String path, File currentFile) throws
         FileNotFoundException {
+        InputStream result = null;
+        File file = null;
+
                                   // find file in search path?
         if (path.startsWith("<")) {
                                           // strip <> chars
             path = path.substring(1, path.length()-1);
 
-                                            // look in each search directory
-            String result;			// until we find the named file
+                                    // try locating the file in the classpath
+            result = DataRepository.class.getResourceAsStream
+                ("/Templates/" + path);
+            if (result != null) return result;
+
+                                    // look in each search directory
+                                    // until we find the named file
             for (Enumeration t = templateDirs.elements(); t.hasMoreElements(); )
-                if ((new File(result = ((String)t.nextElement() + path))).exists())
-                    return result;
+                if ((file = new File(((String)t.nextElement() + path))).exists())
+                    return new FileInputStream(file);
 
                                         // couldn't find the file in any search
                                         // directory - give up.
@@ -781,15 +804,15 @@ public class DataRepository implements Repository {
             path = path.substring(1, path.length()-1);
 
                                     // try opening the path as given.
-        if ((new File(path)).exists()) return path;
+        if ((file = new File(path)).exists()) return new FileInputStream(file);
 
                                   // if that fails, try opening it in the
-        File f;			// same directory as currentFile.
+                                  // same directory as currentFile.
         if (currentFile != null &&
-            (f = new File(currentFile.getParent(), path)).exists())
-            return f.getAbsolutePath();
+            (file = new File(currentFile.getParent(), path)).exists())
+            return new FileInputStream(file);
 
-        throw new FileNotFoundException(path); 	// fail.
+        throw new FileNotFoundException(path);    // fail.
     }
 
 
@@ -799,13 +822,12 @@ public class DataRepository implements Repository {
     // call to loadDatafile is made, using the same Hashtable.  Return the
     // name of the include file, if one was found.
 
-    private String loadDatafile(String datafilePath, Hashtable dest)
+    private String loadDatafile(InputStream datafile, Hashtable dest)
         throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
         // Initialize data, file, and read buffer.
         String inheritedDatafile = null;
-        File file = new File(datafilePath);
-        BufferedReader in = new BufferedReader(new FileReader(file));
+        BufferedReader in = new BufferedReader(new InputStreamReader(datafile));
         String line, name, value;
         int equalsPosition;
 
@@ -816,7 +838,8 @@ public class DataRepository implements Repository {
             // the file specified in the include statement.
             if (line != null && line.startsWith(includeTag)) {
                 inheritedDatafile = line.substring(includeTag.length()).trim();
-                loadDatafile(findDatafile(inheritedDatafile, file), dest);
+                                      // the null in the next line is a bug!
+                loadDatafile(findDatafile(inheritedDatafile, null), dest);
                 line = in.readLine();
             }
 
@@ -852,7 +875,8 @@ public class DataRepository implements Repository {
         DataFile dataFile = new DataFile();
         dataFile.prefix = dataPrefix;
         dataFile.file = new File(datafilePath);
-        dataFile.inheritsFrom = loadDatafile(datafilePath, values);
+        dataFile.inheritsFrom =
+            loadDatafile(new FileInputStream(dataFile.file), values);
 
                                 // only add the datafile element if the
                                 // loadDatafile process was successful
@@ -1075,18 +1099,18 @@ public class DataRepository implements Repository {
 
         if (d.dataListenerList == null) {
             if (d.getValue() == null)
-                data.remove(name);		// throw it away.
+                data.remove(name);            // throw it away.
 
         } else if (d.dataListenerList.isEmpty())
 
                                           // if no one cares about this element,
-            if (d.getValue() == null)	// and it has no value,
-                data.remove(name);		// throw it away.
+            if (d.getValue() == null)       // and it has no value,
+                data.remove(name);            // throw it away.
 
                                               // if no one cares about this element
-            else if (d.datafile == null) {	// and it has no datafile,
-                data.remove(name);		// throw it away and
-                d.getValue().dispose();	// dispose of its value.
+            else if (d.datafile == null) {  // and it has no datafile,
+                data.remove(name);            // throw it away and
+                d.getValue().dispose();       // dispose of its value.
             }
 
     }
@@ -1156,7 +1180,7 @@ public class DataRepository implements Repository {
                         rl.dataAdded(new DataEvent(this, name,
                                                    DataEvent.DATA_ADDED, null));
 
-            else			// if they have specified no prefix, only
+            else                    // if they have specified no prefix, only
                                     // notify them of data that is NOT anonymous.
                 while (k.hasMoreElements())
                     if (!(name = (String) k.nextElement()).startsWith(anonymousPrefix))
