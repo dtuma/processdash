@@ -72,6 +72,13 @@ public class ConcurrencyLock {
      */
     public ConcurrencyLock(String directory, int port, String timeStamp) {
 
+        String currentHost = "127.0.0.1";
+        try {
+            // Look up the address of the local host (where our web server
+            // is currently running).
+            currentHost = InetAddress.getLocalHost().getHostAddress();
+        } catch (IOException ioe) {}
+
         /* Check for the presence of a lock file in the given directory. */
         lockFile = new File(directory, LOCK_FILE_NAME);
         if (lockFile.exists()) try {
@@ -83,31 +90,47 @@ public class ConcurrencyLock {
             String otherHost = in.readLine();
             int otherPort = Integer.parseInt(in.readLine());
             String otherTimeStamp = in.readLine();
-            URL testUrl = new URL("http", otherHost, otherPort, RAISE_URL);
-            HttpURLConnection conn =
-                (HttpURLConnection) testUrl.openConnection();
-            conn.connect();
 
-            /* If we get to this point, it means we were able to
-             * successfully connect to a running web server.  But it could
-             * be a coincidence that a web server is listening on the same
-             * host/port as the dashboard that originally created this
-             * lockfile.  Check the timestamp returned by the web server,
-             * to see if it matches the timestamp in the lockfile.
+            /** Have we already successfully bound our webserver to the
+             * address and port listed in the lock file? If so, we can
+             * safely ignore the lock file.  After all, the dashboard that
+             * created it can't still be running if we were able to listen
+             * on that socket.  And if we connect to this host/port, we'll
+             * just be talking to ourselves!
              */
-            String comparedTimeStamp = conn.getHeaderField
-                (TinyWebServer.TIMESTAMP_HEADER);
-            if (otherTimeStamp.equals(comparedTimeStamp)) {
+            if (!otherHost.equals(currentHost) || otherPort != port) {
 
-                /* If we get to this point, it means that the dashboard
-                 * which created the lockfile is still up and running.  If
-                 * it honored our request to raise its window, we can exit
-                 * silently.  Otherwise, display a warning before exiting.
+                URL testUrl = new URL("http", otherHost, otherPort, RAISE_URL);
+                HttpURLConnection conn =
+                    (HttpURLConnection) testUrl.openConnection();
+                conn.connect();
+
+                /* If we get to this point, it means we were able to
+                 * successfully connect to a running web server.  But it
+                 * could be a coincidence that a web server is listening on
+                 * the same host/port as the dashboard that originally
+                 * created this lockfile.  Check the timestamp returned by
+                 * the web server, to see if it matches the timestamp in
+                 * the lockfile.
                  */
-                if (conn.getResponseCode() != conn.HTTP_OK)
-                    showWarningDialog(getPath(lockFile));
+                String comparedTimeStamp = conn.getHeaderField
+                    (TinyWebServer.TIMESTAMP_HEADER);
+                if (otherTimeStamp.equals(comparedTimeStamp)) {
 
-                System.exit(0);
+                    /* If we get to this point, it means that the dashboard
+                     * which created the lockfile is still up and running.
+                     * If it honored our request to raise its window, we
+                     * can exit silently.  Otherwise, display a warning
+                     * before exiting.
+                     */
+                    if (conn.getResponseCode() != conn.HTTP_OK) {
+                        System.out.println("response code is " +
+                                           conn.getResponseCode());
+                        showWarningDialog(getPath(lockFile));
+                    }
+
+                    System.exit(0);
+                }
             }
         } catch (IOException ioe) {
             /* If we reach this point, it means we were UNABLE to contact
@@ -122,7 +145,7 @@ public class ConcurrencyLock {
          */
         try {
             FileWriter out = new FileWriter(lockFile);
-            out.write(InetAddress.getLocalHost().getHostAddress() + "\n" +
+            out.write(currentHost + "\n" +
                       port + "\n" +
                       timeStamp + "\n");
             out.close();
