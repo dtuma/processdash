@@ -87,6 +87,13 @@ public class PSPDashboard extends JFrame implements WindowListener {
         // load app defaults and user settings.
         InternalSettings.initialize("");
 
+        // run the backup process as soon as possible
+        propertiesFile = Settings.getFile("stateFile");
+        File prop_file = new File(propertiesFile);
+        property_directory = prop_file.getParent() + Settings.sep;
+        FileBackupManager.maybeRun
+            (property_directory, FileBackupManager.STARTUP);
+
         // create the data repository.
         data = new DataRepository();
         data.setRealizationPolicy(Settings.getVal("autoRealization"));
@@ -119,9 +126,6 @@ public class PSPDashboard extends JFrame implements WindowListener {
         //open & load the User's hierarchical work breakdown structure,
         //henceforth referred to as "properties"
         //
-        propertiesFile = Settings.getFile("stateFile");
-        File prop_file = new File(propertiesFile);
-        property_directory = prop_file.getParent() + Settings.sep;
         try {
             default_directory = prop_file.getParentFile().getCanonicalPath();
         } catch (IOException ioe) {
@@ -422,6 +426,9 @@ public class PSPDashboard extends JFrame implements WindowListener {
                 ("When shutting down, encountered the exception " + t);
             t.printStackTrace();
         }
+        FileBackupManager.maybeRun
+            (property_directory, FileBackupManager.SHUTDOWN);
+
         System.exit(0);
     }
 

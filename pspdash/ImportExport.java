@@ -401,6 +401,10 @@ public class ImportExport extends JDialog implements ActionListener {
                 // wake up sometime during the hour between midnight and 1AM,
                 // and export data.
                 exportAll(parent);
+
+                FileBackupManager.maybeRun
+                    (parent.property_directory, FileBackupManager.RUNNING);
+
             } catch (InterruptedException ie) {}
         }
     }
