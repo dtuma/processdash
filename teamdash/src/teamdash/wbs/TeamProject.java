@@ -1,4 +1,4 @@
-package teamdash;
+package teamdash.wbs;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,7 +7,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import pspdash.RobustFileWriter;
 import pspdash.XMLUtils;
-import teamdash.wbs.WBSModel;
+import teamdash.TeamMemberList;
 
 public class TeamProject {
 
@@ -100,8 +100,14 @@ public class TeamProject {
 
     /** Open the team process */
     private void openTeamProcess() {
-        // TODO: locate and pass in appropriate process defn
-        teamProcess = new TeamProcess();
+        Element xml = null;
+        try {
+            xml = openXML(new File(directory, PROCESS_FILENAME));
+        } catch (Exception e) {
+            e.printStackTrace();
+            xml = null;
+        }
+        teamProcess = new TeamProcess(xml);
     }
 
     /** Open the file containing the work breakdown structure */
@@ -160,4 +166,5 @@ public class TeamProject {
     private static final String TEAM_LIST_FILENAME = "team.xml";
     private static final String WBS_FILENAME = "wbs.xml";
     private static final String FLOW_FILENAME = "workflow.xml";
+    private static final String PROCESS_FILENAME = "process.xml";
 }

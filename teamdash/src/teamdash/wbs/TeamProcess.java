@@ -1,6 +1,7 @@
-package teamdash;
+package teamdash.wbs;
 
 import java.awt.Color;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,7 +12,9 @@ import java.util.Map;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-import teamdash.wbs.IconFactory;
+import org.w3c.dom.Element;
+import teamdash.process.CustomProcess;
+
 
 public class TeamProcess {
 
@@ -19,8 +22,10 @@ public class TeamProcess {
     private Map phaseTypes;
     private Map iconMap;
 
-    public TeamProcess() {
-        buildPhases();
+
+
+    public TeamProcess(Element xml) {
+        buildPhases(xml);
         buildIcons();
     }
 
@@ -57,14 +62,23 @@ public class TeamProcess {
         return buildMenu();
     }
 
-    private void buildPhases() {
-        // TODO : actually load the appropriate process defn.
-        // (hardcoded for now)
+    private void buildPhases(Element xml) {
+        CustomProcess process = null;
+        if (xml != null) try {
+            process = new CustomProcess(xml);
+        } catch (IOException ioe) {}
+        if (process == null)
+            process = new CustomProcess();
+
         phases = new ArrayList();
         phaseTypes = new HashMap();
-        for (int i = 0; i < defaultPhases.length; i++) {
-            phases.add(defaultPhases[i][1]);
-            phaseTypes.put(defaultPhases[i][1], defaultPhases[i][2]);
+
+        Iterator i = process.getPhaseIterator();
+        while (i.hasNext()) {
+            CustomProcess.CustomPhase phase =
+                (CustomProcess.CustomPhase) i.next();
+            phases.add(phase.name);
+            phaseTypes.put(phase.name, phase.type);
         }
         phases = Collections.unmodifiableList(phases);
         phaseTypes = Collections.unmodifiableMap(phaseTypes);
@@ -202,7 +216,7 @@ public class TeamProcess {
 
     private static final String[] iconMenuItems =
         { SW_COMP, GEN_DOC, REQ_DOC, HLD_DOC, DLD_DOC };
-
+/*
     public static String[][] defaultPhases = {
         { "Management and Miscellaneous", "Misc", "MGMT" },
         { "Launch and Strategy", "Strategy", "STRAT" },
@@ -230,4 +244,5 @@ public class TeamProcess {
         { "Postmortem", "Postmortem", "PM" },
         { "Product Life", "Product Life", "PL" }
     };
+    */
 }
