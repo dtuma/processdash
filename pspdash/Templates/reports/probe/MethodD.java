@@ -33,6 +33,7 @@ import pspdash.data.DoubleData;
 class MethodD extends Method {
 
     double estimate;
+    boolean isOnly = false;
 
     /** Perform the calculations required for this PROBE Method. */
     public MethodD(HistData data, double estimate, String purpose) {
@@ -42,6 +43,7 @@ class MethodD extends Method {
 
 
     public double getRating() { return PROBE_METHOD_D; }
+    public void setIsOnly(boolean i) { isOnly = i; }
 
 
     public void printRow(PrintWriter out, boolean isBest, boolean isSelected) {
@@ -55,7 +57,12 @@ class MethodD extends Method {
                             "new and changed LOC" : "total development time");
         String link = ("<a "+probe.LINK_ATTRS+" href='"+getMethodPurpose()+
                        "Dtut.htm'>");
-        if (isBest)
+        if (isOnly)
+            out.println
+                ("Use your engineering judgement to estimate the "+estTarget+
+                 " from the estimated object LOC, and enter it in the field "+
+                 "to the left.");
+        else if (isBest)
             out.println
                 ("Your best option for estimating " + getMethodPurpose() +
                  " could be "+link+"PROBE method D</a>. Use your engineering "+
@@ -81,8 +88,13 @@ class MethodD extends Method {
         String letter = getMethodLetter();
         String qual = purpose + letter;
 
-        out.print("<input type='radio' ");
-        if (isSelected) out.print("checked ");
+        out.print("<input ");
+        if (isOnly)
+            out.print("type='hidden' ");
+        else {
+            out.print("type='radio' ");
+            if (isSelected) out.print("checked ");
+        }
         out.print("name='" + purpose + "' ");
         out.print("value='" + letter + "'>");
         out.print("<input type='text' name='"+ qual+FLD_ESTIMATE +"' value='");

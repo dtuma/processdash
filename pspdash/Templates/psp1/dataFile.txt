@@ -46,6 +46,7 @@ undefine([PSP0.1 Tag], [psp0.1], [PSP0.1]);
  */
 
 #include <psp1/sizeestData.txt>
+[PROBE_NO_TIME] = TAG;
 
 
 /*
