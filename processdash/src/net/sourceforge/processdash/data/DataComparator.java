@@ -31,8 +31,12 @@ public class DataComparator implements Comparator {
 
     private DataComparator() {}
 
-    // REFACTOR this should be protected behind a getter method.
-    public static final DataComparator instance = new DataComparator();
+    private static final DataComparator INSTANCE = new DataComparator();
+
+    public static DataComparator getInstance() {
+        return INSTANCE;
+    }
+
 
     /** Dates sort before numbers, which sort before strings, which
      *  sort before null values. */

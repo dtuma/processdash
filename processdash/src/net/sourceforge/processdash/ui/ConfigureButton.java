@@ -54,8 +54,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
     HierarchyEditor  prop_frame   = null;
     //TaskScheduleDialog   task_frame   = null;
     TimeLogEditor  time_frame   = null;
-    // REFACTOR this shouldn't be visible
-    public DefectLogEditor   defect_frame = null;
+    DefectLogEditor   defect_frame = null;
     ImportExport   impexp_frame = null;
     ProbeDialog    probe_dialog = null;
     TaskScheduleChooser task_chooser = null;

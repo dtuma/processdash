@@ -695,7 +695,7 @@ public class ResultSet {
             Object [] row2 = (Object[]) o2;
 
             int result =
-                DataComparator.instance.compare(row1[colNum], row2[colNum]);
+                DataComparator.getInstance().compare(row1[colNum], row2[colNum]);
             return descending ? 0-result : result;
         }
     }

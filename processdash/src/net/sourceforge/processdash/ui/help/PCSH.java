@@ -26,6 +26,7 @@
 package net.sourceforge.processdash.ui.help;
 
 import java.awt.Component;
+import java.net.URL;
 
 import javax.swing.JFrame;
 
@@ -73,17 +74,11 @@ public class PCSH {
     }
 
     private static DashHelpProvider DEFAULT_INSTANCE = null;
-    private static WebServer WEB_SERVER = null;
 
     public static void setHelpProvider(DashHelpProvider p) {
         if (DEFAULT_INSTANCE == null ||
             DEFAULT_INSTANCE instanceof SimpleHelpProvider)
             DEFAULT_INSTANCE = p;
-    }
-
-    public static void setWebServer(WebServer w) {
-        // REFACTOR this shouldn't be visible?
-        WEB_SERVER = w;
     }
 
     public static DashHelpProvider getHelpProvider() {
@@ -97,8 +92,11 @@ public class PCSH {
         } catch (Throwable e) { }
 
         // next, attempt to create a help broker via a JavaHelp add-on
-        if (DEFAULT_INSTANCE == null && WEB_SERVER != null) try {
-            WEB_SERVER.getRequest("/help/createBroker.class", false);
+        if (DEFAULT_INSTANCE == null) try {
+            URL u = new URL(WebServer.DASHBOARD_PROTOCOL + ":/help/createBroker.class");
+            u.openConnection().connect();
+            if (DEFAULT_INSTANCE != null)
+                System.out.println("cgi-based broker created.");
         } catch (Throwable e) { }
 
         if (DEFAULT_INSTANCE == null) {

@@ -74,7 +74,7 @@ class SortedList extends DataList {
             Map.Entry e1 = (Map.Entry) o1, e2 = (Map.Entry) o2;
             DataListValue v1 = (DataListValue) e1.getValue(),
                 v2 = (DataListValue) e2.getValue();
-            int result = DataComparator.instance.compare(v1.value, v2.value);
+            int result = DataComparator.getInstance().compare(v1.value, v2.value);
             if (result == 0)
                 result = nodeComparator.compare((String) e1.getKey(),
                                                 (String) e2.getKey());

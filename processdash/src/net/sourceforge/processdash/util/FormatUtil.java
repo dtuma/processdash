@@ -86,6 +86,16 @@ public class FormatUtil {
         return null;
     }
 
+    public static String formatTime(double ttime) {
+        double time = Math.floor(ttime + 0.5); // round to the nearest minute
+        int hours = (int) (time / 60);
+        int minutes = (int) (time % 60);
+        if (minutes < 10)
+            return hours + ":0" + minutes;
+        else
+            return hours + ":" + minutes;
+    }
+
 
     /*
      * fields and methods for formatting decimals
@@ -129,5 +139,6 @@ public class FormatUtil {
         } catch (Exception e) {}
         return NUMBER_FORMAT.parse(percent.trim()).doubleValue() / 100;
     }
+
 
 }

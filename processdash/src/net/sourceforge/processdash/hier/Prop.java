@@ -32,7 +32,6 @@ package net.sourceforge.processdash.hier;
 
 import net.sourceforge.processdash.util.*;
 
-// REFACTOR this class wasn't previously visible
 public class Prop
 {
     // attributes

@@ -35,8 +35,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class TimeLogEntry {
 
-    // REFACTOR should this be visible
-    public PropertyKey key;
+    PropertyKey key;
     Date        createTime;
     long        minutesElapsed;
     long        minutesInterrupt;
@@ -150,6 +149,8 @@ public class TimeLogEntry {
         return false;
     }
 
+    public PropertyKey getKey() { return key; }
+    public void setKey(PropertyKey key) { this.key = key; }
     public String getPath() { return (key == null) ? "" : key.path(); }
     public Date getStartTime() { return createTime; }
     public long getElapsedTime() { return minutesElapsed; }

@@ -25,7 +25,6 @@
 
 package net.sourceforge.processdash.data;
 
-// REFACTOR why can't we just use java.lang.Number?
 public interface NumberData extends SaveableData {
     public double getDouble();
     public int getInteger();

@@ -577,32 +577,6 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
             scanForDataFiles(v, getChildKey (key, i));
     }
 
-    public void runV1_4Hack() {
-        // REFACTOR should not be public
-        Hashtable brokenIDs = new Hashtable();
-        brokenIDs.put("pspForEng/2A/script.htm", "PSP0.1-PFE-2A");
-        brokenIDs.put("pspForEng/4A/script.htm", "PSP1-PFE-4A");
-        brokenIDs.put("pspForEng/5A/script.htm", "PSP1.1-PFE-5A");
-        brokenIDs.put("pspForEng/7A/script.htm", "PSP2-PFE-7A");
-        brokenIDs.put("pspForEng/8A/script.htm", "PSP2.1-PFE-8A");
-        brokenIDs.put("pspForMSE/2A/script.htm", "PSP0.1-MSE-2A");
-        brokenIDs.put("pspForMSE/3B/script.htm", "PSP1-MSE-3B");
-        brokenIDs.put("pspForMSE/4B/script.htm", "PSP1.0.1-MSE-4B");
-
-        PropertyKey key;
-        Prop        value;
-        String      s;
-        Enumeration keys = keys();
-        while (keys.hasMoreElements()) {
-            key = (PropertyKey)keys.nextElement();
-            value = (Prop)get (key);
-            if (! Prop.hasValue(value.getID())) continue;
-            if (! Prop.hasValue(s = value.getScriptFile ())) continue;
-            s = (String) brokenIDs.get(s);
-            if (s != null) value.setID(s);
-        }
-    }
-
     private void maybePrintAttribute(Writer out, String attr, String val)
         throws IOException
     {
@@ -962,7 +936,6 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
 
     public static void displayCorruptStateFileWarning(Resources resources,
                                                String filename, Exception e) {
-          // REFACTOR should this be visible?
           int lineNum = -1;
           if (e instanceof SAXParseException)
               lineNum = ((SAXParseException) e).getLineNumber();
@@ -1027,7 +1000,6 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         if (listeners != null) listeners.remove(l);
     }
     public void fireHierarchyChanged() {
-        // REFACTOR this method should not be public.
         if (listeners != null  && !listeners.isEmpty()) {
             Event e = new Event(this);
             Iterator i = listeners.iterator();

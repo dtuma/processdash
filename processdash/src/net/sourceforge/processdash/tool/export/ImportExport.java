@@ -312,7 +312,7 @@ public class ImportExport extends JDialog implements ActionListener {
             Enumeration keys = tl.filter(PropertyKey.ROOT, null, null);
             while (keys.hasMoreElements()) {
                 tle = (TimeLogEntry)keys.nextElement();
-                if (Filter.matchesFilter (filter, tle.key.path()))
+                if (Filter.matchesFilter (filter, tle.getPath()))
                     out.println(tle.toAbbrevString());
             }
 

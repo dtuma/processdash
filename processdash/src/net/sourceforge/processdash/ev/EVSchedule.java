@@ -42,6 +42,7 @@ import javax.swing.table.TableModel;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
+import net.sourceforge.processdash.util.FormatUtil;
 
 import org.jfree.data.AbstractDataset;
 import org.jfree.data.DatasetChangeEvent;
@@ -1020,7 +1021,7 @@ public class EVSchedule implements TableModel {
     }
 
     public static String formatTime(double time) {
-        return EVTask.formatTime(time); }
+        return FormatUtil.formatTime(time); }
     public static String formatPercent(double p) {
         return EVTask.formatPercent(p); }
     public static String formatDate(Date d) {

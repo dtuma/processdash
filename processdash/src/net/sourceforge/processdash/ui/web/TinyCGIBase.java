@@ -82,7 +82,6 @@ public class TinyCGIBase implements TinyCGI {
      * being placed in the map under the key "name_ALL".)
      */
     protected void parseInput(String context, String query) throws IOException {
-        // REFACTOR this should be a static method in some utility class
         if (query == null || query.length() == 0) return;
 
         String delim = "&";

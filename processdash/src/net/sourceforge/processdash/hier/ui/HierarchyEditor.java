@@ -320,7 +320,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
             }
         }
 
-        dashboard.refreshHierarchy();
+        dashboard.getHierarchy().fireHierarchyChanged();
     }
 
 

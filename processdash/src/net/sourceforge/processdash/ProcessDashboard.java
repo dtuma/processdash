@@ -38,6 +38,7 @@ import net.sourceforge.processdash.data.repository.DataImporter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.ui.*;
 import net.sourceforge.processdash.hier.*;
+import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.ui.*;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
@@ -152,7 +153,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 (Settings.getVal("http.allowRemote"));
             Browser.setDefaults("localhost", webServer.getPort());
             ScriptID.setNameResolver(new ScriptNameResolver(webServer));
-            PCSH.setWebServer(webServer);
         } catch (IOException ioe) {
             System.err.println("Couldn't start web server: " + ioe);
         }
@@ -208,7 +208,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                         throw se1;
                     saxException = se1;
                     props.load(propertiesFile);
-                    props.runV1_4Hack();
+                    LegacySupport.fixupV13ScriptIDs(props);
                     props.saveXML(propertiesFile, null);
                     props.clear();
                     v = props.loadXML(propertiesFile, templates);
@@ -327,6 +327,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             hierarchy.cleanupCompletionFlags();
             InternalSettings.set(COMPLETION_FLAG_SETTING, "true");
         }
+        props.addHierarchyListener(new DashHierarchy.Listener() {
+                public void hierarchyChanged(Event e) {
+                    refreshHierarchy();
+                }});
 
         brokenData.done();
         TemplateLoader.showTemplateErrors();
@@ -399,7 +403,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (IOException ioe) {}
     }
 
-    public void refreshHierarchy() {
+    private void refreshHierarchy() {
         if (SwingUtilities.isEventDispatchThread())
             refreshHierarchyImpl();
         else try {
@@ -411,7 +415,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         hierarchy.delete();
         hierarchy = new HierarchyMenu
             (this, hierarchy_menubar, PropertyKey.ROOT);
-        props.fireHierarchyChanged();
     }
 
     public void setCurrentPhase(PropertyKey newPhase) {

@@ -125,13 +125,13 @@ public class SearchFunction implements SaveableData, RepositoryListener, DataLis
         // sorted in ascending order.  Therefore, if the binarySearch method
         // reports that the item is not in our list, we need to doublecheck
         // ourselves to make certain it really isn't there.
-        int pos = Collections.binarySearch(value.getVector(), prefix, this);
+        int pos = Collections.binarySearch(value.asList(), prefix, this);
         if (pos >= 0)
             return false;
-        else if (value.getVector().contains(prefix)) {
+        else if (value.asList().contains(prefix)) {
             // If our doublecheck indicates that the item IS there, then
             // re-sort the list to avoid future problems.
-            Collections.sort(value.getVector(), this);
+            value.sortContents(this);
             return true;
         } else {
             value.insert(prefix, -1 - pos);

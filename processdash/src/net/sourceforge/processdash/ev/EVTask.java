@@ -45,6 +45,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
@@ -600,18 +601,6 @@ public class EVTask implements DataListener {
     }
 
 
-    public static String formatTime(double ttime) {
-        // REFACTOR this method should not live here.
-        // time is in minutes.
-        double time = Math.floor(ttime + 0.5); // round to the nearest minute
-        int hours = (int) (time / 60);
-        int minutes = (int) (time % 60);
-        if (minutes < 10)
-            return hours + ":0" + minutes;
-        else
-            return hours + ":" + minutes;
-    }
-
     public int getNumChildren() { return children.size(); }
     public int getChildIndex(Object child) {
         if (child instanceof EVTask)
@@ -631,11 +620,11 @@ public class EVTask implements DataListener {
             return formatPercent(rollupLevelOfEffort);
         else if (planLevelOfEffort > 0)
             return formatPercent(planLevelOfEffort);
-        else return formatTime(planTime);
+        else return FormatUtil.formatTime(planTime);
     }
     public String getPlanDirectTime() {
         if (isValuePruned() && planValue == 0) return "";
-        else return formatTime(planValue);
+        else return FormatUtil.formatTime(planValue);
     }
     public boolean hasPlanTimeError() {
         return (hasTopDownBottomUpError() || planTimeIsMissing());
@@ -652,7 +641,7 @@ public class EVTask implements DataListener {
     public String getPlanTimeError() {
         if (hasTopDownBottomUpError())
             return resources.format("Task.Mismatch.Error_FMT",
-                                    formatTime(bottomUpPlanTime));
+                                    FormatUtil.formatTime(bottomUpPlanTime));
         if (planTimeIsMissing())
             return resources.getString("Task.Plan_Time_Missing.Error");
         return null;
@@ -660,12 +649,12 @@ public class EVTask implements DataListener {
     public String getActualTime(double totalActualTime) {
         if (isLevelOfEffortTask())
             return formatPercent(actualTime / totalActualTime);
-        else return formatTime(actualTime);
+        else return FormatUtil.formatTime(actualTime);
     }
     public String getActualDirectTime(double totalActualTime) {
         if (//isLevelOfEffortTask() || isTotallyPruned() ||
             (isValuePruned() && actualDirectTime == 0)) return "";
-        else return formatTime(actualDirectTime);
+        else return FormatUtil.formatTime(actualDirectTime);
     }
     public double getActualDirectTime() {
         return actualDirectTime;
@@ -680,7 +669,7 @@ public class EVTask implements DataListener {
 
     public String getCumPlanTime() {
         if (isValuePruned() && cumPlanValue == 0) return "";
-        return formatTime(cumPlanValue);
+        return FormatUtil.formatTime(cumPlanValue);
     }
     public String getCumPlanValue(double totalPlanValue) {
         if (isValuePruned() && cumPlanValue == 0) return "";
@@ -972,7 +961,7 @@ public class EVTask implements DataListener {
             metrics.addError(resources.format("Task.Mismatch.Error_Msg_FMT",
                                               fullName,
                                               getPlanTime(),
-                                              formatTime(bottomUpPlanTime)),
+                                              FormatUtil.formatTime(bottomUpPlanTime)),
                              this);
         if (planTimeIsMissing())
             metrics.addError

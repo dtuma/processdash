@@ -29,8 +29,13 @@ package net.sourceforge.processdash.log;
 
 import java.io.*;
 import java.text.ParseException;
+import java.util.EventListener;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DoubleData;
@@ -39,6 +44,11 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 
 
 public class DefectLog {
+
+    public interface Listener extends EventListener {
+        public void defectUpdated(DefectLog log, Defect d);
+    }
+
     String defectLogFilename = null;
     String dataPrefix = null;
     DataRepository data = null;
@@ -82,8 +92,7 @@ public class DefectLog {
 
         save(defects);
 
-        if (parent.configure_button.defect_frame != null)
-            parent.configure_button.defect_frame.updateDefectLog (this, d);
+        fireDefectChanged(d);
     }
 
     /** Delete the named defect from the defect log.
@@ -101,8 +110,7 @@ public class DefectLog {
             updateData(defects, d);
             save(defects);
 
-            if (parent.configure_button.defect_frame != null)
-                parent.configure_button.defect_frame.updateDefectLog (this);
+            fireDefectChanged(d);
         }
     }
 
@@ -377,4 +385,18 @@ public class DefectLog {
         return dataPrefix;
     }
 
+    private static List listeners = new LinkedList();
+
+    public static void addDefectLogListener(Listener l) {
+        listeners.add(l);
+    }
+    public static void removeDefectLogListener(Listener l) {
+        listeners.remove(l);
+    }
+    private void fireDefectChanged(Defect d) {
+        for (Iterator i = listeners.iterator(); i.hasNext();) {
+            Listener l = (Listener) i.next();
+            l.defectUpdated(this, d);
+        }
+    }
 }

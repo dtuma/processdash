@@ -75,7 +75,7 @@ public class Sort extends AbstractFunction {
         public SimpleData val;
         public Pair(String p, SimpleData v) { prefix = p; val = v; }
         public int compareTo(Object o) {
-            return DataComparator.instance.compare(val, ((Pair) o).val);
+            return DataComparator.getInstance().compare(val, ((Pair) o).val);
         }
     }
 }

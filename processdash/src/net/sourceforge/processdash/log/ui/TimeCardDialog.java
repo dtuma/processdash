@@ -52,6 +52,7 @@ import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
+import net.sourceforge.processdash.util.FormatUtil;
 
 public class TimeCardDialog {
 
@@ -425,7 +426,7 @@ public class TimeCardDialog {
     protected String format(double time, int format) {
         if (time == 0) return "";
         if (format == HOURS_MINUTES)
-            return EVTask.formatTime(time);
+            return FormatUtil.formatTime(time);
         else if (format == MINUTES)
             return Integer.toString((int) time);
         else

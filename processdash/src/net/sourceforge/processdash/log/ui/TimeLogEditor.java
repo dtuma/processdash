@@ -546,14 +546,14 @@ public class TimeLogEditor extends Object
         switch (table.table.convertColumnIndexToModel(col)) {
         case 0:                     //Logged To (key) (must exist in hierarchy)
             PropertyKey key = useProps.findExistingKey (newValue);
-            if (key == null || key.equals(tle.key) || !timeLoggingAllowed(key)) {
+            if (key == null || key.equals(tle.getKey()) || !timeLoggingAllowed(key)) {
                 rv = false;
                 table.table.setValueAt (tle.getPath(), row, col);
             } else {
                 long deltaMinutes = parseTime((String)table.table.getValueAt (row, 2));
                 postTimeChange (key, deltaMinutes);
-                postTimeChange (tle.key, - deltaMinutes);
-                tle.key = key;
+                postTimeChange (tle.getKey(), - deltaMinutes);
+                tle.setKey(key);
             }
             break;
         case 1:                     //createTime (must be valid date)
@@ -572,7 +572,7 @@ public class TimeLogEditor extends Object
                 long deltaMinutes = tle.getElapsedTime();
                 if (lv >= 0 && lv != deltaMinutes) {
                     tle.setElapsedTime(lv);
-                    postTimeChange (tle.key, lv - deltaMinutes);
+                    postTimeChange (tle.getKey(), lv - deltaMinutes);
                 } else
                     rv = false;
                 table.table.setValueAt (formatTime (tle.getElapsedTime()), row, col);
@@ -704,7 +704,7 @@ public class TimeLogEditor extends Object
 
             currentLog.set(row, tle);
             VTableModel model = (VTableModel)table.table.getModel();
-            model.setValueAt(tle.key.path(), row, 0);
+            model.setValueAt(tle.getKey().path(), row, 0);
             model.setValueAt(FormatUtil.formatDateTime(tle.getCreateTime()), row, 1);
             model.setValueAt(String.valueOf (tle.getElapsedTime()), row, 2);
             model.setValueAt(String.valueOf (tle.getInterruptTime()), row, 3);
@@ -763,14 +763,14 @@ public class TimeLogEditor extends Object
                                         new Date(), 0, 0);
             } else {          // base it on rowBasedOn
                 TimeLogEntry tle2 = (TimeLogEntry)currentLog.elementAt (rowBasedOn);
-                tle = new TimeLogEntry (new PropertyKey (tle2.key),
+                tle = new TimeLogEntry (new PropertyKey (tle2.getKey()),
                                         new Date (tle2.getCreateTime().getTime()),
                                         tle2.getElapsedTime(),
                                         tle2.getInterruptTime());
             }
         }
         aRow = new Object[]
-            {tle.key.path(),
+            {tle.getKey().path(),
              FormatUtil.formatDateTime (tle.getCreateTime()),
              String.valueOf (tle.getElapsedTime()),
              String.valueOf (tle.getInterruptTime()),
@@ -781,7 +781,7 @@ public class TimeLogEditor extends Object
         currentLog.addElement (tl.add (tle));
         setDirty(true);
         setTimes ();
-        postTimeChange (tle.key, tle.getElapsedTime());
+        postTimeChange (tle.getKey(), tle.getElapsedTime());
     }
 
     public void deleteSelectedRow () {
@@ -803,7 +803,7 @@ public class TimeLogEditor extends Object
         tl.remove (tle);
         setDirty(true);
         setTimes ();
-        postTimeChange (tle.key, - tle.getElapsedTime());
+        postTimeChange (tle.getKey(), - tle.getElapsedTime());
 
         tableContainsRows = (model.getRowCount() > 0);
         addButton.setEnabled(tableContainsRows || selectedNodeLoggingAllowed);
@@ -816,7 +816,7 @@ public class TimeLogEditor extends Object
             tle = (TimeLogEntry)currentLog.elementAt(i);
             for (int j = currentLog.size() - 1; j > i; j--) {
                 tle2 = (TimeLogEntry)currentLog.elementAt(j);
-                if (tle.key.key().equals (tle2.key.key())) {
+                if (tle.getKey().key().equals (tle2.getKey().key())) {
                     //merge into tle and delete tle2
                     merged = true;
                     tle.merge(tle2);

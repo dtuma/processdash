@@ -25,6 +25,9 @@
 
 package net.sourceforge.processdash.data;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Vector;
 
 public class ListData implements SimpleData {
@@ -143,10 +146,12 @@ public class ListData implements SimpleData {
 
     public void setImmutable() { immutable = true; }
 
-    public Vector getVector() {
-        // REFACTOR this shouldn't be visible
+    public List asList() {
+        return Collections.unmodifiableList(list);
+    }
+    public void sortContents(Comparator c) {
         if (immutable) throw new IllegalStateException();
-        return list;
+        Collections.sort(list, c);
     }
 
     // The following methods implement the SimpleData interface.

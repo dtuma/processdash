@@ -32,20 +32,24 @@ import java.util.jar.JarInputStream;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.*;
 import net.sourceforge.processdash.util.*;
 
-// REFACTOR should this be public?
 public final class ImportTemplatePermissionDialog {
+
+    private static final DashboardPermission PERMISSION =
+        new DashboardPermission("showImportTemplatePermissionDialog");
 
     static boolean currentlyDisplayingDialog = false;
 
-    // REFACTOR should this be public
     public static boolean askUserForPermission(JFrame parent,
                                         String templateJarFilename,
                                         String templateDir,
                                         boolean create)
     {
+        PERMISSION.checkPermission();
+
         if (parent == null) return false;
         if (!XMLUtils.hasValue(templateJarFilename) &&
             !XMLUtils.hasValue(templateDir))

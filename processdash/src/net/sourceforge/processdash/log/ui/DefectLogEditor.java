@@ -53,7 +53,7 @@ import net.sourceforge.processdash.util.FormatUtil;
 
 public class DefectLogEditor extends Component
     implements TreeSelectionListener, ListSelectionListener, ActionListener,
-               DashHierarchy.Listener
+               DashHierarchy.Listener, DefectLog.Listener
 {
     /** Class Attributes */
     protected JFrame          frame;
@@ -124,6 +124,8 @@ public class DefectLogEditor extends Component
         setSelectedPhase(dash.getCurrentPhase());
         loadCustomDimensions();
         splitPane.setDividerLocation(dividerLocation);
+
+        DefectLog.addDefectLogListener(this);
 
         applyFilter();
         //frame.pack();
@@ -278,6 +280,9 @@ public class DefectLogEditor extends Component
         updateDefectLog (dl);       // TBD - optimize?
     }
 
+    public void defectUpdated(DefectLog log, Defect d) {
+        updateDefectLog(log, d);
+    }
 
     public void hierarchyChanged(DashHierarchy.Event e) { reloadAll(null); }
 
