@@ -57,7 +57,7 @@ public class Resources extends ResourceBundle implements StringMapper {
         Object result = null;
 
         // if the key refers to a different bundle, redirect.
-        if (key.startsWith("/"))
+        if (isRedirectKey(key))
             return getRedirectedObject(key);
 
         // first try appending the bundle prefix, if present.
@@ -77,6 +77,10 @@ public class Resources extends ResourceBundle implements StringMapper {
             return result;
     }
 
+
+    private boolean isRedirectKey(String key) {
+        return (key.startsWith("/") && key.indexOf(':') > 1);
+    }
 
     private Object getRedirectedObject(String key) {
         int pos = key.indexOf(':', 1);
