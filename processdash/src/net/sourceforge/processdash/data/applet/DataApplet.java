@@ -76,6 +76,7 @@ public class DataApplet extends Applet implements RepositoryClientListener {
 
     public void start() {
         debug("starting...");
+        avoidMicrosoftJVM();
         readParameters();
         isRunning = true;
 
@@ -87,6 +88,8 @@ public class DataApplet extends Applet implements RepositoryClientListener {
         } else
             isRunning = false;
     }
+
+
 
 
     protected void readParameters() {
@@ -155,17 +158,17 @@ public class DataApplet extends Applet implements RepositoryClientListener {
 
         try {
             // Try to create a DOMFieldManager.
-            createFieldManager(".dom.DOMFieldManager");
+            createFieldManager("dom.DOMFieldManager");
         } catch (Throwable e) {}
     }
 
     protected void createNSManager() throws Exception {
-        createFieldManager(".ns.NSFieldManager");
+        createFieldManager("ns.NSFieldManager");
     }
 
     protected void createFieldManager(String className) throws Exception {
-        String packageName = DataApplet.class.getPackage().getName();
-        Class clz = Class.forName(packageName + className);
+        Class clz = Class.forName
+            ("net.sourceforge.processdash.data.applet." + className);
         Constructor cstr = clz.getConstructor(new Class[] {DataApplet.class});
         mgr = (HTMLFieldManager) cstr.newInstance(new Object[] { this });
     }
@@ -269,4 +272,23 @@ public class DataApplet extends Applet implements RepositoryClientListener {
         } catch (IOException ioe) {}
     }
 
+
+    private void avoidMicrosoftJVM() {
+        String javaVendor = System.getProperty("java.vendor").toLowerCase();
+        if (javaVendor.indexOf("microsoft") != -1)
+            try {
+                String urlStr = getParameter("docURL");
+                if (urlStr == null || urlStr.length() == 0)
+                    urlStr = getDocumentBase().toString();
+                if (urlStr.indexOf('?') == -1)
+                    urlStr = urlStr + "?ForceJavaPlugIn";
+                else
+                    urlStr = urlStr + "&ForceJavaPlugIn";
+
+                URL url = new URL(urlStr);
+                getAppletContext().showDocument(url, "_self");
+            } catch (IOException ioe) {
+                System.out.println(ioe);
+            }
+    }
 }
