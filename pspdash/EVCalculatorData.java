@@ -57,8 +57,8 @@ public class EVCalculatorData extends EVCalculator {
         taskRoot.recalcDateCompleted();
         completionDate = taskRoot.dateCompleted;
         effectiveDate = getEffectiveDate();
-        List evLeaves = new LinkedList();
-        getEVLeaves(taskRoot, evLeaves);
+        evLeaves = new LinkedList();
+        getEVLeaves(taskRoot);
         sortEVLeafList(evLeaves);
 //        debugEVLeafList(evLeaves);
 
@@ -91,7 +91,7 @@ public class EVCalculatorData extends EVCalculator {
                                     new LinkedList(), new LinkedList());
         recalcMetrics(taskRoot, schedule.getMetrics());
 
-        recalculateTaskHierarchy(taskRoot, evLeaves);
+        recalculateTaskHierarchy(taskRoot);
 
         schedule.getMetrics().recalcComplete(schedule);
         schedule.firePreparedEvents();
@@ -182,13 +182,13 @@ public class EVCalculatorData extends EVCalculator {
     }
 
 
-    protected void getEVLeaves(EVTask task, List result) {
+    protected void getEVLeaves(EVTask task) {
         if (task.isEVLeaf()) {
             if (!task.isUserPruned() && !task.isLevelOfEffortTask())
-                result.add(task);
+                evLeaves.add(task);
         } else {
             for (int i = 0;   i < task.getNumChildren();   i++)
-                getEVLeaves(task.getChild(i), result);
+                getEVLeaves(task.getChild(i));
         }
     }
 
@@ -210,12 +210,12 @@ public class EVCalculatorData extends EVCalculator {
         evLeaves.addAll(0, chronologicallyPrunedLeaves);
     }
 
-    private static final boolean ORDER_BY_DATE = false;
-
     private class EVLeafComparator implements Comparator {
         private List origOrder;
+        private boolean reorderCompletedTasks = false;
         private EVLeafComparator(List origList) {
             origOrder = new LinkedList(origList);
+            reorderCompletedTasks = Settings.getBool("ev.sortCompletedTasks", true);
         }
         public int compare(Object o1, Object o2) {
             EVTask t1 = (EVTask) o1;
@@ -236,7 +236,7 @@ public class EVCalculatorData extends EVCalculator {
             return result;
         }
         private int compareDates(Date a, Date b) {
-            if (!ORDER_BY_DATE) {
+            if (!reorderCompletedTasks) {
                 if (a != null && a.compareTo(scheduleStartDate) > 0) a = null;
                 if (b != null && b.compareTo(scheduleStartDate) > 0) b = null;
             }
@@ -346,6 +346,7 @@ public class EVCalculatorData extends EVCalculator {
             if (d.compareTo(effectiveDate) < 0) {
                 task.actualNodeTime += entry.minutesElapsed;
                 schedule.getMetrics().addIndirectTime(entry.minutesElapsed);
+                schedule.saveActualIndirectTime(d, entry.minutesElapsed);
             }
             return;
         }
@@ -380,7 +381,7 @@ public class EVCalculatorData extends EVCalculator {
     }
 
 
-    private void recalculateTaskHierarchy(EVTask task, List evLeaves) {
+    private void recalculateTaskHierarchy(EVTask task) {
         /*boolean isEVLeaf = EVTask.containsNode(evLeaves, task);
         if (isEVLeaf || task.isLeaf()) {
             task.actualCurrentTime = task.actualNodeTime;
@@ -393,7 +394,7 @@ public class EVCalculatorData extends EVCalculator {
         }*/
 
         for (int i = task.getNumChildren();   i-- > 0;   )
-            recalculateTaskHierarchy(task.getChild(i), evLeaves);
+            recalculateTaskHierarchy(task.getChild(i));
 
         sumUpNodeData(task);
 

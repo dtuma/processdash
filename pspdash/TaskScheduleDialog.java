@@ -109,15 +109,11 @@ public class TaskScheduleDialog
                                 // set default widths for the columns
         boolean showCumColumns = Settings.getBool
             ("ev.showCumulativeTaskData", false);
-        boolean showDirectColumns = model.showDirectTimeColumns();
         for (int i = 0;  i < EVTaskList.colWidths.length;  i++) {
             int width = EVTaskList.colWidths[i];
-            if ((!showCumColumns &&
+            if (!showCumColumns &&
                  (i == EVTaskList.PLAN_CUM_TIME_COLUMN ||
-                  i == EVTaskList.PLAN_CUM_VALUE_COLUMN))  ||
-                (!showDirectColumns &&
-                 (i == EVTaskList.PLAN_DTIME_COLUMN ||
-                    i == EVTaskList.ACT_DTIME_COLUMN))) {
+                  i == EVTaskList.PLAN_CUM_VALUE_COLUMN)) {
                 width = 0;
                 treeTable.getColumnModel().getColumn(i).setMinWidth(0);
                 treeTable.getColumnModel().getColumn(i).setMaxWidth(0);
@@ -136,6 +132,9 @@ public class TaskScheduleDialog
             scheduleTable.getColumnModel().getColumn(i)
                 .setPreferredWidth(EVSchedule.colWidths[i]);
         configureEditor(scheduleTable);
+
+        // possibly hide the direct columns if they aren't needed
+        showHideDirectColumns();
 
         boolean isRollup = isRollup();
         if (isRollup) frame.setTitle("Task and Schedule Rollup");
@@ -1357,18 +1356,31 @@ public class TaskScheduleDialog
     }
 
     protected void showHideDirectColumns() {
-        boolean show = model.showDirectTimeColumns();
+        // update the task table
+        for (int j = EVTaskList.DIRECT_COLUMN_LIST.length;   j-- > 0; ) {
+            int i = EVTaskList.DIRECT_COLUMN_LIST[j];
+            showHideColumn(treeTable.getColumnModel().getColumn(i),
+                           model.getColumnName(i),
+                           EVTaskList.colWidths[i]);
+        }
 
-        int[] cols = new int[] { EVTaskList.PLAN_DTIME_COLUMN,
-                                 EVTaskList.ACT_DTIME_COLUMN };
+        // update the schedule table
+        for (int j = EVSchedule.DIRECT_COLUMN_LIST.length;   j-- > 0; ) {
+            int i = EVSchedule.DIRECT_COLUMN_LIST[j];
+            showHideColumn(scheduleTable.getColumnModel().getColumn(i),
+                           model.getSchedule().getColumnName(i),
+                           EVSchedule.colWidths[i]);
+        }
+    }
 
-        for (int j = 0;  j < cols.length;  j++) {
-            int i = cols[j];
-            int width = show ? EVTaskList.colWidths[i] : 0;
-            TableColumn c =  treeTable.getColumnModel().getColumn(i);
-            c.setMinWidth(0);
-            c.setMaxWidth(width);
-            c.setPreferredWidth(width);
+    protected void showHideColumn(TableColumn col, String name, int width) {
+
+        boolean hide = (name == null || name.endsWith(" "));
+        boolean hidden = (col.getMaxWidth() == 0);
+        if (hide != hidden) {
+            col.setMinWidth(0);
+            col.setMaxWidth(hide ? 0 : width);
+            col.setPreferredWidth(hide ? 0 : width);
         }
     }
 

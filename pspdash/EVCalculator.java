@@ -27,8 +27,12 @@
 package pspdash;
 
 import java.util.Date;
+import java.util.List;
+
 
 public abstract class EVCalculator {
+
+    protected List evLeaves;
 
     /*
     public EVCalculator(String taskListName, EVTask root, EVSchedule schedule) {
@@ -37,6 +41,10 @@ public abstract class EVCalculator {
     */
 
     public abstract void recalculate();
+
+    public List getEVLeaves() {
+        return evLeaves;
+    }
 
 
     protected void resetRootData(EVTask taskRoot) {

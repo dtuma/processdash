@@ -139,6 +139,12 @@ ev.simpleForecastDate=If true, use simple, published earned value formulas \
 	additional information present in the schedule to improve the \
 	quality of the forecast.
 
+ev.sortCompletedTasks=If false, the planned completion dates for tasks \
+	in an earned value plan will be generated based upon their order \
+	alone.  By default, the task list will be automatically sorted so \
+	completed tasks appear at the beginning of the list, in the order \
+	they were completed.
+
 extDoc.openMethod=If this is set to "redirect", then an HTTP redirect \
 	message will be used to open external documents.
 

@@ -462,6 +462,9 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int PCT_SPENT_COLUMN      = 11;
     public static final int VALUE_EARNED_COLUMN   = 12;
 
+    public static final int[] DIRECT_COLUMN_LIST = {
+        PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN };
+
     /** Types of the columns in the TreeTableModel. */
     static protected Class[]  colTypes = {
         TreeTableModel.class,   // project/task
