@@ -52,7 +52,7 @@ public class EVTask implements DataListener {
     public static final String DATE_COMPLETED_DATA_NAME = "Completed";
     public static final String IGNORE_PLAN_TIME_NAME    = "Rollup Tag";
     private static final String LEVEL_OF_EFFORT_PREFIX  = "TST-LOE_";
-    private static final String LEAF_ORDINAL_PREFIX  = "TST-LEAF_";
+    private static final String TASK_ORDINAL_PREFIX  = "TST-TSK#_";
 
     public interface Listener {
         public void evNodeChanged(EVTask node);
@@ -62,27 +62,95 @@ public class EVTask implements DataListener {
     ArrayList children = new ArrayList();
 
     String name, fullName, taskListName;
-    double planLevelOfEffort = -1;
-    int savedLeafOrdinal = 0;
-    int leafOrdinal = 0;
-
-
-    double planTime,  cumPlanTime,  actualTime;  // expressed in minutes
-    double actualNodeTime, valueEarned;          // expressed in minutes
-    double topDownPlanTime, bottomUpPlanTime;    // expressed in minutes
-    Date planDate, dateCompleted;
-    boolean planTimeEditable, planTimeNull, planTimeUndefined,
-        dateCompletedEditable;
-    boolean ignorePlanTimeValue = false;
     Listener listener;
-
     DataRepository data;
+
+
+    /* The percentage of time a user plans to spend on this task, as a level
+     * of effort.
+     */
+    double planLevelOfEffort = NOT_LEVEL_OF_EFFORT;
+
+    public static final int NOT_LEVEL_OF_EFFORT = -1;
+    public static final int ANCESTOR_LEVEL_OF_EFFORT = 0;
+
+
+    /** Value indicating user-requested reordering/restructuring of the task
+     * list.  Values of interest:<ul>
+     *
+     * <li>0 - indicates that the order is unknown and needs to be inferred
+     *     from the context of this node.
+     * <li>&gt;= 1 - the order of this node in the list
+     * <li>-1 - indicates that the user has explicitly pruned this node.
+     * <li>-2 - indicates that this node has inherited its pruned status from
+     *     an ancestor.
+     */
+    int taskOrdinal = INFER_FROM_CONTEXT;
+
+    public static final int INFER_FROM_CONTEXT = 0;
+    public static final int USER_PRUNED = -1;
+    public static final int ANCESTOR_PRUNED = -2;
+
+    int savedTaskOrdinal = 0;
+
+    /** The time (minutes) the user plans to spend in this node, taken
+     * directly from the data repository. */
+    double topDownPlanTime;
+    /** The time (minutes) the user plans to spend in this node, calculated
+     * by adding up plan times of children */
+    double bottomUpPlanTime;
+    // various flags which determine how we should interpret the top down
+    // plan time for this node.
+    boolean planTimeEditable, planTimeNull, planTimeUndefined,
+        ignorePlanTimeValue = false;
+
+
+
+    /** The plan time (minutes) for this node, determined intelligently from
+     * the top down and bottom up times for this node. */
+    double planTime;
+    /** The portion of the plan time that "counts" toward this schedule
+     * (minutes) */
+    double planValue;
+    /** The total plan value spent in this node and all prior nodes. */
+    double cumPlanValue;
+
+    /** Actual time (minutes) spent in this node before the start of the
+     * schedule */
+    double actualPreTime;
+    /** Actual time (minutes) spent in this node during the schedule */
+    double actualNodeTime;
+    /** The total time (minutes) actually spent in this node and its children,
+     * both before and during this schedule  */
+    double actualTime;
+    /** The total time (minutes) actually spent during this schedule
+     * in this node and its children */
+    double actualCurrentTime;
+    /** The total time (minutes) actually spent during this schedule
+     * in this node and its children on tasks that count toward earned value */
+    double actualDirectTime;
+    /** Actual value earned (minutes) in this node and its children. */
+    double valueEarned;
+
+    /** The date we plan to start this task */
+    Date planStartDate;
+    /** The date we actually started this task */
+    Date actualStartDate;
+    /** The date we plan to complete this task */
+    Date planDate;
+    /** The date this task was actually completed */
+    Date dateCompleted;
+    /** True if the user can edit the completion date for this task */
+    boolean dateCompletedEditable;
+
+    private static final Date COMPLETION_DATE_NA = EVSchedule.A_LONG_TIME_AGO;
+
 
     /** Creates an EVTask suitable for the root of an EVTaskList.  */
     public EVTask(String rootName) {
         this.name = rootName;
         this.fullName = "";
-        planTime = cumPlanTime = actualTime = valueEarned =
+        planTime = cumPlanValue = actualTime = valueEarned =
             topDownPlanTime = bottomUpPlanTime = actualNodeTime = 0;
         planDate = dateCompleted = null;
         listener = null;
@@ -224,11 +292,23 @@ public class EVTask implements DataListener {
         name = e.getAttribute("name");
         fullName = (parentName == null ? "" : parentName + "/" + name);
 
-        planTime = EVSchedule.getXMLNum(e, "pt");
+        planValue = EVSchedule.getXMLNum(e, "pt");
+        if (e.hasAttribute("ptt"))
+            planTime = EVSchedule.getXMLNum(e, "ptt");
+        else
+            planTime = planValue;
         topDownPlanTime = bottomUpPlanTime = planTime;
         actualTime = EVSchedule.getXMLNum(e, "at");
+        if (e.hasAttribute("adt"))
+            actualDirectTime = EVSchedule.getXMLNum(e, "adt");
+        else
+            actualDirectTime = actualTime;
         planDate = EVSchedule.getXMLDate(e, "pd");
         dateCompleted = EVSchedule.getXMLDate(e, "cd");
+        if (e.hasAttribute("loe"))
+            planLevelOfEffort = EVSchedule.getXMLNum(e, "loe");
+        if (e.hasAttribute("ord"))
+            taskOrdinal = (int) EVSchedule.getXMLNum(e, "ord");
         planTimeEditable = planTimeNull = planTimeUndefined = false;
 
         NodeList subTasks = e.getChildNodes();
@@ -250,9 +330,13 @@ public class EVTask implements DataListener {
     }
 
 
-    public boolean plannedTimeIsEditable() { return planTimeEditable; }
+    public boolean plannedTimeIsEditable() {
+        return (planTimeEditable &&
+                (planLevelOfEffort != ANCESTOR_LEVEL_OF_EFFORT));
+    }
     public boolean completionDateIsEditable() {
-        return isLeaf() && dateCompletedEditable;
+        return isLeaf() && dateCompletedEditable &&
+            !isLevelOfEffortTask() && !isUserPruned();
     }
 
     protected void setPlanTime(SimpleData time) {
@@ -293,14 +377,14 @@ public class EVTask implements DataListener {
         if (levelOfEffort instanceof NumberData) {
             planLevelOfEffort = ((NumberData) levelOfEffort).getDouble();
             if (!(planLevelOfEffort > 0 && planLevelOfEffort < 1))
-                planLevelOfEffort = -1;
+                planLevelOfEffort = NOT_LEVEL_OF_EFFORT;
         } else {
-            planLevelOfEffort = -1;
+            planLevelOfEffort = NOT_LEVEL_OF_EFFORT;
         }
     }
 
     private void userSetLevelOfEffort(String value) {
-        double p = -1;
+        double p = NOT_LEVEL_OF_EFFORT;
 
         if (value == null || value.trim().length() == 0) {
             p = 0;
@@ -310,7 +394,7 @@ public class EVTask implements DataListener {
         } catch (ParseException e) {}
 
         if (p == 0) {
-            planLevelOfEffort = -1;
+            planLevelOfEffort = NOT_LEVEL_OF_EFFORT;
             // erase the level of effort in the data repository
             data.userPutValue
                 (data.createDataName(fullName, getLevelOfEffortDataname()),
@@ -326,24 +410,25 @@ public class EVTask implements DataListener {
 
 
     private void loadLeafOrdinal() {
-        SimpleData d = getValue(LEAF_ORDINAL_PREFIX + taskListName);
+        SimpleData d = getValue(TASK_ORDINAL_PREFIX + taskListName);
         if (d instanceof NumberData)
-            leafOrdinal = savedLeafOrdinal = ((NumberData) d).getInteger();
+            taskOrdinal = savedTaskOrdinal = ((NumberData) d).getInteger();
     }
 
     /** Save any structural data about this node to the repository.
      */
     void saveData(String newTaskListName) {
-        if (fullName != null) {
+        if (fullName != null && fullName.length() > 0) {
             String oldDataName = null;
-            if (savedLeafOrdinal != 0)
-                oldDataName = LEAF_ORDINAL_PREFIX + taskListName;
+            if (savedTaskOrdinal != INFER_FROM_CONTEXT)
+                oldDataName = TASK_ORDINAL_PREFIX + taskListName;
 
-            if (newTaskListName != null && leafOrdinal != 0) {
-                String newDataName = LEAF_ORDINAL_PREFIX + newTaskListName;
+            if (newTaskListName != null && taskOrdinal != INFER_FROM_CONTEXT &&
+                taskOrdinal != ANCESTOR_PRUNED) {
+                String newDataName = TASK_ORDINAL_PREFIX + newTaskListName;
                 if (newDataName.equals(oldDataName)) oldDataName = null;
-                if (leafOrdinal != savedLeafOrdinal || oldDataName != null) {
-                    SimpleData d = new DoubleData(leafOrdinal, false);
+                if (taskOrdinal != savedTaskOrdinal || oldDataName != null) {
+                    SimpleData d = new DoubleData(taskOrdinal, false);
                     String dataName = data.createDataName(fullName, newDataName);
                     data.putValue(dataName, d);
                 }
@@ -356,7 +441,7 @@ public class EVTask implements DataListener {
         }
 
         taskListName = newTaskListName;
-        savedLeafOrdinal = leafOrdinal;
+        savedTaskOrdinal = taskOrdinal;
 
         for (int i = 0;   i < getNumChildren();   i++)
             getChild(i).saveData(newTaskListName);
@@ -495,20 +580,27 @@ public class EVTask implements DataListener {
     public String getName() { return name; }
     public String getFullName() { return fullName; }
     public String getPlanTime() {
-        if (planLevelOfEffort == 0) return "- %";
+        if (planLevelOfEffort == ANCESTOR_LEVEL_OF_EFFORT) return "";
         else if (planLevelOfEffort > 0) return formatPercent(planLevelOfEffort);
         else return formatTime(planTime);
     }
+    public String getPlanDirectTime() {
+        if (isValuePruned() && planValue == 0) return "";
+        else return formatTime(planValue);
+    }
     public boolean hasPlanTimeError() {
-        return (!isLevelOfEffortTask() &&
-                (hasTopDownBottomUpError() || planTimeIsMissing()));
+        return (hasTopDownBottomUpError() || planTimeIsMissing());
     }
     private boolean hasTopDownBottomUpError() {
-        return (bottomUpPlanTime > 0) &&
-            (Math.abs(planTime - bottomUpPlanTime) > 0.5);
+        // TODO: think about whether top-down-bottom-up errors in
+        // chronologically pruned tasks should be highlighted.
+        return (!isValuePruned() && //!isLevelOfEffortTask() && !isTotallyPruned() &&
+            (bottomUpPlanTime > 0) &&
+            (Math.abs(planTime - bottomUpPlanTime) > 0.5));
     }
     private boolean planTimeIsMissing() {
-        return (planTimeEditable && (planTimeNull || planTimeUndefined));
+        return (!isValuePruned() &&
+                planTimeEditable && (planTimeNull || planTimeUndefined));
     }
     public String getPlanTimeError() {
         if (hasTopDownBottomUpError())
@@ -518,38 +610,50 @@ public class EVTask implements DataListener {
             return "plan time is missing";
         return null;
     }
-    public String getActualTime() { return formatTime(actualTime); }
-    public String getPlanValue(double totalPlanTime) {
-        if (isLevelOfEffortTask()) return "";
-        return formatPercent(planTime/totalPlanTime);
+    public String getActualTime(double totalActualTime) {
+        if (isLevelOfEffortTask())
+            return formatPercent(actualTime / totalActualTime);
+        else return formatTime(actualTime);
     }
+    public String getActualDirectTime(double totalActualTime) {
+        if (//isLevelOfEffortTask() || isTotallyPruned() ||
+            (isValuePruned() && actualDirectTime == 0)) return "";
+        else return formatTime(actualDirectTime);
+    }
+    public String getPlanValue(double totalPlanValue) {
+        if (isValuePruned() && planValue == 0) return "";
+        return formatPercent(planValue/totalPlanValue);
+    }
+
     public String getCumPlanTime() {
-        if (isLevelOfEffortTask()) return "";
-        return formatTime(cumPlanTime);
+        if (isValuePruned() && cumPlanValue == 0) return "";
+        return formatTime(cumPlanValue);
     }
-    public String getCumPlanValue(double totalPlanTime) {
-        if (isLevelOfEffortTask()) return "";
-        return formatPercent(cumPlanTime/totalPlanTime);
+    public String getCumPlanValue(double totalPlanValue) {
+        if (isValuePruned() && cumPlanValue == 0) return "";
+        return formatPercent(cumPlanValue/totalPlanValue);
     }
     public Date getPlanDate() {
-        if (isLevelOfEffortTask()) return null;
+        if (isValuePruned()) return null;
         return planDate;
     }
     public Date getActualDate() {
-        if (isLevelOfEffortTask()) return null;
+        if (isLevelOfEffortTask() || isTotallyPruned() ||
+            dateCompleted == COMPLETION_DATE_NA) return null;
         return dateCompleted;
     }
     public String getPercentComplete() {
-        if (valueEarned == 0 || isLevelOfEffortTask()) return "";
-        else return formatIntPercent(valueEarned / planTime);
+        if (valueEarned == 0 || planValue == 0 || isLevelOfEffortTask())
+            return "";
+        else return formatIntPercent(valueEarned / planValue);
     }
     public String getPercentSpent() {
-        if (actualTime == 0 || isLevelOfEffortTask()) return "";
+        if (actualTime == 0 || planTime == 0 || isValuePruned()) return "";
+        // percent spent applies to all time, not just the current schedule.
         else return formatIntPercent(actualTime / planTime);
     }
     public String getValueEarned(double totalPlanTime) {
-        if (isLevelOfEffortTask())
-            return "";
+        if (isValuePruned() && valueEarned == 0) return "";
         else if (dateCompleted != null || valueEarned != 0.0)
             return formatPercent(valueEarned/totalPlanTime);
         else
@@ -592,9 +696,10 @@ public class EVTask implements DataListener {
         return result;
     }
     protected void getLeafTasks(List list) {
-        if (isEVLeaf())
-            list.add(this);
-        else
+        if (isEVLeaf()) {
+            if (!isLevelOfEffortTask() && !isUserPruned())
+                list.add(this);
+        } else
             for (int i = 0;   i < getNumChildren();   i++)
                 getChild(i).getLeafTasks(list);
     }
@@ -651,7 +756,7 @@ public class EVTask implements DataListener {
     }
 
     protected void resetRootValues() {
-        planTime = cumPlanTime = actualTime = valueEarned =
+        planTime = cumPlanValue = actualTime = valueEarned =
             topDownPlanTime = bottomUpPlanTime = 0;
         planDate = dateCompleted = null;
     }
@@ -679,21 +784,21 @@ public class EVTask implements DataListener {
     public double recalcPlanCumTime(double prevCumTime) {
         if (isLeaf())
             // for leaves, add our plan time to the total.
-            cumPlanTime = prevCumTime + planTime;
+            cumPlanValue = prevCumTime + planTime;
         else if (isEVLeaf()) {
             // if we aren't a leaf, but we're an EVLeaf, our children can't
             // help us. Figure out cum time ourselves, then tell them what it
             // is so they can display the same thing.
-            cumPlanTime = prevCumTime + planTime;
+            cumPlanValue = prevCumTime + planTime;
             for (int i = 0;   i < getNumChildren();   i++)
-                getChild(i).recalcPlanCumTime(cumPlanTime);
+                getChild(i).recalcPlanCumTime(cumPlanValue);
         } else {
             // for nonleaves, ask each of our children to recalc.
-            cumPlanTime = prevCumTime;
+            cumPlanValue = prevCumTime;
             for (int i = 0;   i < getNumChildren();   i++)
-                cumPlanTime = getChild(i).recalcPlanCumTime(cumPlanTime);
+                cumPlanValue = getChild(i).recalcPlanCumTime(cumPlanValue);
         }
-        return cumPlanTime;
+        return cumPlanValue;
     }
 
     public double recalcActualTimes() {
@@ -724,25 +829,35 @@ public class EVTask implements DataListener {
         }
     }
 
-    public Date recalcDateCompleted() {
-        if (isLeaf()) return dateCompleted;
+    public void recalcDateCompleted() {
+        if (isLeaf()) return;
 
-        Date d, result = getChild(0).recalcDateCompleted();
-        for (int i = 1;   i < getNumChildren();   i++) {
-            d = getChild(i).recalcDateCompleted();
+        for (int i = 0;   i < getNumChildren();   i++) {
+            if (getChild(i).isTotallyPruned()) continue;
+            getChild(i).recalcDateCompleted();
+        }
+
+        recalcParentDateCompleted();
+    }
+
+    void recalcParentDateCompleted() {
+        Date d, result = COMPLETION_DATE_NA;
+        for (int i = 0;   i < getNumChildren();   i++) {
+            if (getChild(i).isTotallyPruned()) continue;
+            d = getChild(i).dateCompleted;
             if (d == null)
                 result = null;
             else if (result != null && result.compareTo(d) < 0)
                 result = d;
         }
         dateCompletedEditable = false;
-        return (dateCompleted = result);
+        dateCompleted = result;
     }
 
     public void recalcPlanDates(EVSchedule schedule) {
         if (isEVLeaf()) {
             planDate = schedule.getPlannedCompletionDate
-                (cumPlanTime, cumPlanTime);
+                (cumPlanValue, cumPlanValue);
             if (dateCompleted != null)
                 schedule.saveCompletedTask(dateCompleted, planTime);
 
@@ -809,7 +924,7 @@ public class EVTask implements DataListener {
 
     public void checkForScheduleErrors(EVMetrics metrics, EVSchedule sched) {
         EVSchedule.Period p = sched.get(0);
-        if (p.actualTime > 0.0)
+        if (p.actualDirectTime > 0.0)
             metrics.addError("You have logged time to some of the tasks " +
                              "in your task list before the start of the " +
                              "first time period in your schedule. (Consider "+
@@ -859,48 +974,6 @@ public class EVTask implements DataListener {
         return false;
     }
 
-    /** If this node is the root node of an EVTaskList rollup, this will
-     *  recalculate it.
-     *
-     * <b>Important:</b> the children of this node (which are
-     * themselves root nodes of other EVTaskLists) should already be
-     * recalculated before calling this method.
-     */
-    public void recalcRollupNode() {
-        EVTask child;
-
-        planTime = cumPlanTime = actualTime = 0.0;
-        topDownPlanTime = bottomUpPlanTime = 0.0;
-        valueEarned = 0.0;
-        planDate = null;
-        dateCompleted = EVSchedule.A_LONG_TIME_AGO;
-
-        for (int i = children.size();   i-- > 0;  ) {
-            child = getChild(i); // For each child,
-
-            // accumulate numeric task data.
-            planTime += child.planTime;
-            cumPlanTime += child.cumPlanTime;
-            actualTime += child.actualTime;
-            valueEarned += child.valueEarned;
-            topDownPlanTime += child.topDownPlanTime;
-            bottomUpPlanTime += child.bottomUpPlanTime;
-
-            // rollup plan date should be the max of all the plan dates.
-            planDate = EVScheduleRollup.maxDate(planDate, child.planDate);
-
-            // rollup completion date should be the max of all the
-            // completion dates, unless one or more of them is null -
-            // then it should be null.
-            if (child.dateCompleted == null)
-                dateCompleted = null;
-            else if (dateCompleted != null)
-                dateCompleted = EVScheduleRollup.maxDate
-                    (dateCompleted, child.dateCompleted);
-        }
-        if (dateCompleted == EVSchedule.A_LONG_TIME_AGO)
-            dateCompleted = null;
-    }
 
     //
     // DataListener interface
@@ -953,12 +1026,18 @@ public class EVTask implements DataListener {
 
     public void saveToXML(StringBuffer result) {
         result.append("<task name='").append(XMLUtils.escapeAttribute(name))
-            .append("' pt='").append(planTime)
+            .append("' pt='").append(planValue)
             .append("' at='").append(actualTime);
+        if (planTime != planValue)
+            result.append("' ptt='").append(planTime);
         if (planDate != null)
             result.append("' pd='").append(EVSchedule.saveDate(planDate));
         if (dateCompleted != null)
             result.append("' cd='").append(EVSchedule.saveDate(dateCompleted));
+        if (isLevelOfEffortTask())
+            result.append("' loe='").append(planLevelOfEffort);
+        if (taskOrdinal != -1)
+            result.append("' ord='").append(taskOrdinal);
 
         if (isLeaf())
             result.append("'/>");
@@ -982,7 +1061,52 @@ public class EVTask implements DataListener {
         return indexOfNode(list, node) != -1;
     }
 
+    protected boolean isValuePruned() {
+        return isLevelOfEffortTask() || isTotallyPruned() || isChronologicallyPruned();
+    }
+
+    public boolean isChronologicallyPruned() {
+        return (dateCompleted != null && planDate == null && planValue == 0);
+    }
+
     public boolean isUserPruned() {
-        return leafOrdinal == -1;
+        return (taskOrdinal == USER_PRUNED || taskOrdinal == ANCESTOR_PRUNED);
+    }
+    protected boolean isTotallyPruned() {
+        return (isUserPruned() && planValue == 0);
+    }
+
+    public void setUserPruned(boolean prune) {
+        if (prune)
+            taskOrdinal = USER_PRUNED;
+        else if (taskOrdinal == USER_PRUNED || taskOrdinal == ANCESTOR_PRUNED)
+            taskOrdinal = 1; // fixme - we need to assign this a value that places it in the right place in the task order.
+    }
+
+    public EVTask getTaskForPath(String fullPath) {
+        // check to see if our fullName is a perfect match for this path.
+        if (fullName != null && fullName.equals(fullPath)) return this;
+
+        // if we could not possibly be the parent of a node matching
+        // fullPath, return null.
+        if (fullName != null) {
+            if (fullPath.length() <= fullName.length()) return null;
+            if (!fullPath.startsWith(fullName)) return null;
+            if (fullPath.charAt(fullName.length()) != '/') return null;
+        }
+
+        // see if any of our children would like to claim fullPath as theirs.
+        for (int i = children.size();   i-- > 0;  ) { // dispatch loop
+            EVTask result = getChild(i).getTaskForPath(fullPath);
+            if (result != null) return result;
+        }
+
+        // None of our children claimed the path.
+        if (fullName == null || fullName.length() == 0)
+            // if this is the root node, don't claim it either.
+            return null;
+        else
+            // otherwise, claim it as our own.
+            return this;
     }
 }

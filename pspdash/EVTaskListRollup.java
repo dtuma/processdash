@@ -67,6 +67,8 @@ public class EVTaskListRollup extends EVTaskList {
         evTaskLists = new Vector();
         addTaskListsFromData(data, hierarchy, cache, taskListName);
         schedule = new EVScheduleRollup(evTaskLists);
+        calculator = new EVCalculatorRollup
+            ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
     }
 
 
@@ -125,31 +127,6 @@ public class EVTaskListRollup extends EVTaskList {
             data.putValue(dataName, list);
             taskListName = newName;
         }
-    }
-
-    public void recalc() {
-        EVTaskList taskList;
-
-        // Recalculate all the subschedules.
-        for (int i = evTaskLists.size();   i-- > 0; ) {
-            taskList = (EVTaskList) evTaskLists.get(i);
-            taskList.recalc();
-
-            // Some types of task lists perform a recalc by completely
-            // replacing their root task and schedule. Give them the
-            // benefit of the doubt and make certain that we are using
-            // the correct root and schedule
-            ((EVTask) root).replace(i, (EVTask) taskList.root);
-            ((EVScheduleRollup) schedule).replaceSchedule(i, taskList);
-        }
-
-        // Recalculate the root node.
-        ((EVTask) root).recalcRollupNode();
-
-        // Recalculate the rollup schedule.
-        ((EVScheduleRollup) schedule).recalc();
-
-        super.recalc();
     }
 
     public EVTask createAndAddTask(String path,

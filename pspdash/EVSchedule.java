@@ -60,15 +60,39 @@ public class EVSchedule implements TableModel {
     public class Period implements Cloneable {
         Period previous;
         Date endDate;
-        double planTime, cumPlanTime, cumPlanValue,
-            actualTime, cumActualTime, cumEarnedValue;
+        /** The total amount of time the user plans to spend in this period,
+         * including level of effort tasks */
+        double planTotalTime;
+        /** The amount of time the user plans to spend in this period on
+         * tasks that earn value */
+        double planDirectTime;
+        /** The amount of time the user plans to spend on tasks that earn
+         * value during all periods up to and including this period */
+        double cumPlanDirectTime;
+        /** The amount of value the user plans to earn by the end of this
+         * period */
+        double cumPlanValue;
+
+        /** The actual amount of time the user spent during this period on
+         * tasks that earn value */
+        double actualDirectTime;
+        /** The actual amount of time the user spent during this period on
+         * level of effort tasks */
+        double actualIndirectTime;
+        /** The actual amount of time the user spent on tasks that earn value
+         * during all periods up to and including this period */
+        double cumActualDirectTime;
+        /** The actual value the user has earned by the end of this period */
+        double cumEarnedValue;
+
         boolean automatic = false;
 
-        public Period(Date endDate, double planTime) {
+        public Period(Date endDate, double planTotalTime) {
             this.endDate = endDate;
-            this.planTime = planTime;
-            this.cumPlanTime = planTime;
-            cumPlanValue = actualTime = cumActualTime = cumEarnedValue = 0;
+            this.planTotalTime = planTotalTime;
+            this.planDirectTime = planTotalTime * directPercentage;
+            this.cumPlanDirectTime = this.planDirectTime;
+            cumPlanValue = actualDirectTime = actualIndirectTime = cumActualDirectTime = cumEarnedValue = 0;
             previous = null;
         }
 
@@ -83,13 +107,14 @@ public class EVSchedule implements TableModel {
             return new Date(d.getTime() + adjustment);
         }
 
-        public String getPlanTime() { return formatTime(planTime); }
-        public String getCumPlanTime() { return formatTime(cumPlanTime); }
+        public String getPlanTime() { return formatTime(planTotalTime); }
+        public String getPlanDirectTime() { return formatTime(planDirectTime); }
+        public String getCumPlanTime() { return formatTime(cumPlanDirectTime); }
         public String getCumPlanValue(double totalPlanTime) {
             return formatPercent(cumPlanValue/totalPlanTime); }
-        public String getActualTime() { return formatTime(actualTime); }
+        public String getActualTime() { return formatTime(actualDirectTime); }
         public String getCumActualTime() {
-            return formatTime(cumActualTime);
+            return formatTime(cumActualDirectTime);
         }
         public String getCumEarnedValue(double totalPlanTime) {
             return formatPercent(cumEarnedValue/totalPlanTime);
@@ -141,13 +166,15 @@ public class EVSchedule implements TableModel {
                         if (pos == 0)
                             remove(1);
                         else {
-                            endDate        = next.endDate;
-                            planTime      += next.planTime;
-                            cumPlanTime    = next.cumPlanTime;
-                            cumPlanValue   = next.cumPlanValue;
-                            actualTime    += next.actualTime;
-                            cumActualTime  = next.cumActualTime;
-                            cumEarnedValue = next.cumEarnedValue;
+                            endDate              = next.endDate;
+                            planTotalTime       += next.planTotalTime;
+                            planDirectTime      += next.planDirectTime;
+                            cumPlanDirectTime    = next.cumPlanDirectTime;
+                            cumPlanValue         = next.cumPlanValue;
+                            actualDirectTime    += next.actualDirectTime;
+                            actualIndirectTime  += next.actualIndirectTime;
+                            cumActualDirectTime  = next.cumActualDirectTime;
+                            cumEarnedValue       = next.cumEarnedValue;
                             remove(pos+1);
                         }
                         clearAutomaticFlag();
@@ -210,8 +237,9 @@ public class EVSchedule implements TableModel {
             if (value instanceof String) {
                 // parse the value to obtain a number of minutes
                 long planTime = TimeLogEditor.parseTime((String) value);
-                if (planTime != -1 && planTime != this.planTime) {
-                    this.planTime = planTime;
+                if (planTime != -1 && planTime != this.planTotalTime) {
+                    this.planTotalTime = planTime;
+                    this.planDirectTime = planTime * directPercentage;
                     clearAutomaticFlag();
                     recalcCumPlanTimes();
                     fireNeedsRecalc();
@@ -233,8 +261,10 @@ public class EVSchedule implements TableModel {
 
         public void saveToXML(StringBuffer result) {
             result.append("<period end='").append(saveDate(endDate))
-                .append("' pt='").append(planTime)
-                .append("' at='").append(actualTime)
+                .append("' pt='").append(planTotalTime)
+                .append("' pdt='").append(planDirectTime)
+                .append("' at='").append(actualDirectTime)
+                .append("' ait='").append(actualIndirectTime)
                 .append("' cpv='").append(cumPlanValue)
                 .append("' cev='").append(cumEarnedValue);
             if (automatic) result.append("' auto='true");
@@ -242,8 +272,14 @@ public class EVSchedule implements TableModel {
         }
         public Period(Element e) {
             endDate = getXMLDate(e, "end");
-            planTime = getXMLNum(e, "pt");
-            actualTime = getXMLNum(e, "at");
+            if (XMLUtils.hasValue(e.getAttribute("pdt"))) {
+                planTotalTime = getXMLNum(e, "pt");
+                planDirectTime = getXMLNum(e, "pdt");
+            } else {
+                planTotalTime = planDirectTime = getXMLNum(e, "pt");
+            }
+            actualDirectTime = getXMLNum(e, "at");
+            actualIndirectTime = getXMLNum(e, "ait");
             cumPlanValue = getXMLNum(e, "cpv");
             cumEarnedValue = getXMLNum(e, "cev");
             automatic = "true".equals(e.getAttribute("auto"));
@@ -315,6 +351,7 @@ public class EVSchedule implements TableModel {
             p.previous = prev; prev = p;
             periods.add(p);
         }
+        directPercentage = s.directPercentage;
     }
 
     public EVSchedule(Element e) {
@@ -392,7 +429,7 @@ public class EVSchedule implements TableModel {
             p = get(i);
             if (p.automatic)
                 break;
-            result.add(Double.toString(p.planTime));
+            result.add(Double.toString(p.planTotalTime));
             result.add(saveDate(p.endDate));
         }
         result.setImmutable();
@@ -457,7 +494,7 @@ public class EVSchedule implements TableModel {
         for (int i = 1;   i < periods.size();   i++) {
             p = get(i);
             if (p != null && p.getEndDate().getTime() < time)
-                result += p.planTime;
+                result += p.planDirectTime;
             else break;
         }
         return result;
@@ -472,7 +509,7 @@ public class EVSchedule implements TableModel {
         for (int i = 1;   i < periods.size();   i++) {
             p = get(i);
             if (p != null && p.getEndDate().getTime() < time)
-                result += p.actualTime;
+                result += p.actualDirectTime;
             else break;
         }
         return result;
@@ -502,7 +539,7 @@ public class EVSchedule implements TableModel {
         Date result = null;
         for (int i = 0;  i < periods.size();  i++) {
             p = get(i);
-            if (p.cumPlanTime >= cumPlanTime) {
+            if (p.cumPlanDirectTime >= cumPlanTime) {
                 p.cumPlanValue = Math.max(p.cumPlanValue, cumPlanValue);
                 if (result == null) result = p.getEndDate();
             }
@@ -512,17 +549,22 @@ public class EVSchedule implements TableModel {
         // There isn't enough time in the schedule - we'll attempt
         // to expand the schedule so it contains enough hours.
 
-        if (defaultPlanTime <= 0.0) // if we can't add hours to the schedule,
+        if (defaultPlanDirectTime <= 0.0) // if we can't add hours to the schedule,
             return NEVER;           // the task will never get done.
 
+        boolean firstTimeThrough = true;
         while (true) {
-            if (!grow(true) || !addHours(cumPlanTime)) return NEVER;
+            //FIXME: make this more robust, so it can withstand out of order
+            // queries against the schedule.
+            if (!firstTimeThrough && !grow(true)) return NEVER;
+            if (!addHours(cumPlanTime) && !firstTimeThrough) return NEVER;
 
             p = getLast();          // get the last period in the list.
-            if (p.cumPlanTime >= cumPlanTime) {
+            if (p.cumPlanDirectTime >= cumPlanTime) {
                 p.cumPlanValue = Math.max(p.cumPlanValue, cumPlanValue);
                 return p.getEndDate();
             }
+            firstTimeThrough = false;
         }
     }
 
@@ -548,9 +590,9 @@ public class EVSchedule implements TableModel {
             if (when.compareTo(p.endDate) < 0) {
                 foundDate = true;
                 p.cumEarnedValue += planValue;
-                p.cumActualTime  += actualTime;
+                p.cumActualDirectTime  += actualTime;
                 if (when.compareTo(p.getBeginDate()) >= 0)
-                    p.actualTime += actualTime;
+                    p.actualDirectTime += actualTime;
                 //System.out.println("\tadding to period ending "+p.endDate);
             } else
                 break;
@@ -564,13 +606,18 @@ public class EVSchedule implements TableModel {
             p = getLast();      // get the last period in the list.
             if (when.compareTo(p.endDate) < 0) {
                 p.cumEarnedValue += planValue;
-                p.cumActualTime  += actualTime;
+                p.cumActualDirectTime  += actualTime;
                 if (when.compareTo(p.getBeginDate()) >= 0)
-                    p.actualTime += actualTime;
+                    p.actualDirectTime += actualTime;
                 //System.out.println("\tadding to period ending "+p.endDate);
                 return;
             }
         }
+    }
+
+    private double directPercentage = 1;
+    public void setLevelOfEffort(double percent) {
+        directPercentage = 1.0 - percent;
     }
 
     private Date effectiveDate = null;
@@ -614,18 +661,21 @@ public class EVSchedule implements TableModel {
 
         if (!z.automatic) return false;
 
-        double diff = defaultPlanTime - z.planTime;
+        double diff = defaultPlanDirectTime - z.planDirectTime;
         if (diff <= 0.0) return false;
 
-        double cumDiff = requiredCumPlanTime - z.cumPlanTime;
+        double cumDiff = requiredCumPlanTime - z.cumPlanDirectTime;
         if (cumDiff <= 0) return false;
 
         if (diff < cumDiff) {
-            z.planTime = defaultPlanTime;
-            z.cumPlanTime = z.previous.cumPlanTime + defaultPlanTime;
+            z.planTotalTime = defaultPlanTotalTime;
+            z.planDirectTime = defaultPlanDirectTime;
+            z.cumPlanDirectTime = z.previous.cumPlanDirectTime + defaultPlanDirectTime;
         } else {
-            z.cumPlanTime = requiredCumPlanTime;
-            z.planTime = requiredCumPlanTime - z.previous.cumPlanTime;
+            z.cumPlanDirectTime = requiredCumPlanTime;
+            z.planDirectTime = requiredCumPlanTime - z.previous.cumPlanDirectTime;
+            z.planTotalTime = z.planDirectTime *
+                (defaultPlanTotalTime / defaultPlanDirectTime);
         }
         return true;
     }
@@ -644,7 +694,7 @@ public class EVSchedule implements TableModel {
         zdateTime += dstDifference(ydate, zdateTime);
         Date zdate = new Date(zdateTime);
         z = new Period(zdate, 0.0);
-        z.cumPlanTime = y.cumPlanTime;
+        z.cumPlanDirectTime = y.cumPlanDirectTime;
         z.cumPlanValue = y.cumPlanValue;
         z.cumEarnedValue = y.cumEarnedValue;
         z.automatic = automatic;
@@ -727,7 +777,13 @@ public class EVSchedule implements TableModel {
      *  This is the maximum amount of time that will be alloted to any
      *  automatic schedule period.
      */
-    double defaultPlanTime;
+    double defaultPlanTotalTime;
+
+    /** The amount of planTime in the <b>last</b> manual schedule period.
+     *  This is the maximum amount of time that will be alloted to any
+     *  automatic schedule period.
+     */
+    double defaultPlanDirectTime;
 
     public synchronized void cleanUp() {
         prepForEvents();
@@ -735,8 +791,9 @@ public class EVSchedule implements TableModel {
         int i;
         for (i = 0;  i < periods.size();  i++) {
             p = get(i);
+            p.planDirectTime = directPercentage * p.planTotalTime;
             p.cumPlanValue = p.cumEarnedValue = 0;
-            p.actualTime   = p.cumActualTime  = 0;
+            p.actualDirectTime = p.actualIndirectTime = p.cumActualDirectTime = 0;
             if (p.automatic)
                 break;
         }
@@ -747,26 +804,27 @@ public class EVSchedule implements TableModel {
             if (p != null) p.automatic = false;
         }
         periods.setSize(i);
-        defaultPlanTime = get(i-1).planTime;
+        defaultPlanTotalTime = get(i-1).planTotalTime;
+        defaultPlanDirectTime = get(i-1).planDirectTime;
     }
 
     public synchronized void recalcCumPlanTimes() {
-        double cumPlanTime = 0;
+        double cumPlanDirectTime = 0;
         Period p;
         for (int i = 1;   i < periods.size();   i++) {
             p = get(i);
-            cumPlanTime += p.planTime;
-            p.cumPlanTime = cumPlanTime;
+            cumPlanDirectTime += p.planDirectTime;
+            p.cumPlanDirectTime = cumPlanDirectTime;
         }
     }
 
     public synchronized void recalcCumActualTimes() {
-        double cumActualTime = 0;
+        double cumActualDirectTime = 0;
         Period p;
         for (int i = 0;   i < periods.size();   i++) {
             p = get(i);
-            cumActualTime += p.actualTime;
-            p.cumActualTime = cumActualTime;
+            cumActualDirectTime += p.actualDirectTime;
+            p.cumActualDirectTime = cumActualDirectTime;
         }
     }
 
@@ -1082,10 +1140,10 @@ public class EVSchedule implements TableModel {
 
     private class PlanTimeSeries extends PlanChartSeries {
         public Number getYValue(int itemIndex) {
-            return new Double(get(itemIndex).cumPlanTime / 60.0); } }
+            return new Double(get(itemIndex).cumPlanDirectTime / 60.0); } }
     private class ActualTimeSeries extends ActualChartSeries {
         public Number getYValue(int itemIndex) {
-            return new Double(get(itemIndex).cumActualTime / 60.0); } }
+            return new Double(get(itemIndex).cumActualDirectTime / 60.0); } }
 
     /** XYDataSource for charting plan vs actual direct hours.
      */
@@ -1098,7 +1156,7 @@ public class EVSchedule implements TableModel {
         }
         ForecastChartSeries forecast;
         public void recalc() {
-            forecast.currentYVal = new Double(getLast().cumActualTime / 60.0);
+            forecast.currentYVal = new Double(getLast().cumActualDirectTime / 60.0);
             forecast.forecastYVal = new Double
                 (checkDouble(metrics.independentForecastCost() / 60.0));
             forecast.recalc();

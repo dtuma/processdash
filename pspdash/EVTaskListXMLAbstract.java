@@ -90,7 +90,7 @@ public class EVTaskListXMLAbstract extends EVTaskList {
 
             // minimally recalculate the schedule.
             ((EVTask) root).simpleRecalc(schedule);
-            totalPlanTime = schedule.getMetrics().totalPlan();
+            totalPlanValue = schedule.getMetrics().totalPlan();
 
             // keep a record of the xml doc we parsed for future efficiency.
             xmlSource = xmlDoc;

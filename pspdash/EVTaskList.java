@@ -54,11 +54,15 @@ public class EVTaskList extends AbstractTreeTableModel
 
     protected String taskListName;
     protected EVSchedule schedule;
+    protected EVCalculator calculator;
 
     /** timer for triggering recalculations */
     protected Timer recalcTimer = null;
 
-    protected double totalPlanTime;
+    protected double totalPlanValue;
+    protected double totalActualTime;
+    protected boolean showDirectTimeColumns;
+
 
     protected EVTaskList(String taskListName,
                          String displayName,
@@ -283,16 +287,16 @@ public class EVTaskList extends AbstractTreeTableModel
     public boolean removeTask(TreePath path) {
         if (!isEditable()) return false;
 
-        // for now, only remove tasks which are children of the root.
-        int pathLen = path.getPathCount();
-        if (pathLen != 2) return false;
+        if (checkRemovable(path) == false) return false;
 
+        int pathLen = path.getPathCount();
         EVTask parent = (EVTask) path.getPathComponent(pathLen-2);
         EVTask child  = (EVTask) path.getPathComponent(pathLen-1);
-        int pos = parent.remove(child);
+        int pos = doRemoveTask(parent, child);
+        if (pos == -1) return true;
+
         finishRemovingTask(pos);
         child.destroy();
-
 
         // send the appropriate TreeModel event.
         int[] childIndices = new int[] { pos };
@@ -300,6 +304,13 @@ public class EVTaskList extends AbstractTreeTableModel
         fireTreeNodesRemoved
             (this, ((EVTask) parent).getPath(), childIndices, children);
         return true;
+    }
+    protected boolean checkRemovable(TreePath path) {
+        // default behavior: only remove tasks which are children of the root.
+        return path.getPathCount() == 2;
+    }
+    protected int doRemoveTask(EVTask parent, EVTask child) {
+        return parent.remove(child);
     }
     protected void finishRemovingTask(int pos) {}
 
@@ -399,7 +410,12 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     public void recalc() {
-        totalPlanTime = schedule.getMetrics().totalPlan();
+        if (calculator != null)
+            calculator.recalculate();
+        totalPlanValue = schedule.getMetrics().totalPlan();
+        EVTask taskRoot = (EVTask) root;
+        totalActualTime = taskRoot.actualCurrentTime;
+        showDirectTimeColumns = (taskRoot.planTime != taskRoot.planValue);
         fireEvRecalculated();
     }
 
@@ -413,14 +429,16 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     /** Names of the columns in the TreeTableModel. */
-    protected static String[] colNames = { "Project/Task", "PT", "Time",
+    protected static String[] colNames = { "Project/Task", "PT", "PDT", "Time", "DTime",
         "PV", "CPT", "CPV", "Plan Date", "Date", "%C", "%S", "EV" };
-    public static int[] colWidths =      { 175,             50,   50,
+    public static int[] colWidths =      {  175,            50,   50,    50,     50,
          40,   50,    40,    80,          80,     40,   40,   40 };
     public static String[] toolTips = {
         null,
         "Planned Time (hours:minutes)",
+        "Planned Direct Time (hours:minutes)",
         "Actual Time (hours:minutes)",
+        "Actual Direct Time (hours:minutes)",
         "Planned Value",
         "Cumulative Planned Time (hours:minutes)",
         "Cumulative Planned Value",
@@ -432,21 +450,25 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public static final int TASK_COLUMN           = 0;
     public static final int PLAN_TIME_COLUMN      = 1;
-    public static final int ACT_TIME_COLUMN       = 2;
-    public static final int PLAN_VALUE_COLUMN     = 3;
-    public static final int PLAN_CUM_TIME_COLUMN  = 4;
-    public static final int PLAN_CUM_VALUE_COLUMN = 5;
-    public static final int PLAN_DATE_COLUMN      = 6;
-    public static final int DATE_COMPLETE_COLUMN  = 7;
-    public static final int PCT_COMPLETE_COLUMN   = 8;
-    public static final int PCT_SPENT_COLUMN      = 9;
-    public static final int VALUE_EARNED_COLUMN   = 10;
+    public static final int PLAN_DTIME_COLUMN     = 2;
+    public static final int ACT_TIME_COLUMN       = 3;
+    public static final int ACT_DTIME_COLUMN      = 4;
+    public static final int PLAN_VALUE_COLUMN     = 5;
+    public static final int PLAN_CUM_TIME_COLUMN  = 6;
+    public static final int PLAN_CUM_VALUE_COLUMN = 7;
+    public static final int PLAN_DATE_COLUMN      = 8;
+    public static final int DATE_COMPLETE_COLUMN  = 9;
+    public static final int PCT_COMPLETE_COLUMN   = 10;
+    public static final int PCT_SPENT_COLUMN      = 11;
+    public static final int VALUE_EARNED_COLUMN   = 12;
 
     /** Types of the columns in the TreeTableModel. */
     static protected Class[]  colTypes = {
         TreeTableModel.class,   // project/task
         String.class,           // planned time
+        String.class,           // planned direct time
         String.class,           // actual time
+        String.class,           // actual direct time
         String.class,           // planned value
         String.class,           // planned cumulative time
         String.class,           // planned cumulative value
@@ -475,6 +497,13 @@ public class EVTaskList extends AbstractTreeTableModel
      *  otherwise. */
     public boolean isLeaf(Object node) {
         return ((EVTask) node).isLeaf();
+    }
+
+    /** Returns true if the direct time columns in this schedule should be
+     * displayed.
+     */
+    public boolean showDirectTimeColumns() {
+        return showDirectTimeColumns;
     }
 
     /** Returns true if the value in column <code>column</code> of object
@@ -506,7 +535,12 @@ public class EVTaskList extends AbstractTreeTableModel
     public int getColumnCount() { return colNames.length; }
 
     /** Returns the name for a particular column. */
-    public String getColumnName(int column) { return colNames[column]; }
+    public String getColumnName(int column) {
+        if (!showDirectTimeColumns &&
+            (column == PLAN_DTIME_COLUMN || column == ACT_DTIME_COLUMN))
+            return " " + colNames[column] + " ";
+        return colNames[column];
+    }
 
     /** Returns the class for the particular column. */
     public Class getColumnClass(int column) { return colTypes[column]; }
@@ -518,15 +552,17 @@ public class EVTaskList extends AbstractTreeTableModel
         switch (column) {
         case TASK_COLUMN:           return n.getName();
         case PLAN_TIME_COLUMN:      return n.getPlanTime();
-        case ACT_TIME_COLUMN:       return n.getActualTime();
-        case PLAN_VALUE_COLUMN:     return n.getPlanValue(totalPlanTime);
+        case PLAN_DTIME_COLUMN:     return n.getPlanDirectTime();
+        case ACT_TIME_COLUMN:       return n.getActualTime(totalActualTime);
+        case ACT_DTIME_COLUMN:      return n.getActualDirectTime(totalActualTime);
+        case PLAN_VALUE_COLUMN:     return n.getPlanValue(totalPlanValue);
         case PLAN_CUM_TIME_COLUMN:  return n.getCumPlanTime();
-        case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanTime);
+        case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanValue);
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
         case PCT_COMPLETE_COLUMN:   return n.getPercentComplete();
         case PCT_SPENT_COLUMN:      return n.getPercentSpent();
-        case VALUE_EARNED_COLUMN:   return n.getValueEarned(totalPlanTime);
+        case VALUE_EARNED_COLUMN:   return n.getValueEarned(totalPlanValue);
         }
         return null;
     }
@@ -537,8 +573,8 @@ public class EVTaskList extends AbstractTreeTableModel
         if (node == null) return;
         EVTask n = (EVTask) node;
         switch (column) {
-        case PLAN_TIME_COLUMN:      n.userSetPlanTime(aValue);   break;
-        case DATE_COMPLETE_COLUMN:  n.userSetActualDate(aValue); break;
+        case PLAN_TIME_COLUMN:      n.userSetPlanTime(aValue);       break;
+        case DATE_COMPLETE_COLUMN:  n.userSetActualDate(aValue);     break;
         }
     }
 

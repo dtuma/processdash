@@ -246,10 +246,12 @@ public class EVScheduleRollup extends EVSchedule {
     }
 
     private void addPeriodData(Period src, Period dest, double percent) {
-        dest.planTime    += percent * src.planTime;
-        dest.planValue   += percent * src.planValue;
-        dest.actualTime  += percent * src.actualTime;
-        dest.earnedValue += percent * src.earnedValue;
+        dest.planTotalTime      += percent * src.planTotalTime;
+        dest.planDirectTime     += percent * src.planDirectTime;
+        dest.planValue          += percent * src.planValue;
+        dest.actualDirectTime   += percent * src.actualDirectTime;
+        dest.actualIndirectTime += percent * src.actualIndirectTime;
+        dest.earnedValue        += percent * src.earnedValue;
     }
 
 
@@ -263,10 +265,10 @@ public class EVScheduleRollup extends EVSchedule {
         Period p;
         while (i.hasNext()) {
             p = (Period) i.next();
-            p.cumPlanTime    = (cumPlanTime    += p.planTime);
-            p.cumPlanValue   = (cumPlanValue   += p.planValue);
-            p.cumActualTime  = (cumActualTime  += p.actualTime);
-            p.cumEarnedValue = (cumEarnedValue += p.earnedValue);
+            p.cumPlanDirectTime   = (cumPlanTime    += p.planDirectTime);
+            p.cumPlanValue        = (cumPlanValue   += p.planValue);
+            p.cumActualDirectTime = (cumActualTime  += p.actualDirectTime);
+            p.cumEarnedValue      = (cumEarnedValue += p.earnedValue);
         }
     }
 
@@ -311,10 +313,10 @@ public class EVScheduleRollup extends EVSchedule {
             if (start.compareTo(p.endDate) >= 0) continue;
             if (end.compareTo(p.getBeginDate()) <= 0) break;
             r.addPeriodData(p, result, 1.0);
-            result.cumPlanTime    = p.cumPlanTime;
-            result.cumPlanValue   = p.cumPlanValue;
-            result.cumActualTime  = p.cumActualTime;
-            result.cumEarnedValue = p.cumEarnedValue;
+            result.cumPlanDirectTime   = p.cumPlanDirectTime;
+            result.cumPlanValue        = p.cumPlanValue;
+            result.cumActualDirectTime = p.cumActualDirectTime;
+            result.cumEarnedValue      = p.cumEarnedValue;
         }
         return result;
     }
@@ -332,7 +334,7 @@ public class EVScheduleRollup extends EVSchedule {
 
     public synchronized void cleanUp() {
         prepForEvents();
-        defaultPlanTime = 0;
+        defaultPlanDirectTime = defaultPlanTotalTime = 0;
     }
 
     public boolean isCellEditable(int rowIndex, int columnIndex) {

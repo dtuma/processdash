@@ -68,6 +68,9 @@ public class EVMetrics implements TableModel {
     /** The total actual time to date for completed schedule periods. */
     double totalScheduleActualTime = 0.0;
 
+    /** The total actual time spent on indirect tasks */
+    double indirectTime = 0.0;
+
     /** The end of the current time period in the schedule */
     protected Date periodEnd = null;
 
@@ -83,7 +86,8 @@ public class EVMetrics implements TableModel {
 
     public void reset(Date start, Date current,
                       Date periodStart, Date periodEnd) {
-        totalPlanTime = earnedValueTime = actualTime = planTime = 0.0;
+        totalPlanTime = earnedValueTime = actualTime = planTime =
+            indirectTime = 0.0;
         startDate = start;
         currentDate = current;
         this.periodEnd = periodEnd;
@@ -116,6 +120,9 @@ public class EVMetrics implements TableModel {
             else if (!periodEnd.before(planDate))
                 this.planTime += planTime * periodPercent;
         }
+    }
+    public void addIndirectTime(double indirectTime) {
+        this.indirectTime += indirectTime;
     }
     public void addError(String message, EVTask node) {
         if (errors == null) errors = new TreeMap();

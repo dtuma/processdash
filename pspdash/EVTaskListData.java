@@ -65,6 +65,7 @@ public class EVTaskListData extends EVTaskList
 
         addTasksFromData(data, taskListName);
         schedule = getSchedule(data, taskListName);
+        calculator = new EVCalculatorData((EVTask) root, schedule);
     }
     public boolean isEditable() { return true; }
 
@@ -186,6 +187,19 @@ public class EVTaskListData extends EVTaskList
             return null;
     }
 
+    protected boolean checkRemovable(TreePath path) {
+        return path.getPathCount() > 1;
+    }
+
+    protected int doRemoveTask(EVTask parent, EVTask child) {
+        if (parent == (EVTask) root)
+            return super.doRemoveTask(parent, child);
+        else {
+            child.setUserPruned(!child.isUserPruned());
+            return -1;
+        }
+    }
+
     public boolean explodeTask(TreePath path) { // move to the data version
         // for now, only remove tasks which are children of the root.
         int pathLen = path.getPathCount();
@@ -223,13 +237,6 @@ public class EVTaskListData extends EVTaskList
         fireTreeNodesInserted
             (this, parentPath, insertedIndicies, insertedChildren);
         return true;
-    }
-
-    public void recalc() {
-        TimeLog log = new TimeLog();
-        try { log.readDefault(); } catch (IOException ioe) {}
-        ((EVTask) root).recalc(schedule, log);
-        super.recalc();
     }
 
     protected void dispose() {

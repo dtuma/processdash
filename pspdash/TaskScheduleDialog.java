@@ -109,11 +109,15 @@ public class TaskScheduleDialog
                                 // set default widths for the columns
         boolean showCumColumns = Settings.getBool
             ("ev.showCumulativeTaskData", false);
+        boolean showDirectColumns = model.showDirectTimeColumns();
         for (int i = 0;  i < EVTaskList.colWidths.length;  i++) {
             int width = EVTaskList.colWidths[i];
-            if (!showCumColumns &&
-                (i == EVTaskList.PLAN_CUM_TIME_COLUMN ||
-                 i == EVTaskList.PLAN_CUM_VALUE_COLUMN)) {
+            if ((!showCumColumns &&
+                 (i == EVTaskList.PLAN_CUM_TIME_COLUMN ||
+                  i == EVTaskList.PLAN_CUM_VALUE_COLUMN))  ||
+                (!showDirectColumns &&
+                 (i == EVTaskList.PLAN_DTIME_COLUMN ||
+                    i == EVTaskList.ACT_DTIME_COLUMN))) {
                 width = 0;
                 treeTable.getColumnModel().getColumn(i).setMinWidth(0);
                 treeTable.getColumnModel().getColumn(i).setMaxWidth(0);
@@ -173,7 +177,7 @@ public class TaskScheduleDialog
                     confirmClose(true); }});
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        frame.setSize(new Dimension((showCumColumns ? 700 : 630), 600));
+        frame.setSize(new Dimension((showCumColumns ? 800 : 730), 600));
         frame.show();
 
         // if the task list is empty, open the add task dialog immediately.
@@ -506,16 +510,26 @@ public class TaskScheduleDialog
                 String errorStr = null;
 
                 TreePath path = getTree().getPathForRow(row);
-                if (path != null)
+                EVTask node = null;
+                if (path != null) {
+                    if (path.getLastPathComponent() instanceof EVTask)
+                        node = (EVTask) path.getLastPathComponent();
                     errorStr = ((EVTaskList) model).getErrorStringAt
                         (path.getLastPathComponent(),
                          convertColumnIndexToModel(column));
+                }
 
                 if (result instanceof JComponent)
                     ((JComponent) result).setToolTipText(errorStr);
+
                 if (errorStr != null)
                     result.setForeground(errorStr.startsWith(" ")
                                          ? Color.orange : Color.red);
+                else if (node != null && node.isUserPruned())
+                    result.setForeground(PHANTOM_COLOR);
+                else if (node != null && node.isChronologicallyPruned())
+                    result.setForeground(SEPIA);
+
                 Font f = getFont(errorStr != null, result);
                 if (f != null) result.setFont(f);
 
@@ -604,16 +618,28 @@ public class TaskScheduleDialog
             if (f != null) result.setFont(f);
 
             if (node != null && node.isUserPruned()) {
-                result.setEnabled(false);
+                result.setForeground(PHANTOM_COLOR);
+                if (errorStr == null && result instanceof JComponent)
+                    ((JComponent) result).setToolTipText("Task removed");
                 if (result instanceof JLabel)
-                    ((JLabel) result).setDisabledIcon(getPrunedIcon(expanded, leaf));
+                    ((JLabel) result).setIcon(getPrunedIcon(expanded, leaf));
+            } else if (node != null && node.isChronologicallyPruned()) {
+                result.setForeground(SEPIA);
+                if (errorStr == null && result instanceof JComponent)
+                    ((JComponent) result).setToolTipText
+                        ("Previously completed task");
+                if (result instanceof JLabel)
+                    ((JLabel) result).setIcon(getChronIcon(expanded, leaf));
             }
-
             return result;
         }
         private Icon prunedOpenIcon = null;
         private Icon prunedClosedIcon = null;
         private Icon prunedLeafIcon = null;
+
+        private Icon chronOpenIcon = null;
+        private Icon chronClosedIcon = null;
+        private Icon chronLeafIcon = null;
 
         private Icon getPrunedIcon(boolean expanded, boolean leaf) {
             if (leaf) {
@@ -637,6 +663,28 @@ public class TaskScheduleDialog
 //            result.applyFilter(new GrayFilter(true, 85));
             result.applyFilter(PHANTOM_FILTER);
             result.setDecorator(new PruneDecorationIcon(), y);
+            return result;
+        }
+        private Icon getChronIcon(boolean expanded, boolean leaf) {
+            if (leaf) {
+                if (chronLeafIcon == null)
+                    chronLeafIcon = chronIcon(getLeafIcon(), getDefaultLeafIcon(), 8);
+                return chronLeafIcon;
+            } else if (expanded) {
+                if (chronOpenIcon == null)
+                    chronOpenIcon = chronIcon(getOpenIcon(), getDefaultOpenIcon(), 8);
+                return chronOpenIcon;
+            } else {
+                if (chronClosedIcon == null)
+                    chronClosedIcon = chronIcon(getClosedIcon(), getDefaultClosedIcon(), 8);
+                return chronClosedIcon;
+            }
+        }
+        private Icon chronIcon(Icon icon, Icon alt, int y) {
+            if (icon == null) icon = alt;
+            if (icon == null) return null;
+            BufferedIcon result = new BufferedIcon(this, icon);
+            result.applyFilter(SEPIA_FILTER);
             return result;
         }
     }
@@ -691,6 +739,7 @@ public class TaskScheduleDialog
     }
 
     // filter for creating "error" icons.  Converts to light monochrome.
+    private static Color PHANTOM_COLOR = new Color(255*2/3, 255*2/3, 255*2/3);
     private static PhantomFilter PHANTOM_FILTER = new PhantomFilter();
     private static class PhantomFilter extends RGBImageFilter {
         public PhantomFilter() { canFilterIndexColorModel = true; }
@@ -706,6 +755,31 @@ public class TaskScheduleDialog
             if (gray < 0) gray = 0;
             if (gray > 255) gray = 255;
             return (rgb & 0xff000000) | (0x010101 * gray);
+        }
+    }
+
+    private static Color SEPIA = new Color(159, 141, 114);
+    private static SepiaFilter SEPIA_FILTER = new SepiaFilter();
+    private static class SepiaFilter extends RGBImageFilter {
+        public SepiaFilter() { canFilterIndexColorModel = true; }
+
+        public int filterRGB(int x, int y, int rgb) {
+            // Use NTSC conversion formula.
+            int gray = (int)(0.30 * ((rgb >> 16) & 0xff) +
+                             0.59 * ((rgb >> 8) & 0xff) +
+                             0.11 * (rgb & 0xff));
+
+            if (gray < 0) gray = 0;
+            if (gray > 255) gray = 255;
+            double p = ((double) gray) / 255.0;
+            int r = linear(159, 232, p);
+            int g = linear(141, 224, p);
+            int b = linear(114, 205, p);
+
+            return (rgb & 0xff000000) | (r<<16) | (g<<8) | b;
+        }
+        private int linear(int zero, int one, double g) {
+            return 0xff & ((int) (zero + g * (one - zero)));
         }
     }
 
@@ -830,7 +904,16 @@ public class TaskScheduleDialog
     }
 
 
-    public void evNodeChanged(EVTask node) {
+    public void evNodeChanged(final EVTask node) {
+        if (SwingUtilities.isEventDispatchThread())
+            handleEvNodeChanged(node);
+        else try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() { handleEvNodeChanged(node); } } );
+        } catch (Exception e) { }
+    }
+
+    private void handleEvNodeChanged(EVTask node) {
         TreePath tp = new TreePath(node.getPath());
         int row = treeTable.getTree().getRowForPath(tp);
         if (row != -1) {
@@ -860,6 +943,10 @@ public class TaskScheduleDialog
             (AbstractTableModel) treeTable.getModel();
         model.fireTableChanged(new TableModelEvent(model, 0,
                                                    treeTable.getRowCount()-1));
+
+        // Calculating the schedule may mean that direct time columns now
+        // need to be displayed or hidden
+        showHideDirectColumns();
 
         // Since rows may have been added or deleted to the schedule, and
         // rows may have changed to or from automatic rows, update the
@@ -1073,16 +1160,20 @@ public class TaskScheduleDialog
     }
 
     /** delete the currently selected task.
-     *
-     * Will only operate on tasks that are immediate children of the
-     * task tree root.
      */
     protected void deleteTask() {
         TreePath selPath = treeTable.getTree().getSelectionPath();
-        if (selPath == null || selPath.getPathCount() != 2) return;
+        if (selPath == null) return;
+        int pathLen = selPath.getPathCount();
+        if (isRollup()) {
+            if (pathLen != 2 || !confirmDelete(selPath)) return;
+        } else {
+            if (pathLen < 2) return;
+            if (pathLen == 2 && !confirmDelete(selPath)) return;
+        }
 
         // make the change.
-        if (confirmDelete(selPath) && model.removeTask(selPath)) {
+        if (model.removeTask(selPath)) {
             setDirty(true);
             recalcAll();
             enableTaskButtons();
@@ -1218,19 +1309,28 @@ public class TaskScheduleDialog
 
     protected void enableTaskButtons(TreePath selectionPath) {
         boolean enableDelete = false, enableExplode = false,
-            enableUp = false, enableDown = false;
+            enableUp = false, enableDown = false, isPruned = false;
         int pos = selectedTaskPos(selectionPath);
         if (pos != -1) {
             int numKids = ((EVTask) model.getRoot()).getNumChildren();
 
+            isPruned = false;
             enableDelete = true;
             enableUp     = (pos > 0);
             enableDown   = (pos < numKids-1);
 
             enableExplode = (((EVTask) selectionPath.getLastPathComponent())
                              .getNumChildren() > 0);
+        } else if (!isRollup() && selectionPath != null &&
+                   selectionPath.getPathCount() > 2) {
+            enableDelete = true;
+            isPruned =
+                ((EVTask) selectionPath.getLastPathComponent()).isUserPruned();
         }
+
         deleteTaskButton .setEnabled(enableDelete);
+        if (!isRollup())
+            deleteTaskButton.setText(isPruned ? "Restore Task" : "Remove Task");
         if (explodeTaskButton != null)
             explodeTaskButton.setEnabled(enableExplode);
         moveUpButton     .setEnabled(enableUp);
@@ -1254,6 +1354,22 @@ public class TaskScheduleDialog
         for (int i = rows.length;  i-- > 0; )
             model.getSchedule().deleteRow(rows[i]);
         setDirty(true);
+    }
+
+    protected void showHideDirectColumns() {
+        boolean show = model.showDirectTimeColumns();
+
+        int[] cols = new int[] { EVTaskList.PLAN_DTIME_COLUMN,
+                                 EVTaskList.ACT_DTIME_COLUMN };
+
+        for (int j = 0;  j < cols.length;  j++) {
+            int i = cols[j];
+            int width = show ? EVTaskList.colWidths[i] : 0;
+            TableColumn c =  treeTable.getColumnModel().getColumn(i);
+            c.setMinWidth(0);
+            c.setMaxWidth(width);
+            c.setPreferredWidth(width);
+        }
     }
 
     protected void enableScheduleButtons() {
