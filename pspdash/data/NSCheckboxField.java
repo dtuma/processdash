@@ -39,9 +39,15 @@ class NSCheckboxField extends NSField {
     // Boolean.TRUE or Boolean.FALSE.  But setMember("checked", Boolean.FALSE)
     // causes the box to become checked again...?!?  setMember("checked", null)
     // unchecks the box.  So after much trial and error, these are the values
-    // that must be used for it to work... :-b
+    // that are most likely to work...
     private static Object HTML_TRUE = Boolean.TRUE;
     private static Object HTML_FALSE = null;
+
+    // ..and here are other values we can try if they don't.
+    private static Object[] HTML_TRUE_VALUES = {
+        Boolean.TRUE, new Double(1.0), "true", "checked" };
+    private static Object[] HTML_FALSE_VALUES = {
+        null, Boolean.FALSE, new Double(0.0), "false", "unchecked" };
 
 
     public NSCheckboxField(JSObject element, Repository data, String dataPath) {
@@ -54,8 +60,28 @@ class NSCheckboxField extends NSField {
     }
 
     public void paint() {
-        element.setMember
-            ("checked", (Boolean.TRUE.equals(variantValue) ? HTML_TRUE : HTML_FALSE));
+        boolean desiredValue = Boolean.TRUE.equals(variantValue);
+        element.setMember("checked", (desiredValue ? HTML_TRUE : HTML_FALSE));
+
+        // now check to see if our changes "took."
+        if (desiredValue == isChecked(element.getMember("checked"))) return;
+
+        // our changes didn't take. Try other values.
+        Object[] trialValues =
+            (desiredValue ? HTML_TRUE_VALUES : HTML_FALSE_VALUES);
+        for (int i = 0;   i < trialValues.length;   i++) {
+            element.setMember("checked", trialValues[i]);
+            // if this trial value appeared to work, save it into the
+            // appropriate static field
+            if (desiredValue == isChecked(element.getMember("checked"))) {
+                //* */ debug("changing "+desiredValue+" constant to "+trialValues[i]);
+                if (desiredValue)
+                    HTML_TRUE = trialValues[i];
+                else
+                    HTML_FALSE = trialValues[i];
+                return;
+            }
+        }
     }
 
     public void parse() {
@@ -72,4 +98,7 @@ class NSCheckboxField extends NSField {
         return ("1yYtTcC".indexOf(s.charAt(0)) != -1);
     }
 
+    private void debug(String message) {
+        System.out.println(message);
+    }
 }
