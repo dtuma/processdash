@@ -53,6 +53,10 @@ public class Resources extends ResourceBundle {
     protected Object handleGetObject(String key) {
         Object result = null;
 
+        // if the key refers to a different bundle, redirect.
+        if (key.startsWith("/"))
+            return getRedirectedObject(key);
+
         // first try appending the bundle prefix, if present.
         if (bundlePrefix != null) try {
             String prefixedKey = bundlePrefix + "." + key;
@@ -69,6 +73,16 @@ public class Resources extends ResourceBundle {
         else
             return result;
     }
+
+
+    private Object getRedirectedObject(String key) {
+        int pos = key.indexOf('/', 1);
+        String redirectBundleName = key.substring(1, pos);
+        String redirectKey = key.substring(pos+1);
+        ResourceBundle redirectBundle = getDashBundle(redirectBundleName);
+        return redirectBundle.getString(redirectKey);
+    }
+
 
     public Enumeration getKeys() {
         // this isn't exactly accurate.  It won't include the
@@ -131,7 +145,7 @@ public class Resources extends ResourceBundle {
     private static String addDialogIndicator(String value) {
         if (dialogIndicatorFormat == null)
             dialogIndicatorFormat = new MessageFormat
-                (getGlobalBundle().getString("Dialog_Indicator_FMT"));
+                (getGlobalBundle().getString("Dialog_Indicator__FMT"));
 
         return dialogIndicatorFormat.format(new Object[] { value });
     }
