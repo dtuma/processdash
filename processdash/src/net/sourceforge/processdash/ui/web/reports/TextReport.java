@@ -29,12 +29,16 @@ package net.sourceforge.processdash.ui.web.reports;
 import java.io.IOException;
 
 import net.sourceforge.processdash.data.util.ResultSet;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 
 public class TextReport extends TinyCGIBase {
+
+    static Resources resources = Resources.getGlobalBundle();
 
 
     protected void writeContents() throws IOException {
@@ -48,12 +52,12 @@ public class TextReport extends TinyCGIBase {
 
         if (!includable) {
             out.println("<HTML><HEAD>");
-            if (title != null) out.println("<TITLE>" + title + "</TITLE>");
+            if (title != null) out.println("<TITLE>"+ esc(title) +"</TITLE>");
             out.println(cssLinkHTML());
 
             out.println("</HEAD><BODY>");
-            if (title != null) out.println("<H1>" + title + "</H1>");
-            if (head  != null) out.println("<P>"  + head  + "</P>");
+            if (title != null) out.println("<H1>" + esc(title) + "</H1>");
+            if (head  != null) out.println("<P>"  + esc(head)  + "</P>");
             out.println(parameters.containsKey("style") ?
                         "<TABLE>" : "<TABLE BORDER>");
         }
@@ -73,7 +77,7 @@ public class TextReport extends TinyCGIBase {
             out.println("<TR>");
             for (int col=firstCol;  col <= tableData.numCols();  col++) {
                 out.print("<TD" + getColAttributes(col) + ">");
-                out.print(tableData.format(row, col));
+                out.print(esc(tableData.format(row, col)));
                 out.println("</TD>");
             }
             out.println("</TR>");
@@ -81,9 +85,10 @@ public class TextReport extends TinyCGIBase {
 
         if (!includable) {
             out.println("</TABLE>");
-            if (foot != null) out.println("<P>" + foot + "</P>");
-            out.print("<P class='doNotPrint'><A HREF=\"excel.iqy\">" +
-                      "<I>Export to Excel</I></A></P></BODY></HTML>");
+            if (foot != null) out.println("<P>" + esc(foot) + "</P>");
+            out.print("<P class='doNotPrint'><A HREF=\"excel.iqy\"><I>" +
+                      resources.getString("Export_to_Excel") +
+                      "</I></A></P></BODY></HTML>");
         }
     }
 
@@ -96,6 +101,10 @@ public class TextReport extends TinyCGIBase {
 
     protected String tr(String s) {
         return Translator.translate(s);
+    }
+
+    protected String esc(String s) {
+        return HTMLUtils.escapeEntities(s);
     }
 
 }
