@@ -51,8 +51,8 @@ public class IzPackMetalTheme extends DefaultMetalTheme
         {
                 color = new ColorUIResource(0, 0, 0);
 
-                Font font1 = createFont("Tahoma", Font.PLAIN, 11);
-                Font font2 = createFont("Tahoma", Font.BOLD, 11);
+                Font font1 = createFont("Dialog", Font.PLAIN, 11);
+                Font font2 = createFont("Dialog", Font.BOLD, 11);
 
                 menuFont = new FontUIResource(font1);
                 controlFont = new FontUIResource(font1);
