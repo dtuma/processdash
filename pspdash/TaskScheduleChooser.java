@@ -51,13 +51,15 @@ public class TaskScheduleChooser
     protected JButton newButton, cancelButton, okayButton;
 
     TaskScheduleChooser(PSPDashboard dash) {
-        String[] templates = EVTaskList.findTaskLists(dash.data);
-
+        this(dash, EVTaskList.findTaskLists(dash.data));
+    }
+    TaskScheduleChooser(PSPDashboard dash, String[] templates) {
         if (templates == null || templates.length == 0)
             displayNewTemplateDialog(dash);
         else
             displayChooseTemplateDialog(dash, templates);
     }
+
 
     private static final String DEFAULT_MSG =
         "Choose a name for the new task & schedule template:";
@@ -68,7 +70,7 @@ public class TaskScheduleChooser
         Object message = DEFAULT_MSG;
         while (true) {
             taskName = (String) JOptionPane.showInputDialog
-                (null, message, "Create New Schedule",
+                (dash, message, "Create New Schedule",
                  JOptionPane.PLAIN_MESSAGE, null, null, taskName);
 
 
@@ -128,9 +130,10 @@ public class TaskScheduleChooser
 
         dialog.pack();
         dialog.show();
+        dialog.toFront();
     }
 
-    protected void open(PSPDashboard dash, String taskListName) {
+    public static void open(PSPDashboard dash, String taskListName) {
         if (taskListName == null)
             return;
         TaskScheduleDialog d =
