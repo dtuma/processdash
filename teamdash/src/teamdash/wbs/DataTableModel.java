@@ -122,6 +122,7 @@ public class DataTableModel extends AbstractTableModel {
                 }
             }
         }
+        //dumpColumnDependencies();
 
         // recalculate all calculated columns.
         try {
@@ -130,6 +131,37 @@ public class DataTableModel extends AbstractTableModel {
         } finally {
             endChange();
         }
+    }
+
+    protected void dumpColumnDependencies() {
+        System.out.println("===============================================");
+        System.out.println("<html><head><title>Column dependencies</title></head>"+
+        "<body><h1>Column dependencies</h1>");
+        String indent="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        Iterator i = calculatedColumns.iterator();
+        while (i.hasNext()) {
+            DataColumn c = (DataColumn) i.next();
+            String id1 = c.getColumnID();
+            System.out.println("<p><a name='"+id1+"'></a>"+id1);
+            System.out.println("<br>"+indent+"Name:" + c.getColumnName());
+            System.out.println("<br>"+indent+"Class: {@link " + c.getClass().getName() + "}");
+            System.out.println("<br>"+indent+"Depends on:");
+            int id = columns.indexOf(c);
+            for (int j=0;   j < columns.size();   j++)
+                if (dependencies[id][j]) {
+                    String id2 = getColumn(j).getColumnID();
+                    System.out.println("<br>"+indent+indent+"<a href='#"+id2+"'>"+id2+"</a>");
+                }
+            System.out.println("    Affects:");
+            id = columns.indexOf(c);
+            for (int j=0;   j < columns.size();   j++)
+                if (dependencies[j][id]) {
+                    String id2 = getColumn(j).getColumnID();
+                    System.out.println("<br>"+indent+indent+"<a href='#"+id2+"'>"+id2+"</a>");
+                }
+            System.out.println();
+        }
+        System.out.println("</body></html>");
     }
 
     /** Add a single data column to the data model */
