@@ -319,6 +319,7 @@ public class WBSJTable extends JTable {
 
             // stop the current editing session.
             if (editingNode != null) editor.stopCellEditing();
+            UndoList.stopCellEditing(WBSJTable.this);
 
             // do something.
             doAction(e);
@@ -612,6 +613,7 @@ public class WBSJTable extends JTable {
             cancelCut();
 
             if (isEditing()) editor.stopCellEditing();
+            UndoList.stopCellEditing(WBSJTable.this);
 
             // delete the nodes.
             wbsModel.deleteNodes(nodesToDelete);
@@ -641,6 +643,8 @@ public class WBSJTable extends JTable {
         }
 
         public void actionPerformed(ActionEvent e) {
+            UndoList.stopCellEditing(WBSJTable.this);
+
             // get the name of the workflow to insert.
             String workflowName = e.getActionCommand();
             if (workflowName == null || workflowName.length() == 0) return;

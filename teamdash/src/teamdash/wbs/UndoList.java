@@ -96,6 +96,16 @@ public class UndoList {
         currentlyCancelingEditors = false;
     }
 
+    /** Stop any editing sessions in progress for the
+     * {@link SnapshotSource} */
+    private synchronized void stopEditors() {
+        Iterator i = cellEditors.iterator();
+        while (i.hasNext()) try {
+            ((CellEditor) i.next()).stopCellEditing();
+        } catch (Exception e) {}
+        cancelEditors();
+    }
+
     /** A user interface component should call this method (or the
      * <code>static</code> equivalent of this method) after making a
      * user-directed change to the {@link SnapshotSource}.
@@ -211,5 +221,10 @@ public class UndoList {
     public static void madeChange(Component source, String description) {
         UndoList l = findUndoList(source);
         if (l != null) l.madeChange(description);
+    }
+
+    public static void stopCellEditing(Component source) {
+        UndoList l = findUndoList(source);
+        if (l != null) l.stopEditors();
     }
 }

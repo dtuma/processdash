@@ -150,6 +150,7 @@ public class WBSNodeEditor extends AbstractCellEditor
         case CLICKED_EXPANDER:
             // if the user clicked on the "expand/collapse" icon, forward
             // their request and don't begin editing.
+            UndoList.stopCellEditing(table);
             clickedNode.setExpanded(!clickedNode.isExpanded());
             wbsModel.recalcRows();
             return false;
