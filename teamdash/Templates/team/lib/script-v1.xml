@@ -90,6 +90,14 @@
     <FILE in="" encoding="html"
           out="rollup_filter.shtm"/>
 
+    <!-- forms and reports for the team plan summary -->
+    <file in="summary_top_frame.htm" encoding="html"
+          out="team_summary.shtm"/>
+    <file in="summary_frame.htm" encoding="html"
+          out="summary_frame.shtm"/>
+    <file in="summary_toc.htm" encoding="html"
+          out="summary_toc.shtm"/>
+
     <!-- data file used by rollups and team nodes -->
     <file in="rollup_dataFile.txt" encoding="data"
           out="rollup_dataFile.txt"/>
@@ -114,8 +122,9 @@
     </file>
 
     <!-- the html page displaying charts -->
-    <file in="charts.htm" encoding="url" 
-          out="charts.shtm" />
+    <file in="charts.htm" encoding="none" out="charts.shtm">
+        <param name="PID" replace="true" value="<!--#echo var=Process_ID -->"/>
+    </file>
 
     <!-- Icon used for navigating the hierarchy -->
     <file in="hier.png" encoding="binary" />
