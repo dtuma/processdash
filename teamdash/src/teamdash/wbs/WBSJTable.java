@@ -396,12 +396,13 @@ public class WBSJTable extends JTable {
             if (notJustRoot(selectedRows) == false)
                 setEnabled(false);
             else {
-                for (int i = selectedRows.length;   i-- > 0; )
-                    if (wbsModel.getNodeForRow(selectedRows[i])
-                        .getIndentLevel() < 2) {
+                for (int i = selectedRows.length;   i-- > 0; ) {
+                    WBSNode n = wbsModel.getNodeForRow(selectedRows[i]);
+                    if (n != null && n.getIndentLevel() < 2) {
                         setEnabled(false);
                         return;
                     }
+                }
                 setEnabled(true);
             }
         }
