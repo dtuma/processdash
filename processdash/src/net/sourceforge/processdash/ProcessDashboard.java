@@ -52,6 +52,7 @@ import net.sourceforge.processdash.ui.*;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class ProcessDashboard extends JFrame implements WindowListener, DashboardContext {
@@ -228,11 +229,23 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 // apparently, the user doesn't already have a properties
                 // file.  read the default properties file, which simply
                 // contains nodes for "Project" and "Non Project".
-                v = props.load
-                    (getClass().getResourceAsStream(DEFAULT_PROP_FILE));
+                String state = new String
+                    (WebServer.slurpContents(getClass().getResourceAsStream
+                                                 (DEFAULT_PROP_FILE), true),
+                     "ISO-8859-1");
+                // localize the strings "Project" and "Non Project"
+                state = StringUtils.findAndReplace
+                    (state, "<Project>",
+                     "<"+resources.getString("Project")+">");
+                state = StringUtils.findAndReplace
+                    (state, "<Non Project>",
+                     "<"+resources.getString("Non_Project")+">");
+
+                v = props.load(new StringReader(state), true);
                 displayFirstTimeUserHelp();
             } catch (Exception e) {
                 System.err.println("Couldn't read default state file: " + e);
+                e.printStackTrace();
             }
         }
         data.setNodeComparator(props);

@@ -346,7 +346,10 @@ public class TinyCGIBase implements TinyCGI {
         SimpleData val = data.getSimpleValue("/Owner");
         if (val == null) return null;
         String result = val.format();
-        if ("Enter your name".equals(result))
+
+        String defaultVal = Resources.getDashBundle("ProcessDashboard")
+            .getString("Enter_your_name");
+        if (result.equals(defaultVal))
             return null;
         else
             return result;

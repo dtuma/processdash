@@ -1,3 +1,4 @@
+<!--#server-parsed --><!--#resources file="script" -->
 <!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
@@ -27,11 +28,11 @@
 
 <HTML>
 <HEAD>
-<TITLE>Timer</TITLE>
+<TITLE><!--#echo Title --></TITLE>
 </HEAD>
 <BODY>
 
-<H1>Timer</H1>
+<H1><!--#echo Title --></H1>
 
 <FORM>
 
@@ -39,26 +40,23 @@
 
 <TABLE BORDER>
 <TR>
-<TD>Phase<BR>Number</TD>
 <TD>Purpose</TD>
-<TD>To record estimated vs. actual time.</TD>
+<TD><!--#echo Purpose_Text --></TD>
 </TR>
 
 <TR>
-<TD></TD>
-<TD VALIGN=TOP>Inputs Required</TD>
-<TD>Enter planned time.</TD>
+<TD VALIGN="TOP">Inputs Required</TD>
+<TD VALIGN="TOP"><!--#echo Enter_planned_time --></TD>
 </TR>
 
 <TR>
-<TD VALIGN="TOP">&nbsp;</TD>
 <TD VALIGN="TOP">Exit Criteria</TD>
-<TD VALIGN="TOP">Enter completion date.</TD>
+<TD VALIGN="TOP"><!--#echo Enter_completion_date --></TD>
 </TR>
 
 </TABLE>
 
-<TABLE BORDER>
+<P><TABLE BORDER>
 <TR>
 <TD>Project Name</TD>
 <TD><INPUT TYPE=text SIZE=50 NAME="Project//Name	sr==p"></TD>
@@ -72,12 +70,10 @@
 <TD><INPUT TYPE=text SIZE=25 NAME="Completed	du"> Completed: <INPUT TYPE=checkbox NAME="Completed	du"></TD>
 </TR>
 </TABLE>
-</FORM>
 
-<FORM NAME=TIME>
-<TABLE BORDER>
+<P><TABLE BORDER>
 <TR>
-<TD ALIGN=LEFT><B>Time (min.)</B></TD>
+<TD ALIGN=LEFT><B><!--#echo Time --></B></TD>
 <TD ALIGN=CENTER><B>Plan</B></TD>
 <TD ALIGN=CENTER><B>Actual</B></TD>
 </TR>

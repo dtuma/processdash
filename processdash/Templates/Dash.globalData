@@ -27,7 +27,7 @@
 ==
 */
 
-[Owner] = "Enter your name";
+[Owner] = "${/ProcessDashboard:Enter_your_name}";
 
 // Rename the old [To Date As Of] tag to [To Date/PSP/All/Rollup As Of Date]
 To D[a]te As Of=>~To Date/PSP/All/Rollup As Of Date
