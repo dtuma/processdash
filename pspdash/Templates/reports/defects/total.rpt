@@ -4,4 +4,4 @@ qf=defects.rpt
 
 title=Total Defects
 
-d1==![(*	1000	[(/	Defects Removed	New & Changed LOC)])]
+d1==Defect Density

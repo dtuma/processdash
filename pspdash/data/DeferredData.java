@@ -68,4 +68,6 @@ public class DeferredData implements SaveableData {
         name = value = prefix = null;
         data = null;
     }
+
+    public SaveableData getEditable(boolean editable) { return this; }
 }

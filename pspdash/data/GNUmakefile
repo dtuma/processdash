@@ -56,13 +56,16 @@ COMMON_FILES=DataEvent.java \
 	DataListener.java \
 	DateData.java \
 	DoubleData.java \
+	ImmutableDoubleData.java \
+	ImmutableStringData.java \
 	ListData.java \
 	MalformedValueException.java \
 	NumberData.java \
 	Repository.java \
 	SaveableData.java \
 	SimpleData.java \
-	StringData.java
+	StringData.java \
+	TagData.java
 
 BROWSER_FILES=../DateFormatter.java \
 	../Settings.java \
@@ -142,7 +145,6 @@ DATA_FILES=$(COMMON_FILES) \
 	StringAliasFunction.java \
 	SubtractionFunction.java \
 	SumList.java \
-	TagData.java \
 	ValueFactory.java \
 	compiler/Compiler.java \
 	compiler/Count.java \
@@ -150,8 +152,11 @@ DATA_FILES=$(COMMON_FILES) \
 	compiler/Iff.java \
 	compiler/Indirect.java \
 	compiler/LogicOperators.java \
+	compiler/MathOperators.java \
 	compiler/Max.java \
 	compiler/Min.java \
+	compiler/RelationalOperators.java \
+	compiler/StringOperators.java \
 	compiler/Sumfor.java \
 	compiler/parser/Parser.java
 

@@ -1,4 +1,4 @@
-#include <psp2.1/dataFile.txt>
+/* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -32,123 +32,77 @@
 ==
 == Description: This is the data file for a PSP3 cycle.
 ==
+*/
+
+#include <psp3/psp2_1data.txt>
+undefine([PSP Project]);
+[psp3cycle] == TAG;
+[PSP3cycle] == TAG;
 
 
-==
-== The following elements identify the data in this file as belonging to
-== a PSP3 cycle.
-==
+/*
+ * New phase: Reassessment.  No estimations needed.
+ */ 
 
-psp3cycle==TAG
-PSP3cycle==TAG
-psp2.1=null
-PSP2.1=null
-PSP Project=null
-
-
-==
-== New phase: Reassessment.  No estimations needed.
-== 
-
-Normalized_Estimated_Time==![(/	Estimated Time	/Normalization %/Time/PSP3cycle)]
-Normalized_Estimated_Defects_Injected==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP3cycle)]
-Normalized_Estimated_Defects_Removed==![(/	Estimated Defects Removed	/Normalization %/Defects Removed/PSP3cycle)]
-
-Reassessment/PSP Phase==70.0
-
-= Actual time
-
-Reassessment/Time==0.0
-Time==![(+	~.*/Time)]
-
-= Actual Defects Injected
-
-Reassessment/Defects Injected==0.0
-Defects Injected==![(+	~.*/Defects Injected)]
-
-= Actual Defects Removed
-
-Reassessment/Defects Removed==0.0
-Defects Removed==![(+	~.*/Defects Removed)]
-
-= Size data that can no longer be calculated from a size estimating template
-
-Estimated Reused LOC=0.0
-Reused LOC=0.0
-Estimated New Reused LOC=0.0
-New Reused LOC=0.0
-
-==
-== Cancel renaming operation requested by psp2.1
-==
-
-(Base Additions|New Objects|Reused Objects)/([^0-9]+) (\d+)=null
+[Normalized_Estimated_Time] =
+        [Estimated Time] / [/Normalization %/Time/PSP3cycle];
+[Normalized_Estimated_Defects_Injected] =
+        [Estimated Defects Injected] / 
+        [/Normalization %/Defects Injected/PSP3cycle];
+[Normalized_Estimated_Defects_Removed] =
+        [Estimated Defects Removed] / 
+        [/Normalization %/Defects Removed/PSP3cycle];
 
 
-==
-== tags identifying new/different nodes and leaves in this process
-==
+/*
+ * Size data that can no longer be calculated from a size estimating template
+ */
 
-Reassessment/node==TAG
-Reassessment/leaf==TAG
-Planning/node=null
-Planning/leaf=null
-Postmortem/node=null
-Postmortem/leaf=null
-
-= We do not need local copies of these to date numbers for each cycle.
-
-LOC per Hour To Date=null
-ESTIMATED Time To Date=null
-Time To Date=null
-CPI To Date=null
-Defects per KLOC To Date=null
-Yield To Date=null
-Reused LOC To Date=null
-New & Changed LOC To Date=null
-Total LOC To Date=null
-New Reused LOC To Date=null
-Planning/Time To Date=null
-Design/Time To Date=null
-Design Review/Time To Date=null
-Code/Time To Date=null
-Code Review/Time To Date=null
-Compile/Time To Date=null
-Test/Time To Date=null
-Postmortem/Time To Date=null
-Time To Date=null
-Before Development/Defects Injected To Date=null
-Planning/Defects Injected To Date=null
-Design/Defects Injected To Date=null
-Design Review/Defects Injected To Date=null
-Code/Defects Injected To Date=null
-Code Review/Defects Injected To Date=null
-Compile/Defects Injected To Date=null
-Test/Defects Injected To Date=null
-Defects Injected To Date=null
-Planning/Defects Removed To Date=null
-Design/Defects Removed To Date=null
-Design Review/Defects Removed To Date=null
-Code/Defects Removed To Date=null
-Code Review/Defects Removed To Date=null
-Compile/Defects Removed To Date=null
-Test/Defects Removed To Date=null
-Defects Removed To Date=null
-After Development/Defects Removed To Date=null
-Design Review/Defects Removed per Hour To Date=null
-Code Review/Defects Removed per Hour To Date=null
-Compile/Defects Removed per Hour To Date=null
-Test/Defects Removed per Hour To Date=null
-Design Review/DRL To Date=null
-Code Review/DRL To Date=null
-Compile/DRL To Date=null
+[Estimated Reused LOC] = 0;
+[Reused LOC] = 0;
+[Estimated New Reused LOC] = 0;
+[New Reused LOC] = 0;
+undefine([Size Estimating Template Tag],
+	 [Est_Base_Additions],     [Base_Additions],
+	 [Est_New_Objects],        [New_Objects],
+	 [Est_New_Reused_Objects], [New_Reused_Objects],
+	 [Est_Reused_Objects],     [Reused_Objects]);
 
 
-= Redefine the freeze flag for actual size.
+// We do not need local copies of these to date numbers for each cycle.
 
-FreezeFlag/[0-9AB ]*(Base|Deleted|Modified|Added|Reused|New & Changed|Total|New Reused|Base Additions|New Objects|Object) LOC==![(&&	Reassessment/Completed)]
+undefine([LOC per Hour To Date], [ESTIMATED Time To Date], [Time To Date],
+  [CPI To Date], [Defects per KLOC To Date], [Yield To Date],
+  [Reused LOC To Date], [New & Changed LOC To Date], [Total LOC To Date],
+  [New Reused LOC To Date], [Planning/Time To Date], [Design/Time To Date],
+  [Design Review/Time To Date], [Code/Time To Date],
+  [Code Review/Time To Date], [Compile/Time To Date], [Test/Time To Date],
+  [Postmortem/Time To Date], [Time To Date],
+  [Before Development/Defects Injected To Date],
+  [Planning/Defects Injected To Date], [Design/Defects Injected To Date],
+  [Design Review/Defects Injected To Date], [Code/Defects Injected To Date],
+  [Code Review/Defects Injected To Date], [Compile/Defects Injected To Date],
+  [Test/Defects Injected To Date], [Defects Injected To Date],
+  [Planning/Defects Removed To Date], [Design/Defects Removed To Date],
+  [Design Review/Defects Removed To Date], [Code/Defects Removed To Date],
+  [Code Review/Defects Removed To Date], [Compile/Defects Removed To Date],
+  [Test/Defects Removed To Date], [Test/Defects Removed per KLOC To Date],
+  [After Development/Defects Removed To Date], [Defects Removed To Date],
+  [Design Review/Defects Removed per Hour To Date],
+  [Code Review/Defects Removed per Hour To Date],
+  [Compile/Defects Removed per Hour To Date],
+  [Test/Defects Removed per Hour To Date], [Design Review/DRL To Date],
+  [Code Review/DRL To Date], [Compile/DRL To Date],
+  [% Appraisal COQ To Date], [% Failure COQ To Date], [AFR To Date],
+  [% Reused To Date], [% New Reused To Date]
+);
 
-= We do not need these freeze flags any longer.
 
-FreezeFlag/.*Estimated.*=null
-FreezeFlag/.* To Date=null
+// Redefine the freeze flag for actual size.
+
+[FreezeFlag/\[0-9AB \]*(Base|Deleted|Modified|Added|Reused|New & Changed|Total|New Reused|Base Additions|New Objects|Object) LOC] = [Reassessment/Completed];
+
+
+// We do not need these freeze flags any longer.
+
+undefine([FreezeFlag/.*Estimated.*], [FreezeFlag/.* To Date]);

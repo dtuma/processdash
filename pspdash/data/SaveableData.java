@@ -28,6 +28,7 @@ package pspdash.data;
 public interface SaveableData {
     public boolean isEditable();
     public void setEditable(boolean e);
+    public SaveableData getEditable(boolean editable);
     public boolean isDefined();
     public void setDefined(boolean d);
     public String saveString();

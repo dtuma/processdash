@@ -112,4 +112,10 @@ public class DateData implements SimpleData {
     public boolean test() {
         return (value != null && value.getTime() > 0);
     }
+
+    public SaveableData getEditable(boolean editable) {
+        SimpleData result = getSimpleValue();
+        result.setEditable(editable);
+        return result;
+    }
 }

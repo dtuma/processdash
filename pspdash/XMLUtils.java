@@ -25,6 +25,8 @@
 
 package pspdash;
 
+import java.util.List;
+import java.util.Stack;
 import java.util.StringTokenizer;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -94,6 +96,10 @@ public class XMLUtils {
             else                         result.append(token);
         }
         return result.toString();
+    }
+
+    public static boolean hasValue(String val) {
+        return (val != null && val.length() > 0);
     }
 
 }

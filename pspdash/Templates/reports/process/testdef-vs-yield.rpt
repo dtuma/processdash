@@ -8,5 +8,5 @@ d1=Yield
 h1==Yield %
 f1==100%
 
-d2==![(/	Test/Defects Removed	New & Changed LOC	0.001)]
+d2==Test/Defect Density
 h2=Defects/KLOC

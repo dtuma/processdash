@@ -1,3 +1,4 @@
+/* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -31,131 +32,61 @@
 ==
 == Description: This is the data file for a PSP0 process. 
 ==
+*/
+
+/*
+ * The following element identifies the data in this file as belonging to
+ * a PSP0 process.
+ */
+
+#include <psp0/pspData.txt>
+[psp0] == TAG;
+[PSP0] == TAG;
 
 
-==
-== The following elements identify the data in this file as belonging to
-== a PSP0 process. 
-==
 
-psp0==TAG
-PSP0==TAG
-PSP Project==TAG
+/*
+ * Calculate combined data for the simple review phases.
+ */
 
+#define combine(Data) 							\
+   [Design/Combined Data] = [Design/Data] + [Design Review/Data];	\
+   [Code/Combined Data]   = [Code/Data] + [Code Review/Data]
 
-==
-== The following elements identify the nature of the phases in this process.
-== Reviews are optional in PSP0, but are included throughout this file for
-== completeness.
-==
-
-Planning/PSP Phase==10.0
-Design/PSP Phase==30.0
-Design Review/PSP Phase==35.0
-Code/PSP Phase==40.0
-Code Review/PSP Phase==45.0
-Compile/PSP Phase==50.0
-Test/PSP Phase==60.0
-Postmortem/PSP Phase==70.0
-
-= tags identifying the nodes and leaves in this process (reviews 
-= intentionally omitted).
-
-node==TAG
-Planning/leaf==TAG
-Planning/node==TAG
-Design/leaf==TAG
-Design/node==TAG
-Code/leaf==TAG
-Code/node==TAG
-Compile/leaf==TAG
-Compile/node==TAG
-Test/leaf==TAG
-Test/node==TAG
-Postmortem/leaf==TAG
-Postmortem/node==TAG
-
-[Phase_List] == ",Planning,Design,Design Review,Code,Code Review,Compile,Test,Postmortem,";
+combine(Time);
+combine(Defects Injected);
+combine(Defects Removed);
 
 
-==
-== Data Elements to track Time.
-==
 
-= Estimated Time
+/*
+ * Make estimated time an editable value.
+ */
 
-Estimated Time=?NaN
-
-= Actual Time
-
-Planning/Time==0.0
-Design/Time==0.0
-Design Review/Time==0.0
-Design/Combined Time==![(+	Design/Time	Design Review/Time)]
-Code/Time==0.0
-Code Review/Time==0.0
-Code/Combined Time==![(+	Code/Time	Code Review/Time)]
-Compile/Time==0.0
-[Test/Time] == 0.0;
-Postmortem/Time==0.0
-PM/Time==![(+	Postmortem/Time)]
-[Time] = sumFor("Time", [Phase_List]);
+[Estimated Time] = ?NaN;
 
 
-==
-== Data Elements to track defects injected
-==
+/*
+ * Alias Postmortem data to PM
+ */
 
-Before Development/Defects Injected==0.0
-Planning/Defects Injected==0.0
-Design/Defects Injected==0.0
-Design Review/Defects Injected==0.0
-Design/Combined Defects Injected==![(+	Design/Defects Injected	Design Review/Defects Injected)]
-Code/Defects Injected==0.0
-Code Review/Defects Injected==0.0
-Code/Combined Defects Injected==![(+	Code/Defects Injected	Code Review/Defects Injected)]
-Compile/Defects Injected==0.0
-Test/Defects Injected==0.0
-Postmortem/Defects Injected==0.0
-PM/Defects Injected==![(+	Postmortem/Defects Injected)]
-[Defects Injected] = sumFor("Defects Injected", [Phase_List]);
+[PM/Time]             = [Postmortem/Time];
+[PM/Defects Injected] = [Postmortem/Defects Injected];
+[PM/Defects Removed]  = [Postmortem/Defects Removed];
 
 
-==
-== Data Elements to track defects removed
-==
-
-Planning/Defects Removed==0.0
-Design/Defects Removed==0.0
-Design Review/Defects Removed==0.0
-Design/Combined Defects Removed==![(+	Design/Defects Removed	Design Review/Defects Removed)]
-Code/Defects Removed==0.0
-Code Review/Defects Removed==0.0
-Code/Combined Defects Removed==![(+	Code/Defects Removed	Code Review/Defects Removed)]
-Compile/Defects Removed==0.0
-Test/Defects Removed==0.0
-Postmortem/Defects Removed==0.0
-PM/Defects Removed==![(+	Postmortem/Defects Removed)]
-After Development/Defects Removed=0.0
-[Defects Removed] = sumFor("Defects Removed", [Phase_List]);
 
 
-Yield==![(/	[(+	~.*/{<	PSP Phase	50}Defects Removed)]	Defects Removed)]
-% Appraisal COQ==![(/	[(+	Design Review/Time	Code Review/Time)]	Time)]
-% Failure COQ==![(/	[(+	Compile/Time	Test/Time)]	Time)]
-AFR==![(/	% Appraisal COQ	% Failure COQ)]
+/*
+ * Freeze flags for the planning phase and the entire project
+ */
 
+[FreezeFlag/.*Estimated.*] == [Planning/Completed] or [Completed];
+[FreezeFlag/.* To Date]    == [Completed];
 
-==
-== Freeze flags for the planning phase and the entire project
-==
-
-FreezeFlag/.*Estimated.*==![(||	Planning/Completed	Completed)]
-FreezeFlag/.* To Date==![(&&	Completed)]
-
-==
-== Local copies of To Date data
-==
+/*
+ * Local copies of To Date data
+ */
 
 Planning/Time To Date==![(#=	/Planning/Time To Date)]
 Design/Time To Date==![(#=	/Design/Time To Date)]

@@ -1,4 +1,4 @@
-#include <psp1/dataFile.txt>
+/* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -32,41 +32,28 @@
 ==
 == Description: This is the data file for a PSP1.1 process.
 ==
+*/
+
+#include <psp1/dataFile.txt>
+undefine([PSP1 Tag], [psp1], [PSP1]);
+[psp1.1] == TAG;
+[PSP1.1] == TAG;
 
 
-==
-== The following elements identify the data in this file as belonging to
-== a PSP1.1 process.
-==
+/*
+ * New Elements for PSP1.1
+ */
 
-psp1.1==TAG
-PSP1.1==TAG
-psp1=null
-PSP1=null
+[Estimated % Reused] = [Estimated Reused LOC] / [Estimated Total LOC];
+[Estimated % New Reused] =
+        [Estimated New Reused LOC] / [Estimated New & Changed LOC];
 
-==
-== New Elements for PSP1.1
-==
+[% Reused]     = [Reused LOC]     / [Total LOC];
+[% New Reused] = [New Reused LOC] / [New & Changed LOC];
 
-Estimated Max Time=0.0
-Estimated Min Time=0.0
-
-Estimated Time/Beta0=0.0
-Estimated Time/Beta1=0.0
-Estimated Time/Range=0.0
-Estimated Time/Interval Percent=0.0
-Estimated Time/Probe Method="D
-Estimated Time/R Squared=0.0
-
-Estimated % Reused==![(/	Estimated Reused LOC	Estimated Total LOC)]
-Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated New & Changed LOC)]
-
-% Reused==![(/	Reused LOC	Total LOC)]
-% New Reused==![(/	New Reused LOC	New & Changed LOC)]
-
-==
-== Local copies of To Date data
-==
+/*
+ * Local copies of To Date data
+ */
 
 ESTIMATED Time To Date==![(#=	/Estimated Time To Date)]
 Time To Date==![(#=	/Time To Date)]

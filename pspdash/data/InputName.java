@@ -31,7 +31,12 @@ public class InputName {
     public String name, flags, value;
 
     public InputName(String text, String prefix) {
-        int tabpos = text.indexOf('\t');
+        int tabpos;
+        if (text.startsWith("[")) {
+            text = text.substring(1);
+            tabpos = text.lastIndexOf(']');
+        } else
+            tabpos = text.indexOf('\t');
         if (tabpos == -1) {
             name = text;
             flags = value = "";

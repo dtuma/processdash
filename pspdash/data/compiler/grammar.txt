@@ -34,20 +34,45 @@ Helpers
     old_style_equals = '=' | '==';
 
     a = ['a' + 'A'];
-    n = ['n' + 'N'];
-    d = ['d' + 'D'];
-    o = ['o' + 'O'];
-    r = ['r' + 'R'];
-    t = ['t' + 'T'];
-    s = ['s' + 'S'];
-    e = ['e' + 'E'];
+    b = ['b' + 'B'];
     c = ['c' + 'C'];
+    d = ['d' + 'D'];
+    e = ['e' + 'E'];
+    f = ['f' + 'F'];
+    g = ['g' + 'G'];
     h = ['h' + 'H'];
+    i = ['i' + 'I'];
+    j = ['j' + 'J'];
+    k = ['k' + 'K'];
+    l = ['l' + 'L'];
+    m = ['m' + 'M'];
+    n = ['n' + 'N'];
+    o = ['o' + 'O'];
+    p = ['p' + 'P'];
+    q = ['q' + 'Q'];
+    r = ['r' + 'R'];
+    s = ['s' + 'S'];
+    t = ['t' + 'T'];
+    u = ['u' + 'U'];
+    v = ['v' + 'V'];
+    w = ['w' + 'W'];
+    x = ['x' + 'X'];
+    y = ['y' + 'Y'];
+    z = ['z' + 'Z'];
 
     and = a n d;
     or = o r;
     not = n o t;
     search = s e a r c h;
+    eq = e q;
+    neq = n e q;
+    lt = l t;
+    lteq = l t e q;
+    gt = g t;
+    gteq = g t e q;
+    undefine = u n d e f i n e;
+    null = n u l l;
+    tag = t a g;
 
 States
    b, // beginning of line
@@ -67,14 +92,14 @@ Tokens
     {b->i, i} concat = '&';
     {b->i, i} pathconcat = '&/';
     {b->i, i} logic_not = '!' | not;
-    {i}       eq = '==';
+    {i}       eq = '==' | eq;
     {i}       equal = '=';
 
-    {b->i, i} neq = '!=' | '<>';
-    {b->i, i} lt = '<';
-    {b->i, i} lteq = '<=';
-    {b->i, i} gt = '>';
-    {b->i, i} gteq = '>=';
+    {b->i, i} neq = '!=' | '<>' | neq;
+    {b->i, i} lt = '<' | lt;
+    {b->i, i} lteq = '<=' | lteq;
+    {b->i, i} gt = '>' | gt;
+    {b->i, i} gteq = '>=' gteq;
     {b->i, i} logic_and = '&&' | and;
     {b->i, i} logic_or = '||' | or;
     {b->i, i} semicolon = ';';
@@ -82,11 +107,13 @@ Tokens
     {b->i, i} identifier = '[' i_char_sequence ']';
     {b->i, i} string_literal = '?'? '"' s_char_sequence? '"';
     {b->i, i} zero_literal = '0' | '0.0';
+    {b->i, i} undef_number_literal = '?NaN';
     {b->i, i} number_literal = '?'? (float | integer | unusual_num);
     {b->i, i} date_literal = '?'? '@' digit_sequence;
-    {b->i, i} null = 'null';
-    {b->i, i} tag = 'TAG';
+    {b->i, i} null = null;
+    {b->i, i} tag = tag;
     {b->i, i} search = search;
+    {b->i, i} undefine = undefine;
     {b->i, i} function_name = nondigit+;
 
     {b->i, i} blank = (tab | ' ')+;
@@ -111,11 +138,13 @@ Productions
   datafile = declaration+;
 
   declaration =
+    {empty} semicolon |
     {new_style} identifier assignop value semicolon |
     {old_style} old_style_declaration |
     {search} identifier assignop search l_par
          [start]:string_literal [c1]:comma [tag]:string_literal [c2]:comma
          [expression]:value r_par semicolon |
+    {undefine} undefine l_par identifier_list r_par semicolon |
     {include} include_directive;
 
   assignop =
@@ -184,6 +213,7 @@ Productions
 
   term =
     {zero} zero_literal |
+    {undef_num} undef_number_literal |
     {number} number_literal |
     {identifier} identifier |
     {call} function_call |
@@ -198,3 +228,9 @@ Productions
 
   arglist_tail =
     comma value;
+
+  identifier_list =
+    identifier identifier_list_tail*;
+
+  identifier_list_tail =
+    comma identifier;

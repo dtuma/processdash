@@ -299,14 +299,26 @@ the # character.</p>
  <br>
 
  <li><strong>templates.directory</strong><br>
-   Directory that contains the process templates.<BR>
+   List of additional directories containing process templates.<BR>
+   The dashboard can load process definitions from many locations.
+   It will:<UL>
+   <LI>Look in each of the directories specified by the user setting
+       "templates.directory" (each directory should end in "Templates").</LI>
+   <LI>Look in any JAR files contained in those directories.</LI>
+   <LI>Look in any JAR files contained in the parents of those
+       directories.</LI>
+   <LI>If there is a Templates directory alongside the pspdash.jar file,
+       look there, first for the file, then for JARs containing the file.</LI>
+   <LI>If there are any JAR files next to the pspdash.jar file, look in
+       them.</LI>
+   <LI>Finally, look in the classpath (which includes the pspdash.jar
+       file).</LI></UL>
    <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>directory path</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>uses the templates that come with the dashboard 
-      and additional templates in the same directory as the pspdash.jar 
-      file.</td></tr>
+    <tr valign="top"><td NOWRAP>Format:</td><td>one or more directory paths,
+       separated by semicolons.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>Empty</td></tr>
     <tr valign="top"><td NOWRAP>Examples:</td><td>templates.directory=/usr/local/dash/Templates<br>
-      templates.directory=T:\\My Team Network Folder\\Our Process Templates</td></tr>
+      templates.directory=T:\\My Team Network Folder\\Our Process Templates;C:\\templates</td></tr>
    </table>
  </li>
  <br>

@@ -28,6 +28,22 @@ package pspdash;
 
 public class EscapeString {
 
+    public static String escape(String src, char escChar, String escapeChars) {
+        if (src == null || src.length() == 0 || escapeChars == null)
+            return src;
+
+        StringBuffer result = new StringBuffer();
+        char c;
+        for (int i = 0;   i < src.length();  i++) {
+            c = src.charAt(i);
+            if (c == escChar || escapeChars.indexOf(c) != -1)
+                result.append(escChar);
+            result.append(c);
+        }
+
+        return result.toString();
+    }
+
     // escapeChars contains all the characters to be 'escaped' (not incl escChar)
     public static String applyEscape (String src,
                                       char   escChar,

@@ -4,7 +4,7 @@ qf=../compProj.rpt
 
 title=LOC Reviewed per Hour vs. Yield - Code Review
 
-d1==![(/	New & Changed LOC	Code Review/Time	0.016667)]
+d1==Code Review/Appraisal Rate
 h1==Code Review LOC/Hour
 
 d2==Yield

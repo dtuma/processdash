@@ -4,4 +4,4 @@ qf=defects.rpt
 
 title=Defects Removed in Compile
 
-d1==![(*	1000	[(/	Compile/Defects Removed	New & Changed LOC)])]
+d1==Compile/Defect Density

@@ -42,18 +42,20 @@ This file contains the template definitions for the standard PSP processes.
     <html ID="dev"  title="PSP0 Development Script" href="psp0/develop.htm"/>
     <html ID="pm"   title="PSP0 Postmortem Script"  href="psp0/postmort.htm"/>
 
-    <phase name="Planning"   htmlID="plan" type="plan"/>
-    <phase name="Design"     htmlID="dev"  type="dld"/>
-    <phase name="Code"       htmlID="dev"  type="code"/>
-    <phase name="Compile"    htmlID="dev"  type="comp"/>
-    <phase name="Test"       htmlID="dev"  type="test"/>
-    <phase name="Postmortem" htmlID="pm"   type="pm"/>
+    <phase name="Planning"   htmlID="plan"        type="plan"/>
+    <phase name="Design"     htmlID="dev"         type="dld"/>
+    <phase name="Design Review" imaginary="true"  type="dldr"/>
+    <phase name="Code"       htmlID="dev#Code"    type="code"/>
+    <phase name="Code Review"   imaginary="true"  type="cr"/>
+    <phase name="Compile"    htmlID="dev#Compile" type="comp"/>
+    <phase name="Test"       htmlID="dev#Test"    type="ut"/>
+    <phase name="Postmortem" htmlID="pm"          type="pm"/>
   </template>
 
-  <template name="Design Review" ID="Design Review"
+  <template name="Design Review" ID="Design Review" dataFile="none"
             constraints="MED{}PSP0}PSP0.1}PSP1}PSP1.1}PSP0.1-PFE-2A}PSP1-PFE-4A}PSP1.1-PFE-5A}PSP0.1-MSE-2A}PSP1-MSE-3B" />
 
-  <template name="Code Review" ID="Code Review"
+  <template name="Code Review" ID="Code Review" dataFile="none"
             constraints="MED{}PSP0}PSP0.1}PSP1}PSP1.1}PSP0.1-PFE-2A}PSP1-PFE-4A}PSP1.1-PFE-5A}PSP0.1-MSE-2A}PSP1-MSE-3B" />
 
   <template name="PSP0.1" ID="PSP0.1" defectLog="true" 
@@ -69,9 +71,11 @@ This file contains the template definitions for the standard PSP processes.
 
     <phase name="Planning"   htmlID="plan" type="plan"/>
     <phase name="Design"     htmlID="dev"  type="dld"/>
+    <phase name="Design Review" imaginary="true"  type="dldr"/>
     <phase name="Code"       htmlID="dev"  type="code"/>
+    <phase name="Code Review"   imaginary="true"  type="cr"/>
     <phase name="Compile"    htmlID="dev"  type="comp"/>
-    <phase name="Test"       htmlID="dev"  type="test"/>
+    <phase name="Test"       htmlID="dev"  type="ut"/>
     <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 
@@ -88,9 +92,11 @@ This file contains the template definitions for the standard PSP processes.
 
     <phase name="Planning"   htmlID="plan" type="plan"/>
     <phase name="Design"     htmlID="dev"  type="dld"/>
+    <phase name="Design Review" imaginary="true"  type="dldr"/>
     <phase name="Code"       htmlID="dev"  type="code"/>
+    <phase name="Code Review"   imaginary="true"  type="cr"/>
     <phase name="Compile"    htmlID="dev"  type="comp"/>
-    <phase name="Test"       htmlID="dev"  type="test"/>
+    <phase name="Test"       htmlID="dev"  type="ut"/>
     <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 
@@ -109,9 +115,11 @@ This file contains the template definitions for the standard PSP processes.
 
     <phase name="Planning"   htmlID="plan" type="plan"/>
     <phase name="Design"     htmlID="dev"  type="dld"/>
+    <phase name="Design Review" imaginary="true" type="dldr"/>
     <phase name="Code"       htmlID="dev"  type="code"/>
+    <phase name="Code Review" imaginary="true" type="cr"/>
     <phase name="Compile"    htmlID="dev"  type="comp"/>
-    <phase name="Test"       htmlID="dev"  type="test"/>
+    <phase name="Test"       htmlID="dev"  type="ut"/>
     <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 
@@ -134,7 +142,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Code"          htmlID="dev"  type="code"/>
     <phase name="Code Review"   htmlID="dev"  type="cr"/>
     <phase name="Compile"       htmlID="dev"  type="comp"/>
-    <phase name="Test"          htmlID="dev"  type="test"/>
+    <phase name="Test"          htmlID="dev"  type="ut"/>
     <phase name="Postmortem"    htmlID="pm"   type="pm"/>
   </template>
 
@@ -157,7 +165,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Code"          htmlID="dev"  type="code"/>
     <phase name="Code Review"   htmlID="dev"  type="cr"/>
     <phase name="Compile"       htmlID="dev"  type="comp"/>
-    <phase name="Test"          htmlID="dev"  type="test"/>
+    <phase name="Test"          htmlID="dev"  type="ut"/>
     <phase name="Postmortem"    htmlID="pm"   type="pm"/>
   </template>
 
@@ -180,6 +188,13 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Planning"   htmlID="plan" type="plan"/>
     <phase name="HLD"        htmlID="hld"  type="hld"/>
     <phase name="HLD Review" htmlID="hldr" type="hldr"/>
+        <phase imaginary="true" name="Design"        type="dld"/>
+        <phase imaginary="true" name="Design Review" type="dldr"/>
+        <phase imaginary="true" name="Code"          type="code"/>
+        <phase imaginary="true" name="Code Review"   type="cr"/>
+        <phase imaginary="true" name="Compile"       type="comp"/>
+        <phase imaginary="true" name="Test"          type="ut"/>
+        <phase imaginary="true" name="Reassessment"  type="pm"/>
     <phase name="Postmortem" htmlID="pm"   type="pm"/>
   </template>
 
@@ -191,7 +206,7 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Code"          type="code"/>
     <phase name="Code Review"   type="cr"/>
     <phase name="Compile"       type="comp"/>
-    <phase name="Test"          type="test"/>
+    <phase name="Test"          type="ut"/>
     <phase name="Reassessment"  type="pm"/>
   </template>
 

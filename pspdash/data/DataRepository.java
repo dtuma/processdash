@@ -25,6 +25,8 @@
 
 package pspdash.data;
 
+import pspdash.PerlPool;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,6 +39,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLConnection;
@@ -54,7 +58,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Stack;
 import com.oroinc.text.perl.Perl5Util;
-import com.oroinc.text.perl.MalformedPerl5PatternException;
+import com.oroinc.text.MalformedCachePatternException;
 
 import pspdash.RobustFileWriter;
 
@@ -69,7 +73,9 @@ import pspdash.data.compiler.node.AIncludeDeclaration;
 import pspdash.data.compiler.node.ANewStyleDeclaration;
 import pspdash.data.compiler.node.AOldStyleDeclaration;
 import pspdash.data.compiler.node.AReadOnlyAssignop;
+import pspdash.data.compiler.node.AUndefineDeclaration;
 import pspdash.data.compiler.node.Start;
+import pspdash.data.compiler.node.TIdentifier;
 import pspdash.data.compiler.parser.Parser;
 import pspdash.data.compiler.parser.ParserException;
 
@@ -551,7 +557,7 @@ public class DataRepository implements Repository {
         DataNotifier dataNotifier;
 
 
-        private static Perl5Util perl = new Perl5Util();
+        private static Perl5Util perl = PerlPool.get();
         private class DataFreezer extends Thread implements RepositoryListener,
                                                             DataConsistencyObserver
         {
@@ -908,7 +914,7 @@ public class DataRepository implements Repository {
                             return;           // don't freeze freeze flags!
                         if (!perl.match(freezeRegexp, e.getNameCA()))
                             return;           // only freeze data which matches the regexp.
-                    } catch (MalformedPerl5PatternException m) {
+                    } catch (MalformedCachePatternException m) {
                         //The user has given a bogus pattern!
                         System.out.println("The regular expression for " + freezeFlagName +
                                            " is malformed.");
@@ -1094,7 +1100,7 @@ public class DataRepository implements Repository {
             Enumeration k = data.keys();
             String name, value;
             DataElement  de;
-            SaveableData sd;
+            SimpleData sd;
 
                                       // first, realize all elements.
             while (k.hasMoreElements()) {
@@ -1110,13 +1116,16 @@ public class DataRepository implements Repository {
                     try {
                         de = (DataElement)data.get(name);
                         if (de.datafile != null) {
-                            sd = de.getValue();
+                            value = null;
+                            sd = de.getSimpleValue();
                             if (sd instanceof DateData) {
                                 value = ((DateData)sd).formatDate();
                             } else if (sd instanceof StringData) {
                                 value = ((StringData)sd).getString();
-                            } else
-                                value = de.getSimpleValue().toString();
+                            } else if (sd instanceof DoubleData) {
+                                value = ((DoubleData)sd).formatNumber(3);
+                            } else if (sd != null)
+                                value = sd.toString();
                             if (value != null)
                                 out.println(name + "," + value);
                         }
@@ -1475,6 +1484,16 @@ public class DataRepository implements Repository {
         private static final String includeTag = "#include ";
         private final Hashtable includedFileCache = new Hashtable();
 
+        private Map getIncludedFileDefinitions(String datafile) {
+            Object definitions = includedFileCache.get(datafile);
+            if (definitions instanceof DefinitionFactory) {
+                definitions = ((DefinitionFactory) definitions).getDefinitions(this);
+                definitions = Collections.unmodifiableMap((Map) definitions);
+                includedFileCache.put(datafile, definitions);
+            }
+            return (Map) definitions;
+        }
+
         String lookupDefaultValue(String dataName, DataElement element) {
             // if the user didn't bother to look up the data element, look
             // it up for them.
@@ -1486,7 +1505,7 @@ public class DataRepository implements Repository {
                 return null;                        // then the default value is null.
 
             DataFile datafile = element.datafile;
-            Map defaultValues = (Map) includedFileCache.get(datafile.inheritsFrom);
+            Map defaultValues = getIncludedFileDefinitions(datafile.inheritsFrom);
             if (defaultValues == null)
                 return null;
 
@@ -1574,10 +1593,8 @@ public class DataRepository implements Repository {
                     if (constant == null)
                         dest.remove(name);
                     else {
-                        if (node.getAssignop() instanceof AReadOnlyAssignop) {
-                            constant = constant.getSimpleValue();
-                            constant.setEditable(false);
-                        }
+                        if (node.getAssignop() instanceof AReadOnlyAssignop)
+                            constant = (SimpleData) constant.getEditable(false);
                         dest.put(name, constant);
                     }
                 }
@@ -1619,17 +1636,25 @@ public class DataRepository implements Repository {
                              " paths are no longer supported."));
                 }
 
-                Map cachedIncludeFile =
-                    (Map) includedFileCache.get(inheritedDatafile);
+                Map cachedIncludeFile = getIncludedFileDefinitions(inheritedDatafile);
 
                 if (cachedIncludeFile == null) try {
                     cachedIncludeFile = new HashMap();
+
+                    // Lookup any applicable default data definitions.
+                    DefinitionFactory defaultDefns =
+                        (DefinitionFactory) defaultDefinitions.get(inheritedDatafile);
+                    if (defaultDefns != null)
+                        cachedIncludeFile.putAll
+                            (defaultDefns.getDefinitions(DataRepository.this));
+
                     // the null in the next line is a bug! it has no effect on
                     // #include <> statements, but effectively prevents #include ""
                     // statements from working (in other words, include directives
                     // relative to the current file.  Such directives are not
                     // currently used by the dashboard, so nothing will break.)
-                    loadDatafile(findDatafile(inheritedDatafile, null),
+                    loadDatafile(inheritedDatafile,
+                                 findDatafile(inheritedDatafile, null),
                                  cachedIncludeFile, true);
                     cachedIncludeFile = Collections.unmodifiableMap(cachedIncludeFile);
                     includedFileCache.put(inheritedDatafile, cachedIncludeFile);
@@ -1638,6 +1663,21 @@ public class DataRepository implements Repository {
                 }
                 dest.putAll(cachedIncludeFile);
             }
+
+            public void caseAUndefineDeclaration(AUndefineDeclaration node) {
+                IdentifierLister list = new IdentifierLister();
+                node.getIdentifierList().apply(list);
+                Iterator i = list.identifiers.iterator();
+                while (i.hasNext())
+                    dest.remove(i.next());
+            }
+        }
+
+        private class IdentifierLister extends DepthFirstAdapter {
+            public ArrayList identifiers = new ArrayList();
+            public IdentifierLister() {}
+            public void caseTIdentifier(TIdentifier node) {
+                identifiers.add(Compiler.trimDelim(node)); }
         }
 
         // loadDatafile - opens the file passed to it and looks for "x = y" type
@@ -1646,19 +1686,28 @@ public class DataRepository implements Repository {
         // call to loadDatafile is made, using the same Hashtable.  Return the
         // name of the include file, if one was found.
 
-        private String loadDatafile(InputStream datafile, Map dest, boolean close)
+        private String loadDatafile(String file, InputStream datafile,
+                                    Map dest, boolean close)
+            throws FileNotFoundException, IOException, InvalidDatafileFormat {
+            return loadDatafile(file, new InputStreamReader(datafile), dest, close);
+        }
+        private String loadDatafile(String filename, Reader datafile,
+                                    Map dest, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
             // Initialize data, file, and read buffer.
             String inheritedDatafile = null;
-            BufferedReader in = new BufferedReader(new InputStreamReader(datafile));
+            BufferedReader in = new BufferedReader(datafile);
             String line, name, value;
             int equalsPosition;
             FileLoader loader = new FileLoader(dest);
+            String defineDecls = null;
+            if (filename != null)
+                defineDecls = (String) defineDeclarations.get(filename);
 
             try {
-                CppFilterReader readIn = new CppFilterReader(in);
-                Parser p = new Parser(new Lexer(new PushbackReader(readIn)));
+                CppFilterReader readIn = new CppFilterReader(in, defineDecls);
+                Parser p = new Parser(new Lexer(new PushbackReader(readIn, 1024)));
 
                 // Parse the file.
                 Start tree = p.parse();
@@ -1687,11 +1736,55 @@ public class DataRepository implements Repository {
             return loader.getInheritedDatafile();
         }
 
+        public void parseDatafile(String contents, Map dest)
+            throws FileNotFoundException, IOException, InvalidDatafileFormat {
+            loadDatafile(null, new StringReader(contents), dest, true);
+        }
+
+        private final Hashtable defineDeclarations = new Hashtable();
+        public void putDefineDeclarations(String datafile, String decls) {
+            defineDeclarations.put("<" + datafile + ">", decls);
+        }
+
+        private final Hashtable defaultDefinitions = new Hashtable();
+    /*
+        public void putDefaultData(String datafile, Map defaultDefns) {
+            defaultDefinitions.put("<" + datafile + ">", defaultDefns);
+
+            System.out.println("default data for <" + datafile + "> :");
+            Iterator i = defaultDefns.entrySet().iterator();
+            String val; Object v;
+            while (i.hasNext()) {
+                Map.Entry e = (Map.Entry) i.next();
+                v = e.getValue();
+                if (v instanceof SaveableData)
+                    val = ((SaveableData) v).saveString();
+                else if (v instanceof CompiledScript)
+                    val = ((CompiledScript) v).saveString();
+                else if (v == null)
+                    val = "null";
+                else
+                    val = v.getClass().getName();
+
+                System.out.println(e.getKey() + "=" + val);
+            }
+            System.out.println("\n");
+        }
+            */
+
+        public void registerDefaultData(DefinitionFactory d,
+                                        String datafile, boolean isImaginary) {
+            if (isImaginary)
+                includedFileCache.put("<" + datafile + ">", d);
+            else
+                defaultDefinitions.put("<" + datafile + ">", d);
+        }
+
         private Hashtable globalDataDefinitions = new Hashtable();
 
         public void addGlobalDefinitions(InputStream datafile, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            loadDatafile(datafile, globalDataDefinitions, close);
+            loadDatafile(null, datafile, globalDataDefinitions, close);
         }
 
         /** Perform renaming operations found in the values map.
@@ -1779,7 +1872,7 @@ public class DataRepository implements Repository {
                         valueRename = perl.substitute(re, valueName);
                         if (!valueName.equals(valueRename))
                             renamingOperations.put(valueRename, valueName);
-                    } catch (MalformedPerl5PatternException mpe) {
+                    } catch (MalformedCachePatternException mpe) {
                         throw new InvalidDatafileFormat
                             ("Malformed renaming operation '" + name +
                              "=" + PATTERN_RENAME_PREFIX + value + "'");
@@ -1821,7 +1914,8 @@ public class DataRepository implements Repository {
             dataFile.prefix = dataPrefix;
             dataFile.file = new File(datafilePath);
             dataFile.inheritsFrom =
-                loadDatafile(new FileInputStream(dataFile.file), values, true);
+                loadDatafile(null, new FileInputStream(dataFile.file),
+                             values, true);
             boolean dataModified;
             boolean registerDataNames = (dataPrefix.length() > 0);
 
@@ -1959,6 +2053,8 @@ public class DataRepository implements Repository {
         // the actual datafile.  Once the rename is successful, backup is
         // deleted.
         private void saveDatafile(DataFile datafile) {
+            if (datafile == null || datafile.file == null) return;
+
             synchronized(datafile) {
                 // debug("saveDatafile");
 
@@ -1980,7 +2076,7 @@ public class DataRepository implements Repository {
                 // if the data file has an include statement, write it to the
                 // the two temporary output files.
                 if (datafile.inheritsFrom != null) {
-                    defaultValues = (Map) includedFileCache.get(datafile.inheritsFrom);
+                    defaultValues = getIncludedFileDefinitions(datafile.inheritsFrom);
                     try {
                         out.write(includeTag + datafile.inheritsFrom);
                         out.newLine();
@@ -2182,37 +2278,37 @@ public class DataRepository implements Repository {
 
 
         public void addRepositoryListener(RepositoryListener rl, String prefix) {
-            // debug("addRepositoryListener");
+            //debug("addRepositoryListener:" + prefix);
 
-                                      // add the listener to our repository list.
-                repositoryListenerList.addListener(rl, prefix);
+                                    // add the listener to our repository list.
+            repositoryListenerList.addListener(rl, prefix);
 
-                                        // notify the listener of all the elements
-                                        // already in the repository.
-                Iterator k = getKeys();
-                String name;
+                                    // notify the listener of all the elements
+                                    // already in the repository.
+            Iterator k = getKeys();
+            String name;
 
 
-                if (prefix != null && prefix.length() != 0)
+            if (prefix != null && prefix.length() != 0)
 
-                                        // if they have specified a prefix, notify them
-                                        // of all the data beginning with that prefix.
-                    while (k.hasNext()) {
-                        if ((name = (String) k.next()).startsWith(prefix)) {
-                            DataElement d = (DataElement) data.get(name);
-                            if (d != null) rl.dataAdded(d.getDataAddedEvent());
-                        }
+                                    // if they have specified a prefix, notify them
+                                    // of all the data beginning with that prefix.
+                while (k.hasNext()) {
+                    if ((name = (String) k.next()).startsWith(prefix)) {
+                        DataElement d = (DataElement) data.get(name);
+                        if (d != null) rl.dataAdded(d.getDataAddedEvent());
+                    }
+                }
+
+            else                    // if they have specified no prefix, only
+                                    // notify them of data that is NOT anonymous.
+                while (k.hasNext())
+                    if (!(name = (String) k.next()).startsWith(anonymousPrefix)) {
+                        DataElement d = (DataElement) data.get(name);
+                        if (d != null) rl.dataAdded(d.getDataAddedEvent());
                     }
 
-                else                    // if they have specified no prefix, only
-                                        // notify them of data that is NOT anonymous.
-                    while (k.hasNext())
-                        if (!(name = (String) k.next()).startsWith(anonymousPrefix)) {
-                            DataElement d = (DataElement) data.get(name);
-                            if (d != null) rl.dataAdded(d.getDataAddedEvent());
-                        }
-
-                // debug("addRepositoryListener done");
+            // debug("addRepositoryListener done");
         }
 
 

@@ -39,6 +39,7 @@ NON_CLASS_FILES=continue.gif \
 		pause.gif \
 		pspdash.ad \
 		pspdash.ad-comments \
+		nodeData.txt leafData.txt processData.txt \
 		script.gif \
 		scriptd.gif \
 		splash.gif \

@@ -5,5 +5,5 @@ qf=../compProj.rpt
 title=Size Estimating Error
 
 h1==% Error
-d1==![(/	[(-	New & Changed LOC	Estimated New & Changed LOC)]	Estimated New & Changed LOC)]
+d1==Size Estimating Error
 f1==100%

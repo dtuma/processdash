@@ -26,7 +26,7 @@
 package pspdash.data.compiler;
 
 import pspdash.data.SimpleData;
-import pspdash.data.DoubleData;
+import pspdash.data.ImmutableDoubleData;
 import pspdash.data.NumberData;
 
 class MathOperators {
@@ -50,18 +50,17 @@ class MathOperators {
 
 class BinaryMathOperator extends BinaryOperator {
 
-    static final SimpleData NOT_A_NUMBER = new DoubleData(Double.NaN, false);
-
     public BinaryMathOperator(String op) { super(op); }
 
     protected SimpleData operate(SimpleData left, SimpleData right) {
         if (! (left instanceof NumberData && right instanceof NumberData))
-            return NOT_A_NUMBER;
+            return ImmutableDoubleData.READ_ONLY_NAN;
         double leftVal  = ((NumberData) left).getDouble();
         double rightVal = ((NumberData) right).getDouble();
 
-        return new DoubleData(calc(leftVal, rightVal), false);
+        return new ImmutableDoubleData(calc(leftVal, rightVal), false, true);
     }
 
+    // no-op, meant to be overwritten.
     protected double calc(double left, double right) { return 0.0; }
 }

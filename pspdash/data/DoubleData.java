@@ -68,10 +68,10 @@ public class DoubleData implements SimpleData, NumberData {
     public DoubleData(int i)    { value = (double)i; }
     public DoubleData(double d) { value = d; }
     public String saveString()  {
-        return (defined ? "" : "?") + Double.toString(value);
+        return (isDefined() ? "" : "?") + Double.toString(getDouble());
     }
     public double getDouble()   { return value; }
-    public int getInteger()     { return (int)value; }
+    public int getInteger()     { return (int)getDouble(); }
     public boolean isEditable() { return editable; }
     public void setEditable(boolean e) { editable = e; }
     public boolean isDefined() { return defined; }
@@ -79,7 +79,7 @@ public class DoubleData implements SimpleData, NumberData {
     public void dispose() {};
 
     public SimpleData getSimpleValue() {
-        DoubleData result = new DoubleData(value, editable);
+        DoubleData result = new DoubleData(getDouble(), isEditable());
         result.defined = defined;
         return result;
     }
@@ -136,15 +136,15 @@ public class DoubleData implements SimpleData, NumberData {
     }
 
     public String formatNumber(int numDecimalPoints) {
-        return formatNumber(value, numDecimalPoints);
+        return formatNumber(getDouble(), numDecimalPoints);
     }
 
     public String toString() {
-        return Double.toString(value);
+        return Double.toString(getDouble());
     }
 
     public String format() {
-        return formatNumber(value);
+        return formatNumber(getDouble());
     }
 
     public static String formatNumber(double value) {
@@ -155,15 +155,25 @@ public class DoubleData implements SimpleData, NumberData {
         return (val == null || val.length() == 0) ? null : new DoubleData(val);
     }
     public boolean equals(SimpleData val) {
-        return ((val instanceof DoubleData) && (value==((DoubleData)val).value));
+        return ((val instanceof DoubleData) &&
+                (getDouble() == ((DoubleData)val).getDouble()));
     }
     public boolean lessThan(SimpleData val) {
-        return ((val instanceof DoubleData) && (value<((DoubleData)val).value));
+        return ((val instanceof DoubleData) &&
+                (getDouble() < ((DoubleData)val).getDouble()));
     }
     public boolean greaterThan(SimpleData val) {
-        return ((val instanceof DoubleData) && (value>((DoubleData)val).value));
+        return ((val instanceof DoubleData) &&
+                (getDouble() > ((DoubleData)val).getDouble()));
     }
     public boolean test() {
-        return (value != 0.0);
+        // should NaN and Infinity count as true values?
+        return (getDouble() != 0.0);
+    }
+
+    public SaveableData getEditable(boolean editable) {
+        SimpleData result = getSimpleValue();
+        result.setEditable(editable);
+        return result;
     }
 }

@@ -36,20 +36,19 @@ class CompiledFunction implements SaveableData,
     private static final SimpleData UNCALCULATED_VALUE =
         new DoubleData(Double.NaN, false);
 
-    protected String name = null;
+    protected String name = null, prefix;
     protected CompiledScript script;
     protected DataRepository data;
-    protected ActiveExpressionContext context;
-    protected ListStack stack;
+    protected ActiveExpressionContext context = null;
+    protected ListStack stack = null;
     protected SimpleData value = UNCALCULATED_VALUE;
 
     public CompiledFunction(String name, CompiledScript script,
                             DataRepository r, String prefix) {
         this.script = script;
-        this.context = new ActiveExpressionContext(name, prefix, r, this);
         this.data = r;
-        this.stack = new ListStack();
         this.name = name;
+        this.prefix = prefix;
     }
 
     public CompiledScript getScript() { return script; }
@@ -62,6 +61,13 @@ class CompiledFunction implements SaveableData,
         if (name == null) return;
         boolean needsNotify = (value != UNCALCULATED_VALUE);
 
+        if (context == null) synchronized(this) {
+            if (context == null)
+                context=new ActiveExpressionContext(name, prefix, data, this);
+            if (stack == null)
+                stack = new ListStack();
+        }
+
         Object calculationInfo;
         synchronized (stack) {
             synchronized (context) {
@@ -70,10 +76,8 @@ class CompiledFunction implements SaveableData,
                 try {
                     script.run(stack, context);
                     value = (SimpleData) stack.pop();
-                    if (value != null) {
-                        value = value.getSimpleValue();
-                        value.setEditable(false);
-                    }
+                    if (value != null)
+                        value = (SimpleData) value.getEditable(false);
                 } catch (ExecutionException e) {
                     System.err.println("Error executing " + name + ": " + e);
                     value = null;
@@ -113,4 +117,6 @@ class CompiledFunction implements SaveableData,
         context = null;
         if (c != null) c.dispose();
     }
+
+    public SaveableData getEditable(boolean editable) { return this; }
 }

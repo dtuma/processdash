@@ -213,4 +213,6 @@ class SearchFunction implements SaveableData, RepositoryListener, DataListener
         script = null;
         value = null;
     }
+
+    public SaveableData getEditable(boolean editable) { return this; }
 }

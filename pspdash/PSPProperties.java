@@ -348,6 +348,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     public static final String SELECTED_ATTR = "selected";
     public static final String HTML_HREF_ATTR = "href";
     public static final String CONSTRAINTS_ATTR = "constraints";
+    public static final String IMAGINARY_NODE_ATTR = "imaginary";
 
     public static final String TEMPLATE_NODE_NAME = "template";
     public static final String HTML_NODE_NAME = "html";
@@ -379,6 +380,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
     {
         String nodeType = e.getTagName();
         if (HTML_NODE_NAME.equals(nodeType)) return null;
+        if (e.hasAttribute(IMAGINARY_NODE_ATTR)) return null;
 
         String nodeName = e.getAttribute(NAME_ATTR);
         if (nodeName == null || nodeName.length() == 0)
@@ -426,7 +428,10 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
 
         } else {
             // We are loading a process template definition. Store the template ID.
-            val.setID(e.getAttribute(ID_ATTR));
+            String theid = e.getAttribute(ID_ATTR);
+            if (!Prop.hasValue(theid) && TEMPLATE_NODE_NAME.equals(nodeType))
+                theid = nodeName;
+            val.setID(theid);
 
             // Store the defined script href.
             val.setScriptFile(e.getAttribute(HTML_HREF_ATTR));

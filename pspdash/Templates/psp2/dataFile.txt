@@ -1,4 +1,4 @@
-#include <psp1.1/dataFile.txt>
+/* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -32,115 +32,67 @@
 ==
 == Description: This is the data file for a PSP2 process.
 ==
+*/
+
+#include <psp1.1/dataFile.txt>
+undefine([PSP1.1 Tag], [psp1.1], [PSP1.1]);
+[psp2] == TAG;
+[PSP2] == TAG;
 
 
-==
-== The following elements identify the data in this file as belonging to
-== a PSP2 process.
-==
+/*
+ * Estimate defects injected and removed from historical "To Date" data
+ */
 
-psp2==TAG
-PSP2==TAG
-psp1.1=null
-PSP1.1=null
-
+[Estimated Defects per KLOC] = [/Defects Injected per KLOC To Date];
+[Estimated Defects Injected] =
+        [Estimated New & Changed KLOC] * [Estimated Defects per KLOC];
+[Estimated Defects Removed]  = [Estimated Defects Injected];
 
 
-==
-== Estimate "Defects Injected" from historical "To Date" data
-==
+[Normalized_Estimated_Defects_Injected] = 
+    [Estimated Defects Injected] / [/Normalization %/Defects Injected/PSP0-2];
+[Normalized_Estimated_Defects_Removed] =
+    [Normalized_Estimated_Defects_Injected];
 
-Estimated Defects per KLOC==![(+	/Defects Injected per KLOC To Date)]
-Estimated Defects Injected==![(*	Estimated New & Changed KLOC	Estimated Defects per KLOC)]
+// Spread estimated defects over the various phases.
 
-Normalized_Estimated_Defects_Injected==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP0-2)]
+#define estimateDefects(Phase)						      \
+  [Phase/Estimated Defects Injected] =					      \
+        [Normalized_Estimated_Defects_Injected] *			      \
+        [/Phase/% Defects Injected To Date];				      \
+  [Phase/Estimated Defects Removed] =					      \
+        [Normalized_Estimated_Defects_Removed] *			      \
+        [/Phase/% Defects Removed To Date];
 
-Before Development/Estimated Defects Injected==![(*	Estimated Defects Injected	/Before Development/% Defects Injected To Date)]
-Planning/Estimated Defects Injected==![(*	Normalized_Estimated_Defects_Injected	/Planning/% Defects Injected To Date)]
-Design/Estimated Defects Injected==![(*	Normalized_Estimated_Defects_Injected	/Design/% Defects Injected To Date)]
-Design Review/Estimated Defects Injected==![(*	Normalized_Estimated_Defects_Injected	/Design Review/% Defects Injected To Date)]
-Code/Estimated Defects Injected==![(*	Normalized_Estimated_Defects_Injected	/Code/% Defects Injected To Date)]
-Code Review/Estimated Defects Injected==![(*	Normalized_Estimated_Defects_Injected	/Code Review/% Defects Injected To Date)]
-Compile/Estimated Defects Injected==![(*	Normalized_Estimated_Defects_Injected	/Compile/% Defects Injected To Date)]
-Test/Estimated Defects Injected==![(*	Normalized_Estimated_Defects_Injected	/Test/% Defects Injected To Date)]
-Postmortem/Estimated Defects Injected==![(*	Normalized_Estimated_Defects_Injected	/Postmortem/% Defects Injected To Date)]
+FOR_EACH_PHASE(estimateDefects);
 
 
+// The statistical underpinning for these two estimates may be shaky...
 
-==
-== Estimate "Defects Removed" from historical "To Date" data
-==
-
-Estimated Defects Removed==![(+	Estimated Defects Injected)]
-Normalized_Estimated_Defects_Removed==![(#=	Normalized_Estimated_Defects_Injected)]
-
-Planning/Estimated Defects Removed==![(*	Normalized_Estimated_Defects_Removed	/Planning/% Defects Removed To Date)]
-Design/Estimated Defects Removed==![(*	Normalized_Estimated_Defects_Removed	/Design/% Defects Removed To Date)]
-Design Review/Estimated Defects Removed==![(*	Normalized_Estimated_Defects_Removed	/Design Review/% Defects Removed To Date)]
-Code/Estimated Defects Removed==![(*	Normalized_Estimated_Defects_Removed	/Code/% Defects Removed To Date)]
-Code Review/Estimated Defects Removed==![(*	Normalized_Estimated_Defects_Removed	/Code Review/% Defects Removed To Date)]
-Compile/Estimated Defects Removed==![(*	Normalized_Estimated_Defects_Removed	/Compile/% Defects Removed To Date)]
-Test/Estimated Defects Removed==![(*	Normalized_Estimated_Defects_Removed	/Test/% Defects Removed To Date)]
-Postmortem/Estimated Defects Removed==![(*	Normalized_Estimated_Defects_Removed	/Postmortem/% Defects Removed To Date)]
-After Development/Estimated Defects Removed==![(*	Normalized_Estimated_Defects_Removed	/After Development/% Defects Removed To Date)]
+[Before Development/Estimated Defects Injected] =
+        [Estimated Defects Injected] *
+	[/Before Development/% Defects Injected To Date];
+[After Development/Estimated Defects Removed] =
+	[Normalized_Estimated_Defects_Removed] *
+	[/After Development/% Defects Removed To Date];
 
 
 
-==
-== Defect Removal Efficiency metrics
-==
+/*
+ * Aliases for test and overall defect density
+ */
 
-= Estimated Defect Removal Efficiency
+[Test/Estimated Defects Removed per KLOC] = [Test/Estimated Defect Density];
+[Test/Defects Removed per KLOC] = [Test/Defect Density];
 
-Design Review/Estimated Defects Removed per Hour==![(*	60	[(/	Design Review/Estimated Defects Removed	Design Review/Estimated Time)])]
-Code Review/Estimated Defects Removed per Hour==![(*	60	[(/	Code Review/Estimated Defects Removed	Code Review/Estimated Time)])]
-Compile/Estimated Defects Removed per Hour==![(*	60	[(/	Compile/Estimated Defects Removed	Compile/Estimated Time)])]
-Test/Estimated Defects Removed per Hour==![(*	60	[(/	Test/Estimated Defects Removed	Test/Estimated Time)])]
-Design Review/Estimated DRL==![(/	Design Review/Estimated Defects Removed per Hour	Test/Estimated Defects Removed per Hour)]
-Code Review/Estimated DRL==![(/	Code Review/Estimated Defects Removed per Hour	Test/Estimated Defects Removed per Hour)]
-Compile/Estimated DRL==![(/	Compile/Estimated Defects Removed per Hour	Test/Estimated Defects Removed per Hour)]
-
-= Actual Defect Removal Efficiency
-
-Design Review/Defects Removed per Hour==![(*	60	[(/	Design Review/Defects Removed	Design Review/Time)])]
-Code Review/Defects Removed per Hour==![(*	60	[(/	Code Review/Defects Removed	Code Review/Time)])]
-Compile/Defects Removed per Hour==![(*	60	[(/	Compile/Defects Removed	Compile/Time)])]
-Test/Defects Removed per Hour==![(*	60	[(/	Test/Defects Removed	Test/Time)])]
-Design Review/DRL==![(/	Design Review/Defects Removed per Hour	Test/Defects Removed per Hour)]
-Code Review/DRL==![(/	Code Review/Defects Removed per Hour	Test/Defects Removed per Hour)]
-Compile/DRL==![(/	Compile/Defects Removed per Hour	Test/Defects Removed per Hour)]
+[Estimated Defects Removed per KLOC] = [Estimated Defect Density];
+[Defects Removed per KLOC] = [Defect Density];
 
 
-
-==
-== Data Elements to calculate overall process metrics.
-==
-
-CPI==![(/	Estimated Time	Time)]
-
-= Calculations based on estimated data
-
-Test/Estimated Defects Removed per KLOC==![(/	Test/Estimated Defects Removed	Estimated New & Changed KLOC)]
-Estimated Defects Removed per KLOC==![(/	Estimated Defects Removed	Estimated New & Changed KLOC)]
-Estimated Yield==![(/	[(+	Planning/Estimated Defects Removed	Design/Estimated Defects Removed	Design Review/Estimated Defects Removed	Code/Estimated Defects Removed	Code Review/Estimated Defects Removed)]	Estimated Defects Removed)]
-
-= Calculations based on actual data
-
-Test/Defects Removed per KLOC==![(/	Test/Defects Removed	New & Changed KLOC)]
-Defects Removed per KLOC==![(/	Defects Removed	New & Changed KLOC)]
-
-==
-== tags identifying new nodes and leaves in this process
-==
-
-Design Review/node==TAG
-Design Review/leaf==TAG
-Code Review/node==TAG
-Code Review/leaf==TAG
-
-==
-== Local copies of To Date data
-==
+/*
+ * Local copies of To Date data
+ */
 
 Test/Defects Removed per KLOC To Date==![(#=	/Test/Defects Removed per KLOC To Date)]
 Defects per KLOC To Date==![(#=	/Defects per KLOC To Date)]

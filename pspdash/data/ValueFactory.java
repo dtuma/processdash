@@ -25,11 +25,11 @@
 
 package pspdash.data;
 
-import pspdash.ResourcePool;
+import pspdash.PerlPool;
 import java.lang.reflect.Constructor;
 import java.util.Hashtable;
 import com.oroinc.text.perl.Perl5Util;
-import com.oroinc.text.perl.MalformedPerl5PatternException;
+import com.oroinc.text.MalformedCachePatternException;
 
                                 // We do not explicitly use these classes, but
                                 // if we do not import them, they never get
@@ -52,7 +52,6 @@ import pspdash.data.NotEqualsFunction;
 
 class ValueFactory {
 
-    public static ResourcePool perlPool;
     static final String doublePattern =
         "m\n^-?\\d+\\.\\d+([eE](\\+|-)\\d+)?|-?NaN|-?Infinity$\n";
     static final String integerPattern = "m\n^[-+]?[0-9]+$\n";
@@ -87,12 +86,6 @@ class ValueFactory {
 
 
     static {
-
-        perlPool = new ResourcePool("ValueFactory.perlPool") {
-                protected Object createNewResource() {
-                    return new Perl5Util();
-                }
-            };
 
         functionConstructors = new Hashtable();
 
@@ -251,7 +244,7 @@ class ValueFactory {
         throws MalformedValueException {
 
         SaveableData result = null;
-        Perl5Util perl = (Perl5Util) perlPool.get();
+        Perl5Util perl = PerlPool.get();
         try {
             String isSimpleFunction = "m\n^" + simpleFunction + "$\n";
             String containsSimpleFunction = "m\n" + simpleFunction + "\n";
@@ -267,7 +260,7 @@ class ValueFactory {
                     if (!perl.match(containsSimpleFunction, expression))
                         throw new MalformedValueException
                             ("mismatched parentheses");
-                } catch (MalformedPerl5PatternException e) {
+                } catch (MalformedCachePatternException e) {
                     throw new MalformedValueException(e.toString());
                 }
 
@@ -290,7 +283,7 @@ class ValueFactory {
             expression = perl.group(1);
             result = parseSimpleFunc(name, expression, value, r, prefix);
         } finally {
-            perlPool.release(perl);
+            PerlPool.release(perl);
         }
         return result;
     }

@@ -1,4 +1,4 @@
-#include <psp0.1/dataFile.txt>
+/* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -32,69 +32,32 @@
 ==
 == Description: This is the data file for a PSP1 process.
 ==
+*/
+
+#include <psp0.1/dataFile.txt>
+undefine([PSP0.1 Tag], [psp0.1], [PSP0.1]);
+[psp1] == TAG;
+[PSP1] == TAG;
 
 
-==
-== The following elements identify the data in this file as belonging to
-== a PSP1 process.
-==
+/*
+ * Include data elements needed by the size estimating template.
+ */
 
-psp1==TAG
-PSP1==TAG
-psp0.1=null
-PSP0.1=null
+#include <psp1/sizeestData.txt>
 
 
+/*
+ * Aliases for overall process metrics.
+ */
 
-==
-== Data Elements to track LOC.
-==
-
-= Estimated LOC
-
-Estimated Base LOC=0.0
-Estimated Deleted LOC=0.0
-Estimated Modified LOC=0.0
-Estimated Base Additions LOC==![(+	~Base Additions/\d+/LOC)]
-Estimated New Objects LOC==![(+	~New Objects/\d+/LOC)]
-Estimated Reused LOC==![(+	~Reused Objects/\d+/LOC)]
-Estimated Object LOC==![(+	Estimated Base Additions LOC	Estimated New Objects LOC	Estimated Modified LOC)]
-Estimated Added LOC==![(-	Estimated New & Changed LOC	Estimated Modified LOC)]
-Estimated New Reused LOC==![(+	~New Objects/\d+/{New Reused?}LOC)]
-Estimated Total LOC==![(-	[(+	Estimated New & Changed LOC	Estimated Base LOC	Estimated Reused LOC)]	Estimated Deleted LOC	Estimated Modified LOC)]
-Estimated Max LOC=0.0
-Estimated Min LOC=0.0
-Estimated New & Changed KLOC==![(/	Estimated New & Changed LOC	1000)]
-Estimated New & Changed LOC/Beta0=0.0
-Estimated New & Changed LOC/Beta1=0.0
-Estimated New & Changed LOC/Range=0.0
-Estimated Total LOC/Range==![(#=	Estimated New & Changed LOC/Range)]
-Estimated New & Changed LOC/Interval Percent=0.0
-Estimated New & Changed LOC/Probe Method="D
-Estimated New & Changed LOC/R Squared=0.0
-
-= Actual LOC
-
-Base Additions LOC==![(+	~Base Additions/\d+/Actual LOC)]
-New Objects LOC==![(+	~New Objects/\d+/Actual LOC)]
-Reused LOC==![(+	~Reused Objects/\d+/Actual LOC)]
-Object LOC==![(+	Base Additions LOC	New Objects LOC	Modified LOC)]
-New Reused LOC==![(+	~New Objects/\d+/Actual {New Reused?}LOC)]
-New & Changed KLOC==![(/	New & Changed LOC	1000)]
+[Estimated LOC per Hour] = [Estimated Productivity];
+[LOC per Hour]           = [Productivity];
+[Defects per KLOC]       = [Defect Density];
 
 
-
-==
-== Data Elements to calculate overall process metrics.
-==
-
-Estimated LOC per Hour==![(*	60	[(/	Estimated New & Changed LOC	Estimated Time)])]
-LOC per Hour==![(*	60	[(/	New & Changed LOC	Time)])]
-Defects per KLOC==![(/	Defects Injected	New & Changed KLOC)]
-
-
-==
-== Local copies of To Date data
-==
+/*
+ * Local copies of To Date data
+ */
 
 LOC per Hour To Date==![(#=	/LOC per Hour To Date)]

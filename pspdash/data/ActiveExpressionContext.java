@@ -192,9 +192,14 @@ class ActiveExpressionContext implements ExpressionContext, DataListener
         SimpleData newValue = e.getValue();
         SimpleData oldValue = (SimpleData) map.put(dataName, newValue);
 
-        return (oldValue != newValue &&
-                ((oldValue != null && !oldValue.equals(newValue)) ||
-                 (newValue != null && !newValue.equals(oldValue))));
+        // the next line makes the (not-quite-valid) assumption that
+        // simple values are immutable, and that anytime a dynamically
+        // calculated value recalculates, it will create a NEW
+        // SimpleData object to represent the value.
+        if (oldValue == newValue) return false;
+        if (oldValue != null) return !oldValue.equals(newValue);
+        if (newValue != null) return !newValue.equals(oldValue);
+        return false;
     }
 
     public void dataValueChanged(DataEvent e) {

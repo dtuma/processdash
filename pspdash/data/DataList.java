@@ -26,8 +26,9 @@
 package pspdash.data;
 
 
+import pspdash.PerlPool;
 import com.oroinc.text.perl.Perl5Util;
-import com.oroinc.text.perl.MalformedPerl5PatternException;
+import com.oroinc.text.MalformedCachePatternException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -35,7 +36,7 @@ import java.util.Vector;
 
 abstract class DataList {
 
-    private static Perl5Util perl = new Perl5Util();
+    private static Perl5Util perl = PerlPool.get();
     String dataName = null;
     String prefix = null;
     String customerName = null;
@@ -211,8 +212,8 @@ abstract class DataList {
                     dataList.put(e.getName(), new DataListValue(null)); // needed?
                     data.addActiveDataListener(e.getName(), this, customerName);
                 }
-            } catch (MalformedPerl5PatternException m) {
-                System.err.println("MalformedPerl5PatternException: " + re);
+            } catch (MalformedCachePatternException m) {
+                System.err.println("MalformedCachePatternException: " + re);
                 re = null;
             }
         }
@@ -424,8 +425,8 @@ abstract class DataList {
 
                 // addActiveDataListener for dataCondName
                 data.addActiveDataListener(dataCondName, this, customerName);
-            } catch (MalformedPerl5PatternException m) {
-                System.err.println("MalformedPerl5PatternException: " + re);
+            } catch (MalformedCachePatternException m) {
+                System.err.println("MalformedCachePatternException: " + re);
                 re = null;
             }
         }

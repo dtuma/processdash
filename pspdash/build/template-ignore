@@ -5,7 +5,7 @@ CVS
 \.log$
 excel\.class$
 \.pre$
-SCR.template
+SCR-template.xml
 SCR.globalData
 DCR.template
 Insp.template

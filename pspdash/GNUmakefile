@@ -120,7 +120,12 @@ cgi-scripts: $(CGI_CLASSES) $(SIZEEST_COPIES) Templates/reports/excel.iqy
 $(SIZEEST_COPIES): Templates/psp1/sizeest.class
 	cp Templates/psp1/sizeest.class $@
 
-$(CGI_CLASSES) : %.class : %.java $(BIN)/com/jrefinery/chart/XYPlot.class $(BIN)/com/jrefinery/chart/PiePlot.class
+
+Templates/reports/pie.class: $(BIN)/com/jrefinery/chart/PiePlot.class
+
+Templates/reports/xy.class: $(BIN)/com/jrefinery/chart/XYPlot.class
+
+$(CGI_CLASSES) : %.class : %.java
 	$(JAVAC) \
 	    -classpath 'build$(DS)build/PerlTools.jar$(DS)build/jfreechart.jar' \
 	    -deprecation \

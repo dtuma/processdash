@@ -39,7 +39,7 @@ public class Min extends AbstractFunction {
     {
         SimpleData result = null;
 
-        for (int i = arguments.size();  i-- > 0;  )
+        for (int i = 0;  i < arguments.size();  i++)
             if (result == null ||
                 result.greaterThan(getArg(arguments, i)))
                 result = getArg(arguments, i);

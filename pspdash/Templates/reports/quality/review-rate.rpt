@@ -7,8 +7,8 @@ title=LOC Reviewed per Hour
 d1==![(/	New & Changed LOC	[(+	Design Review/Time	Code Review/Time)]	0.016666)]
 h1==Both
 
-d2==![(/	New & Changed LOC	Code Review/Time	0.016666)]
+d2==Code Review/Appraisal Rate
 h2=Code Rev.
 
-d3==![(/	New & Changed LOC	Design Review/Time	0.016666)]
+d3==Design Review/Appraisal Rate
 h3=Des. Rev.

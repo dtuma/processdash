@@ -4,4 +4,4 @@ qf=defects.rpt
 
 title=Defects Removed in Code Review
 
-d1==![(*	1000	[(/	Code Review/Defects Removed	New & Changed LOC)])]
+d1==Code Review/Defect Density

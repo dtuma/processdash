@@ -4,4 +4,4 @@ qf=defects.rpt
 
 title=Defects Injected in Design
 
-d1==![(*	1000	[(/	Design/Defects Injected	New & Changed LOC)])]
+d1==Design/Defect Injection Density

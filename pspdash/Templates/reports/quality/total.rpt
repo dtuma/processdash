@@ -4,6 +4,6 @@ qf=../compProj.rpt
 
 title=Total Cost of Quality
 
-d1==![(+	% Failure COQ	% Appraisal COQ)]
+d1==% COQ
 h1==Total Cost of Quality %
 f1==100%

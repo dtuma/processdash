@@ -26,13 +26,13 @@
 package pspdash.data.compiler;
 
 import pspdash.data.SimpleData;
-import pspdash.data.DoubleData;
+import pspdash.data.ImmutableDoubleData;
 import pspdash.data.NumberData;
 
 class LogicOperators {
 
-    static final SimpleData TRUE  = new DoubleData(1.0, false);
-    static final SimpleData FALSE = new DoubleData(0.0, false);
+    static final SimpleData TRUE  = ImmutableDoubleData.TRUE;
+    static final SimpleData FALSE = ImmutableDoubleData.FALSE;
 
     private LogicOperators() {}
 

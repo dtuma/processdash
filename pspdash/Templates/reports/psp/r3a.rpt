@@ -10,17 +10,17 @@ h1==New and Changed LOC
 d2==Defects Removed
 h2==Total Defects
 
-d3==![(/	Defects Removed	New & Changed LOC	0.001)]
+d3==Defect Density
 h3==Defects per KLOC
 
 d4==Compile/Defects Removed
 h4==Defects found in compile
 
-d5==![(/	Compile/Defects Removed	New & Changed LOC	0.001)]
+d5==Compile/Defect Density
 h5==Compile defects per KLOC
 
 d6==Test/Defects Removed
 h6==Defects found in test
 
-d7==![(/	Test/Defects Removed	New & Changed LOC	0.001)]
+d7==Test/Defect Density
 h7==Test defects per KLOC

@@ -34,10 +34,10 @@ all: importPSP.jar
 # Build the jar file for distributing this process set.
 
 DIR=Templates/import
-JAR_CONTENTS=Templates/import.template \
+JAR_CONTENTS=Templates/Import-template.xml \
 	$(DIR)/dataFile.txt \
 	$(DIR)/import.htm
-importPSP.jar: ../import.template dataFile.txt import.htm manifest
+importPSP.jar: ../Import-template.xml dataFile.txt import.htm manifest
 	cd ../..; $(JAR) -cfm $(DIR)/importPSP.jar $(DIR)/manifest $(JAR_CONTENTS)
 
 install: all

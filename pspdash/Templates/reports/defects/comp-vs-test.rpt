@@ -6,7 +6,7 @@ title=Compile vs. Test Defects
 order=PSP Project
 
 h1=Compile Defects/KLOC
-d1==![(*	1000	[(/	Compile/Defects Removed	New & Changed LOC)])]
+d1==Compile/Defect Density
 
 h2=Test Defects/KLOC
-d2==![(*	1000	[(/	Test/Defects Removed	New & Changed LOC)])]
+d2==Test/Defect Density

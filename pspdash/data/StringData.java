@@ -70,6 +70,7 @@ public class StringData implements SimpleData {
     }
 
     public static String escapeString(String s) {
+        if (s == null || s.length() == 0) return s;
         StringBuffer val = new StringBuffer();
         char c;
 
@@ -85,7 +86,7 @@ public class StringData implements SimpleData {
     }
 
     public String saveString()  {
-        return (defined ? "" : "?") + saveString(this.value);
+        return (isDefined() ? "" : "?") + saveString(getString());
     }
 
     public static String saveString(String value) {
@@ -102,9 +103,9 @@ public class StringData implements SimpleData {
 
     public SimpleData getSimpleValue() {
         StringData result = new StringData();
-        result.value = value;
-        result.editable = editable;
-        result.defined = defined;
+        result.value    = getString();
+        result.editable = isEditable();
+        result.defined  = isDefined();
         return result;
     }
 
@@ -115,13 +116,13 @@ public class StringData implements SimpleData {
 
     public void dispose() { value = null; }
 
-    public String format() { return value; }
+    public String format() { return getString(); }
     public SimpleData parse(String val) throws MalformedValueException {
-        return (val == null || val.length() == 0) ? null : create(value);
+        return (val == null || val.length() == 0) ? null : create(val);
     }
 
     private int cmp(SimpleData val) {
-        String v1 = value, v2 = ((StringData)val).value;
+        String v1 = getString(), v2 = ((StringData)val).getString();
         if (v1 == null) v1 = "";
         if (v2 == null) v2 = "";
         return v1.compareTo(v2);
@@ -136,7 +137,7 @@ public class StringData implements SimpleData {
         return ((val instanceof StringData) && (cmp(val) > 0));
     }
     public boolean test() {
-        return (value != null && value.length() > 0);
+        return (getString() != null && getString().length() > 0);
     }
 
     // Converting a string to a list will be a very common action,
@@ -148,7 +149,13 @@ public class StringData implements SimpleData {
     // should null out the "asList" property at the same time.
     public ListData asList() {
         if (asList == null)
-            asList = new ListData(value);
+            asList = new ListData(getString());
         return asList;
+    }
+
+    public SaveableData getEditable(boolean editable) {
+        SimpleData result = getSimpleValue();
+        result.setEditable(editable);
+        return result;
     }
 }

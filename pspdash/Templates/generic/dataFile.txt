@@ -1,3 +1,4 @@
+/* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -31,103 +32,69 @@
 ==
 == Description: This is the data file for a generic process. 
 ==
+*/
+
+/*
+ * The following elements identify the data in this file as belonging to
+ * a generic process. 
+ */
+
+[generic] == TAG;
+[GENERIC] == TAG;
 
 
-==
-== The following elements identify the data in this file as belonging to
-== a generic process. 
-==
+// Recalculate the list of phases dynamically.
 
-generic==TAG
-GENERIC==TAG
+[Dynamic_Phases] = search(".", "Generic Phase Tag", 1);
+[Phase_List] = [Dynamic_Phases] & ",Planning,Postmortem,";
+[Child_List] = [Phase_List];
 
 
-= These data elements allow users to customize a generic project.
+// These data elements allow users to customize a generic project.
 
-Generic - Show Defects="True
-Generic - Show Size="True
-Units="Units
-
-
-==
-== Data Elements to track Time.
-==
-
-Estimated Time=?NaN
-Time==![(+	~.*/Time)]
-Time Estimating Error==![(/	[(-	Time	Estimated Time)]	Estimated Time)]
+[Generic - Show Defects] = "True";
+[Generic - Show Size]    = "True";
+[Units]                  = "Units";
 
 
-==
-== Data Elements to track defects
-==
+/*
+ * Data Elements to track Time.
+ */
 
-Before Development/Defects Injected==0.0
-After Development/Defects Removed=0.0
-Defects Injected==![(-	~.*/Defects Injected	Before Development/Defects Injected)]
-Defects Removed==![(+	~.*/Defects Removed)]
+[Estimated Time] = ?NaN;
 
 
-==
-== Data Elements to track size
-==
+/*
+ * Data Elements for overall process metrics
+ */
 
-Estimated Size=?NaN
-Size=?NaN
-Size Estimating Error==![(/	[(-	Size	Estimated Size)]	Estimated Size)]
+[Defects Injected per Hour] = 60 * [Defects Injected] / [Time];
+[Defects Removed per Hour]  = 60 * [Defects Removed] / [Time];
 
+/*
+ * Data Elements for the planning phase
+ */
 
-==
-== Data Elements for overall process metrics
-==
+[Planning/Defects Injected per Hour] =
+    60 * [Planning/Defects Injected] / [Planning/Time];
+[Planning/Defects Removed per Hour] =
+    60 * [Planning/Defects Removed] / [Planning/Time];
 
-Estimated Productivity==![(/	Estimated Size	Estimated Time	0.016667)]
-Productivity==![(/	Size	Time	0.016667)]
-Defect Density==![(/	Defects Removed	Size)]
-Defects Injected per Hour==![(/	Defects Injected	Time	0.016667)]
-Defects Removed per Hour==![(/	Defects Removed	Time	0.016667)]
+/*
+ * Data Elements for the postmortem phase
+ */
 
-
-==
-== Data Elements for the planning phase
-==
-
-Planning/genericPhase==10.0
-Planning/Estimated Time=0.0
-Planning/Time==0.0
-Planning/Defects Injected==0.0
-Planning/Defects Removed==0.0
-Planning/Defects Injected per Hour==![(/	Planning/Defects Injected	Planning/Time	0.016667)]
-Planning/Defects Removed per Hour==![(/	Planning/Defects Removed	Planning/Time	0.016667)]
+[Postmortem/Estimated Time] = [Estimated Time] - [Planning/Estimated Time] -
+    sumFor("Estimated Time", [Dynamic_Phases]);
+[Postmortem/Defects Injected per Hour] =
+    60 * [Postmortem/Defects Injected] / [Postmortem/Time];
+[Postmortem/Defects Removed per Hour] =
+    60 * [Postmortem/Defects Removed] / [Postmortem/Time];
 
 
-==
-== Data Elements for the postmortem phase
-==
+/*
+ * Freeze flags for the planning phase and the entire project
+ */
 
-Postmortem/genericPhase==70.0
-Postmortem/Estimated Time==![(-	Estimated Time	~.*/{<	genericPhase	70}Estimated Time)]
-Postmortem/Time==0.0
-Postmortem/Defects Injected==0.0
-Postmortem/Defects Removed==0.0
-Postmortem/Defects Injected per Hour==![(/	Postmortem/Defects Injected	Postmortem/Time	0.016667)]
-Postmortem/Defects Removed per Hour==![(/	Postmortem/Defects Removed	Postmortem/Time	0.016667)]
-
-
-==
-== tags identifying the nodes and leaves in this process
-==
-
-node==TAG
-Planning/node==TAG
-Planning/leaf==TAG
-Postmortem/node==TAG
-Postmortem/leaf==TAG
-
-
-==
-== Freeze flags for the planning phase and the entire project
-==
-
-FreezeFlag/.*Estimated.*==![(||	Planning/Completed	Completed)]
-FreezeFlag/Size==![(&&	Completed)]
+[FreezeFlag/.*Estimated.*] = [Planning/Completed] or [Completed];
+[FreezeFlag/Size]          = [Completed];

@@ -6,17 +6,17 @@ title==Defect Removal % by Phase
 units==%
 
 h1=Test
-d1==![(/	[(+	~.*/{<=	PSP Phase	60}Defects Removed)]	Defects Removed)]
+d1==Test/Cumulative Defect Removal %
 f1==100%
 
 h2=Compile
-d2==![(/	[(+	~.*/{<=	PSP Phase	50}Defects Removed)]	Defects Removed)]
+d2==Compile/Cumulative Defect Removal %
 f2==100%
 
 h3=Code Rev.
-d3==![(/	[(+	~.*/{<=	PSP Phase	45}Defects Removed)]	Defects Removed)]
+d3==Code Review/Cumulative Defect Removal %
 f3==100%
 
 h4=Des. Rev.
-d4==![(/	[(+	~.*/{<=	PSP Phase	35}Defects Removed)]	Defects Removed)]
+d4==Design Review/Cumulative Defect Removal %
 f4==100%

@@ -96,10 +96,10 @@ public class DataCorrelator {
                 yFullName = prefix + yName;
                 completedFullName = prefix + "Completed";
 
-                y = (DoubleData) data.getValue(yFullName);
-                x = (DoubleData) data.getValue(xFullName);
+                y = (DoubleData) data.getSimpleValue(yFullName);
+                x = (DoubleData) data.getSimpleValue(xFullName);
                 if (onlyCompleted)
-                    completed = (DateData) data.getValue(completedFullName);
+                    completed = (DateData) data.getSimpleValue(completedFullName);
 
                 if (numberIsOkay(x) && numberIsOkay(y) &&
                     (onlyCompleted == false || completed != null)) {

@@ -1,4 +1,4 @@
-#include <psp2.1/dataFile.txt>
+/* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -32,202 +32,91 @@
 ==
 == Description: This is the data file for a PSP3 process.
 ==
+*/
+
+#include <psp3/psp2_1data.txt>
+[psp3] == TAG;
+[PSP3] == TAG;
 
 
-==
-== The following elements identify the data in this file as belonging to
-== a PSP3 process.
-==
+/*
+ * Two new phases: HLD and HLD Review
+ */ 
 
-psp3==TAG
-PSP3==TAG
-psp2.1=null
-PSP2.1=null
+[Normalized_Estimated_Time] = [Estimated Time] / [/Normalization %/Time/PSP3];
+[Normalized_Estimated_Defects_Injected] =
+       [Estimated Defects Injected] / [/Normalization %/Defects Injected/PSP3];
+[Normalized_Estimated_Defects_Removed] =
+       [Estimated Defects Removed] / [/Normalization %/Defects Removed/PSP3];
 
+// Estimate time and defect data for HLD and HLD Review.
 
-== NEEDS WORK: how should (time/defect) estimates be made for HLD?
-== Check for guidance from PSP book.  Currently, my best guess would
-== be to use a linear relationship based on time/defects per N&C KLOC.
+// NEEDS WORK: how should (time/defect) estimates be made for HLD?
+// Check for guidance from PSP book.  Currently, my best guess would
+// be to use a linear relationship based on time/defects per N&C KLOC.
 
-==
-== Two new phases: HLD and HLD Review
-== 
+[HLD/Estimated Time] =
+    [Normalized_Estimated_Time] * [/HLD/% Time To Date];
+[HLD Review/Estimated Time] =
+    [Normalized_Estimated_Time] * [/HLD Review/% Time To Date];
 
-HLD/PSP Phase==20.0
-HLD Review/PSP Phase==25.0
+[HLD/Estimated Defects Injected] =
+    [Normalized_Estimated_Defects_Injected] *
+    [/HLD/% Defects Injected To Date];
+[HLD Review/Estimated Defects Injected] =
+    [Normalized_Estimated_Defects_Injected] *
+    [/HLD Review/% Defects Injected To Date];
 
-Normalized_Estimated_Time==![(/	Estimated Time	/Normalization %/Time/PSP3)]
-Normalized_Estimated_Defects_Injected==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP3)]
-Normalized_Estimated_Defects_Removed==![(/	Estimated Defects Removed	/Normalization %/Defects Removed/PSP3)]
-
-= Estimated time
-
-HLD/Estimated Time==![(*	Estimated Time	/HLD/% Time To Date)]
-HLD Review/Estimated Time==![(*	Estimated Time	/HLD Review/% Time To Date)]
-PM/Estimated Time==![(+	Postmortem/Estimated Time	Reassessment/Estimated Time)]
-
-= Sum up estimated time by phase from cycles
-
-Design/Estimated Time==![(+	~.*/Design/Estimated Time)]
-Design Review/Estimated Time==![(+	~.*/Design Review/Estimated Time)]
-Code/Estimated Time==![(+	~.*/Code/Estimated Time)]
-Code Review/Estimated Time==![(+	~.*/Code Review/Estimated Time)]
-Compile/Estimated Time==![(+	~.*/Compile/Estimated Time)]
-Test/Estimated Time==![(+	~.*/Test/Estimated Time)]
-Reassessment/Estimated Time==![(+	~.*/Reassessment/Estimated Time)]
-
-Cycles/Estimated Time==![(+	~.*/{psp3cycle}Estimated Time)]
+[HLD/Estimated Defects Removed] =
+    [Normalized_Estimated_Defects_Removed] * [/HLD/% Defects Removed To Date];
+[HLD Review/Estimated Defects Removed] =
+    [Normalized_Estimated_Defects_Removed] *
+    [/HLD Review/% Defects Removed To Date];
 
 
+[Design/Total Time] =
+        [HLD/Time] + [HLD Review/Time] + [Design/Time] + [Design Review/Time];
 
-= Actual time
+// Alias PM as Postmortem + Reassessment.
 
-HLD/Time==0.0
-HLD Review/Time==0.0
-Design/Total Time==![(+	HLD/Time	HLD Review/Time	Design/Time	Design Review/Time)]
-PM/Time==![(+	Postmortem/Time	Reassessment/Time)]
+[PM/Estimated Time] =
+        [Postmortem/Estimated Time] + [Reassessment/Estimated Time];
+[PM/Time] = [Postmortem/Time] + [Reassessment/Time];
 
-= Sum up time by phase from cycles
+// Sum up estimated time by phase from cycles
 
-Design/Time==![(+	~.*/Design/Time)]
-Design Review/Time==![(+	~.*/Design Review/Time)]
-Code/Time==![(+	~.*/Code/Time)]
-Code Review/Time==![(+	~.*/Code Review/Time)]
-Compile/Time==![(+	~.*/Compile/Time)]
-Test/Time==![(+	~.*/Test/Time)]
-Reassessment/Time==![(+	~.*/Reassessment/Time)]
+[PSP3_Cycles] = search(".", "PSP3cycle Tag", 1);
 
-Cycles/Time==![(+	~.*/{psp3cycle}Time)]
+#define sumUp(Phase)							      \
+  [Phase/Estimated Time] = sumFor("Phase/Estimated Time", [PSP3_Cycles]);     \
+  [Phase/Time] = sumFor("Phase/Time", [PSP3_Cycles]);			      \
+  [Phase/Estimated Defects Injected] =					      \
+        sumFor("Phase/Estimated Defects Injected", [PSP3_Cycles]);	      \
+  [Phase/Defects Injected] = sumFor("Phase/Defects Injected", [PSP3_Cycles]); \
+  [Phase/Estimated Defects Removed] =					      \
+        sumFor("Phase/Estimated Defects Removed", [PSP3_Cycles]);	      \
+  [Phase/Defects Removed] = sumFor("Phase/Defects Removed", [PSP3_Cycles])
 
-Time==![(+	Planning/Time	HLD/Time	HLD Review/Time	Cycles/Time	Postmortem/Time)]
+sumUp(Design);
+sumUp(Design Review);
+sumUp(Code);
+sumUp(Code Review);
+sumUp(Compile);
+sumUp(Test);
+sumUp(Reassessment);
 
+#define sumForCycles(Data) 						      \
+  [Cycles/Data]           = sumFor("Data",           [PSP3_Cycles]); 	      \
+  [Cycles/Estimated Data] = sumFor("Estimated Data", [PSP3_Cycles])
 
-= Actual Defects Injected
-
-HLD/Defects Injected==0.0
-HLD Review/Defects Injected==0.0
-Defects Injected==![(+	Planning/Defects Injected	HLD/Defects Injected	HLD Review/Defects Injected	~.*/{psp3cycle}Defects Injected	Postmortem/Defects Injected)]
-
-= Sum up defects injected by phase from cycles
-
-Design/Defects Injected==![(+	~.*/Design/Defects Injected)]
-Design Review/Defects Injected==![(+	~.*/Design Review/Defects Injected)]
-Code/Defects Injected==![(+	~.*/Code/Defects Injected)]
-Code Review/Defects Injected==![(+	~.*/Code Review/Defects Injected)]
-Compile/Defects Injected==![(+	~.*/Compile/Defects Injected)]
-Test/Defects Injected==![(+	~.*/Test/Defects Injected)]
-Reassessment/Defects Injected==![(+	~.*/Reassessment/Defects Injected)]
-
-Cycles/Defects Injected==![(+	~.*/{psp3cycle}Defects Injected)]
-
-= Actual Defects Removed
-
-HLD/Defects Removed==0.0
-HLD Review/Defects Removed==0.0
-
-Defects Removed==![(+	Planning/Defects Removed	HLD/Defects Removed	HLD Review/Defects Removed	~.*/{psp3cycle}Defects Removed	Postmortem/Defects Removed)]
-
-= Sum up defects removed by phase from cycles
-
-Design/Defects Removed==![(+	~.*/Design/Defects Removed)]
-Design Review/Defects Removed==![(+	~.*/Design Review/Defects Removed)]
-Code/Defects Removed==![(+	~.*/Code/Defects Removed)]
-Code Review/Defects Removed==![(+	~.*/Code Review/Defects Removed)]
-Compile/Defects Removed==![(+	~.*/Compile/Defects Removed)]
-Test/Defects Removed==![(+	~.*/Test/Defects Removed)]
-Reassessment/Defects Removed==![(+	~.*/Reassessment/Defects Removed)]
-
-Cycles/Defects Removed==![(+	~.*/{psp3cycle}Defects Removed)]
-
-==
-== Estimate "Defects Injected" from historical "To Date" data
-==
-
-HLD/Estimated Defects Injected==![(*	Estimated Defects Injected	/HLD/% Defects Injected To Date)]
-HLD Review/Estimated Defects Injected==![(*	Estimated Defects Injected	/HLD Review/% Defects Injected To Date)]
-= no estimates done on reassessment
-
-= Sum up estimated defects injected by phase from cycles
-
-Design/Estimated Defects Injected==![(+	~.*/Design/Estimated Defects Injected)]
-Design Review/Estimated Defects Injected==![(+	~.*/Design Review/Estimated Defects Injected)]
-Code/Estimated Defects Injected==![(+	~.*/Code/Estimated Defects Injected)]
-Code Review/Estimated Defects Injected==![(+	~.*/Code Review/Estimated Defects Injected)]
-Compile/Estimated Defects Injected==![(+	~.*/Compile/Estimated Defects Injected)]
-Test/Estimated Defects Injected==![(+	~.*/Test/Estimated Defects Injected)]
-Reassessment/Estimated Defects Injected==![(+	~.*/Reassessment/Estimated Defects Injected)]
-
-Cycles/Estimated Defects Injected==![(+	~.*/{psp3cycle}Estimated Defects Injected)]
+sumForCycles(Time);
+sumForCycles(Defects Injected);
+sumForCycles(Defects Removed);
 
 
-==
-== Estimate "Defects Removed" from historical "To Date" data
-==
-
-HLD/Estimated Defects Removed==![(*	Estimated Defects Removed	/HLD/% Defects Removed To Date)]
-HLD Review/Estimated Defects Removed==![(*	Estimated Defects Removed	/HLD Review/% Defects Removed To Date)]
-= no estimates done on reassessment
-
-= Sum up estimated defects removed by phase from cycles
-
-Design/Estimated Defects Removed==![(+	~.*/Design/Estimated Defects Removed)]
-Design Review/Estimated Defects Removed==![(+	~.*/Design Review/Estimated Defects Removed)]
-Code/Estimated Defects Removed==![(+	~.*/Code/Estimated Defects Removed)]
-Code Review/Estimated Defects Removed==![(+	~.*/Code Review/Estimated Defects Removed)]
-Compile/Estimated Defects Removed==![(+	~.*/Compile/Estimated Defects Removed)]
-Test/Estimated Defects Removed==![(+	~.*/Test/Estimated Defects Removed)]
-Reassessment/Estimated Defects Removed==![(+	~.*/Reassessment/Estimated Defects Removed)]
-
-Cycles/Estimated Defects Removed==![(+	~.*/{psp3cycle}Estimated Defects Removed)]
-
-HLD Review/Estimated Defects Removed per Hour==![(*	60	[(/	HLD Review/Estimated Defects Removed	HLD Review/Estimated Time)])]
-HLD Review/Estimated DRL==![(/	HLD Review/Estimated Defects Removed per Hour	Test/Estimated Defects Removed per Hour)]
-HLD Review/Defects Removed per Hour==![(*	60	[(/	HLD Review/Defects Removed	HLD Review/Time)])]
-HLD Review/DRL==![(/	HLD Review/Defects Removed per Hour	Test/Defects Removed per Hour)]
-
-==
-== Cancel renaming operation requested by psp2.1
-==
-
-(Base Additions|New Objects|Reused Objects)/([^0-9]+) (\d+)=null
-
-==
-== Since the following phases do not exist directly for PSP3, the tags
-== need to be cancelled.
-==
-
-Design/PSP Phase=null
-Design Review/PSP Phase=null
-Code/PSP Phase=null
-Code Review/PSP Phase=null
-Compile/PSP Phase=null
-Test/PSP Phase=null
-
-==
-== tags identifying new/different nodes and leaves in this process
-==
-
-HLD/node==TAG
-HLD/leaf==TAG
-HLD Review/node==TAG
-HLD Review/leaf==TAG
-Design/leaf=null
-Design/node=null
-Design Review/leaf=null
-Design Review/node=null
-Code/leaf=null
-Code/node=null
-Code Review/leaf=null
-Code Review/node=null
-Compile/leaf=null
-Compile/node=null
-Test/leaf=null
-Test/node=null
-
-
-==
-== Local copies of To Date data
-==
+/*
+ * Local copies of To Date data
+ */
 
 HLD/Time To Date==![(#=	/HLD/Time To Date)]
 HLD Review/Time To Date==![(#=	/HLD Review/Time To Date)]

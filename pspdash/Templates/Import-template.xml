@@ -28,27 +28,26 @@ Hill AFB, UT 84056-5843
 E-Mail POC:  ken.raisor@hill.af.mil
 
 
-This file contains the template definitions for miscellaneous processes
-that are shipped with the dashboard
+This file contains the template definitions for the standard PSP processes.
 
 -->
 
 <dashboard-process-template>
+  <template name="Import PSP Data" ID="Import PSP Data" htmlID="sum"
+            dataFile="import/dataFile.txt" constraints="{">
+    <html ID="sum" title="Import PSP Project Data" href="import/import.htm"/>
 
-  <template name="Timer" ID="Timer"
-            dataFile="Timer/dataFile.txt" href="Timer/script.htm"/>
-
-  <template name="Generic" ID="Generic" defectLog="true"
-            dataFile="generic/dataFile.txt" htmlID="sum"
-	    constraints="{Generic Phase(-1)">
-    <html ID="sum" title="Generic Project Planning Summary"
-          href="generic/summary.class"/>
-
-    <phase name="Planning" type="plan"/>
-    <phase name="Postmortem" type="pm"/>
+    <phase name="Planning"      imaginary="true" type="plan"/>
+    <phase name="HLD"		imaginary="true" type="hld"/>
+    <phase name="HLD Review"	imaginary="true" type="hldr"/>
+    <phase name="Design"	imaginary="true" type="dld"/>
+    <phase name="Design Review" imaginary="true" type="dldr"/>
+    <phase name="Code"          imaginary="true" type="code"/>
+    <phase name="Code Review"   imaginary="true" type="cr"/>
+    <phase name="Compile"	imaginary="true" type="comp"/>
+    <phase name="Test"		imaginary="true" type="ut"/>
+    <phase name="Postmortem"	imaginary="true" type="pm"/>
+    <phase name="Data Entry"	                 type="pm"/>
   </template>
-
-  <template name="Generic Phase" ID="Generic Phase"
-            dataFile="generic/phaseData.txt" constraints="{}Generic" />
 
 </dashboard-process-template>

@@ -1,4 +1,4 @@
-#include <psp0/dataFile.txt>
+/* -*- mode:c -*-
 =============================================================================
 == PSP Dashboard - Data Automation Tool for PSP-like processes
 == Copyright (C) 1999  United States Air Force
@@ -32,154 +32,71 @@
 ==
 == Description: This is the data file for a SCR Cycle process. 
 ==
+*/
+
+#include <psp0/pspData.txt>
+
+/*
+ * The following elements identify the data in this file as belonging to
+ * a SCR Cycle process. 
+ */
+
+[SCRCYCLE] = TAG;
+[scrcycle] = TAG;
 
 
-=
-= The following elements identify the data in this file as belonging to
-= a SCR Cycle process. 
-=
+/*
+ * Data Elements to track Time.
+ */
 
-SCRCYCLE==TAG
-scrcycle==TAG
-
-
-=
-= Data Elements to track Time.
-=
-
-Design/Estimated Time=0.0
-Design Review/Estimated Time=0.0
-Design Inspection/Estimated Time=0.0
-Code/Estimated Time=0.0
-Code Review/Estimated Time=0.0
-Compile/Estimated Time=0.0
-Code Inspection/Estimated Time=0.0
-Test/Estimated Time=0.0
-Reassess/Estimated Time=0.0
-Estimated Time==![(+	~.*/Estimated Time)]
-Estimated Max Time=0.0
-Estimated Min Time=0.0
-
-Design/Time==0.0
-Design Review/Time==0.0
-Design Inspection/Time==0.0
-Code/Time==0.0
-Code Review/Time==0.0
-Compile/Time==0.0
-Code Inspection/Time==0.0
-Test/Time==0.0
-Reassess/Time==0.0
-Time==![(+	~.*/Time)]
+[Estimated Max Time] = 0;
+[Estimated Min Time] = 0;
 
 
-=
-= Data Elements to track defects injected
-=
+/*
+ * Data Elements to track LOC.
+ */
 
-Before Development/Estimated Defects Injected=0.0
-Design/Estimated Defects Injected=0.0
-Design Review/Estimated Defects Injected=0.0
-Design Inspection/Estimated Defects Injected=0.0
-Code/Estimated Defects Injected=0.0
-Code Review/Estimated Defects Injected=0.0
-Compile/Estimated Defects Injected=0.0
-Code Inspection/Estimated Defects Injected=0.0
-Test/Estimated Defects Injected=0.0
-Estimated Defects Injected==![(+	~.*/Estimated Defects Injected)]
+// Estimated LOC
 
-Before Development/Defects Injected==0.0
-Design/Defects Injected==0.0
-Design Review/Defects Injected==0.0
-Design Inspection/Defects Injected==0.0
-Code/Defects Injected==0.0
-Code Review/Defects Injected==0.0
-Compile/Defects Injected==0.0
-Code Inspection/Defects Injected==0.0
-Test/Defects Injected==0.0
-Defects Injected==![(+	~.*/Defects Injected)]
-
-
-=
-= Data Elements to track defects removed
-=
-
-Design/Estimated Defects Removed=0.0
-Design Review/Estimated Defects Removed=0.0
-Design Inspection/Estimated Defects Removed=0.0
-Code/Estimated Defects Removed=0.0
-Code Review/Estimated Defects Removed=0.0
-Compile/Estimated Defects Removed=0.0
-Code Inspection/Estimated Defects Removed=0.0
-Test/Estimated Defects Removed=0.0
-After Development/Estimated Defects Removed=0.0
-Estimated Defects Removed==![(+	Design/Estimated Defects Removed	Design Review/Estimated Defects Removed	Design Inspection/Estimated Defects Removed	Code/Estimated Defects Removed	Code Review/Estimated Defects Removed	Compile/Estimated Defects Removed	Code Inspection/Estimated Defects Removed	Test/Estimated Defects Removed)]
-
-Design/Defects Removed==0.0
-Design Review/Defects Removed==0.0
-Design Inspection/Defects Removed==0.0
-Code/Defects Removed==0.0
-Code Review/Defects Removed==0.0
-Compile/Defects Removed==0.0
-Code Inspection/Defects Removed==0.0
-Test/Defects Removed==0.0
-After Development/Defects Removed==0.0
-Defects Removed==![(+	Design/Defects Removed	Design Review/Defects Removed	Design Inspection/Defects Removed	Code/Defects Removed	Code Review/Defects Removed	Compile/Defects Removed	Code Inspection/Defects Removed	Test/Defects Removed)]
-
-
-
-==
-== Data Elements to track LOC.
-==
-
-= Estimated LOC
-
-Estimated Base LOC=0.0
-Estimated Deleted LOC=0.0
-Estimated Modified LOC=0.0
 Estimated Base Additions LOC==![(+	~Base Additions/LOC \d+)]
 Estimated New Objects LOC==![(+	~New Objects/LOC \d+)]
 Estimated Reused LOC==![(+	~Reused Objects/LOC \d+)]
-Projected LOC==![(+	Estimated Base Additions LOC	Estimated New Objects LOC)]
-Estimated Object LOC==![(+	Projected LOC	Estimated Modified LOC)]
-Estimated New & Changed LOC=0.0
-Estimated Max New & Changed LOC=0.0
-Estimated Min New & Changed LOC=0.0
-Estimated Added LOC==![(-	Estimated New & Changed LOC	Estimated Modified LOC)]
 Estimated New Reused LOC==![(+	~New Objects/New Reused LOC \d+)]
-Estimated Total LOC==![(-	[(+	Estimated New & Changed LOC	Estimated Base LOC	Estimated Reused LOC)]	Estimated Deleted LOC	Estimated Modified LOC)]
-Estimated Max LOC=0.0
-Estimated Min LOC=0.0
-Estimated KLOC==![(/	Estimated Total LOC	1000)]
 
-Estimated % New Reused==![(/	Estimated New Reused LOC	Estimated New & Changed LOC)]
-Estimated % Reused==![(/	Estimated Reused LOC	Estimated Total LOC)]
+[Estimated Base LOC] = 0;
+[Estimated Deleted LOC] = 0;
+[Estimated Modified LOC] = 0;
+[Projected LOC] = [Estimated Base Additions LOC] + [Estimated New Objects LOC];
+[Estimated Object LOC] = [Projected LOC] + [Estimated Modified LOC];
+[Estimated New & Changed LOC] = 0;
+[Estimated Max New & Changed LOC] = 0;
+[Estimated Min New & Changed LOC] = 0;
+[Estimated Added LOC] =
+    [Estimated New & Changed LOC] - [Estimated Modified LOC];
+[Estimated Total LOC] = [Estimated Base LOC] + [Estimated Reused LOC]
+    + [Estimated Added LOC] - [Estimated Deleted LOC];
+[Estimated Max LOC] = 0;
+[Estimated Min LOC] = 0;
+[Estimated KLOC] = [Estimated Total LOC] / 1000;
 
-= Actual LOC
-
-Base LOC=0.0
-Deleted LOC=0.0
-Modified LOC=0.0
-Added LOC==![(-	[(+	LOC	Deleted LOC)]	[(+	Base LOC	Reused LOC)])]
-Reused LOC=0.0
-New & Changed LOC==![(+	Added LOC	Modified LOC)]
-New Reused LOC=0.0
-LOC=0.0
-KLOC==![(/	LOC	1000)]
-
-% New Reused==![(/	New Reused LOC	LOC)]
-% Reused==![(/	Reused LOC	LOC)]
-
+[Estimated % New Reused] =
+    [Estimated New Reused LOC] / [Estimated New & Changed LOC];
+[Estimated % Reused] =
+    [Estimated Reused LOC] / [Estimated Total LOC];
 
 
-=
-= Data Elements used by SCR Cycle Summary Report
-=
+// Actual LOC
 
+[Base LOC] = 0;
+[Deleted LOC] = 0;
+[Modified LOC] = 0;
+[Added LOC] = [LOC] + [Deleted LOC] - [Base LOC] - [Reused LOC];
+[Reused LOC] = 0;
+[New & Changed LOC] = [Added LOC] + [Modified LOC];
+[New Reused LOC] = 0;
+[LOC] = 0;
+[KLOC] = [LOC] / 1000;
 
-
-=
-= Miscellaneous data elements
-=
-
-Started=@now
-
+[% New Reused] = [New Reused LOC] / [New & Changed LOC];
+[% Reused] = [Reused LOC] / [LOC];

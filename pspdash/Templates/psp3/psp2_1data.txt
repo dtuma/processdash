@@ -24,37 +24,26 @@
 == Hill AFB, UT 84056-5843
 == 
 == E-Mail POC:  ken.raisor@hill.af.mil
-
-=============================================================================
-== Title:	$Id$
-== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
-== Created:	Thu Jan  8 16:34:18 1998
-==
-== Description: This is the data file for a SCR process. 
-==
 */
 
-/*
- * The following elements identify the data in this file as belonging to
- * a SCR process. 
- */
+#include <psp2.1/dataFile.txt>
 
-//[PSP Project] == TAG;
-[SCR] == TAG;
-[scr] == TAG;
+undefine			// undefine various psp2.1 data elements:
+ (
+  // Erase the PSP2.1 process tags
+  [PSP2.1 Tag], [psp2.1], [PSP2.1],
 
+  // Cancel psp2.1 renaming operations
+  [(Base Additions|New Objects|Reused Objects)/(\[^0-9\]+) (\\d+)],
 
-// Sum up overall data from the cycles
+  // Erase the phase lists from PSP2.1 - our process will define what we need.
+  [Child_List], [Phase_List],
+  [Yield_Phase_List], [Failure_Phase_List], [Appraisal_Phase_List],
 
-[SCR_Cycles] = search(".", "SCRcycle Tag", 1);
-[Child_List] = ",Planning,Design,Design Review,Postmortem,CPT&E," & [SCR_Cycles];
+  // Erase the following hierarchy tags - our process will define what we need.
 
-#define sumForCycles(Data) \
-  [Cycles Data] = sumFor("Data", [SCR_Cycles])
+#define tags(Phase) [Phase/leaf], [Phase/node]
+  tags(Planning), tags(Design), tags(Design Review), tags(Code),
+  tags(Code Review), tags(Compile), tags(Test), tags(Postmortem)
 
-sumForCycles(Estimated Time);
-sumForCycles(Time);
-sumForCycles(Estimated Defects Injected);
-sumForCycles(Defects Injected);
-sumForCycles(Estimated Defects Removed);
-sumForCycles(Defects Removed);
+);

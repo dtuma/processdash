@@ -32,6 +32,7 @@ public class ListData implements SimpleData {
 
     private Vector list = new Vector();
     private String stringVersion = null;
+    private boolean immutable = false;
 
     public ListData() {}
     public ListData(ListData l) {
@@ -59,13 +60,27 @@ public class ListData implements SimpleData {
     // If you call either of the following methods, it is up to you to
     // call DataRepository.putValue() to notify the data repository
     // that the value has changed.
-    synchronized void clear() {
+    public synchronized void clear() {
+        if (immutable) throw new IllegalStateException();
         list.removeAllElements(); stringVersion = null; }
-    synchronized void add(Object o) {
+    public synchronized void add(Object o) {
+        if (immutable) throw new IllegalStateException();
         list.addElement(o); stringVersion = null; }
+    public synchronized void addAll(Object o) {
+        if (immutable) throw new IllegalStateException();
+        if (o == null) return;
+        if (o instanceof StringData)
+            o = ((StringData) o).asList();
+        if (o instanceof ListData) {
+            ListData l = (ListData) o;
+            for (int i=0;  i<l.size();  i++) add(l.get(i));
+        } else
+            add(o);
+    }
     public boolean contains(Object o) {
         return list.contains(o); }
     public synchronized boolean remove(Object o) {
+        if (immutable) throw new IllegalStateException();
         // We cannot use the Vector.remove() method because it was
         // introduced in JDK 1.2, and this class must run inside IE
         // which only supports 1.1
@@ -80,6 +95,7 @@ public class ListData implements SimpleData {
     }
 
     public synchronized boolean setAdd(Object o) {
+        if (immutable) throw new IllegalStateException();
         if (list.contains(o)) return false;
         add(o); return true;
     }
@@ -101,24 +117,34 @@ public class ListData implements SimpleData {
     }
 
     public SimpleData getSimpleValue() {
-        return new ListData(this);
+        if (immutable)
+            return this;
+        else
+            return new ListData(this);
     }
 
     public void dispose() {
         clear();
     }
 
+    public void setImmutable() { immutable = true; }
+
     // The following methods implement the SimpleData interface.
 
     private static final char DEFAULT_DELIM = '\u0001';
+    //private static final char DEFAULT_DELIM = ';';
     public synchronized String format() {
         if (stringVersion != null) return stringVersion;
 
-        StringBuffer result = new StringBuffer();
-        result.append(DEFAULT_DELIM);
-        for (int i=0;  i < list.size();  i++)
-            result.append(list.elementAt(i)).append(DEFAULT_DELIM);
-        stringVersion = result.toString();
+        if (list.size() == 0)
+            stringVersion = "";
+        else {
+            StringBuffer result = new StringBuffer();
+            result.append(DEFAULT_DELIM);
+            for (int i=0;  i < list.size();  i++)
+                result.append(list.elementAt(i)).append(DEFAULT_DELIM);
+            stringVersion = result.toString();
+        }
 
         return stringVersion;
     }
@@ -136,4 +162,8 @@ public class ListData implements SimpleData {
     public boolean greaterThan(SimpleData val) { return false; }
 
     public boolean test() { return !list.isEmpty(); }
+
+    // since editable lists are not supported, there is no need to
+    // create a different version of this list.
+    public SaveableData getEditable(boolean editable) { return this; }
 }

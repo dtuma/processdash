@@ -26,6 +26,7 @@
 package pspdash.data.compiler;
 
 import pspdash.data.DataRepository;
+import pspdash.data.ListData;
 import pspdash.data.SimpleData;
 import pspdash.data.StringData;
 
@@ -37,7 +38,14 @@ class StringOperators {
             protected SimpleData operate(SimpleData left, SimpleData right) {
                 if (left == null) return right;
                 if (right == null) return left;
-                return StringData.create(left.format() + right.format());
+                if (left instanceof ListData || right instanceof ListData) {
+                    ListData result = new ListData();
+                    result.addAll(left);
+                    result.addAll(right);
+                    return result;
+
+                } else
+                    return StringData.create(left.format() + right.format());
             } };
 
     public static final Instruction PATHCONCAT = new BinaryOperator("&/") {

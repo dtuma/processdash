@@ -1,0 +1,81 @@
+// -*- mode:c -*-
+
+#ifndef IS_IMAGINARY_NODE
+
+    // tags for phases in this process.
+
+    [PATH/node] == TAG;
+    [PATH/leaf] == TAG;
+
+#endif // !IS_IMAGINARY_NODE
+
+
+// Time in phase data
+
+[PATH/Estimated Time] = 0;
+[PATH/Time] == 0;
+
+
+#ifdef PROCESS_HAS_DEFECTS
+
+// Defects by phase data
+
+[PATH/Estimated Defects Injected] = 0;
+[PATH/Estimated Defects Removed] = 0;
+
+[PATH/Defects Injected] == 0;
+[PATH/Defects Removed] == 0;
+
+#ifdef IS_DEVELOPMENT_PHASE
+
+    [PATH/Estimated Defects Injected per Hour] =
+        60 * [PATH/Estimated Defects Injected] / [PATH/Estimated Time];
+    [PATH/Defects Injected per Hour] =
+        60 * [PATH/Defects Injected] / [PATH/Time];
+
+#ifdef PROCESS_HAS_SIZE
+
+    [PATH/Estimated Defect Injection Density] =
+        [PATH/Estimated Defects Injected] / [Estimated Aggregate Size];
+    [PATH/Defect Injection Density] =
+        [PATH/Defects Injected] / [Aggregate Size];
+
+#endif // PROCESS_HAS_SIZE
+#endif // IS_DEVELOPMENT_PHASE
+
+#ifdef IS_QUALITY_PHASE
+
+    [PATH/Estimated Defects Removed per Hour] =
+        60 * [PATH/Estimated Defects Removed] / [PATH/Estimated Time];
+    [PATH/Defects Removed per Hour] =
+        60 * [PATH/Defects Removed] / [PATH/Time];
+
+#ifdef PROCESS_HAS_SIZE
+
+    [PATH/Estimated Defect Density] =
+        [PATH/Estimated Defects Removed] / [Estimated Aggregate Size];
+    [PATH/Defect Density] = [PATH/Defects Removed] / [Aggregate Size];
+
+#endif // PROCESS_HAS_SIZE
+
+#ifdef LAST_FAILURE_PHASE
+
+    [PATH/Estimated DRL] =
+        [PATH/Estimated Defects Removed per Hour] /
+        [LAST_FAILURE_PHASE/Estimated Defects Removed per Hour];
+    [PATH/DRL] = [PATH/Defects Removed per Hour] /
+        [LAST_FAILURE_PHASE/Defects Removed per Hour];
+
+#endif // LAST_FAILURE_PHASE
+#endif // IS_QUALITY_PHASE
+#endif // PROCESS_HAS_DEFECTS
+
+#ifdef PROCESS_HAS_SIZE
+#ifdef IS_APPRAISAL_PHASE
+
+    [PATH/Estimated Appraisal Rate] =
+        60 * [Estimated Size] / [PATH/Estimated Time];
+    [PATH/Appraisal Rate] = 60 * [Size] / [PATH/Time];
+
+#endif // IS_APPRAISAL_PHASE
+#endif // PROCESS_HAS_SIZE

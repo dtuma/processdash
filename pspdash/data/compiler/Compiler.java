@@ -25,12 +25,19 @@
 
 package pspdash.data.compiler;
 
+import java.io.PushbackReader;
+import java.io.StringReader;
+import java.util.Map;
+
 import pspdash.ResourcePool;
 import pspdash.data.DateData;
-import pspdash.data.DoubleData;
+import pspdash.data.ImmutableDoubleData;
+import pspdash.data.ImmutableStringData;
 import pspdash.data.StringData;
 import pspdash.data.TagData;
 
+import pspdash.data.compiler.lexer.*;
+import pspdash.data.compiler.parser.*;
 import pspdash.data.compiler.node.*;
 import pspdash.data.compiler.analysis.*;
 
@@ -72,6 +79,31 @@ public class Compiler extends DepthFirstAdapter {
         }
         return result;
     }
+
+    public static CompiledScript compile(String expression)
+        throws CompilationException
+    {
+        try {
+            // Create a Parser instance.
+            Parser p = new Parser(new Lexer(new PushbackReader
+                (new StringReader("[foo] = " + expression + ";"), 1024)));
+
+            // Parse the input
+            Start tree = p.parse();
+
+            // get the expression
+            FindLastExpression search = new FindLastExpression();
+            tree.apply(search);
+
+            // compile the expression and return it.
+            return compile(search.expression);
+        } catch (CompilationException ce) {
+            throw ce;
+        } catch (Exception e) {
+            throw new CompilationException("Error while compiling: " + e);
+        }
+    }
+
 
     public static CompiledScript exprAndDefined(CompiledScript s,
                                                 String identifier) {
@@ -148,7 +180,9 @@ public class Compiler extends DepthFirstAdapter {
     }
 
     private static final Instruction PUSH_ZERO =
-        new PushConstant(new DoubleData(0.0, true));
+        new PushConstant(ImmutableDoubleData.EDITABLE_ZERO);
+    private static final Instruction PUSH_UNDEF_NUM =
+        new PushConstant(ImmutableDoubleData.EDITABLE_UNDEF_NAN);
 
     public void caseAUnaryMinusLevel1Expr(AUnaryMinusLevel1Expr node) {
         inAUnaryMinusLevel1Expr(node);
@@ -193,7 +227,7 @@ public class Compiler extends DepthFirstAdapter {
     public void caseTIdentifier(TIdentifier node) {
         add(new PushVariable(trimDelim(node))); }
     public void caseTStringLiteral(TStringLiteral node) {
-        add(new PushConstant(StringData.create(trimDelim(node)))); }
+        add(new PushConstant(new ImmutableStringData(trimDelim(node)))); }
     public void caseTDateLiteral(TDateLiteral node) {
         try {
             add(new PushConstant(new DateData(node.getText())));
@@ -203,9 +237,10 @@ public class Compiler extends DepthFirstAdapter {
         }
     }
     public void caseAZeroTerm(AZeroTerm node) { add(PUSH_ZERO); }
+    public void caseAUndefNumTerm(AUndefNumTerm node) { add(PUSH_UNDEF_NUM); }
     public void caseTNumberLiteral(TNumberLiteral node) {
         try {
-            add(new PushConstant(new DoubleData(node.getText())));
+            add(new PushConstant(new ImmutableDoubleData(node.getText())));
         } catch (Exception mve) {
             throw new CompilationException
                 ("Couldn't parse number literal '" + node.getText() + "'.");
@@ -227,5 +262,13 @@ public class Compiler extends DepthFirstAdapter {
         int len = text.length();
         if (len < 2) return "";
         return StringData.unescapeString(text.substring(1, len-1));
+    }
+}
+
+class FindLastExpression extends DepthFirstAdapter {
+    PValue expression = null;
+    public FindLastExpression() {}
+    public void caseANewStyleDeclaration(ANewStyleDeclaration node) {
+        expression = node.getValue();
     }
 }

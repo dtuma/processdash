@@ -23,26 +23,11 @@
 //
 // E-Mail POC:  ken.raisor@hill.af.mil
 
-/*
- * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies. Please refer to the file "copyright.html"
- * for further important copyright and licensing information.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
 
 package pspdash;
 
 import pspdash.data.DataRepository;
+import pspdash.data.compiler.Compiler;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -259,16 +244,17 @@ public class TemplateLoader {
 
         createScriptMaps(root);
 
+        AutoData.registerTemplates(root, data);
+
         try {
             PSPProperties template = new PSPProperties(null);
             template.loadXMLTemplate(root);
             template.premove(PropertyKey.ROOT);
+            createScriptMaps(template);
             templates.putAll(template);
         } catch (SAXException se) {
             // Can this happen?
         }
-
-        createDefaultData(root, data);
     }
 
     protected static void debug(String msg) {
@@ -295,7 +281,12 @@ public class TemplateLoader {
 
         Vector result = new Vector();
 
-        addTemplateURLs(Settings.getDir("templates.directory", false), result);
+        String userSetting = Settings.getFile("templates.directory");
+        if (userSetting != null && userSetting.length() != 0) {
+            StringTokenizer tok = new StringTokenizer(userSetting, ";");
+            while (tok.hasMoreTokens())
+                addTemplateURLs(tok.nextToken(), result);
+        }
 
         addTemplateURLs(getBaseDir(), result);
 
@@ -454,6 +445,8 @@ public class TemplateLoader {
     private static void maybeAddScriptID(Vector v, String scriptFile) {
         if (v == null || !Prop.hasValue(scriptFile))
             return;
+        int hashPos = scriptFile.indexOf('#');
+        if (hashPos != -1) scriptFile = scriptFile.substring(0, hashPos);
         for (int i = v.size();  i-- > 0;  )
             if (scriptFile.equals(((ScriptID) v.elementAt(i)).getScript()))
                 return;
@@ -503,11 +496,18 @@ public class TemplateLoader {
     private static void resolveScriptIDs(Element node, Map idMap) {
         if (idMap == null) return;
         String htmlID = node.getAttribute(HTML_ID_ATTR), htmlHref;
-        if (hasValue(htmlID)) {
-            htmlHref = (String) idMap.get(htmlID);
-            if (hasValue(htmlHref))
-                node.setAttribute(HTML_HREF_ATTR, htmlHref);
+        if (!hasValue(htmlID))
+            htmlID = node.getAttribute(NAME_ATTR);
+        String anchor = "";
+        int hashPos = htmlID.indexOf('#');
+        if (hashPos != -1) {
+            anchor = htmlID.substring(hashPos);
+            htmlID = htmlID.substring(0, hashPos);
         }
+        htmlHref = (String) idMap.get(htmlID);
+        if (hasValue(htmlHref))
+            node.setAttribute(HTML_HREF_ATTR, htmlHref + anchor);
+
         if (node.hasChildNodes()) {
             NodeList children = node.getChildNodes();
             for (int i=children.getLength();  i-- > 0; ) try {
@@ -520,10 +520,6 @@ public class TemplateLoader {
         return (v != null && v.length() > 0);
     }
 
-    private static void createDefaultData(Element templates,
-                                          DataRepository data) {
-        // FIXME: define this.
-    }
 
 
     private static final String HTML_NODE_NAME = PSPProperties.HTML_NODE_NAME;
@@ -534,6 +530,8 @@ public class TemplateLoader {
     private static final String HTML_NAME_ATTR = "title";
     private static final String HTML_HREF_ATTR = PSPProperties.HTML_HREF_ATTR;
     private static final String ID_ATTR   = PSPProperties.ID_ATTR;
+    static final String NAME_ATTR = PSPProperties.NAME_ATTR;
+
 
     private static Hashtable scriptMaps = new Hashtable();
 
