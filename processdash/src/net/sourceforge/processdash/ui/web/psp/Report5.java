@@ -33,6 +33,7 @@ import java.util.Map;
 
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.util.ResultSet;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.process.DefectTypeStandard;
@@ -46,14 +47,17 @@ import org.jfree.chart.plot.PlotOrientation;
 
 public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
 
+    private static final Resources resources =
+        Resources.getDashBundle("Defects.R5");
+
     private static final int DEFECT_COUNT = 0;
     private static final int FIX_TIME = 1;
     private static final String[] PARAM_FLAG = {
         "defectCount",
         "fixTime" };
-    private static final String[] COLUMN_HEADER = {
-        "Total # Defects",
-        "Total Fix Time (minutes)" };
+    private static final String[] KEYS = {
+        "Num_Defects",
+        "Fix_Time" };
 
 
     // In the following map, keys are defect types (e.g. "Syntax") and
@@ -89,8 +93,11 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
 
         int numRows = defectData.size();
         data = new ResultSet(numRows, 1);
-        data.setColName(0, "Defect Type");
-        data.setColName(1, COLUMN_HEADER[reportType]);
+        data.setColName(0, resources.getString("Defect_Type"));
+        data.setColName(1, resources.getString(KEYS[reportType] + "_Axis"));
+        if (parameters.get("title") == null)
+            parameters.put
+                ("title", resources.getString(KEYS[reportType] + "_Title"));
         Iterator i = defectData.keySet().iterator();
         String defectType;
 

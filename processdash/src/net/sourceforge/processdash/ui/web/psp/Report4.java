@@ -30,16 +30,23 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
 
 public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
+
+    private static final Resources resources =
+        Resources.getDashBundle("Defects.R4");
+    private static final String TOTAL = resources.getString("Total");
 
     // In the following map, keys are defect types (e.g. "Syntax") and
     // values are arrays of integers.
@@ -59,7 +66,7 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
         "inj=Design", "inj=Code", "rem=Compile", "rem=Test" };
 
     private static final String HEADER_TEXT =
-        "<HTML><HEAD><TITLE>Report R4</TITLE>%css%\n" +
+        "<HTML><HEAD><TITLE>${Title}</TITLE>%css%\n" +
         "<STYLE>\n" +
         "    TABLE { empty-cells: show }\n" +
         "    TD { text-align:center; vertical-align: baseline }\n" +
@@ -67,7 +74,29 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
         "    .footnote { font-size: small; font-style:italic }\n" +
         "    @media print { .doNotPrint { display: none } }\n" +
         "</STYLE></HEAD>\n" +
-        "<BODY><H1>%path%</H1><H2>Report R4</H2>";
+        "<BODY><H1>%path%</H1><H2>${Title}</H2>";
+
+    private static final String D23_HEADER =
+        "<H3>${D23.Title}</H3>\r\n" +
+        "<TABLE NAME=D23 BORDER><TR class=header><TD></TD>\r\n" +
+        "<TD colspan=2>${D23.Number_Injected}</TD>\r\n" +
+        "<TD colspan=2>${D23.Percentage_Injected}</TD>\r\n" +
+        "<TD colspan=2>${D23.Number_Removed}</TD>\r\n" +
+        "<TD colspan=2>${D23.Percentage_Removed}</TD></TR>\r\n" +
+
+        "<TR><TD>${D23.Type}</TD>\r\n" +
+        "<TD>Design</TD><TD>Code</TD>\r\n" +
+        "<TD>Design</TD><TD>Code</TD>\r\n" +
+        "<TD>Compile</TD><TD>Test</TD>\r\n" +
+        "<TD>Compile</TD><TD>Test</TD></TR>\r\n";
+
+    private static final String D24_HEADER =
+        "<H3>${D24.Title}</H3>\r\n" +
+        "<TABLE NAME=D24 BORDER>\r\n" +
+        "<TR class=header><TD>${D24.Defect_Type}</TD>\r\n" +
+        "<TD VALIGN=bottom>${D24.Compile_Entry}</TD>" +
+        "<TD VALIGN=bottom>${D24.Compile_Found}</TD>" +
+        "<TD VALIGN=bottom>${D24.Compile_Percent}</TD></TR>\n";
 
     /** Generate CGI script output. */
     protected void writeContents() {
@@ -79,23 +108,13 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
         DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
                            path, parameters, this);
 
-        String header = HEADER_TEXT;
+        String header = resources.interpolate(HEADER_TEXT, true);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
         header = StringUtils.findAndReplace(header, "%path%", path);
         out.println(header);
 
-        out.println("<H3>Table D23</H3>");
-        out.println("<TABLE NAME=D23 BORDER><TR class=header><TD></TD>");
-        out.println("<TD colspan=2>Number Injected</TD>");
-        out.println("<TD colspan=2>Percentage Injected</TD>");
-        out.println("<TD colspan=2>Number Removed</TD>");
-        out.println("<TD colspan=2>Percentage Removed</TD></TR>");
-
-        out.println("<TR><TD>Type</TD>");
-        out.println("<TD>Design</TD><TD>Code</TD>");
-        out.println("<TD>Design</TD><TD>Code</TD>");
-        out.println("<TD>Compile</TD><TD>Test</TD>");
-        out.println("<TD>Compile</TD><TD>Test</TD></TR>");
+        out.print
+            (Translator.translate(resources.interpolate(D23_HEADER, true)));
 
         String defectLogParam = (String) env.get("QUERY_STRING");
         if (defectLogParam == null)
@@ -112,18 +131,12 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
             row = (int[]) defectCounts.get(defectType);
             printD23(defectLogParam, defectType, row);
         }
-        printD23(defectLogParam, "Total", totals);
+        printD23(defectLogParam, TOTAL, totals);
 
         out.println("</TABLE>");
 
 
-        out.println("<H3>Table D24</H3>");
-        out.println("<TABLE NAME=D24 BORDER>");
-        out.println("<TR class=header><TD>Defect Type</TD>");
-        out.print("<TD VALIGN=bottom>Number of defects at Compile Entry</TD>");
-        out.print("<TD VALIGN=bottom>Number of defects found in Compile</TD>");
-        out.print("<TD VALIGN=bottom>Percentage of Type found by the " +
-                  "Compiler</TD></TR>\n");
+        out.print(resources.interpolate(D24_HEADER, true));
 
         defectTypes = defectCounts.keySet().iterator();
         while (defectTypes.hasNext()) {
@@ -131,34 +144,38 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
             row = (int[]) defectCounts.get(defectType);
             printD24(defectType, row);
         }
-        printD24("Total", totals);
+        printD24(TOTAL, totals);
 
         out.println("</TABLE>");
-        out.println("<P class='doNotPrint'><A HREF=\"../excel.iqy\"><I>Export"+
-                    " to Excel</I></A></P>");
+        out.println(resources.interpolate
+                ("<P class='doNotPrint'><A HREF=\"../excel.iqy\"><I>" +
+                 "${Export_to_Excel}</I></A></P>", true));
         if (strict) {
             String query = (String) env.get("QUERY_STRING");
             query = StringUtils.findAndReplace(query, "strict", "notstrict");
-            out.println("<P><HR>" +
-                        StringUtils.findAndReplace(FOOTNOTE, "%qs%", query));
+            String anchor = "<A HREF='r4.class?" + query + "'>";
+            String footnote = resources.interpolate(FOOTNOTE, false);
+            footnote = StringUtils.findAndReplace(footnote, "<A>", anchor);
+            footnote = StringUtils.findAndReplace(footnote, "<a>", anchor);
+            out.println("<P><HR>" + footnote);
         }
         out.println("</BODY></HTML>");
     }
     protected static final String FOOTNOTE =
-        "<P class=footnote><span class=doNotPrint>To reduce clutter, "+
-        "and omit completely empty rows from the tables above, " +
-        "<A HREF='r4.class?%qs%'>click here</A></span></P>.";
+        "<P class=footnote><span class=doNotPrint>" +
+        "${Strict_Footnote_HTML}</span></P>";
 
     protected void printD23(String param, String label, int [] row) {
         String dt = param;
-        if (!label.startsWith("Total")) {
+        if (!label.startsWith(TOTAL)) {
             dt += ("&type=" + HTMLUtils.urlEncode(label));
             if (!strict && 0 == (row[INJ_DESIGN] + row[INJ_CODE] +
                                  row[REM_COMPILE] + row[REM_TEST]))
                 return;
         }
         out.println("<TR><TD><A HREF=\"../defectlog.class?" + dt +"\">" +
-                    label + "</A></TD>");
+                    HTMLUtils.escapeEntities(label) +
+                    "</A></TD>");
         out.println("<TD>" + fc(dt, row, INJ_DESIGN) + "</TD>");
         out.println("<TD>" + fc(dt, row, INJ_CODE) + "</TD>");
         out.println("<TD>" + fp(row, INJ_DESIGN) + "</TD>");
@@ -178,12 +195,11 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
     /** format a percentage, calculated by dividing item n of row by item d */
     protected String fp(int num, int denom) {
         if (num == 0 || denom == 0) return NA;
-        int val = (100 * num) / denom;
-        return Integer.toString(val) + "%";
+        return FormatUtil.formatPercent(((double) num) / denom, 0);
     }
     protected String fp(int [] row, int n) { return fp(row[n], totals[n]); }
     protected String fp(int [] row, int n, int d) { return fp(row[n],row[d]); }
-    private static final String NA = "-";
+    private static final String NA = resources.getString("NA");
 
 
     protected void printD24(String label, int [] row) {
@@ -191,7 +207,9 @@ public class Report4 extends TinyCGIBase implements DefectAnalyzer.Task {
                              row[FOUND_IN_COMPILE]))
             return;
 
-        out.println("<TR><TD>" + label + "</TD>");
+        out.println("<TR><TD>" +
+                    HTMLUtils.escapeEntities(label) +
+                    "</TD>");
         out.println("<TD>" + fc(null, row, PRESENT_AT_COMP_ENTRY) + "</TD>");
         out.println("<TD>" + fc(null, row, FOUND_IN_COMPILE) + "</TD>");
         out.println("<TD>" + fp(row, FOUND_IN_COMPILE,

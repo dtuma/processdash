@@ -29,6 +29,7 @@ package net.sourceforge.processdash.ui.web.psp;
 
 import java.text.NumberFormat;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -37,6 +38,9 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 public class DefectFixTimeReport extends TinyCGIBase implements DefectAnalyzer.Task {
 
+    private static final Resources resources =
+        Resources.getDashBundle("Defects.D22");
+
     /** Generate CGI script output. */
     protected void writeContents() {
         initValues();
@@ -44,50 +48,50 @@ public class DefectFixTimeReport extends TinyCGIBase implements DefectAnalyzer.T
                            getPrefix(), parameters, this);
 
         out.println("<TABLE NAME=D22 BORDER><TR>");
-        out.println("<TD colspan=5 class=header>Defect Fix Times</TD></TR>");
+        printRes("<TD colspan=5 class=header>${Title}</TD></TR>");
         out.println("<TR><TD colspan=2></TD>");
-        out.println("<TD VALIGN=bottom>Defects found in compiling</TD>");
-        out.println("<TD VALIGN=bottom>Defects found in testing</TD>");
-        out.println("<TD VALIGN=bottom>Total defects found</TD></TR>");
+        printRes("<TD VALIGN=bottom>${Found_Compiling}</TD>");
+        printRes("<TD VALIGN=bottom>${Found_Testing}</TD>");
+        printRes("<TD VALIGN=bottom>${Found_Total}</TD></TR>");
 
-        out.println("<TR><TD rowspan=3>Defects injected in designing</TD>");
-        out.println("<TD ALIGN=right NOWRAP>Tot. fix time</TD>");
+        printRes("<TR><TD rowspan=3>${Injected_Designing}</TD>");
+        printRes("<TD ALIGN=right NOWRAP>${Total_Fix_Time}</TD>");
         out.println("<TD>" + time(INJ_DESIGN, REM_COMPILE) + "</TD>");
         out.println("<TD>" + time(INJ_DESIGN, REM_TEST) + "</TD>");
         out.println("<TD>" + time(INJ_DESIGN, REM_TOTAL) + "</TD></TR>");
-        out.println("<TR><TD ALIGN=right NOWRAP>Tot. defects</TD>");
+        printRes("<TR><TD ALIGN=right NOWRAP>${Total_Defects}</TD>");
         out.println("<TD>" + count(INJ_DESIGN, REM_COMPILE) + "</TD>");
         out.println("<TD>" + count(INJ_DESIGN, REM_TEST) + "</TD>");
         out.println("<TD>" + count(INJ_DESIGN, REM_TOTAL) + "</TD></TR>");
-        out.println("<TR><TD ALIGN=right NOWRAP>Avg. fix time</TD>");
+        printRes("<TR><TD ALIGN=right NOWRAP>${Average_Fix_Time}</TD>");
         out.println("<TD>" + avgTime(INJ_DESIGN, REM_COMPILE) + "</TD>");
         out.println("<TD>" + avgTime(INJ_DESIGN, REM_TEST) + "</TD>");
         out.println("<TD>" + avgTime(INJ_DESIGN, REM_TOTAL) + "</TD></TR>");
 
-        out.println("<TR><TD rowspan=3>Defects injected in coding</TD>");
-        out.println("<TD ALIGN=right NOWRAP>Tot. fix time</TD>");
+        printRes("<TR><TD rowspan=3>Defects injected in coding</TD>");
+        printRes("<TD ALIGN=right NOWRAP>${Total_Fix_Time}</TD>");
         out.println("<TD>" + time(INJ_CODE, REM_COMPILE) + "</TD>");
         out.println("<TD>" + time(INJ_CODE, REM_TEST) + "</TD>");
         out.println("<TD>" + time(INJ_CODE, REM_TOTAL) + "</TD></TR>");
-        out.println("<TR><TD ALIGN=right NOWRAP>Tot. defects</TD>");
+        printRes("<TR><TD ALIGN=right NOWRAP>${Total_Defects}</TD>");
         out.println("<TD>" + count(INJ_CODE, REM_COMPILE) + "</TD>");
         out.println("<TD>" + count(INJ_CODE, REM_TEST) + "</TD>");
         out.println("<TD>" + count(INJ_CODE, REM_TOTAL) + "</TD></TR>");
-        out.println("<TR><TD ALIGN=right NOWRAP>Avg. fix time</TD>");
+        printRes("<TR><TD ALIGN=right NOWRAP>${Average_Fix_Time}</TD>");
         out.println("<TD>" + avgTime(INJ_CODE, REM_COMPILE) + "</TD>");
         out.println("<TD>" + avgTime(INJ_CODE, REM_TEST) + "</TD>");
         out.println("<TD>" + avgTime(INJ_CODE, REM_TOTAL) + "</TD></TR>");
 
-        out.println("<TR><TD rowspan=3>Total defects injected</TD>");
-        out.println("<TD ALIGN=right NOWRAP>Tot. fix time</TD>");
+        printRes("<TR><TD rowspan=3>${Injected_Total}</TD>");
+        printRes("<TD ALIGN=right NOWRAP>${Total_Fix_Time}</TD>");
         out.println("<TD>" + time(INJ_TOTAL, REM_COMPILE) + "</TD>");
         out.println("<TD>" + time(INJ_TOTAL, REM_TEST) + "</TD>");
         out.println("<TD>" + time(INJ_TOTAL, REM_TOTAL) + "</TD></TR>");
-        out.println("<TR><TD ALIGN=right NOWRAP>Tot. defects</TD>");
+        printRes("<TR><TD ALIGN=right NOWRAP>${Total_Defects}</TD>");
         out.println("<TD>" + count(INJ_TOTAL, REM_COMPILE) + "</TD>");
         out.println("<TD>" + count(INJ_TOTAL, REM_TEST) + "</TD>");
         out.println("<TD>" + count(INJ_TOTAL, REM_TOTAL) + "</TD></TR>");
-        out.println("<TR><TD ALIGN=right NOWRAP>Avg. fix time</TD>");
+        printRes("<TR><TD ALIGN=right NOWRAP>${Average_Fix_Time}</TD>");
         out.println("<TD>" + avgTime(INJ_TOTAL, REM_COMPILE) + "</TD>");
         out.println("<TD>" + avgTime(INJ_TOTAL, REM_TEST) + "</TD>");
         out.println("<TD>" + avgTime(INJ_TOTAL, REM_TOTAL) + "</TD></TR>");
@@ -99,7 +103,7 @@ public class DefectFixTimeReport extends TinyCGIBase implements DefectAnalyzer.T
             for (int rem=0;  rem<4;  rem++)
                 time[inj][rem] = count[inj][rem] = 0;
     }
-    private static final String NA = "-";
+    private static final String NA = resources.getString("NA");
     protected String count(int i, int r) {
         return (count[i][r] == 0 ? NA : Integer.toString(count[i][r]));
     }
@@ -142,5 +146,9 @@ public class DefectFixTimeReport extends TinyCGIBase implements DefectAnalyzer.T
 
         count[INJ_TOTAL][REM_TOTAL] += 1;
         time [INJ_TOTAL][REM_TOTAL] += fixtime;
+    }
+
+    protected void printRes(String txt) {
+        out.println(resources.interpolate(txt, true));
     }
 }
