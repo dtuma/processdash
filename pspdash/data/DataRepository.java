@@ -591,6 +591,19 @@ public class DataRepository implements Repository {
                 // This will realize the value if it is deferred
                 SaveableData value = element.getValue();
 
+                // For now, lets add this in - don't doubly freeze data.  Supporting
+                // double freezing of data might make it easier for the people who
+                // write freeze flag expressions, but it makes things more confusing
+                // for end users:
+                //  * data items that are frozen by multiple freeze flags perplex
+                //    the user: they toggle some boolean value and can't figure out
+                //    why the data isn't thawing
+                //  * sometimes it is possible for data accidentally to become doubly
+                //    frozen by the SAME freeze flag.  Then users toggle the flag and
+                //    their data toggles between frozen and doubly frozen.
+                if (value instanceof FrozenData)
+                    return;
+
                 System.out.println("freezing " + dataName);
 
                 // Determine the prefix of the data element.
@@ -849,6 +862,13 @@ public class DataRepository implements Repository {
 
         DataFreezer dataFreezer;
 
+        public void disableFreezing() {
+            if (dataFreezer != null) {
+                dataFreezer.terminate();
+                dataFreezer = null;
+            }
+        }
+
 
 
         URL [] templateURLs = null;
@@ -883,7 +903,8 @@ public class DataRepository implements Repository {
 
         public void finalize() {
             // Command the data freezer to terminate.
-            dataFreezer.terminate();
+            if (dataFreezer != null) dataFreezer.terminate();
+            dataFreezer = null;
             // Command data realizer to terminate, then wait for it to.
             dataRealizer.terminate();
             try {
