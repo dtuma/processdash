@@ -28,7 +28,6 @@ package net.sourceforge.processdash.ui;
 
 import javax.swing.*;
 
-import pspdash.ImportExport;
 import pspdash.PSPDashboard;
 import pspdash.Settings;
 
@@ -37,6 +36,7 @@ import net.sourceforge.processdash.hier.ui.*;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.log.ui.*;
+import net.sourceforge.processdash.tool.export.ImportExport;
 import net.sourceforge.processdash.tool.probe.*;
 import net.sourceforge.processdash.ui.help.*;
 
