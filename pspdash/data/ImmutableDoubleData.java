@@ -36,9 +36,14 @@ public class ImmutableDoubleData extends DoubleData {
         new ImmutableDoubleData(Double.NaN, true, false);
     public static final ImmutableDoubleData READ_ONLY_NAN =
         new ImmutableDoubleData(Double.NaN, false, true);
+
     public static final ImmutableDoubleData TRUE =
         new ImmutableDoubleData(1.0, false, true);
     public static final ImmutableDoubleData FALSE = READ_ONLY_ZERO;
+
+    public static final ImmutableDoubleData BAD_VALUE = READ_ONLY_NAN;
+    public static final ImmutableDoubleData DIVIDE_BY_ZERO =
+        new ImmutableDoubleData(Double.POSITIVE_INFINITY, false, true);
 
     private double value;
 

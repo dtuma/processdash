@@ -43,10 +43,40 @@ class MathOperators {
             protected double calc(double l, double r) { return l * r; } };
 
     public static final Instruction DIVIDE = new BinaryMathOperator("/") {
-            protected double calc(double l, double r) { return l / r; } };
+            protected double calc(double l, double r) {
+                return (r == 0 ? Double.POSITIVE_INFINITY : l / r); } };
 
 }
 
+/*
+ * Within the dashboard, we assign special meanings to two IEEE double values:
+ *
+ *   o When a calculation cannot be performed because a referenced
+ *     data element is missing or invalid, we use the double value "NaN".
+ *
+ *   o When a calculation results in a divide-by-zero error, we use
+ *     the double value "positive infinity."
+ *
+ * Because these values have special meanings, we need to perform some slight
+ * overrides to standard Java floating point arithmetic.  For example, the
+ * Java language spec defines that Infinity / Infinity = NaN.  That wouldn't
+ * make sense according to our special meanings assigned above.
+ *
+ * So the modified logic for mathematical operations is this:
+ *
+ * (1) LOGIC: Return NaN if either of the two operands is missing
+ *     (null), not of numeric type, or NaN.  EFFECT: bad or missing
+ *     values in a calculation will cause the calculation to evaluate
+ *     to "bad value", and this "bad value" will in turn propagate to
+ *     any calculations it is used in.
+ *
+ * (2) LOGIC: If either operand is infinite, return positive infinity.
+ *     EFFECT: divide-by-zero errors result in infinity, and these
+ *     infinity values will propagate to other calculations that
+ *     reference them.
+ *
+ * Note that special case (1) takes precedence over special case (2).
+ */
 
 class BinaryMathOperator extends BinaryOperator {
 
@@ -54,9 +84,16 @@ class BinaryMathOperator extends BinaryOperator {
 
     protected SimpleData operate(SimpleData left, SimpleData right) {
         if (! (left instanceof NumberData && right instanceof NumberData))
-            return ImmutableDoubleData.READ_ONLY_NAN;
+            return ImmutableDoubleData.BAD_VALUE;
+
         double leftVal  = ((NumberData) left).getDouble();
         double rightVal = ((NumberData) right).getDouble();
+
+        if (Double.isNaN(leftVal) || Double.isNaN(rightVal))
+            return ImmutableDoubleData.BAD_VALUE;
+
+        if (Double.isInfinite(leftVal) || Double.isInfinite(rightVal))
+            return ImmutableDoubleData.DIVIDE_BY_ZERO;
 
         return new ImmutableDoubleData(calc(leftVal, rightVal), false, true);
     }

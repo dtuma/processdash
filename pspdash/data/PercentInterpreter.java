@@ -36,7 +36,7 @@ class PercentInterpreter extends DoubleInterpreter {
 
     public static String getString(double value, int numDigits) {
         String result = DoubleData.formatNumber(value * 100.0, numDigits);
-        return (result.startsWith("ERR")) ? result : result + "%";
+        return (result.startsWith("#") ? result : result + "%");
     }
 
 

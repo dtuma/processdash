@@ -86,9 +86,11 @@ public class DoubleData implements SimpleData, NumberData {
 
     public static final int AUTO_DECIMAL = -1;
 
+    public static final String NAN_STRING = "#VALUE!";
+    public static final String INF_STRING = "#DIV/0!";
     public static String formatNumber(double value, int numDecimalPoints) {
-        if (Double.isNaN(value) || Double.isInfinite(value))
-            return "ERROR";
+        if (Double.isNaN(value))      return NAN_STRING;
+        if (Double.isInfinite(value)) return INF_STRING;
 
         if (numDecimalPoints == AUTO_DECIMAL)
             if (value-((int)value) == 0.0 || value <= -100 || value >= 100)
