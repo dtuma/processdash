@@ -100,8 +100,9 @@ Authors:
             description="Create an install.xml file to feed to IzPack">
         <!-- filter the install.xml file based on the flags given -->
 	<property name="install.flags" value=""/>
+	<property name="helpFlag" value=""/>
         <xslt in="install.xml" out="${install.file}" style="filter.xslt">
-            <param name="flags" expression="${install.flags}"/>
+            <param name="flags" expression="${install.flags}${helpFlag}"/>
         </xslt>
 
         <!-- configure the version number of the dashboard -->
@@ -137,9 +138,6 @@ Authors:
 	    output="${dist}/pdash-install-${version}.jar"
             installerType="web-kunststoff"
             basedir="." izPackDir="${izpack.dir}/"/>
-        <move todir="${dist}">
-            <fileset dir="." includes="webpack-*.obj"/>
-        </move>
     </target>
 
     <target name="offline" depends="init,install-reg.xml"
@@ -202,33 +200,51 @@ pdash-install-${qualifier}-${version}.jar
       <delete quiet="true" file="install-reg.xml"/>
     </target>
 
-    <target name="dist" depends="rebuild,compile"/>
+    <target name="dist" depends="prepare,compile"/>
 
-    <target name="rebuild">
-        <ant dir=".." inheritAll="false"/>
+    <target name="prepare" depends="rebuild">
+
+        <!-- print an error unless the PSP process file is built -->
 	<available file="../dist/pspProc.jar" property="have.pspProc.jar"/>
 	<fail unless="have.pspProc.jar"
 	    message="pspProc.jar is missing - to ignore, run &quot;ant plain&quot;"/>
+
+	<!-- print an error unless the PSP for Engineers file is built -->
 	<available file="../dist/pspForEng.jar" property="have.pspForEng.jar"/>
 	<fail unless="have.pspForEng.jar" message="pspForEng.jar is missing"/>
+
+	<!-- print an error unless the dashboard jarfile is built -->
 	<available file="../dist/pspdash.jar" property="have.pspdash.jar"/>
 	<fail unless="have.pspdash.jar" message="pspdash.jar is missing"/>
+
+	<!-- determine whether the context-sensitive help was built -->
+	<available file="../dist/dashHelp.jar" property="helpFlag" value=" "/>
+	<property name="helpFlag" value=",noHelp"/>
     </target>
+
+    <target name="rebuild" unless="alreadyRebuilt">
+        <ant dir=".." inheritAll="false"/>
+    </target>
+
+
 
 
     <target name="plain"
         description="Create an installer that does not contain psp processes">
         <property name="have.pspProc.jar" value="ignore"/>
         <property name="install.flags" value="noProc"/>
-	<antcall target="rebuild"/>
+	<antcall target="prepare"/>
 	<antcall target="offline"/>
     </target>
 
 
-    <target name="clean">
-        <delete quiet="true" dir="${dist}"/>
+    <target name="clean" depends="clean-dist">
         <delete quiet="true" file="install-reg.xml"/>
         <delete quiet="true" file="install-cd.xml"/>
+    </target>
+
+    <target name="clean-dist" unless="dontCleanDist">
+        <delete quiet="true" dir="${dist}"/>
     </target>
 
 </project>
