@@ -43,6 +43,8 @@ import pspdash.data.SimpleData;
 public class EVTaskListXMLAbstract extends EVTaskList {
 
     private String xmlSource = null;
+    private String displayName = null;
+    private String errorMessage = null;
 
     protected EVTaskListXMLAbstract(String taskListName,
                                     String displayName,
@@ -60,7 +62,9 @@ public class EVTaskListXMLAbstract extends EVTaskList {
             if (errorMessage == null) errorMessage = "Invalid schedule";
             createErrorRootNode(displayName, errorMessage);
             return false;
-        } else if (xmlDoc.equals(xmlSource))
+        } else if (xmlDoc.equals(xmlSource) &&
+                   stringEquals(this.errorMessage, errorMessage) &&
+                   stringEquals(this.displayName,  displayName))
             return true;
 
         try {
@@ -90,6 +94,8 @@ public class EVTaskListXMLAbstract extends EVTaskList {
 
             // keep a record of the xml doc we parsed for future efficiency.
             xmlSource = xmlDoc;
+            this.errorMessage = errorMessage;
+            this.displayName  = displayName;
             return true;
         } catch (Exception e) {
             System.err.println("Got exception: " +e);
@@ -98,6 +104,12 @@ public class EVTaskListXMLAbstract extends EVTaskList {
             createErrorRootNode(displayName, errorMessage);
             return false;
         }
+    }
+
+    private boolean stringEquals(String a, String b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        return a.equals(b);
     }
 
 }
