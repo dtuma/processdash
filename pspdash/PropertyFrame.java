@@ -30,8 +30,10 @@ import pspdash.data.TagData;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
@@ -187,6 +189,10 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
         tree.setRowHeight(-1);      // Make tree ask for the height of each row.
+        try {
+            tree.setCellEditor(new SelectingTreeEditor
+                (tree, (DefaultTreeCellRenderer) tree.getCellRenderer()));
+        } catch (ClassCastException cce) {}
         adjustMenu (false, true, false, null, null); // deselection case
 
         /* Put the Tree in a scroller. */
@@ -1222,4 +1228,25 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                 public void run() { tree.startEditingAtPath(thepath); }
                 });
     }
+
+    /** A modified version of DefaultTreeCellEditor that selects all the
+     *  text in the component after editing is started. (This makes it
+     *  easy for the user to replace all that text.)
+     */
+    private class SelectingTreeEditor extends DefaultTreeCellEditor {
+        public SelectingTreeEditor(JTree tree, DefaultTreeCellRenderer renderer) {
+            super(tree, renderer, null);
+        }
+        public Component getTreeCellEditorComponent(JTree tree, Object value,
+                                                    boolean isSelected,
+                                                    boolean expanded,
+                                                    boolean leaf, int row) {
+            Component result = super.getTreeCellEditorComponent
+                (tree, value, isSelected, expanded, leaf, row);
+            if (editingComponent instanceof JTextComponent)
+                ((JTextComponent) editingComponent).selectAll();
+            return result;
+        }
+    }
+
 }
