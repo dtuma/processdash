@@ -55,7 +55,7 @@ Estimated Time/Beta0=0.0
 Estimated Time/Beta1=0.0
 Estimated Time/Range=0.0
 Estimated Time/Interval Percent=0.0
-Estimated Time/Probe Method=0.0
+Estimated Time/Probe Method="D
 Estimated Time/R Squared=0.0
 
 Estimated % Reused==![(/	Estimated Reused LOC	Estimated Total LOC)]
