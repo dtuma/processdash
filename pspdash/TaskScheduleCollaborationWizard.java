@@ -640,7 +640,6 @@ public class TaskScheduleCollaborationWizard {
             this.action = action;
             BuildFrame();
             this.setBackground(backgroundColor);
-            // FIXME: this doesn't seem to be working.
             PCSH.enableHelpKey(this, PASSWORD_HELP_TOPICS[action]);
         }
 
