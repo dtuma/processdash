@@ -15,6 +15,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
@@ -31,6 +32,7 @@ public class WBSEditor implements WindowListener, SaveListener {
     WBSDataWriter dataWriter;
     File dataDumpFile;
     boolean exitOnClose = false;
+    boolean disposed = false;
 
     private TeamMemberListEditor teamListEditor = null;
     private WorkflowEditor workflowEditor = null;
@@ -70,7 +72,7 @@ public class WBSEditor implements WindowListener, SaveListener {
                      new String[] { "Phase", "Task Size", "Units", "Rate", "Hrs/Indiv", "# People",
                          "Time", "Assigned To" });
 
-        String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
+        //String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         //table.addTab("Defects", s, s);
 
         teamTimePanel =
@@ -82,13 +84,17 @@ public class WBSEditor implements WindowListener, SaveListener {
         frame.setJMenuBar(buildMenuBar(table, teamProject.getWorkflows()));
         frame.getContentPane().add(table);
         frame.getContentPane().add(teamTimePanel, BorderLayout.SOUTH);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(this);
         frame.pack();
     }
 
     public void setExitOnClose(boolean exitOnClose) {
         this.exitOnClose = exitOnClose;
+    }
+
+    public boolean isDisposed() {
+        return disposed;
     }
 
     public void show() {
@@ -175,11 +181,50 @@ public class WBSEditor implements WindowListener, SaveListener {
         }
     }
 
+    /** Give the user a chance to save data before the window closes.
+     * 
+     * @return false if the user selects cancel, true otherwise
+     */
+    private boolean maybeSave(boolean showCancel) {
+        int buttons =
+            (showCancel
+                ? JOptionPane.YES_NO_CANCEL_OPTION
+                : JOptionPane.YES_NO_OPTION);
+        int result = JOptionPane.showConfirmDialog
+            (frame, "Would you like to save changes?",
+             "Save Changes?", buttons);
+        switch (result) {
+            case JOptionPane.CANCEL_OPTION:
+            case JOptionPane.CLOSED_OPTION:
+                return false;
+
+            case JOptionPane.YES_OPTION:
+                save();
+                break;
+
+            default:
+                disposed = true;
+                break;
+        }
+
+        return true;
+    }
+
+    protected void maybeClose() {
+        if (maybeSave(true)) {
+            if (exitOnClose)
+                System.exit(0);
+            else {
+                if (teamListEditor != null) teamListEditor.hide();
+                if (workflowEditor != null) workflowEditor.hide();
+                frame.dispose();
+            }
+        }
+    }
+
     public void windowOpened(WindowEvent e) {}
     public void windowClosing(WindowEvent e) {
-        save();
-        if (exitOnClose)
-            System.exit(0);
+        maybeClose();
     }
     public void windowClosed(WindowEvent e) {}
     public void windowIconified(WindowEvent e) {}
@@ -217,11 +262,7 @@ public class WBSEditor implements WindowListener, SaveListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            save();
-            if (exitOnClose)
-                System.exit(0);
-            else
-                frame.setVisible(false);
+            maybeClose();
         }
     }
 
