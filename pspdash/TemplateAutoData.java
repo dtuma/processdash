@@ -1,5 +1,5 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -125,6 +125,14 @@ public class TemplateAutoData extends AutoData {
                 globalDataHeader.append("#define PROCESS_HAS_QUALITY\n");
                 dataDefinitions.put(QUAL_LIST_ELEM, phases.quality);
             }
+
+            // Were any development phases defined?
+            if (phases.development.size() > 0)
+                dataDefinitions.put(DEVEL_LIST_ELEM, phases.development);
+
+            // Were any overhead phases defined?
+            if (phases.overhead.size() > 0)
+                dataDefinitions.put(OVERHEAD_LIST_ELEM, phases.overhead);
         }
 
         buildDefaultData(template, "", data, dataDefinitions,
@@ -294,6 +302,8 @@ public class TemplateAutoData extends AutoData {
     private static final String YIELD_LIST_ELEM = "Yield_Phase_List";
     private static final String FAIL_LIST_ELEM  = "Failure_Phase_List";
     private static final String APPR_LIST_ELEM  = "Appraisal_Phase_List";
+    private static final String OVERHEAD_LIST_ELEM  = "Overhead_Phase_List";
+    private static final String DEVEL_LIST_ELEM  = "Development_Phase_List";
     private static final String QUAL_LIST_ELEM  = "Quality_Phase_List";
     private static final String PHASE_LIST_ELEM = "Phase_List";
     static final String PHASE_TYPE_ATTR = "type";
@@ -304,7 +314,7 @@ public class TemplateAutoData extends AutoData {
      */
     private class PhaseLister extends XMLDepthFirstIterator {
 
-        ListData all, yield, appraisal, failure, quality, nodes;
+        ListData all, yield, appraisal, failure, quality, overhead, development, nodes;
         String lastNameSeen = null;
 
         public PhaseLister() {
@@ -313,6 +323,8 @@ public class TemplateAutoData extends AutoData {
             appraisal = newEmptyList();
             failure = newEmptyList();
             quality = newEmptyList();
+            overhead = newEmptyList();
+            development = newEmptyList();
         }
 
         public void commit() {
@@ -321,6 +333,8 @@ public class TemplateAutoData extends AutoData {
             appraisal.setImmutable();
             failure.setImmutable();
             quality.setImmutable();
+            overhead.setImmutable();
+            development.setImmutable();
         }
 
         public int getOrdering() { return POST; }
@@ -339,8 +353,9 @@ public class TemplateAutoData extends AutoData {
         public void caseElement(Element e, List path) {
             if (isProcessNode(e)) {
                 String nodeName = concatPath(path, false);
-                if (lastNameSeen == null ||
-                    lastNameSeen.startsWith(nodeName) == false) {
+                if (nodeName.length() > 0 &&
+                    (lastNameSeen == null ||
+                     lastNameSeen.startsWith(nodeName+"/") == false)) {
 
                     // add this phase to the complete list.
                     all.add(nodeName);
@@ -355,6 +370,10 @@ public class TemplateAutoData extends AutoData {
                     } else if (appraisalPhaseTypes.contains(phaseType)) {
                         appraisal.add(nodeName);
                         quality.add(nodeName);
+                    } else if (developmentPhaseTypes.contains(phaseType)) {
+                        development.add(nodeName);
+                    } else if (overheadPhaseTypes.contains(phaseType)) {
+                        overhead.add(nodeName);
                     }
 
                     if (failure.size() == 0) yield.add(nodeName);

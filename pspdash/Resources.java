@@ -31,7 +31,6 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Enumeration;
 import java.util.ResourceBundle;
-import java.util.NoSuchElementException;
 
 public class Resources extends ResourceBundle {
 
@@ -157,6 +156,10 @@ public class Resources extends ResourceBundle {
         }
 
         return result;
+    }
+
+    public String getHTML(String key) {
+        return HTMLUtils.escapeEntities(getString(key));
     }
 
     public String format(String key, Object[] args) {

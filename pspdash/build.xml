@@ -153,6 +153,7 @@ Authors:
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
            classpathref="build.classpath">
       <include name="pspdash/*.java"/>
+      <include name="pspdash/reporttemp/*.java"/>
       <include name="pspdash/data/**/*.java"/>
       <exclude name="pspdash/DashHelpBroker.java"/>
       <exclude name="**/*Test.java"/>

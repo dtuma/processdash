@@ -46,6 +46,13 @@
  * Define the default size metric for PSP - LOC.
  */
 
+[SIZE_METRIC_NAME] == "New & Changed LOC";
+[SIZE_METRIC_NAME_ABBR] == "LOC";
+[AGGR_SIZE_METRIC_NAME] == "New & Changed KLOC";
+[AGGR_SIZE_METRIC_NAME_ABBR] == "KLOC";
+[PROBE_INPUT_SIZE_METRIC_NAME] == "Estimated Object LOC";
+[PROBE_NO_EDIT_INPUT] == TAG;
+
 [Size] = [New & Changed LOC];
 [Estimated Size] = [Estimated New & Changed LOC];
 
