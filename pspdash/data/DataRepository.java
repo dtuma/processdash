@@ -38,6 +38,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -52,6 +53,7 @@ import com.oroinc.text.perl.MalformedPerl5PatternException;
 public class DataRepository implements Repository {
 
     public static final String anonymousPrefix = "///Anonymous";
+    public static final DoubleData TAG = new DoubleData(1.0, false);
 
         /** a mapping of data names (Strings) to data values (DataElements) */
         Hashtable data = new Hashtable(8000, (float) 0.5);
@@ -646,7 +648,7 @@ public class DataRepository implements Repository {
                     if (datafile.dirtyCount > 0)
                         saveDatafile(datafile);
 
-                    Enumeration k = data.keys();
+                    Iterator k = getKeys();
                     String name;
                     DataElement element;
                     DataListener dl;
@@ -655,8 +657,8 @@ public class DataRepository implements Repository {
 
                                           // build a list of all the data elements of
                                           // this datafile.
-                    while (k.hasMoreElements()) {
-                        name = (String) k.nextElement();
+                    while (k.hasNext()) {
+                        name = (String) k.next();
                         element = (DataElement)data.get(name);
                         if (element != null && element.datafile == datafile) {
                             elementsToRemove.addElement(name);
@@ -1218,6 +1220,14 @@ public class DataRepository implements Repository {
                 saveDatafile(datafile);
         }
 
+        public Iterator getKeys() {
+            ArrayList l = new ArrayList();
+            synchronized (data) {
+                l.addAll(data.keySet());
+            }
+            return l.iterator();
+        }
+
         // saveDataFile - saves a set of data to the appropriate data file.  In
         // order to minimize data loss, data is first written to two temporary
         // files, out and backup.  Once this is successful, out is renamed to
@@ -1272,15 +1282,15 @@ public class DataRepository implements Repository {
 
                 datafile.dirtyCount = 0;
 
-                Enumeration k = data.keys();
+                Iterator k = getKeys();
                 String name, valStr, defaultValStr;
                 DataElement element;
                 SaveableData value;
                 int prefixLength = datafile.prefix.length() + 1;
 
                 // write the data elements to the two temporary output files.
-                while (k.hasMoreElements()) {
-                    name = (String)k.nextElement();
+                while (k.hasNext()) {
+                    name = (String)k.next();
                     element = (DataElement)data.get(name);
 
                     // Make a quick check on the element and datafile validity
@@ -1424,18 +1434,20 @@ public class DataRepository implements Repository {
         public void deleteDataListener(DataListener dl) {
             // debug("deleteDataListener");
 
-            Enumeration dataElements = data.keys();
+            Iterator dataElements = getKeys();
             String name = null;
             DataElement element = null;
             Vector listenerList = null;
 
                       // walk the hashtable, removing this datalistener.
-            while (dataElements.hasMoreElements()) {
-                name = (String) dataElements.nextElement();
+            while (dataElements.hasNext()) {
+                name = (String) dataElements.next();
                 element = (DataElement) data.get(name);
-                listenerList = element.dataListenerList;
-                if (listenerList != null && listenerList.removeElement(dl))
-                    maybeDelete(name, element);
+                if (element != null) {
+                    listenerList = element.dataListenerList;
+                    if (listenerList != null && listenerList.removeElement(dl))
+                        maybeDelete(name, element);
+                }
             }
             dataNotifier.deleteDataListener(dl);
             activeData.remove(dl);
@@ -1452,7 +1464,7 @@ public class DataRepository implements Repository {
 
                                         // notify the listener of all the elements
                                         // already in the repository.
-                Enumeration k = data.keys();
+                Iterator k = getKeys();
                 String name;
 
 
@@ -1460,16 +1472,18 @@ public class DataRepository implements Repository {
 
                                         // if they have specified a prefix, notify them
                                         // of all the data beginning with that prefix.
-                    while (k.hasMoreElements()) {
-                        if ((name = (String) k.nextElement()).startsWith(prefix))
+                    while (k.hasNext()) {
+                        if ((name = (String) k.next()).startsWith(prefix) &&
+                            data.containsKey(name))
                             rl.dataAdded(new DataEvent(this, name,
                                                        DataEvent.DATA_ADDED, null));
                     }
 
                 else                    // if they have specified no prefix, only
                                         // notify them of data that is NOT anonymous.
-                    while (k.hasMoreElements())
-                        if (!(name = (String) k.nextElement()).startsWith(anonymousPrefix))
+                    while (k.hasNext())
+                        if (!(name = (String) k.next()).startsWith(anonymousPrefix) &&
+                            data.containsKey(name))
                             rl.dataAdded(new DataEvent(this, name,
                                                        DataEvent.DATA_ADDED, null));
 
@@ -1484,16 +1498,16 @@ public class DataRepository implements Repository {
             // debug("removeRepositoryListener done");
         }
 
-        public Enumeration keys() {
-            return data.keys();
-        }
+    //    public Enumeration keys() {
+    //        return data.keys();
+    //    }
 
         public Vector listDataNames(String prefix) {
             Vector result = new Vector();
-            Enumeration names = keys();
+            Iterator names = getKeys();
             String name;
-            while (names.hasMoreElements()) {
-                name = (String) names.nextElement();
+            while (names.hasNext()) {
+                name = (String) names.next();
                 if (name.startsWith(prefix))
                     result.addElement(name);
             }
