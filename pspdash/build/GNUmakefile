@@ -62,12 +62,17 @@ pspdash.jar: $(INSTALLED_FILES) manifest perltools jfreechart templates jhelp FO
 
 # make a local copy of the contents of the templates directory, without
 # CVS stuff or emacs backup~ files.
-templates: $(TEMPLATE_FILES)
+templates: $(TEMPLATE_FILES) Templates/DataApplet.cab Templates/DataApplet.jar
 
 $(TEMPLATE_FILES) : Templates/% : ../Templates/%
 	@mkdir -p '$(dir Templates/$*)'
 	cp '../Templates/$*' 'Templates/$*'
 
+Templates/DataApplet.cab: IE/DataApplet.cab
+	cp $< $@
+
+Templates/DataApplet.jar: NS/DataApplet.jar
+	cp $< $@
 
 
 # copy non-class files if needed.
