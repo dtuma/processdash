@@ -369,6 +369,12 @@ public class EVTask implements DataListener {
         return formatPercent(cumPlanTime/totalPlanTime); }
     public Date getPlanDate() { return planDate; }
     public Date getActualDate() { return dateCompleted; }
+    public String getPercentComplete() {
+        if (valueEarned == 0) return "";
+        else return formatPercent(valueEarned / planTime); }
+    public String getPercentSpent() {
+        if (actualTime == 0) return "";
+        else return formatPercent(actualTime / planTime); }
     public String getValueEarned(double totalPlanTime) {
         if (dateCompleted != null || valueEarned != 0.0)
             return formatPercent(valueEarned/totalPlanTime);

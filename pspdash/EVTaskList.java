@@ -411,10 +411,10 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     /** Names of the columns in the TreeTableModel. */
-    protected static String[] colNames = { "Project/Task",
-        "PT", "Time", "PV", "CPT", "CPV", "Plan Date", "Date", "EV" };
-    public static int[] colWidths = { 175,
-        50,   50,     40,   50,    40,    80,          80,     40 };
+    protected static String[] colNames = { "Project/Task", "PT", "Time",
+        "PV", "CPT", "CPV", "Plan Date", "Date", "%C", "%S", "EV" };
+    public static int[] colWidths =      { 175,             50,   50,
+         40,   50,    40,    80,          80,     40,   40,   40 };
     public static String[] toolTips = {
         null,
         "Planned Time (hours:minutes)",
@@ -424,6 +424,8 @@ public class EVTaskList extends AbstractTreeTableModel
         "Cumulative Planned Value",
         "Planned Completion Date",
         "Actual Completion Date",
+        "Percent Complete",
+        "Percent Spent",
         "Actual Earned Value" };
 
     public static final int TASK_COLUMN           = 0;
@@ -434,7 +436,9 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int PLAN_CUM_VALUE_COLUMN = 5;
     public static final int PLAN_DATE_COLUMN      = 6;
     public static final int DATE_COMPLETE_COLUMN  = 7;
-    public static final int VALUE_EARNED_COLUMN   = 8;
+    public static final int PCT_COMPLETE_COLUMN   = 8;
+    public static final int PCT_SPENT_COLUMN      = 9;
+    public static final int VALUE_EARNED_COLUMN   = 10;
 
     /** Types of the columns in the TreeTableModel. */
     static protected Class[]  colTypes = {
@@ -446,6 +450,8 @@ public class EVTaskList extends AbstractTreeTableModel
         String.class,           // planned cumulative value
         Date.class,             // planned date
         Date.class,             // date
+        String.class,           // percent complete
+        String.class,           // percent spent
         String.class };         // earned value
 
 
@@ -514,6 +520,8 @@ public class EVTaskList extends AbstractTreeTableModel
         case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanTime);
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
+        case PCT_COMPLETE_COLUMN:   return n.getPercentComplete();
+        case PCT_SPENT_COLUMN:      return n.getPercentSpent();
         case VALUE_EARNED_COLUMN:   return n.getValueEarned(totalPlanTime);
         }
         return null;
