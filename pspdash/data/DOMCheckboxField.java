@@ -41,13 +41,6 @@ class DOMCheckboxField extends DOMField {
 
         super(service, redrawer, element, ((HTMLInputElement) element).getName(),
               data, dataPath);
-        try {
-            // just curious
-            ((HTMLInputElement) element).setChecked(true);
-        } catch (Throwable t) {
-            System.out.println("checkbox test failed: " + t);
-            t.printStackTrace();
-        }
     }
 
 
