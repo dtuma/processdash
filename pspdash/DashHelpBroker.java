@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package pspdash;
 
@@ -33,6 +33,12 @@ import java.net.URL;
 
 class DashHelpBroker extends DefaultHelpBroker
     implements HelpBroker, DashHelpProvider {
+
+    /*
+     * The code in this class is duplicated (for classloader related
+     * reasons) in Templates/help/createBroker.java .  Changes made
+     * to this file should be propagated appropriately.
+     */
 
     DashHelpBroker() throws HelpSetException {
         super();
@@ -46,26 +52,12 @@ class DashHelpBroker extends DefaultHelpBroker
         setSize(new Dimension(645,495));
     }
 
-    // this wrapper class should allow me to set the icon on the top of the
-    // helpset viewer to match the dashboard stopwatch icon
-    DashHelpBroker(HelpSet hs) {
-        super(hs);
-        initPresentation();
-
-        frame.setIconImage(Toolkit.getDefaultToolkit().createImage
-            (getClass().getResource("icon32.gif")));
-
-//      jsplit.setDividerLocation(0.25);
-    }
-
     public void setHelpSet(HelpSet hs) {
         super.setHelpSet(hs);
         initPresentation();
 
         frame.setIconImage(Toolkit.getDefaultToolkit().createImage
-            (getClass().getResource("icon32.gif")));
-
-//      splitpane.setDividerLocation(0.25);
+            (PSPDashboard.class.getResource("icon32.gif")));
     }
 
 
