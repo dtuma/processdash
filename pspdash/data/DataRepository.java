@@ -1098,12 +1098,14 @@ public class DataRepository implements Repository {
         }
 
 
+        private static final boolean disableSerialization = true;
         private boolean definitionsDirty = true;
         public void maybeSaveDefinitions(File out) throws IOException {
             if (definitionsDirty)
                 saveDefinitions(new FileOutputStream(out));
         }
         public void saveDefinitions(OutputStream out) throws IOException {
+            if (disableSerialization) return;
             ObjectOutputStream o = new ObjectOutputStream(out);
             o.writeObject(includedFileCache);
             o.writeObject(defineDeclarations);
@@ -1114,6 +1116,7 @@ public class DataRepository implements Repository {
             definitionsDirty = false;
         }
         public void loadDefinitions(InputStream in) {
+            if (disableSerialization) return;
             try {
                 ObjectInputStream i = new ObjectInputStream(in);
                 Hashtable a, b, c, d, e;
