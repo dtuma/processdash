@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-    <classpathentry kind="src" path=""/>
+    <classpathentry excluding="**/CVS/*" kind="src" path=""/>
     <classpathentry kind="var" path="JRE_LIB" sourcepath="JRE_SRC"/>
-    <classpathentry kind="src" path="/pspdash"/>
+    <classpathentry kind="lib" path="C:/build/pspdash1-6-1.jar"/>
     <classpathentry kind="output" path="bin"/>
 </classpath>

@@ -3,7 +3,6 @@
 	<name>teamdash</name>
 	<comment></comment>
 	<projects>
-		<project>pspdash</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
