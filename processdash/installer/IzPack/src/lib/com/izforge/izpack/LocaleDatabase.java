@@ -48,6 +48,12 @@ public class LocaleDatabase extends TreeMap
         // We call the superclass default constructor
         super();
 
+        // load the data
+        loadXML(in);
+    }
+
+    public void loadXML(InputStream in) throws Exception {
+
         // Initialises the parser
         StdXMLParser parser = new StdXMLParser();
         parser.setBuilder(new StdXMLBuilder());
@@ -67,8 +73,13 @@ public class LocaleDatabase extends TreeMap
         for (int i = 0; i < size; i++)
         {
             XMLElement e = (XMLElement) children.get(i);
-            put(e.getAttribute("id"), e.getAttribute("txt"));
+            putTranslation(e.getAttribute("id"), e.getAttribute("txt"));
         }
+    }
+
+    protected void putTranslation(String id, String translation) {
+        if (!containsKey(id))
+            put(id, translation);
     }
 
 
