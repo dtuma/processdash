@@ -145,30 +145,6 @@ Code Review/leaf==TAG
 Test/Defects Removed per KLOC To Date==![(#=	/Test/Defects Removed per KLOC To Date)]
 Defects per KLOC To Date==![(#=	/Defects per KLOC To Date)]
 Yield To Date==![(#=	/Yield To Date)]
-Design/Time To Date==![(#=	/Design/Time To Date)]
-Design/% Time To Date==![(#=	/Design/% Time To Date)]
-Design Review/Time To Date==![(#=	/Design Review/Time To Date)]
-Design Review/% Time To Date==![(#=	/Design Review/% Time To Date)]
-Code/Time To Date==![(#=	/Code/Time To Date)]
-Code/% Time To Date==![(#=	/Code/% Time To Date)]
-Code Review/Time To Date==![(#=	/Code Review/Time To Date)]
-Code Review/% Time To Date==![(#=	/Code Review/% Time To Date)]
-Design/Defects Injected To Date==![(#=	/Design/Defects Injected To Date)]
-Design/% Defects Injected To Date==![(#=	/Design/% Defects Injected To Date)]
-Design Review/Defects Injected To Date==![(#=	/Design Review/Defects Injected To Date)]
-Design Review/% Defects Injected To Date==![(#=	/Design Review/% Defects Injected To Date)]
-Code/Defects Injected To Date==![(#=	/Code/Defects Injected To Date)]
-Code/% Defects Injected To Date==![(#=	/Code/% Defects Injected To Date)]
-Code Review/Defects Injected To Date==![(#=	/Code Review/Defects Injected To Date)]
-Code Review/% Defects Injected To Date==![(#=	/Code Review/% Defects Injected To Date)]
-Design/Defects Removed To Date==![(#=	/Design/Defects Removed To Date)]
-Design/% Defects Removed To Date==![(#=	/Design/% Defects Removed To Date)]
-Design Review/Defects Removed To Date==![(#=	/Design Review/Defects Removed To Date)]
-Design Review/% Defects Removed To Date==![(#=	/Design Review/% Defects Removed To Date)]
-Code/Defects Removed To Date==![(#=	/Code/Defects Removed To Date)]
-Code/% Defects Removed To Date==![(#=	/Code/% Defects Removed To Date)]
-Code Review/Defects Removed To Date==![(#=	/Code Review/Defects Removed To Date)]
-Code Review/% Defects Removed To Date==![(#=	/Code Review/% Defects Removed To Date)]
 Design Review/Defects Removed per Hour To Date==![(#=	/Design Review/Defects Removed per Hour To Date)]
 Code Review/Defects Removed per Hour To Date==![(#=	/Code Review/Defects Removed per Hour To Date)]
 Compile/Defects Removed per Hour To Date==![(#=	/Compile/Defects Removed per Hour To Date)]
@@ -176,18 +152,3 @@ Test/Defects Removed per Hour To Date==![(#=	/Test/Defects Removed per Hour To D
 Design Review/DRL To Date==![(#=	/Design Review/DRL To Date)]
 Code Review/DRL To Date==![(#=	/Code Review/DRL To Date)]
 Compile/DRL To Date==![(#=	/Compile/DRL To Date)]
-
-= We no longer need local copies of these to date numbers
-
-Design/Combined Time To Date=null
-Design/Combined % Time To Date=null
-Code/Combined Time To Date=null
-Code/Combined % Time To Date=null
-Design/Combined Defects Injected To Date=null
-Design/Combined % Defects Injected To Date=null
-Code/Combined Defects Injected To Date=null
-Code/Combined % Defects Injected To Date=null
-Design/Combined Defects Removed To Date=null
-Design/Combined % Defects Removed To Date=null
-Code/Combined Defects Removed To Date=null
-Code/Combined % Defects Removed To Date=null

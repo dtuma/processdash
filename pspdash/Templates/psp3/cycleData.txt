@@ -61,10 +61,6 @@ Reassessment/PSP Phase==70.0
 Reassessment/Time==0.0
 Time==![(+	~.*/Time)]
 
-= Actual % Time.
-
-Reassessment/% Time==![(/	Reassessment/Time	Time)]
-
 = Actual Defects Injected
 
 Reassessment/Defects Injected==0.0
@@ -106,8 +102,6 @@ LOC per Hour To Date=null
 ESTIMATED Time To Date=null
 Time To Date=null
 CPI To Date=null
-% Reused To Date=null
-% New Reused To Date=null
 Defects per KLOC To Date=null
 Yield To Date=null
 Reused LOC To Date=null
@@ -115,56 +109,32 @@ New & Changed LOC To Date=null
 Total LOC To Date=null
 New Reused LOC To Date=null
 Planning/Time To Date=null
-Planning/% Time To Date=null
 Design/Time To Date=null
-Design/% Time To Date=null
 Design Review/Time To Date=null
-Design Review/% Time To Date=null
 Code/Time To Date=null
-Code/% Time To Date=null
 Code Review/Time To Date=null
-Code Review/% Time To Date=null
 Compile/Time To Date=null
-Compile/% Time To Date=null
 Test/Time To Date=null
-Test/% Time To Date=null
 Postmortem/Time To Date=null
-Postmortem/% Time To Date=null
 Time To Date=null
 Before Development/Defects Injected To Date=null
-Before Development/% Defects Injected To Date=null
 Planning/Defects Injected To Date=null
-Planning/% Defects Injected To Date=null
 Design/Defects Injected To Date=null
-Design/% Defects Injected To Date=null
 Design Review/Defects Injected To Date=null
-Design Review/% Defects Injected To Date=null
 Code/Defects Injected To Date=null
-Code/% Defects Injected To Date=null
 Code Review/Defects Injected To Date=null
-Code Review/% Defects Injected To Date=null
 Compile/Defects Injected To Date=null
-Compile/% Defects Injected To Date=null
 Test/Defects Injected To Date=null
-Test/% Defects Injected To Date=null
 Defects Injected To Date=null
 Planning/Defects Removed To Date=null
-Planning/% Defects Removed To Date=null
 Design/Defects Removed To Date=null
-Design/% Defects Removed To Date=null
 Design Review/Defects Removed To Date=null
-Design Review/% Defects Removed To Date=null
 Code/Defects Removed To Date=null
-Code/% Defects Removed To Date=null
 Code Review/Defects Removed To Date=null
-Code Review/% Defects Removed To Date=null
 Compile/Defects Removed To Date=null
-Compile/% Defects Removed To Date=null
 Test/Defects Removed To Date=null
-Test/% Defects Removed To Date=null
 Defects Removed To Date=null
 After Development/Defects Removed To Date=null
-After Development/% Defects Removed To Date=null
 Design Review/Defects Removed per Hour To Date=null
 Code Review/Defects Removed per Hour To Date=null
 Compile/Defects Removed per Hour To Date=null

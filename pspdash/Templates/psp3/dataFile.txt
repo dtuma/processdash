@@ -102,12 +102,6 @@ Cycles/Time==![(+	~.*/{psp3cycle}Time)]
 Time==![(+	Planning/Time	HLD/Time	HLD Review/Time	Cycles/Time	Postmortem/Time)]
 
 
-= Actual % Time.
-
-HLD/% Time==![(/	HLD/Time	Time)]
-HLD Review/% Time==![(/	HLD Review/Time	Time)]
-= No percentages ever get reported for reassessment (lumped in with Postmortem)
-
 = Actual Defects Injected
 
 HLD/Defects Injected==0.0
@@ -236,16 +230,10 @@ Test/node=null
 ==
 
 HLD/Time To Date==![(#=	/HLD/Time To Date)]
-HLD/% Time To Date==![(#=	/HLD/% Time To Date)]
 HLD Review/Time To Date==![(#=	/HLD Review/Time To Date)]
-HLD Review/% Time To Date==![(#=	/HLD Review/% Time To Date)]
 HLD/Defects Injected To Date==![(#=	/HLD/Defects Injected To Date)]
-HLD/% Defects Injected To Date==![(#=	/HLD/% Defects Injected To Date)]
 HLD Review/Defects Injected To Date==![(#=	/HLD Review/Defects Injected To Date)]
-HLD Review/% Defects Injected To Date==![(#=	/HLD Review/% Defects Injected To Date)]
 HLD/Defects Removed To Date==![(#=	/HLD/Defects Removed To Date)]
-HLD/% Defects Removed To Date==![(#=	/HLD/% Defects Removed To Date)]
 HLD Review/Defects Removed To Date==![(#=	/HLD Review/Defects Removed To Date)]
-HLD Review/% Defects Removed To Date==![(#=	/HLD Review/% Defects Removed To Date)]
 HLD Review/Defects Removed per Hour To Date==![(#=	/HLD Review/Defects Removed per Hour To Date)]
 HLD Review/DRL To Date==![(#=	/HLD Review/DRL To Date)]
