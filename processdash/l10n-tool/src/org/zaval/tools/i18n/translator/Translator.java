@@ -43,6 +43,7 @@ package org.zaval.tools.i18n.translator;
 
 import java.io.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.*;
@@ -88,7 +89,8 @@ implements TranslatorConstants
     private MenuItem newLangMenu;
     private Menu langMenu, fileMenu;
     private MenuItem delMenu, insMenu,  editCopyMenu, editCutMenu, editPasteMenu, editDeleteMenu;
-    private MenuItem aboutMenu;
+    private Menu helpMenu;
+    private MenuItem getHelpMenu, aboutMenu;    
     private MenuItem expandTreeMenu, collapseTreeMenu, expandNodeMenu, collapseNodeMenu;
     private MenuItem statisticsMenu;
     private CheckboxMenuItem showNullsMenu;
@@ -119,7 +121,7 @@ implements TranslatorConstants
 
     private Vector tabOrder = new Vector();
     private String destZipFile;
-    private ActionListener saveListener;
+    private ActionListener saveListener, helpListener;
 
     public Translator( SafeResourceBundle res )
     {
@@ -259,7 +261,8 @@ implements TranslatorConstants
        langMenu = new Menu( RC( "tools.translator.menu.showres" ) );
        langMenu.disable();
 
-       Menu helpMenu = new Menu( RC("menu.help") );
+       helpMenu = new Menu( RC("menu.help") );
+       getHelpMenu = new MenuItem(RC("menu.help"));
        aboutMenu = new MenuItem(RC("menu.about"));
 
        Menu toolMenu = new Menu( RC("tools.translator.menu.tools") );
@@ -324,6 +327,7 @@ implements TranslatorConstants
        toolMenu.add(genMenu);
        toolMenu.add(parseMenu);
 
+       
        helpMenu.add(aboutMenu);
 
        menuBar.add( fileMenu );
@@ -356,7 +360,7 @@ implements TranslatorConstants
 
        MenuItem[] _tbar2menu = {
            newBundleMenu, openBundleMenu, saveBundleMenu, saveAsBundleMenu,
-           genMenu, parseMenu, newLangMenu, delMenu, aboutMenu
+           genMenu, parseMenu, newLangMenu, delMenu, getHelpMenu
        };
        tbar2menu = _tbar2menu;
 
@@ -510,6 +514,7 @@ implements TranslatorConstants
        if ( e.target == keyDeleteButton || e.target == delMenu) onDeleteKey();
        if ( e.target == genMenu) onGenCode();
        if ( e.target == parseMenu) onParseCode();
+       if ( e.target == getHelpMenu) onHelp();
        if ( e.target == aboutMenu) onAbout();
 
        if ( e.target == loadXmlBundleMenu) onLoadXml(false);
@@ -1193,6 +1198,16 @@ implements TranslatorConstants
        }
     }
 
+    private void onHelp() {
+        if (helpListener != null) {
+            helpListener.actionPerformed
+                (new ActionEvent(this, ActionEvent.ACTION_PERFORMED, 
+                                 "l10nTool"));
+        } else {
+            onAbout();
+        }
+    }
+    
     private void onAbout()
     {
        MessageBox2 aboutDialog = new MessageBox2( this );
@@ -1201,7 +1216,7 @@ implements TranslatorConstants
        aboutDialog.setIcon( imgres.getImage("zaval_ce.gif", aboutDialog));
        String [] OK_BUT = { RC( "dialog.button.ok" ) };
        aboutDialog.setButtons( OK_BUT );
-       aboutDialog.show();
+       aboutDialog.show();       
     }
 
     private void onStatistics()
@@ -1758,6 +1773,13 @@ implements TranslatorConstants
         this.saveListener = saveListener;
         if (bundle != null)
             bundle.setSaveListener(saveListener);
+    }
+
+    public void setHelpListener(ActionListener helpListener) {
+        this.helpListener = helpListener;
+        if (helpListener != null) {
+            helpMenu.insert(getHelpMenu, 0);
+        }
     }
 
 }

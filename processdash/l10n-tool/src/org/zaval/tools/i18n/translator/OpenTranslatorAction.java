@@ -37,14 +37,17 @@ public class OpenTranslatorAction extends AbstractAction {
     private String filename;
     private Comparator filter;
     private ActionListener saveListener;
+    private ActionListener helpListener;
     
     public OpenTranslatorAction(String filename, String displayName, 
                                 Comparator filter, 
-                                ActionListener saveListener) {
+                                ActionListener saveListener,
+                                ActionListener helpListener) {
         super(displayName);
         this.filename = filename;
         this.filter = filter;
         this.saveListener = saveListener;
+        this.helpListener = helpListener;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -52,6 +55,7 @@ public class OpenTranslatorAction extends AbstractAction {
             Main.main(new String[] { filename});
             Main.setFilter(filter);
             Main.setSaveListener(saveListener);
+            Main.setHelpListener(helpListener);
         } catch (Exception e1) {
             e1.printStackTrace();
         }

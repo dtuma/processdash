@@ -80,4 +80,9 @@ public class Main
       if (t != null)
           t.setSaveListener(saveListener);
    }
+
+   static void setHelpListener(ActionListener helpListener) {
+       if (t != null)
+           t.setHelpListener(helpListener);       
+   }
 }

@@ -84,6 +84,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
     static final String IMPORT_EXPORT    = "Export";
     static final String HELP_MENU        = "Help.Help";
     static final String EXIT_PROGRAM     = "Exit";
+    static final String L10N_TOOL        = "l10nTool";
 
     static final String HELP_FRAME     = "Help.Help_Topics";
     static final String HELP_SEARCH    = "Help.Search";
@@ -179,7 +180,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
                 ("org.zaval.tools.i18n.translator.OpenTranslatorAction");
             Constructor cstr = jrc.getConstructor
                 (new Class[] { String.class, String.class, Comparator.class,
-                               ActionListener.class });
+                               ActionListener.class, ActionListener.class });
 
             // get the name of the dashboard jar file
             String jarfilename = getDashboardJarFileName();
@@ -190,7 +191,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
             TranslationFilter filter = new TranslationFilter();
             TranslationsSavedListener listener = new TranslationsSavedListener();
             Action a = (Action) cstr.newInstance
-                (new Object[] { jarfilename, displayName, filter, listener });
+                (new Object[] { jarfilename, displayName, filter, listener, this });
             toolMenu.add(a);
 
         } catch (Throwable t) {}
@@ -349,6 +350,10 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
 
     public void showConsole () { ConsoleWindow.showInstalledConsole(); }
 
+    public void showLocalizationToolHelp() {
+        PCSH.displayHelpTopic("LocalizationTool");
+    }
+
     public void exitProgram() { parent.exitProgram(); }
 
     public void save() {
@@ -389,6 +394,8 @@ public class ConfigureButton extends JMenuBar implements ActionListener {
             showConsole ();
         } else if (cmd.equals(EXIT_PROGRAM)) {
             exitProgram ();
+        } else if (cmd.equals(L10N_TOOL)) {
+            showLocalizationToolHelp();
         }
     }
 
