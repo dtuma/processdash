@@ -189,7 +189,7 @@ function IEregisterElement(elem) {
         // element is disabled and thus cannot receive the focus until the
         // IEDataApplet is ready.
     elem.onfocus = IEcheckEditable;
-    elem.onblur = IEscanForReadOnly;
+    // elem.onblur = IEscanForReadOnly;
   }
 }
 				// function object for use by elementIterate
@@ -220,6 +220,7 @@ function IEsetup() {
     document.writeln('</applet>');
 
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
+    IEDataAppl.ondatasetchanged  = IEscanForReadOnly;
   }
 }
 
