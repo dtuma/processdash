@@ -47,7 +47,7 @@ public class PSPDiff {
                    String fileAStr, String fileBStr,
                    String fileBName, String options) {
 
-        if (options == null)
+        if (options == null || options.trim().length() == 0)
             options = getDefaultOptions(fileBName);
 
         // Get an appropriate instance of LanguageFilter.
