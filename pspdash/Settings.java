@@ -65,6 +65,17 @@ public class Settings {
     }
 
 
+    public static boolean getBool(String name, boolean defaultValue) {
+        String value = getVal(name);
+        if (value == null || value.length() == 0) return defaultValue;
+        switch (value.charAt(0)) {
+        case 't': case 'T': case 'y': case 'Y': return true;
+        case 'f': case 'F': case 'n': case 'N': return false;
+        }
+        return defaultValue;
+    }
+
+
     public static String getFile(String name) {
         return translateFile(getVal(name));
     }
