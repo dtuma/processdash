@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  ken.raisor@hill.af.mil
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 package pspdash;
@@ -49,7 +49,8 @@ public class ScriptNameResolver implements ScriptID.NameResolver {
             return (result.length() == 0 ? null : result);
 
         try {
-            String text = new String(web.getRequest("/"+scriptFile, true));
+            String text = new String
+                (web.getRequest("/"+scriptFile, true), "UTF-8");
 
             int beg = text.indexOf("<TITLE>");
             if (beg == -1) return null;
