@@ -3,7 +3,7 @@
 <!--
 
 PSP Dashboard - Data Automation Tool for PSP-like processes
-Copyright (C) 1999  United States Air Force
+Copyright (C) 2003 Software Process Dashboard Initiative
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@ Attn: PSP Dashboard Group
 6137 Wardleigh Road
 Hill AFB, UT 84056-5843
 
-E-Mail POC:  ken.raisor@hill.af.mil
+E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
 This file contains the template definitions for the standard PSP processes.
@@ -38,16 +38,16 @@ This file contains the template definitions for the standard PSP processes.
     <html ID="sum" title="Import PSP Project Data" href="import/import.htm"/>
 
     <phase name="Planning"      imaginary="true" type="plan"/>
-    <phase name="HLD"		imaginary="true" type="hld"/>
-    <phase name="HLD Review"	imaginary="true" type="hldr"/>
-    <phase name="Design"	imaginary="true" type="dld"/>
+    <phase name="HLD"           imaginary="true" type="hld"/>
+    <phase name="HLD Review"    imaginary="true" type="hldr"/>
+    <phase name="Design"        imaginary="true" type="dld"/>
     <phase name="Design Review" imaginary="true" type="dldr"/>
     <phase name="Code"          imaginary="true" type="code"/>
     <phase name="Code Review"   imaginary="true" type="cr"/>
-    <phase name="Compile"	imaginary="true" type="comp"/>
-    <phase name="Test"		imaginary="true" type="ut"/>
-    <phase name="Postmortem"	imaginary="true" type="pm"/>
-    <phase name="Data Entry"	                 type="pm"/>
+    <phase name="Compile"       imaginary="true" type="comp"/>
+    <phase name="Test"          imaginary="true" type="ut"/>
+    <phase name="Postmortem"    imaginary="true" type="pm"/>
+    <phase name="Data Entry"                     type="pm"/>
   </template>
 
 </dashboard-process-template>
