@@ -6,6 +6,25 @@
 
 
 <!--======================================================================
+    The template for the team project stub
+ =======================================================================-->
+
+  <template
+      name="Team Project"
+      ID="TeamProjectStub"
+      defineRollup="no"
+      constraints="{"
+      >
+
+    <html ID="setup" href="dash/teamStart.class"
+          title="Team Project Setup Wizard"/>
+
+  </template>
+
+
+
+
+<!--======================================================================
     The template for a root project node on the team side
  =======================================================================-->
 
@@ -14,8 +33,12 @@
       ID="PID/TeamRoot"
       defineRollup="no"
       dataFile="PID/team_root_dataFile.txt"
-      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->"
-      >
+      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}"
+      ><!--#break comment-->
+           This node cannot be directly instantiated by the user. They
+	   must instead instantiate a team project stub, and run the
+	   setup wizard to create an instance of this template.
+       <!--#endbreak comment-->
 
     <html ID="sump" href="PID/rollup_plan_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
@@ -83,8 +106,12 @@
       defineRollup="no"
       defectLog="true"
       dataFile="PID/indiv_root_dataFile.txt"
-      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->"
-      >
+      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}"
+      ><!--#break comment-->
+           This node cannot be directly instantiated by the user. They
+	   must instead use the team setup wizard to join a team project.
+       <!--#endbreak comment-->
+
     <html ID="sump" href="PID/plan_summary.shtm"
         title="<!--#echo Full_Name --> Project Plan Summary"/>
     <!-- html ID="sumq" href="PID/quality_summary.shtm"
@@ -305,15 +332,17 @@
 
 <!--======================================================================
     The template for an extra data rollup node.  This node can be
-    instantiated manually anywhere to perform an additional,
-    independent rollup of data for this process.
+    instantiated manually anywhere inside a team project to perform an
+    additional, independent rollup of data for this process.
   =======================================================================-->
 
   <template
       name="PID-rollup:!*!:Rollup <!--#echo Full_Name --> Data"
       ID="PID/Rollup"
       dataFile="PID/rollup_dataFile.txt"
-      defineRollup="no">
+      defineRollup="no"
+      constraints="{}PID/TeamRoot}PID/TeamNode}PID/TeamTask}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode}PID/IndivReadOnlyNode"
+      >
 
     <html ID="sump" href="PID/rollup_plan_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>

@@ -7,6 +7,7 @@
 /*
  * We need to redefine the rollup project list to include PSP projects.
  */
+[/PSP/Project List] = search("/", "PSP Rollup Eligible");
 [/<!--#echo Process_ID -->/Full Project List] =
     setUnion([/<!--#echo Process_ID -->/Project List], [/PSP/Project List]);
 [Rollup_List] =

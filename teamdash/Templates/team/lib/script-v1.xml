@@ -15,6 +15,8 @@
                value="<!--#echo var=Process_ID -->"/>
         <param name="PSP_Children"
 	       value="{PSP0.1{PSP1{PSP1.1{PSP2{PSP2.1"/>
+	       <!-- PSP0 is excluded because it has no size metric, which
+	            throws off all kinds of related calculations. -->
 	       <!-- I'm excluding PSP3 for now for defect logging reasons. -->
     </file>
 
@@ -113,15 +115,15 @@
     <file in="charts.htm" encoding="url" 
           out="charts.shtm" />
 
-    <!-- CGI scripts for navigating the hierarchy -->
-    <file in="/team/setup/selectHier.class" encoding="binary"
-          out="/team/setup/selectHier.class"/>
-    <file in="/team/setup/selectWBS.class" encoding="binary"
-          out="/team/setup/selectWBS.class"/>
-    <file in="/team/setup/selectTopNode.class" encoding="binary"
-          out="/team/setup/selectTopNode.class"/>
+    <!-- Icon used for navigating the hierarchy -->
     <file in="hier.png" encoding="binary" />
 
     <!-- Items for the team project setup wizard -->
+    <!--#include file="/team/setup/filelist.txt" parse="true" -->
+    <!--#foreach name="Filename" list="Wizard_File_List" -->
+        <file in="/team/setup/Filename" encoding="binary" 
+	      out="setup/Filename"/>
+    <!--#endfor-->
+
 
 </generation-script>

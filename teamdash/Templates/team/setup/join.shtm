@@ -1,6 +1,6 @@
 <html>
 <head>
-<!--#if not [setup//rand] -->
+<!--#if not [Team_Process_PID] -->
 <meta http-equiv="Refresh" CONTENT="0;URL=join.class">
 </head></html>
 <!--#else-->
@@ -45,7 +45,7 @@
 <body>
 <table width='100%'>
 <tr><td width='100%'><img align="left" onError="imageLoadFailed()"
-src="http://localhost:2468/Images/team.jpg?<!--#echo [setup//rand] #-->"><h1>Team
+src="http://localhost:2468/Images/team.jpg?<!--#echo "_UNIQUE_" -->"><h1>Team
 Project Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
 </table>
 
@@ -63,6 +63,10 @@ Project Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
     have the dashboard running.  It appears that you are <b>not</b>
     currently running the dashboard.  Please start the dashboard
     if it is not running, and click the &quot;Next&quot; button.</p>
+
+    <p>If this message is in error, and you <b>are</b> currently
+    running the dashboard, <a href="joinManually.shtm">click here</a>
+    for further instructions.</p>
 </div>
 
 <script>

@@ -33,47 +33,40 @@ public class join extends TinyCGIBase {
     {
         super.service(in, out, env);
 
-        // TODO: If the prefix names an individual project, (or in any
-        // other way does not name a team project), redirect to an
-        // error message.
-
         // TODO: If an individual has already joined this project,
         // detect that and display an error message.
 
-        // TODO: If the team leader visits the join page, what should
-        // happen?  Team leaders may want to join from the same dashboard
-        // where the data is located.  The team leader may very well:
-        //  1) have created the team project in his own hierarchy
-        //  2) restarted his dashboard, so it is no longer listening
-        //     on 2468
-        // In this case, he will get a "start up your dashboard" error
-        // message.
+        maybeReroot();
 
-        // We have to comment out the rerooting functionality for
-        // now - the java URLConnection logic gets confused by the
-        // resulting redirection instructions.
-        //maybeReroot();
-
-        storeValues();
         if (parameters.get("xml") != null)
-            printRedirect(JOIN_XML);
+            internalRedirect(JOIN_XML);
         else
             printRedirect(JOIN_URL);
-
-        this.out.flush();
     }
 
-    /** Send an HTTP redirect command to the browser, sending it to the
-     *  relative URI named by filename. */
+    /** the HTTPURLConnection in JRE1.4.1 can't seem to handle the
+     * redirection instructions sent by the dashboard. Since xml
+     * output from this script is read by the JRE rather than a web
+     * browser, this causes problems.  Work around the problems by
+     * performing an "internal redirect" ourselves.
+     */
+    protected void internalRedirect(String filename) throws IOException {
+        String uri = makeURI(filename);
+        byte[] contents = getTinyWebServer().getRequest(uri, false);
+        outStream.write(contents);
+        outStream.flush();
+    }
+
     protected void printRedirect(String filename) {
         out.print("Location: ");
-        /*
-        out.print(TinyWebServer.urlEncodePath(getPrefix()));
-        out.print("//");
-        out.print(getProcessID());
-        out.print("/setup/"); */
-        out.print(filename);
+        out.print(makeURI(filename));
         out.print("\r\n\r\n");
+        out.flush();
+    }
+
+    private String makeURI(String filename) {
+        return TinyWebServer.urlEncodePath(getPrefix()) +
+            "//" + getProcessID() + "/setup/" + filename;
     }
 
     /** Save a value into the data repository. */
@@ -102,7 +95,7 @@ public class join extends TinyCGIBase {
     /** If the current prefix doesn't name the root of a team project,
      * search upward through the hierarchy to find the project root,
      * and change the active prefix to name that node. */
-    protected void maybeReroot() {
+    protected void maybeReroot() throws TinyCGIException {
         PSPProperties hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(getPrefix());
         boolean rerooted = false;
@@ -117,30 +110,12 @@ public class join extends TinyCGIBase {
             key = key.getParent();
         } while (key != null);
 
-        if (rerooted && projectRoot != null)
-            parameters.put("hierarchyPath", projectRoot);
-    }
-
-    protected void storeValues() {
-        putValue("setup//rand", Long.toString(System.currentTimeMillis()));
-        /*
-        String pid = getProcessID();
-        putValue(PROCESS_ID, pid);
-        String teamDir = getValue("Team_Directory");
-        String teamDirUNC = getValue("Team_Directory_UNC");
-
-        // save the path to the template jarfile, in regular and UNC formats.
-        String file =
-            File.separator + "Templates" + File.separator + pid + ".zip";
-        putValue(TEMPLATE_PATH, teamDir + file);
-        if (teamDirUNC != null) putValue(TEMPLATE_UNC, teamDirUNC + file);
-
-        // save the path to the data directory, in regular and UNC formats.
-        String projectID = getValue("Project_ID");
-        file = File.separator + "data" + File.separator + projectID;
-        putValue(DATA_PATH, teamDir + file);
-        if (teamDirUNC != null) putValue(DATA_UNC, teamDirUNC + file);
-        */
+        if (rerooted) {
+            if (projectRoot != null)
+                parameters.put("hierarchyPath", projectRoot);
+            else
+                throw new TinyCGIException(404, "Not Fount");
+        }
     }
 
     protected String getProcessID() {

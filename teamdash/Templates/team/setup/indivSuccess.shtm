@@ -18,6 +18,16 @@ TD.value { font-family: monospace }
 
 The team project has been created and set up successfully!
 
+<!--#if schedProblem -->
+
+<table width='100%'><tr><td width='100%' bgcolor="#ff6666">However,
+the dashboard was unable to add your personal earned value schedule to
+the team earned value schedule.  <b><u>Please tell your team leader
+about this problem</u></b>; they will be able to add your schedule to
+the team schedule manually.</td></tr></table>
+
+<!--#endif-->
+
 
 <table width='100%'><tr><td width='100%' align='right' nowrap>
 <input type=button name=cancel value='Close'

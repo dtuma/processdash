@@ -5,6 +5,7 @@
 [Project_Path_Prefix] = [^];
 [Project_ID] = "Enter Project Identifier";
 [Project_WBS_ID] = [Project_ID];
+[Team_Process_PID] = "<!--#echo Process_ID -->";
 
 
 /*

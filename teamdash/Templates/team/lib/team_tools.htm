@@ -2,6 +2,26 @@
 <head>
 <title>Team Project Tools and Settings</title>
 <link rel=stylesheet type="text/css" href="style.css">
+<script>
+
+    function eesc(str) {
+        str = escape(str);
+        str = str.replace(/\//g, "%2F");
+        str = str.replace(/\./g, "%2E");
+        str = str.replace(/\+/g, "%2B");
+        return str;
+    }
+
+    function writeMailtoLink() {
+	var url = window.location.href;
+	url = url.replace(/localhost/,
+	                  "[!--#include file='/dash/serverName.class' --]");
+	url =  url.replace(/team_tools.shtm/, "setup/join.shtm");
+        document.write("<a href='mailto:?subject=Join%20Team%20Project&body=A%20new%20team%20project%20has%20been%20created%3b%20please%20visit%0d%0a%20%20%20%20"+eesc(url)+"%0d%0ato%20join%20this%20project%2e'>click on this link</a>");
+    }
+
+</script>
+
 </head>
 <body>
 
@@ -16,6 +36,12 @@
 <p><form action="../control/importNow.class" method="POST">
 <input type=submit name="submit" value="Import All Data Now">
 </form>
+
+
+<p>To make it easy for individual team members to join this project,
+you can <script> writeMailtoLink(); </script> to send them an email
+with instructions.
+
 
 </body>
 </html>

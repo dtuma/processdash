@@ -6,6 +6,7 @@
 <!--#if not USE_TO_DATE_DATA #-->
 undefine([Use_Rollup]);
 [/PID/Project List] = search("/", "PID Rollup Eligible");
+[/PSP/Project List] = search("/", "PSP Rollup Eligible");
 [/PID/Full Project List] = setUnion([/PID/Project List], [/PSP/Project List]);
 <!--#endif-->
 
@@ -15,8 +16,8 @@ undefine([Use_Rollup]);
  */
 
 <!--#foreach name=Metric values=",New & Changed LOC,Req Pages,Text Pages,HLD Pages,DLD Lines," -->
-[Estimated Inspected Metric] = iff([Metric], [Metric], [Estimated Metric]);
-[Inspected Metric] = [Metric];
+[Estimated Inspected Metric] = iff([Metric], [Metric], [Estimated Metric]) + 0;
+[Inspected Metric] = [Metric] + 0;
 <!--#endfor-->
 
 

@@ -533,13 +533,14 @@ public class wizard extends TinyCGIBase {
 
         // calculate the new import instruction, and add it to the
         // import list
-        String importInstr = ("Import_"+projectID+ "=>"+
-                              teamDirectory+"/data/"+projectID);
+        String importInstr = ("Import_" + projectID + "=>" +
+                              teamDirectory + "/data/" + projectID);
         String imports = Settings.getVal(IMPORT_DIRS);
         if (imports == null)
             InternalSettings.set(IMPORT_DIRS, importInstr);
         else
             InternalSettings.set(IMPORT_DIRS, imports + "|" + importInstr);
+        DataImporter.init(getDataRepository(), importInstr);
 
         // enable earned value rollups.
         InternalSettings.set(EV_ROLLUP, "true");
@@ -549,10 +550,8 @@ public class wizard extends TinyCGIBase {
         if (port == null) {
             int portNum = getAvailablePort();
             InternalSettings.set(HTTP_PORT, Integer.toString(portNum));
-            try {
-                // start listening on that port.
-                getTinyWebServer().addExtraPort(portNum);
-            } catch (IOException ioe) {}
+            // start listening on that port.
+            DashController.changeHttpPort(portNum);
         }
 
     }
@@ -596,10 +595,13 @@ public class wizard extends TinyCGIBase {
         String teamScheduleName = getValue("Project_Schedule_Name");
         String indivExportedName = getParameter("scheduleName");
         String indivFileName = getParameter("fileName");
-        addIndivScheduleToTeamSchedule(teamScheduleName, indivExportedName,
-                                       indivFileName);
-        // print out a null document and call it good.
-        out.print("Content-type: text/plain\r\n\r\n ");
+        if (addIndivScheduleToTeamSchedule
+            (teamScheduleName, indivExportedName, indivFileName)) {
+            // print out a null document and call it good.
+            out.print("Content-type: text/plain\r\n\r\n ");
+        } else {
+            out.print("Status: 500 Join Failed\r\n\r\n");
+        }
     }
 
     /** Add an individual's personal schedule to the team rollup. */
@@ -610,21 +612,27 @@ public class wizard extends TinyCGIBase {
         if (teamScheduleName == null || teamScheduleName.length() == 0 ||
             indivExportedName == null || indivExportedName.length() == 0 ||
             indivFileName == null || indivFileName.length() == 0) return false;
-
-
-        // import all data.
-        DataImporter.refreshPrefix(getPrefix());
+        //*debug*/ System.out.println("addIndivScheduleToTeamSchedule");
+        //*debug*/ System.out.println("teamScheduleName="+teamScheduleName);
+        //*debug*/ System.out.println("indivExportedName="+indivExportedName);
+        //*debug*/ System.out.println("indivFileName="+indivFileName);
 
         // calculate the import prefix
         String projectID = getValue("Project_ID");
         if (projectID == null || projectID.length() == 0) return false;
-        String importPrefix = "Import_"+projectID;
+        String importPrefix = "/Import_"+projectID;
+        //*debug*/ System.out.println("importPrefix="+importPrefix);
+
+        // import all data.
+        DataImporter.refreshPrefix(importPrefix);
+        //*debug*/ System.out.println("refreshPrefix done");
 
         // calculate the name of the import directory.
         String teamDirectory = getValue("Team_Directory");
         if (teamDirectory == null || teamDirectory.length() == 0) return false;
         teamDirectory = teamDirectory.replace('\\', '/');
         String importDir = teamDirectory+"/data/"+projectID;
+        //*debug*/ System.out.println("importDir="+importDir);
 
         // calculate the full name of the imported file.
         indivFileName = indivFileName.replace('\\', '/');
@@ -632,25 +640,43 @@ public class wizard extends TinyCGIBase {
         if (slashPos == -1) return false;
         String importedFile =
             importDir + "/" + indivFileName.substring(slashPos+1);
+        //*debug*/ System.out.println("importedFile="+importedFile);
         File f = new File(importedFile);
 
         // calculate the fully qualified name of the imported schedule.
         String dataPrefix = null;
         try {
-            DataImporter.getPrefix(importPrefix, f);
+            dataPrefix = DataImporter.getPrefix(importPrefix, f);
         } catch (IOException ioe) {
             return false;
         }
+        //*debug*/ System.out.println("dataPrefix="+dataPrefix);
         String indivSchedPath = dataPrefix + indivExportedName;
+        //*debug*/ System.out.println("indivSchedPath="+indivSchedPath);
+        //*debug*/ SimpleData sd =
+        //*debug*/     getDataRepository().getSimpleValue(indivSchedPath);
+        //*debug*/ String sdStr = (sd == null ? null : sd.format());
+        //*debug*/ System.out.println("indivSchedPath.value="+sdStr);
 
         // add the imported schedule to the team schedule.
+        return addScheduleToRollup(teamScheduleName, indivSchedPath);
+    }
+
+    protected boolean addScheduleToRollup(String teamScheduleName,
+                                          String indivSchedPath) {
+
         EVTaskList rollup = EVTaskList.openExisting
             (teamScheduleName, getDataRepository(),
              getPSPProperties(), getObjectCache(), false);
-        if (!(rollup instanceof EVTaskListRollup)) return false;
-        if (!rollup.addTask(indivSchedPath, getDataRepository(),
-                            getPSPProperties(), getObjectCache(), false))
+        if (!(rollup instanceof EVTaskListRollup)) {
+            //*debug*/ System.out.println("rollup not an EVTaskListRollup");
             return false;
+        }
+        if (!rollup.addTask(indivSchedPath, getDataRepository(),
+                            getPSPProperties(), getObjectCache(), false)) {
+            //*debug*/ System.out.println("addTask failed");
+            return false;
+        }
 
         rollup.save();
         return true;
@@ -864,7 +890,7 @@ public class wizard extends TinyCGIBase {
         return buildTeamURLReference(teamURL, "index.htm") != null;
     }
     private URL buildTeamURLReference(String teamURL, String ref) {
-        System.out.println("buildTeamURLReference("+teamURL+","+ref+")");
+        //System.out.println("buildTeamURLReference("+teamURL+","+ref+")");
         if (teamURL == null || teamURL.trim().length() == 0) return null;
 
         teamURL = teamURL.trim();
@@ -873,11 +899,11 @@ public class wizard extends TinyCGIBase {
         if (pos != -1) pos = teamURL.indexOf('/', pos+2);
         if (pos == -1) return null;
         teamURL = teamURL.substring(0, pos+1) + ref;
-        System.out.println("teamURL="+teamURL);
+        //System.out.println("teamURL="+teamURL);
         URL u = null;
         try {
             u = new URL(teamURL);
-            System.out.println("teamURL(urlform)="+u);
+            //System.out.println("teamURL(urlform)="+u);
         } catch (IOException ioe) {
             ioe.printStackTrace();
             return null;
@@ -938,22 +964,31 @@ public class wizard extends TinyCGIBase {
             // so just abort on failure.
             return;
 
+        // Check to see if the "team project" is in the same dashboard
+        // instance as the "individual project."
+        String remoteTimeStamp =e.getAttribute(TinyWebServer.TIMESTAMP_HEADER);
+        String localTimeStamp = getTinyWebServer().getTimestamp();
+        boolean isLocal = localTimeStamp.equals(remoteTimeStamp);
+
         // perform lots of other setup tasks.  Unlike the operation
         // above, these tasks should succeed 99.999% of the time.
         setPrefix(localProjectName);
         createIndivProject(indivTemplateID);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
-                            teamDirectory, teamDirectoryUNC);
+                            teamDirectory, teamDirectoryUNC, isLocal);
         createIndivSchedule(scheduleName);
         exportIndivData();
-        joinTeamSchedule(teamURL, scheduleName);
+        boolean joinSucceeded = true;
+        if (isLocal)
+            joinSucceeded = joinLocalTeamSchedule(teamURL, scheduleName);
+        else
+            joinSucceeded = joinTeamSchedule(teamURL, scheduleName);
 
-        showIndivSuccessPage();
+        showIndivSuccessPage(joinSucceeded);
     }
 
     /** Contacts the team dashboard and downloads information about
-     * the project. On failure, this will redirect the user to an
-     * error page, then return null.
+     * the project. On failure, this will return null.
      */
     protected Document downloadTeamProjectInformation(String teamURL) {
         URL u = buildTeamURLReference(teamURL, "setup/join.class?xml");
@@ -961,7 +996,11 @@ public class wizard extends TinyCGIBase {
         try {
             URLConnection conn = u.openConnection();
             conn.connect();
+            String serverTimeStamp = conn.getHeaderField
+                (TinyWebServer.TIMESTAMP_HEADER);
             result = XMLUtils.parse(conn.getInputStream());
+            result.getDocumentElement().setAttribute
+                (TinyWebServer.TIMESTAMP_HEADER, serverTimeStamp);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -1009,7 +1048,8 @@ public class wizard extends TinyCGIBase {
     /** Save data values for an individual project. */
     protected void saveIndivDataValues
         (String projectID, String teamURL, String indivInitials,
-         String scheduleName, String teamDirectory, String teamDirectoryUNC) {
+         String scheduleName, String teamDirectory, String teamDirectoryUNC,
+         boolean isLocal) {
         putValue("Project_ID", projectID);
         putValue("Team_URL", teamURL);
         putValue("Indiv_Initials", indivInitials);
@@ -1017,6 +1057,8 @@ public class wizard extends TinyCGIBase {
         putValue("Team_Directory", teamDirectory);
         if (teamDirectoryUNC != null)
             putValue("Team_Directory_UNC", teamDirectoryUNC);
+        if (isLocal)
+            putValue("EXPORT_FILE", ImmutableStringData.EMPTY_STRING);
     }
 
     protected void createIndivSchedule(String scheduleName) {
@@ -1031,7 +1073,7 @@ public class wizard extends TinyCGIBase {
         DashController.exportData(getPrefix());
     }
 
-    protected void joinTeamSchedule(String teamURL, String scheduleName) {
+    protected boolean joinTeamSchedule(String teamURL, String scheduleName) {
         String exportedScheduleName = ImportExport.exportedScheduleName
             (getDataRepository(), scheduleName);
         String exportFileName = getValue("EXPORT_FILE");
@@ -1043,12 +1085,42 @@ public class wizard extends TinyCGIBase {
         try {
             URLConnection conn = u.openConnection();
             conn.connect();
+            int status = ((HttpURLConnection) conn).getResponseCode();
             TinyWebServer.slurpContents(conn.getInputStream(), true);
+            return (status == 200);
         } catch (Exception e) {}
+        return false;
     }
 
-    protected void showIndivSuccessPage() {
-        printRedirect(IND_SUCCESS_URL);
+    protected boolean joinLocalTeamSchedule(String teamURL,
+                                            String indivScheduleName) {
+
+        // find the first slash after the "http://" prefix.
+        int slashPos = teamURL.indexOf('/', 7);
+        // find the "//" that ends the prefix.
+        int sslashPos = teamURL.indexOf("//", slashPos);
+        // extract the prefix of the team project from the URL.
+        String teamProjectPrefix =
+            URLDecoder.decode(teamURL.substring(slashPos, sslashPos));
+
+        String dataName = DataRepository.createDataName
+            (teamProjectPrefix, "Project_Schedule_Name");
+        SimpleData schedNameData =
+            getDataRepository().getSimpleValue(dataName);
+        if (schedNameData == null) return false;
+        String teamScheduleName = schedNameData.format();
+
+        // add the individual's schedule to the team schedule.
+        return addScheduleToRollup(teamScheduleName, indivScheduleName);
+    }
+
+    protected void showIndivSuccessPage(boolean joinSucceeded) {
+        String prefix = URLEncoder.encode(getPrefix());
+        if (joinSucceeded)
+            printRedirect(IND_SUCCESS_URL + "?hierarchyPath=" + prefix);
+        else
+            printRedirect(IND_SUCCESS_URL + "?schedProblem&hierarchyPath="+
+                          prefix);
     }
 
 }
