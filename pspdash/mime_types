@@ -50,7 +50,7 @@
 .jpe=image/jpeg
 .jpeg=image/jpeg
 .jpg=image/jpeg
-.lnk=text/x-server-shortcut
+.link=text/x-server-shortcut
 .mid=audio/midi
 .midi=audio/midi
 .mov=video/quicktime

@@ -63,7 +63,7 @@ public class TinyWebServer extends Thread {
     public static final String CGI_MIME_TYPE = "application/x-httpd-cgi";
     public static final String TIMESTAMP_HEADER = "Dash-Startup-Timestamp";
     public static final String PACKAGE_ENV_PREFIX = "Dash_Package_";
-    public static final String LINK_SUFFIX = ".lnk";
+    public static final String LINK_SUFFIX = ".link";
     public static final String LINK_MIME_TYPE = "text/x-server-shortcut";
     public static final String CGI_LINK_PREFIX = "class:";
 
