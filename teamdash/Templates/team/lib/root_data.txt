@@ -69,5 +69,6 @@
 [file_sep] = iff(match("|\\\\|", [Team_Directory]), "\\", "/");
 
 [Team_Data_Directory] = 
-    iff([Team_Directory] == "Enter network directory path", "",
-        [Team_Directory] & [file_sep] & "data" & [file_sep] & [Project_ID]);
+    iff([Team_Directory] && [Team_Directory] != "Enter network directory path",
+        [Team_Directory] & [file_sep] & "data" & [file_sep] & [Project_ID],
+	"");
