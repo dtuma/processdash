@@ -106,17 +106,7 @@
 <!-- new stuff for 1.4 -->
 
   <mapID target="DefiningOwnProcesses" url="Topics/AdvancedTopics/ProcessDefinition/DefiningProcesses.html"/>
-  <mapID target="ThinkProcessesThrough" url="Topics/AdvancedTopics/ProcessDefinition/ThinkProcessesThrough.html"/>
-  <mapID target="CreateProcessStepByStep" url="Topics/AdvancedTopics/ProcessDefinition/StepByStep.html"/>
-  <mapID target="ProcessDefinitionArch" url="Topics/AdvancedTopics/ProcessDefinition/ProcessArchitecture.html"/>
-  <mapID target="TemplateXmlFiles" url="Topics/AdvancedTopics/ProcessDefinition/TemplateXmlFiles.html"/>
-  <mapID target="HTMLScriptsAndForms" url="Topics/AdvancedTopics/ProcessDefinition/HTMLScriptsAndForms.html"/>
-  <mapID target="Data-CalcFormulaFiles" url="Topics/AdvancedTopics/ProcessDefinition/DataCalculationFiles.html"/>
-  <mapID target="FittingDataTogether" url="Topics/AdvancedTopics/ProcessDefinition/FittingDataTogether.html"/>
-  <mapID target="DataFileSyntax" url="Topics/AdvancedTopics/ProcessDefinition/DataFileSyntax.html"/>
-  <mapID target="DataFileFunctions" url="Topics/AdvancedTopics/ProcessDefinition/DataFileFunctions.html"/>
   <mapID target="DashboardFindsFiles" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html"/>
-  <mapID target="CustomDefectTypeStandard" url="Topics/AdvancedTopics/ProcessDefinition/CustomDefectTypeStandard.html"/>
   <mapID target="MultipleToDateData" url="Topics/AdvancedTopics/MultipleToDateData.html"/>
 
 </map>
