@@ -222,8 +222,9 @@ class HistData {
                   "<p style='margin-left:1cm'><font size=-1>"+
                   "<i>(<b>Advanced:</b> if you feel that "+
                   "one or more of the projects in the list above is an "+
-                  "&quot;outlier,&quot; you may exclude it from the PROBE "+
-                  "calculations by checking the appropriate box in the "+
+                  "&quot;<a href='outlier.htm'"+probe.LINK_ATTRS+
+                  "><u>outlier</u></a>,&quot; you may exclude it from the "+
+                  "PROBE calculations by checking the appropriate box in the "+
                   "&quot;Exclude&quot; column.  Unless you <b>really</b> "+
                   "understand what you are doing, it is best to leave all "+
                   "the boxes unchecked.)</i></font>\n");
