@@ -82,7 +82,7 @@ Postmortem/node==1.0
 
 = Estimated Time
 
-Estimated Time=0.0
+Estimated Time=?#
 
 = Actual Time
 
