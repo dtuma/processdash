@@ -88,7 +88,7 @@ class ValueFactory {
 
     static {
 
-        perlPool = new ResourcePool() {
+        perlPool = new ResourcePool("ValueFactory.perlPool") {
                 protected Object createNewResource() {
                     return new Perl5Util();
                 }

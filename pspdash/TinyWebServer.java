@@ -457,7 +457,8 @@ public class TinyWebServer extends Thread {
 
         private class CGIPool extends ResourcePool {
             Class cgiClass;
-            CGIPool(Class c) throws IllegalArgumentException {
+            CGIPool(String name, Class c) throws IllegalArgumentException {
+                super(name);
                 if (!TinyCGI.class.isAssignableFrom(c))
                     throw new IllegalArgumentException
                         (c.getName() + " does not implement pspdash.TinyCGI");
@@ -483,7 +484,8 @@ public class TinyWebServer extends Thread {
             synchronized (cgiCache) {
                 pool = (CGIPool) cgiCache.get(path);
                 if (pool == null) try {
-                    pool = new CGIPool(cgiLoader.loadFromConnection(conn));
+                    pool = new CGIPool
+                        (path, cgiLoader.loadFromConnection(conn));
                     cgiCache.put(path, pool);
                 } catch (Throwable t) {
                     return null;

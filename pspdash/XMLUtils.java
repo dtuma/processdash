@@ -55,7 +55,7 @@ public class XMLUtils {
                                fce);
         }
 
-        builderPool = new ResourcePool() {
+        builderPool = new ResourcePool("XMLUtils.builderPool") {
                 protected Object createNewResource() {
                     try {
                         return factory.newDocumentBuilder();
