@@ -482,6 +482,7 @@ public class EVTaskList extends AbstractTreeTableModel
     /** Returns true if the value in column <code>column</code> of object
      *  <code>node</code> is editable. */
     public boolean isCellEditable(Object node, int column) {
+        if (node == null) return false;
         switch (column) {
         case TASK_COLUMN:
             // The column with the tree in it should be editable; this
@@ -514,6 +515,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     /** Returns the value of the particular column. */
     public Object getValueAt(Object node, int column) {
+        if (node == null) return null;
         EVTask n = (EVTask) node;
         switch (column) {
         case TASK_COLUMN:           return n.getName();
@@ -534,6 +536,7 @@ public class EVTaskList extends AbstractTreeTableModel
     /** Set the value at a particular row/column */
     public void setValueAt(Object aValue, Object node, int column) {
         //System.out.println("setValueAt("+aValue+","+node+","+column+")");
+        if (node == null) return;
         EVTask n = (EVTask) node;
         switch (column) {
         case PLAN_TIME_COLUMN:      n.setPlanTime(aValue);   break;
@@ -543,6 +546,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     /** If the given cell has an error, return it.  Otherwise return null */
     public String getErrorStringAt(Object node, int column) {
+        if (node == null) return null;
         EVTask n = (EVTask) node;
         switch (column) {
         case TASK_COLUMN: return ((EVTask) node).getTaskError();
