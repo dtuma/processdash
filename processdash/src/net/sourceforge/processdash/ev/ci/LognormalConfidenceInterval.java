@@ -26,15 +26,14 @@
 
 package net.sourceforge.processdash.ev.ci;
 
-import java.util.*;
+import java.util.Arrays;
 
 import org.w3c.dom.Element;
 
 import pspdash.Settings;
 import pspdash.XMLUtils;
-
-import DistLib.normal;
 import DistLib.chisquare;
+import DistLib.normal;
 import DistLib.uniform;
 
 public class LognormalConfidenceInterval extends AbstractConfidenceInterval {

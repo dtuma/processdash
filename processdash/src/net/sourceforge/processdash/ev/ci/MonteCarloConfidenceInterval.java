@@ -26,10 +26,7 @@
 
 package net.sourceforge.processdash.ev.ci;
 
-import java.util.Arrays;
-
 import pspdash.DoubleList;
-
 import DistLib.uniform;
 
 

@@ -26,12 +26,7 @@
 
 package net.sourceforge.processdash.ev.ci;
 
-import java.util.*;
-
 import pspdash.Settings;
-import DistLib.normal;
-import DistLib.chisquare;
-import DistLib.uniform;
 
 public class LinearRegressionConfidenceInterval
     extends AbstractLinearConfidenceInterval

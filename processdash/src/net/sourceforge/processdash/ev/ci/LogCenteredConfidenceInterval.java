@@ -27,8 +27,6 @@
 package net.sourceforge.processdash.ev.ci;
 
 import DistLib.t;
-import DistLib.chisquare;
-import DistLib.uniform;
 
 
 public class LogCenteredConfidenceInterval
