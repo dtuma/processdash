@@ -1188,6 +1188,66 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             DefaultMutableTreeNode node = getSelectedNode();
             if (node == null) return;
 
+                // get the default index for adding
+                PropertyKey parentPKey = treeModel.getPropKey (useProps, node.getPath ());
+            Prop val = useProps.pget (parentPKey);
+            int newIndex = useProps.getNumChildren (parentPKey);
+
+                                      // See if should be adding at other index...
+
+                                      // if parent specifies allowed children
+            String status, allowedChild;
+            PropertyKey cutKey = treeModel.getPropKey (useProps, cutNode.getPath());
+            Prop cutProp = useProps.pget(cutKey);
+            String cutID = cutProp.getID();
+            if ((val != null) && ((status = val.getStatus()) != null)) {
+                int idx1 = status.indexOf (ALLOWED_CHILD);
+                int idx2 = status.indexOf (REQUIRED_PARENT);
+                if (idx1 >= 0) {
+                    if (idx2 < 0)
+                        idx2 = status.length();
+                    StringTokenizer st = new StringTokenizer
+                        (status.substring (idx1 + 1, idx2), String.valueOf (ALLOWED_CHILD));
+                    while (st.hasMoreTokens()) {
+                        allowedChild = st.nextToken();
+                                            // if parent specifies THIS child
+                        if (allowedChild.startsWith (cutID)) {
+                            idx1 = allowedChild.indexOf("(");
+                            idx2 = allowedChild.indexOf(")");
+                                              // if parent specifies index
+                            if (idx1 >= 0 && idx2 >= 0) {
+                                              // change index
+                                idx1 = Integer.valueOf (allowedChild.substring
+                                                      (idx1 + 1, idx2)).intValue();
+                                newIndex = ((idx1 < 0) ? (newIndex + idx1) : idx1);
+                            }
+                            break;              // exit while loop
+                        }
+                    }
+                }
+            }
+
+                String newChildName = useProps.pget(parentPKey).uniqueChildName(cutKey.name());
+                // Create an appropriately named node (original + made unique(if needed))
+            useProps.addChildKey (parentPKey,
+                                  useProps.pget(parentPKey).uniqueChildName(newChildName),
+                                  newIndex);
+
+                // Copy from the cutKey to the new child key
+            useProps.copyExact (useProps,
+                                cutKey,
+                                useProps.getChildKey (parentPKey, newIndex));
+
+                // Now 'delete' the cut node
+            treeModel.removeNodeFromParent(cutNode);
+
+                // And refresh the tree...
+            treeModel.useTreeModelListener (false);
+            treeModel.reload (useProps);
+            expandRoot ();
+            treeModel.useTreeModelListener (true);
+
+            treeModel.nodeStructureChanged(node);
 
             cutNode = null;
             pasteMenuItem.setEnabled(false);
@@ -1203,16 +1263,18 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
         PropertyKey cutKey = treeModel.getPropKey (useProps, cutNode.getPath());
         Prop cutProp = useProps.pget(cutKey);
         String cutID = cutProp.getID();
-        if (!templateChildren.contains(cutID)) return false;
+            /* match child with parent's allowed child list, if any */
+        if (templateChildren != null && !templateChildren.contains(cutID)) return false;
 
+            /* match parent with child's required parent list, if any */
         String cutStatus = cutProp.getStatus();
-        if (cutStatus == null) return true;
+        if (cutStatus == null) return true;		/* no required parent */
         int idx = cutStatus.indexOf(REQUIRED_PARENT);
-        if (idx == -1) return true;
+        if (idx == -1) return true;				/* no required parent */
 
         StringTokenizer st = new StringTokenizer
             (cutStatus.substring (idx + 1), String.valueOf (REQUIRED_PARENT));
-        while (st.hasMoreElements())
+        while (st.hasMoreElements())			/* matches required parent */
             if (parentID.equals(st.nextElement())) return true;
 
         return false;
