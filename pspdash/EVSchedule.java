@@ -779,4 +779,35 @@ public class EVSchedule implements TableModel {
     }
     public XYDataSource getValueChartData() { return new ValueChartData(); }
 
+    private class CombinedChartData extends ChartData {
+        public CombinedChartData() { super(); setTotPlanTime(); }
+        public int getSeriesCount() { return 3; }
+        public String getSeriesName(int seriesIndex) {
+            switch (seriesIndex) {
+            case 0: return "Plan Value";
+            case 1: return "Actual Value";
+            case 2: return "Actual Time";
+            }
+            return null;
+        }
+        public Number getYVal(int seriesIndex, int itemIndex) {
+            Period p = get(itemIndex);
+            if (seriesIndex > 0 &&
+                System.currentTimeMillis() < p.getBeginDate().getTime())
+                return null;
+
+            switch (seriesIndex) {
+            case 0: return new Double(p.cumPlanValue * totPlanTime / 60.0);
+            case 1: return new Double(p.cumEarnedValue * totPlanTime / 60.0);
+            case 2: return new Double(p.cumActualTime / 60.0);
+            }
+            return ZERO;
+        }
+        private double totPlanTime;
+        private void setTotPlanTime() { totPlanTime=getLast().cumPlanTime; }
+        public void tableChanged(TableModelEvent e) {
+            setTotPlanTime(); super.tableChanged(e); }
+    }
+    public XYDataSource getCombinedChartData() {
+        return new CombinedChartData(); }
 }
