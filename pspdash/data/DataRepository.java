@@ -455,12 +455,12 @@ public class DataRepository implements Repository {
             }
 
             public void run() {
-                while (true) {
+                while (true) try {
                     if (fireEvent())
                         yield();
                     else
                         doWait();
-                }
+                } catch (Exception e) {}
             }
 
             private synchronized void doWait() {
