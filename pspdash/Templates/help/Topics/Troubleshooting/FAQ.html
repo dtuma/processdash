@@ -20,6 +20,7 @@
  <LI><a href="FAQ.html#MoveData">How can I backup my psp data and/or move it to another computer?</A></LI>
  <LI><a href="FAQ.html#FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
  <LI><a href="FAQ.html#DCRSCR">What happened to the DCR and SCR processes?</A></LI>
+ <LI><a href="FAQ.html#Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</A></LI>
  <LI><a href="FAQ.html#Website">Where can I get the latest information about the Process Dashboard?</A></LI>
  <LI><a href="FAQ.html#BugReport">I think I've found a bug.  Whom do I contact?</A></LI>
 </UL>
@@ -194,6 +195,29 @@ process sets.  They can be downloaded from the Process Dashboard website at
 <em>http://processdash.sourceforge.net.</em>  For instructions on 
 installation of add-on process sets, see the <a 
 href="../Overview/HowToInstall.html">installation</a> help topic.</p>
+
+<P><HR><a name="Auto"></a><B>I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</B></P>
+
+<P>Yes! If you issue an HTTP request of the form:
+
+<PRE><FONT SIZE="-2">http://localhost:2468/control/startTiming.class</FONT></PRE>
+
+the dashboard timer will start.  Similarly, an HTTP request of the form:
+
+<PRE><FONT SIZE="-2">http://localhost:2468/control/stopTiming.class</FONT></PRE>
+
+will pause the timer. And
+
+<PRE><FONT SIZE="-2">http://localhost:2468/Non+Project/foo//control/setPath.class</FONT></PRE>
+
+will change the current hierarchy path to "/Non Project/foo". If you want
+to change the current hierarchy path <b>and</b> start the timer, use
+
+<PRE><FONT SIZE="-2">...//control/setPath.class<B>?start</B></FONT></PRE>
+
+<B>Note</B>: these commands will have no effect unless the HTTP
+request originates from the same machine where the dashboard is
+running.</P>
 
 <P><HR><a name="Website"></a><b>Where can I get the latest information about the Process Dashboard?</b></p>
 <P>The latest developments in the development of the Process Dashboard, 
