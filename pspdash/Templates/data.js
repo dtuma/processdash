@@ -62,6 +62,8 @@ var SILENT;
 var ieVersion = 0;
 var nsVersion = 0;
 
+var AppletName = "DataApplet16b";
+
 
 
 /***********************************************************************
@@ -318,7 +320,7 @@ function IEsetup() {
 		            ' archive="/help/Topics/Troubleshooting/DataApplet/SunPlugin.jar" ' +
 		            ' code=pspdash.data.IEDataApplet'+
 		            ' width=1 height=1>');
-    document.writeln('<param name="cabbase" value="/DataApplet152.cab">');
+    document.writeln('<param name="cabbase" value="/'+AppletName+'.cab">');
     document.writeln(IEparameterString);
     if (requiredTag != "")
       document.writeln('<param name=requiredTag value="' + requiredTag +'">');
@@ -462,7 +464,7 @@ function NSSetup() {
   if (pageContainsElements == true) {
     if (debug) document.writeln("<p>creating applet.");
     document.writeln('<applet id=NSDataAppl name=NSDataAppl'+
-		            ' archive="/DataApplet152.jar" '+
+		            ' archive="/'+AppletName+'.jar" '+
 		            ' code=pspdash.data.NSDataApplet'+
 		            ' width=1 height=1 MAYSCRIPT>');
     if (requiredTag != "")
@@ -498,7 +500,7 @@ function ForcePlugInSetup() {
 	     'width="1" height="1" id="NSDataAppl" '+
   	     'codebase="http://java.sun.com/products/plugin/1.3.0_02/jinstall-130_02-win32.cab#Version=1,3,0,2">'+
 	     '<param name=CODE value="pspdash.data.NSDataApplet">'+
-	     '<param name=ARCHIVE value="/DataApplet152.jar">'+
+	     '<param name=ARCHIVE value="/'+AppletName+'.jar">'+
 	     '<param name=NAME value="NSDataAppl">'+
 	     '<param name=type value="application/x-java-applet;version=1.3">'+
   	     '<param name=MAYSCRIPT value=true>');
