@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +42,7 @@ public class HierarchySynchronizer {
     private String readOnlyNodeID;
     private String taskNodeID;
     private boolean whatIfMode = true;
+    private boolean deleteMissingNodes = false;
 
 
     /** Create a hierarchy synchronizer for a team project */
@@ -60,11 +62,13 @@ public class HierarchySynchronizer {
             this.initials = this.initialsPattern = SYNC_TEAM;
             this.readOnlyNodeID = processID + "/TeamNode";
             this.taskNodeID = null;
+            this.deleteMissingNodes = true;
         } else { // individual
             this.initials = initials;
-            this.initialsPattern = "," + initials + "=";
+            this.initialsPattern = "," + initials.toLowerCase() + "=";
             this.readOnlyNodeID = processID + "/IndivReadOnlyNode";
             this.taskNodeID = processID + "/IndivEmptyNode";
+            this.deleteMissingNodes = false;
         }
 
         openWBS(wbsFile);
@@ -155,7 +159,7 @@ public class HierarchySynchronizer {
         // if the task so far is prunable, check to see if the current
         // individual is assigned to it.
         String time = e.getAttribute(TIME_ATTR);
-        if (time != null && time.indexOf(initialsPattern) != -1)
+        if (time != null && time.toLowerCase().indexOf(initialsPattern) != -1)
             prunable = false;
 
         return (prunable ? PRUNE : DONT_PRUNE);
@@ -166,12 +170,6 @@ public class HierarchySynchronizer {
     }
 
     public void sync() throws HierarchyAlterationException {
-        /*
-        if (DashController.isHierarchyEditorOpen())
-            throw new IOException("You must close the hierarchy editor "+
-                                  "before you can synchronize this project.");
-                        */
-
         changes = new ArrayList();
         syncActions = buildSyncActions();
         initPhaseIDs();
@@ -197,18 +195,20 @@ public class HierarchySynchronizer {
 
     private Map syncActions;
 
-    private void sync(HierarchyAlterer alterer, String pathPrefix, Element node)
+    private String sync(HierarchyAlterer alterer, String pathPrefix, Element node)
         throws HierarchyAlterationException
     {
         String type = node.getTagName();
         SyncNode s = (SyncNode) syncActions.get(type);
-        if (s != null)
+        if (s != null) {
             s.syncNode(alterer, pathPrefix, node);
+            return s.getName(node);
+        } else
+            return null;
     }
 
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
-    //private static final String TYPE_ATTR = "type";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";
     private static final String TIME_ATTR = "time";
@@ -240,13 +240,21 @@ public class HierarchySynchronizer {
             throws HierarchyAlterationException
         {
             pathPrefix = getPath(pathPrefix, node);
+            List hierarchyChildren = getHierarchyChildNames(pathPrefix);
+            List childrenToDelete = Collections.EMPTY_LIST;
+            if (deleteMissingNodes)
+                childrenToDelete = new ArrayList(hierarchyChildren);
+
             NodeList childNodes = node.getChildNodes();
             int len = childNodes.getLength();
             for (int i = 0;   i < len;   i++) {
                 Node child = childNodes.item(i);
                 if (child instanceof Element)
-                    sync(alterer, pathPrefix, (Element) child);
+                    childrenToDelete.remove
+                        (sync(alterer, pathPrefix, (Element) child));
             }
+            if (deleteMissingNodes && !childrenToDelete.isEmpty())
+                deleteHierarchyChildren(alterer, pathPrefix, childrenToDelete);
         }
 
         public String getName(Element node) {
@@ -259,6 +267,34 @@ public class HierarchySynchronizer {
                 return pathPrefix;
             else
                 return pathPrefix + "/" + nodeName;
+        }
+
+
+        private List getHierarchyChildNames(String pathPrefix) {
+            ArrayList result = new ArrayList();
+            PropertyKey parent = hierarchy.findExistingKey(pathPrefix);
+            if (parent == null) return Collections.EMPTY_LIST;
+
+            int numChildren = hierarchy.getNumChildren(parent);
+            for (int i = 0;   i < numChildren;  i++)
+                result.add(hierarchy.getChildName(parent, i));
+
+            return result;
+        }
+
+
+        private void deleteHierarchyChildren(HierarchyAlterer alterer,
+                                             String pathPrefix,
+                                             List childrenToDelete)
+            throws HierarchyAlterationException
+        {
+            Iterator i = childrenToDelete.iterator();
+            while (i.hasNext()) {
+                String nodeToDelete = pathPrefix + "/" + i.next();
+                if (!whatIfMode)
+                    alterer.deleteNode(nodeToDelete);
+                changes.add("Deleted '"+nodeToDelete+"'");
+            }
         }
     }
 
@@ -303,6 +339,7 @@ public class HierarchySynchronizer {
              try {
                  putData(path, WBS_ID_DATA_NAME, new DoubleData(nodeID));
             } catch (Exception e) {}
+            if (!isTeam()) maybeSaveDocSize(path, node);
         }
 
         public String getName(Element node) {
@@ -324,7 +361,7 @@ public class HierarchySynchronizer {
         protected double parseTime(Element node) {
             String timeAttr = node.getAttribute(TIME_ATTR);
             if (timeAttr == null) return 0;
-            int beg = timeAttr.indexOf(initialsPattern);
+            int beg = timeAttr.toLowerCase().indexOf(initialsPattern);
             if (beg == -1) return 0;
             beg += initialsPattern.length();
             int end = timeAttr.indexOf(',', beg);
@@ -334,6 +371,48 @@ public class HierarchySynchronizer {
             } catch (Exception e) {}
 
             return 0;
+        }
+
+        protected void putNumber(String path, String name, String value) {
+            try {
+                if (value == null || value.length() == 0)
+                    value = "0";
+                putData(path, name, new DoubleData(value));
+            } catch (Exception e) {}
+        }
+
+        private void maybeSaveDocSize(String path, Element node) {
+            // see if this node has doc size data.
+            String units = node.getAttribute("sizeUnits");
+            if (units == null || "LOC".equals(units))
+                return;
+            int pos = SIZE_UNITS_LIST.indexOf(units);
+            if (pos == -1) return;
+            String docSizeDataName = DOC_SIZE_DATA_NAMES[pos];
+
+            // check to see if any doc size data exists for this node
+            SimpleData d = getData(path, docSizeDataName);
+            if (d != null && d.test()) return;
+
+            // find out whether this individual is a contributor to the
+            // construction of the given document
+            constrPhaseTotal = constrPhasePersonal = 0;
+            sumUpConstructionPhases(node);
+            if (constrPhasePersonal == 0) return;
+
+            // calculate the percentage of the document construction time
+            // contributed by this individual
+            double size;
+            try {
+                String sizeStr = node.getAttribute("sizeNC");
+                size = Double.parseDouble(sizeStr);
+                size = size * constrPhasePersonal / constrPhaseTotal;
+            } catch (NumberFormatException nfe) {
+                return;
+            }
+
+            // save the document size data to the project.
+            putData(path, docSizeDataName, new DoubleData(size));
         }
     }
 
@@ -376,6 +455,8 @@ public class HierarchySynchronizer {
                 return false;
 
             String path = getPath(pathPrefix, node);
+            maybeSaveInspSizeData(path, node);
+
             String phaseName = node.getAttribute(PHASE_NAME_ATTR);
             String templateID = (String) phaseIDs.get(phaseName);
             if (templateID == null) {
@@ -402,7 +483,44 @@ public class HierarchySynchronizer {
 
             return true;
         }
+
+        private void maybeSaveInspSizeData(String path, Element node) {
+            // see if this node has inspection size data.
+            String inspUnits = node.getAttribute("inspUnits");
+            if (inspUnits == null || inspUnits.length() == 0) return;
+            int pos = SIZE_UNITS_LIST.indexOf(inspUnits);
+            if (pos == -1) return;
+            String inspDataName = INSP_DATA_NAMES[pos];
+
+            // check to see if any inspection size data exists for this node.
+            SimpleData d = getData(path, inspDataName);
+            if (d != null && d.test()) return;
+
+            // save the inspection size data to the project.
+            putNumber(path, inspDataName, node.getAttribute("inspSize"));
+        }
     }
+
+
+    private static final String[] SIZE_UNITS = new String[] {
+        "Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines", "LOC" };
+    private static final List SIZE_UNITS_LIST =
+        Arrays.asList(SIZE_UNITS);
+    private static final String[] INSP_DATA_NAMES = new String[] {
+        "Estimated Inspected Text Pages",
+        "Estimated Inspected Req Pages",
+        "Estimated Inspected HLD Pages",
+        "Estimated Inspected DLD Lines",
+        "Estimated Inspected New & Changed LOC",
+    };
+    private static final String[] DOC_SIZE_DATA_NAMES = new String[] {
+        "Estimated Text Pages",
+        "Estimated Req Pages",
+        "Estimated HLD Pages",
+        "Estimated DLD Lines"
+    };
+
+
 
     private class SyncPSPTaskNode extends SyncSimpleNode {
         public SyncPSPTaskNode() {
@@ -421,35 +539,29 @@ public class HierarchySynchronizer {
                 return;
 
             // check to see if any size data exists for this PSP2.1 project.
-            for (int i = 0;   i < sizeDataNames.length;   i++) {
-                SimpleData d = getData(path, sizeDataNames[i]);
+            for (int i = 0;   i < locSizeDataNames.length;   i++) {
+                SimpleData d = getData(path, locSizeDataNames[i]);
                 if (d != null && d.test()) return;
             }
 
             // save the size data to the project.
             for (int i = 0;   i < sizeAttrNames.length;   i++)
-                putNumber(path, sizeDataNames[i],
+                putNumber(path, locSizeDataNames[i],
                           node.getAttribute(sizeAttrNames[i]));
-        }
-
-        private void putNumber(String path, String name, String value) {
-            try {
-                if (value == null || value.length() == 0)
-                    value = "0";
-                putData(path, name, new DoubleData(value));
-            } catch (Exception e) {}
         }
     }
 
     private static final String[] sizeAttrNames = new String[] {
         "sizeBase", "sizeDel", "sizeMod", "sizeAdd", "sizeReu", "sizeNC" };
-    private static final String[] sizeDataNames = new String[] {
+    private static final String[] locSizeDataNames = new String[] {
         "Estimated Base LOC",
         "Estimated Deleted LOC",
         "Estimated Modified LOC",
         "New Objects/0/LOC",
         "Reused Objects/0/LOC",
         "Estimated New & Changed LOC" };
+
+
 
 
     private boolean isPhaseName(String name) {
@@ -464,17 +576,22 @@ public class HierarchySynchronizer {
         return (actualID == null ? "" : actualID);
     }
 
+
     private static final String[] docSizeUnits = {
         "Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
-    private static final String[] constructionPhaseTypes = {
-        "STP", "ITP", "TD", "MGMT", "STRAT", "PLAN", "REQ", "HLD", "DLD",
-        "DLDR", "CODE", "CR", "COMP", "DOC" };
+
+
+    private static final List constructionPhaseTypes = Arrays.asList
+        (new String[] { "STP", "ITP", "TD", "MGMT", "STRAT", "PLAN", "REQ",
+                        "HLD", "DLD", "DOC" } );
 
     private double constrPhaseTotal, constrPhasePersonal;
     private void sumUpConstructionPhases(Element node) {
-        String attr = node.getAttribute(TIME_ATTR);
-        if (attr != null && attr.length() != 0)
-            addTimeData(attr);
+        String phaseType = node.getAttribute(PHASE_TYPE_ATTR);
+        String timeAttr = node.getAttribute(TIME_ATTR);
+        if (constructionPhaseTypes.contains(phaseType) &&
+            timeAttr != null && timeAttr.length() != 0)
+            addTimeData(timeAttr);
         NodeList children = node.getChildNodes();
         int len = children.getLength();
         Node child;
