@@ -610,11 +610,11 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         match1 = p1.startsWith(path);
         match2 = p2.startsWith(path);
         if (!match1 && !match2) return  0;
-        if ( match1 && !match2) return -1;
-        if (!match1 &&  match2) return  1;
+        if ( match1 && !match2) return  1;
+        if (!match1 &&  match2) return -1;
 
         int result;
-        for (int i = 0; i < getNumChildren (key); i++)
+        for (int i = getNumChildren (key); i-- > 0; )
             if ((result = comparePaths (p1, p2, getChildKey (key, i))) != 0)
                 return result;
         return 0;
