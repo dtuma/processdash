@@ -61,7 +61,10 @@ public class TaskScheduleDialog
 
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
-        deletePeriodButton, chartButton, closeButton, saveButton;
+        deletePeriodButton, chartButton, reportButton, closeButton,
+        saveButton;
+
+    protected JDialog chartDialog = null;
 
 
     public TaskScheduleDialog(PSPDashboard dash, String taskListName) {
@@ -235,6 +238,12 @@ public class TaskScheduleDialog
                 public void actionPerformed(ActionEvent e) {
                     showChart(); }});
         result.add(chartButton);
+
+        reportButton = new JButton("Report");
+        reportButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    showHTML(); }});
+        result.add(reportButton);
 
         closeButton = new JButton("Close");
         closeButton.addActionListener(new ActionListener() {
@@ -678,8 +687,15 @@ public class TaskScheduleDialog
             ((DefaultCellEditor)e).addCellEditorListener(this);
             }*/
 
-    public static final String CHART_URL = "//reports/ev.class";
     public void showChart() {
+        if (chartDialog != null)
+            chartDialog.show();
+        else
+            chartDialog = new TaskScheduleChart(this);
+    }
+
+    public static final String CHART_URL = "//reports/ev.class";
+    public void showHTML() {
         if (saveOrCancel(true)) {
             String uri = "/" + URLEncoder.encode(taskListName) + CHART_URL;
             Browser.launch(uri);
