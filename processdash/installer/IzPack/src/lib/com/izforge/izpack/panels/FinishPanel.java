@@ -121,7 +121,7 @@ public class FinishPanel extends IzPanel implements ActionListener
                 parent.icons.getImageIcon("information"), JLabel.TRAILING));
             centerPanel.add(new JLabel(path, parent.icons.getImageIcon("empty"), JLabel.TRAILING));
 
-            // We add the autoButton
+            /* We add the autoButton
             centerPanel.add(Box.createVerticalStrut(20));
             autoButton = ButtonFactory.createButton(parent.langpack.getString("FinishPanel.auto"),
                 parent.icons.getImageIcon("edit"),
@@ -129,6 +129,7 @@ public class FinishPanel extends IzPanel implements ActionListener
             autoButton.setToolTipText(parent.langpack.getString("FinishPanel.auto.tip"));
             autoButton.addActionListener(this);
             centerPanel.add(autoButton);
+            */
         }
         else
             centerPanel.add(new JLabel(parent.langpack.getString("FinishPanel.fail"),
@@ -192,4 +193,3 @@ public class FinishPanel extends IzPanel implements ActionListener
         return destination.replace('/', File.separatorChar);
     }
 }
-
