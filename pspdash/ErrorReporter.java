@@ -1,5 +1,5 @@
 // PSP Dashboard - Data Automation Tool for PSP-like processes
-// Copyright (C) 1999  United States Air Force
+// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -102,49 +102,5 @@ public class ErrorReporter {
                                       JOptionPane.ERROR_MESSAGE);
     }
 
-
-    /** Singleton object for reporting errors in template definition
-     *  files.
-     */
-    public static ErrorReporter templates = new ErrorReporter
-        (/* title */
-         "Process Template Error",
-
-         /* pre message */
-         new String[] {
-             "When reading the files which define process templates,",
-             "the dashboard encountered the following error(s):" },
-
-         /* post message */
-         new String[] {
-             "Errors in process templates are generally critical.",
-             "It is recommended that you shut down the dashboard",
-             "immediately and correct the error(s) listed above",
-             "before using the dashboard further." });
-
-
-    /** Singleton object for reporting projects whose datafiles seem
-     *  to be missing.
-     */
-    public static ErrorReporter brokenData = new ErrorReporter
-        (/* title */
-         "Missing data files",
-
-         /* pre message */
-         new String[] {
-             "Missing files are preventing the dashboard from opening the",
-             "data for the following projects/tasks:" },
-
-         /* post message */
-         new String[] {
-             "The most likely cause of this problem is that you created",
-             "the above projects/tasks based on an add-on process set,",
-             "then deleted the file containing that add-on process set.",
-             "If you use add-on process sets located in a network directory,",
-             "this problem could also occur when the network is unavailable.",
-             "The recommended course of action is to shut down the",
-             "dashboard, reinstall the add-on process set, then restart the",
-             "dashboard.  Until you do this, the data for these",
-             "projects/tasks will be inaccessible and/or incomplete."});
 
 }
