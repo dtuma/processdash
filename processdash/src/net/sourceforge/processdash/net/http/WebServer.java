@@ -1194,27 +1194,54 @@ public class WebServer extends Thread {
         url = canonicalizePath(url);
         if (url == null) return null;
 
+        List variations = getVariations(url);
         URL u;
         URLConnection result;
-        for (int i = 0;  i < roots.length;  i++) try {
-            u = new URL(roots[i], url);
+        for (Iterator v = variations.iterator(); v.hasNext();) {
+            url = (String) v.next();
+            for (int i = 0;  i < roots.length;  i++) try {
+                u = new URL(roots[i], url);
 
-            // don't accept resolved URLs that point to a directory
-            if (isDirectory(u)) continue;
+                // don't accept resolved URLs that point to a directory
+                if (isDirectory(u)) continue;
 
-            // System.out.println("trying url: " + u);
-            result = u.openConnection();
-            // System.out.println("connection opened.");
-            result.connect();
-            // System.out.println("connection connected.");
-            // System.out.println("Using URL: " + u);
-            return result;
-        } catch (IOException ioe) { }
-
-        if (!url.endsWith(LINK_SUFFIX))
-            return resolveURL(url + LINK_SUFFIX);
+                // System.out.println("trying url: " + u);
+                result = u.openConnection();
+                // System.out.println("connection opened.");
+                result.connect();
+                // System.out.println("connection connected.");
+                // System.out.println("Using URL: " + u);
+                return result;
+            } catch (IOException ioe) { }
+        }
 
         return null;
+    }
+
+    private List getVariations(String url) {
+        List result = new LinkedList();
+        String localeVariant = getLocaleVariant(url);
+        if (localeVariant != null) {
+            result.add(localeVariant);
+            result.add(localeVariant + LINK_SUFFIX);
+        }
+        result.add(url);
+        result.add(url + LINK_SUFFIX);
+        return result;
+    }
+
+    private String getLocaleVariant(String url) {
+        if (!Translator.isTranslating())
+            return null;
+
+        String lang = Locale.getDefault().getLanguage();
+        int lastSlashPos = url.lastIndexOf('/');
+        int dotPos = url.indexOf('.', lastSlashPos+1);
+        if (dotPos == -1)
+            return url + "_" + lang;
+        else
+            return url.substring(0, dotPos) + "_" + lang +
+                url.substring(dotPos);
     }
 
     /** Calculate the user credential that would work for an http
