@@ -34,7 +34,7 @@ import javax.swing.*;
 class BetaVersionSetup {
 
     private static final boolean enable = false;
-    public static final String VERSION = "1.4";
+    public static final String VERSION = "1.4.1";
 
     /** Build a submenu containing beta-related options, and add it to
      * <code>menu</code> */
