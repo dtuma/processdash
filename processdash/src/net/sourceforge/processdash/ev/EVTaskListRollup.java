@@ -65,7 +65,7 @@ public class EVTaskListRollup extends EVTaskList {
     }
 
     /** For unit testing purposes only! */
-    EVTaskListRollup(String taskListName, List taskLists) {
+    protected EVTaskListRollup(String taskListName, List taskLists) {
         super(taskListName, taskListName, false);
         evTaskLists = new Vector(taskLists);
         Iterator i = taskLists.iterator();

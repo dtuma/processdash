@@ -50,6 +50,7 @@ import java.util.List;
 import org.jfree.chart.event.PlotChangeEvent;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotRenderingInfo;
+import org.jfree.chart.plot.PlotState;
 import org.jfree.data.PieDataset;
 
 /**
@@ -436,7 +437,7 @@ public class RadarPlot extends Plot {
      * @param g2 The graphics device.
      * @param plotArea The area within which the plot should be drawn.
      */
-    public void draw(Graphics2D g2, Rectangle2D plotArea,
+    public void draw(Graphics2D g2, Rectangle2D plotArea, PlotState state,
                      PlotRenderingInfo info) {
         // adjust for insets...
         Insets insets = getInsets();

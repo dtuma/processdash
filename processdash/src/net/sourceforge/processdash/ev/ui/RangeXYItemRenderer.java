@@ -43,6 +43,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.StandardXYItemRenderer;
+import org.jfree.chart.renderer.XYItemRendererState;
 import org.jfree.data.RangeInfo;
 import org.jfree.data.XYDataset;
 import org.jfree.ui.RectangleEdge;
@@ -61,6 +62,7 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
     /** Draws the visual representation of a single data item.
      */
     public void drawItem(Graphics2D g2,
+                         XYItemRendererState state,
                          Rectangle2D dataArea,
                          PlotRenderingInfo info,
                          XYPlot plot,
