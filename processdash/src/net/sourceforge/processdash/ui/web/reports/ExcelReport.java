@@ -30,14 +30,17 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import pspdash.Settings;
+import pspdash.TinyCGIBase;
+import pspdash.TinyWebServer;
+
 import net.sourceforge.processdash.util.StringUtils;
 
 
-
-public class ExcelReport extends pspdash.TinyCGIBase {
+public class ExcelReport extends TinyCGIBase {
 
     private static String exportMethod =
-        pspdash.Settings.getVal("excel.exportMethod");
+        Settings.getVal("excel.exportMethod");
 
     protected void writeHeader() { }
 
@@ -125,7 +128,7 @@ public class ExcelReport extends pspdash.TinyCGIBase {
         return uri;
     }
     private String getURL() {
-        String host = pspdash.TinyWebServer.getHostName();
+        String host = TinyWebServer.getHostName();
         String port = (String) env.get("SERVER_PORT");
         return "http://" + host + ":" + port + getURI();
     }
