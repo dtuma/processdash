@@ -105,52 +105,58 @@ public class TeamProcess {
     private static final String HLD_DOC = "High Level Design Document";
     private static final String DLD_DOC = "Detailed Design Document";
 
+    private static final boolean INCLUDE_PURPLE = false;
+
     /** Calculate the appropriate for displaying a particular phase. */
     private Color getPhaseColor(int phaseNum, int numPhases) {
         double a, r, g, b;
 
         a = norm(phaseNum, 0, numPhases);
 
-        /*
-        if (a > 0.8) {
-            r = 128 * norm(a, 0.8, 1.0);
-            g = 63 * norm(a, 1.0, 0.8);
-            b = 255;
-        } else if (a > 0.6) { // blend from cyan to purple.
-            r = 0;
-            g = 255 - 192 * norm(a, 0.6, 0.8);
-            b = 255;
-        } else if (a > 0.40) { // blend from green to cyan.
-            r = 0;
-            g = 255;
-            b = 255 * norm(a, 0.4, 0.6);
-        } else if (a > 0.2) { // blend from yellow to green
-            r = 255 * norm(a, 0.4, 0.2);
-            g = 255;
-            b = 0;
-        } else { // blend from orange to yellow.
-            r = 255;
-            g = 255 - 128 * norm(a, 0.2, 0.0);
-            b = 0;
-        }
+        if (INCLUDE_PURPLE) {
 
-        */
-        if (a > 0.75) { // blend from cyan to purple.
-            r = 0;
-            g = 255 - 192 * norm(a, 0.75, 1.0);
-            b = 255;
-        } else if (a > 0.50) { // blend from green to cyan.
-            r = 0;
-            g = 255;
-            b = 255 * norm(a, 0.5, 0.75);
-        } else if (a > 0.25) { // blend from yellow to green
-            r = 255 * norm(a, 0.5, 0.25);
-            g = 255;
-            b = 0;
-        } else { // blend from orange to yellow.
-            r = 255;
-            g = 255 - 128 * norm(a, 0.25, 0.0);
-            b = 0;
+            if (a > 0.8) {        // blend from dark blue to purple.
+                r = 128 * norm(a, 0.8, 1.0);
+                g = 63 * norm(a, 1.0, 0.8);
+                b = 255;
+            } else if (a > 0.6) { // blend from cyan to dark blue.
+                r = 0;
+                g = 255 - 192 * norm(a, 0.6, 0.8);
+                b = 255;
+            } else if (a > 0.40) { // blend from green to cyan.
+                r = 0;
+                g = 255;
+                b = 255 * norm(a, 0.4, 0.6);
+            } else if (a > 0.2) { // blend from yellow to green
+                r = 255 * norm(a, 0.4, 0.2);
+                g = 255;
+                b = 0;
+            } else { // blend from orange to yellow.
+                r = 255;
+                g = 255 - 128 * norm(a, 0.2, 0.0);
+                b = 0;
+            }
+
+        } else {
+
+            if (a > 0.75) { // blend from cyan to dark blue.
+                r = 0;
+                g = 255 - 192 * norm(a, 0.75, 1.0);
+                b = 255;
+            } else if (a > 0.50) { // blend from green to cyan.
+                r = 0;
+                g = 255;
+                b = 255 * norm(a, 0.5, 0.75);
+            } else if (a > 0.25) { // blend from yellow to green
+                r = 255 * norm(a, 0.5, 0.25);
+                g = 255;
+                b = 0;
+            } else { // blend from orange to yellow.
+                r = 255;
+                g = 255 - 128 * norm(a, 0.25, 0.0);
+                b = 0;
+            }
+
         }
         return new Color((int) r, (int) g, (int) b);
     }
@@ -162,12 +168,7 @@ public class TeamProcess {
     }
 
     private void buildMenu() {
-
-        JMenu taskSubmenu = new JMenu("Tasks ");
-        taskSubmenu.add(new JMenuItem("PSP Task"));
-        Iterator i = phases.iterator();
-        while (i.hasNext())
-            taskSubmenu.add(new JMenuItem(i.next() + " Task"));
+        JMenu taskSubmenu = new JMenu("Tasks");
 
         nodeTypeMenu = new JMenu();
         nodeTypeMenu.add(taskSubmenu);
@@ -175,6 +176,16 @@ public class TeamProcess {
         for (int j = 0; j < iconMenuItems.length; j++)
             nodeTypeMenu.add(new JMenuItem(iconMenuItems[j]));
 
+        taskSubmenu.add(new JMenuItem("PSP Task"));
+        Iterator i = phases.iterator();
+        while (i.hasNext()) {
+            if (taskSubmenu.getItemCount() >= 15) {
+                JMenu moreTaskMenu = new JMenu("More...");
+                taskSubmenu.add(moreTaskMenu, 0);
+                taskSubmenu = moreTaskMenu;
+            }
+            taskSubmenu.add(new JMenuItem(i.next() + " Task"));
+        }
     }
 
     private static final String[] iconMenuItems =

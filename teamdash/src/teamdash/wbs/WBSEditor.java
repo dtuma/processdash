@@ -31,7 +31,8 @@ public class WBSEditor implements WindowListener {
         WBSModel model = teamProject.getWBS();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList());
-        WBSTabPanel table = new WBSTabPanel(model, data, teamProject.getTeamProcess());
+        WBSTabPanel table =
+            new WBSTabPanel(model, data, teamProject.getTeamProcess());
 
         table.addTab("Size",
                      new String[] { "Size", "Size-Units", "N&C-LOC", "N&C-Text Pages",
