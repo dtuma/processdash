@@ -116,6 +116,15 @@ excel.exportMethod=The method to use for exporting data into Excel. If this \
 	underneath tables.  If left unset, the export method will be icy \
 	if your browser is Internet Explorer, and mime otherwise.
 
+export.data=A set of instructions for automatic export of data. This property \
+	should be a series of export instructions, separated by the vertical \
+	bar character '|'.  Each export instruction is of the form \
+	"filename=>path-list".  The filename is the destination for data \
+	export.  The path-list is a semicolon ";" separated list of \
+	hierarchy prefixes that should be exported; data elements whose \
+	names begin with one of these prefixes will be exported to the \
+	named file.
+
 hiddenData=Data names to be suppressed from user-visible data lists (by \
 	default).  This property should be a series of regular expressions \
 	matching data names, separated by the vertical bar character '|'.
