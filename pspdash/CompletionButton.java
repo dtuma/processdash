@@ -50,6 +50,9 @@ class CompletionButton extends JCheckBox implements ActionListener {
 
     public void setPath(String p) {
         dataName = parent.data.createDataName(p, "Completed");
+        update();
+    }
+    public void update() {
         DateData d = (DateData) parent.data.getValue(dataName);
         if (d == null) {
             setSelected(false);
@@ -62,9 +65,12 @@ class CompletionButton extends JCheckBox implements ActionListener {
 
 
     public void actionPerformed(ActionEvent e) {
-        if (isSelected())
-            parent.hierarchy.selectNext();
-        else {
+        if (isSelected()) {
+            if (! parent.hierarchy.selectNext()) {
+                parent.pause_button.pause(); // stop the timer if it is running.
+                update();
+            }
+        } else {
             parent.data.putValue(dataName, null);
             setToolTipText("Click to mark this phase completed");
         }
