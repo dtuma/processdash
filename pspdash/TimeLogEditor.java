@@ -100,6 +100,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
         frame = new JFrame("TimeLogEditor");
         frame.setTitle("TimeLogEditor");
+        frame.setIconImage(java.awt.Toolkit.getDefaultToolkit().createImage
+                           (getClass().getResource("icon32.gif")));
         frame.getContentPane().add("Center", panel);
         frame.setBackground(Color.lightGray);
 
@@ -115,7 +117,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         tree.setEditable(false);
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
-        tree.setRowHeight(-1);	// Make tree ask for the height of each row.
+        tree.setRowHeight(-1);      // Make tree ask for the height of each row.
 
         /* Put the Tree in a scroller. */
         JScrollPane sp = new JScrollPane
@@ -239,7 +241,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     }
 
     public long setTimes (Object node, Hashtable times) {
-        long t = 0;			// time for this node
+        long t = 0;                 // time for this node
 
                                     // recursively compute total time for each
                                     // child and add total time for this node.
@@ -271,7 +273,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                    DateFormatter.parseDate (fromDate.getText()));
         Date td = ((toDate == null) ? null :
                    DateFormatter.parseDate (toDate.getText()));
-        if (td != null)		// need to add a day so search is inclusive
+        if (td != null)             // need to add a day so search is inclusive
             td = new Date (td.getTime() + DAY_IN_MILLIS);
 
         setTimes (treeModel.getRoot(), tl.getTimes(fd, td));
@@ -284,7 +286,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         PropertyKey key = null;
         Date fd = DateFormatter.parseDate (fromDate.getText());
         Date td = DateFormatter.parseDate (toDate.getText());
-        if (td != null)		// need to add a day so search is inclusive
+        if (td != null)             // need to add a day so search is inclusive
             td = new Date (td.getTime() + DAY_IN_MILLIS);
         DefaultMutableTreeNode selected = getSelectedNode();
         if (selected != null) {
@@ -332,7 +334,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         } catch (Exception e) { return false; }
         validateCell = "" + row + "," + col;
         switch (col) {
-        case 0:			//Logged To (key) (must exist in hierarchy)
+        case 0:                     //Logged To (key) (must exist in hierarchy)
             PropertyKey key = useProps.findExistingKey (newValue);
             if (key == null) {
                 rv = false;
@@ -344,7 +346,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                 tle.key = key;
             }
             break;
-        case 1:			//createTime (must be valid date)
+        case 1:                     //createTime (must be valid date)
             Date d = DateFormatter.parseDateTime (newValue);
             if (d == null) {
                 rv = false;
@@ -353,7 +355,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             } else
                 tle.createTime = d;
             break;
-        case 2:			//minutesElapsed (must be number >= 0)
+        case 2:                     //minutesElapsed (must be number >= 0)
             try {
                 long lv = parseTime (newValue);//Long.valueOf (newValue).longValue();
                 long deltaMinutes = tle.minutesElapsed;
@@ -367,7 +369,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                 table.table.setValueAt (formatTime (tle.minutesElapsed), row, col);
             } catch (Exception e) { rv = false; }
             break;
-        case 3:			//minutesInterrupt (must be number >= 0)
+        case 3:                     //minutesInterrupt (must be number >= 0)
             try {
                 long lv = parseTime (newValue);//Long.valueOf (newValue).longValue();
                 if (lv >= 0)
@@ -450,16 +452,16 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             PropertyKey key = treeModel.getPropKey(useProps, selected.getPath());
             tle = new TimeLogEntry (key, new Date(), 0, 0);
 
-        } else		// else try to base new row on last row of table
+        } else              // else try to base new row on last row of table
             rowBasedOn = currentLog.size() - 1;
 
 
         Object aRow[];
         if (tle == null) {
-            if (rowBasedOn == -1) {	// create 'blank'
+            if (rowBasedOn == -1) {   // create 'blank'
                 tle = new TimeLogEntry (new PropertyKey (PropertyKey.ROOT),
                                         new Date(), 0, 0);
-            } else {		// base it on rowBasedOn
+            } else {          // base it on rowBasedOn
                 TimeLogEntry tle2 = (TimeLogEntry)currentLog.elementAt (rowBasedOn);
                 tle = new TimeLogEntry (new PropertyKey (tle2.key),
                                         new Date (tle2.createTime.getTime()),
@@ -511,7 +513,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
                     tle.minutesInterrupt += tle2.minutesInterrupt;
                     System.err.println("merging:"+tle+"+"+tle2);
                     tl.remove (tle2);
-                    try {			// make sure that we only merge once
+                    try {                 // make sure that we only merge once
                         currentLog.removeElementAt (j);
                     } catch (Exception e) {}
                 }
@@ -584,7 +586,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     }
 
     public void reload() {
-        try {			// re-read time log
+        try {                       // re-read time log
             tl.read (dashboard.getTimeLog());
         } catch (IOException ioe) {}
         applyFilter(true);
@@ -621,7 +623,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
     public void valueChanged (TreeSelectionEvent e) {
         TreePath tp = e.getNewLeadSelectionPath();
 
-        if (tp == null) {		// deselection
+        if (tp == null) {           // deselection
             tree.clearSelection();
             applyFilter (false);
             return;
@@ -698,7 +700,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             if (table.table.isEditing())
                 table.table.editingStopped
                     (new ChangeEvent("Saving Data: Stop edit"));
-            try {			// save the time log
+            try {                     // save the time log
                 tl.save (dashboard.getTimeLog());
             } catch (IOException ioe) {}
             applyPostedChanges ();
