@@ -81,30 +81,8 @@ public class DefectDialog extends JDialog implements ActionListener {
 
                                 // second row
         g.gridy = 1;   g.insets = bottom_margin;   g.anchor = g.NORTHWEST;
-        defect_type = new JComboBox();
-        ToolTipCellRenderer renderer = new ToolTipCellRenderer();
-        defect_type.setRenderer(renderer);
-
-        defect_type.addItem("Documentation");
-        renderer.setToolTip("Documentation", "comments, messages");
-        defect_type.addItem("Syntax");
-        renderer.setToolTip("Syntax", "spelling, punctuation, typos, instruction formats");
-        defect_type.addItem("Build, package");
-        renderer.setToolTip("Build, package", "change management, library, version control");
-        defect_type.addItem("Assignment");
-        renderer.setToolTip("Assignment", "declaration, duplicate names, scope, limits");
-        defect_type.addItem("Interface");
-        renderer.setToolTip("Interface", "procedure calls and reference, I/O, user formats");
-        defect_type.addItem("Checking");
-        renderer.setToolTip("Checking", "error messages, inadequate checks");
-        defect_type.addItem("Data");
-        renderer.setToolTip("Data", "structure, content");
-        defect_type.addItem("Function");
-        renderer.setToolTip("Function", "logic, pointers, loops, recursion, computation, function defects");
-        defect_type.addItem("System");
-        renderer.setToolTip("System", "configuration, timing, memory");
-        defect_type.addItem("Environment");
-        renderer.setToolTip("Environment", "design, compile, test, or other support system problems");
+        defect_type = DefectTypeStandard.get
+            (defectPath.path(), dash.data).getAsComboBox();
 
         g.gridx = 0;   layout.setConstraints(defect_type, g);
         panel.add(defect_type);
@@ -177,7 +155,7 @@ public class DefectDialog extends JDialog implements ActionListener {
         scroller.getViewport().add(description);
 
         JPanel textWrapper = new JPanel(new BorderLayout());
-//	textWrapper.setAlignmentX(LEFT_ALIGNMENT);
+//      textWrapper.setAlignmentX(LEFT_ALIGNMENT);
         textWrapper.setBorder(new BevelBorder(BevelBorder.LOWERED));
         textWrapper.add("Center", scroller);
 

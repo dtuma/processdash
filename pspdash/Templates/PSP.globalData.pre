@@ -214,3 +214,12 @@ Defects Removed per KLOC To Date==![(/	Defects Removed To Date	New & Changed KLO
 % Reused To Date==![(/	Reused LOC To Date	LOC To Date)]
 AFR To Date==![(/	% Appraisal COQ To Date	% Failure COQ To Date)]
 CPI To Date==![(/	Estimated Time To Date	Time To Date)]
+
+
+
+==
+== Define the standard PSP Defect Type Standard
+==
+
+Defect Type Standard/PSP - text="Documentation (comments, messages)|Syntax (spelling, punctuation, typos, instruction formats)|Build, package (change management, library, version control)|Assignment (declaration, duplicate names, scope, limits)|Interface (procedure calls and reference, I/O, user formats)|Checking (error messages, inadequate checks)|Data (structure, content)|Function (logic, pointers, loops, recursion, computation, function defects)|System (configuration, timing, memory)|Environment (design, compile, test, or other support system problems)
+Defect Type Standard/PSP - numbers="10 (Documentation - comments, messages)|20 (Syntax - spelling, punctuation, typos, instruction formats)|30 (Build, package - change management, library, version control)|40 (Assignment - declaration, duplicate names, scope, limits)|50 (Interface - procedure calls and reference, I/O, user formats)|60 (Checking - error messages, inadequate checks)|70 (Data - structure, content)|80 (Function - logic, pointers, loops, recursion, computation, function defects)|90 (System - configuration, timing, memory)|100 (Environment - design, compile, test, or other support system problems)

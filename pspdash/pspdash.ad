@@ -128,6 +128,12 @@ hiddenData=PSP Project|PSP Phase|\\% Time|Started|Completed|.*\d+|.* To Date|DRL
 autoRealization=min
 
 #
+# Default defect type standard.
+#
+defectTypeStandard=PSP - text
+
+
+#
 # Default settings for charts
 #
 

@@ -71,6 +71,8 @@ defectDialog.autostart=If this property is set to "true", the defect dialog \
 	for this property means the user must manually press the "Start \
 	Timing" button to begin the timer for fixing the defect.
 
+defectTypeStandard=The name of the default defect type standard.
+
 excel.exportMethod=The method to use for exporting data into Excel. If this \
 	is set to "mime", tables will be exported to Excel using a mime-type. \
 	If this is set to "iqy", tables will be exported using a Microsoft \
