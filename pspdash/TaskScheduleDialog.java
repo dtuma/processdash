@@ -159,7 +159,7 @@ public class TaskScheduleDialog
                     confirmClose(true); }});
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        frame.setSize(new Dimension(630, 600));
+        frame.setSize(new Dimension(700, 600));
         frame.show();
 
         // if the task list is empty, open the add task dialog immediately.
@@ -829,6 +829,10 @@ public class TaskScheduleDialog
 
             if (urlStr == null || urlStr.length() == 0) {
                 errorMessage = "You must enter a URL.";
+                continue;
+            }
+            if (urlStr.indexOf("/ev+/") != -1) {
+                errorMessage = "You entered the URL for a published schedule, not a shared schedule.";
                 continue;
             }
             try {
