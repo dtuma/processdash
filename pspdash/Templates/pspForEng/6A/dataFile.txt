@@ -1,3 +1,0 @@
-#include <psp1.1/dataFile.txt>
-#include <pspForEng/progData.txt>
-undefine([Use_Rollup]);
