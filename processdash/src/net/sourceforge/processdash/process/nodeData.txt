@@ -1,0 +1,32 @@
+// -*- mode:c -*-
+
+#ifndef IS_IMAGINARY_NODE
+[PATH/node] == TAG;
+#endif
+
+#define sumUp(Data) [PATH/Data] = sumFor("Data", [PATH/Child_List])
+
+// Time in phase data
+
+sumUp(Estimated Time);
+sumUp(Time);
+
+#ifdef PROCESS_HAS_DEFECTS
+
+// Defects by phase data
+
+sumUp(Estimated Defects Injected);
+sumUp(Estimated Defects Removed);
+
+sumUp(Defects Injected);
+sumUp(Defects Removed);
+
+#endif
+
+[PATH/Completed] = maxDate
+    ("Completed", filter(indirect([_] &/ "node"), [PATH/Child_List]));
+
+/*
+ * Should we calculate anything else? Like defect injection/removal rates,
+ * or defect removal efficiencies?
+ */
