@@ -88,23 +88,12 @@ endif
 ######################################################################
 
 
-default: pspdash cgi-scripts build
-
-
-all: data pspdash cgi-scripts
-
+all: data pspdash cgi-scripts build
 
 install: all
-	cd build; $(MAKE)
-
-
-install-nt: all
-	cd build; $(MAKE) install-nt
-
 
 build: FORCE
 	cd build; $(MAKE)
-
 
 data: FORCE
 	cd data; $(MAKE) all
