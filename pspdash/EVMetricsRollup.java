@@ -36,6 +36,7 @@ public class EVMetricsRollup extends EVMetrics {
 
     public void reset(Date effectiveDate) {
         totalPlanTime = earnedValueTime = actualTime = planTime = 0.0;
+        totalSchedulePlanTime = totalScheduleActualTime = 0.0;
         currentDate = effectiveDate;
         startDate = independentForecastDate = null;
     }
@@ -45,36 +46,52 @@ public class EVMetricsRollup extends EVMetrics {
         this.earnedValueTime += that.earnedValueTime;
         this.actualTime      += that.actualTime;
         this.planTime        += that.planTime;
+        this.totalSchedulePlanTime += that.totalSchedulePlanTime;
+        this.totalScheduleActualTime += that.totalScheduleActualTime;
         this.startDate =
             EVScheduleRollup.minDate(this.startDate, that.startDate);
         this.independentForecastDate =
             EVScheduleRollup.maxDate(this.independentForecastDate,
                                      that.independentForecastDate());
     }
+    public void recalcComplete(EVSchedule s) {
+        recalcOptimizedPlanDate(s);
+        super.recalcComplete(s);
+    }
+    protected void recalcScheduleTime(EVSchedule s) {
+        // do nothing - it is already calculated.
+    }
+    protected void recalcOptimizedPlanDate(EVSchedule s) {
+        optimizedPlanDate = s.getHypotheticalDate(totalPlan());
+    }
 
 
     public double independentForecastDuration() {
-        Date s, e;
-        if ((s = startDate()) == null) return Double.NaN;
-        if ((e = independentForecastDate()) == null) return Double.NaN;
-        return (e.getTime() - s.getTime()) / (double) MINUTE_MILLIS;
+        return calcDuration(startDate(), independentForecastDate());
     }
     public Date independentForecastDate() {
         return independentForecastDate;
     }
 
     public double optimizedForecastDuration() {
-        return super.independentForecastDuration();
+        if (useSimpleForecastDateFormula)
+            return super.independentForecastDuration();
+        else
+            return calcDuration(startDate(), super.independentForecastDate());
     }
 
+    private Date optimizedForecastDate = null;
     public Date optimizedForecastDate() {
-        // use the extrapolation algorithm that EVMetrics uses to
-        // calculate the independentForecastDate.
-        Date s;
-        if ((s = startDate()) == null) return null;
-        double duration = optimizedForecastDuration();
-        if (badDouble(duration)) return null;
-        return new Date(s.getTime() + (long) (duration * MINUTE_MILLIS));
+        if (useSimpleForecastDateFormula) {
+            // use the extrapolation algorithm that EVMetrics uses to
+            // calculate the independentForecastDate.
+            Date s;
+            if ((s = startDate()) == null) return null;
+            double duration = optimizedForecastDuration();
+            if (badDouble(duration)) return null;
+            return new Date(s.getTime() + (long) (duration * MINUTE_MILLIS));
+        } else
+            return super.independentForecastDate();
     }
 
     public Date optimizedPlanDate() {

@@ -33,7 +33,7 @@ public class EVScheduleRollup extends EVSchedule {
 
     Vector subSchedules = new Vector();
     double totalPlanTime;
-    boolean optimizedPlanTimeNeeded = true;
+    boolean calcHypotheticalDates = true;
 
     /** Create an EVScheduleRollup.
      *
@@ -96,10 +96,6 @@ public class EVScheduleRollup extends EVSchedule {
 
         // recalculate cumulative values for *this* schedule.
         calculateCumValues();
-
-        // calculate the optimized plan date.
-        if (optimizedPlanTimeNeeded)
-            calculateOptimizedPlanDate();
 
         // fire events to indicate that our contents have changed.
         getMetrics().recalcComplete(this);
@@ -250,16 +246,13 @@ public class EVScheduleRollup extends EVSchedule {
         }
     }
 
-    private void calculateOptimizedPlanDate() {
-        Date result = getOptimizedDate(metrics.totalPlan());
-        ((EVMetricsRollup) metrics).setOptimizedPlanDate(result);
-    }
+    public Date getHypotheticalDate(double cumPlanTime) {
+        if (!calcHypotheticalDates) return null;
 
-    private Date getOptimizedDate(double cumPlanTime) {
         // Clone ourself so we can perform a "what-if" calculation without
         // screwing up our data.
         EVScheduleRollup r = new EVScheduleRollup(this);
-        r.optimizedPlanTimeNeeded = false;
+        r.calcHypotheticalDates = false;
 
         // grow all the subschedules so they are plenty long enough.
         Iterator i = r.subSchedules.iterator();
@@ -285,7 +278,7 @@ public class EVScheduleRollup extends EVSchedule {
         }
         EVSchedule dud = new EVSchedule(start, end, 0);
         r.addSchedule(dud);
-        r.optimizedPlanTimeNeeded = false;
+        r.calcHypotheticalDates = false;
         r.recalc();
 
         Period result = dud.get(1), p;

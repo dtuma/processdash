@@ -62,6 +62,12 @@ public class EVMetrics implements TableModel {
     /** What % complete is the current period, in terms of elapsed time? */
     double periodPercent = 0.0;
 
+    /** The total planned time to date for completed schedule periods. */
+    double totalSchedulePlanTime = 0.0;
+
+    /** The total actual time to date for completed schedule periods. */
+    double totalScheduleActualTime = 0.0;
+
     /** The end of the current time period in the schedule */
     protected Date periodEnd = null;
 
@@ -110,8 +116,41 @@ public class EVMetrics implements TableModel {
         if (errors == null) errors = new HashMap();
         errors.put(message, node);
     }
+
     public void recalcComplete(EVSchedule s) {
+        recalcScheduleTime(s);
+        recalcForecastDate(s);
         fireTableChanged(new TableModelEvent(this, 0, getRowCount()-1));
+    }
+    protected void recalcScheduleTime(EVSchedule s) {
+        totalSchedulePlanTime = s.getScheduledPlanTime(currentDate);
+        totalScheduleActualTime = s.getScheduledActualTime(currentDate);
+    }
+    protected boolean useSimpleForecastDateFormula = false;
+    protected Date forecastDate = null;
+    protected void recalcForecastDate(EVSchedule s) {
+        // check to see whether the user doesn't want us to perform the
+        // nonstandard calculations.
+        useSimpleForecastDateFormula =
+            Settings.getBool("ev.simpleForecastDate", false);
+        if (useSimpleForecastDateFormula) {
+            forecastDate = null;
+            return;
+        }
+
+        // perform the nonstandard calculations for forecast date.
+        double altSPI = totalSchedulePlanTime / totalScheduleActualTime;
+        if (badDouble(altSPI)) altSPI = 1.0;
+        forecastDate =
+            s.getHypotheticalDate(independentForecastCost() * altSPI);
+        if (forecastDate == EVSchedule.NEVER)
+            forecastDate = null;
+
+        // if the nonstandard calculations failed or produced nonsense,
+        // fall back to using the standard calculations.
+        if (forecastDate == null ||
+            (earnedValue() < totalPlan() && forecastDate.before(currentDate)))
+            useSimpleForecastDateFormula = true;
     }
 
 
@@ -177,14 +216,25 @@ public class EVMetrics implements TableModel {
         return scheduleVariance() * elapsed() / earnedValue();
     }
     public double independentForecastDuration() {
-        return elapsed() / percentComplete();
+        if (useSimpleForecastDateFormula)
+            return elapsed() / percentComplete();
+        else
+            return calcDuration(startDate(), forecastDate);
     }
     public Date independentForecastDate() {
-        Date s;
-        if ((s = startDate()) == null) return null;
-        double duration = independentForecastDuration();
-        if (badDouble(duration)) return null;
-        return new Date(s.getTime() + (long) (duration * MINUTE_MILLIS));
+        if (useSimpleForecastDateFormula) {
+            Date s;
+            if ((s = startDate()) == null) return null;
+            double duration = independentForecastDuration();
+            if (badDouble(duration)) return null;
+            return new Date(s.getTime() + (long) (duration * MINUTE_MILLIS));
+        } else
+            return forecastDate;
+    }
+
+    protected double calcDuration(Date s, Date e) {
+        if (s == null || e == null) return Double.NaN;
+        return (e.getTime() - s.getTime()) / (double) MINUTE_MILLIS;
     }
 
     public Map getErrors() {

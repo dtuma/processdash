@@ -315,6 +315,7 @@ public class EVSchedule implements TableModel {
         recalcCumPlanTimes();
         recalcCumActualTimes();
         setEffectiveDate(getXMLDate(e, "eff"));
+        metrics.recalcComplete(this);
     }
 
     protected synchronized void add(Period p) {
@@ -419,6 +420,45 @@ public class EVSchedule implements TableModel {
         return (p == null ? null : p.endDate);
     }
 
+    /** return the total amount of time in the plan for periods ending
+     * before the given date. */
+    public double getScheduledPlanTime(Date when) {
+        double result = 0;
+        long time = when.getTime();
+        Period p;
+        for (int i = 1;   i < periods.size();   i++) {
+            p = get(i);
+            if (p != null && p.getEndDate().getTime() < time)
+                result += p.planTime;
+            else break;
+        }
+        return result;
+    }
+
+    /** return the total amount of actual time for periods ending
+     * before the given date. */
+    public double getScheduledActualTime(Date when) {
+        double result = 0;
+        long time = when.getTime();
+        Period p;
+        for (int i = 1;   i < periods.size();   i++) {
+            p = get(i);
+            if (p != null && p.getEndDate().getTime() < time)
+                result += p.actualTime;
+            else break;
+        }
+        return result;
+    }
+
+    /** Return the date that the schedule would reach the given cumulative
+     * plan time. Perform a "what-if" calculation - don't modify the
+     * current schedule.
+     */
+    public Date getHypotheticalDate(double cumPlanTime) {
+        EVSchedule s = new EVSchedule(this);
+        s.cleanUp();
+        return s.getPlannedCompletionDate(cumPlanTime, cumPlanTime);
+    }
 
     public synchronized Date getPlannedCompletionDate(double cumPlanTime,
                                                       double cumPlanValue) {
@@ -1048,6 +1088,7 @@ public class EVSchedule implements TableModel {
         ActualValueSeries actual;
         public void recalc() {
             double mult = 100.0 / totalPlan();
+            if (Double.isInfinite(mult)) mult = 0;
             plan.mult = actual.mult = mult;
             forecast.currentYVal = new Double(getLast().cumEarnedValue * mult);
             forecast.forecastYVal = ONE_HUNDRED;
