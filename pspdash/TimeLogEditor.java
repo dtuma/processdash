@@ -250,7 +250,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
 
     protected long parseTime (String s) {
         int colon = s.indexOf (":");
-        long lv = 0;
+        long lv = -1;
         if (colon >= 0) {
             try {
                 lv = 60 * Long.valueOf (s.substring (0, colon)).longValue();
@@ -378,7 +378,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
         switch (col) {
         case 0:                     //Logged To (key) (must exist in hierarchy)
             PropertyKey key = useProps.findExistingKey (newValue);
-            if (key == null || useProps.getNumChildren(key) > 0) {
+            if (key == null || key.equals(tle.key) ||
+                useProps.getNumChildren(key) > 0) {
                 rv = false;
                 table.table.setValueAt (tle.key.path(), row, col);
             } else {
@@ -390,7 +391,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             break;
         case 1:                     //createTime (must be valid date)
             Date d = DateFormatter.parseDateTime (newValue);
-            if (d == null) {
+            if (d == null || d.equals(tle.createTime)) {
                 rv = false;
                 table.table.setValueAt (DateFormatter.formatDateTime (tle.createTime),
                                         row, col);
@@ -401,31 +402,28 @@ public class TimeLogEditor extends Object implements TreeSelectionListener, Tabl
             try {
                 long lv = parseTime (newValue);//Long.valueOf (newValue).longValue();
                 long deltaMinutes = tle.minutesElapsed;
-                if (lv >= 0)
+                if (lv >= 0 && lv != deltaMinutes) {
                     tle.minutesElapsed = lv;
-                else {
-                    tle.minutesElapsed = 0;
+                    postTimeChange (tle.key, lv - deltaMinutes);
+                } else
                     rv = false;
-                }
-                postTimeChange (tle.key, tle.minutesElapsed - deltaMinutes);
                 table.table.setValueAt (formatTime (tle.minutesElapsed), row, col);
             } catch (Exception e) { rv = false; }
             break;
         case 3:                     //minutesInterrupt (must be number >= 0)
             try {
                 long lv = parseTime (newValue);//Long.valueOf (newValue).longValue();
-                if (lv >= 0)
+                if (lv >= 0 && lv != tle.minutesInterrupt)
                     tle.minutesInterrupt = lv;
-                else {
-                    tle.minutesInterrupt = 0;
+                else
                     rv = false;
-                }
                 table.table.setValueAt (formatTime (tle.minutesInterrupt), row, col);
             } catch (Exception e) { rv = false; }
             break;
         }
         setTimes ();
         validateCell = null;
+        if (rv) setDirty(true);
         return rv;
     }
 
