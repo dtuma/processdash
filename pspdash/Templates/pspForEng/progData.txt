@@ -2,6 +2,10 @@
 = Common data definitions for all 10 programs
 =
 
+= Hardcode the rollup prefix to be our parent.
+
+[PSP To Date Subset Prefix] = [../Rollup_Name];
+
 = Inherit the language setting from the "PSP for Engineers" datafile.
 
 [Project/Language] = [../Project/Language];

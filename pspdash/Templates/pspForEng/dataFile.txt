@@ -1,3 +1,5 @@
+#include <ROLLUP:PSP>
+
 ==
 == The following elements identify the data in this file as belonging to
 == a PSP for Engineers process. 
@@ -7,12 +9,23 @@ pspForEng==TAG
 PSPFORENG==TAG
 node==TAG
 
+[Rollup_Name] = [^];
+
+[Project_List] = filter(startsWith([^]), [/PSP/Project List]);
+[Rollup_List] = filter(eval([Rollup_Filter], [_]), [Project_List]);
+
 
 = There is no place for students to enter size data for program 1A.
 = Therefore, we will calculate it on their behalf from data entered in
 = program 2A.
 
-#define calc1Afrom2A(Data) [1A/Data] = [2A/Data To Date] - [2A/Data];
+[2A_Program_Name] =
+    index(0, filter(indirect([_] &/ "PSPFORENG_2A_TAG"), [Project_List]));
+
+#define calc1Afrom2A(Data) [1A_calc/Data] =		\
+    indirect([2A_Program_Name] &/ "Data To Date") - 	\
+    indirect([2A_Program_Name] &/ "Data");
+
 calc1Afrom2A(Reused LOC)
 calc1Afrom2A(New & Changed LOC)
 calc1Afrom2A(Total LOC)
@@ -23,4 +36,6 @@ calc1Afrom2A(New Reused LOC)
 == Copy the "Project/Language" setting from program 1A
 ==
 
-[Project/Language] = [1A/Project/Language];
+[1A_Program_Name] =
+    index(0, filter(indirect([_] &/ "PSPFORENG_1A_TAG"), [Project_List]));
+[Project/Language] = indirect([1A_Program_Name] &/ "Project/Language");

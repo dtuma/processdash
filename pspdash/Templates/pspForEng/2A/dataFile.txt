@@ -1,11 +1,17 @@
 #include <psp0.1/dataFile.txt>
 #include <pspForEng/progData.txt>
 
+= Flag this as the PSP2A program.  This allows the dashboard to find
+= it when calculating retroactive 1A data, even if it gets renamed.
+
+PSPFORENG_2A_TAG==TAG
+
+
 = Students must manually spread the time across the phases for program 2A.
 
 Planning/Estimated Time=?NaN
-Design/Combined Estimated Time=?NaN
-Code/Combined Estimated Time=?NaN
+Design/Estimated Time=?NaN
+Code/Estimated Time=?NaN
 Compile/Estimated Time=?NaN
 Test/Estimated Time=?NaN
 Postmortem/Estimated Time=?NaN
