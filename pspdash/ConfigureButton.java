@@ -124,6 +124,10 @@ class ConfigureButton extends JMenuBar implements ActionListener {
         }
     }
 
+    protected void removePropertyFrame () {
+        prop_frame = null;
+    }
+
     protected void startProbeDialog () {
         if (probe_dialog != null)
             probe_dialog.show();

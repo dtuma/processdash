@@ -60,6 +60,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
     protected PSPProperties readProps;
     protected PSPProperties useProps;
     protected PSPDashboard  dashboard = null;
+    protected ConfigureButton configureButton;
 
 
     static final char NO_MOVE_CHAR    = 'M';
@@ -144,6 +145,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
                          PSPProperties props,
                          PSPProperties templates) {
         dashboard        = dash;
+        configureButton  = button;
         JMenuBar menuBar = constructMenuBar();
         JPanel   panel   = new JPanel(true);
 
@@ -189,7 +191,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
         frame.addWindowListener( new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                frame.setVisible (false);
+                dispose();
             }
         });
 
@@ -243,6 +245,22 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
 
     public void show() {
         frame.show();
+        frame.toFront();
+    }
+
+    public void dispose() {
+        frame.setVisible(false);
+        configureButton.removePropertyFrame();
+        frame = null;
+        tree = null;
+        treeModel = null;
+        templates = readProps = useProps = null;
+        dashboard = null;
+        configureButton = null;
+        pendingVector = null;
+        addTemplateMenu = addNodeMenu = null;
+        saveMenuItem = revertMenuItem = deleteMenuItem = addNodeAboveMenuItem =
+            addNodeBelowMenuItem = addNodeChildMenuItem = null;
     }
 
                                 // make sure root is expanded
@@ -388,7 +406,7 @@ public class PropertyFrame extends Object implements TreeModelListener, TreeSele
             parseIndex++;
         }
 
-        if (path.length <= 1)	// top two levels (root & 1st sub) static
+        if (path.length <= 1)       // top two levels (root & 1st sub) static
             deletable = false;
         else if (!editable && !moveable)
             deletable =
