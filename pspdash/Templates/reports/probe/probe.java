@@ -330,15 +330,20 @@ public class probe extends TinyCGIBase {
         // Calculate data for each of the PROBE methods for time.
         ArrayList timeMethods = new ArrayList();
         if (!onlyMethodD) {
+            double altInput = estObjLOC;
+            if ("false".equalsIgnoreCase
+                (Settings.getVal("probeWizard.strictTimeMethods")))
+                altInput = estNCLOC;
+
             timeMethods.add(new RegressionMethod (data, estObjLOC, EST_OBJ,
                                                   ACT_TIME, "A", "time"));
             timeMethods.add(new RegressionMethod (data, estObjLOC, EST_NC,
                                                   ACT_TIME, "B", "time"));
             timeMethods.add(new AveragingMethod  (data, estObjLOC, EST_OBJ,
                                                   ACT_TIME, "C1", "time"));
-            timeMethods.add(new AveragingMethod  (data, estNCLOC, EST_NC,
+            timeMethods.add(new AveragingMethod  (data, altInput, EST_NC,
                                                   ACT_TIME, "C2", "time"));
-            timeMethods.add(new AveragingMethod  (data, estNCLOC, ACT_NC,
+            timeMethods.add(new AveragingMethod  (data, altInput, ACT_NC,
                                                   ACT_TIME, "C3", "time") {
                     public double getRating() {
                         observations.clear();
