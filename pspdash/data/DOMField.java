@@ -80,15 +80,12 @@ abstract class DOMField extends HTMLField {
             paint();
 
             boolean readOnly = !isEditable();
-            /*
             //setReadOnly(readOnly);
-            System.out.println("readOnly = " + element.getAttribute("readOnly"));
-            if (readOnly)
-                element.setAttribute("readOnly", "true");
-            else
-                element.setAttribute("readOnly", "");
-            */
             element.setClassName(readOnly ? "readOnlyElem" : "editableElem");
+            if (element instanceof HTMLInputElement)
+                ((HTMLInputElement) element).setTabIndex(readOnly ? -1 : 0);
+            else if (element instanceof HTMLTextAreaElement)
+                ((HTMLTextAreaElement) element).setTabIndex(readOnly ? -1 : 0);
         }
     }
 
