@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
 
@@ -51,8 +52,18 @@ public class FormDataSession implements FormDataListener {
         touch();
     }
 
+    public void dispose() {
+        log.entering("FormDataSession", "dispose");
+        if (mgr != null) {
+            mgr.dispose(true);
+            mgr = null;
+        }
+        formDataEvents.clear();
+    }
+
     public void registerField(String id, String name, String type) {
-        System.out.println("Session.registerField("+id+","+name+","+type+")");
+        log.entering("FormDataSession", "registerField",
+                     new Object[] { id, name, type });
         mgr.registerElement(id, name, type);
     }
 
@@ -65,7 +76,8 @@ public class FormDataSession implements FormDataListener {
     }
 
     public synchronized void paintData(String id, String value, boolean readOnly) {
-        System.out.println("paintData("+id+","+value+","+readOnly+")");
+        log.entering("FormDataSession", "paintData",
+                     new Object[] { id, value, Boolean.valueOf(readOnly) });
         Iterator i = formDataEvents.iterator();
         while (i.hasNext()) {
             FormDataEvent e = (FormDataEvent) i.next();
@@ -129,12 +141,26 @@ public class FormDataSession implements FormDataListener {
         return nextID;
     }
 
-    public static FormDataSession getSession(String sessionID) {
-        // TODO - add logic that discards old/unused sessions
-        FormDataSession result =
-            (FormDataSession) SESSION_CACHE.get(sessionID);
-        if (result != null)
-            result.touch();
+    private static long TIMEOUT_DURATION = 4l /*iterations*/ * 
+        Math.max(HandleForm.REFRESH_DELAY, 15) /*seconds*/ * 1000 /*millis*/;
+
+    public synchronized static FormDataSession getSession(String sessionID) {
+        FormDataSession result = null;
+        Iterator i = SESSION_CACHE.entrySet().iterator();
+        long obsoleteTime = System.currentTimeMillis() - TIMEOUT_DURATION;
+        while (i.hasNext()) {
+            Map.Entry entry = (Map.Entry) i.next();
+            FormDataSession session = (FormDataSession) entry.getValue();
+            if (sessionID.equals(entry.getKey())) {
+                session.touch();
+                result = session;
+            } else if (session.lastAccessTime < obsoleteTime) {
+                session.dispose();
+                i.remove();
+            }
+        }
         return result;
     }
+
+    private static Logger log = Logger.getLogger(FormDataSession.class.getName());
 }

@@ -27,6 +27,7 @@ package net.sourceforge.processdash.data.applet.js;
 
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
@@ -39,7 +40,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
 
-    private static int REFRESH_DELAY =
+    static int REFRESH_DELAY =
         1000 * Settings.getInt("dataApplet.refreshInterval", 15);
 
     /** Write the CGI header. */
@@ -58,7 +59,8 @@ public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
             handleListen();
     }
     protected void handleRegistration() throws IOException {
-        System.out.println("query="+env.get("QUERY_STRING"));
+        log.entering("HandleForm", "handleRegistration");
+        log.finer("query=" + env.get("QUERY_STRING"));
 
         DataRepository data = getDataRepository();
         String prefix = getDataPrefix();
@@ -184,7 +186,7 @@ public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
         while (true) {
             e = session.getNextEvent(coupon, waitForCmd || REFRESH_DELAY == 0);
             if (e == null) {
-                System.out.println("\t\tNo events found.");
+                log.finer("No events found.");
                 if (REFRESH_DELAY == 0)
                     writeNoOp();
                 else
@@ -210,6 +212,8 @@ public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
     }
 
     private void writePrintCommand(FormDataEvent e) {
+        log.entering("HandleForm", "writePrintCommand", e);
+
         out.write("<script>parent.paintField(");
         out.write(e.getId());
         out.write(",\"");
@@ -220,8 +224,6 @@ public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
         out.write(Integer.toString(e.getCoupon()));
         out.write(")</script>");
         out.flush();
-        System.out.println("\t\tpaintField("+e.getId()+","+e.getValue()+","+
-                           e.isReadOnly()+")");
     }
 
     private String escapeString(String s) {
@@ -234,4 +236,5 @@ public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
         return s;
     }
 
+    private static Logger log = Logger.getLogger(HandleForm.class.getName());
 }

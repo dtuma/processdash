@@ -47,4 +47,11 @@ public class FormDataEvent {
     public String getId()       { return id;       }
     public boolean isReadOnly() { return readOnly; }
     public String getValue()    { return value;    }
+
+    public String toString() {
+        return "FormDataEvent[id=" + id +
+            ",value=" + value +
+            ",readOnly=" + readOnly +
+            "]";
+    }
 }
