@@ -37,6 +37,7 @@ import java.util.*;
 import java.net.JarURLConnection;
 import java.util.Arrays;
 import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -402,6 +403,8 @@ public class TemplateLoader {
                                ioe);
         }
 
+        filterURLList(result);
+
         template_url_list = urlListToArray(result);
         return template_url_list;
     }
@@ -512,6 +515,81 @@ public class TemplateLoader {
         } catch (Throwable t) { }
         return (entry != null);
     }
+
+    private static void filterURLList(Vector urls) {
+        // load template package information about each of the
+        // URLs in the list.
+        TemplatePackage[] packages = new TemplatePackage[urls.size()];
+        for (int i = 0;   i < packages.length;   i++)
+            packages[i] = new TemplatePackage((URL) urls.get(i));
+
+        // build a listing of the most current version number for
+        // each template package id.
+        Map versionNumbers = new HashMap();
+        for (int i = 0;   i < packages.length;   i++)
+            packages[i].storeVersion(versionNumbers);
+
+        // find the obsolete packages in the list, and set them to
+        // null.
+        for (int i = 0;   i < packages.length;   i++)
+            if (packages[i].isObsolete(versionNumbers))
+                packages[i] = null;
+
+        // for each obsolete package, remove its url from the list.
+        for (int i = packages.length;   i-- > 0; )
+            if (packages[i] == null)
+                urls.remove(i);
+    }
+
+    private static class TemplatePackage {
+        String jarURL;
+        String id;
+        String version;
+
+        /** Load information about the
+         */
+        public TemplatePackage(URL u) {
+            this.jarURL = u.toString();
+            try {
+                if (jarURL.startsWith("jar:"))
+                    // Strip "jar:" from the beginning and the "!/Templates/"
+                    // from the end of the URL.
+                    jarURL = jarURL.substring(4, jarURL.indexOf('!'));
+
+                u = new URL(jarURL);
+                JarInputStream jarFile = new JarInputStream(u.openStream());
+                Manifest manifest = jarFile.getManifest();
+
+                this.id = AutoUpdateManager.getPackageID(manifest);
+                this.version = AutoUpdateManager.getPackageVersion(manifest);
+                jarFile.close();
+            } catch (Exception ioe) {
+                ioe.printStackTrace();
+                id = version = null;
+            }
+        }
+
+        public void storeVersion(Map versionNumbers) {
+            if (id == null) return;
+            String maxVersion = (String) versionNumbers.get(id);
+            if (maxVersion == null ||
+                AutoUpdateManager.compareVersions(version, maxVersion) > 0)
+                versionNumbers.put(id, version);
+        }
+
+        public boolean isObsolete(Map versionNumbers) {
+            if (id == null) return false;
+            String versionToUse = (String) versionNumbers.get(id);
+            if (versionToUse == null ||
+                AutoUpdateManager.compareVersions(version, versionToUse) < 0) {
+                System.out.println("Ignoring obsolete add-on " + jarURL);
+                return true;
+            }
+            versionNumbers.remove(id);
+            return false;
+        }
+    }
+
 
     /** Looks through the various loaded templates, and determines which
      * absolute URL the given String maps to.  If the given URL does not
