@@ -95,7 +95,7 @@ public class Resources extends ResourceBundle {
     }
 
 
-    private static class TemplateClassLoader extends ClassLoader {
+    private static class SafeTemplateClassLoader extends ClassLoader {
 
         protected Class findClass(String name) throws ClassNotFoundException {
             throw new ClassNotFoundException(name);
@@ -106,13 +106,32 @@ public class Resources extends ResourceBundle {
             else if (name.startsWith("/pspdash"))
                 name = "/resources" + name.substring(8);
             name = name.replace('$', '.');
-            return TemplateLoader.resolveURL(name);
+            return findResourceImpl(name);
+        }
+        protected URL findResourceImpl(String mappedName) {
+            if (!mappedName.startsWith("/"))
+                mappedName = "/" + mappedName;
+            mappedName = "Templates" + mappedName;
+            return Resources.class.getClassLoader().getResource(mappedName);
         }
 
     }
 
-    private static final ClassLoader RESOURCE_LOADER =
-        new TemplateClassLoader();
+    private static class TemplateClassLoader extends SafeTemplateClassLoader {
+        protected URL findResourceImpl(String mappedName) {
+            return TemplateLoader.resolveURL(mappedName);
+        }
+    }
+
+    private static ClassLoader makeResourceLoader() {
+        try {
+            Class.forName("org.w3c.dom.Element");
+            return new TemplateClassLoader();
+        } catch (Throwable t) { }
+        System.out.println("XML classes unavailable - using safe loader");
+        return new SafeTemplateClassLoader();
+    }
+    private static final ClassLoader RESOURCE_LOADER = makeResourceLoader();
 
 
     private static final boolean TIME_LOADING = false;
