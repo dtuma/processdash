@@ -62,7 +62,7 @@ templates: FORCE
 
 # copy non-class files if needed.
 $(INSTALLED_FILES) : pspdash/% : ../%
-	cp $< pspdash/$<
+	cp $< pspdash/$*
 
 
 # unzip the PerlTools jarfile.
