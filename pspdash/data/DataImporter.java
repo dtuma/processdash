@@ -47,7 +47,7 @@ import pspdash.RobustFileWriter;
 public class DataImporter extends Thread {
 
     public static final String EXPORT_DATANAME = "EXPORT_FILE";
-    private static final long TIME_DELAY = 1 * 60 * 1000; // 10 minutes
+    private static final long TIME_DELAY = 10 * 60 * 1000; // 10 minutes
     private static Vector importers = new Vector();
 
     private DataRepository data;
@@ -60,7 +60,7 @@ public class DataImporter extends Thread {
     public static void init(DataRepository data, String userSetting) {
         if (userSetting == null || userSetting.length() == 0) return;
 
-        StringTokenizer tok = new StringTokenizer(userSetting, ";");
+        StringTokenizer tok = new StringTokenizer(userSetting, "|;");
         while (tok.hasMoreTokens()) {
             String token = tok.nextToken();
             int separatorPos = token.indexOf("=>");
@@ -223,6 +223,12 @@ public class DataImporter extends Thread {
     private static final Object SYNCH_LOCK = new Object();
 
     public String makePrefix(File f) throws IOException {
+        return DataRepository.createDataName(importPrefix, makeExtraPrefix(f));
+    }
+
+    public static String getPrefix(String importPrefix, File f)
+        throws IOException
+    {
         return DataRepository.createDataName(importPrefix, makeExtraPrefix(f));
     }
 
