@@ -19,6 +19,10 @@
 
 <h3>Online forms</h3>
 <ul>
+ <LI><A HREF="#TwoForms">If I have a dashboard script or form open, and I
+  click the script button to open another form, the new form appears in my
+  existing browser window, replacing the old form. Why can't I have two
+  forms open at once?</A></LI>
  <LI><a href="FAQ.html#NoConnection">All my data elements say "NO CONNECTION".  What is wrong?</A></LI>
  <LI><a href="FAQ.html#ERROR">Some of my data elements say "#VALUE!" or "#DIV/0!".  What is wrong?</A></LI>
  <LI><a href="FAQ.html#BadExcel">I tried to export my data to Excel with the link on one of the forms, but I just got a small ASCII file.  What is wrong?</A></LI>
@@ -27,6 +31,9 @@
  <LI><a href="FAQ.html#FrozenData">I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</A></LI>
  <LI><a href="FAQ.html#FormsColors">What is the significance of the different text colors on the PSP process scripts and forms?</A></LI>
  <LI><A HREF="#ExtDocFail">I click on a document hyperlink in a process script, but the document never opens.</A></LI>
+ <li><A HREF="#ExtDocEdit">When I click on a document hyperlink, the
+  document opens in my browser instead of opening in Word / Excel / etc.
+  This makes editing the document difficult. How do I change this behavior?</A></li>
  <li><a href="FAQ.html#ProcessTweak">I'd like to make a minor change in one of the process scripts.  Can I do that?</a></li>
 </ul>
 
@@ -44,6 +51,7 @@
  <LI><a href="FAQ.html#OutlierProject">I have a project in my hierarchy that doesn't have much to do with my current development habits.  Can I mark it as an "outlier" so that it doesn't corrupt the Planning and PROBE estimates?</a></li>
  <LI><a href="FAQ.html#DCRSCR">What happened to the DCR and SCR processes?</A></LI>
  <LI><a href="FAQ.html#Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</A></LI>
+ <LI><A HREF="#TeamSupport">Does the Process Dashboard support teams?</A></LI>
  <LI><a href="FAQ.html#Website">Where can I get the latest information about the Process Dashboard?</A></LI>
  <LI><a href="FAQ.html#BugReport">I think I've found a bug.  Whom do I contact?</A></LI>
 </UL>
@@ -117,6 +125,25 @@ problem:</p>
 please send us an email at 
 <em>processdash-devel@lists.sourceforge.net</em></p> and we will attempt to 
 help you with the problem.</p>
+
+<P><hr><A NAME="TwoForms"></A><b>If I have a dashboard script or form open,
+and I click the script button to open another form, the new form appears in
+my existing browser window, replacing the old form. Why can't I have two
+forms open at once?</b>
+
+<P>You can have as many scripts and forms open as you like! The behavior
+you are seeing is a Microsoft "feature" designed to reduce clutter on your
+screen. Fortunately, you can alter that behavior. The instructions below
+may not apply to your browser word-for-word, but should hopefully get you
+pointed in the right direction:
+
+<OL>
+  <LI>In Internet Explorer, choose "Tools <img 
+      src="../../Images/rarrow.png"> Internet Options".</LI>
+  <LI>Click the "Advanced" tab.</LI>
+  <LI>Remove the checkmark next to the option, "Reuse windows for
+      launching shortcuts."</LI>
+</OL>
 
 <P><HR><a name="NoConnection"></a><B>All my data elements say "NO 
 CONNECTION".  What is wrong?</B>
@@ -296,6 +323,30 @@ prompt you to save it (not very helpful). To solve this problem, you must:</P>
    program you just installed.</LI>
 </OL>
 
+<p><HR><A NAME="ExtDocEdit"></A><b>When I click on a document hyperlink,
+the document opens in my browser instead of opening in Word / Excel / etc.
+This makes editing the document difficult. How do I change this behavior?</b>
+
+<P>This is a default Microsoft-programmed behavior, and is not controlled
+by the dashboard in any way. Fortunately, it is possible to alter this
+behavior. The following steps may not apply word-for-word to your version
+of Windows, but hopefully it can get you pointed in the right direction:</P> 
+
+<OL>
+  <LI>From the Start menu, choose "Settings <img 
+      src="../../Images/rarrow.png"> Control Panel <img 
+      src="../../Images/rarrow.png">  Folder Options".</LI>
+  <LI>Click the "File Types" tab.</LI>
+  <LI>In the list of registered file types, scroll down until you find the
+      file type of the document in question (e.g. "Microsoft Word
+      Document", "Microsoft Excel Worksheet"). Highlight the
+      file type and click the "Advanced" button.</LI>
+  <LI>Remove the checkmark next to "Browse in same window," and
+      click OK.</LI>
+  <LI>Repeat steps 3 and 4 for additional file types, if desired.</LI>
+  <LI>Click OK to close the "Folder Options" dialog.</LI>
+</OL>
+
 <p><hr><a name="ProcessTweak"></a><b>I'd like to make a minor change in one 
 of the process scripts.  Can I do that?</b>
 
@@ -461,6 +512,16 @@ to change the current hierarchy path <b>and</b> start the timer, use
 <B>Note</B>: these commands will have no effect unless the HTTP
 request originates from the same machine where the dashboard is
 running.
+
+<P><HR><A NAME="TeamSupport"></A><b>Does the Process Dashboard support
+teams?</b>
+
+<P>The current version of the dashboard <I>does</I> contain features that
+make it possible to roll up individual data to the team level. This "team
+roll-up" capability should be considered "beta" functionality.  If your TSP
+team is using the dashboard, and would like to evaluate these features,
+please send email to <I>processdash-devel@lists.sourceforge.net</I> for
+assistance.</p>
 
 <P><HR><a name="Website"></a><b>Where can I get the latest information about 
 the Process Dashboard?</b>
