@@ -31,9 +31,11 @@ import java.awt.event.*;
 import java.util.*;
 import java.io.*;
 import java.net.URL;
+import javax.swing.*;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import pspdash.data.DataRepository;
-import javax.swing.*;
 
 public class PSPDashboard extends JFrame implements WindowListener {
 
@@ -152,21 +154,34 @@ public class PSPDashboard extends JFrame implements WindowListener {
         // open and load the properties file.
         props = new PSPProperties(property_directory);
         Vector v = null;
-        try {
-            // try to load the user's existing properties file.
-            v = props.load(propertiesFile);
-            props.saveXML(propertiesFile + ".xml");
-        } catch (Exception e) { try {
-            // apparently, the user doesn't already have a properties file.
-            // read the default properties file, which simply contains
-            // nodes for "Project" and "Non Project".
-            v = props.load(getClass().getResourceAsStream(DEFAULT_PROP_FILE));
-            displayFirstTimeUserHelp();
-        } catch (Exception e2) {
-            // this is a serious problem that should never happen if the
-            // dashboard is installed correctly.
-            debug("read default props failed!");
-        } }
+        SAXException se = null;
+        if (prop_file.exists()) {
+            try {
+                // try to load the user's existing properties file.
+                try {
+                    v = props.loadXML(propertiesFile, templates);
+                } catch (SAXException se1) {
+                    se = se1;
+                    v = props.load(propertiesFile);
+                }
+            } catch (Exception e) {
+                // this is a serious problem, indicating a corrupt
+                // state file.  Display a warning to the user, then exit.
+                displayCorruptStateFileWarning(propertiesFile, se, e);
+                System.exit(0);
+            }
+        } else {
+            try {
+                // apparently, the user doesn't already have a properties
+                // file.  read the default properties file, which simply
+                // contains nodes for "Project" and "Non Project".
+                v = props.load
+                    (getClass().getResourceAsStream(DEFAULT_PROP_FILE));
+                displayFirstTimeUserHelp();
+            } catch (Exception e) {
+                System.err.println("Couldn't read default state file: " + e);
+            }
+        }
 
         // open all the datafiles that were specified in the properties file.
         data.startInconsistency();
@@ -243,6 +258,37 @@ public class PSPDashboard extends JFrame implements WindowListener {
         "dashboard.  Until you do this, the data for these",
         "projects/tasks will be inaccessible and/or incomplete."};
 
+    private void displayCorruptStateFileWarning(String filename,
+                                                SAXException se,
+                                                Exception e) {
+        CORRUPT_STATEFILE_WARNING[6] = "    " + filename;
+        if (se == null)
+            CORRUPT_STATEFILE_WARNING[8] = "    " + e.getMessage();
+        else if (se instanceof SAXParseException &&
+                 ((SAXParseException) se).getLineNumber() != -1)
+            CORRUPT_STATEFILE_WARNING[8] = "    " + se.getMessage() +
+                " on line " + ((SAXParseException) se).getLineNumber();
+        else
+            CORRUPT_STATEFILE_WARNING[8] = "    " + se.getMessage();
+
+        JOptionPane.showMessageDialog(null, CORRUPT_STATEFILE_WARNING,
+                                      "Cannot read hierarchy file",
+                                      JOptionPane.ERROR_MESSAGE);
+    }
+    private static final Object[] CORRUPT_STATEFILE_WARNING = {
+        "The dashboard was unable to open and read the file that",
+        "contains your hierarchy.  This problem could be caused by",
+        "insufficient file permissions, or by corrupt data in the",
+        "file itself.  This is a very serious problem; the dashboard",
+        "will not continue until the problem is corrected.  Please",
+        "examine the file:",
+        "",
+        "and correct the following error:",
+        "",
+        "If you cannot correct this error, the only other course of",
+        "action is to rename or delete the file.  This effectively",
+        "will cause all your data to be lost." };
+
     public void openDatafile (String prefix, String dataFile) {
         try {
             data.openDatafile (prefix, property_directory + dataFile);
@@ -304,7 +350,7 @@ public class PSPDashboard extends JFrame implements WindowListener {
 
     public void save() {
         try {
-            props.save(propertiesFile, "properties file");
+            props.save(propertiesFile, "hierarchical work breakdown structure");
         } catch (Exception e) { debug("prop write failed."); }
         if (configure_button != null)
             configure_button.save();

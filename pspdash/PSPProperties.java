@@ -27,6 +27,8 @@ package pspdash;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 import java.io.File;
 import java.io.BufferedReader;
@@ -44,6 +46,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.ItemSelectable;
 import javax.swing.event.EventListenerList;
+import org.w3c.dom.Document;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class PSPProperties extends Hashtable implements ItemSelectable {
 
@@ -310,6 +318,122 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         return load(new FileInputStream(datafilePath));
     }
 
+    public PropertyKey getByID(String id) {
+        Iterator i = entrySet().iterator();
+        Map.Entry e;
+        Prop val;
+        while (i.hasNext()) {
+            e = (Map.Entry) i.next();
+            val = (Prop) e.getValue();
+            if (id.equals(val.getID()))
+                return (PropertyKey) e.getKey();
+        }
+        return null;
+
+        // This is NOT the correct way to do this, but this is how PropertyFrame
+        // is currently doing it.  Fix it later.
+        //PropertyKey result = new PropertyKey (PropertyKey.ROOT, id);
+        //return (containsKey(result) ? result : null);
+    }
+
+    public static final String NAME_ATTR = "name";
+    public static final String TEMPLATE_ATTR = "templateID";
+    public static final String DATAFILE_ATTR = "dataFile";
+    public static final String DEFECTLOG_ATTR = "defectLog";
+    public static final String SELECTED_ATTR = "selected";
+    public static final String XML_HEADER =
+        "<?xml version='1.0'?>";
+    public static final String XML_DTD =
+        "<!DOCTYPE node [\n" +
+        "    <!ELEMENT node (node*)>\n" +
+        "    <!ATTLIST node\n" +
+        "      "+NAME_ATTR+" CDATA #REQUIRED\n" +
+        "      "+TEMPLATE_ATTR+" CDATA #IMPLIED\n" +
+        "      "+DATAFILE_ATTR+" CDATA #IMPLIED\n" +
+        "      "+DEFECTLOG_ATTR+" CDATA #IMPLIED\n" +
+        "      "+SELECTED_ATTR+" (true|false) #IMPLIED>\n" +
+        "]>\n\n";
+
+    private static final PropertyKey INVALID_TEMPLATE =
+        new PropertyKey((PropertyKey) null, "INVALID");
+    private static final String DEFAULT_PHASE_STATUS   = "ME<>";
+    private static final String DEFAULT_PROJECT_STATUS = "MED<>";
+
+    private PropertyKey loadXMLNode (Element e, PSPProperties templates,
+                                     PropertyKey parentKey,
+                                     PropertyKey parentTemplate)
+        throws SAXException
+    {
+        String nodeName = e.getAttribute(NAME_ATTR);
+        if (nodeName == null || nodeName.length() == 0)
+            throw new SAXException("Every node MUST have a name.");
+        PropertyKey key = new PropertyKey(parentKey, nodeName);
+
+        // Determine the template node which this node should be modeled after.
+        PropertyKey templateKey = null;
+        String id = e.getAttribute(TEMPLATE_ATTR);
+        boolean idSet = (id != null && id.length() > 0);
+        if (idSet) {
+            templateKey = templates.getByID(id);
+            if (templateKey == null) templateKey = INVALID_TEMPLATE;
+        } else if (parentTemplate == INVALID_TEMPLATE)
+            templateKey = INVALID_TEMPLATE;
+        else if (parentTemplate != null)
+            templateKey = new PropertyKey(parentTemplate, nodeName);
+        Prop template = null;
+        if (templateKey != null && templateKey != INVALID_TEMPLATE) {
+            template = (Prop) templates.get(templateKey);
+            if (template == null)
+                templateKey = idSet ? INVALID_TEMPLATE : null;
+        }
+
+        Prop val = new Prop();
+        val.setDefectLog(e.getAttribute(DEFECTLOG_ATTR));
+        val.setID(e.getAttribute(TEMPLATE_ATTR));
+        val.setDataFile(e.getAttribute(DATAFILE_ATTR));
+
+        // Copy script and status information from the template, if there is one.
+        if (template == null) {
+            val.setScriptFile("");
+            if (templateKey != INVALID_TEMPLATE)
+                val.setStatus("");
+            else
+                val.setStatus(idSet ? DEFAULT_PROJECT_STATUS : DEFAULT_PHASE_STATUS);
+        } else {
+            val.setScriptFile(template.getScriptFile());
+            val.setStatus(template.getStatus());
+        }
+
+        // Recursively add children.
+        NodeList children = e.getChildNodes();
+        for (int i=0;   i < children.getLength();   i++) {
+            Node n = children.item(i);
+            if (n instanceof Element) {
+                val.addChild(loadXMLNode((Element) n, templates, key, templateKey),-1);
+                if ("true".equals(((Element) n).getAttribute(SELECTED_ATTR)))
+                    val.setSelectedChild(val.getNumChildren() - 1);
+            }
+        }
+
+        // Save this node into the hashtable.
+        put(key, val);
+        return key;
+    }
+
+
+    public Vector loadXML (String filename, PSPProperties templates)
+        throws IOException, SAXException
+    {
+        FileInputStream in = new FileInputStream(filename);
+        loadXMLNode(XMLUtils.parse(in).getDocumentElement(),
+                    templates, null, null);
+
+        Vector v = new Vector();
+        scanForDataFiles(v, PropertyKey.ROOT);
+        if (v.isEmpty()) v = null;
+        return v;
+    }
+
     private void scanForDataFiles(Vector v, PropertyKey key) {
         Prop val = pget(key);
         String dataFile = val.getDataFile();
@@ -330,7 +454,8 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         out.write("\"");
     }
 
-    private void saveXMLNode(BufferedWriter out, int depth, PropertyKey key)
+    private void saveXMLNode(BufferedWriter out, int depth,
+                             PropertyKey key, boolean selected)
         throws IOException
     {
         if (key == null) return;
@@ -341,23 +466,24 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         for (i = depth;   i > 0;   i--)
             out.write("  ");
 
-        out.write("<node name=\"" + XMLUtils.escapeAttribute(key.name()) + "\"");
-        maybePrintAttribute(out, "template", prop.getID());
-        maybePrintAttribute(out, "datafile", prop.getDataFile());
-        maybePrintAttribute(out, "defectlog", prop.getDefectLog());
+        out.write("<node " + NAME_ATTR + "=\"" +
+                  XMLUtils.escapeAttribute(key.name()) + "\"");
+        maybePrintAttribute(out, TEMPLATE_ATTR, prop.getID());
+        maybePrintAttribute(out, DATAFILE_ATTR, prop.getDataFile());
+        maybePrintAttribute(out, DEFECTLOG_ATTR, prop.getDefectLog());
+        if (selected) maybePrintAttribute(out, SELECTED_ATTR, "true");
 
         int numChildren = prop.getNumChildren();
         if (numChildren == 0) {
-            out.write(" />");
+            out.write("/>");
             out.newLine();
         } else {
-            maybePrintAttribute(out, "selectedIndex",
-                                Integer.toString(prop.getSelectedChild()));
             out.write(">");
             out.newLine();
 
+            int selectedIndex = prop.getSelectedChild();
             for (i = 0;  i < numChildren;  i++)
-                saveXMLNode(out, depth+1, prop.getChild(i));
+                saveXMLNode(out, depth+1, prop.getChild(i), (i == selectedIndex));
 
 
             for (i = depth;   i > 0;   i--)
@@ -367,20 +493,29 @@ public class PSPProperties extends Hashtable implements ItemSelectable {
         }
     }
 
-    public void saveXML(String filename) throws IOException {
+    public void saveXML(String filename, String comment) throws IOException {
         BufferedWriter out = new BufferedWriter(new RobustFileWriter(filename));
-        out.write("<?xml version=\"1.0\"?>");
-        out.newLine();
-        out.newLine();
-        saveXMLNode(out, 0, PropertyKey.ROOT);
+        out.write(XML_HEADER);
+        out.newLine();    out.newLine();
+
+        if (comment != null && comment.length() != 0) {
+            out.write("<!-- " + XMLUtils.escapeAttribute(comment) + " -->");
+            out.newLine();    out.newLine();
+        }
+
+        saveXMLNode(out, 0, PropertyKey.ROOT, false);
         out.close();
+    }
+
+    public void save (String datafilePath, String comment) throws IOException {
+        saveXML(datafilePath, comment);
     }
 
 
     // The save operation writes the property keys to the state file.
     // Data is first written to a temporary file, and later renamed to
     // final output file.
-    public void save (String datafilePath,
+    public void saveOld (String datafilePath,
                       String comment) throws IOException {
         PropertyKey key;
         Prop value;
