@@ -166,6 +166,7 @@ public class DataTableModel extends AbstractTableModel {
     public void addRemoveDataColumns(List columnsToAdd, List columnsToRemove) {
         try {
             beginChange();
+            boolean needToReinitialize = (dependencies != null);
             dependencies = null;
 
             Iterator i;
@@ -181,7 +182,8 @@ public class DataTableModel extends AbstractTableModel {
                     addDataColumn((DataColumn) i.next());
             }
 
-            initializeColumnDependencies();
+            if (needToReinitialize)
+                initializeColumnDependencies();
 
         } finally {
             endChange();
@@ -191,6 +193,15 @@ public class DataTableModel extends AbstractTableModel {
 
     public void addTeamMemberTimes(TableColumnModel columnModel) {
         memberColumnManager.addToColumnModel(columnModel);
+    }
+
+    public IntList getTeamMemberColumnIDs() {
+        IntList result = new IntList();
+        Iterator i = memberColumnManager.getColumns().iterator();
+        while (i.hasNext())
+            result.add(columns.indexOf(i.next()));
+
+        return result;
     }
 
     protected void buildDataColumns(TeamMemberList teamList,

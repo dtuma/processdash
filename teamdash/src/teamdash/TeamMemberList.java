@@ -274,25 +274,26 @@ public class TeamMemberList extends AbstractTableModel {
         }
     }
 
-    public interface InitialListener {
+    public interface InitialsListener {
         public void initialsChanged(String oldInitials, String newInitials);
     }
 
-    private HashSet initialListeners = null;
-    public void addInitialListener(InitialListener l) {
+    private HashSet initialsListeners = null;
+    public void addInitialsListener(InitialsListener l) {
         if (l == null) return;
-        if (initialListeners == null) initialListeners = new HashSet();
-        initialListeners.add(l);
+        if (initialsListeners == null)
+            initialsListeners = new HashSet();
+        initialsListeners.add(l);
     }
-    public void removeInitialListener(InitialListener l) {
-        if (initialListeners != null)
-            initialListeners.remove(l);
+    public void removeInitialsListener(InitialsListener l) {
+        if (initialsListeners != null)
+            initialsListeners.remove(l);
     }
 
     private void fireInitialsChanged(String initBefore, String initAfter) {
-        Iterator i = initialListeners.iterator();
+        Iterator i = initialsListeners.iterator();
         while (i.hasNext())
-            ((InitialListener) i.next()).initialsChanged
+            ((InitialsListener) i.next()).initialsChanged
                 (initBefore, initAfter);
     }
 }

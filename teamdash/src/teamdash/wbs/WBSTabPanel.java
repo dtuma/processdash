@@ -31,7 +31,7 @@ import teamdash.TeamMemberList;
 /** Class to display the WBS editor panel
  */
 public class WBSTabPanel extends JPanel
-    implements TeamMemberList.InitialListener
+    implements TeamMemberList.InitialsListener
 {
 
     public static final String TEAM_MEMBER_TIMES_ID = "TeamMemberTimes";
@@ -92,32 +92,22 @@ public class WBSTabPanel extends JPanel
         DataTableModel tableModel = (DataTableModel) dataTable.getModel();
         TableColumnModel columnModel = new DefaultTableColumnModel();
 
-        for (int i = 0; i < columnNames.length; i++) {
-            if (TEAM_MEMBER_TIMES_ID.equals(columnIDs[i])) {
+        for (int i = 0; i < columnIDs.length; i++) {
+            if (TEAM_MEMBER_TIMES_ID.equals(columnIDs[i]))
                 tableModel.addTeamMemberTimes(columnModel);
-                continue;
+            else {
+                TableColumn tableColumn =
+                    new DataTableColumn(tableModel, columnIDs[i]);
+                if (columnNames != null && columnNames[i] != null)
+                    // maybe change the name of the column
+                    tableColumn.setHeaderValue(columnNames[i]);
+                columnModel.addColumn(tableColumn);
             }
-
-            int columnIndex = tableModel.findColumn(columnIDs[i]);
-            if (columnIndex == -1)
-                columnIndex = tableModel.findColumn(columnNames[i]);
-            if (columnIndex == -1)
-                throw new IllegalArgumentException(
-                    "No column with ID " + columnIDs[i]);
-
-            TableColumn tableColumn = new TableColumn(columnIndex);
-            String name = columnNames[i];
-            if (name == null)
-                name = tableModel.getColumn(columnIndex).getColumnName();
-            tableColumn.setHeaderValue(name);
-            tableColumn.setIdentifier(columnIDs[i]);
-            int width = tableModel.getPreferredWidth(columnIndex);
-            if (width > 0) tableColumn.setPreferredWidth(width);
-            columnModel.addColumn(tableColumn);
         }
 
         // add the newly created table model to the tableColumnModels list
         tableColumnModels.add(columnModel);
+
         // add the new tab. (Note: the addition of the first tab triggers
         // an automatic tab selection event, which will effectively install
         // the tableColumnModel we just created.)
