@@ -45,9 +45,15 @@ public class PiePlot extends Plot {
     /** Flag determining whether to draw an ellipse or a perfect circle. */
     boolean drawCircle = true;
 
+    /** Flag determining whether to draw wedge labels. */
+    boolean drawWedgeLabels = true;
+
     /** Interior spacing - that is the room between the plot border and a rectangle that will be
         considered for drawing the pie. */
     int interiorSpacing = 30;
+
+    Font wedgeLabelFont = new Font("Arial", Font.PLAIN, 12);
+    Paint wedgePaint = Color.black;
 
     /**
      * Standard constructor: returns a PiePlot with attributes specified by the caller.
@@ -64,7 +70,7 @@ public class PiePlot extends Plot {
      * @param chart The chart that the plot belongs to;
      */
     public PiePlot(JFreeChart chart) throws AxisNotCompatibleException {
-        this(chart, new Insets(0, 30, 30, 0));
+        this(chart, new Insets(0, 5, 5, 0));
     }
 
     /**
@@ -104,6 +110,8 @@ public class PiePlot extends Plot {
         else
             return false;
     }
+
+    public void setInteriorSpacing(int i) { interiorSpacing = i; }
 
     /**
      * Draws the plot on a Java 2D graphics device (such as the screen or a printer).
@@ -170,8 +178,8 @@ public class PiePlot extends Plot {
             double value = dataValue.doubleValue();
             if (value<=0)
                 continue;
-            double startAngle = sumTotal * 360 / totalValue;
-            double extent = (sumTotal+value) * 360 / totalValue - startAngle;
+            double extent = value * 360 / totalValue;
+            double startAngle = 90 - (sumTotal * 360 / totalValue) - extent;
             Arc2D.Double arc = new Arc2D.Double(arcX, arcY, plotArea.getWidth(), plotArea.getHeight(),
                                                 startAngle, extent, Arc2D.PIE);
             sumTotal += value;
@@ -185,12 +193,11 @@ public class PiePlot extends Plot {
             g2.setPaint(outlinePaint);
             g2.draw(arc);
 
-            if (drawCircle) {
-                StandardLegend legend = (StandardLegend)getChart().getLegend();
+            if (drawCircle && drawWedgeLabels) {
                 FontRenderContext frc = g2.getFontRenderContext();
                 String seriesName = data.getSeriesName(seriesIndex);
-                Rectangle2D seriesBounds = legend.getSeriesFont().getStringBounds(seriesName, frc);
-                LineMetrics lm = legend.getSeriesFont().getLineMetrics(seriesName, frc);
+                Rectangle2D seriesBounds = wedgeLabelFont.getStringBounds(seriesName, frc);
+                LineMetrics lm = wedgeLabelFont.getLineMetrics(seriesName, frc);
                 double ascent = lm.getAscent();
 
                 Rectangle2D labelPlotArea = new Rectangle2D.Double(plotArea.getX() - ascent,
@@ -215,8 +222,8 @@ public class PiePlot extends Plot {
                 if (labelLocationY > labelPlotArea.getCenterY())
                     labelLocationY +=ascent;
 
-                g2.setPaint(legend.getSeriesPaint());
-                g2.setFont(legend.getSeriesFont());
+                g2.setPaint(wedgePaint);
+                g2.setFont(wedgeLabelFont);
                 g2.drawString(seriesName, (float)labelLocationX, (float)labelLocationY);
             }
 
@@ -247,4 +254,24 @@ public class PiePlot extends Plot {
         drawCircle = circle;
     }
 
+    /**
+     * Returns true if this pie chart is configured to draw wedge labels,
+     * and false otherwise.
+     */
+    public boolean getDrawWedgeLabels() {
+        return drawWedgeLabels;
+    }
+
+    /**
+     * Sets this chart's property that causes it to draw wedge labels.
+     */
+    public void setDrawWedgeLabels(boolean wedge) {
+        drawWedgeLabels = wedge;
+    }
+
+    public void setWedgeLabelFont(Font f) { wedgeLabelFont = f; }
+    public Font getWedgeLabelFont() { return wedgeLabelFont; }
+
+    public void setWedgeLabelPaint(Paint p) { wedgePaint = p; }
+    public Paint getWedgeLabelPaint() { return wedgePaint; }
 }
