@@ -33,7 +33,7 @@
 
 <TABLE><TR><TD><H1>Plan Analysis&nbsp;</H1></TD>
 <TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
-<script src="../chart.js"></script>
+<script src="../chart.js">document.write("problem loading chart.js!");</script>
 <script>
     write("qf=plan/size.rpt", "qf=small.rpt");
     write("qf=plan/size-est-err.rpt", "qf=small.rpt");
@@ -50,3 +50,4 @@
     // write("qf=defects/comp-vs-test.rpt&chart=xy", "qf=small.rpt");
 </script>
 </BODY>
+</HTML>

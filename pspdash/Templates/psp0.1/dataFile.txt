@@ -49,16 +49,18 @@ PSP0=null
 == Automatically compute Estimated Time by phase.
 ==
 
-Planning/Estimated Time==![(*	Estimated Time	/Planning/% Time To Date)]
-Design/Estimated Time==![(*	Estimated Time	/Design/% Time To Date)]
-Design Review/Estimated Time==![(*	Estimated Time	/Design Review/% Time To Date)]
+Normalized Estimated Time==![(/	Estimated Time	/Normalization %/Time/PSP0-2)]
+
+Planning/Estimated Time==![(*	Normalized Estimated Time	/Planning/% Time To Date)]
+Design/Estimated Time==![(*	Normalized Estimated Time	/Design/% Time To Date)]
+Design Review/Estimated Time==![(*	Normalized Estimated Time	/Design Review/% Time To Date)]
 Design/Combined Estimated Time==![(+	Design/Estimated Time	Design Review/Estimated Time)]
-Code/Estimated Time==![(*	Estimated Time	/Code/% Time To Date)]
-Code Review/Estimated Time==![(*	Estimated Time	/Code Review/% Time To Date)]
+Code/Estimated Time==![(*	Normalized Estimated Time	/Code/% Time To Date)]
+Code Review/Estimated Time==![(*	Normalized Estimated Time	/Code Review/% Time To Date)]
 Code/Combined Estimated Time==![(+	Code/Estimated Time	Code Review/Estimated Time)]
-Compile/Estimated Time==![(*	Estimated Time	/Compile/% Time To Date)]
-Test/Estimated Time==![(*	Estimated Time	/Test/% Time To Date)]
-Postmortem/Estimated Time==![(*	Estimated Time	/Postmortem/% Time To Date)]
+Compile/Estimated Time==![(*	Normalized Estimated Time	/Compile/% Time To Date)]
+Test/Estimated Time==![(*	Normalized Estimated Time	/Test/% Time To Date)]
+Postmortem/Estimated Time==![(*	Normalized Estimated Time	/Postmortem/% Time To Date)]
 PM/Estimated Time==![(+	Postmortem/Estimated Time)]
 
 

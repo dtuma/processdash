@@ -56,6 +56,9 @@ PSP2.1==null
 HLD/PSP Phase==20.0
 HLD Review/PSP Phase==25.0
 
+Normalized Estimated Time==![(/	Estimated Time	/Normalization %/Time/PSP3)]
+Normalized Estimated Defects Injected==![(/	Estimated Defects Injected	/Normalization %/Defects Injected/PSP3)]
+
 = Estimated time
 
 HLD/Estimated Time==![(*	Estimated Time	/HLD/% Time To Date)]

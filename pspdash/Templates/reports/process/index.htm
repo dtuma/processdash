@@ -32,7 +32,7 @@
 
 <TABLE><TR><TD><H1>Process Analysis&nbsp;</H1></TD>
 <TD VALIGN="BASELINE"><I>Click on a chart for more detail.</I></TD></TR></TABLE>
-<script src="../chart.js"></script>
+<script src="../chart.js">document.write("problem loading chart.js!");</script>
 <script>
     write("qf=process/productivity.rpt", "qf=small.rpt");
     write("qf=process/prod-vs-yield.rpt&chart=xy", "qf=small.rpt");
@@ -42,3 +42,4 @@
     write("qf=process/testdef-vs-yield.rpt&chart=xy", "qf=small.rpt");
 </script>
 </BODY>
+</HTML>
