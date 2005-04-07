@@ -262,7 +262,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
             if (pos < 1) continue;
             String processDir = scriptURL.substring(0, pos);
             String wizardURL = processDir + "/setup/wizard.class";
-            URL u = TemplateLoader.resolveURL(wizardURL);
+            URL u = resolveURL(wizardURL);
             if (u != null)
                 return wizardURL;
         }
@@ -403,7 +403,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         if (pos != -1) continuationURI = continuationURI.substring(0, pos);
         pos = continuationURI.indexOf('#');
         if (pos != -1) continuationURI = continuationURI.substring(0, pos);
-        URL url = TemplateLoader.resolveURL(continuationURI);
+        URL url = resolveURL(continuationURI);
         if (url == null) return false;
 
         // check to see if the continuation URI appears to be provided by
@@ -427,6 +427,13 @@ public class TeamStartBootstrap extends TinyCGIBase {
         return true;
     }
 
+
+    private URL resolveURL(String uri) {
+        URL result = TemplateLoader.resolveURL(uri);
+        if (result == null)
+            result = TemplateLoader.resolveURL(uri + ".link");
+        return result;
+    }
 
     /** Ask the dashboard to begin the process of loading a new template.
      * 
