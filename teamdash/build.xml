@@ -38,7 +38,7 @@
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
 	<attribute name="Dash-Pkg-ID" value="teamTools"/>
 	<attribute name="Dash-Pkg-Version" value="2.0.0"/>
-    <attribute name="Dash-Pkg-Requires-Version" value="1.7b.20050401"/>
+	<attribute name="Dash-Pkg-Requires-Version" value="1.7b.20050401+"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
