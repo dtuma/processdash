@@ -1584,7 +1584,8 @@ public class WebServer extends Thread {
             listenAddress = LOOPBACK_ADDR;
 
         while (serverSocket == null) try {
-            dataSocket = new ServerSocket(port-1, 50, listenAddress);
+            if (port > 0)
+                dataSocket = new ServerSocket(port-1, 50, listenAddress);
             serverSocket = new ServerSocket(port, 50, listenAddress);
         } catch (IOException ioex) {
             if (dataSocket != null) {
