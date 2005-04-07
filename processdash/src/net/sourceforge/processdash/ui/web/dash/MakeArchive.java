@@ -39,6 +39,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.TinyCGIHighVolume;
 import net.sourceforge.processdash.tool.export.HTMLArchiver;
@@ -51,6 +53,7 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
 
     protected static Resources resources =
         Resources.getDashBundle("ImportExport.HTMLArchive");
+    private static final String SETTING_NAME = "archive.exportMethod";
 
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
@@ -81,23 +84,45 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
     protected void writeWaitContents() {
         String uri = getURI();
         String filename = getFilename(uri);
+        String url = "archive.class?run&uri=" + HTMLUtils.urlEncode(uri) +
+            "&filename=" + HTMLUtils.urlEncode(filename);
 
         out.print("<html><head><title>\n");
         out.print(resources.getHTML("Title"));
         out.print("</title>\n<meta http-equiv='Refresh' "+
-                  "content='1;URL=archive.class?run&uri=");
-        out.print(HTMLUtils.urlEncode(uri));
-        out.print("&filename=");
-        out.print(HTMLUtils.urlEncode(filename));
+                  "content='1;URL=");
+        out.print(url);
         if (parameters.containsKey("out")) {
             out.print("&out=");
             out.print(HTMLUtils.urlEncode(getParameter("out")));
         }
         out.print("'>\n</head><body><h1>");
         out.print(resources.getHTML("Title"));
-        out.print("</h1>\n");
+        out.print("</h1>\n<p>");
         out.print(resources.getHTML("Wait_Message"));
-        out.print("</body></html>\n");
+        out.print("</p>\n<p>");
+        String fileType = getOutputType();
+        String fileTypeTitle = resources.getString
+            ("HTMLArchive.Output."+fileType+".Title");
+        out.print(HTMLUtils.escapeEntities
+            (resources.format("HTMLArchive.Output_FMT", fileTypeTitle)));
+        out.print("</p>\n<ul>\n");
+        writeFileTypeOption("MIME", url);
+        writeFileTypeOption("ZIP", url);
+        writeFileTypeOption("JAR", url);
+        out.print("</ul>\n</body></html>\n");
+    }
+
+    private void writeFileTypeOption(String type, String url) {
+        out.print("<li><a href=\"");
+        out.print(url);
+        out.print("&out=");
+        out.print(type);
+        out.print("\">");
+        out.print(resources.getHTML("HTMLArchive.Output."+type+".Title"));
+        out.print("</a> ");
+        out.print(resources.getHTML("HTMLArchive.Output."+type+".Description"));
+        out.print("</li>\n");
     }
 
     private String getFilename(String uri) {
@@ -193,11 +218,22 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
     }
 
     protected int getOutputMode() {
-        if ("jar".equalsIgnoreCase(getParameter("out")))
-            return HTMLArchiver.OUTPUT_JAR;
-        if ("zip".equalsIgnoreCase(getParameter("out")))
-            return HTMLArchiver.OUTPUT_ZIP;
+        // first, check for an explicit output parameter in the URL.
+        String outputModeName = getParameter("out");
+        int result = decodeOutputMode(outputModeName);
+        if (result != -1) {
+            InternalSettings.set(SETTING_NAME, outputModeName.toLowerCase());
+            return result;
+        }
 
+        // next, check for a saved user setting.
+        outputModeName = Settings.getVal(SETTING_NAME);
+        result = decodeOutputMode(outputModeName);
+        if (result != -1)
+            return result;
+
+        // finally, choose an appropriate default based on the browser
+        // the user is using.
         String userAgent = (String) env.get("HTTP_USER_AGENT");
         if (userAgent.indexOf("MSIE") != -1)
             return HTMLArchiver.OUTPUT_MIME;
@@ -205,11 +241,28 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
             return HTMLArchiver.OUTPUT_ZIP;
     }
 
+    protected int decodeOutputMode(String mode) {
+        if ("jar".equalsIgnoreCase(mode))
+            return HTMLArchiver.OUTPUT_JAR;
+        if ("zip".equalsIgnoreCase(mode))
+            return HTMLArchiver.OUTPUT_ZIP;
+        if ("mime".equalsIgnoreCase(mode))
+            return HTMLArchiver.OUTPUT_MIME;
+        return -1;
+    }
+
     protected String getOutputSuffix() {
         switch (getOutputMode()) {
             case HTMLArchiver.OUTPUT_JAR: return ".jar";
             case HTMLArchiver.OUTPUT_ZIP: return ".zip";
             case HTMLArchiver.OUTPUT_MIME: default: return ".mhtml";
+        }
+    }
+    protected String getOutputType() {
+        switch (getOutputMode()) {
+            case HTMLArchiver.OUTPUT_JAR: return "JAR";
+            case HTMLArchiver.OUTPUT_ZIP: return "ZIP";
+            case HTMLArchiver.OUTPUT_MIME: default: return "MIME";
         }
     }
 
