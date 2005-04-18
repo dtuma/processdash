@@ -112,6 +112,10 @@ public class DateFormatter {
             try {
                 return defaultDateFormats[i].parse(s);
             } catch (Exception e) {}
+        if (s != null && s.startsWith("@"))
+            try {
+                return new Date(Long.parseLong(s.substring(1)));
+            } catch (Exception e) {}
         return null;
     }
 
@@ -133,6 +137,10 @@ public class DateFormatter {
         for (int i = 0; i < defaultDateTimeFormats.length; i++)
             try {
                 return defaultDateTimeFormats[i].parse(s);
+            } catch (Exception e) {}
+        if (s != null && s.startsWith("@"))
+            try {
+                return new Date(Long.parseLong(s.substring(1)));
             } catch (Exception e) {}
         return null;
     }

@@ -111,7 +111,7 @@ public class TimeLogEntry {
 
     public String toString() {
         return (((key == null) ? "" : key.toString()) + TAB +
-                START + DateFormatter.formatDateTime(createTime) + TAB +
+                START + XMLUtils.saveDate(createTime) + TAB +
                 ELAPSED + minutesElapsed + TAB +
                 INTERRUPT + minutesInterrupt +
                 (comment == null ? "" : TAB + comment) + TERMINATOR);

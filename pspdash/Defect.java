@@ -63,7 +63,7 @@ public class Defect {
 
     public String toString() {
         String tab = "\t";
-        if (date != null) dateStr = DateFormatter.formatDate(date);
+        if (date != null) dateStr = XMLUtils.saveDate(date);
         return (token(number, false) + tab +
                 token(defect_type, false) + tab +
                 token(phase_injected, false) + tab +
