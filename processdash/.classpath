@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry output="test/bin" kind="src" path="test/src"/>
+	<classpathentry kind="src" path="lib/src"/>
+	<classpathentry kind="src" path="l10n-tool/src"/>
+	<classpathentry excluding="**/CVS/|**/CVS" kind="src" path="installer/IzPack/src/lib"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/distlib.jar"/>
+	<classpathentry kind="lib" path="lib/jregex.jar"/>
+	<classpathentry kind="lib" path="installer/IzPack/lib/kunststoff.jar"/>
+	<classpathentry sourcepath="misc/zips/jcommon-0.9.0.zip" kind="lib" path="lib/jcommon-0.9.0.jar"/>
+	<classpathentry sourcepath="misc/zips/jfreechart-0.9.15.zip" kind="lib" path="lib/jfreechart-0.9.15.jar"/>
+	<classpathentry kind="var" path="JUNIT_HOME/junit.jar"/>
+	<classpathentry kind="var" path="JDK_HOME/jre/lib/plugin.jar"/>
+	<classpathentry kind="output" path="bin2"/>
+</classpath>
