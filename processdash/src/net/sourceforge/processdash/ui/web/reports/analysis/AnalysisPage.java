@@ -131,6 +131,18 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
         return Compiler.escapeLiteral(str);
     }
 
+    protected String getDefectLogParam() {
+        String defectLogParam = (String) env.get("QUERY_STRING");
+        if (defectLogParam == null)
+            defectLogParam = "";
+        else if (PATH_TO_REPORTS.length() > 0)
+            defectLogParam = StringUtils.findAndReplace
+                (defectLogParam, "qf="+PATH_TO_REPORTS, "qf=");
+        defectLogParam = StringUtils.findAndReplace
+            (defectLogParam, "&"+INCLUDABLE_PARAM, "");
+        return defectLogParam;
+    }
+
     protected ListData getProcessList(String listName) {
         String dataName = DataRepository.createDataName(getPrefix(), listName);
         SimpleData val = getDataRepository().getSimpleValue(dataName);
@@ -166,6 +178,10 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
     }
     protected void interpOut(String text) {
         out.write(interpolate(text));
+    }
+
+    protected void printRes(String txt) {
+        out.println(resources.interpolate(txt, HTMLUtils.ESC_ENTITIES));
     }
 
     protected String fmtArg(String name, Object value) {
@@ -296,6 +312,14 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
     protected String getAggrSizeLabel() {
         return Translator.translate
             (getProcessString("AGGR_SIZE_METRIC_NAME_ABBR"));
+    }
+
+
+    public static final String INCLUDABLE_PARAM = "includable";
+
+
+    public boolean exporting() {
+        return parameters.containsKey("EXPORT");
     }
 
 }

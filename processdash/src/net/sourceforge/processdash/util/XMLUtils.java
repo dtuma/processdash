@@ -42,6 +42,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -79,6 +80,20 @@ public class XMLUtils {
         try {
             builder = (DocumentBuilder) builderPool.get();
             result = builder.parse(in);
+        } finally {
+            if (builder != null) builderPool.release(builder);
+        }
+        return result;
+    }
+
+    public static Document parse(java.io.Reader in)
+        throws SAXException, IOException
+    {
+        DocumentBuilder builder = null;
+        Document result = null;
+        try {
+            builder = (DocumentBuilder) builderPool.get();
+            result = builder.parse(new InputSource(in));
         } finally {
             if (builder != null) builderPool.release(builder);
         }

@@ -52,6 +52,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
     // variables used to hold/collect data during a run
     private String [] projects;
     private String sizeMetric;
+    private String defectLogParam;
     private List failurePhases;
     private List injectionCategories, removalCategories;
     protected int [][] count  = null;
@@ -69,31 +70,35 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
     private void writeHTMLHeader() {
-        out.print
-            ("<HTML><head>" +
-             "<link rel=stylesheet type=\"text/css\" href=\"/style.css\">" +
-             "<style>\n" +
-             "TD        { text-align: center }\n" +
-             "TD.header { font-weight: bold;  font-size: large }\n" +
-             "TD.task   { text-align: left; white-space: nowrap }\n" +
-             "TD.subcat { text-align: right; white-space: nowrap }\n" +
-             "</style>\n" +
-             "<title>");
-        out.print(resources.getHTML("R3.Title"));
-        out.print
-            ("</title>\n</head>\n<BODY>\n<H1>");
-        out.print(HTMLUtils.escapeEntities(localizePrefix(getPrefix())));
-        out.print("</H1>\n<H2>");
+        if (!parameters.containsKey(INCLUDABLE_PARAM)) {
+            out.print
+                ("<HTML><head>" +
+                 "<link rel=stylesheet type=\"text/css\" href=\"/style.css\">"+
+                 "<style>\n" +
+                 "TD        { text-align: center }\n" +
+                 "TD.header { font-weight: bold;  font-size: large }\n" +
+                 "TD.task   { text-align: left; white-space: nowrap }\n" +
+                 "TD.subcat { text-align: right; white-space: nowrap }\n" +
+                 "</style>\n" +
+                 "<title>");
+            out.print(resources.getHTML("R3.Title"));
+            out.print("</title>\n</head>\n<BODY>\n<H1>");
+            out.print(HTMLUtils.escapeEntities(localizePrefix(getPrefix())));
+            out.print("</H1>\n");
+        }
+        out.print("<H2>");
         out.print(resources.getHTML("R3.Title"));
         out.print("</H2>\n");
     }
 
 
     protected void writeHTMLFooter() {
-        out.print("<P><A HREF=\"" + PATH_TO_REPORTS + "excel.iqy\"><I>");
-        out.print(resources.getHTML("Export_to_Excel"));
-        out.println("</I></A>");
-        out.println("</BODY></HTML>");
+        if (!parameters.containsKey(INCLUDABLE_PARAM)) {
+            out.print("<P><A HREF=\"" + PATH_TO_REPORTS + "excel.iqy\"><I>");
+            out.print(resources.getHTML("Export_to_Excel"));
+            out.println("</I></A>");
+            out.println("</BODY></HTML>");
+        }
     }
 
 
@@ -121,10 +126,17 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
         projects = ResultSet.getPrefixList
             (getDataRepository(), parameters, getPrefix());
+
+        defectLogParam = getDefectLogParam();
+        if (defectLogParam.length() > 0)
+                defectLogParam = defectLogParam + "&";
     }
 
 
     private void writeTableD21() throws IOException {
+        if (parameters.containsKey("hideD21"))
+                return;
+
         failurePhases = getProcessListPlain("Failure_Phase_List");
 
         // open table
@@ -216,8 +228,11 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
     protected void writeTableD22() {
-        for (int i = 0;   i < projects.length;   i++)
-            DefectAnalyzer.run(getPSPProperties(), projects[i], this);
+        if (parameters.containsKey("hideD22"))
+            return;
+
+        DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
+                           projects, this);
 
         eliminateEmptyValues();
         if (count == null) return;
@@ -280,7 +295,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
             out.println("</TR>");
         }
 
-        out.println("</TABLE></BODY></HTML>");
+        out.println("</TABLE>");
     }
 
 
@@ -365,11 +380,6 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
     }
 
 
-    protected void printRes(String txt) {
-        out.println(resources.interpolate(txt, HTMLUtils.ESC_ENTITIES));
-    }
-
-
     protected void printResPhaseOrTotal(String resKey, String arg) {
         if (arg == TOTAL_CATEGORY_KEY) {
             resKey = resKey + "_Total";
@@ -390,7 +400,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
     protected String getDefectCountHTML(String path, String count,
                                         String inj, String rem) {
-        if (count == NA || "0".equals(count)) return count;
+        if (count == NA || "0".equals(count) || exporting()) return count;
 
         StringBuffer html = new StringBuffer();
         html.append("<a href=\"");
@@ -398,7 +408,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
             html.append(WebServer.urlEncodePath(path))
                 .append("//reports/defectlog.class?");
         else
-            html.append(PATH_TO_REPORTS + "defectlog.class?qf=compProj.rpt&");
+            html.append(PATH_TO_REPORTS + "defectlog.class?" + defectLogParam);
 
         if (inj != null && inj != TOTAL_CATEGORY_KEY) {
             html.append("inj=")

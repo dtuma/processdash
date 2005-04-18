@@ -272,7 +272,7 @@ public class ImportExport extends JDialog implements ActionListener {
         boolean fail = false;
         PrintWriter out = null;
         try {
-            out = new PrintWriter(new RobustFileWriter(dest));
+            out = new PrintWriter(new RobustFileWriter(dest, "UTF-8"));
 
             // Find and print any applicable task lists.
             Iterator i = parent.getData().getKeys();
@@ -315,6 +315,8 @@ public class ImportExport extends JDialog implements ActionListener {
                 if (Filter.matchesFilter (filter, tle.getPath()))
                     out.println(tle.toAbbrevString());
             }
+
+            DefectExporter.dumpDefects(parent, filter, out);
 
         } catch (IOException ioe) {
             fail = true; System.out.println("IOException: " + ioe);

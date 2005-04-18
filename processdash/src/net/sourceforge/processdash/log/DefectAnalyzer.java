@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -34,6 +34,7 @@ import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.tool.export.DefectImporter;
 
 
 public class DefectAnalyzer {
@@ -55,8 +56,13 @@ public class DefectAnalyzer {
                            Task t) {
         String [] prefixes = ResultSet.getPrefixList
             (data, queryParameters, prefix);
+        run(props, data, prefixes, t);
+    }
+
+    public static void run(DashHierarchy props, DataRepository data, String[] prefixes, Task t) {
         for (int i = 0;   i < prefixes.length;   i++)
             run(props, prefixes[i], t);
+        DefectImporter.run(props, data, prefixes, t);
     }
 
     /** Perform some analysis task on all the defects under a given node

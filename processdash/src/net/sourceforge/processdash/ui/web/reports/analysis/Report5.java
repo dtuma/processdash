@@ -89,16 +89,20 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "<title>${Title_Long}</title>\n" +
         "</head><BODY>\n" +
-        "<H1>%PATH%</H1>\n" +
+        "<H1>%PATH%</H1>\n";
+    private static final String TITLE_TEXT =
         "<H2>${Title_Long}</H2>\n";
 
     private void writeHtmlContents() {
-        String text = HTML_HEADER;
-        text = StringUtils.findAndReplace
-            (text, "%PATH%",
-             HTMLUtils.escapeEntities
-                (AnalysisPage.localizePrefix(getPrefix())));
-        out.print(resources.interpolate(text, HTMLUtils.ESC_ENTITIES));
+        if (!parameters.containsKey(AnalysisPage.INCLUDABLE_PARAM)) {
+            String text = HTML_HEADER;
+            text = StringUtils.findAndReplace
+                (text, "%PATH%",
+                 HTMLUtils.escapeEntities
+                    (AnalysisPage.localizePrefix(getPrefix())));
+            out.print(resources.interpolate(text, HTMLUtils.ESC_ENTITIES));
+        }
+        out.print(resources.interpolate(TITLE_TEXT, HTMLUtils.ESC_ENTITIES));
 
         String scriptName = (String) env.get("SCRIPT_NAME");
         int slashPos = scriptName.lastIndexOf('/');
@@ -115,7 +119,8 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
             out.print("&categoryLabels=vertical&width=500&height=400\"></P>");
         }
 
-        out.print("</BODY></HTML>");
+        if (!parameters.containsKey(AnalysisPage.INCLUDABLE_PARAM))
+            out.print("</BODY></HTML>");
     }
 
     /** Create a vertical bar chart. */

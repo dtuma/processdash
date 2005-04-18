@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -68,13 +68,14 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         "<TD>${FixDefect}</TD>\n" +
         "<TD>${Description}</TD></TR>";
 
-    private static final String END_TEXT =
+    private static final String TABLE_END_TEXT =
         "</TABLE>" +
         "<P class='doNotPrint'><A HREF=\"excel.iqy\"><I>" +
         "${Export_to_Excel}</I></A></P>" ;
 
     private static final String DISCLAIMER =
-        "<P class=doNotPrint><I>${Caveat}</I></P>" +
+        "<P class=doNotPrint><I>${Caveat}</I></P>";
+    private static final String END_TEXT =
         "</BODY></HTML>";
 
     /** Generate CGI script output. */
@@ -120,11 +121,12 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         else
             DefectAnalyzer.run(getPSPProperties(), path, this);
 
-        out.println(resources.interpolate(END_TEXT, HTMLUtils.ESC_ENTITIES));
+        out.println(resources.interpolate(TABLE_END_TEXT, HTMLUtils.ESC_ENTITIES));
 
-        if (getParameter("EXPORT") == null)
+        if (getParameter("EXPORT") == null && !parameters.containsKey("noDisclaimer"))
             out.println(resources.interpolate(DISCLAIMER,
                                               HTMLUtils.ESC_ENTITIES));
+        out.println(END_TEXT);
     }
 
     private String For(String phrase) {
