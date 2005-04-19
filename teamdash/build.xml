@@ -78,4 +78,26 @@
     </java>
   </target>
 
+  <target name="installer" depends="jar,TSP">
+    <pathconvert property="teamdash.dir" dirSep="/">
+      <path><pathelement location="."/></path>
+    </pathconvert>
+    <loadfile property="extraResources" srcFile="install/resources.xml">
+      <filterchain><expandproperties/></filterchain>
+    </loadfile>
+    <loadfile property="extraPacks" srcFile="install/packs.xml">
+      <filterchain><expandproperties/></filterchain>
+    </loadfile>
+
+    <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
+         target="dist-CD">
+      <property name="alreadyRebuilt" value="true"/>
+      <property name="dontCleanDist" value="true"/>
+      <property name="dist" value="${teamdash.dir}"/>
+      <property name="additional.resources" value="${extraResources}"/>
+      <property name="additional.packs" value="${extraPacks}"/>
+      <property name="qualifier" value="team"/>
+    </ant>
+  </target>
+
 </project>

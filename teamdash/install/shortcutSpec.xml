@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<shortcuts>
+
+  <shortcut
+     name="Team Dashboard"
+     programGroup="yes"
+     desktop="yes"
+     applications="no"
+     startMenu="no"
+     startup="yes"
+     target="javaw"
+     commandLine="-jar &quot;$INSTALL_PATH\pspdash.jar&quot; &quot;Team Dashboard&quot;"
+     workingDirectory="$DATA_PATH\teaminstance"
+     description="Process Dashboard instance containing your team data"
+     iconFile="$DATA_PATH\teaminstance\teamicon.ico"
+     iconIndex="0"
+     initialState="minimized">
+       <createForPack id="teamTools"/>
+  </shortcut>
+   
+</shortcuts>
