@@ -202,6 +202,10 @@ pdash-install-${qualifier}-${dashboard-version}.jar
 
     <target name="dist" depends="prepare,compile"/>
 
+    <target name="dist-CD" depends="prepare,clean,install-CD">
+      <delete quiet="true" file="install-reg.xml"/>
+    </target>
+
     <target name="prepare" depends="rebuild">
 
         <!-- print an error unless the PSP process file is built -->
