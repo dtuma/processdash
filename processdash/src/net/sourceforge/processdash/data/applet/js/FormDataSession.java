@@ -46,7 +46,10 @@ public class FormDataSession implements FormDataListener {
     public FormDataSession(DataRepository data, String prefix, boolean unlock) {
         mgr = new JSFieldManager(unlock);
         mgr.addFormDataListener(this);
-        mgr.initialize(new JSRepository(data), prefix);
+        JSRepository jsRepository = null;
+        if (data != null)
+            jsRepository = new JSRepository(data);
+        mgr.initialize(jsRepository, prefix);
         formDataEvents = new LinkedList();
         sessionID = getNextSessionID(this);
         touch();
