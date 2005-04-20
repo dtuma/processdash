@@ -27,31 +27,54 @@ package net.sourceforge.processdash.util;
 
 import java.io.*;
 
-public class CppFilterReader extends StringReader {
+public class CppFilterReader extends Reader {
+
+    BufferedReader in;
+    CppFilter cppFilter;
+    String nextLine;
 
     public CppFilterReader(BufferedReader in) throws IOException {
-        super(filter(in, null));
+        this(in, null);
     }
 
     public CppFilterReader(BufferedReader in, String preDefinitions)
         throws IOException
     {
-        super(filter(in, preDefinitions));
+        this.in = in;
+        cppFilter = new CppFilter(in, preDefinitions);
+        getNextLine();
     }
 
-    private static String filter(BufferedReader in, String preDefinitions)
-        throws IOException
-    {
-        StringBuffer result = new StringBuffer();
-        String line;
-        CppFilter filt = null;
-        try {
-            filt = new CppFilter(in, preDefinitions);
-            while ((line = filt.readLine()) != null)
-                result.append(line).append("\n");
-        } finally {
-            if (filt != null) filt.dispose();
-        }
-        return result.toString();
+    private void getNextLine() throws IOException {
+        String line = cppFilter.readLine();
+        if (line == null) {
+            nextLine = null;
+        } else
+            nextLine = line + "\n";
     }
+
+    public void close() throws IOException {
+        cppFilter.dispose();
+        in.close();
+        nextLine = null;
+    }
+
+    public int read(char[] cbuf, int off, int len) throws IOException {
+        if (nextLine == null)
+            return -1;
+
+        int numChars = Math.min(nextLine.length(), len);
+        nextLine.getChars(0, numChars, cbuf, off);
+        if (nextLine.length() > numChars)
+            nextLine = nextLine.substring(numChars);
+        else
+            getNextLine();
+
+        return numChars;
+    }
+
+    public boolean ready() throws IOException {
+        return nextLine != null;
+    }
+
 }
