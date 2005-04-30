@@ -39,6 +39,7 @@ import java.util.*;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -111,6 +112,7 @@ public class WebServer extends Thread {
     public static final DashboardPermission QUIT_PERMISSION =
         new DashboardPermission("webServer.quit");
 
+    public static final String HTTP_ALLOWREMOTE_SETTING = "http.allowRemote";
     private static final DateFormat dateFormat =
                            // Tue, 05 Dec 2000 17:28:07 GMT
         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
@@ -1289,6 +1291,19 @@ public class WebServer extends Thread {
         data.putValue(dataName, StringData.create(passwordList.toString()));
     }
 
+    public static boolean arePasswordsPresent(DataRepository data) {
+        for (Iterator i = data.getKeys(); i.hasNext();) {
+            String dataName = (String) i.next();
+            if (dataName.endsWith("/_Password_")) {
+                SimpleData val = data.getSimpleValue(dataName);
+                if (val != null && val.test()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
     /** Encode HTML entities in the given string, and return the result. */
     public static String encodeHtmlEntities(String str) {
@@ -1580,7 +1595,7 @@ public class WebServer extends Thread {
         startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
 
         InetAddress listenAddress = null;
-        if ("never".equalsIgnoreCase(Settings.getVal("http.allowRemote")))
+        if ("never".equalsIgnoreCase(Settings.getVal(HTTP_ALLOWREMOTE_SETTING)))
             listenAddress = LOOPBACK_ADDR;
 
         while (serverSocket == null) try {

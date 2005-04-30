@@ -96,7 +96,7 @@ probeDialog.onlyCompleted=true
 # originate from localhost.  To accept http connections from remote
 # hosts, set this property to true.
 #
-http.allowRemote=false
+http.allowRemote=never
 
 
 #

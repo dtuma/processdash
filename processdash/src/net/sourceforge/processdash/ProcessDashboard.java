@@ -304,6 +304,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             e.printStackTrace();
         }
         ImportExport.startAutoExporter(this, property_directory);
+        LegacySupport.configureRemoteListeningCapability(data);
 
         try {
             objectCache =

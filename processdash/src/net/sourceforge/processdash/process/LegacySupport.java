@@ -30,9 +30,13 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.http.WebServer;
 
 
 public class LegacySupport {
@@ -62,4 +66,18 @@ public class LegacySupport {
         }
     }
 
+    public static void configureRemoteListeningCapability(DataRepository data) {
+        if (Settings.getBool(HTTP_CONFIGURATION_FLAG_SETTING, false))
+            return;
+
+        String remoteSetting =
+            Settings.getVal(WebServer.HTTP_ALLOWREMOTE_SETTING);
+        if ("never".equals(remoteSetting) &&
+            WebServer.arePasswordsPresent(data))
+            InternalSettings.set(WebServer.HTTP_ALLOWREMOTE_SETTING, "false");
+
+        InternalSettings.set(HTTP_CONFIGURATION_FLAG_SETTING, "true");
+    }
+    private static final String HTTP_CONFIGURATION_FLAG_SETTING =
+        "internal.ranListenerAutoConfig";
 }
