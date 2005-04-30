@@ -91,6 +91,7 @@ public class InternalSettings extends Settings {
         // on all other platforms, it will look for a file named ".pspdash".
         //
         settings = fsettings = new FileProperties(defaults, propertyComments);
+        fsettings.setDateStamping(false);
 
         String filename = getSettingsFilename();
         boolean needToSave = false;
