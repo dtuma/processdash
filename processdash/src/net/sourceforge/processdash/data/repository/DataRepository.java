@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -604,6 +604,8 @@ public class DataRepository implements Repository {
             /** Flag indicating that we've received a request to terminate. */
             private volatile boolean terminate = false;
 
+            private Object runLock = new Object();
+
             public DataFreezer() {
                 super("DataFreezer");
                 frozenDataSets = new Hashtable();
@@ -628,16 +630,20 @@ public class DataRepository implements Repository {
                 dataIsConsistent();
             }
 
-            public synchronized void dataIsConsistent() {
-                // Perform all requested work.
-                MAX_DIRTY = Integer.MAX_VALUE;
-                deferDeletions = true;
-                freezeAll();
-                thawAll();
-                deferDeletions = false;
-                processedDeferredDataListenerDeletions();
-                MAX_DIRTY = 10;
-                saveAllDatafiles();
+            public void dataIsConsistent() {
+                synchronized (runLock) {
+                    // Perform all requested work.
+                    MAX_DIRTY = Integer.MAX_VALUE;
+                    deferDeletions = true;
+                    while (!itemsToFreeze.isEmpty() || !itemsToThaw.isEmpty()) {
+                        freezeAll();
+                        thawAll();
+                    }
+                    deferDeletions = false;
+                    processedDeferredDataListenerDeletions();
+                    MAX_DIRTY = 10;
+                    saveAllDatafiles();
+                }
             }
 
             /** Freeze all waiting items. */
@@ -770,9 +776,13 @@ public class DataRepository implements Repository {
              * The element is not frozen immediately, but rather added to a
              * queue for freezing sometime in the future.
              */
-            public synchronized void freeze(String dataName) {
-                if (itemsToThaw.remove(dataName) == false)
-                    itemsToFreeze.add(dataName);
+            public void freeze(String dataName) {
+                synchronized (itemsToThaw) {
+                    synchronized (itemsToFreeze) {
+                        if (itemsToThaw.remove(dataName) == false)
+                            itemsToFreeze.add(dataName);
+                    }
+                }
             }
 
             /** Register the named data element for thawing.
@@ -780,9 +790,13 @@ public class DataRepository implements Repository {
              * The element is not thawed immediately, but rather added to a
              * queue for thawing sometime in the future.
              */
-            public synchronized void thaw(String dataName) {
-                if (itemsToFreeze.remove(dataName) == false)
-                    itemsToThaw.add(dataName);
+            public void thaw(String dataName) {
+                synchronized (itemsToThaw) {
+                    synchronized (itemsToFreeze) {
+                        if (itemsToFreeze.remove(dataName) == false)
+                            itemsToThaw.add(dataName);
+                    }
+                }
             }
 
             private class FrozenDataSet implements DataListener,
@@ -1720,26 +1734,27 @@ public class DataRepository implements Repository {
                 // statements from working (in other words, include directives
                 // relative to the current file.  Such directives are not
                 // currently used by the dashboard, so nothing will break.)
-                    loadDatafile(datafile, findDatafile(datafile, null), result, true);
+                    loadDatafile(datafile, findDatafile(datafile, null), result, true, false);
 
                 // Although we aren't technically done creating this datafile,
                 // we need to store it in the cache before calling
                 // insertRollupDefinitions to avoid entering an infinite loop.
                 includedFileCache.put(datafile, result);
-
-                // check to see if the datafile requests a rollup
-                Object rollupIDval = result.get("Use_Rollup");
-                if (rollupIDval instanceof StringData) {
-                    String rollupID = ((StringData) rollupIDval).getString();
-                    insertRollupDefinitions(result, rollupID);
-                }
-
-                result = Collections.unmodifiableMap(result);
-                includedFileCache.put(datafile, result);
                 definitionsDirty = true;
             }
 
             return result;
+        }
+
+        private void maybeAddRollupDefinitions(Map definitions) {
+            // check to see if the datafile requests a rollup
+            Object rollupIDval = definitions.get("Use_Rollup");
+            if (rollupIDval instanceof StringData) {
+                String rollupID = ((StringData) rollupIDval).getString();
+                String rollupPresentTagName = rollupID + " To Date Subset Prefix";
+                if (!definitions.containsKey(rollupPresentTagName))
+                    insertRollupDefinitions(definitions, rollupID);
+            }
         }
 
         private void insertRollupDefinitions(Map definitions, String rollupID) {
@@ -1844,6 +1859,8 @@ public class DataRepository implements Repository {
         private class FileLoader extends DepthFirstAdapter {
             private String inheritedDatafile = null;
             private Map dest;
+            private boolean isUserFile = false;
+
             public FileLoader(Map dest) { this.dest = dest; }
             public String getInheritedDatafile() { return inheritedDatafile; }
 
@@ -1919,6 +1936,9 @@ public class DataRepository implements Repository {
                 try {
                     Map cachedIncludeFile =
                         loadIncludedFileDefinitions(inheritedDatafile);
+                    if (isUserFile)
+                        maybeAddRollupDefinitions(cachedIncludeFile);
+
                     Map filteredIncludeFile = cachedIncludeFile;
 
                     if (node.getExcludeClause() != null) {
@@ -1941,6 +1961,9 @@ public class DataRepository implements Repository {
                 while (i.hasNext())
                     dest.remove(i.next());
             }
+            public void setIsUserFile(boolean isUserFile) {
+                this.isUserFile = isUserFile;
+            }
         }
 
         private class IdentifierLister extends DepthFirstAdapter {
@@ -1960,12 +1983,13 @@ public class DataRepository implements Repository {
         // name of the include file, if one was found.
 
         private String loadDatafile(String file, InputStream datafile,
-                                    Map dest, boolean close)
+                                    Map dest, boolean close, boolean isUserFile)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            return loadDatafile(file, new InputStreamReader(datafile), dest, close);
+            return loadDatafile(file, new InputStreamReader(datafile), dest,
+                                 close, isUserFile);
         }
         private String loadDatafile(String filename, Reader datafile,
-                                    Map dest, boolean close)
+                                    Map dest, boolean close, boolean isUserFile)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
             //debug("loadDatafile("+filename+")");
@@ -1975,6 +1999,7 @@ public class DataRepository implements Repository {
             String line, name, value;
             int equalsPosition;
             FileLoader loader = new FileLoader(dest);
+            loader.setIsUserFile(isUserFile);
             String defineDecls = null;
             if (filename != null)
                 defineDecls = (String) defineDeclarations.get(filename);
@@ -2017,7 +2042,7 @@ public class DataRepository implements Repository {
 
         public void parseDatafile(String contents, Map dest)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            loadDatafile(null, new StringReader(contents), dest, true);
+            loadDatafile(null, new StringReader(contents), dest, true, false);
         }
 
         private final Hashtable defineDeclarations = new Hashtable();
@@ -2072,7 +2097,7 @@ public class DataRepository implements Repository {
 
         public void addGlobalDefinitions(InputStream datafile, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            loadDatafile(null, datafile, globalDataDefinitions, close);
+            loadDatafile(null, datafile, globalDataDefinitions, close, false);
         }
 
         private SaveableData instantiateValue(String name, String dataPrefix,
@@ -2286,7 +2311,7 @@ public class DataRepository implements Repository {
             DataFile dataFile = new DataFile(dataPrefix, new File(datafilePath));
             dataFile.inheritsFrom =
                 loadDatafile(null, new FileInputStream(dataFile.file),
-                             values, true);
+                             values, true, true);
 
             // perform any renaming operations that were requested in the datafile
             boolean dataModified = performRenames(values);
