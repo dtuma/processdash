@@ -154,4 +154,6 @@ chart.initGradColor=#ffffff
 chart.finalGradColor=#7777ff
 chart.3d=true
 
-backup.enabled=false
+logging.enabled=false
+backup.enabled=true
+backup.keepBackupsNumDays=10
