@@ -50,6 +50,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -102,6 +103,10 @@ public class DataRepository implements Repository {
         /** a backwards mapping of the above hashtable for data values that happen
          *  to be DataListeners.  key is a DataListener, value is a String. */
         Hashtable activeData = new Hashtable(2000, (float) 0.5);
+
+        Set dataListenersForDeferredRemoval =
+            Collections.synchronizedSet(new HashSet());
+        volatile boolean deferDeletions = false;
 
         PrefixHierarchy repositoryListenerList = new PrefixHierarchy();
 
@@ -195,12 +200,23 @@ public class DataRepository implements Repository {
 
 
         private class DataFile {
-            String prefix = null;
-            String inheritsFrom = null;
-            File file = null;
-            int dirtyCount = 0;
+            String prefix;
+            String inheritsFrom;
+            File file;
+            boolean canWrite;
+            int dirtyCount;
 
-            public void invalidate() { file = null; }
+            public DataFile(String prefix, File file) {
+                this.prefix = prefix;
+                this.file = file;
+                this.canWrite = (file == null ? false : file.canWrite());
+                this.dirtyCount = 0;
+            }
+
+            public void invalidate() {
+                file = null;
+                canWrite = false;
+            }
         }
 
 
@@ -378,6 +394,8 @@ public class DataRepository implements Repository {
                 boolean notifyActiveListener;
                 for (int i = dataListenerList.size();  i > 0; ) try {
                     dl = ((DataListener) dataListenerList.elementAt(--i));
+                    if (dataListenersForDeferredRemoval.contains(dl))
+                        continue;
                     listenerName = (String) activeData.get(dl);
                     if (listenerName == null)
                         notifyActiveListener = false;
@@ -587,6 +605,7 @@ public class DataRepository implements Repository {
             private volatile boolean terminate = false;
 
             public DataFreezer() {
+                super("DataFreezer");
                 frozenDataSets = new Hashtable();
                 itemsToFreeze = Collections.synchronizedSortedSet(new TreeSet());
                 itemsToThaw = Collections.synchronizedSortedSet(new TreeSet());
@@ -609,11 +628,14 @@ public class DataRepository implements Repository {
                 dataIsConsistent();
             }
 
-            public void dataIsConsistent() {
+            public synchronized void dataIsConsistent() {
                 // Perform all requested work.
                 MAX_DIRTY = Integer.MAX_VALUE;
+                deferDeletions = true;
                 freezeAll();
                 thawAll();
+                deferDeletions = false;
+                processedDeferredDataListenerDeletions();
                 MAX_DIRTY = 10;
                 saveAllDatafiles();
             }
@@ -1376,7 +1398,7 @@ public class DataRepository implements Repository {
                 for (int i = datafiles.size();   i-- != 0; ) {
                     datafile = (DataFile)datafiles.elementAt(i);
                     if (datafile.file == null) continue;
-                    if (!datafile.file.canWrite()) continue;
+                    if (!datafile.canWrite) continue;
                     if (name.startsWith(datafile.prefix + "/") &&
                         ((result == null) ||
                          (datafile.prefix.length() > result.prefix.length())))
@@ -2261,9 +2283,7 @@ public class DataRepository implements Repository {
 
             Hashtable values = new Hashtable();
 
-            DataFile dataFile = new DataFile();
-            dataFile.prefix = dataPrefix;
-            dataFile.file = new File(datafilePath);
+            DataFile dataFile = new DataFile(dataPrefix, new File(datafilePath));
             dataFile.inheritsFrom =
                 loadDatafile(null, new FileInputStream(dataFile.file),
                              values, true);
@@ -2299,7 +2319,7 @@ public class DataRepository implements Repository {
 
                 if (dataFile != null && dataFile.file != null) {
                     datafilePath = dataFile.file.getPath();
-                    fileEditable = dataFile.file.canWrite();
+                    fileEditable = dataFile.canWrite;
                 }
                 if (dataPrefix.equals(realizeDeferredDataFor))
                     realizeDeferredDataFor = dataFile;
@@ -2373,7 +2393,7 @@ public class DataRepository implements Repository {
                     } else {
                         // We've done our best, but after 10 tries, we still can't open
                         // this datafile.  Give up and throw an exception.
-                        dataFile.file = null;
+                        dataFile.invalidate();
                         closeDatafile(dataPrefix);
                         throw new InvalidDatafileFormat("Caught unexpected exception "+e);
                     }
@@ -2423,8 +2443,7 @@ public class DataRepository implements Repository {
                     break;
                 }
 
-            DataFile dataFile = new DataFile();
-            dataFile.prefix = dataPrefix;
+            DataFile dataFile = new DataFile(dataPrefix, null);
             datafiles.addElement(dataFile);
             mountData(dataFile, dataPrefix, values);
 
@@ -2434,8 +2453,7 @@ public class DataRepository implements Repository {
 
         private DataFile getPhantomDataFile() {
             if (PHANTOM_DATAFILE == null) {
-                DataFile d = new DataFile();
-                d.prefix = "";
+                DataFile d = new DataFile("", null);
                 PHANTOM_DATAFILE = d;
             }
             return PHANTOM_DATAFILE;
@@ -2722,11 +2740,19 @@ public class DataRepository implements Repository {
                         maybeDelete(name, d);
                     }
                 // debug("removeDataListener done");
-            }
+        }
+        public void removeActiveDataListener(DataListener dl) {
+            activeData.remove(dl);
+        }
 
 
         public void deleteDataListener(DataListener dl) {
             // debug("deleteDataListener");
+
+            if (deferDeletions) {
+                dataListenersForDeferredRemoval.add(dl);
+                return;
+            }
 
             Iterator dataElements = getKeys();
             String name = null;
@@ -2745,6 +2771,36 @@ public class DataRepository implements Repository {
             }
             dataNotifier.deleteDataListener(dl);
             activeData.remove(dl);
+            // debug("deleteDataListener done");
+        }
+
+        void processedDeferredDataListenerDeletions() {
+            if (dataListenersForDeferredRemoval.isEmpty())
+                return;
+            Set listenersToRemove = new HashSet(dataListenersForDeferredRemoval);
+
+            Iterator dataElements = getKeys();
+            String name = null;
+            DataElement element = null;
+            Vector listenerList = null;
+
+                      // walk the hashtable, removing this datalistener.
+            while (dataElements.hasNext()) {
+                name = (String) dataElements.next();
+                element = (DataElement) data.get(name);
+                if (element != null) {
+                    listenerList = element.dataListenerList;
+                    if (listenerList != null &&
+                        listenerList.removeAll(listenersToRemove))
+                        maybeDelete(name, element);
+                }
+            }
+            for (Iterator i = listenersToRemove.iterator(); i.hasNext();) {
+                DataListener dl = (DataListener) i.next();
+                dataNotifier.deleteDataListener(dl);
+                activeData.remove(dl);
+                dataListenersForDeferredRemoval.remove(dl);
+            }
             // debug("deleteDataListener done");
         }
 

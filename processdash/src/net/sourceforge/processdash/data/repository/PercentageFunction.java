@@ -128,8 +128,15 @@ class PercentageFunction extends DoubleData implements DataListener {
     public String saveString() { return ""; }
 
     public void dispose() {
+        String oldNumName = numeratorName;
+        String oldDenName = denominatorName;
+
         myName = numeratorName = denominatorName = null;
-        if (data != null) data.deleteDataListener(this);
-        data = null;
+        if (data != null) {
+            data.removeDataListener(oldNumName, this);
+            data.removeDataListener(oldDenName, this);
+            data.removeActiveDataListener(this);
+            data = null;
+        }
     }
 }
