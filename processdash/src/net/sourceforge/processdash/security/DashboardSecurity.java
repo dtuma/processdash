@@ -61,12 +61,16 @@ public class DashboardSecurity {
         if (baseURLPos != -1)
             baseURLStr = policyURLStr.substring(0, baseURLPos+1);
 
-        System.setProperty("process.dashboard.codebase.url", baseURLStr);
-        // System.out.println("process.dashboard.codebase.url="+baseURLStr);
-        System.setProperty("java.security.policy", policyURLStr);
-        // System.out.println("java.security.policy="+policyURLStr);
-        System.setSecurityManager(new SecurityManager());
-        System.out.println("Security Manager installed.");
+        try {
+            System.setProperty("process.dashboard.codebase.url", baseURLStr);
+            // System.out.println("process.dashboard.codebase.url="+baseURLStr);
+            System.setProperty("java.security.policy", policyURLStr);
+            // System.out.println("java.security.policy="+policyURLStr);
+            System.setSecurityManager(new SecurityManager());
+        } catch (Exception e) {
+            System.out.println("Caught exception - security manager not installed.");
+            e.printStackTrace();
+        }
     }
 
 }
