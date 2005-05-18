@@ -184,7 +184,7 @@ you can proceed.</str>
     <str id="PackageDownloader.info2" txt="&quot;..."/>
     <str id="PackageDownloader.error.title" txt="Installation Warning"/>
     <str id="PackageDownloader.error.info1" txt="The package:"/>
-    <str id="PackageDownloader.error.info2" txt="could not be downloaded, and was not installed."/>
+    <str id="PackageDownloader.error.info2" txt="could not be downloaded, and was not installed.  This can occur if you are//not connected to the Internet, or if you are behind a firewall.  To resolve//this problem, please download and run the offline installer instead."/>
 
 
 </langpack>

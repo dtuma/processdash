@@ -30,7 +30,7 @@ public class PackageDownloader extends Thread {
 
     private LocaleDatabase langpack;
 
-    public PackageDownloader(String packageName, String packageLocation, LocaleDatabase langpack)
+    public PackageDownloader(String packageName, String packageLocation, LocaleDatabase langpack, String appVersion)
     {
         this.packageName = packageName;
         this.langpack = langpack;
@@ -40,7 +40,7 @@ public class PackageDownloader extends Thread {
             URLConnection conn = url.openConnection();
             conn.setAllowUserInteraction(true);
             conn.setRequestProperty
-                ("X-Process-Dashboard-Installer", "1.6");
+                ("X-Process-Dashboard-Installer", appVersion);
             totalSize = conn.getContentLength();
             inputStream = conn.getInputStream();
 

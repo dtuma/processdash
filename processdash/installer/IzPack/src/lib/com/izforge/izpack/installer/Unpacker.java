@@ -432,7 +432,7 @@ public class Unpacker extends Thread
             if (packageLocation != null &&
                 !packageLocation.equalsIgnoreCase("internal")) {
                 PackageDownloader downloader = new PackageDownloader
-                    (packName, packageLocation, idata.langpack);
+                    (packName, packageLocation, idata.langpack, idata.info.getAppVersion());
                 in = downloader.getInputStream();
             } else {
                 // the packageLocation is either not specified, or was "internal".
@@ -441,10 +441,10 @@ public class Unpacker extends Thread
             }
 
             if (in == null) {
-                String[] message = {
+                Object[] message = {
                     idata.langpack.getString("PackageDownloader.error.info1"),
                     "        " + packName,
-                    idata.langpack.getString("PackageDownloader.error.info2")
+                    idata.langpack.getString("PackageDownloader.error.info2").split("//")
                 };
                 JOptionPane.showMessageDialog(
                     null, message, idata.langpack.getString("PackageDownloader.error.title"),
