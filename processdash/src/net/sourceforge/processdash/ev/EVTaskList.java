@@ -685,9 +685,9 @@ public class EVTaskList extends AbstractTreeTableModel
 
         private List getEVLeaves() {
             if (calculator instanceof EVCalculatorData)
-                return ((EVCalculatorData) calculator).getReorderableEVLeaves();
+                return new ArrayList(((EVCalculatorData) calculator).getReorderableEVLeaves());
             else
-                return calculator.getEVLeaves();
+                return new ArrayList(calculator.getEVLeaves());
         }
 
         public Class getColumnClass(int column) {
@@ -711,7 +711,10 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         public Object getValueAt(Object node, int column) {
-            return EVTaskList.this.getValueAt(node, column);
+            if (column == TASK_COLUMN && node != root)
+                return ((EVTask) node).getFullName();
+            else
+                return EVTaskList.this.getValueAt(node, column);
         }
 
         public int getChildCount(Object parent) {
@@ -788,7 +791,7 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         private void enumerateOrdinals() {
-            Iterator allLeaves = calculator.getEVLeaves().iterator();
+            Iterator allLeaves = evLeaves.iterator();
             int pos = 1;
             while (allLeaves.hasNext()) {
                 EVTask task = (EVTask) allLeaves.next();
@@ -796,19 +799,56 @@ public class EVTaskList extends AbstractTreeTableModel
             }
         }
 
-        public boolean moveTaskUp(int pos) {
-            if (pos < 1 || pos >= evLeaves.size()) return false;
+        public boolean moveTasksUp(int firstTaskPos, int lastTaskPos) {
+            if (lastTaskPos < firstTaskPos
+                    || firstTaskPos < 1
+                    || lastTaskPos >= evLeaves.size())
+                return false;
 
+            EVTask predecessor = (EVTask) evLeaves.remove(firstTaskPos - 1);
+            evLeaves.add(lastTaskPos, predecessor);
             enumerateOrdinals();
 
-            EVTask target = (EVTask) evLeaves.get(pos);
-            EVTask predecessor = (EVTask) evLeaves.get(pos-1);
-            pos = target.taskOrdinal;
-            target.taskOrdinal = predecessor.taskOrdinal;
-            predecessor.taskOrdinal = pos;
+            fireTreeNodesRemoved(this, ((EVTask) root).getPath(),
+                    new int[] { firstTaskPos - 1 },
+                    new Object[] { predecessor });
+            fireTreeNodesInserted(this, ((EVTask) root).getPath(),
+                    new int[] { lastTaskPos },
+                    new Object[] { predecessor });
+            fireTreeNodesChanged(this, ((EVTask) root).getPath(),
+                    new int[] { lastTaskPos },
+                    new Object[] { predecessor });
+
+            if (recalcTimer != null) recalcTimer.restart();
 
             return true;
         }
+
+        public boolean moveTasksDown(int firstTaskPos, int lastTaskPos) {
+            if (lastTaskPos < firstTaskPos
+                    || firstTaskPos < 0
+                    || lastTaskPos >= evLeaves.size() - 1)
+                return false;
+
+            EVTask successor = (EVTask) evLeaves.remove(lastTaskPos + 1);
+            evLeaves.add(firstTaskPos, successor);
+            enumerateOrdinals();
+
+            fireTreeNodesRemoved(this, ((EVTask) root).getPath(),
+                    new int[] { lastTaskPos + 1 },
+                    new Object[] { successor });
+            fireTreeNodesInserted(this, ((EVTask) root).getPath(),
+                    new int[] { firstTaskPos },
+                    new Object[] { successor });
+            fireTreeNodesChanged(this, ((EVTask) root).getPath(),
+                    new int[] { firstTaskPos },
+                    new Object[] { successor });
+
+            if (recalcTimer != null) recalcTimer.restart();
+
+            return true;
+        }
+
     }
 
 }

@@ -150,6 +150,8 @@ public class TaskScheduleDialog
         treeTable = new TaskJTreeTable(model);
         treeTable.setShowGrid(true);
         treeTable.setIntercellSpacing(new Dimension(1, 1));
+        treeTable.getSelectionModel().setSelectionMode
+            (ListSelectionModel.SINGLE_INTERVAL_SELECTION);
                                 // add tool tips to the table header.
         ToolTipTableCellRendererProxy.installHeaderToolTips
             (treeTable, EVTaskList.toolTips);
@@ -288,6 +290,7 @@ public class TaskScheduleDialog
                 public void actionPerformed(ActionEvent e) {
                     moveTaskUp(); }});
         moveUpButton.setEnabled(false);
+        moveUpButton.setMnemonic('U');
         result.add(moveUpButton);
         result.add(Box.createHorizontalGlue());
 
@@ -298,6 +301,7 @@ public class TaskScheduleDialog
                 public void actionPerformed(ActionEvent e) {
                     moveTaskDown(); }});
         moveDownButton.setEnabled(false);
+        moveDownButton.setMnemonic('D');
         result.add(moveDownButton);
         result.add(Box.createHorizontalGlue());
 
@@ -309,6 +313,7 @@ public class TaskScheduleDialog
                         toggleFlatView(); }});
             flatViewCheckbox.setSelected(false);
             flatViewCheckbox.setFocusPainted(false);
+            flatViewCheckbox.setMnemonic('F');
             result.add(flatViewCheckbox);
             result.add(Box.createHorizontalGlue());
         } else {
@@ -1350,21 +1355,37 @@ public class TaskScheduleDialog
      * task tree root.
      */
     protected void moveTaskUp() {
+        if (isFlatView()) {
+            moveTaskUpFlatView();
+        } else {
+            moveTaskUpTreeView();
+        }
+    }
+
+    protected void moveTaskUpFlatView() {
+        int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
+        int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
+        if (flatModel.moveTasksUp(firstRowNum-1, lastRowNum-1)) {
+            setDirty(true);
+            SwingUtilities.invokeLater
+                (new RowSelectionTask(firstRowNum-1, lastRowNum-1, false));
+        }
+    }
+
+    private void moveTaskUpTreeView() {
         TreePath selPath = treeTable.getTree().getSelectionPath();
 
         // make the change.
-        if (isFlatView()
-                ? flatModel.moveTaskUp(selectedTaskPos(selPath, flatModel))
-                : model.moveTaskUp(selectedTaskPos(selPath, model)))
-        {
+        if (model.moveTaskUp(selectedTaskPos(selPath, model))) {
             setDirty(true);
             recalcAll();
 
             // reselect the item that moved.
             int row = treeTable.getTree().getRowForPath(selPath);
-            SwingUtilities.invokeLater(new RowSelectionTask(row));
+            SwingUtilities.invokeLater(new RowSelectionTask(row, row, false));
         }
     }
+
 
     /** Swap the currently selected task with its next sibling.
      *
@@ -1372,30 +1393,59 @@ public class TaskScheduleDialog
      * task tree root.
      */
     protected void moveTaskDown() {
+        if (isFlatView()) {
+            moveTaskDownFlatView();
+        } else {
+            moveTaskDownTreeView();
+        }
+    }
+
+    protected void moveTaskDownFlatView() {
+        int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
+        int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
+        if (flatModel.moveTasksDown(firstRowNum-1, lastRowNum-1)) {
+            setDirty(true);
+            SwingUtilities.invokeLater
+                (new RowSelectionTask(firstRowNum+1, lastRowNum+1, true));
+        }
+    }
+
+    private void moveTaskDownTreeView() {
         TreePath selPath = treeTable.getTree().getSelectionPath();
 
         // make the change.
-        if (isFlatView()
-                ? flatModel.moveTaskUp(selectedTaskPos(selPath, flatModel)+1)
-                : model.moveTaskUp(selectedTaskPos(selPath, model)+1))
-        {
+        if (model.moveTaskUp(selectedTaskPos(selPath, model)+1)) {
             setDirty(true);
             recalcAll();
 
             // reselect the item that moved.
             int row = treeTable.getTree().getRowForPath(selPath);
-            SwingUtilities.invokeLater(new RowSelectionTask(row));
+            SwingUtilities.invokeLater(new RowSelectionTask(row, row, true));
         }
     }
 
 
     private class RowSelectionTask implements Runnable {
-        private int row;
-        public RowSelectionTask(int row) { this.row = row; }
+        private int firstRow;
+        private int lastRow;
+        private boolean downward;
+        public RowSelectionTask(int firstRow, int lastRow, boolean downward) {
+            this.firstRow = firstRow;
+            this.lastRow = lastRow;
+            this.downward = downward;
+        }
         public void run() {
-            if (row != -1) {
-                treeTable.getSelectionModel().setSelectionInterval(row, row);
+            if (firstRow != -1) {
+                treeTable.getSelectionModel().setSelectionInterval
+                    (firstRow, lastRow);
                 enableTaskButtons();
+
+                int rowToShow =
+                    (downward
+                        ? Math.min(lastRow+1, treeTable.getRowCount()-1)
+                        : Math.max(firstRow-1, 0));
+                treeTable.scrollRectToVisible
+                    (treeTable.getCellRect(rowToShow, 0, true));
             }
         }
     }
@@ -1423,15 +1473,17 @@ public class TaskScheduleDialog
             if (isFlatView())
                 enableTaskButtonsFlatView();
             else
-                enableTaskButtons(treeTable.getTree().getSelectionPath());
+                enableTaskButtonsTreeView();
         }
     }
 
     private void enableTaskButtonsFlatView() {
-        int rowNum = treeTable.getSelectedRow();
-        boolean enableDelete = (rowNum > 0);
-        boolean enableUp     = (rowNum > 1);
-        boolean enableDown   = (rowNum > 0 && rowNum < treeTable.getRowCount()-1);
+        int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
+        int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
+
+        boolean enableDelete = (firstRowNum > 0 && firstRowNum == lastRowNum);
+        boolean enableUp     = (firstRowNum > 1);
+        boolean enableDown   = (lastRowNum > 0 && lastRowNum < treeTable.getRowCount()-1);
 
         //addTaskButton    .setEnabled(false);
         deleteTaskButton .setEnabled(enableDelete);
@@ -1441,7 +1493,8 @@ public class TaskScheduleDialog
     }
 
 
-    protected void enableTaskButtons(TreePath selectionPath) {
+    private void enableTaskButtonsTreeView() {
+        TreePath selectionPath = treeTable.getTree().getSelectionPath();
         boolean enableDelete = false, enableIndiv = false,
             enableUp = false, enableDown = false, isPruned = false;
         int pos = selectedTaskPos(selectionPath, model);
