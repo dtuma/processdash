@@ -107,6 +107,7 @@ public class CustomProcess extends AbstractTableModel {
         { "Planning",                     "Planning",      "PLAN",     RO   },
         { "Requirements",                 "Reqts",         "REQ",      null },
         { "System Test Plan",             "Sys Test Plan", "STP",      null },
+        { "Requirements Review",          "Reqts Review",  "REQINSP",  null },
         { "Requirements Inspection",      "Reqts Inspect", "REQINSP",  null },
         { "High-Level Design",            "HLD",           "HLD",      RO   },
         { "Integration Test Plan",        "Int Test Plan", "ITP",      null },
