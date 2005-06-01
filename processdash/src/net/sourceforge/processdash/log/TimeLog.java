@@ -67,6 +67,14 @@ public class TimeLog {
 
     public static void setDefaultFilename(String filename) {
         defaultTimeLogFile = filename;
+
+        try {
+            File f = new File(filename);
+            if (!f.exists())
+                f.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void readDefault() throws IOException {
