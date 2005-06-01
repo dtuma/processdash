@@ -52,7 +52,7 @@ name!</td></tr></table>
 
 <!--#endif-->
 
-<table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Your Initials:&nbsp;</td>
+<table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Your Name:&nbsp;</td>
 <td><input type=text name=fullname size=50
            value="<!--#echo [/Owner] -->"
            size=10></td></tr></table>
