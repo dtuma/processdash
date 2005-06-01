@@ -86,6 +86,8 @@ public class PauseButton extends DropDownButton implements ActionListener {
         try {
             pause_icon = DashboardIconFactory.getPauseIcon();
             continue_icon = DashboardIconFactory.getContinueIcon();
+            getButton().setDisabledIcon
+                  (DashboardIconFactory.getDisabledContinueIcon());
         } catch (Exception e) {
             pause_icon = continue_icon = null;
         }

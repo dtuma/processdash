@@ -49,6 +49,12 @@ public class DashboardIconFactory {
         return result;
     }
 
+    public static Icon getDisabledContinueIcon() {
+        Icon result = loadNamedIcon("continue-dis");
+        if (result == null) result = new DisabledContinueIcon();
+        return result;
+    }
+
     public static Icon getPauseIcon() {
         Icon result = loadNamedIcon("pause");
         if (result == null) result = new PauseIcon();
@@ -93,8 +99,10 @@ public class DashboardIconFactory {
 
     private static class ContinueIcon implements Icon {
 
+        protected Color color = Color.black;
+
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.black);
+            g.setColor(color);
             g.drawLine(x, y,    x+12, y+6);
             g.drawLine(x, y+12, x+11, y+7);
 
@@ -110,6 +118,14 @@ public class DashboardIconFactory {
         public int getIconHeight() {
             return 13;
         }
+    }
+
+    private static class DisabledContinueIcon extends ContinueIcon {
+
+        public DisabledContinueIcon() {
+            color = Color.gray;
+        }
+
     }
 
     private static class PauseIcon implements Icon {
