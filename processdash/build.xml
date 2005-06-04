@@ -98,6 +98,8 @@ Authors:
   <property name="helpsearch" value="${help}/JavaHelpSearch"/>
   <property name="libsrc"     value="${lib}/src"/>
   <property name="installer"  value="installer"/>
+  <property name="langpacks"
+                         value="${installer}/IzPack/bin/langpacks/installer"/>
   <property name="basePkg"    value="net/sourceforge/processdash"/>
   <property name="jarsurf"    value="${basePkg}/tool/export/jarsurf"/>
 
@@ -325,6 +327,9 @@ Authors:
     <taskdef name="i18n-generateTranslator"
         classname="net.sourceforge.processdash.i18n.GenerateTranslator"
 	classpath="${libsrc}"/>
+    <taskdef name="i18n-updateLangpack"
+        classname="net.sourceforge.processdash.i18n.UpdateIzPackResourceFile"
+	classpath="${libsrc}"/>
     <taskdef name="cvszip"
         classname="net.sourceforge.processdash.CVSZip"
 	classpath="${libsrc}"/>
@@ -462,12 +467,19 @@ Authors:
   <!-- Installer                                                           -->
   <!-- =================================================================== -->
 
-  <target name="installer">
+  <target name="installer" depends="installer-langpacks">
     <ant antfile="${installer}/build.xml" inheritAll="false">
       <property name="alreadyRebuilt" value="true"/>
       <property name="dontCleanDist" value="true"/>
       <property name="dist" value="../dist"/>
     </ant>
+  </target>
+
+  <target name="installer-langpacks" depends="ant-tasks">
+    <i18n-updateLangpack langpack="${langpacks}/jpn.xml"
+      resourcesDir="${resources}" javaLang="ja"/>
+    <!-- i18n-updateLangpack langpack="${langpacks}/jpn.xml"
+      resourcesDir="${resources}" javaLang="zh"/ -->
   </target>
 
 

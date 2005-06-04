@@ -444,7 +444,7 @@ public class Unpacker extends Thread
                 Object[] message = {
                     idata.langpack.getString("PackageDownloader.error.info1"),
                     "        " + packName,
-                    idata.langpack.getString("PackageDownloader.error.info2").split("//")
+                    idata.langpack.getString("PackageDownloader.error.info2").split("[\r\n]+")
                 };
                 JOptionPane.showMessageDialog(
                     null, message, idata.langpack.getString("PackageDownloader.error.title"),
