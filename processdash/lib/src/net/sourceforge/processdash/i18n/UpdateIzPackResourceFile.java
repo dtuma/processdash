@@ -26,9 +26,12 @@
 package net.sourceforge.processdash.i18n;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +53,8 @@ import org.apache.tools.ant.Task;
 
 public class UpdateIzPackResourceFile extends Task {
 
+    private static final String CRLF = "\r\n";
+    private static final String XML_PROLOG = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>";
     private static final String LINE_SEP = System.getProperty("line.separator");
     private static final String BUNDLE_NAME = "Installer";
     private static final String OPENING_COMMENT =
@@ -58,12 +63,18 @@ public class UpdateIzPackResourceFile extends Task {
 
     private File langpack;
 
+    private File textfile;
+
     private File resourcesDir;
 
     private String javaLang;
 
     public void setLangpack(File langpack) {
         this.langpack = langpack;
+    }
+
+    public void setTextfile(File textfile) {
+        this.textfile = textfile;
     }
 
     public void setResourcesDir(File resourcesDir) {
@@ -88,6 +99,12 @@ public class UpdateIzPackResourceFile extends Task {
         }
 
         try {
+            updateTextfile(bundle);
+        } catch (Exception e) {
+            throw new BuildException("Couldn't update langpack.", e);
+        }
+
+        try {
             updateLangpack(bundle);
         } catch (Exception e) {
             throw new BuildException("Couldn't update langpack.", e);
@@ -97,6 +114,8 @@ public class UpdateIzPackResourceFile extends Task {
     private void validate() {
         if (javaLang == null)
             throw new BuildException("must specify javaLang attribute.");
+        if (textfile == null)
+            throw new BuildException("must specify textfile attribute.");
         if (langpack == null)
             throw new BuildException("must specify langpack attribute.");
         if (!langpack.isFile() || !langpack.canRead())
@@ -111,15 +130,21 @@ public class UpdateIzPackResourceFile extends Task {
     private boolean noUpdatesNeeded() {
         long resourceBundleDate = getResourceBundleDate();
         long langpackDate = langpack.lastModified();
-        return (langpackDate > resourceBundleDate);
+        long textfileDate = textfile.lastModified();
+        return (langpackDate > resourceBundleDate &&
+                 textfileDate > resourceBundleDate);
     }
 
     private long getResourceBundleDate() {
+        String engBundleName = BUNDLE_NAME + ".properties";
+        String locBundlePrefix = BUNDLE_NAME + "_" + javaLang;
+
         long result = -1;
         File[] bundles = resourcesDir.listFiles();
         for (int i = 0; i < bundles.length; i++) {
             File file = bundles[i];
-            if (file.getName().startsWith(BUNDLE_NAME))
+            if (file.getName().equals(engBundleName) ||
+                file.getName().startsWith(locBundlePrefix))
                 result = Math.max(result, file.lastModified());
         }
         return result;
@@ -134,6 +159,19 @@ public class UpdateIzPackResourceFile extends Task {
         return result;
     }
 
+    private void updateTextfile(ResourceBundle bundle) throws IOException {
+        log("Updating textfile '" + textfile + "'");
+        FileOutputStream fos = new FileOutputStream(textfile);
+        BufferedWriter out =
+            new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
+
+        out.write(XML_PROLOG + CRLF + CRLF);
+        out.write("<langpack>" + CRLF);
+        writeTranslations(bundle, out, true);
+        out.write(CRLF + CLOSING_TAG + CRLF);
+        out.close();
+    }
+
     private void updateLangpack(ResourceBundle bundle) throws Exception {
         log("Updating langpack '" + langpack + "'");
         ByteArrayOutputStream newContents = new ByteArrayOutputStream();
@@ -145,7 +183,7 @@ public class UpdateIzPackResourceFile extends Task {
         String charset = getCharset(oneLineBytes);
 
         while ((oneLineBytes = readLine(in)) != null) {
-            if (needAName(oneLineBytes))
+            if (isEndOfStandardIzpackStrings(oneLineBytes))
                 break;
             else
                 newContents.write(oneLineBytes);
@@ -153,29 +191,33 @@ public class UpdateIzPackResourceFile extends Task {
         in.close();
 
         Writer out = new OutputStreamWriter(newContents, charset);
-        out.write("    ");
-        out.write(OPENING_COMMENT);
-        out.write("\r\n\r\n");
+        out.write("    " + OPENING_COMMENT + CRLF + CRLF);
 
-        TreeSet bundleKeys = new TreeSet(Collections.list(bundle.getKeys()));
-        for (Iterator i = bundleKeys.iterator(); i.hasNext();) {
-            String key = (String) i.next();
-            String value = bundle.getString(key);
-            out.write("    <str id=\"");
-            out.write(key);
-            out.write("\">");
-            out.write(escape(value));
-            out.write("</str>\r\n");
-        }
+        writeTranslations(bundle, out, false);
 
-        out.write("\r\n");
-        out.write(CLOSING_TAG);
-        out.write("\r\n");
+        out.write(CRLF + CLOSING_TAG + CRLF);
         out.close();
 
         FileOutputStream fout = new FileOutputStream(langpack);
         fout.write(newContents.toByteArray());
         fout.close();
+    }
+
+    private void writeTranslations(ResourceBundle bundle, Writer out, boolean printText) throws IOException {
+        TreeSet bundleKeys = new TreeSet(Collections.list(bundle.getKeys()));
+        for (Iterator i = bundleKeys.iterator(); i.hasNext();) {
+            String key = (String) i.next();
+            if (key.startsWith("text.") != printText)
+                continue;
+            String value = bundle.getString(key);
+            if (printText)
+                key = key.substring("text.".length());
+            out.write("    <str id=\"");
+            out.write(key);
+            out.write("\">");
+            out.write(escape(value));
+            out.write("</str>" + CRLF);
+        }
     }
 
     private byte[] readLine(InputStream in) throws IOException {
@@ -203,7 +245,7 @@ public class UpdateIzPackResourceFile extends Task {
             return "UTF-8";
     }
 
-    private boolean needAName(byte[] lineBytes) throws IOException {
+    private boolean isEndOfStandardIzpackStrings(byte[] lineBytes) throws IOException {
         String line = new String(lineBytes, "ISO-8859-1");
         return (line.indexOf(OPENING_COMMENT) != -1 ||
                  line.indexOf(CLOSING_TAG) != -1);

@@ -476,10 +476,12 @@ Authors:
   </target>
 
   <target name="installer-langpacks" depends="ant-tasks">
-    <i18n-updateLangpack langpack="${langpacks}/jpn.xml"
-      resourcesDir="${resources}" javaLang="ja"/>
-    <!-- i18n-updateLangpack langpack="${langpacks}/jpn.xml"
-      resourcesDir="${resources}" javaLang="zh"/ -->
+    <i18n-updateLangpack resourcesDir="${resources}" javaLang="ja"
+	langpack="${langpacks}/jpn.xml"
+	textfile="${installer}/files/text-jpn.xml"/>
+    <i18n-updateLangpack resourcesDir="${resources}" javaLang="zh"
+	langpack="${langpacks}/chn.xml"
+	textfile="${installer}/files/text-chn.xml"/>
   </target>
 
 
