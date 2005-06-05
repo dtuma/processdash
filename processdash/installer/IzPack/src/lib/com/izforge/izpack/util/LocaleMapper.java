@@ -38,6 +38,7 @@ public class LocaleMapper {
 
     private static final String[][] ISO_CODES = {
         { "cat", "ca" },  // Catalan
+        { "chn", "zh" },  // Chinese
         { "deu", "de" },  // German
         { "eng", "en" },  // English
         { "fin", "fi" },  // Finnish
