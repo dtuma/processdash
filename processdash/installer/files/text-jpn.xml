@@ -1,45 +1,32 @@
-<?xml version="1.0" encoding="Shift_JIS" standalone="yes"?>
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 
 <langpack>
-
-    <str id="pack.pdash.name">Process Dashboard</str>
-    <str id="pack.pdash.description">�A�v���P�[�V����Process Dashboard�̖{�́B
-
-Process Dashboard��GNU��ʌ��I�g�p�����̉��Ŕz�z����Ă��܂��B</str>
-
-
-    <str id="pack.pspProc.name">PSP(SM) Processes</str>
-    <str id="pack.pspProc.description">PSP(�p�[�\�i���\�t�g�E�F�A�v���Z�X)�Ŏg���Ă���e���v���[�g�A�X�N���v�g�A���[�B
-
-���̃��W���[���́AWatts S. Humphrey���̒���AA Discipline for Software Engineering(Copyright (c) 1995 by Addison-Wesley)�ɋL�q����Ă���e���v���[�g��X�N���v�g�A���̑��̎������Q�l�ɍ���Ă��܂��B�����e���v���[�g�Ȃǂɂ��ẮA�o�ŎЂ̋��𓾂ăv���O�����ɑg�ݍ���ł��܂��B
-
-���̃��W���[�����_�E�����[�h���C���X�g�[������ۂ́AAddison-Wesley�Ђ̒�߂�g�p�����_��ɓ��ӂ��Ă��������K�v������܂��B</str>
-
-
-    <str id="pack.pspForEng.name">PSP(SM) for Engineers</str>
-    <str id="pack.pspForEng.description">SEI��Personal Software Process(SM)�R�[�X����u���Ă�����̎x���B
-
-���̃��W���[���́AWatts S. Humphrey���̒���AA Discipline for Software Engineering(Copyright (c) 1995 by Addison-Wesley)�ɋL�q����Ă���e���v���[�g��X�N���v�g�A���̑��̎������Q�l�ɍ���Ă��܂��B�����e���v���[�g�Ȃǂɂ��ẮA�o�ŎЂ̋��𓾂ăv���O�����ɑg�ݍ���ł��܂��B
-
-���̃��W���[�����_�E�����[�h���C���X�g�[������ۂ́AAddison-Wesley�Ђ̒�߂�g�p�����_��ɓ��ӂ��Ă��������K�v������܂��B</str>
-
-
-    <str id="pack.javaHelp.name">JavaHelp(TM) Help Browser</str>
-    <str id="pack.javaHelp.description">Sun Microsystems�А��̃w���v�u���E�U�B
-
-���̃��W���[����Process Dashboard�̋@�\����ɕK�v�Ƃ������̂ł͂���܂���B���̃��W���[�����C���X�g�[�����邱�ƂŁA�S�������Ȃǂ����p�ł���悤�ɂȂ�A���w���v��ǂ݂₷�����邱�Ƃ��ł��܂��B
-
-���̃��W���[���̓I�[�v���\�[�X�ł͂Ȃ��A���쌠��Sun Microsystems�Ђɂ���܂��B���̃��W���[�����_�E�����[�h���C���X�g�[������ۂ́ASun Microsystems�Ђ̒�߂�g�p�����_��ɓ��ӂ��Ă��������K�v������܂��B</str>
-
-
-    <str id="CondHTMLLicencePanel0.header">���Ȃ����C���X�g�[�����邱�Ƃ�I��{0,choice,1#���W���[��|2#���W���[��}:
+    <str id="CondHTMLLicencePanel0.header">あなたがインストールすることを選んだ{0,choice,1#モジュール|2#モジュール}:
           {1}
 
-�o�ŎЂ́A�_�E�����[�h�������̓C���X�g�[������O�Ɉȉ��̎g�p�����_��ɓ��ӂ��邱�Ƃ������ɁA{0,choice,1#���̃��W���[��|2#�����̃��W���[��}�̎g�p��F�߂Ă��܂�:</str>
+出版社は、ダウンロードもしくはインストールする前に以下の使用許諾契約に同意することを条件に、{0,choice,1#このモジュール|2#これらのモジュール}の使用を認めています:</str>
+    <str id="CondHTMLLicencePanel1.header">Sun Microsystems社のソフトウェアJavaHelp(TM)のインストールが選択されました。この追加モジュールをダウンロードしインストールするには、以下の使用許諾契約に同意する必要があります。</str>
+    <str id="pack.javaHelp.description">Sun Microsystems社製のヘルプブラウザ。
 
+このモジュールはProcess Dashboardの機能上特に必要とされるものではありません。このモジュールをインストールすることで、全文検索などが利用できるようになり、よりヘルプを読みやすくすることができます。
 
-    <str id="CondHTMLLicencePanel1.header">Sun Microsystems�Ђ̃\�t�g�E�F�AJavaHelp(TM)�̃C���X�g�[�����I������܂����B���̒ǉ����W���[�����_�E�����[�h���C���X�g�[������ɂ́A�ȉ��̎g�p�����_��ɓ��ӂ���K�v������܂��B</str>
+このモジュールはオープンソースではなく、著作権はSun Microsystems社にあります。このモジュールをダウンロードしインストールする際は、Sun Microsystems社の定める使用許諾契約に同意していただく必要があります。</str>
+    <str id="pack.javaHelp.name">JavaHelp(TM) Help Browser</str>
+    <str id="pack.pdash.description">アプリケーションProcess Dashboardの本体。
 
+Process DashboardはGNU一般公的使用許諾の下で配布されています。</str>
+    <str id="pack.pdash.name">Process Dashboard</str>
+    <str id="pack.pspForEng.description">SEIのPersonal Software Process(SM)コースを受講している方の支援。
+
+このモジュールは、Watts S. Humphrey氏の著作、A Discipline for Software Engineering(Copyright (c) 1995 by Addison-Wesley)に記述されているテンプレートやスクリプト、その他の資料を参考に作られています。これらテンプレートなどについては、出版社の許可を得てプログラムに組み込んでいます。
+
+このモジュールをダウンロードしインストールする際は、Addison-Wesley社の定める使用許諾契約に同意していただく必要があります。</str>
+    <str id="pack.pspForEng.name">PSP(SM) for Engineers</str>
+    <str id="pack.pspProc.description">PSP(パーソナルソフトウェアプロセス)で使われているテンプレート、スクリプト、帳票。
+
+このモジュールは、Watts S. Humphrey氏の著作、A Discipline for Software Engineering(Copyright (c) 1995 by Addison-Wesley)に記述されているテンプレートやスクリプト、その他の資料を参考に作られています。これらテンプレートなどについては、出版社の許可を得てプログラムに組み込んでいます。
+
+このモジュールをダウンロードしインストールする際は、Addison-Wesley社の定める使用許諾契約に同意していただく必要があります。</str>
+    <str id="pack.pspProc.name">PSP(SM) Processes</str>
 
 </langpack>
-
