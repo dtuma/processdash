@@ -17,6 +17,7 @@
     <locale>
         <langpack iso3="eng"/>
         <langpack iso3="jpn"/>
+        <langpack iso3="chn"/>
     </locale>
 
     <!-- The resources needed by the various panels -->
@@ -33,6 +34,7 @@
         <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
         <res src="files/text-eng.xml" id="text.xml"/>
         <res src="files/text-jpn.xml" id="text.xml_jpn"/>
+        <res src="files/text-chn.xml" id="text.xml_chn"/>
 
         <!-- additional resources -->
     </resources>
