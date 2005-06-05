@@ -118,4 +118,45 @@
 	<str id="CompilePanel.additional_arguments" txt="露卯脥芒碌脛卤脿脪毛脝梅虏脦脢媒:"/>
 	<str id="ProcessPanel.heading" txt="麓娄脌铆脰脨"/>
 	<!-- Add your own panels specific strings here if you need -->
+    <!-- Process Dashboard strings -->
+
+    <str id="DataDirPanel.empty_datadir">You must select a data directory.</str>
+    <str id="DataDirPanel.info">Select a directory for your personal metrics data :</str>
+    <str id="LicencePanel.deselect.message1">You have indicated that you do not consent to this license
+agreement.  Would you like to remove the module(s)</str>
+    <str id="LicencePanel.deselect.message2">from the installation list?</str>
+    <str id="LicencePanel.deselect.title">Deselect Packages?</str>
+    <str id="PackageDownloader.error.info1">The package:</str>
+    <str id="PackageDownloader.error.info2">could not be downloaded, and was not installed.  This can occur if you are
+not connected to the Internet, or if you are behind a firewall.  To resolve
+this problem, please download and run the offline installer instead.</str>
+    <str id="PackageDownloader.error.title">Installation Warning</str>
+    <str id="PackageDownloader.info1">Downloading &quot;</str>
+    <str id="PackageDownloader.info2">&quot;...</str>
+    <str id="PackageDownloader.title">Downloading...</str>
+    <str id="ShutdownDashboardPanel.error.info">This installer has detected that an instance
+of the Process Dashboard is currently running
+on this machine.  You must shut it down before
+you can proceed.</str>
+    <str id="ShutdownDashboardPanel.error.title">Process Dashboard Running</str>
+    <str id="ShutdownDashboardPanel.info">If you are running the Process Dashboard right now,
+installing new files can cause unpredictable errors.  It is
+therefore imperative that you shut down the Dashboard if it
+is currently running.
+
+If you are installing the Process Dashboard for the first
+time, or if you are not currently running the Process
+Dashboard, you can ignore this warning.
+
+Otherwise, shut down any currently running instances of the
+Process Dashboard before you click the &quot;Next&quot; button.</str>
+    <str id="installer.javaversion.info">You need to upgrade your Java Runtime Environment!
+{0} {1} requires version {2} or
+higher of the Java Runtime Environment.  You are currently
+running Java Runtime Environment version {3}.
+       To download an updated version of the Java Runtime
+Environment, visit   {4}
+Then run this installer program again.</str>
+    <str id="installer.javaversion.title">Can&apos;t Install {0}</str>
+
 </langpack>
