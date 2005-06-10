@@ -119,3 +119,5 @@
 #endif // DEFINE_ROLLUP_ID
 
 [Project_WBS_ID]    = inherit("Project_WBS_ID");
+
+[FILES_XML] = "/TEMPLATE_ID/files.xml";
