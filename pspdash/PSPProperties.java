@@ -1,4 +1,4 @@
-// PSP Dashboard - Data Automation Tool for PSP-like processes
+// Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
@@ -758,7 +758,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
             aFile = getNextDF();
             found = false;
             for (int i = 0; (i < list.length) && !found; i++)
-                if (list[i].equals (aFile))
+                if (list[i].equalsIgnoreCase (aFile))
                     found = true;
         } while ( found );
         return aFile;
@@ -790,7 +790,7 @@ public class PSPProperties extends Hashtable implements ItemSelectable,
             aFile = getNextDL();
             found = false;
             for (int i = 0; (i < list.length) && !found; i++)
-                if (list[i].equals (aFile))
+                if (list[i].equalsIgnoreCase (aFile))
                     found = true;
         } while ( found );
         return aFile;
