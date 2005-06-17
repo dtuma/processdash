@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='ISO-8859-1' ?>
 
 <map version="1.0">
-  <mapID target="DashIcon" url="Images/pspdash-16.gif" />
+  <mapID target="DashIcon" url="Images/pspdash-16.png" />
   <mapID target="BookIcon" url="Images/book.gif" />
   <mapID target="PageIcon" url="Images/page.gif" />
   <mapID target="TopLevelIcon" url="Images/toplevel.gif" />
