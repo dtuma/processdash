@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,6 +92,7 @@ public class TemplateLoader {
         new DashboardPermission("templateLoader.getTemplateURLs");
 
     private static long templateTimestamp = 0;
+    private static List templateXmlDocuments = new LinkedList();
 
     public static DashHierarchy loadTemplates(DataRepository data) {
         LOAD_TEMPLATES_PERMISSION.checkPermission();
@@ -379,6 +381,7 @@ public class TemplateLoader {
             // this closes the file without our permission.
             Document doc = XMLUtils.parse(in);
             root = doc.getDocumentElement();
+            templateXmlDocuments.add(root);
         } catch (SAXException se) {
             String message = XMLUtils.exceptionMessage(se);
             Resources r = Resources.getDashBundle("Templates");
@@ -703,6 +706,29 @@ public class TemplateLoader {
         }
 
         return null;
+    }
+
+
+    /** Returns a list of all xml Elements with the given tag name found
+     * in the <tt>*-template.xml</tt> files loaded by the dashboard.
+     * 
+     * This is used by various extensible dashboard features to discover
+     * contributions made by add-ons.
+     *
+     * @param tagName the tag name of an xml document element
+     * @return a list of all Elements with that tag name found in
+     *     the <tt>*-template.xml</tt> files loaded by the dashboard.
+     */
+    public static List getXmlConfigurationElements(String tagName) {
+        List result = new LinkedList();
+        for (Iterator iter = templateXmlDocuments.iterator(); iter.hasNext();) {
+            Element doc = (Element) iter.next();
+            NodeList configElements = doc.getElementsByTagName(tagName);
+            int length = configElements.getLength();
+            for (int i = 0;   i < length;   i++)
+                result.add(configElements.item(i));
+        }
+        return result;
     }
 
 
