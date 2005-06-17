@@ -36,7 +36,11 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+
+import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.DashPackage;
@@ -47,8 +51,10 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 
 public class DashHelpBroker implements DashHelpProvider {
 
-    private static final String HELPSET_URL =
+    private static final String ROOT_HELPSET_URL =
         WebServer.DASHBOARD_PROTOCOL + ":/help/PSPDash.hs";
+    private static final String HELPSET_TAG = "helpSet";
+    private static final String HREF_ATTR = "href";
 
     /** The classloader we should use to load javahelp classes */
     private static ClassLoader classloader = null;
@@ -80,10 +86,31 @@ public class DashHelpBroker implements DashHelpProvider {
         Class[] argTypes = new Class[] { ClassLoader.class, URL.class };
         Constructor cstr = c.getConstructor(argTypes);
 
-        URL hsURL = new URL(HELPSET_URL);
+        // construct the help set for the main process dashboard.
+        URL hsURL = new URL(ROOT_HELPSET_URL);
         Object[] args = new Object[] { null, hsURL };
-        return cstr.newInstance(args);
+        Object rootHelpSet = cstr.newInstance(args);
+
+        // find and append help sets contributed by add-ons
+        List ce = TemplateLoader.getXmlConfigurationElements(HELPSET_TAG);
+        for (Iterator i = ce.iterator(); i.hasNext();) {
+            Element config = (Element) i.next();
+            String href = config.getAttribute(HREF_ATTR);
+            try {
+                if (href.startsWith("/")) href = href.substring(1);
+                String url = WebServer.DASHBOARD_PROTOCOL + ":/" + href;
+                args[1] = new URL(url);
+                Object subHelpSet = cstr.newInstance(args);
+                invoke(rootHelpSet, "add", subHelpSet);
+            } catch (Exception e) {
+                System.out.println("Warning: couldn't load helpset '" +
+                                   href + "'");
+            }
+        }
+
+        return rootHelpSet;
     }
+
 
     /** Configure the appearance of the javahelp window */
     private void configureAppearance() throws Exception {
@@ -242,6 +269,7 @@ public class DashHelpBroker implements DashHelpProvider {
         METHOD_ARGS.put("setHelpIDString", new Object[] { component, string });
         METHOD_ARGS.put("setHelpSet", new Object[] { helpset });
         METHOD_ARGS.put("setSize", new Object[] { Dimension.class });
+        METHOD_ARGS.put("add", new Object[] { helpset });
     }
 
 
