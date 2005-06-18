@@ -743,7 +743,7 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
             aFile = getNextDF();
             found = false;
             for (int i = 0; (i < list.length) && !found; i++)
-                if (list[i].equals (aFile))
+                if (list[i].equalsIgnoreCase (aFile))
                     found = true;
         } while ( found );
         return aFile;
@@ -775,7 +775,7 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
             aFile = getNextDL();
             found = false;
             for (int i = 0; (i < list.length) && !found; i++)
-                if (list[i].equals (aFile))
+                if (list[i].equalsIgnoreCase (aFile))
                     found = true;
         } while ( found );
         return aFile;
