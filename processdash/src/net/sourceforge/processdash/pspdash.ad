@@ -107,7 +107,8 @@ http.allowRemote=never
 # "watch directory/path for files, and import them into the dashboard
 # with a name beginning with "/prefix/".
 #
-import.directories=Imported=>./import
+# import.directories=Imported=>./import
+import.instructions=<list><importDir prefix="Imported" directory="./import"/></list>
 
 
 #

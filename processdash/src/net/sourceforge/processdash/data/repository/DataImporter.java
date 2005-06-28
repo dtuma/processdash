@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +53,7 @@ public class DataImporter extends Thread {
 
     public static final String EXPORT_DATANAME = "EXPORT_FILE";
     private static final long TIME_DELAY = 10 * 60 * 1000; // 10 minutes
-    private static Vector importers = new Vector();
+    private static Hashtable importers = new Hashtable();
 
     private DataRepository data;
     private String importPrefix;
@@ -72,10 +73,24 @@ public class DataImporter extends Thread {
 
             String prefix = massagePrefix(token.substring(0, separatorPos));
             String dir = token.substring(separatorPos+2);
-            DataImporter i = new DataImporter(data, prefix, new File(dir));
-            importers.add(i);
+            addImport(data, prefix, dir);
         }
     }
+
+    public static void addImport(DataRepository data, String prefix, String dir) {
+        DataImporter i = new DataImporter(data, prefix, new File(dir));
+        importers.put(getKey(prefix, dir), i);
+    }
+    public static void removeImport(String prefix, String dir) {
+        DataImporter i = (DataImporter) importers.remove(getKey(prefix, dir));
+        if (i != null)
+            i.dispose();
+    }
+
+    private static String getKey(String prefix, String dir) {
+        return prefix+"=>"+dir.replace(File.separatorChar, '/');
+    }
+
 
     private static String massagePrefix(String p) {
         p = p.replace(File.separatorChar, '/');
@@ -86,7 +101,7 @@ public class DataImporter extends Thread {
 
     public static void refreshPrefix(String prefix) {
         prefix = massagePrefix(prefix);
-        Iterator i = importers.iterator();
+        Iterator i = importers.values().iterator();
         DataImporter importer;
         while (i.hasNext()) {
             importer = (DataImporter) i.next();
@@ -145,6 +160,13 @@ public class DataImporter extends Thread {
 
         } catch (IOException ioe) {}
     }
+
+    public void dispose() {
+        for (Iterator i = modTimes.keySet().iterator(); i.hasNext();) {
+            closeFile((File) i.next());
+        }
+    }
+
 
     private void checkFile(File f) throws IOException {
         // ignore temporary files created by the RobustFileWriter class.

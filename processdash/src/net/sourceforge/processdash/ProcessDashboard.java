@@ -51,6 +51,7 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.templates.*;
 import net.sourceforge.processdash.tool.export.*;
+import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.ui.*;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
@@ -296,7 +297,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 ("when generating default datafile, caught exception "+exc);
             exc.printStackTrace(System.err);
         }
-        DataImporter.init(data, Settings.getFile("import.directories"));
+        ImportManager.init(data);
         data.finishInconsistency();
         try {
             data.maybeSaveDefinitions(serializedDefinitions);
