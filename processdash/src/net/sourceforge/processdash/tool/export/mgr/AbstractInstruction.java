@@ -119,9 +119,12 @@ public abstract class AbstractInstruction implements Cloneable {
         return getXmlTagName() + " " + attributes;
     }
 
-    protected Object clone() {
+    public Object clone() {
         try {
-            return super.clone();
+
+            AbstractInstruction result = (AbstractInstruction) super.clone();
+            result.attributes = new TreeMap(attributes);
+            return result;
         } catch (CloneNotSupportedException e) {
             // can't happen
             return null;

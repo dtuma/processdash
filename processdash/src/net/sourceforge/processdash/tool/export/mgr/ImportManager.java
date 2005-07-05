@@ -46,6 +46,10 @@ public class ImportManager extends AbstractManager {
 
     private static ImportManager INSTANCE = null;
 
+    public static ImportManager getInstance() {
+        return INSTANCE;
+    }
+
     public static void init(DataRepository dataRepository) {
         INSTANCE = new ImportManager(dataRepository);
     }
@@ -92,19 +96,8 @@ public class ImportManager extends AbstractManager {
 
 
 
-//    public void addInstruction(ImportExportInstruction instr) {
-//        if (doAddInstruction(instr))
-//            saveSetting();
-//    }
-//
-//    public void removeInstruction(ImportExportInstruction instr) {
-//        if (doRemoveInstruction(instr))
-//            saveSetting();
-//    }
 
-
-    private void doAddInstruction(AbstractInstruction instr) {
-        instructions.add(instr);
+    public void handleAddedInstruction(AbstractInstruction instr) {
         if (instr.isEnabled()) {
             if (instr instanceof ImportDirectoryInstruction)
                 doAddImportDir((ImportDirectoryInstruction)instr);
@@ -116,8 +109,8 @@ public class ImportManager extends AbstractManager {
     }
 
 
-    private void doRemoveInstruction(AbstractInstruction instr) {
-        instructions.remove(instr);
+
+    protected void handleRemovedInstruction(AbstractInstruction instr) {
         if (instr.isEnabled()) {
             if (instr instanceof ImportDirectoryInstruction)
                 doRemoveImportDir((ImportDirectoryInstruction)instr);
@@ -127,5 +120,6 @@ public class ImportManager extends AbstractManager {
     private void doRemoveImportDir(ImportDirectoryInstruction instr) {
         DataImporter.removeImport(instr.getPrefix(), instr.getDirectory());
     }
+
 
 }

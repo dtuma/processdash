@@ -37,6 +37,7 @@ import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.log.ui.*;
 import net.sourceforge.processdash.tool.export.ImportExport;
+import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
 import net.sourceforge.processdash.tool.probe.*;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -80,7 +81,8 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     static final String TASK_DIALOG      = "Task_&_Schedule";
     static final String DATA_ANALYSIS    = "Data_Analysis";
     static final String TOOL_MENU        = "Tools";
-    static final String IMPORT_EXPORT    = "Export";
+    static final String IMPORT           = "Import";
+    static final String EXPORT           = "Export";
     static final String HELP_MENU        = "Help.Help";
     static final String EXIT_PROGRAM     = "Exit";
     static final String L10N_TOOL        = "l10nTool";
@@ -163,7 +165,8 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         toolMenu.enableInputMethods(false);
 
         toolMenu.add(makeMenuItem(PROBE_DIALOG));
-        toolMenu.add(makeMenuItem(IMPORT_EXPORT));
+        toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
+        toolMenu.add(makeMenuItem(EXPORT));
         maybeAddTranslationTool(toolMenu);
     }
 
@@ -379,7 +382,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             startTaskDialog ();
         } else if (cmd.equals(DATA_ANALYSIS)) {
             startDataAnalysis ();
-        } else if (cmd.equals(IMPORT_EXPORT)) {
+        } else if (cmd.equals(EXPORT)) {
             startImportExport ();
         } else if (cmd.equals(HELP_FRAME)) {
             startHelp ();
