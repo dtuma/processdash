@@ -27,18 +27,14 @@ package net.sourceforge.processdash.tool.export.ui.wizard;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
-import java.util.MissingResourceException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 
 import net.sourceforge.processdash.ui.lib.WrappingText;
@@ -93,6 +89,7 @@ public abstract class WizardPanel extends JPanel {
     protected Component horizSpace(int mult) {
         return Box.createHorizontalStrut(SPACING * mult);
     }
+
     protected Component verticalSpace(int mult) {
         return Box.createVerticalStrut(SPACING * mult);
     }
@@ -169,15 +166,19 @@ public abstract class WizardPanel extends JPanel {
         }
 
         Box verticalBox = Box.createVerticalBox();
+        addBottomPadding(verticalBox);
+        verticalBox.add(verticalSpace(2));
+        verticalBox.add(buttons);
+
+        return verticalBox;
+    }
+
+    protected void addBottomPadding(Box verticalBox) {
         JLabel spacer = new JLabel(" ");
         Dimension d = new Dimension(10, 999);
         spacer.setPreferredSize(d);
         spacer.setMaximumSize(d);
         verticalBox.add(spacer);
-        verticalBox.add(verticalSpace(2));
-        verticalBox.add(buttons);
-
-        return verticalBox;
     }
 
     protected String getCancelButtonLabel() {

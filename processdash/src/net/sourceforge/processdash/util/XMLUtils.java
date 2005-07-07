@@ -113,8 +113,23 @@ public class XMLUtils {
     };
 
     public static String escapeAttribute(String value) {
-        return StringUtils.findAndReplace
-            (HTMLUtils.escapeEntities(value), "'", "&apos;");
+        StringBuffer result = new StringBuffer(value.length());
+        char[] chars = value.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            switch(chars[i]) {
+                case '<': result.append("&lt;"); break;
+                case '>': result.append("&gt;"); break;
+                case '&': result.append("&amp;"); break;
+                case '"': result.append("&quot;"); break;
+                case '\'': result.append("&apos;"); break;
+                default:
+                    if (chars[i] < 32)
+                        result.append("&#").append((int) chars[i]).append(";");
+                    else
+                        result.append(chars[i]);
+            }
+        }
+        return result.toString();
     }
 
     public static boolean hasValue(String val) {

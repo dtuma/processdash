@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.tool.export.ui.wizard;
 
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -55,6 +56,7 @@ public class FileChooserComponent extends JPanel implements ActionListener {
 
         String browseButtonLabel = Wizard.resources.getString("Browse_Button");
         chooseButton = new JButton(browseButtonLabel);
+        chooseButton.setMargin(new Insets(1, 5, 1, 5));
         chooseButton.addActionListener(this);
         add(chooseButton);
     }

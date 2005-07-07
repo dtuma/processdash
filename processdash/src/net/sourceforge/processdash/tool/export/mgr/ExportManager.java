@@ -26,67 +26,72 @@
 package net.sourceforge.processdash.tool.export.mgr;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Vector;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.repository.DataImporter;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.tool.export.ImportExport;
 
 import org.w3c.dom.Element;
 
-public class ImportManager extends AbstractManager {
+public class ExportManager extends AbstractManager {
 
-    private static ImportManager INSTANCE = null;
+    private static ExportManager INSTANCE = null;
 
-    public static ImportManager getInstance() {
+    public static ExportManager getInstance() {
         return INSTANCE;
     }
 
-    public static void init(DataRepository dataRepository) {
-        INSTANCE = new ImportManager(dataRepository);
+    public static void init(DataRepository dataRepository,
+            ProcessDashboard dashboard) {
+        INSTANCE = new ExportManager(dataRepository, dashboard);
     }
 
-    private ImportManager(DataRepository data) {
-        super(data);
-        initialize();
+    private ProcessDashboard dashboard;
 
-        //        System.out.println("ImportManager contents:");
+    private boolean initializing;
+
+    private ExportManager(DataRepository data, ProcessDashboard dashboard) {
+        super(data);
+        this.dashboard = dashboard;
+        initializing = true;
+        initialize();
+        initializing = false;
+
+        //        System.out.println("ExportManager contents:");
         //        for (Iterator iter = instructions.iterator(); iter.hasNext();) {
         //            AbstractInstruction instr = (AbstractInstruction) iter.next();
         //            System.out.println(instr);
         //        }
     }
 
+    public ProcessDashboard getProcessDashboard() {
+        return dashboard;
+    }
+
     protected String getTextSettingName() {
-        return "import.directories";
+        return "export.data";
     }
 
     protected String getXmlSettingName() {
-        return "import.instructions";
+        return "export.instructions";
     }
 
     protected void parseXmlInstruction(Element element) {
-        if (ImportDirectoryInstruction.matches(element))
-            doAddInstruction(new ImportDirectoryInstruction(element));
+        if (ExportMetricsFileInstruction.matches(element))
+            doAddInstruction(new ExportMetricsFileInstruction(element));
     }
 
     protected void parseTextInstruction(String left, String right) {
-        if ("Imported".equals(left) && "./import".equals(right))
-            return;
-
-        String prefix = massagePrefix(left);
-        String dir = Settings.translateFile(right);
-        doAddInstruction(new ImportDirectoryInstruction(dir, prefix));
-    }
-
-    private String massagePrefix(String p) {
-        p = p.replace(File.separatorChar, '/');
-        if (!p.startsWith("/"))
-            p = "/" + p;
-        return p;
+        String file = Settings.translateFile(left);
+        Vector paths = new Vector(Arrays.asList(right.split(";")));
+        doAddInstruction(new ExportMetricsFileInstruction(file, paths));
     }
 
     public void handleAddedInstruction(AbstractInstruction instr) {
-        if (instr.isEnabled()) {
+        if (!initializing && instr.isEnabled()) {
             // use the visitor pattern to invoke the correct handler method
             instr.dispatch(instructionAdder);
         }
@@ -99,11 +104,11 @@ public class ImportManager extends AbstractManager {
         }
     }
 
-    private class InstructionAdder implements ImportInstructionDispatcher {
+    private class InstructionAdder implements ExportInstructionDispatcher {
 
-        public Object dispatch(ImportDirectoryInstruction instr) {
-            DataImporter.addImport(data, instr.getPrefix(), instr
-                    .getDirectory());
+        public Object dispatch(ExportMetricsFileInstruction instr) {
+            ImportExport.export(dashboard, instr.getPaths(), new File(instr
+                    .getFile()));
             return null;
         }
 
@@ -111,10 +116,10 @@ public class ImportManager extends AbstractManager {
 
     private InstructionAdder instructionAdder = new InstructionAdder();
 
-    private class InstructionRemover implements ImportInstructionDispatcher {
+    private class InstructionRemover implements ExportInstructionDispatcher {
 
-        public Object dispatch(ImportDirectoryInstruction instr) {
-            DataImporter.removeImport(instr.getPrefix(), instr.getDirectory());
+        public Object dispatch(ExportMetricsFileInstruction instr) {
+            (new File(instr.getFile())).delete();
             return null;
         }
 

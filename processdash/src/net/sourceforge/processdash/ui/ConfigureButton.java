@@ -37,6 +37,7 @@ import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.log.ui.*;
 import net.sourceforge.processdash.tool.export.ImportExport;
+import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
 import net.sourceforge.processdash.tool.probe.*;
 import net.sourceforge.processdash.ui.help.*;
@@ -166,7 +167,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
 
         toolMenu.add(makeMenuItem(PROBE_DIALOG));
         toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
-        toolMenu.add(makeMenuItem(EXPORT));
+        toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
         maybeAddTranslationTool(toolMenu);
     }
 
@@ -314,15 +315,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         }
     }
 
-    public void startImportExport() {
-        if (parent.getProperties() != null) {
-            if (impexp_frame != null)
-                impexp_frame.show();
-            else
-                impexp_frame = new ImportExport(parent);
-        }
-    }
-
     public void addToTimeLogEditor (TimeLogEntry tle) {
         if (time_frame != null)
             time_frame.addRow (tle);
@@ -382,8 +374,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             startTaskDialog ();
         } else if (cmd.equals(DATA_ANALYSIS)) {
             startDataAnalysis ();
-        } else if (cmd.equals(EXPORT)) {
-            startImportExport ();
         } else if (cmd.equals(HELP_FRAME)) {
             startHelp ();
         } else if (cmd.equals(HELP_SEARCH)) {

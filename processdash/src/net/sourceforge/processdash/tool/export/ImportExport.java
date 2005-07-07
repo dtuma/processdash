@@ -42,7 +42,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.swing.Box;
@@ -73,6 +72,9 @@ import net.sourceforge.processdash.hier.ui.SelectableHierarchyTree;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.TimeLog;
 import net.sourceforge.processdash.log.TimeLogEntry;
+import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
+import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+import net.sourceforge.processdash.tool.export.mgr.ExportMetricsFileInstruction;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
 import net.sourceforge.processdash.util.RobustFileWriter;
@@ -330,29 +332,18 @@ public class ImportExport extends JDialog implements ActionListener {
     }
 
     public static void exportAll(ProcessDashboard parent) {
-        exportAll(parent, Settings.getVal("export.data"));
-    }
-    public static void exportAll(ProcessDashboard parent, String userSetting) {
-
         boolean foundWork = false;
         ProgressDialog p = new ProgressDialog(parent,
                                   resource.getString("ExportAutoExporting"),
                                   resource.getString("ExportExportingDataDots"));
 
-        if (userSetting != null && userSetting.length() > 0) {
-            // parse the user setting to find data export instructions
-            StringTokenizer exportTaskTokens = new StringTokenizer(userSetting, "|");
-            while (exportTaskTokens.hasMoreTokens()) {
-                String exportTaskStr = exportTaskTokens.nextToken();
-                int pos = exportTaskStr.indexOf("=>");
-                if (pos == -1) continue;
-                String filename =
-                    Settings.translateFile(exportTaskStr.substring(0,pos));
-                Vector filter = new Vector();
-                StringTokenizer filterItems = new StringTokenizer
-                    (exportTaskStr.substring(pos+2), ";");
-                while (filterItems.hasMoreTokens())
-                    filter.add(filterItems.nextToken());
+        // retrieve export instructions from the export manager
+        ExportManager mgr = ExportManager.getInstance();
+        for (int i = 0;   i < mgr.getInstructionCount();   i++) {
+            AbstractInstruction instr = mgr.getInstruction(i);
+            if (instr instanceof ExportMetricsFileInstruction) {
+                String filename = ((ExportMetricsFileInstruction) instr).getFile();
+                Vector filter = ((ExportMetricsFileInstruction) instr).getPaths();
                 p.addTask(new ExportTask(parent, filter, new File(filename)));
                 foundWork = true;
             }

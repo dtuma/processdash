@@ -30,7 +30,10 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.EventListener;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -38,6 +41,8 @@ import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JTree;
 import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -64,18 +69,40 @@ public class SelectableHierarchyTree extends JTree {
         setRootVisible(false);
     }
 
+    public SelectableHierarchyTree(DashHierarchy hierarchy, List paths) {
+        this(hierarchy);
+        setSelectionStatusRecursive((TreeNode) model.getRoot(), false);
+        if (paths != null)
+            for (Iterator iter = paths.iterator(); iter.hasNext();) {
+                String path = (String) iter.next();
+                PropertyKey key = PropertyKey.fromPath(path);
+                TreeNode node = ((HierarchyTreeModel) model).getNodeForKey(key);
+                setSelectionStatusRecursive(node, true);
+            }
+    }
+
     public Vector getSelectedPaths() {
         Vector v = new Vector();
-        getSelectedPaths(model.getRoot(), v);
+        getSelectedPaths(model.getRoot(), v, false);
         return v;
     }
 
-    private void getSelectedPaths(Object object, Vector v) {
+    public Vector getBriefSelectedPaths() {
+        Vector v = new Vector();
+        getSelectedPaths(model.getRoot(), v, true);
+        return v;
+    }
+
+
+    private void getSelectedPaths(Object object, Vector v, boolean brief) {
         HierarchyTreeNode node = (HierarchyTreeNode) object;
-        if (!unselectedNodes.contains(node))
+        if (!unselectedNodes.contains(node)) {
             v.add(node.getPath());
+            if (brief)
+                return;
+        }
         for (int i = node.getChildCount();   i-- > 0; )
-            getSelectedPaths(node.getChildAt(i), v);
+            getSelectedPaths(node.getChildAt(i), v, brief);
     }
 
     private void addClickListener() {
@@ -123,6 +150,7 @@ public class SelectableHierarchyTree extends JTree {
                 setSelectionStatus(node, false);
             }
         }
+        fireListSelectionEvent(false);
     }
     protected void setSelectionStatus(TreeNode node, boolean selected) {
         if (selected)
@@ -130,11 +158,28 @@ public class SelectableHierarchyTree extends JTree {
         else
             unselectedNodes.add(node);
         model.nodeChanged(node);
+        fireListSelectionEvent(true);
     }
     protected void setSelectionStatusRecursive(TreeNode node, boolean selected) {
         setSelectionStatus(node, selected);
         for (int i = node.getChildCount();   i-- > 0; )
             setSelectionStatusRecursive(node.getChildAt(i), selected);
+    }
+
+    public void addListSelectionListener(ListSelectionListener l) {
+        listenerList.add(ListSelectionListener.class, l);
+    }
+    public void removeListSelectionListener(ListSelectionListener l) {
+        listenerList.remove(ListSelectionListener.class, l);
+    }
+    protected void fireListSelectionEvent(boolean isAdjusting) {
+        EventListener[] listeners = listenerList.getListeners(ListSelectionListener.class);
+        if (listeners != null && listeners.length > 0) {
+            ListSelectionEvent event = new ListSelectionEvent(this, -1, -1, isAdjusting);
+            for (int i = 0; i < listeners.length; i++) {
+                ((ListSelectionListener) listeners[i]).valueChanged(event);
+            }
+        }
     }
 
     public class CheckboxNodeRenderer extends DefaultTreeCellRenderer

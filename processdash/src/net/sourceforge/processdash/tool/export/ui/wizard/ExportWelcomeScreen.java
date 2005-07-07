@@ -25,34 +25,25 @@
 
 package net.sourceforge.processdash.tool.export.ui.wizard;
 
-import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
-import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
-import net.sourceforge.processdash.tool.export.mgr.ImportInstructionDispatcher;
-import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+public class ExportWelcomeScreen extends ChoicePanel {
 
-public class ManageImportsPanel extends ManagePanel {
+    private static final String METRICS = "Metrics";
 
-    public ManageImportsPanel(Wizard wizard) {
-        super(wizard, ImportManager.getInstance(), "Import.Manage");
+    private static final String MANAGE = "Manage";
+
+    private static final String[] CHOICES = { METRICS, MANAGE };
+
+    public ExportWelcomeScreen(Wizard wizard) {
+        super(wizard, "Export.Welcome", CHOICES);
     }
 
-    protected WizardPanel getAddPanel() {
-        // hardcoded for now - only one choice.
-        return new EditImportDirectoryPanel(wizard, null, true);
+    public WizardPanel getPanelForChoice(String choice) {
+        if (METRICS.equals(choice))
+            return new EditExportMetricsFilePanel(wizard, null, false);
+        if (MANAGE.equals(choice))
+            return new ManageExportsPanel(wizard);
+
+        throw new IllegalArgumentException("Unrecognized choice");
     }
-
-    protected WizardPanel getEditPanel(AbstractInstruction instr) {
-        return (WizardPanel) instr.dispatch(editPanelGenerator);
-    }
-
-    private class EditPanelGenerator implements ImportInstructionDispatcher {
-
-        public Object dispatch(ImportDirectoryInstruction instr) {
-            return new EditImportDirectoryPanel(wizard, instr, true);
-        }
-
-    }
-
-    private EditPanelGenerator editPanelGenerator = new EditPanelGenerator();
 
 }

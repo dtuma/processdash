@@ -8,12 +8,12 @@
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 // The author(s) may be contacted at:
 // Process Dashboard Group
@@ -21,24 +21,22 @@
 // 6137 Wardleigh Road
 // Hill AFB, UT 84056-5843
 //
-// E-Mail POC:  processdash-devel@lists.sourceforge.net
+// E-Mail POC: processdash-devel@lists.sourceforge.net
 
 package net.sourceforge.processdash.tool.export.mgr;
 
-import java.io.File;
-
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Element;
-
 
 public class ImportDirectoryInstruction extends AbstractInstruction {
 
     private static final String TAG_NAME = "importDir";
+
     private static final String DIR_ATTR = "directory";
+
     private static final String PREFIX_ATTR = "prefix";
 
-    public ImportDirectoryInstruction() {}
+    public ImportDirectoryInstruction() {
+    }
 
     public ImportDirectoryInstruction(String dir, String prefix) {
         setDirectory(dir);
@@ -66,9 +64,9 @@ public class ImportDirectoryInstruction extends AbstractInstruction {
     }
 
     public String getDescription() {
-        return resource.format
-            ("Wizard.Import.Import_Directory.Task_Description_FMT",
-             getDirectory(), getPrefix());
+        return resource.format(
+                "Wizard.Import.Import_Directory.Task_Description_FMT",
+                getDirectory(), getPrefix());
     }
 
     public String getXmlTagName() {
@@ -82,4 +80,9 @@ public class ImportDirectoryInstruction extends AbstractInstruction {
     public static boolean matches(Element e) {
         return TAG_NAME.equals(e.getTagName());
     }
+
+    public Object dispatch(ImportInstructionDispatcher dispatcher) {
+        return dispatcher.dispatch(this);
+    }
+
 }

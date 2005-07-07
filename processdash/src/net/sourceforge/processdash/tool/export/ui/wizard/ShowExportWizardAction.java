@@ -25,34 +25,21 @@
 
 package net.sourceforge.processdash.tool.export.ui.wizard;
 
-import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
-import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
-import net.sourceforge.processdash.tool.export.mgr.ImportInstructionDispatcher;
-import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+import java.awt.event.ActionEvent;
 
-public class ManageImportsPanel extends ManagePanel {
+import javax.swing.AbstractAction;
 
-    public ManageImportsPanel(Wizard wizard) {
-        super(wizard, ImportManager.getInstance(), "Import.Manage");
+public class ShowExportWizardAction extends AbstractAction {
+
+    public ShowExportWizardAction(String name) {
+        super(name);
     }
 
-    protected WizardPanel getAddPanel() {
-        // hardcoded for now - only one choice.
-        return new EditImportDirectoryPanel(wizard, null, true);
+    public void actionPerformed(ActionEvent e) {
+        Wizard w = new Wizard("Export.Title");
+        w.goForward(new ExportWelcomeScreen(w));
+        w.setSize(600, 400);
+        w.show();
     }
-
-    protected WizardPanel getEditPanel(AbstractInstruction instr) {
-        return (WizardPanel) instr.dispatch(editPanelGenerator);
-    }
-
-    private class EditPanelGenerator implements ImportInstructionDispatcher {
-
-        public Object dispatch(ImportDirectoryInstruction instr) {
-            return new EditImportDirectoryPanel(wizard, instr, true);
-        }
-
-    }
-
-    private EditPanelGenerator editPanelGenerator = new EditPanelGenerator();
 
 }

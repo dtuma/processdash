@@ -25,10 +25,8 @@
 
 package net.sourceforge.processdash.tool.export.mgr;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -36,15 +34,15 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.XMLUtils;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public abstract class AbstractManager {
 
@@ -139,6 +137,10 @@ public abstract class AbstractManager {
         }
         System.out.println("saving setting: " + value);
         InternalSettings.set(getXmlSettingName(), value);
+    }
+
+    public int getInstructionCount() {
+        return instructions.size();
     }
 
     public AbstractInstruction getInstruction(int pos) {

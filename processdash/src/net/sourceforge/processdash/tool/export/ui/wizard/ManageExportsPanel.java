@@ -26,33 +26,32 @@
 package net.sourceforge.processdash.tool.export.ui.wizard;
 
 import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
-import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
-import net.sourceforge.processdash.tool.export.mgr.ImportInstructionDispatcher;
-import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+import net.sourceforge.processdash.tool.export.mgr.ExportInstructionDispatcher;
+import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+import net.sourceforge.processdash.tool.export.mgr.ExportMetricsFileInstruction;
 
-public class ManageImportsPanel extends ManagePanel {
+public class ManageExportsPanel extends ManagePanel {
 
-    public ManageImportsPanel(Wizard wizard) {
-        super(wizard, ImportManager.getInstance(), "Import.Manage");
+    public ManageExportsPanel(Wizard wizard) {
+        super(wizard, ExportManager.getInstance(), "Export.Manage");
     }
 
     protected WizardPanel getAddPanel() {
         // hardcoded for now - only one choice.
-        return new EditImportDirectoryPanel(wizard, null, true);
+        return new EditExportMetricsFilePanel(wizard, null, true);
     }
 
     protected WizardPanel getEditPanel(AbstractInstruction instr) {
         return (WizardPanel) instr.dispatch(editPanelGenerator);
     }
 
-    private class EditPanelGenerator implements ImportInstructionDispatcher {
+    private class EditPanelGenerator implements ExportInstructionDispatcher {
 
-        public Object dispatch(ImportDirectoryInstruction instr) {
-            return new EditImportDirectoryPanel(wizard, instr, true);
+        public Object dispatch(ExportMetricsFileInstruction instr) {
+            return new EditExportMetricsFilePanel(wizard, instr, true);
         }
 
     }
 
     private EditPanelGenerator editPanelGenerator = new EditPanelGenerator();
-
 }
