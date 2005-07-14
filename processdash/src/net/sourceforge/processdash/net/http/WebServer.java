@@ -1323,12 +1323,14 @@ public class WebServer extends Thread {
 
     public static String getHostName() {
         String result = Settings.getVal("http.hostname");
-        if (result == null || result.length() == 0) try {
-            result = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException uhe) {
-            result = "localhost";
-        }
-        return result;
+        if (result != null && result.length() > 0)
+            return result;
+
+        if (!forbidRemoteConnections()) try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException uhe) {}
+
+        return "localhost";
     }
 
     public static Map getMimeTypeMap() {
@@ -1595,7 +1597,7 @@ public class WebServer extends Thread {
         startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
 
         InetAddress listenAddress = null;
-        if ("never".equalsIgnoreCase(Settings.getVal(HTTP_ALLOWREMOTE_SETTING)))
+        if (forbidRemoteConnections())
             listenAddress = LOOPBACK_ADDR;
 
         while (serverSocket == null) try {
@@ -1630,6 +1632,10 @@ public class WebServer extends Thread {
         try {
             DashboardURLStreamHandlerFactory.initialize(this);
         } catch (Exception e) {}
+    }
+
+    private static boolean forbidRemoteConnections() {
+        return "never".equalsIgnoreCase(Settings.getVal(HTTP_ALLOWREMOTE_SETTING));
     }
 
     /**
