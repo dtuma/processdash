@@ -114,9 +114,14 @@ public class RobustFileWriter extends Writer {
                     "' - verification of written data failed.");
 
         // temporarily move the original file out of the way, into the backup
-        if (origFileExists && destFile.renameTo(backupFile) == false)
-            throw new IOException("Error writing file '" + destFile +
-                    "' - could not backup original file.");
+        if (origFileExists) {
+            if (backupFile.exists())
+                backupFile.delete();
+            if (destFile.renameTo(backupFile) == false)
+                throw new IOException("Error writing file '" + destFile +
+                        "' - could not backup original file.");
+        }
+
         // rename the output file to the real destination file
         if (outFile.renameTo(destFile) == false) {
             // put the original file back in place
