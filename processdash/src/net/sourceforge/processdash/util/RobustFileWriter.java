@@ -26,14 +26,20 @@
 package net.sourceforge.processdash.util;
 
 import java.io.*;
+import java.util.zip.Adler32;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.CheckedOutputStream;
+import java.util.zip.Checksum;
 
 public class RobustFileWriter extends Writer {
 
     public static final String OUT_PREFIX    = "tttt";
-    public static final String BACKUP_PREFIX = OUT_PREFIX + "_";
+    public static final String BACKUP_PREFIX = OUT_PREFIX + "_bak_";
 
+    boolean origFileExists;
     File outFile, backupFile, destFile;
-    Writer out, backup;
+    Writer out;
+    Checksum checksum;
 
     public RobustFileWriter(String destFile) throws IOException {
         this(new File(destFile), null);
@@ -63,38 +69,80 @@ public class RobustFileWriter extends Writer {
         destFile   = new File(parentDir, filename);
         outFile    = new File(parentDir, OUT_PREFIX    + filename);
         backupFile = new File(parentDir, BACKUP_PREFIX + filename);
+
+        if (destFile.isDirectory())
+            throw new IOException("Cannot write to file '"+destFile+
+                    "' - directory is in the way.");
+
+        origFileExists = destFile.isFile();
+
+        checksum = makeChecksum();
+        OutputStream outStream = new FileOutputStream(outFile);
+        CheckedOutputStream checkOutStream =
+            new CheckedOutputStream(outStream, checksum);
+
         if (encoding == null) {
-            out    = new FileWriter(outFile);
-            backup = new FileWriter(backupFile);
+            out = new OutputStreamWriter(checkOutStream);
         } else {
-            out = new OutputStreamWriter
-                (new FileOutputStream(outFile), encoding);
-            backup = new OutputStreamWriter
-                (new FileOutputStream(backupFile), encoding);
+            out = new OutputStreamWriter(checkOutStream, encoding);
         }
+    }
+
+    protected Checksum makeChecksum() {
+        return new Adler32();
     }
 
     public void write(char[] cbuf, int off, int len) throws IOException {
         out.write(cbuf, off, len);
-        backup.write(cbuf, off, len);
     }
 
     public void flush() throws IOException {
         out.flush();
-        backup.flush();
     }
 
     public void close() throws IOException {
         // close the temporary files
         out.close();
-        backup.close();
 
-        // rename to the real destination file
-        destFile.delete();
-        outFile.renameTo(destFile);
+        // get the value we expect to find from the checksum
+        long expectedChecksum = checksum.getValue();
+        // reread the written file to see if it was written correctly
+        long actualChecksum = verifyChecksum(outFile);
+        // if the checksums don't match, throw an exception
+        if (expectedChecksum != actualChecksum)
+            throw new IOException("Error writing file '" + destFile +
+                    "' - verification of written data failed.");
+
+        // temporarily move the original file out of the way, into the backup
+        if (origFileExists && destFile.renameTo(backupFile) == false)
+            throw new IOException("Error writing file '" + destFile +
+                    "' - could not backup original file.");
+        // rename the output file to the real destination file
+        if (outFile.renameTo(destFile) == false) {
+            // put the original file back in place
+            if (origFileExists) {
+                if (backupFile.renameTo(destFile) == false) {
+                    System.err.println("Warning - couldn't restore '"+destFile+"' from backup '"+backupFile+"'.");
+                }
+            }
+            throw new IOException("Error writing file '" + destFile + "'.");
+        }
 
         // delete the backup
-        backupFile.delete();
+        if (origFileExists)
+            backupFile.delete();
+    }
+
+    private long verifyChecksum(File file) throws IOException {
+        Checksum verify = makeChecksum();
+        InputStream in = new BufferedInputStream(new CheckedInputStream
+                (new FileInputStream(file), verify));
+        int b;
+        while ((b = in.read()) != -1)
+            ; // do nothing
+        in.close();
+
+        return verify.getValue();
     }
 
 }
