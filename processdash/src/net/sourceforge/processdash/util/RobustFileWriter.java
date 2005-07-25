@@ -27,7 +27,6 @@ package net.sourceforge.processdash.util;
 
 import java.io.*;
 import java.util.zip.Adler32;
-import java.util.zip.CheckedInputStream;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.Checksum;
 
@@ -107,7 +106,7 @@ public class RobustFileWriter extends Writer {
         // get the value we expect to find from the checksum
         long expectedChecksum = checksum.getValue();
         // reread the written file to see if it was written correctly
-        long actualChecksum = verifyChecksum(outFile);
+        long actualChecksum = FileUtils.computeChecksum(outFile, makeChecksum());
         // if the checksums don't match, throw an exception
         if (expectedChecksum != actualChecksum)
             throw new IOException("Error writing file '" + destFile +
@@ -136,18 +135,6 @@ public class RobustFileWriter extends Writer {
         // delete the backup
         if (origFileExists)
             backupFile.delete();
-    }
-
-    private long verifyChecksum(File file) throws IOException {
-        Checksum verify = makeChecksum();
-        InputStream in = new BufferedInputStream(new CheckedInputStream
-                (new FileInputStream(file), verify));
-        int b;
-        while ((b = in.read()) != -1)
-            ; // do nothing
-        in.close();
-
-        return verify.getValue();
     }
 
 }
