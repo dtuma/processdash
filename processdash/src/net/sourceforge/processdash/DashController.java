@@ -48,6 +48,7 @@ import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
 import net.sourceforge.processdash.tool.export.ImportExport;
 
@@ -313,22 +314,23 @@ public class DashController {
         // enable earned value rollups.
         InternalSettings.set(EV_ROLLUP, "true");
 
+        // listen on any address, if we aren't already.
+        InternalSettings.set(WebServer.HTTP_ALLOWREMOTE_SETTING, "true");
+
         // listen on a repeatable port.
-        String port = Settings.getVal(HTTP_PORT);
+        String port = Settings.getVal(ProcessDashboard.HTTP_PORT_SETTING);
         if (port == null) {
             int portNum = getAvailablePort();
-            InternalSettings.set(HTTP_PORT, Integer.toString(portNum));
-            // start listening on that port.
-            dash.changeHttpPort(portNum);
+            InternalSettings.set(ProcessDashboard.HTTP_PORT_SETTING,
+                                 Integer.toString(portNum));
         }
-
     }
 
     private static int getAvailablePort() {
         for (int i = 0;   i < PORT_PATTERNS.length;   i++)
-            for (int j = 2;   j < 10;   j++)
-                if (isPortAvailable(i*j))
-                    return i*j;
+            for (int j = 3;   j < 10;   j++)
+                if (isPortAvailable(PORT_PATTERNS[i]*j))
+                    return PORT_PATTERNS[i]*j;
         return 3000;
     }
 
@@ -347,7 +349,7 @@ public class DashController {
 
     private static final String IMPORT_DIRS = "import.directories";
     private static final String EV_ROLLUP = "ev.enableRollup";
-    private static final String HTTP_PORT = "http.port";
+    private static final String HTTP_PORT = ProcessDashboard.HTTP_PORT_SETTING;
     private static final int[] PORT_PATTERNS = {
         1000, 1111, 1001, 1010, 1100, 1011, 1101, 1110 };
 

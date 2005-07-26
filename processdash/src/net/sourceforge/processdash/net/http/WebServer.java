@@ -25,6 +25,10 @@
 
 package net.sourceforge.processdash.net.http;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.net.*;
 import java.security.AccessControlException;
@@ -36,6 +40,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
@@ -48,6 +53,7 @@ import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.Base64;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -56,10 +62,10 @@ import net.sourceforge.processdash.util.MD5;
 import net.sourceforge.processdash.util.ResourcePool;
 import net.sourceforge.processdash.util.StringUtils;
 
-public class WebServer extends Thread {
+public class WebServer {
 
-    ServerSocket serverSocket = null;
-    ServerSocket dataSocket = null;
+    private Vector serverSocketListeners = new Vector();
+
     Vector serverThreads = new Vector();
     URL [] roots = null;
     DataRepository data = null;
@@ -68,7 +74,11 @@ public class WebServer extends Thread {
     Hashtable addOnLoaderMap = new Hashtable();
     Hashtable cgiCache = new Hashtable();
     MD5 md5 = new MD5();
-    boolean allowRemoteConnections = false;
+    private static final int ALLOW_REMOTE_NEVER = 0;
+    private static final int ALLOW_REMOTE_MAYBE = 1;
+    private static final int ALLOW_REMOTE_ALWAYS = 2;
+    private int allowingRemoteConnections = ALLOW_REMOTE_NEVER;
+    private static int ALLOW_REMOTE_CONNECTIONS_SETTING = ALLOW_REMOTE_NEVER;
     private int port;
     private String startupTimestamp, startupTimestampHeader;
     private InheritableThreadLocal effectiveClientSocket =
@@ -187,13 +197,16 @@ public class WebServer extends Thread {
         private class TinyWebThreadException extends Exception {};
 
         public TinyWebThread(Socket clientSocket) {
+            super("TinyWebThread-"+nextThreadNum());
             try {
                 effectiveClientSocket.set(clientSocket);
                 this.clientSocket = clientSocket;
-                this.inputStream = clientSocket.getInputStream();
+                this.inputStream = new BufferedInputStream
+                    (clientSocket.getInputStream());
                 this.in = new BufferedReader
                     (new InputStreamReader(inputStream));
-                this.outputStream = clientSocket.getOutputStream();
+                this.outputStream = new BufferedOutputStream
+                    (clientSocket.getOutputStream());
                 this.headerOut = new BufferedWriter
                     (new OutputStreamWriter(outputStream, HEADER_CHARSET));
             } catch (IOException ioe) {
@@ -204,6 +217,7 @@ public class WebServer extends Thread {
         }
 
         public TinyWebThread(String uri) {
+            super("TinyWebThread-"+nextThreadNum());
             this.clientSocket = null;
             String request = "GET " + uri + " HTTP/1.0\r\n\r\n";
             this.inputStream = new ByteArrayInputStream(request.getBytes());
@@ -260,7 +274,6 @@ public class WebServer extends Thread {
         }
 
         public void run() {
-
             if (inputStream != null) {
                 isRunning = true;
                 try {
@@ -918,7 +931,7 @@ public class WebServer extends Thread {
                 path = chopPath(path);
             } while (path != null);
 
-            if (! allowRemoteConnections)
+            if (allowingRemoteConnections != ALLOW_REMOTE_ALWAYS)
                 sendErrorOrAuth(403, "Forbidden", "Not accepting " +
                                 "requests from remote IP addresses ." );
         }
@@ -1326,7 +1339,7 @@ public class WebServer extends Thread {
         if (result != null && result.length() > 0)
             return result;
 
-        if (!forbidRemoteConnections()) try {
+        if (ALLOW_REMOTE_CONNECTIONS_SETTING != ALLOW_REMOTE_NEVER) try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException uhe) {}
 
@@ -1577,11 +1590,7 @@ public class WebServer extends Thread {
 
     /** Return the number of the port this server is listening on. */
     public int getPort()         { return port; }
-    /** Return the socket we opened for data connections. */
-    public ServerSocket getDataSocket() {
-        GET_SOCKET_PERMISSION.checkPermission();
-        return dataSocket;
-    }
+
     /** Return the startup timestamp for this server. */
     public String getTimestamp() { return startupTimestamp; }
 
@@ -1595,27 +1604,11 @@ public class WebServer extends Thread {
         this.roots = roots;
         startupTimestamp = Long.toString((new Date()).getTime());
         startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
+        initAllowRemote();
 
-        InetAddress listenAddress = null;
-        if (forbidRemoteConnections())
-            listenAddress = LOOPBACK_ADDR;
-
-        while (serverSocket == null) try {
-            if (port > 0)
-                dataSocket = new ServerSocket(port-1, 50, listenAddress);
-            serverSocket = new ServerSocket(port, 50, listenAddress);
-        } catch (IOException ioex) {
-            if (dataSocket != null) {
-                try { dataSocket.close(); } catch (IOException ioe) {}
-                dataSocket = null;
-            }
-            if (serverSocket != null) {
-                try { serverSocket.close(); } catch (IOException ioe) {}
-                serverSocket = null;
-            }
-            port += 2;
-        }
-        this.port = port;
+        ServerSocketListener firstListener = new ServerSocketListener(port);
+        this.port = firstListener.getPortNumber();
+        Browser.setDefaults(getHostName(), port);
         DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
         writePackagesToDefaultEnv();
 
@@ -1632,10 +1625,27 @@ public class WebServer extends Thread {
         try {
             DashboardURLStreamHandlerFactory.initialize(this);
         } catch (Exception e) {}
+
+        firstListener.start();
     }
 
-    private static boolean forbidRemoteConnections() {
-        return "never".equalsIgnoreCase(Settings.getVal(HTTP_ALLOWREMOTE_SETTING));
+    private void initAllowRemote() {
+        String setting = Settings.getVal(HTTP_ALLOWREMOTE_SETTING);
+        if ("true".equalsIgnoreCase(setting))
+            allowingRemoteConnections = ALLOW_REMOTE_ALWAYS;
+        else if ("false".equalsIgnoreCase(setting))
+            allowingRemoteConnections = ALLOW_REMOTE_MAYBE;
+        else
+            allowingRemoteConnections = ALLOW_REMOTE_NEVER;
+
+        ALLOW_REMOTE_CONNECTIONS_SETTING = allowingRemoteConnections;
+    }
+
+    private InetAddress getListenAddress() {
+        InetAddress listenAddress = null;
+        if (allowingRemoteConnections == ALLOW_REMOTE_NEVER)
+            listenAddress = LOOPBACK_ADDR;
+        return listenAddress;
     }
 
     /**
@@ -1722,66 +1732,84 @@ public class WebServer extends Thread {
         else
             DEFAULT_ENV.put(TinyCGI.OBJECT_CACHE, cache);
     }
-    public void allowRemoteConnections(String setting) {
-        SET_ALLOW_REMOTE_PERMISSION.checkPermission();
-        this.allowRemoteConnections = "true".equalsIgnoreCase(setting);
-
-        /* in the future, if better remote host filtering is desired,
-         * this would be the place to put it.  For example instead of
-         * "true", meaning "allow connections from any host", a user
-         * might be able to supply a comma-separated list of hostnames.
-         * Just add logic here to parse the setting, and logic in the
-         * checkIP() method to act in accordance with the settings. */
-    }
 
 
-    private volatile boolean isRunning;
+    private volatile boolean isRunning = true;
 
 
-    public void run() {
-        acceptRequests(serverSocket);
-    }
 
-    /** handle http requests. */
-    protected void acceptRequests(ServerSocket serverSocket) {
-        Socket clientSocket = null;
-        TinyWebThread serverThread = null;
+    private class ServerSocketListener extends Thread implements PropertyChangeListener {
+        private int port;
+        private ServerSocket serverSocket;
 
-        if (serverSocket == null) return;
-
-        isRunning = true;
-
-        while (isRunning) try {
-            clientSocket = serverSocket.accept();
-
-            serverThread = new TinyWebThread(clientSocket);
-            serverThreads.addElement(serverThread);
-            serverThread.start();
-
-        } catch (IOException e) { }
-
-        while (serverThreads.size() > 0) {
-            serverThread = (TinyWebThread) serverThreads.remove(0);
-            serverThread.close();
-        }
-
-        close(serverSocket);
-    }
-
-    private class SecondaryServerSocket extends Thread {
-        ServerSocket secondaryServerSocket;
-        public SecondaryServerSocket(int port) throws IOException {
+        public ServerSocketListener(int port) throws IOException {
+            super("WebServerListener-"+nextThreadNum());
             // create a server socket that listens on the specified port.
-            // bind to the same inet address as the "main" server socket.
-            InetAddress listenAddress = serverSocket.getInetAddress();
-            secondaryServerSocket = new ServerSocket(port, 50, listenAddress);
-            dataSocket = new ServerSocket(port-1, 50, listenAddress);
-
+            this.port = port;
             setDaemon(true);
+            serverSocketListeners.add(this);
+            InternalSettings.addPropertyChangeListener
+                (HTTP_ALLOWREMOTE_SETTING, this);
+            openSocket();
         }
+
+        private void openSocket() {
+            InetAddress listenAddress = getListenAddress();
+
+            while (serverSocket == null) try {
+                serverSocket = new ServerSocket(port, 50, listenAddress);
+            } catch (IOException ioex) {
+                closeSocket(serverSocket);
+                serverSocket = null;
+                port += 1;
+            }
+        }
+
+        private void closeSocket() {
+            ServerSocket oldServerSocket = serverSocket;
+            serverSocket = null;
+            // if this thread is still running, the next line will cause the
+            // accept() call in the run() method to throw a SocketException.
+            closeSocket(oldServerSocket);
+        }
+
+        private void closeSocket(ServerSocket s) {
+            if (s != null) try {
+                s.close();
+            } catch (IOException e) { }
+        }
+
+        private int getPortNumber() {
+            return port;
+        }
+
         public void run() {
-            acceptRequests(secondaryServerSocket);
-            secondaryServerSocket = null;
+            while (isRunning) {
+                if (serverSocket == null)
+                    openSocket();
+
+                try {
+                    Socket clientSocket = serverSocket.accept();
+
+                    TinyWebThread serverThread = new TinyWebThread(clientSocket);
+                    serverThreads.addElement(serverThread);
+                    serverThread.start();
+
+                } catch (IOException e) { }
+            }
+
+            close();
+        }
+
+        public void close() {
+            closeSocket();
+        }
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (HTTP_ALLOWREMOTE_SETTING.equals(evt.getPropertyName())) {
+                initAllowRemote();
+                closeSocket();
+            }
         }
     }
 
@@ -1789,12 +1817,18 @@ public class WebServer extends Thread {
     /** Start listening for connections on an additional port */
     public void addExtraPort(int port) throws IOException {
         ADD_PORT_PERMISSION.checkPermission();
-        SecondaryServerSocket s = new SecondaryServerSocket(port);
-        secondaryServerSockets.add(s);
+
+        for (Iterator i = serverSocketListeners.iterator(); i.hasNext();) {
+            ServerSocketListener s = (ServerSocketListener) i.next();
+            if (port == s.getPortNumber())
+                return;
+        }
+
+        ServerSocketListener s = new ServerSocketListener(port);
         s.start();
-        this.port = port;
+        this.port = s.getPortNumber();
+        Browser.setDefaults(getHostName(), port);
     }
-    private Vector secondaryServerSockets = new Vector();
 
 
 
@@ -1802,19 +1836,24 @@ public class WebServer extends Thread {
     public void quit() {
         QUIT_PERMISSION.checkPermission();
         isRunning = false;
-        // interrupt the main server thread.
-        this.interrupt();
-        close(this.serverSocket);
-        // interrupt any secondary server threads.
-        Iterator i = secondaryServerSockets.iterator();
-        while (i.hasNext()) ((Thread) i.next()).interrupt();
 
-        this.serverSocket = null;
+        // stop all server listener threads.
+        for (Iterator i = serverSocketListeners.iterator(); i.hasNext();) {
+            ServerSocketListener listener = (ServerSocketListener) i.next();
+            listener.close();
+        }
+        this.serverSocketListeners.clear();
+
+        // stop any web requests that are still running
+        while (serverThreads.size() > 0) {
+            TinyWebThread serverThread = (TinyWebThread) serverThreads.remove(0);
+            serverThread.close();
+        }
     }
 
-    private synchronized void close(ServerSocket serverSocket) {
-        if (serverSocket != null) try {
-            serverSocket.close();
-        } catch (IOException e2) {}
+    private static int threadInitNumber;
+    private static synchronized int nextThreadNum() {
+        return threadInitNumber++;
     }
+
 }

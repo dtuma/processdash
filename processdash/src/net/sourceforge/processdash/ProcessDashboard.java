@@ -28,6 +28,8 @@ package net.sourceforge.processdash;
 import java.awt.Font;
 import java.awt.FlowLayout;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.io.*;
 import java.net.URL;
@@ -62,6 +64,8 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class ProcessDashboard extends JFrame implements WindowListener, DashboardContext {
 
+    public static final String HTTP_PORT_SETTING = "http.port";
+
     ConfigureButton configure_button = null;
     PauseButton pause_button = null;
     ScriptButton script_button = null;
@@ -90,7 +94,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     String propertiesFile     = DEFAULT_PROP_FILE;
     static final String TEMPLATES_FILE = "state";
     private PropertyKey currentPhase  = null;
-    int httpServerPort = DEFAULT_WEB_PORT;
     private static String versionNumber;
 
     private static final String TEMPLATES_CLASSPATH = "Templates/";
@@ -137,19 +140,11 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         // start the http server.
         try {
-            String portSetting = Settings.getVal("http.port");
-            if (portSetting != null) try {
-                httpServerPort = Integer.parseInt(portSetting);
-            } catch (NumberFormatException nfe) {
-                System.err.println("Invalid value for 'http.port' setting: "
-                                   + nfe);
-            }
+            int httpPort = Settings.getInt(HTTP_PORT_SETTING, DEFAULT_WEB_PORT);
             webServer = new WebServer
-                (httpServerPort, TemplateLoader.getTemplateURLs());
-            webServer.start();
-            webServer.allowRemoteConnections
-                (Settings.getVal("http.allowRemote"));
-            Browser.setDefaults("localhost", webServer.getPort());
+                (httpPort, TemplateLoader.getTemplateURLs());
+            InternalSettings.addPropertyChangeListener
+                (HTTP_PORT_SETTING, new HttpPortSettingListener());
             ScriptID.setNameResolver(new ScriptNameResolver(webServer));
         } catch (IOException ioe) {
             System.err.println("Couldn't start web server: " + ioe);
@@ -174,9 +169,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         concurrencyLock = new ConcurrencyLock(property_directory,
                                               webServer.getPort(),
                                               webServer.getTimestamp());
-
-        // Start up the data repository server.
-        data.startServer(webServer.getDataSocket());
 
         // determine if Lost Data Files are present in the pspdata directory
         // and take steps to repair them.
@@ -350,6 +342,16 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         return false;
     }
 
+    private class HttpPortSettingListener implements PropertyChangeListener {
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (HTTP_PORT_SETTING.equalsIgnoreCase(evt.getPropertyName()))
+                try {
+                    webServer.addExtraPort
+                        (Integer.parseInt((String) evt.getNewValue()));
+                } catch (Exception e) {}
+        }
+    }
+
 
     private static final String BULLET = "\u2022 ";
     private static final String COMPLETION_FLAG_SETTING =
@@ -393,14 +395,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         data.setDatafileSearchURLs(templateRoots);
         webServer.setRoots(templateRoots);
         return true;
-    }
-
-    void changeHttpPort(int newPort) {
-        try {
-            webServer.addExtraPort(newPort);
-            Browser.setDefaults("localhost", newPort);
-            data.startSecondServer(webServer.getDataSocket());
-        } catch (IOException ioe) {}
     }
 
     private void refreshHierarchy() {
