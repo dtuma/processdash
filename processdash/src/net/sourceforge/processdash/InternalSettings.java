@@ -191,9 +191,15 @@ public class InternalSettings extends Settings {
     public static void addPropertyChangeListener(PropertyChangeListener l) {
         propSupport.addPropertyChangeListener(l);
     }
+    public static void addPropertyChangeListener(String propertyName, PropertyChangeListener l) {
+        propSupport.addPropertyChangeListener(propertyName, l);
+    }
 
     public static void removePropertyChangeListener(PropertyChangeListener l) {
         propSupport.removePropertyChangeListener(l);
+    }
+    public static void removePropertyChangeListener(String propertyName, PropertyChangeListener l) {
+        propSupport.removePropertyChangeListener(propertyName, l);
     }
 
     static void loadLocaleSpecificDefaults(ResourceBundle resources) {
