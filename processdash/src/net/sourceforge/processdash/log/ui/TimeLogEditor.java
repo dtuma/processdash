@@ -240,31 +240,29 @@ public class TimeLogEditor extends Object
             // Get the posted changes (keys) and loop through them all
             Enumeration keys = postedChanges.keys();
             while (keys.hasMoreElements ()) {
-                // Store the change's key information into k, and data into l.
+                // Get the key for this hierarchy node.
                 PropertyKey k = (PropertyKey)keys.nextElement ();
-                l = ((Long)postedChanges.get (k)).longValue();
-                if (l != 0) {
-                    thePath = k.path() + "/Time";
 
-                    // Extract the data from the data repository that corresponds
-                    // to the change we are currently applying.
-                    Object pt = data.getValue (thePath);
+                // Extract the data from the data repository that corresponds
+                // to the change we are currently applying.
+                thePath = k.path() + "/Time";
+                Object pt = data.getValue (thePath);
 
-                    // Are they trying to log time against some node which performs
-                    // roll up only?  This is bad - don't allow it.
-                    if (pt != null &&
-                        (!(pt instanceof DoubleData) || pt instanceof NumberFunction)) {
-                        System.err.println("Error in TimeLogEditor: time must be logged " +
-                                           "to phases (i.e. leaves of the hierarchy).");
-                        continue;
-                    }
-
-                    if (pt != null)
-                        l += (long)((DoubleData) pt).getInteger ();
-
-                    // Save the new value into the data repository.
-                    data.putValue(thePath, new DoubleData(l, false));
+                // Are they trying to log time against some node which performs
+                // roll up only?  This is bad - don't allow it.
+                if (pt != null &&
+                    (!(pt instanceof DoubleData) || pt instanceof NumberFunction)) {
+                    System.err.println("Error in TimeLogEditor: time must be logged " +
+                                       "to phases (i.e. leaves of the hierarchy).");
+                    continue;
                 }
+
+                // Ignore the delta time stored in the posted changes map - just
+                // recalculate the total time spent in the hierarchy node.
+                long totalTime = tl.timeOf(k, false);
+
+                // Store this value in the hierarchy.
+                data.putValue(thePath, new DoubleData(totalTime, false));
             }
         }
         postedChanges.clear ();
