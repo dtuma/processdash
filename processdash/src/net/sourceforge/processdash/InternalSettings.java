@@ -25,6 +25,8 @@
 
 package net.sourceforge.processdash;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.security.AccessControlException;
@@ -40,6 +42,8 @@ public class InternalSettings extends Settings {
 
     private static FileProperties fsettings = null;
     private static String settingsFile = null;
+    private static PropertyChangeSupport propSupport =
+        new PropertyChangeSupport(InternalSettings.class);
     public static final String sep = System.getProperty("file.separator");
 
 
@@ -156,6 +160,8 @@ public class InternalSettings extends Settings {
     private static void set0(String name, String value, String comment) {
         checkPermission("write."+name);
 
+        String oldValue = fsettings.getProperty(name);
+
         if (value == null)
             fsettings.remove(name);
 
@@ -168,6 +174,8 @@ public class InternalSettings extends Settings {
         serializable = null;
 
         saveSettings();
+
+        propSupport.firePropertyChange(name, oldValue, value);
     }
 
     private static void saveSettings() {
@@ -178,6 +186,14 @@ public class InternalSettings extends Settings {
                 } catch (Exception e) { }
                 return null;
             }});
+    }
+
+    public static void addPropertyChangeListener(PropertyChangeListener l) {
+        propSupport.addPropertyChangeListener(l);
+    }
+
+    public static void removePropertyChangeListener(PropertyChangeListener l) {
+        propSupport.removePropertyChangeListener(l);
     }
 
     static void loadLocaleSpecificDefaults(ResourceBundle resources) {
