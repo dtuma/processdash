@@ -118,7 +118,7 @@ public class WebServer {
     public static final DashboardPermission SET_ALLOW_REMOTE_PERMISSION =
         new DashboardPermission("webServer.setAllowRemoteConnections");
     public static final DashboardPermission ADD_PORT_PERMISSION =
-        new DashboardPermission("webServer.addExtraPort");
+        new DashboardPermission("webServer.addPort");
     public static final DashboardPermission QUIT_PERMISSION =
         new DashboardPermission("webServer.quit");
 
@@ -1598,19 +1598,12 @@ public class WebServer {
         return OUTPUT_CHARSET;
     }
 
-    private void init(int port, URL [] roots) throws IOException
+    private void init(int port) throws IOException
     {
         CREATE_PERMISSION.checkPermission();
-        this.roots = roots;
         startupTimestamp = Long.toString((new Date()).getTime());
         startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
         initAllowRemote();
-
-        ServerSocketListener firstListener = new ServerSocketListener(port);
-        this.port = firstListener.getPortNumber();
-        Browser.setDefaults(getHostName(), port);
-        DEFAULT_ENV.put("SERVER_PORT", Integer.toString(port));
-        writePackagesToDefaultEnv();
 
         String charsetName = Settings.getVal("http.charset");
         if (charsetName != null && charsetName.length() > 0) try {
@@ -1626,7 +1619,7 @@ public class WebServer {
             DashboardURLStreamHandlerFactory.initialize(this);
         } catch (Exception e) {}
 
-        firstListener.start();
+        addPort(port);
     }
 
     private void initAllowRemote() {
@@ -1672,7 +1665,8 @@ public class WebServer {
         while (i-- > 0)
             roots[i] = (URL) v.elementAt(i);
 
-        init(port, roots);
+        init(port);
+        setRoots(roots);
     }
 
     /**
@@ -1689,15 +1683,16 @@ public class WebServer {
         URL [] roots = new URL[1];
         roots[0] = rootDir.toURL();
 
-        init(port, roots);
+        init(port);
+        setRoots(roots);
     }
 
     /**
      * Run a tiny web server on the given port, serving up resources
      * out of the given list of template search URLs.
      */
-    public WebServer(int port, URL [] roots) throws IOException {
-        init(port, roots);
+    public WebServer(int port) throws IOException {
+        init(port);
     }
 
 
@@ -1815,7 +1810,7 @@ public class WebServer {
 
 
     /** Start listening for connections on an additional port */
-    public void addExtraPort(int port) throws IOException {
+    public void addPort(int port) throws IOException {
         ADD_PORT_PERMISSION.checkPermission();
 
         for (Iterator i = serverSocketListeners.iterator(); i.hasNext();) {
@@ -1828,6 +1823,7 @@ public class WebServer {
         s.start();
         this.port = s.getPortNumber();
         Browser.setDefaults(getHostName(), port);
+        DEFAULT_ENV.put("SERVER_PORT", Integer.toString(this.port));
     }
 
 

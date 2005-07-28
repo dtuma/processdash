@@ -112,13 +112,32 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         // load app defaults and user settings.
         InternalSettings.initialize("");
-
-        // run the backup process as soon as possible
         propertiesFile = Settings.getFile("stateFile");
         File prop_file = new File(propertiesFile);
         property_directory = prop_file.getParent() + Settings.sep;
+
+        // start the http server.
+        try {
+            int httpPort = Settings.getInt(HTTP_PORT_SETTING, DEFAULT_WEB_PORT);
+            webServer = new WebServer(httpPort);
+            InternalSettings.addPropertyChangeListener
+                (HTTP_PORT_SETTING, new HttpPortSettingListener());
+            ScriptID.setNameResolver(new ScriptNameResolver(webServer));
+        } catch (IOException ioe) {
+            System.err.println("Couldn't start web server: " + ioe);
+        }
+
+        // ensure that we have exclusive control of the data in the
+        // property_directory
+        //
+        concurrencyLock = new ConcurrencyLock(property_directory,
+                                              webServer.getPort(),
+                                              webServer.getTimestamp());
+
+        // run the backup process as soon as possible
         FileBackupManager.maybeRun
             (property_directory, FileBackupManager.STARTUP);
+
 
         // create the data repository.
         data = new DataRepository();
@@ -138,17 +157,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         System.out.println("Process Dashboard version " + versionNumber);
         setTitle(title != null ? title : resources.getString("Window_Title"));
 
-        // start the http server.
-        try {
-            int httpPort = Settings.getInt(HTTP_PORT_SETTING, DEFAULT_WEB_PORT);
-            webServer = new WebServer
-                (httpPort, TemplateLoader.getTemplateURLs());
-            InternalSettings.addPropertyChangeListener
-                (HTTP_PORT_SETTING, new HttpPortSettingListener());
-            ScriptID.setNameResolver(new ScriptNameResolver(webServer));
-        } catch (IOException ioe) {
-            System.err.println("Couldn't start web server: " + ioe);
-        }
+        // initialize the content roots for the http server.
+        webServer.setRoots(TemplateLoader.getTemplateURLs());
 
         //open & load the User's hierarchical work breakdown structure,
         //henceforth referred to as "properties"
@@ -162,13 +172,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         TimeLog.setDefaultFilename(getTimeLog());
 
         BetaVersionSetup.runSetup(property_directory);
-
-        // ensure that we have exclusive control of the data in the
-        // property_directory
-        //
-        concurrencyLock = new ConcurrencyLock(property_directory,
-                                              webServer.getPort(),
-                                              webServer.getTimestamp());
 
         // determine if Lost Data Files are present in the pspdata directory
         // and take steps to repair them.
@@ -346,8 +349,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         public void propertyChange(PropertyChangeEvent evt) {
             if (HTTP_PORT_SETTING.equalsIgnoreCase(evt.getPropertyName()))
                 try {
-                    webServer.addExtraPort
-                        (Integer.parseInt((String) evt.getNewValue()));
+                    int newPort = Integer.parseInt((String) evt.getNewValue());
+                    webServer.addPort(newPort);
                 } catch (Exception e) {}
         }
     }

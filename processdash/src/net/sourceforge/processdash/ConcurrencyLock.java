@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,25 +28,35 @@ package net.sourceforge.processdash;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 
 import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.WebServer;
 
 
 public class ConcurrencyLock {
 
     public static final String LOCK_FILE_NAME = "dashlock.txt";
+    public static final String INFO_FILE_NAME = "dashlock2.txt";
     public static final String RAISE_URL = "/control/raiseWindow.class";
 
+    File infoFile = null;
     File lockFile = null;
+    FileChannel lockChannel = null;
+    FileLock lock = null;
+    Thread shutdownHook = null;
+
 
     /** Obtain a concurrency lock for the data in the given directory.
      *
@@ -63,94 +73,120 @@ public class ConcurrencyLock {
      */
     public ConcurrencyLock(String directory, int port, String timeStamp) {
 
+        /* Try to acquire a lock on a lock file in the given directory. */
+        lockFile = new File(directory, LOCK_FILE_NAME);
+        infoFile = new File(directory, INFO_FILE_NAME);
+        try {
+            lockChannel = new FileOutputStream(lockFile).getChannel();
+            lock = lockChannel.tryLock();
+
+            if (lock != null) {
+                writeLockInfo(port, timeStamp);
+                registerShutdownHook();
+            } else {
+                if (notifyOtherDashboard() == false)
+                    showWarningDialog(getPath(lockFile));
+                System.exit(0);
+            }
+
+        } catch (IOException e) {
+            /* If we were unable to create a lock file, display an error
+             * message and then exit.
+             */
+            if (lockChannel == null || lock != null)
+                showFailureDialog(getPath(lockFile));
+            else
+                showWarningDialog(getPath(lockFile));
+            unlock();
+            System.exit(0);
+        }
+    }
+
+
+    /** Write information about the current dashboard into the lock info file.
+     */
+    private void writeLockInfo(int port, String timeStamp) throws IOException {
+        Writer out = new OutputStreamWriter
+            (new FileOutputStream(infoFile), "UTF-8");
+        out.write(getCurrentHost() + "\n" +
+                  port + "\n" +
+                  timeStamp + "\n");
+        out.close();
+    }
+
+
+    /** Register a JVM shutdown hook to clean up the files created by this lock.
+     */
+    private void registerShutdownHook() {
+        // destroy the lock when the JVM is closing
+        Runtime.getRuntime().addShutdownHook(shutdownHook = new Thread() {
+            public void run() {
+                unlock();
+            }});
+    }
+
+
+    /** Attempt to contact the dashboard that wrote the lock info file, and
+     * ask it to bring itself to the front of other windows.
+     *
+     * @return true if the other dashboard was successfully contacted, and
+     *    successfully brought itself to the front of other windows.
+     */
+    private boolean notifyOtherDashboard() {
+        try {
+            /* Read the information written in the lock info file by the other
+             * running dashboard instance.
+             */
+            BufferedReader in = new BufferedReader
+                (new InputStreamReader(new FileInputStream(infoFile), "UTF-8"));
+            String otherHost = in.readLine();
+            int otherPort = Integer.parseInt(in.readLine());
+            String otherTimeStamp = in.readLine();
+
+            /* Check to see if the other dashboard is running on the same
+             * computer that we're running on.  If not, don't try to contact it.
+             */
+            if (!getCurrentHost().equals(otherHost))
+                return false;
+
+            /* Try to contact the dashboard that created this lock file, and
+             * ask it to bring itself to the front of other windows.
+             */
+            URL testUrl = new URL("http", LOOPBACK_ADDR, otherPort, RAISE_URL);
+            HttpURLConnection conn =
+                (HttpURLConnection) testUrl.openConnection();
+            conn.connect();
+
+            /* If the response code is HTTP_OK, that means the dashboard
+             * heard and complied with our request.
+             */
+            return (conn.getResponseCode() == HttpURLConnection.HTTP_OK);
+        } catch (Exception exc) {
+            /* If we reach this point, it means we were UNABLE to contact
+             * the dashboard which created the lock file. */
+        }
+
+        return false;
+    }
+
+
+    /** Get the IP address of the current host.
+     */
+    private String getCurrentHost() {
         String currentHost = LOOPBACK_ADDR;
         try {
             // Look up the address of the local host (where our web server
             // is currently running).
             currentHost = InetAddress.getLocalHost().getHostAddress();
         } catch (IOException ioe) {}
-
-        /* Check for the presence of a lock file in the given directory. */
-        lockFile = new File(directory, LOCK_FILE_NAME);
-        if (lockFile.exists()) try {
-
-            /* The lock file exists!  Try to contact the dashboard that
-             * created this lock file.
-             */
-            BufferedReader in = new BufferedReader(new FileReader(lockFile));
-            String otherHost = in.readLine();
-            int otherPort = Integer.parseInt(in.readLine());
-            String otherTimeStamp = in.readLine();
-
-            /** Have we already successfully bound our webserver to the
-             * address and port listed in the lock file? If so, we can
-             * safely ignore the lock file.  After all, the dashboard that
-             * created it can't still be running if we were able to listen
-             * on that socket.  And if we connect to this host/port, we'll
-             * just be talking to ourselves!
-             */
-            if ((!otherHost.equals(currentHost) &&
-                 !otherHost.equals(LOOPBACK_ADDR)) || otherPort != port) {
-
-                URL testUrl = new URL("http", otherHost, otherPort, RAISE_URL);
-                HttpURLConnection conn =
-                    (HttpURLConnection) testUrl.openConnection();
-                conn.connect();
-
-                /* If we get to this point, it means we were able to
-                 * successfully connect to a running web server.  But it
-                 * could be a coincidence that a web server is listening on
-                 * the same host/port as the dashboard that originally
-                 * created this lockfile.  Check the timestamp returned by
-                 * the web server, to see if it matches the timestamp in
-                 * the lockfile.
-                 */
-                String comparedTimeStamp = conn.getHeaderField
-                    (WebServer.TIMESTAMP_HEADER);
-                if (otherTimeStamp.equals(comparedTimeStamp)) {
-
-                    /* If we get to this point, it means that the dashboard
-                     * which created the lockfile is still up and running.
-                     * If it honored our request to raise its window, we
-                     * can exit silently.  Otherwise, display a warning
-                     * before exiting.
-                     */
-                    if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                        System.out.println("response code is " +
-                                           conn.getResponseCode());
-                        showWarningDialog(getPath(lockFile));
-                    }
-
-                    System.exit(0);
-                }
-            }
-        } catch (Exception exc) {
-            /* If we reach this point, it means we were UNABLE to contact
-             * the dashboard which created the lock file.  We will assume
-             * that the dashboard which created the lock file must have
-             * crashed before deleting its lock file.  We will simply
-             * ignore the lock file and proceed normally. */
-        }
-
-        /* Stake our claim to this data by creating a lock file in the
-         * current directory.
-         */
-        try {
-            FileWriter out = new FileWriter(lockFile);
-            out.write(currentHost + "\n" +
-                      port + "\n" +
-                      timeStamp + "\n");
-            out.close();
-        } catch (IOException ioe2) {
-            /* If we were unable to create a lock file, display an error
-             * message and then exit.
-             */
-            showFailureDialog(getPath(lockFile));
-            System.exit(0);
-        }
+        return currentHost;
     }
     private static final String LOOPBACK_ADDR = "127.0.0.1";
 
+
+    /** Return a user-readable description of the directory containing
+     * the given file.
+     */
     private String getPath(File file) {
         File parent = file.getParentFile();
         if (parent != null)
@@ -161,6 +197,7 @@ public class ConcurrencyLock {
             return file.getAbsolutePath();
         }
     }
+
 
     /** Display a dialog to the user indicating that someone on
      * another machine is already running the dashboard for the
@@ -195,8 +232,29 @@ public class ConcurrencyLock {
      * before it exits.
      */
     public synchronized void unlock() {
-        if (lockFile != null)
+        if (lock != null) try {
+            lock.release();
+            lock = null;
+        } catch (Exception e) {}
+
+        if (lockChannel != null) try {
+            lockChannel.close();
+            lockChannel = null;
+        } catch (Exception e) {}
+
+        if (lockFile != null) try {
             lockFile.delete();
-        lockFile = null;
+            lockFile = null;
+        } catch (Exception e) {}
+
+        if (infoFile != null) try {
+            infoFile.delete();
+            infoFile = null;
+        } catch (Exception e) {}
+
+        if (shutdownHook != null) try {
+            if (Runtime.getRuntime().removeShutdownHook(shutdownHook))
+                shutdownHook = null;
+        } catch (Exception e) {}
     }
 }
