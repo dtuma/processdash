@@ -112,6 +112,9 @@ public class FileBackupManager {
         throws IOException
     {
         File[] backupFiles = getBackupFiles(backupDir);
+        if (backupFiles == null || backupFiles.length == 0)
+            return;        // nothing to do
+
         File oldestBackupFile = findMostRecentBackupFile(backupFiles);
         File oldBackupTempFile = new File(backupDir, OLD_BACKUP_TEMP_FILENAME);
         File newBackupTempFile = new File(backupDir, NEW_BACKUP_TEMP_FILENAME);
