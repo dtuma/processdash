@@ -558,6 +558,17 @@ public class TemplateLoader {
             else
                 return null;
         } catch (IndexOutOfBoundsException ioobe) {}
+        // if the URL doesn't start with 'jar:file:' (as it would when the
+        // code is packaged in a jar file), perhaps the class files are
+        // unpackaged and located in a directory (a common scenario for
+        // running within an IDE).
+        else if (myURL.startsWith("file:")) try {
+            String classDirName = myURL.substring(5,myURL.lastIndexOf("/net/"));
+            classDirName = HTMLUtils.urlDecode(classDirName);
+            File classDir = new File(classDirName);
+            if (classDir.isDirectory())
+                return classDir.getParent();
+        } catch (Exception e) {}
         return null;
     }
 
