@@ -87,7 +87,7 @@ public class PCSH {
         // classpath, or if the JavaHelp add-on is installed.
         if (DEFAULT_INSTANCE == null) try {
             DEFAULT_INSTANCE = new DashHelpBroker();
-        } catch (Throwable e) { e.printStackTrace(); }
+        } catch (Throwable e) { }
 
         // If we were unable to create a JavaHelp-based broker, create a
         // default browser-based provider instead.
