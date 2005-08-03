@@ -26,6 +26,7 @@
 package net.sourceforge.processdash.util;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,6 +46,21 @@ public class FileUtils {
         in.close();
 
         return verify.getValue();
+    }
+
+    /** Utility routine: slurp an entire file from an InputStream. */
+    public static byte[] slurpContents(InputStream in, boolean close)
+        throws IOException
+    {
+        byte [] result = null;
+        ByteArrayOutputStream slurpBuffer = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) != -1)
+            slurpBuffer.write(buffer, 0, bytesRead);
+        result = slurpBuffer.toByteArray();
+        if (close) try { in.close(); } catch (IOException ioe) {}
+        return result;
     }
 
 }
