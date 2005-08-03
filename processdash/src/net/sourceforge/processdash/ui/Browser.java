@@ -26,7 +26,6 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.InternalSettings;
-import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ui.lib.BrowserLauncher;
 
@@ -39,7 +38,7 @@ public class Browser {
 
     // static { try { maybeSetupForWindowsIE(); } catch (Exception e) {} }
     private static String defaultHost = "localhost";
-    private static int defaultPort = ProcessDashboard.DEFAULT_WEB_PORT;
+    private static int defaultPort = 2468;
 
     public static final String BROWSER_LAUNCHER = "BrowserLauncher";
 
@@ -193,63 +192,3 @@ public class Browser {
         // System.out.println("Browser: " + msg);
     }
 }
-/*
- * ChangeLog:
- * $Log$
- * Revision 1.3  2003/12/16 23:52:35  tuma
- * Detect MacOS and use automatically use BrowserLauncher as the default.
- *
- * Revision 1.2  2003/11/08 21:13:28  tuma
- * Remove "dead" code related to preparing Windows for the IEDataApplet
- *
- * Revision 1.1  2003/11/02 06:03:09  tuma
- * Moved from pspdash
- *
- * Revision 1.11  2003/01/12 05:02:37  tuma
- * Add ".shtm" to the list of bad endings, to address problems on Windows XP.
- *
- * Revision 1.10  2002/09/15 21:00:47  tuma
- * * Add special handling for the opening of documents on the Windows platform
- * * To support Mac OS X, add additional support with BrowserLauncher
- *
- * Revision 1.9  2002/08/10 01:45:35  tuma
- * Don't try to remap mailto: URLs.
- *
- * Revision 1.8  2002/02/16 05:02:36  tuma
- * Tweak to be able to launch file: URLs.  (Microsoft is so broken.)
- *
- * Revision 1.7  2001/05/23 05:16:48  tuma
- * Create a mechanism for automatically appending the host:port of the local
- * web server so other code doesn't need to construct it.
- *
- * Revision 1.6  2001/03/06 23:58:10  tuma
- * In anticipation of creating GUIs for editing user preferences, revamped
- * the Settings class so it automatically saves changes out to the user's
- * settings file, complete with embedded comments.
- *
- * Revision 1.5  2001/02/08 17:55:48  tuma
- * disable auto-copy of OLEDB*.class files into trustlib directory; we're
- * going to do this with an InstallShield script.
- *
- * Revision 1.4  2001/02/06 23:13:56  tuma
- * bug in prior fix: space before word "windows" was preventing netscape
- * from creating new windows.
- *
- * Revision 1.3  2001/02/06 22:36:51  tuma
- * When launching something in a netscape browser, always open it in a
- * new window - don't reuse existing windows.
- *
- * Revision 1.2  2001/02/06 19:21:52  tuma
- * on windows, copy needed classfiles into the Trustlib directory if
- * they aren't already there.
- *
- * Revision 1.1  2001/02/05 18:39:15  tuma
- * New code which can kick off the default browser on Windows
- *
- * Revision 1.3  2000/07/13 19:03:32  fredde
- * updated the command to startup browsers in windows
- *
- * Revision 1.2  2000/04/01 14:59:56  fredde
- * license for the package changed to LGPL
- *
- */
