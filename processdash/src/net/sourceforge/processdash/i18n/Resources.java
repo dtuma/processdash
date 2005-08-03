@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -174,9 +174,11 @@ public class Resources extends ResourceBundle implements StringMapper {
     private static ClassLoader makeResourceLoader0() {
         try {
             Class.forName("org.w3c.dom.Element");
-            return new MergingTemplateClassLoader();
+            Class clz = Class.forName
+                ("net.sourceforge.processdash.i18n.MergingTemplateClassLoader");
+            return (ClassLoader) clz.newInstance();
         } catch (Throwable t) { }
-        System.out.println("XML classes unavailable - using safe loader");
+        // System.out.println("XML classes unavailable - using safe loader");
         return new SafeTemplateClassLoader();
     }
 
