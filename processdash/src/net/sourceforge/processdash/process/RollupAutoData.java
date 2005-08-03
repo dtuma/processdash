@@ -176,7 +176,7 @@ public class RollupAutoData extends AutoData {
             URLConnection conn =
                 TemplateLoader.resolveURLConnection(rollupDataFile);
             String contents = new String
-                (WebServer.slurpContents(conn.getInputStream(), true));
+                (FileUtils.slurpContents(conn.getInputStream(), true));
             definitionBuffer.append("\n").append(contents).append("\n");
         } catch (IOException ioe) {
             System.err.println("IOException: " + ioe);

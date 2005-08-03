@@ -226,7 +226,7 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
             URL url = AutoData.class.getResource(filename);
             URLConnection conn = url.openConnection();
             return new String
-                (WebServer.slurpContents(conn.getInputStream(), true));
+                (FileUtils.slurpContents(conn.getInputStream(), true));
         } catch (Exception e) {
             e.printStackTrace();
             return "";

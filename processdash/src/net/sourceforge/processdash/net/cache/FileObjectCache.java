@@ -25,12 +25,19 @@
 
 package net.sourceforge.processdash.net.cache;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 
-import net.sourceforge.processdash.net.http.*;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.XMLUtils;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class FileObjectCache implements ObjectCache,
                                         CachedObject.CachedDataProvider {
@@ -175,7 +182,7 @@ public class FileObjectCache implements ObjectCache,
             if (!df.isFile()) return null;
 
             fis = new FileInputStream(df);
-            results = WebServer.slurpContents(fis, false);
+            results = FileUtils.slurpContents(fis, false);
         } catch (IOException ioe) {
         } finally {
             if (fis != null) try { fis.close(); } catch (Exception e) {}

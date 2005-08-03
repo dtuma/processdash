@@ -25,17 +25,25 @@
 
 package net.sourceforge.processdash.net.cache;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.util.Date;
-import java.util.ResourceBundle;
 import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
-import net.sourceforge.processdash.i18n.*;
-import net.sourceforge.processdash.net.http.*;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.Ping;
+import net.sourceforge.processdash.util.XMLUtils;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Element;
 
 public class CachedURLObject extends CachedObject {
 
@@ -129,7 +137,7 @@ public class CachedURLObject extends CachedObject {
                 errorMessage = COULD_NOT_RETRIEVE;
             else {
                 InputStream in = conn.getInputStream();
-                byte [] httpData = WebServer.slurpContents(in, true);
+                byte [] httpData = FileUtils.slurpContents(in, true);
                 synchronized (this) {
                     data = httpData;
                     dataProvider = null;

@@ -65,6 +65,7 @@ import net.sourceforge.processdash.process.ScriptNameResolver;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -376,7 +377,7 @@ public class TemplateLoader {
         try {
             if (!close)
                 in = new ByteArrayInputStream
-                    (WebServer.slurpContents(in, false));
+                    (FileUtils.slurpContents(in, false));
 
             // this closes the file without our permission.
             Document doc = XMLUtils.parse(in);
