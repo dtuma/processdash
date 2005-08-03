@@ -27,12 +27,14 @@ package net.sourceforge.processdash.tool.diff.ui;
 
 
 import java.io.IOException;
+import java.util.List;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.TinyCGIHighVolume;
 import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.LanguageFilter;
 import net.sourceforge.processdash.tool.diff.LOCDiff;
+import net.sourceforge.processdash.tool.diff.TemplateFilterLocator;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -60,7 +62,8 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
                     "</TITLE></HEAD><BODY><H1>" +
                     resources.getString("Options_Title") +
                     "</H1>\n");
-        LOCDiff.printFiltersAndOptions(getTinyWebServer(), out);
+        List filters = TemplateFilterLocator.getFilters(getTinyWebServer());
+        LOCDiff.printFiltersAndOptions(filters, out);
         out.println("</BODY></HTML>");
     }
 
@@ -68,7 +71,8 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
         parseMultipartFormData();
 
         // Compare the two files in question.
-        LOCDiff diff = new LOCDiff(getTinyWebServer(),
+        List filters = TemplateFilterLocator.getFilters(getTinyWebServer());
+        LOCDiff diff = new LOCDiff(filters,
                                    getFileContents('A'),
                                    getFileContents('B'),
                                    getParameter("FILEB"),
@@ -103,8 +107,9 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
         out.print("<html><head><title>");
         out.print(resources.getString("Report.Title"));
         out.println("</title><style>\n"+
-                    "    @media print { .doNotPrint { display: none } }\n"+
-                    "</style></head><body>");
+                    "    @media print { .doNotPrint { display: none } }\n");
+        out.print(LOCDiff.getCssText());
+        out.println("</style></head><body>");
 
         // print page heading.
         String filenameA = getParameter("FILEA");

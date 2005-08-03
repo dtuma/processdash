@@ -26,8 +26,8 @@
 
 package net.sourceforge.processdash.tool.diff;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
@@ -168,4 +168,6 @@ public interface LanguageFilter extends TinyCGI {
      */
     void service(InputStream in, OutputStream out, Map env)
         throws IOException;
+
+    void setCharset(String charset);
 }

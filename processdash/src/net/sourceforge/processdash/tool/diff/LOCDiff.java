@@ -30,16 +30,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.util.ResourcePool;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -50,9 +46,9 @@ public class LOCDiff {
     private int base, added, deleted, modified, total;
     WhitespaceCompareString[] linesA, linesB;
     boolean ignoreComments = true;
-    LanguageFilter filter; ResourcePool pool;
+    LanguageFilter filter;
 
-    public LOCDiff(WebServer web,
+    public LOCDiff(List filters,
                    String fileAStr, String fileBStr,
                    String fileBName, String options) {
 
@@ -60,7 +56,7 @@ public class LOCDiff {
             options = getDefaultOptions(fileBName);
 
         // Get an appropriate instance of LanguageFilter.
-        filter = getFilter(web, fileBName, fileBStr, options);
+        filter = getFilter(filters, fileBName, fileBStr, options);
 
         // call flagComments on each file.
         StringBuffer fileA=new StringBuffer(), fileB=new StringBuffer();
@@ -79,9 +75,7 @@ public class LOCDiff {
     }
 
     public void dispose() {
-        if (pool != null) pool.release(filter);
         filter = null;
-        pool = null;
         linesA = linesB = null;
     }
 
@@ -225,7 +219,7 @@ public class LOCDiff {
         Diff.change c = diff.diff_2(false);
 
         // print a table header
-        out.println("<table cellpadding=0 cellspacing=0 border=0>");
+        out.println("<table class='locDiff' cellpadding=0 cellspacing=0 border=0>");
 
         int bLineNumber = 0;
         while (c != null) {
@@ -254,20 +248,20 @@ public class LOCDiff {
     protected static final int DELETE = 2;
 
     private static final String[] ROW_BEGIN = {
-        "<tr><td><tt>&nbsp;</tt></td><td><tt>",
-        "<tr><td bgcolor='#0000ff'><tt>&nbsp;</tt></td>"+
-            "<td><b><tt><font color='#0000ff'>",
-        "<tr><td bgcolor='#ff0000'><tt>&nbsp;</tt></td>"+
-            "<td><strike><tt><font color='#ff0000'>" };
+        "<tr><td>&nbsp;</td><td>",
+        "<tr><td class='locAddHdr'>&nbsp;</td>"+
+            "<td class='locAddBody'>",
+        "<tr><td class='locDelHdr'>&nbsp;</td>"+
+            "<td class='locDelBody'>" };
 
-    private static final String[] ROW_END = {
-        "</tt></td></tr>",
-        "</font></tt></b></td></tr>",
-        "</font></tt></strike></td></tr>" };
-    private static final String[] COMMENT_FONT = {
-        "<font color='32cd32'>",
-        "<font color='32cdcc'>",
-        "<font color='ff00ff'>" };
+//    private static final String[] ROW_END = {
+//        "</tt></td></tr>",
+//        "</font></tt></b></td></tr>",
+//        "</font></tt></strike></td></tr>" };
+//    private static final String[] COMMENT_FONT = {
+//        "<font color='32cd32'>",
+//        "<font color='32cdcc'>",
+//        "<font color='ff00ff'>" };
 
     protected void printRegion(PrintWriter out, Object[] lines,
                                int beginIndex, int endIndex,
@@ -277,9 +271,9 @@ public class LOCDiff {
         out.print(ROW_BEGIN[type]);
         for (int lineNum = beginIndex;   lineNum < endIndex;   ) {
             out.print(fixupLine(lines[lineNum].toString(), type));
-            if (++lineNum < endIndex) out.println("<BR>");
+            if (++lineNum < endIndex) out.println();
         }
-        out.println(ROW_END[type]);
+        out.println("</td></tr>");
     }
 
     static final String COMMENT_START_STR =
@@ -306,11 +300,11 @@ public class LOCDiff {
         StringUtils.findAndReplace(buf, "\"", "&quot;");
 
         // convert spaces to &nbsp;
-        StringUtils.findAndReplace(buf, " ", "&nbsp;");
+//        StringUtils.findAndReplace(buf, " ", "&nbsp;");
 
         // highlight comments.
-        StringUtils.findAndReplace(buf, COMMENT_START_STR, COMMENT_FONT[type]);
-        StringUtils.findAndReplace(buf, COMMENT_END_STR,   "</font>");
+        StringUtils.findAndReplace(buf, COMMENT_START_STR, "<span class='comment'>");
+        StringUtils.findAndReplace(buf, COMMENT_END_STR,   "</span>");
 
         return buf.toString();
     }
@@ -385,23 +379,6 @@ public class LOCDiff {
     private static final String WHITESPACE =
         " \t\r\n\f" + COMMENT_START_STR + COMMENT_END_STR;
 
-    static List languageFilters = null;
-
-    protected static void init(WebServer web) {
-        List filterNames = TemplateLoader.getLanguageFilters();
-        Collections.sort(filterNames);
-        Iterator i = filterNames.iterator();
-        String name = null;
-        while (i.hasNext()) try {
-            name = (String) i.next();
-            web.getRequest("/" + name, false);
-        } catch (Exception e) {
-            System.err.println
-                (resource.format("PspDiffCouldNotInit_FMT", name));
-            e.printStackTrace();
-        }
-        languageFilters = filterNames;
-    }
 
     protected String getDefaultOptions(String fileName) {
         if (fileName == null) return null;
@@ -415,78 +392,58 @@ public class LOCDiff {
         return Settings.getVal(settingName);
     }
 
-    protected LanguageFilter getFilter(WebServer web, String filename,
+    protected LanguageFilter getFilter(List languageFilters, String filename,
                                        String contents, String options) {
-        if (languageFilters == null) init(web);
+        LanguageFilter resultFilter = null;
 
-        Iterator i = languageFilters.iterator();
-        String filterName;
-        int            currentRating, resultRating = 0;
-        LanguageFilter currentFilter, resultFilter = null;
-        ResourcePool   currentPool,   resultPool   = null;
-        while (i.hasNext()) {
-            filterName = (String) i.next();
-            try {
-                currentPool = web.getCGIPool(filterName);
-                currentFilter = (LanguageFilter) currentPool.get();
-            } catch (Exception e) {
-                // This could be a null pointer exception, because there was
-                // no CGIPool for the given filter, or a class cast exception
-                // if the CGI script returned is not a LanguageFilter.
-                continue;
-            }
-            if (currentFilter == null) continue;
+        if (languageFilters != null) {
+            Iterator i = languageFilters.iterator();
+            String filterName;
+            int currentRating, resultRating = 0;
+            LanguageFilter currentFilter = null;
+            while (i.hasNext()) {
+                currentFilter = null;
+                try {
+                    currentFilter = (LanguageFilter) i.next();
+                } catch (ClassCastException e) {}
+                if (currentFilter == null) continue;
 
-            currentRating =
-                currentFilter.languageMatches(filename, contents, options);
+                currentRating =
+                    currentFilter.languageMatches(filename, contents, options);
 
-            if (currentRating > resultRating) {
-                if (resultPool != null) resultPool.release(resultFilter);
-                resultRating = currentRating;
-                resultFilter = currentFilter;
-                resultPool   = currentPool;
-            } else {
-                currentPool.release(currentFilter);
+                if (currentRating > resultRating) {
+                    resultRating = currentRating;
+                    resultFilter = currentFilter;
+                }
             }
         }
+
         if (resultFilter == null) {
             resultFilter = new DefaultFilter();
-            this.pool = null;
         }
 
         this.filter = resultFilter;
-        this.pool = resultPool;
         return resultFilter;
     }
 
-    public static void printFiltersAndOptions(WebServer web,
+    public static void printFiltersAndOptions(List languageFilters,
                                               PrintWriter out) {
-        if (languageFilters == null) init(web);
+        if (languageFilters == null)
+            return;
 
         Iterator i = languageFilters.iterator();
+        LanguageFilter filter;
         String filterName;
-        ResourcePool   currentPool;
-        LanguageFilter currentFilter;
         while (i.hasNext()) {
-            filterName = (String) i.next();
-            try {
-                currentPool = web.getCGIPool(filterName);
-                currentFilter = (LanguageFilter) currentPool.get();
-            } catch (Exception e) {
-                // This could be a null pointer exception, because there was
-                // no CGIPool for the given filter, or a class cast exception
-                // if the CGI script returned is not a LanguageFilter.
-                continue;
-            }
-            if (currentFilter == null) continue;
+            filter = (LanguageFilter) i.next();
 
-            filterName = AbstractLanguageFilter.getFilterName(currentFilter);
+            filterName = AbstractLanguageFilter.getFilterName(filter);
             out.print("<h2>");
             out.print(filterName);
             out.println("</h2><table border>");
             printOption(out, "-lang=" + filterName,
                         resource.getString("Force_Explanation"));
-            String[][] options = currentFilter.getOptions();
+            String[][] options = filter.getOptions();
             if (options != null)
                 for (int j = 0;   j < options.length;   j++) {
                     String[] option = options[j];
@@ -494,7 +451,6 @@ public class LOCDiff {
                         printOption(out, option[0], option[1]);
                 }
             out.println("</table>");
-            currentPool.release(currentFilter);
         }
     }
     private static void printOption(PrintWriter out, String opt, String text){
@@ -544,5 +500,32 @@ public class LOCDiff {
                 buf.replace(pos, pos + BAD_LINE_ENDING_B.length(),
                             GOOD_LINE_ENDING);
             }
+    }
+
+    public static String getCssText() {
+        return "table.locDiff td { " +
+                    "white-space: pre; " +
+                    "font-family: monospace; " +
+                    "font-size: 10pt " +
+                "}\n" +
+                "span.comment { " +
+                    "color: #32cd32 " +
+                "}\n" +
+                "td.locDelHdr { background-color: #ff0000 }\n" +
+                "td.locDelBody { " +
+                    "text-decoration: line-through; " +
+                    "color: #ff0000 " +
+                "}\n" +
+                "td.locDelBody span.comment { " +
+                    "color: #ff00ff " +
+                "}\n" +
+                "td.locAddHdr { background-color: #0000ff }\n" +
+                "td.locAddBody { " +
+                     "color: #0000ff; " +
+                     "font-weight: bold " +
+                 "}\n" +
+                 "td.locAddBody span.comment { " +
+                     "color: #32cdcc " +
+                 "}\n";
     }
 }

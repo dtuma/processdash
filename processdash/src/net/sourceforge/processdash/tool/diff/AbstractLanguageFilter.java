@@ -26,22 +26,21 @@
 
 package net.sourceforge.processdash.tool.diff;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.StringTokenizer;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 
 
 /** No-op implementation of the LanguageFilter interface.
  */
 public class AbstractLanguageFilter implements LanguageFilter {
+
 
     static final Resources resources = Resources.getDashBundle("LOCDiff");
 
@@ -51,6 +50,7 @@ public class AbstractLanguageFilter implements LanguageFilter {
         String.valueOf(COMMENT_END);
 
     protected String LANG_OPTION, LANG_OPTION_SPACE;
+    private String charset = "iso-8859-1";
 
     public AbstractLanguageFilter() {
         LANG_OPTION = "-lang=" + getFilterName(this).toLowerCase();
@@ -147,18 +147,10 @@ public class AbstractLanguageFilter implements LanguageFilter {
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
     {
-        out.write(CAVEAT_HTML);
+        out.write(CAVEAT_HTML.getBytes(charset));
     }
 
-    protected static byte[] CAVEAT_HTML;
-    static {
-        try {
-            CAVEAT_HTML = resources.getString("Caveat_HTML")
-                .getBytes(TinyCGIBase.getDefaultCharset());
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-    }
+    protected static String CAVEAT_HTML = resources.getString("Caveat_HTML");
 
 
     public String[][] getOptions() { return null; }
@@ -253,6 +245,10 @@ public class AbstractLanguageFilter implements LanguageFilter {
                 result[count++] = extra[i];
 
         return result;
+    }
+
+    public void setCharset(String charset) {
+        this.charset = charset;
     }
 
 }
