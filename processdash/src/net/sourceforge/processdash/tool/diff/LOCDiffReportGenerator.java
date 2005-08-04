@@ -38,7 +38,11 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.EscapeString;
@@ -72,6 +76,12 @@ public abstract class LOCDiffReportGenerator {
     private String outputCharset = "iso-8859-1";
     protected boolean skipIdentical = true;
 
+    protected List progressListeners = new LinkedList();
+    private String currentTask = null;
+    protected int numTasksCompleted = 0;
+    protected int numTasksTotal = 0;
+
+
     public LOCDiffReportGenerator() {
         this(HardcodedFilterLocator.getFilters());
     }
@@ -87,6 +97,64 @@ public abstract class LOCDiffReportGenerator {
     public void setOutputCharset(String outputCharset) {
         this.outputCharset = outputCharset;
     }
+
+    protected void updateProgress(String filename) {
+        startTask(filename);
+    }
+
+    protected void startTask(String description) {
+        numTasksCompleted++;
+        currentTask = description;
+
+        if (!progressListeners.isEmpty()) {
+            ChangeEvent e = new ChangeEvent(this);
+            for (Iterator i = progressListeners.iterator(); i.hasNext();) {
+                ChangeListener l = (ChangeListener) i.next();
+                l.stateChanged(e);
+            }
+        }
+    }
+
+
+    public String getMessage() {
+        return currentTask;
+    }
+
+    public int getPercentComplete() {
+        return numTasksCompleted * 100 / numTasksTotal;
+    }
+
+    public void addChangeListener(ChangeListener l) {
+        progressListeners.add(l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        progressListeners.remove(l);
+    }
+
+    protected Collection getFilesToCompare() throws IOException {
+        throw new UnsupportedOperationException
+            ("The getFilesToCompare() has not been implemented by subclass " +
+             getClass().getName());
+    }
+
+    public File generateDiffs() throws IOException {
+        File outFile = File.createTempFile("diff", ".htm");
+        generateDiffs(outFile);
+        return outFile;
+    }
+
+    public void generateDiffs(File outFile) throws IOException {
+        numTasksTotal = 1;
+        numTasksCompleted = -1;
+        startTask(resources.getString("Dialog.Starting"));
+
+        Collection filesToCompare = getFilesToCompare();
+        numTasksTotal += filesToCompare.size();
+
+        generateDiffs(outFile, filesToCompare);
+    }
+
 
     public void generateDiffs(File outFile, Collection filesToCompare) throws IOException {
         setupForDiff();
@@ -147,8 +215,6 @@ public abstract class LOCDiffReportGenerator {
             try { if (inB != null) inB.close(); } catch (IOException i) {}
         }
     }
-
-    protected void updateProgress(String filename) {}
 
     protected void compareFile(FileToCompare file) throws IOException {
         String filename = file.getFilename();

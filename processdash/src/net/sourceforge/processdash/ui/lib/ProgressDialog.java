@@ -36,9 +36,11 @@ import java.util.Vector;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
 
@@ -59,10 +61,19 @@ public class ProgressDialog extends JDialog {
         void addChangeListener(ChangeListener l);
     }
 
+    public interface CancellableTask extends Task {}
+
+    public class CancelledException extends Error {}
+
     private Vector tasks = new Vector();
     private JLabel messageLabel = null;
+    private JButton closeButton = null;
+    private Component closePanel = null;
     private JProgressBar progressBar = null;
     private String completionMessage = null;
+    private boolean cancelled = false;
+    private boolean running = false;
+    private String closeText = "Close";
 
     public ProgressDialog(Frame parent, String title, String message) {
         super(parent, title, true);
@@ -79,8 +90,35 @@ public class ProgressDialog extends JDialog {
         progressBar = new JProgressBar();
         getContentPane().add(messageLabel, BorderLayout.NORTH);
         getContentPane().add(progressBar,  BorderLayout.CENTER);
+
+        closeButton = new JButton("Cancel");
+        closeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (running)
+                    cancelled = true;
+                else
+                    dispose();
+            }});
+        closePanel = borderComponent(closeButton);
+        closePanel.setVisible(false);
+        getContentPane().add(closePanel, BorderLayout.SOUTH);
+
         pack();
         setLocationRelativeTo(parent);
+    }
+
+    private Component borderComponent(Component comp) {
+        Box horizBox = Box.createHorizontalBox();
+        horizBox.add(Box.createHorizontalGlue());
+        horizBox.add(comp);
+        horizBox.add(Box.createHorizontalGlue());
+
+        Box vertBox = Box.createVerticalBox();
+        vertBox.add(Box.createVerticalStrut(5));
+        vertBox.add(horizBox);
+        vertBox.add(Box.createVerticalStrut(5));
+
+        return vertBox;
     }
 
     /** Add a task for this dialog to perform.
@@ -101,6 +139,29 @@ public class ProgressDialog extends JDialog {
      */
     public void setCompletionMessage(String msg) { completionMessage = msg; }
 
+
+    /** State whether the tasks run by this dialog can be cancelled.
+     * 
+     * If this parameter is set to true, the progess dialog will display
+     * a cancel button.
+     */
+    public void setCancellable(boolean canCancel) {
+        closePanel.setVisible(canCancel);
+        pack();
+    }
+
+    /** Set the text that should be used for the cancel button.
+     */
+    public void setCancelText(String text) {
+        closeButton.setText(text);
+    }
+
+    /** Set the text that should be used for the close button.
+     */
+    public void setCloseText(String text) {
+        this.closeText = text;
+    }
+
     /** Displays the dialog, and runs the tasks in the order they were
      *  added.
      */
@@ -113,6 +174,8 @@ public class ProgressDialog extends JDialog {
 
 
     public void finished() {
+        tasks.clear();
+
         if (completionMessage == null)
             ProgressDialog.this.dispose();
 
@@ -120,12 +183,8 @@ public class ProgressDialog extends JDialog {
             messageLabel.setText(completionMessage);
 
             getContentPane().remove(progressBar);
-            JButton closeButton = new JButton("Close");
-            getContentPane().add(closeButton, BorderLayout.SOUTH);
-            closeButton.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        ProgressDialog.this.dispose(); }} );
-
+            closeButton.setText(closeText);
+            closePanel.setVisible(true);
             setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             invalidate();
             pack();
@@ -137,7 +196,11 @@ public class ProgressDialog extends JDialog {
         private int i;
 
         public void run() {
-            for (i = 0;   i < tasks.size();   progressBar.setValue(++i*100))
+            running = true;
+            for (i = 0;   i < tasks.size();   progressBar.setValue(++i*100)) {
+                if (cancelled)
+                    break;
+
                 try {
                     task = (Runnable) tasks.get(i);
                     if (task instanceof Task) {
@@ -149,10 +212,15 @@ public class ProgressDialog extends JDialog {
                     }
                     task.run();
                 } catch (Throwable t) { }
+            }
+            running = false;
             finished();
         }
 
         public void stateChanged(ChangeEvent e) {
+            if (cancelled && (task instanceof CancellableTask))
+                throw new CancelledException();
+
             try {
                 int percent = ((Task) task).getPercentComplete() % 100;
                 progressBar.setValue(i*100 + percent);

@@ -23,7 +23,7 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.diff.ui;
+package net.sourceforge.processdash.tool.diff.impl;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,7 +33,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,6 +43,8 @@ import javax.swing.JDialog;
 
 import net.sourceforge.processdash.tool.diff.HardcodedFilterLocator;
 import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator;
+import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator.FileToCompare;
+import net.sourceforge.processdash.tool.diff.ui.FileSystemLOCDiffDialog;
 import net.sourceforge.processdash.ui.Browser;
 
 
@@ -53,30 +57,27 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         super(languageFilters);
     }
 
-    public void run() {
-
-        try {
-            File outFile = File.createTempFile("diff", ".htm");
-            if (workingDialog != null)
-                outFile.deleteOnExit();
-
-            generateDiffs(outFile, getFilesToCompare());
-            Browser.launch(outFile.toURL().toString());
-
-            if (workingDialog != null)
-                workingDialog.hide();
-
-        } catch (IOException ioe) {
-//            beep(null);
-            ioe.printStackTrace();
-        } catch (UserCancel uc) {}
+    public PerforceLOCDiff(List languageFilters, String changelist) {
+        super(languageFilters);
+        setChangelist(changelist);
     }
 
+    public void setChangelist(String changelist) {
+        this.changelist = changelist;
+    }
 
-
-    private Collection getFilesToCompare() throws IOException {
+    protected Collection getFilesToCompare() throws IOException {
         List result = new ArrayList();
 
+        getOpenedFilesToCompare(result);
+
+        if (result.isEmpty())
+            getSubmittedFilesToCompare(result);
+
+        return result;
+    }
+
+    private void getOpenedFilesToCompare(List result) throws IOException {
         String[] cmd = new String[] { "p4", "opened", "-c", changelist };
         Process proc = Runtime.getRuntime().exec(cmd);
         BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -87,14 +88,32 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 System.err.println("Unrecognized output from p4 opened: '"+line+"'");
             } else {
                 String filename = m.group(1);
-                String action = m.group(2);
-                result.add(new PerforceFile(filename, action));
+                int revNum = Integer.parseInt(m.group(2));
+                String action = m.group(3);
+                result.add(new PerforceFile(filename, revNum, action));
             }
         }
-        return result;
     }
     private static final Pattern OPENED_FILE_PATTERN = Pattern.compile
-        ("(.*) - (edit|add|delete) (default change|change ([0-9]+)) .*");
+        ("(//.*)\\#([0-9]+) - (edit|add|delete) (default change|change ([0-9]+)) .*");
+
+    private void getSubmittedFilesToCompare(List result) throws IOException {
+        String[] cmd = new String[] { "p4", "describe", "-s", changelist };
+        Process proc = Runtime.getRuntime().exec(cmd);
+        BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String line;
+        while ((line = in.readLine()) != null) {
+            Matcher m = SUBMITTED_FILE_PATTERN.matcher(line);
+            if (m.matches()) {
+                String filename = m.group(1);
+                int revNum = Integer.parseInt(m.group(2));
+                String action = m.group(3);
+                result.add(new SubmittedPerforceFile(filename, revNum, action));
+            }
+        }
+    }
+    private static final Pattern SUBMITTED_FILE_PATTERN = Pattern.compile
+        ("\\.\\.\\. (//.*)#([0-9]+) (edit|add|delete)");
 
     private static final int ADDED = 0;
     private static final int MODIFIED = 1;
@@ -102,11 +121,13 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
     private class PerforceFile implements FileToCompare {
 
-        private String filename;
-        private int type;
+        protected String filename;
+        protected int revNum;
+        protected int type;
 
-        public PerforceFile(String filename, String type) {
+        public PerforceFile(String filename, int revNum, String type) {
             this.filename = filename;
+            this.revNum = revNum;
             if ("add".equals(type))
                 this.type = ADDED;
             else if ("delete".equals(type))
@@ -124,9 +145,7 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         public InputStream getContentsBefore() throws IOException {
             if (type == ADDED)
                 return null;
-            String[] cmd = new String[] { "p4", "print", "-q", filename };
-            Process proc = Runtime.getRuntime().exec(cmd);
-            return proc.getInputStream();
+            return getFileFromPerforce(filename, revNum);
         }
 
         public InputStream getContentsAfter() throws IOException {
@@ -140,13 +159,7 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         }
 
         private String getClientFilename() throws IOException {
-            String fname = filename;
-            if (type == ADDED) {
-                int pos = fname.lastIndexOf('#');
-                if (pos != -1)
-                    fname = fname.substring(0, pos);
-            }
-            String[] cmd = new String[] { "p4", "fstat", fname };
+            String[] cmd = new String[] { "p4", "fstat", filename };
             Process proc = Runtime.getRuntime().exec(cmd);
             BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             String line;
@@ -157,26 +170,49 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
             return null;
         }
 
+        protected InputStream getFileFromPerforce(String filename, int revNum) throws IOException {
+            if (revNum == 0)
+                return null;
+
+            String[] cmd = new String[] { "p4", "print", "-q", filename + "#" + revNum };
+            Process proc = Runtime.getRuntime().exec(cmd);
+            return proc.getInputStream();
+        }
+
     }
 
-    protected class UserCancel extends RuntimeException {}
+    private class SubmittedPerforceFile extends PerforceFile {
+
+        public SubmittedPerforceFile(String filename, int revNum, String type) {
+            super(filename, revNum, type);
+        }
+
+        public InputStream getContentsBefore() throws IOException {
+            return getFileFromPerforce(filename, revNum-1);
+        }
+        public InputStream getContentsAfter() throws IOException {
+            return getFileFromPerforce(filename, revNum);
+        }
+    }
+
 
     public static void main(String[] args) {
-
-        PerforceLOCDiff dlg = new PerforceLOCDiff
+        PerforceLOCDiff diff = new PerforceLOCDiff
             (HardcodedFilterLocator.getFilters());
 
-        if (args.length == 0) {
-//            dlg.showDialog();
-            dlg.run();
+        if (args.length == 1) {
+            diff.setChangelist(args[0]);
 
-        } else if (args.length == 1) {
-            dlg.changelist = args[0];
-            dlg.run();
-
-        } else {
+        } else if (args.length > 1) {
             printUsage();
+            return;
+        }
 
+        try {
+            File out = diff.generateDiffs();
+            Browser.launch(out.toURL().toString());
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
     }
 

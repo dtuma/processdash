@@ -57,27 +57,29 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeListener;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.HardcodedFilterLocator;
 import net.sourceforge.processdash.tool.diff.LOCDiff;
 import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator;
+import net.sourceforge.processdash.tool.diff.impl.FileSystemLOCDiff;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.lib.ProgressDialog;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 
-public class FileSystemLOCDiffDialog extends LOCDiffReportGenerator
-        implements ActionListener, Runnable {
+public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
+        implements ActionListener, ProgressDialog.CancellableTask {
 
 
-    protected JFrame frame;
-    protected JTextField fileA, fileB;
-    protected JButton browseA, browseB, compareButton, closeButton;
-    protected JButton cancelButton = null;
-    protected static JFileChooser fileChooser = null;
+    private JFrame frame;
+    private JTextField fileA, fileB;
+    private JButton browseA, browseB, compareButton, closeButton;
+    private static JFileChooser fileChooser = null;
 
     public FileSystemLOCDiffDialog(List languageFilters) {
         super(languageFilters);
@@ -148,8 +150,6 @@ public class FileSystemLOCDiffDialog extends LOCDiffReportGenerator
             browseFile(fileA);
         else if (e.getSource() == browseB)
             browseFile(fileB);
-        else if (cancelButton != null && e.getSource() == cancelButton)
-            userCancelled = true;
     }
 
     public void closeWindow() {
@@ -180,15 +180,22 @@ public class FileSystemLOCDiffDialog extends LOCDiffReportGenerator
         }
     }
 
-    File compareA, compareB;
-    protected JLabel currentTaskLabel;
-    protected volatile boolean userCancelled;
-    private class UserCancel extends RuntimeException {}
-    protected JDialog workingDialog = null;
+    public void compare() {
+        if (validateInput()) {
+            ProgressDialog workingDialog = new ProgressDialog
+                (frame, resources.getString("Dialog.Comparing"),
+                 resources.getString("Dialog.Comparing"));
+            workingDialog.addTask(this);
+            workingDialog.setCancelText(resources.getString("Cancel"));
+            workingDialog.setCancellable(true);
+            Dimension d = workingDialog.getSize();
+            d.width *= 3;
+            workingDialog.setSize(d);
+            workingDialog.run();   // this will block until done.
+        }
+    }
 
     protected boolean validateInput() {
-        if (fileA == null && fileB == null)
-            return true;
 
         /* Valid input:
          *  - A is blank, B is a file -> count compareB.
@@ -205,7 +212,7 @@ public class FileSystemLOCDiffDialog extends LOCDiffReportGenerator
             return false;
         }
 
-        compareA = null;
+        File compareA = null;
         if (filenameA.length() != 0) {
             compareA = new File(filenameA);
             if (!compareA.exists()) {
@@ -214,7 +221,7 @@ public class FileSystemLOCDiffDialog extends LOCDiffReportGenerator
             }
         }
 
-        compareB = new File(filenameB);
+        File compareB = new File(filenameB);
         if (!compareB.exists()) {
             beep(fileB);
             return false;
@@ -226,202 +233,33 @@ public class FileSystemLOCDiffDialog extends LOCDiffReportGenerator
             return false;
         }
 
+        setCompareA(compareA);
+        setCompareB(compareB);
+
         return true;
-    }
-
-    public void compare() {
-        if (!validateInput()) return;
-
-        workingDialog = new JDialog
-            (frame, resources.getString("Dialog.Comparing"), true);
-        Box vBox = Box.createVerticalBox();
-        vBox.add(currentTaskLabel = new JLabel
-            (resources.getString("Dialog.Starting")));
-        Dimension d = currentTaskLabel.getPreferredSize();
-        d.width = 200;
-        currentTaskLabel.setPreferredSize(d);
-        currentTaskLabel.setMinimumSize(d);
-        currentTaskLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        vBox.add(Box.createVerticalStrut(3));
-        cancelButton = new JButton(resources.getString("Cancel"));
-        cancelButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        cancelButton.addActionListener(this);
-        vBox.add(cancelButton);
-        workingDialog.getContentPane().add(vBox);
-        userCancelled = false;
-
-        Thread t = new Thread(this);
-        t.start();
-        workingDialog.pack();
-        workingDialog.show();   // this will block until done.
-    }
-
-    public void updateProgress(String filename) {
-        if (userCancelled) {
-            if (workingDialog != null)
-                workingDialog.hide();
-            throw new UserCancel();
-        }
-
-        if (currentTaskLabel != null)
-            currentTaskLabel.setText(filename);
     }
 
     public void run() {
         try {
-            File outFile = File.createTempFile("diff", ".htm");
-            if (workingDialog != null)
-                outFile.deleteOnExit();
-
-            generateDiffs(outFile, getFilesToCompare());
+            File outFile = generateDiffs();
+            outFile.deleteOnExit();
             Browser.launch(outFile.toURL().toString());
-
-            if (workingDialog != null)
-                workingDialog.hide();
 
         } catch (IOException ioe) {
             beep(null);
             ioe.printStackTrace();
-        } catch (UserCancel uc) {}
+        } catch (ProgressDialog.CancelledException ce) {}
     }
-
-
-
-    private Collection getFilesToCompare() {
-        if (compareB.isDirectory()) {
-            TreeSet result = new TreeSet();
-            listAllFiles(result, compareA, compareA);
-            listAllFiles(result, compareB, compareB);
-            return result;
-        } else {
-            skipIdentical = false;
-            return Collections.singleton
-                (new SimpleFileComparison(compareA, compareB));
-        }
-    }
-
-    private void listAllFiles(TreeSet result, File dir, File baseDir) {
-        String basePath = "";
-        if (baseDir != null)
-            basePath = baseDir.getAbsolutePath() + File.separator;
-        listAllFiles(result, dir, basePath);
-    }
-
-    private void listAllFiles(TreeSet result, File dir, String basePath) {
-        if (!isDir(dir))
-            return;
-        File [] files = dir.listFiles();
-        for (int i = files.length;   i-- > 0; ) {
-            String filename = files[i].getName();
-            if (!".".equals(filename) && !"..".equals(filename)) {
-                if (isFile(files[i])) {
-                    filename = files[i].getAbsolutePath();
-                    if (filename.startsWith(basePath))
-                        filename = filename.substring(basePath.length());
-                    result.add(new FileInDirectory(filename));
-                } else if (isDir(files[i])) {
-                    listAllFiles(result, files[i], basePath);
-                }
-            }
-        }
-    }
-
-
-    private class SimpleFileComparison implements FileToCompare {
-        private File fileA, fileB;
-
-        public SimpleFileComparison(File fileA, File fileB) {
-            this.fileA = fileA;
-            this.fileB = fileB;
-        }
-
-        public String getFilename() {
-            return fileB.getName();
-        }
-
-        public InputStream getContentsBefore() throws IOException {
-            return openFile(fileA);
-        }
-
-        public InputStream getContentsAfter() throws IOException {
-            return openFile(fileB);
-        }
-
-        private InputStream openFile(File f) throws IOException {
-            if (isFile(f))
-                return new FileInputStream(f);
-            else
-                return null;
-        }
-    }
-
-    private class FileInDirectory implements FileToCompare, Comparable {
-
-        private String filename;
-
-        public FileInDirectory(String filename) {
-            this.filename = filename;
-        }
-
-        public String getFilename() {
-            return filename;
-        }
-
-        public InputStream getContentsBefore() throws IOException {
-            return openFile(compareA);
-        }
-
-        public InputStream getContentsAfter() throws IOException {
-            return openFile(compareB);
-        }
-
-        private InputStream openFile(File dir) throws IOException {
-            if (!isDir(dir))
-                return null;
-            File file = new File(dir, filename);
-            if (isFile(file))
-                return new FileInputStream(file);
-            else
-                return null;
-        }
-
-
-        public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (!(obj instanceof FileInDirectory)) return false;
-            FileInDirectory that = (FileInDirectory) obj;
-            return (filename.equals(that.filename));
-        }
-        public int hashCode() {
-            return filename.hashCode();
-        }
-
-        public int compareTo(Object o) {
-            return filename.compareTo(((FileInDirectory)o).filename);
-        }
-    }
-
-
-    protected boolean isFile(File f) { return (f != null && f.isFile()); }
-    protected boolean isDir(File f)  { return (f != null && f.isDirectory()); }
 
 
     public static void main(String[] args) {
-        FileSystemLOCDiffDialog dlg = new FileSystemLOCDiffDialog
-            (HardcodedFilterLocator.getFilters());
 
         if (args.length == 0) {
-            dlg.showDialog();
+            new FileSystemLOCDiffDialog(HardcodedFilterLocator.getFilters())
+                .showDialog();
 
-        } else if (args.length == 1) {
-            dlg.compareA = null;
-            dlg.compareB = new File(args[0]);
-            dlg.run();
-
-        } else if (args.length == 2) {
-            dlg.compareA = new File(args[0]);
-            dlg.compareB = new File(args[1]);
-            dlg.run();
+        } else if (args.length == 1 || args.length == 2) {
+            FileSystemLOCDiff.main(args);
 
         } else {
             printUsage();
@@ -431,6 +269,7 @@ public class FileSystemLOCDiffDialog extends LOCDiffReportGenerator
 
     protected static void printUsage() {
         System.out.println("Usage: java " +
-                FileSystemLOCDiffDialog.class.getName() + " [fileA] fileB");
+                FileSystemLOCDiffDialog.class.getName() + " [fileA] [fileB]");
     }
+
 }
