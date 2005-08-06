@@ -32,6 +32,7 @@ import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.export.ImportExport;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.StringUtils;
@@ -1236,7 +1237,7 @@ public class wizard extends TinyCGIBase {
             conn.setUseCaches(false);
             conn.connect();
             int status = ((HttpURLConnection) conn).getResponseCode();
-            WebServer.slurpContents(conn.getInputStream(), true);
+            FileUtils.slurpContents(conn.getInputStream(), true);
             return (status == 200);
         } catch (Exception e) {}
         return false;
