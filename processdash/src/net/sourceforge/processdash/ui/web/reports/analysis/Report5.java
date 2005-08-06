@@ -28,6 +28,8 @@ package net.sourceforge.processdash.ui.web.reports.analysis;
 
 
 import java.io.IOException;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -53,6 +55,7 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
     private static final Resources resources =
         Resources.getDashBundle("Analysis.Pareto");
     private static final String PATH_TO_REPORTS = AnalysisPage.PATH_TO_REPORTS;
+    private NumberFormat nf = NumberFormat.getNumberInstance();
 
     private static final int DEFECT_COUNT = 0;
     private static final int FIX_TIME = 1;
@@ -203,8 +206,8 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
     protected void increment(float [] row, float data) { row[0] += data; }
     protected void increment(float [] row, String data) {
         try {
-            row[0] += Float.parseFloat(data);
-        } catch (NumberFormatException nfe) {}
+            increment(row, nf.parse(data).floatValue());
+        } catch (ParseException nfe) {}
     }
 
     public void analyze(String path, Defect d) {
