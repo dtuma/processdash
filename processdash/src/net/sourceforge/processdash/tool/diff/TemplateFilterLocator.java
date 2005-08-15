@@ -28,7 +28,6 @@ package net.sourceforge.processdash.tool.diff;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import net.sourceforge.processdash.i18n.Resources;
@@ -60,6 +59,7 @@ public class TemplateFilterLocator {
             filterName = (String) i.next();
 
             try {
+                web.getRequest("/" + filterName, false);
                 ResourcePool pool = web.getCGIPool(filterName);
                 LanguageFilter filter = (LanguageFilter) pool.get();
                 result.add(filter.getClass());

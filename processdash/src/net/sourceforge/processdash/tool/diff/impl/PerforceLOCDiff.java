@@ -33,25 +33,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.JDialog;
-
 import net.sourceforge.processdash.tool.diff.HardcodedFilterLocator;
 import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator;
-import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator.FileToCompare;
-import net.sourceforge.processdash.tool.diff.ui.FileSystemLOCDiffDialog;
 import net.sourceforge.processdash.ui.Browser;
 
 
 public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
     protected String changelist = "default";
-    private JDialog workingDialog = null;
 
     public PerforceLOCDiff(List languageFilters) {
         super(languageFilters);
@@ -199,11 +192,13 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
     public static void main(String[] args) {
         PerforceLOCDiff diff = new PerforceLOCDiff
             (HardcodedFilterLocator.getFilters());
+        args = collectOptions(args);
+        diff.setOptions(args[0]);
 
-        if (args.length == 1) {
-            diff.setChangelist(args[0]);
+        if (args.length == 2) {
+            diff.setChangelist(args[1]);
 
-        } else if (args.length > 1) {
+        } else if (args.length > 2) {
             printUsage();
             return;
         }
@@ -218,6 +213,6 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
     private static void printUsage() {
         System.out.println("Usage: java " +
-                FileSystemLOCDiffDialog.class.getName() + " [changelist]");
+                PerforceLOCDiff.class.getName() + " [changelist]");
     }
 }

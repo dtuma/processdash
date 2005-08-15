@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
@@ -46,6 +48,7 @@ public class LOCDiff {
     private int base, added, deleted, modified, total;
     WhitespaceCompareString[] linesA, linesB;
     boolean ignoreComments = true;
+    private int tabWidth = 8;
     LanguageFilter filter;
 
     public LOCDiff(List filters,
@@ -54,6 +57,7 @@ public class LOCDiff {
 
         if (options == null || options.trim().length() == 0)
             options = getDefaultOptions(fileBName);
+        parseInternalOptions(options);
 
         // Get an appropriate instance of LanguageFilter.
         filter = getFilter(filters, fileBName, fileBStr, options);
@@ -287,7 +291,7 @@ public class LOCDiff {
         // convert tabs to spaces. -
         int tabPos = StringUtils.indexOf(buf, "\t"), spacesNeeded;
         while (tabPos != -1) {
-            spacesNeeded = 8 - (tabPos - countInvisibleChars(buf, tabPos)) % 8;
+            spacesNeeded = tabWidth - (tabPos - countInvisibleChars(buf, tabPos)) % tabWidth;
             buf.replace(tabPos, tabPos+1,
                         "        ".substring(0, spacesNeeded));
             tabPos = StringUtils.indexOf(buf, "\t", tabPos);
@@ -298,9 +302,6 @@ public class LOCDiff {
         StringUtils.findAndReplace(buf, "<",  "&lt;");
         StringUtils.findAndReplace(buf, ">",  "&gt;");
         StringUtils.findAndReplace(buf, "\"", "&quot;");
-
-        // convert spaces to &nbsp;
-//        StringUtils.findAndReplace(buf, " ", "&nbsp;");
 
         // highlight comments.
         StringUtils.findAndReplace(buf, COMMENT_START_STR, "<span class='comment'>");
@@ -392,6 +393,16 @@ public class LOCDiff {
         return Settings.getVal(settingName);
     }
 
+    private void parseInternalOptions(String options) {
+        if (options != null) {
+            Matcher m = TABWIDTH_SETTING_PATTERN.matcher(options);
+            if (m.find())
+                tabWidth = Integer.parseInt(m.group(1));
+        }
+    }
+    private static final Pattern TABWIDTH_SETTING_PATTERN =
+        Pattern.compile("-tabWidth=(\\d+)", Pattern.CASE_INSENSITIVE);
+
     protected LanguageFilter getFilter(List languageFilters, String filename,
                                        String contents, String options) {
         LanguageFilter resultFilter = null;
@@ -400,9 +411,8 @@ public class LOCDiff {
             Iterator i = languageFilters.iterator();
             String filterName;
             int currentRating, resultRating = 0;
-            LanguageFilter currentFilter = null;
             while (i.hasNext()) {
-                currentFilter = null;
+                LanguageFilter currentFilter = null;
                 try {
                     currentFilter = (LanguageFilter) i.next();
                 } catch (ClassCastException e) {}
@@ -428,6 +438,13 @@ public class LOCDiff {
 
     public static void printFiltersAndOptions(List languageFilters,
                                               PrintWriter out) {
+        out.print("<h2>");
+        out.print(resource.getHTML("Global_Options"));
+        out.println("</h2><table border>");
+        printOption(out, "-tabWidth=<i>n</i>",
+                    resource.getString("Tab_Width_HTML"));
+        out.println("</table>");
+
         if (languageFilters == null)
             return;
 

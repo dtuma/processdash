@@ -25,49 +25,18 @@
 
 package net.sourceforge.processdash.tool.diff.impl;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Reader;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-
-import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.HardcodedFilterLocator;
-import net.sourceforge.processdash.tool.diff.LOCDiff;
 import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator;
-import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator.FileToCompare;
 import net.sourceforge.processdash.ui.Browser;
-import net.sourceforge.processdash.ui.DashboardIconFactory;
-import net.sourceforge.processdash.util.EscapeString;
-import net.sourceforge.processdash.util.HTMLUtils;
 
 
 public class FileSystemLOCDiff extends LOCDiffReportGenerator {
@@ -215,13 +184,15 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
     public static void main(String[] args) {
         FileSystemLOCDiff diff = new FileSystemLOCDiff
             (HardcodedFilterLocator.getFilters());
+        args = collectOptions(args);
+        diff.setOptions(args[0]);
 
-        if (args.length == 1) {
-            diff.setCompareB(new File(args[0]));
-
-        } else if (args.length == 2) {
-            diff.setCompareA(new File(args[0]));
+        if (args.length == 2) {
             diff.setCompareB(new File(args[1]));
+
+        } else if (args.length == 3) {
+            diff.setCompareA(new File(args[1]));
+            diff.setCompareB(new File(args[2]));
 
         } else {
             printUsage();
@@ -238,6 +209,6 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
 
     protected static void printUsage() {
         System.out.println("Usage: java " +
-                FileSystemLOCDiff.class.getName() + " fileA [fileB]");
+                FileSystemLOCDiff.class.getName() + "[options] fileA [fileB]");
     }
 }

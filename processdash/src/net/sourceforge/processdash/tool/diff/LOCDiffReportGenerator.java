@@ -75,6 +75,7 @@ public abstract class LOCDiffReportGenerator {
     protected int counter;
     private String outputCharset = "iso-8859-1";
     protected boolean skipIdentical = true;
+    protected String options = null;
 
     protected List progressListeners = new LinkedList();
     private String currentTask = null;
@@ -96,6 +97,14 @@ public abstract class LOCDiffReportGenerator {
 
     public void setOutputCharset(String outputCharset) {
         this.outputCharset = outputCharset;
+    }
+
+    public String getOptions() {
+        return options;
+    }
+
+    public void setOptions(String options) {
+        this.options = options;
     }
 
     protected void updateProgress(String filename) {
@@ -254,7 +263,7 @@ public abstract class LOCDiffReportGenerator {
         String contentsA = getContents(contentsBefore);
         String contentsB = getContents(contentsAfter);
         LOCDiff diff = new LOCDiff(languageFilters, contentsA, contentsB,
-                                   filename, null);
+                                   filename, options);
 
         // the two files may not have been byte-for-byte identical, but
         // they also may not contain any significant differences. (For example,
@@ -415,4 +424,31 @@ public abstract class LOCDiffReportGenerator {
         outStream.close();
     }
 
+    /** Look for command line options, and consolodate them into the first
+     * position of the String array.
+     * 
+     * A command line option are items starting with a dash "-" or a plus "+".
+     * If no command line arguments are found, the first position of the result
+     * array will contain null.
+     * 
+     * @param args an array of arguments, as would be passed to main()
+     */
+    public static String[] collectOptions(String[] args) {
+        String options = "";
+        List argsOut = new LinkedList();
+        for (int i = 0; args != null && i < args.length; i++) {
+            String arg = args[i];
+            if (arg.startsWith("-") || arg.startsWith("+"))
+                options = options + " " + arg;
+            else
+                argsOut.add(arg);
+        }
+
+        if (options.length() > 0)
+            options = options.substring(1);
+        else
+            options = null;
+        argsOut.add(0, options);
+        return (String[]) argsOut.toArray(new String[argsOut.size()]);
+    }
 }
