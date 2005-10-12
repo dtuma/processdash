@@ -534,6 +534,22 @@ Authors:
   <!-- =================================================================== -->
   <!-- Create miscellaneous other items                                    -->
   <!-- =================================================================== -->
+  <target name="p4diff">
+    <classfileset id="p4locClasses" dir="bin2"
+      rootclass="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
+    <jar destfile="${dist}/p4diff.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+	    value="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
+      </manifest>
+      <fileset refid="p4locClasses"/>
+      <fileset dir=".">
+        <include name="Templates/resources/(Resources)*"/>
+        <include name="Templates/resources/LOCDiff*"/>
+      </fileset>
+    </jar>
+  </target>
+
   <target name="customjar">
     <jar destfile="${dist}/custom-report-fix.jar" basedir="." includes="Templates/reports/custom/create.shtm">
       <manifest>

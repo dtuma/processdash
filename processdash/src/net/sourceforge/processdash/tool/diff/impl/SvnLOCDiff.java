@@ -215,6 +215,7 @@ public class SvnLOCDiff extends LOCDiffReportGenerator {
         SvnLOCDiff diff = new SvnLOCDiff(HardcodedFilterLocator.getFilters());
         args = collectOptions(args);
         diff.setOptions(args[0]);
+        diff.addChangeListener(new StdOutChangeListener());
 
         if (args.length == 2) {
             diff.setBaseDirectory(args[1]);

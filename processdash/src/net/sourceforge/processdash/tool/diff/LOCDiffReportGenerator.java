@@ -451,4 +451,13 @@ public abstract class LOCDiffReportGenerator {
         argsOut.add(0, options);
         return (String[]) argsOut.toArray(new String[argsOut.size()]);
     }
+
+    protected static class StdOutChangeListener implements ChangeListener {
+        public StdOutChangeListener() {}
+        public void stateChanged(ChangeEvent e) {
+            LOCDiffReportGenerator reportGenerator =
+                (LOCDiffReportGenerator) e.getSource();
+            System.out.println((reportGenerator).getMessage());
+        }
+    }
 }

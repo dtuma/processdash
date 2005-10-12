@@ -194,6 +194,7 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
             (HardcodedFilterLocator.getFilters());
         args = collectOptions(args);
         diff.setOptions(args[0]);
+        diff.addChangeListener(new StdOutChangeListener());
 
         if (args.length == 2) {
             diff.setChangelist(args[1]);

@@ -186,6 +186,7 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
             (HardcodedFilterLocator.getFilters());
         args = collectOptions(args);
         diff.setOptions(args[0]);
+        diff.addChangeListener(new StdOutChangeListener());
 
         if (args.length == 2) {
             diff.setCompareB(new File(args[1]));
