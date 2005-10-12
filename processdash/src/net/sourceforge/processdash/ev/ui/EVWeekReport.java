@@ -261,7 +261,7 @@ public class EVWeekReport extends TinyCGIBase {
 
     private long parseTime(Object time) {
         if (time == null) return 0;
-        long result = TimeLogEditor.parseTime(time.toString());
+        long result = FormatUtil.parseTime(time.toString());
         return (result < 0 ? 0 : result);
     }
     protected static NumberFormat percentFormatter =

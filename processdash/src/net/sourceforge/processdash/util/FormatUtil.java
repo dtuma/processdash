@@ -96,6 +96,24 @@ public class FormatUtil {
             return hours + ":" + minutes;
     }
 
+    public static long parseTime(String s) {
+        int colon = s.indexOf (':');
+        long result = -1;
+        if (colon >= 0) {
+            try {
+                result = 60 * Long.parseLong(s.substring (0, colon));
+            } catch (Exception e) { }
+            try {
+                result += Long.parseLong(s.substring (colon + 1));
+            } catch (Exception e) { }
+        } else {
+            try {
+                result = Long.parseLong(s);
+            } catch (Exception e) { }
+        }
+        return result;
+    }
+
 
     /*
      * fields and methods for formatting decimals

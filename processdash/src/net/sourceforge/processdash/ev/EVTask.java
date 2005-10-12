@@ -533,7 +533,7 @@ public class EVTask implements DataListener {
 
             // parse the value to obtain a number of minutes
             if (((String) aValue).length() > 0)
-                planTime = TimeLogEditor.parseTime((String) aValue);
+                planTime = FormatUtil.parseTime((String) aValue);
 
             // if the user is obviously correcting a top-down/bottom-up
             // mismatch, then just treat the input the same as if the

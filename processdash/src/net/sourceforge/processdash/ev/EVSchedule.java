@@ -281,14 +281,14 @@ public class EVSchedule implements TableModel {
         public void setPlanTime(Object value) {
             if (value instanceof String) {
                 // parse the value to obtain a number of minutes
-                setPlanTime(TimeLogEditor.parseTime((String) value));
+                setPlanTime(FormatUtil.parseTime((String) value));
             }
         }
 
         public void setPlanDirectTime(Object value) {
             if (value instanceof String) {
                 // parse the value to obtain a number of minutes
-                long planTime = TimeLogEditor.parseTime((String) value);
+                long planTime = FormatUtil.parseTime((String) value);
                 if (planTime != -1 && directPercentage > 0)
                     setPlanTime(planTime / directPercentage);
             }
