@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003 - 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,116 +25,52 @@
 
 package net.sourceforge.processdash.util;
 
-import java.io.*;
-import java.util.zip.Adler32;
-import java.util.zip.CheckedOutputStream;
-import java.util.zip.Checksum;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 
-public class RobustFileWriter extends Writer {
+public class RobustFileWriter extends OutputStreamWriter {
 
-    public static final String OUT_PREFIX    = "tttt";
-    public static final String BACKUP_PREFIX = OUT_PREFIX + "_bak_";
+    public static final String OUT_PREFIX = RobustFileOutputStream.OUT_PREFIX;
+    public static final String BACKUP_PREFIX = RobustFileOutputStream.BACKUP_PREFIX;
 
-    boolean origFileExists;
-    File outFile, backupFile, destFile;
-    Writer out;
-    Checksum checksum;
+    RobustFileOutputStream outStream;
 
     public RobustFileWriter(String destFile) throws IOException {
-        this(new File(destFile), null);
-    }
-
-    public RobustFileWriter(String destFile, String encoding)
-        throws IOException {
-        this(new File(destFile), encoding);
+        this(new RobustFileOutputStream(destFile));
     }
 
     public RobustFileWriter(File destFile) throws IOException {
-        this(destFile, null);
+        this(new RobustFileOutputStream(destFile));
     }
 
-    public RobustFileWriter(File destFile, String encoding)
-        throws IOException
-    {
-        this(destFile.getParent(), destFile.getName(), encoding);
+    protected RobustFileWriter(RobustFileOutputStream outStream)
+            throws IOException {
+        super(outStream);
+        this.outStream = outStream;
     }
 
-    public RobustFileWriter(String directory, String filename, String encoding)
-        throws IOException
-    {
-        File parentDir = new File(directory);
-        if (!parentDir.isDirectory())
-            parentDir.mkdirs();
-        destFile   = new File(parentDir, filename);
-        outFile    = new File(parentDir, OUT_PREFIX    + filename);
-        backupFile = new File(parentDir, BACKUP_PREFIX + filename);
-
-        if (destFile.isDirectory())
-            throw new IOException("Cannot write to file '"+destFile+
-                    "' - directory is in the way.");
-
-        origFileExists = destFile.isFile();
-
-        checksum = makeChecksum();
-        OutputStream outStream = new FileOutputStream(outFile);
-        CheckedOutputStream checkOutStream =
-            new CheckedOutputStream(outStream, checksum);
-
-        if (encoding == null) {
-            out = new OutputStreamWriter(checkOutStream);
-        } else {
-            out = new OutputStreamWriter(checkOutStream, encoding);
-        }
+    public RobustFileWriter(String destFile, String encoding)
+            throws IOException {
+        this(new RobustFileOutputStream(destFile), encoding);
     }
 
-    protected Checksum makeChecksum() {
-        return new Adler32();
+    public RobustFileWriter(File destFile, String encoding) throws IOException {
+        this(new RobustFileOutputStream(destFile), encoding);
     }
 
-    public void write(char[] cbuf, int off, int len) throws IOException {
-        out.write(cbuf, off, len);
+    protected RobustFileWriter(RobustFileOutputStream outStream, String encoding)
+            throws IOException {
+        super(outStream, encoding);
+        this.outStream = outStream;
     }
 
-    public void flush() throws IOException {
-        out.flush();
+    public void abort() throws IOException, IllegalStateException {
+        outStream.abort();
     }
 
-    public void close() throws IOException {
-        // close the temporary files
-        out.close();
-
-        // get the value we expect to find from the checksum
-        long expectedChecksum = checksum.getValue();
-        // reread the written file to see if it was written correctly
-        long actualChecksum = FileUtils.computeChecksum(outFile, makeChecksum());
-        // if the checksums don't match, throw an exception
-        if (expectedChecksum != actualChecksum)
-            throw new IOException("Error writing file '" + destFile +
-                    "' - verification of written data failed.");
-
-        // temporarily move the original file out of the way, into the backup
-        if (origFileExists) {
-            if (backupFile.exists())
-                backupFile.delete();
-            if (destFile.renameTo(backupFile) == false)
-                throw new IOException("Error writing file '" + destFile +
-                        "' - could not backup original file.");
-        }
-
-        // rename the output file to the real destination file
-        if (outFile.renameTo(destFile) == false) {
-            // put the original file back in place
-            if (origFileExists) {
-                if (backupFile.renameTo(destFile) == false) {
-                    System.err.println("Warning - couldn't restore '"+destFile+"' from backup '"+backupFile+"'.");
-                }
-            }
-            throw new IOException("Error writing file '" + destFile + "'.");
-        }
-
-        // delete the backup
-        if (origFileExists)
-            backupFile.delete();
+    public long getChecksum() {
+        return outStream.getChecksum();
     }
 
 }
