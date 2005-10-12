@@ -107,7 +107,7 @@
 
 <form>
 
-<input class=left type=hidden name="requiredTag" value="PSP Rollup Tag">
+<input class=left type=hidden name="requiredTag" value="Rollup Tag">
 
 <select style="margin-left: 0cm" name="_Cust_Type	s!">
 <option value="none"     >Select a chart/report type...

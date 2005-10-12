@@ -531,6 +531,20 @@ Authors:
 
   <target name="dist-all" depends="dist,dist-src,installer"/>
 
+  <!-- =================================================================== -->
+  <!-- Create miscellaneous other items                                    -->
+  <!-- =================================================================== -->
+  <target name="customjar">
+    <jar destfile="${dist}/custom-report-fix.jar" basedir="." includes="Templates/reports/custom/create.shtm">
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="customReportFix"/>
+        <attribute name="Dash-Pkg-Version" value="1.0"/>
+        <attribute name="Dash-Pkg-Name" value="Fix for Bug #1289863"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="1.7b.20050609"/>
+      </manifest>
+    </jar>
+  </target>
+
 </project>
 
 <!--
