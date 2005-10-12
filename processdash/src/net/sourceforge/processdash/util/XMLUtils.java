@@ -27,12 +27,15 @@ package net.sourceforge.processdash.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Date;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 
@@ -52,6 +55,8 @@ public class XMLUtils {
 
     private static ResourcePool builderPool;
     private static DocumentBuilderFactory factory = null;
+    private static ResourcePool saxParserPool;
+    private static SAXParserFactory saxFactory = null;
 
     static {
         try {
@@ -63,47 +68,102 @@ public class XMLUtils {
 
         builderPool = new ResourcePool("XMLUtils.builderPool") {
                 protected Object createNewResource() {
-                    try {
-                        return factory.newDocumentBuilder();
-                    } catch (Exception e) {
-                        return null;
-                    }
+                    return createNewDocumentBuilder();
+                }
+            };
+
+        try {
+            saxFactory = SAXParserFactory.newInstance();
+        } catch (FactoryConfigurationError fce) {
+            System.err.println("Unable to create a SAXParserFactory: " +
+                               fce);
+        }
+
+        saxParserPool = new ResourcePool("XMLUtils.builderPool") {
+                protected Object createNewResource() {
+                    return createNewSAXParser();
                 }
             };
     }
 
+    private static Object createNewDocumentBuilder() {
+        try {
+            synchronized (factory) {
+                return factory.newDocumentBuilder();
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static Object createNewSAXParser() {
+        try {
+            synchronized (saxFactory) {
+                return saxFactory.newSAXParser();
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /// methods for DOM parsing
+
     public static Document parse(java.io.InputStream in)
         throws SAXException, IOException
     {
-        DocumentBuilder builder = null;
-        Document result = null;
-        try {
-            builder = (DocumentBuilder) builderPool.get();
-            result = builder.parse(in);
-        } finally {
-            if (builder != null) builderPool.release(builder);
-        }
-        return result;
+        return parse(new InputSource(in));
     }
 
     public static Document parse(java.io.Reader in)
         throws SAXException, IOException
     {
+        return parse(new InputSource(in));
+    }
+
+    public static Document parse(String document)
+        throws SAXException, IOException
+    {
+        return parse(new StringReader(document));
+    }
+
+    public static Document parse(InputSource inputSource)
+        throws SAXException, IOException
+    {
         DocumentBuilder builder = null;
         Document result = null;
         try {
             builder = (DocumentBuilder) builderPool.get();
-            result = builder.parse(new InputSource(in));
+            result = builder.parse(inputSource);
         } finally {
             if (builder != null) builderPool.release(builder);
         }
         return result;
     }
 
-    public static Document parse(String document)
-        throws SAXException, IOException
-    {
-        return parse(new ByteArrayInputStream(document.getBytes()));
+    /// methods for SAX parsing
+
+    public static void parse(java.io.Reader in,
+            org.xml.sax.helpers.DefaultHandler handler) throws SAXException,
+            IOException {
+        parse(new InputSource(in), handler);
+    }
+
+    public static void parse(java.io.InputStream in,
+            org.xml.sax.helpers.DefaultHandler handler) throws SAXException,
+            IOException {
+        parse(new InputSource(in), handler);
+    }
+
+    private static void parse(InputSource inputSource,
+            org.xml.sax.helpers.DefaultHandler handler) throws SAXException,
+            IOException {
+        SAXParser parser = null;
+        try {
+            parser = (SAXParser) saxParserPool.get();
+            parser.parse(inputSource, handler);
+        } finally {
+            if (parser != null) saxParserPool.release(parser);
+        }
     }
 
     public static StringMapper ESCAPE_ATTRIBUTE = new StringMapper() {
@@ -164,6 +224,7 @@ public class XMLUtils {
 
     public static String saveDate(Date d) { return "@" + d.getTime(); }
     public static Date parseDate(String d) throws IllegalArgumentException {
+        if (d == null || d.length() == 0) return null;
         if (!d.startsWith("@")) throw new IllegalArgumentException();
         return new Date(Long.parseLong(d.substring(1)));
     }
