@@ -230,38 +230,38 @@
 <!--#endif [% Appraisal COQ] -->
 <!--#endif [% Failure COQ] -->
 
-<!--#if defined [Size] -->
+<!--#if defined [SIZE_METRIC_NAME] -->
 <TR>
 <TD>Size Estimating Error</TD>
 <TD></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Size Estimating Error	%"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo [SIZE_METRIC_NAME] --> Estimating Error	%"></TD>
 <!--#if not rollup -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Size Estimating Error To Date	%"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo [SIZE_METRIC_NAME] --> Estimating Error To Date	%"></TD>
 <!--#endif-->
 </TR>
 
 <TR>
 <TD>Size</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Size"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated <!--#echo [SIZE_METRIC_NAME] -->"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo [SIZE_METRIC_NAME] -->"></TD>
 <!--#if not rollup -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Size To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo [SIZE_METRIC_NAME] --> To Date"></TD>
 <!--#endif-->
 </TR>
 
-<!--#endif [Size]-->
+<!--#endif [SIZE_METRIC_NAME]-->
 
 <!--#if not rollup -->
 <TR>
 <TD>&nbsp;&nbsp;<!--#echo Size_UPI --></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max <!--#echo [SIZE_METRIC_NAME] -->"></TD>
 <TD></TD>
 <TD></TD>
 </TR>
 
 <TR>
 <TD>&nbsp;&nbsp;<!--#echo Size_LPI --></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min <!--#echo [SIZE_METRIC_NAME] -->"></TD>
 <TD></TD>
 <TD></TD>
 </TR>
