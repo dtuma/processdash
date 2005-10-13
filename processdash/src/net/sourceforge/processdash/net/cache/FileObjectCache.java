@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 import net.sourceforge.processdash.util.FileUtils;
-import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -43,7 +43,7 @@ public class FileObjectCache implements ObjectCache,
                                         CachedObject.CachedDataProvider {
 
     protected static final String BACKUP_PREFIX =
-        RobustFileWriter.BACKUP_PREFIX;
+        RobustFileOutputStream.BACKUP_PREFIX;
 
     protected File directory;
     protected String extension;
@@ -264,7 +264,7 @@ public class FileObjectCache implements ObjectCache,
             return
                 name.endsWith(extension) &&
                 !name.endsWith("d" + extension) &&
-                !name.startsWith(RobustFileWriter.BACKUP_PREFIX);
+                !name.startsWith(RobustFileOutputStream.BACKUP_PREFIX);
         }
     }
 }

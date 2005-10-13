@@ -44,7 +44,7 @@ import java.util.Vector;
 import net.sourceforge.processdash.data.*;
 import net.sourceforge.processdash.tool.export.DefectImporter;
 import net.sourceforge.processdash.util.EscapeString;
-import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 
 
@@ -171,7 +171,7 @@ public class DataImporter extends Thread {
     private void checkFile(File f) throws IOException {
         // ignore temporary files created by the RobustFileWriter class.
         if (f == null || f.getName() == null ||
-            f.getName().startsWith(RobustFileWriter.OUT_PREFIX))
+            f.getName().startsWith(RobustFileOutputStream.OUT_PREFIX))
             return;
         // only open text files for now.
         if (!f.getName().endsWith(".txt")) return;
