@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- hierarchical work breakdown structure -->
+
+<node name="top">
+  <node name="Project">
+    <node name="Dy4-181 BSP Build">
+      <node name="Test Task">
+        <node name="Test" />
+      </node>
+    </node>
+    <node name="Gen2 MPA Build for VxWorks">
+      <node name="Test Task">
+        <node name="Test" />
+      </node>
+    </node>
+    <node name="Requirements">
+      <node name="FDDI bus">
+        <node name="Inspect">
+          <node name="Reqts Inspect" />
+        </node>
+      </node>
+      <node name="Serial IO">
+        <node name="RRW">
+          <node name="Reqts" />
+        </node>
+      </node>
+      <node name="Utility bus">
+        <node name="RRW">
+          <node name="Reqts" />
+        </node>
+      </node>
+    </node>
+  </node>
+  <node name="Non Project">
+    <node name="Dy4-181 BSP Build">
+      <node name="Test Task">
+        <node name="Test" />
+      </node>
+    </node>
+  </node>
+</node>

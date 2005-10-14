@@ -93,7 +93,7 @@ import net.sourceforge.processdash.util.Perl5Util;
 import net.sourceforge.processdash.util.PerlPool;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
-public class DataRepository implements Repository {
+public class DataRepository implements Repository, DataContext {
 
     public static final String anonymousPrefix = "///Anonymous";
 

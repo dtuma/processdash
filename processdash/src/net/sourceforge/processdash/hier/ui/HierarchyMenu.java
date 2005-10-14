@@ -27,6 +27,9 @@
 package net.sourceforge.processdash.hier.ui;
 
 import java.awt.event.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 import javax.swing.*;
 
 import net.sourceforge.processdash.ProcessDashboard;
@@ -42,9 +45,10 @@ import net.sourceforge.processdash.ui.help.*;
 import java.util.*;
 
 
-public class HierarchyMenu implements ActionListener {
+public class HierarchyMenu implements ActionListener, ActiveTaskModel {
 
     ProcessDashboard parent = null;
+    ActiveNodeTracker nodeTracker;
     JMenuBar menuBar = null;
     JMenu menu = null;
     HierarchyMenu child = null;
@@ -63,6 +67,8 @@ public class HierarchyMenu implements ActionListener {
         self = useSelf;
         //if (self != null)
             //debug (self.toString());
+
+        nodeTracker = getChangeSupport();
 
         String s;
         DashHierarchy props = parent.getProperties ();
@@ -93,24 +99,12 @@ public class HierarchyMenu implements ActionListener {
             selectChild(props.getChildName(self, props.getSelectedChild(self)));
 
         } else {
+            nodeTracker.setNode(self);
             parent.setCurrentPhase(self);
             parent.validate();
             parent.pack();
         }
 
-    }
-
-
-
-    // Destroy the entire hierarchy, but ensure the data for the current phase
-    // has been saved.
-    public void terminate() {
-
-        // save any data from the current phase
-        parent.setCurrentPhase(self);
-
-        // destroy the hierarchy
-        delete();
     }
 
 
@@ -125,6 +119,19 @@ public class HierarchyMenu implements ActionListener {
                     ((MyMenuItem) menu.getItem(i)).delete();
             menu = null;
         }
+    }
+
+    public PropertyKey getNode() {
+        return nodeTracker.getNode();
+    }
+
+    public boolean setNode(PropertyKey node) {
+        return setPath(node.path());
+    }
+
+
+    public String getPath() {
+        return getNode().path();
     }
 
     public boolean setPath(String path) {
@@ -241,6 +248,9 @@ public class HierarchyMenu implements ActionListener {
     public static final boolean ODOMETER_STYLE = false;
 
 
+    public boolean setNextPhase() {
+        return selectNext();
+    }
 
     public boolean selectNext() {
 
@@ -374,5 +384,47 @@ public class HierarchyMenu implements ActionListener {
         // recurse through the hierarchy tree.
         while (i-- > 0)
             cleanupCompletionFlags(props, props.getChildKey (key, i));
+    }
+
+
+    private static final String HIERARCHY_MENU_CHANGE_SUPPORT = "HierarchyMenu.ChangeSupport";
+
+    private ActiveNodeTracker getChangeSupport() {
+        ActiveNodeTracker result = (ActiveNodeTracker) menuBar
+                .getClientProperty(HIERARCHY_MENU_CHANGE_SUPPORT);
+        if (result == null) {
+            result = new ActiveNodeTracker();
+            menuBar.putClientProperty(HIERARCHY_MENU_CHANGE_SUPPORT, result);
+        }
+        return result;
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        nodeTracker.addPropertyChangeListener(l);
+    }
+
+
+    public void removePropertyChangeListener(PropertyChangeListener l) {
+        nodeTracker.removePropertyChangeListener(l);
+    }
+
+    private class ActiveNodeTracker extends PropertyChangeSupport {
+
+        private PropertyKey node;
+
+        public ActiveNodeTracker() {
+            super(HierarchyMenu.this);
+        }
+
+        public PropertyKey getNode() {
+            return node;
+        }
+
+        public void setNode(PropertyKey node) {
+            PropertyKey oldNode = this.node;
+            this.node = node;
+            firePropertyChange("path", oldNode, node);
+        }
+
     }
 }

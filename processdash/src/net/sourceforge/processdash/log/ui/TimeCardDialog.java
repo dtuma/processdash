@@ -28,30 +28,49 @@ package net.sourceforge.processdash.log.ui;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.text.DateFormatSymbols;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
 
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JTree;
+import javax.swing.SwingConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumn;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
 
-
-import net.sourceforge.processdash.ev.*;
-import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.i18n.*;
-import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.time.IONoSuchElementException;
+import net.sourceforge.processdash.log.time.TimeLog;
+import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
-import net.sourceforge.processdash.ui.help.*;
-import net.sourceforge.processdash.ui.lib.*;
+import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
+import net.sourceforge.processdash.ui.lib.JTreeTable;
+import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.util.FormatUtil;
 
 public class TimeCardDialog {
@@ -336,23 +355,36 @@ public class TimeCardDialog {
                     dayNames[i] = dayFormat.format(cal.getTime());
                 }
 
+            try {
+                Iterator e = timeLog.filter(null, from, to);
+                TimeLogEntry tle;
+                time = new double[32];
+                int day;
+                while (e.hasNext()) {
+                    tle = (TimeLogEntry) e.next();
+                    cal.setTime(tle.getStartTime());
+                    day = cal.get(Calendar.DAY_OF_MONTH);
 
-            Enumeration e = timeLog.filter(null, from, to);
-            TimeLogEntry tle;
-            time = new double[32];
-            int day;
-            while (e.hasMoreElements()) {
-                tle = (TimeLogEntry) e.nextElement();
-                cal.setTime(tle.getCreateTime());
-                day = cal.get(Calendar.DAY_OF_MONTH);
-
-                root.addTime(tle.getPath(), day, tle.getElapsedTime());
-                time[0] += tle.getElapsedTime();
-                time[day] += tle.getElapsedTime();
+                    root.addTime(tle.getPath(), day, tle.getElapsedTime());
+                    time[0] += tle.getElapsedTime();
+                    time[day] += tle.getElapsedTime();
+                }
+            } catch (IONoSuchElementException ionsee) {
+                showError(ionsee);
+            } catch (IOException ioe) {
+                showError(ioe);
             }
             root.prune();
             this.root = root;
             fireTreeStructureChanged(this, root.getPath(), null, null);
+        }
+
+        private void showError(Exception e) {
+            String[] message = resources
+                    .getStrings("Time_Card.Recalc_Error.Message");
+            String title = resources.getString("Time_Card.Recalc_Error.Title");
+            JOptionPane.showMessageDialog(frame, message, title,
+                    JOptionPane.ERROR_MESSAGE);
         }
 
         public int getDaysInMonth() { return daysInMonth; }

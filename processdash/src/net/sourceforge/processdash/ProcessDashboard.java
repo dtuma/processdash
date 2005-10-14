@@ -44,6 +44,9 @@ import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.ui.*;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.log.time.DashboardTimeLog;
+import net.sourceforge.processdash.log.time.WorkingTimeLog;
+import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.ui.*;
 import net.sourceforge.processdash.net.cache.*;
 import net.sourceforge.processdash.net.http.*;
@@ -58,6 +61,7 @@ import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.ui.*;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -76,6 +80,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     DashHierarchy props;
     DashHierarchy templates = null;
+    DashboardTimeLog timeLog = null;
     DataRepository data = null;
     WebServer webServer = null;
     ConcurrencyLock concurrencyLock = null;
@@ -86,10 +91,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     Resources resources;
 
     boolean paused = true;
-    String timeLogName        = "time.log";
     static final String DEFAULT_PROP_FILE = "state";
     String starting_dir       = "";
-    String property_directory = null;
+    String property_directory;
     static String default_directory = null;
     String propertiesFile     = DEFAULT_PROP_FILE;
     static final String TEMPLATES_FILE = "state";
@@ -108,6 +112,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         super();
         setIconImage(DashboardIconFactory.getWindowIconImage());
         getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 2, 2));
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
 
         // load app defaults and user settings.
@@ -115,11 +120,18 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         propertiesFile = Settings.getFile("stateFile");
         File prop_file = new File(propertiesFile);
         property_directory = prop_file.getParent() + Settings.sep;
+        DefectAnalyzer.setDataDirectory(property_directory);
+        try {
+            default_directory = prop_file.getParentFile().getCanonicalPath();
+        } catch (IOException ioe) {
+            default_directory = prop_file.getParentFile().getAbsolutePath();
+        }
 
         // start the http server.
         try {
             int httpPort = Settings.getInt(HTTP_PORT_SETTING, DEFAULT_WEB_PORT);
             webServer = new WebServer(httpPort);
+            webServer.setDashboardContext(this);
             InternalSettings.addPropertyChangeListener
                 (HTTP_PORT_SETTING, new HttpPortSettingListener());
             ScriptID.setNameResolver(new ScriptNameResolver(webServer));
@@ -160,17 +172,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         // initialize the content roots for the http server.
         webServer.setRoots(TemplateLoader.getTemplateURLs());
 
-        //open & load the User's hierarchical work breakdown structure,
-        //henceforth referred to as "properties"
-        //
-        try {
-            default_directory = prop_file.getParentFile().getCanonicalPath();
-        } catch (IOException ioe) {
-            default_directory = prop_file.getParentFile().getAbsolutePath();
-        }
-        DefectAnalyzer.setDataDirectory(property_directory);
-        TimeLog.setDefaultFilename(getTimeLog());
-
         BetaVersionSetup.runSetup(property_directory);
 
         // determine if Lost Data Files are present in the pspdata directory
@@ -187,7 +188,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             System.exit(0);
         }
 
-        // open and load the properties file.
+        // open and load the the user's work breakdown structure
         props = new DashHierarchy(property_directory);
         Vector v = null;
         Exception saxException = null;
@@ -224,7 +225,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 // file.  read the default properties file, which simply
                 // contains nodes for "Project" and "Non Project".
                 String state = new String
-                    (WebServer.slurpContents(getClass().getResourceAsStream
+                    (FileUtils.slurpContents(getClass().getResourceAsStream
                                                  (DEFAULT_PROP_FILE), true),
                      "ISO-8859-1");
                 // localize the strings "Project" and "Non Project"
@@ -243,6 +244,16 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             }
         }
         data.setNodeComparator(props);
+
+        // create the time log
+        try {
+            this.timeLog = new DashboardTimeLog(new File(property_directory), data, props);
+            DashboardTimeLog.setDefault(this.timeLog);
+        } catch (IOException e1) {
+            displayStartupIOError("Errors.Read_File_Error.Time_Log",
+                    property_directory + WorkingTimeLog.TIME_LOG_FILENAME);
+            System.exit(0);
+        }
 
         // possibly reload cached data definitions.
         File serializedDefinitions = new File(property_directory, "defns.ser");
@@ -272,7 +283,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         configure_button = new ConfigureButton(this);
         PCSH.enableHelpKey(this, "QuickOverview");
-        pause_button = new PauseButton(this);
+        pause_button = new PauseButton(timeLog.getTimeLoggingModel());
+        getContentPane().add(pause_button);
         defect_button = new DefectButton(this);
         script_button = new ScriptButton(this);
         getContentPane().add(hierarchy_menubar = new JMenuBar());
@@ -303,6 +315,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         }
         ImportExport.startAutoExporter(this, property_directory);
         LegacySupport.configureRemoteListeningCapability(data);
+        timeLog.refreshMetrics();
 
         try {
             objectCache =
@@ -322,6 +335,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             hierarchy.cleanupCompletionFlags();
             InternalSettings.set(COMPLETION_FLAG_SETTING, "true");
         }
+        timeLog.getTimeLoggingModel().setActiveTaskModel(hierarchy);
         props.addHierarchyListener(new DashHierarchy.Listener() {
                 public void hierarchyChanged(Event e) {
                     refreshHierarchy();
@@ -355,6 +369,21 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         }
     }
 
+    private void displayStartupIOError(String resourceKey, String filename) {
+        try {
+            File f = new File(filename);
+            filename = f.getAbsolutePath();
+            filename = f.getCanonicalPath();
+        } catch (Exception e) {}
+
+        JOptionPane.showMessageDialog
+            (null,
+             resources.formatStrings("Errors.Read_File_Error.Message_FMT",
+                                     resources.getString(resourceKey),
+                                     filename),
+             resources.getString("Errors.Read_File_Error.Title"),
+             JOptionPane.ERROR_MESSAGE);
+    }
 
     private static final String BULLET = "\u2022 ";
     private static final String COMPLETION_FLAG_SETTING =
@@ -412,6 +441,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         hierarchy.delete();
         hierarchy = new HierarchyMenu
             (this, hierarchy_menubar, PropertyKey.ROOT);
+        timeLog.getTimeLoggingModel().setActiveTaskModel(hierarchy);
     }
 
     public HierarchyMenu getHierarchyMenu() {
@@ -420,17 +450,16 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
 
     public void pauseTimer() {
-        pause_button.pause();
+        timeLog.getTimeLoggingModel().stopTiming();
     }
 
     public void setCurrentPhase(PropertyKey newPhase) {
         currentPhase = newPhase;
-        pause_button.setCurrentPhase(newPhase);
         script_button.setPaths(props.getScriptIDs(currentPhase));
         defect_button.setPaths(props.defectLog(currentPhase,
                                                property_directory));
         completion_button.setPath(newPhase.path());
-        save();
+        saveHierarchy();
     }
 
     public PropertyKey getCurrentPhase() { return currentPhase; }
@@ -439,26 +468,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         return configure_button.isHierarchyEditorOpen();
     }
 
-    public void addToTimeLogEditor (TimeLogEntry tle) {
-        configure_button.addToTimeLogEditor (tle);
-    }
 
-    public void releaseTimeLogEntry (TimeLogEntry tle) {
-        pause_button.maybeReleaseEntry(tle);
-    }
-
-    public void save() {
-        try {
-            props.save(propertiesFile, "hierarchical work breakdown structure");
-        } catch (Exception e) { debug("prop write failed."); }
-        if (configure_button != null)
-            configure_button.save();
-        // shouldn't there be something here for the time and defect log, too?
-    }
-
-    public String getTimeLog() {
-        return ((property_directory != null) ? property_directory : "") +
-            timeLogName;
+    public TimeLog getTimeLog() {
+        return timeLog;
     }
 
     public String getDirectory() {
@@ -495,7 +507,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         new DashboardPermission("exitProgram").checkPermission();
 
         try {
-            quit();
+            if (quit() == false)
+                return;
         } catch (Throwable t) {
             // if the shutdown sequence encounters an uncaught exception,
             // display an error message, but still exit.
@@ -509,23 +522,13 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         System.exit(0);
     }
 
-    protected void quit() {
-        TaskScheduleChooser.closeAll();
-        if (data != null)
-            data.saveAllDatafiles();
+    protected boolean quit() {
+        List unsavedData = saveAllData();
+        if (unsavedData.isEmpty() == false
+                && warnUserAboutUnsavedData(unsavedData) == false)
+            return false;
+
         ImportExport.exportAll(this);
-        if (hierarchy != null) {
-            hierarchy.terminate();
-            hierarchy = null;
-        }
-        if (pause_button != null) {
-            pause_button.quit();
-            pause_button = null;
-        }
-        if (configure_button != null) {
-            configure_button.quit();
-            configure_button = null;
-        }
         if (webServer != null) {
             webServer.quit();
             webServer = null;
@@ -534,12 +537,74 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             data.finalize();
             data = null;
         }
+
         if (concurrencyLock != null) {
             concurrencyLock.unlock();
             concurrencyLock = null;
         }
 
-        save();
+        return true;
+    }
+
+    private boolean warnUserAboutUnsavedData(List unsavedData) {
+        if (unsavedData.isEmpty())
+            return true;
+
+        StringBuffer dataItems = new StringBuffer();
+        for (Iterator i = unsavedData.iterator(); i.hasNext();) {
+            String dataDescr = (String) i.next();
+            dataItems.append(BULLET).append(dataDescr).append("\n");
+        }
+
+        String title = resources.getString("Errors.Save_Error.Title");
+        String[] message = resources.formatStrings(
+                "Errors.Save_Error.Message_FMT", dataItems.toString());
+        int userChoice = JOptionPane.showConfirmDialog(this, message, title,
+                JOptionPane.YES_NO_OPTION);
+        return userChoice == JOptionPane.YES_OPTION;
+    }
+
+    public List saveAllData() {
+        List unsavedData = new LinkedList();
+
+        TaskScheduleChooser.closeAll();
+
+        if (pause_button != null)
+            pause_button.saveData();
+        if (configure_button != null)
+            configure_button.saveData();
+
+        if (saveHierarchy() == false)
+            recordUnsavedItem(unsavedData, "Hierarchy");
+
+        if (saveTimeLogData() == false)
+            recordUnsavedItem(unsavedData, "Time_Log");
+
+        if (data != null)
+            data.saveAllDatafiles();
+
+        return unsavedData;
+    }
+
+    private void recordUnsavedItem(List unsavedData, String dataType) {
+        unsavedData.add(resources.getString("Errors.Save_Error." + dataType));
+    }
+
+    protected boolean saveTimeLogData() {
+        timeLog.getTimeLoggingModel().setPaused(true);
+        timeLog.getTimeLoggingModel().saveData();
+        timeLog.saveData();
+        return ! timeLog.isDirty();
+    }
+
+    public boolean saveHierarchy() {
+        try {
+            props.save(propertiesFile, "hierarchical work breakdown structure");
+            return true;
+        } catch (Exception e) {
+            debug("prop write failed.");
+            return false;
+        }
     }
 
     public static String getVersionNumber() { return versionNumber; }

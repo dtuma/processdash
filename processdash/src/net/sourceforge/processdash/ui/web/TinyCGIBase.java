@@ -31,6 +31,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -303,18 +305,21 @@ public class TinyCGIBase implements TinyCGI {
 
     /** Get the data repository servicing this request. */
     protected DataRepository getDataRepository() {
-        return (DataRepository) env.get(DATA_REPOSITORY);
+        return getDashboardContext().getData();
     }
     /** Get the tiny web server that is running this request. */
     protected WebServer getTinyWebServer() {
-        return (WebServer) env.get(TINY_WEB_SERVER);
+        return getDashboardContext().getWebServer();
     }
     /** Get the PSPProperties object */
     protected DashHierarchy getPSPProperties() {
-        return (DashHierarchy) env.get(PSP_PROPERTIES);
+        return getDashboardContext().getHierarchy();
     }
     protected ObjectCache getObjectCache() {
-        return (ObjectCache) env.get(OBJECT_CACHE);
+        return getDashboardContext().getCache();
+    }
+    protected DashboardContext getDashboardContext() {
+        return (DashboardContext) env.get(DASHBOARD_CONTEXT);
     }
     /** Perform an internal http request. */
     protected byte[] getRequest(String uri, boolean skipHeaders)

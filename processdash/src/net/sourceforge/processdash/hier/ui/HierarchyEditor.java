@@ -56,6 +56,9 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.*;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.log.time.ModifiableTimeLog;
+import net.sourceforge.processdash.log.time.PathRenamer;
+import net.sourceforge.processdash.log.time.TimeLogEntryVO;
 import net.sourceforge.processdash.log.ui.*;
 import net.sourceforge.processdash.ui.ConfigureButton;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -241,7 +244,9 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
     public void saveProperties () {
 
-        dashboard.releaseTimeLogEntry(null);
+        // FIXME_TIMELOG: dashboard.releaseTimeLogEntry(null);
+        // if the user is running their timer while they perform
+        // renaming operations below, could bad things happen?
         configureButton.saveOrRevertTimeLog();
 
         oldProps = new DashHierarchy(useProps.dataPath);
@@ -276,12 +281,6 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     public void savePendingVector() {
 
         if (pendingVector != null) {
-            TimeLog timelog = new TimeLog();
-            try {
-                timelog.read (dashboard.getTimeLog());
-            } catch (IOException ioe) {
-                // What should we do here??
-            }
             String dataDir = dashboard.getDirectory();
             dashboard.getData().startInconsistency();
 
@@ -291,41 +290,53 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
                         PendingDataChange p=(PendingDataChange)pendingVector.elementAt(i);
                         switch (p.changeType) {
                         case PendingDataChange.CREATE:
-                            if (p.srcFile == null)
-                                createEmptyFile(dataDir + p.destFile);
-                            else
-                                createDataFile(dataDir + p.destFile, p.srcFile);
-
-                            if (p.newPrefix != null)
-                                dashboard.openDatafile (p.newPrefix, p.destFile);
+                            performDataCreate(dataDir, p);
                             break;
 
                         case PendingDataChange.DELETE:
-                            dashboard.getData().closeDatafile (p.oldPrefix);
+                            performDataDelete(p);
                             break;
 
                         case PendingDataChange.CHANGE:
-                            DefectLogEditor.rename
-                                (oldProps, useProps, p.oldPrefix, p.newPrefix, dashboard);
-                            timelog.rename (p.oldPrefix, p.newPrefix);
-                            dashboard.getData().renameData (p.oldPrefix, p.newPrefix);
+                            performDataRename(p);
                             break;
                         }
                     }
                     incrementProgressDialog();
                 }
                 pendingVector.removeAllElements();
-                try {
-                    timelog.save (dashboard.getTimeLog());
-                } catch (IOException ioe) {
-                    // What should we do here?
-                }
             } finally {
                 dashboard.getData().finishInconsistency();
             }
         }
 
         dashboard.getHierarchy().fireHierarchyChanged();
+    }
+
+
+    private void performDataCreate(String dataDir, PendingDataChange p) {
+        if (p.srcFile == null)
+            createEmptyFile(dataDir + p.destFile);
+        else
+            createDataFile(dataDir + p.destFile, p.srcFile);
+
+        if (p.newPrefix != null)
+            dashboard.openDatafile(p.newPrefix, p.destFile);
+    }
+
+
+    private void performDataDelete(PendingDataChange p) {
+        dashboard.getData().closeDatafile(p.oldPrefix);
+    }
+
+
+    private void performDataRename(PendingDataChange p) {
+        DefectLogEditor.rename(oldProps, useProps, p.oldPrefix, p.newPrefix,
+                dashboard);
+        ModifiableTimeLog timeLog = (ModifiableTimeLog) dashboard.getTimeLog();
+        timeLog.addModification(PathRenamer.getRenameModification(p.oldPrefix,
+                p.newPrefix));
+        dashboard.getData().renameData(p.oldPrefix, p.newPrefix);
     }
 
 

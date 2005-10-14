@@ -48,6 +48,7 @@ import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
 import net.sourceforge.processdash.tool.export.ImportExport;
@@ -173,13 +174,19 @@ public class DashController {
         SwingUtilities.invokeLater(new Runnable() {
                 public void run() { startTimingImpl(); } } );
     }
-    private static void startTimingImpl() { dash.pause_button.cont();  }
+    private static void startTimingImpl() {
+        DashboardTimeLog tl = (DashboardTimeLog) dash.getTimeLog();
+        tl.getTimeLoggingModel().startTiming();
+    }
 
     public static void stopTiming()  {
         SwingUtilities.invokeLater(new Runnable() {
                 public void run() { stopTimingImpl(); } } );
     }
-    private static void stopTimingImpl()  { dash.pause_button.pause(); }
+    private static void stopTimingImpl()  {
+        DashboardTimeLog tl = (DashboardTimeLog) dash.getTimeLog();
+        tl.getTimeLoggingModel().stopTiming();
+    }
 
 
     private static boolean setPathSuccessful;

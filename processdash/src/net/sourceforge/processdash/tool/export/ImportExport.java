@@ -37,7 +37,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Calendar;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
@@ -67,16 +66,16 @@ import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListXML;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
-import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.SelectableHierarchyTree;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.TimeLog;
-import net.sourceforge.processdash.log.TimeLogEntry;
+import net.sourceforge.processdash.log.time.TimeLog;
+import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExportMetricsFileInstruction;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
 
@@ -308,14 +307,12 @@ public class ImportExport extends JDialog implements ActionListener {
 
             parent.getData().dumpRepository(out, filter);
 
-            TimeLog tl = new TimeLog();
-            TimeLogEntry tle;
-            tl.read (parent.getTimeLog());
-            Enumeration keys = tl.filter(PropertyKey.ROOT, null, null);
-            while (keys.hasMoreElements()) {
-                tle = (TimeLogEntry)keys.nextElement();
+            TimeLog tl = parent.getTimeLog();
+            Iterator keys = tl.filter(null, null, null);
+            while (keys.hasNext()) {
+                TimeLogEntry tle = (TimeLogEntry) keys.next();
                 if (Filter.matchesFilter (filter, tle.getPath()))
-                    out.println(tle.toAbbrevString());
+                    out.println(toAbbrevString(tle));
             }
 
             DefectExporter.dumpDefects(parent, filter, out);
@@ -329,6 +326,10 @@ public class ImportExport extends JDialog implements ActionListener {
     private static String TASK_ORD_PREF = "/" + EVTaskListData.TASK_ORDINAL_PREFIX;
     private static String safeName(String n) {
         return n.replace('/', '_').replace(',', '_');
+    }
+    private static Object toAbbrevString(TimeLogEntry tle) {
+        return ("!" + FormatUtil.formatDateTime(tle.getStartTime()) + "!," +
+                tle.getElapsedTime());
     }
 
     public static void exportAll(ProcessDashboard parent) {

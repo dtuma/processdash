@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.util;
 
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -32,10 +33,10 @@ import java.util.NoSuchElementException;
 /** Iterator that filters the items returned by another iterator.
  *
  */
-public abstract class IteratorFilter implements Iterator {
+public abstract class IteratorFilter implements EnumerIterator {
 
-    private Iterator parent;
-    private Object nextObj;
+    protected Iterator parent;
+    protected Object nextObj;
 
     /** Subclasses must make certain to call init() as part of their
      * constructor! */
@@ -49,9 +50,9 @@ public abstract class IteratorFilter implements Iterator {
         getNextObj();
     }
 
-    private void getNextObj() {
+    protected void getNextObj() {
         while (parent.hasNext()) {
-            String val = (String) parent.next();
+            Object val = parent.next();
             if (includeInResults(val)) {
                 nextObj = val;
                 return;
@@ -77,6 +78,14 @@ public abstract class IteratorFilter implements Iterator {
     public void remove() {
         throw new UnsupportedOperationException
             (getClass().getName() + " does not support remove()");
+    }
+
+    public boolean hasMoreElements() {
+        return hasNext();
+    }
+
+    public Object nextElement() {
+        return next();
     }
 
 }

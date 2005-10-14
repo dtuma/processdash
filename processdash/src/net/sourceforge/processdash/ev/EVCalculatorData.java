@@ -29,27 +29,32 @@ package net.sourceforge.processdash.ev;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Iterator;
-
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.ev.ci.*;
-import net.sourceforge.processdash.log.TimeLog;
-import net.sourceforge.processdash.log.TimeLogEntry;
+import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.EVCostConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.EVScheduleConfidenceIntervals;
+import net.sourceforge.processdash.ev.ci.EVTimeErrConfidenceInterval;
+import net.sourceforge.processdash.log.time.DashboardTimeLog;
+import net.sourceforge.processdash.log.time.IONoSuchElementException;
+import net.sourceforge.processdash.log.time.TimeLog;
+import net.sourceforge.processdash.log.time.TimeLogEntry;
 
 
 public class EVCalculatorData extends EVCalculator {
 
     private EVTask taskRoot;
     private EVSchedule schedule;
+    private TimeLog timeLog;
     private Date effectiveDate, completionDate;
 
     public EVCalculatorData(EVTask root, EVSchedule schedule) {
         this.taskRoot = root;
         this.schedule = schedule;
+        this.timeLog = DashboardTimeLog.getDefault();
     }
 
     public void recalculate() {
@@ -78,8 +83,14 @@ public class EVCalculatorData extends EVCalculator {
         schedule.recalcCumPlanTimes();
 
         // find time logged to tasks before the start of the schedule.
-        TimeLog log = readTimeLog();
-        saveTimeBeforeSchedule(log);
+        TimeLog log = timeLog;
+        try {
+            saveTimeBeforeSchedule(log);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            schedule.getMetrics().addError
+                ("Unable to retrieve time log data.", taskRoot);
+        }
 
         // calculate planned and actual earned values, planned dates, and
         // planned and actual cumulative earned values
@@ -93,7 +104,13 @@ public class EVCalculatorData extends EVCalculator {
                                     schedule.getPeriodEnd(effectiveDate));
 
         // record actual time spent on tasks.
-        saveTimeDuringSchedule(log);
+        try {
+            saveTimeDuringSchedule(log);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            schedule.getMetrics().addError
+                ("Unable to retrieve time log data.", taskRoot);
+        }
         schedule.recalcCumActualTimes();
 
         // recalculate the EVMetrics object
@@ -204,23 +221,21 @@ public class EVCalculatorData extends EVCalculator {
 
 
 
-    protected TimeLog readTimeLog() {
-        TimeLog log = new TimeLog();
-        try { log.readDefault(); } catch (IOException ioe) {}
-        return log;
-    }
+    protected void saveTimeBeforeSchedule(TimeLog log) throws IOException {
+        try {
+            Iterator entries = log.filter(null, null, scheduleStartDate);
+            while (entries.hasNext()) {
+                TimeLogEntry entry = (TimeLogEntry) entries.next();
 
-    protected void saveTimeBeforeSchedule(TimeLog log) {
-        Enumeration entries = log.filter(null, null, scheduleStartDate);
-        while (entries.hasMoreElements()) {
-            TimeLogEntry entry = (TimeLogEntry) entries.nextElement();
+                Date d = entry.getStartTime();
+                if (d == null || d.compareTo(scheduleStartDate) >= 0) continue;
 
-            Date d = entry.getStartTime();
-            if (d == null || d.compareTo(scheduleStartDate) >= 0) continue;
-
-            EVTask task = taskRoot.getTaskForPath(entry.getPath());
-            if (task != null && !task.isLevelOfEffortTask())
-                task.actualPreTime += entry.getElapsedTime();
+                EVTask task = taskRoot.getTaskForPath(entry.getPath());
+                if (task != null && !task.isLevelOfEffortTask())
+                    task.actualPreTime += entry.getElapsedTime();
+            }
+        } catch (IONoSuchElementException ion) {
+            throw ion.getIOException();
         }
     }
 
@@ -272,10 +287,14 @@ public class EVCalculatorData extends EVCalculator {
     }
 
 
-    private void saveTimeDuringSchedule(TimeLog log) {
-        Enumeration entries = log.filter(null, scheduleStartDate, null);
-        while (entries.hasMoreElements())
-            saveTimeDuringSchedule((TimeLogEntry) entries.nextElement());
+    private void saveTimeDuringSchedule(TimeLog log) throws IOException {
+        try{
+            Iterator entries = log.filter(null, scheduleStartDate, null);
+            while (entries.hasNext())
+                saveTimeDuringSchedule((TimeLogEntry) entries.next());
+        } catch (IONoSuchElementException ion) {
+            throw ion.getIOException();
+        }
     }
 
     private void saveTimeDuringSchedule(TimeLogEntry entry) {

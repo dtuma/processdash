@@ -28,12 +28,14 @@ package net.sourceforge.processdash.ui.web.reports;
 
 
 import java.io.IOException;
-import java.util.Enumeration;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
-import net.sourceforge.processdash.hier.*;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.*;
-import net.sourceforge.processdash.ui.web.*;
+import net.sourceforge.processdash.log.time.TimeLog;
+import net.sourceforge.processdash.log.time.TimeLogEntry;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -82,16 +84,15 @@ public class TimeLogReport extends TinyCGIBase {
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
         out.print(header);
 
-        TimeLog tl = new TimeLog();
-        tl.readDefault();
-
-        DashHierarchy props = getPSPProperties();
-        Enumeration rows = tl.filter(props.findExistingKey(path), null, null);
+        TimeLog tl = getDashboardContext().getTimeLog();
+        List l = Collections.list(tl.filter(path, null, null));
+        Collections.sort(l);
+        Iterator rows = l.iterator();
         TimeLogEntry tle;
         String entryPath, phase;
         int slashPos;
-        while (rows.hasMoreElements()) {
-            tle = (TimeLogEntry) rows.nextElement();
+        while (rows.hasNext()) {
+            tle = (TimeLogEntry) rows.next();
             entryPath = tle.getPath();
             slashPos = entryPath.lastIndexOf("/");
             phase = entryPath.substring(slashPos+1);

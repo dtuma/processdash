@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,431 +23,376 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-
 package net.sourceforge.processdash.log.ui;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.util.*;
-import java.text.NumberFormat;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
-import javax.swing.tree.*;
+import java.beans.EventHandler;
+import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JTree;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 import net.sourceforge.processdash.InternalSettings;
-import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.DoubleData;
-import net.sourceforge.processdash.data.NumberFunction;
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
-import net.sourceforge.processdash.i18n.*;
-import net.sourceforge.processdash.log.*;
-import net.sourceforge.processdash.ui.ConfigureButton;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.ChangeFlagged;
+import net.sourceforge.processdash.log.time.CommittableModifiableTimeLog;
+import net.sourceforge.processdash.log.time.DashboardTimeLog;
+import net.sourceforge.processdash.log.time.TimeLogEntry;
+import net.sourceforge.processdash.log.time.TimeLogEvent;
+import net.sourceforge.processdash.log.time.TimeLogListener;
+import net.sourceforge.processdash.log.time.TimeLogTableModel;
+import net.sourceforge.processdash.log.time.TimeLoggingApprover;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
-import net.sourceforge.processdash.ui.help.*;
-import net.sourceforge.processdash.ui.lib.*;
+import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.DropDownButton;
+import net.sourceforge.processdash.ui.lib.TableUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 
+public class TimeLogEditor extends Object implements TreeSelectionListener,
+        DashHierarchy.Listener, TableModelListener {
 
-public class TimeLogEditor extends Object
-    implements TreeSelectionListener, TableValidator, DashHierarchy.Listener
-{
     /** Class Attributes */
-    protected JFrame          frame;
-    protected JTree           tree;
-    protected PropTreeModel   treeModel;
-    protected DashHierarchy   useProps;
-    protected ProcessDashboard    dashboard = null;
-    protected ValidatingTable table;
-    protected JSplitPane      splitPane;
+    protected JFrame frame;
 
-    protected Hashtable       postedChanges = new Hashtable();
+    protected JTree tree;
 
-    JTextField toDate       = null;
-    JTextField fromDate     = null;
-    TimeLog    tl           = new TimeLog();
-    Vector     currentLog   = new Vector();
-    String     validateCell = null;
-    JButton    revertButton = null;
-    JButton    saveButton   = null;
-    JButton    addButton    = null;
-    JComboBox  formatChoice = null;
+    protected PropTreeModel treeModel;
+
+    protected DashHierarchy useProps;
+
+    protected JTable table;
+
+    protected JSplitPane splitPane;
+
+    protected DashboardTimeLog dashTimeLog;
+
+    protected CommittableModifiableTimeLog timeLog;
+
+    protected TimeLogTableModel tableModel;
+
+    protected TimeLoggingApprover approver;
+
+    JTextField toDate = null;
+
+    JTextField fromDate = null;
+
+    JButton revertButton = null;
+
+    JButton saveButton = null;
+
+    JButton addButton = null;
+
+    JComboBox formatChoice = null;
+
     TimeCardDialog timeCardDialog = null;
 
     static final long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
 
     boolean tableContainsRows = false;
+
     boolean selectedNodeLoggingAllowed = false;
 
     Resources resources = Resources.getDashBundle("Time");
 
-    //
-    // member functions
-    //
-    private void debug(String msg) {
-        System.out.println("TimeLogEditor:" + msg);
+
+    // constructor
+    public TimeLogEditor(DashboardTimeLog timeLog,
+            DashHierarchy props, TimeLoggingApprover approver,
+            PropertyKey currentPhase) {
+        this.dashTimeLog = timeLog;
+        this.useProps = props;
+        this.useProps.addHierarchyListener(this);
+        this.approver = approver;
+
+        constructUserInterface();
+        setSelectedNode(currentPhase);
+        show();
     }
 
-
-                                // constructor
-    public TimeLogEditor(ProcessDashboard dash,
-                         ConfigureButton button,
-                         DashHierarchy props) {
-        dashboard        = dash;
-        JPanel   panel   = new JPanel(true);
-
-        useProps       = props;
-        props.addHierarchyListener(this);
-        try {
-            tl.read (dashboard.getTimeLog());
-        } catch (IOException e) {}
-
-        frame = new JFrame(resources.getString("Time_Log_Editor_Window_Title"));
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
-        frame.getContentPane().add("Center", panel);
-        frame.setBackground(Color.lightGray);
-        PCSH.enableHelpKey(frame, "UsingTimeLogEditor");
-
-        /* Create the JTreeModel. */
-        treeModel = new PropTreeModel (new DefaultMutableTreeNode ("root"), null);
-
-        /* Create the tree. */
-        tree = new JTree(treeModel);
-        treeModel.fill (useProps);
-        setTimes ();
-        tree.expandRow (0);
-        tree.setShowsRootHandles (true);
-        tree.setEditable(false);
-        tree.addTreeSelectionListener (this);
-        tree.setRootVisible(false);
-        tree.setRowHeight(-1);      // Make tree ask for the height of each row.
-
-        /* Put the Tree in a scroller. */
-        JScrollPane sp = new JScrollPane
-            (ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        sp.setPreferredSize(new Dimension(300, 300));
-        sp.getViewport().add(tree);
-
-        /* And show it. */
-        panel.setLayout(new BorderLayout());
-        panel.add("North", constructFilterPanel());
-        panel.add("Center", splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                                                       sp, constructEditPanel()));
-        panel.add("South", constructControlPanel());
-
-        frame.addWindowListener( new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                confirmClose(true);
-            }
-        });
-        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-
-        setSelectedNode(dash.getCurrentPhase());
-        loadCustomDimensions();
-        splitPane.setDividerLocation(dividerLocation);
-
-        applyFilter(false);
-        cancelPostedChanges();
-        setDirty(false);
-        frame.setSize(new Dimension(frameWidth, frameHeight));
-        frame.show();
+    public void close() {
+        confirmClose(true);
     }
-
 
     public void confirmClose(boolean showCancel) {
         if (saveRevertOrCancel(showCancel)) {
             saveCustomDimensions();
-            frame.setVisible (false);   // close the time log window.
-            if (timeCardDialog != null) timeCardDialog.hide();
+            frame.setVisible(false); // close the time log window.
+            if (timeCardDialog != null)
+                timeCardDialog.hide();
+            setTimeLog(null);
         }
     }
 
     public boolean saveRevertOrCancel(boolean showCancel) {
-        if (isDirty())
-            switch (JOptionPane.showConfirmDialog
-                    (frame,
-                     resources.getString("Confirm_Close_Prompt"),
-                     resources.getString("Confirm_Close_Title"),
-                     showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
-                                : JOptionPane.YES_NO_OPTION)) {
+        if (isDirty()) {
+            int optionType = showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
+                    : JOptionPane.YES_NO_OPTION;
+            int userChoice = JOptionPane.showConfirmDialog(frame,
+                    getResource("Confirm_Close_Prompt"),
+                    getResource("Confirm_Close_Title"), optionType);
+            switch (userChoice) {
             case JOptionPane.CLOSED_OPTION:
             case JOptionPane.CANCEL_OPTION:
-                return false;                 // do nothing and abort.
+                return false; // do nothing and abort.
 
             case JOptionPane.YES_OPTION:
-                save();                 // save changes.
+                save(); // save changes.
                 break;
 
             case JOptionPane.NO_OPTION:
-                reload();               // revert changes.
+                reload(); // revert changes.
             }
+        }
         return true;
     }
 
-    protected boolean dirtyFlag = false;
-    protected boolean isDirty() { return dirtyFlag; }
-    protected void setDirty (boolean isDirty) {
-        dirtyFlag = isDirty;
-        saveButton.setEnabled(isDirty);
-        revertButton.setEnabled(isDirty);
+    protected boolean isDirty() {
+        return timeLog != null && timeLog.hasUncommittedData();
     }
 
+    public void tableChanged(TableModelEvent evt) {
+        saveButton.setEnabled(isDirty());
+        revertButton.setEnabled(isDirty());
 
-    void postTimeChange (PropertyKey key, long deltaMinutes) {
-        setDirty(true);
-        //log the change for future action
-        if (deltaMinutes == 0) // if no change, return
-            return;
-        Long delta = (Long)postedChanges.get (key);
-        if (delta == null)
-            delta = new Long (deltaMinutes);
+        tableContainsRows = (tableModel.getRowCount() > 0);
+        addButton.setEnabled(tableContainsRows || selectedNodeLoggingAllowed);
+
+        setTimes();
+    }
+
+    private boolean affectsElapsedTime(TimeLogEvent evt) {
+        TimeLogEntry e = evt.getTimeLogEntry();
+        if (e == null)
+            return true;
+
+
+        return false;
+    }
+
+    private boolean isDeletion(TimeLogEntry tle) {
+        if (tle instanceof ChangeFlagged)
+            return ((ChangeFlagged) tle).getChangeFlag() == ChangeFlagged.DELETED;
         else
-            delta = new Long (delta.longValue() + deltaMinutes);
-        Object a = postedChanges.put (key, delta);
+            return false;
     }
 
-
-    void cancelPostedChanges () {
-        postedChanges.clear ();
+    void cancelPostedChanges() {
+        timeLog.clearUncommittedData();
     }
 
+    private static final String[] TIME_FORMAT_KEY_NAMES = { "Hours_Minutes",
+            "Hours", "Percent_Parent", "Percent_Total" };
 
-    // ApplyPostedChanges takes the changes made to the TimeLogEditor and
-    // applies them to the data repository.
-    void applyPostedChanges () {
-        long l;
-
-        // If there are any changes, apply them.
-        if (postedChanges.size() > 0) {
-            DataRepository data = dashboard.getDataRepository();
-            String thePath;
-
-            // Get the posted changes (keys) and loop through them all
-            Enumeration keys = postedChanges.keys();
-            while (keys.hasMoreElements ()) {
-                // Get the key for this hierarchy node.
-                PropertyKey k = (PropertyKey)keys.nextElement ();
-
-                // Extract the data from the data repository that corresponds
-                // to the change we are currently applying.
-                thePath = k.path() + "/Time";
-                Object pt = data.getValue (thePath);
-
-                // Are they trying to log time against some node which performs
-                // roll up only?  This is bad - don't allow it.
-                if (pt != null &&
-                    (!(pt instanceof DoubleData) || pt instanceof NumberFunction)) {
-                    System.err.println("Error in TimeLogEditor: time must be logged " +
-                                       "to phases (i.e. leaves of the hierarchy).");
-                    continue;
-                }
-
-                // Ignore the delta time stored in the posted changes map - just
-                // recalculate the total time spent in the hierarchy node.
-                long totalTime = tl.timeOf(k, false);
-
-                // Store this value in the hierarchy.
-                data.putValue(thePath, new DoubleData(totalTime, false));
-            }
-        }
-        postedChanges.clear ();
-    }
-
-
-    public static long parseTime (String s) {
-        int colon = s.indexOf (":");
-        long lv = -1;
-        if (colon >= 0) {
-            try {
-                lv = 60 * Long.valueOf (s.substring (0, colon)).longValue();
-            } catch (Exception e) { }
-            try {
-                lv += Long.valueOf (s.substring (colon + 1)).longValue();
-            } catch (Exception e) { }
-        } else {
-            try {
-                lv = Long.valueOf (s).longValue();
-            } catch (Exception e) { }
-        }
-        return lv;
-    }
-
-    protected String formatTime (long t) {
-        if (t < 60)
-            return String.valueOf(t);
-        int min = (int) (t % 60);
-        if (min < 10)
-            return String.valueOf (t / 60) + ":0" + String.valueOf (min);
-        return String.valueOf (t / 60) + ":" + String.valueOf (min);
-    }
-
-    private static final String[] TIME_FORMAT_KEY_NAMES = {
-        "Hours_Minutes", "Hours", "Percent_Parent", "Percent_Total" };
     private static final int FORMAT_HOURS_MINUTES = 0;
+
     private static final int FORMAT_HOURS = 1;
+
     private static final int FORMAT_PERCENT_PARENT = 2;
+
     private static final int FORMAT_PERCENT_TOTAL = 3;
+
     protected int timeFormat = FORMAT_HOURS_MINUTES;
 
-    private static NumberFormat percentFormatter =
-        NumberFormat.getPercentInstance();
-    private static NumberFormat decimalFormatter =
-        NumberFormat.getNumberInstance();
-    static { decimalFormatter.setMaximumFractionDigits(2); }
+    private static NumberFormat decimalFormatter = NumberFormat
+            .getNumberInstance();
+    static {
+        decimalFormatter.setMaximumFractionDigits(2);
+    }
 
     protected String formatTime(long t, long parentTime, long totalTime) {
         switch (timeFormat) {
         case FORMAT_HOURS:
-            return decimalFormatter.format( (double) t / 60.0);
+            return FormatUtil.formatNumber((double) t / 60.0);
 
         case FORMAT_PERCENT_PARENT:
-            return (parentTime == 0 ?
-                    percentFormatter.format(0.0) :
-                    percentFormatter.format( (double) t / (double) parentTime));
+            return formatPercent(t, parentTime);
 
         case FORMAT_PERCENT_TOTAL:
-            return (totalTime == 0 ?
-                    percentFormatter.format(0.0) :
-                    percentFormatter.format( (double) t / (double) totalTime));
+            return formatPercent(t, totalTime);
 
-        case FORMAT_HOURS_MINUTES: default:
-            return formatTime(t);
+        case FORMAT_HOURS_MINUTES:
+        default:
+            return FormatUtil.formatTime(t);
         }
+    }
+
+    private String formatPercent(double a, double b) {
+        double result = 0;
+        if (b != 0)
+            result = a / b;
+        return FormatUtil.formatPercent(result);
     }
 
     private static final String DIMENSION_SETTING_NAME = "timelog.dimensions";
+
     private int frameWidth, frameHeight, dividerLocation = -1;
+
     private void loadCustomDimensions() {
         String setting = Settings.getVal(DIMENSION_SETTING_NAME);
-        if (setting != null && setting.length() > 0) try {
-            StringTokenizer tok = new StringTokenizer(setting, ",");
-            frameWidth = Integer.parseInt(tok.nextToken());
-            frameHeight = Integer.parseInt(tok.nextToken());
-            dividerLocation = Integer.parseInt(tok.nextToken());
-        } catch (Exception e) {}
+        if (setting != null && setting.length() > 0)
+            try {
+                StringTokenizer tok = new StringTokenizer(setting, ",");
+                frameWidth = Integer.parseInt(tok.nextToken());
+                frameHeight = Integer.parseInt(tok.nextToken());
+                dividerLocation = Integer.parseInt(tok.nextToken());
+            } catch (Exception e) {
+            }
         if (dividerLocation == -1) {
-            frameWidth = 800; frameHeight = 400; dividerLocation = 300;
+            frameWidth = 800;
+            frameHeight = 400;
+            dividerLocation = 300;
         }
     }
+
     private void saveCustomDimensions() {
         frameWidth = frame.getSize().width;
         frameHeight = frame.getSize().height;
         dividerLocation = splitPane.getDividerLocation();
-        InternalSettings.set
-            (DIMENSION_SETTING_NAME,
-             frameWidth + "," + frameHeight + "," + dividerLocation);
+        InternalSettings.set(DIMENSION_SETTING_NAME, frameWidth + ","
+                + frameHeight + "," + dividerLocation);
     }
 
-    public long collectTime(Object node, Hashtable timesIn, Hashtable timesOut) {
-        long t = 0;                 // time for this node
+    protected void setTimes() {
+        Date fd = FormatUtil.parseDate(fromDate.getText());
+        Date td = FormatUtil.parseDate(toDate.getText());
+        if (td != null) // need to add a day so search is inclusive
+            td = new Date(td.getTime() + DAY_IN_MILLIS);
 
-                                    // recursively compute total time for each
-                                    // child and add total time for this node.
-        for (int i = 0; i < treeModel.getChildCount (node); i++) {
-            t += collectTime(treeModel.getChild (node, i), timesIn, timesOut);
+        Hashtable nodeTimes = new Hashtable();
+        long totalTime = collectTime(treeModel.getRoot(), getTimes(fd, td),
+                nodeTimes);
+        setTimes(treeModel.getRoot(), nodeTimes, totalTime, totalTime);
+
+        tree.repaint(tree.getVisibleRect());
+        if (timeCardDialog != null)
+            timeCardDialog.recalc();
+    }
+
+    private Hashtable getTimes(Date fd, Date td) {
+        Hashtable result = new Hashtable();
+        try {
+            for (Iterator i = timeLog.filter(null, fd, td); i.hasNext();) {
+                TimeLogEntry tle = (TimeLogEntry) i.next();
+                String path = tle.getPath();
+                long[] t = (long[]) result.get(path);
+                if (t == null) {
+                    t = new long[] { 0L };
+                    result.put(path, t);
+                }
+                t[0] += tle.getElapsedTime();
+            }
+        } catch (Exception e) {
+        }
+        return result;
+    }
+
+    private long collectTime(Object node, Hashtable timesIn, Hashtable timesOut) {
+        long t = 0; // time for this node
+
+        // recursively compute total time for each
+        // child and add total time for this node.
+        for (int i = 0; i < treeModel.getChildCount(node); i++) {
+            t += collectTime(treeModel.getChild(node, i), timesIn, timesOut);
         }
 
-                                    // fetch and add time spent in this node
-        Object [] path = treeModel.getPathToRoot((TreeNode) node);
-        Long l = (Long) timesIn.get(treeModel.getPropKey (useProps, path));
+        // fetch and add time spent in this node
+        Object[] path = treeModel.getPathToRoot((TreeNode) node);
+        long[] l = (long[]) timesIn.get(treeModel.getPropKey(useProps, path)
+                .path());
         if (l != null)
-            t += l.longValue();
+            t += l[0];
 
         timesOut.put(node, new Long(t));
 
         return t;
     }
 
-    public void setTimes (Object node, Hashtable times,
-                          long parentTime, long totalTime) {
+    private void setTimes(Object node, Hashtable times, long parentTime,
+            long totalTime) {
 
         long t = ((Long) times.get(node)).longValue();
 
-                                    // display the time next to the node name
-                                    // in the tree display
-        String s = (String) ((DefaultMutableTreeNode)node).getUserObject();
-        int index = s.lastIndexOf ("=");
+        // display the time next to the node name
+        // in the tree display
+        String s = (String) ((DefaultMutableTreeNode) node).getUserObject();
+        int index = s.lastIndexOf("=");
         if (index > 0)
-            s = s.substring (0, index-1);
-        s = s + " = " + formatTime (t, parentTime, totalTime);
-        ((DefaultMutableTreeNode)node).setUserObject(s);
+            s = s.substring(0, index - 1);
+        s = s + " = " + formatTime(t, parentTime, totalTime);
+        ((DefaultMutableTreeNode) node).setUserObject(s);
         treeModel.nodeChanged((TreeNode) node);
 
-        for (int i = 0; i < treeModel.getChildCount (node); i++) {
-            setTimes (treeModel.getChild (node, i), times, t, totalTime);
+        for (int i = 0; i < treeModel.getChildCount(node); i++) {
+            setTimes(treeModel.getChild(node, i), times, t, totalTime);
         }
     }
 
-    public void setTimes () {
-        Date fd = ((fromDate == null) ? null :
-                   FormatUtil.parseDate (fromDate.getText()));
-        Date td = ((toDate == null) ? null :
-                   FormatUtil.parseDate (toDate.getText()));
-        if (td != null)             // need to add a day so search is inclusive
-            td = new Date (td.getTime() + DAY_IN_MILLIS);
-
-        Hashtable nodeTimes = new Hashtable();
-        long totalTime =
-            collectTime(treeModel.getRoot(), tl.getTimes(fd, td), nodeTimes);
-        setTimes(treeModel.getRoot(), nodeTimes, totalTime, totalTime);
-
-        //treeModel.nodeStructureChanged((TreeNode)treeModel.getRoot());
-        tree.repaint(tree.getVisibleRect());
-        if (timeCardDialog != null) timeCardDialog.recalc();
+    public void applyFilter() {
+        applyFilter(true);
     }
 
-    void applyFilter (boolean resetTimes) {
-        PropertyKey key = null;
-        Date fd = FormatUtil.parseDate (fromDate.getText());
-        Date td = FormatUtil.parseDate (toDate.getText());
-        if (td != null)             // need to add a day so search is inclusive
-            td = new Date (td.getTime() + DAY_IN_MILLIS);
+    protected void applyFilter(boolean resetTimes) {
+        String path = null;
         DefaultMutableTreeNode selected = getSelectedNode();
         if (selected != null) {
-            key = treeModel.getPropKey (useProps, selected.getPath());
+            path = treeModel.getPropKey(useProps, selected.getPath()).path();
         }
+        Date from = FormatUtil.parseDate(fromDate.getText());
+        Date to = FormatUtil.parseDate(toDate.getText());
+        if (to != null) // need to add a day so search is inclusive
+            to = new Date(to.getTime() + DAY_IN_MILLIS);
 
-        //if editing, stop edits
-        if (table.table.isEditing())
-            table.table.editingStopped
-                (new ChangeEvent("Applying filter: Stop edit"));
+        saveEditInProgress();
 
-        // apply the filter and load the vector (and the table)
-        VTableModel model = (VTableModel)table.table.getModel();
-        Object[] row;
-        TimeLogEntry tle;
-        Enumeration filt = tl.filter (key, fd, td);
-        currentLog.removeAllElements();
-        model.setNumRows (0);
-        tableContainsRows = false;
-        while (filt.hasMoreElements()) {
-            tle = (TimeLogEntry)filt.nextElement();
-            currentLog.addElement (tle);
-            row = new Object[]
-                {tle.getPath(),
-                 FormatUtil.formatDateTime (tle.getCreateTime()),
-                 formatTime (tle.getElapsedTime()),
-                 formatTime (tle.getInterruptTime()),
-                 tle.getComment()};
-            model.addRow(row);
-            tableContainsRows = true;
-        }
-        table.doResizeRepaint();
+        // apply the filter to the table)
+        tableModel.setFilter(path, from, to);
+        tableContainsRows = tableModel.getRowCount() > 0;
+
         if (resetTimes)
             setTimes();
 
@@ -457,36 +402,47 @@ public class TimeLogEditor extends Object
     private void setFilter(Date from, Date to) {
         fromDate.setText(FormatUtil.formatDate(from));
         toDate.setText(FormatUtil.formatDate(to));
-        applyFilter(true);
+        applyFilter();
     }
 
     public void filterToday() {
         Date now = new Date();
         setFilter(now, now);
     }
+
     public void filterThisWeek() {
         Date now = new Date();
         Calendar cal = Calendar.getInstance();
-        cal.setTime(now); cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
+        cal.setTime(now);
+        cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
         Date from = cal.getTime();
         cal.add(Calendar.DATE, 6);
         Date to = cal.getTime();
         setFilter(from, to);
     }
+
+    public void filterThisMonth() {
+        filterThisMonth(new Date());
+    }
+
     public void filterThisMonth(Date when) {
         Calendar cal = Calendar.getInstance();
-        cal.setTime(when); cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.setTime(when);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
         Date from = cal.getTime();
-        cal.set(Calendar.DAY_OF_MONTH,
-                cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+        cal.set(Calendar.DAY_OF_MONTH, cal
+                .getActualMaximum(Calendar.DAY_OF_MONTH));
         Date to = cal.getTime();
         setFilter(from, to);
     }
+
     public void scrollFilterForward() {
-        Date fd = FormatUtil.parseDate (fromDate.getText());
-        Date td = FormatUtil.parseDate (toDate.getText());
-        if (fd == null) return;
-        if (td == null) td = fd;
+        Date fd = FormatUtil.parseDate(fromDate.getText());
+        Date td = FormatUtil.parseDate(toDate.getText());
+        if (fd == null)
+            return;
+        if (td == null)
+            td = fd;
 
         long diff = 1 + (td.getTime() - fd.getTime()) / DAY_IN_MILLIS;
         if (diff == 28 || diff == 29 || diff == 30 || diff == 31) {
@@ -494,549 +450,230 @@ public class TimeLogEditor extends Object
             filterThisMonth(fd);
         } else {
             fd = new Date(td.getTime() + DAY_IN_MILLIS);
-            td = new Date(fd.getTime() + (diff-1) * DAY_IN_MILLIS);
+            td = new Date(fd.getTime() + (diff - 1) * DAY_IN_MILLIS);
             setFilter(fd, td);
         }
     }
+
     public void scrollFilterBackward() {
-        Date fd = FormatUtil.parseDate (fromDate.getText());
-        Date td = FormatUtil.parseDate (toDate.getText());
-        if (fd == null) return;
-        if (td == null) td = fd;
+        Date fd = FormatUtil.parseDate(fromDate.getText());
+        Date td = FormatUtil.parseDate(toDate.getText());
+        if (fd == null)
+            return;
+        if (td == null)
+            td = fd;
 
         long diff = 1 + (td.getTime() - fd.getTime()) / DAY_IN_MILLIS;
         td = new Date(fd.getTime() - DAY_IN_MILLIS);
         if (diff == 28 || diff == 29 || diff == 30 || diff == 31) {
             filterThisMonth(td);
         } else {
-            fd = new Date(td.getTime() - (diff-1) * DAY_IN_MILLIS);
+            fd = new Date(td.getTime() - (diff - 1) * DAY_IN_MILLIS);
             setFilter(fd, td);
         }
     }
+
     public void clearFilter() {
         fromDate.setText("");
         toDate.setText("");
-        applyFilter(true);
+        applyFilter();
     }
 
-    // This method implements utilTableValidator
-    public boolean validate (int        id,
-                             int        row,
-                             int        col,
-                             String     newValue) {
-        if (validateCell != null)
-            return false;
-        boolean rv = true;
-        TimeLogEntry tle;
-        try {
-            tle = (TimeLogEntry)currentLog.elementAt (row);
-            validateCell = "" + row + "," + col;
-
-            // tell the PauseButton (via the dashboard) to release this time
-            // log entry, if it is currently "holding" it.
-            dashboard.releaseTimeLogEntry(tle);
-
-            tle = (TimeLogEntry) currentLog.elementAt (row);
-        } catch (Exception e) {
-            validateCell = null;
-            return false;
-        }
-        switch (table.table.convertColumnIndexToModel(col)) {
-        case 0:                     //Logged To (key) (must exist in hierarchy)
-            PropertyKey key = useProps.findExistingKey (newValue);
-            if (key == null || key.equals(tle.getKey()) || !timeLoggingAllowed(key)) {
-                rv = false;
-                table.table.setValueAt (tle.getPath(), row, col);
-            } else {
-                long deltaMinutes = parseTime((String)table.table.getValueAt (row, 2));
-                postTimeChange (key, deltaMinutes);
-                postTimeChange (tle.getKey(), - deltaMinutes);
-                tle.setKey(key);
-            }
-            break;
-        case 1:                     //createTime (must be valid date)
-            Date d = FormatUtil.parseDateTime (newValue);
-            if (d == null || d.equals(tle.getCreateTime())) {
-                rv = false;
-                table.table.setValueAt
-                    (FormatUtil.formatDateTime (tle.getCreateTime()),
-                     row, col);
-            } else
-                tle.setCreateTime(d);
-            break;
-        case 2:                     //minutesElapsed (must be number >= 0)
-            try {
-                long lv = parseTime (newValue);//Long.valueOf (newValue).longValue();
-                long deltaMinutes = tle.getElapsedTime();
-                if (lv >= 0 && lv != deltaMinutes) {
-                    tle.setElapsedTime(lv);
-                    postTimeChange (tle.getKey(), lv - deltaMinutes);
-                } else
-                    rv = false;
-                table.table.setValueAt (formatTime (tle.getElapsedTime()), row, col);
-            } catch (Exception e) { rv = false; }
-            break;
-        case 3:                     //minutesInterrupt (must be number >= 0)
-            try {
-                long lv = parseTime (newValue);//Long.valueOf (newValue).longValue();
-                if (lv >= 0 && lv != tle.getInterruptTime())
-                    tle.setInterruptTime(lv);
-                else
-                    rv = false;
-                table.table.setValueAt (formatTime (tle.getInterruptTime()), row, col);
-            } catch (Exception e) { rv = false; }
-            break;
-        case 4:                     // comment (any string is fine)
-            tle.setComment(newValue);
-            break;
-        }
-        setTimes ();
-        validateCell = null;
-        if (rv) setDirty(true);
-        return rv;
-    }
-
-
-    private JPanel constructFilterPanel () {
-        JPanel  retPanel = new JPanel(false);
-        retPanel.setLayout(new BoxLayout(retPanel, BoxLayout.X_AXIS));
-        retPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-        DropDownButton button;
-        JButton btn;
-        Insets insets = new Insets(0, 2, 0, 2);
-        JLabel  label;
-
-        retPanel.add(Box.createHorizontalGlue());
-
-        label = new JLabel (resources.getString("Time_Format.Label")+" ");
-        retPanel.add(label);   retPanel.add(Box.createHorizontalStrut(5));
-        formatChoice = new JComboBox
-            (resources.getStrings("Time_Format.", TIME_FORMAT_KEY_NAMES));
-        retPanel.add(formatChoice);   retPanel.add(Box.createHorizontalStrut(5));
-        formatChoice.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                timeFormat = formatChoice.getSelectedIndex(); setTimes(); }} );
-        retPanel.add(new JLabel("          "));
-
-        label = new JLabel (resources.getString("Filter.Label") + " ");
-        retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
-
-        btn = new JButton(resources.getString("Filter.Scroll_Backward_Button"));
-        btn.setMargin(insets);
-        btn.setToolTipText(resources.getString("Filter.Scroll_Backward_Tooltip"));
-        btn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { scrollFilterBackward(); }
-            });
-        retPanel.add(btn);   retPanel.add(Box.createHorizontalStrut(5));
-
-        label = new JLabel (resources.getString("Filter.From") + " ");
-        retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
-
-        fromDate = new JTextField ("", 10);
-        fromDate.setMaximumSize(fromDate.getPreferredSize());
-        DateChangeAction l = new DateChangeAction (fromDate);
-        fromDate.addActionListener (l);
-        fromDate.addFocusListener (l);
-        retPanel.add (fromDate);   retPanel.add(Box.createHorizontalStrut(5));
-
-        label = new JLabel (" " + resources.getString("Filter.To") + " ");
-        retPanel.add (label);   retPanel.add(Box.createHorizontalStrut(5));
-
-        toDate = new JTextField ("", 10);
-        toDate.setMaximumSize(toDate.getPreferredSize());
-        l = new DateChangeAction (toDate);
-        toDate.addActionListener (l);
-        toDate.addFocusListener (l);
-        retPanel.add (toDate);   retPanel.add(Box.createHorizontalStrut(5));
-
-
-        btn = new JButton(resources.getString("Filter.Scroll_Forward_Button"));
-        btn.setMargin(insets);
-        btn.setToolTipText(resources.getString("Filter.Scroll_Forward_Tooltip"));
-        btn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { scrollFilterForward(); }
-            });
-        retPanel.add(btn);   retPanel.add(Box.createHorizontalStrut(5));
-
-        button = new DropDownButton (resources.getString("Filter.Apply"));
-        button.setRunFirstMenuOption(false);
-        button.getButton().addActionListener(new ActionListener () {
-            public void actionPerformed(ActionEvent e) { applyFilter (true); }
-            });
-        JMenu menu = button.getMenu();
-        menu.add(resources.getString("Filter.Today")).addActionListener
-            (new ActionListener() {
-                public void actionPerformed(ActionEvent e) { filterToday(); }
-                });
-        menu.add(resources.getString("Filter.Week")).addActionListener
-            (new ActionListener() {
-                public void actionPerformed(ActionEvent e) { filterThisWeek(); }
-                });
-        menu.add(resources.getString("Filter.Month")).addActionListener
-            (new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    filterThisMonth(new Date());
-                }});
-        menu.addSeparator();
-        menu.add(resources.getString("Filter.Remove")).addActionListener
-            (new ActionListener() {
-                public void actionPerformed(ActionEvent e) { clearFilter(); }
-                });
-        retPanel.add (button);
-
-        retPanel.add(Box.createHorizontalGlue());
-
-        return retPanel;
-    }
-
-    /** Add or update a row in the time log.
-     * @param tle a time log entry that was created or modified elsewhere.
-     */
-    public void addRow (TimeLogEntry tle) {
-        TimeLogEntry oldEntry = tl.addOrUpdate(tle);
-        if (oldEntry != null) {
-            int row = currentLog.indexOf(oldEntry);
-
-            if (row == -1)            // oldEntry is not in the list of currently
-                return;                 // visible entries. No redraw is necessary.
-
-            currentLog.set(row, tle);
-            VTableModel model = (VTableModel)table.table.getModel();
-            model.setValueAt(tle.getKey().path(), row, 0);
-            model.setValueAt(FormatUtil.formatDateTime(tle.getCreateTime()), row, 1);
-            model.setValueAt(String.valueOf (tle.getElapsedTime()), row, 2);
-            model.setValueAt(String.valueOf (tle.getInterruptTime()), row, 3);
-            model.setValueAt(tle.getComment(), row, 4);
-
-        } else {
-            applyFilter(false);
-        }
-        setTimes();
-
-        /*
-        Object aRow[] = new Object[]
-            {,
-             ,
-             ,
-             };
-
-        ((VTableModel)table.table.getModel()).addRow(aRow);
-        tableContainsRows = true;
-        addButton.setEnabled(true);
-        currentLog.addElement (tl.add (tle));
-        setDirty(true);
-        */
-    }
-
-    public void addRow () {
-        JTable aTable = table.table;
-        VTableModel model = (VTableModel)aTable.getModel();
-        TimeLogEntry tle = null;
-        int rowBasedOn;
+    public void addRow() {
+        int rowBasedOn = -1;
+        String pathBasedOn = null;
         DefaultMutableTreeNode selected;
         PropertyKey key;
 
-                            // try to base new row on the selected table row
-        if ((rowBasedOn = aTable.getSelectedRow()) != -1)
+        // try to base new row on the selected table row
+        if ((rowBasedOn = table.getSelectedRow()) != -1)
             ; // nothing to do here .. just drop out of "else if" tree
 
-                              // else try to base new row on current editing row
-        else if ((rowBasedOn = aTable.getEditingRow()) != -1)
-            aTable.editingStopped (new ChangeEvent("Adding row: Stop edit"));
+        // else try to base new row on current editing row
+        else if ((rowBasedOn = table.getEditingRow()) != -1)
+            saveEditInProgress();
 
-                              // else try to base new row on current tree selection
-        else if ((selected = getSelectedNode()) != null &&
-                 (key = treeModel.getPropKey(useProps, selected.getPath())) != null
-                 && timeLoggingAllowed(key))
-            tle = new TimeLogEntry (key, new Date(), 0, 0);
+        // else try to base new row on current tree selection
+        else if ((selected = getSelectedNode()) != null
+                && (key = treeModel.getPropKey(useProps, selected.getPath())) != null
+                && timeLoggingAllowed(key))
+            pathBasedOn = key.path();
 
-        else              // else try to base new row on last row of table
-            rowBasedOn = currentLog.size() - 1;
+        else
+            // else try to base new row on last row of table
+            rowBasedOn = tableModel.getRowCount() - 1;
 
+        if (rowBasedOn != -1)
+            tableModel.duplicateRow(rowBasedOn);
+        else if (pathBasedOn != null)
+            tableModel.addRow(pathBasedOn);
+        else
+            tableModel.addRow("/");
 
-        Object aRow[];
-        if (tle == null) {
-            if (rowBasedOn == -1) {   // create 'blank'
-                tle = new TimeLogEntry (new PropertyKey (PropertyKey.ROOT),
-                                        new Date(), 0, 0);
-            } else {          // base it on rowBasedOn
-                TimeLogEntry tle2 = (TimeLogEntry)currentLog.elementAt (rowBasedOn);
-                tle = new TimeLogEntry (new PropertyKey (tle2.getKey()),
-                                        new Date (tle2.getCreateTime().getTime()),
-                                        tle2.getElapsedTime(),
-                                        tle2.getInterruptTime());
-            }
-        }
-        aRow = new Object[]
-            {tle.getKey().path(),
-             FormatUtil.formatDateTime (tle.getCreateTime()),
-             String.valueOf (tle.getElapsedTime()),
-             String.valueOf (tle.getInterruptTime()),
-             null };                  // don't copy the comment.
-        model.addRow(aRow);
         tableContainsRows = true;
         addButton.setEnabled(true);
-        currentLog.addElement (tl.add (tle));
-        setDirty(true);
-        setTimes ();
-        postTimeChange (tle.getKey(), tle.getElapsedTime());
     }
 
-    public void deleteSelectedRow () {
-        JTable aTable = table.table;
-        VTableModel model = (VTableModel)aTable.getModel();
-        int selectedRow = aTable.getSelectedRow();
-        int editingRow  = aTable.getEditingRow();
-        int rowBasedOn = (selectedRow != -1 ? selectedRow : editingRow);
-        if (rowBasedOn == -1) return;
+    public void deleteSelectedRow() {
+        int editingRow = table.getEditingRow();
         if (editingRow != -1)
-            aTable.editingStopped (new ChangeEvent("Deleting row: Stop edit"));
+            table.getCellEditor().cancelCellEditing();
 
-        TimeLogEntry tle = (TimeLogEntry)currentLog.elementAt (rowBasedOn);
-        dashboard.releaseTimeLogEntry(tle);
-        model.removeRow (rowBasedOn);
-        try {
-            currentLog.removeElementAt (rowBasedOn);
-        } catch (Exception e) {}
-        tl.remove (tle);
-        setDirty(true);
-        setTimes ();
-        postTimeChange (tle.getKey(), - tle.getElapsedTime());
-
-        tableContainsRows = (model.getRowCount() > 0);
-        addButton.setEnabled(tableContainsRows || selectedNodeLoggingAllowed);
-    }
-
-    protected void summarize() {
-        TimeLogEntry tle, tle2;
-        boolean      merged = false;
-        for (int i = 0; i < currentLog.size(); i++) {
-            tle = (TimeLogEntry)currentLog.elementAt(i);
-            for (int j = currentLog.size() - 1; j > i; j--) {
-                tle2 = (TimeLogEntry)currentLog.elementAt(j);
-                if (tle.getKey().key().equals (tle2.getKey().key())) {
-                    //merge into tle and delete tle2
-                    merged = true;
-                    tle.merge(tle2);
-                    System.err.println("merging:"+tle+"+"+tle2);
-                    tl.remove (tle2);
-                    setDirty(true);
-                    try {                 // make sure that we only merge once
-                        currentLog.removeElementAt (j);
-                    } catch (Exception e) {}
-                }
-            }
+        int[] rows = table.getSelectedRows();
+        if (rows != null && rows.length > 0) {
+            Arrays.sort(rows);
+            for (int i = rows.length; i-- > 0;)
+                tableModel.deleteRow(rows[i]);
+        } else if (editingRow != -1) {
+            tableModel.deleteRow(editingRow);
         }
-        if (merged)
-            applyFilter (true);
+
     }
 
-    protected void summarizeWarning() {
-        if (JOptionPane.showConfirmDialog
-            (frame,
-             resources.getStrings("Summarization_Warning_Message"),
-             resources.getString("Summarization_Warning_Title"),
-             JOptionPane.OK_CANCEL_OPTION,
-             JOptionPane.WARNING_MESSAGE)
-            == JOptionPane.OK_OPTION) {
-            summarize();
-        }
+
+    public void summarizeWarning() {
+        saveEditInProgress();
+        int userChoice = JOptionPane.showConfirmDialog(frame,
+                resources.getStrings("Summarization_Warning_Message"),
+                getResource("Summarization_Warning_Title"),
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (userChoice == JOptionPane.OK_OPTION)
+            tableModel.summarizeRows();
     }
 
-    private static final String[] COLUMN_KEYS = {
-        "Logged_To", "Start_Time", "Delta_Time", "Interrupt_Time", "Comment" };
-    private JPanel constructEditPanel () {
-        JPanel  retPanel = new JPanel(false);
-        JButton button;
-
-        retPanel.setLayout(new BorderLayout());
-        table = new ValidatingTable
-            (resources.getStrings("Columns.", COLUMN_KEYS, ".Name"),
-             null,
-             resources.getInts("Columns.", COLUMN_KEYS, ".Width_"),
-             resources.getStrings("Columns.", COLUMN_KEYS, ".Tooltip"),
-             null, this, 0, true, null, null);
-        retPanel.add ("Center", table);
-
-        JPanel btnPanel = new JPanel(false);
-        addButton = button = new JButton (resources.getString("Add"));
-        button.addActionListener (new ActionListener () {
-            public void actionPerformed(ActionEvent e) { addRow(); }
-        });
-        btnPanel.add (button);
-
-        button = new JButton (resources.getString("Delete"));
-        button.addActionListener (new ActionListener () {
-            public void actionPerformed(ActionEvent e) { deleteSelectedRow(); }
-        });
-        btnPanel.add (button);
-
-        button = new JButton (resources.getString("Summarize_Button"));
-        button.addActionListener (new ActionListener () {
-            public void actionPerformed(ActionEvent e) { summarizeWarning(); }
-        });
-        btnPanel.add (button);
-
-        retPanel.add ("South", btnPanel);
-
-        return retPanel;
-    }
-
-    protected void showTimeCard() {
+    public void showTimeCard() {
         if (timeCardDialog != null)
             timeCardDialog.show();
         else
-            timeCardDialog = new TimeCardDialog(useProps, tl);
-    }
-
-    private JPanel constructControlPanel () {
-        JPanel  retPanel = new JPanel(false);
-
-        JButton timeCardButton = new JButton
-            (resources.getString("Time_Card_View_Button"));
-        retPanel.add(timeCardButton);
-        retPanel.add(Box.createHorizontalStrut(100));
-        timeCardButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                showTimeCard(); }});
-
-        revertButton = new JButton (resources.getString("Revert"));
-        retPanel.add (revertButton);
-        revertButton.addActionListener (new ReloadAction ());
-
-        saveButton = new JButton (resources.getString("Save"));
-        retPanel.add (saveButton);
-        saveButton.addActionListener (new SaveAction ());
-
-        JButton closeButton = new JButton(resources.getString("Close"));
-        retPanel.add(closeButton);
-        closeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { confirmClose(true); }
-            });
-
-        return retPanel;
+            timeCardDialog = new TimeCardDialog(useProps, timeLog);
     }
 
     public void save() {
-        //if editing, stop edits
-        if (table.table.isEditing())
-            table.table.editingStopped
-                (new ChangeEvent("Saving Data: Stop edit"));
-        try {                     // save the time log
-            tl.save (dashboard.getTimeLog());
-        } catch (IOException ioe) {}
-        applyPostedChanges ();
-        setDirty(false);
+        saveEditInProgress();
+        timeLog.commitData();
     }
 
+    private void saveEditInProgress() {
+        // if editing, stop edits
+        if (table.isEditing())
+            table.getCellEditor().stopCellEditing();
+    }
 
-    public void hierarchyChanged(DashHierarchy.Event e) { reloadAll(null); }
+    public void hierarchyChanged(DashHierarchy.Event e) {
+        reloadAll(null);
+    }
 
     public void reloadAll(DashHierarchy newProps) {
         if (newProps != null)
             useProps.copy(newProps);
-        treeModel.reload (useProps);
+        treeModel.reload(useProps);
 
         checkSelectedNodeLoggingAllowed();
-
-        reload();
+        applyFilter();
     }
 
     public void reload() {
-        try {                       // re-read time log
-            tl.read (dashboard.getTimeLog());
-        } catch (IOException ioe) {}
-        applyFilter(true);
-        cancelPostedChanges ();
-        setDirty(false);
+        timeLog.clearUncommittedData();
+        applyFilter();
     }
 
     public void show() {
         if (frame.isShowing())
             frame.toFront();
         else {
-            reload();
+            setTimeLog(dashTimeLog.getDeferredTimeLogModifications());
             frame.show();
         }
     }
 
-                                // make sure root is expanded
-    public void expandRoot () { tree.expandRow (0); }
+    protected void setTimeLog(CommittableModifiableTimeLog newTimeLog) {
+        if (newTimeLog != timeLog) {
+            timeLog = newTimeLog;
+            tableModel.setTimeLog(timeLog);
+        }
+    }
 
+    // make sure root is expanded
+    public void expandRoot() {
+        tree.expandRow(0);
+    }
 
     // Returns the TreeNode instance that is selected in the tree.
     // If nothing is selected, null is returned.
     protected DefaultMutableTreeNode getSelectedNode() {
-        TreePath   selPath = tree.getSelectionPath();
+        TreePath selPath = tree.getSelectionPath();
 
-        if(selPath != null)
-            return (DefaultMutableTreeNode)selPath.getLastPathComponent();
+        if (selPath != null)
+            return (DefaultMutableTreeNode) selPath.getLastPathComponent();
         return null;
     }
 
     /**
-     * The next method implement the TreeSelectionListener interface
-     * to deal with changes to the tree selection.
+     * The next method implement the TreeSelectionListener interface to deal
+     * with changes to the tree selection.
      */
-    public void valueChanged (TreeSelectionEvent e) {
+    public void valueChanged(TreeSelectionEvent e) {
         TreePath tp = e.getNewLeadSelectionPath();
 
-        if (tp == null) {           // deselection
+        if (tp == null) { // deselection
             tree.clearSelection();
-            applyFilter (false);
+            applyFilter(false);
             return;
         }
-        Object [] path = tp.getPath();
-        PropertyKey key = treeModel.getPropKey (useProps, path);
+        Object[] path = tp.getPath();
+        PropertyKey key = treeModel.getPropKey(useProps, path);
         checkSelectedNodeLoggingAllowed(key);
-        applyFilter (false);
+        applyFilter(false);
     }
 
     private void checkSelectedNodeLoggingAllowed() {
         TreePath selPath = tree.getSelectionPath();
         PropertyKey key = null;
         if (selPath != null) {
-            Object [] path = selPath.getPath();
-            key = treeModel.getPropKey (useProps, path);
+            Object[] path = selPath.getPath();
+            key = treeModel.getPropKey(useProps, path);
         }
         checkSelectedNodeLoggingAllowed(key);
     }
+
     private void checkSelectedNodeLoggingAllowed(PropertyKey key) {
         selectedNodeLoggingAllowed = timeLoggingAllowed(key);
     }
-    private boolean timeLoggingAllowed(PropertyKey key) {
-        return TimeLog.timeLoggingAllowed(key, useProps, dashboard.getData());
-    }
 
+    private boolean timeLoggingAllowed(PropertyKey key) {
+        return approver.isTimeLoggingAllowed(key.path());
+    }
 
     // DateChangeAction responds to user input in a date field.
     class DateChangeAction implements ActionListener, FocusListener {
         JTextComponent widget;
-        String         text = null;
-        Color          background;
 
-        public DateChangeAction (JTextComponent src) {
+        String text = null;
+
+        Color background;
+
+        public DateChangeAction(JTextComponent src) {
             widget = src;
             text = widget.getText();
-            background = new Color (widget.getBackground().getRGB());
+            background = new Color(widget.getBackground().getRGB());
         }
 
-        protected void validate () {
+        protected void validate() {
             String newText = widget.getText();
 
-            Date d = FormatUtil.parseDate (newText);
+            Date d = FormatUtil.parseDate(newText);
             if (d == null) {
                 if ((newText != null) && (newText.length() > 0))
-                    widget.setBackground (Color.red);
+                    widget.setBackground(Color.red);
                 else {
-                    widget.setBackground (background);
+                    widget.setBackground(background);
                     text = newText;
-                    widget.setText (text);
+                    widget.setText(text);
                 }
             } else {
-                widget.setBackground (background);
-                text = FormatUtil.formatDate (d);
-                widget.setText (text);
+                widget.setBackground(background);
+                text = FormatUtil.formatDate(d);
+                widget.setText(text);
             }
             widget.repaint(widget.getVisibleRect());
         }
@@ -1055,34 +692,219 @@ public class TimeLogEditor extends Object
 
     } // End of TimeLogEditor.DateChangeAction
 
-
-    //
-    // ReloadAction responds to user clicking Reload button.
-    //
-    class ReloadAction extends Object implements ActionListener {
-        public void actionPerformed(ActionEvent e) { reload(); }
-    } // End of TimeLogEditor.ReloadAction
-
-
-    //
-    // SaveAction responds to user clicking Save button.
-    //
-    class SaveAction extends Object implements ActionListener {
-        public void actionPerformed(ActionEvent e) { save(); }
-    } // End of TimeLogEditor.SaveAction
-
-    /** Expand the hierarchy so that the given node is visible and selected.
+    /**
+     * Expand the hierarchy so that the given node is visible and selected.
      */
     public void setSelectedNode(PropertyKey path) {
-        if (path == null) return;
-        DefaultMutableTreeNode node =
-            (DefaultMutableTreeNode) treeModel.getNodeForKey(useProps, path);
-        if (node == null) return;
+        if (path == null)
+            return;
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) treeModel
+                .getNodeForKey(useProps, path);
+        if (node == null)
+            return;
 
         TreePath tp = new TreePath(node.getPath());
         tree.clearSelection();
         tree.scrollPathToVisible(tp);
         tree.addSelectionPath(tp);
     }
+
+    public void updateTimeFormat() {
+        timeFormat = formatChoice.getSelectedIndex();
+        setTimes();
+    }
+
+    /*
+     * methods for constructing the user interface
+     */
+
+    private void constructUserInterface() {
+        loadCustomDimensions();
+
+        frame = new JFrame(getResource("Time_Log_Editor_Window_Title"));
+        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        frame.setSize(new Dimension(frameWidth, frameHeight));
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                confirmClose(true);
+            }});
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        PCSH.enableHelpKey(frame, "UsingTimeLogEditor");
+
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                constructTreePanel(), constructEditPanel());
+        splitPane.setDividerLocation(dividerLocation);
+
+        Container panel = frame.getContentPane();
+        panel.setLayout(new BorderLayout());
+        panel.add(BorderLayout.NORTH, constructFilterPanel());
+        panel.add(BorderLayout.CENTER, splitPane);
+        panel.add(BorderLayout.SOUTH, constructControlPanel());
+    }
+
+    private JScrollPane constructTreePanel() {
+        /* Create the JTreeModel. */
+        treeModel = new PropTreeModel(new DefaultMutableTreeNode("root"), null);
+
+        /* Create the tree. */
+        tree = new JTree(treeModel);
+        treeModel.fill(useProps);
+        tree.expandRow(0);
+        tree.setShowsRootHandles(true);
+        tree.setEditable(false);
+        tree.addTreeSelectionListener(this);
+        tree.setRootVisible(false);
+        tree.setRowHeight(-1); // Make tree ask for the height of each row.
+
+        /* Put the Tree in a scroller. */
+        JScrollPane scrollPane = new JScrollPane(tree,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scrollPane.setPreferredSize(new Dimension(300, 300));
+        return scrollPane;
+    }
+
+    private JPanel constructEditPanel() {
+        JPanel retPanel = new JPanel(false);
+        JButton button;
+
+        retPanel.setLayout(new BorderLayout());
+        tableModel = new TimeLogTableModel();
+        tableModel.addTableModelListener(this);
+        table = new JTable(tableModel);
+        TableUtils.configureTable(table, TimeLogTableModel.COLUMN_WIDTHS,
+                TimeLogTableModel.COLUMN_TOOLTIPS);
+        retPanel.add("Center", new JScrollPane(table));
+
+        JPanel btnPanel = new JPanel(false);
+        addButton = createButton(btnPanel, "Add", "addRow");
+        createButton(btnPanel, "Delete", "deleteSelectedRow");
+        createButton(btnPanel, "Summarize_Button", "summarizeWarning");
+
+        retPanel.add("South", btnPanel);
+
+        return retPanel;
+    }
+
+    private JPanel constructFilterPanel() {
+        JPanel retPanel = new JPanel(false);
+        retPanel.setLayout(new BoxLayout(retPanel, BoxLayout.X_AXIS));
+        retPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        DropDownButton button;
+        JButton btn;
+        Insets insets = new Insets(0, 2, 0, 2);
+        JLabel label;
+
+        retPanel.add(Box.createHorizontalGlue());
+
+        addTimeFormatControl(retPanel);
+        retPanel.add(new JLabel("          "));
+
+        label = new JLabel(getResource("Filter.Label") + " ");
+        retPanel.add(label);
+        retPanel.add(Box.createHorizontalStrut(5));
+
+        addScrollButton(retPanel, "Filter.Scroll_Backward",
+                "scrollFilterBackward");
+        fromDate = addDateField(retPanel, "Filter.From");
+        toDate = addDateField(retPanel, "Filter.To");
+        addScrollButton(retPanel, "Filter.Scroll_Forward",
+                "scrollFilterForward");
+
+        button = new DropDownButton(getResource("Filter.Apply"));
+        button.setRunFirstMenuOption(false);
+        button.getButton().addActionListener(
+                createActionListener("applyFilter"));
+
+        JMenu menu = button.getMenu();
+        addFilterMenuItem(menu, "Filter.Today", "filterToday");
+        addFilterMenuItem(menu, "Filter.Week", "filterThisWeek");
+        addFilterMenuItem(menu, "Filter.Month", "filterThisMonth");
+        menu.addSeparator();
+        addFilterMenuItem(menu, "Filter.Remove", "clearFilter");
+        retPanel.add(button);
+
+        retPanel.add(Box.createHorizontalGlue());
+
+        return retPanel;
+    }
+
+    private JPanel constructControlPanel() {
+        JPanel retPanel = new JPanel(false);
+
+        createButton(retPanel, "Time_Card_View_Button", "showTimeCard");
+        retPanel.add(Box.createHorizontalStrut(100));
+
+        revertButton = createButton(retPanel, "Revert", "reload");
+        saveButton = createButton(retPanel, "Save", "save");
+        createButton(retPanel, "Close", "close");
+
+        return retPanel;
+    }
+
+    private void addTimeFormatControl(JPanel retPanel) {
+        JLabel label = new JLabel(getResource("Time_Format.Label")
+                + " ");
+        retPanel.add(label);
+        retPanel.add(Box.createHorizontalStrut(5));
+        String[] formatChoices = resources.getStrings("Time_Format.",
+                TIME_FORMAT_KEY_NAMES);
+        formatChoice = new JComboBox(formatChoices);
+        formatChoice
+                .addActionListener(createActionListener("updateTimeFormat"));
+        label.setLabelFor(formatChoice);
+        retPanel.add(formatChoice);
+        retPanel.add(Box.createHorizontalStrut(5));
+    }
+
+    private void addScrollButton(JPanel retPanel, String resPrefix,
+            String action) {
+        JButton btn = new JButton(getResource(resPrefix + "_Button"));
+        btn.setMargin(new Insets(0, 2, 0, 2));
+        btn.setToolTipText(getResource(resPrefix + "_Tooltip"));
+        btn.addActionListener(createActionListener(action));
+        retPanel.add(btn);
+        retPanel.add(Box.createHorizontalStrut(5));
+    }
+
+    private JTextField addDateField(JPanel retPanel, String labelKey) {
+        JLabel label = new JLabel(getResource(labelKey) + " ");
+        retPanel.add(label);
+        retPanel.add(Box.createHorizontalStrut(5));
+
+        JTextField result = new JTextField("", 10);
+        label.setLabelFor(result);
+        result.setMaximumSize(result.getPreferredSize());
+        DateChangeAction l = new DateChangeAction(result);
+        result.addActionListener(l);
+        result.addFocusListener(l);
+        retPanel.add(result);
+        retPanel.add(Box.createHorizontalStrut(5));
+
+        return result;
+    }
+
+    private void addFilterMenuItem(JMenu menu, String resKey, String action) {
+        JMenuItem menuItem = menu.add(getResource(resKey));
+        menuItem.addActionListener(createActionListener(action));
+    }
+
+    private ActionListener createActionListener(String methodName) {
+        return (ActionListener) EventHandler.create(ActionListener.class, this,
+                methodName);
+    }
+
+
+    private JButton createButton(Container p, String resKey, String action) {
+        JButton result = new JButton(getResource(resKey));
+        result.addActionListener(createActionListener(action));
+        p.add(result);
+        return result;
+    }
+
+    private String getResource(String key) {
+        return resources.getString(key);
+    }
+
 
 }

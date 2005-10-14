@@ -110,6 +110,7 @@ Authors:
 
   <property name="jfreechart.jar" value="${lib}/jfreechart-0.9.15.jar"/>
   <property name="jcommon.jar"    value="${lib}/jcommon-0.9.0.jar"/>
+  <property name="kxml.jar"       value="${lib}/kxml-2.2.1-mod.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
 
@@ -123,6 +124,7 @@ Authors:
     <pathelement location="${lib}/jregex.jar"/>
     <pathelement location="${jfreechart.jar}"/>
     <pathelement location="${jcommon.jar}"/>
+    <pathelement location="${kxml.jar}"/>
   </path>
 
 
@@ -379,6 +381,7 @@ Authors:
       <!-- include the contents of the libraries we use -->
       <zipfileset src="${jcommon.jar}"/>
       <zipfileset src="${jfreechart.jar}"/>
+      <zipfileset src="${kxml.jar}"/>
       <zipfileset src="${lib}/jfreechart_ja.zip"/>
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
       <zipfileset src="${lib}/jregex.jar"/>

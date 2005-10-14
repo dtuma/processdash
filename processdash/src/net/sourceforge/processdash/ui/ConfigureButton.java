@@ -32,9 +32,14 @@ import javax.swing.*;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.ui.*;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.*;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.log.time.CommittableModifiableTimeLog;
+import net.sourceforge.processdash.log.time.DashboardTimeLog;
+import net.sourceforge.processdash.log.time.TimeLoggingApprover;
 import net.sourceforge.processdash.log.ui.*;
 import net.sourceforge.processdash.tool.export.ImportExport;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
@@ -241,7 +246,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     }
 
 
-    public void quit () {
+    public void saveData () {
         if (time_frame != null) {
             time_frame.confirmClose(false);
             time_frame = null;
@@ -292,14 +297,19 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     }
 
     public void startTimeLog() {
-        if (parent.getProperties() != null) {
+        DashHierarchy hier = parent.getProperties();
+        PropertyKey phase = parent.getCurrentPhase();
+
+        if (hier != null) {
             if (time_frame != null) {
-                time_frame.setSelectedNode(parent.getCurrentPhase());
+                time_frame.setSelectedNode(phase);
                 time_frame.show();
-            } else
-                time_frame = new TimeLogEditor(parent,
-                                               this,
-                                               parent.getProperties());
+            } else {
+                DashboardTimeLog timeLog =
+                    (DashboardTimeLog) parent.getTimeLog();
+                TimeLoggingApprover approver = timeLog;
+                time_frame = new TimeLogEditor(timeLog, hier, approver, phase);
+            }
         }
     }
 
@@ -313,11 +323,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
                                                 this,
                                                 parent.getProperties());
         }
-    }
-
-    public void addToTimeLogEditor (TimeLogEntry tle) {
-        if (time_frame != null)
-            time_frame.addRow (tle);
     }
 
 
@@ -353,11 +358,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     }
 
     public void exitProgram() { parent.exitProgram(); }
-
-    public void save() {
-        //    if (task_frame != null)
-        //task_frame.save();
-    }
 
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();

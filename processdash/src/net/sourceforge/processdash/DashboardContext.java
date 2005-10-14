@@ -27,6 +27,7 @@ package net.sourceforge.processdash;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.http.WebServer;
 
@@ -39,4 +40,7 @@ public interface DashboardContext {
     public ObjectCache getCache();
 
     public WebServer getWebServer();
+
+    public TimeLog getTimeLog();
+
 }

@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<timeLogEntries>
+  <time id="1" path="/Non Project/Dy4-181 BSP Build/Test Task/Test" delta="-100" flag="M" />
+  <time id="2" flag="D" />
+  <time id="3" start="@1094238594000" interrupt="1" comment="comment number two, modified" flag="M" />
+  <time id="4" flag="M" />
+  <time id="6" path="/Project/Requirements/FDDI bus/Inspect/Reqts Inspect" start="@1094244165000" delta="14" comment="comment number three" flag="A" />
+</timeLogEntries>

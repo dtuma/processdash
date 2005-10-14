@@ -23,19 +23,18 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-
 package net.sourceforge.processdash.hier;
 
 import java.util.Vector;
 
-
-/** This class implements a primitive filter for hierarchy paths.  If
- *  the string begins with one of the hierarchy prefixes in the
- *  Vector, or if the Vector is null, it passes.
+/**
+ * This class implements a primitive filter for hierarchy paths. If the string
+ * begins with one of the hierarchy prefixes in the Vector, or if the Vector is
+ * null, it passes.
  */
 public class Filter {
 
-    public static boolean matchesFilter (Vector theFilter, String name) {
+    public static boolean matchesFilter(Vector theFilter, String name) {
         if (theFilter == null)
             return true;
         for (int ii = 0; ii < theFilter.size(); ii++) {
@@ -45,10 +44,24 @@ public class Filter {
         return false;
     }
 
-    public static boolean pathMatches(String fullName, String pathPrefix) {
-        if (fullName.equals(pathPrefix)) return true;
-        if (!fullName.startsWith(pathPrefix)) return false;
-        return (fullName.charAt(pathPrefix.length()) == '/');
+    public static boolean pathMatches(String path, String prefix) {
+        return pathMatches(path, prefix, true);
+    }
+
+    public static boolean pathMatches(String path, String prefix,
+            boolean includeChildren) {
+        if (!path.startsWith(prefix))
+            return false;
+
+        if (path.length() > prefix.length()) {
+            if (includeChildren) {
+                if (path.charAt(prefix.length()) != '/')
+                    return false;
+            } else
+                return false;
+        }
+
+        return true;
     }
 
 }

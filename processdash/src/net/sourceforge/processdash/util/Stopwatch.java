@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 1998-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -24,31 +24,43 @@
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 
-package net.sourceforge.processdash;
+package net.sourceforge.processdash.util;
 
-import java.util.*;
+import java.util.Date;
 
-public class Timer {
-    public Date createTime = null;
+
+public class Stopwatch {
+
+    private Date createTime = null;
     private Date startTime = null;
     private Date stopTime = null;
     private long elapsedTime = 0;        // represented in seconds
     private long interruptTime = 0;      // represented in seconds
     private double multiplier = 1.0;
 
-    public Timer(boolean running) {
+    public Stopwatch(boolean running) {
         createTime = new Date();
         if (running) { startTime = createTime; }
-        initMultiplier();
     }
 
-    public Timer() {
+    public Stopwatch() {
         this(true);
     }
 
-    private void initMultiplier() {
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public double getMultiplier() {
+        return multiplier;
+    }
+
+    public void setMultiplier(double multiplier) {
+        this.multiplier = multiplier;
+    }
+
+    public void setMultiplier(String mult) {
         multiplier = 1.0;
-        String mult = Settings.getVal("timer.multiplier");
         if (mult != null) try {
             multiplier = Double.parseDouble(mult);
         } catch (NumberFormatException nfe) {}
@@ -115,6 +127,10 @@ public class Timer {
 
     public long minutesElapsed() {
         return (long)minutesElapsedDouble();
+    }
+
+    public void setInterrupt(long seconds) {
+        interruptTime = (long) (seconds / multiplier);;
     }
 
     public double runningMinutesInterrupt() {

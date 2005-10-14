@@ -40,6 +40,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
@@ -56,6 +57,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.Base64;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.MD5;
@@ -115,6 +117,8 @@ public class WebServer {
         new DashboardPermission("webServer.setDataRepository");
     public static final DashboardPermission SET_CACHE_PERMISSION =
         new DashboardPermission("webServer.setCache");
+    public static final DashboardPermission SET_DASHBOARD_CONTEXT =
+        new DashboardPermission("webServer.setDashboardContext");
     public static final DashboardPermission SET_ALLOW_REMOTE_PERMISSION =
         new DashboardPermission("webServer.setAllowRemoteConnections");
     public static final DashboardPermission ADD_PORT_PERMISSION =
@@ -860,7 +864,7 @@ public class WebServer {
                 content = buf.toString();
 
             } else {
-                byte[] rawContent = slurpContents(in, true);
+                byte[] rawContent = FileUtils.slurpContents(in, true);
                 content = new String(rawContent, DASH_CHARSET);
             }
 
@@ -1350,19 +1354,14 @@ public class WebServer {
         return Collections.unmodifiableMap(mimeTypes);
     }
 
-    /** Utility routine: slurp an entire file from an InputStream. */
+    /** Utility routine: slurp an entire file from an InputStream.
+     * 
+     * @deprecated Use {@link FileUtils#slurpContents(InputStream, boolean)} instead.
+     */
     public static byte[] slurpContents(InputStream in, boolean close)
         throws IOException
     {
-        byte [] result = null;
-        ByteArrayOutputStream slurpBuffer = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = in.read(buffer)) != -1)
-            slurpBuffer.write(buffer, 0, bytesRead);
-        result = slurpBuffer.toByteArray();
-        if (close) try { in.close(); } catch (IOException ioe) {}
-        return result;
+        return FileUtils.slurpContents(in, close);
     }
 
 
@@ -1524,7 +1523,7 @@ public class WebServer {
             if (conn == null) return null;
 
             InputStream in = conn.getInputStream();
-            byte[] result = slurpContents(in, true);
+            byte[] result = FileUtils.slurpContents(in, true);
             return result;
         } catch (IOException ioe) {
             return null;
@@ -1598,7 +1597,7 @@ public class WebServer {
         return OUTPUT_CHARSET;
     }
 
-    private void init(int port) throws IOException
+    private void init() throws IOException
     {
         CREATE_PERMISSION.checkPermission();
         startupTimestamp = Long.toString((new Date()).getTime());
@@ -1618,8 +1617,6 @@ public class WebServer {
         try {
             DashboardURLStreamHandlerFactory.initialize(this);
         } catch (Exception e) {}
-
-        addPort(port);
     }
 
     private void initAllowRemote() {
@@ -1665,7 +1662,8 @@ public class WebServer {
         while (i-- > 0)
             roots[i] = (URL) v.elementAt(i);
 
-        init(port);
+        init();
+        addPort(port);
         setRoots(roots);
     }
 
@@ -1683,18 +1681,37 @@ public class WebServer {
         URL [] roots = new URL[1];
         roots[0] = rootDir.toURL();
 
-        init(port);
+        init();
+        addPort(port);
         setRoots(roots);
+    }
+
+    /** Create a web server, not listening on any ports and not serving
+     * any content.
+     * 
+     * @throws IOException
+     */
+    public WebServer() throws IOException {
+        init();
+    }
+
+    /**
+     * Run a tiny web server on the given port.
+     */
+    public WebServer(int port) throws IOException {
+        init();
+        addPort(port);
     }
 
     /**
      * Run a tiny web server on the given port, serving up resources
      * out of the given list of template search URLs.
      */
-    public WebServer(int port) throws IOException {
-        init(port);
+    public WebServer(int port, URL[] roots) throws IOException {
+        init();
+        addPort(port);
+        setRoots(roots);
     }
-
 
     public void setRoots(URL [] roots) {
         SET_ROOTS_PERMISSION.checkPermission();
@@ -1726,6 +1743,14 @@ public class WebServer {
             DEFAULT_ENV.remove(TinyCGI.OBJECT_CACHE);
         else
             DEFAULT_ENV.put(TinyCGI.OBJECT_CACHE, cache);
+    }
+
+    public void setDashboardContext(DashboardContext dashboardContext) {
+        SET_DASHBOARD_CONTEXT.checkPermission();
+        if (dashboardContext == null)
+            DEFAULT_ENV.remove(TinyCGI.DASHBOARD_CONTEXT);
+        else
+            DEFAULT_ENV.put(TinyCGI.DASHBOARD_CONTEXT, dashboardContext);
     }
 
 

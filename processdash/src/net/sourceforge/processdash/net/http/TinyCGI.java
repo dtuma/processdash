@@ -45,6 +45,9 @@ public interface TinyCGI {
     /** Key for looking up the web server in the environment. */
     public static final String TINY_WEB_SERVER = "TINY_WEB_SERVER";
 
+    /** Key for looking up the DashContext in the environment. */
+    public static final String DASHBOARD_CONTEXT = "DASHBOARD_CONTEXT";
+
     /**
      * Handle a cgi-like request within a TinyWebServer.
      *

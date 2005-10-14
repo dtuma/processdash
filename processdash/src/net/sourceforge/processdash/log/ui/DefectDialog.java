@@ -41,7 +41,6 @@ import javax.swing.border.EmptyBorder;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.Timer;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -51,6 +50,7 @@ import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
+import net.sourceforge.processdash.util.Stopwatch;
 
 import java.util.*;
 
@@ -62,7 +62,7 @@ public class DefectDialog extends JDialog
     String defectFilename;
     PropertyKey defectPath;
     DefectLog defectLog = null;
-    Timer stopwatch = new Timer(false);
+    Stopwatch stopwatch = null;
     JButton defectTimerButton, OKButton, CancelButton, fixDefectButton;
     Date date = null;
     String defectNumber = null;
@@ -102,6 +102,8 @@ public class DefectDialog extends JDialog
         defectLog = new DefectLog(defectFilename, defectPath.path(),
                                   dash.getData(), dash);
         date = new Date();
+        stopwatch = new Stopwatch(false);
+        stopwatch.setMultiplier(Settings.getVal("timer.multiplier"));
 
         JPanel panel = new JPanel();
         GridBagLayout layout = new GridBagLayout();

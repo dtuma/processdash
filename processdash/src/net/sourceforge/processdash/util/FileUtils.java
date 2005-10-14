@@ -26,20 +26,24 @@
 package net.sourceforge.processdash.util;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Checksum;
 
-
 public class FileUtils {
 
-    public static long computeChecksum(File file, Checksum verify) throws IOException {
-        InputStream in = new BufferedInputStream(new CheckedInputStream
-                (new FileInputStream(file), verify));
+    public static long computeChecksum(File file, Checksum verify)
+            throws IOException {
+        InputStream in = new BufferedInputStream(new CheckedInputStream(
+                new FileInputStream(file), verify));
         int b;
         while ((b = in.read()) != -1)
             ; // do nothing
@@ -50,17 +54,57 @@ public class FileUtils {
 
     /** Utility routine: slurp an entire file from an InputStream. */
     public static byte[] slurpContents(InputStream in, boolean close)
-        throws IOException
-    {
-        byte [] result = null;
+            throws IOException {
+        byte[] result = null;
         ByteArrayOutputStream slurpBuffer = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1)
             slurpBuffer.write(buffer, 0, bytesRead);
         result = slurpBuffer.toByteArray();
-        if (close) try { in.close(); } catch (IOException ioe) {}
+        if (close)
+            try {
+                in.close();
+            } catch (IOException ioe) {
+            }
         return result;
     }
 
+    public static void copyFile(File src, File dest) throws IOException {
+        InputStream inputStream = new FileInputStream(src);
+        copyFile(inputStream, dest);
+        inputStream.close();
+    }
+
+    public static void copyFile(InputStream src, File dest) throws IOException {
+        OutputStream outputStream = new FileOutputStream(dest);
+        copyFile(src, outputStream);
+        outputStream.close();
+    }
+
+    public static void copyFile(InputStream src, OutputStream dest) throws IOException {
+        BufferedInputStream in = new BufferedInputStream(src);
+        BufferedOutputStream out = new BufferedOutputStream(dest);
+        int c;
+        while ((c = in.read()) != -1)
+            out.write(c);
+        out.flush();
+    }
+
+    public static void deleteDirectory(File dir) throws IOException {
+        if (!dir.isDirectory())
+            return;
+
+        File[] files = dir.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].getName().equals(".") || files[i].getName().equals(".."))
+                continue;
+            else if (files[i].isDirectory())
+                ; // no recursion supported for now // deleteDirectory(files[i]);
+            else
+                files[i].delete();
+        }
+
+        dir.delete();
+    }
 }

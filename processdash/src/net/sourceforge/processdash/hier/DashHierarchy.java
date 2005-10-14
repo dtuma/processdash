@@ -550,7 +550,12 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     public Vector loadXML (String filename, DashHierarchy templates)
         throws IOException, SAXException
     {
-        FileInputStream in = new FileInputStream(filename);
+        return loadXML(new FileInputStream(filename), templates);
+    }
+
+    public Vector loadXML(InputStream in, DashHierarchy templates)
+        throws SAXException, IOException
+    {
         loadXMLNode(XMLUtils.parse(in).getDocumentElement(),
                     templates, null, null);
 
