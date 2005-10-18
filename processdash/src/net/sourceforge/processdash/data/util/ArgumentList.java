@@ -33,7 +33,7 @@ import java.util.StringTokenizer;
 class ArgumentList {
 
     private Vector args;
-    private Enumeration enum;
+    private Enumeration enumeration;
 
     public ArgumentList(String arguments) {
 
@@ -55,13 +55,13 @@ class ArgumentList {
                 incompleteArgument = true;
         }
 
-        enum = args.elements();
+        enumeration = args.elements();
     }
 
     public int size() { return args.size(); }
-    public boolean hasMoreElements() { return enum.hasMoreElements(); }
+    public boolean hasMoreElements() { return enumeration.hasMoreElements(); }
     public String nextElement() throws NoSuchElementException {
-        return (String) enum.nextElement();
+        return (String) enumeration.nextElement();
     }
 
     public static int countChars(char[] chars, char c) {

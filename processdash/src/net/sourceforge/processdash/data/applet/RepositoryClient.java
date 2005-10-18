@@ -133,7 +133,7 @@ public class RepositoryClient extends Thread implements Repository {
         int id;
         String name = null;
         String value = null;
-        Enumeration enum = null;
+        Enumeration enumeration = null;
 
         while (isRunning) try {
             o = null;
@@ -155,9 +155,9 @@ public class RepositoryClient extends Thread implements Repository {
                 }
 
                 // debug(listeners.size() + " listeners to notify.");
-                enum = listeners.elements();
-                while (enum.hasMoreElements() && isRunning) try {
-                    ((DataListener)enum.nextElement()).dataValueChanged(e);
+                enumeration = listeners.elements();
+                while (enumeration.hasMoreElements() && isRunning) try {
+                    ((DataListener)enumeration.nextElement()).dataValueChanged(e);
                 } catch (RemoteException ex) { printError(ex); }
             }
 
