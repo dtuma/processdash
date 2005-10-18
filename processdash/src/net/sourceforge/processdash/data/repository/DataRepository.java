@@ -88,10 +88,6 @@ import net.sourceforge.processdash.data.compiler.parser.Parser;
 import net.sourceforge.processdash.data.compiler.parser.ParserException;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.*;
-import net.sourceforge.processdash.util.EscapeString;
-import net.sourceforge.processdash.util.Perl5Util;
-import net.sourceforge.processdash.util.PerlPool;
-import net.sourceforge.processdash.util.RobustFileWriter;
 
 public class DataRepository implements Repository, DataContext {
 
@@ -1024,6 +1020,17 @@ public class DataRepository implements Repository, DataContext {
                 secondaryDataServer = new RepositoryServer(this, socket);
                 secondaryDataServer.start();
             }
+        }
+
+        public boolean areDatafilesDirty() {
+            if (!saveDisabled) {
+                for (Iterator i = datafiles.iterator(); i.hasNext();) {
+                    DataFile datafile = (DataFile) i.next();
+                    if (datafile.file != null && datafile.dirtyCount > 0)
+                        return true;
+                }
+            }
+            return false;
         }
 
         public void saveAllDatafiles() {

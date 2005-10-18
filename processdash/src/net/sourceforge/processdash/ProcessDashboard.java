@@ -580,10 +580,19 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         if (saveTimeLogData() == false)
             recordUnsavedItem(unsavedData, "Time_Log");
 
-        if (data != null)
-            data.saveAllDatafiles();
+        if (saveMetricsData() == false)
+            recordUnsavedItem(unsavedData, "Metrics_Data");
 
         return unsavedData;
+    }
+
+    private boolean saveMetricsData() {
+        if (data == null)
+            return true;
+
+        data.saveAllDatafiles();
+
+        return ! data.areDatafilesDirty();
     }
 
     private void recordUnsavedItem(List unsavedData, String dataType) {
