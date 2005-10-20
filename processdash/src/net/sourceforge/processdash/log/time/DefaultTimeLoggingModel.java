@@ -173,7 +173,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
             double elapsedMinutes = currentTimeLogEntry.getElapsedTime();
             if (interruptMinutes > 5.0
                     && interruptMinutes > (0.25 * elapsedMinutes))
-                releaseCurrentTimeLogEntry();
+                saveAndReleaseCurrentTimeLogEntry();
         }
     }
 
@@ -214,7 +214,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
         if (currentTimeLogEntry != null)
             addToRecentPaths(currentPhase.path());
 
-        releaseCurrentTimeLogEntry();
+        saveAndReleaseCurrentTimeLogEntry();
 
         if (newCurrentPhase != null)
             currentPhase = newCurrentPhase;
@@ -312,10 +312,13 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
             timeLog.addModification((ChangeFlaggedTimeLogEntry) currentTimeLogEntry);
     }
 
-    private void releaseCurrentTimeLogEntry() {
+    private void saveAndReleaseCurrentTimeLogEntry() {
         saveCurrentTimeLogEntry(true);
         activeRefreshTimer.setDelay(refreshIntervalMillis);
+        releaseCurrentTimeLogEntry();
+    }
 
+    private void releaseCurrentTimeLogEntry() {
         stopwatch = (paused ? null : newTimer());
         if (currentTimeLogEntry != null) {
             currentTimeLogEntry
@@ -348,9 +351,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
 
                 if (((ChangeFlagged) currentTimeLogEntry).getChangeFlag() == ChangeFlagged.DELETED
                         || "path".equals(evt.getPropertyName())) {
-                    stopwatch = (paused ? null : newTimer());
-                    currentTimeLogEntry.removePropertyChangeListener(this);
-                    currentTimeLogEntry = null;
+                    releaseCurrentTimeLogEntry();
 
                 } else if (updatingCurrentTimeLogEntry == false
                         && stopwatch != null) {
