@@ -62,6 +62,16 @@
 [New & Changed KLOC] =  [New & Changed LOC] / 1000;
 [Estimated New & Changed KLOC] = [Estimated New & Changed LOC] / 1000;
 
+[Base LOC]     = 0;
+[Deleted LOC]  = 0;
+[Modified LOC] = 0;
+[Reused LOC]   = 0;
+[Total LOC]    = 0;
+[New Reused LOC] = 0;
+
+[New & Changed LOC] = [Added LOC] + [Modified LOC];
+[Added LOC] = [Total LOC] - [Base LOC] + [Deleted LOC] - [Reused LOC];
+
 
 /*
  * Defect Injection/Removal by phase metrics

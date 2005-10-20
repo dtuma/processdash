@@ -81,15 +81,7 @@ FOR_EACH_PHASE(estimateTime);
 [Estimated Added LOC] = [Estimated New & Changed LOC];
 [Estimated Total LOC] = [Estimated New & Changed LOC];
 
-[Base LOC]     = 0;
-[Deleted LOC]  = 0;
-[Modified LOC] = 0;
-[Reused LOC]   = 0;
 [Total LOC]    = ?NaN;
-[New Reused LOC] = 0;
-
-[New & Changed LOC] = [Added LOC] + [Modified LOC];
-[Added LOC] = [Total LOC] - [Base LOC] + [Deleted LOC] - [Reused LOC];
 
 
 
