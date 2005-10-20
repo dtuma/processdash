@@ -46,6 +46,8 @@ public class FileChooserComponent extends JPanel implements ActionListener {
 
     JFileChooser fileChooser;
 
+    String suffix;
+
     public FileChooserComponent(String startingDirectoryName) {
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
@@ -69,14 +71,27 @@ public class FileChooserComponent extends JPanel implements ActionListener {
         return textField.getText();
     }
 
+    protected String getSuffix() {
+        return suffix;
+    }
+
+    protected void setSuffix(String suffix) {
+        this.suffix = suffix;
+    }
+
     public void actionPerformed(ActionEvent e) {
         if (fileChooser == null)
             fileChooser = createFileChooser();
         int returnVal = fileChooser.showDialog(this, getApproveButtonLabel());
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File result = fileChooser.getSelectedFile();
-            if (result != null)
-                textField.setText(result.getPath());
+            if (result != null) {
+                String path = result.getPath();
+                if (path != null && suffix != null
+                        && !path.toLowerCase().endsWith(suffix.toLowerCase()))
+                    path = path + suffix;
+                textField.setText(path);
+            }
         }
     }
 

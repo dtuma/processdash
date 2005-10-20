@@ -173,7 +173,6 @@ public class EditExportMetricsFilePanel extends WizardPanel {
         }
 
         Vector paths = instr.getPaths();
-        System.out.println("paths = " + paths);
         if (paths == null || paths.size() == 0) {
             setError(getString("Choose_Paths.Error_Missing"));
             return;
@@ -219,6 +218,7 @@ public class EditExportMetricsFilePanel extends WizardPanel {
 
         public FileChooser() {
             super(instr.getFile());
+            setSuffix(ExportMetricsFileInstruction.FILE_SUFFIX);
         }
 
         protected JFileChooser createFileChooser() {
