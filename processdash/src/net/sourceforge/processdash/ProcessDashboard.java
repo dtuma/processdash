@@ -97,7 +97,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     static String default_directory = null;
     String propertiesFile     = DEFAULT_PROP_FILE;
     static final String TEMPLATES_FILE = "state";
-    private PropertyKey currentPhase  = null;
+
+    private ActiveTaskModel activeTaskModel;
+
     private static String versionNumber;
 
     private static final String TEMPLATES_CLASSPATH = "Templates/";
@@ -244,10 +246,12 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             }
         }
         data.setNodeComparator(props);
+        activeTaskModel = new DefaultActiveTaskModel(props);
 
         // create the time log
         try {
             this.timeLog = new DashboardTimeLog(new File(property_directory), data, props);
+            this.timeLog.getTimeLoggingModel().setActiveTaskModel(activeTaskModel);
             DashboardTimeLog.setDefault(this.timeLog);
         } catch (IOException e1) {
             displayStartupIOError("Errors.Read_File_Error.Time_Log",
@@ -288,7 +292,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         defect_button = new DefectButton(this);
         script_button = new ScriptButton(this);
         getContentPane().add(hierarchy_menubar = new JMenuBar());
-        completion_button = new CompletionButton(this);
+        completion_button = new CompletionButton(this, activeTaskModel);
 
         // open the global data file.
         try {
@@ -330,12 +334,11 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         webServer.setCache(objectCache);
 
         hierarchy = new HierarchyMenu
-            (this, hierarchy_menubar, PropertyKey.ROOT);
+            (this, hierarchy_menubar, activeTaskModel, PropertyKey.ROOT);
         if (Settings.getVal(COMPLETION_FLAG_SETTING) == null) {
             hierarchy.cleanupCompletionFlags();
             InternalSettings.set(COMPLETION_FLAG_SETTING, "true");
         }
-        timeLog.getTimeLoggingModel().setActiveTaskModel(hierarchy);
         props.addHierarchyListener(new DashHierarchy.Listener() {
                 public void hierarchyChanged(Event e) {
                     refreshHierarchy();
@@ -440,12 +443,14 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     private void refreshHierarchyImpl() {
         hierarchy.delete();
         hierarchy = new HierarchyMenu
-            (this, hierarchy_menubar, PropertyKey.ROOT);
-        timeLog.getTimeLoggingModel().setActiveTaskModel(hierarchy);
+            (this, hierarchy_menubar, activeTaskModel, PropertyKey.ROOT);
     }
 
     public HierarchyMenu getHierarchyMenu() {
         return hierarchy;
+    }
+    public ActiveTaskModel getActiveTaskModel() {
+        return activeTaskModel;
     }
 
 
@@ -453,16 +458,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         timeLog.getTimeLoggingModel().stopTiming();
     }
 
-    public void setCurrentPhase(PropertyKey newPhase) {
-        currentPhase = newPhase;
-        script_button.setPaths(props.getScriptIDs(currentPhase));
-        defect_button.setPaths(props.defectLog(currentPhase,
-                                               property_directory));
-        completion_button.setPath(newPhase.path());
-        saveHierarchy();
-    }
-
-    public PropertyKey getCurrentPhase() { return currentPhase; }
+    public PropertyKey getCurrentPhase() { return activeTaskModel.getNode(); }
 
     public boolean isHierarchyEditorOpen() {
         return configure_button.isHierarchyEditorOpen();

@@ -25,32 +25,39 @@
 
 package net.sourceforge.processdash.ui;
 
-
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JCheckBox;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.help.PCSH;
 
+public class CompletionButton extends JCheckBox implements ActionListener,
+        PropertyChangeListener {
 
-public class CompletionButton extends JCheckBox implements ActionListener {
     ProcessDashboard parent = null;
+    ActiveTaskModel activeTaskModel;
     String dataName = null;
     Resources resources;
 
-    public CompletionButton(ProcessDashboard dash) {
+    public CompletionButton(ProcessDashboard dash, ActiveTaskModel taskModel) {
         super();
         PCSH.enableHelp(this, "CompletionButton");
         parent = dash;
+        activeTaskModel = taskModel;
+        activeTaskModel.addPropertyChangeListener(this);
+
         resources = Resources.getDashBundle("ProcessDashboard");
-        setMargin (new Insets (0,2,0,2));
+        setMargin(new Insets(0, 2, 0, 2));
         addActionListener(this);
         GridBagConstraints g = new GridBagConstraints();
         g.gridy = 0;
@@ -58,10 +65,6 @@ public class CompletionButton extends JCheckBox implements ActionListener {
         dash.getContentPane().add(this);
     }
 
-    public void setPath(String p) {
-        dataName = DataRepository.createDataName(p, "Completed");
-        update();
-    }
     public void update() {
         Object d = parent.getData().getValue(dataName);
         if (d == null) {
@@ -71,17 +74,17 @@ public class CompletionButton extends JCheckBox implements ActionListener {
         } else if (d instanceof DateData) {
             setEnabled(true);
             setSelected(true);
-            setToolTipText(((DateData)d).formatDate());
+            setToolTipText(((DateData) d).formatDate());
         } else {
             setSelected(false);
             setEnabled(false);
         }
     }
 
-
     public void actionPerformed(ActionEvent e) {
         if (isSelected()) {
-            if (! parent.getHierarchyMenu().selectNext()) {
+            parent.getData().userPutValue(dataName, new DateData());
+            if (!parent.getActiveTaskModel().setNextPhase()) {
                 parent.pauseTimer(); // stop the timer if it is running.
                 update();
             }
@@ -89,6 +92,12 @@ public class CompletionButton extends JCheckBox implements ActionListener {
             parent.getData().userPutValue(dataName, null);
             setToolTipText(resources.getString("Completion_Button_Tooltip"));
         }
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        String path = activeTaskModel.getPath();
+        dataName = DataRepository.createDataName(path, "Completed");
+        update();
     }
 
 }

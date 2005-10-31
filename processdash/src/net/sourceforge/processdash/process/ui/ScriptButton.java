@@ -28,6 +28,8 @@ package net.sourceforge.processdash.process.ui;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Vector;
 
 import javax.swing.Icon;
@@ -36,6 +38,7 @@ import javax.swing.JMenuItem;
 
 
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.*;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -45,7 +48,7 @@ import net.sourceforge.processdash.ui.lib.DropDownButton;
 // The scriptButton class activates a browser loaded with the current phase's
 // script when it is pressed.  A right click can activate a popup menu with
 // a selection of scripts.
-public class ScriptButton extends DropDownButton {
+public class ScriptButton extends DropDownButton implements PropertyChangeListener {
     ProcessDashboard parent = null;
     Icon enabled_icon = null;
     Icon disabled_icon = null;
@@ -77,6 +80,7 @@ public class ScriptButton extends DropDownButton {
             public void actionPerformed(ActionEvent e) {
                 new ScriptBrowser(ScriptButton.this.parent, true); } } );
 
+        dash.getActiveTaskModel().addPropertyChangeListener(this);
         dash.getContentPane().add(this);
     }
 
@@ -146,6 +150,11 @@ public class ScriptButton extends DropDownButton {
         public void actionPerformed(ActionEvent e) {
             id.display();
         }
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
+        setPaths(parent.getHierarchy().getScriptIDs(currentPhase));
     }
 
 }

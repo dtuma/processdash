@@ -28,6 +28,9 @@ package net.sourceforge.processdash.log.ui;
 
 import java.awt.Insets;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import javax.swing.*;
 
 
@@ -37,7 +40,7 @@ import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.*;
 
-public class DefectButton extends JButton implements ActionListener {
+public class DefectButton extends JButton implements ActionListener, PropertyChangeListener {
     ProcessDashboard parent = null;
     Icon enabled_icon = null;
     Icon disabled_icon = null;
@@ -60,6 +63,7 @@ public class DefectButton extends JButton implements ActionListener {
         setEnabled(false);
         setFocusPainted(false);
         addActionListener(this);
+        dash.getActiveTaskModel().addPropertyChangeListener(this);
         dash.getContentPane().add(this);
     }
 
@@ -79,5 +83,10 @@ public class DefectButton extends JButton implements ActionListener {
                                   // pop up a defect log dialog
             DefectDialog d=new DefectDialog(parent, defectLogFileName, defectPath);
         }
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
+        setPaths(parent.getHierarchy().defectLog(currentPhase , parent.getDirectory()));
     }
 }
