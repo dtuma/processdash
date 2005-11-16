@@ -11,7 +11,7 @@
 [Indiv_Initials] = "tttt";
 [EXPORT_FILE] = 
     iff([Team_Data_Directory] == "", "",
-        [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data.txt");
+        [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data.pdash");
 
 [Sync_Full_WBS] = 0;
 
