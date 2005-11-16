@@ -61,8 +61,6 @@ public class selectHier extends TinyCGIBase {
         String relPath = (depth == 0 ? "" :
                           key.path().substring(rootPath.length()+1));
         String name = key.name();
-
-        relPath = HTMLUtils.escapeEntities(relPath);
         name = HTMLUtils.escapeEntities(name);
 
         printLink(rootPath, relPath);
@@ -81,6 +79,7 @@ public class selectHier extends TinyCGIBase {
 
 
     protected void printLink(String rootPath, String relPath) {
+        relPath = HTMLUtils.escapeEntities(relPath);
         out.print("<a href='javascript:doClick(\"" + relPath + "\");'>");
     }
 
