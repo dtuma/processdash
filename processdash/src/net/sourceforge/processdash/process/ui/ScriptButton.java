@@ -81,6 +81,7 @@ public class ScriptButton extends DropDownButton implements PropertyChangeListen
                 new ScriptBrowser(ScriptButton.this.parent, true); } } );
 
         dash.getActiveTaskModel().addPropertyChangeListener(this);
+        propertyChange(null);
         dash.getContentPane().add(this);
     }
 
