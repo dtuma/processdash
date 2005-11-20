@@ -528,17 +528,25 @@ public class EVSchedule implements TableModel {
         } catch (Exception exc) { return null; }
     }
 
-    public synchronized void saveToXML(StringBuffer result) {
-        result.append("<schedule");
+    public void saveToXML(StringBuffer result) {
+        saveToXML(result, false);
+    }
+    public synchronized void saveToXML(StringBuffer result, boolean whitespace) {
+        String indent = (whitespace ? "  " : "");
+        String newline = (whitespace ? "\n" : "");
+        result.append(indent).append("<schedule");
         metrics.saveToXML(result);
         if (directPercentage != 1.0)
             result.append(" loe='").append(1.0-directPercentage).append("'");
-        result.append(">");
+        result.append(">").append(newline);
         Iterator i = periods.iterator();
-        while (i.hasNext())
+        while (i.hasNext()) {
+            result.append(indent).append(indent);
             ((Period) i.next()).saveToXML(result);
-        metrics.saveIntervalsToXML(result);
-        result.append("</schedule>");
+            result.append(newline);
+        }
+        metrics.saveIntervalsToXML(result, whitespace);
+        result.append(indent).append("</schedule>").append(newline);
     }
 
     protected synchronized Period get(Date when) {

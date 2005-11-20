@@ -106,6 +106,15 @@ public class ProgressDialog extends JDialog {
         pack();
         setLocationRelativeTo(parent);
     }
+    public static ProgressDialog create(Object parent, String title,
+            String message) {
+        if (parent instanceof Frame)
+            return new ProgressDialog((Frame) parent, title, message);
+        else if (parent instanceof Dialog)
+            return new ProgressDialog((Dialog) parent, title, message);
+        else
+            return null;
+    }
 
     private Component borderComponent(Component comp) {
         Box horizBox = Box.createHorizontalBox();

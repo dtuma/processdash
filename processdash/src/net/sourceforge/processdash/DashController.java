@@ -40,7 +40,6 @@ import java.util.Vector;
 import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.repository.DataImporter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskListData;
@@ -51,7 +50,9 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
-import net.sourceforge.processdash.tool.export.ImportExport;
+import net.sourceforge.processdash.tool.export.DataImporter;
+import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+import net.sourceforge.processdash.tool.export.mgr.ExportMetricsFileInstruction;
 
 
 public class DashController {
@@ -160,12 +161,16 @@ public class DashController {
 
     public static void exportData(String prefix) {
         String dataName = DataRepository.createDataName
-            (prefix, ImportExport.EXPORT_DATANAME);
+            (prefix, ExportManager.EXPORT_DATANAME);
         SimpleData filename = dash.data.getSimpleValue(dataName);
         if (filename != null && filename.test()) {
             Vector filter = new Vector();
             filter.add(prefix);
-            ImportExport.export(dash, filter, new File(filename.format()));
+            ExportMetricsFileInstruction instr =
+                new ExportMetricsFileInstruction(filename.format(), filter);
+            Runnable task = ExportManager.getInstance().getExporter(instr);
+            if (task != null)
+                task.run();
         }
     }
 

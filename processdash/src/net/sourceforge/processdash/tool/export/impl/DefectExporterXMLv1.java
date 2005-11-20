@@ -23,38 +23,48 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.export;
+package net.sourceforge.processdash.tool.export.impl;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.Vector;
 
-import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.log.Defect;
 import net.sourceforge.processdash.log.DefectAnalyzer;
 import net.sourceforge.processdash.util.XMLUtils;
 
+public class DefectExporterXMLv1 implements DefectExporter,
+        DefectXmlConstantsv1 {
 
-public class DefectExporter implements DefectXmlConstants {
+    public void dumpDefects(DashHierarchy hierarchy, Collection filter,
+            OutputStream out) throws IOException {
+        OutputStreamWriter writer = new OutputStreamWriter(out, ENCODING);
+        PrintWriter pw = new PrintWriter(writer);
+        pw.write(XML_HEADER + NEWLINE + NEWLINE);
+        dumpDefects(hierarchy, filter, pw);
+    }
 
-
-    public static void dumpDefects(ProcessDashboard parent, Vector filter, PrintWriter out) {
-        out.println(DEFECT_START_TOKEN);
+    public void dumpDefects(DashHierarchy hierarchy, Collection filter,
+            PrintWriter out) {
         out.println("<defects>");
 
         for (Iterator i = filter.iterator(); i.hasNext();) {
             String path = (String) i.next();
-            DefectAnalyzer.run(parent.getProperties(), path,
-                               new DefectWriter(out, path));
+            DefectAnalyzer.run(hierarchy, path, new DefectWriter(out, path));
         }
 
         out.println("</defects>");
+        out.flush();
     }
 
-    private static class DefectWriter implements DefectAnalyzer.Task {
-
+    private class DefectWriter implements DefectAnalyzer.Task {
 
         private PrintWriter out;
+
         private String basePath;
 
         public DefectWriter(PrintWriter out, String basePath) {
@@ -65,12 +75,12 @@ public class DefectExporter implements DefectXmlConstants {
         public void analyze(String path, Defect d) {
             out.print("<" + DEFECT_TAG);
             writeAttr(PATH_ATTR, path);
-//            if (path.startsWith(basePath))
-//                writeAttr("relPath", path.substring(basePath.length()));
+            // if (path.startsWith(basePath))
+            // writeAttr("relPath", path.substring(basePath.length()));
             if (d.date != null)
                 writeAttr(DATE_ATTR, XMLUtils.saveDate(d.date));
             writeAttr(NUM_ATTR, d.number);
-            writeAttr(TYPE_ATTR, d.defect_type);
+            writeAttr(DEFECT_TYPE_ATTR, d.defect_type);
             writeAttr(INJECTED_ATTR, d.phase_injected);
             writeAttr(REMOVED_ATTR, d.phase_removed);
             writeAttr(FIX_TIME_ATTR, d.fix_time);

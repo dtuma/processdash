@@ -34,7 +34,6 @@ import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.tool.export.DefectImporter;
 
 
 public class DefectAnalyzer {
@@ -62,7 +61,7 @@ public class DefectAnalyzer {
     public static void run(DashHierarchy props, DataRepository data, String[] prefixes, Task t) {
         for (int i = 0;   i < prefixes.length;   i++)
             run(props, prefixes[i], t);
-        DefectImporter.run(props, data, prefixes, t);
+        ImportedDefectManager.run(props, data, prefixes, t);
     }
 
     /** Perform some analysis task on all the defects under a given node

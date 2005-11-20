@@ -46,6 +46,7 @@ import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -1196,12 +1197,21 @@ public class DataRepository implements Repository, DataContext {
         }
 
 
-        public synchronized void dumpRepository (PrintWriter out, Vector filt) {
+        public synchronized void dumpRepository(PrintWriter out, Vector filt) {
+            dumpRepository(out, (Collection) filt, false);
+        }
+
+        public synchronized void dumpRepository(PrintWriter out, Collection filt) {
             dumpRepository(out, filt, false);
         }
 
-        public synchronized void dumpRepository (PrintWriter out, Vector filt,
-                                                 boolean dataStyle) {
+        public synchronized void dumpRepository(PrintWriter out, Vector filt,
+                boolean dataStyle) {
+            dumpRepository(out, (Collection) filt, dataStyle);
+        }
+
+        public synchronized void dumpRepository(PrintWriter out, Collection filt,
+                boolean dataStyle) {
             Iterator k = getKeys();
             String name, value;
             DataElement  de;
@@ -2461,7 +2471,15 @@ public class DataRepository implements Repository, DataContext {
             }
         }
 
-        void mountImportedData(String dataPrefix, Map values)
+        private Object importedDataSynchLock = new Object();
+        public void mountImportedData(String dataPrefix, Map values)
+            throws InvalidDatafileFormat
+        {
+            synchronized (importedDataSynchLock) {
+                mountImportedDataImpl(dataPrefix, values);
+            }
+        }
+        private void mountImportedDataImpl(String dataPrefix, Map values)
             throws InvalidDatafileFormat
         {
             String prefixToDiscard = null;

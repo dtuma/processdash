@@ -29,6 +29,8 @@ package net.sourceforge.processdash.ev;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -152,7 +154,8 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
         SimpleData value = data.getSimpleValue(dataName);
         if (!(value instanceof StringData) && taskListID != null) {
             dataName = getDataNameForID(data, taskListID);
-            value = data.getSimpleValue(dataName);
+            if (dataName != null)
+                value = data.getSimpleValue(dataName);
         }
 
         if (value instanceof StringData)
@@ -168,20 +171,16 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
 
         String xmlDoc = value.format();
 
-        String pattern = " "+XMLID_ATTR+"='";
-        int beg = xmlDoc.indexOf(pattern);
-        if (beg == -1) return null;
-        beg += pattern.length();
-
-        int end = xmlDoc.indexOf('\'', beg);
-        if (end == -1 || end == beg) return null;
-
-        String taskListID = xmlDoc.substring(beg, end);
+        Matcher m = XMLID_PATTERN.matcher(xmlDoc);
+        if (!m.find()) return null;
+        String taskListID = m.group(1);
 
         // keep a cache mapping IDs to data names.
         ID_MAP.put(taskListID, dataName);
 
         return taskListID;
     }
+
+    private static Pattern XMLID_PATTERN = Pattern.compile(" "+XMLID_ATTR+"\\s*=\\s*['\"]([^'\"]+)['\"]");
 
 }

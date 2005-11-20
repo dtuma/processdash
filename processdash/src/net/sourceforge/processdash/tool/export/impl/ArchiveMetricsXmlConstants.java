@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,19 +23,34 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.export;
+package net.sourceforge.processdash.tool.export.impl;
 
-import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+public interface ArchiveMetricsXmlConstants extends XmlConstants {
 
-/** @deprecated Present for binary compatibility only */
-public class ImportExport {
+    public static final String MANIFEST_FILE_NAME = "manifest.xml";
 
-    public static String exportedScheduleName(DataRepository dataRepository,
-            String scheduleName) {
-        String owner = ProcessDashboard.getOwnerName(dataRepository);
-        return ExportManager.exportedScheduleName(owner, scheduleName);
-    }
+    public static final String ARCHIVE_ELEM = "archive";
+
+    public static final String TYPE_ATTR = "type";
+
+    public static final String FILE_TYPE_ARCHIVE = "dashboardDataExport";
+
+    public static final String FILE_TYPE_METRICS = "metrics";
+
+    public static final String FILE_TYPE_DEFECTS = "defects";
+
+    public static final String FILE_TYPE_EARNED_VALUE = "earnedValue";
+
+    public static final String EXPORTED_TAG = "exported";
+
+    public static final String OWNER_ATTR = "byOwner";
+
+    public static final String WHEN_ATTR = "when";
+
+    public static final String FILE_ELEM = "file";
+
+    public static final String FILE_NAME_ATTR = "name";
+
+    public static final String VERSION_ATTR = "version";
 
 }

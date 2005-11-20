@@ -33,8 +33,6 @@ import org.w3c.dom.Element;
 
 public class ExportMetricsFileInstruction extends AbstractInstruction {
 
-    public static final String FILE_SUFFIX = ".txt";
-
     private static final String TAG_NAME = "exportMetricsFile";
 
     private static final String FILE_ATTR = "file";
@@ -58,8 +56,6 @@ public class ExportMetricsFileInstruction extends AbstractInstruction {
     }
 
     public void setFile(String file) {
-        if (file != null && !file.toLowerCase().endsWith(FILE_SUFFIX))
-            file = file + FILE_SUFFIX;
         setAttribute(FILE_ATTR, file);
     }
 

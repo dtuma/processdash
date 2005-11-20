@@ -28,15 +28,17 @@ package net.sourceforge.processdash;
 import java.awt.Font;
 import java.awt.FlowLayout;
 import java.awt.event.*;
+import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.io.*;
 import java.net.URL;
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.plaf.FontUIResource;
 
-import net.sourceforge.processdash.data.repository.DataImporter;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.ui.*;
 import net.sourceforge.processdash.hier.*;
@@ -317,7 +319,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (Exception e) {
             e.printStackTrace();
         }
-        ImportExport.startAutoExporter(this, property_directory);
+        startAutoExporter();
         LegacySupport.configureRemoteListeningCapability(data);
         timeLog.refreshMetrics();
 
@@ -422,6 +424,19 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         }
     }
 
+    public static String getOwnerName(DataRepository data) {
+        SimpleData val = data.getSimpleValue("/Owner");
+        if (val == null) return null;
+        String result = val.format();
+
+        String defaultVal = Resources.getDashBundle("ProcessDashboard")
+            .getString("Enter_your_name");
+        if (result.equals(defaultVal))
+            return null;
+        else
+            return result;
+    }
+
     boolean addTemplateJar(String jarfileName) {
         if (!TemplateLoader.addTemplateJar(data, templates, jarfileName))
             return false;
@@ -524,7 +539,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 && warnUserAboutUnsavedData(unsavedData) == false)
             return false;
 
-        ImportExport.exportAll(this);
+        ExportManager.getInstance().exportAll(this, this);
         if (webServer != null) {
             webServer.quit();
             webServer = null;
@@ -610,6 +625,37 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             debug("prop write failed.");
             return false;
         }
+    }
+
+
+    private void startAutoExporter() {
+        int millisPerHour = 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*milliseconds*/;
+        int millisPerDay = millisPerHour * 24;
+
+        int currentHourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        int initialDelay = (24 - currentHourOfDay) * millisPerHour;
+
+        ActionListener periodicTaskInitiator = (ActionListener) EventHandler
+                .create(ActionListener.class, this, "startPeriodicTasks");
+        Timer t = new Timer(millisPerDay, periodicTaskInitiator);
+        t.setInitialDelay(initialDelay);
+        t.start();
+    }
+
+
+    public void startPeriodicTasks() {
+        Thread t = new Thread() {
+            public void run() {
+                performPeriodicTasks();
+            }
+        };
+        t.start();
+    }
+
+    public void performPeriodicTasks() {
+        ExportManager.getInstance().exportAll(this, this);
+        FileBackupManager.maybeRun(property_directory,
+                FileBackupManager.RUNNING);
     }
 
     public static String getVersionNumber() { return versionNumber; }

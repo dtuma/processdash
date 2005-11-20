@@ -58,6 +58,7 @@ public class EVTaskList extends AbstractTreeTableModel
     implements EVTask.Listener, ActionListener
 {
 
+    public static final String EV_TASK_LIST_ELEMENT_NAME = "EVModel";
     public static final String MAIN_DATA_PREFIX = "/Task-Schedule/";
     static Resources resources = Resources.getDashBundle("EV");
 
@@ -273,21 +274,22 @@ public class EVTaskList extends AbstractTreeTableModel
     public void save(String newName) {}
 
     public String getAsXML() {
+        return getAsXML(false);
+    }
+    public String getAsXML(boolean whitespace) {
+        String newline = (whitespace ? "\n" : "");
+        String indent = (whitespace ? "  " : "");
         StringBuffer result = new StringBuffer();
-        result.append("<EVModel rct='")
+        result.append("<").append(EV_TASK_LIST_ELEMENT_NAME).append(" rct='")
             .append(calculator.reorderCompletedTasks);
         if (getID() != null)
             result.append("' tlid='").append(getID());
-        result.append("'>");
-        ((EVTask) root).saveToXML(result);
-        schedule.saveToXML(result);
-        result.append("</EVModel>");
-        //System.out.print(result.toString());
-        try {
-            return new String(result.toString().getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException uee) { // can't happen?
-            return result.toString();
-        }
+        result.append("'>").append(newline);
+        ((EVTask) root).saveToXML(result, whitespace);
+        schedule.saveToXML(result, whitespace);
+        result.append("</").append(EV_TASK_LIST_ELEMENT_NAME).append(">");
+
+        return result.toString();
     }
 
 

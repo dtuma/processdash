@@ -39,11 +39,14 @@ import javax.swing.JScrollPane;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.ui.SelectableHierarchyTree;
+import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExportMetricsFileInstruction;
+import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
 import net.sourceforge.processdash.ui.lib.WrappingText;
 
 public class EditExportMetricsFilePanel extends WizardPanel {
@@ -165,6 +168,8 @@ public class EditExportMetricsFilePanel extends WizardPanel {
         }
 
         File dir = file.getParentFile();
+        if (dir == null)
+            dir = file.getAbsoluteFile().getParentFile();
         if (!dir.isDirectory()) {
             setError(Wizard.resources.format(
                     "Export.Metrics_File.Choose_File.Error_Nonexistent_FMT",
@@ -216,16 +221,44 @@ public class EditExportMetricsFilePanel extends WizardPanel {
 
     private class FileChooser extends FileChooserComponent {
 
+        private ExampleFileFilter pdashFilter;
+        private ExampleFileFilter txtFilter;
+
         public FileChooser() {
             super(instr.getFile());
-            setSuffix(ExportMetricsFileInstruction.FILE_SUFFIX);
         }
 
         protected JFileChooser createFileChooser() {
             JFileChooser result = super.createFileChooser();
             result.setDialogTitle(getString("Choose_File_Short"));
+
+            pdashFilter = getFilter(".pdash", DataImporter.EXPORT_FILE_SUFFIX);
+            txtFilter = getFilter(".txt", DataImporter.EXPORT_FILE_OLD_SUFFIX);
+            result.addChoosableFileFilter(pdashFilter);
+            result.addChoosableFileFilter(txtFilter);
+            result.setFileFilter(pdashFilter);
+
             return result;
         }
+
+        private ExampleFileFilter getFilter(String key, String suffix) {
+            String description = getString("Choose_File.Description" + key);
+            return new ExampleFileFilter(suffix.substring(1), description);
+        }
+
+        protected String maybeFrobPath(String path) {
+            FileFilter filter = fileChooser.getFileFilter();
+            File file = new File(path);
+            if (!filter.accept(file)) {
+                if (filter == pdashFilter)
+                    path = path + DataImporter.EXPORT_FILE_SUFFIX;
+                else if (filter == txtFilter)
+                    path = path + DataImporter.EXPORT_FILE_OLD_SUFFIX;
+            }
+            return path;
+        }
+
+
     }
 
 }

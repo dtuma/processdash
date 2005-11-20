@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,19 +23,14 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.export;
+package net.sourceforge.processdash.tool.export.impl;
 
-import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+public interface EVXmlConstantsv1 extends XmlConstants {
 
-/** @deprecated Present for binary compatibility only */
-public class ImportExport {
+    public static final String DOCUMENT_ELEM = "evSchedules";
 
-    public static String exportedScheduleName(DataRepository dataRepository,
-            String scheduleName) {
-        String owner = ProcessDashboard.getOwnerName(dataRepository);
-        return ExportManager.exportedScheduleName(owner, scheduleName);
-    }
+    public static final String SCHEDULE_ELEM = "evSchedule";
+
+    public static final String SCHEDULE_NAME_ATTR = "name";
 
 }

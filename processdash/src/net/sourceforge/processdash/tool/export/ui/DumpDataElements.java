@@ -27,10 +27,15 @@ package net.sourceforge.processdash.tool.export.ui;
 
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Vector;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.net.http.TinyCGIHighVolume;
+import net.sourceforge.processdash.tool.export.impl.DataExporter;
+import net.sourceforge.processdash.tool.export.impl.DataExporterXMLv1;
+import net.sourceforge.processdash.tool.export.impl.DefaultDataExportFilter;
+import net.sourceforge.processdash.tool.export.impl.ExportedDataValueIterator;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 
@@ -39,6 +44,7 @@ public class DumpDataElements extends TinyCGIBase implements TinyCGIHighVolume {
 
     protected void writeHeader() {
         out.print("Content-type: text/plain\r\n\r\n");
+        out.flush();
     }
 
     /** Generate CGI script output. */
@@ -50,6 +56,37 @@ public class DumpDataElements extends TinyCGIBase implements TinyCGIHighVolume {
             filter = new Vector();
             filter.add(prefix);
         }
+        String format = getParameter("format");
+        if ("xml".equalsIgnoreCase(format))
+            dumpXml(filter);
+        else
+            dumpText(filter);
+    }
+
+    private void dumpXml(Vector filter) throws IOException {
+        Iterator iter = new ExportedDataValueIterator(getDataRepository(), filter);
+
+        DefaultDataExportFilter ddef = new DefaultDataExportFilter(iter);
+        if (parameters.containsKey("showToDate"))
+            ddef.setSkipToDateData(false);
+        if (parameters.containsKey("showZero"))
+            ddef.setSkipZero(false);
+        if (parameters.containsKey("showInfNaN"))
+            ddef.setSkipInfNaN(false);
+        ddef.init();
+
+        DataExporter exp = new DataExporterXMLv1();
+        exp.export(outStream, ddef);
+    }
+    private boolean getBool(String name, boolean defaultVal) {
+        String strVal = getParameter(name);
+        if (strVal == null || strVal.length() == 0)
+            return defaultVal;
+        else
+            return "true".equalsIgnoreCase(strVal);
+    }
+
+    private void dumpText(Vector filter) {
         getDataRepository().dumpRepository(out, filter, true);
     }
 

@@ -28,8 +28,8 @@ package net.sourceforge.processdash.tool.export.mgr;
 import java.io.File;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.repository.DataImporter;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.tool.export.DataImporter;
 
 import org.w3c.dom.Element;
 

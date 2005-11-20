@@ -204,7 +204,7 @@ public class EVReport extends CGIChartBase {
             outStream.write("\r\n".getBytes());
 
             outStream.write(XML_HEADER.getBytes("UTF-8"));
-            outStream.write(evModel.getAsXML().getBytes("UTF-8"));
+            outStream.write(evModel.getAsXML(true).getBytes("UTF-8"));
             outStream.flush();
         }
     }

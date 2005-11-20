@@ -39,7 +39,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentListener;
 
-import net.sourceforge.processdash.data.repository.DataImporter;
+import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.ui.lib.WrappingText;

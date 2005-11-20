@@ -56,7 +56,10 @@ public class ImportDirectoryInstruction extends AbstractInstruction {
     }
 
     public String getPrefix() {
-        return getAttribute(PREFIX_ATTR);
+        String path = getAttribute(PREFIX_ATTR);
+        if (path != null && !path.startsWith("/"))
+            path = "/" + path;
+        return path;
     }
 
     public void setPrefix(String path) {

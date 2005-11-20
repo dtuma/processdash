@@ -1077,7 +1077,17 @@ public class EVTask implements DataListener {
     }
 
     public void saveToXML(StringBuffer result) {
-        result.append("<task name='").append(XMLUtils.escapeAttribute(name))
+        saveToXML(result, false);
+    }
+
+    public void saveToXML(StringBuffer result, boolean whitespace) {
+        String indent = (whitespace ? "  " : "");
+        saveToXML(result, whitespace, indent);
+    }
+
+    protected void saveToXML(StringBuffer result, boolean whitespace, String indent) {
+        result.append(indent)
+            .append("<task name='").append(XMLUtils.escapeAttribute(name))
             .append("' pt='").append(planValue)
             .append("' at='").append(actualTime);
         if (planTime != planValue)
@@ -1098,13 +1108,16 @@ public class EVTask implements DataListener {
             pruningFlag != ANCESTOR_PRUNED)
             result.append("' prune='").append(pruningFlag);
 
+        String newline = (whitespace ? "\n" : "");
+
         if (isLeaf())
-            result.append("'/>");
+            result.append("'/>").append(newline);
         else {
-            result.append("'>");
+            result.append("'>").append(newline);
+            String subIndent = (whitespace ? (indent + "  ") : "");
             for (int i = 0;   i < getNumChildren();   i++)
-                getChild(i).saveToXML(result);
-            result.append("</task>");
+                getChild(i).saveToXML(result, whitespace, subIndent);
+            result.append(indent).append("</task>").append(newline);
         }
     }
 
@@ -1184,4 +1197,5 @@ public class EVTask implements DataListener {
 
         return pruningFlag == USER_PRUNED;
     }
+
 }

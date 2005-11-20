@@ -25,6 +25,8 @@
 
 package net.sourceforge.processdash.hier;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Vector;
 
 /**
@@ -35,10 +37,16 @@ import java.util.Vector;
 public class Filter {
 
     public static boolean matchesFilter(Vector theFilter, String name) {
+        // this method is preserved for binary compatibility reasons.
+        return matchesFilter((Collection) theFilter, name);
+    }
+
+    public static boolean matchesFilter(Collection theFilter, String name) {
         if (theFilter == null)
             return true;
-        for (int ii = 0; ii < theFilter.size(); ii++) {
-            if (pathMatches(name, (String) theFilter.elementAt(ii)))
+        for (Iterator iter = theFilter.iterator(); iter.hasNext();) {
+            String oneFilter = (String) iter.next();
+            if (pathMatches(name, oneFilter))
                 return true;
         }
         return false;

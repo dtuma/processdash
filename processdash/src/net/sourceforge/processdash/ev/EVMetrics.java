@@ -829,13 +829,24 @@ public class EVMetrics implements TableModel {
             .append("'");
     }
     public void saveIntervalsToXML(StringBuffer result) {
-        if (costInterval instanceof AbstractConfidenceInterval)
-            ((AbstractConfidenceInterval) costInterval).saveToXML
-                ("costInterval", result);
-        if (timeErrInterval instanceof AbstractConfidenceInterval)
-            ((AbstractConfidenceInterval) timeErrInterval).saveToXML
-                ("timeErrInterval", result);
+        saveIntervalsToXML(result, false);
     }
+    public void saveIntervalsToXML(StringBuffer result, boolean whitespace) {
+        saveOneIntervalToXml(costInterval, "costInterval", result, whitespace);
+        saveOneIntervalToXml(timeErrInterval, "timeErrInterval", result, whitespace);
+    }
+    private void saveOneIntervalToXml(ConfidenceInterval interval,
+            String intervalName, StringBuffer result, boolean whitespace) {
+        if (interval instanceof AbstractConfidenceInterval) {
+            if (whitespace)
+                result.append("    ");
+            ((AbstractConfidenceInterval) interval).saveToXML(intervalName,
+                    result);
+            if (whitespace)
+                result.append("\n");
+        }
+    }
+
     public void loadFromXML(Element e) {
         totalPlanTime   = EVSchedule.getXMLNum(e, "tpt");
         earnedValueTime = EVSchedule.getXMLNum(e, "evt");

@@ -33,6 +33,7 @@ import java.util.*;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -348,17 +349,7 @@ public class TinyCGIBase implements TinyCGI {
     }
     /** get the name of the person who owns the data in the repository */
     protected String getOwner() {
-        DataRepository data = getDataRepository();
-        SimpleData val = data.getSimpleValue("/Owner");
-        if (val == null) return null;
-        String result = val.format();
-
-        String defaultVal = Resources.getDashBundle("ProcessDashboard")
-            .getString("Enter_your_name");
-        if (result.equals(defaultVal))
-            return null;
-        else
-            return result;
+        return ProcessDashboard.getOwnerName(getDataRepository());
     }
 
     /** Does this CGI script want to support query parameter files?

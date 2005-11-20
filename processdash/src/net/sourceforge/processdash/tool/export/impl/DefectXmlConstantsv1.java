@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2004-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,19 +23,23 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.export;
+package net.sourceforge.processdash.tool.export.impl;
 
-import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 
-/** @deprecated Present for binary compatibility only */
-public class ImportExport {
+public interface DefectXmlConstantsv1 extends XmlConstants {
 
-    public static String exportedScheduleName(DataRepository dataRepository,
-            String scheduleName) {
-        String owner = ProcessDashboard.getOwnerName(dataRepository);
-        return ExportManager.exportedScheduleName(owner, scheduleName);
-    }
+    public static final String DEFECT_START_TOKEN = "<!-- start defects -->";
+
+    public static final String DEFECT_TAG = "defect";
+
+    public static final String DESCRIPTION_ATTR = "desc";
+    public static final String FIX_DEFECT_ATTR = "fd";
+    public static final String FIX_TIME_ATTR = "ft";
+    public static final String REMOVED_ATTR = "rem";
+    public static final String INJECTED_ATTR = "inj";
+    public static final String DEFECT_TYPE_ATTR = "type";
+    public static final String NUM_ATTR = "num";
+    public static final String DATE_ATTR = "date";
+    public static final String PATH_ATTR = "path";
 
 }

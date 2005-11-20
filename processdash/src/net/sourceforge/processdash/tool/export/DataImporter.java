@@ -44,6 +44,9 @@ import java.util.Vector;
 import net.sourceforge.processdash.data.*;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
+import net.sourceforge.processdash.log.ImportedDefectManager;
+import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
+import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
@@ -52,7 +55,10 @@ import net.sourceforge.processdash.util.RobustFileOutputStream;
 /* This class imports data files into the repository */
 public class DataImporter extends Thread {
 
+    public static final String EXPORT_FILE_OLD_SUFFIX = ".txt";
+    public static final String EXPORT_FILE_SUFFIX = ".pdash";
     public static final String EXPORT_DATANAME = "EXPORT_FILE";
+
     private static final long TIME_DELAY = 10 * 60 * 1000; // 10 minutes
     private static Hashtable importers = new Hashtable();
 
@@ -174,8 +180,12 @@ public class DataImporter extends Thread {
         if (f == null || f.getName() == null ||
             f.getName().startsWith(RobustFileOutputStream.OUT_PREFIX))
             return;
-        // only open text files for now.
-        if (!f.getName().endsWith(".txt")) return;
+
+        // only open text and pdash files
+        String filename = f.getName().toLowerCase();
+        if (!filename.endsWith(EXPORT_FILE_OLD_SUFFIX)
+                && !filename.endsWith(EXPORT_FILE_SUFFIX))
+            return;
 
         Long prevModTime = (Long) modTimes.get(f);
         long modTime = f.lastModified();
@@ -192,7 +202,7 @@ public class DataImporter extends Thread {
         String prefix = (String) prefixes.get(f);
         if (prefix == null) return;
         data.closeDatafile(prefix);
-        DefectImporter.closeDefects(prefix);
+        ImportedDefectManager.closeDefects(prefix);
     }
 
 
@@ -201,79 +211,18 @@ public class DataImporter extends Thread {
     {
         String prefix = makePrefix(f);
         System.out.println("importing " + f);
-        importData(new FileInputStream(f), true, prefix, data);
+
+        String filename = f.getName().toLowerCase();
+        if (filename.endsWith(EXPORT_FILE_OLD_SUFFIX)) {
+            TextMetricsFileImporter task = new TextMetricsFileImporter(data, f, prefix);
+            task.doImport();
+        } else if (filename.endsWith(EXPORT_FILE_SUFFIX)) {
+            ArchiveMetricsFileImporter task = new ArchiveMetricsFileImporter(data, f, prefix);
+            task.doImport();
+        }
+
         prefixes.put(f, prefix);
     }
-
-    public void importData(InputStream inputStream, boolean close,
-                           String prefix, DataRepository data)
-        throws IOException
-    {
-        try {
-            BufferedReader in =
-                new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-            Map defns = new HashMap();
-
-            String line, name, value;
-            int commaPos;
-            while ((line = in.readLine()) != null) {
-                if (line.startsWith("!") || line.startsWith("<!--")) break;
-
-                commaPos = line.indexOf(',');
-                if (commaPos == -1) return; // this isn't a valid dump file.
-
-                name = line.substring(1, commaPos);
-                name = EscapeString.unescape(name, '\\', ",", "c");
-                value = line.substring(commaPos+1);
-
-                // don't import the data elements which contain export
-                // instructions - this would get us into an infinite
-                // import/export loop.
-                if (name.indexOf(EXPORT_DATANAME) != -1) continue;
-
-                // To the best of my knowledge, the DataImporter is
-                // currently only being used to import individual
-                // data, for the purpose of calculating team rollups.
-                // Rollups interact with this data in a fairly
-                // predictable way; for now, I'll take advantage of
-                // this predictable behavior by omitting data elements
-                // which I know cannot affect rollups.  This will
-                // significantly reduce the memory requirements of the
-                // team dashboard.  In particular, I:
-                //
-                // (1) won't import "To Date" data, and
-                if (name.endsWith(" To Date")) continue;
-                //
-                // (2) won't import data values that are zero or invalid.
-                if (value.equals("0.0") || value.equals("NaN") ||
-                    value.equals("Infinity")) continue;
-
-                defns.put(name, parseValue(value));
-            }
-
-            while (line != null && !line.startsWith("<!--"))
-                line = in.readLine();
-            if (line != null)
-                DefectImporter.importDefects(in, prefix);
-
-
-            // Protect this data from being viewed via external http requests.
-            defns.put("_Password_", ImmutableDoubleData.READ_ONLY_ZERO);
-
-            try {
-                // We don't want these threads to flood the data repository
-                // with multiple simultaneous mountImportedData() calls, so
-                // we'll synchronize on a lock object.
-                synchronized(SYNCH_LOCK) {
-                    data.mountImportedData(prefix, defns);
-                }
-            } catch (InvalidDatafileFormat idf) {}
-        } finally {
-            if (close) inputStream.close();
-        }
-    }
-
-    private static final Object SYNCH_LOCK = new Object();
 
     public String makePrefix(File f) throws IOException {
         return DataRepository.createDataName(importPrefix, makeExtraPrefix(f));
@@ -287,44 +236,6 @@ public class DataImporter extends Thread {
 
     private static String makeExtraPrefix(File f) throws IOException {
         return Integer.toString(Math.abs(f.getCanonicalFile().hashCode()));
-    }
-
-    private static Object parseValue(String value) {
-        SimpleData result;
-
-        // is it a tag?
-        if ("TAG".equalsIgnoreCase(value))
-            return TagData.getInstance();
-
-        // first, try to interpret the string as a number.
-        if ("0.0".equals(value))
-            return ImmutableDoubleData.READ_ONLY_ZERO;
-        if ("NaN".equals(value))
-            return ImmutableDoubleData.READ_ONLY_NAN;
-        if (DoubleData.P_INF_STR.equals(value) ||
-            DoubleData.N_INF_STR.equals(value))
-            return ImmutableDoubleData.DIVIDE_BY_ZERO;
-        if (value.length() > 0) switch (value.charAt(0)) {
-        case '0': case '1': case '2': case '3': case '4': case '5': case '6':
-        case '7': case '8': case '9': case '-': case '+': case '.': case ',':
-            try {
-                result = new DoubleData(value);
-                result.setEditable(false);
-                return result;
-            } catch (MalformedValueException mfe) {}
-        }
-
-        // next, try to interpret the string as a date.
-        try {
-            result = DateData.create(value);
-            result.setEditable(false);
-            return result;
-        } catch (MalformedValueException mfe) {}
-
-        // give up and interpret it as a plain string.
-        result = StringData.create(StringData.unescapeString(value));
-        result.setEditable(false);
-        return result;
     }
 
 }

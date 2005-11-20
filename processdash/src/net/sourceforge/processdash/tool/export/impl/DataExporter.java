@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004-2005 Software Process Dashboard Initiative
+// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,23 +23,26 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.export;
+package net.sourceforge.processdash.tool.export.impl;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Iterator;
 
-public interface DefectXmlConstants {
+public interface DataExporter {
 
-    public static final String DEFECT_START_TOKEN = "<!-- start defects -->";
-
-    public static final String DEFECT_TAG = "defect";
-
-    public static final String DESCRIPTION_ATTR = "desc";
-    public static final String FIX_DEFECT_ATTR = "fd";
-    public static final String FIX_TIME_ATTR = "ft";
-    public static final String REMOVED_ATTR = "rem";
-    public static final String INJECTED_ATTR = "inj";
-    public static final String TYPE_ATTR = "type";
-    public static final String NUM_ATTR = "num";
-    public static final String DATE_ATTR = "date";
-    public static final String PATH_ATTR = "path";
+    /**
+     * Export metrics data to a stream using the given writer.
+     * 
+     * @param out
+     *            the stream to write data to. This method will NOT close this
+     *            stream (the caller created/opened the stream and must be
+     *            responsible for closing it).
+     * @param dataElements
+     *            an iteration of data to be exported; each entry will be of
+     *            type {@link ExportedDataValue}
+     */
+    public void export(OutputStream out, Iterator dataElements)
+            throws IOException;
 
 }

@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,19 +23,26 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.export;
+package net.sourceforge.processdash.tool.export.impl;
 
-import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Map;
 
-/** @deprecated Present for binary compatibility only */
-public class ImportExport {
+public interface EVExporter {
 
-    public static String exportedScheduleName(DataRepository dataRepository,
-            String scheduleName) {
-        String owner = ProcessDashboard.getOwnerName(dataRepository);
-        return ExportManager.exportedScheduleName(owner, scheduleName);
-    }
+    /**
+     * Export earned value data to a stream using the given writer.
+     * 
+     * @param out
+     *            the stream to write data to. This method will NOT close this
+     *            stream (the caller created/opened the stream and must be
+     *            responsible for closing it).
+     * @param schedules
+     *            a collection of the earned value schedules to export. The keys
+     *            are the names of earned value schedules, and whose values are
+     *            {@link net.sourceforge.processdash.ev.EVTaskList}
+     */
+    public void export(OutputStream out, Map schedules) throws IOException;
 
 }

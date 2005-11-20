@@ -27,16 +27,29 @@ package net.sourceforge.processdash.tool.export.mgr;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.tool.export.ImportExport;
+import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListXML;
+import net.sourceforge.processdash.tool.export.DataImporter;
+import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileExporter;
+import net.sourceforge.processdash.tool.export.impl.TextMetricsFileExporter;
+import net.sourceforge.processdash.ui.lib.ProgressDialog;
 
 import org.w3c.dom.Element;
 
 public class ExportManager extends AbstractManager {
+
+    public static final String EXPORT_DATANAME = DataImporter.EXPORT_DATANAME;
 
     private static ExportManager INSTANCE = null;
 
@@ -60,11 +73,11 @@ public class ExportManager extends AbstractManager {
         initialize();
         initializing = false;
 
-        //        System.out.println("ExportManager contents:");
-        //        for (Iterator iter = instructions.iterator(); iter.hasNext();) {
-        //            AbstractInstruction instr = (AbstractInstruction) iter.next();
-        //            System.out.println(instr);
-        //        }
+        // System.out.println("ExportManager contents:");
+        // for (Iterator iter = instructions.iterator(); iter.hasNext();) {
+        // AbstractInstruction instr = (AbstractInstruction) iter.next();
+        // System.out.println(instr);
+        // }
     }
 
     public ProcessDashboard getProcessDashboard() {
@@ -107,8 +120,8 @@ public class ExportManager extends AbstractManager {
     private class InstructionAdder implements ExportInstructionDispatcher {
 
         public Object dispatch(ExportMetricsFileInstruction instr) {
-            ImportExport.export(dashboard, instr.getPaths(), new File(instr
-                    .getFile()));
+            Runnable executor = getExporter(instr);
+            executor.run();
             return null;
         }
 
@@ -126,4 +139,96 @@ public class ExportManager extends AbstractManager {
     }
 
     private InstructionRemover instructionRemover = new InstructionRemover();
+
+    private class InstructionExecutorFactory implements
+            ExportInstructionDispatcher {
+
+        public Object dispatch(ExportMetricsFileInstruction instr) {
+            String dest = instr.getFile();
+            Vector paths = instr.getPaths();
+
+            if (dest.toLowerCase().endsWith(".txt"))
+                return new TextMetricsFileExporter(dashboard, new File(dest),
+                        paths);
+            else
+                return new ArchiveMetricsFileExporter(dashboard,
+                        new File(dest), paths);
+        }
+
+    }
+
+    private InstructionExecutorFactory instructionExecutorFactory = new InstructionExecutorFactory();
+
+    public Runnable getExporter(AbstractInstruction instr) {
+        return (Runnable) instr.dispatch(instructionExecutorFactory);
+    }
+
+    public void exportAll(Object window, DashboardContext parent) {
+        ProgressDialog p = ProgressDialog.create(window, resource
+                .getString("ExportAutoExporting"), resource
+                .getString("ExportExportingDataDots"));
+
+        // start with the export instructions registered with this manager
+        List tasks = new LinkedList(instructions);
+        // Look for data export instructions in the data repository.
+        tasks.addAll(getExportInstructionsFromData());
+
+        // nothing to do?
+        if (!tasks.isEmpty())
+            return;
+
+        for (Iterator iter = tasks.iterator(); iter.hasNext();) {
+            AbstractInstruction instr = (AbstractInstruction) iter.next();
+            Runnable exporter = getExporter(instr);
+            p.addTask(exporter);
+        }
+
+        p.run();
+        System.out.println("Completed user-scheduled data export.");
+    }
+
+    private Collection getExportInstructionsFromData() {
+        Collection result = new LinkedList();
+
+        DataRepository data = dashboard.getData();
+        for (Iterator iter = data.getKeys(); iter.hasNext();) {
+            String name = (String) iter.next();
+            int pos = name.indexOf(EXPORT_DATANAME);
+            if (pos < 1)
+                continue;
+            SimpleData dataVal = data.getSimpleValue(name);
+            if (dataVal == null || !dataVal.test())
+                continue;
+            String filename = Settings.translateFile(dataVal.format());
+
+            Vector filter = new Vector();
+            filter.add(name.substring(0, pos - 1));
+            Object instr = new ExportMetricsFileInstruction(filename, filter);
+            result.add(instr);
+        }
+
+        return result;
+    }
+
+    /**
+     * If the named schedule were to be exported to a file, what would the data
+     * element be named?
+     */
+    public static String exportedScheduleDataName(String owner,
+            String scheduleName) {
+        return EVTaskList.MAIN_DATA_PREFIX
+                + exportedScheduleName(owner, scheduleName) + "/"
+                + EVTaskListXML.XML_DATA_NAME;
+    }
+
+    public static String exportedScheduleName(String owner, String scheduleName) {
+        owner = (owner == null ? "?????" : safeName(owner));
+        String name = safeName(scheduleName) + " (" + owner + ")";
+        return name;
+    }
+
+    private static String safeName(String n) {
+        return n.replace('/', '_').replace(',', '_');
+    }
+
 }

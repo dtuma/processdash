@@ -63,7 +63,7 @@ public class HashTree {
     private static final int DEFAULT_ATTR_CAPACITY = 4;
 
     /** The contents of this node of the HashTree */
-    protected HashMap contents;
+    protected Map contents;
 
     /** Attribute values associated with this node */
     private HashMap attributes;
@@ -94,9 +94,35 @@ public class HashTree {
 
 
 
+    /** Create a new, empty HashTree that uses the given Map class for storage.
+     */
+    public HashTree(Class mapClass) throws IllegalArgumentException {
+        try {
+            contents = (Map) mapClass.newInstance();
+        } catch (Exception e) {
+            IllegalArgumentException iae = new IllegalArgumentException();
+            iae.initCause(e);
+            throw iae;
+        }
+
+        attributes = null;
+        root = this;
+        parent = null;
+    }
+
+
+
     /** Create a HashTree node with the given node as its parent */
     protected HashTree(HashTree parent, int capacity) {
-        this.contents = new HashMap(capacity);
+        if (parent != null && !(parent.contents instanceof HashMap))
+            try {
+                this.contents = (Map) parent.contents.getClass().newInstance();
+            } catch (Throwable t) {
+                this.contents = new HashMap(capacity);
+            }
+        else
+            this.contents = new HashMap(capacity);
+
         this.attributes = null;
         this.root = (parent == null ? this : parent.root);
         this.parent = parent;
@@ -116,6 +142,19 @@ public class HashTree {
         return parent;
     }
 
+
+    /** Returns an iteration of the keys which name children of this HashTree node.
+     */
+    public EnumerIterator getChildren() {
+        return new ChildFilter();
+    }
+
+
+    /** Returns an iteration of the keys which name the contents of this HashTree node.
+     */
+    public EnumerIterator getContents() {
+        return new ContentsFilter();
+    }
 
 
     /** Returns the value to which the specified key is mapped in this
@@ -359,7 +398,6 @@ public class HashTree {
     }
 
 
-
     /** Remove "../" sequences from the given key. */
     protected static String canonicalizeKey(String key) {
         if (key.equals(PARENT_NAME))
@@ -556,6 +594,34 @@ public class HashTree {
             return s.equals(terminal) || s.endsWith(slashTerminal);
         }
 
+    }
+
+    private abstract class EntriesFilter extends IteratorFilter {
+
+        protected EntriesFilter() {
+            super(contents.entrySet().iterator());
+            init();
+        }
+
+        protected boolean includeInResults(Object o) {
+            Map.Entry e = (Map.Entry) o;
+            String name = (String) e.getKey();
+            return nameMatches(name);
+        }
+
+        abstract boolean nameMatches(String name);
+    }
+
+    private class ChildFilter extends EntriesFilter {
+        boolean nameMatches(String name) {
+            return name.endsWith(SEPARATOR);
+        }
+    }
+
+    private class ContentsFilter extends EntriesFilter {
+        boolean nameMatches(String name) {
+            return !name.endsWith(SEPARATOR);
+        }
     }
 
 }

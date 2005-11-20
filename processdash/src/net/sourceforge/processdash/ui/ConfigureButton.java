@@ -41,7 +41,6 @@ import net.sourceforge.processdash.log.time.CommittableModifiableTimeLog;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingApprover;
 import net.sourceforge.processdash.log.ui.*;
-import net.sourceforge.processdash.tool.export.ImportExport;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
 import net.sourceforge.processdash.tool.probe.*;
@@ -62,7 +61,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     //TaskScheduleDialog   task_frame   = null;
     TimeLogEditor  time_frame   = null;
     DefectLogEditor   defect_frame = null;
-    ImportExport   impexp_frame = null;
     ProbeDialog    probe_dialog = null;
     TaskScheduleChooser task_chooser = null;
 

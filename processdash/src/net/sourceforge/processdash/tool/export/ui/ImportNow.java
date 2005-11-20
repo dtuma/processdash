@@ -29,7 +29,7 @@ package net.sourceforge.processdash.tool.export.ui;
 import java.io.IOException;
 
 import net.sourceforge.processdash.DashController;
-import net.sourceforge.processdash.data.repository.DataImporter;
+import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 
