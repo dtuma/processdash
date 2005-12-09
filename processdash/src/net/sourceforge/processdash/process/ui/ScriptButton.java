@@ -81,8 +81,12 @@ public class ScriptButton extends DropDownButton implements PropertyChangeListen
                 new ScriptBrowser(ScriptButton.this.parent, true); } } );
 
         dash.getActiveTaskModel().addPropertyChangeListener(this);
-        propertyChange(null);
-        dash.getContentPane().add(this);
+        updateAll();
+    }
+
+    private void updateAll() {
+        PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
+        setPaths(parent.getHierarchy().getScriptIDs(currentPhase));
     }
 
     // setPaths populates the popup menu with valid script paths.
@@ -154,8 +158,7 @@ public class ScriptButton extends DropDownButton implements PropertyChangeListen
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
-        PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
-        setPaths(parent.getHierarchy().getScriptIDs(currentPhase));
+        updateAll();
     }
 
 }

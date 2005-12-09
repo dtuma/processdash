@@ -64,7 +64,13 @@ public class DefectButton extends JButton implements ActionListener, PropertyCha
         setFocusPainted(false);
         addActionListener(this);
         dash.getActiveTaskModel().addPropertyChangeListener(this);
-        dash.getContentPane().add(this);
+
+        updateAll();
+    }
+
+    private void updateAll() {
+        PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
+        setPaths(parent.getHierarchy().defectLog(currentPhase , parent.getDirectory()));
     }
 
     public void setPaths(DefectLogID defectLog) {
@@ -86,7 +92,6 @@ public class DefectButton extends JButton implements ActionListener, PropertyCha
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
-        PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
-        setPaths(parent.getHierarchy().defectLog(currentPhase , parent.getDirectory()));
+        updateAll();
     }
 }

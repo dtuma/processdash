@@ -59,11 +59,14 @@ public class CompletionButton extends JCheckBox implements ActionListener,
         resources = Resources.getDashBundle("ProcessDashboard");
         setMargin(new Insets(0, 2, 0, 2));
         addActionListener(this);
-        GridBagConstraints g = new GridBagConstraints();
-        g.gridy = 0;
-        g.fill = GridBagConstraints.BOTH;
-        dash.getContentPane().add(this);
+        updateAll();
     }
+
+        public void updateAll() {
+                String path = activeTaskModel.getPath();
+        dataName = DataRepository.createDataName(path, "Completed");
+        update();
+        }
 
     public void update() {
         Object d = parent.getData().getValue(dataName);
@@ -95,9 +98,7 @@ public class CompletionButton extends JCheckBox implements ActionListener,
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
-        String path = activeTaskModel.getPath();
-        dataName = DataRepository.createDataName(path, "Completed");
-        update();
+        updateAll();
     }
 
 }

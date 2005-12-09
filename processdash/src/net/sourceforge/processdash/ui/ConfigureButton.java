@@ -147,8 +147,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             //   PCSH.enableHelp(menuItem, menuItems[ii][1]);
         }
 
-        dash.getContentPane().add(this);
-
                                     // get needed system properties
         Properties prop = System.getProperties ();
         FILE_SEP = prop.getProperty ("file.separator");

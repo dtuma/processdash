@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry output="test/bin" kind="src" path="test/src"/>
+	<classpathentry kind="src" path="test/src"/>
 	<classpathentry kind="src" path="lib/src"/>
 	<classpathentry kind="src" path="l10n-tool/src"/>
 	<classpathentry excluding="**/CVS/|**/CVS" kind="src" path="installer/IzPack/src/lib"/>

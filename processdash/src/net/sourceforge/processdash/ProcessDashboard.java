@@ -288,13 +288,18 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         }catch (Exception e) { debug("open datafiles failed!"); };
 
         configure_button = new ConfigureButton(this);
+        getContentPane().add(configure_button);
         PCSH.enableHelpKey(this, "QuickOverview");
         pause_button = new PauseButton(timeLog.getTimeLoggingModel());
         getContentPane().add(pause_button);
         defect_button = new DefectButton(this);
+        getContentPane().add(defect_button);
         script_button = new ScriptButton(this);
-        getContentPane().add(hierarchy_menubar = new JMenuBar());
+        getContentPane().add(script_button);
+        hierarchy_menubar = new JMenuBar();
+        getContentPane().add(hierarchy_menubar);
         completion_button = new CompletionButton(this, activeTaskModel);
+        getContentPane().add(completion_button);
 
         // open the global data file.
         try {
