@@ -60,6 +60,8 @@ public class DashboardSecurity {
         int baseURLPos = policyURLStr.indexOf(packageName);
         if (baseURLPos != -1)
             baseURLStr = policyURLStr.substring(0, baseURLPos+1);
+        if (baseURLStr.startsWith("jar:") && baseURLStr.indexOf("!/") != -1)
+                baseURLStr = baseURLStr.substring(4, baseURLStr.indexOf("!/"));
 
         try {
             System.setProperty("process.dashboard.codebase.url", baseURLStr);
