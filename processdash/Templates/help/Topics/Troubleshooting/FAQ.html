@@ -45,6 +45,7 @@
  <LI><a href="FAQ.html#WhereData">Where is my PSP data stored?</A></LI>
  <LI><a href="FAQ.html#MoveData">How can I backup my psp data and/or move it to another computer?</A></LI>
  <li><a href="FAQ.html#CorruptFiles">I got a warning box that claims that my data files have been corrupted!  Can I get my data back?</a></li>
+ <li><a href="FAQ.html#UnixClutteredHomeDir">I'm on a Unix/Linux system, and the dashboard is cluttering my home directory with lots of files!   How do I fix this?</a></li>
 </ul>
 
 <h2>Other questions</h2>
@@ -437,6 +438,51 @@ steps to take next are:</p>
 process data, it is still a good idea to back up the Dashboard's data 
 directory every so often.  See the question about <a href="#MoveData">backing 
 up your Dashboard data</a> for more information.</p>
+
+
+<p><hr><a name="UnixClutteredHomeDir"></a><b>I'm on a Unix/Linux
+system, and the dashboard is cluttering my home directory with lots of
+files!  How do I fix this?</b></p>
+
+<p>When you start the dashboard (whether on Linux, Windows, or any
+other operating system), it uses the "current working directory" for
+data storage.</p>
+ 
+<p>On Windows, the installer program automatically creates a shortcut
+for the user which launches the dashboard with the appropriate current
+working directory, as selected during the installation process.</p>
+ 
+<p>Unfortunately, the installer is not able to create shortcuts on the
+Linux platform yet, so it's up to you to create an appropriate
+launcher manually. The dashboard does its best to help you out, by
+creating a shell script in your chosen data directory called
+"<tt>run-dash.sh</tt>". Take a look at the contents of that shell
+script. Embedded comments in that file include some helpful
+information; for example, If java and/or netscape are not in your
+path, you may need to edit a particular line of the script. With those
+edits, you should be able to use the script to launch the
+dashboard.</p>
+
+<p>If you have already started using the dashboard and you've already
+created projects in your hierarchy that you want to keep, you can move
+them by carefully following the steps below:
+<ul>
+  <li><b>Shut down the dashboard if it is running. Do not skip this
+      step!</b></li>
+
+  <li>Find files in your home directory matching any of the following
+      patterns, and move them into your chosen data directory:
+
+<pre>    global.dat       state
+    time.log         .pspdash
+    timelog.xml      ###.dat
+    timelog2.xml     ###.def</pre></li>
+
+  <li>Edit the <tt>run-dash.sh</tt> file in your data directory as
+      necessary.  Then create a launcher for <tt>run-dash.sh</tt>
+      within your desktop environment (e.g. Gnome / KDE).</li>
+
+</ul></p>
 
 
 <p><hr><a name="HideFinished"></a><b>Can I hide my finished projects from the 
