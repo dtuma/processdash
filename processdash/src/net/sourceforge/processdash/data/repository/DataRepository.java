@@ -1751,27 +1751,26 @@ public class DataRepository implements Repository, DataContext {
                 // statements from working (in other words, include directives
                 // relative to the current file.  Such directives are not
                 // currently used by the dashboard, so nothing will break.)
-                    loadDatafile(datafile, findDatafile(datafile, null), result, true, false);
+                    loadDatafile(datafile, findDatafile(datafile, null), result, true);
 
                 // Although we aren't technically done creating this datafile,
                 // we need to store it in the cache before calling
                 // insertRollupDefinitions to avoid entering an infinite loop.
                 includedFileCache.put(datafile, result);
+
+                // check to see if the datafile requests a rollup
+                Object rollupIDval = result.get("Use_Rollup");
+                if (rollupIDval instanceof StringData) {
+                    String rollupID = ((StringData) rollupIDval).getString();
+                    insertRollupDefinitions(result, rollupID);
+                }
+
+                result = Collections.unmodifiableMap(result);
+                includedFileCache.put(datafile, result);
                 definitionsDirty = true;
             }
 
             return result;
-        }
-
-        private void maybeAddRollupDefinitions(Map definitions) {
-            // check to see if the datafile requests a rollup
-            Object rollupIDval = definitions.get("Use_Rollup");
-            if (rollupIDval instanceof StringData) {
-                String rollupID = ((StringData) rollupIDval).getString();
-                String rollupPresentTagName = rollupID + " To Date Subset Prefix";
-                if (!definitions.containsKey(rollupPresentTagName))
-                    insertRollupDefinitions(definitions, rollupID);
-            }
         }
 
         private void insertRollupDefinitions(Map definitions, String rollupID) {
@@ -1876,8 +1875,6 @@ public class DataRepository implements Repository, DataContext {
         private class FileLoader extends DepthFirstAdapter {
             private String inheritedDatafile = null;
             private Map dest;
-            private boolean isUserFile = false;
-
             public FileLoader(Map dest) { this.dest = dest; }
             public String getInheritedDatafile() { return inheritedDatafile; }
 
@@ -1953,9 +1950,6 @@ public class DataRepository implements Repository, DataContext {
                 try {
                     Map cachedIncludeFile =
                         loadIncludedFileDefinitions(inheritedDatafile);
-                    if (isUserFile)
-                        maybeAddRollupDefinitions(cachedIncludeFile);
-
                     Map filteredIncludeFile = cachedIncludeFile;
 
                     if (node.getExcludeClause() != null) {
@@ -1978,9 +1972,6 @@ public class DataRepository implements Repository, DataContext {
                 while (i.hasNext())
                     dest.remove(i.next());
             }
-            public void setIsUserFile(boolean isUserFile) {
-                this.isUserFile = isUserFile;
-            }
         }
 
         private class IdentifierLister extends DepthFirstAdapter {
@@ -2000,13 +1991,12 @@ public class DataRepository implements Repository, DataContext {
         // name of the include file, if one was found.
 
         private String loadDatafile(String file, InputStream datafile,
-                                    Map dest, boolean close, boolean isUserFile)
+                                    Map dest, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            return loadDatafile(file, new InputStreamReader(datafile), dest,
-                                 close, isUserFile);
+            return loadDatafile(file, new InputStreamReader(datafile), dest, close);
         }
         private String loadDatafile(String filename, Reader datafile,
-                                    Map dest, boolean close, boolean isUserFile)
+                                    Map dest, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
             //debug("loadDatafile("+filename+")");
@@ -2016,7 +2006,6 @@ public class DataRepository implements Repository, DataContext {
             String line, name, value;
             int equalsPosition;
             FileLoader loader = new FileLoader(dest);
-            loader.setIsUserFile(isUserFile);
             String defineDecls = null;
             if (filename != null)
                 defineDecls = (String) defineDeclarations.get(filename);
@@ -2059,7 +2048,7 @@ public class DataRepository implements Repository, DataContext {
 
         public void parseDatafile(String contents, Map dest)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            loadDatafile(null, new StringReader(contents), dest, true, false);
+            loadDatafile(null, new StringReader(contents), dest, true);
         }
 
         private final Hashtable defineDeclarations = new Hashtable();
@@ -2114,7 +2103,7 @@ public class DataRepository implements Repository, DataContext {
 
         public void addGlobalDefinitions(InputStream datafile, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            loadDatafile(null, datafile, globalDataDefinitions, close, false);
+            loadDatafile(null, datafile, globalDataDefinitions, close);
         }
 
         private SaveableData instantiateValue(String name, String dataPrefix,
@@ -2328,7 +2317,7 @@ public class DataRepository implements Repository, DataContext {
             DataFile dataFile = new DataFile(dataPrefix, new File(datafilePath));
             dataFile.inheritsFrom =
                 loadDatafile(null, new FileInputStream(dataFile.file),
-                             values, true, true);
+                             values, true);
 
             // perform any renaming operations that were requested in the datafile
             boolean dataModified = performRenames(values);
