@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -47,6 +48,7 @@ import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.log.ImportedDefectManager;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
+import net.sourceforge.processdash.util.FileAgeComparator;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
@@ -151,7 +153,7 @@ public class DataImporter extends Thread {
             Set currentFiles = new HashSet(modTimes.keySet());
 
             // list the files in the import directory.
-            File [] files = directory.listFiles();
+            File [] files = getFilesToImport();
 
             // check them all to see if they need importing.
             for (int i = files.length;  i-- > 0;  ) {
@@ -168,7 +170,58 @@ public class DataImporter extends Thread {
         } catch (IOException ioe) {}
     }
 
-    public void dispose() {
+        private File[] getFilesToImport() {
+                // get a list of files in the directory
+                File[] files = directory.listFiles();
+                // sort them in chronological order, oldest first.
+                Arrays.sort(files, FileAgeComparator.OLDEST_FIRST);
+
+                // look through all the files, and make a list of the ones that we
+                // should import. Files whose names do not match recognized patterns
+                // are discarded. If a file appears more than once with different
+                // recognized suffixes, only keep the newest version.
+                Map results = new HashMap();
+                for (int i = 0; i < files.length; i++) {
+                        File oneFile = files[i];
+                        String basename = getBaseImportName(oneFile);
+                        if (basename != null)
+                                results.put(basename, oneFile);
+                }
+
+                // return the results we found.
+                return (File[]) results.values().toArray(new File[0]);
+        }
+
+        /** If the file is one that could be imported, return its filename, in
+         * lowercase, without the suffix.  Otherwise, return null.
+         */
+    private String getBaseImportName(File file) {
+        if (!file.isFile())
+                // ignore directories.
+                return null;
+
+                String filename = file.getName().toLowerCase();
+
+        if (filename.startsWith(RobustFileOutputStream.OUT_PREFIX))
+            // ignore temporary files created by the RobustFileWriter class.
+                return null;
+
+        else if (filename.endsWith(EXPORT_FILE_OLD_SUFFIX))
+                // accept files whose name ends with the old export suffix.
+                        return filename.substring(0,
+                                        filename.length() - EXPORT_FILE_OLD_SUFFIX.length());
+
+                else if (filename.endsWith(EXPORT_FILE_SUFFIX))
+                // accept files whose name ends with the new export suffix.
+                        return filename.substring(0,
+                                        filename.length() - EXPORT_FILE_SUFFIX.length());
+
+                else
+                        // reject other files.
+                        return null;
+        }
+
+        public void dispose() {
         for (Iterator i = modTimes.keySet().iterator(); i.hasNext();) {
             closeFile((File) i.next());
         }
@@ -176,17 +229,6 @@ public class DataImporter extends Thread {
 
 
     private void checkFile(File f) throws IOException {
-        // ignore temporary files created by the RobustFileWriter class.
-        if (f == null || f.getName() == null ||
-            f.getName().startsWith(RobustFileOutputStream.OUT_PREFIX))
-            return;
-
-        // only open text and pdash files
-        String filename = f.getName().toLowerCase();
-        if (!filename.endsWith(EXPORT_FILE_OLD_SUFFIX)
-                && !filename.endsWith(EXPORT_FILE_SUFFIX))
-            return;
-
         Long prevModTime = (Long) modTimes.get(f);
         long modTime = f.lastModified();
 
@@ -201,8 +243,10 @@ public class DataImporter extends Thread {
     private void closeFile(File f) {
         String prefix = (String) prefixes.get(f);
         if (prefix == null) return;
+        System.out.println("closing import " + f);
         data.closeDatafile(prefix);
         ImportedDefectManager.closeDefects(prefix);
+        modTimes.remove(f);
     }
 
 
@@ -237,5 +281,4 @@ public class DataImporter extends Thread {
     private static String makeExtraPrefix(File f) throws IOException {
         return Integer.toString(Math.abs(f.getCanonicalFile().hashCode()));
     }
-
 }
