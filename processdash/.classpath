@@ -4,7 +4,7 @@
 	<classpathentry kind="src" path="test/src"/>
 	<classpathentry kind="src" path="lib/src"/>
 	<classpathentry kind="src" path="l10n-tool/src"/>
-	<classpathentry excluding="**/CVS/|**/CVS" kind="src" path="installer/IzPack/src/lib"/>
+	<classpathentry kind="src" path="installer/IzPack/src/lib"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/distlib.jar"/>
 	<classpathentry kind="lib" path="lib/jregex.jar"/>
