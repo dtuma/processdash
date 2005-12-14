@@ -6449,7 +6449,9 @@ project that you mark incomplete.</p>
 <P><HR><a name="doc49_WebServerWorms"></a><b>Since the dashboard has a web server in it, do I have to worry about internet worms and viruses attacking my machine?</b>
 
 <P>A good question! The short answer: the web server built into the
-dashboard is NOT susceptible to any existing worms or viruses.</P>
+dashboard is NOT susceptible to any existing worms or viruses, and the
+default dashboard settings make it impossible for other computers to
+connect to your dashboard.</P>
 
 <P>The longer answer: the web server in the dashboard is custom code,
 written from scratch specifically for the dashboard. Because it shares
@@ -6471,9 +6473,9 @@ dashboard, the worst thing they could probably do is to crash your
 running dashboard program.</P>
 
 <P>If this information doesn't allay your concerns, you can use the
-"http.allowRemote" setting to make it impossible for other computers
-to connect to the dashboard. See the 
-<a href="#doc51_top">configuration
+"http.allowRemote" setting to ensure that it is impossible for other 
+computers to connect to the dashboard (this is the default). See the 
+<a href="#doc51_http.allowRemote">configuration
 file</a> help topic for more information.</P>
 
 
@@ -6819,7 +6821,22 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>http.allowRemote</strong><br>
+ <li><strong>forms.useHoursMinutes</strong><br>
+   Controls the display of time values of dashboard forms.  By default,
+   times are displayed in hours:minutes (for example, "1:30" for one hour
+   and thirty minutes).  This is a change from earlier versions of the
+   dashboard, which displayed times as a number of minutes (for example, 
+   "90").  This setting makes it possible to revert back to the prior
+   formatting.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>forms.useHoursMinutes=false</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="doc51_http.allowRemote"></a><strong>http.allowRemote</strong><br>
    Controls remote access to the dashboard's built-in webserver.<br>
    If true, the dashboard will allow connections from other machines.<br>
    If false, the dashboard will reject all HTTP connections unless they come 
@@ -6836,7 +6853,7 @@ the # character.</p>
    computers to see your dashboard.<br>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i>, <i>false</i>, or <i>never</i>.</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>never</i></td></tr>
     <tr valign="top"><td NOWRAP>Example:</td><td>http.allowRemote=true</td></tr>
    </table>
  </li>

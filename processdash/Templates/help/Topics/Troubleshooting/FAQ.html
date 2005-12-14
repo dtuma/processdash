@@ -536,7 +536,9 @@ project that you mark incomplete.</p>
 <P><HR><a name="WebServerWorms"></a><b>Since the dashboard has a web server in it, do I have to worry about internet worms and viruses attacking my machine?</b>
 
 <P>A good question! The short answer: the web server built into the
-dashboard is NOT susceptible to any existing worms or viruses.</P>
+dashboard is NOT susceptible to any existing worms or viruses, and the
+default dashboard settings make it impossible for other computers to
+connect to your dashboard.</P>
 
 <P>The longer answer: the web server in the dashboard is custom code,
 written from scratch specifically for the dashboard. Because it shares
@@ -558,9 +560,9 @@ dashboard, the worst thing they could probably do is to crash your
 running dashboard program.</P>
 
 <P>If this information doesn't allay your concerns, you can use the
-"http.allowRemote" setting to make it impossible for other computers
-to connect to the dashboard. See the 
-<a href="../AdvancedTopics/ConfigurationFile.html">configuration
+"http.allowRemote" setting to ensure that it is impossible for other 
+computers to connect to the dashboard (this is the default). See the 
+<a href="../AdvancedTopics/ConfigurationFile.html#http.allowRemote">configuration
 file</a> help topic for more information.</P>
 
 

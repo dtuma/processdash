@@ -10,7 +10,12 @@ net/sourceforge/processdash/data/SimpleData.java
 net/sourceforge/processdash/data/StringData.java
 net/sourceforge/processdash/data/TagData.java
 net/sourceforge/processdash/data/applet/DataInterpreter.java
+net/sourceforge/processdash/data/applet/DateInterpreter.java
 net/sourceforge/processdash/data/applet/DoubleInterpreter.java
+net/sourceforge/processdash/data/applet/HTMLField.java
+net/sourceforge/processdash/data/applet/HTMLFieldManager.java
+net/sourceforge/processdash/data/applet/InputName.java
+net/sourceforge/processdash/data/applet/InterpreterFactory.java
 net/sourceforge/processdash/data/applet/PercentInterpreter.java
 net/sourceforge/processdash/data/repository/DataEvent.java
 net/sourceforge/processdash/data/repository/DataListener.java

@@ -255,7 +255,22 @@ the # character.</p>
  </li>
  <br>
 
- <li><strong>http.allowRemote</strong><br>
+ <li><strong>forms.useHoursMinutes</strong><br>
+   Controls the display of time values of dashboard forms.  By default,
+   times are displayed in hours:minutes (for example, "1:30" for one hour
+   and thirty minutes).  This is a change from earlier versions of the
+   dashboard, which displayed times as a number of minutes (for example, 
+   "90").  This setting makes it possible to revert back to the prior
+   formatting.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>forms.useHoursMinutes=false</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="http.allowRemote"></a><strong>http.allowRemote</strong><br>
    Controls remote access to the dashboard's built-in webserver.<br>
    If true, the dashboard will allow connections from other machines.<br>
    If false, the dashboard will reject all HTTP connections unless they come 
@@ -272,7 +287,7 @@ the # character.</p>
    computers to see your dashboard.<br>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i>, <i>false</i>, or <i>never</i>.</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>never</i></td></tr>
     <tr valign="top"><td NOWRAP>Example:</td><td>http.allowRemote=true</td></tr>
    </table>
  </li>

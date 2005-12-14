@@ -168,6 +168,8 @@ public class FormToHTML {
             double val = ((NumberData) value).getDouble();
             if (inputName.hasFlag('%') || inputName.name.indexOf('%') != -1)
                 result = FormatUtil.formatPercent(val, numDigits);
+            else if (InterpreterFactory.isTimeInputName(inputName))
+                result = FormatUtil.formatTime(val, true);
             else
                 result = FormatUtil.formatNumber(val, numDigits);
         } else if (value != null)

@@ -27,10 +27,16 @@
 package net.sourceforge.processdash.data.applet;
 
 
+import java.util.regex.Pattern;
+
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.*;
 
 
 public class InterpreterFactory {
+
+    private static boolean useHoursMinutes =
+        Settings.getBool("forms.useHoursMinutes", true);
 
     public static DataInterpreter create(Repository r, String inputName,
                                          String prefix) {
@@ -60,6 +66,8 @@ public class InterpreterFactory {
             result = new PercentInterpreter(r, n.name, n.digitFlag(), readOnly);
         else if (n.hasFlag('d'))
             result = new DateInterpreter(r, n.name, readOnly);
+        else if (isTimeInputName(n))
+            result = new TimeInterpreter(r, n.name, n.digitFlag(), readOnly);
         else
             result = new DoubleInterpreter(r, n.name, n.digitFlag(), readOnly);
 
@@ -74,6 +82,12 @@ public class InterpreterFactory {
         return result;
     }
 
+    public static boolean isTimeInputName(InputName n) {
+        return useHoursMinutes &&
+            (n.hasFlag('t') || TIME_PATTERN.matcher(n.name).find());
+    }
+
+    private static Pattern TIME_PATTERN = Pattern.compile("\\bTime\\b");
 
     private static String instantiate(String name,
                                       String defaultValue,

@@ -148,6 +148,10 @@ ev.sortCompletedTasks=If false, the planned completion dates for tasks \
 extDoc.openMethod=If this is set to "redirect", then an HTTP redirect \
 	message will be used to open external documents.
 
+forms.useHoursMinutes=If this is set to "true", the dashboard forms will \
+    display time values as hours:minutes.  Setting this to "false" will \
+    display time values as a number of minutes.  Default is "true".
+
 hiddenData=Data names to be suppressed from user-visible data lists (by \
 	default).  This property should be a series of regular expressions \
 	matching data names, separated by the vertical bar character '|'.

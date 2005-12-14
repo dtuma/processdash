@@ -86,34 +86,42 @@ public class FormatUtil {
         return null;
     }
 
+    /** Format a time in hours and minutes.
+     * 
+     * @param ttime the time to format, expressed as a number of minutes.
+     * @return a string representation of that amount of time, in hours:minutes
+     *    format.
+     */
     public static String formatTime(double ttime) {
-        double time = Math.floor(ttime + 0.5); // round to the nearest minute
-        int hours = (int) (time / 60);
-        int minutes = (int) (time % 60);
-        if (minutes < 10)
-            return hours + ":0" + minutes;
+        return formatTime(ttime, false);
+    }
+    public static String formatTime(double ttime, boolean handleNaN) {
+        if (handleNaN)
+            return ADAPTIVE_TIME_FORMAT.format(ttime);
         else
-            return hours + ":" + minutes;
+            return TIME_FORMAT.format(ttime);
     }
 
+    /** Parse a time, expressed as hours and minutes, into a number of minutes
+     * 
+     * @param s a time, formatted in any of the following: <ul>
+     *    <li>h:mm</li>
+     *    <li>h:</li>
+     *    <li>mm</li></ul>
+     * @return the number of minutes described.  If the time cannot be parsed
+     *    properly, -1 is returned.  (If you need to be able to parse -0:01,
+     *    use the {@link TimeNumberFormat} class instead.)
+     */
     public static long parseTime(String s) {
-        int colon = s.indexOf (':');
-        long result = -1;
-        if (colon >= 0) {
-            try {
-                result = 60 * Long.parseLong(s.substring (0, colon));
-            } catch (Exception e) { }
-            try {
-                result += Long.parseLong(s.substring (colon + 1));
-            } catch (Exception e) { }
-        } else {
-            try {
-                result = Long.parseLong(s);
-            } catch (Exception e) { }
+        try {
+            return TIME_FORMAT.parse(s).longValue();
+        } catch (Exception e) {
+            return -1;
         }
-        return result;
     }
-
+    private static TimeNumberFormat TIME_FORMAT = new TimeNumberFormat();
+    private static AdaptiveNumberFormat ADAPTIVE_TIME_FORMAT =
+        new AdaptiveNumberFormat(TIME_FORMAT, 1);
 
     /*
      * fields and methods for formatting decimals

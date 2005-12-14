@@ -159,3 +159,4 @@ chart.3d=true
 logging.enabled=true
 backup.enabled=true
 backup.keepBackupsNumDays=10
+forms.useHoursMinutes=true
