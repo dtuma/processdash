@@ -26,3 +26,35 @@ Optional: If you use Eclipse to edit Java code, take note:
    * Although you can edit and refactor the code with Eclipse, you'll
      need to use the ant script to package the process dashboard into
      the final, distributable "jar" file.
+
+   * Due to differences in the way ant and Eclipse build the project,
+     ant will be compiling files into a subdirectory called "bin" and
+     Eclipse will be compiling into a subdirectory called "bin2".
+     This is normal.  Don't try to switch it back, or Eclipse will
+     spend a lot of time thrashing each time files in its output
+     directory are changed by ant.
+
+   * The process dashboard is designed to run from within its packaged
+     jarfile.  If you run directly from compiled .class files (the
+     default behavior when choosing "Run As > Java Application" from
+     within Eclipse), you may encounter unusual errors or behaviors.
+     For running or debugging from within Eclipse, create a launcher
+     with these properties:
+
+     - The main class is net.sourceforge.processdash.ProcessDashboard
+
+     - The classpath is your JRE, followed by the "pspdash.jar" file in
+       the "dist" subdirectory of the project.  DON'T include the
+       project itself as part of the classpath.
+
+     - The sourcepath SHOULD contain the project itself as an entry.
+
+     - The working directory should a directory on your hard drive
+       somewhere, where dashboard data files can be stored.  You
+       probably do NOT want to accept the Eclipse default - if you do,
+       your project directory will be littered with dashboard data
+       files each time you run or debug.  You might also want to avoid
+       performing debug sessions on your real pspdata directory.  The
+       best approach is therefore to create an empty scratch directory
+       on your hard drive somewhere and use it as the working
+       directory for Eclipse run/debug sessions.
