@@ -62,7 +62,7 @@ var SILENT;
 var ieVersion = 0;
 var nsVersion = 0;
 
-var AppletName = "DataApplet163";   // VERSION
+var AppletName = "DataApplet165";   // VERSION
 
 
 
