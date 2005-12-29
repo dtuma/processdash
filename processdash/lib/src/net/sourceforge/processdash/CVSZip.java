@@ -116,24 +116,6 @@ public class CVSZip extends Task {
         }
     }
 
-    private void writeCvsDirData(ZipOutputStream out, File dir, String dirPath) throws IOException {
-        writeFile(out, new File(dir, "CVS/Entries"), dirPath + "/CVS/Entries");
-        writeFile(out, new File(dir, "CVS/Repository"), dirPath + "/CVS/Repository");
-
-        File rootFile = new File(dir, "CVS/Root");
-                String rootPath = dirPath + "/CVS/Root";
-                if (cvsRoot == null)
-                writeFile(out, rootFile, rootPath);
-        else {
-                ZipEntry entry = new ZipEntry(rootPath);
-                entry.setTime(rootFile.lastModified());
-                entry.setSize(rootFile.length());
-                out.putNextEntry(entry);
-
-                out.closeEntry();
-        }
-        }
-
         private List getCVSEntries(File dir) throws IOException {
         File cvsDir = new File(dir, "CVS");
         File entriesFile = new File(cvsDir, "Entries");
