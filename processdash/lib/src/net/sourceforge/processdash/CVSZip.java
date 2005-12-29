@@ -47,6 +47,8 @@ public class CVSZip extends Task {
 
     private File startDir;
     private File destFile;
+    private boolean includeCvsDirs = false;
+    private String cvsRoot = null;
 
     public void setDir(File dir) {
         startDir = dir.getAbsoluteFile();
@@ -56,6 +58,14 @@ public class CVSZip extends Task {
         destFile = dest;
     }
 
+    public void setIncludecvsdirs(boolean include) {
+        this.includeCvsDirs = include;
+    }
+
+    public void setCvsroot(String cvsRoot) {
+        this.includeCvsDirs = true;
+        this.cvsRoot = cvsRoot + "\r\n";
+    }
 
     private void validate() throws BuildException {
         if (startDir == null)
@@ -106,7 +116,25 @@ public class CVSZip extends Task {
         }
     }
 
-    private List getCVSEntries(File dir) throws IOException {
+    private void writeCvsDirData(ZipOutputStream out, File dir, String dirPath) throws IOException {
+        writeFile(out, new File(dir, "CVS/Entries"), dirPath + "/CVS/Entries");
+        writeFile(out, new File(dir, "CVS/Repository"), dirPath + "/CVS/Repository");
+
+        File rootFile = new File(dir, "CVS/Root");
+                String rootPath = dirPath + "/CVS/Root";
+                if (cvsRoot == null)
+                writeFile(out, rootFile, rootPath);
+        else {
+                ZipEntry entry = new ZipEntry(rootPath);
+                entry.setTime(rootFile.lastModified());
+                entry.setSize(rootFile.length());
+                out.putNextEntry(entry);
+
+                out.closeEntry();
+        }
+        }
+
+        private List getCVSEntries(File dir) throws IOException {
         File cvsDir = new File(dir, "CVS");
         File entriesFile = new File(cvsDir, "Entries");
         if (!entriesFile.exists())
@@ -124,6 +152,11 @@ public class CVSZip extends Task {
             String filename = line.substring(beg+1, end);
             result.add(filename);
         }
+        if (includeCvsDirs) {
+                result.add("CVS/Root");
+                result.add("CVS/Repository");
+                result.add("CVS/Entries");
+        }
 
         Collections.sort(result);
         return result;
@@ -137,12 +170,17 @@ public class CVSZip extends Task {
         entry.setSize(file.length());
         out.putNextEntry(entry);
 
-        InputStream in = new FileInputStream(file);
-        int bytesRead;
-        while ((bytesRead = in.read(BUF)) != -1)
-            out.write(BUF, 0, bytesRead);
+        if (cvsRoot != null && path.endsWith("/CVS/Root")) {
+                out.write(cvsRoot.getBytes());
+        } else {
+                InputStream in = new FileInputStream(file);
+                int bytesRead;
+                while ((bytesRead = in.read(BUF)) != -1)
+                    out.write(BUF, 0, bytesRead);
 
-        in.close();
+                in.close();
+        }
+
         out.closeEntry();
     }
 
