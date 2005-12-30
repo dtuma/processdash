@@ -113,6 +113,9 @@ Authors:
   <property name="kxml.jar"       value="${lib}/kxml-2.2.1-mod.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
+  <property name="cvsroot"
+     value=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/processdash"/>
+
 
 
   <!-- property name="build.sysclasspath" value="ignore"/ -->
@@ -529,7 +532,8 @@ Authors:
       depends="jar,javahelp-addon,import-addon,pspForEng-addon"/>
 
   <target name="dist-src" depends="ant-tasks">
-    <cvszip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"/>
+    <cvszip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"
+        cvsroot="${cvsroot}"/>
   </target>
 
   <target name="dist-all" depends="dist,dist-src,installer"/>
