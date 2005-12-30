@@ -26,6 +26,8 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.List;
+
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -66,8 +68,12 @@ public class EVTaskListXMLAbstract extends EVTaskList {
             Element docRoot = doc.getDocumentElement();
 
             // extract the task list and the schedule.
-            root = new EVTask((Element) docRoot.getFirstChild());
-            schedule = new EVSchedule((Element) docRoot.getLastChild());
+            List children = XMLUtils.getChildElements(docRoot);
+            if (children.size() != 2)
+                throw new Exception("Expected two children of EVModel, but " +
+                                "found " + children.size());
+            root = new EVTask((Element) children.get(0));
+            schedule = new EVSchedule((Element) children.get(1));
 
             // optionally set the display name.
             if (displayName != null)

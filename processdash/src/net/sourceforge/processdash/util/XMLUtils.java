@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -274,5 +276,19 @@ public class XMLUtils {
             t.printStackTrace();
             return null;
         }
+    }
+
+    /** Return a list of the elements that are direct children of the given
+     * node.
+     */
+    public static List getChildElements(Node node) {
+        List result = new LinkedList();
+        NodeList childNodes = node.getChildNodes();
+        for (int i= 0;  i < childNodes.getLength();  i++) {
+                Node oneChild = childNodes.item(i);
+                if (oneChild instanceof Element)
+                        result.add(oneChild);
+        }
+        return result;
     }
 }
