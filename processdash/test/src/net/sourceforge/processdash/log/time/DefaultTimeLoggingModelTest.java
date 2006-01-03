@@ -192,6 +192,13 @@ public class DefaultTimeLoggingModelTest extends AbstractTimeLogTest implements
         timeLoggingModel.handleTimerEvent();
         assertTimeLogEvent(expectedTle);
 
+        // let some REAL time pass before we delete the time log entry.  This
+        // allows us to test that the timer was restarted at a different point
+        // in time.
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) { }
+
         // now, externally delete the current time log entry
         ChangeFlaggedTimeLogEntry del = new TimeLogEntryVO(1, null, null, 0, 0,
                 null, ChangeFlagged.DELETED);
@@ -205,6 +212,7 @@ public class DefaultTimeLoggingModelTest extends AbstractTimeLogTest implements
         // although the stopwatch should have been restarted
         assertEquals(0.0, timeLoggingModel.stopwatch.minutesElapsedDouble(), 0);
         assertEquals(0.0, timeLoggingModel.stopwatch.minutesInterruptDouble(), 0);
+        // the restarted stopwatch should have a new create time
         Date timeTwo = timeLoggingModel.stopwatch.getCreateTime();
         assertFalse(timeOne.equals(timeTwo));
         // let some time elapse.  Check to make certain a *new* entry gets logged.
