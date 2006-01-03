@@ -67,6 +67,7 @@ public class TimingMetricsRecorderTest extends AbstractTimeLogTest {
         hierarchy = new DashHierarchy(null);
         hierarchy.loadXML(openFile("hier3.xml"), new DashHierarchy(null));
         recorder = new TimingMetricsRecorder(timeLog, data, hierarchy, approver);
+        recorder.refreshMetrics();
 
         expectedTimes = new HashMap();
         for (int i = 0; i < TIMELOG3_CONTENTS.length; i++) {
