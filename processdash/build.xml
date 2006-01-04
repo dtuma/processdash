@@ -119,7 +119,7 @@ Authors:
 
 
   <!-- property name="build.sysclasspath" value="ignore"/ -->
-  <property name="build.compiler" value="javac1.3"/>
+  <property name="build.compiler" value="javac1.4"/>
 
   <path id="build.classpath">
     <pathelement location="${build}"/>
@@ -162,7 +162,7 @@ Authors:
 
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
-           classpathref="build.classpath">
+           classpathref="build.classpath" target="1.4">
       <include name="net/**/*.java"/>
       <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>

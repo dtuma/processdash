@@ -76,7 +76,7 @@ public class TutorialAnnotator {
 
     private static final class SortOrder implements Comparator {
         public int compare(Object o1, Object o2) {
-            return String.CASE_INSENSITIVE_ORDER.compare(o2, o1);
+            return String.CASE_INSENSITIVE_ORDER.compare((String) o2, (String) o1);
         }
     }
     private static final Comparator SORT_ORDER = new SortOrder();

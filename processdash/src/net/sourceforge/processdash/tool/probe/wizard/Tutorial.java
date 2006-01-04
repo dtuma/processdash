@@ -59,8 +59,8 @@ public class Tutorial extends TinyCGIBase {
         try {
             String which = getParameter(TUTORIAL_PARAM);
             String methodName = "write" + which + "Tutorial";
-            Method m = Tutorial.class.getMethod(methodName, null);
-            m.invoke(this, null);
+            Method m = Tutorial.class.getMethod(methodName, (Class[]) null);
+            m.invoke(this, (Object[]) null);
         } catch (Throwable t) {
             IOException ioe = new IOException("No such tutorial");
             ioe.initCause(t);

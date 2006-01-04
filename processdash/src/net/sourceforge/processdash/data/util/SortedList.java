@@ -79,7 +79,7 @@ class SortedList extends DataList {
                 result = nodeComparator.compare((String) e1.getKey(),
                                                 (String) e2.getKey());
             if (result == 0)
-                result = ((String) e1.getKey()).compareTo(e2.getKey());
+                result = ((String) e1.getKey()).compareTo((String) e2.getKey());
             return result;
         }
         public boolean equals(Object obj) { return (obj == this); }

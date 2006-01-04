@@ -237,7 +237,7 @@ public class EVSchedule implements TableModel {
                     // new end date of this period.
                     while (previous != null &&
                            periods.size() > 2 &&
-                           getBeginDate().compareTo(value) >= 0)
+                           getBeginDate().compareTo((Date) value) >= 0)
                         remove(--pos);
 
                     // delete any following periods which end BEFORE the
@@ -245,7 +245,7 @@ public class EVSchedule implements TableModel {
                     Period next;
                     while ((next = get(pos+1)) != null &&
                            periods.size() > 2 &&
-                           next.endDate.compareTo(value) <= 0)
+                           next.endDate.compareTo((Date) value) <= 0)
                         remove(pos+1);
 
                     // we still will not save the change UNLESS this
@@ -257,9 +257,9 @@ public class EVSchedule implements TableModel {
                     //   * there is no following period, OR it ends
                     //     AFTER this new end date.
                     if ((previous == null ||
-                         getBeginDate().compareTo(value) < 0) &&
+                         getBeginDate().compareTo((Date) value) < 0) &&
                         ((next = get(pos+1)) == null ||
-                         next.endDate.compareTo(value) > 0))
+                         next.endDate.compareTo((Date) value) > 0))
                         endDate = (Date) value;
 
                     clearAutomaticFlag();

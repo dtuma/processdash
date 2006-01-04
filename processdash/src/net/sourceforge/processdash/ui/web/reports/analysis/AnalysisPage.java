@@ -87,7 +87,7 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
             if (chartKey != null) {
                 m = (Method) argGeneratorMap.get(chartKey);
                 if (m == null) {
-                    m = getClass().getMethod("write" + chartKey + "Args", null);
+                    m = getClass().getMethod("write" + chartKey + "Args", (Class[]) null);
                     argGeneratorMap.put(chartKey, m);
                 }
             }
@@ -95,7 +95,7 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
             if (m == null)
                 writeHTML();
             else
-                m.invoke(this, null);
+                m.invoke(this, (Object[]) null);
 
         } catch (Exception e) {
             e.printStackTrace();
