@@ -46,6 +46,9 @@ import org.w3c.dom.NodeList;
 
 public abstract class AbstractManager {
 
+    private static final String SETTING_XML_HEADER =
+        "<?xml version='1.1' standalone='yes' ?>";
+
     protected static final Resources resource = Resources
             .getDashBundle("ImportExport");
 
@@ -99,6 +102,9 @@ public abstract class AbstractManager {
     }
 
     private void parseXmlSetting(String userSetting) throws Exception {
+        if (!userSetting.startsWith("<?xml"))
+                userSetting = SETTING_XML_HEADER + userSetting;
+
         Element doc = XMLUtils.parse(userSetting).getDocumentElement();
         NodeList instrElems = doc.getChildNodes();
         int len = instrElems.getLength();

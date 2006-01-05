@@ -174,7 +174,7 @@ public class ExportManager extends AbstractManager {
         tasks.addAll(getExportInstructionsFromData());
 
         // nothing to do?
-        if (!tasks.isEmpty())
+        if (tasks.isEmpty())
             return;
 
         for (Iterator iter = tasks.iterator(); iter.hasNext();) {
