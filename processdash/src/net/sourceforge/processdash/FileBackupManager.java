@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.*;
 
+import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.*;
 
@@ -111,10 +112,11 @@ public class FileBackupManager {
     private static void backupFiles(File dataDir, File backupDir, int when)
         throws IOException
     {
-        File[] backupFiles = getBackupFiles(backupDir);
-        if (backupFiles == null || backupFiles.length == 0)
+        File[] dataFiles = getDataFiles(dataDir);
+        if (dataFiles == null || dataFiles.length == 0)
             return;        // nothing to do
 
+        File[] backupFiles = getBackupFiles(backupDir);
         File oldestBackupFile = findMostRecentBackupFile(backupFiles);
         File oldBackupTempFile = new File(backupDir, OLD_BACKUP_TEMP_FILENAME);
         File newBackupTempFile = new File(backupDir, NEW_BACKUP_TEMP_FILENAME);
@@ -133,7 +135,6 @@ public class FileBackupManager {
             (new FileOutputStream(newBackupTempFile));
         newBackupOut.setLevel(9);
 
-        File[] dataFiles = getDataFiles(dataDir);
         oldBackupIsEmpty = true;
 
         for (int i = 0; i < dataFiles.length; i++) {
@@ -379,8 +380,11 @@ public class FileBackupManager {
         if (name.endsWith(".dat") ||    // backup data files
             name.endsWith(".def") ||    // backup defect logs
             name.equals("time.log") ||  // backup the time log
+            name.equals(WorkingTimeLog.TIME_LOG_FILENAME) ||
+            name.equals(WorkingTimeLog.TIME_LOG_MOD_FILENAME) ||
             name.equals("state") ||     // backup the state file
-            name.equals("pspdash.ini")) // backup the user settings
+            name.equals(".pspdash") ||  // backup the user settings
+            name.equals("pspdash.ini"))
             return true;
         if (name.equals(LOG_FILE_NAME) && f.length() > 0)
             // backup the log file if it contains anything.
