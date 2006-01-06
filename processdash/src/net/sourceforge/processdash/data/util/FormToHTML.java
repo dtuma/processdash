@@ -27,6 +27,8 @@ package net.sourceforge.processdash.data.util;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 import net.sourceforge.processdash.data.*;
@@ -43,19 +45,20 @@ import net.sourceforge.processdash.util.StringUtils;
  */
 public class FormToHTML {
 
-    public static void translate(StringBuffer text, DataRepository data,
+        public static void translate(StringBuffer text, DataRepository data,
                                  String prefix) {
         int beg, end, end2;
 
         // dashboard forms have clearly delineated table cells because
         // of the squares drawn around <INPUT> tags.  When those
         // squares disappear, the tables are hard to read.  Enhance
-        // readability by adding thin table borders.
+        // readability by adding thin table borders.  Also, define a
+        // style that will help Excel format numbers properly.
         if ((beg = findTag(text, STYLE_END, 0)) != -1) {
-            text.insert(beg, TABLE_STYLE_DECL);
+            text.insert(beg, EXTRA_STYLE_DECL);
         } else if ((beg = findTag(text, HEAD_END, 0)) != -1) {
             text.insert(beg, "</style>")
-                .insert(beg, TABLE_STYLE_DECL)
+                .insert(beg, EXTRA_STYLE_DECL)
                 .insert(beg, "<style>");
         }
 
@@ -112,9 +115,20 @@ public class FormToHTML {
     private static final String TEXTAREA_TAG = "<textarea";
     private static final String TEXTAREA_END = "</textarea";
 
-    private static final String TABLE_STYLE_DECL =
+
+
+    private static final String EXCEL_TIME_FMT_CLASS = "excelTimeFmt";
+        private static final String EXCEL_CLASS_DECL = " class='" +
+                EXCEL_TIME_FMT_CLASS + "'";
+        private static final String EXCEL_TIME_FMT_STYLE =
+                        "vnd.ms-excel.numberformat: [h]\\:mm";
+        private static final String EXCEL_STYLE_DECL = " style='" +
+                        EXCEL_TIME_FMT_STYLE + "'";
+
+    private static final String EXTRA_STYLE_DECL =
         " table { border: 1px solid grey; border-collapse: collapse } " +
-        " td    { border: 1px solid grey } ";
+        " td    { border: 1px solid grey } " +
+        " ." + EXCEL_TIME_FMT_CLASS + " { " + EXCEL_TIME_FMT_STYLE + "} ";
 
     // tag should already start with "<".
     public static int findTag(StringBuffer text, String tag, int start) {
@@ -161,6 +175,7 @@ public class FormToHTML {
         // look up the appropriate value
         SimpleData value = data.getSimpleValue(inputName.name);
         String result = "";
+        boolean isTimeValue = false;
         if (checkmark)
             result = (value != null && value.test() ? "*": "");
         else if (value instanceof NumberData) {
@@ -168,9 +183,10 @@ public class FormToHTML {
             double val = ((NumberData) value).getDouble();
             if (inputName.hasFlag('%') || inputName.name.indexOf('%') != -1)
                 result = FormatUtil.formatPercent(val, numDigits);
-            else if (InterpreterFactory.isTimeInputName(inputName))
+            else if (InterpreterFactory.isTimeInputName(inputName)) {
                 result = FormatUtil.formatTime(val, true);
-            else
+                isTimeValue = true;
+            } else
                 result = FormatUtil.formatNumber(val, numDigits);
         } else if (value != null)
             result = value.format();
@@ -178,8 +194,61 @@ public class FormToHTML {
 
         // interpolate it into the StringBuffer
         text.replace(beg, end, result);
+        end = beg + result.length();
+
+        if (isTimeValue)
+                end += insertTimeFormattingForExcel(text, beg);
 
         // return the new value of end
-        return beg + result.length();
+        return end;
     }
+
+        private static int insertTimeFormattingForExcel(StringBuffer text, int end) {
+                int beg = StringUtils.lastIndexOf(text, "<", end);
+                if (beg == -1) return 0;
+
+                // take a look at the sequence of characters from the previous "<"
+                // to the end of input, and see if that looks like a <td> tag.
+                CharSequence possibleTag = text.subSequence(beg, end);
+                Matcher m = TD_TAG_PATTERN.matcher(possibleTag);
+                if (!m.matches())
+                        // the newly replaced text doesn't appear to be inside a <td>
+                        // tag.  Do nothing and exit.
+                        return 0;
+
+                int contentBeg = beg + m.start(1);
+                int contentEnd = beg + m.end(1);
+                String tagContents = m.group(1);
+
+                m = CLASS_ATTR_PATTERN.matcher(tagContents);
+                if (!m.find()) {
+                        // there is no "class" attribute present.  Add one.
+                        text.insert(contentBeg, EXCEL_CLASS_DECL);
+                        return EXCEL_CLASS_DECL.length();
+                }
+
+                // The tag already has a "class" attribute, and Excel isn't
+                // standards-conformant enough (surprise, surprise) to recognize
+                // multiple whitespace-delimited class names.  So we'll need to fall
+                // back and use the "style" attribute.
+
+                m = STYLE_ATTR_PATTERN.matcher(tagContents);
+                if (m.find()) {
+                        // the tag contents already contains a "style" attribute.  We just
+                        // need to amend it.
+                        int insertPos = contentBeg + m.end();
+                        text.insert(insertPos, EXCEL_TIME_FMT_STYLE + "; ");
+                        return EXCEL_TIME_FMT_STYLE.length() + 2;
+                } else {
+                        // the tag does not contain a "style" attribute.  Add one.
+                        text.insert(contentBeg, EXCEL_STYLE_DECL);
+                        return EXCEL_STYLE_DECL.length();
+                }
+        }
+        private static Pattern TD_TAG_PATTERN =
+                Pattern.compile("<t[dh]([^<>]*)>\\s*", Pattern.CASE_INSENSITIVE);
+        private static Pattern CLASS_ATTR_PATTERN =
+                Pattern.compile("\\s+class\\s*=", Pattern.CASE_INSENSITIVE);
+        private static Pattern STYLE_ATTR_PATTERN =
+                Pattern.compile("\\s+style\\s*=\\s*['\"]", Pattern.CASE_INSENSITIVE);
 }

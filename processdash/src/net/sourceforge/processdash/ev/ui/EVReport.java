@@ -30,6 +30,7 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.swing.table.TableModel;
 
@@ -304,6 +305,7 @@ public class EVReport extends CGIChartBase {
     static final String HEADER_HTML =
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
+        "<style>td.timefmt { vnd.ms-excel.numberformat: [h]\\:mm }</style>\n" +
         "</head><body><h1>%title%</h1>\n";
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
@@ -321,6 +323,8 @@ public class EVReport extends CGIChartBase {
     static final String OPT_FOOTER_HTML1 = "<a href='week.class'><i>";
     static final String OPT_FOOTER_HTML2 = "</i></a>";
     static final String FOOTER_HTML2 = "</body></html>";
+    static final String EXCEL_TIME_TD = "<td class='timefmt'>";
+
 
     /** Generate an HTML table based on a TableModel.
      *
@@ -357,8 +361,12 @@ public class EVReport extends CGIChartBase {
             out.print("<tr>");
             for (int c = 0;   c < numCols;   c++) {
                 if (hide[c]) continue;
-                out.print("<td>");
-                out.print(encodeHTML(t.getValueAt(r, c)));
+                String cellValue = encodeHTML(t.getValueAt(r, c));
+                if (HOURS_MINUTES_PATTERN.matcher(cellValue).matches())
+                        out.print(EXCEL_TIME_TD);
+                else
+                    out.print("<td>");
+                                out.print(cellValue);
                 out.print("</td>");
             }
             out.print("</tr>\n\n");
@@ -366,6 +374,7 @@ public class EVReport extends CGIChartBase {
 
         out.print("</table>\n\n");
     }
+    Pattern HOURS_MINUTES_PATTERN = Pattern.compile("\\d+:\\d\\d");
 
     // Override the inherited definition of this function with a no-op.
     protected void buildData() {}
