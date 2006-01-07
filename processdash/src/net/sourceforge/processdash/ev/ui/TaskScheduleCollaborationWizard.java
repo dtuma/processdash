@@ -37,6 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Stack;
 
@@ -65,6 +66,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -398,18 +400,20 @@ public class TaskScheduleCollaborationWizard {
 
 
         public WelcomeScreen() {
-            publishImage = images[PUBLISH] = new ImageIcon
-                (getClass().getResource("/Templates/Images/ev-publish.png"));
-            shareImage = images[SHARE] = new ImageIcon
-                (getClass().getResource("/Templates/Images/ev-share.png"));
-            rollupImage = images[ROLLUP] = new ImageIcon
-                (getClass().getResource("/Templates/Images/ev-rollup.png"));
+            publishImage = images[PUBLISH] = getTemplateImage("ev-publish.png");
+            shareImage = images[SHARE] = getTemplateImage("ev-share.png");
+            rollupImage = images[ROLLUP] = getTemplateImage("ev-rollup.png");
             images[CANCEL] = null;
 
             BuildFrame();
             this.setBackground(backgroundColor);
             PCSH.enableHelpKey(this, "TaskScheduleCollaboration");
         }
+
+                private ImageIcon getTemplateImage(String image) {
+                        URL imageURL = TemplateLoader.resolveURL("/Images/" + image);
+                        return new ImageIcon(imageURL);
+                }
 
 
         private JButton newJButton() {
