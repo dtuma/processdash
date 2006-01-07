@@ -11,6 +11,7 @@ public class AllUtilTests {
                 //$JUnit-BEGIN$
                 suite.addTestSuite(TestFormatUtil.class);
                 suite.addTestSuite(TimeNumberFormatTest.class);
+                suite.addTestSuite(HTMLTableWriterTest.class);
                 //$JUnit-END$
                 return suite;
         }
