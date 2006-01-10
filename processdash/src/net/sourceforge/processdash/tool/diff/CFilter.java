@@ -70,7 +70,9 @@ public class CFilter extends AbstractLanguageFilter {
         // related points.
         if (contents.startsWith("#include") ||
             contents.startsWith("#define") ||
-            contents.startsWith("#if"))
+            contents.startsWith("#if") ||
+            contents.startsWith("#ifdef") ||
+            contents.startsWith("#ifndef"))
             return match + 30;
         else
             return match;
