@@ -133,6 +133,7 @@ public class DataRepository implements Repository, DataContext {
                 super("DataRealizer");
                 dataElements = new Stack();
                 setPriority(MIN_PRIORITY);
+                setDaemon(true);
             }
 
             // when adding an element to the data Realizer, also restart it.
@@ -183,7 +184,11 @@ public class DataRepository implements Repository, DataContext {
 
 
         private class DataSaver extends Thread {
-            public DataSaver() { start(); }
+            public DataSaver() {
+                super("DataSaver");
+                setDaemon(true);
+                start();
+            }
             public void run() {
                 while (true) try {
                     sleep(120000);         // save dirty datafiles every 2 minutes
@@ -360,6 +365,7 @@ public class DataRepository implements Repository, DataContext {
                 notifications = new Hashtable();
                 activeListeners = new Hashtable();
                 setPriority(MIN_PRIORITY);
+                setDaemon(true);
             }
 
             public void highPriority() {
@@ -605,6 +611,7 @@ public class DataRepository implements Repository, DataContext {
 
             public DataFreezer() {
                 super("DataFreezer");
+                setDaemon(true);
                 frozenDataSets = new Hashtable();
                 itemsToFreeze = Collections.synchronizedSortedSet(new TreeSet());
                 itemsToThaw = Collections.synchronizedSortedSet(new TreeSet());
