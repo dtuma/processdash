@@ -266,9 +266,6 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
             public void run() {
                 try {
                     savePendingVector();
-                    HierarchyAlterer.updateNodesAndLeaves
-                        (dashboard.getData(), useProps);
-                    incrementProgressDialog();
                 } catch (Throwable t) { t.printStackTrace(); }
                 closeProgressDialog();
             }
@@ -278,7 +275,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         showProgressDialog();     // this call will block until complete.
     }
 
-    public void savePendingVector() {
+    protected void savePendingVector() {
 
         if (pendingVector != null) {
             String dataDir = dashboard.getDirectory();
@@ -305,6 +302,11 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
                     incrementProgressDialog();
                 }
                 pendingVector.removeAllElements();
+
+                HierarchyAlterer.updateNodesAndLeaves
+                    (dashboard.getData(), useProps);
+                incrementProgressDialog();
+
             } finally {
                 dashboard.getData().finishInconsistency();
             }

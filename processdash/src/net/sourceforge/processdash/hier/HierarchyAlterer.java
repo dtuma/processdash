@@ -67,9 +67,9 @@ public class HierarchyAlterer implements ItemListener {
 
     private void endChanges() {
         dashboard.getHierarchy().removeItemListener(this);
+        updateNodesAndLeaves(dashboard.getData(), dashboard.getHierarchy());
         dashboard.getData().finishInconsistency();
         dashboard.getHierarchy().fireHierarchyChanged();
-        updateNodesAndLeaves(dashboard.getData(), dashboard.getHierarchy());
     }
 
 
