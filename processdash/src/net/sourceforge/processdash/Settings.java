@@ -75,6 +75,14 @@ public class Settings {
             return settings.getProperty(name);
     }
 
+    public static String getVal(String name, String defaultValue) {
+            String value = getVal(name);
+            if (value != null && value.length() > 0)
+                    return value;
+            else
+                    return defaultValue;
+    }
+
 
     public static boolean getBool(String name, boolean defaultValue) {
         String value = getVal(name);
