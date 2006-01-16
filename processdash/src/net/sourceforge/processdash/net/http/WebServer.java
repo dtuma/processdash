@@ -39,6 +39,8 @@ import java.security.PrivilegedExceptionAction;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
@@ -139,6 +141,9 @@ public class WebServer {
     private static final String DASH_CHARSET = HTTPUtils.DEFAULT_CHARSET;
     static final String HEADER_CHARSET = DASH_CHARSET;
     private static String OUTPUT_CHARSET = DASH_CHARSET;
+
+    private static final Logger logger =
+        Logger.getLogger(WebServer.class.getName());
 
     static {
         try {
@@ -297,6 +302,7 @@ public class WebServer {
             try {
                 // read and process the header line
                 line = readLine(inputStream);
+                logger.log(Level.FINE, "WebServer received request: {0}", line);
                 StringTokenizer tok = new StringTokenizer(line, " ");
                 method   = tok.nextToken();
                 uri      = tok.nextToken();
@@ -1847,7 +1853,6 @@ public class WebServer {
         ServerSocketListener s = new ServerSocketListener(port);
         s.start();
         this.port = s.getPortNumber();
-        Browser.setDefaults(getHostName(), port);
         DEFAULT_ENV.put("SERVER_PORT", Integer.toString(this.port));
     }
 

@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -370,13 +370,25 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     }
 
     private class HttpPortSettingListener implements PropertyChangeListener {
+
+        public HttpPortSettingListener() {
+                setBrowserDefaults();
+        }
+
         public void propertyChange(PropertyChangeEvent evt) {
             if (HTTP_PORT_SETTING.equalsIgnoreCase(evt.getPropertyName()))
                 try {
                     int newPort = Integer.parseInt((String) evt.getNewValue());
                     webServer.addPort(newPort);
+                    setBrowserDefaults();
                 } catch (Exception e) {}
         }
+
+                private void setBrowserDefaults() {
+                        Browser.setDefaults(
+                                        Settings.getVal("http.hostname", "localhost"),
+                                        webServer.getPort());
+                }
     }
 
     private void displayStartupIOError(String resourceKey, String filename) {
