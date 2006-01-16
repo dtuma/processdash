@@ -91,11 +91,11 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
         this.listeners = new LinkedList();
     }
 
-    public boolean isDirty() {
+    public synchronized boolean isDirty() {
         return dirty;
     }
 
-    public boolean isEmpty() {
+    public synchronized boolean isEmpty() {
         return modifications.isEmpty() && batchRenames.isEmpty();
     }
 
@@ -108,10 +108,12 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
     }
 
     public void clear() {
-        modifications.clear();
-        batchRenames.clear();
-        if (saveFile == null || saveFile.delete())
-            dirty = false;
+        synchronized (this) {
+                modifications.clear();
+                batchRenames.clear();
+                if (saveFile == null || saveFile.delete())
+                    dirty = false;
+        }
 
         fireTimeLogChanged();
     }
@@ -121,10 +123,12 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
             List mods = Collections.list(new RenamingOperationsIterator());
             mods.addAll(modifications.values());
 
-            modifications.clear();
-            batchRenames.clear();
-            if (saveFile == null || saveFile.delete())
-                dirty = false;
+            synchronized (this) {
+                    modifications.clear();
+                    batchRenames.clear();
+                    if (saveFile == null || saveFile.delete())
+                        dirty = false;
+            }
 
             ((ModifiableTimeLog) parent).addModifications(mods.iterator());
         } else {
@@ -144,10 +148,13 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
         if (iter == null || iter.hasNext() == false)
             return;
 
-        while (iter.hasNext()) {
-            TimeLogEntry tle = (TimeLogEntry) iter.next();
-            addModificationImpl(tle);
+        synchronized (this) {
+                while (iter.hasNext()) {
+                    TimeLogEntry tle = (TimeLogEntry) iter.next();
+                    addModificationImpl(tle);
+                }
         }
+
         fireTimeLogChanged();
         save();
     }
@@ -160,7 +167,7 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
         save();
     }
 
-    protected boolean addModificationImpl(TimeLogEntry mod) {
+    protected synchronized boolean addModificationImpl(TimeLogEntry mod) {
         if (!(mod instanceof ChangeFlagged))
             throw new IllegalArgumentException(
                     "Time log modifications must be ChangeFlagged");
@@ -205,13 +212,15 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
 
     protected void processBatchChange(ChangeFlaggedTimeLogEntry mod, boolean addToList) {
         PathRenamingInstruction instr = PathRenamer.toInstruction(mod);
-        if (addToList)
-            batchRenames.add(instr);
-        processBatchRename(instr);
+        synchronized (this) {
+                if (addToList)
+                    batchRenames.add(instr);
+                processBatchRename(instr);
+        }
         fireEntryAdded(mod);
     }
 
-    protected void processBatchRename(PathRenamingInstruction instr) {
+    protected synchronized void processBatchRename(PathRenamingInstruction instr) {
         List instrList = Collections.singletonList(instr);
 
         for (Iterator i = modifications.entrySet().iterator(); i.hasNext();) {
@@ -326,28 +335,30 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
             return null;
     }
 
-    public ChangeFlaggedTimeLogEntry getModification(long id) {
+    public synchronized ChangeFlaggedTimeLogEntry getModification(long id) {
         return (ChangeFlaggedTimeLogEntry) modifications.get(new Long(id));
     }
 
     protected void load() throws IOException {
-        modifications = new LinkedHashMap();
+        synchronized (this) {
+                modifications = new LinkedHashMap();
 
-        if (saveFile != null && saveFile.isFile()) {
-            for (Iterator iter = new TimeLogReader(saveFile); iter.hasNext();) {
-                TimeLogEntry tle = (TimeLogEntry) iter.next();
-                if (PathRenamer.isRenamingOperation(tle))
-                    batchRenames.add(PathRenamer.toInstruction(tle));
-                else
-                    modifications.put(new Long(tle.getID()), tle);
-            }
+                if (saveFile != null && saveFile.isFile()) {
+                    for (Iterator iter = new TimeLogReader(saveFile); iter.hasNext();) {
+                        TimeLogEntry tle = (TimeLogEntry) iter.next();
+                        if (PathRenamer.isRenamingOperation(tle))
+                            batchRenames.add(PathRenamer.toInstruction(tle));
+                        else
+                            modifications.put(new Long(tle.getID()), tle);
+                    }
+                }
+
+                this.dirty = false;
         }
-
-        this.dirty = false;
         fireTimeLogChanged();
     }
 
-    public boolean save() {
+    public synchronized boolean save() {
         if (saveFile == null)
             return false;
 
