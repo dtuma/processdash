@@ -32,8 +32,9 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.ChangeFlagged;
@@ -69,6 +70,9 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
 
     private static final int FAST_REFRESH_INTERVAL = 5 * 1000;
 
+    private static Logger logger = Logger.getLogger
+        (DefaultTimeLoggingModel.class.getName());
+
     public DefaultTimeLoggingModel(ModifiableTimeLog timeLog,
             TimeLoggingApprover approver) {
         this.timeLog = timeLog;
@@ -78,19 +82,22 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
                 (ActionListener) EventHandler.create(ActionListener.class,
                         this, "handleTimerEvent"));
         activeRefreshTimer.setInitialDelay(Math.min(MILLIS_PER_MINUTE,
-                refreshIntervalMillis) + 1000);
+                refreshIntervalMillis) + 50);
 
         externalChangeListener = new ExternalChangeListener();
         propertyChangeSupport = new PropertyChangeSupport(this);
     }
 
     public void setActiveTaskModel(ActiveTaskModel model) {
-        if (activeTaskModel != null)
-            activeTaskModel.removePropertyChangeListener(externalChangeListener);
-        activeTaskModel = model;
-        if (activeTaskModel != null) {
-            activeTaskModel.addPropertyChangeListener(externalChangeListener);
-            setCurrentPhase(activeTaskModel.getNode());
+        if (activeTaskModel != model) {
+            logger.fine("setting active task model");
+            if (activeTaskModel != null)
+                activeTaskModel.removePropertyChangeListener(externalChangeListener);
+            activeTaskModel = model;
+            if (activeTaskModel != null) {
+                activeTaskModel.addPropertyChangeListener(externalChangeListener);
+                setCurrentPhase(activeTaskModel.getNode());
+            }
         }
     }
 
@@ -124,6 +131,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
     }
 
     public void setRecentPaths(List c) {
+        logger.fine("setting recent paths");
         recentPaths.clear();
         recentPaths.addAll(c);
         propertyChangeSupport.firePropertyChange(RECENT_PATHS_PROPERTY, null,
@@ -135,6 +143,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
     }
 
     public void setMultiplier(double multiplier) {
+        logger.config("setting timing multiplier to " + multiplier);
         this.multiplier = multiplier;
         this.refreshIntervalMillis = (int) (MILLIS_PER_MINUTE / multiplier);
         this.activeRefreshTimer.setInitialDelay(refreshIntervalMillis);
@@ -160,6 +169,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
     private static final int MILLIS_PER_MINUTE = 60 * 1000;
 
     public void handleTimerEvent() {
+        logger.finer("handleTimerEvent");
         saveCurrentTimeLogEntry(false);
 
         // Possibly commit the current row. If a user clicks
@@ -172,12 +182,16 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
             double interruptMinutes = stopwatch.runningMinutesInterrupt();
             double elapsedMinutes = currentTimeLogEntry.getElapsedTime();
             if (interruptMinutes > 5.0
-                    && interruptMinutes > (0.25 * elapsedMinutes))
+                    && interruptMinutes > (0.25 * elapsedMinutes)) {
+                logger.finer("interrupt time threshhold reached; " +
+                        "releasing current time log entry");
                 saveAndReleaseCurrentTimeLogEntry();
+            }
         }
     }
 
     public void stopTiming() {
+        logger.fine("stopTiming");
         if (paused == false) {
             paused = true;
             propertyChangeSupport.firePropertyChange(PAUSED_PROPERTY, false, true);
@@ -189,8 +203,11 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
     }
 
     public void startTiming() {
+        logger.fine("startTiming");
         if (approver != null
                 && approver.isTimeLoggingAllowed(currentPhase.path()) == false) {
+            logger.log(Level.FINER, "timing not allowed for path {0}",
+                    currentPhase.path());
             stopTiming();
             return;
         }
@@ -210,6 +227,9 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
         PropertyKey oldPhase = currentPhase;
         if (newCurrentPhase != null && newCurrentPhase.equals(oldPhase))
             return;
+
+        logger.log(Level.FINE, "setting current phase to {0}",
+                (newCurrentPhase == null ? "null" : newCurrentPhase.path()));
 
         if (currentTimeLogEntry != null)
             addToRecentPaths(currentPhase.path());
@@ -261,12 +281,15 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
         if (stopwatch == null)
             return;
 
+        logger.fine("updating current time log entry");
         double elapsedMinutes = stopwatch.minutesElapsedDouble();
         long roundedElapsedMinutes = (long) (elapsedMinutes + 0.5);
 
         if (currentTimeLogEntry == null) {
-            if (elapsedMinutes < 1.0)
+            if (elapsedMinutes < 1.0) {
+                logger.fine("less than one minute elapsed; no entry created");
                 return;
+            }
 
             long id = timeLog.getNextID();
             currentTimeLogEntry = new MutableTimeLogEntryVO(id, currentPhase
@@ -274,6 +297,11 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
                     stopwatch.minutesInterrupt(), null, ChangeFlagged.ADDED);
             currentTimeLogEntry
                     .addPropertyChangeListener(externalChangeListener);
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine("Created time log entry, id=" + id + ", elapsed="
+                        + roundedElapsedMinutes + ", path="
+                        + currentPhase.path());
+            }
 
             // When we began timing this phase, we set the timer for a
             // fast, 5 second interval (so we could catch the top of
@@ -290,6 +318,12 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
                 currentTimeLogEntry.setElapsedTime(roundedElapsedMinutes);
                 currentTimeLogEntry.setInterruptTime(stopwatch
                         .minutesInterrupt());
+                if (logger.isLoggable(Level.FINE)) {
+                    logger.fine("Updating time log entry, id="
+                            + currentTimeLogEntry.getID() + ", elapsed="
+                            + roundedElapsedMinutes + ", interrupt="
+                            + stopwatch.minutesInterrupt());
+                }
             } finally {
                 updatingCurrentTimeLogEntry = false;
             }
@@ -306,6 +340,8 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
         if (currentTimeLogEntry == null)
             return; // nothing to save.
 
+        logger.fine("saving current time log entry");
+
         if (release)
             timeLog.addModification(new TimeLogEntryVO(currentTimeLogEntry));
         else
@@ -321,6 +357,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
     private void releaseCurrentTimeLogEntry() {
         stopwatch = (paused ? null : newTimer());
         if (currentTimeLogEntry != null) {
+            logger.fine("releasing current time log entry");
             currentTimeLogEntry
                     .removePropertyChangeListener(externalChangeListener);
             currentTimeLogEntry = null;
@@ -328,6 +365,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
     }
 
     protected Stopwatch newTimer() {
+        logger.finer("creating new timer");
         // The instructions below will cause the timer to wait for 61
         // seconds (starting right now), then fire once every 5
         // seconds. This quick firing interval allows it to catch the
@@ -349,20 +387,38 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
                 // Some external agent has made a change to our current time
                 // log entry.
 
-                if (((ChangeFlagged) currentTimeLogEntry).getChangeFlag() == ChangeFlagged.DELETED
-                        || "path".equals(evt.getPropertyName())) {
+                if (((ChangeFlagged) currentTimeLogEntry).getChangeFlag() == ChangeFlagged.DELETED) {
+                    logger.finer("current time log entry was deleted");
+                    releaseCurrentTimeLogEntry();
+
+                } else if ("path".equals(evt.getPropertyName())) {
+                    logger.finer("path of current time log entry was changed");
                     releaseCurrentTimeLogEntry();
 
                 } else if (updatingCurrentTimeLogEntry == false
                         && stopwatch != null) {
-                    stopwatch
-                            .setElapsed(currentTimeLogEntry.getElapsedTime() * 60);
-                    stopwatch.setInterrupt(currentTimeLogEntry
-                            .getInterruptTime() * 60);
+
+                    if ("elapsedTime".equals(evt.getPropertyName())) {
+                        logger.finer("Updating elapsed time based on external "
+                                + "changes to current time log entry");
+                        stopwatch.setElapsed(currentTimeLogEntry
+                                .getElapsedTime() * 60);
+                        // we just reset the stopwatch to an even number of
+                        // minutes.  resync the refresh timer with this new
+                        // top-of-the-minute mark.
+                        activeRefreshTimer.restart();
+
+                    } else if ("interruptTime".equals(evt.getPropertyName())) {
+                        logger.finer("updating interrupt time based on "
+                                + "external changes to current time log entry");
+                        stopwatch.setInterrupt(currentTimeLogEntry
+                                .getInterruptTime() * 60);
+                    }
                 }
 
             } else if (evt.getSource() == activeTaskModel) {
                 // Some external agent has changed the currently selected path.
+                logger.finer("activeTaskModel changed currently selected task");
                 setCurrentPhase(activeTaskModel.getNode());
             }
         }
