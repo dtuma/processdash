@@ -202,7 +202,8 @@ public class TimingMetricsRecorder implements TimeLogListener {
             startingKey = PropertyKey.ROOT;
         else
             startingKey = hierarchy.findExistingKey(path);
-        initMapFromHierarchy(startingKey, result);
+        if (startingKey != null)
+                initMapFromHierarchy(startingKey, result);
     }
 
     private void initMapFromHierarchy(PropertyKey key, Map result) {
