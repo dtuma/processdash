@@ -71,20 +71,6 @@ public class DataImporter extends Thread {
     private HashMap modTimes = new HashMap();
     private HashMap prefixes = new HashMap();
 
-    public static void init(DataRepository data, String userSetting) {
-        if (userSetting == null || userSetting.length() == 0) return;
-
-        StringTokenizer tok = new StringTokenizer(userSetting, "|;");
-        while (tok.hasMoreTokens()) {
-            String token = tok.nextToken();
-            int separatorPos = token.indexOf("=>");
-            if (separatorPos == -1) continue;
-
-            String prefix = massagePrefix(token.substring(0, separatorPos));
-            String dir = token.substring(separatorPos+2);
-            addImport(data, prefix, dir);
-        }
-    }
 
     public static void addImport(DataRepository data, String prefix, String dir) {
         DataImporter i = new DataImporter(data, prefix, new File(dir));

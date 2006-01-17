@@ -53,6 +53,8 @@ import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExportMetricsFileInstruction;
+import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
+import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 
 
 public class DashController {
@@ -313,14 +315,10 @@ public class DashController {
         return InternalSettings.getSettingsFileName();
     }
     public static void addImportSetting(String prefix, String importDir) {
-        String importInstr = (prefix + "=>" + importDir);
-        String imports = Settings.getVal(IMPORT_DIRS);
-        if (imports == null)
-            InternalSettings.set(IMPORT_DIRS, importInstr);
-        else
-            InternalSettings.set(IMPORT_DIRS, imports + "|" + importInstr);
-        DataImporter.init(dash.data, importInstr);
-    }
+                ImportDirectoryInstruction instr = new ImportDirectoryInstruction(
+                                importDir, prefix);
+                ImportManager.getInstance().addInstruction(instr);
+        }
 
     public static void enableTeamSettings() {
         // enable earned value rollups.
@@ -359,7 +357,6 @@ public class DashController {
         return successful;
     }
 
-    private static final String IMPORT_DIRS = "import.directories";
     private static final String EV_ROLLUP = "ev.enableRollup";
     private static final String HTTP_PORT = ProcessDashboard.HTTP_PORT_SETTING;
     private static final int[] PORT_PATTERNS = {
