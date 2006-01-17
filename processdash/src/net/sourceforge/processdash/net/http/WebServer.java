@@ -208,7 +208,6 @@ public class WebServer {
         public TinyWebThread(Socket clientSocket) {
             super("TinyWebThread-"+nextThreadNum());
             try {
-                effectiveClientSocket.set(clientSocket);
                 this.clientSocket = clientSocket;
                 this.inputStream = new BufferedInputStream
                     (clientSocket.getInputStream());
@@ -220,8 +219,6 @@ public class WebServer {
                     (new OutputStreamWriter(outputStream, HEADER_CHARSET));
             } catch (IOException ioe) {
                 this.inputStream = null;
-            } finally {
-                effectiveClientSocket.set(null);
             }
         }
 
@@ -283,18 +280,26 @@ public class WebServer {
         }
 
         public void run() {
-            if (inputStream != null) {
-                isRunning = true;
+                boolean isClientRequest = (clientSocket != null);
                 try {
-                    handleRequest();
-                } catch (TinyWebThreadException twte) {
-                    if (exceptionEncountered == null)
-                        exceptionEncountered = twte;
-                }
-                isRunning = false;
-            }
+                        if (isClientRequest)
+                                effectiveClientSocket.set(clientSocket);
+                    if (inputStream != null) {
+                        isRunning = true;
+                        try {
+                            handleRequest();
+                        } catch (TinyWebThreadException twte) {
+                            if (exceptionEncountered == null)
+                                exceptionEncountered = twte;
+                        }
+                        isRunning = false;
+                    }
 
-            close();
+                    close();
+                } finally {
+                        if (isClientRequest)
+                                effectiveClientSocket.set(null);
+                }
         }
 
         private void handleRequest() throws TinyWebThreadException {
