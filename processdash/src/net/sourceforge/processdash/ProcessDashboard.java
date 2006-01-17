@@ -32,6 +32,8 @@ import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.io.*;
 import java.net.URL;
 import javax.swing.*;
@@ -102,15 +104,13 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     private ActiveTaskModel activeTaskModel;
 
+    private static final Logger logger = Logger
+                        .getLogger(ProcessDashboard.class.getName());
+
     private static String versionNumber;
 
     private static final String TEMPLATES_CLASSPATH = "Templates/";
     public static final int DEFAULT_WEB_PORT = 2468;
-
-    private void debug(String msg) {
-        System.err.print("ProcessDashboard: ");
-        System.err.println(msg);
-    }
 
     public ProcessDashboard(String title) {
         super();
@@ -140,7 +140,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 (HTTP_PORT_SETTING, new HttpPortSettingListener());
             ScriptID.setNameResolver(new ScriptNameResolver(webServer));
         } catch (IOException ioe) {
-            System.err.println("Couldn't start web server: " + ioe);
+            logErr("Couldn't start web server", ioe);
         }
 
         // ensure that we have exclusive control of the data in the
@@ -170,7 +170,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         LookAndFeelSettings.loadLocalizedSettings();
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
         versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
-        System.out.println("Process Dashboard version " + versionNumber);
+        logger.info("Process Dashboard version " + versionNumber);
         setTitle(title != null ? title : resources.getString("Window_Title"));
 
         // initialize the content roots for the http server.
@@ -185,7 +185,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         if (lostPSPFiles.repair(this)==false) {
 
             // if the lost data files could not be repaired, exit the dashboard
-            System.err.println
+                logger.severe
                 ("Dashboard was terminated due to user request. " +
                  "The following bad data files were found in the "+
                  "psp data directory:\n" + lostPSPFiles.printOut());
@@ -243,8 +243,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 v = props.load(new StringReader(state), true);
                 displayFirstTimeUserHelp();
             } catch (Exception e) {
-                System.err.println("Couldn't read default state file: " + e);
-                e.printStackTrace();
+                logErr("Couldn't read default state file", e);
             }
         }
         data.setNodeComparator(props);
@@ -285,7 +284,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                     openDatafile(a[0], a[1]);
                 }
             }
-        }catch (Exception e) { debug("open datafiles failed!"); };
+        }catch (Exception e) { logErr("open datafiles failed!", e); };
 
         configure_button = new ConfigureButton(this);
         getContentPane().add(configure_button);
@@ -312,9 +311,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             openDatafile("", "global.dat");
 
         } catch (Exception exc) {
-            System.err.println
-                ("when generating default datafile, caught exception "+exc);
-            exc.printStackTrace(System.err);
+            logErr("when generating default datafile, caught exception", exc);
         }
         ImportManager.init(data);
         data.finishInconsistency();
@@ -417,10 +414,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (FileNotFoundException fnfe) {
             brokenData.logError(prefix);
         } catch (Exception exc) {
-            System.err.println("when opening datafile, '" + dataFile +
-                               "' for path '" + prefix +
-                               "', caught exception " + exc);
-            exc.printStackTrace(System.err);
+            logErr("when opening datafile, '" + dataFile + "' for path '"
+                                          + prefix + "', caught exception:", exc);
         }
     }
 
@@ -473,9 +468,11 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (Exception e) { }
     }
     private void refreshHierarchyImpl() {
+        logger.finer("ProcessDashboard.refreshHierarchyImpl starting");
         hierarchy.delete();
         hierarchy = new HierarchyMenu
             (this, hierarchy_menubar, activeTaskModel, PropertyKey.ROOT);
+        logger.finer("ProcessDashboard.refreshHierarchyImpl finished");
     }
 
     public HierarchyMenu getHierarchyMenu() {
@@ -540,9 +537,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (Throwable t) {
             // if the shutdown sequence encounters an uncaught exception,
             // display an error message, but still exit.
-            System.err.println
-                ("When shutting down, encountered the exception " + t);
-            t.printStackTrace();
+            logErr("When shutting down, encountered the exception:", t);
         }
         FileBackupManager.maybeRun
             (property_directory, FileBackupManager.SHUTDOWN);
@@ -639,7 +634,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             props.save(propertiesFile, "hierarchical work breakdown structure");
             return true;
         } catch (Exception e) {
-            debug("prop write failed.");
+                logErr("prop write failed.", e);
             return false;
         }
     }
@@ -661,7 +656,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
 
     public void startPeriodicTasks() {
-        Thread t = new Thread() {
+        Thread t = new Thread("Process Dashboard Periodic Task Executor") {
             public void run() {
                 performPeriodicTasks();
             }
@@ -697,6 +692,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             for (int i = 0;   i < MENU_FONT_KEYS.length;   i++)
                 UIManager.put(MENU_FONT_KEYS[i], f);
         } catch (Exception e) {}
+    }
+
+    private static void logErr(String msg, Throwable t) {
+        logger.log(Level.SEVERE, msg, t);
     }
 
     public static void main(String args[]) {
