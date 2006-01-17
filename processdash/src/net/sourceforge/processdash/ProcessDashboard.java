@@ -386,7 +386,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
                 private void setBrowserDefaults() {
                         Browser.setDefaults(
-                                        Settings.getVal("http.hostname", "localhost"),
+                                        webServer.getHostName(false),
                                         webServer.getPort());
                 }
     }

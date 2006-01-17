@@ -82,7 +82,7 @@ public class WebServer {
     private static final int ALLOW_REMOTE_MAYBE = 1;
     private static final int ALLOW_REMOTE_ALWAYS = 2;
     private int allowingRemoteConnections = ALLOW_REMOTE_NEVER;
-    private static int ALLOW_REMOTE_CONNECTIONS_SETTING = ALLOW_REMOTE_NEVER;
+//    private static int ALLOW_REMOTE_CONNECTIONS_SETTING = ALLOW_REMOTE_NEVER;
     private int port;
     private String startupTimestamp, startupTimestampHeader;
     private InheritableThreadLocal effectiveClientSocket =
@@ -1349,15 +1349,23 @@ public class WebServer {
         return path;
     }
 
-    public static String getHostName() {
+    public String getHostName(boolean forRemoteUse) {
+        // if the user is forbidding remote connections, then "localhost" is
+        // the only address we'll respond to, period.
+        if (allowingRemoteConnections == ALLOW_REMOTE_NEVER)
+                return "localhost";
+
+        // if the user has set a host they want to use, return that value.
         String result = Settings.getVal("http.hostname");
         if (result != null && result.length() > 0)
             return result;
 
-        if (ALLOW_REMOTE_CONNECTIONS_SETTING != ALLOW_REMOTE_NEVER) try {
+        // if we need a name for use by a different computer, look it up.
+        if (forRemoteUse) try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException uhe) {}
 
+        // return the default value
         return "localhost";
     }
 
@@ -1638,8 +1646,6 @@ public class WebServer {
             allowingRemoteConnections = ALLOW_REMOTE_MAYBE;
         else
             allowingRemoteConnections = ALLOW_REMOTE_NEVER;
-
-        ALLOW_REMOTE_CONNECTIONS_SETTING = allowingRemoteConnections;
     }
 
     private InetAddress getListenAddress() {

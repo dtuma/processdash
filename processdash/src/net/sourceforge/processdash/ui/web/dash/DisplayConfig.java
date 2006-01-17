@@ -56,7 +56,7 @@ public class DisplayConfig extends TinyCGIBase {
     }
 
     private void printServerName() {
-        out.print(WebServer.getHostName());
+        out.print(getTinyWebServer().getHostName(true));
     }
 
     private void printConfigFile() {

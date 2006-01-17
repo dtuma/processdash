@@ -1041,7 +1041,7 @@ public class TaskScheduleCollaborationWizard {
         public String getTaskListURL() {
             String prefix = getPrefix(action);
             prefix = WebServer.urlEncodePath(prefix);
-            String host = WebServer.getHostName();
+            String host = webServer.getHostName(true);
             int port = webServer.getPort();
             return "http://" + host + ":" + port + prefix + EV_URL;
         }

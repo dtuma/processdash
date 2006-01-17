@@ -128,7 +128,7 @@ public class ExcelReport extends TinyCGIBase {
         return uri;
     }
     private String getURL() {
-        String host = WebServer.getHostName();
+        String host = getTinyWebServer().getHostName(true);
         String port = (String) env.get("SERVER_PORT");
         return "http://" + host + ":" + port + getURI();
     }
