@@ -97,6 +97,7 @@ Authors:
   <property name="help"       value="${templates}/help"/>
   <property name="helpsearch" value="${help}/JavaHelpSearch"/>
   <property name="libsrc"     value="${lib}/src"/>
+  <property name="testsrc"    value="test/src"/>
   <property name="installer"  value="installer"/>
   <property name="langpacks"
                          value="${installer}/IzPack/bin/langpacks/installer"/>
@@ -541,6 +542,22 @@ Authors:
   <!-- =================================================================== -->
   <!-- Create miscellaneous other items                                    -->
   <!-- =================================================================== -->
+
+  <target name="securityTestJar" depends="dist">
+    <property name="stpkg" value="net/sourceforge/processdash/security"/>
+    <javac srcdir="${testsrc}" destdir="${testsrc}" debug="true"
+           classpath="${dist}/pspdash.jar"
+           includes="${stpkg}/CgiSecurityTest.java"/>
+    <jar destfile="${dist}/securityTest.jar" duplicate="fail">
+      <fileset dir="${testsrc}" includes="${stpkg}/CgiSecurityTest*.class"/>
+      <zipfileset dir="test/src/${stpkg}" includes="*.link"
+          prefix="Templates/dash"/>
+    </jar>
+    <delete>
+      <fileset dir="${testsrc}" includes="${stpkg}/CgiSecurityTest*.class"/>
+    </delete>
+  </target>
+
   <target name="p4diff">
     <classfileset id="p4locClasses" dir="bin2"
       rootclass="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
