@@ -141,6 +141,7 @@ public class WebServer {
     private static final String DASH_CHARSET = HTTPUtils.DEFAULT_CHARSET;
     static final String HEADER_CHARSET = DASH_CHARSET;
     private static String OUTPUT_CHARSET = DASH_CHARSET;
+        private static String DEFAULT_EXTERNAL_HOSTNAME = "localhost";
 
     private static final Logger logger =
         Logger.getLogger(WebServer.class.getName());
@@ -1349,6 +1350,14 @@ public class WebServer {
         return path;
     }
 
+    /** 
+     * @return the host name that an external computer might use to
+     * communicate with this web server.
+     */
+    public static String getHostName() {
+        return DEFAULT_EXTERNAL_HOSTNAME;
+    }
+
     public String getHostName(boolean forRemoteUse) {
         // if the user is forbidding remote connections, then "localhost" is
         // the only address we'll respond to, period.
@@ -1646,6 +1655,8 @@ public class WebServer {
             allowingRemoteConnections = ALLOW_REMOTE_MAYBE;
         else
             allowingRemoteConnections = ALLOW_REMOTE_NEVER;
+
+        DEFAULT_EXTERNAL_HOSTNAME = getHostName(true);
     }
 
     private InetAddress getListenAddress() {
