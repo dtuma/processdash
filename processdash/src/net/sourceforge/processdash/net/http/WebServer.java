@@ -409,10 +409,15 @@ public class WebServer {
          }
 
          /** Resolve an absolute URL */
-         private URLConnection resolveURL(String url)
+         private URLConnection resolveURL(final String url)
              throws TinyWebThreadException
          {
-             URLConnection result = WebServer.this.resolveURL(url);
+             URLConnection result = (URLConnection) AccessController
+                 .doPrivileged(new PrivilegedAction() {
+                        public Object run() {
+                            return WebServer.this.resolveURL(url);
+                        }});
+
              if (result == null)
                  sendError(404, "Not Found", "File '" + url + "' not found.");
              return result;
@@ -695,36 +700,50 @@ public class WebServer {
         private TinyCGI getScript(URLConnection conn) {
             return getScript(conn, null);
         }
-        private TinyCGI getScript(URLConnection conn, String className) {
+        private TinyCGI getScript(final URLConnection conn,
+                        final String className) {
             CGIPool pool = null;
             synchronized (cgiCache) {
                 pool = (CGIPool) cgiCache.get(path);
-                if (pool == null) try {
-                    ClassLoader cgiLoader = getLoader(conn);
-                    Class clz = null;
-                    if (className == null) {
-                        className = conn.getURL().getFile();
-                        int beg = className.lastIndexOf('/');
-                        int end = className.indexOf('.', beg);
-                        className = className.substring(beg + 1, end);
-                    }
-                    clz = cgiLoader.loadClass(className);
-                    pool = new CGIPool(path, clz);
-                    cgiCache.put(path, pool);
-                } catch (Throwable t) {
-                    // TODO: temporary fix to allow the old PSP for Engineers
-                    // add-on to work with v1.7
-                    String file = conn.getURL().getFile();
-                    if (file != null && file.endsWith("/sizeest.class")) {
-                        pool = new CGIPool(path, net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate.class);
-                        cgiCache.put(path, pool);
-                    } else {
-                        return null;
-                    }
+                if (pool == null) {
+                                        pool = (CGIPool) AccessController.doPrivileged(
+                                                        new PrivilegedAction() {
+                                                                public Object run() {
+                                                                        return createCgiPool(conn, className);
+                                                                }});
+                                    cgiCache.put(path, pool);
                 }
             }
-            return (TinyCGI) pool.get();
+
+            if (pool == null)
+                return null;
+            else
+                return (TinyCGI) pool.get();
         }
+
+                private CGIPool createCgiPool(URLConnection conn, String className) {
+                        CGIPool pool = null;
+                        try {
+                            ClassLoader cgiLoader = getLoader(conn);
+                            Class clz = null;
+                            if (className == null) {
+                                className = conn.getURL().getFile();
+                                int beg = className.lastIndexOf('/');
+                                int end = className.indexOf('.', beg);
+                                className = className.substring(beg + 1, end);
+                            }
+                            clz = cgiLoader.loadClass(className);
+                            pool = new CGIPool(path, clz);
+                        } catch (Throwable t) {
+                            // temporary fix to allow the old PSP for Engineers
+                            // add-on to work with v1.7
+                            String file = conn.getURL().getFile();
+                            if (file != null && file.endsWith("/sizeest.class"))
+                                pool = new CGIPool(path, net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate.class);
+                        }
+                        return pool;
+                }
+
         private void doneWithScript(Object script) {
             CGIPool pool = (CGIPool) cgiCache.get(path);
             if (pool != null)
@@ -810,8 +829,8 @@ public class WebServer {
 
             else {
                 discardHeader();
-                sendHeaders(200, "OK", mime_type, conn.getContentLength(),
-                            conn.getLastModified(), null);
+                                sendHeaders(200, "OK", mime_type, getContentLength(conn),
+                                getLastModified(conn), null);
 
                 while (-1 != (numBytes = content.read(buffer))) {
                     outputStream.write(buffer, 0, numBytes);
@@ -820,6 +839,23 @@ public class WebServer {
                 content.close();
             }
         }
+
+                private int getContentLength(final URLConnection conn) {
+                        return ((Integer) AccessController.doPrivileged(
+                                        new PrivilegedAction() {
+                                                public Object run() {
+                                                        return new Integer(conn.getContentLength());
+                                                }
+                                        })).intValue();
+                }
+
+                private long getLastModified(final URLConnection conn) {
+                        return ((Long) AccessController.doPrivileged(
+                                        new PrivilegedAction() {
+                                                public Object run() {
+                                                return new Long(conn.getLastModified());
+                                                }})).longValue();
+                }
 
         private boolean containsServerParseOverride(String scanBuf) {
             return (scanBuf.indexOf(SERVER_PARSE_OVERRIDE) != -1);
@@ -1454,24 +1490,15 @@ public class WebServer {
         if (internalRequestNesting > 50)
             throw new IOException("Infinite recursion - aborting.");
 
-        byte[] result = null;
-        try {
-            result = (byte[]) AccessController.doPrivileged
-                (new PrivilegedExceptionAction() {
-                    public Object run() throws Exception {
-                        return getRequestProtectedImpl(uri);
-                    }});
-        } catch (PrivilegedActionException e) {
-            if (e.getException() instanceof IOException)
-                throw (IOException) e.getException();
-            else if (e.getException() instanceof RuntimeException)
-                throw (RuntimeException) e.getException();
-            else {
-                IOException ioe = new IOException(e.getMessage());
-                ioe.initCause(e);
-                throw ioe;
-            }
-        }
+                synchronized(this) { internalRequestNesting++; }
+                TinyWebThread t = new TinyWebThread(uri);
+                byte [] result = null;
+                try {
+                    result = t.getOutput();
+                } finally {
+                    synchronized(this) { internalRequestNesting--; }
+                    if (t != null) t.dispose();
+                }
 
         if (!skipHeaders)
             return result;
@@ -1481,18 +1508,6 @@ public class WebServer {
             System.arraycopy(result, headerLen, contents, 0, contents.length);
             return contents;
         }
-    }
-    private byte[] getRequestProtectedImpl(String uri) throws IOException {
-        synchronized(this) { internalRequestNesting++; }
-        TinyWebThread t = new TinyWebThread(uri);
-        byte [] result = null;
-        try {
-            result = t.getOutput();
-        } finally {
-            synchronized(this) { internalRequestNesting--; }
-            if (t != null) t.dispose();
-        }
-        return result;
     }
     private volatile int internalRequestNesting = 0;
 

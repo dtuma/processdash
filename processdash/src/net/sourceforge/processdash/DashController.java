@@ -49,6 +49,7 @@ import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
@@ -61,6 +62,8 @@ public class DashController {
 
     static ProcessDashboard dash = null;
     private static String localAddress = "127.0.0.1";
+    private static DashboardPermission PERMISSION =
+        new DashboardPermission("dashController");
 
     public static void setDashboard(ProcessDashboard dashboard) {
         dash = dashboard;
@@ -70,6 +73,7 @@ public class DashController {
     }
 
     public static void checkIP(Object remoteAddress) throws IOException {
+        PERMISSION.checkPermission();
         if (!"127.0.0.1".equals(remoteAddress) &&
             !localAddress.equals(remoteAddress))
             throw new IOException();
