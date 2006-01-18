@@ -39,6 +39,7 @@ import javax.swing.JMenuItem;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.*;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -48,7 +49,9 @@ import net.sourceforge.processdash.ui.lib.DropDownButton;
 // The scriptButton class activates a browser loaded with the current phase's
 // script when it is pressed.  A right click can activate a popup menu with
 // a selection of scripts.
-public class ScriptButton extends DropDownButton implements PropertyChangeListener {
+public class ScriptButton extends DropDownButton
+        implements PropertyChangeListener, DashHierarchy.Listener {
+
     ProcessDashboard parent = null;
     Icon enabled_icon = null;
     Icon disabled_icon = null;
@@ -81,6 +84,7 @@ public class ScriptButton extends DropDownButton implements PropertyChangeListen
                 new ScriptBrowser(ScriptButton.this.parent, true); } } );
 
         dash.getActiveTaskModel().addPropertyChangeListener(this);
+        dash.getHierarchy().addHierarchyListener(this);
         updateAll();
     }
 
@@ -159,6 +163,10 @@ public class ScriptButton extends DropDownButton implements PropertyChangeListen
 
     public void propertyChange(PropertyChangeEvent evt) {
         updateAll();
+    }
+
+    public void hierarchyChanged(DashHierarchy.Event e) {
+          updateAll();
     }
 
 }

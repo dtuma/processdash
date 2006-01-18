@@ -35,12 +35,14 @@ import javax.swing.*;
 
 
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.*;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.*;
 
-public class DefectButton extends JButton implements ActionListener, PropertyChangeListener {
+public class DefectButton extends JButton implements ActionListener,
+        PropertyChangeListener, DashHierarchy.Listener {
     ProcessDashboard parent = null;
     Icon enabled_icon = null;
     Icon disabled_icon = null;
@@ -64,6 +66,7 @@ public class DefectButton extends JButton implements ActionListener, PropertyCha
         setFocusPainted(false);
         addActionListener(this);
         dash.getActiveTaskModel().addPropertyChangeListener(this);
+        dash.getHierarchy().addHierarchyListener(this);
 
         updateAll();
     }
@@ -92,6 +95,10 @@ public class DefectButton extends JButton implements ActionListener, PropertyCha
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
+        updateAll();
+    }
+
+    public void hierarchyChanged(DashHierarchy.Event e) {
         updateAll();
     }
 }
