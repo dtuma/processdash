@@ -61,6 +61,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
@@ -94,7 +95,7 @@ import net.sourceforge.processdash.ui.lib.TableUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 
 public class TimeLogEditor extends Object implements TreeSelectionListener,
-        DashHierarchy.Listener, TableModelListener {
+        DashHierarchy.Listener, TableModelListener, TimeLogListener {
 
     /** Class Attributes */
     protected JFrame frame;
@@ -130,6 +131,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     JComboBox formatChoice = null;
 
     TimeCardDialog timeCardDialog = null;
+
+    private Timer recalcTimer;
 
     static final long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
 
@@ -202,7 +205,11 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         tableContainsRows = (tableModel.getRowCount() > 0);
         addButton.setEnabled(tableContainsRows || selectedNodeLoggingAllowed);
 
-        setTimes();
+            recalcTimer.restart();
+    }
+
+        public void timeLogChanged(TimeLogEvent e) {
+            recalcTimer.restart();
     }
 
     private boolean affectsElapsedTime(TimeLogEvent evt) {
@@ -297,7 +304,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
                 + frameHeight + "," + dividerLocation);
     }
 
-    protected void setTimes() {
+    public void setTimes() {
         Date fd = FormatUtil.parseDate(fromDate.getText());
         Date td = FormatUtil.parseDate(toDate.getText());
         if (td != null) // need to add a day so search is inclusive
@@ -373,10 +380,6 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public void applyFilter() {
-        applyFilter(true);
-    }
-
-    protected void applyFilter(boolean resetTimes) {
         String path = null;
         DefaultMutableTreeNode selected = getSelectedNode();
         if (selected != null) {
@@ -389,12 +392,9 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
         saveEditInProgress();
 
-        // apply the filter to the table)
+        // apply the filter to the table
         tableModel.setFilter(path, from, to);
         tableContainsRows = tableModel.getRowCount() > 0;
-
-        if (resetTimes)
-            setTimes();
 
         addButton.setEnabled(tableContainsRows || selectedNodeLoggingAllowed);
     }
@@ -588,7 +588,13 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
     protected void setTimeLog(CommittableModifiableTimeLog newTimeLog) {
         if (newTimeLog != timeLog) {
-            timeLog = newTimeLog;
+                if (timeLog != null)
+                        timeLog.removeTimeLogListener(this);
+
+                timeLog = newTimeLog;
+
+                if (timeLog != null)
+                        timeLog.addTimeLogListener(this);
             tableModel.setTimeLog(timeLog);
         }
     }
@@ -617,13 +623,13 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
         if (tp == null) { // deselection
             tree.clearSelection();
-            applyFilter(false);
+            applyFilter();
             return;
         }
         Object[] path = tp.getPath();
         PropertyKey key = treeModel.getPropKey(useProps, path);
         checkSelectedNodeLoggingAllowed(key);
-        applyFilter(false);
+        applyFilter();
     }
 
     private void checkSelectedNodeLoggingAllowed() {
@@ -740,7 +746,16 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         panel.add(BorderLayout.NORTH, constructFilterPanel());
         panel.add(BorderLayout.CENTER, splitPane);
         panel.add(BorderLayout.SOUTH, constructControlPanel());
+
+        createRecalcTimer();
     }
+
+        private void createRecalcTimer() {
+                recalcTimer = new Timer(1000, (ActionListener) EventHandler.create(
+                                ActionListener.class, this, "setTimes"));
+                recalcTimer.setRepeats(false);
+                recalcTimer.setInitialDelay(100);
+        }
 
     private JScrollPane constructTreePanel() {
         /* Create the JTreeModel. */

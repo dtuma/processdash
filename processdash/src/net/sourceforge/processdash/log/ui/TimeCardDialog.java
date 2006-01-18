@@ -38,7 +38,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -117,10 +120,9 @@ public class TimeCardDialog {
             (treeTable,
              JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
              JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        Box box = Box.createHorizontalBox();
-        box.add(treeTable.getTree());
-        box.add(Box.createHorizontalStrut(1));
-        sp.setRowHeaderView(box);
+                treeTable.getTree().setBorder(BorderFactory.createMatteBorder(0, 0, 0,
+                                1, treeTable.getGridColor()));
+        sp.setRowHeaderView(treeTable.getTree());
 
         frame.getContentPane().add("Center", sp);
         frame.getContentPane().add("North", buildTopPanel());
@@ -222,6 +224,8 @@ public class TimeCardDialog {
             year = Integer.parseInt(yearField.getText());
         } catch (Exception e) {}
         model.recalc(useProps, timeLog, month, year);
+        ((AbstractTableModel) treeTable.getModel()).fireTableDataChanged();
+        treeTable.getTree().invalidate();
         resizeColumns();
     }
     public void redraw() {
@@ -272,6 +276,14 @@ public class TimeCardDialog {
             public TimeCardNode getChild(int which) {
                 return (TimeCardNode) children.get(which);
             }
+            protected TimeCardNode findChild(String childName) {
+                for (int i = getNumChildren();   i-- > 0; ) {
+                    TimeCardNode child = getChild(i);
+                    if (childName.equals(child.name))
+                        return child;
+                }
+                return null;
+            }
             public TimeCardNode getParent() { return parent; }
             public TimeCardNode[] getPath() { return getPathToRoot(this, 0); }
             protected TimeCardNode[] getPathToRoot(TimeCardNode aNode,
@@ -315,6 +327,59 @@ public class TimeCardDialog {
                     else
                         n.prune();
                 }
+            }
+
+            public void copyFrom(TimeCardNode that) {
+                this.time = that.time;
+                Object[] thisPath = getPath();
+                SortedMap nodeList = new TreeMap();
+
+                // first, delete nodes that are not present in that node.
+                for (int i = this.getNumChildren();   i-- > 0; ) {
+                        TimeCardNode child = this.getChild(i);
+                    if (that.findChild(child.name) == null) {
+                        this.children.remove(i);
+                        nodeList.put(new Integer(i), child);
+                    }
+                }
+                if (!nodeList.isEmpty())
+                                        fireTreeNodesRemoved(TimeCard.this, thisPath,
+                                                        getIndexes(nodeList), getNodes(nodeList));
+
+                // next, recurse over children, and update them.
+                nodeList.clear();
+                for (int i = getNumChildren();   i-- > 0; ) {
+                        TimeCardNode child = this.getChild(i);
+                        child.copyFrom(that.findChild(child.name));
+                        nodeList.put(new Integer(i), child);
+                }
+                fireTreeNodesChanged(TimeCard.this, thisPath,
+                                                getIndexes(nodeList), getNodes(nodeList));
+
+                // finally, insert new nodes if necessary
+                if (this.getNumChildren() < that.getNumChildren()) {
+                        nodeList.clear();
+                        for (int i = 0;  i < that.getNumChildren();  i++) {
+                                TimeCardNode child = that.getChild(i);
+                                if (this.findChild(child.name) == null) {
+                                        child.parent = this;
+                                        this.children.add(i, child);
+                                        nodeList.put(new Integer(i), child);
+                                }
+                        }
+                        fireTreeNodesInserted(TimeCard.this, thisPath,
+                                                getIndexes(nodeList), getNodes(nodeList));
+                }
+            }
+            private int[] getIndexes(SortedMap nodeMap) {
+                int[] result = new int[nodeMap.size()];
+                int pos = 0;
+                for (Iterator i = nodeMap.keySet().iterator(); i.hasNext();)
+                        result[pos] = ((Integer) i.next()).intValue();
+                return result;
+            }
+            private Object[] getNodes(SortedMap nodeMap) {
+                return nodeMap.values().toArray();
             }
         }
 
@@ -375,8 +440,12 @@ public class TimeCardDialog {
                 showError(ioe);
             }
             root.prune();
-            this.root = root;
-            fireTreeStructureChanged(this, root.getPath(), null, null);
+            if (this.root == null)
+                this.root = root;
+            else {
+                ((TimeCardNode) this.root).copyFrom(root);
+                fireTreeNodesChanged(this, root.getPath(), null, null);
+            }
         }
 
         private void showError(Exception e) {
