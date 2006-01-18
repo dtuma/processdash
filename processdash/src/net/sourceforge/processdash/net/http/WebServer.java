@@ -1640,22 +1640,20 @@ public class WebServer {
         return OUTPUT_CHARSET;
     }
 
+    public static void setOutputCharset(String charsetName) {
+        try {
+                // do a quick check to make certain that the charset name is valid
+                "test".getBytes(charsetName);
+            OUTPUT_CHARSET = charsetName;
+        } catch (UnsupportedEncodingException uee) {}
+    }
+
     private void init() throws IOException
     {
         CREATE_PERMISSION.checkPermission();
         startupTimestamp = Long.toString((new Date()).getTime());
         startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
         initAllowRemote();
-
-        String charsetName = Settings.getVal("http.charset");
-        if (charsetName != null && charsetName.length() > 0) try {
-            if ("auto".equals(charsetName))
-                charsetName =
-                    (Translator.isTranslating() ? "UTF-8" : "ISO-8859-1");
-
-            "test".getBytes(charsetName);
-            OUTPUT_CHARSET = charsetName;
-        } catch (UnsupportedEncodingException uee) {}
 
         try {
             DashboardURLStreamHandlerFactory.initialize(this);

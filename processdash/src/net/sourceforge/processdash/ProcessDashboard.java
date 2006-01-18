@@ -67,6 +67,7 @@ import net.sourceforge.processdash.ui.help.*;
 import net.sourceforge.processdash.ui.lib.*;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -179,6 +180,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         // initialize the content roots for the http server.
         webServer.setRoots(TemplateLoader.getTemplateURLs());
+        WebServer.setOutputCharset(getWebCharset());
 
         BetaVersionSetup.runSetup(property_directory);
 
@@ -391,6 +393,18 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                                         webServer.getPort());
                 }
     }
+
+    private String getWebCharset() {
+                String charsetName = Settings.getVal("http.charset");
+
+                if (charsetName == null)
+                        charsetName = HTTPUtils.DEFAULT_CHARSET;
+                else if ("auto".equals(charsetName))
+                        charsetName = (Translator.isTranslating() ? "UTF-8"
+                                        : HTTPUtils.DEFAULT_CHARSET);
+
+                return charsetName;
+        }
 
     private void displayStartupIOError(String resourceKey, String filename) {
         try {
