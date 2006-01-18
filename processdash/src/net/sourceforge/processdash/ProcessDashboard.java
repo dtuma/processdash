@@ -123,6 +123,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         InternalSettings.initialize("");
         propertiesFile = Settings.getFile("stateFile");
         File prop_file = new File(propertiesFile);
+        try {
+                        prop_file = prop_file.getCanonicalFile();
+                } catch (IOException ioe) {}
+        propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
         DefectAnalyzer.setDataDirectory(property_directory);
         try {
