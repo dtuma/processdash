@@ -27,6 +27,7 @@ package net.sourceforge.processdash.log.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -34,6 +35,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.EventHandler;
@@ -41,6 +43,7 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EventObject;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.StringTokenizer;
@@ -69,6 +72,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.table.TableCellEditor;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -90,6 +94,7 @@ import net.sourceforge.processdash.log.time.TimeLogTableModel;
 import net.sourceforge.processdash.log.time.TimeLoggingApprover;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.TableUtils;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -786,7 +791,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         retPanel.setLayout(new BorderLayout());
         tableModel = new TimeLogTableModel();
         tableModel.addTableModelListener(this);
-        table = new JTable(tableModel);
+        table = new TimeLogJTable(tableModel);
         TableUtils.configureTable(table, TimeLogTableModel.COLUMN_WIDTHS,
                 TimeLogTableModel.COLUMN_TOOLTIPS);
         retPanel.add("Center", new JScrollPane(table));
@@ -921,5 +926,24 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         return resources.getString(key);
     }
 
+    private class TimeLogJTable extends JTable {
+
+                public TimeLogJTable(TimeLogTableModel tableModel) {
+                        super(tableModel);
+                }
+
+                public boolean editCellAt(int row, int column, EventObject e) {
+                        boolean result = super.editCellAt(row, column, e);
+
+                        if (result == true
+                                        && e instanceof MouseEvent
+                                        && (column == TimeLogTableModel.COL_ELAPSED
+                                                        || column == TimeLogTableModel.COL_INTERRUPT))
+                                DeferredSelectAllExecutor.register(getEditorComponent());
+
+                        return result;
+                }
+
+    }
 
 }

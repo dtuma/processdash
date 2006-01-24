@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -38,6 +38,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -76,12 +77,14 @@ import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.time.TimeLogTableModel;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
 import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
@@ -613,13 +616,20 @@ public class TaskScheduleDialog
             }
         }
 
+        public boolean editCellAt(int row, int column, EventObject e) {
+            boolean result = super.editCellAt(row, column, e);
+
+            if (result == true && e instanceof MouseEvent)
+                DeferredSelectAllExecutor.register(getEditorComponent());
+
+            return result;
+        }
+
         public Component prepareEditor(TableCellEditor editor,
                                        int row,
                                        int column) {
             Component result = super.prepareEditor(editor, row, column);
             result.setBackground(selectedEditableColor);
-            if (result instanceof JTextComponent)
-                ((JTextComponent) result).selectAll();
             return result;
         }
 
@@ -940,13 +950,20 @@ public class TaskScheduleDialog
             }
         }
 
+        public boolean editCellAt(int row, int column, EventObject e) {
+            boolean result = super.editCellAt(row, column, e);
+
+            if (result == true && e instanceof MouseEvent)
+                DeferredSelectAllExecutor.register(getEditorComponent());
+
+            return result;
+        }
+
         public Component prepareEditor(TableCellEditor editor,
                                        int row,
                                        int column) {
             Component result = super.prepareEditor(editor, row, column);
             result.setBackground(selectedEditableColor);
-            if (result instanceof JTextComponent)
-                ((JTextComponent) result).selectAll();
             return result;
         }
     }

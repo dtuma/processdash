@@ -58,17 +58,17 @@ public class TimeLogTableModel extends AbstractTableModel implements
 
     private Date filterEnd;
 
-    private static final int COL_ID = -1;
+    public static final int COL_ID = -1;
 
-    private static final int COL_PATH = 0;
+    public static final int COL_PATH = 0;
 
-    private static final int COL_START_TIME = 1;
+    public static final int COL_START_TIME = 1;
 
-    private static final int COL_ELAPSED = 2;
+    public static final int COL_ELAPSED = 2;
 
-    private static final int COL_INTERRUPT = 3;
+    public static final int COL_INTERRUPT = 3;
 
-    private static final int COL_COMMENT = 4;
+    public static final int COL_COMMENT = 4;
 
     private static Resources resources = Resources.getDashBundle("Time");
 
