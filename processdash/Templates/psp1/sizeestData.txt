@@ -70,12 +70,14 @@
         + [Estimated New & Changed LOC] - [Estimated Modified LOC]
         - [Estimated Deleted LOC];
 
-[Estimated Max LOC] = 0;
-[Estimated Min LOC] = 0;
+[Estimated Max LOC] = [Estimated New & Changed LOC/UPI];
+[Estimated Min LOC] = [Estimated New & Changed LOC/LPI];
 [Estimated New & Changed KLOC] = [Estimated New & Changed LOC] / 1000;
 [Estimated New & Changed LOC/Beta0] = 0;
 [Estimated New & Changed LOC/Beta1] = 0;
 [Estimated New & Changed LOC/Range] = 0;
+[Estimated New & Changed LOC/UPI] = 0;
+[Estimated New & Changed LOC/LPI] = 0;
 [Estimated Total LOC/Range] = [Estimated New & Changed LOC/Range];
 [Estimated New & Changed LOC/Interval Percent] = 0;
 [Estimated New & Changed LOC/Probe Method] = "D  ";
@@ -106,12 +108,14 @@
  * Data elements for PROBE-estimated time values
  */
 
-[Estimated Max Time] = 0;
-[Estimated Min Time] = 0;
+[Estimated Max Time] = [Estimated Time/UPI];
+[Estimated Min Time] = [Estimated Time/LPI];
 
 [Estimated Time/Beta0] = 0;
 [Estimated Time/Beta1] = 0;
 [Estimated Time/Range] = 0;
+[Estimated Time/UPI] = 0;
+[Estimated Time/LPI] = 0;
 [Estimated Time/Interval Percent] = 0;
 [Estimated Time/Probe Method] = "D  ";
 [Estimated Time/R Squared] = 0;

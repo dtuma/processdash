@@ -122,8 +122,8 @@ public class MethodsPage extends WizardPage {
             lpi = new DoubleData(Math.max(0, est - rng));
         } else
             upi = lpi = N_A;
-        putValue(getDataName(purpose.getTargetDataElementMin()), lpi);
-        putValue(getDataName(purpose.getTargetDataElementMax()), upi);
+        putValue(getDataName("LPI"), lpi);
+        putValue(getDataName("UPI"), upi);
 
         return true;
     }
@@ -138,7 +138,8 @@ public class MethodsPage extends WizardPage {
         SimpleData result = N_A;
         try {
             double value = Double.parseDouble(inputFieldValue);
-            if (value != -1) result = new DoubleData(value * mult);
+            if (!Double.isInfinite(value) && !Double.isNaN(value))
+                result = new DoubleData(value * mult);
         } catch (NumberFormatException nfe) { }
         return result;
     }

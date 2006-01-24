@@ -78,11 +78,11 @@ public class ManualMethod extends ProbeMethod {
         out.print(NBSP + NBSP + NBSP + "</tt>\n");
         if (!isOnly)
             out.print(StringUtils.findAndReplace(SCRIPT, "PURPOSE", purpose));
-        printField(out, FLD_BETA0, qual, -1);
-        printField(out, FLD_BETA1, qual, -1);
-        printField(out, FLD_RANGE, qual, -1);
-        printField(out, FLD_PERCENT, qual, -1);
-        printField(out, FLD_CORRELATION, qual, -1);
+        printField(out, FLD_BETA0, qual, Double.NaN);
+        printField(out, FLD_BETA1, qual, Double.NaN);
+        printField(out, FLD_RANGE, qual, Double.NaN);
+        printField(out, FLD_PERCENT, qual, Double.NaN);
+        printField(out, FLD_CORRELATION, qual, Double.NaN);
     }
     private static final String SCRIPT =
         "<script>\n"+
