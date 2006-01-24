@@ -83,11 +83,19 @@ public class InterpreterFactory {
     }
 
     public static boolean isTimeInputName(InputName n) {
-        return useHoursMinutes &&
-            (n.hasFlag('t') || TIME_PATTERN.matcher(n.name).find());
+            if (useHoursMinutes == false)
+                    return false;
+            if (n.hasFlag('t'))
+                    return true;
+            if (TIME_PATTERN.matcher(n.name).find()
+                                  && !FALSE_TIME_PATTERN.matcher(n.name).find())
+                    return true;
+            return false;
     }
 
     private static Pattern TIME_PATTERN = Pattern.compile("\\bTime\\b");
+    private static Pattern FALSE_TIME_PATTERN =
+            Pattern.compile("/(Beta0|Beta1|R Squared)$");
 
     private static String instantiate(String name,
                                       String defaultValue,
