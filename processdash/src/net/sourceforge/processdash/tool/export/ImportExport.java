@@ -35,7 +35,7 @@ public class ImportExport {
     public static String exportedScheduleName(DataRepository dataRepository,
             String scheduleName) {
         String owner = ProcessDashboard.getOwnerName(dataRepository);
-        return ExportManager.exportedScheduleName(owner, scheduleName);
+        return ExportManager.exportedScheduleDataPrefix(owner, scheduleName);
     }
 
 }

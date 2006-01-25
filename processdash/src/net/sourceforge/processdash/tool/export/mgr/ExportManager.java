@@ -216,10 +216,14 @@ public class ExportManager extends AbstractManager {
      */
     public static String exportedScheduleDataName(String owner,
             String scheduleName) {
-        return EVTaskList.MAIN_DATA_PREFIX
-                + exportedScheduleName(owner, scheduleName) + "/"
+                return exportedScheduleDataPrefix(owner, scheduleName) + "/"
                 + EVTaskListXML.XML_DATA_NAME;
     }
+
+        public static String exportedScheduleDataPrefix(String owner, String scheduleName) {
+                return EVTaskList.MAIN_DATA_PREFIX
+                + exportedScheduleName(owner, scheduleName);
+        }
 
     public static String exportedScheduleName(String owner, String scheduleName) {
         owner = (owner == null ? "?????" : safeName(owner));
