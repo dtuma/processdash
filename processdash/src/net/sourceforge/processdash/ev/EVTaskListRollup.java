@@ -151,6 +151,15 @@ public class EVTaskListRollup extends EVTaskList {
 
         EVTaskList taskList = EVTaskList.openExisting
             (path, data, hierarchy, cache, false);
+        // when adding an XML task list that doesn't appear to exist yet
+        // (most likely due to the timing of import/export operations when
+        // an individual is joining a team project), give the caller the
+        // benefit of the doubt that the task list will be created soon, and
+        // add the named schedule anyway.
+        if (taskList == null && EVTaskListXML.validName(path)) {
+            taskList = new EVTaskListXML(path, data);
+            System.out.println("Giving benefit of doubt.");
+        }
         if (taskList == null) return null;
 
         EVTask newTask = (EVTask) taskList.getRoot();
