@@ -142,8 +142,8 @@ public class FileBackupManager {
             ZipEntry oldEntry = positionStreams(oldBackupIn, oldBackupOut,
                                                 file);
             if (oldEntry == null) {
+                oldBackupIn.close();
                 oldBackupIn = null;
-                oldBackupOut = null;
             }
             backupFile(oldEntry, oldBackupIn, oldBackupOut,
                        newBackupOut, file);
@@ -213,7 +213,7 @@ public class FileBackupManager {
                                             File file)
         throws IOException
     {
-        if (oldBackupIn == null || oldBackupOut == null || file == null)
+        if (oldBackupIn == null || oldBackupOut == null)
             return null;
 
         String fileName = null;
@@ -222,11 +222,8 @@ public class FileBackupManager {
 
         while (true) {
             ZipEntry e = oldBackupIn.getNextEntry();
-            if (e == null) {
-                oldBackupIn.close();
-                oldBackupOut.close();
+            if (e == null)
                 return null;
-            }
             if (fileName != null && fileName.equals(e.getName()))
                 return e;
             else {
