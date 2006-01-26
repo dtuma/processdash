@@ -29,6 +29,7 @@ package net.sourceforge.processdash;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.zip.*;
 
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
@@ -97,7 +98,7 @@ public class FileBackupManager {
     private static boolean oldBackupIsEmpty;
 
 
-    // Find the oldest backup in the directory.  Open it for input.
+    // Find the most recent backup in the directory.  Open it for input.
     // Open two zip output streams: one for the new backup, and one for
     // the old backup.
     // Retrieve all the files in the data directory. sort. iterate:
@@ -112,56 +113,51 @@ public class FileBackupManager {
     private static void backupFiles(File dataDir, File backupDir, int when)
         throws IOException
     {
-        File[] dataFiles = getDataFiles(dataDir);
-        if (dataFiles == null || dataFiles.length == 0)
+        List dataFiles = getDataFiles(dataDir);
+        if (dataFiles == null || dataFiles.size() == 0)
             return;        // nothing to do
 
         File[] backupFiles = getBackupFiles(backupDir);
-        File oldestBackupFile = findMostRecentBackupFile(backupFiles);
+        File mostRecentBackupFile = findMostRecentBackupFile(backupFiles);
         File oldBackupTempFile = new File(backupDir, OLD_BACKUP_TEMP_FILENAME);
         File newBackupTempFile = new File(backupDir, NEW_BACKUP_TEMP_FILENAME);
 
-        ZipInputStream oldBackupIn = null;
-        ZipOutputStream oldBackupOut = null;
-        if (oldestBackupFile != null) {
-            oldBackupIn = new ZipInputStream
-                (new FileInputStream(oldestBackupFile));
-            oldBackupOut = new ZipOutputStream
+        ZipOutputStream newBackupOut = new ZipOutputStream(
+                                new FileOutputStream(newBackupTempFile));
+                newBackupOut.setLevel(9);
+
+        if (mostRecentBackupFile != null) {
+            ZipInputStream oldBackupIn = new ZipInputStream
+                (new FileInputStream(mostRecentBackupFile));
+            ZipOutputStream oldBackupOut = new ZipOutputStream
                 (new FileOutputStream(oldBackupTempFile));
             oldBackupOut.setLevel(9);
-        }
+            oldBackupIsEmpty = true;
 
-        ZipOutputStream newBackupOut = new ZipOutputStream
-            (new FileOutputStream(newBackupTempFile));
-        newBackupOut.setLevel(9);
+            // iterate over all the entries in the old backup
+            ZipEntry oldEntry;
+            while ((oldEntry = oldBackupIn.getNextEntry()) != null) {
+                String filename = oldEntry.getName();
+                File file = new File(dataDir, filename);
 
-        oldBackupIsEmpty = true;
-
-        for (int i = 0; i < dataFiles.length; i++) {
-            File file = dataFiles[i];
-            ZipEntry oldEntry = positionStreams(oldBackupIn, oldBackupOut,
-                                                file);
-            if (oldEntry == null) {
-                oldBackupIn.close();
-                oldBackupIn = null;
+                if (dataFiles.remove(filename)) {
+                        // this file is in the old backup zipfile AND in the backup
+                        // directory.  Compare the two versions and back up the
+                        // file appropriately.
+                    backupFile(oldEntry, oldBackupIn, oldBackupOut,
+                               newBackupOut, file);
+                } else {
+                        // this file is in the old backup, but is no longer present
+                        // in the backup directory.  Copy it over to the new version
+                        // of the old backup
+                    oldBackupIsEmpty = false;
+                    copyZipEntry(oldBackupIn, oldBackupOut, oldEntry, null);
+                }
             }
-            backupFile(oldEntry, oldBackupIn, oldBackupOut,
-                       newBackupOut, file);
-        }
-        // copy any additional files that might remain in oldBackupIn
-        positionStreams(oldBackupIn, oldBackupOut, null);
 
-        // finalize the new backup, and give it its final name.
-        newBackupOut.close();
-        String outputFilename = getOutputFilename(when, new Date());
-        File newBackupFile = new File(backupDir, outputFilename);
-        newBackupTempFile.renameTo(newBackupFile);
-
-        // finalize the old backup
-        if (oldBackupIn != null)
             oldBackupIn.close();
-        if (oldestBackupFile != null) {
-            oldestBackupFile.delete();
+            mostRecentBackupFile.delete();
+
             if (oldBackupIsEmpty) {
                 // ZipOutputStream refuses to create an empty archive.
                 // Thus, we have to create a dummy entry to allow the
@@ -170,11 +166,24 @@ public class FileBackupManager {
                 oldBackupOut.close();
                 oldBackupTempFile.delete();
             } else {
-                if (oldBackupOut != null)
-                    oldBackupOut.close();
-                oldBackupTempFile.renameTo(oldestBackupFile);
+                oldBackupOut.close();
+                oldBackupTempFile.renameTo(mostRecentBackupFile);
             }
         }
+
+        // backup all the files that are present in the backup directory that
+        // weren't in the old backup zipfile.
+        for (Iterator iter = dataFiles.iterator(); iter.hasNext();) {
+                        String filename = (String) iter.next();
+                File file = new File(dataDir, filename);
+            backupFile(null, null, null, newBackupOut, file);
+        }
+
+        // finalize the new backup, and give it its final name.
+        newBackupOut.close();
+        String outputFilename = getOutputFilename(when, new Date());
+        File newBackupFile = new File(backupDir, outputFilename);
+        newBackupTempFile.renameTo(newBackupFile);
 
         cleanupOldBackupFiles(backupFiles);
     }
@@ -183,11 +192,14 @@ public class FileBackupManager {
     private static File[] getBackupFiles(File backupDir) {
         File[] backupFiles = backupDir.listFiles(new FilenameFilter() {
                 public boolean accept(File dir, String name) {
-                    return name.startsWith("pdash-");
+                    return BACKUP_FILENAME_PATTERN.matcher(name).matches();
                 }});
         Arrays.sort(backupFiles);
         return backupFiles;
     }
+    private static final Pattern BACKUP_FILENAME_PATTERN =
+        Pattern.compile("pdash-\\d+-(startup|checkpoint|shutdown)\\.zip",
+                        Pattern.CASE_INSENSITIVE);
 
 
     private static File findMostRecentBackupFile(File[] backupFiles) {
@@ -198,41 +210,18 @@ public class FileBackupManager {
     }
 
 
-    private static File[] getDataFiles(File dataDir) {
-        File[] files = dataDir.listFiles(new FileFilter() {
-                public boolean accept(File file) {
-                    return inBackupSet(file);
-                }});
-        Arrays.sort(files);
-        return files;
-    }
-
-
-    private static ZipEntry positionStreams(ZipInputStream oldBackupIn,
-                                            ZipOutputStream oldBackupOut,
-                                            File file)
-        throws IOException
-    {
-        if (oldBackupIn == null || oldBackupOut == null)
-            return null;
-
-        String fileName = null;
-        if (file != null)
-            fileName = file.getName();
-
-        while (true) {
-            ZipEntry e = oldBackupIn.getNextEntry();
-            if (e == null)
+    private static List getDataFiles(File dataDir) {
+        String[] files = dataDir.list(new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                                        return inBackupSet(dir, name);
+                                }});
+        if (files == null)
                 return null;
-            if (fileName != null && fileName.equals(e.getName()))
-                return e;
-            else {
-                oldBackupIsEmpty = false;
-                copyZipEntry(oldBackupIn, oldBackupOut, e, null);
-            }
+        else {
+                Arrays.sort(files);
+                return new ArrayList(Arrays.asList(files));
         }
     }
-
 
 
     private static void copyZipEntry(InputStream oldBackupIn,
@@ -372,8 +361,7 @@ public class FileBackupManager {
         "-startup", "-checkpoint", "-shutdown"
     };
 
-    private static boolean inBackupSet(File f) {
-        String name = f.getName();
+    private static boolean inBackupSet(File dir, String name) {
         if (name.endsWith(".dat") ||    // backup data files
             name.endsWith(".def") ||    // backup defect logs
             name.equals("time.log") ||  // backup the time log
@@ -383,7 +371,7 @@ public class FileBackupManager {
             name.equals(".pspdash") ||  // backup the user settings
             name.equals("pspdash.ini"))
             return true;
-        if (name.equals(LOG_FILE_NAME) && f.length() > 0)
+        if (name.equals(LOG_FILE_NAME) && (new File(dir, name)).length() > 0)
             // backup the log file if it contains anything.
             return true;
         return false;
