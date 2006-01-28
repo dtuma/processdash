@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
@@ -146,6 +147,8 @@ public class wizard extends TinyCGIBase {
     // the template ID of a "team project stub"
     private static final String TEAM_STUB_ID = "TeamProjectStub";
 
+    private static final Logger logger =
+        Logger.getLogger(wizard.class.getName());
 
     protected void writeHeader() {}
     protected void writeContents() {}
@@ -691,16 +694,17 @@ public class wizard extends TinyCGIBase {
         if (teamScheduleName == null || teamScheduleName.length() == 0 ||
             indivExportedName == null || indivExportedName.length() == 0 ||
             indivFileName == null || indivFileName.length() == 0) return false;
-        //*debug*/ System.out.println("addIndivScheduleToTeamSchedule");
-        //*debug*/ System.out.println("teamScheduleName="+teamScheduleName);
-        //*debug*/ System.out.println("indivExportedName="+indivExportedName);
-        //*debug*/ System.out.println("indivFileName="+indivFileName);
+        logger.fine("addIndivScheduleToTeamSchedule:"
+                + "  teamScheduleName=" + teamScheduleName
+                + "  indivExportedName=" + indivExportedName
+            + "  indivFileName=" + indivFileName);
 
         String indivSchedPath = getSchedulePath
             (indivExportedName, indivScheduleID, indivFileName);
         if (indivSchedPath == null)
             indivSchedPath = getFallbackSchedulePath
                 (indivExportedName, indivScheduleID);
+        logger.fine("indivSchedPath="+indivSchedPath);
         if (indivSchedPath == null) return false;
 
         //*debug*/ System.out.println("indivSchedPath="+indivSchedPath);
@@ -721,18 +725,18 @@ public class wizard extends TinyCGIBase {
         String projectID = getValue("Project_ID");
         if (projectID == null || projectID.length() == 0) return null;
         String importPrefix = "/Import_"+projectID;
-        //*debug*/ System.out.println("importPrefix="+importPrefix);
+        logger.finer("importPrefix="+importPrefix);
 
         // import all data.
         DataImporter.refreshPrefix(importPrefix);
-        //*debug*/ System.out.println("refreshPrefix done");
+        logger.finer("refreshPrefix done");
 
         // calculate the name of the import directory.
         String teamDirectory = getValue("Team_Directory");
         if (teamDirectory == null || teamDirectory.length() == 0) return null;
         teamDirectory = teamDirectory.replace('\\', '/');
         String importDir = teamDirectory+"/data/"+projectID;
-        //*debug*/ System.out.println("importDir="+importDir);
+        logger.finer("importDir="+importDir);
 
         // calculate the full name of the imported file.
         indivFileName = indivFileName.replace('\\', '/');
@@ -740,7 +744,7 @@ public class wizard extends TinyCGIBase {
         if (slashPos == -1) return null;
         String importedFile =
             importDir + "/" + indivFileName.substring(slashPos+1);
-        //*debug*/ System.out.println("importedFile="+importedFile);
+        logger.finer("importedFile="+importedFile);
         File f = new File(importedFile);
 
         // calculate the fully qualified name of the imported schedule.
@@ -750,7 +754,7 @@ public class wizard extends TinyCGIBase {
         } catch (IOException ioe) {
             return null;
         }
-        //*debug*/ System.out.println("dataPrefix="+dataPrefix);
+        logger.finer("dataPrefix="+dataPrefix);
         String indivSchedPath = dataPrefix + indivExportedName;
 
         // prepend the task list ID if it is available.
@@ -781,16 +785,17 @@ public class wizard extends TinyCGIBase {
             (teamScheduleName, getDataRepository(),
              getPSPProperties(), getObjectCache(), false);
         if (!(rollup instanceof EVTaskListRollup)) {
-            //*debug*/ System.out.println("rollup not an EVTaskListRollup");
+            logger.fine("rollup not an EVTaskListRollup");
             return false;
         }
         if (!rollup.addTask(indivSchedPath, getDataRepository(),
                             getPSPProperties(), getObjectCache(), false)) {
-            //*debug*/ System.out.println("addTask failed");
+            logger.fine("addTask failed");
             return false;
         }
 
         rollup.save();
+        logger.fine("saved changed task list");
         return true;
     }
 
