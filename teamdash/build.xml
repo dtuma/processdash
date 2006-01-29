@@ -69,11 +69,12 @@
   </target>
 
   <target name="TSP" depends="jar">
-    <java classname="teamdash.process.GenerateDefaultProcess" fork="true">
+    <java classname="teamdash.process.GenerateProcess" fork="true">
       <classpath>
         <pathelement location="TeamTools.jar"/>	
         <pathelement location="${pspdash.jar}"/>
       </classpath>
+      <arg value="tsp/settings.xml"/>
       <arg value="."/>
     </java>
   </target>
