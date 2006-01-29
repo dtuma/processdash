@@ -196,12 +196,12 @@ public class CustomProcessPublisher {
 
         String[] phaseList = new String[process.getRowCount()];
         Iterator i = process.getPhaseIterator();
-        CustomProcess.CustomPhase phase;
         int phaseNum = 0;
         lastPhaseID = null;
         while (i.hasNext()) {
-            phaseList[phaseNum] =
-                initPhase((CustomProcess.CustomPhase) i.next(), phaseNum);
+                CustomProcess.CustomPhase phase =
+                        (CustomProcess.CustomPhase) i.next();
+            phaseList[phaseNum] = initPhase(phase, phaseNum);
             phaseNum++;
         }
         parameters.put("Phase_List_ALL", phaseList);
@@ -236,6 +236,14 @@ public class CustomProcessPublisher {
 
         String sizeMetric = (String) PHASE_SIZE_METRIC.get(phase.type);
         if (sizeMetric != null) setParam(id + "_Size_Metric", sizeMetric);
+
+        Iterator iter = phase.getAttributes().entrySet().iterator();
+        while (iter.hasNext()) {
+                        Map.Entry e = (Map.Entry) iter.next();
+                        String attrName = CustomProcess.bouncyCapsToUnderlines(
+                                        (String) e.getKey());
+                        setParam(id + "_" + attrName, (String) e.getValue());
+                }
 
         if (lastPhaseID != null) {
             setParam(lastPhaseID + "_Next_Sibling", id);

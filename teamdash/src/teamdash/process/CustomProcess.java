@@ -7,12 +7,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.swing.table.AbstractTableModel;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import teamdash.XMLUtils;
 
@@ -28,6 +32,7 @@ public class CustomProcess extends AbstractTableModel {
         public String longName;
         public String name;
         public String type;
+        public Map attrs;
         public boolean readOnly;
         public boolean inserted = false;
         public CustomPhase(String longName, String name,
@@ -35,6 +40,7 @@ public class CustomProcess extends AbstractTableModel {
             this.longName = longName;
             this.name = name;
             this.type = type;
+            this.attrs = new TreeMap();
             this.readOnly = readOnly;
         }
         CustomPhase(String[] args) {
@@ -45,14 +51,24 @@ public class CustomProcess extends AbstractTableModel {
             inserted = true;
         }
         public CustomPhase(Element xml) throws IOException {
-            longName = xml.getAttribute("longName");
-            name = xml.getAttribute("name");
-            type = xml.getAttribute("type");
-            readOnly = "true".equals(xml.getAttribute("readOnly"));
+                attrs = new TreeMap();
+            NamedNodeMap xmlAttrs = xml.getAttributes();
+            for (int i=0; i < xmlAttrs.getLength();   i++) {
+                Node n = xmlAttrs.item(i);
+                attrs.put(n.getNodeName(), n.getNodeValue());
+            }
+                longName = (String) attrs.remove("longName");
+            name = (String) attrs.remove("name");
+            type = (String) attrs.remove("type");
+            readOnly = "true".equals((String) attrs.remove("readOnly"));
             if (!XMLUtils.hasValue(longName) ||
                 !XMLUtils.hasValue(name) ||
                 !XMLUtils.hasValue(type))
                 throw new IOException("Invalid CustomPhase settings");
+
+        }
+        public Map getAttributes() {
+                return attrs;
         }
         public void writeXMLSettings(Writer out) throws IOException {
             out.write("    <phase longName='");
@@ -64,6 +80,13 @@ public class CustomProcess extends AbstractTableModel {
             out.write("' ");
             if (readOnly)
                 out.write("readOnly='true' ");
+            for (Iterator iter = attrs.entrySet().iterator(); iter.hasNext();) {
+                                Map.Entry e = (Map.Entry) iter.next();
+                                out.write((String) e.getKey());
+                                out.write("='");
+                    out.write(XMLUtils.escapeAttribute((String) e.getValue()));
+                    out.write("' ");
+                        }
             out.write("/>\n");
         }
     }
@@ -304,5 +327,17 @@ public class CustomProcess extends AbstractTableModel {
         "0123456789" + ",_" +
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+    public static String bouncyCapsToUnderlines(String text) {
+        if (text == null || text.length() == 0)
+                return "";
 
+        StringBuffer result = new StringBuffer();
+        result.append(Character.toUpperCase(text.charAt(0)));
+        for (int i=1;  i < text.length();   i++) {
+                if (Character.isUpperCase(text.charAt(i)))
+                        result.append('_');
+                result.append(text.charAt(i));
+        }
+        return result.toString();
+    }
 }
