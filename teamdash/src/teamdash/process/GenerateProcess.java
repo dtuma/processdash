@@ -71,13 +71,13 @@ public class GenerateProcess {
                 CustomProcessPublisher.publish(process, outputFile, webServer);
         }
 
-        private WebServer getTinyWebServer() throws IOException {
+        static WebServer getTinyWebServer() throws IOException {
                 URL[] roots = getRoots();
                 WebServer result = new WebServer(0, roots);
                 return result;
         }
 
-        private URL[] getRoots() throws IOException {
+        static URL[] getRoots() throws IOException {
                 URL[] result = new URL[2];
                 result[0] = fixURL(getUrlForClass(GenerateProcess.class));
                 result[1] = fixURL(getUrlForClass(WebServer.class));
@@ -85,13 +85,13 @@ public class GenerateProcess {
                 return result;
         }
 
-        private URL getUrlForClass(Class class1) {
+        static URL getUrlForClass(Class class1) {
                 String resourceName = "/" + class1.getName().replace('.', '/')
                                 + ".class";
-                return getClass().getResource(resourceName);
+                return GenerateProcess.class.getResource(resourceName);
         }
 
-        private URL fixURL(URL u) throws MalformedURLException {
+        static URL fixURL(URL u) throws MalformedURLException {
                 String url = u.toString();
                 if (url.startsWith("jar:")) {
                         int exclPos = url.indexOf("!/");

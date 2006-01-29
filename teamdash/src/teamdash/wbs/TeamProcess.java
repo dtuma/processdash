@@ -124,14 +124,16 @@ public class TeamProcess {
         phases = new ArrayList();
         phaseTypes = new HashMap();
 
-        Iterator i = process.getPhaseIterator();
+        Iterator i = process.getItemList("phase").iterator();
         while (i.hasNext()) {
-            CustomProcess.CustomPhase phase =
-                (CustomProcess.CustomPhase) i.next();
+            CustomProcess.Item phase =
+                (CustomProcess.Item) i.next();
             // add each phase name to our list.
-            phases.add(phase.name);
+            String phaseName = phase.getAttr("name");
+                        phases.add(phaseName);
             // add each phase type to our map.
-            phaseTypes.put(phase.name, phase.type);
+            String phaseType = phase.getAttr("type");
+            phaseTypes.put(phaseName, phaseType);
         }
         // make these items immutable.
         phases = Collections.unmodifiableList(phases);

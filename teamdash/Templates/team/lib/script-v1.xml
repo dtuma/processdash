@@ -74,7 +74,7 @@
 
     <!--#foreach name=Current_Phase list=Phase_List -->
     <file in="phase_script.htm" encoding="html"
-          out="Current_Phase_script.htm">
+          out="<!--#echo Current_Phase_ID -->_script.htm">
         <param name="Phase" value="Current_Phase" replace="true"/>
     </file>
     <!--#endfor-->

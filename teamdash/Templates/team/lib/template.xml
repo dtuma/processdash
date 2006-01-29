@@ -75,7 +75,7 @@
 
 	 The old value for constraints was:
 
-      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/TeamRoot}PID/TeamNode"
+      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/TeamRoot}PID/TeamNode"
 
        <!--#endbreak comment-->
 
@@ -101,7 +101,7 @@
       defineRollup="no"
       XdefectLog="false"
       dataFile="PID/team_task_dataFile.txt"
-      constraints="{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/TeamRoot}PID/TeamNode}PID/TeamTask"
+      constraints="{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/TeamRoot}PID/TeamNode}PID/TeamTask"
       >
   </template>
 
@@ -119,7 +119,7 @@
       defineRollup="no"
       defectLog="true"
       dataFile="PID/indiv_root_dataFile.txt"
-      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}"
+      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}"
       ><!--#break comment-->
            This node cannot be directly instantiated by the user. They
 	   must instead use the team setup wizard to join a team project.
@@ -159,7 +159,7 @@
 *       defectLog="true"
 *       dataFile="PID/indiv_full_dataFile.txt"
 *       size="New &amp; Changed LOC"
-*       constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
+*       constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
 *       >
 * 
 *     <html ID="sump" href="PID/plan_summary.shtm"
@@ -211,7 +211,7 @@
       defectLog="true"
       dataFile="PID/indiv_full_dataFile.txt"
       size="New &amp; Changed LOC"
-      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
+      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
       >
 
     <html ID="sump" href="PID/plan_summary.shtm"
@@ -232,7 +232,7 @@
             size="<!--#echo Phase_Size_Metric -->"
         <!--#endif-->
 	constraints="ED{}"
-        GTACS_disabled_htmlID="Phase_script"/>
+        GTACS_disabled_htmlID="<!--#echo Phase_ID -->_script"/>
 
 <!--#endfor-->
 
@@ -255,7 +255,7 @@
       defectLog="true"
       dataFile="PID/indiv_empty_dataFile.txt"
       size="New &amp; Changed LOC"
-      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
+      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
       >
 
     <html ID="sump" href="PID/plan_summary.shtm"
@@ -282,7 +282,7 @@
       defectLog="true"
       dataFile="PID/indiv_empty_dataFile.txt"
       size="New &amp; Changed LOC"
-      constraints="MED<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/Phase<!--#endfor-->}"
+      constraints="MED<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}"
       ><!--#break comment-->
          We alter the constraints to make this node immovable and
 	 uneditable.  We also change the 'required parent' list to '}',
@@ -309,9 +309,9 @@
 
   <template
       name="PID-phase<!--#echo Phase_Pos -->:!*!:<!--#echo Phase_Name -->"
-      ID="PID/PHASE/Phase"
+      ID="PID/PHASE/<!--#echo Phase_ID -->"
       dataFile="none"
-      href="PID/Phase_script.htm"
+      href="PID/<!--#echo Phase_ID -->_script.htm"
       constraints="ED{}PID/TeamRoot}PID/TeamNode}PID/TeamTask}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode}PID/IndivReadOnlyNode" />
 
 <!--#endfor-->

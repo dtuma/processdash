@@ -7,100 +7,107 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
-import javax.swing.table.AbstractTableModel;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import teamdash.XMLUtils;
 
-public class CustomProcess extends AbstractTableModel {
+public class CustomProcess {
 
-    public static String[] PHASE_TYPES = {
+        public static final String PHASE_ITEM = "phase";
+        public static final String LONG_NAME = "longName";
+        public static final String NAME = "name";
+        public static final String TYPE = "type";
+        public static final String READ_ONLY = "readOnly";
+
+
+        public static String[] PHASE_TYPES = {
         "MGMT", "STRAT", "PLAN", "REQ", "STP", "REQINSP", "HLD", "ITP",
         "HLDRINSP", "DLD", "DLDR", "TD", "DLDINSP", "CODE", "CR", "COMP",
         "CODEINSP", "UT", "PM", "IT", "ST", "DOC", "AT", "PL" };
 
+    public class Item {
 
-    public class CustomPhase {
-        public String longName;
-        public String name;
-        public String type;
-        public Map attrs;
-        public boolean readOnly;
-        public boolean inserted = false;
-        public CustomPhase(String longName, String name,
-                           String type, boolean readOnly) {
-            this.longName = longName;
-            this.name = name;
-            this.type = type;
-            this.attrs = new TreeMap();
-            this.readOnly = readOnly;
-        }
-        CustomPhase(String[] args) {
-            this(args[0], args[1], args[2], args[3] != null);
-        }
-        public CustomPhase() {
-            this("Enter Phase Name", "Short Name", "MGMT", false);
-            inserted = true;
-        }
-        public CustomPhase(Element xml) throws IOException {
-                attrs = new TreeMap();
+        private String itemName;
+                private Map attrs;
+
+                public Item(String itemName) {
+                        this.itemName = itemName;
+                        this.attrs = new TreeMap();
+                }
+
+                public Item(Element xml) {
+                        this.itemName = xml.getTagName();
+                        this.attrs = new TreeMap();
+
             NamedNodeMap xmlAttrs = xml.getAttributes();
             for (int i=0; i < xmlAttrs.getLength();   i++) {
                 Node n = xmlAttrs.item(i);
                 attrs.put(n.getNodeName(), n.getNodeValue());
             }
-                longName = (String) attrs.remove("longName");
-            name = (String) attrs.remove("name");
-            type = (String) attrs.remove("type");
-            readOnly = "true".equals((String) attrs.remove("readOnly"));
-            if (!XMLUtils.hasValue(longName) ||
-                !XMLUtils.hasValue(name) ||
-                !XMLUtils.hasValue(type))
-                throw new IOException("Invalid CustomPhase settings");
+                }
 
-        }
         public Map getAttributes() {
                 return attrs;
         }
-        public void writeXMLSettings(Writer out) throws IOException {
-            out.write("    <phase longName='");
-            out.write(XMLUtils.escapeAttribute(longName));
-            out.write("' name='");
-            out.write(XMLUtils.escapeAttribute(name));
-            out.write("' type='");
-            out.write(XMLUtils.escapeAttribute(type));
-            out.write("' ");
-            if (readOnly)
-                out.write("readOnly='true' ");
-            for (Iterator iter = attrs.entrySet().iterator(); iter.hasNext();) {
+
+        public String getAttr(String name) {
+                return (String) attrs.get(name);
+        }
+
+        public void putAttr(String name, String value) {
+                attrs.put(name, value);
+        }
+
+                protected void writeXMLAttrs(Writer out) throws IOException {
+                        for (Iterator iter = attrs.entrySet().iterator(); iter.hasNext();) {
                                 Map.Entry e = (Map.Entry) iter.next();
                                 out.write((String) e.getKey());
                                 out.write("='");
                     out.write(XMLUtils.escapeAttribute((String) e.getValue()));
                     out.write("' ");
                         }
+                }
+
+                protected void writeXMLSettings(Writer out) throws IOException {
+                        out.write("    <");
+                        out.write(itemName);
+                        out.write(" ");
+            writeXMLAttrs(out);
             out.write("/>\n");
-        }
+                }
     }
 
 
     protected String processName, processVersion, generatorScript;
-    ArrayList phaseList = new ArrayList();
+    Map itemLists = new TreeMap();
     boolean isDirty = false;
     boolean structureChanged = false;
 
     /** Create a default custom process. */
     public CustomProcess() {
-        for (int i = 0;   i < defaultPhases.length;   i++)
-            phaseList.add(new CustomPhase(defaultPhases[i]));
+        List phaseList = getItemList(PHASE_ITEM);
+        for (int i = 0;   i < defaultPhases.length;   i++) {
+                Item phase = new Item(PHASE_ITEM);
+                phase.putAttr(LONG_NAME, defaultPhases[i][0]);
+                phase.putAttr(NAME, defaultPhases[i][1]);
+                phase.putAttr(TYPE, defaultPhases[i][2]);
+                if (defaultPhases[i][3] != null)
+                        phase.putAttr(READ_ONLY, "true");
+
+            phaseList.add(phase);
+        }
+
         processName = processVersion = "";
         generatorScript = "/team/lib/script-v1.xml";
     }
@@ -111,15 +118,20 @@ public class CustomProcess extends AbstractTableModel {
     }
     /** Load a custom process from an xml settings file */
     public CustomProcess(Element root) throws IOException {
-        processName = root.getAttribute("name");
+        processName = root.getAttribute(NAME);
         processVersion = root.getAttribute("version");
         generatorScript = root.getAttribute("generator");
         if (!XMLUtils.hasValue(processName) ||
             !XMLUtils.hasValue(generatorScript)) throw new IOException();
 
-        NodeList phases = root.getElementsByTagName("phase");
-        for (int i=0;   i < phases.getLength();   i++)
-            phaseList.add(new CustomPhase((Element) phases.item(i)));
+        NodeList elements = root.getChildNodes();
+        for (int i=0;   i < elements.getLength();   i++) {
+                if (elements.item(i) instanceof Element) {
+                        Element e = (Element) elements.item(i);
+                        List l = getItemList(e.getTagName());
+                        l.add(new Item(e));
+                }
+        }
     }
 
 //  private static String RO = "t"; // uncomment to make PSP phases read-only
@@ -162,25 +174,28 @@ public class CustomProcess extends AbstractTableModel {
             errors.add("You must specify a name for the process.");
 
         Set s = new HashSet();
-        CustomPhase phase;
+        Item phase;
+        List phaseList = getItemList(PHASE_ITEM);
         Iterator i = phaseList.iterator();
         while (i.hasNext()) {
-            phase = (CustomPhase) i.next();
+            phase = (Item) i.next();
 
-            if (phase.longName == null || phase.longName.length() == 0)
+            String longName = phase.getAttr(LONG_NAME);
+            if (longName == null || longName.length() == 0)
                 errors.add("Every phase must have a descriptive name.");
-            else if (s.contains(phase.longName))
+            else if (s.contains(longName))
                 errors.add("There is more than one phase named \"" +
-                           phase.longName + "\". Phase names must be unique.");
+                           longName + "\". Phase names must be unique.");
 
-            if (phase.name == null || phase.name.length() == 0)
+            String name = phase.getAttr(NAME);
+            if (name == null || name.length() == 0)
                 errors.add("Every phase must have a short name.");
-            else if (s.contains(phase.name))
+            else if (s.contains(name))
                 errors.add("There is more than one phase named \"" +
-                           phase.name + "\". Phase names must be unique.");
+                           name + "\". Phase names must be unique.");
 
-            s.add(phase.longName);
-            s.add(phase.name);
+            s.add(longName);
+            s.add(name);
         }
 
         return errors;
@@ -196,40 +211,19 @@ public class CustomProcess extends AbstractTableModel {
         if (isLegalVersionNum(version))
             processVersion = version;
     }
-    public Iterator getPhaseIterator() { return phaseList.iterator(); }
+    public List getItemList(String type) {
+        List result = (List) itemLists.get(type);
+        if (result == null) {
+                result = new ArrayList();
+                itemLists.put(type, result);
+        }
+        return result;
+    }
+    public Set getItemTypes() {
+        return itemLists.keySet();
+    }
+
     public String getGeneratorScript() { return generatorScript; }
-
-    public void insertPhase(int pos) {
-        CustomPhase newPhase = new CustomPhase();
-        newPhase.inserted = true;
-        phaseList.add(pos, newPhase);
-        isDirty = true;
-        fireTableRowsInserted(pos, pos);
-    }
-
-    public void deletePhase(int pos) {
-        if (pos >= 0 && pos < phaseList.size()) {
-            CustomPhase deletedPhase = get(pos);
-            phaseList.remove(pos);
-            isDirty = true;
-            if (!deletedPhase.inserted)
-                structureChanged = true;
-            fireTableRowsDeleted(pos, pos);
-        }
-    }
-
-    public void movePhaseUp(int pos) {
-        if (pos > 0 && pos < phaseList.size()) {
-            Object temp = phaseList.get(pos);
-            phaseList.set(pos, phaseList.get(pos-1));
-            phaseList.set(pos-1, temp);
-            isDirty = true;
-            fireTableRowsUpdated(pos-1, pos);
-        }
-    }
-    public CustomPhase get(int pos) {
-        return (CustomPhase) phaseList.get(pos);
-    }
 
     // Input/output functionality
 
@@ -254,46 +248,16 @@ public class CustomProcess extends AbstractTableModel {
         out.write("' generator='");
         out.write(XMLUtils.escapeAttribute(generatorScript));
         out.write("'>\n");
-        Iterator i = phaseList.iterator();
-        while (i.hasNext())
-            ((CustomPhase) i.next()).writeXMLSettings(out);
+        for (Iterator iter = itemLists.values().iterator(); iter.hasNext();) {
+                List items = (List) iter.next();
+                Iterator i = items.iterator();
+                while (i.hasNext())
+                    ((Item) i.next()).writeXMLSettings(out);
+        }
         out.write("</custom-process>\n");
     }
 
-    // TableModel interface methods
 
-    private static final String[] columnNames = {
-        "Descriptive Name", "Short Name", "Type" };
-
-    public int getRowCount() { return phaseList.size(); }
-    public int getColumnCount() { return columnNames.length; }
-    public Class getColumnClass(int columnIndex) { return String.class; }
-    public String getColumnName(int col) { return columnNames[col]; }
-    public Object getValueAt(int row, int column) {
-        CustomPhase phase = get(row);
-        switch (column) {
-        case 0: return phase.longName;
-        case 1: return phase.name;
-        case 2: default: return phase.type;
-        }
-    }
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return ! get(rowIndex).readOnly;
-    }
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        CustomPhase phase = get(rowIndex);
-        if (phase.readOnly) return;
-
-        String value = makeSafe(String.valueOf(aValue));
-        if (value.indexOf('/') != -1) return;
-
-        switch (columnIndex) {
-        case 0: phase.longName = value; break;
-        case 1: phase.name = value;     structureChanged = true; break;
-        case 2: phase.type = value;     break;
-        }
-        isDirty = true;
-    }
 
     public static String makeSafe(String s) {
         if (s == null) return "";
@@ -333,11 +297,22 @@ public class CustomProcess extends AbstractTableModel {
 
         StringBuffer result = new StringBuffer();
         result.append(Character.toUpperCase(text.charAt(0)));
+        boolean lastLetterWasLowerCase = false;
         for (int i=1;  i < text.length();   i++) {
-                if (Character.isUpperCase(text.charAt(i)))
-                        result.append('_');
+                if (Character.isUpperCase(text.charAt(i))) {
+                        if (lastLetterWasLowerCase || nextLetterIsLowerCase(text, i))
+                                result.append('_');
+                        lastLetterWasLowerCase = false;
+                } else {
+                        lastLetterWasLowerCase = true;
+                }
                 result.append(text.charAt(i));
         }
         return result.toString();
     }
+
+        private static boolean nextLetterIsLowerCase(String text, int i) {
+                return i+1 < text.length()
+                                && Character.isLowerCase(text.charAt(i+1));
+        }
 }

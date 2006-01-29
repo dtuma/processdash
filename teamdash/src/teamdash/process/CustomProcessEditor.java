@@ -49,6 +49,14 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 public class CustomProcessEditor extends TinyCGIBase {
 
+        public static void main(String[] args) {
+        try {
+                        new CustomProcessEditor(null, GenerateProcess.getTinyWebServer());
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
+        }
+
     public CustomProcessEditor() { super(); }
 
     /** Generate CGI script output. */
@@ -63,6 +71,7 @@ public class CustomProcessEditor extends TinyCGIBase {
     JTextField processName, processVersion;
     String origProcessName = null, origProcessVersion = null;
     CustomProcess process;
+    CustomProcessPhaseTableModel tableModel;
     JTable table;
     JButton insertButton, deleteButton, upButton, downButton;
     JMenuItem newMenuItem, openMenuItem, saveMenuItem, closeMenuItem;
@@ -121,7 +130,8 @@ public class CustomProcessEditor extends TinyCGIBase {
     }
 
     private Component buildTable() {
-        table = new JTable(process);
+        tableModel = new CustomProcessPhaseTableModel(process);
+        table = new JTable(tableModel);
 
         // adjust column widths
         table.getColumnModel().getColumn(0).setPreferredWidth(200);
@@ -218,7 +228,7 @@ public class CustomProcessEditor extends TinyCGIBase {
 
     private void enableButtons() {
         int row = getSelectedRow();
-        boolean editable = ((row >= 0) && !(process.get(row).readOnly));
+        boolean editable = ((row >= 0) && (tableModel.isCellEditable(row, 0)));
         deleteButton.setEnabled(editable && row >= 0);
         upButton    .setEnabled(editable && row > 0);
         downButton  .setEnabled(editable &&
@@ -228,21 +238,21 @@ public class CustomProcessEditor extends TinyCGIBase {
     protected void insert() {
         int row = getSelectedRow();
         if (row < 0) row = 0;
-        process.insertPhase(row);
+        tableModel.insertPhase(row);
         selectRow(row);
     }
     protected void delete() {
         int row = getSelectedRow();
-        if (row >= 0) process.deletePhase(row);
+        if (row >= 0) tableModel.deletePhase(row);
     }
     protected void moveUp()   {
         int row = getSelectedRow();
-        process.movePhaseUp(row--);
+        tableModel.movePhaseUp(row--);
         selectRow(row);
     }
     protected void moveDown() {
         int row = getSelectedRow()+1;
-        process.movePhaseUp(row);
+        tableModel.movePhaseUp(row);
         selectRow(row);
     }
     /*
@@ -262,12 +272,13 @@ public class CustomProcessEditor extends TinyCGIBase {
         process = proc;
         processName.setText(origProcessName = process.getName());
         processVersion.setText(origProcessVersion = process.getVersion());
+        tableModel = new CustomProcessPhaseTableModel(process);
 
         // remember the current widths of each table column.
         int[] width = new int[table.getColumnCount()];
         for (int i = width.length;   i-- > 0; )
             width[i] = table.getColumnModel().getColumn(i).getWidth();
-        table.setModel(process);
+        table.setModel(tableModel);
         for (int i = width.length;   i-- > 0; )
             table.getColumnModel().getColumn(i).setPreferredWidth(width[i]);
 

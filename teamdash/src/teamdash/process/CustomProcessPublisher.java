@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
@@ -194,49 +195,50 @@ public class CustomProcessPublisher {
         setParam("Version_String", versionString);
         setParam("Full_Name",      fullName);
 
-        String[] phaseList = new String[process.getRowCount()];
-        Iterator i = process.getPhaseIterator();
-        int phaseNum = 0;
-        lastPhaseID = null;
-        while (i.hasNext()) {
-                CustomProcess.CustomPhase phase =
-                        (CustomProcess.CustomPhase) i.next();
-            phaseList[phaseNum] = initPhase(phase, phaseNum);
-            phaseNum++;
+        for (Iterator iter = process.getItemTypes().iterator(); iter.hasNext();) {
+                        String type = (String) iter.next();
+                        handleItemList(process, type);
         }
-        parameters.put("Phase_List_ALL", phaseList);
 
         // parameters.put("USE_TO_DATE_DATA", "t");
     }
 
-    private String lastPhaseID;
-    protected String initPhase(CustomProcess.CustomPhase phase, int pos) {
-        String id = CustomProcess.makeUltraSafe(phase.name);
+        private void handleItemList(CustomProcess process, String itemType) {
+                List processItems = process.getItemList(itemType);
+                String[] itemList = new String[processItems.size()];
+        String itemPrefix = CustomProcess.bouncyCapsToUnderlines(itemType);
 
-        setParam(id, id);
-        setParam(id + "_Name", phase.name);
-        setParam(id + "_Long_Name", phase.longName);
-        setParam(id + "_Type", phase.type);
+        Iterator i = processItems.iterator();
+        int itemNum = 0;
+        lastItemID = null;
+        while (i.hasNext()) {
+                CustomProcess.Item item = (CustomProcess.Item) i.next();
+//        	String itemID = itemType + itemNum;
+                String itemID = getItemID(itemPrefix, itemNum);
+            itemList[itemNum] = itemID;
 
-        if (TemplateAutoData.isAppraisalPhaseType(phase.type)) {
-            setParam(id + "_Is_Appraisal", "t");
-            setParam(id + "_Is_Quality", "t");
-        } else if (TemplateAutoData.isFailurePhaseType(phase.type)) {
-            setParam(id + "_Is_Failure", "t");
-            setParam(id + "_Is_Quality", "t");
-        } else if (TemplateAutoData.isDevelopmentPhaseType(phase.type)) {
-            setParam(id + "_Is_Development", "t");
-        } else if (TemplateAutoData.isOverheadPhaseType(phase.type)) {
-            setParam(id + "_Is_Overhead", "t");
+            if (CustomProcess.PHASE_ITEM.equals(itemType))
+                initPhase(item, itemID);
+
+            setupItem(item, itemID, itemNum);
+
+            itemNum++;
+            lastItemID = itemID;
+        }
+                parameters.put(itemPrefix +"_List_ALL", itemList);
         }
 
+    private String lastItemID;
+
+    private String getItemID(String itemPrefix, int pos) {
         String phasePos = "" + pos;
         while (phasePos.length() < 3) phasePos = "0" + phasePos;
+        String id = itemPrefix + phasePos;
         setParam(id + "_Pos", phasePos);
+        return id;
+    }
 
-        String sizeMetric = (String) PHASE_SIZE_METRIC.get(phase.type);
-        if (sizeMetric != null) setParam(id + "_Size_Metric", sizeMetric);
-
+    private void setupItem(CustomProcess.Item phase, String id, int pos) {
         Iterator iter = phase.getAttributes().entrySet().iterator();
         while (iter.hasNext()) {
                         Map.Entry e = (Map.Entry) iter.next();
@@ -245,13 +247,32 @@ public class CustomProcessPublisher {
                         setParam(id + "_" + attrName, (String) e.getValue());
                 }
 
-        if (lastPhaseID != null) {
-            setParam(lastPhaseID + "_Next_Sibling", id);
-            setParam(id + "_Prev_Sibling", lastPhaseID);
+        if (lastItemID != null) {
+            setParam(lastItemID + "_Next_Sibling", id);
+            setParam(id + "_Prev_Sibling", lastItemID);
         }
-        lastPhaseID = id;
+    }
 
-        return id;
+    protected void initPhase(CustomProcess.Item phase, String id) {
+        String phaseName = phase.getAttr(CustomProcess.NAME);
+        String phaseID = CustomProcess.makeUltraSafe(phaseName);
+        setParam(id + "_ID", phaseID);
+
+        String phaseType = phase.getAttr(CustomProcess.TYPE);
+        if (TemplateAutoData.isAppraisalPhaseType(phaseType)) {
+            setParam(id + "_Is_Appraisal", "t");
+            setParam(id + "_Is_Quality", "t");
+        } else if (TemplateAutoData.isFailurePhaseType(phaseType)) {
+            setParam(id + "_Is_Failure", "t");
+            setParam(id + "_Is_Quality", "t");
+        } else if (TemplateAutoData.isDevelopmentPhaseType(phaseType)) {
+            setParam(id + "_Is_Development", "t");
+        } else if (TemplateAutoData.isOverheadPhaseType(phaseType)) {
+            setParam(id + "_Is_Overhead", "t");
+        }
+
+        String sizeMetric = (String) PHASE_SIZE_METRIC.get(phaseType);
+        if (sizeMetric != null) setParam(id + "_Size_Metric", sizeMetric);
     }
 
     protected void setParam(String parameter, String value) {
