@@ -1,7 +1,7 @@
 
 <project default="jar" basedir=".">
 
-  <property name="processdash.dir" value="D:\Tuma\projects\processdash"/>
+  <property name="processdash.dir" value="../processdash"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
   <property name="TeamProcessCGI.jar"
       value="Templates/team/lib/TeamProcessCGI.jar"/>
@@ -71,8 +71,8 @@
   <target name="TSP" depends="jar">
     <java classname="teamdash.process.GenerateDefaultProcess" fork="true">
       <classpath>
-        <pathelement location="F:/teamdash/TeamTools.jar"/>	
-        <pathelement location="D:/Tuma/projects/processdash/dist/pspdash.jar"/>
+        <pathelement location="TeamTools.jar"/>	
+        <pathelement location="${pspdash.jar}"/>
       </classpath>
       <arg value="."/>
     </java>
