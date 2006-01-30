@@ -9,11 +9,12 @@
            Please enter the complete path to a directory where you would like
            to store documents pertaining to this team project.</var>
 
-      <file name="Team Roles Matrix" path="[Team Roles Matrix Filename]"
-            defaultPath="roles.doc" templatePath="roles.rtf"/>
-
-      <file name="Team Project Goals" path="[Team Project Goals Filename]"
-            defaultPath="goals.xls" templatePath="goals.xls"/>
+      <!--#foreach name=Document list=Document_List -->
+      <file name="<!--#echo Document_Name -->" 
+            path="[<!--#echo Document_Name --> Filename]"
+            defaultPath="<!--#echo Document_Filename_Basename -->" 
+            templatePath="<!--#echo Document_Filename_Basename -->" />
+      <!--#endfor-->
 
    </directory>
 

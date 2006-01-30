@@ -67,15 +67,14 @@
 
 <h3>Team Planning Tools</h3>
 
+<!--#foreach name=Document list=Document_List -->
+<!--#if Document_Show_On_Team_Tools -->
 <p><form action="../dash/file.class" method="POST">
-<input type=hidden name="file" value="Team Roles Matrix">
-<input type=submit name="submit" value="Edit Team Roles / Responsibilities">
+<input type=hidden name="file" value="<!--#echo Document_Name -->">
+<input type=submit name="submit" value="Edit <!--#if Document_Long_Name --><!--#echo Document_Long_Name --><!--#else--><!--#echo Document_Name --><!--#endif-->">
 </form>
-
-<p><form action="../dash/file.class" method="POST">
-<input type=hidden name="file" value="Team Project Goals">
-<input type=submit name="submit" value="Edit Team Project Goals">
-</form>
+<!--#endif-->
+<!--#endfor-->
 
 [!--#include file='setup/inclTeamTools.class' --]
 

@@ -31,8 +31,11 @@
 
     <!-- files for external document integration of provided templates -->
     <file in="files2.xml" encoding="xml"/>
-    <file in="roles.rtf" encoding="binary"/>
-    <file in="goals.xls" encoding="binary"/>
+    <!--#foreach name=Document list=Document_List -->
+      <file in="extfile:<!--#echo Document_Filename -->"
+            out="<!--#echo Document_Filename_Basename -->"
+            encoding="binary"/>
+    <!--#endfor-->
 
     <!-- html pages for the individual project root node -->
     <file in="indiv_tools.htm" encoding="html" out="indiv_tools.shtm"/>

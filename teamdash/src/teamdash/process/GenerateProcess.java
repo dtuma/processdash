@@ -21,15 +21,14 @@ public class GenerateProcess {
                                                 + "settings.xml file on the command line.");
                                 System.exit(1);
                         }
-                        File settingsFilename = new File(args[0]);
-                        if (!settingsFilename.exists()) {
+                        File settingsFile = new File(args[0]);
+                        if (!settingsFile.exists()) {
                                 System.err.println("Could not open the file '" + args[0] + "'");
                                 System.exit(1);
                         }
-                        Document settingsFile = null;
+                        Document settings = null;
                         try {
-                                settingsFile = XMLUtils.parse(new FileInputStream(
-                                                settingsFilename));
+                                settings = XMLUtils.parse(new FileInputStream(settingsFile));
                         } catch (Exception e) {
                                 System.err.println("Invalid settings file '" + args[0] + "'");
                                 System.exit(1);
@@ -45,7 +44,7 @@ public class GenerateProcess {
                         }
 
                         GenerateProcess instance = new GenerateProcess(destDir,
-                                        settingsFile);
+                                        settings, settingsFile.toURL());
                         instance.run();
                         System.exit(0);
                 } catch (Exception e) {
@@ -57,9 +56,12 @@ public class GenerateProcess {
 
         private Document settingsFile;
 
-        public GenerateProcess(File destDir, Document settingsFile) {
+        private URL extBase;
+
+        public GenerateProcess(File destDir, Document settingsFile, URL extBase) {
                 this.destDir = destDir;
                 this.settingsFile = settingsFile;
+                this.extBase = extBase;
         }
 
         private void run() throws Exception {
@@ -68,7 +70,7 @@ public class GenerateProcess {
                 File outputFile = new File(destDir, process.getJarName());
 
                 WebServer webServer = getTinyWebServer();
-                CustomProcessPublisher.publish(process, outputFile, webServer);
+                CustomProcessPublisher.publish(process, outputFile, webServer, extBase);
         }
 
         static WebServer getTinyWebServer() throws IOException {

@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +17,8 @@ import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -23,6 +27,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.TemplateAutoData;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -34,7 +39,8 @@ import org.xml.sax.SAXException;
 
 public class CustomProcessPublisher {
 
-    private static final String SETTINGS_FILENAME = "settings.xml";
+        private static final String SETTINGS_FILENAME = "settings.xml";
+    private static final String EXT_FILE_PREFIX = "extfile:";
 
     public static CustomProcess open(File openFile) {
         try {
@@ -52,8 +58,15 @@ public class CustomProcessPublisher {
                                WebServer webServer)
         throws IOException {
 
+        publish(process, destFile, webServer, null);
+    }
+
+    public static void publish(CustomProcess process, File destFile,
+                               WebServer webServer, URL extBase)
+        throws IOException {
+
         CustomProcessPublisher pub =
-            new CustomProcessPublisher(destFile, webServer);
+            new CustomProcessPublisher(destFile, webServer, extBase);
         pub.publish(process);
         pub.close();
     }
@@ -66,13 +79,17 @@ public class CustomProcessPublisher {
     WebServer webServer;
     HTMLPreprocessor processor;
     HashMap customParams, parameters;
+    URL extBase;
 
 
-    protected CustomProcessPublisher(File destFile, WebServer webServer)
+
+    protected CustomProcessPublisher(File destFile, WebServer webServer,
+                URL extBase)
         throws IOException
     {
         this.destFile = destFile;
         this.webServer = webServer;
+        this.extBase = extBase;
         parameters = new HashMap();
         customParams = new HashMap();
         processor = new HTMLPreprocessor(webServer, null, null, "",
@@ -244,7 +261,13 @@ public class CustomProcessPublisher {
                         Map.Entry e = (Map.Entry) iter.next();
                         String attrName = CustomProcess.bouncyCapsToUnderlines(
                                         (String) e.getKey());
-                        setParam(id + "_" + attrName, (String) e.getValue());
+                        String attrValue = (String) e.getValue();
+                        setParam(id + "_" + attrName, attrValue);
+
+                        if (attrName.endsWith("Filename")
+                                        || attrName.endsWith("File_Name")) {
+                                enhanceFilenameAttribute(id + "_" + attrName, attrValue);
+                        }
                 }
 
         if (lastItemID != null) {
@@ -252,6 +275,22 @@ public class CustomProcessPublisher {
             setParam(id + "_Prev_Sibling", lastItemID);
         }
     }
+
+        private void enhanceFilenameAttribute(String attrName, String filename) {
+                String directory = "";
+                String baseName = filename;
+
+                Matcher m = FILENAME_PATTERN.matcher(filename);
+                if (m.matches()) {
+                        directory = m.group(1);
+                        baseName = m.group(2);
+                }
+
+                setParam(attrName + "_Directory", directory);
+                setParam(attrName + "_Basename", baseName);
+        }
+    private static Pattern FILENAME_PATTERN = Pattern.compile(
+                "(.*[/\\\\]|)([^/\\\\]+)");
 
     protected void initPhase(CustomProcess.Item phase, String id) {
         String phaseName = phase.getAttr(CustomProcess.NAME);
@@ -299,9 +338,21 @@ public class CustomProcessPublisher {
         return new String(rawContent);
     }
     protected byte[] getRawFileBytes(String filename) throws IOException {
-        return webServer.getRawRequest(filename);
+        if (filename != null && filename.startsWith(EXT_FILE_PREFIX))
+                return getRawBytesFromExternalFile(
+                                filename.substring(EXT_FILE_PREFIX.length()));
+        else
+                return webServer.getRawRequest(filename);
     }
-    protected String processContent(String content) throws IOException {
+    private byte[] getRawBytesFromExternalFile(String filename)
+                        throws IOException {
+                if (extBase == null)
+                return null;
+                URL extFile = new URL(extBase, filename);
+                URLConnection conn = extFile.openConnection();
+                return FileUtils.slurpContents(conn.getInputStream(), true);
+        }
+        protected String processContent(String content) throws IOException {
         if (content == null) return null;
         return processor.preprocess(content);
     }
@@ -336,7 +387,10 @@ public class CustomProcessPublisher {
     }
 
     private String maybeDefaultDir(String file, String dir) {
-        if (file == null || file.startsWith("/")) return file;
+        if (file == null
+                        || file.startsWith("/")
+                        || file.startsWith(EXT_FILE_PREFIX))
+                return file;
         return dir + "/" + file;
     }
 
