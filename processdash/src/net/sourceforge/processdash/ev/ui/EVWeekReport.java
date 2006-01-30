@@ -38,11 +38,13 @@ import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -53,8 +55,12 @@ public class EVWeekReport extends TinyCGIBase {
 
     private static final String EFF_DATE_PARAM = "eff";
 
+        private static final int MINUTES_PER_WEEK =
+                7 /*days*/ * 24 /*hours*/ * 60 /*minutes*/;
+
     private double totalPlanTime;
 
+    private static Resources resources = Resources.getDashBundle("EV.Week");
 
     /** Generate CGI output. */
     protected void writeContents() throws IOException {
@@ -154,49 +160,54 @@ public class EVWeekReport extends TinyCGIBase {
          * Okay, we have all the data we need.  Lets generate the HTML.
          */
 
-        String taskListHTML = WebServer.encodeHtmlEntities(taskListName);
+        String titleHTML = resources.format("Title_FMT", taskListName);
+        titleHTML = HTMLUtils.escapeEntities(titleHTML);
         out.print(StringUtils.findAndReplace
-                  (HEADER_HTML, TASK_LIST_VAR, taskListHTML));
+                  (HEADER_HTML, TITLE_VAR, titleHTML));
 
-        out.print("<h2>For the week ending: ");
-        out.println(EVSchedule.formatDate(new Date(effDate.getTime() - 1000)));
+        out.print("<h2>");
+        String endDateStr = encodeHTML(new Date(effDate.getTime() - 1000));
+                out.print(resources.format("Header_HTML_FMT", endDateStr));
         out.print("</h2>\n");
 
         Map errors = metrics.getErrors();
         if (errors != null && errors.size() > 0) {
-            out.print("<table border><tr>" +
-                      "<td style='text-align:left' bgcolor='#ff5050'>" +
-                      "<h3>Errors</h3><b>There are problems with this " +
-                      "earned value schedule:<ul>");
+            out.print("<table border><tr><td bgcolor='#ff5050'><h2>");
+            out.print(getResource("Report.Errors_Heading"));
+            out.print("</h2><b>");
+            out.print(getResource("Error_Dialog.Head"));
+            out.print("<ul>");
             Iterator i = errors.keySet().iterator();
             while (i.hasNext())
                 out.print("\n<li>" +
                           WebServer.encodeHtmlEntities((String) i.next()));
-            out.print("\n</ul>Until you correct these problems, calculations" +
-                      " may be incorrect.</b></td></tr></table>\n");
+            out.print("\n</ul>");
+            out.print(getResource("Error_Dialog.Foot"));
+            out.print("</b></td></tr></table>\n");
         }
 
-        out.print("<h3>Weekly Data</h3>" +
-                  "<table border=1 name='summary'><tr>" +
-                  "<td></td><td></td>"+
-                  "<td class=header colspan=3>Time</td><td></td>" +
-                  "<td class=header colspan=3>Earned Value</td></tr>\n" +
-                  "<tr><td></td><td></td>" +
-                  "<td class=header>Plan</td>"+
-                  "<td class=header>Actual</td>"+
-                  "<td class=header>Plan/Act</td><td></td>" +
-                  "<td class=header>Plan</td>"+
-                  "<td class=header>Actual</td>"+
-                  "<td class=header>Plan/Act</td></tr>\n");
+        interpOut("<h3>${Summary.Header}</h3>" +
+                        "<table border=1 name='summary'><tr>" +
+                "<td></td><td></td>"+
+                "<td class=header colspan=3>${Summary.Direct_Hours}</td><td></td>" +
+                "<td class=header colspan=3>${Summary.Earned_Value}</td></tr>\n" +
+                "<tr><td></td><td></td>" +
+                "<td class=header>${Summary.Plan}</td>"+
+                "<td class=header>${Summary.Actual}</td>"+
+                "<td class=header>${Summary.Ratio}</td><td></td>" +
+                "<td class=header>${Summary.Plan}</td>"+
+                "<td class=header>${Summary.Actual}</td>"+
+                "<td class=header>${Summary.Ratio}</td></tr>\n");
 
-        out.print("<tr><td class=left>This Week</td><td></td>");
-        printTimeData(weekSlice.getPlanTime(), weekSlice.getActualTime());
+        interpOut("<tr><td class=left>${Summary.This_Week}</td><td></td>");
+        printTimeData(weekSlice.getPlanDirectTime(),
+                              weekSlice.getActualDirectTime());
         out.print("<td></td>");
         printPctData(weekSlice.getPlanValue(totalPlanTime),
                      weekSlice.getEarnedValue(totalPlanTime));
         out.print("</tr>\n");
 
-        out.print("<tr><td class=left>To Date</td><td></td>");
+        interpOut("<tr><td class=left>${Summary.To_Date}</td><td></td>");
         printTimeData(weekSlice.getCumPlanTime(),
                       weekSlice.getCumActualTime());
         out.print("<td></td>");
@@ -204,24 +215,42 @@ public class EVWeekReport extends TinyCGIBase {
                      weekSlice.getCumEarnedValue(totalPlanTime));
         out.print("</tr>\n");
 
-        out.print("<tr><td class=left>Completed tasks to date</td><td></td>");
+        double numWeeks = metrics.elapsed() / MINUTES_PER_WEEK;
+        interpOut("<tr><td class=left>${Summary.Average_per_Week}" +
+                        "</td><td></td>");
+        double planTimePerWeek =
+                parseTime(weekSlice.getCumPlanTime()) / numWeeks;
+        double actualTimePerWeek =
+                parseTime(weekSlice.getCumActualTime()) / numWeeks;
+        printTimeData(formatTime(planTimePerWeek),
+                      formatTime(actualTimePerWeek));
+        out.print("<td></td>");
+        double planEVPerWeek =
+                parsePercent(weekSlice.getCumPlanValue(totalPlanTime)) / numWeeks;
+        double actualEVPerWeek =
+                parsePercent(weekSlice.getCumEarnedValue(totalPlanTime)) / numWeeks;
+        printPctData(formatPercent(planEVPerWeek),
+                     formatPercent(actualEVPerWeek));
+        out.print("</tr>\n");
+
+        interpOut("<tr><td class=left>${Summary.Completed_Tasks_To_Date}" +
+                        "</td><td></td>");
         printData(formatTime(completedTasksTotalPlanTime),
                   formatTime(completedTasksTotalActualTime),
-                  cpi);
+                  1.0 / cpi, "timefmt");
         out.print("<td></td><td></td><td></td><td></td></tr>\n");
 
-        out.println("</table>\n"+
-                    "<h3>Tasks Completed This Week</h3>");
+        interpOut("</table>\n<h3>${Completed_Tasks.Header}</h3>\n");
         if (!oneCompletedLastWeek)
-            out.println("<p><i>(None)</i>");
+            interpOut("<p><i>${None}</i>\n");
         else {
-            out.print("<table border=1 name='compTask'><tr>" +
+            interpOut("<table border=1 name='compTask'><tr>" +
                       "<td></td>"+
-                      "<td class=header>Plan<br>Time</td>"+
-                      "<td class=header>Actual<br>Time</td>"+
-                      "<td class=header>Earned<br>Value</td>"+
-                      "<td class=header>Planned<br>Date</td>"+
-                      "<td class=header>Plan Time/<br>Actual Time</td>"+
+                      "<td class=header>${Columns.Planned_Time}</td>"+
+                      "<td class=header>${Columns.Actual_Time}</td>"+
+                      "<td class=header>${Columns.Percent_Spent}</td>"+
+                      "<td class=header>${Columns.Planned_Date}</td>"+
+                      "<td class=header>${Columns.Earned_Value}</td>"+
                       "</tr>\n");
 
             for (int i = 0;   i < taskListLen;   i++)
@@ -231,17 +260,17 @@ public class EVWeekReport extends TinyCGIBase {
             out.println("</table>");
         }
 
-        out.println("<h3>Tasks Due Through Next Week</h3>\n");
+        interpOut("<h3>${Due_Tasks.Header}</h3>\n");
         if (!oneDueNextWeek)
-            out.println("<p><i>(None)</i>");
+            interpOut("<p><i>${None}</i>\n");
         else {
-            out.print("<table border=1 name='dueTask'><tr>" +
+            interpOut("<table border=1 name='dueTask'><tr>" +
                       "<td></td>"+
-                      "<td class=header>Plan<br>Time</td>"+
-                      "<td class=header>Actual<br>Time</td>"+
-                      "<td class=header>Planned<br>Date</td>"+
-                      "<td class=header>Percent<br>Spent</td>"+
-                      "<td class=header>Forecast Time<br>Remaining</td>"+
+                      "<td class=header>${Columns.Planned_Time}</td>"+
+                      "<td class=header>${Columns.Actual_Time}</td>"+
+                      "<td class=header>${Columns.Percent_Spent}</td>"+
+                      "<td class=header>${Columns.Planned_Date}</td>"+
+                      "<td class=header>${Columns.Forecast_Time_Remaining}</td>"+
                       "</tr>\n");
 
             double timeRemaining = 0;
@@ -249,12 +278,13 @@ public class EVWeekReport extends TinyCGIBase {
                 if (dueThroughNextWeek[i])
                     timeRemaining += printDueLine(tasks, i, cpi);
 
-            out.print("<tr><td align=right colspan=5><b>Total:&nbsp;</b></td><td>");
+            interpOut("<tr><td align=right colspan=5><b>${Due_Tasks.Total}" +
+                        "&nbsp;</b></td><td class='timefmt'>");
             out.print(formatTime(timeRemaining));
             out.println("</td></tr>\n</table>");
         }
 
-        out.print(EXPORT_HTML);
+        interpOut(EXPORT_HTML);
         out.print(FOOTER_HTML);
     }
 
@@ -264,28 +294,34 @@ public class EVWeekReport extends TinyCGIBase {
         long result = FormatUtil.parseTime(time.toString());
         return (result < 0 ? 0 : result);
     }
-    protected static NumberFormat percentFormatter =
-        NumberFormat.getPercentInstance();
     private double parsePercent(String pct) {
         try {
-            return percentFormatter.parse(pct).doubleValue();
+                return FormatUtil.parsePercent(pct);
         } catch (Exception e) {
             return 0;
         }
     }
     protected void printTimeData(String plan, String actual) {
         printData(plan, actual,
-                  (double) parseTime(plan) / (double) parseTime(actual));
+                  (double) parseTime(actual) / (double) parseTime(plan),
+                  "timefmt");
     }
     protected void printPctData(String plan, String actual) {
         printData(plan, actual,
-                  (double) parsePercent(plan) /
-                  (double) parsePercent(actual));
+                  (double) parsePercent(actual) / (double) parsePercent(plan),
+                  null);
     }
-    protected void printData(String plan, String actual, double fraction) {
-        out.print("<td>");
+    protected void printData(String plan, String actual, double fraction,
+                String className) {
+        String td;
+        if (className == null)
+                td = "<td>";
+        else
+                td = "<td class='" + className + "'>";
+        out.print(td);
         out.print(plan);
-        out.print("</td><td>");
+        out.print("</td>");
+        out.print(td);
         out.print(actual);
         out.print("</td><td>");
         if (!Double.isInfinite(fraction) && !Double.isNaN(fraction))
@@ -300,24 +336,24 @@ public class EVWeekReport extends TinyCGIBase {
         String time;
         out.print("<tr><td class=left>");
         out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
-        out.print("</td><td>");
+        out.print("</td><td class='timefmt'>");
         time = (String) tasks.getValueAt(i, EVTaskList.PLAN_TIME_COLUMN);
         planTime = parseTime(time);
         out.print(time);
-        out.print("</td><td>");
+        out.print("</td><td class='timefmt'>");
         time = (String) tasks.getValueAt(i, EVTaskList.ACT_TIME_COLUMN);
         actualTime = parseTime(time);
         out.print(time);
         out.print("</td><td>");
-        out.print(tasks.getValueAt(i, EVTaskList.VALUE_EARNED_COLUMN));
+        if (planTime > 0)
+            out.print(formatPercent(actualTime/planTime));
+        else
+            out.print("&nbsp;");
         out.print("</td><td>");
         out.print(encodeHTML
                   (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
         out.print("</td><td>");
-        if (actualTime > 0)
-            out.print(FormatUtil.formatNumber(planTime/actualTime));
-        else
-            out.print("&nbsp;");
+        out.print(tasks.getValueAt(i, EVTaskList.VALUE_EARNED_COLUMN));
         out.println("</td></tr>");
     }
 
@@ -326,57 +362,62 @@ public class EVWeekReport extends TinyCGIBase {
         String time;
         out.print("<tr><td class=left>");
         out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
-        out.print("</td><td>");
+        out.print("</td><td class='timefmt'>");
         time = (String) tasks.getValueAt(i, EVTaskList.PLAN_TIME_COLUMN);
         planTime = parseTime(time);
         out.print(time);
-        out.print("</td><td>");
+        out.print("</td><td class='timefmt'>");
         time = (String) tasks.getValueAt(i, EVTaskList.ACT_TIME_COLUMN);
         actualTime = parseTime(time);
         out.print(time);
         out.print("</td><td>");
+        percentSpent = actualTime / planTime;
+        out.print(formatPercent(percentSpent));
+        out.print("</td><td>");
         out.print(encodeHTML
                   (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
-        out.print("</td><td>");
-        percentSpent = actualTime / planTime;
-        out.print(percentFormatter.format(percentSpent));
-        out.print("</td><td>");
+        out.print("</td>");
         if (cpi > 0)
             forecastTimeRemaining = (planTime / cpi) - actualTime;
         else
             forecastTimeRemaining = planTime - actualTime;
 
         if (forecastTimeRemaining > 0)
-            out.print(formatTime(forecastTimeRemaining));
+            out.print("<td class='timefmt'>" + formatTime(forecastTimeRemaining));
         else
-            out.print("<i>0:00&nbsp;&nbsp;???</i>");
+            out.print("<td class='error'>0:00&nbsp;&nbsp;???");
         out.println("</td></tr>");
         return forecastTimeRemaining > 0 ? forecastTimeRemaining : 0;
     }
 
 
 
-    static final String TASK_LIST_VAR = "%taskListName%";
+    static final String TITLE_VAR = "%title%";
     static final String HEADER_HTML =
-        "<html><head><title>Weekly Tasks - %taskListName%</title>\n" +
+        "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "<style> td { text-align:right } td.left { text-align:left } "+
+        "td.error  { font-style: italic;  color: red }\n" +
+        "td.timefmt { vnd.ms-excel.numberformat: [h]\\:mm }\n" +
         "td.header { text-align:center; font-weight:bold; "+
                            " vertical-align:bottom } </style>\n"+
-        "</head><body><h1>Weekly Tasks - %taskListName%</h1>\n";
+        "</head><body><h1>%title%</h1>\n";
 
     static final String EXPORT_HTML =
         "<p class='doNotPrint'>" +
         "<a href=\"excel.iqy?uri=week.class&fullPage\">" +
-        "<i>Export to Excel</i></a></p>";
+        "<i>${Export_to_Excel}</i></a></p>";
     static final String FOOTER_HTML = "</body></html>";
 
 
     private String formatTime(double time) {
-        return EVSchedule.formatTime(time);
+        return FormatUtil.formatTime(time);
     }
     private String formatEV(double ev) {
-        return EVSchedule.formatPercent(ev / totalPlanTime);
+        return formatPercent(ev / totalPlanTime);
+    }
+    private String formatPercent(double pct) {
+        return FormatUtil.formatPercent(pct);
     }
 
     /** translate an object to appropriate HTML */
@@ -387,5 +428,13 @@ public class EVWeekReport extends TinyCGIBase {
             text = EVSchedule.formatDate((Date) text);
 
         return WebServer.encodeHtmlEntities(text.toString());
+    }
+
+    final static String getResource(String key) {
+        return encodeHTML(resources.getString(key)).replace('\n', ' ');
+    }
+
+    private void interpOut(String text) {
+        out.print(resources.interpolate(text, HTMLUtils.ESC_ENTITIES));
     }
 }
