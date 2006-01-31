@@ -136,7 +136,9 @@ public class HierarchyAlterer implements ItemListener {
         DashHierarchy templates = dashboard.getTemplateProperties();
         PropertyKey templateKey = templates.getByID(templateID);
         if (templateKey == null)
-            throw new HierarchyAlterationException("No such template");
+            throw new HierarchyAlterationException("Could not find any"
+                        + " template called '" + templateID
+                        + "' to add to path '" + path + "'");
 
         beginChanges();
         try {
