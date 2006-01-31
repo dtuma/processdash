@@ -156,7 +156,8 @@ public class EVCalculatorRollup extends EVCalculator {
             Iterator i = evTaskLists.iterator();
             while (i.hasNext()) {
                 EVTaskList taskList = (EVTaskList) i.next();
-                evLeaves.addAll(taskList.calculator.getEVLeaves());
+                if (taskList != null && taskList.calculator != null)
+                        evLeaves.addAll(taskList.calculator.getEVLeaves());
             }
         }
 
