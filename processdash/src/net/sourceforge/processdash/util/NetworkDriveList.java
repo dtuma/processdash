@@ -31,6 +31,8 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /** On Windows systems, this class compiles a list of shared
@@ -44,6 +46,9 @@ public class NetworkDriveList {
     private volatile boolean successful = false;
     private Map networkDrives = new TreeMap();
     private volatile Process subprocess = null;
+
+    private static final Logger logger = Logger.getLogger(
+            NetworkDriveList.class.getName());
 
 
     /** Get a list of network drives.
@@ -67,11 +72,13 @@ public class NetworkDriveList {
             try {
                 t.join(maxDelay);
             } catch (InterruptedException ie) {}
-            if (successful == false)
+            if (successful == false) {
                 synchronized (this) {
                     subprocess.destroy();
                     subprocess = null;
                 }
+                logger.severe("Network drive list was not built");
+            }
         }
     }
 
@@ -80,7 +87,9 @@ public class NetworkDriveList {
             listMappedDrives();
             listSharedDrives();
             successful = true;
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Unable to build network drive list", e);
+        }
     }
 
 
@@ -113,6 +122,8 @@ public class NetworkDriveList {
                 if (pos != -1) line = line.substring(0, pos);
                 String drivePath = getDrivePath(driveLetter);
                 networkDrives.put(drivePath, line);
+                logger.fine("Identified mapped network drive: '"
+                        + drivePath + "' => '" + line + "'");
             }
         }
         subprocess.waitFor();
@@ -177,6 +188,8 @@ public class NetworkDriveList {
                     if (!resourceName.endsWith("\\"))
                         resourceName = resourceName + "\\";
                     networkDrives.put(resourceName, shareName);
+                    logger.fine("Identified network share: '"
+                            + resourceName + "' => '" + shareName + "'");
                 }
             }
         }
@@ -203,7 +216,9 @@ public class NetworkDriveList {
     public boolean isNetworkDrive(String driveLetter) {
         if (driveLetter == null) return false;
         String drivePath = getDrivePath(driveLetter);
-        return networkDrives.containsKey(drivePath);
+        boolean result = networkDrives.containsKey(drivePath);
+        logger.finer("isNetworkDrive(" + driveLetter + ") = '" + result + "'");
+        return result;
     }
 
 
@@ -213,7 +228,9 @@ public class NetworkDriveList {
      */
     public boolean onNetworkDrive(String filename) {
         if (filename.startsWith("\\\\")) return true;
-        return (toUNCName(filename) != null);
+        boolean result = (toUNCName(filename) != null);
+        logger.finer("onNetworkDrive(" + filename + ") = '" + result + "'");
+        return result;
     }
 
 
@@ -225,7 +242,9 @@ public class NetworkDriveList {
         driveLetter = getDriveLetter(driveLetter);
         if (driveLetter == null) return null;
         String drivePath = getDrivePath(driveLetter);
-        return (String) networkDrives.get(drivePath);
+        String result = (String) networkDrives.get(drivePath);
+        logger.finer("getUNCName(" + driveLetter + ") = '" + result + "'");
+        return result;
     }
 
 
@@ -233,6 +252,11 @@ public class NetworkDriveList {
      * @return an UNC name, or null if the filename could not be translated.
      */
     public String toUNCName(String filename) {
+        String result = toUNCNameImpl(filename);
+        logger.finer("toUNCNameImpl(" + filename + ") = '" + result + "'");
+        return result;
+    }
+    private String toUNCNameImpl(String filename) {
         if (!successful) return null;
         if (filename == null || filename.startsWith("\\\\")) return filename;
 
@@ -248,6 +272,11 @@ public class NetworkDriveList {
                     uncPrefix = uncPrefix.substring(0, uncPrefix.length()-1);
                 filename = filename.substring(resPrefix.length() - 1);
                 return uncPrefix + filename;
+            } else if (resPrefix != null
+                    && resPrefix.equalsIgnoreCase(filename+"\\")) {
+                if (uncPrefix.endsWith("\\"))
+                    uncPrefix = uncPrefix.substring(0, uncPrefix.length()-1);
+                return uncPrefix;
             }
         }
 
@@ -261,6 +290,11 @@ public class NetworkDriveList {
      * the filename could not be translated.
      */
     public String fromUNCName(String uncName) {
+        String result = fromUNCNameImpl(uncName);
+        logger.finer("fromUNCName(" + uncName + ") = '" + result + "'");
+        return result;
+    }
+    private String fromUNCNameImpl(String uncName) {
         if (!successful) return null;
         if (uncName == null || !uncName.startsWith("\\\\")) return null;
 
@@ -269,6 +303,10 @@ public class NetworkDriveList {
             Map.Entry e = (Map.Entry) i.next();
             String resPrefix = (String) e.getKey();
             String uncPrefix = (String) e.getValue();
+
+            if (uncName.equalsIgnoreCase(uncPrefix))
+                return resPrefix;
+
             if (!uncPrefix.endsWith("\\"))
                 uncPrefix = uncPrefix + "\\";
 
