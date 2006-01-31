@@ -35,6 +35,8 @@ import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.ImmutableStringData;
@@ -100,6 +102,9 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String JOIN_PAGE = "join";
     private static final String JOIN_ERROR_URL = "teamStartJoinError.shtm";
     private static final String JOIN_VERIFY_URL = "teamStartJoinVerify.shtm";
+
+    private static final Logger logger = Logger.getLogger(
+                TeamStartBootstrap.class.getName());
 
 
 
@@ -366,8 +371,10 @@ public class TeamStartBootstrap extends TinyCGIBase {
         String templatePathUNC = getValue(TEMPLATE_UNC);
         String continuationURI = getValue(CONTINUATION_URI);
 
-        if (templateIsLoaded(templateID, templatePath,
-                             templatePathUNC, continuationURI)) {
+        File templateFile = resolveTemplateLocation(templatePath,
+                        templatePathUNC);
+
+        if (templateIsLoaded(templateID, templateFile, continuationURI)) {
 
             // the template is already present in the dashboard, so simply
             // redirect to the continuation URI.
@@ -379,7 +386,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
         } else {
             String errorMessage = initiateTemplateLoad
-                (templateID, templatePath, templatePathUNC, continuationURI);
+                (templateID, templateFile, continuationURI);
             if (errorMessage == null)
                 printRedirect(JOIN_VERIFY_URL);
             else
@@ -388,14 +395,38 @@ public class TeamStartBootstrap extends TinyCGIBase {
         }
     }
 
+    private File resolveTemplateLocation(String templatePath,
+                        String templatePathUNC) {
+                File f = new File(templatePath);
+                if (!f.exists()) {
+                        if (templatePathUNC != null && templatePathUNC.length() > 0) {
+                                // Try to find the template file using the UNC path.
+                                NetworkDriveList networkDriveList = new NetworkDriveList();
+                                String altTemplatePath = networkDriveList.fromUNCName(
+                                                templatePathUNC);
+                                if (altTemplatePath != null)
+                                        f = new File(altTemplatePath);
+                        }
+                }
+
+                try {
+                        f = f.getCanonicalFile();
+                } catch (Exception e) { }
+                logger.finer("resolveTemplateLocation('" + templatePath + "', '"
+                                + templatePathUNC + "') = '" + f + "'");
+                return f;
+        }
+
     private boolean templateIsLoaded(String templateID,
-                                     String templatePath,
-                                     String templatePathUNC,
+                                     File templateJarfile,
                                      String continuationURI)
     {
         // if we have no loaded template with the given ID, return false.
-        if (DashController.getTemplates().get(templateID) == null)
+        if (DashController.getTemplates().get(templateID) == null) {
+                logger.log(Level.FINER, "No template found with ID {0}",
+                                templateID);
             return false;
+        }
 
         // check to see if the continuation URI is a valid resource.  If not,
         // return false.
@@ -403,7 +434,9 @@ public class TeamStartBootstrap extends TinyCGIBase {
         if (pos != -1) continuationURI = continuationURI.substring(0, pos);
         pos = continuationURI.indexOf('#');
         if (pos != -1) continuationURI = continuationURI.substring(0, pos);
+        logger.log(Level.FINER, "continuationURI={0}", continuationURI);
         URL url = resolveURL(continuationURI);
+        logger.log(Level.FINER, "url={0}", url);
         if (url == null) return false;
 
         // check to see if the continuation URI appears to be provided by
@@ -413,17 +446,23 @@ public class TeamStartBootstrap extends TinyCGIBase {
         pos = urlStr.indexOf("!/Templates");
         if (pos == -1) return false;
         String urlJarpath = HTMLUtils.urlDecode(urlStr.substring(9, pos));
+        logger.log(Level.FINER, "urlJarpath={0}", urlJarpath);
         File urlJarfile = new File(urlJarpath);
-        File templateJarfile = new File(templatePath);
         try {
-            if (!urlJarfile.getCanonicalPath().equals
-                 (templateJarfile.getCanonicalPath()))
+                File urlJarfileCanon = urlJarfile.getCanonicalFile();
+                File templateJarfileCanon = templateJarfile.getCanonicalFile();
+                if (!urlJarfileCanon.equals(templateJarfileCanon)) {
+                                logger.finer("paths do not match: '" + urlJarfileCanon
+                                                + "' != '" + templateJarfileCanon + "'" );
                 return false;
+                        }
         } catch (IOException ioe) {
+                logger.log(Level.FINER, "Encountered error comparing paths", ioe);
             return false;
         }
 
         // the template appears to be loaded, and meets all our criteria.
+        logger.finer("Template is loaded");
         return true;
     }
 
@@ -441,10 +480,12 @@ public class TeamStartBootstrap extends TinyCGIBase {
      * problem encountered.
      */
     private String initiateTemplateLoad(String templateID,
-                                        String templatePath,
-                                        String templatePathUNC,
+                                        File templateFile,
                                         String continuationURI)
     {
+        String templatePath = templateFile.getPath();
+        String templateDir = templateFile.getParent();
+
         // Check to ensure that the template is contained in a 'jar'
         // or 'zip' file.
         String suffix =
@@ -453,35 +494,15 @@ public class TeamStartBootstrap extends TinyCGIBase {
             return "The team project setup logic currently only supports "+
                 "custom projects that are stored in 'jar' or 'zip' files.";
 
-        // Check to see if the file actually exists.
-        File f = new File(templatePath);
-        if (!f.exists()) {
-            if (templatePathUNC == null || templatePathUNC.length() == 0) {
-                return "that file doesn't exist";
-
-            } else {
-                // Try to find the template file using the UNC path.
-                NetworkDriveList networkDriveList = new NetworkDriveList();
-                String altTemplatePath =
-                    networkDriveList.fromUNCName(templatePathUNC);
-                if (altTemplatePath != null &&
-                    (f = new File(altTemplatePath)).exists())
-                    templatePath = altTemplatePath;
-                else
-                    return "that file doesn't exist";
-            }
-        }
-
         // Initiate the loading of the template definition.
-        String templateDir = f.getParent();
         new TemplateLoadTask(templatePath, templateDir);
         return null;
     }
 
-    /** The DashController.loadNewTemplate method will block, waiting
-     * for user input, so we must run it in a thread so this CGI script
-     * can complete.
-     */
+    /**
+         * The DashController.loadNewTemplate method will block, waiting for user
+         * input, so we must run it in a thread so this CGI script can complete.
+         */
     private class TemplateLoadTask extends Thread {
         private String templatePath, templateDir;
         public TemplateLoadTask(String templatePath, String templateDir) {
