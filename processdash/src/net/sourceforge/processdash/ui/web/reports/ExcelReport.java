@@ -130,7 +130,13 @@ public class ExcelReport extends TinyCGIBase {
     private String getURL() {
         String host = getTinyWebServer().getHostName(true);
         String port = (String) env.get("SERVER_PORT");
-        return "http://" + host + ":" + port + getURI();
+        String uri = getURI();
+        int pos = uri.indexOf("//");
+        if (pos != -1)
+                // work around bug in Excel 2003. (Excel can't handle the
+                // double slash that appears in dashboard URLs.)
+                uri = uri.substring(0, pos) + "/+/" + uri.substring(pos+2);
+                return "http://" + host + ":" + port + uri;
     }
 
 }

@@ -391,6 +391,9 @@ public class WebServer {
             if (pos >= 0) {
                 id = uri.substring(0, pos);
                 path = uri.substring(pos+2);
+            } else if((pos = uri.indexOf("/+/")) != -1) {
+                id = uri.substring(0, pos);
+                path = uri.substring(pos+3);
             } else try {
                  pos = uri.indexOf('/', 1);
                  id = uri.substring(1, pos);
