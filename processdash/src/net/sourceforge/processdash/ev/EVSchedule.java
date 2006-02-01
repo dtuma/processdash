@@ -854,6 +854,15 @@ public class EVSchedule implements TableModel {
         return true;
     }
 
+    protected int findIndexOfFinalPlannedPeriod() {
+        for (int i = periods.size();   i-- > 1; ) {
+                Period p = get(i);
+                if (p != null && p.planDirectTime() > 0)
+                        return i;
+        }
+        return 1;
+    }
+
     /** examines two different dates to see if one is in daylight
      * savings time while the other is not.  If they are both in DST
      * or neither is in DST, returns zero.
@@ -1233,7 +1242,9 @@ public class EVSchedule implements TableModel {
         ("Schedule.Plan_Label");
     private abstract class PlanChartSeries implements ChartSeries {
         public String getSeriesName() { return PLAN_LABEL; }
-        public int getItemCount() { return getRowCount()+1; }
+        public int getItemCount() {
+                return findIndexOfFinalPlannedPeriod()+1;
+        }
         public Number getXValue(int itemIndex) {
             return new Long(get(itemIndex).endDate.getTime()); }
     }
