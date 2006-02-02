@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,7 +25,11 @@
 
 package net.sourceforge.processdash.ev.ui;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Iterator;
@@ -34,6 +38,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.table.TableModel;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
@@ -43,11 +48,13 @@ import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.Legend;
+import org.jfree.data.AbstractDataset;
 import org.jfree.data.XYDataset;
 
 
@@ -59,10 +66,12 @@ public class EVReport extends CGIChartBase {
     public static final String CHART_PARAM = "chart";
     public static final String TABLE_PARAM = "table";
     public static final String XML_PARAM = "xml";
+    public static final String XLS_PARAM = "xls";
     public static final String TIME_CHART = "time";
     public static final String VALUE_CHART = "value";
     public static final String VALUE_CHART2 = "value2";
     public static final String COMBINED_CHART = "combined";
+    public static final String FAKE_MODEL_NAME = "/  ";
 
 
     private static final int MED = EVMetrics.MEDIUM;
@@ -75,7 +84,9 @@ public class EVReport extends CGIChartBase {
      */
     protected void writeHeader() {
         drawingChart = (parameters.get(CHART_PARAM) != null);
-        if (parameters.get(XML_PARAM) != null) return;
+        if (parameters.get(XML_PARAM) != null
+                        || parameters.get(XLS_PARAM) != null)
+                return;
 
         if (drawingChart)
             super.writeHeader();
@@ -122,6 +133,8 @@ public class EVReport extends CGIChartBase {
             if (tableType == null) {
                 if (parameters.get(XML_PARAM) != null)
                     writeXML();
+                else if (parameters.get(XLS_PARAM) != null)
+                        writeXls();
                 else
                     writeHTML();
             } else if (TIME_CHART.equals(tableType))
@@ -152,6 +165,10 @@ public class EVReport extends CGIChartBase {
         taskListName = getPrefix();
         if (taskListName == null || taskListName.length() < 2)
             throw new TinyCGIException(400, "schedule name missing");
+        else if (FAKE_MODEL_NAME.equals(taskListName)) {
+                evModel = null;
+                return;
+        }
         taskListName = taskListName.substring(1);
 
         // strip the "publishing prefix" if it is present.
@@ -190,7 +207,8 @@ public class EVReport extends CGIChartBase {
         }
     }
 
-    /** Generate a page of XML data for the Task and Schedule templates.
+
+        /** Generate a page of XML data for the Task and Schedule templates.
      */
     public void writeXML() throws IOException {
         if (evModel.isEmpty()) {
@@ -211,6 +229,97 @@ public class EVReport extends CGIChartBase {
     }
     private static final String XML_HEADER =
         "<?xml version='1.0' encoding='UTF-8'?>";
+
+
+
+    /** Generate a excel spreadsheet to display EV charts.
+     */
+    public void writeXls() throws IOException {
+        if (evModel == null || evModel.isEmpty()) {
+            out.print("Status: 404 Not Found\r\n\r\n");
+            out.flush();
+
+        } else if ("Excel97".equalsIgnoreCase(Settings
+                                .getVal("excel.exportChartsMethod"))) {
+            out.print("Content-type: application/vnd.ms-excel\r\n\r\n");
+            out.flush();
+            FileUtils.copyFile(EVReport.class
+                                        .getResourceAsStream("evCharts97.xls"), outStream);
+
+        } else {
+            out = new PrintWriter(new OutputStreamWriter(
+                        outStream, "us-ascii"));
+            out.print("Content-type: application/vnd.ms-excel\r\n\r\n");
+                BufferedReader in = new BufferedReader(new InputStreamReader(
+                                EVReport.class.getResourceAsStream("evCharts2002.mht"),
+                                "us-ascii"));
+
+                scanAndCopyLines(in, "Single File Web Page", true, false);
+                out.print("This document, generated by the Process Dashboard,\r\n"
+                                + "is designed to work with Excel 2002 and higher.  If\r\n"
+                                + "you are using an earlier version of Excel, try\r\n"
+                                + "adding the following line to your pspdash.ini file:\r\n"
+                                + "excel.exportChartsMethod=Excel97\r\n");
+
+                boolean needsOptimizedLine =
+                        (evModel.getSchedule() instanceof EVScheduleRollup);
+                if (needsOptimizedLine == false) {
+                        // find the data series immediately preceeding the series
+                        // describing the optimized line.  Copy it all to output.
+                        scanAndCopyLines(in, "'EV Data'!$D$2:$D$10", true, true);
+                        scanAndCopyLines(in, "</x:Series>", true, true);
+                        // Now skip over and discard the series describing the
+                        // optimized line.
+                        scanAndCopyLines(in, "</x:Series>", false, false);
+                }
+
+                String line;
+                while ((line = scanAndCopyLines(in, "http://localhost:2468/++/",
+                                true, false)) != null) {
+                        writeUrlLine(line);
+                }
+                out.flush();
+        }
+    }
+        private String scanAndCopyLines(BufferedReader in, String lookFor,
+                boolean printLines, boolean printLast) throws IOException {
+        String line;
+        while ((line = in.readLine()) != null) {
+                boolean found = (line.indexOf(lookFor) != -1);
+                        if ((!found && printLines) || (found && printLast)) {
+                        out.print(line);
+                        out.print("\r\n");
+                        }
+                if (found)
+                        return line;
+        }
+        return null;
+    }
+    private void writeUrlLine(String line) {
+        String host = getTinyWebServer().getHostName(true);
+        String port = (String) env.get("SERVER_PORT");
+        String path = (String) env.get("PATH_INFO");
+        String newBase = host + ":" + port + path;
+
+        // need to escape the result for quoted printable display. Since it's
+        // a URL, the only unsafe character it might contain is the '=' sign.
+        newBase = StringUtils.findAndReplace(newBase, "=", "=3D");
+
+        // replace the generic host/path information in the URL with the
+        // specific information we've built.
+        line = StringUtils.findAndReplace(line, "localhost:2468/++", newBase);
+
+        while (line.length() > 76) {
+                int pos = line.indexOf('=', 70);
+                if (pos == -1 || pos > 73)
+                        pos = 73;
+                out.print(line.substring(0, pos));
+                out.print("=\r\n");
+                line = line.substring(pos);
+        }
+        out.print(line);
+        out.print("\r\n");
+        }
 
 
 
@@ -430,25 +539,43 @@ public class EVReport extends CGIChartBase {
     }
 
     public void writeTimeTable() {
-        writeChartData(evModel.getSchedule().getTimeChartData(), 3);
+        if (evModel != null)
+                writeChartData(evModel.getSchedule().getTimeChartData(), 3);
+        else
+                writeFakeChartData("Plan", "Actual", "Forecast", null);
     }
 
     public void writeValueTable() {
-        writeChartData(evModel.getSchedule().getValueChartData(), 3);
+        if (evModel != null)
+                writeChartData(evModel.getSchedule().getValueChartData(), 3);
+        else
+                writeFakeChartData("Plan", "Actual", "Forecast", null);
     }
 
     public void writeValueTable2() {
-        EVSchedule s = evModel.getSchedule();
-        int maxSeries = 3;
-        if (s instanceof EVScheduleRollup) maxSeries = 4;
-        writeChartData(s.getValueChartData(), maxSeries);
+        if (evModel != null) {
+                EVSchedule s = evModel.getSchedule();
+                int maxSeries = 3;
+                if (s instanceof EVScheduleRollup) maxSeries = 4;
+                writeChartData(s.getValueChartData(), maxSeries);
+        } else
+                writeFakeChartData("Plan", "Actual", "Forecast", "Optimized");
     }
 
     public void writeCombinedTable() {
-        writeChartData(evModel.getSchedule().getCombinedChartData(), 3);
+        if (evModel != null)
+                writeChartData(evModel.getSchedule().getCombinedChartData(), 3);
+        else
+                writeFakeChartData("Plan Value", "Actual Value", "Actual Time", null);
     }
 
-    /** Display excel-based data for drawing a chart */
+    private void writeFakeChartData(String a, String b, String c, String d) {
+                int maxSeries = (d == null ? 3 : 4);
+                writeChartData(new FakeChartData(new String[] {a,b,c,d}), maxSeries);
+        }
+
+
+        /** Display excel-based data for drawing a chart */
     protected void writeChartData(XYDataset xydata, int maxSeries) {
         // First, print the table header.
         out.print("<html><body><table border>\n");
@@ -540,5 +667,45 @@ public class EVReport extends CGIChartBase {
 
     final static String getResource(String key) {
         return encodeHTML(resources.getString(key)).replace('\n', ' ');
+    }
+
+    private class FakeChartData extends AbstractDataset implements XYDataset {
+
+        private String[] seriesNames;
+
+                public FakeChartData(String[] seriesNames) {
+                        this.seriesNames = seriesNames;
+                }
+
+                public int getSeriesCount() {
+                        return 4;
+                }
+
+                public String getSeriesName(int series) {
+                        return seriesNames[series];
+                }
+
+                public int getItemCount(int series) {
+                        return 2;
+                }
+
+                public Number getXValue(int series, int item) {
+                        if (item == 0)
+                                return new Integer(0);
+                        else
+                                return new Integer(24 * 60 * 60 * 1000);
+                }
+
+                public Number getYValue(int series, int item) {
+                        if (item == 0)
+                                return new Integer(0);
+                        else switch (series) {
+                        case 0: return new Integer(100);
+                        case 1: return new Integer(60);
+                        case 2: return new Integer(30);
+                        default: return new Integer(5);
+                        }
+                }
+
     }
 }
