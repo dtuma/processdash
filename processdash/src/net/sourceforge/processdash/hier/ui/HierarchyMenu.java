@@ -49,6 +49,7 @@ import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.NarrowJMenu;
 
 public class HierarchyMenu implements ActionListener, PropertyChangeListener {
 
@@ -79,7 +80,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
         int numChildren = props.getNumChildren(self);
 
         if (numChildren != 0) {
-            menu = new JMenu();
+            menu = new NarrowJMenu();
             PCSH.enableHelpKey(menuBar, "HierarchyMenus");
             // PCSH.enableHelpKey(menu, "HierarchyMenus");
 

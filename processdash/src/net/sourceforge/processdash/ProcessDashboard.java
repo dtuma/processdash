@@ -25,8 +25,12 @@
 
 package net.sourceforge.processdash;
 
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.*;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
@@ -116,7 +120,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     public ProcessDashboard(String title) {
         super();
         setIconImage(DashboardIconFactory.getWindowIconImage());
-        getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 2, 2));
+        getContentPane().setLayout(new GridBagLayout());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
 
@@ -293,18 +297,18 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         }catch (Exception e) { logErr("open datafiles failed!", e); };
 
         configure_button = new ConfigureButton(this);
-        getContentPane().add(configure_button);
+        addToMainWindow(configure_button, 0);
         PCSH.enableHelpKey(this, "QuickOverview");
         pause_button = new PauseButton(timeLog.getTimeLoggingModel());
-        getContentPane().add(pause_button);
+        addToMainWindow(pause_button, 0);
         defect_button = new DefectButton(this);
-        getContentPane().add(defect_button);
+        addToMainWindow(defect_button, 0);
         script_button = new ScriptButton(this);
-        getContentPane().add(script_button);
+        addToMainWindow(script_button, 0);
         hierarchy_menubar = new JMenuBar();
-        getContentPane().add(hierarchy_menubar);
+        addToMainWindow(hierarchy_menubar, 1.0);
         completion_button = new CompletionButton(this, activeTaskModel);
-        getContentPane().add(completion_button);
+        addToMainWindow(completion_button, 0);
 
         // open the global data file.
         try {
@@ -356,6 +360,19 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         brokenData.done();
         TemplateLoader.showTemplateErrors();
+    }
+    private Component addToMainWindow(Component component, double weight) {
+        GridBagConstraints g = new GridBagConstraints();
+        g.gridy = 0;
+        g.gridx = getContentPane().getComponentCount();
+        g.insets = new Insets(2, g.gridx == 0 ? 2 : 0, 2, 2);
+        g.weightx = weight;
+        if (weight > 0)
+            g.fill = GridBagConstraints.HORIZONTAL;
+
+        GridBagLayout layout = (GridBagLayout) getContentPane().getLayout();
+        layout.setConstraints(component, g);
+        return getContentPane().add(component);
     }
 
     private static final String FIRST_TIME_HELP_URL = "/help/first-use.htm";

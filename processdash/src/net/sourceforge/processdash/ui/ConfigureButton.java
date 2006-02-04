@@ -122,6 +122,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         JMenuItem menuItem;
         JMenuItem helpItem = null;
         add (menu);
+        setMinimumSize(getPreferredSize());
 
         /*
          * I'm commenting out the following line for now.  Although eventually
