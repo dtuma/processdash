@@ -47,6 +47,7 @@ import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.NarrowJMenu;
@@ -86,11 +87,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
 
             menuBar.add(menu);
 
-            int i;
-            for (i = 0; i < numChildren; i++) {
-                PropertyKey key = props.getChildKey(self, i);
-                menu.add(new MyMenuItem(key));
-            }
+            addMenuItemsForChildren(props);
 
             syncSelectedChildToHierarchy();
 
@@ -104,7 +101,28 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
             activeTaskModel.addPropertyChangeListener(this);
     }
 
-    public void delete() {
+    private void addMenuItemsForChildren(DashHierarchy props) {
+        JMenu destMenu = menu;
+        int maxItemsPerMenu = Settings.getInt("hierarchyMenu.maxItems", 20);
+        int numChildren = props.getNumChildren(self);
+
+        for (int i = 0; i < numChildren; i++) {
+            PropertyKey key = props.getChildKey(self, i);
+            MyMenuItem menuItem = new MyMenuItem(key);
+
+            if (destMenu.getItemCount()+1 >= maxItemsPerMenu) {
+                JMenu moreMenu = new JMenu(
+                                Resources.getGlobalBundle().getDlgString("More"));
+                destMenu.insert(moreMenu, 0);
+                destMenu.insertSeparator(1);
+                destMenu = moreMenu;
+            }
+
+            destMenu.add(menuItem);
+        }
+        }
+
+        public void delete() {
         if (child != null) {
             child.delete();
             child = null;
