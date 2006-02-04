@@ -26,6 +26,7 @@
 package net.sourceforge.processdash;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -123,6 +124,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         getContentPane().setLayout(new GridBagLayout());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
+        addComponentListener(new ResizeWatcher());
 
         // load app defaults and user settings.
         InternalSettings.initialize("");
@@ -551,8 +553,42 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         return data;
     }
 
+    public Dimension getPreferredSize() {
+        Dimension minSize = super.getMinimumSize();
+        Dimension result = super.getPreferredSize();
+        int maxWidth = Settings.getInt("window.maxWidth", -1);
+        if (maxWidth != -1)
+            result.width = Math.max(
+                    Math.min(result.width, maxWidth),
+                    minSize.width);
+        return result;
+        }
 
-    public void windowOpened(WindowEvent w) {}
+    private class ResizeWatcher extends ComponentAdapter {
+        public void componentResized(ComponentEvent e) {
+            Dimension minSize = getMinimumSize();
+            Dimension preferredSize = getPreferredSize();
+            Dimension currentSize = getSize();
+
+            if (currentSize.height != preferredSize.height
+                    || currentSize.width < minSize.width) {
+                currentSize.height = preferredSize.height;
+                currentSize.width = Math.max(currentSize.width, minSize.width);
+                setSize(currentSize);
+
+            } else if (currentSize.width != preferredSize.width) {
+                // this is (generally) an indication that the user has resized
+                // the window manually.  Remember their decision and don't
+                // grow past this width in the future.
+                InternalSettings.set("window.maxWidth",
+                        Integer.toString(currentSize.width));
+            }
+
+        }
+    }
+
+
+        public void windowOpened(WindowEvent w) {}
     public void windowClosed(WindowEvent w) {}
     public void windowIconified(WindowEvent w) {}
     public void windowDeiconified(WindowEvent w) {}

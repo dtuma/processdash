@@ -226,3 +226,8 @@ templates.directory=Supplemental locations of system-wide template files. \
 timelog.updateInterval=The dashboard saves the current time log entry \
 	periodically.  This setting specifies the number of minutes it \
 	should wait between saves.
+
+window.maxWidth=The dashboard automatically resizes itself to remain \
+	an optimally small size.  If the dashboard takes up too much \
+	horizontal space, this setting can be used to constrain the \
+	maximum allowable width of the main dashboard window.
