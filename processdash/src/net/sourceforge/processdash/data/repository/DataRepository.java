@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2005 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -51,6 +51,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,8 @@ import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 
@@ -579,8 +582,10 @@ public class DataRepository implements Repository, DataContext {
                 suspended = false;
             }
 
-            public void flush() {
-                while (fireEvent()) {}
+            public boolean flush() {
+                boolean result = false;
+                while (fireEvent()) { result = true; }
+                return result;
             }
         }
         private static final String CIRCULARITY_TOKEN = "CIRCULARITY_TOKEN";
@@ -599,22 +604,25 @@ public class DataRepository implements Repository, DataContext {
             private Hashtable frozenDataSets;
 
             /** A list of names of data elements which need to be frozen. */
-            private SortedSet itemsToFreeze;
+            private Set itemsToFreeze;
 
             /** A list of names of data elements which need to be thawed. */
-            private SortedSet itemsToThaw;
+            private Set itemsToThaw;
 
             /** Flag indicating that we've received a request to terminate. */
             private volatile boolean terminate = false;
 
             private Object runLock = new Object();
+            private Object waitLock = new Object();
+
+            private Logger logger = Logger.getLogger(DataFreezer.class.getName());
 
             public DataFreezer() {
                 super("DataFreezer");
                 setDaemon(true);
                 frozenDataSets = new Hashtable();
-                itemsToFreeze = Collections.synchronizedSortedSet(new TreeSet());
-                itemsToThaw = Collections.synchronizedSortedSet(new TreeSet());
+                itemsToFreeze = Collections.synchronizedSet(new LinkedHashSet());
+                itemsToThaw = Collections.synchronizedSet(new LinkedHashSet());
                 addRepositoryListener(this, "");
             }
 
@@ -626,8 +634,7 @@ public class DataRepository implements Repository, DataContext {
                     addDataConsistencyObserver(this);
 
                     // Sleep until we're needed again.
-                    if (!terminate)
-                        try { sleep(Long.MAX_VALUE); } catch (InterruptedException i) {}
+                    waitForWork();
                 }
 
                 // On termination, make one last sweep for data to freeze.
@@ -636,18 +643,56 @@ public class DataRepository implements Repository, DataContext {
 
             public void dataIsConsistent() {
                 synchronized (runLock) {
-                    // Perform all requested work.
-                    MAX_DIRTY = Integer.MAX_VALUE;
-                    deferDeletions = true;
-                    while (!itemsToFreeze.isEmpty() || !itemsToThaw.isEmpty()) {
-                        freezeAll();
-                        thawAll();
+                       try {
+                     // Perform all requested work.
+                     MAX_DIRTY = Integer.MAX_VALUE;
+                     deferDeletions = true;
+                     while (!itemsToFreeze.isEmpty() || !itemsToThaw.isEmpty()) {
+                         freezeAll();
+                         thawAll();
+                     }
+                     deferDeletions = false;
+                     processedDeferredDataListenerDeletions();
+                     MAX_DIRTY = 10;
+                     saveAllDatafiles();
+                    } catch (Throwable t) {
+                          logger.log(Level.WARNING, "DataFreezer got exception", t);
+                    } finally {
+                        runLock.notifyAll();
                     }
-                    deferDeletions = false;
-                    processedDeferredDataListenerDeletions();
-                    MAX_DIRTY = 10;
-                    saveAllDatafiles();
                 }
+            }
+
+            private void waitForWork() {
+                if (!terminate)
+                    synchronized (waitLock) {
+                        while (itemsToFreeze.isEmpty() && itemsToThaw.isEmpty()) {
+                                  try {
+                                      waitLock.wait();
+                                          } catch (InterruptedException e) {
+                                          }
+                        }
+                    }
+            }
+
+            private void stopWaitingForWork() {
+                synchronized (waitLock) {
+                    waitLock.notifyAll();
+                }
+            }
+
+            public boolean flush() {
+                boolean result = false;
+                synchronized (runLock) {
+                        while (!itemsToFreeze.isEmpty() || !itemsToThaw.isEmpty()) {
+                               try {
+                                      result = true;
+                                              runLock.wait();
+                                       } catch (InterruptedException e) {
+                                       }
+                        }
+                }
+                return result;
             }
 
             /** Freeze all waiting items. */
@@ -664,16 +709,16 @@ public class DataRepository implements Repository, DataContext {
                     performThaw(item);
             }
 
-            /** Pop the first item off a sorted set, in a thread-safe fashion.
+            /** Pop the first item off a set, in a thread-safe fashion.
              * @return a item which has been removed from the set, or null if
              *  the set is empty.
              */
-            private String pop(SortedSet set) {
+            private String pop(Set set) {
                 synchronized(set) {
                     if (set.isEmpty())
                         return null;
                     else {
-                        String result = (String) set.first();
+                        String result = (String) set.iterator().next();
                         set.remove(result);
                         return result;
                     }
@@ -687,7 +732,7 @@ public class DataRepository implements Repository, DataContext {
                 // stop this thread (if the thread is currently awake, this will
                 // not have an immediate effect.)
                 terminate = true;
-                interrupt();
+                stopWaitingForWork();
             }
 
             public void dataAdded(DataEvent e) {
@@ -713,6 +758,7 @@ public class DataRepository implements Repository, DataContext {
             private void performFreeze(String dataName) {
                 DataElement element = (DataElement) data.get(dataName);
                 if (element == null) return;
+                logger.log(Level.FINE, "Freezing data element {0}", dataName);
 
                 // Make certain no data values are currently in a state of flux
                 dataNotifier.flush();
@@ -758,6 +804,7 @@ public class DataRepository implements Repository, DataContext {
             private void performThaw(String dataName) {
                 DataElement element = (DataElement) data.get(dataName);
                 if (element == null) return;
+                logger.log(Level.FINE, "Thawing data element {0}", dataName);
 
                 SaveableData value = element.getImmediateValue(), thawedValue;
                 if (value instanceof FrozenData) {
@@ -775,32 +822,40 @@ public class DataRepository implements Repository, DataContext {
                 }
             }
 
-            /** Register the named data element for freezing.
+            /** Register the named data elements for freezing.
              *
-             * The element is not frozen immediately, but rather added to a
+             * The elements are not frozen immediately, but rather added to a
              * queue for freezing sometime in the future.
              */
-            public void freeze(String dataName) {
+            public void freeze(Collection dataNames) {
                 synchronized (itemsToThaw) {
                     synchronized (itemsToFreeze) {
-                        if (itemsToThaw.remove(dataName) == false)
-                            itemsToFreeze.add(dataName);
+                        for (Iterator iter = dataNames.iterator(); iter.hasNext();) {
+                                                String dataName = (String) iter.next();
+                                                if (itemsToThaw.remove(dataName) == false)
+                                    itemsToFreeze.add(dataName);
+                        }
                     }
                 }
+                stopWaitingForWork();
             }
 
-            /** Register the named data element for thawing.
+            /** Register the named data elements for thawing.
              *
-             * The element is not thawed immediately, but rather added to a
+             * The elements are not thawed immediately, but rather added to a
              * queue for thawing sometime in the future.
              */
-            public void thaw(String dataName) {
+            public void thaw(Collection dataNames) {
                 synchronized (itemsToThaw) {
                     synchronized (itemsToFreeze) {
-                        if (itemsToFreeze.remove(dataName) == false)
-                            itemsToThaw.add(dataName);
+                        for (Iterator iter = dataNames.iterator(); iter.hasNext();) {
+                                                String dataName = (String) iter.next();
+                                                if (itemsToFreeze.remove(dataName) == false)
+                                    itemsToThaw.add(dataName);
+                        }
                     }
                 }
+                stopWaitingForWork();
             }
 
             private class FrozenDataSet implements DataListener,
@@ -819,7 +874,8 @@ public class DataRepository implements Repository, DataContext {
                 public FrozenDataSet(String freezeFlagName) {
                     this.freezeFlagName = freezeFlagName;
 
-                    //System.out.println("creating FrozenDataSet for " + freezeFlagName);
+                    logger.log(Level.FINE, "Creating FrozenDataSet for {0}",
+                                    freezeFlagName);
 
                     // Fetch the prefix and the regular expression.
                     int pos = freezeFlagName.indexOf(FREEZE_FLAG_TAG);
@@ -844,33 +900,25 @@ public class DataRepository implements Repository, DataContext {
                     deleteDataListener(this);
                 }
 
-                private void freeze(String itemName) {
-                    if (initializing) tentativeFreezables.add(itemName);
-                    else DataFreezer.this.freeze(itemName);
+                private void freeze(Collection itemNames) {
+                    if (initializing) tentativeFreezables.addAll(itemNames);
+                    else DataFreezer.this.freeze(itemNames);
                 }
 
                 private void freezeAll(Set dataItems) {
+                    logger.log(Level.FINE, "Need to freeze data elements for flag {0}",
+                                    freezeFlagName);
                     synchronized (dataItems) {
-                        Iterator i = dataItems.iterator();
-                        String itemName;
-                        while (i.hasNext()) {
-                            itemName = (String) i.next();
-                            freeze(itemName);
-                        }
+                          freeze(dataItems);
                     }
-                    interrupt();          // this interrupts the DataFreezer thread.
                 }
 
                 private void thawAll(Set dataItems) {
+                    logger.log(Level.FINE, "Need to thaw data elements for flag {0}",
+                                    freezeFlagName);
                     synchronized (dataItems) {
-                        Iterator i = dataItems.iterator();
-                        String itemName;
-                        while (i.hasNext()) {
-                            itemName = (String) i.next();
-                            thaw(itemName);
-                        }
+                          thaw(dataItems);
                     }
-                    interrupt();          // this interrupts the DataFreezer thread.
                 }
 
                 // The next two methods implement the DataListener interface.
@@ -974,8 +1022,7 @@ public class DataRepository implements Repository, DataContext {
                             freezeAll(dataItems);
                             currentState = FDS_FROZEN;
                         } else if (currentState == FDS_FROZEN && !valueIsFrozen) {
-                            freeze(dataName);
-                            interrupt();
+                            freeze(Collections.singletonList(dataName));
                         }
 
                         dataItems.add(dataName);
@@ -1628,11 +1675,18 @@ public class DataRepository implements Repository, DataContext {
         }
 
         public void userPutValue(String name, SaveableData value) {
+            waitForCalculations();
             String aliasName = getAliasedName(name);
             putValue(aliasName, value);
         }
 
-        public String getAliasedName(String name) {
+        private void waitForCalculations() {
+            while (dataFreezer.flush() || dataNotifier.flush()) {
+                    // do nothing.
+            }
+            }
+
+            public String getAliasedName(String name) {
             DataElement d = (DataElement) data.get(name);
             String aliasName = null;
             if (d != null && d.getValue() instanceof AliasedData)
