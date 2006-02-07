@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.ui;
 
+import java.awt.Cursor;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -85,6 +86,7 @@ public class CompletionButton extends JCheckBox implements ActionListener,
     }
 
     public void actionPerformed(ActionEvent e) {
+        parent.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         if (isSelected()) {
             parent.getData().userPutValue(dataName, new DateData());
             if (!parent.getActiveTaskModel().setNextPhase()) {
@@ -95,6 +97,7 @@ public class CompletionButton extends JCheckBox implements ActionListener,
             parent.getData().userPutValue(dataName, null);
             setToolTipText(resources.getString("Completion_Button_Tooltip"));
         }
+        parent.setCursor(null);
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
