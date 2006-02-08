@@ -128,6 +128,9 @@ public class DataRepository implements Repository, DataContext {
          *  a DataFile object - only autorealize data for this file. */
         Object realizeDeferredDataFor = Boolean.FALSE;
 
+        private static Logger logger = Logger.getLogger(
+                    DataRepository.class.getName());
+
         private class DataRealizer extends Thread {
             Stack dataElements = null;
             boolean terminate = false;
@@ -666,7 +669,7 @@ public class DataRepository implements Repository, DataContext {
             private void waitForWork() {
                 if (!terminate)
                     synchronized (waitLock) {
-                        while (itemsToFreeze.isEmpty() && itemsToThaw.isEmpty()) {
+                        while (!terminate && itemsToFreeze.isEmpty() && itemsToThaw.isEmpty()) {
                                   try {
                                       waitLock.wait();
                                           } catch (InterruptedException e) {
@@ -682,6 +685,9 @@ public class DataRepository implements Repository, DataContext {
             }
 
             public boolean flush() {
+                if (terminate)
+                        return false;
+
                 boolean result = false;
                 synchronized (runLock) {
                         while (!itemsToFreeze.isEmpty() || !itemsToThaw.isEmpty()) {
@@ -1101,6 +1107,8 @@ public class DataRepository implements Repository, DataContext {
         }
 
         public void finalize() {
+            logger.fine("Finalizing DataRepository");
+            waitForCalculations();
             // Command the data freezer to terminate.
             if (dataFreezer != null) dataFreezer.terminate();
             // Command data realizer to terminate
@@ -1108,10 +1116,12 @@ public class DataRepository implements Repository, DataContext {
             try {
                 long start = System.currentTimeMillis();
                 // wait up to 6 seconds total for both of the threads to die.
+                logger.finer("Waiting for DataFreezer");
                 dataFreezer.join(4000);
                 long elapsed = System.currentTimeMillis() - start;
                 long wait = 6000 - elapsed;
                 if (wait < 0) wait = 1000;
+                logger.finer("Waiting for DataRealizer");
                 dataRealizer.join(wait);
             } catch (InterruptedException e) {}
 
