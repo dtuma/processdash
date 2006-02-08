@@ -610,9 +610,11 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             // display an error message, but still exit.
             logErr("When shutting down, encountered the exception:", t);
         }
+        logger.fine("Backing up data directory");
         FileBackupManager.maybeRun
             (property_directory, FileBackupManager.SHUTDOWN);
 
+        logger.fine("Shutdown complete");
         System.exit(0);
     }
 
@@ -622,17 +624,21 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 && warnUserAboutUnsavedData(unsavedData) == false)
             return false;
 
+        logger.fine("Performing auto exports");
         ExportManager.getInstance().exportAll(this, this);
         if (webServer != null) {
+            logger.fine("Shutting down web server");
             webServer.quit();
             webServer = null;
         }
         if (data != null) {
+            logger.fine("Finalizing data repository");
             data.finalize();
             data = null;
         }
 
         if (concurrencyLock != null) {
+            logger.fine("Removing concurrency lock");
             concurrencyLock.unlock();
             concurrencyLock = null;
         }
