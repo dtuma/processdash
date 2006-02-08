@@ -123,14 +123,17 @@ public class FileBackupManager {
         File newBackupTempFile = new File(backupDir, NEW_BACKUP_TEMP_FILENAME);
 
         ZipOutputStream newBackupOut = new ZipOutputStream(
-                                new FileOutputStream(newBackupTempFile));
+                                new BufferedOutputStream(
+                                                new FileOutputStream(newBackupTempFile)));
                 newBackupOut.setLevel(9);
 
         if (mostRecentBackupFile != null) {
-            ZipInputStream oldBackupIn = new ZipInputStream
-                (new FileInputStream(mostRecentBackupFile));
-            ZipOutputStream oldBackupOut = new ZipOutputStream
-                (new FileOutputStream(oldBackupTempFile));
+            ZipInputStream oldBackupIn = new ZipInputStream(
+                                        new BufferedInputStream(new FileInputStream(
+                                                        mostRecentBackupFile)));
+            ZipOutputStream oldBackupOut = new ZipOutputStream(
+                                        new BufferedOutputStream(new FileOutputStream(
+                                                        oldBackupTempFile)));
             oldBackupOut.setLevel(9);
             oldBackupIsEmpty = true;
 
@@ -253,13 +256,13 @@ public class FileBackupManager {
         throws IOException
     {
         ByteArrayOutputStream bytesSeen = null;
-        BufferedInputStream oldIn = null;
+        InputStream oldIn = null;
 
         // if the old backup file contains an entry for this file,
         if (oldEntry != null && oldBackupIn != null && oldBackupOut != null) {
             // do the prep to start comparing it with the new file.
             bytesSeen = new ByteArrayOutputStream();
-            oldIn = new BufferedInputStream(oldBackupIn);
+            oldIn = oldBackupIn;
         }
 
         // create an entry in the new backup archive for this file
@@ -268,9 +271,8 @@ public class FileBackupManager {
         e.setSize(file.length());
         newBackupOut.putNextEntry(e);
 
-        BufferedInputStream fileIn =
-            new BufferedInputStream(new FileInputStream(file));
-        BufferedOutputStream fileOut = new BufferedOutputStream(newBackupOut);
+        InputStream fileIn = new BufferedInputStream(new FileInputStream(file));
+        OutputStream fileOut = newBackupOut;
         int c, d;
         while ((c = fileIn.read()) != -1) {
             fileOut.write(c);
