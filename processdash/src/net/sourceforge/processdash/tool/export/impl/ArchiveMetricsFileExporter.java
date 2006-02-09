@@ -30,8 +30,10 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -60,14 +62,25 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private Collection filter;
 
+    private List metricsIncludes;
+
+    private List metricsExcludes;
+
     public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
             Collection filter) {
+        this(ctx, dest, filter, null, null);
+    }
+
+    public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
+            Collection filter, List metricsIncludes, List metricsExcludes) {
         this.ctx = ctx;
         this.dest = dest;
         this.filter = filter;
+        this.metricsIncludes = metricsIncludes;
+        this.metricsExcludes = metricsExcludes;
     }
 
-    public void run() {
+        public void run() {
         try {
             doExport();
         } catch (IOException ioe) {
@@ -153,6 +166,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
         TaskListDataWatcher taskListWatcher = new TaskListDataWatcher(iter);
         DefaultDataExportFilter ddef = new DefaultDataExportFilter(
                 taskListWatcher);
+        ddef.setIncludes(metricsIncludes);
+        ddef.setExcludes(metricsExcludes);
         ddef.init();
 
         DataExporter exp = new DataExporterXMLv1();

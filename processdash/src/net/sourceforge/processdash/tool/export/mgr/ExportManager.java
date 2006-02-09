@@ -26,12 +26,15 @@
 package net.sourceforge.processdash.tool.export.mgr;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
@@ -44,14 +47,21 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileExporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileExporter;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 public class ExportManager extends AbstractManager {
 
     public static final String EXPORT_DATANAME = DataImporter.EXPORT_DATANAME;
 
+    private static final String EXPORT_INSTRUCTIONS_SUFFIX = "/Instructions";
+
     private static ExportManager INSTANCE = null;
+
+    private static Logger logger = Logger.getLogger(ExportManager.class
+                        .getName());
 
     public static ExportManager getInstance() {
         return INSTANCE;
@@ -152,7 +162,8 @@ public class ExportManager extends AbstractManager {
                         paths);
             else
                 return new ArchiveMetricsFileExporter(dashboard,
-                        new File(dest), paths);
+                        new File(dest), paths, instr.getMetricsIncludes(),
+                        instr.getMetricsExcludes());
         }
 
     }
@@ -193,27 +204,59 @@ public class ExportManager extends AbstractManager {
         DataRepository data = dashboard.getData();
         for (Iterator iter = data.getKeys(); iter.hasNext();) {
             String name = (String) iter.next();
-            int pos = name.indexOf(EXPORT_DATANAME);
-            if (pos < 1)
+            if (!name.endsWith("/"+EXPORT_DATANAME))
                 continue;
             SimpleData dataVal = data.getSimpleValue(name);
             if (dataVal == null || !dataVal.test())
                 continue;
             String filename = Settings.translateFile(dataVal.format());
 
+            String path = name.substring(0,
+                        name.length() - EXPORT_DATANAME.length() - 1);
             Vector filter = new Vector();
-            filter.add(name.substring(0, pos - 1));
-            Object instr = new ExportMetricsFileInstruction(filename, filter);
+                        filter.add(path);
+
+            AbstractInstruction instr = new ExportMetricsFileInstruction(
+                                        filename, filter);
+
+            String instrDataname = name + EXPORT_INSTRUCTIONS_SUFFIX;
+            SimpleData instrVal = data.getSimpleValue(instrDataname);
+            if (instrVal != null && instrVal.test())
+                addXmlDataToInstruction(instr, instrVal.format());
+
             result.add(instr);
         }
 
         return result;
     }
 
-    /**
-     * If the named schedule were to be exported to a file, what would the data
-     * element be named?
-     */
+    private void addXmlDataToInstruction(AbstractInstruction instr,
+                        String instrVal) {
+                String xml = instrVal;
+                if (instrVal.startsWith("file:")) {
+                        try {
+                                String uri = instrVal.substring(5);
+                                byte[] xmlData = dashboard.getWebServer().getRawRequest(uri);
+                                xml = new String(xmlData, "UTF-8");
+                        } catch (Exception e) {
+                                logger.log(Level.WARNING,
+                                                "Couldn't open XML instructions file", e);
+                                return;
+                        }
+                }
+
+                try {
+                        Element elem = XMLUtils.parse(xml).getDocumentElement();
+                        instr.mergeXML(elem);
+                } catch (Exception e) {
+                        logger.log(Level.WARNING, "Couldn't understand XML instruction", e);
+                }
+        }
+
+        /**
+         * If the named schedule were to be exported to a file, what would the data
+         * element be named?
+         */
     public static String exportedScheduleDataName(String owner,
             String scheduleName) {
                 return exportedScheduleDataPrefix(owner, scheduleName) + "/"

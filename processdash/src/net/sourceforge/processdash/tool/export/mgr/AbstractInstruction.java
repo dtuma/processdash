@@ -26,6 +26,7 @@
 package net.sourceforge.processdash.tool.export.mgr;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -36,6 +37,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public abstract class AbstractInstruction implements Cloneable {
 
@@ -50,6 +52,14 @@ public abstract class AbstractInstruction implements Cloneable {
     }
 
     public AbstractInstruction(Element e) {
+        readAttrsFromXML(e);
+    }
+
+    public void mergeXML(Element e) {
+        readAttrsFromXML(e);
+    }
+
+    private void readAttrsFromXML(Element e) {
         NamedNodeMap attrs = e.getAttributes();
         if (attrs != null) {
             int len = attrs.getLength();
@@ -81,14 +91,16 @@ public abstract class AbstractInstruction implements Cloneable {
     }
 
     public void setAttribute(String name, String value) {
-        attributes.put(name, value);
+        if (value == null)
+            attributes.remove(name);
+        else
+            attributes.put(name, value);
     }
 
     public abstract String getXmlTagName();
 
     public void getAsXML(StringBuffer out) {
-        out.append("<");
-        out.append(getXmlTagName());
+        out.append("<").append(getXmlTagName());
         if (!enabled)
             out.append(" enabled='false'");
         for (Iterator iter = attributes.entrySet().iterator(); iter.hasNext();) {
@@ -97,7 +109,44 @@ public abstract class AbstractInstruction implements Cloneable {
                     XMLUtils.escapeAttribute(e.getValue().toString())).append(
                     "'");
         }
-        out.append("/>");
+        if (hasChildXMLContent()) {
+            out.append(">");
+            getChildXMLContent(out);
+            out.append("</").append(getXmlTagName()).append(">");
+        } else {
+            out.append("/>");
+        }
+    }
+
+    protected boolean hasChildXMLContent() {
+        return false;
+    }
+
+    protected void getChildXMLContent(StringBuffer out) {
+    }
+
+    protected void loadListFromXML(Element e, List list, String tagName) {
+        NodeList elements = e.getElementsByTagName(tagName);
+        for (int i=0;  i < elements.getLength();  i++) {
+            Element child = (Element) elements.item(i);
+            list.add(XMLUtils.getTextContents(child));
+        }
+    }
+
+    protected void getListAsXML(StringBuffer out, List list, String listTag,
+            String listItemTag) {
+        out.append("<").append(listTag).append(">");
+        getListItemsAsXML(out, list, listItemTag);
+        out.append("</").append(listTag).append(">");
+    }
+
+    protected void getListItemsAsXML(StringBuffer out, List list, String listItemTag) {
+        for (Iterator iter = list.iterator(); iter.hasNext();) {
+            String listItem = (String) iter.next();
+            out.append("<").append(listItemTag).append(">")
+                    .append(XMLUtils.escapeAttribute(listItem))
+                    .append("</").append(listItemTag).append(">");
+        }
     }
 
     public Object dispatch(ImportInstructionDispatcher dispatcher) {

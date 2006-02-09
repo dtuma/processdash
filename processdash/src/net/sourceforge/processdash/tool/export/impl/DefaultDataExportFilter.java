@@ -26,6 +26,10 @@
 package net.sourceforge.processdash.tool.export.impl;
 
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +40,9 @@ import net.sourceforge.processdash.util.IteratorFilter;
 
 public class DefaultDataExportFilter extends IteratorFilter {
 
+        private static Logger logger = Logger.getLogger(
+                        DefaultDataExportFilter.class.getName());
+
     private boolean skipToDateData = true;
 
     private boolean skipZero = true;
@@ -45,6 +52,14 @@ public class DefaultDataExportFilter extends IteratorFilter {
     private boolean skipNodesAndLeaves = true;
 
     private boolean skipProcessAutoData = true;
+
+    private List includes = null;
+
+    private List excludes = null;
+
+    private List includePatterns = null;
+
+    private List excludePatterns = null;
 
     public DefaultDataExportFilter(Iterator dataElements) {
         super(dataElements);
@@ -94,21 +109,49 @@ public class DefaultDataExportFilter extends IteratorFilter {
         this.skipInfNaN = false;
     }
 
-    public void init() {
+    public List getIncludes() {
+                return includes;
+        }
+
+        public void setIncludes(List includes) {
+                this.includes = includes;
+        }
+
+        public List getExcludes() {
+                return excludes;
+        }
+
+        public void setExcludes(List excludes) {
+                this.excludes = excludes;
+        }
+
+        public void init() {
+                includePatterns = setupPatterns(includes);
+                excludePatterns = setupPatterns(excludes);
         super.init();
     }
 
-    protected boolean includeInResults(Object o) {
+        protected boolean includeInResults(Object o) {
         ExportedDataValue v = (ExportedDataValue) o;
-        if (isExportInstruction(v) || isSkippableToDateData(v)
-                || isSkippableNodeLeaf(v) || isSkippableProcessAutoData(v)
-                || isSkippableDoubleData(v))
+        if (isExcluded(v) || isNotIncluded(v) || isExportInstruction(v)
+                        || isSkippableToDateData(v) || isSkippableNodeLeaf(v)
+                        || isSkippableProcessAutoData(v) || isSkippableDoubleData(v))
             return false;
         else
             return true;
     }
 
-    private boolean isExportInstruction(ExportedDataValue v) {
+        private boolean isExcluded(ExportedDataValue v) {
+                return (excludePatterns != null
+                                && matchesPattern(excludePatterns, v.getName()));
+        }
+
+    private boolean isNotIncluded(ExportedDataValue v) {
+        return (includePatterns != null
+                        && !matchesPattern(includePatterns, v.getName()));
+        }
+
+        private boolean isExportInstruction(ExportedDataValue v) {
         return (v.getName().indexOf(ExportManager.EXPORT_DATANAME) != -1);
     }
 
@@ -151,4 +194,31 @@ public class DefaultDataExportFilter extends IteratorFilter {
         return false;
     }
 
+    private List setupPatterns(List regexps) {
+        if (regexps == null || regexps.isEmpty())
+                return null;
+        else {
+                List result = new LinkedList();
+                for (Iterator iter = regexps.iterator(); iter.hasNext();) {
+                                String re = (String) iter.next();
+                        try {
+                                        Pattern pat = Pattern.compile(re);
+                                        result.add(pat);
+                                } catch (Exception e) {
+                                        logger.log(Level.WARNING, "Bad regular expression ''{0}''",
+                                                        re);
+                                }
+                }
+                return result.isEmpty() ? null : result;
+        }
+        }
+
+    private boolean matchesPattern(List patterns, String text) {
+        for (Iterator iter = patterns.iterator(); iter.hasNext();) {
+                        Pattern p = (Pattern) iter.next();
+                        if (p.matcher(text).find())
+                                return true;
+                }
+        return false;
+    }
 }

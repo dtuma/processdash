@@ -25,9 +25,13 @@
 
 package net.sourceforge.processdash.tool.export.mgr;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
 
@@ -37,21 +41,82 @@ public class ExportMetricsFileInstruction extends AbstractInstruction {
 
     private static final String FILE_ATTR = "file";
 
-    private static final String PATHS_ATTR = "paths";
+    private static final String PATHS_TAG = "paths";
+
+    private static final String PATH_TAG = "path";
+
+    private static final String METRICS_FILTER_TAG = "metricsFilter";
+
+    private static final String INCLUDE_TAG = "include";
+
+    private static final String EXCLUDE_TAG = "exclude";
+
+
+    private Vector paths = new Vector();
+
+    private List metricsIncludes = new LinkedList();
+
+    private List metricsExcludes = new LinkedList();
 
     public ExportMetricsFileInstruction() {
     }
 
-    public ExportMetricsFileInstruction(Element e) {
-        super(e);
-    }
-
-    public ExportMetricsFileInstruction(String file, Vector paths) {
+        public ExportMetricsFileInstruction(String file, Vector paths) {
         setFile(file);
         setPaths(paths);
     }
 
-    public String getFile() {
+    public ExportMetricsFileInstruction(Element e) {
+        super(e);
+        loadPathsFromLegacyAttr();
+        loadChildrenFromXML(e);
+    }
+
+    public void mergeXML(Element e) {
+                super.mergeXML(e);
+        loadPathsFromLegacyAttr();
+        loadChildrenFromXML(e);
+        }
+
+        private void loadPathsFromLegacyAttr() {
+                String oldPathsAttr = getAttribute(PATHS_TAG);
+        if (oldPathsAttr != null) {
+                paths.addAll(stringToPaths(oldPathsAttr));
+                setAttribute(PATHS_TAG, null);
+        }
+        }
+
+        private void loadChildrenFromXML(Element e) {
+                List children = XMLUtils.getChildElements(e);
+                for (Iterator iter = children.iterator(); iter.hasNext();) {
+                        Element child = (Element) iter.next();
+                        if (PATHS_TAG.equals(child.getTagName()))
+                                loadListFromXML(child, paths, PATH_TAG);
+                        else if (METRICS_FILTER_TAG.equals(child.getTagName())) {
+                                loadListFromXML(child, metricsIncludes, INCLUDE_TAG);
+                                loadListFromXML(child, metricsExcludes, EXCLUDE_TAG);
+                        }
+                }
+        }
+
+        protected boolean hasChildXMLContent() {
+                return !(paths.isEmpty() && metricsIncludes.isEmpty()
+                                && metricsExcludes.isEmpty());
+        }
+
+        protected void getChildXMLContent(StringBuffer out) {
+                if (!paths.isEmpty())
+                        getListAsXML(out, paths, PATHS_TAG, PATH_TAG);
+
+                if (!(metricsIncludes.isEmpty() && metricsExcludes.isEmpty())) {
+                        out.append("<").append(METRICS_FILTER_TAG).append(">");
+                        getListItemsAsXML(out, metricsIncludes, INCLUDE_TAG);
+                        getListItemsAsXML(out, metricsExcludes, EXCLUDE_TAG);
+                        out.append("</").append(METRICS_FILTER_TAG).append(">");
+                }
+        }
+
+        public String getFile() {
         return getAttribute(FILE_ATTR);
     }
 
@@ -60,14 +125,30 @@ public class ExportMetricsFileInstruction extends AbstractInstruction {
     }
 
     public Vector getPaths() {
-        return stringToPaths(getAttribute(PATHS_ATTR));
+        return paths;
     }
 
     public void setPaths(Vector path) {
-        setAttribute(PATHS_ATTR, pathsToString(path));
+        this.paths = path;
     }
 
-    public String getDescription() {
+        public List getMetricsIncludes() {
+                return metricsIncludes;
+        }
+
+        public void setMetricsIncludes(List includes) {
+                this.metricsIncludes = includes;
+        }
+
+    public List getMetricsExcludes() {
+                return metricsExcludes;
+        }
+
+        public void setMetricsExcludes(List excludes) {
+                this.metricsExcludes = excludes;
+        }
+
+        public String getDescription() {
         String pathsStr = getPaths().toString();
         pathsStr = pathsStr.substring(1, pathsStr.length() - 1);
         return resource.format(
@@ -77,17 +158,6 @@ public class ExportMetricsFileInstruction extends AbstractInstruction {
 
     public String getXmlTagName() {
         return TAG_NAME;
-    }
-
-    private static String pathsToString(Vector paths) {
-        if (paths == null || paths.size() == 0)
-            return "";
-
-        ListData list = new ListData();
-        for (int i = 0; i < paths.size(); i++) {
-            list.add(paths.get(i));
-        }
-        return list.format();
     }
 
     private static Vector stringToPaths(String paths) {
@@ -108,5 +178,36 @@ public class ExportMetricsFileInstruction extends AbstractInstruction {
     public Object dispatch(ExportInstructionDispatcher dispatcher) {
         return dispatcher.dispatch(this);
     }
+
+
+        public boolean equals(Object obj) {
+                if (super.equals(obj) == false)
+                        return false;
+
+                ExportMetricsFileInstruction that = (ExportMetricsFileInstruction) obj;
+                return this.paths.equals(that.paths)
+                                && this.metricsIncludes.equals(that.metricsIncludes)
+                                && this.metricsExcludes.equals(that.metricsExcludes);
+        }
+
+        public int hashCode() {
+                return (super.hashCode() << 7) ^ paths.hashCode() ^ metricsIncludes.hashCode()
+                                ^ metricsExcludes.hashCode();
+        }
+
+        public String toString() {
+                return super.toString()
+                                + " paths=" + paths
+                                + " includes=" + metricsIncludes
+                                + " excludes=" + metricsExcludes;
+        }
+
+        public Object clone() {
+                ExportMetricsFileInstruction result = (ExportMetricsFileInstruction) super.clone();
+                result.paths = new Vector(this.paths);
+                result.metricsIncludes = new LinkedList(this.metricsIncludes);
+                result.metricsExcludes = new LinkedList(this.metricsExcludes);
+                return result;
+        }
 
 }
