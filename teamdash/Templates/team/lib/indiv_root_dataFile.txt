@@ -12,6 +12,8 @@
 [EXPORT_FILE] = 
     iff([Team_Data_Directory] == "", "",
         [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data.pdash");
+[EXPORT_FILE/Instructions] = 
+    "file:/<!--#echo Process_ID -->/metricsExportFilter.xml";
 
 [Sync_Full_WBS] = 0;
 

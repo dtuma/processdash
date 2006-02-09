@@ -64,6 +64,7 @@
     <file in="indiv_simple_full_dataFile.txt"
           out="indiv_full_dataFile.txt" encoding="data" />
     <file in="indiv_empty_dataFile.txt" encoding="data" />
+    <file in="metricsExportFilter.xml" encoding="xml" />
 
     <!-- forms for use on the individual side -->
     <file in="expanding_indiv_plan_summary.htm" encoding="html"
