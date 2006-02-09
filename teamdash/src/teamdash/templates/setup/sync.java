@@ -198,7 +198,7 @@ public class sync extends TinyCGIBase {
     {
         synch.setWhatIfMode(false);
         synch.sync();
-        DashController.exportData(projectRoot);
+        new AsyncExporter(projectRoot).start();
         printChanges(synch.getChanges());
     }
 
@@ -239,6 +239,23 @@ public class sync extends TinyCGIBase {
             out.print("</ul>");
         }
         out.print("</body></html>");
+    }
+
+
+    /** Asynchronously export the user's data.
+     */
+    private static class AsyncExporter extends Thread {
+
+        private String projectRoot;
+
+                public AsyncExporter(String projectRoot) {
+                        this.projectRoot = projectRoot;
+                }
+
+                public void run() {
+                DashController.exportData(projectRoot);
+                }
+
     }
 
 
