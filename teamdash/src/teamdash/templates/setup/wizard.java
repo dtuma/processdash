@@ -1105,13 +1105,17 @@ public class wizard extends TinyCGIBase {
         // resolve it to something that works for the current
         // user. This involves file IO which could fail for various
         // reasons, so we attempt to get it out of the way first.
-        String dataSubdir = File.separator+"data"+File.separator+ projectID;
+        String dataSubdir = "data"+File.separator+ projectID;
         teamDirectory = resolveTeamDirectory(teamDirectory, teamDirectoryUNC,
                                              dataSubdir);
         if (teamDirectory == null)
             // the error page will already have been displayed by now,
             // so just abort on failure.
             return;
+
+        if (teamDirectory.endsWith(File.separator))
+                // remove any trailing file separator if present.
+                teamDirectory = teamDirectory.substring(0, teamDirectory.length()-1);
 
         // Check to see if the "team project" is in the same dashboard
         // instance as the "individual project."
@@ -1165,19 +1169,21 @@ public class wizard extends TinyCGIBase {
     protected String resolveTeamDirectory(String teamDirectory,
                                           String teamDirectoryUNC,
                                           String dataSubdir) {
-        File f = new File(teamDirectory + dataSubdir);
+        File f = new File(teamDirectory, dataSubdir);
         if (f.isDirectory()) return teamDirectory;
 
         // Try to find the data directory using the UNC path.
-        if (teamDirectoryUNC == null) return null;
-        NetworkDriveList networkDriveList = new NetworkDriveList();
-        String altTeamDirectory =
-            networkDriveList.fromUNCName(teamDirectoryUNC);
-        if (altTeamDirectory == null) return null;
-        f = new File(altTeamDirectory + dataSubdir);
-        if (f.isDirectory()) return altTeamDirectory;
+        if (teamDirectoryUNC != null) {
+                NetworkDriveList networkDriveList = new NetworkDriveList();
+                String altTeamDirectory =
+                    networkDriveList.fromUNCName(teamDirectoryUNC);
+                if (altTeamDirectory != null) {
+                        File f2 = new File(altTeamDirectory, dataSubdir);
+                        if (f2.isDirectory()) return altTeamDirectory;
+                }
+        }
 
-        putValue(DATA_DIR, teamDirectory + dataSubdir);
+        putValue(DATA_DIR, f.getPath());
         printRedirect(IND_DATADIR_ERR_URL);
         return null;
     }
