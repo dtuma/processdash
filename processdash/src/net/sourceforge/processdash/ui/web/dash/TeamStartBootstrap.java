@@ -491,8 +491,12 @@ public class TeamStartBootstrap extends TinyCGIBase {
         String suffix =
             templatePath.substring(templatePath.length()-4).toLowerCase();
         if (!suffix.equals(".jar") && !suffix.equals(".zip"))
-            return "The team project setup logic currently only supports "+
-                "custom projects that are stored in 'jar' or 'zip' files.";
+            return "the team project setup logic currently only supports "+
+                "custom projects that are stored in 'jar' or 'zip' files";
+
+        // Make certain that access permissions allow us to read the file
+        if (!templateFile.canRead())
+                return "that file cannot be read";
 
         // Initiate the loading of the template definition.
         new TemplateLoadTask(templatePath, templateDir);
