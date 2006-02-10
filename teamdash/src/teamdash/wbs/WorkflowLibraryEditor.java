@@ -209,7 +209,6 @@ public class WorkflowLibraryEditor {
             }});
     }
 
-    private static Color SEPIA = new Color(159, 141, 114);
     private static Color LIGHT_SEPIA = new Color(232, 224, 205);
 
     private void initConstraints(GridBagConstraints c, int gridx, int gridy, int gridwidth, int gridheight, int fill, double weightx, double weighty, int anchor, Insets insets) {

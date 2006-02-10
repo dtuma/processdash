@@ -342,7 +342,6 @@ public class IconFactory {
 
             // Draw fill
             if (g instanceof Graphics2D) {
-                Color col = mixColors(highlight, Color.white, 0.5f);
                 GradientPaint grad = new GradientPaint(0, 0, Color.white,
                                                        16, 16, highlight);
                 ((Graphics2D) g).setPaint(grad);

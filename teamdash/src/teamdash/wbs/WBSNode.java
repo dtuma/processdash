@@ -64,6 +64,11 @@ public class WBSNode implements Cloneable {
 
     // Getter/setter methods
 
+    /** Returns the WBSModel that this node belongs to.
+     * @return Returns the WBSModel that this node belongs to.  */
+    public WBSModel getWbsModel() {
+        return wbsModel;
+    }
 
     /** Get the name of this node.
      * @return The name of this node.  */

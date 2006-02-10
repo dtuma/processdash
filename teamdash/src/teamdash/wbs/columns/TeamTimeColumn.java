@@ -1,9 +1,7 @@
 package teamdash.wbs.columns;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -156,11 +154,6 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         return result;
     }
 
-
-    /** Count the number of individuals with nonzero times for the given node */
-    private int countPeople(WBSNode node) {
-        return countPeople(getIndivTimes(node));
-    }
 
     /** Count the number of individuals with nonzero times in the given
      * list of IndivTime objects. */
@@ -433,7 +426,6 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             if (safe(oldTimePerPerson) != 0 && safe(timePerPerson) != 0) {
 
                 // find individuals with that amount of time, and update them.
-                List changesToMake = new ArrayList();
                 for (int i = individualTimes.length;   i-- > 0; )
                     if (equal(individualTimes[i].time, oldTimePerPerson))
                         individualTimes[i].setTime(timePerPerson);
@@ -472,7 +464,6 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 recalculateRate();
 
                 // find individuals with nonzero time, and update them.
-                List changesToMake = new ArrayList();
                 for (int i = individualTimes.length;   i-- > 0; )
                     individualTimes[i].multiplyTime(ratio);
             }

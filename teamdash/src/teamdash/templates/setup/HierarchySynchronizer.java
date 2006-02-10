@@ -605,10 +605,6 @@ public class HierarchySynchronizer {
     }
 
 
-    private static final String[] docSizeUnits = {
-        "Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
-
-
     private static final List ALL_CONSTR_PHASES = Arrays.asList
         (new String[] { "STP", "ITP", "TD", "MGMT", "STRAT", "PLAN", "REQ",
                         "HLD", "DLD", "CODE", "DOC", "psp" } );

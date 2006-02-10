@@ -53,13 +53,6 @@ public class TaskSizeColumn extends SizeAliasColumn {
         return getSizeColumn(node) == -1;
     }
 
-    private boolean valueIsEmpty(Object aValue) {
-        if (aValue == null) return true;
-        if (aValue instanceof String &&
-            ((String) aValue).trim().length() == 0) return true;
-        return false;
-    }
-
     public Object getValueAt(WBSNode node) {
         Object result = super.getValueAt(node);
 

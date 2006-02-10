@@ -120,7 +120,6 @@ public class CustomProcessPublisher {
     protected void openStreams(CustomProcess process, Document script)
         throws IOException {
 
-        String scriptID = script.getDocumentElement().getAttribute("id");
         String scriptVers =
             script.getDocumentElement().getAttribute("version");
         String scriptReqt =

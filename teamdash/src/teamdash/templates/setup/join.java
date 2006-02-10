@@ -28,12 +28,6 @@ public class join extends TinyCGIBase {
     private static final String JOIN_URL = "join.shtm";
     private static final String JOIN_XML = "joinxml.shtm";
 
-    private static final String PROCESS_ID = "setup//Process_ID";
-    private static final String TEMPLATE_PATH = "setup//Template_Path";
-    private static final String TEMPLATE_UNC = "setup//Template_Path_UNC";
-    private static final String DATA_PATH = "setup//Data_Path";
-    private static final String DATA_UNC = "setup//Data_Path_UNC";
-
     protected void writeHeader() {}
     protected void writeContents() {}
     public void service(InputStream in, OutputStream out, Map env)

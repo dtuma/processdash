@@ -63,9 +63,13 @@ public class SizeTypeColumn extends AbstractDataColumn {
     }
 
 
+    protected DataTableModel getDataTableModel() {
+        return dataModel;
+    }
 
 
-    private static Map buildMap() {
+
+        private static Map buildMap() {
         Map sizeMetrics = new HashMap();
         sizeMetrics.put("Project", "LOC");
         sizeMetrics.put("Software Component", "LOC");

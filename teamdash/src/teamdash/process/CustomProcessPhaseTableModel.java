@@ -62,6 +62,13 @@ public class CustomProcessPhaseTableModel extends AbstractTableModel {
     public Item get(int pos) {
         return (Item) phaseList.get(pos);
     }
+    public boolean isDirty() {
+        return isDirty;
+    }
+    public boolean isStructureChanged() {
+        return structureChanged;
+    }
+
     // TableModel interface methods
 
     private static final String[] columnNames = {

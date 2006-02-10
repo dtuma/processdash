@@ -307,9 +307,8 @@ public class WBSNodeEditor extends AbstractCellEditor
         int columnNumber = table.columnAtPoint(p);
         int rowNumber = table.rowAtPoint(p);
         Rectangle r = table.getCellRect(rowNumber, columnNumber, true);
-        // calculate x and y relative to the table cell origin
+        // calculate x relative to the table cell origin
         int ourXPos = p.x - r.x;
-        int outYPos = p.y - r.y;
 
         // determine which WBSNode the user clicked on.
         clickedNode = wbsModel.getNodeForRow(rowNumber);

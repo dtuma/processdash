@@ -2,7 +2,6 @@
 package teamdash.templates.tools;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -27,10 +26,11 @@ public class GenerateTestProcess extends TinyCGIBase {
         "http://localhost:2468/team/tools/GenerateTestProcess.class";
     public static void main(String[] args) {
         try {
-            URL u = new URL(THIS_URL + "?dir=" + URLEncoder.encode(args[0]));
+            URL u = new URL(THIS_URL + "?dir="
+                        + URLEncoder.encode(args[0], "UTF-8"));
             URLConnection conn = u.openConnection();
             conn.connect();
-            InputStream result = conn.getInputStream();
+            conn.getInputStream();
         } catch (Exception e) {}
     }
 

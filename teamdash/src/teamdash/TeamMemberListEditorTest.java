@@ -11,7 +11,6 @@ import javax.swing.event.TableModelListener;
  */
 public class TeamMemberListEditorTest implements TableModelListener {
 
-    private TeamMemberListEditor editor;
     private TeamMemberList teamList;
 
     public static void main(String args[]) {
@@ -21,8 +20,7 @@ public class TeamMemberListEditorTest implements TableModelListener {
     public TeamMemberListEditorTest() {
         teamList = new TeamMemberList();
         teamList.addTableModelListener(this);
-        editor = new TeamMemberListEditor("Team Project", teamList);
-        //editor.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        new TeamMemberListEditor("Team Project", teamList);
     }
 
     public void tableChanged(TableModelEvent e) {

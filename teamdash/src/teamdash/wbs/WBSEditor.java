@@ -172,7 +172,6 @@ public class WBSEditor implements WindowListener, SaveListener {
         writeData();
     }
 
-    private static final String DATA_DUMP_FILENAME = "projDump.xml";
     private void writeData() {
         try {
             dataWriter.write(dataDumpFile);
