@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -88,6 +89,9 @@ public class ExportManager extends AbstractManager {
         // AbstractInstruction instr = (AbstractInstruction) iter.next();
         // System.out.println(instr);
         // }
+
+        data.putValue("//Export_Manager/Supports_pdash_format",
+                        ImmutableDoubleData.TRUE);
     }
 
     public ProcessDashboard getProcessDashboard() {
@@ -204,30 +208,36 @@ public class ExportManager extends AbstractManager {
         DataRepository data = dashboard.getData();
         for (Iterator iter = data.getKeys(); iter.hasNext();) {
             String name = (String) iter.next();
-            if (!name.endsWith("/"+EXPORT_DATANAME))
-                continue;
-            SimpleData dataVal = data.getSimpleValue(name);
-            if (dataVal == null || !dataVal.test())
-                continue;
-            String filename = Settings.translateFile(dataVal.format());
-
-            String path = name.substring(0,
-                        name.length() - EXPORT_DATANAME.length() - 1);
-            Vector filter = new Vector();
-                        filter.add(path);
-
-            AbstractInstruction instr = new ExportMetricsFileInstruction(
-                                        filename, filter);
-
-            String instrDataname = name + EXPORT_INSTRUCTIONS_SUFFIX;
-            SimpleData instrVal = data.getSimpleValue(instrDataname);
-            if (instrVal != null && instrVal.test())
-                addXmlDataToInstruction(instr, instrVal.format());
-
-            result.add(instr);
+            AbstractInstruction instr = getExportInstructionFromData(name);
+            if (instr != null)
+                result.add(instr);
         }
 
         return result;
+    }
+
+    public AbstractInstruction getExportInstructionFromData(String name) {
+        if (!name.endsWith("/"+EXPORT_DATANAME))
+                return null;
+        SimpleData dataVal = data.getSimpleValue(name);
+        if (dataVal == null || !dataVal.test())
+            return null;
+        String filename = Settings.translateFile(dataVal.format());
+
+        String path = name.substring(0,
+                        name.length() - EXPORT_DATANAME.length() - 1);
+        Vector filter = new Vector();
+                filter.add(path);
+
+        AbstractInstruction instr = new ExportMetricsFileInstruction(
+                                filename, filter);
+
+        String instrDataname = name + EXPORT_INSTRUCTIONS_SUFFIX;
+        SimpleData instrVal = data.getSimpleValue(instrDataname);
+        if (instrVal != null && instrVal.test())
+                addXmlDataToInstruction(instr, instrVal.format());
+
+        return instr;
     }
 
     private void addXmlDataToInstruction(AbstractInstruction instr,

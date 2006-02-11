@@ -52,6 +52,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
 import net.sourceforge.processdash.tool.export.DataImporter;
+import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExportMetricsFileInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
@@ -168,12 +169,9 @@ public class DashController {
     public static void exportData(String prefix) {
         String dataName = DataRepository.createDataName
             (prefix, ExportManager.EXPORT_DATANAME);
-        SimpleData filename = dash.data.getSimpleValue(dataName);
-        if (filename != null && filename.test()) {
-            Vector filter = new Vector();
-            filter.add(prefix);
-            ExportMetricsFileInstruction instr =
-                new ExportMetricsFileInstruction(filename.format(), filter);
+        AbstractInstruction instr = ExportManager.getInstance()
+                                .getExportInstructionFromData(dataName);
+        if (instr != null) {
             Runnable task = ExportManager.getInstance().getExporter(instr);
             if (task != null)
                 task.run();
