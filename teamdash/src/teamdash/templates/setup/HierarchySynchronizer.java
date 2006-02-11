@@ -127,6 +127,11 @@ public class HierarchySynchronizer {
         if (!NODE_TYPES.contains(type))
             return NOT_A_NODE;
 
+        // if this node has no name, prune it.
+        String nodeName = e.getAttribute(NAME_ATTR);
+        if (nodeName == null || nodeName.trim().length() == 0)
+                return PRUNE;
+
         // assume this node is prunable until we determine otherwise.
         boolean prunable = true;
 
