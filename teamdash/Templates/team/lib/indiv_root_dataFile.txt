@@ -11,7 +11,8 @@
 [Indiv_Initials] = "tttt";
 [EXPORT_FILE] = 
     iff([Team_Data_Directory] == "", "",
-        [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data.pdash");
+        [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data" &
+        iff([//Export_Manager/Supports_pdash_format], ".pdash", ".txt"));
 [EXPORT_FILE/Instructions] = 
     "file:/<!--#echo Process_ID -->/metricsExportFilter.xml";
 

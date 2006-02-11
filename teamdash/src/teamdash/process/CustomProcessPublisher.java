@@ -27,7 +27,6 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.TemplateAutoData;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
-import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -349,7 +348,7 @@ public class CustomProcessPublisher {
                 return null;
                 URL extFile = new URL(extBase, filename);
                 URLConnection conn = extFile.openConnection();
-                return FileUtils.slurpContents(conn.getInputStream(), true);
+                return WebServer.slurpContents(conn.getInputStream(), true);
         }
         protected String processContent(String content) throws IOException {
         if (content == null) return null;
