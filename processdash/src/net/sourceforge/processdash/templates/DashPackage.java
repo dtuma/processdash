@@ -72,7 +72,7 @@ public class DashPackage {
     public String filename;
 
     /** the version of the dashboard which this package requires */
-    String requiresDashVersion;
+    public String requiresDashVersion;
 
     /** the time we last successfully checked for an updated
         version of this package */

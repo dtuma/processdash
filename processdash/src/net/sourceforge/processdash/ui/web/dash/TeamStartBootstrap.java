@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
@@ -39,11 +40,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
@@ -103,6 +109,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String JOIN_ERROR_URL = "teamStartJoinError.shtm";
     private static final String JOIN_VERIFY_URL = "teamStartJoinVerify.shtm";
 
+    private static Resources resources = Resources.getDashBundle("TeamStart");
+
     private static final Logger logger = Logger.getLogger(
                 TeamStartBootstrap.class.getName());
 
@@ -139,6 +147,12 @@ public class TeamStartBootstrap extends TinyCGIBase {
         out.print("Location: ");
         out.print(filename);
         out.print("\r\n\r\n");
+    }
+
+    protected void printRedirect(String prefix, String filename) {
+        if (prefix != null)
+                filename = prefix + "/" + filename;
+        printRedirect(filename);
     }
 
     /** Save a value into the data repository. */
@@ -301,7 +315,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
     protected String downloadTeamTemplateInfo(String teamURL) {
         // Ensure they entered a team URL.
         if (teamURL == null || teamURL.trim().length() == 0)
-            return "You must enter a team project URL!";
+            return resources.getHTML("Errors.Missing_URL");
 
         // Make certain the team URL is a valid URL.  Note that we
         // should be able to work with the URL to just about any page
@@ -311,17 +325,18 @@ public class TeamStartBootstrap extends TinyCGIBase {
         // page for the project, we should be able to derive the URL
         // we need.
         teamURL = teamURL.trim();
-        if (!teamURL.startsWith("http://")) return INVALID_TEAM_URL_ERR;
+        if (!teamURL.startsWith("http://"))
+            return resources.getHTML("Errors.Invalid_Team_URL");
         int pos = teamURL.indexOf("//", 7);
         if (pos != -1) pos = teamURL.indexOf('/', pos+2);
-        if (pos == -1) return INVALID_TEAM_URL_ERR;
+        if (pos == -1)
+            return resources.getHTML("Errors.Invalid_Team_URL");
         teamURL = teamURL.substring(0, pos+1) + "setup/join.class?xml";
         URL u = null;
         try {
             u = new URL(teamURL);
         } catch (IOException ioe) {
-            return "The URL you entered is not a valid URL.  Please "+
-                "doublecheck and correct it.";
+            return resources.getHTML("Errors.Invalid_URL");
         }
 
         // Download an XML document containing the template information.
@@ -331,10 +346,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
             conn.connect();
             doc = XMLUtils.parse(conn.getInputStream());
         } catch (Exception e) {
-            return "The dashboard was unable to retrieve information about "+
-                "the team project.  Please ensure that you have entered the "+
-                "team project URL correctly, and contact your team leader "+
-                "to ensure that the team dashboard is currently running.";
+            return resources.getHTML("Errors.Cannot_Connect_To_URL");
         }
 
         // Extract the relevant information from the XML document we
@@ -347,9 +359,6 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
         return null;
     }
-    private static final String INVALID_TEAM_URL_ERR =
-        "The URL you entered is not a valid team project URL. "+
-        "Please doublecheck and correct it.";
 
 
     /** Handle values posted from the "join team project" page */
@@ -371,31 +380,35 @@ public class TeamStartBootstrap extends TinyCGIBase {
         String templatePathUNC = getValue(TEMPLATE_UNC);
         String continuationURI = getValue(CONTINUATION_URI);
 
+        String errorMessage = null;
         File templateFile = resolveTemplateLocation(templatePath,
                         templatePathUNC);
 
         if (templateIsLoaded(templateID, templateFile, continuationURI)) {
+            // the template is already present in the dashboard.  Test to
+                // make certain our dashboard can understand that template.
+                errorMessage = testContinuation(getPrefix(), continuationURI);
 
-            // the template is already present in the dashboard, so simply
-            // redirect to the continuation URI.
-            String prefix = getPrefix();
-            if (prefix == null)
-                printRedirect(continuationURI);
-            else
-                printRedirect(prefix + "/" + continuationURI);
+                // If that went OK, redirect to the continuation URI.
+                if (errorMessage == null)
+                        printRedirect(getPrefix(), continuationURI);
 
         } else {
-            String errorMessage = initiateTemplateLoad
+            errorMessage = initiateTemplateLoad
                 (templateID, templateFile, continuationURI);
             if (errorMessage == null)
                 printRedirect(JOIN_VERIFY_URL);
-            else
-                printRedirect(JOIN_ERROR_URL + "?errMsg=" +
-                              HTMLUtils.urlEncode(errorMessage));
+        }
+
+        if (errorMessage != null) {
+                errorMessage = HTMLUtils.escapeEntities(errorMessage);
+                errorMessage = HTMLUtils.urlEncode(errorMessage);
+            printRedirect(JOIN_ERROR_URL + "?errMsg=" + errorMessage);
         }
     }
 
-    private File resolveTemplateLocation(String templatePath,
+
+        private File resolveTemplateLocation(String templatePath,
                         String templatePathUNC) {
                 File f = new File(templatePath);
                 if (!f.exists()) {
@@ -416,6 +429,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
                                 + templatePathUNC + "') = '" + f + "'");
                 return f;
         }
+
 
     private boolean templateIsLoaded(String templateID,
                                      File templateJarfile,
@@ -438,6 +452,11 @@ public class TeamStartBootstrap extends TinyCGIBase {
         URL url = resolveURL(continuationURI);
         logger.log(Level.FINER, "url={0}", url);
         if (url == null) return false;
+
+        // Allow the user to disable the exact matching logic below via
+        // a setting.
+        if (Settings.getBool("teamStart.relaxTemplateMatchingLogic", false))
+                return true;
 
         // check to see if the continuation URI appears to be provided by
         // the named templatePath
@@ -474,6 +493,37 @@ public class TeamStartBootstrap extends TinyCGIBase {
         return result;
     }
 
+
+    /** Attempt to open the continuation page, to make certain it will
+     * succeed when the user visits it in their browser.
+     * 
+     * @return an error message if the page cannot be opened, null if
+     *     all is well.
+     */
+    private String testContinuation(String prefix, String continuationURI) {
+        if (prefix != null)
+            continuationURI = prefix + "/" + continuationURI;
+        try {
+            WebServer ws = getTinyWebServer();
+            String continuationURL = "http://" + ws.getHostName(false) + ":"
+                    + ws.getPort() + continuationURI;
+            URL u = new URL(continuationURL);
+            logger.finer("Testing continuation URL " + continuationURL);
+            HttpURLConnection conn = (HttpURLConnection) u.openConnection();
+            conn.connect();
+            int status = conn.getResponseCode();
+            if (status == 200)
+                return null;
+            logger.warning("Received response code of " + status + " for "
+                    + continuationURL);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Received exception when contacting "
+                    + continuationURI, e);
+        }
+        return resources.getString("Errors.Cannot_Use_Process");
+    }
+
+
     /** Ask the dashboard to begin the process of loading a new template.
      * 
      * @return null on success; else an error message describing the
@@ -491,12 +541,43 @@ public class TeamStartBootstrap extends TinyCGIBase {
         String suffix =
             templatePath.substring(templatePath.length()-4).toLowerCase();
         if (!suffix.equals(".jar") && !suffix.equals(".zip"))
-            return "the team project setup logic currently only supports "+
-                "custom projects that are stored in 'jar' or 'zip' files";
+                return resources.getString("Errors.Only_Jar_Zip");
+
+        // Make certain the file can be found.
+        if (!templateFile.isFile())
+                return resources.getString("Errors.Cannot_Find_File");
 
         // Make certain that access permissions allow us to read the file
         if (!templateFile.canRead())
-                return "that file cannot be read";
+                return resources.getString("Errors.Cannot_Read_File");
+
+        // Check to make certain the file is a valid dashboard package, and
+        // is compatible with this version of the dashboard.
+        try {
+            String jarURL = templateFile.toURL().toString();
+            URL url = new URL("jar:" + jarURL + "!/Templates/");
+            DashPackage dashPackage = new DashPackage(url);
+            String currentDashVersion = (String) env.get(
+                    WebServer.PACKAGE_ENV_PREFIX + "pspdash");
+            if (dashPackage.isIncompatible(currentDashVersion)) {
+                String requiredVersion = dashPackage.requiresDashVersion;
+                if (requiredVersion.endsWith("+")) {
+                    requiredVersion = requiredVersion.substring(0,
+                            requiredVersion.length() - 1);
+                    return resources.format(
+                                "Errors.Version_Mismatch.Need_Upgrade_FMT",
+                                requiredVersion, currentDashVersion);
+                } else {
+                    return resources.format("Errors.Version_Mismatch.Exact_FMT",
+                                requiredVersion, currentDashVersion);
+                }
+            }
+
+        } catch (InvalidDashPackage idp) {
+                return resources.getString("Errors.Invalid_Dash_Package");
+        } catch (Exception e) {
+                return resources.getString("Errors.Cannot_Read_File");
+        }
 
         // Initiate the loading of the template definition.
         new TemplateLoadTask(templatePath, templateDir);

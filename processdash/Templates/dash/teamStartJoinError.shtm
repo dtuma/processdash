@@ -46,15 +46,18 @@ work.  In contrast, a team project must use a team-oriented process.
 Among other things, a team-oriented process provides a metrics
 framework that controls how team data will be rolled up.</p>
 
-<p class=error>This team project is based on a process that you have
+<div class=error>
+
+<p>This team project is based on a process that you have
 never used before.  The dashboard attempted to automatically load the
 definition for this process from the following location:
 
 <PRE>     <!--#echo [setup//Template_Path] --></PRE>
 
-Unfortunately, <!--#echo errMsg -->.  To resolve this problem, you may
-need to map a network drive. Please talk with your team leader for
+Unfortunately, <!--#echo errMsg -->. Please talk with your team leader for
 more help.</p>
+
+</div>
 
 <p>After you address this problem, you can click the &quot;Retry&quot;
 button and the dashboard will try again.</p>
