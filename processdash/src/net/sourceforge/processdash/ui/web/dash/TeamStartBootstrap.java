@@ -336,6 +336,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
         try {
             u = new URL(teamURL);
         } catch (IOException ioe) {
+                logger.log(Level.WARNING, "Caught exception creating team URL "
+                                + teamURL, ioe);
             return resources.getHTML("Errors.Invalid_URL");
         }
 
@@ -346,6 +348,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
             conn.connect();
             doc = XMLUtils.parse(conn.getInputStream());
         } catch (Exception e) {
+                logger.log(Level.WARNING, "Could not connect to team URL "+u, e);
             return resources.getHTML("Errors.Cannot_Connect_To_URL");
         }
 
@@ -424,7 +427,10 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
                 try {
                         f = f.getCanonicalFile();
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                        logger.log(Level.WARNING,
+                                        "Caught exception getting canonical file", e);
+                }
                 logger.finer("resolveTemplateLocation('" + templatePath + "', '"
                                 + templatePathUNC + "') = '" + f + "'");
                 return f;
@@ -476,7 +482,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
                 return false;
                         }
         } catch (IOException ioe) {
-                logger.log(Level.FINER, "Encountered error comparing paths", ioe);
+                logger.log(Level.WARNING, "Encountered error comparing paths", ioe);
             return false;
         }
 
@@ -576,6 +582,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         } catch (InvalidDashPackage idp) {
                 return resources.getString("Errors.Invalid_Dash_Package");
         } catch (Exception e) {
+                logger.log(Level.WARNING, "Unable to read team process add-on", e);
                 return resources.getString("Errors.Cannot_Read_File");
         }
 
