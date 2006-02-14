@@ -630,6 +630,8 @@ public class TaskScheduleDialog
                                        int column) {
             Component result = super.prepareEditor(editor, row, column);
             result.setBackground(selectedEditableColor);
+            if (result instanceof JTextComponent)
+                ((JTextComponent) result).selectAll();
             return result;
         }
 
@@ -964,6 +966,8 @@ public class TaskScheduleDialog
                                        int column) {
             Component result = super.prepareEditor(editor, row, column);
             result.setBackground(selectedEditableColor);
+            if (result instanceof JTextComponent)
+                ((JTextComponent) result).selectAll();
             return result;
         }
     }

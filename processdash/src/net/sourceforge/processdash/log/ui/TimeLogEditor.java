@@ -937,11 +937,22 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
                         if (result == true
                                         && e instanceof MouseEvent
-                                        && (column == TimeLogTableModel.COL_ELAPSED
-                                                        || column == TimeLogTableModel.COL_INTERRUPT))
+                                        && shouldSelectAll(column))
                                 DeferredSelectAllExecutor.register(getEditorComponent());
 
                         return result;
+                }
+
+        public Component prepareEditor(TableCellEditor tce, int row, int col) {
+            Component result = super.prepareEditor(tce, row, col);
+            if (result instanceof JTextComponent && shouldSelectAll(col))
+                ((JTextComponent) result).selectAll();
+            return result;
+        }
+
+                private boolean shouldSelectAll(int column) {
+                        return (column == TimeLogTableModel.COL_ELAPSED
+                                        || column == TimeLogTableModel.COL_INTERRUPT);
                 }
 
     }
