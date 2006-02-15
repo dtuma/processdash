@@ -65,7 +65,7 @@ public class EVCalculatorXML extends EVCalculator {
 
         // check for errors in the task list
         taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
-                                    new LinkedList(), new LinkedList());
+                                    new LinkedList(), new LinkedList(), false);
     }
 
 

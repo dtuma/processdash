@@ -115,7 +115,7 @@ public class EVCalculatorData extends EVCalculator {
 
         // recalculate the EVMetrics object
         taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
-                                    new LinkedList(), new LinkedList());
+                                    new LinkedList(), new LinkedList(), false);
         recalcMetrics(taskRoot, schedule.getMetrics());
 
         recalculateTaskHierarchy(taskRoot);

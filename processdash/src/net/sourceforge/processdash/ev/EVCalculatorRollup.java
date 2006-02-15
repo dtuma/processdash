@@ -29,6 +29,7 @@ package net.sourceforge.processdash.ev;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -74,6 +75,10 @@ public class EVCalculatorRollup extends EVCalculator {
 
         // Recalculate the rollup schedule.
         schedule.recalc();
+
+        // check for duplicate schedules.
+        taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
+                new LinkedList(), new LinkedList(), true);
     }
 
     /** If this node is the root node of an EVTaskList rollup, this will
@@ -179,8 +184,17 @@ public class EVCalculatorRollup extends EVCalculator {
         return true;
     }
 
+    private boolean someSchedulesAreRollups() {
+        Iterator i = schedule.subSchedules.iterator();
+        while (i.hasNext()) {
+            if (i.next() instanceof EVScheduleRollup)
+                return true;
+        }
+        return false;
+    }
+
     private void createConfidenceIntervals() {
-        if (!allSchedulesHaveCostInterval())
+        if (!allSchedulesHaveCostInterval() || someSchedulesAreRollups())
             setNullIntervals();
         else if (!allSchedulesHaveTimeErrInterval())
             createCostInterval();

@@ -47,9 +47,11 @@ import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.EventObject;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 
 import javax.swing.*;
@@ -1112,10 +1114,11 @@ public class TaskScheduleDialog
 
     private String chooseTaskList() {
         String[] taskListNames =
-            EVTaskList.findTaskLists(dash.getData(), true, true);
-        taskListNames = insertElem
+            EVTaskList.findTaskLists(dash.getData(), false, true);
+        taskListNames = insertRemoveElem
             (taskListNames,
-             resources.getString("Import_Schedule.New_Schedule_Option"));
+             resources.getString("Import_Schedule.New_Schedule_Option"),
+             this.taskListName);
         String[] taskListDisplayNames = getDisplayNames(taskListNames);
         JList taskLists = new JList(taskListDisplayNames);
         JScrollPane sp = new JScrollPane(taskLists);
@@ -1137,16 +1140,18 @@ public class TaskScheduleDialog
         }
         return null;
     }
-    private String[] insertElem(String[] array, String elem) {
+    private String[] insertRemoveElem(String[] array, String elemToInsert,
+            String elemToRemove) {
         String result[];
         if (array == null) {
             result = new String[1];
+            result[0] = elemToInsert;
         } else {
-            result = new String[array.length + 1];
-            for (int i=array.length;   i-- > 0; )
-                result[i+1] = array[i];
+            LinkedList list = new LinkedList(Arrays.asList(array));
+            list.remove(elemToRemove);
+            list.add(0, elemToInsert);
+            result = (String[]) list.toArray(new String[list.size()]);
         }
-        result[0] = elem;
         return result;
     }
     private String[] getDisplayNames(String[] taskListNames) {

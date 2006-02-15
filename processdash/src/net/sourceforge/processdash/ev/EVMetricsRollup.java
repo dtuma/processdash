@@ -47,6 +47,10 @@ public class EVMetricsRollup extends EVMetrics {
      * completion date. */
     protected ConfidenceInterval optCompletionDateInterval = null;
 
+    /** A flag indicating whether this metrics object is rolling up
+     * other EVMetricsRollup objects. */
+    protected boolean isRollupOfRollups = false;
+
 
 
     public EVMetricsRollup() {
@@ -64,6 +68,7 @@ public class EVMetricsRollup extends EVMetrics {
         currentDate = effectiveDate;
         startDate = independentForecastDate = null;
         errors = null;
+        isRollupOfRollups = false;
     }
 
     public void addMetrics(EVMetrics that) {
@@ -79,6 +84,10 @@ public class EVMetricsRollup extends EVMetrics {
         this.independentForecastDate =
             EVScheduleRollup.maxDate(this.independentForecastDate,
                                      that.independentForecastDate());
+
+        if (that instanceof EVMetricsRollup)
+            this.isRollupOfRollups = true;
+
         if (that.errors != null) {
             if (this.errors == null)
                 this.errors = new TreeMap();
@@ -119,9 +128,13 @@ public class EVMetricsRollup extends EVMetrics {
         // do nothing - it is already calculated.
     }
     protected void recalcOptimizedPlanDate(EVSchedule s) {
-        optimizedPlanDate = s.getHypotheticalDate(totalPlan(), false);
-        if (optimizedPlanDate == EVSchedule.NEVER)
+        if (isRollupOfRollups) {
             optimizedPlanDate = null;
+        } else {
+            optimizedPlanDate = s.getHypotheticalDate(totalPlan(), false);
+            if (optimizedPlanDate == EVSchedule.NEVER)
+                optimizedPlanDate = null;
+        }
     }
 
     public void setOptimizedDateConfidenceInterval
@@ -144,7 +157,9 @@ public class EVMetricsRollup extends EVMetrics {
     }
 
     public double optimizedForecastDuration() {
-        if (useSimpleForecastDateFormula)
+        if (isRollupOfRollups)
+            return Double.NaN;
+        else if (useSimpleForecastDateFormula)
             return super.independentForecastDuration();
         else
             return calcDuration(startDate(), super.independentForecastDate());
@@ -152,7 +167,9 @@ public class EVMetricsRollup extends EVMetrics {
 
 //    private Date optimizedForecastDate = null;
     public Date optimizedForecastDate() {
-        if (useSimpleForecastDateFormula) {
+        if (isRollupOfRollups) {
+            return null;
+        } else if (useSimpleForecastDateFormula) {
             // use the extrapolation algorithm that EVMetrics uses to
             // calculate the independentForecastDate.
             Date s;
@@ -183,6 +200,9 @@ public class EVMetricsRollup extends EVMetrics {
     private Date optimizedPlanDate = null;
     void setOptimizedPlanDate(Date d) { optimizedPlanDate = d; }
 
+    public boolean isRollupOfRollups() {
+        return isRollupOfRollups;
+    }
 
     protected String getResourcePrefix() { return "Rollup_"; }
 

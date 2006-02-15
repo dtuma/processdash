@@ -924,54 +924,58 @@ public class EVTask implements DataListener {
 
     public void checkForNodeErrors(EVMetrics metrics, int depth,
                                    List rootChildList,
-                                   List otherNodeList) {
-        switch (depth) {
-        case 0:                 // this is the root
-            break;
+                                   List otherNodeList,
+                                   boolean rootNodesOnly) {
 
-        case 1:                 // this is a child of the root.
+        if (rootNodesOnly && !"".equals(this.fullName))
+            return;
+
+        if (depth > 0) {
+            setTaskError(null);
+
             if (containsNode(rootChildList, this) ||
                 containsNode(otherNodeList, this)) {
-                metrics.addError
-                    (resources.format
-                     ("Task.Duplicate_Task.Error_Msg_FMT", fullName),
-                     this);
-                setTaskError(resources.getString("Task.Duplicate_Task.Error"));
-            } else
-                setTaskError(null);
-            rootChildList.add(this);
-            break;
+                EVTask nodeWithErr = this;
 
-        default:
-            int pos = indexOfNode(rootChildList, this);
-            if (pos != -1) {
-                EVTask t = (EVTask) rootChildList.get(pos);
-                metrics.addError
-                    (resources.format
-                     ("Task.Duplicate_Task.Error_Msg_FMT", t.fullName),
-                     t);
-                t.setTaskError(resources.getString
-                               ("Task.Duplicate_Task.Error"));
+                if (depth > 1) {
+                    int pos = indexOfNode(rootChildList, this);
+                    if (pos != -1)
+                        nodeWithErr = (EVTask) rootChildList.get(pos);
+                }
+
+                String errorMessage = resources.format(
+                        "Task.Duplicate_Task.Error_Msg_FMT",
+                        rootNodesOnly ? nodeWithErr.name : nodeWithErr.fullName);
+                metrics.addError(errorMessage, nodeWithErr);
+                nodeWithErr.setTaskError(resources
+                        .getString("Task.Duplicate_Task.Error"));
             }
-            setTaskError(null);
-            otherNodeList.add(this);
+
+            if (depth == 1)
+                rootChildList.add(this);
+            else
+                otherNodeList.add(this);
         }
 
-        if (hasTopDownBottomUpError())
-            metrics.addError(resources.format("Task.Mismatch.Error_Msg_FMT",
-                                              fullName,
-                                              getPlanTime(),
-                                              FormatUtil.formatTime(bottomUpPlanTime)),
-                             this);
-        if (planTimeIsMissing())
-            metrics.addError
-                (resources.format("Task.Plan_Time_Missing.Error_Msg_FMT",
-                                  fullName),
-                 this);
+        if (!rootNodesOnly) {
+            if (hasTopDownBottomUpError()) {
+                String errorMessage = resources.format(
+                        "Task.Mismatch.Error_Msg_FMT", fullName, getPlanTime(),
+                        FormatUtil.formatTime(bottomUpPlanTime));
+                metrics.addError(errorMessage, this);
+            }
+
+            if (planTimeIsMissing()) {
+                String errorMessage = resources.format(
+                        "Task.Plan_Time_Missing.Error_Msg_FMT",
+                         fullName);
+                metrics.addError(errorMessage, this);
+            }
+        }
 
         for (int i = 0;   i < getNumChildren();   i++)
-            getChild(i).checkForNodeErrors(metrics, depth+1,
-                                           rootChildList, otherNodeList);
+            getChild(i).checkForNodeErrors(metrics, depth+1, rootChildList,
+                    otherNodeList, rootNodesOnly);
     }
 
 /*

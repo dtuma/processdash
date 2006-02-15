@@ -26,8 +26,10 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import net.sourceforge.processdash.data.ListData;
@@ -98,8 +100,8 @@ public class EVTaskListRollup extends EVTaskList {
         if (list == null) return;
         for (int i = 0;   i < list.size();   i++) {
             taskListName = (String) list.get(i);
-            EVTaskList taskList = EVTaskList.openExisting
-                (taskListName, data, hierarchy, cache, false);
+            EVTaskList taskList = openTaskListToAdd(taskListName, data,
+                    hierarchy, cache);
             if (taskList == null) {
                 if (EVTaskListXML.validName(taskListName))
                     taskList = new EVTaskListXML(taskListName, data);
@@ -149,8 +151,7 @@ public class EVTaskListRollup extends EVTaskList {
                                    ObjectCache cache,
                                    boolean willNeedChangeNotification) {
 
-        EVTaskList taskList = EVTaskList.openExisting
-            (path, data, hierarchy, cache, false);
+        EVTaskList taskList = openTaskListToAdd(path, data, hierarchy, cache);
         // when adding an XML task list that doesn't appear to exist yet
         // (most likely due to the timing of import/export operations when
         // an individual is joining a team project), give the caller the
@@ -158,7 +159,6 @@ public class EVTaskListRollup extends EVTaskList {
         // add the named schedule anyway.
         if (taskList == null && EVTaskListXML.validName(path)) {
             taskList = new EVTaskListXML(path, data);
-            System.out.println("Giving benefit of doubt.");
         }
         if (taskList == null) return null;
 
@@ -169,6 +169,23 @@ public class EVTaskListRollup extends EVTaskList {
             return newTask;
         } else
             return null;
+    }
+
+    private EVTaskList openTaskListToAdd(String taskListToAdd,
+            DataRepository data, DashHierarchy hierarchy, ObjectCache cache) {
+        String myName = this.taskListName;
+        Set names = (Set) TASK_LIST_NAMES_CURRENTLY_OPENING.get();
+        try {
+            names.add(myName);
+            if (names.contains(taskListToAdd))
+                return new EVTaskList(taskListToAdd, taskListToAdd,
+                        resources.getString("Task.Circular_Task.Error"));
+            else
+                return EVTaskList.openExisting
+                    (taskListToAdd, data, hierarchy, cache, false);
+        } finally {
+            names.remove(myName);
+        }
     }
 
     protected void finishRemovingTask(int pos) {
@@ -220,4 +237,10 @@ public class EVTaskListRollup extends EVTaskList {
              dataName.length() - TASK_LISTS_DATA_NAME.length() - 1);
     }
 
+    private static ThreadLocal TASK_LIST_NAMES_CURRENTLY_OPENING =
+        new ThreadLocal() {
+            protected Object initialValue() {
+                return new HashSet();
+            }
+        };
 }
