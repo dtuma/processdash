@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListFunction;
@@ -54,6 +56,8 @@ public class RollupAutoData extends AutoData {
     private String basedOnDataFile;
     private Map definitions = null, aliasDefs = null;
 
+    private static final Logger logger =
+        Logger.getLogger(RollupAutoData.class.getName());
 
     /** Create a consolidator */
     RollupAutoData(String rollupID, String basedOnDataFile,
@@ -107,7 +111,7 @@ public class RollupAutoData extends AutoData {
             if (definitions != null)
                 return;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Caught Exception", e);
             return;
         }
         Map rollupDefinitions = new HashMap();
@@ -179,22 +183,20 @@ public class RollupAutoData extends AutoData {
                 (FileUtils.slurpContents(conn.getInputStream(), true));
             definitionBuffer.append("\n").append(contents).append("\n");
         } catch (IOException ioe) {
-            System.err.println("IOException: " + ioe);
-            ioe.printStackTrace();
+            logger.log(Level.WARNING, "IOException", ioe);
         }
 
         // Calculate the rollup definitions and return them.
         parseDefinitions(data, definitionBuffer.toString(), rollupDefinitions);
         definitions = rollupDefinitions;
 
-        //debugPrint(rollupDefinitions);
+        debugPrint(rollupDefinitions);
 
         try {
             // Mount this rollup data set in the repository.
             data.mountPhantomData(toDatePrefix, rollupDefinitions);
         } catch (Exception e) {
-            System.out.println("Caught Exception: " + e);
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Caught Exception", e);
         }
     }
 
@@ -239,24 +241,30 @@ public class RollupAutoData extends AutoData {
     }
 
     private void debugPrint(Map definitions) {
-        System.out.println("Definitions for " + definesRollupID +
-                           " Rollup ------------------------------");
+        String loggerName = RollupAutoData.class.getName() + "."
+                + definesRollupID;
+        Logger logger = Logger.getLogger(loggerName);
+        if (!logger.isLoggable(Level.FINEST))
+            return;
+
+        StringBuffer msg = new StringBuffer();
+        msg.append("Definitions for ").append(definesRollupID).append(
+                " Rollup ------------------------------\n");
 
         Iterator i = definitions.entrySet().iterator();
         Map.Entry e;
         while (i.hasNext()) {
             e = (Map.Entry) i.next();
-            System.out.print("[");
-            System.out.print(e.getKey());
-            System.out.print("] = ");
+            msg.append("[").append(e.getKey()).append("] = ");
             if (e.getValue() instanceof CompiledScript)
-                System.out.print(((CompiledScript) e.getValue()).saveString());
+                msg.append(((CompiledScript) e.getValue()).saveString());
             else
-                System.out.print(e.getValue());
-            System.out.println();
+                msg.append(e.getValue());
+            msg.append("\n");
         }
 
-        System.out.println("----End--------------------------------------");
+        msg.append("----End--------------------------------------");
+        logger.finest(msg.toString());
     }
 
 
