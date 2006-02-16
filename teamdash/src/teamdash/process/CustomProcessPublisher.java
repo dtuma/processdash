@@ -3,6 +3,7 @@ package teamdash.process;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -38,7 +39,7 @@ import org.xml.sax.SAXException;
 
 public class CustomProcessPublisher {
 
-        private static final String SETTINGS_FILENAME = "settings.xml";
+    private static final String SETTINGS_FILENAME = "settings.xml";
     private static final String EXT_FILE_PREFIX = "extfile:";
 
     public static CustomProcess open(File openFile) {
@@ -380,7 +381,12 @@ public class CustomProcessPublisher {
         public void run() {
             try {
                 generateFile(file, defaultInDir, defaultOutDir);
-            } catch (IOException ioe) { System.err.println(ioe); }
+            } catch (FileNotFoundException fnfe) {
+                System.err.println("Warning: could not find file "
+                        + fnfe.getMessage() + " - skipping");
+            } catch (IOException ioe) {
+                System.err.println(ioe);
+            }
         }
     }
 
@@ -405,7 +411,7 @@ public class CustomProcessPublisher {
 
         if ("binary".equals(encoding)) {
             byte[] contents = getRawFileBytes(inputFile);
-            if (contents == null) return;
+            if (contents == null) throw new FileNotFoundException(inputFile);
             startFile(outputFile);
             zip.write(contents);
             return;
@@ -414,7 +420,7 @@ public class CustomProcessPublisher {
         processor.setDefaultEchoEncoding(encoding);
 
         String contents = getRawFile(inputFile);
-        if (contents == null) return;
+        if (contents == null) throw new FileNotFoundException(inputFile);
 
         customParams.clear();
         NodeList params = file.getElementsByTagName("param");
