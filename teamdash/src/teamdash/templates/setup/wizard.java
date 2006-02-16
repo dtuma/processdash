@@ -77,6 +77,9 @@ public class wizard extends TinyCGIBase {
     // value indicating we should set up a team project
     private static final String TEAM_START_PAGE = "team";
     // Information for the team directory selection page
+    private static final String TEAM_MASTER_PAGE = "teamMaster";
+    private static final String TEAM_MASTER_URL = "teamMaster.shtm";
+    // Information for the team directory selection page
     private static final String TEAM_DIR_PAGE = "teamDir";
     private static final String TEAM_DIR_URL = "teamDirectory.shtm";
     // Information for the team schedule name selection page.
@@ -133,6 +136,7 @@ public class wizard extends TinyCGIBase {
 
 
     // Names of session variables used to store user selections.
+    private static final String TEAM_MASTER_FLAG = "setup//Is_Master";
     private static final String SUGG_TEAM_DIR = "setup//Suggested_Team_Dir";
     private static final String TEAM_DIR = "setup//Team_Dir";
     private static final String TEAM_SCHEDULE = "setup//Team_Schedule";
@@ -172,7 +176,8 @@ public class wizard extends TinyCGIBase {
 
         else if (!prefixNamesTeamProjectStub())    showInvalidPage();
         else if (page == null)                     showWelcomePage();
-        else if (TEAM_START_PAGE.equals(page))     showTeamDirPage();
+        else if (TEAM_START_PAGE.equals(page))     showTeamMasterChoicePage();
+        else if (TEAM_MASTER_PAGE.equals(page))    handleTeamMasterChoicePage();
         else if (TEAM_DIR_PAGE.equals(page))       handleTeamDirPage();
         else if (TEAM_SCHEDULE_PAGE.equals(page))  handleTeamSchedulePage();
         else if (TEAM_CLOSE_HIERARCHY_PAGE.equals(page))
@@ -207,14 +212,26 @@ public class wizard extends TinyCGIBase {
         data.putValue(dataName, dataValue);
     }
 
-    /** Get a value from the data repository. */
+    /** Get a value from the data repository as a String. */
     protected String getValue(String name) {
+        SimpleData d = getSimpleValue(name);
+        return (d == null ? null : d.format());
+    }
+
+    /** Get a value from the data repository as a String. */
+    protected boolean testValue(String name) {
+        SimpleData d = getSimpleValue(name);
+        return (d == null ? false : d.test());
+    }
+
+    /** Get a value from the data repository. */
+    protected SimpleData getSimpleValue(String name) {
         DataRepository data = getDataRepository();
         String prefix = getPrefix();
         if (prefix == null) prefix = "";
         String dataName = DataRepository.createDataName(prefix, name);
         SimpleData d = data.getSimpleValue(dataName);
-        return (d == null ? null : d.format());
+        return d;
     }
 
     /** Returns true if the current prefix names a "TeamProjectStub" node */
@@ -238,6 +255,23 @@ public class wizard extends TinyCGIBase {
     /** Display the team process selection page */
     protected void showTeamProcessesPage() {
         printRedirect(PROCESS_URL);
+    }
+
+    /** Display the team/master project selection page */
+    protected void showTeamMasterChoicePage() {
+        printRedirect(TEAM_MASTER_URL);
+    }
+
+    protected void handleTeamMasterChoicePage() {
+        if (parameters.get("createMasterProject") != null) {
+            putValue(TEAM_MASTER_FLAG, ImmutableDoubleData.TRUE);
+            showTeamDirPage();
+        } else if (parameters.get("createTeamProject") != null) {
+            putValue(TEAM_MASTER_FLAG, ImmutableDoubleData.FALSE);
+            showTeamDirPage();
+        } else {
+            showTeamMasterChoicePage();
+        }
     }
 
     /** Display the team directory selection page */
@@ -392,6 +426,9 @@ public class wizard extends TinyCGIBase {
         if (getValue(TEAM_PID) == null|| getValue(TEAM_PROC_NAME) == null)
             showTeamProcessesPage();
 
+        else if (getValue(TEAM_MASTER_FLAG) == null)
+            showTeamMasterChoicePage();
+
         else if (getValue(TEAM_DIR) == null)
             showTeamDirPage();
 
@@ -430,6 +467,11 @@ public class wizard extends TinyCGIBase {
         String teamSchedule = getValue(TEAM_SCHEDULE);
         String processJarFile = findTeamProcessJarfile(teamPID);
         String projectID = generateID();
+
+        boolean isMaster = testValue(TEAM_MASTER_FLAG);
+        if (isMaster)
+            teamPID = StringUtils.findAndReplace(teamPID,
+                    "/TeamRoot", "/MasterRoot");
 
         // create the required team directories. This involves file IO
         // which could fail for various reasons, so we attempt to get

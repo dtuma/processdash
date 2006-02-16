@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Team Project Setup Wizard</title>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 </head>
 <body>
@@ -21,9 +21,22 @@
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='teamDir'>
 
+<!--#if [setup//Is_Master] -->
+
+<P>The team-oriented processes in the dashboard use a &quot;team
+directory&quot; to facilitate coordination.  This directory will be used to
+hold team-level planning information, such as the project's work breakdown
+structure.</P>
+
+<p>The &quot;team directory&quot; must be accessible and readable by the
+leaders of all the team projects associated with this master project.
+Because of this, it should generally be a shared network directory.<p>
+
+<!--#else-->
+
 <p>The team-oriented processes in the dashboard use a &quot;team
 directory&quot; to facilitate coordination.  The primary purpose of
-this directory is to hold exported snapshots of individual data;  the
+this directory is to hold exported snapshots of individual data; the
 team project instance imports this data and uses it to compute
 rolled-up team data.</p>
 
@@ -32,6 +45,8 @@ writable by all team members.  Because of this, it should generally be
 a shared network directory.  Since the directory will hold PSP data
 collected by individuals, it should be configured with permissions
 that forbid file access by non-team members.<p>
+
+<!--#endif-->
 
 <p>Any number of projects can share the same team directory; the
 process dashboard will still be able to track which data belongs to
@@ -50,9 +65,10 @@ network directory!</td></tr></table>
 <table><tr><td class=error>The directory path you entered does not
 appear to be on a shared network drive.  For the team features to
 work, it is <u>essential</u> that all team members have access to the
-team directory.  If you are certain that all team members can write to
-the directory below, click &quot;Next&quot; to confirm.  Otherwise,
-enter the name of a network directory below.</td></tr></table>
+team directory.  If you are certain that all team members can read
+from and write to the directory below, click &quot;Next&quot; to
+confirm.  Otherwise, enter the name of a network directory
+below.</td></tr></table>
 <input type=hidden name=confirm
        value="<!--#echo var='[setup//Team_Dir]' -->">
 

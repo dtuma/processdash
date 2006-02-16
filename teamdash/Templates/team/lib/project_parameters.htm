@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Team Project Parameters and Settings</title>
+<title>TEAM Project Parameters and Settings</title>
 <link rel=stylesheet type="text/css" href="style.css">
 </head>
 <body>
@@ -10,18 +10,20 @@
 <!--#if not indiv -->
 
 <span style="display:none">
-<a href="rollup_plan_summary.shtm">Team project plan summary</a>
+<a href="rollup_plan_summary.shtm">TEAM project plan summary</a>
 </span>
 
 <!--#endif-->
 
-<h2>Team Project Parameters and Settings</h2>
+<h2>TEAM Project Parameters and Settings</h2>
 
 <form>
 
 <input type=hidden name=requiredTag
 <!--#if indiv -->
        VALUE="<!--#echo Process_ID -->/IndivRoot Tag"
+<!--#elif master -->
+       VALUE="<!--#echo Process_ID -->/MasterRoot Tag"
 <!--#else-->
        VALUE="<!--#echo Process_ID -->/TeamRoot Tag"
 <!--#endif-->
@@ -31,18 +33,18 @@
 <table>
 
 <tr>
-<td>Team Project ID</td>
+<td>TEAM Project ID</td>
 <td><input type=text size=50 name="Project_ID	s"></td>
 </tr>
 
 <tr>
-<td>Team Project Network Directory</td>
+<td>TEAM Project Network Directory</td>
 <td><input type=text size=50 name="Team_Directory	s"></td>
 </tr>
 
 <!--#break disabledForNow -->
 <tr>
-<td>Team Project URL</td>
+<td>TEAM Project URL</td>
 <td><input type=text size=50 name="Team_URL	s"></td>
 </tr>
 <!--#endbreak disabledForNow -->
@@ -148,7 +150,7 @@ document.writeln("<P>Problem loading the data.js script!");
 [!--#if [<!--#echo Process_ID -->/TeamRoot Tag] --]
 
 <span style="display:none">
-<a href="rollup_plan_summary.shtm">Team project plan summary</a>
+<a href="rollup_plan_summary.shtm">TEAM project plan summary</a>
 </span>
 
 <script>

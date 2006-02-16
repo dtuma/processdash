@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Team Project Setup Wizard</title>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 </head>
 <body>
@@ -14,9 +14,11 @@
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='teamCloseHier'>
 
-<p>To create the team project, this wizard will need to modify your
-hierarchy.  Unfortunately, this wizard cannot modify the hierarchy
-while the hierarchy editor is open.</p>
+<p>To create the
+<!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
+project, this wizard will need to modify your hierarchy.  Unfortunately,
+this wizard cannot modify the hierarchy while the hierarchy editor is
+open.</p>
 
 <p>Please close the hierarchy editor, then press the &quot;Next&quot;
 button.</p>

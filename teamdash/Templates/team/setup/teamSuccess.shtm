@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Team Project Setup Wizard</title>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 <style>
 TD.label { font-weight: bold;   vertical-align: top;
@@ -16,7 +16,9 @@ TD.value { font-family: monospace }
 
 <h2>Success</h2>
 
-<p>The team project has been created and set up successfully!</p>
+<p>The
+<!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
+project has been created and set up successfully!</p>
 
 <p><b>Note: Check back with your main Process Dashboard window; it may
 be displaying a dialog titled &quot;Import Template&quot;.  If it is,
@@ -25,9 +27,12 @@ dashboard instances in this team project remain in agreement on the
 process definition.</b></p>
 
 <p>When your team is ready to begin the project launch planning
-process, go to the &quot;<b>Team Project Tools and Settings</b>&quot;
-page for access to advanced team planning tools.  (You can open the
-&quot;<b>Team Project Tools and Settings</b>&quot; page by using the
+process, go to the 
+&quot;<b><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif-->
+Project Tools and Settings</b>&quot; page for access to advanced team
+planning tools.  (You can open the 
+&quot;<b><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif-->
+Project Tools and Settings</b>&quot; page by using the
 &quot;script&quot; button on the main dashboard window.)</p>
 
 <table width='100%'><tr><td width='100%' align='right' nowrap>

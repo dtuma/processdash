@@ -1,0 +1,17 @@
+// <!--#echo var="-*- mode:html -*-" -->
+// Data file for a component of a <!--#echo Full_Name --> team project
+//
+
+#include <<!--#echo Process_ID -->/rollup_dataFile.txt> exclude (
+    [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
+)
+
+[Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
+
+
+/*
+ * Redefine the rollup filter to include items from this project.
+ */
+[Rollup_Filter] =
+     "[Project_WBS_ID] == [{Project_WBS_ID}] || <!--#echo null #-->
+      startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID])";

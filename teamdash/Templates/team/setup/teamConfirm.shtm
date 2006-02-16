@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Team Project Setup Wizard</title>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 <style>
 TD.label { font-weight: bold;   vertical-align: top;
@@ -19,8 +19,9 @@ TD.value { font-family: monospace }
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='teamConfirm'>
 
-<p>The process dashboard will create a team project using the settings
-below:</p>
+<p>The process dashboard will create a
+<!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
+project using the settings below:</p>
 
 <table style="margin-left: 1cm">
 
@@ -43,7 +44,9 @@ below:</p>
 incorrect, press the &quot;Back&quot; button to make corrections.</p>
 
 <p>If this information is correct, press the &quot;Finish&quot; button to
-create the team project.</p>
+create the
+<!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
+project.</p>
 
 <table width='100%'><tr><td width='100%' align='right' nowrap>
 <input type=button name=cancel value='Cancel'

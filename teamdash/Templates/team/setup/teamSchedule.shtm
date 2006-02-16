@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Team Project Setup Wizard</title>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 </head>
 <body>
@@ -14,14 +14,21 @@
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='teamSchedule'>
 
+<!--#if [setup//Is_Master] -->
+<p>The dashboard will create a master earned value schedule for this
+project that rolls up data from the schedules for each subproject.</p>
+<!--#else-->
 <p>The dashboard will create a team earned value schedule for this
 project that rolls up data from the individual earned value
 schedules.</p>
+<!--#endif-->
 
 <!--#if missing -->
 
 <table width='100%'><tr><td width='100%' class=error>You must enter a
-name for the team schedule!</td></tr></table>
+name for the
+<!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
+schedule!</td></tr></table>
 
 <!--#elif invalid -->
 
@@ -36,7 +43,9 @@ unique name for the schedule.</td></tr></table>
 
 <!--#endif-->
 
-<p>What would you like to call the rolled-up team schedule?</p>
+<p>What would you like to call the rolled-up
+<!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
+schedule?</p>
 
 <table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Schedule Name:&nbsp;</td>
 <td><input type=text name=scheduleName

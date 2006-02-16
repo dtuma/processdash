@@ -5,7 +5,7 @@
 -->
 
 <generation-script name="script-v2"
-      id="Team" version="2.0.0"
+      id="Team" version="2.2.0"
       requiresDashboard="1.7b.20050531+"
       startingJar="/team/lib/TeamProcessCGI.jar"
       inDirectory="/team/lib"
@@ -42,12 +42,24 @@
     <file in="project_parameters.htm" encoding="html" 
           out="indiv_project_parameters.shtm">
 	<param name="indiv" value="true" />
+	<param name="TEAM" value="Team" replace="true" />
     </file>
 
     <!-- html pages for the team project root node -->
     <file in="team_tools.htm"  encoding="html" out="team_tools.shtm"/>
     <file in="project_parameters.htm" encoding="html" 
-          out="team_project_parameters.shtm"/>
+          out="team_project_parameters.shtm">
+	<param name="TEAM" value="Team" replace="true" />
+    </file>
+
+
+    <!-- html pages for the master project root node -->
+    <file in="master_tools.htm" encoding="html" out="master_tools.shtm"/>
+    <file in="project_parameters.htm" encoding="html" 
+          out="master_project_parameters.shtm">
+	<param name="master" value="true" />
+	<param name="TEAM" value="Master" replace="true" />
+    </file>
 
     <!-- data file shared by both project root nodes. -->
     <file in="root_data.txt" encoding="data" />
@@ -55,6 +67,10 @@
     <!-- data files for use on the team side -->
     <file in="team_root_dataFile.txt" encoding="data" />
     <file in="team_node_dataFile.txt" encoding="data" />
+
+    <!-- data files for use by a master project -->
+    <file in="master_root_dataFile.txt" encoding="data" />
+    <file in="master_node_dataFile.txt" encoding="data" />
 
     <!-- data files for use on the individal side -->
     <file in="indiv_root_dataFile.txt" encoding="data" />

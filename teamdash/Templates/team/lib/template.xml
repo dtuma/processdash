@@ -25,6 +25,73 @@
 
 
 <!--======================================================================
+    The template for a root node in a master project
+ =======================================================================-->
+
+  <template
+      name="PID-Master:!*!:<!--#echo Full_Name --> Project (Team)"
+      ID="PID/MasterRoot"
+      defineRollup="no"
+      dataFile="PID/master_root_dataFile.txt"
+      constraints="{PID/Rollup}"
+      ><!--#break comment-->
+           This node cannot be directly instantiated by the user. (The
+	   'required parent' list of } enforces this policy.) They
+	   must instead instantiate a team project stub, and run the
+	   setup wizard to create an instance of this template.
+
+           We also change the 'allowed children' list to {PID/Rollup.
+	   This allows the user to create rollups under this node,
+	   but prevents them from adding any other type of children.
+	   Those children must instead be added using the WBS editor.
+
+       <!--#endbreak comment-->
+
+    <html ID="sum" href="PID/team_summary.shtm"
+        title="<!--#echo Full_Name --> Project Summary"/>
+    <html ID="team" href="PID/master_tools.shtm"
+        title="Master Project Tools and Settings"/>
+
+  </template>
+
+
+
+
+<!--======================================================================
+    The template for a subcomponent in a master project
+ =======================================================================-->
+
+  <template
+      name="PID-Master:!*!:Subsystem"
+      ID="PID/MasterNode"
+      defineRollup="no"
+      dataFile="PID/master_node_dataFile.txt"
+      constraints="ME{}"
+      ><!--#break comment-->
+         We alter the constraints to make this node immovable and
+	 uneditable.  We also change the 'required parent' list to '}',
+	 which makes it impossible for users to instantiate this
+	 node into their hierarchy manually.
+
+	 The old value for constraints was:
+
+      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/TeamRoot}PID/TeamNode"
+
+       <!--#endbreak comment-->
+
+    <html ID="sump" href="PID/rollup_plan_summary.shtm"
+        title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
+    <html ID="sumq" href="PID/rollup_quality_summary.shtm"
+        title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
+    <html ID="charts" href="PID/charts.shtm"
+        title="<!--#echo Full_Name --> Analysis Charts"/>
+
+  </template>
+
+
+
+
+<!--======================================================================
     The template for a root project node on the team side
  =======================================================================-->
 
