@@ -1,5 +1,5 @@
 
-<project default="jar" basedir=".">
+<project default="publish" basedir=".">
 
   <property name="processdash.dir" value="../processdash"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
@@ -99,6 +99,12 @@
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="qualifier" value="team"/>
     </ant>
+  </target>
+
+  <target name="publish" depends="TSP">
+    <copy todir="${processdash.dir}/dist">
+      <fileset dir="." includes="TSP-v1.zip TeamTools.jar"/>
+    </copy>
   </target>
 
   <target name="dist" depends="installer"/>
