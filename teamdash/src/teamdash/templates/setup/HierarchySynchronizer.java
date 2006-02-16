@@ -32,7 +32,8 @@ import org.w3c.dom.NodeList;
 
 public class HierarchySynchronizer {
 
-    private static final String SYNC_TEAM = "(team)";
+    public static final String SYNC_TEAM = "(team)";
+    public static final String SYNC_MASTER = "(master)";
 
     private DashHierarchy hierarchy;
     private DataRepository data;
@@ -61,9 +62,14 @@ public class HierarchySynchronizer {
         this.hierarchy = hierarchy;
         this.data = data;
 
-        if (initials == null) { // team
+        if (SYNC_TEAM.equals(initials)) { // team
             this.initials = this.initialsPattern = SYNC_TEAM;
             this.readOnlyNodeID = processID + "/TeamNode";
+            this.taskNodeID = null;
+            this.deleteMissingNodes = true;
+        } else if (SYNC_MASTER.equals(initials)) { // master
+            this.initials = this.initialsPattern = SYNC_MASTER;
+            this.readOnlyNodeID = processID + "/MasterNode";
             this.taskNodeID = null;
             this.deleteMissingNodes = true;
         } else { // individual
@@ -84,7 +90,7 @@ public class HierarchySynchronizer {
     }
 
     public boolean isTeam() {
-        return initials == SYNC_TEAM;
+        return initials == SYNC_TEAM || initials == SYNC_MASTER;
     }
 
     public List getChanges() {
@@ -138,7 +144,7 @@ public class HierarchySynchronizer {
         // if this is a task (PSP or otherwise),
         if (TASK_TYPE.equals(type) || PSP_TYPE.equals(type)) {
             // and we are doing a team synchronization, prune it.
-            if (initials == SYNC_TEAM) return PRUNE;
+            if (isTeam()) return PRUNE;
         } else if (onlyPruneTasks)
             // if this isn't a task, and we're only pruning tasks, then this
             // node isn't prunable.

@@ -49,6 +49,8 @@ public class sync extends TinyCGIBase {
     private String initials;
     /** True if this is the team rollup side of the project */
     private boolean isTeam;
+    /** True if this is a master project rollup */
+    private boolean isMaster;
     /** true if the user wants us to copy all software component and document
      * nodes in the WBS, even if they aren't assigned to them */
     private boolean fullCopyMode;
@@ -98,11 +100,19 @@ public class sync extends TinyCGIBase {
         while (key != null) {
             String templateID = hierarchy.getID(key);
 
-            if (templateID != null && templateID.endsWith(TEAM_ROOT)) {
+            if (templateID != null && templateID.endsWith(MASTER_ROOT)) {
+                projectRoot = key.path();
+                processID = templateID.substring
+                    (0, templateID.length() - MASTER_ROOT.length());
+                isTeam = isMaster = true;
+                return;
+            }
+             if (templateID != null && templateID.endsWith(TEAM_ROOT)) {
                 projectRoot = key.path();
                 processID = templateID.substring
                     (0, templateID.length() - TEAM_ROOT.length());
                 isTeam = true;
+                isMaster = false;
                 return;
             }
             if (templateID != null && templateID.endsWith(INDIV_ROOT)) {
@@ -111,7 +121,7 @@ public class sync extends TinyCGIBase {
                     templateID.substring(
                         0,
                         templateID.length() - INDIV_ROOT.length());
-                isTeam = false;
+                isTeam = isMaster = false;
                 return;
             }
 
@@ -156,9 +166,10 @@ public class sync extends TinyCGIBase {
             signalError(WBS_FILE_INACCESSIBLE + "&wbsFile",
                         wbsFile.toString());
 
-        if (isTeam)
-            initials = null;
-        else {
+        if (isTeam) {
+            initials = (isMaster ? HierarchySynchronizer.SYNC_MASTER
+                    : HierarchySynchronizer.SYNC_TEAM);
+        } else {
             // get the initials of the current team member.
             d = data.getSimpleValue(DataRepository.createDataName
                                     (projectRoot, INITIALS_DATA_NAME));
@@ -283,9 +294,12 @@ public class sync extends TinyCGIBase {
             out.write("=" + HTMLUtils.urlEncode(value));
         if (isTeam)
             out.write("&isTeam");
+        if (isMaster)
+            out.write("&isMaster");
         out.write("'></head><body></body></html>");
     }
 
+    private static final String MASTER_ROOT = "/MasterRoot";
     private static final String TEAM_ROOT = "/TeamRoot";
     private static final String INDIV_ROOT = "/IndivRoot";
     private static final String TEAMDIR_DATA_NAME = "Team_Data_Directory";
