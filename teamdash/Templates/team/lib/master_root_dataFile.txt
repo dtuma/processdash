@@ -6,3 +6,15 @@
     [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
 )
 #include <<!--#echo Process_ID -->/root_data.txt>
+
+
+[Project_WBS_Subpath] = "";
+[Subproject_WBS_ID_List] = listFor("Project_WBS_ID", [Subproject_Path_List]);
+
+
+/*
+ * Redefine the rollup filter to include items from all subprojects.
+ */
+[Rollup_Filter_Regexp] =
+    "m\n^(" & join("|", [Subproject_WBS_ID_List]) & ")(/.+)?$\n";
+[Rollup_Filter] = "match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";
