@@ -41,6 +41,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.*;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.process.AutoData;
+import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.web.*;
 import net.sourceforge.processdash.util.*;
 
@@ -599,6 +600,10 @@ public class HTMLPreprocessor {
                 return (ll == rr);
             } catch (NumberFormatException nfe) {}
 
+            if (r.startsWith(VERSION_PREFIX))
+                return DashPackage.compareVersions(l,
+                        r.substring(VERSION_PREFIX.length())) == 0;
+
             return l.equals(r);
         }
         private boolean lt(String l, String r) {
@@ -609,6 +614,10 @@ public class HTMLPreprocessor {
                 return (ll < rr);
             } catch (NumberFormatException nfe) {}
 
+            if (r.startsWith(VERSION_PREFIX))
+                return DashPackage.compareVersions(l,
+                        r.substring(VERSION_PREFIX.length())) < 0;
+
             return (l.compareTo(r) < 0);
         }
         private boolean gt(String l, String r) {
@@ -618,6 +627,10 @@ public class HTMLPreprocessor {
                 double rr = Double.parseDouble(r);
                 return (ll > rr);
             } catch (NumberFormatException nfe) {}
+
+            if (r.startsWith(VERSION_PREFIX))
+                return DashPackage.compareVersions(l,
+                        r.substring(VERSION_PREFIX.length())) > 0;
 
             return (l.compareTo(r) > 0);
         }
@@ -1114,4 +1127,5 @@ public class HTMLPreprocessor {
 
     private static final String DIRECTIVE_START = "<!--#";
     private static final String DIRECTIVE_END   = "-->";
+    private static final String VERSION_PREFIX = "version ";
 }
