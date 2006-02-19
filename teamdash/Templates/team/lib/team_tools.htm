@@ -59,7 +59,8 @@
 </form>
 
 <p><form action="/dash/archive.class" method="POST">
-<input type=hidden name="filename" value="TSP_Summary-PREFIX">
+<input type=hidden name="filename"
+       value="<!--#echo Process_ID -->_Summary-PREFIX">
 <input type=hidden name="uri" value="[!--#echo var=PATH_TRANSLATED encoding=url --]//<!--#echo Process_ID -->/team_summary.shtm">
 <input type=submit name="submit" value="Save Snapshot of Project Plan">
 </form>
