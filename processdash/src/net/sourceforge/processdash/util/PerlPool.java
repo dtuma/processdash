@@ -30,21 +30,15 @@ package net.sourceforge.processdash.util;
 
 public class PerlPool {
 
+    private static Perl5Util INSTANCE = new Perl5Util();
+
     private PerlPool() {}
 
-    public static final ResourcePool pool =
-        new ResourcePool("PerlPool") {
-                protected Object createNewResource() {
-                    return new Perl5Util();
-                }
-            };
-
     public static Perl5Util get() {
-        return (Perl5Util) pool.get();
+        return INSTANCE;
     }
 
     public static void release(Perl5Util p) {
-        pool.release(p);
     }
 
 }

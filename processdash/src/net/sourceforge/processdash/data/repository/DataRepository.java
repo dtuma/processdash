@@ -1010,7 +1010,7 @@ public class DataRepository implements Repository, DataContext {
                     try {
                         if (isFreezeFlagElement(dataName))
                             return;           // don't freeze freeze flags!
-                        if (!perl.match(freezeRegexp, e.getNameCA()))
+                        if (!perl.match(freezeRegexp, e.getName()))
                             return;           // only freeze data which matches the regexp.
 
                     } catch (Perl5Util.RegexpException m) {

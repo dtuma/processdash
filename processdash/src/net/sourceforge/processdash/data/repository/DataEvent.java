@@ -36,7 +36,6 @@ public class DataEvent extends EventObject implements java.io.Serializable {
     public static final int VALUE_CHANGED = 3;
 
     protected String name;
-    protected char[] nameCA = null;
     protected int id;
     protected SimpleData value;
 
@@ -45,17 +44,11 @@ public class DataEvent extends EventObject implements java.io.Serializable {
         {
             super(dataRepository);
             this.name = name;
-            this.nameCA = null;
             this.id = id;
             this.value = value;
         }
 
     public int getID()           { return id;     }
     public String getName()      { return name;   }
-    public char[] getNameCA()    {
-        if (nameCA == null)
-            nameCA = name.toCharArray();
-        return nameCA;
-    }
     public SimpleData getValue() { return value;  }
 }

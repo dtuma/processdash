@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003,2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,35 +26,19 @@
 
 package net.sourceforge.processdash.util;
 
-import jregex.Matcher;
-import jregex.Pattern;
-import jregex.Replacer;
-
-import java.util.*;
-
-
-/*
-    Timing Notes, made with a large input dataset:
-    - using the old regex package (oromatcher), dashboard took 24 seconds to
-        start up.
-    - using the new regex package (jregex), dashboard took 23 seconds to start.
-    - using both, dashboard took 31 seconds to start.
-
-    Inference:
-    - 14 seconds of activity elsewhere
-    - oromatcher took 10 seconds
-    - jregex took 7 seconds
-
- */
-
+import java.util.Collections;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /** Limit dependence upon a particular regular expression library.
  *
- * Eventually when process dashboard moves to Java 1.4, we can just
- * use the built-in java.util.regex package.  But this won't be a
- * realistic option until Java 1.4 is available on all platforms,
- * including Mac OS X
+ * This class has been used as the dashboard moved from the oromatcher
+ * library, to jregex, to the java.util.regex package.
+ * 
+ * It automatically caches compiled regular expressions, and handles
+ * regular expressions that are written in a perl-like "m/foo/ig" syntax.
  */
 public class Perl5Util {
 
@@ -63,10 +47,7 @@ public class Perl5Util {
     private static int MAX_CACHED_PATTERNS = 100;
 
     private static Map cachedPatterns =
-        Collections.synchronizedMap(new MRUCache());
-
-//*old*/ private com.oroinc.text.perl.Perl5Util perl5 =
-//*old*/     new com.oroinc.text.perl.Perl5Util();
+        Collections.synchronizedMap(new MRUCache(MAX_CACHED_PATTERNS));
 
     /** Determine which character was used in lieu of the slashes */
     private static char getSlashChar(String expression) {
@@ -105,19 +86,28 @@ public class Perl5Util {
         return result;
     }
 
+    /** Translate string-style java flags into the numerical constants
+     * used by the Pattern class. */
+    private static int getJavaFlags(String flags) {
+        return getJavaFlag(flags, 'i', 'I', Pattern.CASE_INSENSITIVE)
+                | getJavaFlag(flags, 'm', 'M', Pattern.MULTILINE)
+                | getJavaFlag(flags, 's', 'S', Pattern.DOTALL);
+    }
+    private static int getJavaFlag(String flags, char c, char C, int val) {
+        return (flags.indexOf(c) == -1 && flags.indexOf(C) == -1 ? 0 : val);
+    }
+
     /** Create a new Pattern object for the given perl 5 regular expression */
     private static Pattern makePattern(String expression) {
         String regex = getRegexp(expression);
         String flags = getFlags(expression);
-        if (flags.length() > 0)
-            return new Pattern(regex, flags);
-        else
-            return new Pattern(regex);
+        int javaFlags = getJavaFlags(flags);
+        return Pattern.compile(regex, javaFlags);
     }
 
     /** Get or create a new Pattern object for the given perl 5
      * regular expression */
-    private static synchronized Pattern getPattern(String expression) {
+    private static Pattern getPattern(String expression) {
         Pattern result = (Pattern) cachedPatterns.get(expression);
 
         if (result == null) try {
@@ -130,157 +120,41 @@ public class Perl5Util {
         return result;
     }
 
-    private Matcher matcher = null;
-
 
     /** Return true if the given input matches a substring within the
      * given expression. */
-    public synchronized boolean match(String expression, char input[])
+    public boolean match(String expression, String input)
         throws RegexpException
     {
         try {
- /*new*/    matcher = getPattern(expression).matcher();
- /*new*/    matcher.setTarget(input, 0, input.length);
- /*new*/    boolean newResult = matcher.find();
-//*old*/    boolean oldResult = perl5.match(expression, input);
-//*cmp*/   if (newResult != oldResult)
-//*cmp*/      showError("match disagreement("+expression+","+
-//*cmp*/                         new String(input)+")"+
-//*cmp*/                         "\n\toldResult=" + oldResult +
-//*cmp*/                         "\n\tnewResult=" + newResult);
-//*old*/    return oldResult;
- /*new*/    return newResult;
+            return getPattern(expression).matcher(input).find();
         } catch (Throwable t) {
             throw new RegexpException();
         }
     }
-
-    /** Return true if the given input matches a substring within the
-     * given expression. */
-    public synchronized boolean match(String expression, String input)
-        throws RegexpException
-    {
-        try {
- /*new*/    matcher = getPattern(expression).matcher();
- /*new*/    matcher.setTarget(input);
- /*new*/    boolean newResult = matcher.find();
-//*old*/    boolean oldResult = perl5.match(expression, input);
-//*cmp*/    if (newResult != oldResult)
-//*cmp*/        showError("match disagreement("+expression+","+input+")"+
-//*cmp*/                           "\n\toldResult=" + oldResult +
-//*cmp*/                           "\n\tnewResult=" + newResult);
-//*old*/    return oldResult;
- /*new*/    return newResult;
-        } catch (Throwable t) {
-            throw new RegexpException();
-        }
-    }
-
-
-
-    private static Map cachedReplacers =
-        Collections.synchronizedMap(new MRUCache());
-
-    /** Create a new Replacer object for the given perl 5 substitution
-     * expression */
-    private static synchronized Replacer makeReplacer(String expression) {
-        Pattern pattern = makePattern(expression);
-        String replacement = getReplacement(expression);
-        return new Replacer(pattern, replacement, true);
-    }
-
-    /** Get or create a new Replacer object for the given perl 5
-     * substitution expression */
-    private static synchronized Replacer getReplacer(String expression) {
-        Replacer result = (Replacer) cachedReplacers.get(expression);
-
-        if (result == null) try {
-            result = makeReplacer(expression);
-            cachedReplacers.put(expression, result);
-        } catch (Throwable t) {
-            return null;
-        }
-
-        return result;
-    }
-
 
 
 
     /** Perform the global substitution specified by expression on
      * the given input, and return the result. */
-    public synchronized String substitute(String expression, String input)
+    public String substitute(String oldExpr, String newExpr, String input)
         throws RegexpException
     {
-        return substitute(expression, expression, input);
+        return substitute(newExpr, input);
     }
 
     /** Perform the global substitution specified by expression on
      * the given input, and return the result. */
-    public synchronized String substitute(String oldExpr,
-                                          String newExpr, String input)
+    public String substitute(String expression, String input)
         throws RegexpException
     {
         try {
- /*new*/    matcher = null;
- /*new*/    Replacer r = getReplacer(newExpr);
- /*new*/    String newResult = null;
- /*new*/    synchronized (r) { newResult = r.replace(input); }
-
-//*old*/    String oldResult = perl5.substitute(oldExpr, input);
-//*cmp*/    if (!newResult.equals(oldResult)) {
-//*cmp*/        showError("substitute disagreement!"+
-//*cmp*/                           "\n\toldExpr=" + StringUtils.findAndReplace
-//*cmp*/                           (oldExpr, "\n", "\\n") +
-//*cmp*/                           "\n\tnewExpr=" + StringUtils.findAndReplace
-//*cmp*/                           (newExpr, "\n", "\\n") +
-//*cmp*/                           "\n\tinput="+input+
-//*cmp*/                           "\n\told="+oldResult+
-//*cmp*/                           "\n\tnew="+newResult);
-//*cmp*/        }
-
-//*old*/    return oldResult;
- /*new*/    return newResult;
+            Matcher matcher = getPattern(expression).matcher(input);
+            String replacement = getReplacement(expression);
+            return matcher.replaceAll(replacement);
         } catch (Throwable t) {
             throw new RegexpException();
         }
-    }
-
-    /** Returns the part of the input preceding that last match found */
-    public String preMatch() {
- /*new*/if (matcher == null) return null;
- /*new*/String newResult = matcher.prefix();
-//*old*/String oldResult = perl5.preMatch();
-//*cmp*/if (!newResult.equals(oldResult))
-//*cmp*/    showError("preMatch disagreement\n\told="+oldResult+
-//*cmp*/              "\n\tnew="+newResult);
-//*old*/return oldResult;
- /*new*/return newResult;
-    }
-
-    /** Returns the part of the input following that last match found */
-    public String postMatch() {
- /*new*/if (matcher == null) return null;
- /*new*/String newResult = matcher.suffix();
-//*old*/String oldResult = perl5.postMatch();
-//*cmp*/if (!newResult.equals(oldResult))
-//*cmp*/    showError("postMatch disagreement\n\told="+oldResult+
-//*cmp*/              "\n\tnew="+newResult);
-//*old*/return oldResult;
- /*new*/return newResult;
-    }
-
-    /** Returns the contents of one of the parenthesized subgroups of
-     * the last match found. */
-    public String group(int group) {
- /*new*/if (matcher == null) return null;
- /*new*/String newResult = matcher.group(group);
-//*old*/String oldResult = perl5.group(group);
-//*cmp*/if (!newResult.equals(oldResult))
-//*cmp*/    showError("group disagreement\n\told="+oldResult+
-//*cmp*/              "\n\tnew="+newResult);
-//*old*/return oldResult;
- /*new*/return newResult;
     }
 
     /** Quote any special characters in the string to disable their
@@ -311,12 +185,6 @@ public class Perl5Util {
         }
 
         return result.toString();
-    }
-
-    private static void showError(String error) {
-        System.out.println(error);
-        javax.swing.JOptionPane.showMessageDialog
-            (null, new javax.swing.JEditorPane("text/plain", error));
     }
 
 }

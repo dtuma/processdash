@@ -125,7 +125,6 @@ Authors:
   <path id="build.classpath">
     <pathelement location="${build}"/>
     <pathelement location="${lib}/distlib.jar"/>
-    <pathelement location="${lib}/jregex.jar"/>
     <pathelement location="${jfreechart.jar}"/>
     <pathelement location="${jcommon.jar}"/>
     <pathelement location="${kxml.jar}"/>
@@ -388,7 +387,6 @@ Authors:
       <zipfileset src="${kxml.jar}"/>
       <zipfileset src="${lib}/jfreechart_ja.zip"/>
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
-      <zipfileset src="${lib}/jregex.jar"/>
       <zipfileset src="${lib}/distlib.jar" excludes="**/*.java"/>
       <zipfileset src="${l10n-tool.jar}"/>
     </jar>
