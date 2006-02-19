@@ -175,8 +175,8 @@ public class EVScheduleRollup extends EVSchedule {
         periods.clear();
         if (periodBoundaries.isEmpty()) {
             long now = System.currentTimeMillis();
-            periods.add(new Period(new Date(now), 0.0));
-            periods.add(new Period(new Date(now + WEEK_MILLIS), 20.0));
+            add(new Period(new Date(now), 0.0));
+            add(new Period(new Date(now + WEEK_MILLIS), 20.0));
             setEffectiveDate(new Date(now));
         } else {
             i = periodBoundaries.iterator();
