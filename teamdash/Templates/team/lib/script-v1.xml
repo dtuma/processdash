@@ -112,9 +112,8 @@
     <file in="defect_analysis.htm" encoding="html"
           out="/Templates/reports/analysis/<!--#echo Process_ID -->_defect_reports.shtm"/>
     <file in="autoExport.js" encoding="none"/>
-
-    <FILE in="" encoding="html"
-          out="rollup_filter.shtm"/>
+    <file in="version_error.htm" encoding="html"
+          out="version_error.shtm"/>
 
     <!-- forms and reports for the team plan summary -->
     <file in="summary_top_frame.htm" encoding="html"
