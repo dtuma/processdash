@@ -1,5 +1,6 @@
 package teamdash.templates.setup;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -19,10 +20,11 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-public class EditSubprojectList extends TinyCGIBase {
+public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants {
 
     private static final String DISPLAY_ACTION = "display";
 
@@ -34,12 +36,18 @@ public class EditSubprojectList extends TinyCGIBase {
 
     private static final String CANCEL_ACTION = "cancel";
 
+    private static final String JOIN_MASTER_ACTION = "joinMaster";
+
+
+    private static final String DO_PARAM = "do";
 
     private static final String NUMBER = "subproject_number";
 
     private static final String PATH = "Hierarchy_Path";
 
     private static final String SHORT_NAME = "Short_Name";
+
+    //private static final String MASTER_PROJECT_PATH = "Master_Project_Path";
 
     private static Logger logger = Logger.getLogger(EditSubprojectList.class
             .getName());
@@ -75,13 +83,15 @@ public class EditSubprojectList extends TinyCGIBase {
         else if (parameters.containsKey(CANCEL_ACTION))
             writeCloseWindow(false);
         else {
-            String handleAction = getParameter("do");
+            String handleAction = getParameter(DO_PARAM);
             if (ADD_ACTION.equals(handleAction))
                 doAdd();
             else if (EDIT_ACTION.equals(handleAction))
                 doEdit();
             else if (REMOVE_ACTION.equals(handleAction))
                 doRemove();
+            else if (JOIN_MASTER_ACTION.equals(handleAction))
+                doJoinMasterProject();
             else
                 writeCloseWindow(false);
         }
@@ -371,6 +381,33 @@ public class EditSubprojectList extends TinyCGIBase {
     }
 
     /*
+     * Methods that run on the subproject
+     */
+
+    private void doJoinMasterProject() throws IOException {
+        try {
+            //putValue(MASTER_PROJECT_PATH, getParameter(PATH));
+
+            TeamSettingsFile.RelatedProject masterProj =
+                new TeamSettingsFile.RelatedProject();
+            masterProj.projectID = getParameter(PROJECT_ID);
+            masterProj.teamDirectory = getParameter(TEAM_DIRECTORY);
+            masterProj.teamDirectoryUNC = getParameter(TEAM_DIRECTORY_UNC);
+
+            TeamSettingsFile tsf = getTeamSettingsFile();
+            tsf.read();
+            tsf.getMasterProjects().clear();
+            tsf.getMasterProjects().add(masterProj);
+            tsf.write();
+
+        } catch (Exception e) {
+            IOException ioe = new IOException("Could not join master project");
+            ioe.initCause(e);
+            throw ioe;
+        }
+    }
+
+    /*
      * Methods for validating user input
      */
 
@@ -417,6 +454,7 @@ public class EditSubprojectList extends TinyCGIBase {
         saveSubprojectList(subprojects);
         updateEVSchedule(subprojects);
         writeSettingsFile(subprojects);
+        notifySubprojects(subprojects);
     }
 
     private void saveSubprojectList(Map subprojects) {
@@ -475,9 +513,70 @@ public class EditSubprojectList extends TinyCGIBase {
     }
 
     private void writeSettingsFile(Map subprojects) {
-        // TODO Auto-generated method stub
-        // still need to write a settings.xml file for this project
-        // that includes information about all subprojects
+        String filename = null;
+        try {
+            putValue("Errors//Settings_File", (String) null);
+            TeamSettingsFile tsf = getTeamSettingsFile();
+            if (tsf == null)
+                return;
+
+            filename = tsf.getSettingsFile().getPath();
+
+            tsf.read();
+            tsf.getSubprojects().clear();
+
+            for (Iterator i = subprojects.values().iterator(); i.hasNext();) {
+                Subproject proj = (Subproject) i.next();
+                Object relProj = createRelatedProject(proj);
+                tsf.getSubprojects().add(relProj);
+            }
+
+            tsf.write();
+        } catch (IOException ioe) {
+            String errMsg = "While saving these changes, the dashboard was "
+                    + "unable to update the file '" + filename + "'.  Make "
+                    + "certain you can write to that file, then try making "
+                    + "your change again.";
+            putValue("Errors//Settings_File", StringData.create(errMsg));
+        }
+    }
+
+    private TeamSettingsFile.RelatedProject createRelatedProject(Subproject proj) {
+        TeamSettingsFile.RelatedProject result = new TeamSettingsFile.RelatedProject();
+        result.shortName = proj.shortName;
+        result.projectID = getValue(proj.path + "/" + PROJECT_ID);
+        result.teamDirectory = getValue(proj.path + "/" + TEAM_DIRECTORY);
+        result.teamDirectoryUNC = getValue(proj.path + "/"+TEAM_DIRECTORY_UNC);
+        return result;
+    }
+
+    private void notifySubprojects(Map subprojects) {
+        for (Iterator i = subprojects.values().iterator(); i.hasNext();) {
+            Subproject proj = (Subproject) i.next();
+            notifySubproject(proj);
+        }
+    }
+
+    private void notifySubproject(Subproject proj) {
+        StringBuffer uri = new StringBuffer();
+        uri.append(WebServer.urlEncodePath(proj.path));
+        uri.append("/").append(env.get("SCRIPT_NAME"));
+        uri.append("?").append(DO_PARAM).append("=").append(JOIN_MASTER_ACTION);
+        appendParam(uri, PROJECT_ID, getValue(PROJECT_ID));
+        appendParam(uri, TEAM_DIRECTORY, getValue(TEAM_DIRECTORY));
+        appendParam(uri, TEAM_DIRECTORY_UNC, getValue(TEAM_DIRECTORY_UNC));
+        appendParam(uri, PATH, getPrefix());
+
+        try {
+            getTinyWebServer().getRequest(uri.toString(), false);
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "unable to notify subproject of joining", e);
+        }
+    }
+    private void appendParam(StringBuffer buf, String name, String val) {
+        if (hasValue(val))
+            buf.append("&").append(name).append("=").append(
+                    HTMLUtils.urlEncode(val));
     }
 
     /*
@@ -525,6 +624,19 @@ public class EditSubprojectList extends TinyCGIBase {
         return result;
     }
 
+    private TeamSettingsFile getTeamSettingsFile() {
+        String teamDirName = getValue(TEAM_DIRECTORY);
+        String projectID = getValue(PROJECT_ID);
+        if (!hasValue(teamDirName) || !hasValue(projectID))
+            return null;
+
+        File teamDir = new File(teamDirName);
+        File dataDir = new File(teamDir, "data");
+        File projDataDir = new File(dataDir, projectID);
+
+        return new TeamSettingsFile(projDataDir);
+    }
+
     /*
      * Generic methods for interacting with data
      */
@@ -534,8 +646,11 @@ public class EditSubprojectList extends TinyCGIBase {
     }
 
     protected void putValue(String num, String attrName, String value) {
-        putValue("Subproject_" + num + "/" + attrName, value == null ? null
-                : StringData.create(value));
+        putValue("Subproject_" + num + "/" + attrName, value);
+    }
+
+    protected void putValue(String name, String value) {
+        putValue(name, value == null ? null : StringData.create(value));
     }
 
     protected void putValue(String name, SimpleData dataValue) {

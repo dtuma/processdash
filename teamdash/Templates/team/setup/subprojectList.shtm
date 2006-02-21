@@ -21,6 +21,12 @@ table.subprojectTable form {
     display:inline
 }
 
+p.error {
+    color: red;
+    font-weight: bold;
+    font-style: italic;
+}
+
 </style>
 
 <script>
@@ -58,6 +64,9 @@ function popup() {
 
 </table>
 
+<p class="error">
+    <!--#echo [Errors//Settings_File] -->
+</p>
 
-
-
+</body>
+</html>

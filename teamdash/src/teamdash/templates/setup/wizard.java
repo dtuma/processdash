@@ -6,8 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -47,8 +45,7 @@ import org.w3c.dom.Element;
  * bootstrapped by a CGI script called "dash/teamStart.class", which
  * is included in the main dashboard distribution.
  */
-public class wizard extends TinyCGIBase {
-
+public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     // The following four constants are copies of constants in the
     // bootstrap script.  They must match the values in the bootstrap
@@ -539,48 +536,31 @@ public class wizard extends TinyCGIBase {
         File teamDir = new File(teamDirectory);
         File dataDir = new File(teamDir, "data");
         File projDataDir = new File(dataDir, projectID);
-        File settingsFile = new File(projDataDir, "settings.xml");
+        TeamSettingsFile tsf = new TeamSettingsFile(projDataDir);
 
         try {
-            Writer out = new OutputStreamWriter
-                (new FileOutputStream(settingsFile), "UTF-8");
-            // write XML header
-            out.write("<?xml version='1.0' encoding='UTF-8'?>\n");
-            // open XML tag
-            out.write("<project-settings\n");
             // write the project name
-            String name = getPrefix();
-            if (name != null) {
-                int pos = name.lastIndexOf('/');
-                if (pos != -1) name = name.substring(pos+1);
-                out.write("    projectName='" +
-                          XMLUtils.escapeAttribute(name) + "'\n");
-            }
-            // write the project ID.
-            out.write("    projectID='" +
-                      XMLUtils.escapeAttribute(projectID) + "'\n");
-            // write the process ID.
+            tsf.setProjectHierarchyPath(getPrefix());
+            tsf.setProjectID(projectID);
+            tsf.setScheduleName(teamSchedule);
+
+            // set the process ID.
             int pos = teamPID.indexOf('/');
             if (pos != -1) teamPID = teamPID.substring(0, pos);
-            out.write("    processID='" +
-                      XMLUtils.escapeAttribute(teamPID) + "'\n");
+            tsf.setProcessID(teamPID);
+
             // write the relative path to the process jar file, if we know it
             if (processJarFile != null) {
                 File jarFile = new File(processJarFile);
-                out.write("    templatePath='../../Templates/" +
-                          XMLUtils.escapeAttribute(jarFile.getName()) + "'\n");
+                tsf.setTemplatePath("../../Templates/" + jarFile.getName());
             }
-            // write the schedule name
-            out.write("    scheduleName='" +
-                      XMLUtils.escapeAttribute(teamSchedule) + "'\n");
-            // close the XML tag
-            out.write("/>\n");
-            out.close();
+
+            tsf.write();
             return true;
 
         } catch (IOException ioe) {
             String errMsg = "The team project setup wizard was unable to "+
-                "write the team project settings file '" + settingsFile +
+                "write the team project settings file '"+tsf.getSettingsFile()+
                 "'. Please ensure that you have adequate file permissions " +
                 "to create this file, then click &quot;Next.&quot; " +
                 "Otherwise, enter a different team directory below.";
@@ -630,12 +610,12 @@ public class wizard extends TinyCGIBase {
     protected void saveTeamDataValues(String teamDirectory,
                                       String projectID,
                                       String teamSchedule) {
-        putValue("Team_Directory", teamDirectory);
+        putValue(TEAM_DIRECTORY, teamDirectory);
         String uncName = calcUNCName(teamDirectory);
-        if (uncName != null) putValue("Team_Directory_UNC", uncName);
+        if (uncName != null) putValue(TEAM_DIRECTORY_UNC, uncName);
 
-        putValue("Project_ID", projectID);
-        putValue("Project_Schedule_Name", teamSchedule);
+        putValue(PROJECT_ID, projectID);
+        putValue(PROJECT_SCHEDULE_NAME, teamSchedule);
 
         // FIXME: need to really give the user an opportunity to set a
         // password.
@@ -712,7 +692,7 @@ public class wizard extends TinyCGIBase {
     }
 
     protected void handleJoinTeamSchedPage() {
-        String teamScheduleName = getValue("Project_Schedule_Name");
+        String teamScheduleName = getValue(PROJECT_SCHEDULE_NAME);
         String indivExportedName = getParameter("scheduleName");
         String indivScheduleID = getParameter("scheduleID");
         String indivFileName = getParameter("fileName");
@@ -763,7 +743,7 @@ public class wizard extends TinyCGIBase {
                                      String indivScheduleID,
                                      String indivFileName) {
         // calculate the import prefix
-        String projectID = getValue("Project_ID");
+        String projectID = getValue(PROJECT_ID);
         if (projectID == null || projectID.length() == 0) return null;
         String importPrefix = "/Import_"+projectID;
         logger.finer("importPrefix="+importPrefix);
@@ -773,7 +753,7 @@ public class wizard extends TinyCGIBase {
         logger.finer("refreshPrefix done");
 
         // calculate the name of the import directory.
-        String teamDirectory = getValue("Team_Directory");
+        String teamDirectory = getValue(TEAM_DIRECTORY);
         if (teamDirectory == null || teamDirectory.length() == 0) return null;
         teamDirectory = teamDirectory.replace('\\', '/');
         String importDir = teamDirectory+"/data/"+projectID;
@@ -1131,9 +1111,9 @@ public class wizard extends TinyCGIBase {
         teamURL = buildTeamURLReference(teamURL, "teamIndex.shtm").toString();
         Element e = d.getDocumentElement();
 
-        String projectID = e.getAttribute("Project_ID");
-        String teamDirectory = e.getAttribute("Team_Directory");
-        String teamDirectoryUNC = e.getAttribute("Team_Directory_UNC");
+        String projectID = e.getAttribute(PROJECT_ID);
+        String teamDirectory = e.getAttribute(TEAM_DIRECTORY);
+        String teamDirectoryUNC = e.getAttribute(TEAM_DIRECTORY_UNC);
         String indivTemplateID = e.getAttribute("Template_ID");
 
         if (!XMLUtils.hasValue(projectID) ||
@@ -1248,13 +1228,13 @@ public class wizard extends TinyCGIBase {
         (String projectID, String teamURL, String indivInitials,
          String scheduleName, String teamDirectory, String teamDirectoryUNC,
          boolean isLocal) {
-        putValue("Project_ID", projectID);
-        putValue("Team_URL", teamURL);
-        putValue("Indiv_Initials", indivInitials);
-        putValue("Project_Schedule_Name", scheduleName);
-        putValue("Team_Directory", teamDirectory);
+        putValue(PROJECT_ID, projectID);
+        putValue(TEAM_PROJECT_URL, teamURL);
+        putValue(INDIV_INITIALS, indivInitials);
+        putValue(PROJECT_SCHEDULE_NAME, scheduleName);
+        putValue(TEAM_DIRECTORY, teamDirectory);
         if (teamDirectoryUNC != null)
-            putValue("Team_Directory_UNC", teamDirectoryUNC);
+            putValue(TEAM_DIRECTORY_UNC, teamDirectoryUNC);
         if (isLocal)
             putValue("EXPORT_FILE", ImmutableStringData.EMPTY_STRING);
     }
@@ -1307,7 +1287,7 @@ public class wizard extends TinyCGIBase {
             HTMLUtils.urlDecode(teamURL.substring(slashPos, sslashPos));
 
         String dataName = DataRepository.createDataName
-            (teamProjectPrefix, "Project_Schedule_Name");
+            (teamProjectPrefix, PROJECT_SCHEDULE_NAME);
         SimpleData schedNameData =
             getDataRepository().getSimpleValue(dataName);
         if (schedNameData == null) return false;
