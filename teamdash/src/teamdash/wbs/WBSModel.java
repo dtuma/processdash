@@ -4,6 +4,7 @@ package teamdash.wbs;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -329,7 +330,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return rowIndex != 0;
     }
     public boolean isNodeTypeEditable(WBSNode node) {
-        return node.getIndentLevel() > 0;
+        return !node.isReadOnly() && node.getIndentLevel() > 0;
     }
     public Object getValueAt(int row, int column) {
         return getNodeForRow(row);
@@ -771,5 +772,60 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
     public String filterNodeType(WBSNode node) {
         return node.getType();
+    }
+
+    public int[] mergeWBSModel(WBSModel srcModel) {
+        List insertedNodes = new ArrayList();
+        mergeWBSModel(srcModel, srcModel.getRoot(), this, this.getRoot(),
+                insertedNodes);
+
+        recalcRows();
+        return getRowsForNodes(insertedNodes);
+    }
+
+    private static void mergeWBSModel(WBSModel srcModel, WBSNode srcNode,
+            WBSModel destModel, WBSNode destNode, List insertedNodes) {
+
+        // TODO: copy attribute values from src to dest?
+
+        WBSNode[] srcChildren = srcModel.getChildren(srcNode);
+        WBSNode[] destChildren = destModel.getChildren(destNode);
+
+        for (int i = 0; i < srcChildren.length; i++) {
+            WBSNode srcChild = srcChildren[i];
+            String srcChildName = srcChild.getName();
+            if (srcChildName == null || srcChildName.trim().length() == 0)
+                continue;
+
+            boolean foundMatch = false;
+            for (int j = 0; j < destChildren.length; j++) {
+                WBSNode destChild = destChildren[j];
+                if (srcChildName.equals(destChild.getName())) {
+                    foundMatch = true;
+                    mergeWBSModel(srcModel, srcChild, destModel, destChild,
+                            insertedNodes);
+                    break;
+                }
+            }
+
+            if (!foundMatch) {
+                WBSNode[] srcDescendants = srcModel.getDescendants(srcChild);
+                List nodesToInsert = WBSNode.cloneNodeList(Arrays
+                        .asList(srcDescendants));
+                nodesToInsert.add(0, srcChild.clone());
+
+                int destPos = destModel.wbsNodes.indexOf(destNode);
+                int insertAfter = destPos;
+
+                IntList destDescendants = destModel.getDescendantIndexes(
+                        destNode, destPos);
+                if (destDescendants != null && destDescendants.size() > 0)
+                    insertAfter = destDescendants.get(destDescendants.size() - 1);
+
+                destModel.wbsNodes.addAll(insertAfter + 1,
+                        destModel.makeNodesIDUnique(nodesToInsert));
+                insertedNodes.addAll(nodesToInsert);
+            }
+        }
     }
 }

@@ -128,6 +128,10 @@ public class WBSEditor implements WindowListener, SaveListener {
         result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildWorkflowMenu
             (workflows, tabPanel.getInsertWorkflowAction(workflows)));
+        if (teamProject.getMasterProjectID() != null)
+            result.add(buildMasterMenu(tabPanel.getMasterActions(
+                    teamProject.getMasterProjectDirectory(),
+                    teamProject.getMasterProjectID())));
         result.add(buildTeamMenu());
 
         return result;
@@ -157,6 +161,13 @@ public class WBSEditor implements WindowListener, SaveListener {
         // result.add(new DefineWorkflowAction());
         result.addSeparator();
         new WorkflowMenuBuilder(result, workflows, insertWorkflowAction);
+        return result;
+    }
+    private JMenu buildMasterMenu(Action[] masterActions) {
+        JMenu result = new JMenu("Master");
+        result.setMnemonic('M');
+        for (int i = 0;   i < masterActions.length;   i++)
+            result.add(masterActions[i]);
         return result;
     }
     private JMenu buildTeamMenu() {

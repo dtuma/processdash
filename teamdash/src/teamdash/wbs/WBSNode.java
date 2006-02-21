@@ -29,6 +29,8 @@ public class WBSNode implements Cloneable {
     private int indentLevel;
     /** True if this node is expanded, false if it is collapsed */
     private boolean expanded;
+    /** True if this node is read only */
+    private boolean readOnly;
     /** A collection of attributes containing the data for this node */
     private Map attributes = new HashMap();
 
@@ -43,6 +45,7 @@ public class WBSNode implements Cloneable {
         setType(type);
         setIndentLevel(level);
         setExpanded(expanded);
+        setReadOnly(false);
     }
 
 
@@ -55,6 +58,7 @@ public class WBSNode implements Cloneable {
         setType(e.getAttribute(TYPE_ATTR));
         setIndentLevel(XMLUtils.getXMLInt(e, INDENT_ATTR));
         setExpanded(XMLUtils.hasValue(e.getAttribute(EXPAND_ATTR)));
+        setReadOnly(XMLUtils.hasValue(e.getAttribute(READ_ONLY_ATTR)));
 
         NodeList nodeAttributes = e.getElementsByTagName(ATTR_ELEM_NAME);
         int len = nodeAttributes.getLength();
@@ -116,6 +120,15 @@ public class WBSNode implements Cloneable {
      * @param expanded <code>true</code> to expand this node,
      *    <code>false</code> to collapse this node.  */
     public void setExpanded(boolean expanded) { this.expanded = expanded; }
+
+
+    /** Returns true if this node is read only.
+     * @return true if this node is read only.  */
+    public boolean isReadOnly() {  return readOnly; }
+
+    /** Set the read only status of this node.
+     * @param readOnly the new read only status for this node.  */
+    public void setReadOnly(boolean readOnly) { this.readOnly = readOnly; }
 
 
 
@@ -195,6 +208,7 @@ public class WBSNode implements Cloneable {
         out.write("' "+INDENT_ATTR+"='");
         out.write(Integer.toString(getIndentLevel()));
         if (isExpanded()) out.write("' "+EXPAND_ATTR+"='true");
+        if (isReadOnly()) out.write("' "+READ_ONLY_ATTR+"='true");
         out.write("'");         // don't close tag yet
 
         // write out a tag for each attribute.
@@ -278,6 +292,7 @@ public class WBSNode implements Cloneable {
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
     private static final String TYPE_ATTR = "type";
+    private static final String READ_ONLY_ATTR = "readOnly";
     private static final String INDENT_ATTR = "indentLevel";
     private static final String EXPAND_ATTR = "expanded";
     private static final String ATTR_ELEM_NAME = "attr";

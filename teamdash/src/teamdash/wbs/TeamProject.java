@@ -6,6 +6,7 @@ import java.net.URL;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import teamdash.RobustFileWriter;
 import teamdash.XMLUtils;
@@ -15,11 +16,14 @@ public class TeamProject {
 
     private Element projectSettings;
     private String projectName;
+    private String projectID;
     private File directory;
     private TeamMemberList teamList;
     private TeamProcess teamProcess;
     private WBSModel wbs;
     private WBSModel workflows;
+    private String masterProjectID;
+    private File masterProjectDirectory;
 
 
     /** Create or open a team project */
@@ -45,6 +49,11 @@ public class TeamProject {
         return projectName;
     }
 
+    /** Return the ID of the project */
+    public String getProjectID() {
+        return projectID;
+    }
+
     /** Get the list of team members on this project */
     public TeamMemberList getTeamMemberList() {
         return teamList;
@@ -65,7 +74,23 @@ public class TeamProject {
         return workflows;
     }
 
+    /** If this project is part of a master project, get ID of the master
+     * project.
+     * @return the ID of the master project, or null if this project is not
+     *     part of a master project.
+     */
+    public String getMasterProjectID() {
+        return masterProjectID;
+    }
 
+    /** If this project is part of a master project, get the directory where
+     * the master project stores its files.
+     * @return the master project's data directory, or null if this project is
+     *     not part of a master project.
+     */
+    public File getMasterProjectDirectory() {
+        return masterProjectDirectory;
+    }
 
     /** Open and parse an XML file. @return null on error. */
     private static Element openXML(File file) {
@@ -88,8 +113,43 @@ public class TeamProject {
             else if (XMLUtils.hasValue
                      (name = projectSettings.getAttribute("scheduleName")))
                 projectName = name;
+
+            String id = projectSettings.getAttribute("projectID");
+            if (XMLUtils.hasValue(id))
+                projectID = id;
+
+            NodeList nl = projectSettings.getElementsByTagName("masterProject");
+            if (nl != null || nl.getLength() > 0)
+                readMasterProjectInformation((Element) nl.item(0));
+
         } catch (Exception e) {
             projectSettings = null;
+        }
+    }
+
+    private void readMasterProjectInformation(Element e) {
+        // first, lookup the master project team directory.
+        String mastTeamDirName =  e.getAttribute("teamDirectoryUNC");
+        if (!XMLUtils.hasValue(mastTeamDirName))
+            mastTeamDirName = e.getAttribute("teamDirectory");
+        if (!XMLUtils.hasValue(mastTeamDirName))
+            return;
+
+        // next, look up the ID of the master project.
+        String mastProjectID = e.getAttribute("projectID");
+        if (!XMLUtils.hasValue(mastProjectID))
+            return;
+
+        // use this information to calculate the location of the master
+        // project's data directory.
+        File mastTeamDir = new File(mastTeamDirName);
+        File dataDir = new File(mastTeamDir, "data");
+        File mastProjDir = new File(dataDir, mastProjectID);
+
+        // if that directory exists, save the master project information.
+        if (mastProjDir.isDirectory()) {
+            this.masterProjectID = mastProjectID;
+            this.masterProjectDirectory = mastProjDir;
         }
     }
 

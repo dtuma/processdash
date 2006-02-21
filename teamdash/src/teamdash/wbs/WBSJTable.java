@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.io.File;
 import java.util.Arrays;
 import java.util.EventObject;
 import java.util.HashSet;
@@ -156,6 +157,11 @@ public class WBSJTable extends JTable {
         return INSERT_WORKFLOW_ACTION;
     }
 
+    public Action[] getMasterActions(File dir, String id) {
+        return new Action[] { new MergeMasterWBSAction(dir) };
+    }
+
+
 
     /** */
     public void setSelectionModel(ListSelectionModel newModel) {
@@ -255,6 +261,29 @@ public class WBSJTable extends JTable {
         if (selectedRows == null || selectedRows.length == 0) return false;
         if (selectedRows.length == 1 && selectedRows[0] == 0) return false;
         return true;
+    }
+
+    private boolean containsReadOnlyNode(int[] rows) {
+        for (int i = 0; i < rows.length; i++) {
+            WBSNode node = wbsModel.getNodeForRow(rows[i]);
+            if (node.isReadOnly())
+                return true;
+            if (node.isExpanded() == false) {
+                WBSNode[] descendants = wbsModel.getDescendants(node);
+                if (containsReadOnlyNode(Arrays.asList(descendants)))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsReadOnlyNode(List nodes) {
+        for (Iterator i = nodes.iterator(); i.hasNext();) {
+            WBSNode node = (WBSNode) i.next();
+            if (node.isReadOnly())
+                return true;
+        }
+        return false;
     }
 
 
@@ -394,11 +423,14 @@ public class WBSJTable extends JTable {
         }
         public void doAction(ActionEvent e) {
             System.out.println("Demote");
+            if (containsReadOnlyNode(getSelectedRows()))
+                return;
             selectRows(wbsModel.indentNodes(getSelectedRows(), 1));
             UndoList.madeChange(WBSJTable.this, "Demote");
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(notJustRoot(selectedRows));
+            setEnabled(notJustRoot(selectedRows)
+                    && !containsReadOnlyNode(selectedRows));
         }
     }
     final DemoteAction DEMOTE_ACTION = new DemoteAction();
@@ -411,11 +443,14 @@ public class WBSJTable extends JTable {
         }
         public void doAction(ActionEvent e) {
             System.out.println("Promote");
+            if (containsReadOnlyNode(getSelectedRows()))
+                return;
             selectRows(wbsModel.indentNodes(getSelectedRows(), -1));
             UndoList.madeChange(WBSJTable.this, "Promote");
         }
         public void recalculateEnablement(int[] selectedRows) {
-            if (notJustRoot(selectedRows) == false)
+            if (notJustRoot(selectedRows) == false
+                    || containsReadOnlyNode(selectedRows))
                 setEnabled(false);
             else {
                 for (int i = selectedRows.length;   i-- > 0; ) {
@@ -640,7 +675,8 @@ public class WBSJTable extends JTable {
 
             // verify that the user wants to cut the nodes.
             List nodesToDelete = wbsModel.getNodesForRows(rows, true);
-            if (nodesToDelete == null || nodesToDelete.size() == 0) return;
+            if (nodesToDelete == null || nodesToDelete.size() == 0
+                    || containsReadOnlyNode(nodesToDelete)) return;
             int size = nodesToDelete.size();
             String message = "Delete "+size+(size==1 ? " item":" items")+
                 " from the "+selfName+"?";
@@ -665,7 +701,8 @@ public class WBSJTable extends JTable {
             UndoList.madeChange(WBSJTable.this, "Delete WBS elements");
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(notJustRoot(selectedRows));
+            setEnabled(notJustRoot(selectedRows)
+                    && !containsReadOnlyNode(selectedRows));
         }
     }
     final DeleteAction DELETE_ACTION = new DeleteAction();
@@ -712,6 +749,64 @@ public class WBSJTable extends JTable {
         }
     }
     private InsertWorkflowAction INSERT_WORKFLOW_ACTION = null;
+
+
+    private class MergeMasterWBSAction extends AbstractAction {
+
+        private File dir;
+
+        public MergeMasterWBSAction(File dir) {
+            super("Copy Core Work Items from Master Project");
+            this.dir = dir;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                return;
+
+            UndoList.stopCellEditing(WBSJTable.this);
+            WBSModel masterWBS = getMasterWBS();
+            if (masterWBS == null)
+                return;
+
+            // make the change
+            int[] newRowsToSelect = wbsModel.mergeWBSModel(masterWBS);
+            if (newRowsToSelect != null) {
+                editor.stopCellEditing();
+                selectRows(newRowsToSelect);
+                UndoList.madeChange(WBSJTable.this, "Copy Work from Master");
+            }
+        }
+
+        private WBSModel getMasterWBS() {
+            WBSModel result = new WBSModel();
+
+            TeamProject masterProject = new TeamProject(dir, "");
+            String masterProjectID = masterProject.getProjectID();
+            WBSModel masterProjectWBS = masterProject.getWBS();
+            if (masterProjectID == null)
+                return null;
+
+            result.copyFrom(masterProjectWBS);
+            tweakMasterWBS(result, result.getRoot(), masterProjectID);
+
+            return result;
+        }
+
+        private void tweakMasterWBS(WBSModel wbs, WBSNode parent, String id) {
+            Object parentID = parent.getAttribute("masterNodeID");
+            WBSNode[] children = wbs.getChildren(parent);
+            for (int i = 0; i < children.length; i++) {
+                WBSNode child = children[i];
+                child.setReadOnly(true);
+                child.setAttribute("masterNodeID",
+                        id + ":" + child.getUniqueID());
+                child.setAttribute("masterParentID", parentID);
+                tweakMasterWBS(wbs, child, id);
+            }
+        }
+
+    }
 
 
     /** Recalculate enablement following changes in selection */
@@ -777,4 +872,5 @@ public class WBSJTable extends JTable {
     // convenience declarations
     private static final int SHIFT = Event.SHIFT_MASK;
     private static final int CTRL  = Event.CTRL_MASK;
+
 }

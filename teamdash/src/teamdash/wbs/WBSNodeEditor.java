@@ -1,6 +1,7 @@
 
 package teamdash.wbs;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -426,6 +427,7 @@ public class WBSNodeEditor extends AbstractCellEditor
             textField = new JTextField(new WBSNodeNameDocument(), "", 9999);
             // don't display a border around the text field.
             textField.setBorder(BorderFactory.createEmptyBorder());
+            textField.setDisabledTextColor(Color.gray);
             this.add(textField);
 
             // create the menu bar containing the icon menu.
@@ -460,7 +462,9 @@ public class WBSNodeEditor extends AbstractCellEditor
             isLeaf           = wbsModel.isLeaf(editingNode);
             Object iconObj   = WBSNodeRenderer.getIconForNode
                 (table, iconMap, editingNode, wbsModel);
-            nodeTypeEditable = wbsModel.isNodeTypeEditable(editingNode);
+            nodeTypeEditable = wbsModel.isNodeTypeEditable(editingNode)
+                && !editingNode.isReadOnly();
+            textField.setEnabled(!editingNode.isReadOnly());
             if (iconObj instanceof ErrorValue) {
                 iconToolTip = ((ErrorValue) iconObj).error;
                 nodeIcon = (Icon) ((ErrorValue) iconObj).value;

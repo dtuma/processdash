@@ -77,7 +77,7 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
             result.setForeground(Color.red);
         } else {
             result.setFont(getFont(false, result));
-            result.setForeground(Color.black);
+            result.setForeground(node.isReadOnly() ? Color.gray : Color.black);
         }
 
         return result;

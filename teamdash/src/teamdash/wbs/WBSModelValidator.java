@@ -48,6 +48,9 @@ public class WBSModelValidator implements TableModelListener {
         }
         node.setAttribute(NODE_TYPE_ERROR_ATTR_NAME, typeError);
 
+        // check for broken relationships from the master WBS.
+        checkMasterWBSRelationships(node, parent);
+
         // node names cannot be empty.
         String name = node.getName();
         String nameError = checkNodeName(name, type);
@@ -74,6 +77,20 @@ public class WBSModelValidator implements TableModelListener {
 
                 childNames.add(childName);
             }
+        }
+    }
+
+    private void checkMasterWBSRelationships(WBSNode node, WBSNode parent) {
+        String expectedParentID = (String) node.getAttribute("masterParentID");
+        if (expectedParentID != null) {
+            String actualParentID = null;
+            if (parent != null)
+                actualParentID = (String) parent.getAttribute("masterNodeID");
+            if (!expectedParentID.equals(actualParentID))
+                node.setAttribute(NODE_TYPE_ERROR_ATTR_NAME,
+                        "You have altered the hierarchical arrangement of the "
+                                + "work items that were copied from the "
+                                + "master project.");
         }
     }
 

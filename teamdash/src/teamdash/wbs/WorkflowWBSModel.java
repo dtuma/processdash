@@ -28,7 +28,7 @@ public class WorkflowWBSModel extends WBSModel {
 
     /* Nodes at indentation level 1 are defined workflows. */
     public boolean isNodeTypeEditable(WBSNode node) {
-        return (node.getIndentLevel() > 1);
+        return (!node.isReadOnly() && node.getIndentLevel() > 1);
     }
 
     /** Workflows behave like software components for validation purposes. */

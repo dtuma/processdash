@@ -7,6 +7,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -131,6 +132,13 @@ public class WBSTabPanel extends JPanel
      *  structure */
     public Action getInsertWorkflowAction(WBSModel workflows) {
         return wbsTable.getInsertWorkflowAction(workflows);
+    }
+
+
+    /** Get an action capable of inserting a workflow into the work breakdown
+     *  structure */
+    public Action[] getMasterActions(File dir, String id) {
+        return wbsTable.getMasterActions(dir, id);
     }
 
 
