@@ -278,7 +278,7 @@
       defectLog="true"
       dataFile="PID/indiv_full_dataFile.txt"
       size="New &amp; Changed LOC"
-      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
+      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/IndivRoot}PID/IndivReadOnlyNode}PID/IndivFullNode}PID/IndivEmptyNode"
       >
 
     <html ID="sump" href="PID/plan_summary.shtm"
@@ -322,7 +322,7 @@
       defectLog="true"
       dataFile="PID/indiv_empty_dataFile.txt"
       size="New &amp; Changed LOC"
-      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode"
+      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/IndivRoot}PID/IndivReadOnlyNode}PID/IndivFullNode}PID/IndivEmptyNode"
       >
 
     <html ID="sump" href="PID/plan_summary.shtm"
