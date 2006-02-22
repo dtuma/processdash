@@ -12,6 +12,7 @@ public class inclTeamTools extends TinyCGIBase {
 
     private static final String WBS_EDITOR_URL =
         "../../team/tools/index.shtm?directory=";
+    private static final String MASTER_PARAM = "&master";
     private static final String SYNC_PARAM = "&syncURL=";
     private static final String SYNC_URL = "sync.class?run";
 
@@ -33,6 +34,9 @@ public class inclTeamTools extends TinyCGIBase {
             String wbsURL = WBS_EDITOR_URL + HTMLUtils.urlEncode(directory);
             String scriptPath = (String) env.get("SCRIPT_PATH");
             String uri = resolveRelativeURI(scriptPath, wbsURL);
+
+            if (parameters.containsKey("master"))
+                uri = uri + MASTER_PARAM;
 
             String syncURI = resolveRelativeURI(scriptPath, SYNC_URL);
             String syncURL = "http://" + WebServer.getHostName() +

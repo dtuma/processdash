@@ -28,9 +28,11 @@ public class WBSEditor implements WindowListener, SaveListener {
 
     TeamProject teamProject;
     JFrame frame;
+    WBSTabPanel tabPanel;
     TeamTimePanel teamTimePanel;
     WBSDataWriter dataWriter;
     File dataDumpFile;
+    boolean readOnly = false;
     boolean exitOnClose = false;
     boolean disposed = false;
 
@@ -41,33 +43,34 @@ public class WBSEditor implements WindowListener, SaveListener {
     public WBSEditor(TeamProject teamProject, File dumpFile) {
         this.teamProject = teamProject;
         this.dataDumpFile = dumpFile;
+        this.readOnly = teamProject.isReadOnly();
 
         WBSModel model = teamProject.getWBS();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess());
         dataWriter = new WBSDataWriter(model, data, teamProject.getTeamProcess());
-        WBSTabPanel table =
-            new WBSTabPanel(model, data, teamProject.getTeamProcess());
-        teamProject.getTeamMemberList().addInitialsListener(table);
+        tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess());
+        tabPanel.setReadOnly(readOnly);
+        teamProject.getTeamMemberList().addInitialsListener(tabPanel);
 
-        table.addTab("Size",
+        tabPanel.addTab("Size",
                      new String[] { "Size", "Size-Units", "N&C-LOC", "N&C-Text Pages",
                                     "N&C-Reqts Pages", "N&C-HLD Pages", "N&C-DLD Lines" },
                      new String[] { "Size", "Units", "LOC","Text Pages",
                                     "Reqts Pages", "HLD Pages", "DLD Lines" });
 
-        table.addTab("Size Accounting",
+        tabPanel.addTab("Size Accounting",
                      new String[] { "Size-Units", "Base", "Deleted", "Modified", "Added",
                                     "Reused", "N&C", "Total" },
                      new String[] { "Units",  "Base", "Deleted", "Modified", "Added",
                                     "Reused", "N&C", "Total" });
 
-        table.addTab("Time",
+        tabPanel.addTab("Time",
                      new String[] { "Time", WBSTabPanel.TEAM_MEMBER_TIMES_ID },
                      new String[] { "Team", "" });
 
-        table.addTab("Task Time",
+        tabPanel.addTab("Task Time",
                      new String[] { "Phase", "Task Size", "Task Size Units", "Rate", "Hrs/Indiv", "# People", "Time", "Assigned To" },
                      new String[] { "Phase", "Task Size", "Units", "Rate", "Hrs/Indiv", "# People",
                          "Time", "Assigned To" });
@@ -81,8 +84,8 @@ public class WBSEditor implements WindowListener, SaveListener {
 
         frame = new JFrame
             (teamProject.getProjectName() + " - Work Breakdown Structure");
-        frame.setJMenuBar(buildMenuBar(table, teamProject.getWorkflows()));
-        frame.getContentPane().add(table);
+        frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows()));
+        frame.getContentPane().add(tabPanel);
         frame.getContentPane().add(teamTimePanel, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(this);
@@ -125,13 +128,13 @@ public class WBSEditor implements WindowListener, SaveListener {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu());
-        result.add(buildEditMenu(tabPanel.getEditingActions()));
+        if (!readOnly)
+            result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildWorkflowMenu
             (workflows, tabPanel.getInsertWorkflowAction(workflows)));
-        if (teamProject.getMasterProjectID() != null)
+        if (teamProject.getMasterProjectDirectory() != null)
             result.add(buildMasterMenu(tabPanel.getMasterActions(
-                    teamProject.getMasterProjectDirectory(),
-                    teamProject.getMasterProjectID())));
+                    teamProject.getMasterProjectDirectory())));
         result.add(buildTeamMenu());
 
         return result;
@@ -179,16 +182,20 @@ public class WBSEditor implements WindowListener, SaveListener {
     }
 
     private void save() {
-        teamProject.save();
-        writeData();
+        if (!readOnly) {
+            tabPanel.stopCellEditing();
+            teamProject.save();
+            writeData();
+        }
     }
 
     private void writeData() {
-        try {
-            dataWriter.write(dataDumpFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        if (!readOnly)
+            try {
+                dataWriter.write(dataDumpFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
     /** Give the user a chance to save data before the window closes.
@@ -196,6 +203,9 @@ public class WBSEditor implements WindowListener, SaveListener {
      * @return false if the user selects cancel, true otherwise
      */
     private boolean maybeSave(boolean showCancel) {
+        if (readOnly)
+            return true;
+
         int buttons =
             (showCancel
                 ? JOptionPane.YES_NO_CANCEL_OPTION
@@ -221,6 +231,7 @@ public class WBSEditor implements WindowListener, SaveListener {
     }
 
     protected void maybeClose() {
+        tabPanel.stopCellEditing();
         if (maybeSave(true)) {
             if (exitOnClose)
                 System.exit(0);
@@ -250,7 +261,12 @@ public class WBSEditor implements WindowListener, SaveListener {
 
         File dir = new File(filename);
         File dumpFile = new File(dir, "projDump.xml");
-        WBSEditor w = new WBSEditor(new TeamProject(dir, "Team Project"), dumpFile);
+        TeamProject proj;
+        if (Boolean.getBoolean("wbs.bottomUp"))
+            proj = new TeamProjectBottomUp(dir, "Team Project");
+        else
+            proj = new TeamProject(dir, "Team Project");
+        WBSEditor w = new WBSEditor(proj, dumpFile);
         w.setExitOnClose(true);
         w.show();
     }
@@ -259,6 +275,7 @@ public class WBSEditor implements WindowListener, SaveListener {
         public SaveAction() {
             super("Save");
             putValue(MNEMONIC_KEY, new Integer('S'));
+            setEnabled(!readOnly);
         }
         public void actionPerformed(ActionEvent e) {
             save();

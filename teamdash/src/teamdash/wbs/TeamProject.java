@@ -22,14 +22,27 @@ public class TeamProject {
     private TeamProcess teamProcess;
     private WBSModel wbs;
     private WBSModel workflows;
-    private String masterProjectID;
+    private long fileModTime;
     private File masterProjectDirectory;
+    private boolean readOnly;
 
 
     /** Create or open a team project */
     public TeamProject(File directory, String projectName) {
         this.projectName = projectName;
         this.directory = directory;
+        this.readOnly = false;
+        reload();
+    }
+
+    /** Discard all data structures and reload them from the filesystem.
+     * 
+     * Upon return from this call, methods like {@link #getWBS()},
+     * {@link #getTeamMemberList()}, and {@link #getWorkflows()} will
+     * return <b>new objects</b> (not just updated objects).
+     */
+    public void reload() {
+        fileModTime = 0;
         openProjectSettings();
         openTeamList();
         openTeamProcess();
@@ -37,11 +50,30 @@ public class TeamProject {
         openWBS();
     }
 
+    /** Check to see if any files have changed since we opened them.  If so,
+     * reload all files.
+     * 
+     * @return true if files were reloaded, false if no changes were made.
+     */
+    public boolean maybeReload() {
+        for (int i = 0; i < ALL_FILENAMES.length; i++) {
+            File f = new File(directory, ALL_FILENAMES[i]);
+            if (f.isFile() && f.lastModified() > fileModTime) {
+                reload();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** Save the team project */
     public void save() {
-        saveTeamList();
-        saveWBS();
-        saveWorkflows();
+        if (!readOnly) {
+            saveTeamList();
+            saveWBS();
+            saveWorkflows();
+        }
     }
 
     /** Return the name of the project */
@@ -74,15 +106,6 @@ public class TeamProject {
         return workflows;
     }
 
-    /** If this project is part of a master project, get ID of the master
-     * project.
-     * @return the ID of the master project, or null if this project is not
-     *     part of a master project.
-     */
-    public String getMasterProjectID() {
-        return masterProjectID;
-    }
-
     /** If this project is part of a master project, get the directory where
      * the master project stores its files.
      * @return the master project's data directory, or null if this project is
@@ -92,10 +115,27 @@ public class TeamProject {
         return masterProjectDirectory;
     }
 
+    /** Get the read-only status of this team project */
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
+    /** Set the read-only status of this team project */
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
+
+    /** Return the project settings */
+    protected Element getProjectSettings() {
+        return projectSettings;
+    }
+
+
     /** Open and parse an XML file. @return null on error. */
-    private static Element openXML(File file) {
+    private Element openXML(File file) {
         try {
             Document doc = XMLUtils.parse(new FileInputStream(file));
+            fileModTime = Math.max(fileModTime, file.lastModified());
             return doc.getDocumentElement();
         } catch (Exception e) {
             return null;
@@ -104,7 +144,7 @@ public class TeamProject {
 
     /** Open the file containing the project settings (written by the team
      * project setup wizard) */
-    private void openProjectSettings() {
+    protected void openProjectSettings() {
         try {
             projectSettings = openXML(new File(directory, SETTINGS_FILENAME));
             String name = projectSettings.getAttribute("projectName");
@@ -119,26 +159,29 @@ public class TeamProject {
                 projectID = id;
 
             NodeList nl = projectSettings.getElementsByTagName("masterProject");
-            if (nl != null || nl.getLength() > 0)
-                readMasterProjectInformation((Element) nl.item(0));
+            if (nl == null || nl.getLength() == 0)
+                masterProjectDirectory = null;
+            else
+                masterProjectDirectory = getProjectDataDirectory(
+                        (Element) nl.item(0), true);
 
         } catch (Exception e) {
             projectSettings = null;
         }
     }
 
-    private void readMasterProjectInformation(Element e) {
+    protected File getProjectDataDirectory(Element e, boolean checkExists) {
         // first, lookup the master project team directory.
         String mastTeamDirName =  e.getAttribute("teamDirectoryUNC");
         if (!XMLUtils.hasValue(mastTeamDirName))
             mastTeamDirName = e.getAttribute("teamDirectory");
         if (!XMLUtils.hasValue(mastTeamDirName))
-            return;
+            return null;
 
         // next, look up the ID of the master project.
         String mastProjectID = e.getAttribute("projectID");
         if (!XMLUtils.hasValue(mastProjectID))
-            return;
+            return null;
 
         // use this information to calculate the location of the master
         // project's data directory.
@@ -146,11 +189,10 @@ public class TeamProject {
         File dataDir = new File(mastTeamDir, "data");
         File mastProjDir = new File(dataDir, mastProjectID);
 
-        // if that directory exists, save the master project information.
-        if (mastProjDir.isDirectory()) {
-            this.masterProjectID = mastProjectID;
-            this.masterProjectDirectory = mastProjDir;
-        }
+        if (checkExists == false || mastProjDir.isDirectory())
+            return mastProjDir;
+        else
+            return null;
     }
 
     /** Open the file containing the list of team members */
@@ -169,14 +211,15 @@ public class TeamProject {
 
     /** Save the list of team members */
     void saveTeamList() {
-        try {
-            File f = new File(directory, TEAM_LIST_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-            teamList.getAsXML(out);
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        if (!readOnly)
+            try {
+                File f = new File(directory, TEAM_LIST_FILENAME);
+                RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+                teamList.getAsXML(out);
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
     /** Open the team process */
@@ -211,31 +254,37 @@ public class TeamProject {
 
     /** Open the file containing the work breakdown structure */
     private void openWBS() {
+        wbs = readWBS();
+    }
+
+    protected WBSModel readWBS() {
         try {
             Element xml = openXML(new File(directory, WBS_FILENAME));
             if (xml != null) {
-                wbs = new WBSModel(xml);
-                projectName = wbs.getRoot().getName();
+                WBSModel result = new WBSModel(xml);
+                projectName = result.getRoot().getName();
+                return result;
             }
+
         } catch (Exception e) {
         }
-        if (wbs == null) {
-            System.out.println("No "+WBS_FILENAME+
-                               " file found; creating default wbs");
-            wbs = new WBSModel(projectName);
-        }
+
+        System.out.println("No "+WBS_FILENAME+
+                           " file found; creating default wbs");
+        return new WBSModel(projectName);
     }
 
     /** Save the work breakdown structure */
     void saveWBS() {
-        try {
-            File f = new File(directory, WBS_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-            wbs.getAsXML(out);
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        if (!readOnly)
+            try {
+                File f = new File(directory, WBS_FILENAME);
+                RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+                wbs.getAsXML(out);
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
 
@@ -256,14 +305,15 @@ public class TeamProject {
 
     /** Save the common workflows */
     void saveWorkflows() {
-        try {
-            File f = new File(directory, FLOW_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-            workflows.getAsXML(out);
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        if (!readOnly)
+            try {
+                File f = new File(directory, FLOW_FILENAME);
+                RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+                workflows.getAsXML(out);
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
 
@@ -292,5 +342,13 @@ public class TeamProject {
     private static final String FLOW_FILENAME = "workflow.xml";
     private static final String PROCESS_FILENAME = "process.xml";
     private static final String SETTINGS_FILENAME = "settings.xml";
+
+    private static final String[] ALL_FILENAMES = {
+        TEAM_LIST_FILENAME,
+        WBS_FILENAME,
+        FLOW_FILENAME,
+        PROCESS_FILENAME,
+        SETTINGS_FILENAME
+    };
 
 }

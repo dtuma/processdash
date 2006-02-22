@@ -774,22 +774,27 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return node.getType();
     }
 
-    public int[] mergeWBSModel(WBSModel srcModel) {
+    public int[] mergeWBSModel(WBSModel srcModel, WBSNodeMerger merger,
+            WBSNodeComparator comp) {
         List insertedNodes = new ArrayList();
         mergeWBSModel(srcModel, srcModel.getRoot(), this, this.getRoot(),
-                insertedNodes);
+                merger, comp, insertedNodes);
 
-        recalcRows();
+        recalcRows(false);
+        fireTableDataChanged();
         return getRowsForNodes(insertedNodes);
     }
 
     private static void mergeWBSModel(WBSModel srcModel, WBSNode srcNode,
-            WBSModel destModel, WBSNode destNode, List insertedNodes) {
-
-        // TODO: copy attribute values from src to dest?
+            WBSModel destModel, WBSNode destNode,
+            WBSNodeMerger merger, WBSNodeComparator comp,
+            List insertedNodes) {
 
         WBSNode[] srcChildren = srcModel.getChildren(srcNode);
         WBSNode[] destChildren = destModel.getChildren(destNode);
+
+        boolean[] destMatched = new boolean[destChildren.length];
+        Arrays.fill(destMatched, false);
 
         for (int i = 0; i < srcChildren.length; i++) {
             WBSNode srcChild = srcChildren[i];
@@ -800,10 +805,14 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             boolean foundMatch = false;
             for (int j = 0; j < destChildren.length; j++) {
                 WBSNode destChild = destChildren[j];
-                if (srcChildName.equals(destChild.getName())) {
-                    foundMatch = true;
+                if (comp == null
+                        ? srcChildName.equals(destChild.getName())
+                        : comp.nodesMatch(srcChild, destChild)) {
+                    foundMatch = destMatched[j] = true;
+                    if (merger != null)
+                        merger.mergeNodes(srcChild, destChild);
                     mergeWBSModel(srcModel, srcChild, destModel, destChild,
-                            insertedNodes);
+                            merger, comp, insertedNodes);
                     break;
                 }
             }
@@ -827,5 +836,33 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                 insertedNodes.addAll(nodesToInsert);
             }
         }
+
+        if (merger != null) {
+            for (int j = 0; j < destMatched.length; j++)
+                if (destMatched[j] == false)
+                    mergeUnmatchedNodes(destModel, destChildren[j], merger);
+        }
     }
+
+    private static void mergeUnmatchedNodes(WBSModel destModel,
+            WBSNode destNode, WBSNodeMerger merger) {
+        merger.mergeNodes(null, destNode);
+        WBSNode[] descendants = destModel.getDescendants(destNode);
+        for (int i = 0; i < descendants.length; i++)
+            merger.mergeNodes(null, descendants[i]);
+    }
+
+    public void copyNodeExpansionStates(WBSModel src, WBSNodeComparator comp) {
+        for (Iterator i = this.wbsNodes.iterator(); i.hasNext();) {
+            WBSNode destNode = (WBSNode) i.next();
+            for (Iterator j = src.wbsNodes.iterator(); j.hasNext();) {
+                WBSNode srcNode = (WBSNode) j.next();
+                if (comp.nodesMatch(srcNode, destNode)) {
+                    destNode.setExpanded(srcNode.isExpanded());
+                    break;
+                }
+            }
+        }
+    }
+
 }

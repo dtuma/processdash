@@ -7,6 +7,7 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import teamdash.wbs.TeamProject;
+import teamdash.wbs.TeamProjectBottomUp;
 import teamdash.wbs.WBSEditor;
 
 public class OpenWBSEditor extends TinyCGIBase {
@@ -20,7 +21,9 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (!checkEntryCriteria(directory))
             return;
 
-        WBSEditor editor = getEditor(directory);
+        boolean bottomUp = parameters.containsKey("bottomUp");
+
+        WBSEditor editor = getEditor(directory, bottomUp);
 
         if (parameters.containsKey("team"))
             editor.showTeamListEditor();
@@ -49,21 +52,31 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private static Hashtable editors = new Hashtable();
 
-    private WBSEditor getEditor(String directory) {
-        WBSEditor result = (WBSEditor) editors.get(directory);
+    private WBSEditor getEditor(String directory, boolean bottomUp) {
+        String key = directory;
+        if (bottomUp)
+            key = "bottomUp:" + key;
+
+        WBSEditor result = (WBSEditor) editors.get(key);
         if (result == null || result.isDisposed()) {
-            result = makeEditorForPath(directory);
-            editors.put(directory, result);
+            result = makeEditorForPath(directory, bottomUp);
+            editors.put(key, result);
         }
 
         return result;
     }
 
-    private WBSEditor makeEditorForPath(String directory) {
+    private WBSEditor makeEditorForPath(String directory, boolean bottomUp) {
         File dir = new File(directory);
         File dumpFile = new File(dir, "projDump.xml");
-        WBSEditor result = new WBSEditor
-            (new TeamProject(dir, "Team Project"), dumpFile);
+
+        TeamProject teamProject;
+        if (bottomUp)
+            teamProject = new TeamProjectBottomUp(dir, "Team Project");
+        else
+            teamProject = new TeamProject(dir, "Team Project");
+
+        WBSEditor result = new WBSEditor(teamProject, dumpFile);
         result.setExitOnClose(false);
 
         return result;

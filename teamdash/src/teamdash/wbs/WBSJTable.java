@@ -89,6 +89,7 @@ public class WBSJTable extends JTable {
     public void setEditingEnabled(boolean enable) {
         disableEditing = !enable;
         editor.setEditingEnabled(enable);
+        recalculateEnablement();
     }
 
 
@@ -157,7 +158,7 @@ public class WBSJTable extends JTable {
         return INSERT_WORKFLOW_ACTION;
     }
 
-    public Action[] getMasterActions(File dir, String id) {
+    public Action[] getMasterActions(File dir) {
         return new Action[] { new MergeMasterWBSAction(dir) };
     }
 
@@ -241,17 +242,26 @@ public class WBSJTable extends JTable {
 
     /** Look at each of our actions to determine if it should be enabled. */
     private void recalculateEnablement() {
-        int[] selectedRows = getSelectedRows();
-        CUT_ACTION.recalculateEnablement(selectedRows);
-        COPY_ACTION.recalculateEnablement(selectedRows);
-        PASTE_ACTION.recalculateEnablement(selectedRows);
-        DELETE_ACTION.recalculateEnablement(selectedRows);
-        PROMOTE_ACTION.recalculateEnablement(selectedRows);
-        DEMOTE_ACTION.recalculateEnablement(selectedRows);
-        INSERT_ACTION.recalculateEnablement(selectedRows);
-        ENTER_ACTION.recalculateEnablement(selectedRows);
-        if (INSERT_WORKFLOW_ACTION != null)
-            INSERT_WORKFLOW_ACTION.recalculateEnablement(selectedRows);
+        if (disableEditing) {
+            Action[] editingActions = getEditingActions();
+            for (int i = 0; i < editingActions.length; i++)
+                editingActions[i].setEnabled(false);
+            if (INSERT_WORKFLOW_ACTION != null)
+                INSERT_WORKFLOW_ACTION.setEnabled(false);
+
+        } else {
+            int[] selectedRows = getSelectedRows();
+            CUT_ACTION.recalculateEnablement(selectedRows);
+            COPY_ACTION.recalculateEnablement(selectedRows);
+            PASTE_ACTION.recalculateEnablement(selectedRows);
+            DELETE_ACTION.recalculateEnablement(selectedRows);
+            PROMOTE_ACTION.recalculateEnablement(selectedRows);
+            DEMOTE_ACTION.recalculateEnablement(selectedRows);
+            INSERT_ACTION.recalculateEnablement(selectedRows);
+            ENTER_ACTION.recalculateEnablement(selectedRows);
+            if (INSERT_WORKFLOW_ACTION != null)
+                INSERT_WORKFLOW_ACTION.recalculateEnablement(selectedRows);
+        }
     }
 
 
@@ -717,6 +727,7 @@ public class WBSJTable extends JTable {
 
         public InsertWorkflowAction(WBSModel workflows) {
             this.workflows = workflows;
+            setEnabled(false);
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -765,47 +776,21 @@ public class WBSJTable extends JTable {
                 return;
 
             UndoList.stopCellEditing(WBSJTable.this);
-            WBSModel masterWBS = getMasterWBS();
-            if (masterWBS == null)
+
+            TeamProject masterProject = new TeamProject(dir, "");
+            String masterProjectID = masterProject.getProjectID();
+            if (masterProjectID == null)
                 return;
 
             // make the change
-            int[] newRowsToSelect = wbsModel.mergeWBSModel(masterWBS);
+            int[] newRowsToSelect = MasterWBSUtil.mergeFromMaster(
+                    masterProject.getWBS(), masterProjectID, wbsModel);
             if (newRowsToSelect != null) {
                 editor.stopCellEditing();
                 selectRows(newRowsToSelect);
                 UndoList.madeChange(WBSJTable.this, "Copy Work from Master");
             }
         }
-
-        private WBSModel getMasterWBS() {
-            WBSModel result = new WBSModel();
-
-            TeamProject masterProject = new TeamProject(dir, "");
-            String masterProjectID = masterProject.getProjectID();
-            WBSModel masterProjectWBS = masterProject.getWBS();
-            if (masterProjectID == null)
-                return null;
-
-            result.copyFrom(masterProjectWBS);
-            tweakMasterWBS(result, result.getRoot(), masterProjectID);
-
-            return result;
-        }
-
-        private void tweakMasterWBS(WBSModel wbs, WBSNode parent, String id) {
-            Object parentID = parent.getAttribute("masterNodeID");
-            WBSNode[] children = wbs.getChildren(parent);
-            for (int i = 0; i < children.length; i++) {
-                WBSNode child = children[i];
-                child.setReadOnly(true);
-                child.setAttribute("masterNodeID",
-                        id + ":" + child.getUniqueID());
-                child.setAttribute("masterParentID", parentID);
-                tweakMasterWBS(wbs, child, id);
-            }
-        }
-
     }
 
 

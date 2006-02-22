@@ -79,6 +79,17 @@ public class WBSTabPanel extends JPanel
         splitPane.setDividerLocation(200);
     }
 
+    public void setReadOnly(boolean readOnly) {
+        boolean editable = !readOnly;
+        DataTableModel dataModel = (DataTableModel) dataTable.getModel();
+        dataModel.setEditingEnabled(editable);
+        wbsTable.setEditingEnabled(editable);
+    }
+
+    public void stopCellEditing() {
+        UndoList.stopCellEditing(this);
+    }
+
     /** Add a tab to the tab panel
      * @param tabName The name to display on the tab
      * @param columnNames The columns to display when this tab is selected
@@ -137,8 +148,8 @@ public class WBSTabPanel extends JPanel
 
     /** Get an action capable of inserting a workflow into the work breakdown
      *  structure */
-    public Action[] getMasterActions(File dir, String id) {
-        return wbsTable.getMasterActions(dir, id);
+    public Action[] getMasterActions(File masterProjectDir) {
+        return wbsTable.getMasterActions(masterProjectDir);
     }
 
 

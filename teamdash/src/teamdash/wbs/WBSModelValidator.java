@@ -81,11 +81,13 @@ public class WBSModelValidator implements TableModelListener {
     }
 
     private void checkMasterWBSRelationships(WBSNode node, WBSNode parent) {
-        String expectedParentID = (String) node.getAttribute("masterParentID");
+        String expectedParentID = (String) node
+                .getAttribute(MasterWBSUtil.MASTER_PARENT_ID);
         if (expectedParentID != null) {
             String actualParentID = null;
             if (parent != null)
-                actualParentID = (String) parent.getAttribute("masterNodeID");
+                actualParentID = (String) parent
+                        .getAttribute(MasterWBSUtil.MASTER_NODE_ID);
             if (!expectedParentID.equals(actualParentID))
                 node.setAttribute(NODE_TYPE_ERROR_ATTR_NAME,
                         "You have altered the hierarchical arrangement of the "
