@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -59,6 +60,17 @@ public class TeamMemberList extends AbstractTableModel {
         int rows = getRowCount();
         if (rows == 0 || hasValue(getValueAt(rows-1, NAME_COLUMN)))
             addNewRow();
+    }
+
+    private void maybeDefaultStartDates() {
+        Date defaultStartDate = getDefaultStartDate();
+        for (int i = 0;  i < getRowCount();  i++) {
+            TeamMember m = get(i);
+            if (!hasValue(m.getName())) {
+                m.setStartDate(defaultStartDate);
+                fireTableCellUpdated(i, START_DATE_COLUMN);
+            }
+        }
     }
 
     /** Get a list of all the non-empty team members.
@@ -119,12 +131,13 @@ public class TeamMemberList extends AbstractTableModel {
     public static final int NAME_COLUMN = 0;
     public static final int INITIALS_COLUMN = 1;
     public static final int COLOR_COLUMN = 2;
-    public static final int HOURS_COLUMN = 3;
+    public static final int START_DATE_COLUMN = 3;
+    public static final int HOURS_COLUMN = 4;
 
     private static final String[] columnNames = {
-        "Name", "Initials", "Color", "Est Hours/Week" };
+        "Name", "Initials", "Color", "Start Date", "Est Hours/Week" };
     private static final Class[] columnClass = {
-        String.class, String.class, Color.class, Double.class };
+        String.class, String.class, Color.class, Date.class, Double.class };
 
     public int getRowCount()            { return teamMembers.size(); }
     public int getColumnCount()         { return columnNames.length; }
@@ -138,6 +151,7 @@ public class TeamMemberList extends AbstractTableModel {
         case NAME_COLUMN: return m.getName();
         case INITIALS_COLUMN: return m.getInitials();
         case COLOR_COLUMN: return m.getColor();
+        case START_DATE_COLUMN: return m.getStartDate();
         case HOURS_COLUMN: return m.getHoursPerWeek();
         }
         return null;
@@ -149,6 +163,11 @@ public class TeamMemberList extends AbstractTableModel {
         case NAME_COLUMN:
             m.setName((String) aValue);
             if (autoNewRow) maybeAddEmptyRow();
+            break;
+
+        case START_DATE_COLUMN:
+            m.setStartDate((Date) aValue);
+            if (autoNewRow) maybeDefaultStartDates();
             break;
 
         case INITIALS_COLUMN: m.setInitials((String) aValue); break;
@@ -173,7 +192,8 @@ public class TeamMemberList extends AbstractTableModel {
     private void addNewRow() {
         int newRowNum = getRowCount();
         Color c = getFirstUnusedColor();
-        teamMembers.add(new TeamMember(null, null, c));
+        Date d = getDefaultStartDate();
+        teamMembers.add(new TeamMember(null, null, c, d));
         fireTableRowsInserted(newRowNum, newRowNum);
     }
 
@@ -191,6 +211,21 @@ public class TeamMemberList extends AbstractTableModel {
         }
 
          return Color.darkGray;
+    }
+
+    /** Find the earliest date when any team members is starting.  If no team
+     * members have start dates, use the current time. */
+    private Date getDefaultStartDate() {
+        long result = Long.MAX_VALUE;
+        for (Iterator i = teamMembers.iterator(); i.hasNext();) {
+            TeamMember m = (TeamMember) i.next();
+            if (hasValue(m.getName()) && m.getStartDate() != null)
+                result = Math.min(result, m.getStartDate().getTime());
+        }
+        if (result == Long.MAX_VALUE)
+            return new Date();
+        else
+            return new Date(result);
     }
 
     /** A list of 18 colors that look mutually unique. (This was really hard

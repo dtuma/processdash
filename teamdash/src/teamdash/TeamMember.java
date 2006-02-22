@@ -4,6 +4,7 @@ package teamdash;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +20,8 @@ public class TeamMember implements Cloneable {
     private String name;
     /** The initials of the team member (e.g. jd) */
     private String initials;
+    /** The date this individual will start working */
+    private Date startDate;
     /** The approximate number of hours this team member will be able to spend
      * per week on project tasks */
     private Double hoursPerWeek;
@@ -36,10 +39,11 @@ public class TeamMember implements Cloneable {
      * @param initials the person's initials
      * @param color the color to use for this person
      */
-    public TeamMember(String name, String initials, Color color) {
+    public TeamMember(String name, String initials, Color color, Date start) {
         this.name = trim(name);
         this.initials = trim(initials);
         this.color = color;
+        this.startDate = start;
         this.hoursPerWeek = new Double(20);
     }
 
@@ -54,6 +58,7 @@ public class TeamMember implements Cloneable {
         if (XMLUtils.hasValue(attr)) try {
             hoursPerWeek = new Double(attr);
         } catch (NumberFormatException nfe) {}
+        this.startDate = XMLUtils.getXMLDate(e, START_DATE_ATTR);
         // extract color information if it is present.
         attr = e.getAttribute(COLOR_ATTR);
         if (XMLUtils.hasValue(attr)) try {
@@ -91,6 +96,10 @@ public class TeamMember implements Cloneable {
     }
     public void setColor(Color color) { this.color = color; }
 
+    // getter/setter for the "start date" property.
+    public Date getStartDate() { return startDate; }
+    public void setStartDate(Date d) { startDate = d; }
+
     // getter/setter for the "hours per week" property.
     public Double getHoursPerWeek() { return hoursPerWeek; }
     public void setHoursPerWeek(Double d) { hoursPerWeek = d; }
@@ -113,6 +122,9 @@ public class TeamMember implements Cloneable {
         out.write("' "+HOURS_ATTR+"='");
         if (hoursPerWeek != null)
             out.write(hoursPerWeek.toString());
+        out.write("' "+START_DATE_ATTR+"='");
+        if (startDate != null)
+            out.write(XMLUtils.saveDate(startDate));
         out.write("' "+COLOR_ATTR+"='");
         if (color != null) {
             out.write("#");
@@ -168,6 +180,7 @@ public class TeamMember implements Cloneable {
     static final String TAG_NAME = "teamMember";
     private static final String NAME_ATTR = "name";
     private static final String INITIALS_ATTR = "initials";
+    private static final String START_DATE_ATTR = "startDate";
     private static final String HOURS_ATTR = "hoursPerWeek";
     private static final String COLOR_ATTR = "color";
 

@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -48,7 +49,7 @@ public class TeamMemberListEditor implements WindowListener {
         frame.getContentPane().add(buttons, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(this);
-        frame.setSize(380, 200);
+        frame.setSize(460, 200);
         frame.show();
     }
 
@@ -131,11 +132,13 @@ public class TeamMemberListEditor implements WindowListener {
         //Set up renderer and editor for the Color column.
         ColorCellRenderer.setUpColorRenderer(table);
         ColorCellEditor.setUpColorEditor(table);
+        table.setDefaultEditor(Date.class, new DateCellEditor());
 
         // set preferred sizes for each column
         table.getColumn("Name").setPreferredWidth(150);
         table.getColumn("Initials").setPreferredWidth(55);
         table.getColumn("Color").setPreferredWidth(55);
+        table.getColumn("Start Date").setPreferredWidth(80);
         table.getColumn("Est Hours/Week").setPreferredWidth(100);
     }
 
@@ -199,4 +202,5 @@ public class TeamMemberListEditor implements WindowListener {
         }
 
     }
+
 }
