@@ -219,7 +219,8 @@ public class TeamMemberList extends AbstractTableModel {
         long result = Long.MAX_VALUE;
         for (Iterator i = teamMembers.iterator(); i.hasNext();) {
             TeamMember m = (TeamMember) i.next();
-            if (hasValue(m.getName()) && m.getStartDate() != null)
+            if (hasValue(m.getName()) && m.getHoursPerWeek().intValue() > 0
+                    && m.getStartDate() != null)
                 result = Math.min(result, m.getStartDate().getTime());
         }
         if (result == Long.MAX_VALUE)
