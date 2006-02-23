@@ -49,6 +49,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private double balancedWeeks = Double.NaN;
     /** The indicator for the balanced team duration */
     private JPanel balancedBar;
+    /** Should the balanced bar be shown, or hidden */
+    private boolean showBalancedBar;
 
     /** Create a team time panel.
      * @param teamList the list of team members to display.
@@ -59,6 +61,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.dataModel = dataModel;
         this.teamMemberBars = new ArrayList();
         this.teamColumnNum = dataModel.findColumn("Time");
+        this.showBalancedBar = true;
 
         setLayout(layout = new GridBagLayout());
         rebuildPanelContents();
@@ -66,6 +69,14 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         dataModel.addTableModelListener(this);
         teamList.addTableModelListener(this);
+    }
+
+    public boolean isShowBalancedBar() {
+        return showBalancedBar;
+    }
+
+    public void setShowBalancedBar(boolean showBalancedBar) {
+        this.showBalancedBar = showBalancedBar;
     }
 
     private void rebuildPanelContents() {
@@ -136,7 +147,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         // it somewhere meaningless and allocate it no space.  We
         // resize it to be as high as this panel, and reposition it to
         // properly indicate the calculated team duration.
-        if (balancedWeeks <= maxNumWeeks && teamMemberBars.size() > 0) {
+        if (showBalancedBar
+                && balancedWeeks <= maxNumWeeks
+                && teamMemberBars.size() > 0) {
             Rectangle r = ((TeamMemberBar) teamMemberBars.get(0)).getBounds();
             int pos = r.x + (int) (r.width * balancedWeeks / maxNumWeeks);
             balancedBar.setBounds(pos - BALANCED_BAR_WIDTH/2, 1,
@@ -342,7 +355,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 int totalWidth = bounds.width - insets.left - insets.right;
                 int barHeight = bounds.height - insets.top - insets.bottom;
                 int barLeft = (int) (totalWidth * leftPos) + insets.left;
-                int barWidth = (int) (totalWidth * (rightPos - leftPos));
+                int barWidth = (int) (totalWidth * rightPos) - barLeft
+                        + insets.left;
                 g.setColor(getForeground());
                 g.fillRect(barLeft, insets.top, barWidth, barHeight);
             }

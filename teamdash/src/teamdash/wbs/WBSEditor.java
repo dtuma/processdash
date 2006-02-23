@@ -81,6 +81,8 @@ public class WBSEditor implements WindowListener, SaveListener {
         teamTimePanel =
             new TeamTimePanel(teamProject.getTeamMemberList(), data);
         teamTimePanel.setVisible(false);
+        if (teamProject instanceof TeamProjectBottomUp)
+            teamTimePanel.setShowBalancedBar(false);
 
         frame = new JFrame
             (teamProject.getProjectName() + " - Work Breakdown Structure");
@@ -128,8 +130,7 @@ public class WBSEditor implements WindowListener, SaveListener {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu());
-        if (!readOnly)
-            result.add(buildEditMenu(tabPanel.getEditingActions()));
+        result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildWorkflowMenu
             (workflows, tabPanel.getInsertWorkflowAction(workflows)));
         if (teamProject.getMasterProjectDirectory() != null)

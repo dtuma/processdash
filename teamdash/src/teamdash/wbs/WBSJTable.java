@@ -242,28 +242,24 @@ public class WBSJTable extends JTable {
 
     /** Look at each of our actions to determine if it should be enabled. */
     private void recalculateEnablement() {
-        if (disableEditing) {
-            Action[] editingActions = getEditingActions();
-            for (int i = 0; i < editingActions.length; i++)
-                editingActions[i].setEnabled(false);
-            if (INSERT_WORKFLOW_ACTION != null)
-                INSERT_WORKFLOW_ACTION.setEnabled(false);
-
-        } else {
-            int[] selectedRows = getSelectedRows();
-            CUT_ACTION.recalculateEnablement(selectedRows);
-            COPY_ACTION.recalculateEnablement(selectedRows);
-            PASTE_ACTION.recalculateEnablement(selectedRows);
-            DELETE_ACTION.recalculateEnablement(selectedRows);
-            PROMOTE_ACTION.recalculateEnablement(selectedRows);
-            DEMOTE_ACTION.recalculateEnablement(selectedRows);
-            INSERT_ACTION.recalculateEnablement(selectedRows);
-            ENTER_ACTION.recalculateEnablement(selectedRows);
-            if (INSERT_WORKFLOW_ACTION != null)
-                INSERT_WORKFLOW_ACTION.recalculateEnablement(selectedRows);
-        }
+        int[] selectedRows = getSelectedRows();
+        CUT_ACTION.recalculateEnablement(selectedRows);
+        COPY_ACTION.recalculateEnablement(selectedRows);
+        PASTE_ACTION.recalculateEnablement(selectedRows);
+        DELETE_ACTION.recalculateEnablement(selectedRows);
+        PROMOTE_ACTION.recalculateEnablement(selectedRows);
+        DEMOTE_ACTION.recalculateEnablement(selectedRows);
+        INSERT_ACTION.recalculateEnablement(selectedRows);
+        ENTER_ACTION.recalculateEnablement(selectedRows);
+        if (INSERT_WORKFLOW_ACTION != null)
+            INSERT_WORKFLOW_ACTION.recalculateEnablement(selectedRows);
     }
 
+
+    /** Return true if the list of rows contains at least one row. */
+    private boolean notEmpty(int[] selectedRows) {
+        return (selectedRows != null && selectedRows.length > 0);
+    }
 
     /** Return true if the list of rows contains at least one row other than
      * row 0. */
@@ -439,7 +435,8 @@ public class WBSJTable extends JTable {
             UndoList.madeChange(WBSJTable.this, "Demote");
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(notJustRoot(selectedRows)
+            setEnabled(!disableEditing
+                    && notJustRoot(selectedRows)
                     && !containsReadOnlyNode(selectedRows));
         }
     }
@@ -459,7 +456,8 @@ public class WBSJTable extends JTable {
             UndoList.madeChange(WBSJTable.this, "Promote");
         }
         public void recalculateEnablement(int[] selectedRows) {
-            if (notJustRoot(selectedRows) == false
+            if (disableEditing
+                    || notJustRoot(selectedRows) == false
                     || containsReadOnlyNode(selectedRows))
                 setEnabled(false);
             else {
@@ -533,7 +531,7 @@ public class WBSJTable extends JTable {
             WBSJTable.this.recalculateEnablement();
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(notJustRoot(selectedRows));
+            setEnabled(!disableEditing && notJustRoot(selectedRows));
         }
     }
     final CutAction CUT_ACTION = new CutAction();
@@ -615,8 +613,9 @@ public class WBSJTable extends JTable {
             }*/
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled((cutList != null || copyList != null) &&
-                       (selectedRows != null && selectedRows.length != 0) &&
+            setEnabled(!disableEditing &&
+                       (cutList != null || copyList != null) &&
+                       notEmpty(selectedRows) &&
                        getLocation() != null);
         }
     }
@@ -653,7 +652,7 @@ public class WBSJTable extends JTable {
             UndoList.madeChange(WBSJTable.this, "Insert WBS element");
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(selectedRows != null && selectedRows.length > 0);
+            setEnabled(!disableEditing && notEmpty(selectedRows));
         }
     }
     final InsertAction INSERT_ACTION = new InsertAction();
@@ -711,7 +710,8 @@ public class WBSJTable extends JTable {
             UndoList.madeChange(WBSJTable.this, "Delete WBS elements");
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(notJustRoot(selectedRows)
+            setEnabled(!disableEditing
+                    && notJustRoot(selectedRows)
                     && !containsReadOnlyNode(selectedRows));
         }
     }
@@ -756,7 +756,7 @@ public class WBSJTable extends JTable {
         }
 
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(selectedRows != null && selectedRows.length > 0);
+            setEnabled(!disableEditing && notEmpty(selectedRows));
         }
     }
     private InsertWorkflowAction INSERT_WORKFLOW_ACTION = null;

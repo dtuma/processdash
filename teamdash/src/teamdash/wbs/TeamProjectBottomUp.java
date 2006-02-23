@@ -2,6 +2,7 @@ package teamdash.wbs;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -118,8 +119,9 @@ public class TeamProjectBottomUp extends TeamProject {
             String shortName = (String) e.getKey();
             TeamProject subproject = (TeamProject) e.getValue();
 
-            addTeamMember(newTeam, shortName, subproject);
             addWBSItems(newWbs, shortName, subproject);
+            double totalSubprojectTime = sumUpTime(newWbs, shortName);
+            addTeamMember(newTeam, shortName, subproject, totalSubprojectTime);
         }
 
         newWbs.copyNodeExpansionStates(getWBS(),
@@ -139,12 +141,53 @@ public class TeamProjectBottomUp extends TeamProject {
     }
 
     private void addTeamMember(TeamMemberList newTeam, String shortName,
-            TeamProject subproject) {
+            TeamProject subproject, double totalSubprojectTime) {
         newTeam.maybeAddEmptyRow();
         int pos = newTeam.getRowCount() - 1;
         newTeam.setValueAt(shortName, pos, TeamMemberList.NAME_COLUMN);
         newTeam.setValueAt(shortName, pos, TeamMemberList.INITIALS_COLUMN);
-        // TODO: set an appropriate value for the hours/week.
+
+        // now, decide how to set the start date and hours per week.
+        //
+        // start date is easy to determine: just find out when the earliest
+        // team member begins.
+        //
+        // hours per week is trickier. Ultimately, we want the TeamTimePanel
+        // to display the correct end date for the subproject. So first, we
+        // calculate the desired end date, by choosing the date the last team
+        // member will finish.  Then, knowing how the TeamTimePanel
+        // calculates the end date for a bar, we choose a value for "hours
+        // per week" that will produce that end date.
+
+        long startTime = Long.MAX_VALUE;
+        long endTime = 0;
+        List subprojMembers = subproject.getTeamMemberList().getTeamMembers();
+        for (Iterator i = subprojMembers.iterator(); i.hasNext();) {
+            TeamMember m = (TeamMember) i.next();
+            double hoursPerWeek = m.getHoursPerWeek().doubleValue();
+            if (hoursPerWeek == 0)
+                continue;
+
+            long memberStart;
+            if (m.getStartDate() == null)
+                memberStart = System.currentTimeMillis();
+            else
+                memberStart = m.getStartDate().getTime();
+            startTime = Math.min(startTime, memberStart);
+
+            double memberTime = sumUpTime(subproject.getWBS(), m.getInitials());
+            double memberWeeks = memberTime / hoursPerWeek;
+            long memberEnd = memberStart
+                    + (long) (memberWeeks * MILLIS_PER_WEEK);
+            endTime = Math.max(endTime, memberEnd);
+        }
+
+        Date startDate = new Date(startTime);
+        double elapsedWeeks = ((double) (endTime - startTime)) / MILLIS_PER_WEEK;
+        Double effHrsPerWeek = new Double(totalSubprojectTime / elapsedWeeks);
+
+        newTeam.setValueAt(startDate, pos, TeamMemberList.START_DATE_COLUMN);
+        newTeam.setValueAt(effHrsPerWeek, pos, TeamMemberList.HOURS_COLUMN);
     }
 
     private void addWBSItems(WBSModel newWbs, String shortName,
@@ -165,6 +208,28 @@ public class TeamProjectBottomUp extends TeamProject {
             result.add(t.getInitials());
         }
         return result;
+    }
+
+    private double sumUpTime(WBSModel wbs, String name) {
+        SumAttribute sum = new SumAttribute(name + "-Time (Top Down)");
+        MasterWBSUtil.visitWBS(wbs, sum);
+        return sum.getTotal();
+    }
+
+    private static class SumAttribute implements WBSNodeVisitor {
+        private double total = 0;
+        private String attrName;
+        public SumAttribute(String attrName) {
+            this.attrName = attrName;
+        }
+        public void visit(WBSNode parent, WBSNode child) {
+            double val = child.getNumericAttribute(attrName);
+            if (!Double.isNaN(val))
+                total += val;
+        }
+        public double getTotal() {
+            return total;
+        }
     }
 
     private static class MasterWBSCleaner implements WBSNodeVisitor {
@@ -205,4 +270,6 @@ public class TeamProjectBottomUp extends TeamProject {
     }
 
 
+    private static final long MILLIS_PER_WEEK = 7L /*days*/ * 24 /*hours*/
+            * 60 /*min*/ * 60 /*sec*/ * 1000 /*millis*/;
 }
