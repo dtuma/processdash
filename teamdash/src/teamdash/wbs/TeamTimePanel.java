@@ -2,17 +2,20 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Rectangle;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -38,6 +41,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private List teamMemberBars;
     /** The index in the data model of the "team time" column */
     private int teamColumnNum;
+    /** The point in time when the first person is starting */
+    private long teamStartTime;
     /** The number of weeks in the longest schedule */
     private double maxNumWeeks;
     /** The number of weeks in the balanced team schedule */
@@ -99,23 +104,27 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         bc.insets.left = bc.insets.right = 5;
         bc.insets.top = bc.insets.bottom = 0;
         bc.weightx = bc.weighty = 1;
+        int row = 0;
         for (int i = 0;   i < teamMembers.size();   i++) {
             // for each team member, create a name label and a horizontal
             // progress bar.
             TeamMember m = (TeamMember) teamMembers.get(i);
+            TeamMemberBar bar = new TeamMemberBar(m);
+            teamMemberBars.add(bar);
+
+            if (m.getHoursPerWeek().intValue() == 0)
+                continue;
 
             JLabel name = new JLabel(m.getName());
-            nc.gridy = i;
+            nc.gridy = row;
             add(name);
             layout.setConstraints(name, nc);
 
-            TeamMemberBar bar = new TeamMemberBar(m);
-            teamMemberBars.add(bar);
-            bc.gridy = i;
+            bc.gridy = row;
             add(bar);
             layout.setConstraints(bar, bc);
 
-            nc.insets.top = bc.insets.top = 0;
+            row++;
         }
     }
 
@@ -147,18 +156,46 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     /** Recalculate the duration of a balanced team schedule.
      */
     protected void recalcTeam() {
-        // find out how much time the team plans to spend per week.
+        // find out how much time the team plans to spend per week, and when
+        // the overall team is starting work.
         double teamHoursPerWeek = 0;
-        Iterator i = teamMemberBars.iterator();
-        while (i.hasNext())
-            teamHoursPerWeek += ((TeamMemberBar) i.next()).getHoursPerWeek();
+        teamStartTime = Long.MAX_VALUE;
+        for (Iterator i = teamMemberBars.iterator(); i.hasNext();) {
+            TeamMemberBar bar = (TeamMemberBar) i.next();
+            if (bar.getHoursPerWeek() > 0) {
+                teamHoursPerWeek += bar.getHoursPerWeek();
+                teamStartTime = Math.min(teamStartTime,
+                        bar.getStartTime(Long.MAX_VALUE));
+            }
+        }
+
+        // check to see if we have NO start dates in our schedule.  If not,
+        // revert back to old-style behavior.
+        if (teamStartTime == Long.MAX_VALUE)
+            teamStartTime = 0;
 
         // retrieve the total amount of planned time in the work
         // breakdown structure for the entire team.
         NumericDataValue teamTotal =
             (NumericDataValue) dataModel.getValueAt(0, teamColumnNum);
+        double totalHours = teamTotal.value;
 
-        balancedWeeks = teamTotal.value / teamHoursPerWeek;
+        // Adjust the team total to include the lag time at the beginning
+        // of each team member's schedule.
+        for (Iterator i = teamMemberBars.iterator(); i.hasNext();) {
+            TeamMemberBar bar = (TeamMemberBar) i.next();
+            if (bar.getHoursPerWeek() == 0) {
+                totalHours -= bar.getTotalAssignedHours();
+            } else {
+                double lagTime = bar.getStartTime(teamStartTime) - teamStartTime;
+                double lagWeeks = Math.max(lagTime, 0) / MILLIS_PER_WEEK;
+                double lagHours = lagWeeks * bar.getHoursPerWeek();
+                totalHours += lagHours;
+            }
+        }
+
+        // calculate the optimal finish time
+        balancedWeeks = totalHours / teamHoursPerWeek;
         balancedBar.setToolTipText("Balanced Team Duration - " +
                                    formatWeeks(balancedWeeks));
         if (Double.isInfinite(balancedWeeks) || Double.isNaN(balancedWeeks))
@@ -203,21 +240,16 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     /** This class performs the calculations and the display of a
      * horizontal bar for a single team member.
      */
-    private class TeamMemberBar extends JProgressBar {
+    private class TeamMemberBar extends JPanel {
 
         private TeamMember teamMember;
         private int columnNumber;
+        private double lagWeeks;
         private double numWeeks;
 
         public TeamMemberBar(TeamMember teamMember) {
-            // JProgressBar does exactly what we need, but uses integers to
-            // express min, max, and current values of the horizontal bar.
-            // We want to display fractional numbers, so we must normalize
-            // those numbers into a large integer value (NORMALIZED_MAX).
-            super(0, NORMALIZED_MAX);
             this.teamMember = teamMember;
-            this.columnNumber =
-                dataModel.findColumn(teamMember.getInitials()+"-Time");
+            this.columnNumber = findTimeColumn();
 
             setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
             // use the color associated with the given team member.
@@ -231,28 +263,61 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             return teamMember.getHoursPerWeek().doubleValue();
         }
 
+        /** Returns the point in time when a team member plans to start */
+        public long getStartTime(long unknownValue) {
+            Date result = teamMember.getStartDate();
+            if (result == null)
+                return unknownValue;
+            else
+                return result.getTime();
+        }
+
         /** Recalculate the schedule duration for this team member, and
          * return the number of weeks in the schedule.
          */
         public double recalc() {
+            lagWeeks = numWeeks = 0;
+            double time = getTotalAssignedHours();
+            double hoursPerWeek = getHoursPerWeek();
+            if (time == 0 || hoursPerWeek == 0) {
+                String hoursString = NumericDataValue.format(time + 0.049);
+                setToolTipText(teamMember.getName()+" - "+ hoursString +
+                        " total hours");
+                return 0;
+            }
+
+            // calculate the number of weeks in this team member's schedule.
+            double startTime = getStartTime(teamStartTime);
+            lagWeeks = (startTime - teamStartTime) / MILLIS_PER_WEEK;
+            lagWeeks = Math.max(lagWeeks, 0);
+
+            double workWeeks = time / hoursPerWeek;
+            numWeeks = lagWeeks + workWeeks;
+
+            setToolTipText(teamMember.getName()+" - "+formatWeeks(numWeeks));
+            return numWeeks;
+        }
+
+        public double getTotalAssignedHours() {
             if (columnNumber == -1) {
-                // look up the time column for this team member.
-                columnNumber = dataModel.findColumn
-                    (teamMember.getInitials()+"-Time");
+                columnNumber = findTimeColumn();
                 // if we can't find a column for this team member, return
-                // a duration of 0 weeks.
+                // a total time of 0 hours.
                 if (columnNumber == -1) return 0;
             }
             // retrieve the total planned time for all tasks assigned to
             // this team member.
             NumericDataValue totalTime =
                 (NumericDataValue) dataModel.getValueAt(0, columnNumber);
-            double time = 0;
-            if (totalTime != null) time = totalTime.value;
-            // calculate the number of weeks in this team member's schedule.
-            numWeeks = time / getHoursPerWeek();
-            setToolTipText(teamMember.getName()+" - "+formatWeeks(numWeeks));
-            return numWeeks;
+            if (totalTime != null)
+                return totalTime.value;
+            else
+                return 0;
+        }
+
+        /** Look up the time column for this team member. */
+        private int findTimeColumn() {
+            return dataModel.findColumn(teamMember.getInitials()+"-Time");
         }
 
         /** Alter the horizontal position of this bar.
@@ -261,24 +326,54 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
          * member's schedule by the longest existing schedule.
          */
         public void update() {
-            if (maxNumWeeks == 0)
-                setValue(0);
-            else
-                setValue((int) (NORMALIZED_MAX * numWeeks / maxNumWeeks));
+            repaint();
         }
+
+        public void paint(Graphics g) {
+            // this will paint the background and the insets.
+            super.paint(g);
+
+            // now paint the bar.
+            double leftPos = lagWeeks / maxNumWeeks;
+            double rightPos = numWeeks / maxNumWeeks;
+            if (!badDouble(leftPos) && !badDouble(rightPos)) {
+                Rectangle bounds = getBounds();
+                Insets insets = getInsets();
+                int totalWidth = bounds.width - insets.left - insets.right;
+                int barHeight = bounds.height - insets.top - insets.bottom;
+                int barLeft = (int) (totalWidth * leftPos) + insets.left;
+                int barWidth = (int) (totalWidth * (rightPos - leftPos));
+                g.setColor(getForeground());
+                g.fillRect(barLeft, insets.top, barWidth, barHeight);
+            }
+        }
+
+        private boolean badDouble(double d) {
+            return Double.isInfinite(d) || Double.isNaN(d);
+        }
+
+
     }
 
     /** Format a real number of weeks for display.
      */
-    private static final String formatWeeks(double weeks) {
-        String num = NumericDataValue.format(weeks + 0.049);
-        if ("1".equals(num) || "1.0".equals(num))
-            return "1 week";
-        else
-            return num + " weeks";
+    private final String formatWeeks(double weeks) {
+        if (teamStartTime > 0) {
+            long when = teamStartTime + (long) (weeks * MILLIS_PER_WEEK);
+            return dateFormat.format(new Date(when));
+        } else {
+            String num = NumericDataValue.format(weeks + 0.049);
+            if ("1".equals(num) || "1.0".equals(num))
+                return "1 week";
+            else
+                return num + " weeks";
+        }
     }
 
-    private static final int NORMALIZED_MAX = 5000;
+    private DateFormat dateFormat = DateFormat.getDateInstance();
+
     private static final int BALANCED_BAR_WIDTH = 8;
+    private static final long MILLIS_PER_WEEK = 7L /*days*/ * 24 /*hours*/
+            * 60 /*min*/ * 60 /*sec*/ * 1000 /*millis*/;
 
 }
