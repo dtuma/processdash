@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -36,19 +36,19 @@ import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-
 import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.process.*;
+import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 
-// The scriptButton class activates a browser loaded with the current phase's
-// script when it is pressed.  A right click can activate a popup menu with
-// a selection of scripts.
+/** The scriptButton class activates a browser loaded with the current phase's
+ * script when it is pressed.  A right click can activate a popup menu with
+ * a selection of scripts.
+ */
 public class ScriptButton extends DropDownButton
         implements PropertyChangeListener, DashHierarchy.Listener {
 
@@ -166,7 +166,7 @@ public class ScriptButton extends DropDownButton
     }
 
     public void hierarchyChanged(DashHierarchy.Event e) {
-          updateAll();
+        updateAll();
     }
 
 }

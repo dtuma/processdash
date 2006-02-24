@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,42 +32,23 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.StringTokenizer;
 
 import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.InternalSettings;
-import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.DateData;
-import net.sourceforge.processdash.data.DoubleData;
-import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.ChangeFlagged;
-import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
-import net.sourceforge.processdash.log.time.WorkingTimeLog;
-import net.sourceforge.processdash.log.time.IONoSuchElementException;
-import net.sourceforge.processdash.log.time.ModifiableTimeLog;
-import net.sourceforge.processdash.log.time.MutableTimeLogEntry;
-import net.sourceforge.processdash.log.time.MutableTimeLogEntryVO;
-import net.sourceforge.processdash.log.time.TimeLogEntry;
-import net.sourceforge.processdash.log.time.TimeLogEntryVO;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.SoundClip;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
-import net.sourceforge.processdash.util.Stopwatch;
 
 
 public class PauseButton extends DropDownButton implements ActionListener, PropertyChangeListener {

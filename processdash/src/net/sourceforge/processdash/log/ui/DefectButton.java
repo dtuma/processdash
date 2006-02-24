@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,19 +27,20 @@
 package net.sourceforge.processdash.log.ui;
 
 import java.awt.Insets;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import javax.swing.*;
-
+import javax.swing.Icon;
+import javax.swing.JButton;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.log.DefectLogID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
-import net.sourceforge.processdash.ui.help.*;
+import net.sourceforge.processdash.ui.help.PCSH;
 
 public class DefectButton extends JButton implements ActionListener,
         PropertyChangeListener, DashHierarchy.Listener {
@@ -60,7 +61,7 @@ public class DefectButton extends JButton implements ActionListener,
         } catch (Exception e) {
             setText("Defect");
         }
-        setMargin (new Insets (1,2,1,2));
+        setMargin(new Insets(1, 2, 1, 2));
         parent = dash;
         setEnabled(false);
         setFocusPainted(false);
@@ -89,8 +90,9 @@ public class DefectButton extends JButton implements ActionListener,
 
     public void actionPerformed(ActionEvent e) {
         if (defectLogFileName != null) {
-                                  // pop up a defect log dialog
-            DefectDialog d=new DefectDialog(parent, defectLogFileName, defectPath);
+            // pop up a defect log dialog
+            DefectDialog d = new DefectDialog(parent, defectLogFileName,
+                    defectPath);
         }
     }
 
