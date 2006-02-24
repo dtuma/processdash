@@ -115,6 +115,14 @@ public class TeamProject {
         return masterProjectDirectory;
     }
 
+    /** Return true if this is a master project, false if it is a regular
+     * team project.
+     */
+    public boolean isMasterProject() {
+        NodeList nl = projectSettings.getElementsByTagName("subproject");
+        return (nl != null && nl.getLength() > 0);
+    }
+
     /** Get the read-only status of this team project */
     public boolean isReadOnly() {
         return readOnly;

@@ -32,6 +32,7 @@ public class WBSEditor implements WindowListener, SaveListener {
     TeamTimePanel teamTimePanel;
     WBSDataWriter dataWriter;
     File dataDumpFile;
+    private int mode;
     boolean readOnly = false;
     boolean exitOnClose = false;
     boolean disposed = false;
@@ -39,11 +40,25 @@ public class WBSEditor implements WindowListener, SaveListener {
     private TeamMemberListEditor teamListEditor = null;
     private WorkflowEditor workflowEditor = null;
 
+    private static final int MODE_PLAIN = 1;
+    private static final int MODE_HAS_MASTER = 2;
+    private static final int MODE_MASTER = 4;
+    private static final int MODE_BOTTOM_UP = 8;
 
     public WBSEditor(TeamProject teamProject, File dumpFile) {
         this.teamProject = teamProject;
         this.dataDumpFile = dumpFile;
         this.readOnly = teamProject.isReadOnly();
+
+        if (teamProject instanceof TeamProjectBottomUp)
+            this.mode = MODE_BOTTOM_UP;
+        else if (teamProject.isMasterProject())
+            this.mode = MODE_MASTER;
+        else {
+            this.mode = MODE_PLAIN;
+            if (teamProject.getMasterProjectDirectory() != null)
+                this.mode |= MODE_HAS_MASTER;
+        }
 
         WBSModel model = teamProject.getWBS();
         DataTableModel data = new DataTableModel
@@ -66,22 +81,27 @@ public class WBSEditor implements WindowListener, SaveListener {
                      new String[] { "Units",  "Base", "Deleted", "Modified", "Added",
                                     "Reused", "N&C", "Total" });
 
-        tabPanel.addTab("Time",
+        if (!isMode(MODE_MASTER))
+            tabPanel.addTab("Time",
                      new String[] { "Time", WBSTabPanel.TEAM_MEMBER_TIMES_ID },
                      new String[] { "Team", "" });
 
         tabPanel.addTab("Task Time",
-                     new String[] { "Phase", "Task Size", "Task Size Units", "Rate", "Hrs/Indiv", "# People", "Time", "Assigned To" },
-                     new String[] { "Phase", "Task Size", "Units", "Rate", "Hrs/Indiv", "# People",
-                         "Time", "Assigned To" });
+                new String[] { "Phase", "Task Size", "Task Size Units", "Rate",
+                        ifMode(MODE_PLAIN, "Hrs/Indiv"),
+                        ifMode(MODE_PLAIN, "# People"),
+                        (isMode(MODE_MASTER) ? "TimeNoErr" : "Time"),
+                        ifNotMode(MODE_MASTER, "Assigned To") },
+                new String[] { "Phase", "Task Size", "Units", "Rate",
+                        "Hrs/Indiv", "# People", "Time", "Assigned To" });
 
         //String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         //table.addTab("Defects", s, s);
 
         teamTimePanel =
             new TeamTimePanel(teamProject.getTeamMemberList(), data);
-        teamTimePanel.setVisible(false);
-        if (teamProject instanceof TeamProjectBottomUp)
+        teamTimePanel.setVisible(isMode(MODE_BOTTOM_UP));
+        if (isMode(MODE_BOTTOM_UP))
             teamTimePanel.setShowBalancedBar(false);
 
         frame = new JFrame
@@ -92,6 +112,16 @@ public class WBSEditor implements WindowListener, SaveListener {
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(this);
         frame.pack();
+    }
+
+    private String ifMode(int m, String id) {
+        return (isMode(m) ? id : null);
+    }
+    private String ifNotMode(int m, String id) {
+        return (isMode(m) ? null : id);
+    }
+    private boolean isMode(int m) {
+        return ((mode & m) != 0);
     }
 
     public void setExitOnClose(boolean exitOnClose) {
@@ -131,12 +161,14 @@ public class WBSEditor implements WindowListener, SaveListener {
 
         result.add(buildFileMenu());
         result.add(buildEditMenu(tabPanel.getEditingActions()));
-        result.add(buildWorkflowMenu
-            (workflows, tabPanel.getInsertWorkflowAction(workflows)));
-        if (teamProject.getMasterProjectDirectory() != null)
+        if (!isMode(MODE_BOTTOM_UP))
+            result.add(buildWorkflowMenu
+                (workflows, tabPanel.getInsertWorkflowAction(workflows)));
+        if (isMode(MODE_HAS_MASTER))
             result.add(buildMasterMenu(tabPanel.getMasterActions(
                     teamProject.getMasterProjectDirectory())));
-        result.add(buildTeamMenu());
+        if (!isMode(MODE_MASTER))
+            result.add(buildTeamMenu());
 
         return result;
     }
@@ -177,7 +209,8 @@ public class WBSEditor implements WindowListener, SaveListener {
     private JMenu buildTeamMenu() {
         JMenu result = new JMenu("Team");
         result.setMnemonic('T');
-        result.add(new ShowTeamMemberListEditorMenuItem());
+        if (isMode(MODE_PLAIN))
+            result.add(new ShowTeamMemberListEditorMenuItem());
         result.add(new ShowTeamTimePanelMenuItem());
         return result;
     }
@@ -376,6 +409,7 @@ public class WBSEditor implements WindowListener, SaveListener {
         public ShowTeamTimePanelMenuItem() {
             super("Show Bottom Up Time Panel");
             setMnemonic('B');
+            setSelected(teamTimePanel.isVisible());
             addChangeListener(this);
         }
         public void stateChanged(ChangeEvent e) {

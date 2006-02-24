@@ -30,6 +30,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     TimePerPersonColumn timePerPersonColumn;
     NumPeopleColumn numPeopleColumn;
     ResourcesColumn resourcesColumn;
+    TeamTimeNoErrorColumn noErrorColumn;
 
 
     public TeamTimeColumn(DataTableModel m) {
@@ -43,6 +44,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         m.addDataColumn(timePerPersonColumn = new TimePerPersonColumn());
         m.addDataColumn(numPeopleColumn = new NumPeopleColumn());
         m.addDataColumn(resourcesColumn = new ResourcesColumn());
+        m.addDataColumn(noErrorColumn = new TeamTimeNoErrorColumn());
     }
 
 
@@ -63,8 +65,13 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
 
     public Object getValueAt(WBSNode node) {
+        return getValueAt(node, false);
+    }
+
+    public Object getValueAt(WBSNode node, boolean ignoreErrors) {
         NumericDataValue result = (NumericDataValue) super.getValueAt(node);
-        if (result == null || result.errorMessage != null) return result;
+        if (result == null || result.errorMessage != null || ignoreErrors)
+            return result;
 
         boolean needsAssigning = false;
         LeafNodeData leafData = getLeafNodeData(node);
@@ -685,6 +692,47 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         ("???", "Task needs to be assigned to individual(s)");
     private static Pattern TIME_SETTING_PATTERN =
         Pattern.compile("([a-zA-Z]+)[^a-zA-Z0-9\\.]*([0-9\\.]+)?");
+
+
+
+    /** A column which displays the same data as the main team time column,
+     * but which does not attach errors for missing estimates or assignments. */
+    private class TeamTimeNoErrorColumn extends AbstractNumericColumn
+        implements CalculatedDataColumn {
+
+        private int teamTimeColumn = -1;
+
+        public TeamTimeNoErrorColumn() {
+            this.columnName = "Time";
+            this.columnID = "TimeNoErr";
+            this.preferredWidth = 55;
+            this.dependentColumns = new String[] { "Time" };
+        }
+
+        public Object getValueAt(WBSNode node) {
+            return TeamTimeColumn.this.getValueAt(node, true);
+        }
+
+        public boolean isCellEditable(WBSNode node) {
+            return TeamTimeColumn.this.isCellEditable(node);
+        }
+
+        public void setValueAt(Object aValue, WBSNode node) {
+            if (teamTimeColumn != -1)
+                dataModel.setValueAt(aValue, node, teamTimeColumn);
+        }
+
+        public boolean recalculate() { return true; }
+
+        public void storeDependentColumn(String ID, int columnNumber) {
+            if ("Time".equals(ID))
+                teamTimeColumn = columnNumber;
+        }
+
+        public void resetDependentColumns() {
+            teamTimeColumn = -1;
+        }
+    }
 
 
 

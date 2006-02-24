@@ -106,7 +106,9 @@ public class WBSTabPanel extends JPanel
         TableColumnModel columnModel = new DefaultTableColumnModel();
 
         for (int i = 0; i < columnIDs.length; i++) {
-            if (TEAM_MEMBER_TIMES_ID.equals(columnIDs[i]))
+            if (columnIDs[i] == null)
+                continue;
+            else if (TEAM_MEMBER_TIMES_ID.equals(columnIDs[i]))
                 tableModel.addTeamMemberTimes(columnModel);
             else {
                 TableColumn tableColumn =
