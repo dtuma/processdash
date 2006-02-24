@@ -298,6 +298,20 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             }
         }catch (Exception e) { logErr("open datafiles failed!", e); };
 
+        // open the global data file.
+        try {
+            data.openDatafile("", property_directory + "global.dat");
+        } catch (FileNotFoundException exc) {
+            // if the user doesn't have a global data file, create one
+            // for them from the default template.
+            HierarchyEditor.createDataFile (property_directory + "global.dat",
+                                          "dataFile.txt");
+            openDatafile("", "global.dat");
+
+        } catch (Exception exc) {
+            logErr("when generating default datafile, caught exception", exc);
+        }
+
         configure_button = new ConfigureButton(this);
         addToMainWindow(configure_button, 0);
         PCSH.enableHelpKey(this, "QuickOverview");
@@ -312,19 +326,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         completion_button = new CompletionButton(this, activeTaskModel);
         addToMainWindow(completion_button, 0);
 
-        // open the global data file.
-        try {
-            data.openDatafile("", property_directory + "global.dat");
-        } catch (FileNotFoundException exc) {
-            // if the user doesn't have a global data file, create one
-            // for them from the default template.
-            HierarchyEditor.createDataFile (property_directory + "global.dat",
-                                          "dataFile.txt");
-            openDatafile("", "global.dat");
-
-        } catch (Exception exc) {
-            logErr("when generating default datafile, caught exception", exc);
-        }
         ImportManager.init(data);
         data.finishInconsistency();
         ExportManager.init(data, this);
@@ -588,7 +589,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     }
 
 
-        public void windowOpened(WindowEvent w) {}
+    public void windowOpened(WindowEvent w) {}
     public void windowClosed(WindowEvent w) {}
     public void windowIconified(WindowEvent w) {}
     public void windowDeiconified(WindowEvent w) {}
