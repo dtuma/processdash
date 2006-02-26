@@ -90,13 +90,19 @@ public class EVWeekReport extends TinyCGIBase {
         EVMetrics  metrics = schedule.getMetrics();
         totalPlanTime = metrics.totalPlan();
 
-        //FIXME: allow the user to change the effective date somehow.
         String effDateParam = getParameter(EFF_DATE_PARAM);
         Date effDateTime = null;
         if (effDateParam != null) try {
             effDateTime = new Date(Long.parseLong(effDateParam));
         } catch (Exception e) {}
-        if (effDateTime == null) effDateTime = new Date();
+        if (effDateTime == null)
+            // if the user hasn't specified an effective date, then use the
+            // current time to round the effective date to the nearest week.
+            // With a Sunday - Saturday schedule, the following line will show
+            // the report for the previous week through Tuesday, and will
+            // start showing the next week's report on Wednesday.
+            effDateTime = new Date(System.currentTimeMillis()
+                    + EVSchedule.WEEK_MILLIS * 3 / 7);
 
         // by default, look at the EV model and find the start of the current
         // period; use that as the effective date.
@@ -168,6 +174,10 @@ public class EVWeekReport extends TinyCGIBase {
         out.print("<h2>");
         String endDateStr = encodeHTML(new Date(effDate.getTime() - 1000));
                 out.print(resources.format("Header_HTML_FMT", endDateStr));
+        if (!parameters.containsKey("EXPORT")) {
+            printNavLink(lastWeek, effDate, schedule, "Previous");
+            printNavLink(nextWeek, effDate, schedule, "Next");
+        }
         out.print("</h2>\n");
 
         Map errors = metrics.getErrors();
@@ -289,6 +299,22 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
 
+    private void printNavLink(Date weekStart, Date effDate, EVSchedule schedule,
+            String resKey) {
+        long effTime = weekStart.getTime() + 1000;
+        Date newEffDate = schedule.getPeriodStart(new Date(effTime));
+        if (newEffDate.equals(effDate))
+            return;
+
+        out.print("&nbsp;&nbsp;<span class='nav'><a href='week.class?"
+                + EFF_DATE_PARAM + "=");
+        out.print(effTime);
+        out.print("'>");
+        out.print(resources.getHTML(resKey));
+        out.print("</a></span>");
+    }
+
+
     private long parseTime(Object time) {
         if (time == null) return 0;
         long result = FormatUtil.parseTime(time.toString());
@@ -400,7 +426,10 @@ public class EVWeekReport extends TinyCGIBase {
         "td.error  { font-style: italic;  color: red }\n" +
         "td.timefmt { vnd.ms-excel.numberformat: [h]\\:mm }\n" +
         "td.header { text-align:center; font-weight:bold; "+
-                           " vertical-align:bottom } </style>\n"+
+                           " vertical-align:bottom }\n" +
+        "span.nav { font-size: medium;  font-style: italic; " +
+                           " font-weight: normal }\n" +
+        "</style>\n"+
         "</head><body><h1>%title%</h1>\n";
 
     static final String EXPORT_HTML =
