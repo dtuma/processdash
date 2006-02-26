@@ -2,6 +2,7 @@ package teamdash.wbs;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,11 +24,25 @@ public class TeamProjectBottomUp extends TeamProject {
 
     private FileWatcher watcher;
 
+    private boolean mergeSimilarNodes;
+
+    private Set ignoredSubprojects;
+
     public TeamProjectBottomUp(File directory, String projectName) {
+        this(directory, projectName, true, true, null);
+    }
+
+    protected TeamProjectBottomUp(File directory, String projectName,
+            boolean mergeSimilar, boolean autoReload, Set ignoredSubprojects) {
         super(directory, projectName);
         super.setReadOnly(true);
+        this.mergeSimilarNodes = mergeSimilar;
+        this.ignoredSubprojects = (ignoredSubprojects != null
+                ? ignoredSubprojects : Collections.EMPTY_SET);
+
         reloadBottomUpData();
-        watcher = new FileWatcher();
+        if (autoReload)
+            watcher = new FileWatcher();
     }
 
     public void dispose() {
@@ -37,7 +52,6 @@ public class TeamProjectBottomUp extends TeamProject {
     public String getProjectName() {
         return super.getProjectName() + " (Bottom Up)";
     }
-
 
     public void setReadOnly(boolean readOnly) {
         // do nothing.  We don't want to allow anyone to make this
@@ -59,15 +73,22 @@ public class TeamProjectBottomUp extends TeamProject {
         else {
             // if the work breakdown structure is not null, then someone else
             // is calling us, requesting data to be reloaded.
-            openProjectSettings();
-            reloadBottomUpData();
+            maybeReload();
         }
     }
 
+    public boolean maybeReload() {
+        openProjectSettings();
+        return reloadBottomUpData();
+    }
 
-    private void reloadBottomUpData() {
-        if (refreshSubprojects())
+    private boolean reloadBottomUpData() {
+        if (refreshSubprojects()) {
             recalculateBottomUpData();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private boolean refreshSubprojects() {
@@ -84,6 +105,10 @@ public class TeamProjectBottomUp extends TeamProject {
         NodeList nl = settings.getElementsByTagName("subproject");
         for (int i = 0; i < nl.getLength(); i++) {
             Element subprojectElem = (Element) nl.item(i);
+            String projectID = subprojectElem.getAttribute("projectID");
+            if (ignoredSubprojects.contains(projectID))
+                continue;
+
             String shortName = subprojectElem.getAttribute("shortName");
 
             TeamProject subproject = (TeamProject) subprojects.get(shortName);
@@ -197,7 +222,7 @@ public class TeamProjectBottomUp extends TeamProject {
         WBSModel subprojectWBS = subproject.getWBS();
 
         MasterWBSUtil.mergeFromSubproject(subprojectWBS, projectID, shortName,
-                teamMemberInitials, newWbs);
+                teamMemberInitials, mergeSimilarNodes == false, newWbs);
     }
 
     private List getTeamMemberInitials(TeamProject proj) {

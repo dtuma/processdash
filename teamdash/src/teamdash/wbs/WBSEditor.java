@@ -50,20 +50,12 @@ public class WBSEditor implements WindowListener, SaveListener {
         this.dataDumpFile = dumpFile;
         this.readOnly = teamProject.isReadOnly();
 
-        if (teamProject instanceof TeamProjectBottomUp)
-            this.mode = MODE_BOTTOM_UP;
-        else if (teamProject.isMasterProject())
-            this.mode = MODE_MASTER;
-        else {
-            this.mode = MODE_PLAIN;
-            if (teamProject.getMasterProjectDirectory() != null)
-                this.mode |= MODE_HAS_MASTER;
-        }
+        setMode(teamProject);
 
         WBSModel model = teamProject.getWBS();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
-             teamProject.getTeamProcess());
+             teamProject.getTeamProcess(), getTaskDependencySource());
         dataWriter = new WBSDataWriter(model, data, teamProject.getTeamProcess());
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess());
         tabPanel.setReadOnly(readOnly);
@@ -95,6 +87,10 @@ public class WBSEditor implements WindowListener, SaveListener {
                 new String[] { "Phase", "Task Size", "Units", "Rate",
                         "Hrs/Indiv", "# People", "Time", "Assigned To" });
 
+        tabPanel.addTab("Task Details",
+                new String[] { "Dependencies" },
+                new String[] { "Task Dependencies" });
+
         //String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         //table.addTab("Defects", s, s);
 
@@ -114,6 +110,18 @@ public class WBSEditor implements WindowListener, SaveListener {
         frame.pack();
     }
 
+    private void setMode(TeamProject teamProject) {
+        if (teamProject instanceof TeamProjectBottomUp)
+            this.mode = MODE_BOTTOM_UP;
+        else if (teamProject.isMasterProject())
+            this.mode = MODE_MASTER;
+        else {
+            this.mode = MODE_PLAIN;
+            if (teamProject.getMasterProjectDirectory() != null)
+                this.mode |= MODE_HAS_MASTER;
+        }
+    }
+
     private String ifMode(int m, String id) {
         return (isMode(m) ? id : null);
     }
@@ -121,7 +129,14 @@ public class WBSEditor implements WindowListener, SaveListener {
         return (isMode(m) ? null : id);
     }
     private boolean isMode(int m) {
-        return ((mode & m) != 0);
+        return ((mode & m) == m);
+    }
+
+    private TaskDependencySource getTaskDependencySource() {
+        if (isMode(MODE_PLAIN + MODE_HAS_MASTER))
+            return new TaskDependencySourceMaster(teamProject);
+        else
+            return new TaskDependencySourceSimple(teamProject);
     }
 
     public void setExitOnClose(boolean exitOnClose) {

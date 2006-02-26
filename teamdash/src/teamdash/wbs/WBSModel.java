@@ -204,6 +204,17 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return null;
     }
 
+    public String getFullName(WBSNode n) {
+        WBSNode parent = getParent(n);
+        if (parent != null)
+            return getFullName(parent) + "/" + n.getName();
+        else if (n == getRoot())
+            return "/" + n.getName();
+        else
+            // the given node doesn't exist in our node list.
+            return null;
+    }
+
     public IntList getChildIndexes(Object n) {
         int pos = wbsNodes.indexOf(n);
         if (pos == -1) return null;

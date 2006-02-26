@@ -14,13 +14,14 @@ public class WorkflowModel extends DataTableModel {
 
 
     public WorkflowModel(WBSModel workflows, TeamProcess teamProcess) {
-        super(workflows, null, teamProcess);
+        super(workflows, null, teamProcess, null);
     }
 
     /** override and create only the columns we're interested in.
      */
     protected void buildDataColumns(TeamMemberList teamList,
-                                    TeamProcess teamProcess)
+                                    TeamProcess teamProcess,
+                                    TaskDependencySource dependencySource)
     {
         addDataColumn(new WBSNodeColumn(wbsModel));
         addDataColumn(new WorkflowPercentageColumn(wbsModel));

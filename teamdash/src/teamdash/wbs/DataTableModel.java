@@ -19,6 +19,7 @@ import teamdash.TeamMemberList;
 import teamdash.wbs.columns.NullDataColumn;
 import teamdash.wbs.columns.PhaseColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
+import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskSizeColumn;
 import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamMemberColumnManager;
@@ -49,7 +50,8 @@ public class DataTableModel extends AbstractTableModel {
     private boolean disableEditing = false;
 
     public DataTableModel(WBSModel wbsModel, TeamMemberList teamList,
-                          TeamProcess teamProcess)
+                          TeamProcess teamProcess,
+                          TaskDependencySource dependencySource)
     {
         this.wbsModel = wbsModel;
         wbsModel.addTableModelListener(new TableModelEventRepeater());
@@ -61,7 +63,7 @@ public class DataTableModel extends AbstractTableModel {
         recalcJanitorTimer.setRepeats(false);
         recalcJanitorTimer.setInitialDelay(3000);
 
-        buildDataColumns(teamList, teamProcess);
+        buildDataColumns(teamList, teamProcess, dependencySource);
         initializeColumnDependencies();
     }
 
@@ -246,13 +248,16 @@ public class DataTableModel extends AbstractTableModel {
 
     /** Create a set of data columns for this data model. */
     protected void buildDataColumns(TeamMemberList teamList,
-                                    TeamProcess teamProcess)
+                                    TeamProcess teamProcess,
+                                    TaskDependencySource dependencySource)
     {
         SizeTypeColumn.createSizeColumns(this);
         addDataColumn(new PhaseColumn());
         addDataColumn(new TaskSizeColumn(this));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new TeamTimeColumn(this));
+        addDataColumn(new TaskDependencyColumn(this, dependencySource,
+                teamProcess.getIconMap()));
         memberColumnManager = new TeamMemberColumnManager(this, teamList);
     }
 

@@ -3,6 +3,8 @@ package teamdash.wbs;
 import java.util.Iterator;
 import java.util.List;
 
+import teamdash.wbs.columns.TaskDependencyColumn;
+
 
 public class MasterWBSUtil {
 
@@ -45,8 +47,10 @@ public class MasterWBSUtil {
             dest.setReadOnly(src != null);
             copyAttr(src, dest, MASTER_NODE_ID, true);
             copyAttr(src, dest, MASTER_PARENT_ID, true);
-            if (src != null)
+            if (src != null) {
                 dest.setName(src.getName());
+                copyAttr(src, dest, TaskDependencyColumn.ATTR_NAME, true);
+            }
         }
 
     }
@@ -92,11 +96,11 @@ public class MasterWBSUtil {
 
     public static int[] mergeFromSubproject(WBSModel subproject,
             String subprojectID, String shortName, List teamMemberInitials,
-            WBSModel dest) {
+            boolean useShortNamesInRollup, WBSModel dest) {
         WBSModel working = new WBSModel();
         working.copyFrom(subproject);
         SubprojectNodeTweaker worker = new SubprojectNodeTweaker(shortName,
-                subprojectID, teamMemberInitials);
+                subprojectID, teamMemberInitials, useShortNamesInRollup);
         visitWBS(working, worker);
         return dest.mergeWBSModel(working, worker, MASTER_NODE_COMPARATOR);
     }
@@ -108,14 +112,23 @@ public class MasterWBSUtil {
 
         List memberInitials;
 
+        boolean useShortNamesInRollup;
+
         public SubprojectNodeTweaker(String shortName, String projectID,
-                List memberInitials) {
+                List memberInitials, boolean useShortNamesInRollup) {
             this.shortName = shortName;
             this.projectID = projectID;
             this.memberInitials = memberInitials;
+            this.useShortNamesInRollup = useShortNamesInRollup;
         }
 
         public void visit(WBSNode parent, WBSNode node) {
+            if (useShortNamesInRollup
+                    && node.getAttribute(MASTER_NODE_ID) == null) {
+                String newName = node.getName() + " (" + shortName + ")";
+                node.setName(newName);
+            }
+
             node.setReadOnly(false);
 
             String nodeID = projectID + ":" + node.getUniqueID();
@@ -127,8 +140,10 @@ public class MasterWBSUtil {
                 String initials = (String) i.next();
                 double memberTime = node.getNumericAttribute(initials
                         + "-Time (Top Down)");
-                if (memberTime > 0)
+                if (memberTime > 0) {
                     assignedTime += memberTime;
+                    node.setAttribute(initials+ "-Time (Top Down)", null);
+                }
             }
             if (assignedTime > 0)
                 node.setNumericAttribute(shortName + "-Time (Top Down)",
@@ -136,12 +151,23 @@ public class MasterWBSUtil {
         }
 
         public void mergeNodes(WBSNode src, WBSNode dest) {
-            copyAttr(src, dest, shortName + "-Time (Top Down)", true);
-            // FIXME: currently, if two subproject define a node with
-            // the same name, this is not merging a lot of the information.
-            // for example, the final node will have a single projectNodeID.
+            if (src != null)
+                for (Iterator i = src.listAttributeNames().iterator(); i.hasNext();) {
+                    String attrName = (String) i.next();
+                    if (attrName.endsWith(" (Top Down)"))
+                        sumAttr(src, dest, attrName);
+                }
         }
 
+    }
+
+    public static String getNodeID(WBSNode node, String projectID) {
+        String result = (String) node.getAttribute(MASTER_NODE_ID);
+        if (result == null)
+            result = (String) node.getAttribute(PROJECT_NODE_ID);
+        if (result == null)
+            result = projectID + ":" + node.getUniqueID();
+        return result;
     }
 
     public static void visitWBS(WBSModel wbs, WBSNodeVisitor visitor) {
@@ -163,6 +189,17 @@ public class MasterWBSUtil {
             Object attrVal = (src == null ? null : src.getAttribute(attrName));
             if (attrVal != null || copyNull)
                 dest.setAttribute(attrName, attrVal);
+        }
+    }
+
+    private static void sumAttr(WBSNode src, WBSNode dest, String attrName) {
+        if (dest != null && src != null) {
+            double srcVal = src.getNumericAttribute(attrName);
+            if (!Double.isNaN(srcVal)) {
+                double destVal = dest.getNumericAttribute(attrName);
+                destVal = (Double.isNaN(destVal) ? srcVal : srcVal + destVal);
+                dest.setNumericAttribute(attrName, destVal);
+            }
         }
     }
 

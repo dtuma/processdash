@@ -42,6 +42,7 @@ public class IntList {
     /** Add all of the <code>int</code> values from the other list to
      * the end of this list */
     public synchronized void addAll(IntList other) {
+        ensureCapacity(length + other.size());
         for (int i = 0;   i < other.size();   i++)
             add(other.get(i));
     }
