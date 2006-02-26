@@ -66,6 +66,10 @@ class TinyWebServer extends Thread {
     /** is the web server still running? */
     protected volatile boolean isRunning;
 
+    /** How long do we wait (with no new connections) before shutting down?
+     * 0 == forever */
+    protected int shutdownWaitTime = 0;
+
     /** when did we receive our last HTTP request? */
     protected long lastRequestTime;
 
@@ -82,6 +86,8 @@ class TinyWebServer extends Thread {
         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
 
     protected static final String CRLF = "\r\n";
+    protected static final int MILLIS_PER_MINUTE = 60 * 1000;
+
 
     static {
         try {
@@ -337,7 +343,20 @@ class TinyWebServer extends Thread {
         else
             serverSocket = new ServerSocket
                 (port, 50, InetAddress.getByName("localhost"));
+        serverSocket.setSoTimeout(MILLIS_PER_MINUTE);
         this.port = serverSocket.getLocalPort();
+    }
+
+
+    /** Configure this web server to shut down if a given time period elapses
+     * with no new incoming requests.
+     */
+    public void setShutdownWaitTime(int minutes) {
+        this.shutdownWaitTime = minutes;
+    }
+
+    public int getShutdownWaitTime() {
+        return shutdownWaitTime;
     }
 
 
@@ -370,6 +389,13 @@ class TinyWebServer extends Thread {
             serverThreads.addElement(serverThread);
             serverThread.start();
 
+        } catch (SocketTimeoutException ste) {
+            long waitTime = System.currentTimeMillis() - lastRequestTime;
+            int waitMinutes = (int) (waitTime / MILLIS_PER_MINUTE);
+            if (shutdownWaitTime != 0 && waitMinutes >= shutdownWaitTime) {
+                isRunning = false;
+                break;
+            }
         } catch (IOException e) { }
 
         while (serverThreads.size() > 0) {

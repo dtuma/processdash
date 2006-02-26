@@ -44,6 +44,7 @@ public class Main {
 
             // start a new zip web server
             JarWebServer w = new JarWebServer(jarData);
+            w.setShutdownWaitTime(15);
             w.start();
 
             // open the default page in the user's web browser
