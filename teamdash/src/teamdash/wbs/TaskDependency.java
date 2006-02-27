@@ -20,7 +20,13 @@ public class TaskDependency {
     public TaskDependency(String nodeID, String displayName) {
         this.nodeID = nodeID;
         this.displayName = displayName;
-        this.hasError = false;
+        if (displayName != null) {
+            this.displayName = displayName;
+            this.hasError = false;
+        } else {
+            this.displayName = TaskDependencySource.UNKNOWN_NODE_DISPLAY_NAME;
+            this.hasError = true;
+        }
     }
 
     /**
