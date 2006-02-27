@@ -283,7 +283,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return result;
     }
 
-    protected WBSNode[] getDescendants(WBSNode node) {
+    public WBSNode[] getDescendants(WBSNode node) {
         int nodePos = wbsNodes.indexOf(node);
         IntList descendantIndexes = getDescendantIndexes(node, nodePos);
         WBSNode[] result = new WBSNode[descendantIndexes.size()];

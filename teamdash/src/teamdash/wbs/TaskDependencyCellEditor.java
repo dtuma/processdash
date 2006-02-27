@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
 import java.util.Arrays;
 import java.util.EventObject;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -48,9 +49,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
      * opening the dependency editing dialog.  */
     private String[] errMsg;
 
-    /** The comma-separated list of node IDs specifying the task dependencies
-     * that we are editing.  */
-    private String value;
+    /** The list of TaskDependencies that we are editing.  */
+    private TaskDependencyList value;
 
 
     public TaskDependencyCellEditor(TaskDependencySource dependencySource,
@@ -82,14 +82,22 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             this.errMsg = READ_ONLY_ERROR;
         else {
             this.path = wbsModel.getFullName(node);
-            this.value = (String) value;
+            this.value = unwrap(value);
             loadUIData();
         }
 
-        button.setText(renderer.getDisplayValue(value).toString());
+        button.setText(this.value == null ? null : this.value.toString());
         return button;
     }
 
+
+    private TaskDependencyList unwrap(Object obj) {
+        if (obj instanceof ErrorValue)
+            obj = ((ErrorValue) obj).value;
+        if (obj instanceof ReadOnlyValue)
+            obj = ((ReadOnlyValue) obj).value;
+        return (TaskDependencyList) obj;
+    }
 
     public void buttonClicked() {
         if (errMsg != null) {
@@ -115,8 +123,6 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
     /// variables used by the user interface logic
 
     private JButton button;
-
-    private TaskDependencyCellRenderer renderer;
 
     private DependencyTableModel dependencies;
 
@@ -149,8 +155,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
 
         dependencies = new DependencyTableModel();
         dependencyTable = new JTable(dependencies);
-        renderer = new TaskDependencyCellRenderer(dependencySource);
-        dependencyTable.setDefaultRenderer(Object.class, renderer);
+        dependencyTable.setDefaultRenderer(Object.class,
+                new TaskDependencyCellRenderer());
         scrollPane = new JScrollPane(dependencyTable);
         components.add(scrollPane);
         components.add(Box.createRigidArea(new Dimension(5, 5)));
@@ -205,35 +211,33 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             return false;
         }
 
-        public void setValue(String value) {
+        public void setValue(TaskDependencyList value) {
             setRowCount(0);
             if (value != null) {
-                String[] idList = value.split(",");
-                for (int i = 0; i < idList.length; i++)
-                    addRow(new Object[] { idList[i] });
+                for (Iterator i = value.iterator(); i.hasNext();)
+                    addRow(new Object[] { i.next() });
             }
         }
 
-        public String getValue() {
+        public TaskDependencyList getValue() {
             if (getRowCount() == 0) {
                 return null;
             } else {
-                StringBuffer newValue = new StringBuffer();
+                TaskDependencyList result = new TaskDependencyList();
                 for (int i = 0; i < getRowCount(); i++) {
-                    Object id = getValueAt(i, 0);
-                    newValue.append(",").append(id);
+                    result.add(getValueAt(i, 0));
                 }
-                return newValue.substring(1);
+                return result;
             }
         }
 
-        public void addDependency(String nodeID) {
+        public void addDependency(TaskDependency d) {
             for (int i = 0; i < getRowCount(); i++) {
                 Object o = getValueAt(i, 0);
-                if (nodeID.equals(o))
+                if (d.equals(o))
                     return;
             }
-            addRow(new Object[] { nodeID });
+            addRow(new Object[] { d });
         }
     }
 
@@ -259,7 +263,9 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             for (int i = rows.length; i-- > 0;) {
                 WBSNode node = model.getNodeForRow(rows[i]);
                 String nodeID = dependencySource.getNodeID(node);
-                dependencies.addDependency(nodeID);
+                TaskDependency d = new TaskDependency(nodeID, null);
+                d.update(dependencySource);
+                dependencies.addDependency(d);
             }
         }
 

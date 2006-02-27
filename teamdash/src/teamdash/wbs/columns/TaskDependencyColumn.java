@@ -1,5 +1,6 @@
 package teamdash.wbs.columns;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.table.TableCellEditor;
@@ -10,9 +11,12 @@ import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ReadOnlyValue;
+import teamdash.wbs.TaskDependency;
 import teamdash.wbs.TaskDependencyCellEditor;
 import teamdash.wbs.TaskDependencyCellRenderer;
+import teamdash.wbs.TaskDependencyList;
 import teamdash.wbs.TaskDependencySource;
+import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 /**
@@ -27,11 +31,24 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
     /** The name for this column */
     private static final String COLUMN_NAME = "Task Dependencies";
 
-    /** The attribute this column uses to store its data on WBS nodes */
-    public static final String ATTR_NAME = "Dependencies";
+    /**
+     * The attribute this column uses to store the list of dependent nodeIDs for
+     * a WBS node
+     */
+    public static final String ID_LIST_ATTR = "Dependencies";
+
+    /**
+     * The attribute this column uses to store the name of a dependent task,
+     * whose nodeID appeared in the list held by ID_ATTR
+     */
+    public static final String NAME_ATTR_PREFIX = "Dependency Name ";
+
+    /** An attribute for holding working data about dependencies */
+    private static final String TASK_LIST_ATTR = "Dependency_List";
+
 
     /** The data model to which this column belongs */
-    protected DataTableModel dataModel;
+    private DataTableModel dataModel;
 
     /** The model describing tasks that we can depend upon */
     private TaskDependencySource dependencySource;
@@ -57,18 +74,18 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
     }
 
     public Object getValueAt(WBSNode node) {
-        Object result = node.getAttribute(ATTR_NAME);
+        TaskDependencyList list = (TaskDependencyList) node
+                .getAttribute(TASK_LIST_ATTR);
+        Object result = list;
         if (node.getIndentLevel() == 0 || node.isReadOnly())
             result = new ReadOnlyValue(result);
         return result;
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
-        node.setAttribute(ATTR_NAME, aValue);
-    }
-
-    public boolean recalculate() {
-        return true;
+        TaskDependencyList list = (TaskDependencyList) aValue;
+        node.setAttribute(TASK_LIST_ATTR, list);
+        writeDependenciesToNode(node, list);
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {
@@ -79,7 +96,86 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
     }
 
     public TableCellRenderer getCellRenderer() {
-        return new TaskDependencyCellRenderer(dependencySource);
+        return new TaskDependencyCellRenderer();
+    }
+
+    public boolean recalculate() {
+        boolean result = false;
+        WBSModel wbs = dataModel.getWBSModel();
+        WBSNode[] allNodes = wbs.getDescendants(wbs.getRoot());
+        for (int i = 0; i < allNodes.length; i++) {
+            if (recalculate(allNodes[i]))
+                result = true;
+        }
+        return result;
+    }
+
+    /** Recalculate data for one node. Return true if changes were made. */
+    private boolean recalculate(WBSNode n) {
+        boolean result = false;
+        // retrieve the list of TaskDependencies for this node.
+        TaskDependencyList list = (TaskDependencyList) n
+                .getAttribute(TASK_LIST_ATTR);
+        if (list != null) {
+            // if that list exists, update each of its tasks.
+            if (list.update(dependencySource))
+                result = true;
+
+        } else {
+            // the list doesn't exist. Try recalculating it.
+            list = readDependenciesForNode(n);
+            if (list != null) {
+                // the list wasn't there, but it needs to be. Save it.
+                n.setAttribute(TASK_LIST_ATTR, list);
+                result = true;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Read the data contained in the ID_LIST and NAME attributes, and construct
+     * a list of TaskDependency objects. If this task has no dependencies,
+     * returns null.
+     */
+    private TaskDependencyList readDependenciesForNode(WBSNode node) {
+        String idList = (String) node.getAttribute(ID_LIST_ATTR);
+        if (idList == null || idList.length() == 0)
+            return null;
+
+        TaskDependencyList result = new TaskDependencyList();
+        String[] ids = idList.split(",");
+        for (int i = 0; i < ids.length; i++) {
+            String id = ids[i];
+            String name = (String) node.getAttribute(NAME_ATTR_PREFIX + i);
+            TaskDependency d = new TaskDependency(id, name);
+            d.update(dependencySource);
+            node.setAttribute(NAME_ATTR_PREFIX + i, d.displayName);
+            result.add(d);
+        }
+        return result;
+    }
+
+    /**
+     * Save information from the given list of TaskDependency objects into the
+     * ID_LIST and NAME attributes of the given node.
+     */
+    private void writeDependenciesToNode(WBSNode node, TaskDependencyList list) {
+        int pos = 0;
+        if (list == null || list.isEmpty()) {
+            node.setAttribute(ID_LIST_ATTR, null);
+        } else {
+            StringBuffer idList = new StringBuffer();
+            for (Iterator i = list.iterator(); i.hasNext();) {
+                TaskDependency d = (TaskDependency) i.next();
+                idList.append(",").append(d.nodeID);
+                node.setAttribute(NAME_ATTR_PREFIX + (pos++), d.displayName);
+            }
+            node.setAttribute(ID_LIST_ATTR, idList.substring(1));
+        }
+        for (int j = 0; j < 10; j++)
+            node.setAttribute(NAME_ATTR_PREFIX + (pos++), null);
     }
 
 }

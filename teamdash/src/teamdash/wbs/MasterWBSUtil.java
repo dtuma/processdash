@@ -49,7 +49,7 @@ public class MasterWBSUtil {
             copyAttr(src, dest, MASTER_PARENT_ID, true);
             if (src != null) {
                 dest.setName(src.getName());
-                copyAttr(src, dest, TaskDependencyColumn.ATTR_NAME, true);
+                copyAttr(src, dest, TaskDependencyColumn.ID_LIST_ATTR, true);
             }
         }
 
