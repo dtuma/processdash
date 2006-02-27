@@ -20,10 +20,11 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -73,6 +74,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
     public Component getTableCellEditorComponent(JTable table, Object value,
             boolean isSelected, int row, int column) {
 
+        this.value = null;
+
         DataTableModel dataModel = (DataTableModel) table.getModel();
         WBSModel wbsModel = dataModel.getWBSModel();
         WBSNode node = wbsModel.getNodeForRow(row);
@@ -108,9 +111,9 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             return;
         }
 
-        int userResponse = JOptionPane.showConfirmDialog(null,
-                dialogComponents, "Edit Task Predecessors",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
+        closedProgrammatically = false;
+
+        int userResponse = setupAndShowDialog();
 
         if (closedProgrammatically || userResponse == JOptionPane.OK_OPTION) {
             unloadUIData();
@@ -118,6 +121,28 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         } else {
             cancelCellEditing();
         }
+    }
+
+    private int setupAndShowDialog() {
+        if (dialog == null) {
+            dialog = optionPane.createDialog(button, "Edit Task Predecessors");
+            dialog.setResizable(true);
+        }
+
+        Dimension prefSize = dialog.getPreferredSize();
+        if (dialogSize != null) {
+            prefSize.width = Math.max(prefSize.width, dialogSize.width);
+            prefSize.height = Math.max(prefSize.height, dialogSize.height);
+        }
+        dialog.setSize(prefSize);
+        dialog.show();  // this will block until the user finishes.
+        dialogSize = dialog.getSize();
+
+        Object value = optionPane.getValue();
+        if (value instanceof Integer)
+            return ((Integer) value).intValue();
+        else
+            return JOptionPane.CLOSED_OPTION;
     }
 
     /// variables used by the user interface logic
@@ -130,16 +155,20 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
 
     private JScrollPane scrollPane;
 
-    private Object[] dialogComponents;
-
     private boolean closedProgrammatically;
+
+    private JLabel pathLabel;
+
+    private JDialog dialog;
+
+    private JOptionPane optionPane;
+
+    private Dimension dialogSize = null;
 
 
 
     private void buildUIComponents(Map iconMap) {
-        if (dialogComponents != null)
-            return;
-
+        // first, create the button we'll use as our cell editor
         button = new JButton();
         button.setBackground(Color.white);
         button.setFont(UIManager.getFont("TextField.font"));
@@ -148,9 +177,11 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         button.addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "buttonClicked"));
 
+        // now, create the components we'll show in the dialog.
         List components = new LinkedList();
 
-        components.add("path label"); // will be replaced by loadUIData()
+        pathLabel = new JLabel("path label");
+        components.add(pathLabel);
         components.add(Box.createRigidArea(new Dimension(5, 5)));
 
         dependencies = new DependencyTableModel();
@@ -180,17 +211,20 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         sp.setPreferredSize(new Dimension(300, 200));
         components.add(sp);
 
-        dialogComponents = components.toArray();
+        optionPane = new JOptionPane(components.toArray(),
+                JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+
+        // we can't actually create the dialog yet, because we don't know
+        // who the parent window will be.
     }
 
     private void loadUIData() {
-        dialogComponents[0] = path;
+        pathLabel.setText(path);
         dependencies.setValue(value);
         Dimension preferredSize = dependencyTable.getPreferredSize();
         preferredSize.height = Math.max(80, preferredSize.height + 55);
         scrollPane.setPreferredSize(preferredSize);
         dependencySource.updateTaskTree();
-        closedProgrammatically = false;
     }
 
     private void unloadUIData() {
@@ -252,6 +286,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
 
         public AddAction(WBSJTable wbs) {
             super("Add");
+            putValue(MNEMONIC_KEY, new Integer('A'));
             setEnabled(false);
             this.wbs = wbs;
             wbs.getSelectionModel().addListSelectionListener(this);
@@ -292,6 +327,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
 
         public RemoveAction(JTable table) {
             super("Remove");
+            putValue(MNEMONIC_KEY, new Integer('R'));
             setEnabled(false);
             this.table = table;
             table.getSelectionModel().addListSelectionListener(this);
@@ -324,14 +360,9 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         public void mouseClicked(MouseEvent e) {
             if (e.getClickCount() == 2)
                 addAction.actionPerformed(null);
-
             else if (e.getClickCount() == 3) {
-                try {
-                    SwingUtilities.getWindowAncestor((Component) e.getSource())
-                            .dispose();
-                    closedProgrammatically = true;
-                } catch (Exception ex) {
-                }
+                closedProgrammatically = true;
+                dialog.dispose();
             }
         }
     }
