@@ -151,12 +151,18 @@ public class MasterWBSUtil {
         }
 
         public void mergeNodes(WBSNode src, WBSNode dest) {
-            if (src != null)
-                for (Iterator i = src.listAttributeNames().iterator(); i.hasNext();) {
+            if (src != null) {
+                // merge all top-down numeric estimates (time, size, etc)
+                Iterator i = src.listAttributeNames().iterator();
+                while (i.hasNext()) {
                     String attrName = (String) i.next();
                     if (attrName.endsWith(" (Top Down)"))
                         sumAttr(src, dest, attrName);
                 }
+
+                // merge dependencies
+                listMergeAttr(src, dest, TaskDependencyColumn.ID_LIST_ATTR);
+            }
         }
 
     }
@@ -199,6 +205,28 @@ public class MasterWBSUtil {
                 double destVal = dest.getNumericAttribute(attrName);
                 destVal = (Double.isNaN(destVal) ? srcVal : srcVal + destVal);
                 dest.setNumericAttribute(attrName, destVal);
+            }
+        }
+    }
+
+    private static void listMergeAttr(WBSNode src, WBSNode dest, String attr) {
+        if (dest != null && src != null) {
+            String srcDepend = (String) src.getAttribute(attr);
+            if (srcDepend != null && srcDepend.length() > 0) {
+                String destDepend = (String) dest.getAttribute(attr);
+                if (destDepend == null || destDepend.length() == 0)
+                    destDepend = srcDepend;
+                else {
+                    destDepend = "," + destDepend + ",";
+                    String[] srcItems = srcDepend.split(",");
+                    for (int i = 0; i < srcItems.length; i++) {
+                        String item = srcItems[i];
+                        if (destDepend.indexOf("," + item + ",") == -1)
+                            destDepend = destDepend + item + ",";
+                    }
+                    destDepend = destDepend.substring(1, destDepend.length()-1);
+                }
+                dest.setAttribute(attr, destDepend);
             }
         }
     }
