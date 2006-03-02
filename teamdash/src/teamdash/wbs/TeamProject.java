@@ -119,6 +119,8 @@ public class TeamProject {
      * team project.
      */
     public boolean isMasterProject() {
+        if (projectSettings == null)
+            return false;
         NodeList nl = projectSettings.getElementsByTagName("subproject");
         return (nl != null && nl.getLength() > 0);
     }
