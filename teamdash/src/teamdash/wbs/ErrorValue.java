@@ -3,13 +3,11 @@ package teamdash.wbs;
 
 /** Simple class to describe a value with an associated error
  */
-public class ErrorValue {
+public class ErrorValue extends WrappedValue {
 
     public static final int ERROR = 0;
     public static final int WARNING = 1;
 
-    /** The real value */
-    public Object value;
     /** The error message */
     public String error;
     /** The severity of the error */

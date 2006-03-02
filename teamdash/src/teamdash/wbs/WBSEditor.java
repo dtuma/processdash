@@ -56,7 +56,8 @@ public class WBSEditor implements WindowListener, SaveListener {
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), getTaskDependencySource());
-        dataWriter = new WBSDataWriter(model, data, teamProject.getTeamProcess());
+        dataWriter = new WBSDataWriter(model, data,
+                teamProject.getTeamProcess(), teamProject.getProjectID());
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess());
         tabPanel.setReadOnly(readOnly);
         teamProject.getTeamMemberList().addInitialsListener(tabPanel);

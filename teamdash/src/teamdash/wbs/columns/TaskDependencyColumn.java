@@ -26,7 +26,7 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
         CalculatedDataColumn, CustomEditedColumn, CustomRenderedColumn {
 
     /** The ID we use for this column in the data model */
-    static final String COLUMN_ID = "Dependencies";
+    public static final String COLUMN_ID = "Dependencies";
 
     /** The name for this column */
     private static final String COLUMN_NAME = "Task Dependencies";

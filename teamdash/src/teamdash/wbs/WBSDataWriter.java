@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import teamdash.RobustFileWriter;
 import teamdash.XMLUtils;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
+import teamdash.wbs.columns.TaskDependencyColumn;
 
 
 /** This class writes out an XML data file describing the work breakdown
@@ -32,12 +34,16 @@ public class WBSDataWriter {
     private DataTableModel dataModel;
     /** The team process */
     private TeamProcess process;
+    /** The ID of the team project */
+    private String projectID;
     /** The list of column numbers for each team member time column */
     private IntList teamMemberColumns;
     /** The list of column numbers for each top-level size accounting column */
     private int[] sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
     /** This column number of the direct size units column */
     private int directSizeUnitsColumn;
+    /** The column number of the task dependencies column */
+    private int dependencyColumn;
     /** Maps XML tag names to objects capable of writing their attributes.
      * 
      * Each key should be an XML tag name returned by {@link #getTagNameForNode
@@ -50,16 +56,19 @@ public class WBSDataWriter {
     /** Create a new WBSDataWriter.
      */
     public WBSDataWriter(WBSModel wbsModel, DataTableModel dataModel,
-                         TeamProcess process) {
+                         TeamProcess process, String projectID) {
         this.wbsModel = wbsModel;
         this.dataModel = dataModel;
         this.process = process;
+        this.projectID = projectID;
 
         for (int i = 0;   i < SIZE_COLUMN_IDS.length;   i++)
             sizeAccountingColumns[i] =
                 dataModel.findColumn(SIZE_COLUMN_IDS[i]);
         directSizeUnitsColumn =
             dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
+        dependencyColumn =
+            dataModel.findColumn(TaskDependencyColumn.COLUMN_ID);
         attributeWriters = buildAttributeWriters();
     }
 
@@ -105,6 +114,7 @@ public class WBSDataWriter {
         out.write("<" + tagName);
         writeAttr(out, NAME_ATTR, node.getName());
         writeAttr(out, ID_ATTR, node.getUniqueID());
+        writeAttr(out, TASK_ID_ATTR, MasterWBSUtil.getNodeID(node, projectID));
 
         // write attributes specific to this XML tag type
         AttributeWriter aw = (AttributeWriter) attributeWriters.get(tagName);
@@ -112,16 +122,39 @@ public class WBSDataWriter {
             aw.writeAttributes(out, node);
 
         WBSNode[] children = wbsModel.getChildren(node);
-        if (children == null || children.length == 0) {
-            // if this node has no children, just close the XML tag.
+        TaskDependencyList dependencies = (TaskDependencyList) WrappedValue
+                .unwrap(dataModel.getValueAt(node, dependencyColumn));
+
+        if ((children == null || children.length == 0)
+                && (dependencies == null || dependencies.isEmpty())) {
+            // if this node has no children and no dependencies, just close
+            // the XML tag.
             out.write("/>\n");
         } else {
             // if this node has children, print them recursively.
             out.write(">\n");
-            for (int i = 0;   i < children.length;   i++)
-                write(out, children[i], depth+1);
+            writeDependencies(out, dependencies, depth+1);
+            if (children != null)
+                for (int i = 0;   i < children.length;   i++)
+                    write(out, children[i], depth+1);
             writeIndent(out, depth);
             out.write("</" + tagName + ">\n");
+        }
+    }
+
+
+
+    private void writeDependencies(Writer out, TaskDependencyList dependencies,
+            int depth) throws IOException {
+        if (dependencies != null) {
+            for (Iterator i = dependencies.iterator(); i.hasNext();) {
+                TaskDependency d = (TaskDependency) i.next();
+                writeIndent(out, depth);
+                out.write("<" + DEPENDENCY_TAG);
+                writeAttr(out, NAME_ATTR, d.displayName);
+                writeAttr(out, TASK_ID_ATTR, d.nodeID);
+                out.write("/>\n");
+            }
         }
     }
 
@@ -330,6 +363,7 @@ public class WBSDataWriter {
     private static final String DOCUMENT_TAG = "document";
     private static final String PSP_TAG = "psp";
     private static final String TASK_TAG = "task";
+    private static final String DEPENDENCY_TAG = "dependency";
 
     /** A list of column IDs for the top-level size accounting columns */
     private static final String[] SIZE_COLUMN_IDS = new String[] {
@@ -342,6 +376,7 @@ public class WBSDataWriter {
     // strings naming each XML attribute we will output
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
+    private static final String TASK_ID_ATTR = "tid";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";
     private static final String TIME_ATTR = "time";
