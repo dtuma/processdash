@@ -169,7 +169,7 @@ public class WBSNodeEditor extends AbstractCellEditor
         case CLICKED_ICON:
         case CLICKED_TEXT:
             // if the user clicked on the icon or the node name, begin editing.
-            return isEditingEnabled();
+            return isEditingEnabled() && !clickedNode.isReadOnly();
         }
 
         // for other user events, don't start editing.
