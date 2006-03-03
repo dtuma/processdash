@@ -26,10 +26,5 @@ This wizard automates the task of setting up a team project.
 <!--#endif-->
 Therefore, this wizard cannot continue.
 
-<table width='100%'><tr><td width='100%' align='right' nowrap>
-<input type=button name=cancel value='Close'
-       onClick='window.close();'>
-</td></tr></table>
-
 </form>
 </body>
