@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -18,6 +19,7 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -223,6 +225,7 @@ public class HierarchySynchronizer {
 
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
+    private static final String TASK_ID_ATTR = "tid";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";
     private static final String TIME_ATTR = "time";
@@ -233,6 +236,7 @@ public class HierarchySynchronizer {
     private static final String DOCUMENT_TYPE = "document";
     private static final String PSP_TYPE = "psp";
     private static final String TASK_TYPE = "task";
+    private static final String DEPENDENCY_TYPE = "dependency";
     private static final List NODE_TYPES = Arrays.asList(new String[] {
         PROJECT_TYPE, SOFTWARE_TYPE, DOCUMENT_TYPE, PSP_TYPE, TASK_TYPE });
 
@@ -279,8 +283,13 @@ public class HierarchySynchronizer {
             String nodeName = getName(node);
             if (nodeName == null)
                 return pathPrefix;
-            else
-                return pathPrefix + "/" + nodeName;
+
+            String wbsID = node.getAttribute(ID_ATTR);
+            PropertyKey wbsChild = findHierarchyChildByID(pathPrefix, wbsID);
+            if (wbsChild != null)
+                return wbsChild.path();
+
+            return pathPrefix + "/" + nodeName;
         }
 
 
@@ -294,6 +303,23 @@ public class HierarchySynchronizer {
                 result.add(hierarchy.getChildName(parent, i));
 
             return result;
+        }
+
+        private PropertyKey findHierarchyChildByID(String pathPrefix, String id) {
+            PropertyKey parent = hierarchy.findExistingKey(pathPrefix);
+            if (parent == null) return null;
+
+            int numChildren = hierarchy.getNumChildren(parent);
+            for (int i = 0;   i < numChildren;  i++) {
+                PropertyKey child = hierarchy.getChildKey(parent, i);
+                String childPath = child.path();
+                String dataName = DataRepository.createDataName(childPath, WBS_ID_DATA_NAME);
+                SimpleData val = data.getSimpleValue(dataName);
+                if (val != null && id.equals(val.format()))
+                    return child;
+            }
+
+            return null;
         }
 
 
@@ -339,6 +365,8 @@ public class HierarchySynchronizer {
                 // the node exists with the given name.  Just sync its data.
                 if (!whatIfMode)
                     syncData(path, node);
+                else
+                    checkForNeedToSyncData(path, node);
             } else {
                 // there is a problem.
                 changes.add("Could not create '"+path+"' - existing node is in the way");
@@ -350,10 +378,18 @@ public class HierarchySynchronizer {
         }
         public void syncData(String path, Element node) {
              String nodeID = node.getAttribute(ID_ATTR);
+             String taskID = node.getAttribute(TASK_ID_ATTR);
              try {
                  putData(path, WBS_ID_DATA_NAME, StringData.create(nodeID));
+                 EVTaskDependency.addTaskID(data, path, taskID);
             } catch (Exception e) {}
-            if (!isTeam()) maybeSaveDocSize(path, node);
+            if (!isTeam()) {
+                maybeSaveDocSize(path, node);
+                maybeSaveDependencies(path, node);
+            }
+        }
+        public void checkForNeedToSyncData(String path, Element node) {
+            maybeSaveDependencies(path, node);
         }
 
         public String getName(Element node) {
@@ -434,7 +470,36 @@ public class HierarchySynchronizer {
             putData(path, SIZE_UNITS_DATA_NAME,
                     StringData.create(actualSizeUnits));
         }
+
+        protected void maybeSaveDependencies(String path, Element node) {
+            List deps = readDependenciesFromNode(node);
+            if (deps != null
+                    && EVTaskDependency.addTaskDependencies(data, path, deps,
+                            whatIfMode))
+                changes.add("Updated task dependencies for '" + path + "'");
+        }
+
+
+        protected List readDependenciesFromNode(Element node) {
+            List result = null;
+
+            NodeList nl = node.getChildNodes();
+            for (int i = 0;   i < nl.getLength();   i++) {
+                Node child = nl.item(i);
+                if (child instanceof Element
+                        && ((Element) child).getTagName().equals(
+                                DEPENDENCY_TYPE)) {
+                    if (result == null)
+                        result = new LinkedList();
+                    result.add(new EVTaskDependency((Element) nl.item(i)));
+                }
+            }
+
+            return result;
+        }
     }
+
+
 
     private SimpleData getData(String dataPrefix, String name) {
         String dataName = DataRepository.createDataName(dataPrefix, name);
