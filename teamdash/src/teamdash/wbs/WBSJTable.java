@@ -629,6 +629,18 @@ public class WBSJTable extends JTable {
             super(name);
             editingFollowsSelection = true;
         }
+        public void actionPerformed(ActionEvent e) {
+            int currentCol = getColumnModel().getSelectionModel()
+                    .getAnchorSelectionIndex();
+            if (currentCol == -1)
+                currentCol = getEditingColumn();
+            if (currentCol != -1 && getColumnClass(currentCol) == WBSNode.class)
+                super.actionPerformed(e);
+            else
+                performAlternateAction(e);
+        }
+        protected void performAlternateAction(ActionEvent e) {
+        }
         public void doAction(ActionEvent e) {
             int currentRow = getSelectedRow();
             insertRowBefore(currentRow, currentRow);
@@ -638,12 +650,19 @@ public class WBSJTable extends JTable {
             if (row == 0) row = 1;
             if (rowToCopy == 0) rowToCopy = 1;
 
+            String type = "Software Component";
+            int indentLevel = 1;
+            boolean expanded = false;
+
             WBSNode nodeToCopy = wbsModel.getNodeForRow(rowToCopy);
-            if (nodeToCopy == null) return;
+            if (nodeToCopy != null) {
+                type = nodeToCopy.getType();
+                indentLevel = nodeToCopy.getIndentLevel();
+                expanded = nodeToCopy.isExpanded();
+            }
             if (cutList != null && cutList.contains(nodeToCopy)) cancelCut();
-            WBSNode newNode = new WBSNode
-                (wbsModel, "", nodeToCopy.getType(),
-                 nodeToCopy.getIndentLevel(), nodeToCopy.isExpanded());
+            WBSNode newNode = new WBSNode(wbsModel, "", type, indentLevel,
+                    expanded);
 
             row = wbsModel.add(row, newNode);
             setRowSelectionInterval(row, row);
@@ -660,10 +679,25 @@ public class WBSJTable extends JTable {
 
     /** An action to perform an "insert node after" operation */
     private class InsertAfterAction extends InsertAction {
-        public InsertAfterAction() { super("Insert After"); }
+        private Action alternateAction;
+        public InsertAfterAction() {
+            super("Insert After");
+
+            try {
+                Object actionKey = getInputMap(
+                        WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).get(
+                        KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+                alternateAction = getActionMap().get(actionKey);
+            } catch (Exception e) {
+            }
+        }
         public void doAction(ActionEvent e) {
             int currentRow = getSelectedRow();
             insertRowBefore(currentRow+1, currentRow);
+        }
+        protected void performAlternateAction(ActionEvent e) {
+            if (alternateAction != null)
+                alternateAction.actionPerformed(e);
         }
     }
     final InsertAfterAction ENTER_ACTION = new InsertAfterAction();
