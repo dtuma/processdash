@@ -1,4 +1,5 @@
 package teamdash.templates.setup;
+import java.io.File;
 import java.io.IOException;
 
 import net.sourceforge.processdash.data.SimpleData;
@@ -18,19 +19,15 @@ public class inclTeamTools extends TinyCGIBase {
 
     protected void writeContents() throws IOException {
         try {
-            String prefix = getPrefix();
-            if (prefix == null) return;
+            if (getPrefix() == null)
+                return;
 
-            DataRepository data = getDataRepository();
-            String dataName = DataRepository.createDataName
-                (prefix, "Team_Data_Directory");
-            SimpleData d = data.getSimpleValue(dataName);
-            if (d == null || !d.test()) {
+            String directory = getTeamDataDirectory();
+            if (directory == null) {
                 out.print(TEAM_DIR_MISSING_MSG);
                 return;
             }
 
-            String directory = d.format();
             String wbsURL = WBS_EDITOR_URL + HTMLUtils.urlEncode(directory);
             String scriptPath = (String) env.get("SCRIPT_PATH");
             String uri = resolveRelativeURI(scriptPath, wbsURL);
@@ -47,6 +44,35 @@ public class inclTeamTools extends TinyCGIBase {
         } catch (Exception e) {
             out.print(TOOLS_MISSING_MSG);
         }
+    }
+
+    private String getTeamDataDirectory() {
+        String teamDir = getValue("Team_Directory_UNC");
+        if (teamDir == null)
+            teamDir = getValue("Team_Directory");
+        if (teamDir == null)
+            return null;
+
+        String projectID = getValue("Project_ID");
+        if (projectID == null || projectID.trim().length() == 0)
+            return null;
+
+        File f = new File(teamDir, "data");
+        f = new File(f, projectID);
+        return f.getPath();
+    }
+
+    private String getValue(String name) {
+        DataRepository data = getDataRepository();
+        String dataName = DataRepository.createDataName(getPrefix(), name);
+        SimpleData d = data.getSimpleValue(dataName);
+        if (d == null)
+            return null;
+        String result = d.format();
+        if (result == null || result.trim().length() == 0)
+            return null;
+        else
+            return result;
     }
 
     private static final String TEAM_DIR_MISSING_MSG =

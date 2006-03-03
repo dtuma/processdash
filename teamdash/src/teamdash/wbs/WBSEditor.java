@@ -312,13 +312,16 @@ public class WBSEditor implements WindowListener, SaveListener {
         File dir = new File(filename);
         File dumpFile = new File(dir, "projDump.xml");
         TeamProject proj;
-        if (Boolean.getBoolean("wbs.bottomUp"))
+        if (Boolean.getBoolean("teamdash.wbs.bottomUp"))
             proj = new TeamProjectBottomUp(dir, "Team Project");
         else
             proj = new TeamProject(dir, "Team Project");
         WBSEditor w = new WBSEditor(proj, dumpFile);
         w.setExitOnClose(true);
         w.show();
+
+        if (Boolean.getBoolean("teamdash.wbs.showTeamMemberList"))
+            w.showTeamListEditor();
     }
 
     private class SaveAction extends AbstractAction {
