@@ -35,6 +35,9 @@ public class MasterWBSUtil {
 
         visitWBS(working, new MasterNodeTweaker(masterProjectID));
 
+        // copy the master node ID for the overall project
+        copyAttr(working.getRoot(), dest.getRoot(), MASTER_NODE_ID, true);
+        // copy everything else
         return dest.mergeWBSModel(working, MASTER_NODE_MERGER,
                 MASTER_NODE_COMPARATOR);
     }
@@ -85,11 +88,10 @@ public class MasterWBSUtil {
         public void visit(WBSNode parent, WBSNode child) {
             if (parent != null) {
                 Object parentID = parent.getAttribute(MASTER_NODE_ID);
-                child.setReadOnly(true);
-                child.setAttribute(MASTER_NODE_ID, id + ":"
-                        + child.getUniqueID());
                 child.setAttribute(MASTER_PARENT_ID, parentID);
             }
+            child.setReadOnly(true);
+            child.setAttribute(MASTER_NODE_ID, id + ":" + child.getUniqueID());
         }
 
     }

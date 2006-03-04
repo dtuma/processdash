@@ -339,6 +339,18 @@ public class HierarchySynchronizer {
     }
 
     private class SyncProjectNode extends SyncNode {
+
+        public boolean syncNode(HierarchyAlterer alterer, String pathPrefix,
+                Element node) throws HierarchyAlterationException {
+
+            try {
+                EVTaskDependency.addTaskID(data, pathPrefix,
+                        node.getAttribute(TASK_ID_ATTR));
+            } catch (Exception e) {}
+
+            return super.syncNode(alterer, pathPrefix, node);
+        }
+
         public String getName(Element node) { return null; }
     }
 
