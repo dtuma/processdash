@@ -28,7 +28,11 @@ package net.sourceforge.processdash.ev;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -44,13 +48,11 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.ui.TimeLogEditor;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 
 public class EVTask implements DataListener {
@@ -69,6 +71,9 @@ public class EVTask implements DataListener {
 
     EVTask parent = null;
     ArrayList children = new ArrayList();
+    List taskIDs = null;
+    List dependencies = null;
+    List assignedTo = null;
 
     String name, fullName, taskListName;
     Listener listener;
@@ -275,6 +280,7 @@ public class EVTask implements DataListener {
 
         setLevelOfEffort(getValue(getLevelOfEffortDataname()));
         loadStructuralData();
+        loadDependencyInformation();
 
         addChildrenFromHierarchy(fullName, key, data, hierarchy, listener);
 
@@ -329,18 +335,31 @@ public class EVTask implements DataListener {
             taskOrdinal = (int) EVSchedule.getXMLNum(e, "ord");
         if (e.hasAttribute("prune"))
             pruningFlag = (int) EVSchedule.getXMLNum(e, "prune");
+        taskIDs = parseListAttr(e, "tid");
+        assignedTo = parseListAttr(e, "who");
 
         planTimeEditable = planTimeNull = planTimeUndefined = false;
         actualPreTime = 0;
 
-        NodeList subTasks = e.getChildNodes();
-        int len = subTasks.getLength();
-        for (int i=0;   i < len;   i++) {
-            Node n = subTasks.item(i);
-            if (n instanceof Element &&
-                "task".equals(((Element) n).getTagName()))
-                add(new EVTask((Element) n, fullName));
+        List childElements = XMLUtils.getChildElements(e);
+        for (Iterator i = childElements.iterator(); i.hasNext();) {
+            Element c = (Element) i.next();
+            if ("task".equals(c.getTagName()))
+                add(new EVTask(c, fullName));
+            else if (EVTaskDependency.DEPENDENCY_TAG.equals(c.getTagName()))
+                getDependencies(true).add(new EVTaskDependency(c));
         }
+    }
+
+    private List parseListAttr(Element e, String attrName) {
+        String value = e.getAttribute(attrName);
+        if (!XMLUtils.hasValue(value))
+            return null;
+        String[] items = value.split(",");
+        return new LinkedList(Arrays.asList(items));
+    }
+    protected boolean hasValue(Collection c) {
+        return (c != null && c.isEmpty() == false);
     }
 
     protected SimpleData getValue(String name) { return getValue(name, true); }
@@ -493,6 +512,16 @@ public class EVTask implements DataListener {
     }
 
 
+    protected void loadDependencyInformation() {
+        this.taskIDs = EVTaskDependency.getTaskIDs(data, fullName);
+        this.dependencies = EVTaskDependency.getDependencies(data, fullName);
+    }
+
+    protected void saveDependencyInformation() {
+        EVTaskDependency.saveDependencies(data, fullName, dependencies);
+    }
+
+
     protected void setActualDate(SimpleData date) {
         if (date instanceof DateData) {
             dateCompleted = ((DateData) date).getValue();
@@ -613,6 +642,24 @@ public class EVTask implements DataListener {
     public EVTask getParent() { return parent; }
     public String toString() { return name; }
     public String getName() { return name; }
+    public List getTaskIDs() { return taskIDs; }
+    public String getAssignedToText() {
+        return StringUtils.join(getAssignedTo(), ", ");
+    }
+    public List getAssignedTo() {
+        if (assignedTo != null)
+            return assignedTo;
+        else if (parent != null)
+            return parent.getAssignedTo();
+        else
+            return null;
+    }
+    public List getDependencies() { return getDependencies(false); }
+    public List getDependencies(boolean create) {
+        if (dependencies == null && create)
+            dependencies = new LinkedList();
+        return dependencies;
+    }
     public String getFullName() { return fullName; }
     public String getPlanTime() {
         if (planLevelOfEffort == ANCESTOR_LEVEL_OF_EFFORT) return "";
@@ -1111,14 +1158,21 @@ public class EVTask implements DataListener {
         if (pruningFlag != INFER_FROM_CONTEXT &&
             pruningFlag != ANCESTOR_PRUNED)
             result.append("' prune='").append(pruningFlag);
+        if (hasValue(taskIDs))
+            result.append("' tid='").append(StringUtils.join(taskIDs, ","));
+        if (hasValue(assignedTo))
+            result.append("' who='").append(StringUtils.join(assignedTo, ","));
 
         String newline = (whitespace ? "\n" : "");
 
-        if (isLeaf())
+        if (isLeaf() && !hasValue(dependencies))
             result.append("'/>").append(newline);
         else {
             result.append("'>").append(newline);
             String subIndent = (whitespace ? (indent + "  ") : "");
+            if (hasValue(dependencies))
+                for (Iterator i = dependencies.iterator(); i.hasNext();)
+                    ((EVTaskDependency) i.next()).getAsXML(result, subIndent);
             for (int i = 0;   i < getNumChildren();   i++)
                 getChild(i).saveToXML(result, whitespace, subIndent);
             result.append(indent).append("</task>").append(newline);

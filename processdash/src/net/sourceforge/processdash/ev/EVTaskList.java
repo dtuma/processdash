@@ -466,7 +466,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     private static final String[] COLUMN_KEYS = {
         "Task", "PT", "PDT", "Time", "DTime", "PV", "CPT", "CPV",
-        "Plan_Date", "Date", "PctC", "PctS", "EV" };
+        "Who", "Plan_Date", "Date", "PctC", "PctS", "EV" };
 
     /** Names of the columns in the TreeTableModel. */
     protected static String[] colNames =
@@ -484,11 +484,12 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int PLAN_VALUE_COLUMN     = 5;
     public static final int PLAN_CUM_TIME_COLUMN  = 6;
     public static final int PLAN_CUM_VALUE_COLUMN = 7;
-    public static final int PLAN_DATE_COLUMN      = 8;
-    public static final int DATE_COMPLETE_COLUMN  = 9;
-    public static final int PCT_COMPLETE_COLUMN   = 10;
-    public static final int PCT_SPENT_COLUMN      = 11;
-    public static final int VALUE_EARNED_COLUMN   = 12;
+    public static final int ASSIGNED_TO_COLUMN    = 8;
+    public static final int PLAN_DATE_COLUMN      = 9;
+    public static final int DATE_COMPLETE_COLUMN  = 10;
+    public static final int PCT_COMPLETE_COLUMN   = 11;
+    public static final int PCT_SPENT_COLUMN      = 12;
+    public static final int VALUE_EARNED_COLUMN   = 13;
 
     public static final int[] DIRECT_COLUMN_LIST = {
         PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN };
@@ -503,6 +504,7 @@ public class EVTaskList extends AbstractTreeTableModel
         String.class,           // planned value
         String.class,           // planned cumulative time
         String.class,           // planned cumulative value
+        String.class,           // assigned to
         Date.class,             // planned date
         Date.class,             // date
         String.class,           // percent complete
@@ -589,6 +591,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case PLAN_VALUE_COLUMN:     return n.getPlanValue(totalPlanValue);
         case PLAN_CUM_TIME_COLUMN:  return n.getCumPlanTime();
         case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanValue);
+        case ASSIGNED_TO_COLUMN:    return n.getAssignedToText();
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
         case PCT_COMPLETE_COLUMN:   return n.getPercentComplete();

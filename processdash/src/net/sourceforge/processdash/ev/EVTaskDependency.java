@@ -36,6 +36,7 @@ import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -82,10 +83,17 @@ public class EVTaskDependency {
     }
 
     public void getAsXML(StringBuffer out) {
+        getAsXML(out, null);
+    }
+    public void getAsXML(StringBuffer out, String indent) {
+        if (indent != null)
+            out.append(indent);
         out.append("<").append(DEPENDENCY_TAG);
         addAttr(out, TASK_ID_ATTR, getTaskID());
         addAttr(out, DISPLAY_NAME_ATTR, getDisplayName());
         out.append("/>");
+        if (indent != null)
+            out.append("\n");
     }
 
     private void addAttr(StringBuffer out, String name, String value) {
@@ -110,6 +118,8 @@ public class EVTaskDependency {
         ListData newValue;
         if (currentValue instanceof ListData)
             newValue = (ListData) currentValue;
+        else if (currentValue instanceof StringData)
+            newValue = ((StringData) currentValue).asList();
         else
             newValue = new ListData();
         if (newValue.setAdd(id))
@@ -120,11 +130,37 @@ public class EVTaskDependency {
         String dataName = DataRepository.createDataName(taskPath,
                 TASK_ID_DATA_NAME);
         SimpleData currentValue = data.getSimpleValue(dataName);
-        if (currentValue instanceof ListData) {
-            ListData list = (ListData) currentValue;
-            if (list.remove(id))
-                data.putValue(dataName, list);
-        }
+        ListData list = null;
+
+        if (currentValue instanceof ListData)
+            list = (ListData) currentValue;
+        else if (currentValue instanceof StringData)
+            list = ((StringData) currentValue).asList();
+
+        if (list != null && list.remove(id))
+            data.putValue(dataName, list);
+    }
+
+    public static List getTaskIDs(DataContext data, String taskPath) {
+        String dataName = DataRepository.createDataName(taskPath,
+                TASK_ID_DATA_NAME);
+        SimpleData currentValue = data.getSimpleValue(dataName);
+        ListData list = null;
+
+        if (currentValue instanceof ListData)
+            list = (ListData) currentValue;
+        else if (currentValue instanceof StringData)
+            list = ((StringData) currentValue).asList();
+        else
+            return null;
+
+        List result = new LinkedList();
+        for (int i = 0;  i < list.size();  i++)
+            result.add(list.get(i));
+        if (!result.isEmpty())
+            return result;
+        else
+            return null;
     }
 
     public static boolean addTaskDependencies(DataContext data,
@@ -182,19 +218,24 @@ public class EVTaskDependency {
         return result;
     }
 
-    private static void saveDependencies(DataContext data, String taskPath,
+    public static void saveDependencies(DataContext data, String taskPath,
             Collection dependencies) {
-        StringBuffer xml = new StringBuffer();
-        xml.append("<list>");
-        for (Iterator i = dependencies.iterator(); i.hasNext();) {
-            EVTaskDependency d = (EVTaskDependency) i.next();
-            d.getAsXML(xml);
+        SimpleData value = null;
+
+        if (dependencies != null && !dependencies.isEmpty()) {
+            StringBuffer xml = new StringBuffer();
+            xml.append("<list>");
+            for (Iterator i = dependencies.iterator(); i.hasNext();) {
+                EVTaskDependency d = (EVTaskDependency) i.next();
+                d.getAsXML(xml);
+            }
+            xml.append("</list>");
+            value = new ImmutableStringData(xml.toString());
         }
-        xml.append("</list>");
 
         String dataName = DataRepository.createDataName(taskPath,
                 TASK_DEPENDENCIES_DATA_NAME);
-        data.putValue(dataName, new ImmutableStringData(xml.toString()));
+        data.putValue(dataName, value);
     }
 
 
@@ -202,7 +243,7 @@ public class EVTaskDependency {
 
     private static final String TASK_DEPENDENCIES_DATA_NAME = "EV_Task_Dependencies";
 
-    private static final String DEPENDENCY_TAG = "dependency";
+    protected static final String DEPENDENCY_TAG = "dependency";
 
     private static final String TASK_ID_ATTR = "tid";
 

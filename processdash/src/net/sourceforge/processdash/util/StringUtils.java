@@ -28,6 +28,8 @@ package net.sourceforge.processdash.util;
 
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 /**
@@ -348,6 +350,18 @@ public class StringUtils
         while (tok.hasMoreTokens())
             result.add(tok.nextToken());
         return (String[]) result.toArray(new String[0]);
+    }
+
+    public static String join(Collection c, String delim) {
+        if (c == null || c.isEmpty())
+            return "";
+        else if (c.size() == 1)
+            return String.valueOf(c.iterator().next());
+
+        StringBuffer result = new StringBuffer();
+        for (Iterator i = c.iterator(); i.hasNext();)
+            result.append(delim).append(i.next());
+        return result.substring(delim.length());
     }
 
 

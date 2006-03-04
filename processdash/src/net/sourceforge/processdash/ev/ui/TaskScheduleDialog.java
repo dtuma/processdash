@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.*;
@@ -161,18 +162,24 @@ public class TaskScheduleDialog
         ToolTipTableCellRendererProxy.installHeaderToolTips
             (treeTable, EVTaskList.toolTips);
                                 // set default widths for the columns
-        boolean showCumColumns = Settings.getBool
-            ("ev.showCumulativeTaskData", false);
+        List hiddenCols = new LinkedList();
+        if (!Settings.getBool("ev.showCumulativeTaskData", false)) {
+            hiddenCols.add(new Integer(EVTaskList.PLAN_CUM_TIME_COLUMN));
+            hiddenCols.add(new Integer(EVTaskList.PLAN_CUM_VALUE_COLUMN));
+        }
+        if (!(model instanceof EVTaskListRollup))
+            hiddenCols.add(new Integer(EVTaskList.ASSIGNED_TO_COLUMN));
+
+        int totalWidth = 0;
         for (int i = 0;  i < EVTaskList.colWidths.length;  i++) {
             int width = EVTaskList.colWidths[i];
-            if (!showCumColumns &&
-                 (i == EVTaskList.PLAN_CUM_TIME_COLUMN ||
-                  i == EVTaskList.PLAN_CUM_VALUE_COLUMN)) {
+            if (hiddenCols.contains(new Integer(i))) {
                 width = 0;
                 treeTable.getColumnModel().getColumn(i).setMinWidth(0);
                 treeTable.getColumnModel().getColumn(i).setMaxWidth(0);
             }
             treeTable.getColumnModel().getColumn(i).setPreferredWidth(width);
+            totalWidth += width;
         }
         configureEditor(treeTable);
 
@@ -231,7 +238,7 @@ public class TaskScheduleDialog
                     confirmClose(true); }});
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        frame.setSize(new Dimension((showCumColumns ? 800 : 730), 600));
+        frame.setSize(new Dimension(totalWidth + 20, 600));
         frame.show();
 
         // if the task list is empty, open the add task dialog immediately.

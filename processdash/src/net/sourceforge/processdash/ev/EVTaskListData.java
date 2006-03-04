@@ -26,6 +26,7 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -36,6 +37,7 @@ import java.util.TreeMap;
 
 import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DataComparator;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
@@ -44,6 +46,7 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.net.cache.ObjectCache;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class EVTaskListData extends EVTaskList
@@ -68,11 +71,13 @@ public class EVTaskListData extends EVTaskList
         addTasksFromData(data, taskListName);
         schedule = getSchedule(data, taskListName);
         loadID(taskListName);
+        assignToOwner();
         calculator = new EVCalculatorData((EVTask) root, schedule);
     }
     public boolean isEditable() { return true; }
 
     private void addTasksFromData(DataRepository data, String taskListName) {
+        ((EVTask) root).data = data;
         // search for tasks that belong to the named task list.
         SortedMap tasks = new TreeMap(DataComparator.getInstance());
         String ordinalPrefix = "/" + TASK_ORDINAL_PREFIX + taskListName;
@@ -146,6 +151,15 @@ public class EVTaskListData extends EVTaskList
         }
     }
 
+    protected void assignToOwner() {
+        String owner = ProcessDashboard.getOwnerName(data);
+        if (owner != null) {
+            EVTask r = (EVTask) root;
+            owner = StringUtils.findAndReplace(owner, ",", " ");
+            r.assignedTo = Collections.singletonList(owner);
+        }
+    }
+
 
     public void save(String newName) {
         EVTask r = (EVTask) root;
@@ -196,6 +210,7 @@ public class EVTaskListData extends EVTaskList
 
         // allow our tasks to do the same thing.
         r.saveStructuralData(newName);
+        r.saveDependencyInformation();
     }
 
     public void hierarchyChanged(DashHierarchy.Event e) {
