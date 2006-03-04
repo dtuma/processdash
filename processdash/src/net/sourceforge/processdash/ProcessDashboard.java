@@ -358,6 +358,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         }
         props.addHierarchyListener(new DashHierarchy.Listener() {
                 public void hierarchyChanged(Event e) {
+                    saveHierarchy();
                     refreshHierarchy();
                 }});
 
