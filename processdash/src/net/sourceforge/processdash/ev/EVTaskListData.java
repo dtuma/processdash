@@ -77,7 +77,6 @@ public class EVTaskListData extends EVTaskList
     public boolean isEditable() { return true; }
 
     private void addTasksFromData(DataRepository data, String taskListName) {
-        ((EVTask) root).data = data;
         // search for tasks that belong to the named task list.
         SortedMap tasks = new TreeMap(DataComparator.getInstance());
         String ordinalPrefix = "/" + TASK_ORDINAL_PREFIX + taskListName;

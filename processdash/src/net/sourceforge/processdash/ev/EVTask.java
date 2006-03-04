@@ -518,7 +518,11 @@ public class EVTask implements DataListener {
     }
 
     protected void saveDependencyInformation() {
-        EVTaskDependency.saveDependencies(data, fullName, dependencies);
+        if (fullName != null && fullName.length() > 0)
+            EVTaskDependency.saveDependencies(data, fullName, dependencies);
+
+        for (int i = 0;   i < getNumChildren();   i++)
+            getChild(i).saveDependencyInformation();
     }
 
 
