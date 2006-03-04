@@ -151,7 +151,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     protected void printRedirect(String prefix, String filename) {
         if (prefix != null)
-                filename = prefix + "/" + filename;
+            filename = WebServer.urlEncodePath(prefix) + "/" + filename;
         printRedirect(filename);
     }
 
@@ -508,7 +508,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
      */
     private String testContinuation(String prefix, String continuationURI) {
         if (prefix != null)
-            continuationURI = prefix + "/" + continuationURI;
+            continuationURI = WebServer.urlEncodePath(prefix) + "/"
+                    + continuationURI;
         try {
             WebServer ws = getTinyWebServer();
             String continuationURL = "http://" + ws.getHostName(false) + ":"
