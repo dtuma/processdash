@@ -1,0 +1,8 @@
+<?xml version='1.0' standalone='yes' ?>
+
+<exportMetricsFile>
+  <metricsFilter>
+    <!-- for now, export NO data. -->
+    <exclude>.</exclude>
+  </metricsFilter>
+</exportMetricsFile>

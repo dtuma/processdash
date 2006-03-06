@@ -6,3 +6,15 @@
     [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
 )
 #include <<!--#echo Process_ID -->/root_data.txt>
+
+[EXPORT_FILE] = 
+    iff([Team_Data_Directory] == "", "",
+        [Team_Data_Directory] & [file_sep] & "disseminate" &
+        [file_sep] & "team-data.pdash");
+[EXPORT_FILE/Instructions] = 
+    "file:/<!--#echo Process_ID -->/disseminationExportFilter.xml";
+
+[Related_EV_Schedule/Team] = [Project_Schedule_Name];
+[Related_EV_Schedule/Master] =
+    iff(! [Master_Project_Path], "",
+	indirect([Master_Project_Path] &/ "Project_Schedule_Name"));

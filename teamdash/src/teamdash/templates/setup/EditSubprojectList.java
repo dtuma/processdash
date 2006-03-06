@@ -47,7 +47,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
     private static final String SHORT_NAME = "Short_Name";
 
-    //private static final String MASTER_PROJECT_PATH = "Master_Project_Path";
+    private static final String MASTER_PROJECT_PATH = "Master_Project_Path";
 
     private static Logger logger = Logger.getLogger(EditSubprojectList.class
             .getName());
@@ -386,7 +386,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
     private void doJoinMasterProject() throws IOException {
         try {
-            //putValue(MASTER_PROJECT_PATH, getParameter(PATH));
+            putValue(MASTER_PROJECT_PATH, getParameter(PATH));
 
             TeamSettingsFile.RelatedProject masterProj =
                 new TeamSettingsFile.RelatedProject();

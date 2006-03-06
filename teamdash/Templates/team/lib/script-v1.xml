@@ -67,6 +67,7 @@
     <!-- data files for use on the team side -->
     <file in="team_root_dataFile.txt" encoding="data" />
     <file in="team_node_dataFile.txt" encoding="data" />
+    <file in="disseminationExportFilter.xml" encoding="xml" />
 
     <!-- data files for use by a master project -->
     <file in="master_root_dataFile.txt" encoding="data" />

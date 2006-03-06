@@ -509,6 +509,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         File projDataDir = new File(dataDir, projectID);
         if (!createTeamDirectory(projDataDir)) return false;
 
+        File disseminationDir = new File(projDataDir, DISSEMINATION_DIRECTORY);
+        if (!createTeamDirectory(disseminationDir)) return false;
+
         return true;
     }
 
@@ -1135,8 +1138,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             return;
 
         if (teamDirectory.endsWith(File.separator))
-                // remove any trailing file separator if present.
-                teamDirectory = teamDirectory.substring(0, teamDirectory.length()-1);
+            // remove any trailing file separator if present.
+            teamDirectory = teamDirectory.substring(0, teamDirectory.length()-1);
 
         // Check to see if the "team project" is in the same dashboard
         // instance as the "individual project."
@@ -1155,9 +1158,11 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         boolean joinSucceeded = true;
         if (isLocal)
             joinSucceeded = joinLocalTeamSchedule(teamURL, scheduleName);
-        else
+        else {
             joinSucceeded = joinTeamSchedule
                 (teamURL, scheduleName, scheduleID);
+            importDisseminatedTeamData(teamDirectory, projectID);
+        }
 
         showIndivSuccessPage(joinSucceeded);
     }
@@ -1295,6 +1300,22 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         // add the individual's schedule to the team schedule.
         return addScheduleToRollup(teamScheduleName, indivScheduleName);
+    }
+
+    protected void importDisseminatedTeamData(String teamDirectory,
+            String projectID) {
+        // rewrite the team directory into "settings" filename form.
+        teamDirectory = teamDirectory.replace('\\', '/');
+        if (teamDirectory.endsWith("/"))
+            teamDirectory = teamDirectory.substring
+                (0, teamDirectory.length()-1);
+
+        // calculate the new import instruction, and add it to the
+        // import list
+        String prefix = "Disseminated_" + projectID;
+        String importDir = teamDirectory + "/data/" + projectID + "/"
+                + DISSEMINATION_DIRECTORY;
+        DashController.addImportSetting(prefix, importDir);
     }
 
     protected void showIndivSuccessPage(boolean joinSucceeded) {
