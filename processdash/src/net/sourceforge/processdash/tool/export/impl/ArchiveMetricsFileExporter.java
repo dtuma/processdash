@@ -40,6 +40,8 @@ import java.util.zip.ZipOutputStream;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.templates.DashPackage;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -83,7 +85,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
         public void run() {
         try {
             doExport();
-        } catch (IOException ioe) {
+        } catch (Exception ioe) {
             ioe.printStackTrace();
             dest.delete();
         }
@@ -143,6 +145,20 @@ public class ArchiveMetricsFileExporter implements Runnable,
             xml.attribute(null, OWNER_ATTR, owner);
 
         xml.attribute(null, WHEN_ATTR, XMLUtils.saveDate(new Date()));
+
+        List packages = TemplateLoader.getPackages();
+        for (Iterator i = packages.iterator(); i.hasNext();) {
+            DashPackage pkg = (DashPackage) i.next();
+            xml.ignorableWhitespace(NEWLINE + INDENT + INDENT);
+            xml.startTag(null, PACKAGE_ELEM);
+            if (pkg.id != null)
+                xml.attribute(null, PACKAGE_ID_ATTR, pkg.id);
+            if (pkg.version != null)
+                xml.attribute(null, VERSION_ATTR, pkg.version);
+            xml.endTag(null, PACKAGE_ELEM);
+        }
+
+        xml.ignorableWhitespace(NEWLINE + INDENT);
         xml.endTag(null, EXPORTED_TAG);
         xml.ignorableWhitespace(NEWLINE);
     }

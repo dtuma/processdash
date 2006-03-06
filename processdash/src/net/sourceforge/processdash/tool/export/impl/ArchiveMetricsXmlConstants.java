@@ -47,6 +47,10 @@ public interface ArchiveMetricsXmlConstants extends XmlConstants {
 
     public static final String WHEN_ATTR = "when";
 
+    public static final String PACKAGE_ELEM = "withPackage";
+
+    public static final String PACKAGE_ID_ATTR = "packageID";
+
     public static final String FILE_ELEM = "file";
 
     public static final String FILE_NAME_ATTR = "name";
