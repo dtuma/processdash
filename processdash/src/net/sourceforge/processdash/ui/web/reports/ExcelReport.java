@@ -39,6 +39,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class ExcelReport extends TinyCGIBase {
 
+    public static final String EXPORT_TAG = "excel";
     private static String exportMethod =
         Settings.getVal("excel.exportMethod");
 
@@ -102,6 +103,14 @@ public class ExcelReport extends TinyCGIBase {
     }
 
     private String getURI() {
+        String uri = getURIImpl();
+        if (uri.indexOf('?') == -1)
+            return uri + "?EXPORT=" + EXPORT_TAG;
+        else
+            return uri + "&EXPORT=" + EXPORT_TAG;
+    }
+
+    private String getURIImpl() {
         String referer = (String) env.get("HTTP_REFERER");
 
         // if the query parameter "URI" is set, resolve it relative to
