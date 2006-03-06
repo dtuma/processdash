@@ -225,6 +225,7 @@ public class TimeCardDialog {
         } catch (Exception e) {}
         model.recalc(useProps, timeLog, month, year);
         ((AbstractTableModel) treeTable.getModel()).fireTableDataChanged();
+        treeTable.getTree().expandRow(0);
         treeTable.getTree().invalidate();
         resizeColumns();
     }
@@ -332,52 +333,49 @@ public class TimeCardDialog {
             public void copyFrom(TimeCardNode that) {
                 this.time = that.time;
                 Object[] thisPath = getPath();
-                SortedMap nodeList = new TreeMap();
 
                 // first, delete nodes that are not present in that node.
                 for (int i = this.getNumChildren();   i-- > 0; ) {
-                        TimeCardNode child = this.getChild(i);
+                    TimeCardNode child = this.getChild(i);
                     if (that.findChild(child.name) == null) {
                         this.children.remove(i);
-                        nodeList.put(new Integer(i), child);
+                        fireTreeNodesRemoved(TimeCard.this, thisPath,
+                                new int[] { i }, new Object[] { child });
                     }
                 }
-                if (!nodeList.isEmpty())
-                                        fireTreeNodesRemoved(TimeCard.this, thisPath,
-                                                        getIndexes(nodeList), getNodes(nodeList));
 
                 // next, recurse over children, and update them.
-                nodeList.clear();
-                for (int i = getNumChildren();   i-- > 0; ) {
-                        TimeCardNode child = this.getChild(i);
-                        child.copyFrom(that.findChild(child.name));
-                        nodeList.put(new Integer(i), child);
+                SortedMap nodeList = new TreeMap();
+                for (int i = getNumChildren(); i-- > 0;) {
+                    TimeCardNode child = this.getChild(i);
+                    child.copyFrom(that.findChild(child.name));
+                    nodeList.put(new Integer(i), child);
                 }
-                fireTreeNodesChanged(TimeCard.this, thisPath,
-                                                getIndexes(nodeList), getNodes(nodeList));
+                if (!nodeList.isEmpty())
+                    fireTreeNodesChanged(TimeCard.this, thisPath,
+                            getIndexes(nodeList), getNodes(nodeList));
 
                 // finally, insert new nodes if necessary
                 if (this.getNumChildren() < that.getNumChildren()) {
-                        nodeList.clear();
-                        for (int i = 0;  i < that.getNumChildren();  i++) {
-                                TimeCardNode child = that.getChild(i);
-                                if (this.findChild(child.name) == null) {
-                                        child.parent = this;
-                                        this.children.add(i, child);
-                                        nodeList.put(new Integer(i), child);
-                                }
+                    for (int i = 0; i < that.getNumChildren(); i++) {
+                        TimeCardNode child = that.getChild(i);
+                        if (this.findChild(child.name) == null) {
+                            child.parent = this;
+                            this.children.add(i, child);
+                            fireTreeNodesInserted(TimeCard.this, thisPath,
+                                    new int[] { i }, new Object[] { child });
                         }
-                        fireTreeNodesInserted(TimeCard.this, thisPath,
-                                                getIndexes(nodeList), getNodes(nodeList));
+                    }
                 }
             }
             private int[] getIndexes(SortedMap nodeMap) {
                 int[] result = new int[nodeMap.size()];
                 int pos = 0;
                 for (Iterator i = nodeMap.keySet().iterator(); i.hasNext();)
-                        result[pos] = ((Integer) i.next()).intValue();
+                    result[pos] = ((Integer) i.next()).intValue();
                 return result;
             }
+
             private Object[] getNodes(SortedMap nodeMap) {
                 return nodeMap.values().toArray();
             }
