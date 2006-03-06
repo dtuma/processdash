@@ -501,7 +501,9 @@ public class EVSchedule implements TableModel {
         return result;
     }
 
-    static String saveDate(Date d) { return "@" + d.getTime(); }
+    static String saveDate(Date d) {
+        return (d == null ? "" : "@" + d.getTime());
+    }
     static Date parseDate(String d) {
         if (!d.startsWith("@")) throw new IllegalArgumentException();
         long when = Long.parseLong(d.substring(1));
