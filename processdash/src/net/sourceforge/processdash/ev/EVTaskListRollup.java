@@ -62,6 +62,7 @@ public class EVTaskListRollup extends EVTaskList {
         evTaskLists = new Vector();
         addTaskListsFromData(data, hierarchy, cache, taskListName);
         schedule = new EVScheduleRollup(evTaskLists);
+        loadID(taskListName, data, TASK_LISTS_DATA_NAME);
         calculator = new EVCalculatorRollup
             ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
     }

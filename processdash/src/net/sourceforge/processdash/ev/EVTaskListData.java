@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -55,8 +54,6 @@ public class EVTaskListData extends EVTaskList
 
     public static final String TASK_ORDINAL_PREFIX = "TST_";
     public static final String EST_HOURS_DATA_NAME = "Planned Hours";
-    public static final String ID_DATA_NAME = "Task List ID";
-
     protected DataRepository data;
     protected DashHierarchy hierarchy;
 
@@ -70,7 +67,7 @@ public class EVTaskListData extends EVTaskList
 
         addTasksFromData(data, taskListName);
         schedule = getSchedule(data, taskListName);
-        loadID(taskListName);
+        loadID(taskListName, data, EST_HOURS_DATA_NAME);
         assignToOwner();
         calculator = new EVCalculatorData((EVTask) root, schedule);
     }
@@ -116,40 +113,6 @@ public class EVTaskListData extends EVTaskList
         else
             return new EVSchedule();
     }
-    /** Load the unique ID for this task list.
-     */
-    protected void loadID(String taskListName) {
-        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
-        String dataName = DataRepository.createDataName
-            (globalPrefix, ID_DATA_NAME);
-
-        SimpleData d = data.getSimpleValue(dataName);
-        if (d != null) {
-            taskListID = d.format();
-        } else {
-            // This task list doesn't have a unique ID yet.  Generate one.
-            // It should be a value that needs no special handling to
-            // appear as an XML attribute.
-            int i = Math.abs((new Random()).nextInt());
-            taskListID =
-                Integer.toString(i, Character.MAX_RADIX) + "." +
-                Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
-
-            // Since unique task list IDs were introduced after version 1.5
-            // of the dashboard, we may be in this branch of code not
-            // because this is a new task list, but because this is the
-            // first time the list has been opened.  In the latter case,
-            // we need to save the unique ID.
-            String scheduleDataName = DataRepository.createDataName
-                (globalPrefix, EST_HOURS_DATA_NAME);
-            if (data.getValue(scheduleDataName) != null) {
-                // getting to this point indicates that this task list is
-                // not new - it has been previously saved to the repository.
-                data.putValue(dataName, StringData.create(taskListID));
-            }
-        }
-    }
-
     protected void assignToOwner() {
         String owner = ProcessDashboard.getOwnerName(data);
         if (owner != null) {

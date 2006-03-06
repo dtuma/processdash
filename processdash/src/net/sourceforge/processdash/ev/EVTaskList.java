@@ -37,6 +37,7 @@ import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -47,6 +48,8 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
@@ -502,6 +505,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public static final int[] DIRECT_COLUMN_LIST = {
         PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN };
+    public static final String ID_DATA_NAME = "Task List ID";
 
     /** Types of the columns in the TreeTableModel. */
     static protected Class[]  colTypes = {
@@ -706,6 +710,47 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public FlatTreeModel getFlatModel() { return new FlatTreeModel(); }
+
+
+    /** Load the unique ID for this task list.
+     * @param taskListName the name of this task list.
+     * @param data the DataRepository
+     * @param savedDataName the name of a data element that is used for the
+     *   persistence of this task list. (It will be used to check and see if
+     *   this task list is new, or is an existing task list.)
+     */
+    protected void loadID(String taskListName, DataRepository data,
+            String savedDataName) {
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
+        String dataName = DataRepository.createDataName
+            (globalPrefix, ID_DATA_NAME);
+
+        SimpleData d = data.getSimpleValue(dataName);
+        if (d != null) {
+            taskListID = d.format();
+        } else {
+            // This task list doesn't have a unique ID yet.  Generate one.
+            // It should be a value that needs no special handling to
+            // appear as an XML attribute.
+            int i = Math.abs((new Random()).nextInt());
+            taskListID =
+                Integer.toString(i, Character.MAX_RADIX) + "." +
+                Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
+
+            // Since unique task list IDs were introduced after version 1.5
+            // of the dashboard, we may be in this branch of code not
+            // because this is a new task list, but because this is the
+            // first time the list has been opened.  In the latter case,
+            // we need to save the unique ID.
+            String savedDataFullName = DataRepository.createDataName
+                (globalPrefix, savedDataName);
+            if (data.getValue(savedDataFullName) != null) {
+                // getting to this point indicates that this task list is
+                // not new - it has been previously saved to the repository.
+                data.putValue(dataName, StringData.create(taskListID));
+            }
+        }
+    }
 
 
     public class FlatTreeModel extends AbstractTreeTableModel
