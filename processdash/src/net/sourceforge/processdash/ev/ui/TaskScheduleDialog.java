@@ -48,6 +48,7 @@ import java.awt.image.RGBImageFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EventObject;
 import java.util.Iterator;
@@ -73,8 +74,10 @@ import javax.swing.tree.TreePath;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
+import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
@@ -147,6 +150,11 @@ public class TaskScheduleDialog
                 model = new EVTaskListData
                     (taskListName, dash.getData(), dash.getHierarchy(), true);
         }
+
+        EVDependencyCalculator depCalc = new EVDependencyCalculator(model,
+                dash.getData(), dash.getHierarchy(), dash.getCache());
+        model.setDependencyCalculator(depCalc);
+
         model.recalc();
         model.setNodeListener(this);
         model.addRecalcListener(this);
@@ -525,7 +533,7 @@ public class TaskScheduleDialog
 
     class TaskJTreeTable extends JTreeTable {
 
-        DefaultTableCellRenderer editable, readOnly;
+        DefaultTableCellRenderer editable, readOnly, dependencies;
         TreeTableModel model;
 
         public TaskJTreeTable(TreeTableModel m) {
@@ -546,6 +554,10 @@ public class TaskScheduleDialog
             readOnly = new TaskTableRenderer(getSelectionBackground(),
                                              getBackground(),
                                              expandedColor);
+            dependencies = new DependencyCellRenderer(getSelectionBackground(),
+                                             getBackground(),
+                                             selectedEditableColor,
+                                             editableColor);
 
             TaskJTreeTableCellRenderer r =
                 new TaskJTreeTableCellRenderer(getTree().getCellRenderer());
@@ -554,8 +566,11 @@ public class TaskScheduleDialog
         }
 
         public TableCellRenderer getCellRenderer(int row, int column) {
-            TableCellRenderer result = super.getCellRenderer(row, column);
+            int modelCol = convertColumnIndexToModel(column);
+            if (modelCol == EVTaskList.DEPENDENCIES_COLUMN)
+                return dependencies;
 
+            TableCellRenderer result = super.getCellRenderer(row, column);
             if (result instanceof JTreeTable.TreeTableCellRenderer)
                 return result;
 
@@ -563,8 +578,7 @@ public class TaskScheduleDialog
 
             TreePath path = getTree().getPathForRow(row);
             if (path != null &&
-                model.isCellEditable(path.getLastPathComponent(),
-                                     convertColumnIndexToModel(column)))
+                model.isCellEditable(path.getLastPathComponent(), modelCol))
                 return editable;
             else
                 return readOnly;
@@ -625,7 +639,80 @@ public class TaskScheduleDialog
             }
         }
 
-        public boolean editCellAt(int row, int column, EventObject e) {
+        class DependencyCellRenderer extends DefaultTableCellRenderer {
+
+            private Color[] colors;
+            private Font boldFont;
+            private Icon stopIcon, checkIcon;
+            private URL stopURL, checkURL;
+
+            public DependencyCellRenderer(Color selRO, Color deselRO,
+                    Color sel, Color desel) {
+
+                colors = new Color[] { sel, desel, selRO, deselRO };
+
+                stopURL = getClass().getResource("stop.png");
+                stopIcon = new ImageIcon(stopURL);
+                checkURL = getClass().getResource("check.png");
+                checkIcon = new ImageIcon(checkURL);
+            }
+
+            public Component getTableCellRendererComponent(JTable table,
+                    Object value, boolean isSelected, boolean hasFocus,
+                    int row, int column) {
+
+                Component result = super.getTableCellRendererComponent(table,
+                        null, isSelected, hasFocus, row, column);
+
+                boolean isEditable = false;
+                TreePath path = getTree().getPathForRow(row);
+                if (path != null &&
+                    model.isCellEditable(path.getLastPathComponent(), column))
+                    isEditable = true;
+
+                setBackground(colors[(isSelected ? 0:1) + (isEditable ? 0:2)]);
+                setHorizontalAlignment(SwingConstants.CENTER);
+
+                TaskDependencyAnalyzer analyzer = new TaskDependencyAnalyzer(
+                        value);
+                setToolTipText(analyzer.getHtmlTable(null, stopURL.toString(),
+                        checkURL.toString(), SEP, true, false));
+
+                switch (analyzer.getStatus()) {
+
+                case TaskDependencyAnalyzer.NO_DEPENDENCIES:
+                    setIcon(null);
+                    break;
+
+                case TaskDependencyAnalyzer.HAS_ERROR:
+                    setIcon(null);
+                    setText(resources.getString("Dependency.Unresolved.Text"));
+                    setForeground(Color.red);
+                    setFont(getBold(table));
+                    break;
+
+                case TaskDependencyAnalyzer.HAS_INCOMPLETE:
+                    setIcon(stopIcon);
+                    break;
+
+                case TaskDependencyAnalyzer.ALL_COMPLETE:
+                    setIcon(checkIcon);
+                    break;
+                }
+
+                return result;
+            }
+
+            private Font getBold(JComponent comp) {
+                if (boldFont == null)
+                    boldFont = comp.getFont().deriveFont(Font.BOLD);
+                return boldFont;
+            }
+
+            private static final String SEP = "  \u25AA  ";
+        }
+
+    public boolean editCellAt(int row, int column, EventObject e) {
             boolean result = super.editCellAt(row, column, e);
 
             if (result == true && e instanceof MouseEvent)

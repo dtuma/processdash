@@ -748,6 +748,9 @@ public class EVTask implements DataListener {
         // percent spent applies to all time, not just the current schedule.
         else return formatIntPercent(actualTime / planTime);
     }
+    public double getValueEarned() {
+        return valueEarned;
+    }
     public String getValueEarned(double totalPlanTime) {
         if (isValuePruned() && valueEarned == 0) return "";
         else if (dateCompleted != null || valueEarned != 0.0)

@@ -47,6 +47,7 @@ import javax.swing.plaf.FontUIResource;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
 import net.sourceforge.processdash.ev.ui.*;
 import net.sourceforge.processdash.hier.*;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
@@ -349,6 +350,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         webServer.setData(data);
         webServer.setProps(props);
         webServer.setCache(objectCache);
+        EVTaskDependencyResolver.init(this);
 
         hierarchy = new HierarchyMenu
             (this, hierarchy_menubar, activeTaskModel, PropertyKey.ROOT);

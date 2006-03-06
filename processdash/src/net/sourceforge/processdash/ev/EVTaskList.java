@@ -30,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EventObject;
@@ -67,6 +68,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected String taskListID = null;
     protected EVSchedule schedule;
     protected EVCalculator calculator;
+    protected EVDependencyCalculator dependencyCalculator = null;
 
     /** timer for triggering recalculations */
     protected Timer recalcTimer = null;
@@ -448,6 +450,8 @@ public class EVTaskList extends AbstractTreeTableModel
     public void recalc() {
         if (calculator != null)
             calculator.recalculate();
+        if (dependencyCalculator != null)
+            dependencyCalculator.recalculate();
         totalPlanValue = schedule.getMetrics().totalPlan();
         EVTask taskRoot = (EVTask) root;
         totalActualTime = taskRoot.actualCurrentTime;
@@ -456,6 +460,10 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public EVSchedule getSchedule() { return schedule; }
+
+    public void setDependencyCalculator(EVDependencyCalculator d) {
+        this.dependencyCalculator = d;
+    }
 
 
 
@@ -466,7 +474,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     private static final String[] COLUMN_KEYS = {
         "Task", "PT", "PDT", "Time", "DTime", "PV", "CPT", "CPV",
-        "Who", "Plan_Date", "Date", "PctC", "PctS", "EV" };
+        "Who", "Plan_Date", "Date", "Depn", "PctC", "PctS", "EV" };
 
     /** Names of the columns in the TreeTableModel. */
     protected static String[] colNames =
@@ -487,9 +495,10 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int ASSIGNED_TO_COLUMN    = 8;
     public static final int PLAN_DATE_COLUMN      = 9;
     public static final int DATE_COMPLETE_COLUMN  = 10;
-    public static final int PCT_COMPLETE_COLUMN   = 11;
-    public static final int PCT_SPENT_COLUMN      = 12;
-    public static final int VALUE_EARNED_COLUMN   = 13;
+    public static final int DEPENDENCIES_COLUMN   = 11;
+    public static final int PCT_COMPLETE_COLUMN   = 12;
+    public static final int PCT_SPENT_COLUMN      = 13;
+    public static final int VALUE_EARNED_COLUMN   = 14;
 
     public static final int[] DIRECT_COLUMN_LIST = {
         PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN };
@@ -507,6 +516,7 @@ public class EVTaskList extends AbstractTreeTableModel
         String.class,           // assigned to
         Date.class,             // planned date
         Date.class,             // date
+        Collection.class,       // task dependencies
         String.class,           // percent complete
         String.class,           // percent spent
         String.class };         // earned value
@@ -555,6 +565,9 @@ public class EVTaskList extends AbstractTreeTableModel
 
         case DATE_COMPLETE_COLUMN:
             return ((EVTask) node).completionDateIsEditable();
+
+        case DEPENDENCIES_COLUMN:
+            return (this instanceof EVTaskListData && node != root);
         }
         return false;
     }
@@ -594,6 +607,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case ASSIGNED_TO_COLUMN:    return n.getAssignedToText();
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
+        case DEPENDENCIES_COLUMN:   return n.getDependencies();
         case PCT_COMPLETE_COLUMN:   return n.getPercentComplete();
         case PCT_SPENT_COLUMN:      return n.getPercentSpent();
         case VALUE_EARNED_COLUMN:   return n.getValueEarned(totalPlanValue);
@@ -621,6 +635,20 @@ public class EVTaskList extends AbstractTreeTableModel
         case PLAN_TIME_COLUMN: return ((EVTask) node).getPlanTimeError();
         default: return null;
         }
+    }
+
+
+    public Object getAllDependenciesFor(EVTask node) {
+        Set result = null;
+        while (node != null) {
+            if (node.getDependencies() != null) {
+                if (result == null)
+                    result = new HashSet();
+                result.addAll(node.getDependencies());
+            }
+            node = node.getParent();
+        }
+        return result;
     }
 
     public TableModel getSimpleTableModel() {
@@ -660,9 +688,13 @@ public class EVTaskList extends AbstractTreeTableModel
         public boolean isCellEditable(int row, int columnIndex) {
             return EVTaskList.this.isCellEditable(getRow(row), columnIndex); }
         public Object getValueAt(int row, int columnIndex) {
-            return (columnIndex == 0 ?
-                    getRow(row).getFullName() :
-                    EVTaskList.this.getValueAt(getRow(row), columnIndex)); }
+            if (columnIndex == 0)
+                return getRow(row).getFullName();
+            else if (columnIndex == DEPENDENCIES_COLUMN)
+                return getAllDependenciesFor(getRow(row));
+            else
+                return EVTaskList.this.getValueAt(getRow(row), columnIndex);
+        }
         public void setValueAt(Object aValue, int row, int columnIndex) {
             EVTaskList.this.setValueAt(aValue, getRow(row), columnIndex); }
         public void addTableModelListener(TableModelListener l) { }
@@ -674,6 +706,7 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public FlatTreeModel getFlatModel() { return new FlatTreeModel(); }
+
 
     public class FlatTreeModel extends AbstractTreeTableModel
         implements TreeModelListener, RecalcListener
@@ -718,6 +751,8 @@ public class EVTaskList extends AbstractTreeTableModel
         public Object getValueAt(Object node, int column) {
             if (column == TASK_COLUMN && node != root)
                 return ((EVTask) node).getFullName();
+            else if (column == DEPENDENCIES_COLUMN)
+                return getAllDependenciesFor((EVTask) node);
             else
                 return EVTaskList.this.getValueAt(node, column);
         }

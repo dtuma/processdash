@@ -145,6 +145,9 @@ ev.sortCompletedTasks=If false, the planned completion dates for tasks \
 	completed tasks appear at the beginning of the list, in the order \
 	they were completed.
 
+ev.numDependencyWeeks=The number of weeks in the future to look when \
+	displaying unsatisfied task dependencies.
+
 extDoc.openMethod=If this is set to "redirect", then an HTTP redirect \
 	message will be used to open external documents.
 

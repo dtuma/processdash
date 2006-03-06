@@ -52,6 +52,14 @@ public class EVTaskDependency {
 
     private String displayName;
 
+    private String taskListName;
+
+    private boolean unresolvable;
+
+    private String assignedTo;
+
+    private double percentComplete;
+
     public EVTaskDependency(String taskID, String displayName) {
         this.taskID = taskID;
         this.displayName = displayName;
@@ -60,6 +68,7 @@ public class EVTaskDependency {
     public EVTaskDependency(Element e) {
         this.taskID = getAttr(e, TASK_ID_ATTR);
         this.displayName = getAttr(e, DISPLAY_NAME_ATTR);
+        this.taskListName = getAttr(e, TASK_LIST_ATTR);
     }
 
     public String getDisplayName() {
@@ -68,6 +77,33 @@ public class EVTaskDependency {
 
     public String getTaskID() {
         return taskID;
+    }
+
+    public String getTaskListName() {
+        return taskListName;
+    }
+
+    public void setTaskListName(String taskListName) {
+        this.taskListName = taskListName;
+    }
+
+    public String getAssignedTo() {
+        return assignedTo;
+    }
+
+    public double getPercentComplete() {
+        return percentComplete;
+    }
+
+    public boolean isUnresolvable() {
+        return unresolvable;
+    }
+
+    public void setResolvedDetails(boolean unresolvable, String assignedTo,
+            double percentComplete) {
+        this.unresolvable = unresolvable;
+        this.assignedTo = assignedTo;
+        this.percentComplete = percentComplete;
     }
 
     public boolean equals(Object obj) {
@@ -91,6 +127,7 @@ public class EVTaskDependency {
         out.append("<").append(DEPENDENCY_TAG);
         addAttr(out, TASK_ID_ATTR, getTaskID());
         addAttr(out, DISPLAY_NAME_ATTR, getDisplayName());
+        addAttr(out, TASK_LIST_ATTR, getTaskListName());
         out.append("/>");
         if (indent != null)
             out.append("\n");
@@ -248,4 +285,6 @@ public class EVTaskDependency {
     private static final String TASK_ID_ATTR = "tid";
 
     private static final String DISPLAY_NAME_ATTR = "name";
+
+    private static final String TASK_LIST_ATTR = "taskList";
 }

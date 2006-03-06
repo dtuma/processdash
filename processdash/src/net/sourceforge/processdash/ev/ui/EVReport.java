@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.DateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,16 +40,20 @@ import java.util.regex.Pattern;
 import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
+import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HTMLTableWriter;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -198,6 +203,11 @@ public class EVReport extends CGIChartBase {
             throw new TinyCGIException(404, "Not Found",
                                        "No such task/schedule");
 
+        EVDependencyCalculator depCalc = new EVDependencyCalculator(
+                evModel, getDataRepository(), getPSPProperties(),
+                getObjectCache());
+        evModel.setDependencyCalculator(depCalc);
+
         evModel.recalc();
 
         synchronized (getClass()) {
@@ -326,14 +336,15 @@ public class EVReport extends CGIChartBase {
     /** Generate a page of HTML displaying the Task and Schedule templates,
      *  and including img tags referencing charts.
      */
-    public void writeHTML() {
+    public void writeHTML() throws IOException {
         String taskListHTML = WebServer.encodeHtmlEntities(taskListName);
         String taskListURL = HTMLUtils.urlEncode(taskListName);
 
         out.print(StringUtils.findAndReplace
                   (HEADER_HTML, TITLE_VAR,
                    resources.format("Report.Title_FMT", taskListHTML)));
-        out.print(SEPARATE_CHARTS_HTML);
+        if (!exportingToExcel())
+            out.print(SEPARATE_CHARTS_HTML);
 
         EVSchedule s = evModel.getSchedule();
         EVMetrics  m = s.getMetrics();
@@ -361,11 +372,10 @@ public class EVReport extends CGIChartBase {
         out.print("</table>");
 
         out.print("<h2>"+getResource("TaskList.Title")+"</h2>\n");
-        writeHTMLTable("TASK", evModel.getSimpleTableModel(),
-                       EVTaskList.toolTips);
+        writeTaskTable(evModel);
 
         out.print("<h2>"+getResource("Schedule.Title")+"</h2>\n");
-        writeHTMLTable("SCHEDULE", s, s.getColumnTooltips());
+        writeScheduleTable(s);
 
         out.print("<p class='doNotPrint'>");
         out.print(EXPORT_HTML1A);
@@ -393,28 +403,66 @@ public class EVReport extends CGIChartBase {
         String interpretation = (String) m.getValueAt(i, EVMetrics.MEDIUM);
         String explanation = (String) m.getValueAt(i, EVMetrics.FULL);
 
+
+        boolean writeInterpretation = !number.equals(interpretation);
+        boolean writeExplanation = !exportingToExcel();
+
         out.write("<tr><td><b>");
         out.write(name);
         out.write(":&nbsp;</b></td><td>");
         out.write(number);
-        out.write("</td><td colspan='5'><I>(");
-        if (!number.equals(interpretation)) {
+        out.write("</td><td colspan='5'><i>");
+
+        if (writeInterpretation || writeExplanation)
+            out.write("(");
+        if (writeInterpretation)
             out.write(interpretation);
+        if (writeInterpretation && writeExplanation)
             out.write(" ");
+
+        if (writeExplanation) {
+            out.write("<a class='doNotPrint' href='#' " +
+                            "onclick='togglePopupInfo(this); return false;'>");
+            out.write(encodeHTML(resources.getDlgString("More")));
+            out.write("</a>)<div class='popupInfo'><table width='300' " +
+                            "onclick='togglePopupInfo(this.parentNode)'><tr><td>");
+            out.write(HTMLUtils.escapeEntities(explanation));
+            out.write("</td></tr></table></div>");
+        } else if (writeInterpretation) {
+            out.write(")");
         }
-        out.write("<a class='doNotPrint' href='javascript:alert(\"");
-        out.write(explanation);
-        out.write("\");'>");
-        out.write(encodeHTML(resources.getDlgString("More")));
-        out.write("</a>)</I></td></tr>\n");
+        out.write("</i></td></tr>\n");
+    }
+
+
+    private boolean exportingToExcel() {
+        return ExcelReport.EXPORT_TAG.equals(getParameter("EXPORT"));
     }
 
 
     static final String TITLE_VAR = "%title%";
+    static final String POPUP_HEADER =
+        "<style>\n" +
+        "a.noLine { text-decoration: none }\n" +
+        ".popupInfo { position: relative; height: 0 }\n" +
+        ".popupInfo table { " +
+        "position: absolute; right: 0; display: none; " +
+        "border: 1px solid black; background-color: #ccccff }\n" +
+        "</style>\n" +
+        "<script>\n" +
+        "function togglePopupInfo(elm) {\n" +
+        "   var table = elm.parentNode.getElementsByTagName(\"DIV\")[0].childNodes[0];\n" +
+        "   if (table.style.display == \"block\")\n" +
+        "      table.style.display = \"none\";\n" +
+        "   else\n" +
+        "      table.style.display = \"block\";\n" +
+        "}\n" +
+        "</script>\n";
     static final String HEADER_HTML =
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "<style>td.timefmt { vnd.ms-excel.numberformat: [h]\\:mm }</style>\n" +
+        POPUP_HEADER +
         "</head><body><h1>%title%</h1>\n";
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
@@ -435,55 +483,37 @@ public class EVReport extends CGIChartBase {
     static final String EXCEL_TIME_TD = "<td class='timefmt'>";
 
 
-    /** Generate an HTML table based on a TableModel.
-     *
-     * This is actually a very useful routine, that perhaps should
-     * live elsewhere to promote reuse...
-     */
-    void writeHTMLTable(String name, TableModel t, String[] toolTips) {
-        int numCols = t.getColumnCount();
-        int numRows = t.getRowCount();
-        boolean[] hide = new boolean[numCols];
-
-        // print the header row for the table.
-        out.print("<table BORDER=1 name='");
-        out.print(name);
-        out.print("'><tr>");
-        for (int c = 0;   c < numCols;   c++) {
-            String columnName = t.getColumnName(c);
-            hide[c] = columnName.endsWith(" ");
-            if (hide[c]) continue;
-            out.print("<td");
-            if (toolTips != null) {
-                out.print(" title='");
-                out.print(encodeHTML(toolTips[c]));
-                out.print("'");
-            }
-            out.print("><b>");
-            out.print(encodeHTML(columnName));
-            out.print("</b></td>\n");
-        }
-        out.print("</tr>\n\n");
-
-        // print out each row in the table.
-        for (int r = 0;   r < numRows;   r++) {
-            out.print("<tr>");
-            for (int c = 0;   c < numCols;   c++) {
-                if (hide[c]) continue;
-                String cellValue = encodeHTML(t.getValueAt(r, c));
-                if (HOURS_MINUTES_PATTERN.matcher(cellValue).matches())
-                        out.print(EXCEL_TIME_TD);
-                else
-                    out.print("<td>");
-                                out.print(cellValue);
-                out.print("</td>");
-            }
-            out.print("</tr>\n\n");
-        }
-
-        out.print("</table>\n\n");
+    void writeTaskTable(EVTaskList taskList) throws IOException {
+        TableModel table = taskList.getSimpleTableModel();
+        HTMLTableWriter writer = getTableWriter(table, EVTaskList.toolTips);
+        writer.setTableName("TASK");
+        writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
+                new DependencyCellRenderer(exportingToExcel()));
+        if (!(taskList instanceof EVTaskListRollup))
+            writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
+        writer.writeTable(out, table);
     }
-    Pattern HOURS_MINUTES_PATTERN = Pattern.compile("\\d+:\\d\\d");
+
+    void writeScheduleTable(EVSchedule s) throws IOException {
+        HTMLTableWriter writer = getTableWriter(s, s.getColumnTooltips());
+        writer.setTableName("SCHEDULE");
+        writer.writeTable(out, s);
+    }
+
+    private HTMLTableWriter getTableWriter(TableModel t, String[] toolTips) {
+        HTMLTableWriter writer = new HTMLTableWriter();
+        writer.setTableAttributes("border='1'");
+        writer.setHeaderRenderer(
+                new HTMLTableWriter.DefaultHTMLHeaderCellRenderer(toolTips));
+        writer.setCellRenderer(new EVCellRenderer());
+
+        for (int i = t.getColumnCount();  i-- > 0; )
+            if (t.getColumnName(i).endsWith(" "))
+                writer.setSkipColumn(i, true);
+
+        return writer;
+    }
+
 
     // Override the inherited definition of this function with a no-op.
     protected void buildData() {}
@@ -647,14 +677,75 @@ public class EVReport extends CGIChartBase {
         out.println("</table></body></html>");
     }
 
-    /** translate an object to appropriate HTML */
-    final static String encodeHTML(Object text) {
-        if (text == null)
-            return "";
-        if (text instanceof Date)
-            text = EVSchedule.formatDate((Date) text);
+    private class EVCellRenderer extends
+            HTMLTableWriter.DefaultHTMLTableCellRenderer {
 
-        return WebServer.encodeHtmlEntities(text.toString());
+        public String getInnerHtml(Object value, int row, int column) {
+            if (value instanceof Date)
+                value = EVSchedule.formatDate((Date) value);
+
+            return super.getInnerHtml(value, row, column);
+        }
+
+        public String getAttributes(Object value, int row, int column) {
+            if (value instanceof String
+                    && HOURS_MINUTES_PATTERN.matcher((String) value).matches())
+                return "class='timefmt'";
+            else
+                return null;
+        }
+
+    }
+    Pattern HOURS_MINUTES_PATTERN = Pattern.compile("\\d+:\\d\\d");
+
+
+    static class DependencyCellRenderer implements HTMLTableWriter.CellRenderer {
+
+        private static final String STOP_URI = "/Images/stop.gif";
+        private static final String CHECK_URI = "/Images/check.gif";
+        private static final String[] indicators = new String[] {
+                "<span style='color:red; font-weight:bold'>"
+                        + getRes(0, "Text") + "</span>",
+                "<img src='" + STOP_URI + "' border='0' width='14' height='14'>",
+                "<img src='" + CHECK_URI + "' border='0' width='14' height='14'>",
+        };
+
+        boolean plainText;
+
+        public DependencyCellRenderer(boolean plainText) {
+            this.plainText = plainText;
+        }
+
+        public String getInnerHtml(Object value, int row, int column) {
+            TaskDependencyAnalyzer analyzer = new TaskDependencyAnalyzer(value);
+            int status = analyzer.getStatus();
+            if (status == TaskDependencyAnalyzer.NO_DEPENDENCIES)
+                return null;
+            else if (plainText)
+                return getRes(status, "Text");
+
+            StringBuffer result = new StringBuffer();
+            result.append("<a class='noLine' href='#'"
+                    + " title='" + getRes(status, "Explanation_All")
+                    + "' onclick='togglePopupInfo(this); return false;'>");
+            result.append(indicators[status]);
+            result.append("</a><div class='popupInfo'>");
+            result.append(analyzer.getHtmlTable(
+                            "onclick='togglePopupInfo(this.parentNode)'",
+                            STOP_URI, CHECK_URI, " &bull; ", false, true));
+            result.append("</div>");
+            return result.toString();
+        }
+
+        public String getAttributes(Object value, int row, int column) {
+            return "style='text-align:center'";
+        }
+
+        private static String getRes(int status, String type) {
+            String subkey = TaskDependencyAnalyzer.RES_KEYS[status];
+            return resources.getHTML("Dependency." + subkey + "." + type);
+        }
+
     }
 
     /** encode a snippet of text with appropriate HTML entities */

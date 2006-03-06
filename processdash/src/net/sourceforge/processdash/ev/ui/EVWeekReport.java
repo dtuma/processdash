@@ -28,21 +28,33 @@ package net.sourceforge.processdash.ev.ui;
 
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.table.TableModel;
 
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
+import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.ui.EVReport.DependencyCellRenderer;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -85,6 +97,12 @@ public class EVWeekReport extends TinyCGIBase {
         if (evModel == null)
             throw new TinyCGIException(404, "Not Found",
                                        "No such task/schedule");
+
+        EVDependencyCalculator depCalc = new EVDependencyCalculator(
+                evModel, getDataRepository(), getPSPProperties(),
+                getObjectCache());
+        evModel.setDependencyCalculator(depCalc);
+
         evModel.recalc();
         EVSchedule schedule = evModel.getSchedule();
         EVMetrics  metrics = schedule.getMetrics();
@@ -116,6 +134,11 @@ public class EVWeekReport extends TinyCGIBase {
         Date startDate = schedule.getStartDate();
         if (lastWeek.before(startDate)) lastWeek = startDate;
 
+        // Calculate a future date cutoff for task dependency display
+        int numDependWeeks = Settings.getInt("ev.numDependencyWeeks", 3);
+        Date dependDate = new Date(effDate.getTime() + numDependWeeks
+                * EVSchedule.WEEK_MILLIS);
+
         // Get a slice of the schedule representing the previous week.
         EVSchedule.Period weekSlice =
             EVScheduleRollup.getSlice(schedule, lastWeek, effDate);
@@ -124,11 +147,12 @@ public class EVWeekReport extends TinyCGIBase {
         TableModel tasks = evModel.getSimpleTableModel();
         int taskListLen = tasks.getRowCount();
 
-        // keep track of tasks that should be displayed in the two lists.
+        // keep track of tasks that should be displayed in the three lists.
         boolean[] completedLastWeek = new boolean[taskListLen];
         boolean[] dueThroughNextWeek = new boolean[taskListLen];
-        for (int i = taskListLen;  i-- > 0; )
-            completedLastWeek[i] = dueThroughNextWeek[i] = false;
+        Map upcomingDependencies = new LinkedHashMap();
+        Arrays.fill(completedLastWeek, false);
+        Arrays.fill(dueThroughNextWeek, false);
         boolean oneCompletedLastWeek = false;
         boolean oneDueNextWeek = false;
 
@@ -153,10 +177,13 @@ public class EVWeekReport extends TinyCGIBase {
             } else {
                 Date due =
                     (Date) tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN);
-                if (due != null &&
-                    due.after(startDate) &&
-                    due.before(nextWeek))
-                    dueThroughNextWeek[i] = oneDueNextWeek = true;
+                if (due != null && due.after(startDate)) {
+                    if (due.before(nextWeek))
+                        dueThroughNextWeek[i] = oneDueNextWeek = true;
+                    if (due.before(dependDate)) {
+                        findUpcomingDependencies(tasks, upcomingDependencies, i);
+                    }
+                }
             }
         }
 
@@ -173,7 +200,7 @@ public class EVWeekReport extends TinyCGIBase {
 
         out.print("<h2>");
         String endDateStr = encodeHTML(new Date(effDate.getTime() - 1000));
-                out.print(resources.format("Header_HTML_FMT", endDateStr));
+        out.print(resources.format("Header_HTML_FMT", endDateStr));
         if (!parameters.containsKey("EXPORT")) {
             printNavLink(lastWeek, effDate, schedule, "Previous");
             printNavLink(nextWeek, effDate, schedule, "Next");
@@ -280,22 +307,71 @@ public class EVWeekReport extends TinyCGIBase {
                       "<td class=header>${Columns.Actual_Time}</td>"+
                       "<td class=header>${Columns.Percent_Spent}</td>"+
                       "<td class=header>${Columns.Planned_Date}</td>"+
+                      "<td class=header>${Columns.Depend}</td>"+
                       "<td class=header>${Columns.Forecast_Time_Remaining}</td>"+
                       "</tr>\n");
 
+            EVReport.DependencyCellRenderer rend =
+                new EVReport.DependencyCellRenderer(exportingToExcel());
             double timeRemaining = 0;
             for (int i = 0;   i < taskListLen;   i++)
                 if (dueThroughNextWeek[i])
-                    timeRemaining += printDueLine(tasks, i, cpi);
+                    timeRemaining += printDueLine(tasks, i, cpi, rend);
 
-            interpOut("<tr><td align=right colspan=5><b>${Due_Tasks.Total}" +
+            interpOut("<tr><td align=right colspan=6><b>${Due_Tasks.Total}" +
                         "&nbsp;</b></td><td class='timefmt'>");
             out.print(formatTime(timeRemaining));
             out.println("</td></tr>\n</table>");
         }
 
+
+        interpOut("<h3>${Dependencies.Header}</h3>\n");
+        if (upcomingDependencies.isEmpty())
+            interpOut("<p><i>${None}</i>\n");
+        else {
+            interpOut("<table border=1 name='dependTask'><tr>" +
+                      "<td></td>"+
+                      "<td class=header>${Columns.Assigned_To}</td>"+
+                      "<td class=header " +
+                          "title='${Columns.Percent_Complete_Tooltip}'>" +
+                          "${Columns.Percent_Complete}</td>"+
+                      "<td class=header>${Columns.Needed_For}</td>"+
+                      "<td class=header>${Columns.Planned_Date}</td>"+
+                      "</tr>\n");
+
+            for (Iterator i = upcomingDependencies.entrySet().iterator(); i.hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                EVTaskDependency d = (EVTaskDependency) e.getKey();
+                List dependentTasks = (List) e.getValue();
+                printUpcomingDependencyLines(d, dependentTasks, tasks);
+            }
+
+            out.println("</table>");
+        }
+
+
         interpOut(EXPORT_HTML);
         out.print(FOOTER_HTML);
+    }
+
+
+    private void findUpcomingDependencies(TableModel tasks,
+            Map upcomingDependencies, int i) {
+        Collection deps = (Collection) tasks.getValueAt(i,
+                EVTaskList.DEPENDENCIES_COLUMN);
+        if (deps != null) {
+            for (Iterator j = deps.iterator(); j.hasNext();) {
+                EVTaskDependency d = (EVTaskDependency) j.next();
+                if (!d.isUnresolvable() && d.getPercentComplete() < 1) {
+                    List l = (List) upcomingDependencies.get(d);
+                    if (l == null) {
+                        l = new LinkedList();
+                        upcomingDependencies.put(d, l);
+                    }
+                    l.add(new Integer(i));
+                }
+            }
+        }
     }
 
 
@@ -315,6 +391,9 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
 
+    private boolean exportingToExcel() {
+        return ExcelReport.EXPORT_TAG.equals(getParameter("EXPORT"));
+    }
     private long parseTime(Object time) {
         if (time == null) return 0;
         long result = FormatUtil.parseTime(time.toString());
@@ -383,7 +462,8 @@ public class EVWeekReport extends TinyCGIBase {
         out.println("</td></tr>");
     }
 
-    protected double printDueLine(TableModel tasks, int i, double cpi) {
+    protected double printDueLine(TableModel tasks, int i, double cpi,
+            EVReport.DependencyCellRenderer rend) {
         double planTime, actualTime, percentSpent, forecastTimeRemaining;
         String time;
         out.print("<tr><td class=left>");
@@ -402,6 +482,11 @@ public class EVWeekReport extends TinyCGIBase {
         out.print("</td><td>");
         out.print(encodeHTML
                   (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
+        out.print("</td><td class=center>");
+        Object depns = tasks.getValueAt(i, EVTaskList.DEPENDENCIES_COLUMN);
+        String depHtml = rend.getInnerHtml(depns, i,
+                EVTaskList.DEPENDENCIES_COLUMN);
+        out.print(depHtml == null ? "&nbsp;" : depHtml);
         out.print("</td>");
         if (cpi > 0)
             forecastTimeRemaining = (planTime / cpi) - actualTime;
@@ -416,6 +501,32 @@ public class EVWeekReport extends TinyCGIBase {
         return forecastTimeRemaining > 0 ? forecastTimeRemaining : 0;
     }
 
+    protected void printUpcomingDependencyLines(EVTaskDependency d,
+            List dependentTasks, TableModel tasks) {
+
+        out.print("<tr><td class=left>");
+        out.print(encodeHTML(d.getDisplayName()));
+        out.print("</td><td class='left'>");
+        out.print(encodeHTML(d.getAssignedTo()));
+        out.print("</td><td>");
+        out.print(formatPercent(d.getPercentComplete()));
+        out.print("</td>");
+
+        boolean firstRow = true;
+        for (Iterator j = dependentTasks.iterator(); j.hasNext();) {
+            int i = ((Integer) j.next()).intValue();
+            if (!firstRow)
+                out.print("<tr><td colspan='3'></td>");
+            out.print("<td class='left'>");
+            out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
+            out.print("</td><td>");
+            out.print(encodeHTML
+                    (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
+            out.println("</td></tr>");
+            firstRow = false;
+        }
+    }
+
 
 
     static final String TITLE_VAR = "%title%";
@@ -423,6 +534,7 @@ public class EVWeekReport extends TinyCGIBase {
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "<style> td { text-align:right } td.left { text-align:left } "+
+        "td.center { text-align: center } " +
         "td.error  { font-style: italic;  color: red }\n" +
         "td.timefmt { vnd.ms-excel.numberformat: [h]\\:mm }\n" +
         "td.header { text-align:center; font-weight:bold; "+
@@ -430,6 +542,7 @@ public class EVWeekReport extends TinyCGIBase {
         "span.nav { font-size: medium;  font-style: italic; " +
                            " font-weight: normal }\n" +
         "</style>\n"+
+        EVReport.POPUP_HEADER +
         "</head><body><h1>%title%</h1>\n";
 
     static final String EXPORT_HTML =
