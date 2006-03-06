@@ -29,6 +29,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.util.IteratorFilter;
 
@@ -54,10 +57,31 @@ public class TaskListDataWatcher extends IteratorFilter {
         if (pos != -1)
             taskListNames.add(dataName.substring(pos + TASK_ORD_PREF.length()));
 
+        pos = dataName.indexOf(RELATED_SCHEDULE_DATA_PREFIX);
+        if (pos != -1)
+            addTaskListNames(val);
+
         return true;
+    }
+
+    private void addTaskListNames(ExportedDataValue val) {
+        SimpleData d = val.getSimpleValue();
+        if (!d.test())
+            return;
+
+        ListData list = null;
+        if (d instanceof ListData)
+            list = (ListData) d;
+        else if (d instanceof StringData)
+            list = ((StringData) d).asList();
+
+        if (list != null)
+            for (int i = 0;  i < list.size();  i++)
+                taskListNames.add(list.get(i));
     }
 
     private static String TASK_ORD_PREF = "/"
             + EVTaskListData.TASK_ORDINAL_PREFIX;
+    private static String RELATED_SCHEDULE_DATA_PREFIX = "/Related_EV_Schedule";
 
 }
