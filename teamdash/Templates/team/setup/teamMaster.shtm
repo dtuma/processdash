@@ -25,19 +25,19 @@ be used to coordinate the work of several team projects.</p>
 <table>
 
 <tr>
-<td align=center><input type=submit name='createMasterProject'
-    value='Master Project'>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-<td>I would like to create a master project to coordinate the work
-    of several team projects.</td>
+<td align=center><input type=submit name='createTeamProject'
+    value='Team Project'>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>I would like to create a team project to coordinate the work
+    of several individuals.</td>
 </tr>
 
 <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
 
 <tr>
-<td align=center><input type=submit name='createTeamProject'
-    value='Team Project'>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-<td>I would like to create a team project to coordinate the work
-    of several individuals.</td>
+<td align=center><input type=submit name='createMasterProject'
+    value='Master Project'>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>I would like to create a master project to coordinate the work
+    of several team projects.</td>
 </tr>
 
 </table>
