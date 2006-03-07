@@ -165,20 +165,24 @@ public class EVDependencyCalculator {
             boolean unresolvable = true;
             String assignedTo = null;
             double percentComplete = 0;
+            String displayName = null;
 
             String taskListName = d.getTaskListName();
             if (taskListName != null) {
                 EVTaskList taskList = (EVTaskList) taskLists.get(taskListName);
                 if (taskList != null) {
-                    StatusCollector c = new StatusCollector(d.getTaskID());
+                    StatusCollector c = new StatusCollector(d.getTaskID(),
+                            taskList.getRootName());
                     c.visit((EVTask) taskList.getRoot());
                     unresolvable = !c.foundTask;
                     assignedTo = c.getAssignedTo();
                     percentComplete = c.getPercentComplete();
+                    displayName = c.taskDisplayName;
                 }
             }
 
-            d.setResolvedDetails(unresolvable, assignedTo, percentComplete);
+            d.setResolvedDetails(unresolvable, assignedTo, percentComplete,
+                    displayName);
         }
 
     }
@@ -190,6 +194,8 @@ public class EVDependencyCalculator {
 
         boolean foundTask;
 
+        String taskDisplayName;
+
         Set people;
 
         int taskCount;
@@ -200,9 +206,13 @@ public class EVDependencyCalculator {
 
         double completedValue;
 
-        public StatusCollector(String taskID) {
+        private String rootDisplayName;
+
+        public StatusCollector(String taskID, String rootDisplayName) {
             this.taskID = taskID;
+            this.rootDisplayName = "/" + rootDisplayName;
             this.collecting = this.foundTask = false;
+            this.taskDisplayName = null;
             this.people = new TreeSet();
             this.planValue = this.completedValue = 0;
         }
@@ -215,6 +225,8 @@ public class EVDependencyCalculator {
 
         protected void enter(EVTask t) {
             if (isTaskMatch(t)) {
+                if (taskDisplayName == null)
+                    taskDisplayName = getDisplayNameForTask(t);
                 foundTask = collecting = true;
                 planValue += t.getPlanValue();
                 completedValue += t.getValueEarned();
@@ -234,6 +246,18 @@ public class EVDependencyCalculator {
         protected void leave(EVTask t) {
             if (isTaskMatch(t))
                 collecting = false;
+        }
+
+        private String getDisplayNameForTask(EVTask t) {
+            if (t.flag != null)
+                return null;
+            else {
+                String parentName = getDisplayNameForTask(t.parent);
+                if (parentName != null)
+                    return  parentName + "/" + t.getName();
+                else
+                    return rootDisplayName;
+            }
         }
 
 

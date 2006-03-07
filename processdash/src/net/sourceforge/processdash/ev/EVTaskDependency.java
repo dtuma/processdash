@@ -100,10 +100,12 @@ public class EVTaskDependency {
     }
 
     public void setResolvedDetails(boolean unresolvable, String assignedTo,
-            double percentComplete) {
+            double percentComplete, String displayName) {
         this.unresolvable = unresolvable;
         this.assignedTo = assignedTo;
         this.percentComplete = percentComplete;
+        if (!unresolvable && displayName != null && displayName.length() > 1)
+            this.displayName = displayName;
     }
 
     public boolean equals(Object obj) {
