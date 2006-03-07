@@ -70,6 +70,7 @@ public class EVTaskListData extends EVTaskList
         loadID(taskListName, data, EST_HOURS_DATA_NAME);
         assignToOwner();
         calculator = new EVCalculatorData((EVTask) root, schedule);
+        ((EVTask) root).flag = "plain";
     }
     public boolean isEditable() { return true; }
 

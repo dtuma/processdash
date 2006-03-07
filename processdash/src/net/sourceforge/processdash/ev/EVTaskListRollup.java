@@ -65,6 +65,7 @@ public class EVTaskListRollup extends EVTaskList {
         loadID(taskListName, data, TASK_LISTS_DATA_NAME);
         calculator = new EVCalculatorRollup
             ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
+        ((EVTask) root).flag = "rollup";
     }
 
     /** For unit testing purposes only! */

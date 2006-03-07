@@ -71,6 +71,7 @@ public class EVTask implements DataListener {
 
     EVTask parent = null;
     ArrayList children = new ArrayList();
+    String flag;
     List taskIDs = null;
     List dependencies = null;
     List assignedTo = null;
@@ -337,6 +338,7 @@ public class EVTask implements DataListener {
             pruningFlag = (int) EVSchedule.getXMLNum(e, "prune");
         taskIDs = parseListAttr(e, "tid");
         assignedTo = parseListAttr(e, "who");
+        flag = e.getAttribute("flag");
 
         planTimeEditable = planTimeNull = planTimeUndefined = false;
         actualPreTime = 0;
@@ -1169,6 +1171,8 @@ public class EVTask implements DataListener {
             result.append("' tid='").append(StringUtils.join(taskIDs, ","));
         if (hasValue(assignedTo))
             result.append("' who='").append(StringUtils.join(assignedTo, ","));
+        if (XMLUtils.hasValue(flag))
+            result.append("' flag='").append(flag);
 
         String newline = (whitespace ? "\n" : "");
 
