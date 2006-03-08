@@ -307,7 +307,7 @@ public class EVWeekReport extends TinyCGIBase {
                       "<td class=header>${Columns.Actual_Time}</td>"+
                       "<td class=header>${Columns.Percent_Spent}</td>"+
                       "<td class=header>${Columns.Planned_Date}</td>"+
-                      "<td class=header>${Columns.Depend}</td>"+
+                      "<td class=header title='${Columns.Depend_Tooltip}'>${Columns.Depend}</td>"+
                       "<td class=header>${Columns.Forecast_Time_Remaining}</td>"+
                       "</tr>\n");
 
