@@ -450,12 +450,18 @@ public class EVReport extends CGIChartBase {
         "border: 1px solid black; background-color: #ccccff }\n" +
         "</style>\n" +
         "<script>\n" +
+        "var lastPopup = null;\n" +
         "function togglePopupInfo(elm) {\n" +
         "   var table = elm.parentNode.getElementsByTagName(\"DIV\")[0].childNodes[0];\n" +
-        "   if (table.style.display == \"block\")\n" +
+        "   if (table.style.display == \"block\") {\n" +
         "      table.style.display = \"none\";\n" +
-        "   else\n" +
+        "      lastPopup = null;\n" +
+        "   } else { \n" +
+        "      if (lastPopup != null && lastPopup != table)\n" +
+        "         lastPopup.style.display = \"none\";\n" +
         "      table.style.display = \"block\";\n" +
+        "      lastPopup = table;\n" +
+        "   }\n" +
         "}\n" +
         "</script>\n";
     static final String HEADER_HTML =
