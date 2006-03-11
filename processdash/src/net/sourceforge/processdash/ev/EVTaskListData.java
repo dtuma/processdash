@@ -71,6 +71,8 @@ public class EVTaskListData extends EVTaskList
         assignToOwner();
         calculator = new EVCalculatorData((EVTask) root, schedule);
         ((EVTask) root).flag = "plain";
+        if (willNeedChangeNotification)
+            hierarchy.addHierarchyListener(this);
     }
     public boolean isEditable() { return true; }
 
@@ -100,8 +102,6 @@ public class EVTaskListData extends EVTaskList
         while (i.hasNext())
             addTask((String) i.next(), data, hierarchy, null,
                     willNeedChangeNotification);
-
-        hierarchy.addHierarchyListener(this);
     }
     private EVSchedule getSchedule(DataRepository data, String taskListName) {
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
