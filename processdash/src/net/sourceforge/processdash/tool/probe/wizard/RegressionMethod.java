@@ -126,7 +126,7 @@ public class RegressionMethod extends AveragingMethod {
         if (significance <= 0.05) {
             resKey = "Method.Significance.Good_FMT";
             rating += 0.5;
-        } else if (significance <= 0.20) {
+        } else if (significance <= 0.12) {
             resKey = "Method.Significance.Probable_FMT";
             rating += 0.2;
         } else if (significance <= 0.20) {
