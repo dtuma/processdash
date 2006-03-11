@@ -89,6 +89,10 @@ public class EVCalculatorRollup extends EVCalculator {
      * recalculated before calling this method.
      */
     public void recalcRollupNode() {
+        recalcRollupNode(taskRoot);
+    }
+
+    protected static void recalcRollupNode(EVTask taskRoot) {
         resetRootData(taskRoot);
         resetNodeData(taskRoot);
         sumUpNodeData(taskRoot);
@@ -108,8 +112,6 @@ public class EVCalculatorRollup extends EVCalculator {
             taskRoot.topDownPlanTime += child.topDownPlanTime;
             taskRoot.bottomUpPlanTime += child.bottomUpPlanTime;
         }
-//        if (taskRoot.dateCompleted == EVSchedule.A_LONG_TIME_AGO)
-//            taskRoot.dateCompleted = null;
     }
 
     private void calculateLevelOfEffort() {

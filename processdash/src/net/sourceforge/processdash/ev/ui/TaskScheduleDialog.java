@@ -115,6 +115,7 @@ public class TaskScheduleDialog
     protected String taskListName;
 
     private EVTaskList.FlatTreeModel flatModel = null;
+    private TreeTableModel mergedModel = null;
 
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
@@ -122,6 +123,7 @@ public class TaskScheduleDialog
         saveButton, recalcButton, errorButton, indivChartButton,
         collaborateButton;
     protected JCheckBox flatViewCheckbox;
+    protected JCheckBox mergedViewCheckbox;
 
     protected JFrame chartDialog = null;
 
@@ -272,6 +274,10 @@ public class TaskScheduleDialog
         return (flatViewCheckbox != null && flatViewCheckbox.isSelected());
     }
 
+    protected boolean isMergedView() {
+        return (mergedViewCheckbox != null && mergedViewCheckbox.isSelected());
+    }
+
     private boolean isDirty = false;
     protected void setDirty(boolean dirty) {
         isDirty = dirty;
@@ -303,6 +309,7 @@ public class TaskScheduleDialog
         result.add(deleteTaskButton);
         result.add(Box.createHorizontalGlue());
 
+
         moveUpButton = new JButton
             (isRollup ? resources.getString("Buttons.Move_Schedule_Up")
                       : resources.getString("Buttons.Move_Task_Up"));
@@ -325,6 +332,7 @@ public class TaskScheduleDialog
         result.add(moveDownButton);
         result.add(Box.createHorizontalGlue());
 
+        flatViewCheckbox = mergedViewCheckbox = null;
         if (!isRollup) {
             flatViewCheckbox = new JCheckBox
                 (resources.getString("Buttons.Flat_View"));
@@ -337,7 +345,16 @@ public class TaskScheduleDialog
             result.add(flatViewCheckbox);
             result.add(Box.createHorizontalGlue());
         } else {
-            flatViewCheckbox = null;
+            mergedViewCheckbox = new JCheckBox
+                (resources.getString("Buttons.Merged_View"));
+            mergedViewCheckbox.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        toggleMergedView(); }});
+            mergedViewCheckbox.setSelected(false);
+            mergedViewCheckbox.setFocusPainted(false);
+            mergedViewCheckbox.setMnemonic('M');
+            result.add(mergedViewCheckbox);
+            result.add(Box.createHorizontalGlue());
         }
 
         treeTable.getSelectionModel().addListSelectionListener
@@ -1592,6 +1609,8 @@ public class TaskScheduleDialog
         if (treeTable != null) {
             if (isFlatView())
                 enableTaskButtonsFlatView();
+            else if (isMergedView())
+                enableTaskButtonsMergedView();
             else
                 enableTaskButtonsTreeView();
         }
@@ -1610,6 +1629,14 @@ public class TaskScheduleDialog
         deleteTaskButton .setText(resources.getString("Buttons.Remove_Task"));
         moveUpButton     .setEnabled(enableUp);
         moveDownButton   .setEnabled(enableDown);
+    }
+
+    private void enableTaskButtonsMergedView() {
+        addTaskButton    .setEnabled(false);
+        deleteTaskButton .setEnabled(false);
+        moveUpButton     .setEnabled(false);
+        moveDownButton   .setEnabled(false);
+        indivChartButton .setEnabled(false);
     }
 
 
@@ -1649,8 +1676,30 @@ public class TaskScheduleDialog
     }
 
     protected void toggleFlatView() {
-        boolean showFlat = isFlatView();
+        if (!isFlatView())
+            changeTreeTableModel(model);
+        else {
+            if (flatModel == null)
+                flatModel = model.getFlatModel();
+            changeTreeTableModel(flatModel);
+        }
 
+        enableTaskButtons();
+    }
+
+    protected void toggleMergedView() {
+        if (!isMergedView())
+            changeTreeTableModel(model);
+        else {
+            if (mergedModel == null)
+                mergedModel = model.getMergedModel();
+            changeTreeTableModel(mergedModel);
+        }
+
+        enableTaskButtons();
+    }
+
+    protected void changeTreeTableModel(TreeTableModel m) {
         // changing the TreeTableModel below causes our column model to
         // be completely recreated from scratch.  Unfortunately, this
         // loses all information about column width, tooltips, etc.  To
@@ -1662,18 +1711,8 @@ public class TaskScheduleDialog
         // exactly compatible.
         TableColumnModel columnModel = treeTable.getColumnModel();
         treeTable.setColumnModel(new DefaultTableColumnModel());
-
-        if (!showFlat)
-            treeTable.setTreeTableModel(model);
-        else {
-            if (flatModel == null)
-                flatModel = model.getFlatModel();
-            treeTable.setTreeTableModel(flatModel);
-        }
-
+        treeTable.setTreeTableModel(m);
         treeTable.setColumnModel(columnModel);
-
-        enableTaskButtons();
     }
 
 

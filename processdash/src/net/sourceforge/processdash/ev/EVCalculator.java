@@ -105,14 +105,14 @@ public abstract class EVCalculator {
         }
     }
 
-    protected void resetRootData(EVTask taskRoot) {
+    protected static void resetRootData(EVTask taskRoot) {
         taskRoot.topDownPlanTime = taskRoot.bottomUpPlanTime = 0;
         taskRoot.dateCompleted = null;
         taskRoot.dateCompletedEditable = false;
         //taskRoot.taskOrdinal = 1;
     }
 
-    protected void resetNodeData(EVTask task) {
+    protected static void resetNodeData(EVTask task) {
         task.planDate = task.planStartDate = task.actualStartDate = null;
 
         task.planTime = task.planValue = task.cumPlanValue =
@@ -121,7 +121,7 @@ public abstract class EVCalculator {
     }
 
 
-    protected void sumUpNodeData(EVTask task) {
+    protected static void sumUpNodeData(EVTask task) {
         if (!task.isLevelOfEffortTask() && !task.isUserPruned())
             task.actualDirectTime = task.actualNodeTime;
 
@@ -150,7 +150,7 @@ public abstract class EVCalculator {
     }
 
 
-    protected Date minStartDate(Date a, Date b) {
+    protected static Date minStartDate(Date a, Date b) {
         if (a == null) return b;
         if (b == null) return a;
         if (a.compareTo(b) < 0) return a;
@@ -158,7 +158,7 @@ public abstract class EVCalculator {
     }
 
 
-    protected Date maxPlanDate(Date a, Date b) {
+    protected static Date maxPlanDate(Date a, Date b) {
         if (a == null) return b;
         if (b == null) return a;
         if (a.compareTo(b) > 0) return a;

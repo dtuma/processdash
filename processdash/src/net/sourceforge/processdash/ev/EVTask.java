@@ -55,7 +55,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 import org.w3c.dom.Element;
 
 
-public class EVTask implements DataListener {
+public class EVTask implements Cloneable, DataListener {
 
     public static final String PLAN_TIME_DATA_NAME      = "Estimated Time";
     public static final String ACT_TIME_DATA_NAME       = "Time";
@@ -339,6 +339,8 @@ public class EVTask implements DataListener {
         taskIDs = parseListAttr(e, "tid");
         assignedTo = parseListAttr(e, "who");
         flag = e.getAttribute("flag");
+        if (!XMLUtils.hasValue(flag))
+            flag = null;
 
         planTimeEditable = planTimeNull = planTimeUndefined = false;
         actualPreTime = 0;
@@ -649,6 +651,7 @@ public class EVTask implements DataListener {
     public String toString() { return name; }
     public String getName() { return name; }
     public List getTaskIDs() { return taskIDs; }
+    public String getFlag() { return flag; }
     public String getAssignedToText() {
         return StringUtils.join(getAssignedTo(), ", ");
     }
@@ -1266,5 +1269,15 @@ public class EVTask implements DataListener {
 
         return pruningFlag == USER_PRUNED;
     }
+
+    protected Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            // can't happen?
+            throw new RuntimeException(e);
+        }
+    }
+
 
 }

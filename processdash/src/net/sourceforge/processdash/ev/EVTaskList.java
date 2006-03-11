@@ -642,6 +642,47 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
 
+    /** Load the unique ID for this task list.
+     * @param taskListName the name of this task list.
+     * @param data the DataRepository
+     * @param savedDataName the name of a data element that is used for the
+     *   persistence of this task list. (It will be used to check and see if
+     *   this task list is new, or is an existing task list.)
+     */
+    protected void loadID(String taskListName, DataRepository data,
+            String savedDataName) {
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
+        String dataName = DataRepository.createDataName
+            (globalPrefix, ID_DATA_NAME);
+
+        SimpleData d = data.getSimpleValue(dataName);
+        if (d != null) {
+            taskListID = d.format();
+        } else {
+            // This task list doesn't have a unique ID yet.  Generate one.
+            // It should be a value that needs no special handling to
+            // appear as an XML attribute.
+            int i = Math.abs((new Random()).nextInt());
+            taskListID =
+                Integer.toString(i, Character.MAX_RADIX) + "." +
+                Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
+
+            // Since unique task list IDs were introduced after version 1.5
+            // of the dashboard, we may be in this branch of code not
+            // because this is a new task list, but because this is the
+            // first time the list has been opened.  In the latter case,
+            // we need to save the unique ID.
+            String savedDataFullName = DataRepository.createDataName
+                (globalPrefix, savedDataName);
+            if (data.getValue(savedDataFullName) != null) {
+                // getting to this point indicates that this task list is
+                // not new - it has been previously saved to the repository.
+                data.putValue(dataName, StringData.create(taskListID));
+            }
+        }
+    }
+
+
     public Object getAllDependenciesFor(EVTask node) {
         Set result = null;
         while (node != null) {
@@ -710,48 +751,6 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public FlatTreeModel getFlatModel() { return new FlatTreeModel(); }
-
-
-    /** Load the unique ID for this task list.
-     * @param taskListName the name of this task list.
-     * @param data the DataRepository
-     * @param savedDataName the name of a data element that is used for the
-     *   persistence of this task list. (It will be used to check and see if
-     *   this task list is new, or is an existing task list.)
-     */
-    protected void loadID(String taskListName, DataRepository data,
-            String savedDataName) {
-        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
-        String dataName = DataRepository.createDataName
-            (globalPrefix, ID_DATA_NAME);
-
-        SimpleData d = data.getSimpleValue(dataName);
-        if (d != null) {
-            taskListID = d.format();
-        } else {
-            // This task list doesn't have a unique ID yet.  Generate one.
-            // It should be a value that needs no special handling to
-            // appear as an XML attribute.
-            int i = Math.abs((new Random()).nextInt());
-            taskListID =
-                Integer.toString(i, Character.MAX_RADIX) + "." +
-                Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
-
-            // Since unique task list IDs were introduced after version 1.5
-            // of the dashboard, we may be in this branch of code not
-            // because this is a new task list, but because this is the
-            // first time the list has been opened.  In the latter case,
-            // we need to save the unique ID.
-            String savedDataFullName = DataRepository.createDataName
-                (globalPrefix, savedDataName);
-            if (data.getValue(savedDataFullName) != null) {
-                // getting to this point indicates that this task list is
-                // not new - it has been previously saved to the repository.
-                data.putValue(dataName, StringData.create(taskListID));
-            }
-        }
-    }
-
 
     public class FlatTreeModel extends AbstractTreeTableModel
         implements TreeModelListener, RecalcListener
@@ -936,4 +935,64 @@ public class EVTaskList extends AbstractTreeTableModel
 
     }
 
+    public TreeTableModel getMergedModel() {
+        EVTaskListMerger merger = new EVTaskListMerger(EVTaskList.this);
+        MergedTreeModel result = new MergedTreeModel(merger);
+        addRecalcListener(result);
+        return result;
+    }
+
+    public class MergedTreeModel extends AbstractTreeTableModel implements
+            RecalcListener {
+
+        private EVTaskListMerger merger;
+
+        public MergedTreeModel(EVTaskListMerger merger) {
+            super(merger.getMergedTaskRoot());
+            this.merger = merger;
+        }
+
+        public Object getChild(Object parent, int index) {
+            return EVTaskList.this.getChild(parent, index);
+        }
+
+        public int getChildCount(Object parent) {
+            return EVTaskList.this.getChildCount(parent);
+        }
+
+        public Class getColumnClass(int column) {
+            return EVTaskList.this.getColumnClass(column);
+        }
+
+        public int getColumnCount() {
+            return EVTaskList.this.getColumnCount();
+        }
+
+        public String getColumnName(int column) {
+            return EVTaskList.this.getColumnName(column);
+        }
+
+        public int getIndexOfChild(Object parent, Object child) {
+            return EVTaskList.this.getIndexOfChild(parent, child);
+        }
+
+        public Object getValueAt(Object node, int column) {
+            return EVTaskList.this.getValueAt(node, column);
+        }
+
+        public boolean isCellEditable(Object node, int column) {
+            return EVTaskList.this.isCellEditable(node, column);
+        }
+
+        public boolean isLeaf(Object node) {
+            return EVTaskList.this.isLeaf(node);
+        }
+
+        public void evRecalculated(EventObject e) {
+            merger.recalculate();
+            fireTreeStructureChanged(this, new Object[] { root }, new int[0],
+                    null);
+        }
+
+    }
 }
