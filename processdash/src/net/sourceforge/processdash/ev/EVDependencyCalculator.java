@@ -254,7 +254,12 @@ public class EVDependencyCalculator {
             else {
                 String parentName = getDisplayNameForTask(t.parent);
                 if (parentName != null)
-                    return  parentName + "/" + t.getName();
+                    return parentName + "/" + t.getName();
+
+                String canonicalTaskName = EVTaskDependencyResolver
+                        .getInstance().getCanonicalTaskName(t.getTaskIDs());
+                if (canonicalTaskName != null)
+                    return canonicalTaskName;
                 else
                     return rootDisplayName;
             }

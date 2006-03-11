@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -36,6 +37,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
 
 public class EVTaskDependencyResolver {
 
@@ -57,12 +61,15 @@ public class EVTaskDependencyResolver {
 
     private DashboardContext context;
 
+    private Map nameCache;
+
     private Map taskCache;
 
     private long lastRefresh;
 
     private EVTaskDependencyResolver(DashboardContext context) {
         this.context = context;
+        this.nameCache = new Hashtable();
         this.taskCache = new Hashtable();
         this.lastRefresh = -1;
     }
@@ -71,15 +78,38 @@ public class EVTaskDependencyResolver {
         maybeRefreshCache();
         SortedSet infoList = (SortedSet) taskCache.get(taskID);
 
-        if (infoList == null)
+        if (infoList == null || infoList.isEmpty())
             return null;
         else {
             List result = new LinkedList();
             for (Iterator i = infoList.iterator(); i.hasNext();) {
                 TaskListInfo info = (TaskListInfo) i.next();
-                result.add(info.taskListName);
+                result.add(info.getTaskListName());
             }
             return result;
+        }
+    }
+
+    public String getCanonicalTaskName(Collection taskIDs) {
+        if (taskIDs != null) {
+            for (Iterator i = taskIDs.iterator(); i.hasNext();) {
+                String id = (String) i.next();
+                String result = getCanonicalTaskName(id);
+                if (result != null)
+                    return result;
+            }
+        }
+        return null;
+    }
+
+    public String getCanonicalTaskName(String taskID) {
+        maybeRefreshCache();
+        SortedSet infoList = (SortedSet) nameCache.get(taskID);
+        if (infoList == null || infoList.isEmpty())
+            return null;
+        else {
+            TaskNameInfo info = (TaskNameInfo) infoList.first();
+            return info.getTaskName();
         }
     }
 
@@ -93,8 +123,47 @@ public class EVTaskDependencyResolver {
     }
 
     private void refreshCache() {
-        Map newCache = new Hashtable();
+        Map newNameCache = new Hashtable();
+        findTasksInHierarchy(newNameCache, PropertyKey.ROOT);
 
+        Map newTaskCache = new Hashtable();
+        findTasksInTaskLists(newTaskCache);
+
+        this.nameCache = newNameCache;
+        this.taskCache = newTaskCache;
+        this.lastRefresh = System.currentTimeMillis();
+    }
+
+    private void findTasksInHierarchy(Map newCache, PropertyKey key) {
+        String path = key.path();
+        List taskIDs = EVTaskDependency.getTaskIDs(context.getData(), path);
+        if (taskIDs != null) {
+            int pref = 100;
+
+            String templateID = context.getHierarchy().getID(key);
+            if (isTemplateIDType(templateID, "/Master"))
+                pref += 3000;
+            else if (isTemplateIDType(templateID, "/Team"))
+                pref += 2000;
+            else if (isTemplateIDType(templateID, "/Indiv"))
+                pref += 1000;
+
+            for (Iterator i = taskIDs.iterator(); i.hasNext();) {
+                String taskID = (String) i.next();
+                TaskNameInfo info = new TaskNameInfo(path, pref--);
+                addToCache(newCache, taskID, info);
+            }
+        }
+
+        DashHierarchy hierarchy = context.getHierarchy();
+        for (int i = hierarchy.getNumChildren(key);  i-- > 0; )
+            findTasksInHierarchy(newCache, hierarchy.getChildKey(key, i));
+    }
+    private boolean isTemplateIDType(String id, String type) {
+        return (id != null && id.indexOf(type) != -1);
+    }
+
+    private void findTasksInTaskLists(Map newCache) {
         String[] taskListNames = EVTaskList.findTaskLists(context.getData(),
                 false, true);
         for (int i = 0; i < taskListNames.length; i++) {
@@ -107,9 +176,6 @@ public class EVTaskDependencyResolver {
                 registerTasks(newCache, info, (EVTask) tl.getRoot());
             }
         }
-
-        this.taskCache = newCache;
-        this.lastRefresh = System.currentTimeMillis();
     }
 
     private void registerTasks(Map cache, TaskListInfo info, EVTask task) {
@@ -117,32 +183,37 @@ public class EVTaskDependencyResolver {
         if (taskIDs != null)
             for (Iterator i = taskIDs.iterator(); i.hasNext();) {
                 Object taskID = i.next();
-                SortedSet infoList = (SortedSet) cache.get(taskID);
-                if (infoList == null) {
-                    infoList = new TreeSet();
-                    cache.put(taskID, infoList);
-                }
-                infoList.add(info);
+                addToCache(cache, taskID, info);
             }
 
         for (int i = task.getNumChildren(); i-- > 0;)
             registerTasks(cache, info, task.getChild(i));
     }
 
+    private void addToCache(Map cache, Object taskID, TaskInfo value) {
+        SortedSet infoList = (SortedSet) cache.get(taskID);
+        if (infoList == null) {
+            infoList = new TreeSet();
+            cache.put(taskID, infoList);
+        }
+        infoList.add(value);
+    }
 
-    private static class TaskListInfo implements Comparable {
-        public String taskListName;
+
+    private static class TaskInfo implements Comparable {
+
+        public String name;
 
         public int prefLevel;
 
-        public TaskListInfo(String taskListName, EVTaskList s) {
-            this.taskListName = taskListName;
-            this.prefLevel = measurePrefLevel(s);
+        public TaskInfo(String name, int prefLevel) {
+            this.name = name;
+            this.prefLevel = prefLevel;
         }
 
         public int compareTo(Object o) {
-            TaskListInfo that = (TaskListInfo) o;
-            if (this.taskListName.equals(that.taskListName))
+            TaskInfo that = (TaskInfo) o;
+            if (this.name.equals(that.name))
                 return 0;
             else
                 // if this is better than that, return a negative number
@@ -151,16 +222,40 @@ public class EVTaskDependencyResolver {
         }
 
         public boolean equals(Object obj) {
-            if (obj instanceof TaskListInfo) {
-                TaskListInfo that = (TaskListInfo) obj;
-                return this.taskListName.equals(that.taskListName);
+            if (obj instanceof TaskInfo) {
+                TaskInfo that = (TaskInfo) obj;
+                return this.name.equals(that.name);
             } else
                 return false;
         }
 
         public int hashCode() {
-            return taskListName.hashCode();
+            return name.hashCode();
         }
+
+    }
+
+    private static class TaskListInfo extends TaskInfo {
+
+        public TaskListInfo(String taskListName, EVTaskList s) {
+            super(taskListName, measurePrefLevel(s));
+        }
+
+        public String getTaskListName() {
+            return name;
+        }
+    }
+
+    private static class TaskNameInfo extends TaskInfo {
+
+        public TaskNameInfo(String name, int prefLevel) {
+            super(name, prefLevel);
+        }
+
+        public String getTaskName() {
+            return name;
+        }
+
     }
 
     /**

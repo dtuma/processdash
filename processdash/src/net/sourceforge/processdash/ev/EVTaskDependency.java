@@ -150,7 +150,10 @@ public class EVTaskDependency {
     }
 
 
-    public static void addTaskID(DataContext data, String taskPath, String id) {
+    public static void addTaskIDs(DataContext data, String taskPath, String id) {
+        if (id == null || id.length() == 0)
+            return;
+
         String dataName = DataRepository.createDataName(taskPath,
                 TASK_ID_DATA_NAME);
         SimpleData currentValue = data.getSimpleValue(dataName);
@@ -161,7 +164,14 @@ public class EVTaskDependency {
             newValue = ((StringData) currentValue).asList();
         else
             newValue = new ListData();
-        if (newValue.setAdd(id))
+
+        boolean valueChanged = false;
+        String[] idList = id.split(",");
+        for (int i = 0; i < idList.length; i++) {
+            if (newValue.setAdd(idList[i]))
+                valueChanged = true;
+        }
+        if (valueChanged)
             data.putValue(dataName, newValue);
     }
 
