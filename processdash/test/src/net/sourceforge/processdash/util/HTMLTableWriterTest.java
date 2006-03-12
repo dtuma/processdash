@@ -5,6 +5,8 @@ import java.io.StringWriter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
+import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
+
 import junit.framework.TestCase;
 
 public class HTMLTableWriterTest extends TestCase {

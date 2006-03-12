@@ -50,10 +50,12 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
+import net.sourceforge.processdash.ui.lib.HTMLTreeTableWriter;
+import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.FileUtils;
-import net.sourceforge.processdash.util.HTMLTableWriter;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -371,8 +373,13 @@ public class EVReport extends CGIChartBase {
             writeMetric(m, i);
         out.print("</table>");
 
-        out.print("<h2>"+getResource("TaskList.Title")+"</h2>\n");
-        writeTaskTable(evModel);
+        out.print("<h2><a name='tasks'></a>"+getResource("TaskList.Title"));
+        printTaskStyleLink();
+        out.print("</h2>\n");
+        if (isFlatView())
+            writeTaskTable(evModel);
+        else
+            writeTaskTree(evModel);
 
         out.print("<h2>"+getResource("Schedule.Title")+"</h2>\n");
         writeScheduleTable(s);
@@ -396,6 +403,17 @@ public class EVReport extends CGIChartBase {
         out.print("</p>");
         out.print(FOOTER_HTML2);
     }
+
+    private void printTaskStyleLink() {
+        boolean isFlat = isFlatView();
+        out.print("&nbsp;&nbsp;<span class='hlink'><a href='ev.class"
+                + (isFlat ? "" : "?flat") + "#tasks'>");
+        out.print(resources.getHTML(isFlat ? "Report.Tree_View"
+                : "Report.Flat_View"));
+        out.print("</a></span>");
+    }
+
+
     protected void writeMetric(EVMetrics m, int i) {
         String name = (String) m.getValueAt(i, EVMetrics.NAME);
         if (name == null) return;
@@ -439,6 +457,10 @@ public class EVReport extends CGIChartBase {
         return ExcelReport.EXPORT_TAG.equals(getParameter("EXPORT"));
     }
 
+    private boolean isFlatView() {
+        return parameters.containsKey("flat") || exportingToExcel();
+    }
+
 
     static final String TITLE_VAR = "%title%";
     static final String POPUP_HEADER =
@@ -467,8 +489,14 @@ public class EVReport extends CGIChartBase {
     static final String HEADER_HTML =
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
-        "<style>td.timefmt { vnd.ms-excel.numberformat: [h]\\:mm }</style>\n" +
+        "<style>\n" +
+        "td.timefmt { vnd.ms-excel.numberformat: [h]\\:mm }\n" +
+        "span.hlink { font-size: medium;  font-style: italic; " +
+        " font-weight: normal }\n" +
+        HTMLTreeTableWriter.getCssInfo() +
+        "</style>\n" +
         POPUP_HEADER +
+        "<script language='javascript1.2' src='treetable.js'></script>" +
         "</head><body><h1>%title%</h1>\n";
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
@@ -490,24 +518,42 @@ public class EVReport extends CGIChartBase {
 
 
     void writeTaskTable(EVTaskList taskList) throws IOException {
+        HTMLTableWriter writer = new HTMLTableWriter();
+        TableModel table = customizeTaskTableWriter(writer, taskList);
+        writer.writeTable(out, table);
+    }
+
+    void writeTaskTree(EVTaskList taskList) throws IOException {
+        TreeTableModel tree = taskList.getMergedModel();
+        HTMLTreeTableWriter writer = new HTMLTreeTableWriter();
+        customizeTaskTableWriter(writer, taskList);
+        writer.writeTree(out, tree);
+
+        int depth = Settings.getInt("ev.showHierarchicalDepth", 3);
+        out.write("<script>collapseAllRows(" + depth + ");</script>");
+    }
+
+    void writeScheduleTable(EVSchedule s) throws IOException {
+        HTMLTableWriter writer = new HTMLTableWriter();
+        customizeTableWriter(writer, s, s.getColumnTooltips());
+        writer.setTableName("SCHEDULE");
+        writer.writeTable(out, s);
+    }
+
+    private TableModel customizeTaskTableWriter(HTMLTableWriter writer,
+            EVTaskList taskList) {
         TableModel table = taskList.getSimpleTableModel();
-        HTMLTableWriter writer = getTableWriter(table, EVTaskList.toolTips);
+        customizeTableWriter(writer, table, EVTaskList.toolTips);
         writer.setTableName("TASK");
         writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
                 new DependencyCellRenderer(exportingToExcel()));
         if (!(taskList instanceof EVTaskListRollup))
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
-        writer.writeTable(out, table);
+        return table;
     }
 
-    void writeScheduleTable(EVSchedule s) throws IOException {
-        HTMLTableWriter writer = getTableWriter(s, s.getColumnTooltips());
-        writer.setTableName("SCHEDULE");
-        writer.writeTable(out, s);
-    }
-
-    private HTMLTableWriter getTableWriter(TableModel t, String[] toolTips) {
-        HTMLTableWriter writer = new HTMLTableWriter();
+    private void customizeTableWriter(HTMLTableWriter writer, TableModel t,
+            String[] toolTips) {
         writer.setTableAttributes("border='1'");
         writer.setHeaderRenderer(
                 new HTMLTableWriter.DefaultHTMLHeaderCellRenderer(toolTips));
@@ -516,8 +562,6 @@ public class EVReport extends CGIChartBase {
         for (int i = t.getColumnCount();  i-- > 0; )
             if (t.getColumnName(i).endsWith(" "))
                 writer.setSkipColumn(i, true);
-
-        return writer;
     }
 
 

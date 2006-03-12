@@ -48,6 +48,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -936,7 +937,8 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public TreeTableModel getMergedModel() {
-        EVTaskListMerger merger = new EVTaskListMerger(EVTaskList.this);
+        boolean simple = Settings.getBool("ev.simplifiedMerge", true);
+        EVTaskListMerger merger = new EVTaskListMerger(EVTaskList.this, simple);
         MergedTreeModel result = new MergedTreeModel(merger);
         addRecalcListener(result);
         return result;

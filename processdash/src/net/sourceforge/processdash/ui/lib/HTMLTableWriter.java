@@ -1,4 +1,4 @@
-package net.sourceforge.processdash.util;
+package net.sourceforge.processdash.ui.lib;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.table.TableModel;
+
+import net.sourceforge.processdash.util.HTMLUtils;
 
 public class HTMLTableWriter {
 
@@ -139,7 +141,9 @@ public class HTMLTableWriter {
 
         // print out each row in the table.
         for (int r = 0; r < numRows; r++) {
-            out.write("<tr>");
+            out.write("<tr");
+            printRowAttrs(out, r);
+            out.write(">");
             out.write(cellNewline);
             for (int c = 0; c < numCols; c++) {
                 if (getSkipColumn(c) == true)
@@ -188,6 +192,9 @@ public class HTMLTableWriter {
         out.write("</");
         out.write(tag);
         out.write(">");
+    }
+
+    protected void printRowAttrs(Writer out, int r) throws IOException {
     }
 
     public static class DefaultHTMLTableCellRenderer implements CellRenderer {

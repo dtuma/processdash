@@ -31,6 +31,7 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -60,12 +63,15 @@ public class EVTaskListMerger {
 
     private EVTaskList taskList;
 
+    private boolean simplify;
+
     private EVTask mergedRoot;
 
     /** Create and calculate a merged task model for the given task list.
      */
-    public EVTaskListMerger(EVTaskList taskList) {
+    public EVTaskListMerger(EVTaskList taskList, boolean simplify) {
         this.taskList = taskList;
+        this.simplify = simplify;
         this.mergedRoot = new EVTask(taskList.getRootName());
         recalculate();
     }
@@ -101,6 +107,9 @@ public class EVTaskListMerger {
 
         // we're ready - do the work
         createMergedNodes(allTaskKeys);
+
+        if (simplify)
+            simplifyNodes(mergedRoot);
     }
 
     /** Collect all the nodes that we want to include in our merged model,
@@ -429,12 +438,6 @@ public class EVTaskListMerger {
         task.taskIDs = new LinkedList(taskIDs);
     }
 
-    /** Convenience method.  Is a no-op if the second arg is null or empty. */
-    private void addAll(Collection a, Collection b) {
-        if (hasValue(b))
-            a.addAll(b);
-    }
-
     /** Compute a SortableTaskName to represent a non-root child in the
      * merged tree.
      */
@@ -588,6 +591,49 @@ public class EVTaskListMerger {
                 .first();
         bestIDs = findKeysWithValue(taskIDPositions, bestPos);
         return bestIDs;
+    }
+
+
+    /** Collapse parent nodes that have only one child.
+     */
+    private void simplifyNodes(EVTask task) {
+        int numChildren = task.getNumChildren();
+
+        for (int i = 0;  i < numChildren;  i++)
+            simplifyNodes(task.getChild(i));
+
+        if (numChildren == 1) {
+            EVTask child = task.getChild(0);
+            task.assignedTo = mergeLists(task.assignedTo, child.assignedTo);
+            task.dependencies = mergeLists(task.dependencies, child.dependencies);
+            task.taskIDs = mergeLists(task.taskIDs, child.taskIDs);
+            task.name = pathConcat(task.name, child.name);
+            task.remove(child);
+            for (int i = 0;  i < child.getNumChildren();  i++)
+                task.add(child.getChild(i));
+        }
+    }
+
+    /** Convenience routine for instance counting */
+    private List mergeLists(List a, List b) {
+        LinkedHashSet result = new LinkedHashSet();
+        addAll(result, a);
+        addAll(result, b);
+        return new LinkedList(result);
+    }
+
+    /** Convenience routine for merging path names */
+    private String pathConcat(String a, String b) {
+        if (b.startsWith("/"))
+            return a + b;
+        else
+            return a + "/" + b;
+    }
+
+    /** Convenience method.  Is a no-op if the second arg is null or empty. */
+    private void addAll(Collection a, Collection b) {
+        if (hasValue(b))
+            a.addAll(b);
     }
 
     /** Convenience routine for instance counting */
