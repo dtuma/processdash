@@ -178,6 +178,21 @@ public class MasterWBSUtil {
         return result;
     }
 
+    public static String getNodeIDs(WBSNode node, String projectID) {
+        String masterNodeID = (String) node.getAttribute(MASTER_NODE_ID);
+
+        String projectNodeID = (String) node.getAttribute(PROJECT_NODE_ID);
+        if (projectNodeID == null)
+            projectNodeID = projectID + ":" + node.getUniqueID();
+
+        if (masterNodeID == null)
+            return projectNodeID;
+        else
+            return projectNodeID + "," + masterNodeID;
+    }
+
+
+
     public static void visitWBS(WBSModel wbs, WBSNodeVisitor visitor) {
         visitor.visit(null, wbs.getRoot());
         visitWBS(wbs, wbs.getRoot(), visitor);

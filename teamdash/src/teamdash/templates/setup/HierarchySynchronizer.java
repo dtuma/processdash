@@ -344,7 +344,7 @@ public class HierarchySynchronizer {
                 Element node) throws HierarchyAlterationException {
 
             try {
-                EVTaskDependency.addTaskID(data, pathPrefix,
+                EVTaskDependency.addTaskIDs(data, pathPrefix,
                         node.getAttribute(TASK_ID_ATTR));
             } catch (Exception e) {}
 
@@ -393,7 +393,7 @@ public class HierarchySynchronizer {
              String taskID = node.getAttribute(TASK_ID_ATTR);
              try {
                  putData(path, WBS_ID_DATA_NAME, StringData.create(nodeID));
-                 EVTaskDependency.addTaskID(data, path, taskID);
+                 EVTaskDependency.addTaskIDs(data, path, taskID);
             } catch (Exception e) {}
             if (!isTeam()) {
                 maybeSaveDocSize(path, node);

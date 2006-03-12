@@ -114,7 +114,7 @@ public class WBSDataWriter {
         out.write("<" + tagName);
         writeAttr(out, NAME_ATTR, node.getName());
         writeAttr(out, ID_ATTR, node.getUniqueID());
-        writeAttr(out, TASK_ID_ATTR, MasterWBSUtil.getNodeID(node, projectID));
+        writeAttr(out, TASK_ID_ATTR, MasterWBSUtil.getNodeIDs(node, projectID));
 
         // write attributes specific to this XML tag type
         AttributeWriter aw = (AttributeWriter) attributeWriters.get(tagName);
