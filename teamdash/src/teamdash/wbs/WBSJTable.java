@@ -273,6 +273,8 @@ public class WBSJTable extends JTable {
     private boolean containsReadOnlyNode(int[] rows) {
         for (int i = 0; i < rows.length; i++) {
             WBSNode node = wbsModel.getNodeForRow(rows[i]);
+            if (node == null)
+                continue;
             if (node.isReadOnly())
                 return true;
             if (node.isExpanded() == false) {
