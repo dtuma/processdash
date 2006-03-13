@@ -5,6 +5,9 @@ import java.awt.Cursor;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -53,8 +56,6 @@ public class WBSJTable extends JTable {
     private JComponent scrollableDelegate = null;
     /** The list of nodes that has been cut */
     private List cutList = null;
-    /** The list of nodes that has been copied */
-    private List copyList = null;
 
     /** Should editing of WBS nodes be disabled? */
     private boolean disableEditing = false;
@@ -336,7 +337,6 @@ public class WBSJTable extends JTable {
     //
     /////////////////////////////////////////////////////////////
 
-
     /** Abstract class for an action that (1) stops editing, (2) does
      * something, then (3) restarts editing */
     private class RestartEditingAction extends AbstractAction {
@@ -505,7 +505,7 @@ public class WBSJTable extends JTable {
 
 
     /** An action to perform a "cut" operation */
-    private class CutAction extends AbstractAction {
+    private class CutAction extends AbstractAction implements ClipboardOwner {
         public CutAction() {
             super("Cut", IconFactory.getCutIcon());
         }
@@ -521,8 +521,8 @@ public class WBSJTable extends JTable {
             cancelCut();
 
             // record the cut nodes.
-            copyList = null;
             cutList = wbsModel.getNodesForRows(rows, true);
+            WBSClipSelection.putNodeListOnClipboard(cutList, this);
 
             // update the appearance of newly cut cells (they will be
             // displaying phantom icons).
@@ -532,6 +532,9 @@ public class WBSJTable extends JTable {
         }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing && notJustRoot(selectedRows));
+        }
+        public void lostOwnership(Clipboard clipboard, Transferable contents) {
+            cancelCut();
         }
     }
     final CutAction CUT_ACTION = new CutAction();
@@ -554,8 +557,10 @@ public class WBSJTable extends JTable {
             cancelCut();
 
             // make a list of the copied nodes
-            copyList = WBSNode.cloneNodeList
+            List copyList = WBSNode.cloneNodeList
                 (wbsModel.getNodesForRows(rows, true));
+            WBSClipSelection.putNodeListOnClipboard(copyList, null);
+
             WBSJTable.this.recalculateEnablement();
         }
         public void recalculateEnablement(int[] selectedRows) {
@@ -576,7 +581,6 @@ public class WBSJTable extends JTable {
 
             WBSNode beforeNode = getLocation();
             if (beforeNode == null) return;
-            finalizeCut();
             insertCopiedNodes(beforeNode);
         }
 
@@ -589,32 +593,23 @@ public class WBSJTable extends JTable {
             return result;
         }
 
-        void finalizeCut() {
-            if (cutList == null || cutList.size() == 0) return;
-
-            wbsModel.deleteNodes(cutList, false);
-            copyList = cutList;
-            cutList = null;
-        }
-
         void insertCopiedNodes(WBSNode beforeNode) {
-            if (copyList == null || copyList.size() == 0) return;
+            List nodesToInsert = WBSClipSelection
+                    .getNodeListFromClipboard(beforeNode);
+            if (nodesToInsert == null || nodesToInsert.size() == 0) return;
+
+            if (nodesToInsert == cutList)
+                wbsModel.deleteNodes(cutList, false);
+            cutList = null;
+
             int pos = wbsModel.getRowForNode(beforeNode);
-            List nodesToInsert = copyList;
-            copyList = cutList = null;
             int[] rowsInserted = wbsModel.insertNodes(nodesToInsert, pos);
             selectRows(rowsInserted);
 
             UndoList.madeChange(WBSJTable.this, "Paste WBS elements");
-/*            if (rowsInserted != null) {
-                clearSelection();
-                for (int i=rowsInserted.length;   i-- > 0; )
-                    addRowSelectionInterval(rowsInserted[i], rowsInserted[i]);
-            }*/
         }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing &&
-                       (cutList != null || copyList != null) &&
                        notEmpty(selectedRows) &&
                        getLocation() != null);
         }
