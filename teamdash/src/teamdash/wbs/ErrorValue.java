@@ -25,7 +25,4 @@ public class ErrorValue extends WrappedValue {
         this.severity = severity;
     }
 
-    public String toString() {
-        return String.valueOf(value);
-    }
 }

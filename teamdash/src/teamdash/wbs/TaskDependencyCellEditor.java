@@ -53,6 +53,12 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
     /** The list of TaskDependencies that we are editing.  */
     private TaskDependencyList value;
 
+    /** The JTable we are currently editing */
+    private JTable table;
+
+    /** The name of the column we are currently editing */
+    private String columnName;
+
 
     public TaskDependencyCellEditor(TaskDependencySource dependencySource,
             Map iconMap) {
@@ -85,21 +91,26 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             this.errMsg = READ_ONLY_ERROR;
         else {
             this.path = wbsModel.getFullName(node);
-            this.value = unwrap(value);
+            this.value = (TaskDependencyList) WrappedValue.unwrap(value);
             loadUIData();
         }
 
-        button.setText(this.value == null ? null : this.value.toString());
+        this.columnName = table.getColumnName(column);
+        this.table = table;
+        this.button.setText(this.value == null ? null : this.value.toString());
         return button;
     }
 
+    public boolean stopCellEditing() {
+        // call our superclass to actually stop editing.
+        boolean result = super.stopCellEditing();
 
-    private TaskDependencyList unwrap(Object obj) {
-        if (obj instanceof ErrorValue)
-            obj = ((ErrorValue) obj).value;
-        if (obj instanceof ReadOnlyValue)
-            obj = ((ReadOnlyValue) obj).value;
-        return (TaskDependencyList) obj;
+        // if editing was stopped, notify the UndoList about the change.
+        if (result)
+            UndoList.madeChange
+                (table, "Editing value in '"+columnName+"' column");
+
+        return result;
     }
 
     public void buttonClicked() {

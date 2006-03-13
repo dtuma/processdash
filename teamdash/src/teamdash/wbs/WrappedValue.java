@@ -11,4 +11,7 @@ public class WrappedValue {
         return obj;
     }
 
+    public String toString() {
+        return String.valueOf(value);
+    }
 }

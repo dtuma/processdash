@@ -32,13 +32,12 @@ class DataTableCellRenderer extends DefaultTableCellRenderer {
         boolean readOnly = false;
 
         // unwrap ErrorValue objects and ReadOnlyValue objects
-        if (value instanceof ErrorValue) {
-            errorValue = (ErrorValue) value;
-            value = errorValue.value;
-        }
-        if (value instanceof ReadOnlyValue) {
-            readOnly = true;
-            value = ((ReadOnlyValue) value).value;
+        while (value instanceof WrappedValue) {
+            if (value instanceof ErrorValue)
+                errorValue = (ErrorValue) value;
+            else if (value instanceof ReadOnlyValue)
+                readOnly = true;
+            value = ((WrappedValue) value).value;
         }
 
         // ask our superclass for an appropriate renderer component.

@@ -53,6 +53,9 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
     /** The model describing tasks that we can depend upon */
     private TaskDependencySource dependencySource;
 
+    /** Whether we should unequivocally return true on our next recalculation */
+    private boolean needsRecalc;
+
     /**
      * An icon map that can be used for displaying the tree of potentially
      * dependent tasks.
@@ -83,7 +86,16 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
-        TaskDependencyList list = (TaskDependencyList) aValue;
+        TaskDependencyList list;
+
+        if (aValue instanceof TaskDependencyList || aValue == null)
+            list = (TaskDependencyList) aValue;
+        else if (aValue instanceof String) {
+            list = TaskDependencyList.valueOf((String) aValue);
+            needsRecalc = true;
+        } else
+            return;
+
         node.setAttribute(TASK_LIST_ATTR, list);
         writeDependenciesToNode(node, list);
     }
@@ -100,7 +112,8 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
     }
 
     public boolean recalculate() {
-        boolean result = false;
+        boolean result = needsRecalc;
+        needsRecalc = false;
         WBSModel wbs = dataModel.getWBSModel();
         WBSNode[] allNodes = wbs.getDescendants(wbs.getRoot());
         for (int i = 0; i < allNodes.length; i++) {

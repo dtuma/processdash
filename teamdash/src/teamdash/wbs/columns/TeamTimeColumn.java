@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.table.TableCellRenderer;
 
+import teamdash.wbs.AnnotatedValue;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
@@ -658,34 +659,44 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                                         double defaultTime)
         {
             StringBuffer result = new StringBuffer();
+            StringBuffer annotatedResult = new StringBuffer();
             for (int i = 0;   i < times.length;   i++)
-                if (times[i].time > 0)
+                if (times[i].time > 0) {
                     times[i].appendTimeString
                         (result.append(", "), defaultTime);
+                    times[i].appendTimeString
+                        (annotatedResult.append(", "), -1);
+                }
 
             if (result.length() == 0)
                 return UNASSIGNED;
             else
-                return result.toString().substring(2);
+                return new AnnotatedValue(result.toString().substring(2),
+                        annotatedResult.toString().substring(2));
         }
         public void setValueAt(Object aValue, WBSNode node) {
             LeafNodeData leafData = getLeafNodeData(node);
             if (leafData == null) return;
             Double defaultTime = new Double(leafData.timePerPerson);
 
+            boolean foundData = false;
             HashMap times = new HashMap();
             if (aValue instanceof String) {
                 Matcher m = TIME_SETTING_PATTERN.matcher((String) aValue);
                 while (m.find()) {
+                    foundData = true;
                     Object initials = m.group(1).toLowerCase();
                     Object value = m.group(2);
                     if (value == null) value = defaultTime;
                     times.put(initials, value);
                 }
             }
+            if (aValue == null || "".equals(aValue))
+                foundData = true;
 
-            for (int i = leafData.individualTimes.length;   i-- > 0; )
-                leafData.individualTimes[i].setTime(times);
+            if (foundData)
+                for (int i = leafData.individualTimes.length;   i-- > 0; )
+                    leafData.individualTimes[i].setTime(times);
         }
     }
     private static Object UNASSIGNED = new ErrorValue

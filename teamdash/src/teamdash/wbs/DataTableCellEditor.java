@@ -10,7 +10,7 @@ import javax.swing.text.JTextComponent;
 
 /** Default cell editor for the data table.
  *
- * This class unwraps {@link ErrorValue} objects and passes them to
+ * This class unwraps {@link WrappedValue} objects and passes them to
  * the DefaultCellEditor.  It also registers itself with the
  * appropriate UndoList, and sends change notifications to that
  * UndoList when the user edits a table cell value.
@@ -31,8 +31,7 @@ class DataTableCellEditor extends DefaultCellEditor {
                                                  int row,
                                                  int column) {
         // unwrap error values.
-        if (value instanceof ErrorValue)
-            value = ((ErrorValue) value).value;
+        value = WrappedValue.unwrap(value);
 
         Component result = super.getTableCellEditorComponent
             (table, value, isSelected, row, column);
