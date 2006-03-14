@@ -6,7 +6,7 @@
 
 function toggleRows(elm) {
    var rows = document.getElementsByTagName("TR");
-   setImage(elm, "/Images/folder-closed.gif");
+   setImage(elm, "folder-closed");
    var newDisplay = "none";
    var thisID = elm.parentNode.parentNode.parentNode.id + "-";
    // Are we expanding or contracting? If the first child is hidden, we expand
@@ -16,7 +16,7 @@ function toggleRows(elm) {
          if (r.style.display == "none") {
             if (document.all) newDisplay = "block"; //IE4+ specific code
             else newDisplay = "table-row"; //Netscape and Mozilla
-            setImage(elm, "/Images/folder-open.gif");
+            setImage(elm, "folder-open");
          }
          break;
       }
@@ -29,19 +29,25 @@ function toggleRows(elm) {
       var s = rows[j];
       if (matchStart(s.id, thisID, matchDirectChildrenOnly)) {
          s.style.display = newDisplay;
-         var cell = s.getElementsByTagName("TD")[0];
-         var tier = cell.getElementsByTagName("DIV")[0];
-         var folder = tier.getElementsByTagName("A")[0];
-         setImage(folder, "/Images/folder-closed.gif");
+         var cell = lookForChild(s, "TD");
+         var tier = lookForChild(cell, "DIV");
+         var folder = lookForChild(tier, "A");
+         setImage(folder, "folder-closed");
       }
    }
 }
 
-function setImage(elm, href) {
-   if (elm != null) {
-      var image = elm.getElementsByTagName("IMG")[0];
-      if (image != null) image.src = href;
-   }
+function lookForChild(elem, tagName) {
+   if (elem == null) return null;
+   var children = elem.getElementsByTagName(tagName);
+   if (children == null || children.length == 0) return null;
+   return children[0];
+}
+
+function setImage(elm, imgID) {
+   var image = lookForChild(elm, "IMG");
+   if (image != null)
+	image.src = document.getElementById(imgID).src;
 }
 
 function matchStart(target, pattern, matchDirectChildrenOnly) {
@@ -58,7 +64,7 @@ function collapseAllRows(belowDepth) {
    var rows = document.getElementsByTagName("TR");
    for (var j = 0; j < rows.length; j++) {
       var r = rows[j];
-      if (r.id.split("-").length > belowDepth) {
+      if (r.id != null && r.id.split("-").length > belowDepth) {
         r.style.display = "none";    
       }
    }

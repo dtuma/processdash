@@ -345,8 +345,10 @@ public class EVReport extends CGIChartBase {
         out.print(StringUtils.findAndReplace
                   (HEADER_HTML, TITLE_VAR,
                    resources.format("Report.Title_FMT", taskListHTML)));
-        if (!exportingToExcel())
+        if (!exportingToExcel()) {
             out.print(SEPARATE_CHARTS_HTML);
+            out.print(TREE_ICON_HEADER);
+        }
 
         EVSchedule s = evModel.getSchedule();
         EVMetrics  m = s.getMetrics();
@@ -498,6 +500,11 @@ public class EVReport extends CGIChartBase {
         POPUP_HEADER +
         "<script language='javascript1.2' src='treetable.js'></script>" +
         "</head><body><h1>%title%</h1>\n";
+    static final String TREE_ICON_HEADER =
+        "<span style='display:none'>" +
+        "<img id='folder-open' src='/Images/folder-open.gif'>" +
+        "<img id='folder-closed' src='/Images/folder-closed.gif'>" +
+        "</span>\n";
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
     static final String SEPARATE_CHARTS_HTML =
