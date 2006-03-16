@@ -92,6 +92,9 @@ public class TeamMemberListEditor implements WindowListener {
     }
 
     public boolean save() {
+        if (teamMemberList.isReadOnly())
+            return true;
+
         if (table.isEditing())
             // stop editing the current table cell.
             table.getCellEditor().stopCellEditing();
@@ -155,6 +158,8 @@ public class TeamMemberListEditor implements WindowListener {
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (save()) hide(); } });
+        if (teamMemberList.isReadOnly())
+            button.setEnabled(false);
         buttons.add(button);
         return buttons;
     }

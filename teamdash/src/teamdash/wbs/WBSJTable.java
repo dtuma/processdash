@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -180,10 +181,14 @@ public class WBSJTable extends JTable {
     private void buildCustomActionMaps() {
 
         // Map "Tab" and "Shift-Tab" to the demote/promote actions
-        new ActionMapping(KeyEvent.VK_TAB, 0, "Demote", DEMOTE_ACTION);
-        new ActionMapping(KeyEvent.VK_TAB, SHIFT, "Promote", PROMOTE_ACTION);
-        new ActionMapping(KeyEvent.VK_INSERT, 0, "Insert", INSERT_ACTION);
-        new ActionMapping(KeyEvent.VK_ENTER, 0, "Enter", ENTER_ACTION);
+        customActions.add(new ActionMapping(KeyEvent.VK_TAB, 0, "Demote",
+                DEMOTE_ACTION));
+        customActions.add(new ActionMapping(KeyEvent.VK_TAB, SHIFT, "Promote",
+                PROMOTE_ACTION));
+        customActions.add(new ActionMapping(KeyEvent.VK_INSERT, 0, "Insert",
+                INSERT_ACTION));
+        customActions.add(new ActionMapping(KeyEvent.VK_ENTER, 0, "Enter",
+                ENTER_ACTION));
 
         // Java 1.3 doesn't handle the "auto restart editing" actions very
         // well, so if we're in a 1.3 JRE stop here.
@@ -205,9 +210,9 @@ public class WBSJTable extends JTable {
             if (! filter.contains(actionKey)) continue;
             Action action = actionMap.get(actionKey);
             if (action == null) continue;
-            new ActionMapping
+            customActions.add(new ActionMapping
                 (keys[i], actionKey + "-WBS",
-                 new DelegateActionRestartEditing(action,actionKey));
+                 new DelegateActionRestartEditing(action,actionKey)));
         }
     }
 
@@ -244,17 +249,12 @@ public class WBSJTable extends JTable {
     /** Look at each of our actions to determine if it should be enabled. */
     private void recalculateEnablement() {
         int[] selectedRows = getSelectedRows();
-        CUT_ACTION.recalculateEnablement(selectedRows);
-        COPY_ACTION.recalculateEnablement(selectedRows);
-        PASTE_ACTION.recalculateEnablement(selectedRows);
-        DELETE_ACTION.recalculateEnablement(selectedRows);
-        PROMOTE_ACTION.recalculateEnablement(selectedRows);
-        DEMOTE_ACTION.recalculateEnablement(selectedRows);
-        INSERT_ACTION.recalculateEnablement(selectedRows);
-        ENTER_ACTION.recalculateEnablement(selectedRows);
-        if (INSERT_WORKFLOW_ACTION != null)
-            INSERT_WORKFLOW_ACTION.recalculateEnablement(selectedRows);
+        for (Iterator i = enablementCalculations.iterator(); i.hasNext();) {
+            EnablementCalculation calc = (EnablementCalculation) i.next();
+            calc.recalculateEnablement(selectedRows);
+        }
     }
+    private List enablementCalculations = new LinkedList();
 
 
     /** Return true if the list of rows contains at least one row. */
@@ -297,47 +297,9 @@ public class WBSJTable extends JTable {
 
 
 
-    /** Class for managing a custom keystroke/action mapping */
-    private class ActionMapping {
-        KeyStroke keyStroke;
-        Object actionKey;
-        Action action;
-
-        /** Create a new action mapping */
-        public ActionMapping(int keyCode, int modifiers,
-                             Object actionKey, Action action) {
-            this(KeyStroke.getKeyStroke(keyCode, modifiers),
-                 actionKey, action);
-        }
-
-        /** Create a new action mapping */
-        public ActionMapping(KeyStroke key, Object actionKey, Action action) {
-            this.keyStroke = key;
-            this.actionKey = actionKey;
-            this.action = action;
-            customActions.add(this);
-        }
-
-        /** Install this action mapping into a component */
-        public void install(JComponent component) {
-            component.getInputMap().put(keyStroke, actionKey);
-            component.getActionMap().put(actionKey, action);
-        }
-
-        /** override hashcode and equals to defer to our KeyStroke field */
-        public int hashCode() { return this.keyStroke.hashCode(); }
-        public boolean equals(Object obj) {
-            return (obj instanceof ActionMapping &&
-                    ((ActionMapping) obj).keyStroke.equals(this.keyStroke));
-        }
+    private interface EnablementCalculation {
+        public void recalculateEnablement(int[] selectedRows);
     }
-
-
-    /////////////////////////////////////////////////////////////
-    //
-    // Internal classes for various custom Actions
-    //
-    /////////////////////////////////////////////////////////////
 
     /** Abstract class for an action that (1) stops editing, (2) does
      * something, then (3) restarts editing */
@@ -425,9 +387,12 @@ public class WBSJTable extends JTable {
 
 
     /** An action to demote the selected rows. */
-    private class DemoteAction extends RestartEditingAction {
+    private class DemoteAction extends RestartEditingAction implements
+            EnablementCalculation {
+
         public DemoteAction() {
             super("Demote", IconFactory.getDemoteIcon());
+            enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
             System.out.println("Demote");
@@ -446,9 +411,12 @@ public class WBSJTable extends JTable {
 
 
     /** An action to promote the selected rows. */
-    private class PromoteAction extends RestartEditingAction {
+    private class PromoteAction extends RestartEditingAction implements
+            EnablementCalculation {
+
         public PromoteAction() {
             super("Promote", IconFactory.getPromoteIcon());
+            enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
             System.out.println("Promote");
@@ -507,9 +475,12 @@ public class WBSJTable extends JTable {
 
 
     /** An action to perform a "cut" operation */
-    private class CutAction extends AbstractAction implements ClipboardOwner {
+    private class CutAction extends AbstractAction implements ClipboardOwner,
+            EnablementCalculation {
+
         public CutAction() {
             super("Cut", IconFactory.getCutIcon());
+            enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
             if (disableEditing)
@@ -543,9 +514,12 @@ public class WBSJTable extends JTable {
 
 
     /** An action to perform a "copy" operation */
-    private class CopyAction extends AbstractAction {
+    private class CopyAction extends AbstractAction implements
+            EnablementCalculation {
+
         public CopyAction() {
             super("Copy", IconFactory.getCopyIcon());
+            enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
             if (disableEditing)
@@ -573,9 +547,12 @@ public class WBSJTable extends JTable {
 
 
     /** An action to perform a "paste" operation */
-    private class PasteAction extends AbstractAction {
+    private class PasteAction extends AbstractAction implements
+            EnablementCalculation {
+
         public PasteAction() {
             super("Paste", IconFactory.getPasteIcon());
+            enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
             if (disableEditing)
@@ -620,11 +597,14 @@ public class WBSJTable extends JTable {
 
 
     /** An action to perform an "insert node before" operation */
-    private class InsertAction extends RestartEditingAction {
+    private class InsertAction extends RestartEditingAction implements
+            EnablementCalculation {
+
         public InsertAction() { this("Insert"); }
         public InsertAction(String name) {
             super(name);
             editingFollowsSelection = true;
+            enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
             int currentCol = getColumnModel().getSelectionModel()
@@ -701,9 +681,12 @@ public class WBSJTable extends JTable {
 
 
     /** An action to perform a "delete" operation */
-    private class DeleteAction extends AbstractAction {
+    private class DeleteAction extends AbstractAction implements
+            EnablementCalculation {
+
         public DeleteAction() {
             super("Delete", IconFactory.getDeleteIcon());
+            enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
             if (disableEditing)
@@ -753,12 +736,15 @@ public class WBSJTable extends JTable {
 
 
     /** An action to insert information from a workflow */
-    private class InsertWorkflowAction extends AbstractAction {
+    private class InsertWorkflowAction extends AbstractAction implements
+            EnablementCalculation {
+
         private WBSModel workflows;
 
         public InsertWorkflowAction(WBSModel workflows) {
             this.workflows = workflows;
             setEnabled(false);
+            enablementCalculations.add(this);
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -793,13 +779,16 @@ public class WBSJTable extends JTable {
     private InsertWorkflowAction INSERT_WORKFLOW_ACTION = null;
 
 
-    private class MergeMasterWBSAction extends AbstractAction {
+    private class MergeMasterWBSAction extends AbstractAction implements
+            EnablementCalculation {
 
         private File dir;
 
         public MergeMasterWBSAction(File dir) {
             super("Copy Core Work Items from Master Project");
             this.dir = dir;
+            setEnabled(!disableEditing);
+            enablementCalculations.add(this);
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -821,6 +810,10 @@ public class WBSJTable extends JTable {
                 selectRows(newRowsToSelect);
                 UndoList.madeChange(WBSJTable.this, "Copy Work from Master");
             }
+        }
+
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(!disableEditing);
         }
     }
 

@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -34,6 +36,7 @@ public class WorkflowEditor {
             (teamProject.getWorkflows(), teamProject.getTeamProcess());
         table = createWorkflowJTable
             (workflowModel, teamProject.getTeamProcess());
+        table.setEditingEnabled(teamProject.isReadOnly() == false);
         buildToolbar();
         frame = new JFrame(teamProject.getProjectName() +
                            " - Common Team Workflows");
@@ -126,6 +129,12 @@ public class WorkflowEditor {
         button.setFocusPainted(false);
         button.setToolTipText((String) a.getValue(Action.NAME));
         button.setText(null);
+
+        Icon icon = button.getIcon();
+        if (icon != null && !(icon instanceof ImageIcon))
+            button.setDisabledIcon(IconFactory.getModifiedIcon(icon,
+                    IconFactory.DISABLED_ICON));
+
         toolBar.add(button);
     }
 
@@ -167,8 +176,11 @@ public class WorkflowEditor {
 
 
     public Action[] getWorkflowActions() {
+        if (teamProject.isReadOnly())
+            IMPORT.setEnabled(false);
         return new Action[] { IMPORT, EXPORT };
     }
+
     /*
     private Set saveListeners = null;
     public void addSaveListener(SaveListener l) {

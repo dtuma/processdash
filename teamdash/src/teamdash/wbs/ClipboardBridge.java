@@ -87,8 +87,9 @@ public class ClipboardBridge {
     private class PasteAction extends AbstractAction {
 
         public void actionPerformed(ActionEvent e) {
-            //            System.out.println("Trying to Paste");
             try {
+                boolean madeChange = false;
+
                 int[] selRows = table.getSelectedRows();
                 int[] selCols = table.getSelectedColumns();
 
@@ -106,7 +107,10 @@ public class ClipboardBridge {
                     String val = cells[0][0];
                     for (int r = 0; r < selRows.length; r++)
                         for (int c = 0; c < selCols.length; c++)
-                            table.setValueAt(val, selRows[r], selCols[c]);
+                            if (table.isCellEditable(selRows[r], selCols[c])) {
+                                table.setValueAt(val, selRows[r], selCols[c]);
+                                madeChange = true;
+                            }
 
                 } else {
                     // regular behavior: paste the text into the rectangular
@@ -124,7 +128,10 @@ public class ClipboardBridge {
                             int col = startCol + c;
                             if (col >= table.getColumnCount())
                                 break;
-                            table.setValueAt(cells[r][c], row, col);
+                            if (table.isCellEditable(row, col)) {
+                                table.setValueAt(cells[r][c], row, col);
+                                madeChange = true;
+                            }
                             endRow = row;
                             endCol = col;
                         }
@@ -135,7 +142,8 @@ public class ClipboardBridge {
                             .setSelectionInterval(startCol, endCol);
                 }
 
-                UndoList.madeChange(table, "Paste");
+                if (madeChange)
+                    UndoList.madeChange(table, "Paste");
             } catch (Exception ex) {
                 Toolkit.getDefaultToolkit().beep();
                 ex.printStackTrace();

@@ -133,6 +133,13 @@ public class TeamProject {
     /** Set the read-only status of this team project */
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
+        if (teamList != null)
+            teamList.setReadOnly(readOnly);
+    }
+
+    /** Return a lock file for protecting this team project */
+    public File getLockFile() {
+        return new File(directory, "teamProjectLock.txt");
     }
 
     /** Return the project settings */
@@ -217,6 +224,7 @@ public class TeamProject {
                                " found; creating empty team list");
             teamList = new TeamMemberList();
         }
+        teamList.setReadOnly(readOnly);
     }
 
     /** Save the list of team members */

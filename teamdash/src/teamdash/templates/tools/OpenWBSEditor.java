@@ -16,8 +16,6 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import teamdash.XMLUtils;
-import teamdash.wbs.TeamProject;
-import teamdash.wbs.TeamProjectBottomUp;
 import teamdash.wbs.WBSEditor;
 
 public class OpenWBSEditor extends TinyCGIBase {
@@ -50,9 +48,6 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         parseFormData();
         String directory = getParameter("directory");
-        if (!checkEntryCriteria(directory))
-            return;
-
         boolean bottomUp = parameters.containsKey("bottomUp");
         boolean showTeam = parameters.containsKey("team");
 
@@ -64,17 +59,13 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private void openInternally(String directory, boolean bottomUp,
             boolean showTeam) {
-        WBSEditor editor = getEditor(directory, bottomUp);
-
-        if (showTeam)
-            editor.showTeamListEditor();
-        else
-            editor.show();
+        if (!checkEntryCriteria(directory))
+            return;
 
         writeHtmlHeader();
         DashController.printNullDocument(out);
+        showEditor(directory, bottomUp, showTeam);
     }
-
 
     private boolean checkEntryCriteria(String directory) {
         String javaVersion = System.getProperty("java.version");
@@ -97,34 +88,26 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private static Hashtable editors = new Hashtable();
 
-    private WBSEditor getEditor(String directory, boolean bottomUp) {
+    private void showEditor(String directory, boolean bottomUp, boolean showTeam) {
         String key = directory;
         if (bottomUp)
             key = "bottomUp:" + key;
 
-        WBSEditor result = (WBSEditor) editors.get(key);
-        if (result == null || result.isDisposed()) {
-            result = makeEditorForPath(directory, bottomUp);
-            editors.put(key, result);
+        WBSEditor editor = (WBSEditor) editors.get(key);
+        if (editor != null && !editor.isDisposed()) {
+            if (showTeam)
+                editor.showTeamListEditor();
+            else
+                editor.raiseWindow();
+
+        } else {
+            editor = WBSEditor.createAndShowEditor(directory, bottomUp,
+                    showTeam, false);
+            if (editor != null)
+                editors.put(key, editor);
+            else
+                editors.remove(key);
         }
-
-        return result;
-    }
-
-    private WBSEditor makeEditorForPath(String directory, boolean bottomUp) {
-        File dir = new File(directory);
-        File dumpFile = new File(dir, "projDump.xml");
-
-        TeamProject teamProject;
-        if (bottomUp)
-            teamProject = new TeamProjectBottomUp(dir, "Team Project");
-        else
-            teamProject = new TeamProject(dir, "Team Project");
-
-        WBSEditor result = new WBSEditor(teamProject, dumpFile);
-        result.setExitOnClose(false);
-
-        return result;
     }
 
     private void writeJnlpFile(String directory, boolean bottomUp, boolean showTeam) {

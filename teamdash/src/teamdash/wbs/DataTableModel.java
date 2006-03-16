@@ -71,6 +71,10 @@ public class DataTableModel extends AbstractTableModel {
         disableEditing = !enabled;
     }
 
+    public boolean isEditingEnabled() {
+        return !disableEditing;
+    }
+
     private void initializeColumnDependencies() {
         // create the dependency matrix and populate it with "false" values.
         int numColumns = columns.size();

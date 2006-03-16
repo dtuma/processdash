@@ -1,9 +1,13 @@
 package teamdash.wbs;
 
 import java.awt.Component;
+import java.awt.Event;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Stack;
 
 import javax.swing.AbstractAction;
@@ -46,6 +50,9 @@ public class UndoList {
     /** An action that can be used to trigger a redo operation */
     private Action redoAction;
 
+    /** A list of the actions we support */
+    private List customActions;
+
     /** Flag indicating whether we are in the middle of canceling
      * table cell editing sessions. */
     private boolean currentlyCancelingEditors = false;
@@ -59,6 +66,11 @@ public class UndoList {
         this.cellEditors = new HashSet();
         undoAction = new UndoAction();
         redoAction = new RedoAction();
+        customActions = new LinkedList();
+        customActions.add(new ActionMapping(KeyEvent.VK_Z, Event.CTRL_MASK,
+                "Undo", undoAction));
+        customActions.add(new ActionMapping(KeyEvent.VK_Y, Event.CTRL_MASK,
+                "Redo", redoAction));
         this.currentState = snapshotSource.getSnapshot();
     }
 
@@ -181,6 +193,10 @@ public class UndoList {
      * component. */
     public void setForComponent(JComponent component) {
         component.putClientProperty(CLIENT_PROP_NAME, this);
+        Iterator i = customActions.iterator();
+        while (i.hasNext())
+            ((ActionMapping) i.next()).install(component,
+                    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
 

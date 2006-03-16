@@ -309,6 +309,8 @@ public class WorkflowLibraryEditor {
         WorkflowLibrary result = null;
         while (true) {
             File file = selectFile(parent, export);
+            if (file == null)
+                throw new UserCancelledException();
             result = openWorkflowLibrary(parent, export, file);
             if (result != null)
                 break;
@@ -436,7 +438,7 @@ public class WorkflowLibraryEditor {
         File result = selectFile(parent, title, buttonLabel);
 
         // maybe add filename extension, if the user didn't specify it.
-        if (export && result.getName().indexOf('.') == -1)
+        if (export && result != null && result.getName().indexOf('.') == -1)
             result = new File(result.getParentFile(), result.getName() + WORKFLOW_LIBRARY_FILENAME_EXTENSION);
 
         return result;

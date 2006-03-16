@@ -15,6 +15,7 @@ import java.awt.image.RGBImageFilter;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.GrayFilter;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
@@ -109,8 +110,8 @@ public class IconFactory {
 
     public static Icon getImportIcon() {
         if (IMPORT_ICON == null) {
-//            IMPORT_ICON = loadIconResource("import.png");
-            IMPORT_ICON = new ConcatenatedIcon(new Icon[] { getWorkflowIcon(), getLeftArrowIcon(), getOpenIcon() });
+            IMPORT_ICON = new ConcatenatedIcon(new Icon[] { getWorkflowIcon(),
+                    getLeftArrowIcon(), getOpenIcon() });
         }
         return IMPORT_ICON;
     }
@@ -118,8 +119,8 @@ public class IconFactory {
 
     public static Icon getExportIcon() {
         if (EXPORT_ICON == null) {
-//            EXPORT_ICON = loadIconResource("export.png");
-            EXPORT_ICON = new ConcatenatedIcon(new Icon[] { getWorkflowIcon(), getRightArrowIcon(), getOpenIcon() });
+            EXPORT_ICON = new ConcatenatedIcon(new Icon[] { getWorkflowIcon(),
+                    getRightArrowIcon(), getOpenIcon() });
         }
         return EXPORT_ICON;
     }
@@ -514,12 +515,14 @@ public class IconFactory {
 
     public static final int PHANTOM_ICON = 1;
     public static final int ERROR_ICON = 2;
+    public static final int DISABLED_ICON = 4;
 
-    private static final Map[] MODIFIED_ICONS = new Map[3];
+    private static final Map[] MODIFIED_ICONS = new Map[4];
     static {
         MODIFIED_ICONS[0] = new HashMap();
         MODIFIED_ICONS[1] = new HashMap();
         MODIFIED_ICONS[2] = new HashMap();
+        MODIFIED_ICONS[3] = new HashMap();
     }
 
     /** Create a modified version of an icon.
@@ -531,13 +534,16 @@ public class IconFactory {
      *     of a cut operation
      * <li>{@link #ERROR_ICON} to create a reddened icon, indicative of an
      *     error condition.
+     * <li>{@link #DISABLED_ICON} to create a grayed-out icon, indicative of a
+     *     disabled action.  (This flag cannot be used in combination with
+     *     either of the other two flags.)
      * </ul>
      * @return an icon which looks like the original, with the requested
      *  filters applied. <b>Note:</b> this method will automatically cache
      *  the icons it generates, and return a cached icon when appropriate.
      */
     public static Icon getModifiedIcon(Icon i, int modifierFlags) {
-        if (modifierFlags < 1 || modifierFlags > 3)
+        if (modifierFlags < 1 || modifierFlags > 4)
             return i;
 
         Map destMap = MODIFIED_ICONS[modifierFlags - 1];
@@ -548,6 +554,8 @@ public class IconFactory {
                 bufIcon.applyFilter(RED_FILTER);
             if ((modifierFlags & PHANTOM_ICON) > 0)
                 bufIcon.applyFilter(PHANTOM_FILTER);
+            if ((modifierFlags & DISABLED_ICON) > 0)
+                bufIcon.applyFilter(GRAY_FILTER);
             result = bufIcon;
             destMap.put(i, result);
         }
@@ -589,6 +597,9 @@ public class IconFactory {
             return (component + 0xff) / 2;
         }
     }
+
+    // filter for creating "disabled" icons.
+    private static GrayFilter GRAY_FILTER = new GrayFilter(true, 50);
 
 
 

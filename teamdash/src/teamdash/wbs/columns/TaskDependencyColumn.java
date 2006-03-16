@@ -88,7 +88,9 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
     public void setValueAt(Object aValue, WBSNode node) {
         TaskDependencyList list;
 
-        if (aValue instanceof TaskDependencyList || aValue == null)
+        if (node.getIndentLevel() == 0 || node.isReadOnly())
+            return;
+        else if (aValue instanceof TaskDependencyList || aValue == null)
             list = (TaskDependencyList) aValue;
         else if (aValue instanceof String) {
             list = TaskDependencyList.valueOf((String) aValue);

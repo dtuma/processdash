@@ -35,6 +35,8 @@ public class TeamMemberList extends AbstractTableModel {
     /** True if we should always keep an empty team member at the end of
      * the list */
     private boolean autoNewRow = true;
+    /** Is this team member list read only? */
+    private boolean readOnly = false;
 
     /** Creates an empty team member list. */
     public TeamMemberList() {
@@ -51,12 +53,23 @@ public class TeamMemberList extends AbstractTableModel {
     /** Create a cloned copy of the given team member list */
     public TeamMemberList(TeamMemberList list) {
         this.teamMembers = copyTeamMemberList(list.teamMembers);
+        this.readOnly = list.readOnly;
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
     }
 
     /** Add an empty team member to the bottom of the list if the last member
      * in the list is not currently empty.
      */
     public void maybeAddEmptyRow() {
+        if (isReadOnly())
+            return;
         int rows = getRowCount();
         if (rows == 0 || hasValue(getValueAt(rows-1, NAME_COLUMN)))
             addNewRow();
@@ -143,7 +156,7 @@ public class TeamMemberList extends AbstractTableModel {
     public int getColumnCount()         { return columnNames.length; }
     public String getColumnName(int c)  { return columnNames[c];     }
     public Class getColumnClass(int c)  { return columnClass[c];     }
-    public boolean isCellEditable(int row, int col) { return true; }
+    public boolean isCellEditable(int row, int col) { return !isReadOnly(); }
 
     public Object getValueAt(int row, int column) {
         TeamMember m = get(row);
@@ -158,6 +171,9 @@ public class TeamMemberList extends AbstractTableModel {
     }
 
     public void setValueAt(Object aValue, int row, int column) {
+        if (isReadOnly())
+            return;
+
         TeamMember m = get(row);
         switch (column) {
         case NAME_COLUMN:
@@ -190,6 +206,9 @@ public class TeamMemberList extends AbstractTableModel {
     /** Add a new, empty team member to the end of the list.  Use the
      * first available unused color. */
     private void addNewRow() {
+        if (isReadOnly())
+            return;
+
         int newRowNum = getRowCount();
         Color c = getFirstUnusedColor();
         Date d = getDefaultStartDate();

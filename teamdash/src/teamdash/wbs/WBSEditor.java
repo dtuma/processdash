@@ -21,11 +21,17 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import teamdash.ConcurrencyLock;
 import teamdash.SaveListener;
 import teamdash.TeamMemberListEditor;
 
-public class WBSEditor implements WindowListener, SaveListener {
+public class WBSEditor implements WindowListener, SaveListener,
+        ConcurrencyLock.Listener {
 
+    public static final String INTENT_WBS_EDITOR = "showWbsEditor";
+    public static final String INTENT_TEAM_EDITOR = "showTeamListEditor";
+
+    ConcurrencyLock concurrencyLock;
     TeamProject teamProject;
     JFrame frame;
     WBSTabPanel tabPanel;
@@ -45,8 +51,12 @@ public class WBSEditor implements WindowListener, SaveListener {
     private static final int MODE_MASTER = 4;
     private static final int MODE_BOTTOM_UP = 8;
 
-    public WBSEditor(TeamProject teamProject, File dumpFile) {
+    public WBSEditor(TeamProject teamProject, File dumpFile, String intent)
+            throws ConcurrencyLock.FailureException {
+
         this.teamProject = teamProject;
+        acquireLock(intent);
+
         this.dataDumpFile = dumpFile;
         this.readOnly = teamProject.isReadOnly();
 
@@ -111,6 +121,32 @@ public class WBSEditor implements WindowListener, SaveListener {
         frame.pack();
     }
 
+    private void acquireLock(String intent) throws ConcurrencyLock.FailureException {
+        if (teamProject.isReadOnly())
+            return;
+
+        try {
+            this.concurrencyLock = new ConcurrencyLock(teamProject
+                    .getLockFile(), intent, this);
+        } catch (ConcurrencyLock.SentMessageException sme) {
+            throw sme;
+        } catch (ConcurrencyLock.FailureException e) {
+            int userResponse = JOptionPane.showConfirmDialog(null,
+                    CONCURRENCY_MESSAGE, "Open Project in Read-Only Mode",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (userResponse == JOptionPane.YES_OPTION)
+                teamProject.setReadOnly(true);
+            else
+                throw e;
+        }
+    }
+    private static final String[] CONCURRENCY_MESSAGE = {
+        "Someone on another machine is already running the",
+        "Work Breakdown Structure Editor for this project.",
+        "Would you like to open the project anyway, in",
+        "read-only mode?"
+    };
+
     private void setMode(TeamProject teamProject) {
         if (teamProject instanceof TeamProjectBottomUp)
             this.mode = MODE_BOTTOM_UP;
@@ -151,6 +187,25 @@ public class WBSEditor implements WindowListener, SaveListener {
     public void show() {
         frame.show();
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    }
+
+    public String handleMessage(String message) {
+        if (INTENT_TEAM_EDITOR.equals(message)) {
+            showTeamListEditor();
+            return "OK";
+        }
+        if (INTENT_WBS_EDITOR.equals(message)) {
+            raiseWindow();
+            return "OK";
+        }
+        throw new IllegalArgumentException();
+    }
+
+    public void raiseWindow() {
+        if (frame.getState() == JFrame.ICONIFIED)
+            frame.setState(JFrame.NORMAL);
+        frame.show();
+        frame.toFront();
     }
 
     public void showTeamListEditor() {
@@ -271,10 +326,6 @@ public class WBSEditor implements WindowListener, SaveListener {
             case JOptionPane.YES_OPTION:
                 save();
                 break;
-
-            default:
-                disposed = true;
-                break;
         }
 
         return true;
@@ -289,6 +340,9 @@ public class WBSEditor implements WindowListener, SaveListener {
                 if (teamListEditor != null) teamListEditor.hide();
                 if (workflowEditor != null) workflowEditor.hide();
                 frame.dispose();
+                disposed = true;
+                if (concurrencyLock != null)
+                    concurrencyLock.unlock();
             }
         }
     }
@@ -303,25 +357,55 @@ public class WBSEditor implements WindowListener, SaveListener {
     public void windowActivated(WindowEvent e) {}
     public void windowDeactivated(WindowEvent e) {}
 
-
-    public static void main(String args[]) {
-        String filename = ".";
-        if (args.length > 0)
-            filename = args[0];
-
-        File dir = new File(filename);
+    public static WBSEditor createAndShowEditor(String directory,
+            boolean bottomUp, boolean showTeamList, boolean exitOnClose) {
+        File dir = new File(directory);
         File dumpFile = new File(dir, "projDump.xml");
         TeamProject proj;
-        if (Boolean.getBoolean("teamdash.wbs.bottomUp"))
+        if (bottomUp)
             proj = new TeamProjectBottomUp(dir, "Team Project");
         else
             proj = new TeamProject(dir, "Team Project");
-        WBSEditor w = new WBSEditor(proj, dumpFile);
-        w.setExitOnClose(true);
-        w.show();
 
-        if (Boolean.getBoolean("teamdash.wbs.showTeamMemberList"))
-            w.showTeamListEditor();
+        String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
+        try {
+            WBSEditor w = new WBSEditor(proj, dumpFile, intent);
+            w.setExitOnClose(exitOnClose);
+            if (showTeamList)
+                w.showTeamListEditor();
+            else
+                w.show();
+
+            return w;
+        } catch (ConcurrencyLock.FailureException e) {
+            return null;
+        }
+    }
+
+    public static void main(String args[]) {
+        String filename = ".";
+        if (args.length > 0) {
+            filename = args[0];
+            if (new File(filename).isDirectory() == false) {
+                showBadFilenameError(filename);
+                return;
+            }
+        }
+
+        boolean bottomUp = Boolean.getBoolean("teamdash.wbs.bottomUp");
+        boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
+        createAndShowEditor(filename, bottomUp, showTeam, true);
+    }
+
+    private static void showBadFilenameError(String filename) {
+        String[] message = new String[] {
+                "The Work Breakdown Structure Editor attempted to open",
+                "project data located in the directory:",
+                "        " + filename,
+                "Unfortunately, this directory could not be found.  You",
+                "may need to map a network drive to edit this data." };
+        JOptionPane.showMessageDialog(null, message,
+                "Could not Open Project Files", JOptionPane.ERROR_MESSAGE);
     }
 
     private class SaveAction extends AbstractAction {
