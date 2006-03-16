@@ -48,6 +48,7 @@ import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.ui.EVReport.DependencyCellRenderer;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
@@ -107,6 +108,7 @@ public class EVWeekReport extends TinyCGIBase {
         EVSchedule schedule = evModel.getSchedule();
         EVMetrics  metrics = schedule.getMetrics();
         totalPlanTime = metrics.totalPlan();
+        boolean showAssignedTo = (evModel instanceof EVTaskListRollup);
 
         String effDateParam = getParameter(EFF_DATE_PARAM);
         Date effDateTime = null;
@@ -285,14 +287,16 @@ public class EVWeekReport extends TinyCGIBase {
                       "<td></td>"+
                       "<td class=header>${Columns.Planned_Time}</td>"+
                       "<td class=header>${Columns.Actual_Time}</td>"+
-                      "<td class=header>${Columns.Percent_Spent}</td>"+
-                      "<td class=header>${Columns.Planned_Date}</td>"+
+                      "<td class=header>${Columns.Percent_Spent}</td>");
+            if (showAssignedTo)
+                interpOut("<td class=header>${Columns.Assigned_To}</td>");
+            interpOut("<td class=header>${Columns.Planned_Date}</td>"+
                       "<td class=header>${Columns.Earned_Value}</td>"+
                       "</tr>\n");
 
             for (int i = 0;   i < taskListLen;   i++)
                 if (completedLastWeek[i])
-                    printCompletedLine(tasks, i);
+                    printCompletedLine(tasks, i, showAssignedTo);
 
             out.println("</table>");
         }
@@ -305,8 +309,10 @@ public class EVWeekReport extends TinyCGIBase {
                       "<td></td>"+
                       "<td class=header>${Columns.Planned_Time}</td>"+
                       "<td class=header>${Columns.Actual_Time}</td>"+
-                      "<td class=header>${Columns.Percent_Spent}</td>"+
-                      "<td class=header>${Columns.Planned_Date}</td>"+
+                      "<td class=header>${Columns.Percent_Spent}</td>");
+            if (showAssignedTo)
+                interpOut("<td class=header>${Columns.Assigned_To}</td>");
+            interpOut("<td class=header>${Columns.Planned_Date}</td>"+
                       "<td class=header title='${Columns.Depend_Tooltip}'>${Columns.Depend}</td>"+
                       "<td class=header>${Columns.Forecast_Time_Remaining}</td>"+
                       "</tr>\n");
@@ -316,7 +322,8 @@ public class EVWeekReport extends TinyCGIBase {
             double timeRemaining = 0;
             for (int i = 0;   i < taskListLen;   i++)
                 if (dueThroughNextWeek[i])
-                    timeRemaining += printDueLine(tasks, i, cpi, rend);
+                    timeRemaining += printDueLine(tasks, i, cpi, rend,
+                            showAssignedTo);
 
             interpOut("<tr><td align=right colspan=6><b>${Due_Tasks.Total}" +
                         "&nbsp;</b></td><td class='timefmt'>");
@@ -436,7 +443,8 @@ public class EVWeekReport extends TinyCGIBase {
         out.println("</td>");
     }
 
-    protected void printCompletedLine(TableModel tasks, int i) {
+    protected void printCompletedLine(TableModel tasks, int i,
+            boolean showAssignedTo) {
         double planTime, actualTime;
         String time;
         out.print("<tr><td class=left>");
@@ -455,6 +463,11 @@ public class EVWeekReport extends TinyCGIBase {
         else
             out.print("&nbsp;");
         out.print("</td><td>");
+        if (showAssignedTo) {
+            out.print(encodeHTML
+                      (tasks.getValueAt(i, EVTaskList.ASSIGNED_TO_COLUMN)));
+            out.print("</td><td>");
+        }
         out.print(encodeHTML
                   (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
         out.print("</td><td>");
@@ -463,7 +476,7 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
     protected double printDueLine(TableModel tasks, int i, double cpi,
-            EVReport.DependencyCellRenderer rend) {
+            EVReport.DependencyCellRenderer rend, boolean showAssignedTo) {
         double planTime, actualTime, percentSpent, forecastTimeRemaining;
         String time;
         out.print("<tr><td class=left>");
@@ -480,6 +493,11 @@ public class EVWeekReport extends TinyCGIBase {
         percentSpent = actualTime / planTime;
         out.print(formatPercent(percentSpent));
         out.print("</td><td>");
+        if (showAssignedTo) {
+            out.print(encodeHTML
+                      (tasks.getValueAt(i, EVTaskList.ASSIGNED_TO_COLUMN)));
+            out.print("</td><td>");
+        }
         out.print(encodeHTML
                   (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
         out.print("</td><td class=center>");
@@ -488,7 +506,7 @@ public class EVWeekReport extends TinyCGIBase {
                 EVTaskList.DEPENDENCIES_COLUMN);
         out.print(depHtml == null ? "&nbsp;" : depHtml);
         out.print("</td>");
-        if (cpi > 0)
+        if (cpi > 0 && !Double.isInfinite(cpi))
             forecastTimeRemaining = (planTime / cpi) - actualTime;
         else
             forecastTimeRemaining = planTime - actualTime;
