@@ -328,6 +328,8 @@ public class EVTask implements Cloneable, DataListener {
         actualTime = EVSchedule.getXMLNum(e, "at");
         actualDirectTime = EVSchedule.getXMLNum(e, "adt", actualTime);
         actualCurrentTime = EVSchedule.getXMLNum(e, "act", actualDirectTime);
+        planStartDate = EVSchedule.getXMLDate(e, "psd");
+        actualStartDate = EVSchedule.getXMLDate(e, "asd");
         planDate = EVSchedule.getXMLDate(e, "pd");
         dateCompleted = EVSchedule.getXMLDate(e, "cd");
         if (e.hasAttribute("loe"))
@@ -730,6 +732,12 @@ public class EVTask implements Cloneable, DataListener {
     public String getCumPlanValue(double totalPlanValue) {
         if (isValuePruned() && cumPlanValue == 0) return "";
         return formatPercent(cumPlanValue/totalPlanValue);
+    }
+    public Date getPlanStartDate() {
+        return planStartDate;
+    }
+    public Date getActualStartDate() {
+        return actualStartDate;
     }
     public Date getPlanDate() {
         if (isValuePruned()) return null;
@@ -1159,6 +1167,10 @@ public class EVTask implements Cloneable, DataListener {
             result.append("' adt='").append(actualDirectTime);
         if (actualCurrentTime != actualDirectTime)
             result.append("' act='").append(actualCurrentTime);
+        if (planStartDate != null)
+            result.append("' psd='").append(EVSchedule.saveDate(planStartDate));
+        if (actualStartDate != null)
+            result.append("' asd='").append(EVSchedule.saveDate(actualStartDate));
         if (planDate != null)
             result.append("' pd='").append(EVSchedule.saveDate(planDate));
         if (dateCompleted != null)
