@@ -462,12 +462,12 @@ public class EVWeekReport extends TinyCGIBase {
             out.print(formatPercent(actualTime/planTime));
         else
             out.print("&nbsp;");
-        out.print("</td><td>");
         if (showAssignedTo) {
+            out.print("</td><td class='left'>");
             out.print(encodeHTML
                       (tasks.getValueAt(i, EVTaskList.ASSIGNED_TO_COLUMN)));
-            out.print("</td><td>");
         }
+        out.print("</td><td>");
         out.print(encodeHTML
                   (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
         out.print("</td><td>");
@@ -492,12 +492,12 @@ public class EVWeekReport extends TinyCGIBase {
         out.print("</td><td>");
         percentSpent = actualTime / planTime;
         out.print(formatPercent(percentSpent));
-        out.print("</td><td>");
         if (showAssignedTo) {
+            out.print("</td><td class='left'>");
             out.print(encodeHTML
                       (tasks.getValueAt(i, EVTaskList.ASSIGNED_TO_COLUMN)));
-            out.print("</td><td>");
         }
+        out.print("</td><td>");
         out.print(encodeHTML
                   (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
         out.print("</td><td class=center>");
