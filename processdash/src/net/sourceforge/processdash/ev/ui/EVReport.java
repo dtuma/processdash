@@ -696,12 +696,14 @@ public class EVReport extends CGIChartBase {
     }
 
     private void printTaskStyleLink() {
-        boolean isFlat = isFlatView();
-        out.print("&nbsp;&nbsp;<span class='hlink'><a href='ev.class"
-                + (isFlat ? "" : "?flat") + "#tasks'>");
-        out.print(resources.getHTML(isFlat ? "Report.Tree_View"
-                : "Report.Flat_View"));
-        out.print("</a></span>");
+        if (!exportingToExcel()) {
+            boolean isFlat = isFlatView();
+            out.print("&nbsp;&nbsp;<span class='hlink'><a href='ev.class"
+                    + (isFlat ? "" : "?flat") + "#tasks'>");
+            out.print(resources.getHTML(isFlat ? "Report.Tree_View"
+                    : "Report.Flat_View"));
+            out.print("</a></span>");
+        }
     }
 
 
@@ -715,12 +717,18 @@ public class EVReport extends CGIChartBase {
 
         boolean writeInterpretation = !number.equals(interpretation);
         boolean writeExplanation = !exportingToExcel();
+        boolean printExplanation = Settings.getBool(
+                "ev.printMetricsExplanations", true);
 
-        out.write("<tr><td><b>");
+        out.write("<tr><td valign='top'><b>");
         out.write(name);
-        out.write(":&nbsp;</b></td><td>");
+        out.write(":&nbsp;</b></td><td valign='top'>");
         out.write(number);
-        out.write("</td><td colspan='5'><i>");
+        out.write("</td><td colspan='5' valign='top'>");
+        if (printExplanation)
+            out.write("<i class='doNotPrint'>");
+        else
+            out.write("<i>");
 
         if (writeInterpretation || writeExplanation)
             out.write("(");
@@ -740,7 +748,15 @@ public class EVReport extends CGIChartBase {
         } else if (writeInterpretation) {
             out.write(")");
         }
-        out.write("</i></td></tr>\n");
+        out.write("</i>");
+
+        if (writeExplanation && printExplanation) {
+            out.write("<i class='printOnly' style='margin-bottom:1em'>(");
+            out.write(HTMLUtils.escapeEntities(explanation));
+            out.write(")</i>");
+        }
+
+        out.write("</td></tr>\n");
     }
 
 
