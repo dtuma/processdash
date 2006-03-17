@@ -418,6 +418,9 @@ public class EVReport extends CGIChartBase {
         });
 
         result.add(new CsvColumn("Resource_Names") {
+            public void writeNode(EVTask node, int depth) {
+                out.print("\"\"");
+            }
             public void writeLeaf(EVTask node, int depth) {
                 writeStringCsvField(node.getAssignedToText());
             }
@@ -435,7 +438,12 @@ public class EVReport extends CGIChartBase {
             }
 
             public void writeLeaf(EVTask node, int depth) {
-                out.print(node.getPercentComplete());
+                String result = node.getPercentComplete();
+                if (result == null || result.length() == 0)
+                    result = "0";
+                else if (result.endsWith("%"))
+                    result = result.substring(0, result.length()-1);
+                out.print(result);
             }
         });
 
@@ -506,7 +514,12 @@ public class EVReport extends CGIChartBase {
             }
 
             public void writeLeaf(EVTask node, int depth) {
-                out.print(node.getPercentComplete());
+                String result = node.getPercentComplete();
+                if (result == null || result.length() == 0)
+                    result = "0";
+                else if (result.endsWith("%"))
+                    result = result.substring(0, result.length()-1);
+                out.print(result);
             }
         });
 
