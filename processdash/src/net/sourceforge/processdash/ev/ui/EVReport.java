@@ -35,6 +35,7 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,6 +50,7 @@ import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTask;
+import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListMerger;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
@@ -361,7 +363,7 @@ public class EVReport extends CGIChartBase {
         out.print("Content-Disposition: attachment; filename=\""
                 + filename + "\"\r\n\r\n");
 
-        boolean simpleCsv = Settings.getBool("ev.simpleCsvOutput", true);
+        boolean simpleCsv = Settings.getBool("ev.simpleCsvOutput", false);
 
         List columns = null;
         if (simpleCsv) {
@@ -372,7 +374,9 @@ public class EVReport extends CGIChartBase {
         }
 
         TreeTableModel merged = evModel.getMergedModel(false);
-        writeCsvRows(columns, (EVTask) merged.getRoot(), 1);
+        EVTask root = (EVTask) merged.getRoot();
+        prepCsvColumns(columns, root, root, 1);
+        writeCsvRows(columns, root, 1);
     }
 
 
@@ -419,7 +423,7 @@ public class EVReport extends CGIChartBase {
 
         result.add(new CsvColumn("Resource_Names") {
             public void writeNode(EVTask node, int depth) {
-                out.print("\"\"");
+                writeStringCsvField("");
             }
             public void writeLeaf(EVTask node, int depth) {
                 writeStringCsvField(node.getAssignedToText());
@@ -438,12 +442,7 @@ public class EVReport extends CGIChartBase {
             }
 
             public void writeLeaf(EVTask node, int depth) {
-                String result = node.getPercentComplete();
-                if (result == null || result.length() == 0)
-                    result = "0";
-                else if (result.endsWith("%"))
-                    result = result.substring(0, result.length()-1);
-                out.print(result);
+                out.print(cleanupPercentComplete(node.getPercentComplete()));
             }
         });
 
@@ -454,9 +453,16 @@ public class EVReport extends CGIChartBase {
     private List createCsvColumns() {
         List result = new LinkedList();
 
-        result.add(new CsvColumn("Outline_Level") {
+        final Map idNumbers = new HashMap();
+        final Map taskIDs = new HashMap();
+
+        result.add(new CsvColumn("ID") {
+            int id = 1;
+            public void doPrepWork(EVTask root, EVTask node, int depth) {
+                idNumbers.put(node, new Integer(id++));
+            }
             public void write(EVTask node, int depth) {
-                out.print(depth);
+                out.print(idNumbers.get(node));
             }
         });
 
@@ -466,9 +472,46 @@ public class EVReport extends CGIChartBase {
             }
         });
 
-        result.add(new CsvHoursColumn("Scheduled_Work") {
-            public double getNodeMinutes(EVTask node) {
-                return node.getPlanValue();
+        result.add(new CsvColumn("Outline_Level") {
+            public void write(EVTask node, int depth) {
+                out.print(depth);
+            }
+        });
+
+        result.add(new CsvColumn("Predecessors") {
+
+            public void doPrepWork(EVTask root, EVTask node, int depth) {
+                // populate the taskIDs map so we can look up dashboard tasks
+                // by their taskID later.
+                List nodeIDs = node.getTaskIDs();
+                if (nodeIDs != null)
+                    for (Iterator i = nodeIDs.iterator(); i.hasNext();) {
+                        String id = (String) i.next();
+                        taskIDs.put(id, node);
+                    }
+            }
+
+            public void write(EVTask node, int depth) {
+                List dependencies = node.getDependencies();
+                if (dependencies == null || dependencies.isEmpty())
+                    return;
+
+                List predIDs = new LinkedList();
+                for (Iterator i = dependencies.iterator(); i.hasNext();) {
+                    // find the dashboard task named by each dependency.
+                    EVTaskDependency d = (EVTaskDependency) i.next();
+                    String dashTaskID = d.getTaskID();
+                    Object predTask = taskIDs.get(dashTaskID);
+                    if (predTask == null) continue;
+                    // look up the ID number we assigned to it in this CSV
+                    // export file, and add that ID number to our list.
+                    Object csvIdNumber = idNumbers.get(predTask);
+                    if (csvIdNumber == null) continue;
+                    predIDs.add(csvIdNumber);
+                }
+
+                if (!predIDs.isEmpty())
+                    writeStringCsvField(StringUtils.join(predIDs, ","));
             }
         });
 
@@ -484,9 +527,13 @@ public class EVReport extends CGIChartBase {
             }
         });
 
-        result.add(new CsvHoursColumn("Actual_Work") {
-            public double getNodeMinutes(EVTask node) {
-                return node.getActualDirectTime();
+        result.add(new CsvColumn("Percent_Complete") {
+            public void writeNode(EVTask node, int depth) {
+                out.print("0");
+            }
+
+            public void writeLeaf(EVTask node, int depth) {
+                out.print(cleanupPercentComplete(node.getPercentComplete()));
             }
         });
 
@@ -502,30 +549,35 @@ public class EVReport extends CGIChartBase {
             }
         });
 
+        result.add(new CsvHoursColumn("Scheduled_Work") {
+            public double getNodeMinutes(EVTask node) {
+                return node.getPlanValue();
+            }
+        });
+
+        result.add(new CsvHoursColumn("Actual_Work") {
+            public double getNodeMinutes(EVTask node) {
+                return node.getActualDirectTime();
+            }
+        });
+
         result.add(new CsvColumn("Resource_Names") {
             public void writeLeaf(EVTask node, int depth) {
                 writeStringCsvField(node.getAssignedToText());
             }
         });
 
-        result.add(new CsvColumn("Percent_Complete") {
-            public void writeNode(EVTask node, int depth) {
-                out.print("0");
-            }
-
-            public void writeLeaf(EVTask node, int depth) {
-                String result = node.getPercentComplete();
-                if (result == null || result.length() == 0)
-                    result = "0";
-                else if (result.endsWith("%"))
-                    result = result.substring(0, result.length()-1);
-                out.print(result);
-            }
-        });
-
         return result;
     }
 
+    private void prepCsvColumns(List columns, EVTask root, EVTask node, int depth) {
+        for (Iterator i = columns.iterator(); i.hasNext();) {
+            CsvColumn c = (CsvColumn) i.next();
+            c.doPrepWork(root, node, depth);
+        }
+        for (int i = 0;   i < node.getNumChildren();  i++)
+            prepCsvColumns(columns, root, node.getChild(i), depth+1);
+    }
 
     private void writeCsvRows(List columns, EVTask node, int depth) {
         for (Iterator i = columns.iterator(); i.hasNext();) {
@@ -563,6 +615,7 @@ public class EVReport extends CGIChartBase {
         public CsvColumn(String header) {
             this.header = header;
         }
+        public void doPrepWork(EVTask root, EVTask node, int depth) {}
         public void write(EVTask node, int depth) {
             if (node.isLeaf())
                 writeLeaf(node, depth);
@@ -1037,6 +1090,14 @@ public class EVReport extends CGIChartBase {
             out.print(s.toString());
         }
         out.println("</table></body></html>");
+    }
+
+    private String cleanupPercentComplete(String percent) {
+        if (percent == null || percent.length() == 0)
+            percent = "0";
+        else if (percent.endsWith("%"))
+            percent = percent.substring(0, percent.length()-1);
+        return percent;
     }
 
     private class EVCellRenderer extends
