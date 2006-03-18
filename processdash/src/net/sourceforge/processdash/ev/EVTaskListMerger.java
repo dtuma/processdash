@@ -31,6 +31,7 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,6 +59,8 @@ import net.sourceforge.processdash.util.XMLUtils;
  */
 public class EVTaskListMerger {
 
+    public static final String TASK_LIST_FLAG = "merged";
+
     private static final Logger logger = Logger
             .getLogger(EVTaskListMerger.class.getName());
 
@@ -73,6 +76,7 @@ public class EVTaskListMerger {
         this.taskList = taskList;
         this.simplify = simplify;
         this.mergedRoot = new EVTask(taskList.getRootName());
+        this.mergedRoot.flag = TASK_LIST_FLAG;
         recalculate();
     }
 
@@ -116,8 +120,9 @@ public class EVTaskListMerger {
      * and place them into a map.
      */
     private void getAllTaskKeys(Map result, EVTask task) {
-        if (task.isLevelOfEffortTask())
-            // don't include level of effort tasks in the merged result.
+        if (task.isLevelOfEffortTask() || task.isTotallyPruned())
+            // don't include level of effort tasks or pruned tasks in the
+            // merged result.
             return;
 
         // the "imaginary" nodes that are created as the root of an EVTaskList
@@ -198,8 +203,8 @@ public class EVTaskListMerger {
      * @param parent the TaskKey representing that EVTask.
      */
     private void defineParentage(Map allTaskKeys, TaskKey parent, EVTask task) {
-        if (task.isLevelOfEffortTask())
-            // we don't do level of effort tasks, remember?
+        if (task.isLevelOfEffortTask() || task.isTotallyPruned())
+            // we don't do level of effort tasks or pruned tasks, remember?
             return;
 
         // find the TaskKey for this EVTask, and set its parent.
@@ -344,7 +349,7 @@ public class EVTaskListMerger {
             Map allTaskKeys) {
         // create an empty EVTask to represent the new node.
         EVTask newNode = new EVTask(name);
-        newNode.fullName = parent.fullName + "/" + name;
+        newNode.fullName = pathConcat(parent.fullName, name);
         parent.add(newNode);
 
         // collect information about the descendants of this node.
@@ -356,14 +361,14 @@ public class EVTaskListMerger {
                 logger.warning("Unexpected situation - both children "
                         + "and leaf nodes are present for node "
                         + newNode.fullName);
-            populateNonLeafChild(newNode, key, name, childKeys, allTaskKeys);
+            populateNonLeafChild(newNode, key, childKeys, allTaskKeys);
         } else
-            populateLeafChild(newNode, name, leafNodes);
+            populateLeafChild(newNode, leafNodes);
     }
 
     /** Create the descendants for a newly created, merged node.
      */
-    private void populateNonLeafChild(EVTask newNode, TaskKey key, String name,
+    private void populateNonLeafChild(EVTask newNode, TaskKey key,
             List childKeys, Map allTaskKeys) {
         // compute the names of each child.  Use the SortableTaskName class
         // and a TreeMap to put them in the best order relative to each other.
@@ -388,8 +393,7 @@ public class EVTaskListMerger {
     }
 
     /** Compute rolled up metrics for a merged leaf node in the result tree. */
-    private void populateLeafChild(EVTask newNode, String name,
-            List leavesToMerge) {
+    private void populateLeafChild(EVTask newNode, List leavesToMerge) {
         // temporarily add all of the nodes to be merged as children of the
         // target node.
         for (Iterator i = leavesToMerge.iterator(); i.hasNext();) {
@@ -423,19 +427,52 @@ public class EVTaskListMerger {
         // and task IDs from the nodes we are merging.
         Set assignedTo = new TreeSet();
         Set dependencies = new HashSet();
-        Set taskIDs = new HashSet();
+        List taskIDLists = new LinkedList();
         for (Iterator i = mergedNodes.iterator(); i.hasNext();) {
             EVTask node = (EVTask) i.next();
             addAll(assignedTo, node.getAssignedTo());
             addAll(dependencies, node.getDependencies());
-            addAll(taskIDs, node.getTaskIDs());
+            taskIDLists.add(node.getTaskIDs());
         }
 
         // assign these merged lists of data to the merged EVTask.
         if (doResources)
             task.assignedTo = new LinkedList(assignedTo);
         task.dependencies = new LinkedList(dependencies);
-        task.taskIDs = new LinkedList(taskIDs);
+        task.taskIDs = new LinkedList(mergeTaskIDLists(taskIDLists));
+    }
+
+    /** Merge several lists of taskIDs, preserving order as best as possible */
+    private List mergeTaskIDLists(List taskIDLists) {
+        Map taskIDPositions = new LinkedHashMap();
+        Map taskIDCounts = new LinkedHashMap();
+        for (Iterator i = taskIDLists.iterator(); i.hasNext();) {
+            List idList = (List) i.next();
+            if (idList != null) {
+                int pos = 0;
+                for (Iterator j = idList.iterator(); j.hasNext();) {
+                    String id = (String) j.next();
+                    increment(taskIDPositions, id, pos++);
+                    increment(taskIDCounts, id, 1);
+                }
+            }
+        }
+        Set averages = new TreeSet();
+        for (Iterator i = taskIDPositions.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            Object id = e.getKey();
+            Integer val = (Integer) e.getValue();
+            Integer count = (Integer) taskIDCounts.get(id);
+            Double avg = new Double(val.doubleValue() / count.doubleValue());
+            e.setValue(avg);
+            averages.add(avg);
+        }
+        List result = new LinkedList();
+        for (Iterator i = averages.iterator(); i.hasNext();) {
+            Object avg = i.next();
+            result.addAll(findKeysWithValue(taskIDPositions, avg));
+        }
+        return result;
     }
 
     /** Compute a SortableTaskName to represent a non-root child in the
@@ -544,7 +581,7 @@ public class EVTaskListMerger {
      * @return a list of taskIDs that describe those nodes best.  If the nodes
      *    in question do not have any task IDs, returns null.
      */
-    private List getBestTaskIDs(Collection nodes) {
+    protected static List getBestTaskIDs(Collection nodes) {
         // find all the task IDs named by the given nodes, and count the
         // number of times each task ID appears
         Map taskIDCounts = new HashMap();
@@ -615,7 +652,7 @@ public class EVTaskListMerger {
     }
 
     /** Convenience routine for instance counting */
-    private List mergeLists(List a, List b) {
+    private static List mergeLists(List a, List b) {
         LinkedHashSet result = new LinkedHashSet();
         addAll(result, a);
         addAll(result, b);
@@ -623,21 +660,25 @@ public class EVTaskListMerger {
     }
 
     /** Convenience routine for merging path names */
-    private String pathConcat(String a, String b) {
-        if (b.startsWith("/"))
+    private static String pathConcat(String a, String b) {
+        if (b == null || b.length() == 0)
+            return a;
+        else if (a == null || a.length() == 0)
+            return b;
+        else if (b.startsWith("/"))
             return a + b;
         else
             return a + "/" + b;
     }
 
     /** Convenience method.  Is a no-op if the second arg is null or empty. */
-    private void addAll(Collection a, Collection b) {
+    private static void addAll(Collection a, Collection b) {
         if (hasValue(b))
             a.addAll(b);
     }
 
     /** Convenience routine for instance counting */
-    private void increment(Map numbers, Object key, int incr) {
+    private static void increment(Map numbers, Object key, int incr) {
         Integer i = (Integer) numbers.get(key);
         if (i == null)
             i = new Integer(incr);
@@ -648,7 +689,7 @@ public class EVTaskListMerger {
 
     /** Find all the keys in the map whose values equal the given value.
      */
-    private List findKeysWithValue(Map map, Object value) {
+    private static List findKeysWithValue(Map map, Object value) {
         LinkedList result = new LinkedList();
         for (Iterator i = map.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
@@ -660,13 +701,13 @@ public class EVTaskListMerger {
 
 
     /** Delete all of the children of an EVTask */
-    private void clearChildren(EVTask task) {
+    private static void clearChildren(EVTask task) {
         while (task.getNumChildren() > 0)
             task.remove(task.getChild(0));
     }
 
     /** Return true if the two collections have any common members */
-    private boolean intersects(Collection a, Collection b) {
+    private static boolean intersects(Collection a, Collection b) {
         if (hasValue(a) && hasValue(b)) {
             for (Iterator i = a.iterator(); i.hasNext();) {
                 if (b.contains(i.next()))
@@ -677,9 +718,10 @@ public class EVTaskListMerger {
     }
 
     /** Return true if the collection is non-null and is not empty */
-    private boolean hasValue(Collection c) {
+    private static boolean hasValue(Collection c) {
         return c != null && !c.isEmpty();
     }
+
 
 
     /** Object to hold data on behalf of a node which should appear in the

@@ -42,6 +42,8 @@ import net.sourceforge.processdash.net.cache.ObjectCache;
 
 public class EVTaskListRollup extends EVTaskList {
 
+    public static final String TASK_LIST_FLAG = "rollup";
+
     public static final String TASK_LISTS_DATA_NAME = "Task Lists";
 
     protected DataRepository data;
@@ -65,7 +67,7 @@ public class EVTaskListRollup extends EVTaskList {
         loadID(taskListName, data, TASK_LISTS_DATA_NAME);
         calculator = new EVCalculatorRollup
             ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
-        ((EVTask) root).flag = "rollup";
+        ((EVTask) root).flag = TASK_LIST_FLAG;
     }
 
     /** For unit testing purposes only! */

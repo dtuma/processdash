@@ -371,8 +371,8 @@ public class EVReport extends CGIChartBase {
             writeCsvColumnHeaders(columns);
         }
 
-        EVTaskListMerger merger = new EVTaskListMerger(evModel, false);
-        writeCsvRows(columns, merger.getMergedTaskRoot(), 1);
+        TreeTableModel merged = evModel.getMergedModel(false);
+        writeCsvRows(columns, (EVTask) merged.getRoot(), 1);
     }
 
 

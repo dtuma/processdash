@@ -26,9 +26,14 @@
 package net.sourceforge.processdash.tool.export.impl;
 
 import java.io.InputStream;
+import java.util.Iterator;
+import java.util.List;
 
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListMerger;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -54,9 +59,13 @@ public class EVImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
     private void importSchedule(ArchiveMetricsFileImporter caller,
             Element element) {
 
+        String owner = "";
+        if (isPlainSchedule(element))
+            owner = caller.getOwner();
+
         String scheduleName = element.getAttribute(SCHEDULE_NAME_ATTR);
         String dataName = ExportManager.exportedScheduleDataName(
-                caller.getOwner(), scheduleName).substring(1);
+                owner, scheduleName).substring(1);
 
         Element xmlElement = (Element) element.getElementsByTagName(
                 EVTaskList.EV_TASK_LIST_ELEMENT_NAME).item(0);
@@ -65,6 +74,13 @@ public class EVImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
         xmlVal.setEditable(false);
 
         caller.getDefns().put(dataName, xmlVal);
+    }
+
+    private boolean isPlainSchedule(Element element) {
+        Element rootTask = (Element) element.getElementsByTagName("task")
+                .item(0);
+        String flag = rootTask.getAttribute("flag");
+        return EVTaskListData.TASK_LIST_FLAG.equals(flag);
     }
 
 }

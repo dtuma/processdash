@@ -132,6 +132,9 @@ public class TaskScheduleDialog
 
     public TaskScheduleDialog(DashboardContext dash, String taskListName,
                               boolean createRollup) {
+        this.dash = dash;
+        this.taskListName = taskListName;
+
         // Create the frame and set an appropriate icon
         frame = new JFrame(resources.getString("Window_Title"));
         frame.setIconImage(DashboardIconFactory.getWindowIconImage());
@@ -238,8 +241,6 @@ public class TaskScheduleDialog
         jsp.setResizeWeight(0.5);
         frame.getContentPane().add(jsp);
 
-        this.dash = dash;
-        this.taskListName = taskListName;
         setDirty(false);
 
 
@@ -551,6 +552,7 @@ public class TaskScheduleDialog
     class TaskJTreeTable extends JTreeTable {
 
         DefaultTableCellRenderer editable, readOnly, dependencies;
+        TaskDependencyCellEditor dependencyEditor;
         TreeTableModel model;
 
         public TaskJTreeTable(TreeTableModel m) {
@@ -575,6 +577,11 @@ public class TaskScheduleDialog
                                              getBackground(),
                                              selectedEditableColor,
                                              editableColor);
+
+            dependencyEditor = new TaskDependencyCellEditor(
+                    TaskScheduleDialog.this, dash);
+            getColumnModel().getColumn(EVTaskList.DEPENDENCIES_COLUMN)
+                    .setCellEditor(dependencyEditor);
 
             TaskJTreeTableCellRenderer r =
                 new TaskJTreeTableCellRenderer(getTree().getCellRenderer());

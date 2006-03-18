@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,8 +81,10 @@ public class EVDependencyCalculator {
             String name = (String) i.next();
             EVTaskList taskList = EVTaskList.openExisting(name, data, hier,
                     cache, false);
-            taskList.recalc();
-            result.put(name, taskList);
+            if (taskList != null) {
+                taskList.recalc();
+                result.put(name, taskList);
+            }
         }
         return result;
     }
@@ -162,22 +165,24 @@ public class EVDependencyCalculator {
         }
 
         private void update(EVTaskDependency d) {
-            boolean unresolvable = true;
-            String assignedTo = null;
-            double percentComplete = 0;
-            String displayName = null;
+            String assignedTo = d.getAssignedTo();
+            double percentComplete = d.getPercentComplete();
+            boolean unresolvable = (assignedTo == null && percentComplete == 0);
+            String displayName = d.getDisplayName();
 
             String taskListName = d.getTaskListName();
             if (taskListName != null) {
                 EVTaskList taskList = (EVTaskList) taskLists.get(taskListName);
                 if (taskList != null) {
                     StatusCollector c = new StatusCollector(d.getTaskID(),
-                            taskList.getRootName());
+                            taskList.getRootName(), taskList.getID());
                     c.visit((EVTask) taskList.getRoot());
-                    unresolvable = !c.foundTask;
-                    assignedTo = c.getAssignedTo();
-                    percentComplete = c.getPercentComplete();
-                    displayName = c.taskDisplayName;
+                    if (c.foundTask) {
+                        unresolvable = false;
+                        assignedTo = c.getAssignedTo();
+                        percentComplete = c.getPercentComplete();
+                        displayName = c.getTaskDisplayName();
+                    }
                 }
             }
 
@@ -189,6 +194,10 @@ public class EVDependencyCalculator {
 
     private class StatusCollector extends EVTaskVistor {
         String taskID;
+
+        String extraPath;
+
+        private String taskListID;
 
         boolean collecting;
 
@@ -208,25 +217,66 @@ public class EVDependencyCalculator {
 
         private String rootDisplayName;
 
-        public StatusCollector(String taskID, String rootDisplayName) {
+        private List canonicalTaskRoots;
+
+        public StatusCollector(String taskID, String rootDisplayName,
+                String taskListID) {
             this.taskID = taskID;
+            this.taskListID = taskListID;
+            int slashPos = taskID.indexOf('/');
+            if (slashPos != -1) {
+                this.extraPath = taskID.substring(slashPos);
+                this.taskID = taskID.substring(0, slashPos);
+            } else {
+                this.extraPath = null;
+            }
             this.rootDisplayName = "/" + rootDisplayName;
             this.collecting = this.foundTask = false;
             this.taskDisplayName = null;
             this.people = new TreeSet();
             this.planValue = this.completedValue = 0;
+            this.canonicalTaskRoots = new LinkedList();
         }
 
 
+        private boolean isIDMatch(EVTask t) {
+            if (hasValue(t.getTaskIDs()))
+                return t.getTaskIDs().contains(taskID);
+            else if (t.getFlag() != null)
+                return taskID.equals(EVTaskDependencyResolver
+                        .getPseudoTaskIdForTaskList(taskListID));
+            else
+                return false;
+        }
 
         private boolean isTaskMatch(EVTask t) {
-            return hasValue(t.getTaskIDs()) && t.getTaskIDs().contains(taskID);
+            return extraPathMatches(extraPath, t);
         }
+
+        private boolean extraPathMatches(String extraPath, EVTask t) {
+            if (extraPath == null || extraPath.length() == 0)
+                return isIDMatch(t);
+
+            if (t.getParent() == null || t.getFlag() != null)
+                return false;
+
+            String pathTail = t.getName();
+            if (!pathTail.startsWith("/"))
+                pathTail = "/" + pathTail;
+            if (!extraPath.endsWith(pathTail))
+                return false;
+
+            String parentExtraPath =
+                extraPath.substring(0, extraPath.length() - pathTail.length());
+            return extraPathMatches(parentExtraPath, t.getParent());
+        }
+
+
+
 
         protected void enter(EVTask t) {
             if (isTaskMatch(t)) {
-                if (taskDisplayName == null)
-                    taskDisplayName = getDisplayNameForTask(t);
+                taskDisplayName = getDisplayNameForTask(t);
                 foundTask = collecting = true;
                 planValue += t.getPlanValue();
                 completedValue += t.getValueEarned();
@@ -256,12 +306,8 @@ public class EVDependencyCalculator {
                 if (parentName != null)
                     return parentName + "/" + t.getName();
 
-                String canonicalTaskName = EVTaskDependencyResolver
-                        .getInstance().getCanonicalTaskName(t.getTaskIDs());
-                if (canonicalTaskName != null)
-                    return canonicalTaskName;
-                else
-                    return rootDisplayName;
+                canonicalTaskRoots.add(t);
+                return "";
             }
         }
 
@@ -292,9 +338,40 @@ public class EVDependencyCalculator {
                 return StringUtils.join(people, ", ");
         }
 
+        public String getTaskDisplayName() {
+            String rootName = rootDisplayName;
+
+            if (hasValue(canonicalTaskRoots)) {
+                List bestTaskIDs = EVTaskListMerger
+                        .getBestTaskIDs(canonicalTaskRoots);
+                String canonicalTaskName = EVTaskDependencyResolver
+                        .getInstance().getCanonicalTaskName(bestTaskIDs);
+                if (canonicalTaskName != null)
+                    rootName = canonicalTaskName;
+                else {
+                    EVTask t = (EVTask) canonicalTaskRoots.get(0);
+                    rootName = pathConcat(rootDisplayName, t.getName());
+                }
+            }
+
+            return pathConcat(rootName, taskDisplayName);
+        }
+
     }
 
     private static boolean hasValue(Collection c) {
         return c != null && !c.isEmpty();
     }
+
+    private static String pathConcat(String a, String b) {
+        if (b == null || b.length() == 0)
+            return a;
+        else if (a == null || a.length() == 0)
+            return b;
+        else if (b.startsWith("/"))
+            return a + b;
+        else
+            return a + "/" + b;
+    }
+
 }

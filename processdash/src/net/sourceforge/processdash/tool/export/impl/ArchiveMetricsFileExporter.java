@@ -39,7 +39,9 @@ import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
@@ -51,6 +53,8 @@ import org.xmlpull.v1.XmlSerializer;
 
 public class ArchiveMetricsFileExporter implements Runnable,
         ArchiveMetricsXmlConstants {
+
+    private static final String MERGED_PREFIX = "MERGED:";
 
     private static final String DATA_FILE_NAME = "data.xml";
 
@@ -218,13 +222,27 @@ public class ArchiveMetricsFileExporter implements Runnable,
     private Map getEVSchedules(Collection taskListNames) {
         Map schedules = new TreeMap();
         for (Iterator iter = taskListNames.iterator(); iter.hasNext();) {
+            boolean merged = false;
             String taskScheduleName = (String) iter.next();
+
+            if (taskScheduleName.startsWith(MERGED_PREFIX)) {
+                merged = true;
+                taskScheduleName = taskScheduleName.substring(MERGED_PREFIX
+                        .length());
+            }
+
             EVTaskList tl = EVTaskList.openExisting(taskScheduleName, ctx
                     .getData(), ctx.getHierarchy(), ctx.getCache(), false);
             if (tl == null)
                 continue;
 
+            tl.setDependencyCalculator(new EVDependencyCalculator(tl, ctx
+                    .getData(), ctx.getHierarchy(), ctx.getCache()));
             tl.recalc();
+
+            if (merged)
+                tl = new EVTaskListMerged(tl, false);
+
             schedules.put(taskScheduleName, tl);
         }
         return schedules;

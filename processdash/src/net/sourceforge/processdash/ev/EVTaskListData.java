@@ -52,6 +52,7 @@ public class EVTaskListData extends EVTaskList
     implements DashHierarchy.Listener
 {
 
+    public static final String TASK_LIST_FLAG = "plain";
     public static final String TASK_ORDINAL_PREFIX = "TST_";
     public static final String EST_HOURS_DATA_NAME = "Planned Hours";
     protected DataRepository data;
@@ -70,7 +71,7 @@ public class EVTaskListData extends EVTaskList
         loadID(taskListName, data, EST_HOURS_DATA_NAME);
         assignToOwner();
         calculator = new EVCalculatorData((EVTask) root, schedule);
-        ((EVTask) root).flag = "plain";
+        ((EVTask) root).flag = TASK_LIST_FLAG;
         if (willNeedChangeNotification)
             hierarchy.addHierarchyListener(this);
     }

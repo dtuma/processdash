@@ -671,6 +671,9 @@ public class EVTask implements Cloneable, DataListener {
             dependencies = new LinkedList();
         return dependencies;
     }
+    public void setDependencies(Collection dependencies) {
+        this.dependencies = new LinkedList(dependencies);
+    }
     public String getFullName() { return fullName; }
     public String getPlanTime() {
         if (planLevelOfEffort == ANCESTOR_LEVEL_OF_EFFORT) return "";
@@ -1198,7 +1201,8 @@ public class EVTask implements Cloneable, DataListener {
             String subIndent = (whitespace ? (indent + "  ") : "");
             if (hasValue(dependencies))
                 for (Iterator i = dependencies.iterator(); i.hasNext();)
-                    ((EVTaskDependency) i.next()).getAsXML(result, subIndent);
+                    ((EVTaskDependency) i.next()).getAsXML(result, subIndent,
+                            true);
             for (int i = 0;   i < getNumChildren();   i++)
                 getChild(i).saveToXML(result, whitespace, subIndent);
             result.append(indent).append("</task>").append(newline);

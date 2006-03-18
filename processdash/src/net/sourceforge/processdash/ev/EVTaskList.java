@@ -621,13 +621,14 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     /** Set the value at a particular row/column */
-    public void setValueAt(Object aValue, Object node, int column) {
+    public void setValueAt(Object value, Object node, int column) {
         //System.out.println("setValueAt("+aValue+","+node+","+column+")");
         if (node == null) return;
         EVTask n = (EVTask) node;
         switch (column) {
-        case PLAN_TIME_COLUMN:      n.userSetPlanTime(aValue);       break;
-        case DATE_COMPLETE_COLUMN:  n.userSetActualDate(aValue);     break;
+        case PLAN_TIME_COLUMN:     n.userSetPlanTime(value);              break;
+        case DATE_COMPLETE_COLUMN: n.userSetActualDate(value);            break;
+        case DEPENDENCIES_COLUMN:  n.setDependencies((Collection) value); break;
         }
     }
 
@@ -938,6 +939,10 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public TreeTableModel getMergedModel() {
         boolean simple = Settings.getBool("ev.simplifiedMerge", true);
+        return getMergedModel(simple);
+    }
+
+    public TreeTableModel getMergedModel(boolean simple) {
         EVTaskListMerger merger = new EVTaskListMerger(EVTaskList.this, simple);
         MergedTreeModel result = new MergedTreeModel(merger);
         addRecalcListener(result);

@@ -69,6 +69,8 @@ public class EVTaskDependency {
         this.taskID = getAttr(e, TASK_ID_ATTR);
         this.displayName = getAttr(e, DISPLAY_NAME_ATTR);
         this.taskListName = getAttr(e, TASK_LIST_ATTR);
+        this.assignedTo = getAttr(e, ASSIGNED_TO_ATTR);
+        this.percentComplete = XMLUtils.getXMLNum(e, PERCENT_COMPLETE_ATTR);
     }
 
     public String getDisplayName() {
@@ -120,16 +122,23 @@ public class EVTaskDependency {
         return taskID.hashCode();
     }
 
-    public void getAsXML(StringBuffer out) {
-        getAsXML(out, null);
+    public void getAsXML(StringBuffer out, boolean includeResolvedInformation) {
+        getAsXML(out, null, includeResolvedInformation);
     }
-    public void getAsXML(StringBuffer out, String indent) {
+    public void getAsXML(StringBuffer out, String indent,
+            boolean includeResolvedInformation) {
         if (indent != null)
             out.append(indent);
         out.append("<").append(DEPENDENCY_TAG);
         addAttr(out, TASK_ID_ATTR, getTaskID());
         addAttr(out, DISPLAY_NAME_ATTR, getDisplayName());
         addAttr(out, TASK_LIST_ATTR, getTaskListName());
+        if (includeResolvedInformation) {
+            addAttr(out, ASSIGNED_TO_ATTR, getAssignedTo());
+            if (percentComplete > 0)
+                addAttr(out, PERCENT_COMPLETE_ATTR, Double
+                        .toString(percentComplete));
+        }
         out.append("/>");
         if (indent != null)
             out.append("\n");
@@ -276,7 +285,7 @@ public class EVTaskDependency {
             xml.append("<list>");
             for (Iterator i = dependencies.iterator(); i.hasNext();) {
                 EVTaskDependency d = (EVTaskDependency) i.next();
-                d.getAsXML(xml);
+                d.getAsXML(xml, false);
             }
             xml.append("</list>");
             value = new ImmutableStringData(xml.toString());
@@ -299,4 +308,9 @@ public class EVTaskDependency {
     private static final String DISPLAY_NAME_ATTR = "name";
 
     private static final String TASK_LIST_ATTR = "taskList";
+
+    private static final String ASSIGNED_TO_ATTR = "who";
+
+    private static final String PERCENT_COMPLETE_ATTR = "pctComplete";
+
 }

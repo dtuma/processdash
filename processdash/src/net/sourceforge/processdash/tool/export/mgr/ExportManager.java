@@ -280,7 +280,10 @@ public class ExportManager extends AbstractManager {
 
     public static String exportedScheduleName(String owner, String scheduleName) {
         owner = (owner == null ? "?????" : safeName(owner));
-        String name = safeName(scheduleName) + " (" + owner + ")";
+        String ownerSuffix = "";
+        if (owner.length() > 0)
+            ownerSuffix = " (" + owner + ")";
+        String name = safeName(scheduleName) + ownerSuffix;
         return name;
     }
 

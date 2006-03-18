@@ -26,6 +26,7 @@
 package net.sourceforge.processdash.ev;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -35,6 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -75,6 +78,22 @@ public class EVTaskDependencyResolver {
     }
 
     public List getTaskListsContaining(String taskID) {
+        if (taskID == null)
+            return null;
+        Matcher m = TASK_ID_PATTERN.matcher(taskID);
+        if (!m.matches())
+            return null;
+        else
+            // At the moment, this will ignore the extra path info on the
+            // task ID, and resolve only based on the initial task ID portion.
+            // this should not cause problems, because all dependencies with
+            // extra path information should have been created with an
+            // explicit task list target, and this routine might never get
+            // called.  If it does, we'll return all task lists which contain
+            // the base taskID, regardless of whether they actually contain a
+            // task descendant named by the extra path.
+            taskID = m.group(PAT_GROUP_TASK_ID);
+
         maybeRefreshCache();
         SortedSet infoList = (SortedSet) taskCache.get(taskID);
 
@@ -174,6 +193,8 @@ public class EVTaskDependencyResolver {
             if (tl != null) {
                 TaskListInfo info = new TaskListInfo(taskListName, tl);
                 registerTasks(newCache, info, (EVTask) tl.getRoot());
+                addToCache(newCache, getPseudoTaskIdForTaskList(tl.getID()),
+                        info);
             }
         }
     }
@@ -197,6 +218,11 @@ public class EVTaskDependencyResolver {
             cache.put(taskID, infoList);
         }
         infoList.add(value);
+    }
+
+
+    public static String getPseudoTaskIdForTaskList(String taskListID) {
+        return "TL-" + taskListID;
     }
 
 
@@ -286,4 +312,9 @@ public class EVTaskDependencyResolver {
         for (int i = task.getNumChildren(); i-- > 0;)
             accumulatePrefInfo(task.getChild(i), people, taskIDs);
     }
+
+    private static final Pattern TASK_ID_PATTERN = Pattern
+            .compile("([^/]+)(/.*)?");
+    private static final int PAT_GROUP_TASK_ID = 1;
+    private static final int PAT_GROUP_EXTRAPATH = 2;
 }
