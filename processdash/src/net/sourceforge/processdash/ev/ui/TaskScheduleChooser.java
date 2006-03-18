@@ -71,7 +71,7 @@ public class TaskScheduleChooser
     protected JDialog dialog = null;
     protected JList list = null;
     protected JButton newButton, renameButton, deleteButton,
-        cancelButton, okayButton;
+        reportButton, cancelButton, okayButton;
 
     static Resources resources = Resources.getDashBundle("EV.Chooser");
 
@@ -202,8 +202,13 @@ public class TaskScheduleChooser
         list = new JList(taskLists);
         list.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
-                    if (e.getClickCount() == 2)
-                        openSelectedTaskList(); }});
+                    if (e.getClickCount() == 2) {
+                        if (e.isShiftDown())
+                            showReportForSelectedTaskList();
+                        else
+                            openSelectedTaskList();
+                    }
+                }});
         list.getSelectionModel().addListSelectionListener(this);
         dialog.getContentPane().add(new JScrollPane(list),
                                     BorderLayout.CENTER);
@@ -222,6 +227,11 @@ public class TaskScheduleChooser
             (resources.getDlgString("Delete")));
         deleteButton.addActionListener(this);
         deleteButton.setEnabled(false);
+
+        buttons.add(reportButton = new JButton
+            (resources.getString("Buttons.Report")));
+        reportButton.addActionListener(this);
+        reportButton.setEnabled(false);
 
         buttons.add(cancelButton = new JButton(resources.getString("Cancel")));
         cancelButton.addActionListener(this);
@@ -267,6 +277,7 @@ public class TaskScheduleChooser
         boolean itemSelected = !list.getSelectionModel().isSelectionEmpty();
         renameButton.setEnabled(itemSelected);
         deleteButton.setEnabled(itemSelected);
+        reportButton.setEnabled(itemSelected);
         okayButton.setEnabled(itemSelected);
     }
 
@@ -279,6 +290,8 @@ public class TaskScheduleChooser
             renameSelectedTaskList();
         else if (e.getSource() == deleteButton)
             deleteSelectedTaskList();
+        else if (e.getSource() == reportButton)
+            showReportForSelectedTaskList();
         else if (e.getSource() == cancelButton)
             dialog.dispose();
     }
@@ -288,6 +301,14 @@ public class TaskScheduleChooser
             (Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         open(dash, (String) list.getSelectedValue());
         if (dialog != null) dialog.dispose();
+    }
+
+    protected void showReportForSelectedTaskList() {
+        dialog.getContentPane().setCursor(
+                Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        String taskListName = (String) list.getSelectedValue();
+        TaskScheduleDialog.showReport(taskListName);
+        if (dialog != null)dialog.dispose();
     }
 
     protected void renameSelectedTaskList() {

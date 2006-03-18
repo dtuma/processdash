@@ -1842,10 +1842,14 @@ public class TaskScheduleDialog
 
     public static final String CHART_URL = "//reports/ev.class";
     public void showHTML() {
-        if (saveOrCancel(true)) {
-            String uri = "/" + HTMLUtils.urlEncode(taskListName) + CHART_URL;
-            Browser.launch(uri);
-        }
+        if (saveOrCancel(true))
+            showReport(taskListName);
+    }
+
+
+    public static void showReport(String taskListName) {
+        String uri = "/" + HTMLUtils.urlEncode(taskListName) + CHART_URL;
+        Browser.launch(uri);
     }
 
 
