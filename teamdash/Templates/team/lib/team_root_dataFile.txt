@@ -14,7 +14,7 @@
 [EXPORT_FILE/Instructions] = 
     "file:/<!--#echo Process_ID -->/disseminationExportFilter.xml";
 
-[Related_EV_Schedule/Team] = [Project_Schedule_Name];
+[Related_EV_Schedule/Team] = "MERGED:" & [Project_Schedule_Name];
 [Related_EV_Schedule/Master] =
     iff(! [Master_Project_Path], "",
-	indirect([Master_Project_Path] &/ "Project_Schedule_Name"));
+       "MERGED:" & indirect([Master_Project_Path] &/ "Project_Schedule_Name"));
