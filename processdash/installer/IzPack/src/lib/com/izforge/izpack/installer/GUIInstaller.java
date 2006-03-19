@@ -41,7 +41,10 @@ import java.io.ObjectInputStream;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -64,6 +67,7 @@ import javax.swing.plaf.metal.MetalTheme;
 
 import com.izforge.izpack.GUIPrefs;
 import com.izforge.izpack.LocaleDatabase;
+import com.izforge.izpack.Pack;
 import com.izforge.izpack.gui.ButtonFactory;
 import com.izforge.izpack.gui.IzPackMetalTheme;
 import com.izforge.izpack.util.LocaleMapper;
@@ -126,7 +130,33 @@ public class GUIInstaller extends InstallerBase
                   ObjectInputStream objIn = new ObjectInputStream(in);
                   this.installdata.guiPrefs = (GUIPrefs) objIn.readObject();
                   objIn.close();
-          }
+
+        // tweak the list of available and preselected packs based on the
+        // external configuration, if it is present
+        List selPacks = installdata.selectedPacks;
+        Iterator pack_it = installdata.availablePacks.iterator();
+        Properties p = ExternalConfiguration.getConfig();
+        while (pack_it.hasNext()) {
+            Pack pack = (Pack) pack_it.next();
+            String packID = pack.id;
+            String hide = p.getProperty("pack."+packID+".hidden");
+            if (propMatches(hide, "yes", "true") && !pack.required) {
+                pack_it.remove();
+                selPacks.remove(pack);
+                continue;
+            }
+
+            String presel = p.getProperty("pack."+packID+".preselected");
+            if (propMatches(presel, "yes", "true") && !selPacks.contains(pack))
+                selPacks.add(pack);
+            else if (propMatches(presel, "no", "false") && !pack.required)
+                selPacks.remove(pack);
+        }
+    }
+
+    private boolean propMatches(String prop, String valA, String valB) {
+        return (valA.equalsIgnoreCase(prop) || valB.equalsIgnoreCase(prop));
+    }
 
 
     /**
