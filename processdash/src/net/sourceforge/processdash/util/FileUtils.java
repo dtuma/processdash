@@ -107,4 +107,26 @@ public class FileUtils {
 
         dir.delete();
     }
+
+    /** Create a tweaked version of the string that should be ultra-safe to
+     * use as part of a filename.
+     */
+    public static String makeSafe(String s) {
+        if (s == null) s = "";
+        s = s.trim();
+        // perform a round-trip through the default platform encoding.
+        s = new String(s.getBytes());
+
+        StringBuffer result = new StringBuffer(s);
+        char c;
+        for (int i = result.length();   i-- > 0; )
+            if (-1 == ULTRA_SAFE_CHARS.indexOf(result.charAt(i)))
+                result.setCharAt(i, '_');
+
+        return result.toString();
+    }
+    private static final String ULTRA_SAFE_CHARS =
+        "abcdefghijklmnopqrstuvwxyz" +
+        "0123456789" + "_" +
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 }

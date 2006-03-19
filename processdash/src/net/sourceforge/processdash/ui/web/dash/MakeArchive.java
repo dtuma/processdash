@@ -45,6 +45,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.TinyCGIHighVolume;
 import net.sourceforge.processdash.tool.export.HTMLArchiver;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -134,31 +135,12 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
             String prefix = HTMLArchiver.getPrefixFromURI(uri);
             int pos = prefix.lastIndexOf('/');
             if (pos != -1) prefix = prefix.substring(pos+1);
-            prefix = makeSafe(prefix);
+            prefix = FileUtils.makeSafe(prefix);
             filename = StringUtils.findAndReplace(filename, "PREFIX", prefix);
         }
 
         return filename;
     }
-
-    private static String makeSafe(String s) {
-        if (s == null) s = "";
-        s = s.trim();
-        // perform a round-trip through the default platform encoding.
-        s = new String(s.getBytes());
-
-        StringBuffer result = new StringBuffer(s);
-        char c;
-        for (int i = result.length();   i-- > 0; )
-            if (-1 == ULTRA_SAFE_CHARS.indexOf(result.charAt(i)))
-                result.setCharAt(i, '_');
-
-        return result.toString();
-    }
-    private static final String ULTRA_SAFE_CHARS =
-        "abcdefghijklmnopqrstuvwxyz" +
-        "0123456789" + "_" +
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
 

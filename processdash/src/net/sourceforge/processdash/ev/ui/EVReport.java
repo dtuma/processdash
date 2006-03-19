@@ -356,8 +356,8 @@ public class EVReport extends CGIChartBase {
         }
 
         DateFormat fmt = new SimpleDateFormat("dd-MMM-yyyy");
-        String filename = makeSafe(taskListName) + "-" + fmt.format(new Date())
-            + ".csv";
+        String filename = FileUtils.makeSafe(taskListName) + "-"
+                + fmt.format(new Date()) + ".csv";
 
         out.print("Content-type: text/plain\r\n");
         out.print("Content-Disposition: attachment; filename=\""
@@ -656,25 +656,6 @@ public class EVReport extends CGIChartBase {
         }
         public abstract Date getNodeDate(EVTask node);
     }
-
-    private static String makeSafe(String s) {
-        if (s == null) s = "";
-        s = s.trim();
-        // perform a round-trip through the default platform encoding.
-        s = new String(s.getBytes());
-
-        StringBuffer result = new StringBuffer(s);
-        char c;
-        for (int i = result.length();   i-- > 0; )
-            if (-1 == ULTRA_SAFE_CHARS.indexOf(result.charAt(i)))
-                result.setCharAt(i, '_');
-
-        return result.toString();
-    }
-    private static final String ULTRA_SAFE_CHARS =
-        "abcdefghijklmnopqrstuvwxyz" +
-        "0123456789" + "_" +
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
     /** Generate a page of HTML displaying the Task and Schedule templates,
