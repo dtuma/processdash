@@ -155,6 +155,8 @@ public class InstallerBase
             (ScriptParser.USER_NAME, System.getProperty("user.name"));
         installdata.setVariable
             (ScriptParser.FILE_SEPARATOR, File.separator);
+        installdata.setVariable("EXTERNAL_CONFIG_URL",
+            ExternalConfiguration.getURL());
         if (null != variables)
         {
             Enumeration enum = variables.keys();

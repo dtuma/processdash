@@ -472,12 +472,22 @@ Authors:
   <!-- Installer                                                           -->
   <!-- =================================================================== -->
 
-  <target name="installer" depends="installer-langpacks">
+  <target name="installer" depends="installer-mergeJar,installer-langpacks">
     <ant antfile="${installer}/build.xml" inheritAll="false">
       <property name="alreadyRebuilt" value="true"/>
       <property name="dontCleanDist" value="true"/>
       <property name="dist" value="../dist"/>
     </ant>
+  </target>
+
+  <target name="installer-mergeJar" depends="ant-tasks">
+    <jar destfile="${installer}/files/mergeSettings.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+	    value="net.sourceforge.processdash.MergeSettings"/>
+      </manifest>
+      <fileset dir="${libsrc}" includes="**/MergeSettings.class"/>
+    </jar>
   </target>
 
   <target name="installer-langpacks" depends="ant-tasks">

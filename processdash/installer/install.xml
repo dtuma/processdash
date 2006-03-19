@@ -67,6 +67,8 @@
 	          src="../dist/pspdash.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/icon32.ico"/>
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="files/mergeSettings.jar"/>
             <file targetdir="$INSTALL_PATH/Uninstaller" override="true"
 	          src="files/regInst.exe" os="windows"/>
             <file targetdir="$INSTALL_PATH" override="true"
@@ -77,6 +79,14 @@
             <parsable targetfile="$DATA_PATH/run-dash.sh"/>
             <executable targetfile="$DATA_PATH/run-dash.sh" stage="never">
 	        <os family="unix"/>
+	    </executable>
+
+            <executable targetfile="$INSTALL_PATH/mergeSettings.jar"
+	         type="jar" stage="postinstall">
+		<args>
+		    <arg value="$EXTERNAL_CONFIG_URL"/>
+		    <arg value="$DATA_PATH"/>
+		</args>
 	    </executable>
 
             <executable targetfile="$INSTALL_PATH/regInst.exe"

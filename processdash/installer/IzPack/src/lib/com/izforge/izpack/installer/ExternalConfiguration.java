@@ -62,22 +62,26 @@ public class ExternalConfiguration {
     }
 
     private static Properties openConfig() throws Exception {
+        URL iniURL = new URL(getURL());
+        Properties result = new Properties();
+        result.load(iniURL.openStream());
+        return result;
+    }
+
+    public static String getURL() {
         String myURL = ExternalConfiguration.class.getResource(
                 "ExternalConfiguration.class").toString();
         int exclPos = myURL.indexOf("!/");
         if (exclPos == -1 || !myURL.startsWith("jar:"))
-            return null;
+            return "none";
 
         String jarURL = myURL.substring(4, exclPos);
         int slashPos = jarURL.lastIndexOf('/');
         if (slashPos == -1)
-            return null;
+            return "none";
 
-        String urlPrefix = jarURL.substring(0, slashPos+1);
-        URL iniURL = new URL(urlPrefix + INSTALL_INI_FILENAME);
-        Properties result = new Properties();
-        result.load(iniURL.openStream());
-        return result;
+        String urlPrefix = jarURL.substring(0, slashPos + 1);
+        return urlPrefix + INSTALL_INI_FILENAME;
     }
 
 }
