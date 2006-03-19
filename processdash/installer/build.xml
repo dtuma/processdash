@@ -167,7 +167,7 @@ Authors:
             <param name="install.file" value="install-cd.xml"/>
 	</antcall>
 
-	<copy file="custom-install.ini" tofile="cd-custom.ini"/>
+	<copy file="files/custom-install.ini" tofile="cd-custom.ini"/>
 	<property name="custom-install.extra" value=""/>
 	<echo file="cd-custom.ini" append="true"
 	    message="${custom-install.extra}"/>
