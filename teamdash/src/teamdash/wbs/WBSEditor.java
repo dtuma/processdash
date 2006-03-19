@@ -63,12 +63,14 @@ public class WBSEditor implements WindowListener, SaveListener,
         setMode(teamProject);
 
         WBSModel model = teamProject.getWBS();
+        TaskDependencySource taskDependencySource = getTaskDependencySource();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
-             teamProject.getTeamProcess(), getTaskDependencySource());
+             teamProject.getTeamProcess(), taskDependencySource);
         dataWriter = new WBSDataWriter(model, data,
                 teamProject.getTeamProcess(), teamProject.getProjectID());
-        tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess());
+        tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess(),
+                taskDependencySource);
         tabPanel.setReadOnly(readOnly);
         teamProject.getTeamMemberList().addInitialsListener(tabPanel);
 
@@ -247,6 +249,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu("File");
         result.setMnemonic('F');
         result.add(new SaveAction());
+        result.add(new ImportFromCsvAction());
         result.add(new CloseAction());
         return result;
     }
@@ -416,6 +419,18 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         public void actionPerformed(ActionEvent e) {
             save();
+        }
+    }
+
+    private class ImportFromCsvAction extends AbstractAction {
+        public ImportFromCsvAction() {
+            super("Import from MS Project CSV file");
+            putValue(MNEMONIC_KEY, new Integer('I'));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            CsvNodeDataImporterUI ui = new CsvNodeDataImporterUI();
+            ui.run(tabPanel.wbsTable);
         }
     }
 

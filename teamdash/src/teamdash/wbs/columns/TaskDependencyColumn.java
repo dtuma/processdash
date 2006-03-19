@@ -1,8 +1,11 @@
 package teamdash.wbs.columns;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
@@ -10,6 +13,7 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.MasterWBSUtil;
 import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.TaskDependency;
 import teamdash.wbs.TaskDependencyCellEditor;
@@ -70,6 +74,9 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
         this.columnID = COLUMN_ID;
         this.columnName = COLUMN_NAME;
         this.preferredWidth = 200;
+
+        dataModel.getWBSModel().addTableModelListener(
+                new InsertedNodeDependencyRelinker());
     }
 
     public boolean isCellEditable(WBSNode node) {
@@ -191,6 +198,71 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
         }
         for (int j = 0; j < 10; j++)
             node.setAttribute(NAME_ATTR_PREFIX + (pos++), null);
+    }
+
+    /** When nodes are inserted into a WBS, the WBSModel changes their IDs to
+     * make them unique.  This almost certainly breaks the dependencies that
+     * the nodes declare to each other.  This class watches for that scenario,
+     * and repairs the dependencies for the nodes in question.
+     */
+    private class InsertedNodeDependencyRelinker implements TableModelListener {
+
+        public void tableChanged(TableModelEvent e) {
+            // when rows are inserted into a WBSModel, it fires an event
+            // indicating that the entire table has changed.  If this event
+            // does not bear the characteristic signs of such an event, abort.
+            if (e.getType() != TableModelEvent.UPDATE
+                    || e.getFirstRow() != 0
+                    || e.getLastRow() != Integer.MAX_VALUE
+                    || !(e.getSource() instanceof WBSModel))
+                return;
+
+            WBSModel wbsModel = (WBSModel) e.getSource();
+            WBSNode[] nodes = wbsModel.getDescendants(wbsModel.getRoot());
+
+            Map sourceIdMap = null;
+            for (int i = 0; i < nodes.length; i++) {
+                WBSNode node = nodes[i];
+                String sourceID = (String) node
+                        .getAttribute(MasterWBSUtil.SOURCE_NODE_ID);
+                if (sourceID == null)
+                    continue;
+
+                if (sourceIdMap == null)
+                    // create this map lazily when we discover we need it.
+                    sourceIdMap = new HashMap();
+                sourceIdMap.put(sourceID, node);
+            }
+
+            if (sourceIdMap == null)
+                return;
+
+            for (Iterator i = sourceIdMap.values().iterator(); i.hasNext();) {
+                WBSNode node = (WBSNode) i.next();
+
+                // remove the source ID attribute from the node.
+                node.setAttribute(MasterWBSUtil.SOURCE_NODE_ID, null);
+
+                // check to see if the node has dependencies.
+                String idList = (String) node.getAttribute(ID_LIST_ATTR);
+                if (idList == null)
+                    continue;
+
+                // update the dependencies for this node.
+                StringBuffer newIdList = new StringBuffer();
+                String[] ids = idList.split(",");
+                for (int j = 0; j < ids.length; j++) {
+                    String id = ids[j];
+                    WBSNode targetNode = (WBSNode) sourceIdMap.get(id);
+                    if (targetNode != null)
+                        id = dependencySource.getNodeID(targetNode);
+                    newIdList.append(",").append(id);
+                }
+                node.setAttribute(ID_LIST_ATTR, newIdList.substring(1));
+                node.setAttribute(TASK_LIST_ATTR, null);
+            }
+        }
+
     }
 
 }

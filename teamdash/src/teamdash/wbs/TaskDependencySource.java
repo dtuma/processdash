@@ -4,7 +4,7 @@ package teamdash.wbs;
  * An interface for providing information about tasks that a project can list as
  * its dependencies.
  */
-public interface TaskDependencySource {
+public interface TaskDependencySource extends TaskIDSource {
 
     public static final String UNKNOWN_NODE_DISPLAY_NAME = "?????";
 
@@ -16,12 +16,6 @@ public interface TaskDependencySource {
      * {@link #UNKNOWN_NODE_DISPLAY_NAME}.
      */
     public String getDisplayNameForNode(String nodeId);
-
-    /**
-     * Return the nodeID that should be used to describe a dependency on a
-     * particular WBS node.
-     */
-    public String getNodeID(WBSNode node);
 
     /**
      * Return a tree of tasks which can be listed as dependencies.

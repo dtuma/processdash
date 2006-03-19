@@ -14,6 +14,8 @@ public class MasterWBSUtil {
 
     public static final String PROJECT_NODE_ID = "projectNodeID";
 
+    public static final String SOURCE_NODE_ID = "sourceNodeID";
+
 
     private static class NodeIDComparator implements WBSNodeComparator {
 

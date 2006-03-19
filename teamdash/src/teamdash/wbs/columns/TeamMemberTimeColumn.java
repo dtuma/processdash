@@ -20,13 +20,15 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
     implements CustomRenderedColumn
 {
 
+    public static final String ATTR_SUFFIX = "-Time";
+
     private TeamMember teamMember;
 
     public TeamMemberTimeColumn(DataTableModel dataModel,
                                 TeamMember teamMember) {
         super(dataModel,
               teamMember.getInitials(),
-              teamMember.getInitials() + "-Time");
+              teamMember.getInitials() + ATTR_SUFFIX);
         this.teamMember = teamMember;
     }
 
@@ -80,8 +82,8 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
         // perform the change, starting at the root of the wbs.
         changeInitials(dataModel.getWBSModel(),
                        dataModel.getWBSModel().getRoot(),
-                       oldInitials+"-Time",
-                       newInitials+"-Time");
+                       oldInitials+ATTR_SUFFIX,
+                       newInitials+ATTR_SUFFIX);
     }
 
     private static void changeInitials(WBSModel wbsModel, WBSNode node,

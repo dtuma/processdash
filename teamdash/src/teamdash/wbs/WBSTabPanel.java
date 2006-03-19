@@ -50,17 +50,14 @@ public class WBSTabPanel extends JPanel
 
     /** Create a WBSTabPanel */
     public WBSTabPanel(WBSModel wbs, DataTableModel data,
-                       TeamProcess teamProcess) {
+            TeamProcess teamProcess, TaskIDSource idSource) {
         this(wbs, data, teamProcess.getIconMap(),
-             teamProcess.getNodeTypeMenu());
+             teamProcess.getNodeTypeMenu(), idSource);
     }
 
     /** Create a WBSTabPanel */
-    public WBSTabPanel(
-        WBSModel wbs,
-        DataTableModel data,
-        Map iconMap,
-        JMenu iconMenu) {
+    public WBSTabPanel(WBSModel wbs, DataTableModel data, Map iconMap,
+            JMenu iconMenu, TaskIDSource idSource) {
         setOpaque(false);
         setLayout(layout = new GridBagLayout());
 
@@ -68,7 +65,7 @@ public class WBSTabPanel extends JPanel
         undoList.setForComponent(this);
 
         // build the components to display in this panel
-        makeTables(wbs, data, iconMap, iconMenu);
+        makeTables(wbs, data, iconMap, iconMenu, idSource);
         makeSplitter();
         makeScrollPane();
         makeTabbedPane();
@@ -163,13 +160,10 @@ public class WBSTabPanel extends JPanel
 
 
     /** Create the JTables and perform necessary setup */
-    private void makeTables(
-        WBSModel wbs,
-        DataTableModel data,
-        Map iconMap,
-        JMenu iconMenu) {
+    private void makeTables(WBSModel wbs, DataTableModel data, Map iconMap,
+            JMenu iconMenu, TaskIDSource idSource) {
         // create the WBS table to display the hierarchy
-        wbsTable = new WBSJTable(wbs, iconMap, iconMenu);
+        wbsTable = new WBSJTable(wbs, iconMap, iconMenu, idSource);
         // create the table to display hierarchy data
         dataTable = new DataJTable(data);
         // link the tables together so they have the same scrolling behavior,

@@ -754,8 +754,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
     private static final String DATA_ATTR_NAME = "Time_Data";
     static final String RATE_ATTR = "Rate";
-    private static final String TPP_ATTR  = "Time Per Person";
-    static final String NUM_PEOPLE_ATTR = "# People";
+    public static final String TPP_ATTR  = "Time Per Person";
+    public static final String NUM_PEOPLE_ATTR = "# People";
     private static final NumericDataValue BLANK =
         new NumericDataValue(0, false, true, null);
 }

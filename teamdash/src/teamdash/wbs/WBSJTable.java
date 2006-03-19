@@ -50,6 +50,8 @@ public class WBSJTable extends JTable {
     WBSNodeEditor editor;
     /** The map translating node types to corresponding icons */
     Map iconMap;
+    /** Our source for task identification information */
+    TaskIDSource taskIDSource;
 
     /** a list of keystroke/action mappings to install */
     private Set customActions = new HashSet();
@@ -63,12 +65,18 @@ public class WBSJTable extends JTable {
 
     /** Create a JTable to display a WBS. Construct a default icon menu. */
     public WBSJTable(WBSModel model, Map iconMap) {
-        this(model, iconMap, null);
+        this(model, iconMap, null, null);
     }
     /** Create a JTable to display a WBS */
     public WBSJTable(WBSModel model, Map iconMap, JMenu iconMenu) {
+        this(model, iconMap, iconMenu, null);
+    }
+    /** Create a JTable to display a WBS */
+    public WBSJTable(WBSModel model, Map iconMap, JMenu iconMenu,
+            TaskIDSource idSource) {
         super(model);
         wbsModel = model;
+        taskIDSource = idSource;
 
         setRowHeight(19);
         buildCustomActionMaps();
@@ -295,6 +303,15 @@ public class WBSJTable extends JTable {
         return false;
     }
 
+    private void setSourceIDs(List nodeList) {
+        if (taskIDSource != null) {
+            for (Iterator i = nodeList.iterator(); i.hasNext();) {
+                WBSNode node = (WBSNode) i.next();
+                node.setAttribute(MasterWBSUtil.SOURCE_NODE_ID,
+                        taskIDSource.getNodeID(node));
+            }
+        }
+    }
 
 
     private interface EnablementCalculation {
@@ -535,6 +552,7 @@ public class WBSJTable extends JTable {
             // make a list of the copied nodes
             List copyList = WBSNode.cloneNodeList
                 (wbsModel.getNodesForRows(rows, true));
+            setSourceIDs(copyList);
             WBSClipSelection.putNodeListOnClipboard(copyList, null);
 
             WBSJTable.this.recalculateEnablement();

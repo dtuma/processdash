@@ -306,5 +306,5 @@ public class WBSNode implements Cloneable {
     private static final String SPACES =
         "                                                            ";
 
-
+    public static final String UNKNOWN_TYPE = "Unknown Task";
 }

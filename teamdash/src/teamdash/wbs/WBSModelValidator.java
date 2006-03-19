@@ -131,6 +131,10 @@ public class WBSModelValidator implements TableModelListener {
             return "PSP tasks cannot have subtasks.";
         }
 
+        if (WBSNode.UNKNOWN_TYPE.equals(type)) {
+            return "You must define the type of this item.";
+        }
+
         // No problems detected.
         return null;
     }
