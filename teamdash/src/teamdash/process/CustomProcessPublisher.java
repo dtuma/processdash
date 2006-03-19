@@ -308,9 +308,6 @@ public class CustomProcessPublisher {
         } else if (TemplateAutoData.isOverheadPhaseType(phaseType)) {
             setParam(id + "_Is_Overhead", "t");
         }
-
-        String sizeMetric = (String) PHASE_SIZE_METRIC.get(phaseType);
-        if (sizeMetric != null) setParam(id + "_Size_Metric", sizeMetric);
     }
 
     protected void setParam(String parameter, String value) {
@@ -439,29 +436,6 @@ public class CustomProcessPublisher {
 
         startFile(outputFile);
         zip.write(contents.getBytes());
-    }
-
-
-    private static final Map PHASE_SIZE_METRIC = new HashMap();
-    private static final String INSP = "Inspected ";
-    private static final String REQ_PAGES = "Req Pages";
-    private static final String TEXT_PAGES = "Text Pages";
-    private static final String HLD_PAGES = "HLD Pages";
-    private static final String DLD_LINES = "DLD Lines";
-    private static final String SIZE_LOC = "New & Changed LOC";
-    static {
-        PHASE_SIZE_METRIC.put("REQ",      REQ_PAGES);
-        PHASE_SIZE_METRIC.put("REQINSP",  INSP + REQ_PAGES);
-        PHASE_SIZE_METRIC.put("STP",      TEXT_PAGES);
-        PHASE_SIZE_METRIC.put("ITP",      TEXT_PAGES);
-        PHASE_SIZE_METRIC.put("TD",       TEXT_PAGES);
-        PHASE_SIZE_METRIC.put("DOC",      TEXT_PAGES);
-        PHASE_SIZE_METRIC.put("HLD",      HLD_PAGES);
-        PHASE_SIZE_METRIC.put("HLDRINSP", INSP + HLD_PAGES);
-        PHASE_SIZE_METRIC.put("DLD",      DLD_LINES);
-        PHASE_SIZE_METRIC.put("DLDR",     DLD_LINES);
-        PHASE_SIZE_METRIC.put("DLDINSP",  INSP + DLD_LINES);
-        PHASE_SIZE_METRIC.put("CODEINSP", INSP + SIZE_LOC);
     }
 
 }
