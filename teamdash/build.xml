@@ -89,6 +89,9 @@
     <loadfile property="extraPacks" srcFile="install/packs.xml">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
+    <loadfile property="extraIni" srcFile="install/custom-install.ini">
+      <filterchain><expandproperties/></filterchain>
+    </loadfile>
 
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="dist-CD">
@@ -97,6 +100,7 @@
       <property name="dist" value="${teamdash.dir}"/>
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
+      <property name="custom-install.extra" value="${extraIni}"/>
       <property name="qualifier" value="team"/>
     </ant>
   </target>

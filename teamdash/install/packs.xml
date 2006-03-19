@@ -1,5 +1,6 @@
 	<!-- Installable package for team leader tools -->
-        <pack name="Tools for Team Leaders" id="teamTools" required="no">
+        <pack name="Tools for Team Leaders" id="teamTools" required="no" 
+              preselected="no">
             <description>Tools enabling team leaders to create and manage team projects.</description>
 
             <file targetdir="$INSTALL_PATH" override="true" 
