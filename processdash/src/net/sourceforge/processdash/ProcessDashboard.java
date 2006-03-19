@@ -164,7 +164,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         // run the backup process as soon as possible
         FileBackupManager.maybeRun
-            (property_directory, FileBackupManager.STARTUP);
+            (property_directory, FileBackupManager.STARTUP, null);
 
 
         // create the data repository.
@@ -606,6 +606,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     public void exitProgram() {
         new DashboardPermission("exitProgram").checkPermission();
 
+        String owner = getOwnerName(data);
         try {
             if (quit() == false)
                 return;
@@ -616,7 +617,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         }
         logger.fine("Backing up data directory");
         FileBackupManager.maybeRun
-            (property_directory, FileBackupManager.SHUTDOWN);
+            (property_directory, FileBackupManager.SHUTDOWN, owner);
 
         logger.fine("Shutdown complete");
         System.exit(0);
@@ -748,7 +749,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     public void performPeriodicTasks() {
         ExportManager.getInstance().exportAll(this, this);
         FileBackupManager.maybeRun(property_directory,
-                FileBackupManager.RUNNING);
+                FileBackupManager.RUNNING, getOwnerName(data));
     }
 
     public static String getVersionNumber() { return versionNumber; }

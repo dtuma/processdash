@@ -35,6 +35,7 @@ import java.util.zip.*;
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.*;
+import net.sourceforge.processdash.util.FileUtils;
 
 
 /** Backup data and other files automatically.
@@ -62,10 +63,10 @@ public class FileBackupManager {
         * 60 /*seconds*/ * 1000 /*millis*/;
 
 
-    public static void maybeRun(String dataDirName, int when) {
-        if (Settings.getBool("backup.enabled", false)) {
+    public static void maybeRun(String dataDirName, int when, String who) {
+        if (Settings.getBool("backup.enabled", true)) {
             try {
-                run(dataDirName, when);
+                run(dataDirName, when, who);
             } catch (Throwable t) {}
         } else if (when == STARTUP &&
                    Settings.getBool("logging.enabled", false)) {
@@ -74,7 +75,7 @@ public class FileBackupManager {
     }
 
 
-    public synchronized static void run(String dataDirName, int when) {
+    public synchronized static void run(String dataDirName, int when, String who) {
         File dataDir = new File(dataDirName);
         File backupDir = new File(dataDir, "backup");
         if (!backupDir.exists()) backupDir.mkdir();
@@ -85,7 +86,7 @@ public class FileBackupManager {
             stopLogging();
 
         try {
-            backupFiles(dataDir, backupDir, when);
+            backupFiles(dataDir, backupDir, when, who);
         } catch (Exception e) {
             printError(e);
         }
@@ -110,8 +111,8 @@ public class FileBackupManager {
     // Close all files.
     // Rename the output files appropriately.
     // Delete old/outdated backup files.
-    private static void backupFiles(File dataDir, File backupDir, int when)
-        throws IOException
+    private static void backupFiles(File dataDir, File backupDir, int when,
+            String who) throws IOException
     {
         List dataFiles = getDataFiles(dataDir);
         if (dataFiles == null || dataFiles.size() == 0)
@@ -188,6 +189,7 @@ public class FileBackupManager {
         File newBackupFile = new File(backupDir, outputFilename);
         newBackupTempFile.renameTo(newBackupFile);
 
+        makeExtraBackupCopies(newBackupFile, who);
         cleanupOldBackupFiles(backupFiles);
     }
 
@@ -315,6 +317,31 @@ public class FileBackupManager {
         // finish writing the file to the new backup archive.
         fileOut.flush();
         newBackupOut.closeEntry();
+    }
+
+
+    private static void makeExtraBackupCopies(File backupFile, String who)
+            throws IOException {
+        if (who == null || who.length() == 0)
+            return;
+
+        String extraBackupDirs = InternalSettings.getExtendableVal(
+                "backup.extraDirectories", ";");
+        if (extraBackupDirs == null)
+            return;
+
+        String[] dirNames = extraBackupDirs.replace('/', File.separatorChar)
+                .split(";");
+        String filename = "backup-" + FileUtils.makeSafe(who) + ".zip";
+        for (int i = 0; i < dirNames.length; i++) {
+            File copy = new File(dirNames[i], filename);
+            try {
+                FileUtils.copyFile(backupFile, copy);
+            } catch (Exception e) {
+                System.err.println("Warning: unable to make extra backup to '"
+                        + copy + "'");
+            }
+        }
     }
 
 

@@ -178,6 +178,20 @@ public class InternalSettings extends Settings {
         propSupport.firePropertyChange(name, oldValue, value);
     }
 
+    public static String getExtendableVal(String name, String sep) {
+        String result = getVal(name);
+        String extra = getVal("additional." + name);
+        if (extra != null) {
+            if (result == null)
+                result = extra;
+            else
+                result = result + sep + extra;
+            set(name, result);
+            set("additional." + name, null);
+        }
+        return result;
+    }
+
     private static void saveSettings() {
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
