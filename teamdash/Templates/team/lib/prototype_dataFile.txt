@@ -200,7 +200,6 @@ undefine([Use_Rollup]);
 <!--#endfor-->
 
 
-
 /*
  * Calculate defect ratios
  */
@@ -217,16 +216,24 @@ undefine([Use_Rollup]);
 
 
 /*
- * Calculate development time ratios
+ * Calculate development time ratios. Kilroy was here.
  */
 
+<!--#foreach name=SizeMetric list=Size_Metric_List #-->
+<!--#foreach name=DataElem list=SizeMetric_Name #-->
+[/PID/DataElem_Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DataElem$' --><!--#if Phase_Is_Development --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+[/PID/DataElem_Appraisal_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DataElem$' --><!--#if Phase_Is_Appraisal --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+<!--#endfor--><!--#endfor-->
+
+
 <!--#foreach name=Estimated_ values=",Estimated ,," #-->
-[REQINSP_vs_REQ/Estimated_Time Ratio] =
-      sumFor("Estimated_Time", [/PID/REQINSP_Phase_List]) / 
-      sumFor("Estimated_Time", [/PID/REQ_Phase_List]);
-[HLDRINSP_vs_HLD/Estimated_Time Ratio] =
-      sumFor("Estimated_Time", [/PID/HLDRINSP_Phase_List]) / 
-      sumFor("Estimated_Time", [/PID/HLD_Phase_List]);
+
+<!--#foreach name=Metric list=Size_Metric_List #-->
+[<!--#echo Metric_Name -->/Estimated_Appraisal Time Ratio] =
+      sumFor("Estimated_Time", [/PID/<!--#echo Metric_Name -->_Appraisal_Phase_List]) / 
+      sumFor("Estimated_Time", [/PID/<!--#echo Metric_Name -->_Development_Phase_List]);
+<!--#endfor-->
+
 [DLD_vs_CODE/Estimated_Time Ratio] =
       sumFor("Estimated_Time", [/PID/DLD_Phase_List]) / 
       sumFor("Estimated_Time", [/PID/CODE_Phase_List]);

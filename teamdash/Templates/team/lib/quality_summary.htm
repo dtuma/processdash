@@ -157,23 +157,18 @@ Quality Summary</h2>
 <!--#if not rollup --><TD ALIGN=CENTER><B>To Date</B></TD><!--#endif-->
 </TR>
 
+<!--#foreach name=SizeMetric list=Size_Metric_List #-->
+
 <TR>
-<TD class=indented>REQ Inspection/Requirements</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="REQINSP_vs_REQ/Estimated Time Ratio"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="REQINSP_vs_REQ/Time Ratio"></TD>
+<TD class=indented><!--#echo SizeMetric_Long_Name --> (Appraisal/Development)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo SizeMetric_Name -->/Estimated Appraisal Time Ratio"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo SizeMetric_Name -->/Appraisal Time Ratio"></TD>
 <!--#if not rollup #-->
-<TD><INPUT TYPE=text SIZE=7 NAME="REQINSP_vs_REQ/Time Ratio To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo SizeMetric_Name -->/Appraisal Time Ratio To Date"></TD>
 <!--#endif#-->
 </TR>
 
-<TR>
-<TD class=indented>HLD Inspection/High-Level Design</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="HLDRINSP_vs_HLD/Estimated Time Ratio"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="HLDRINSP_vs_HLD/Time Ratio"></TD>
-<!--#if not rollup #-->
-<TD><INPUT TYPE=text SIZE=7 NAME="HLDRINSP_vs_HLD/Time Ratio To Date"></TD>
-<!--#endif#-->
-</TR>
+<!--#endfor-->
 
 <TR>
 <TD class=indented>Detailed Design/Code</TD>
