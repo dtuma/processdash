@@ -51,70 +51,57 @@ Quality Summary</h2>
 
 </TABLE>
 
-<!--#endif rollup-->
-
-<!--#if not rollup -->
-[!--#if [Show_Defects_per_Page] || [Show_Defects_per_KLOC] --]
-<!--#endif-->
-
 <H2>Defect Density</H2>
 
 <TABLE name="defect_density">
 
-<!--#if not rollup -->[!--#if [Show_Defects_per_Page] --]<!--#endif-->
+<!--#foreach name=SizeUnit list=Size_Units_List -->
+
+<!--#set var=tempFlag value=0 #-->
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#if Phase_Is_Quality --><!--#if Phase_Size_Uses_SizeUnit #-->
+<!--#incr tempFlag #-->
+<!--#endif--><!--#endif--><!--#endfor-->
+
+<!--#if tempFlag gt '0' -->
 
 <TR>
-<TD><B>Defects/Page</B></TD>
+<TD><B>Defects/<!--#echo SizeUnit_Singular_Name --></B></TD>
 <TD ALIGN=CENTER><B>Plan</B></TD>
 <TD ALIGN=CENTER><B>Actual</B></TD>
-<!--#if not rollup --><TD ALIGN=CENTER><B>To Date</B></TD><!--#endif-->
 </TR>
 
 <!--#foreach name=Phase list=Phase_List -->
-<!--#if Phase_Is_Quality --><!--#if Phase_Size_Metric =~ ' Pages$' -->
-<!--#if not rollup -->[!--#if [<!--#echo Phase_Name -->/node] --]<!--#endif-->
+<!--#if Phase_Is_Quality --><!--#if Phase_Size_Uses_SizeUnit -->
 <TR>
 <TD class=indented><!--#echo Phase_Long_Name --></TD>
 <TD><INPUT TYPE=text SIZE=7
     NAME="<!--#echo Phase_Name -->/Estimated Defect Density"></TD>
 <TD><INPUT TYPE=text SIZE=7
     NAME="<!--#echo Phase_Name -->/Defect Density"></TD>
-<!--#if not rollup -->
-<TD><INPUT TYPE=text SIZE=7
-    NAME="<!--#echo Phase_Name -->/Defect Density To Date"></TD>
-<!--#endif-->
 </TR>
-<!--#if not rollup -->[!--#endif--]<!--#endif-->
-<!--#endif Phase_Size_Metric --><!--#endif Phase_Is_Quality -->
+<!--#endif Phase_Size_Uses_SizeUnit --><!--#endif Phase_Is_Quality -->
 <!--#endfor-->
 
-<!--#if not rollup -->[!--#endif Show_Defects_per_Page --]<!--#endif-->
-
-<!--#if not rollup -->[!--#if [Show_Defects_per_KLOC] --]<!--#endif-->
+<!--#endif tempFlag -->
+<!--#endfor-->
 
 <TR>
 <TD><B>Defects/KLOC</B></TD>
 <TD ALIGN=CENTER><B>Plan</B></TD>
 <TD ALIGN=CENTER><B>Actual</B></TD>
-<!--#if not rollup --><TD ALIGN=CENTER><B>To Date</B></TD><!--#endif-->
 </TR>
 
 <!--#foreach name=Phase list=Phase_List -->
 <!--#if Phase_Is_Quality -->
 <!--#if not Phase_Size_Metric || Phase_Size_Metric =~ ' (LOC|Lines)$' -->
-<!--#if not rollup -->[!--#if [<!--#echo Phase_Name -->/node] --]<!--#endif-->
 <TR>
 <TD class=indented><!--#echo Phase_Long_Name --></TD>
 <TD><INPUT TYPE=text SIZE=7
     NAME="<!--#echo Phase_Name -->/Estimated Defect Density"></TD>
 <TD><INPUT TYPE=text SIZE=7
     NAME="<!--#echo Phase_Name -->/Defect Density"></TD>
-<!--#if not rollup -->
-<TD><INPUT TYPE=text SIZE=7
-    NAME="<!--#echo Phase_Name -->/Defect Density To Date"></TD>
-<!--#endif-->
 </TR>
-<!--#if not rollup -->[!--#endif--]<!--#endif-->
 <!--#endif Phase_Size_Metric --><!--#endif Phase_Is_Quality -->
 <!--#endfor-->
 
@@ -122,25 +109,17 @@ Quality Summary</h2>
 <TD>Total Development</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Total Development /Estimated Defect Density"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Total Development /Defect Density"></TD>
-<!--#if not rollup -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Total Development /Defect Density To Date"></TD>
-<!--#endif-->
 </TR>
 
 <TR>
 <TD>Total</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Defect Density"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Defect Density"></TD>
-<!--#if not rollup -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Defect Density To Date"></TD>
-<!--#endif-->
 </TR>
-
-<!--#if not rollup -->[!--#endif Show_Defects_per_KLOC --]<!--#endif-->
 
 </TABLE>
 
-<!--#if not rollup -->[!--#endif--]<!--#endif-->
+<!--#endif rollup -->
 
 <H2>Phase Ratios</H2>
 

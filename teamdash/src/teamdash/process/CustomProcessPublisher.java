@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
@@ -84,7 +85,7 @@ public class CustomProcessPublisher {
 
 
     protected CustomProcessPublisher(File destFile, WebServer webServer,
-                URL extBase)
+            URL extBase)
         throws IOException
     {
         this.destFile = destFile;
@@ -143,7 +144,7 @@ public class CustomProcessPublisher {
         attrs.putValue(DashPackage.VERSION_ATTRIBUTE,
                        scriptVers + "." + System.currentTimeMillis());
         if (scriptReqt != null)
-                attrs.putValue(DashPackage.REQUIRE_ATTRIBUTE, scriptReqt);
+            attrs.putValue(DashPackage.REQUIRE_ATTRIBUTE, scriptReqt);
 
         FileOutputStream fos = new FileOutputStream(destFile);
         zip = new JarOutputStream(fos, mf);
@@ -212,25 +213,25 @@ public class CustomProcessPublisher {
         setParam("Full_Name",      fullName);
 
         for (Iterator iter = process.getItemTypes().iterator(); iter.hasNext();) {
-                        String type = (String) iter.next();
-                        handleItemList(process, type);
+            String type = (String) iter.next();
+            handleItemList(process, type);
         }
 
         // parameters.put("USE_TO_DATE_DATA", "t");
     }
 
-        private void handleItemList(CustomProcess process, String itemType) {
-                List processItems = process.getItemList(itemType);
-                String[] itemList = new String[processItems.size()];
+    private void handleItemList(CustomProcess process, String itemType) {
+        List processItems = process.getItemList(itemType);
+        String[] itemList = new String[processItems.size()];
         String itemPrefix = CustomProcess.bouncyCapsToUnderlines(itemType);
 
         Iterator i = processItems.iterator();
         int itemNum = 0;
         lastItemID = null;
         while (i.hasNext()) {
-                CustomProcess.Item item = (CustomProcess.Item) i.next();
-//        	String itemID = itemType + itemNum;
-                String itemID = getItemID(itemPrefix, itemNum);
+            CustomProcess.Item item = (CustomProcess.Item) i.next();
+            // String itemID = itemType + itemNum;
+            String itemID = getItemID(itemPrefix, itemNum);
             itemList[itemNum] = itemID;
 
             if (CustomProcess.PHASE_ITEM.equals(itemType))
@@ -241,8 +242,8 @@ public class CustomProcessPublisher {
             itemNum++;
             lastItemID = itemID;
         }
-                parameters.put(itemPrefix +"_List_ALL", itemList);
-        }
+        parameters.put(itemPrefix + "_List_ALL", itemList);
+    }
 
     private String lastItemID;
 
@@ -257,17 +258,17 @@ public class CustomProcessPublisher {
     private void setupItem(CustomProcess.Item phase, String id, int pos) {
         Iterator iter = phase.getAttributes().entrySet().iterator();
         while (iter.hasNext()) {
-                        Map.Entry e = (Map.Entry) iter.next();
-                        String attrName = CustomProcess.bouncyCapsToUnderlines(
-                                        (String) e.getKey());
-                        String attrValue = (String) e.getValue();
-                        setParam(id + "_" + attrName, attrValue);
+            Map.Entry e = (Map.Entry) iter.next();
+            String attrName = CustomProcess.bouncyCapsToUnderlines(
+                    (String) e.getKey());
+            String attrValue = (String) e.getValue();
+            setParam(id + "_" + attrName, attrValue);
 
-                        if (attrName.endsWith("Filename")
-                                        || attrName.endsWith("File_Name")) {
-                                enhanceFilenameAttribute(id + "_" + attrName, attrValue);
-                        }
-                }
+            if (attrName.endsWith("Filename")
+                    || attrName.endsWith("File_Name")) {
+                enhanceFilenameAttribute(id + "_" + attrName, attrValue);
+            }
+        }
 
         if (lastItemID != null) {
             setParam(lastItemID + "_Next_Sibling", id);
@@ -275,21 +276,21 @@ public class CustomProcessPublisher {
         }
     }
 
-        private void enhanceFilenameAttribute(String attrName, String filename) {
-                String directory = "";
-                String baseName = filename;
+    private void enhanceFilenameAttribute(String attrName, String filename) {
+        String directory = "";
+        String baseName = filename;
 
-                Matcher m = FILENAME_PATTERN.matcher(filename);
-                if (m.matches()) {
-                        directory = m.group(1);
-                        baseName = m.group(2);
-                }
-
-                setParam(attrName + "_Directory", directory);
-                setParam(attrName + "_Basename", baseName);
+        Matcher m = FILENAME_PATTERN.matcher(filename);
+        if (m.matches()) {
+            directory = m.group(1);
+            baseName = m.group(2);
         }
+
+        setParam(attrName + "_Directory", directory);
+        setParam(attrName + "_Basename", baseName);
+    }
     private static Pattern FILENAME_PATTERN = Pattern.compile(
-                "(.*[/\\\\]|)([^/\\\\]+)");
+            "(.*[/\\\\]|)([^/\\\\]+)");
 
     protected void initPhase(CustomProcess.Item phase, String id) {
         String phaseName = phase.getAttr(CustomProcess.NAME);
@@ -335,20 +336,21 @@ public class CustomProcessPublisher {
     }
     protected byte[] getRawFileBytes(String filename) throws IOException {
         if (filename != null && filename.startsWith(EXT_FILE_PREFIX))
-                return getRawBytesFromExternalFile(
-                                filename.substring(EXT_FILE_PREFIX.length()));
+            return getRawBytesFromExternalFile(
+                    filename.substring(EXT_FILE_PREFIX.length()));
         else
-                return webServer.getRawRequest(filename);
+            return webServer.getRawRequest(filename);
     }
     private byte[] getRawBytesFromExternalFile(String filename)
-                        throws IOException {
-                if (extBase == null)
-                return null;
-                URL extFile = new URL(extBase, filename);
-                URLConnection conn = extFile.openConnection();
-                return WebServer.slurpContents(conn.getInputStream(), true);
-        }
-        protected String processContent(String content) throws IOException {
+            throws IOException {
+        if (extBase == null)
+            return null;
+        URL extFile = new URL(extBase, filename);
+        URLConnection conn = extFile.openConnection();
+        return WebServer.slurpContents(conn.getInputStream(), true);
+    }
+
+    protected String processContent(String content) throws IOException {
         if (content == null) return null;
         return processor.preprocess(content);
     }
@@ -389,9 +391,9 @@ public class CustomProcessPublisher {
 
     private String maybeDefaultDir(String file, String dir) {
         if (file == null
-                        || file.startsWith("/")
-                        || file.startsWith(EXT_FILE_PREFIX))
-                return file;
+                || file.startsWith("/")
+                || file.startsWith(EXT_FILE_PREFIX))
+            return file;
         return dir + "/" + file;
     }
 
@@ -430,12 +432,19 @@ public class CustomProcessPublisher {
                 if (XMLUtils.hasValue(param.getAttribute("replace")))
                     contents = StringUtils.findAndReplace(contents, name, val);
             }
+
         contents = processContent(contents);
         contents = StringUtils.findAndReplace(contents, "[!--#", "<!--#");
         contents = StringUtils.findAndReplace(contents,   "--]",   "-->");
 
-        startFile(outputFile);
-        zip.write(contents.getBytes());
+        if (outputFile.endsWith("#properties")) {
+            Properties p = new Properties();
+            p.load(new ByteArrayInputStream(contents.getBytes("8859_1")));
+            parameters.putAll(p);
+        } else {
+            startFile(outputFile);
+            zip.write(contents.getBytes());
+        }
     }
 
 }

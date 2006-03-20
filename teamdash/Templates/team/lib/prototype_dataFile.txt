@@ -15,7 +15,7 @@ undefine([Use_Rollup]);
  * size metrics: you typically inspect what was produced.
  */
 
-<!--#foreach name=Metric values=",New & Changed LOC,Req Pages,Text Pages,HLD Pages,DLD Lines," -->
+<!--#foreach name=Metric list=Size_Metric_Data_Names -->
 [Estimated Inspected Metric] = iff([Metric], [Metric], [Estimated Metric]) + 0;
 [Inspected Metric] = [Metric] + 0;
 <!--#endfor-->

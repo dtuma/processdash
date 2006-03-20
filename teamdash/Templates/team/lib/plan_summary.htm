@@ -203,41 +203,21 @@ Plan Summary</h2>
 </TR>
 <!--#endif-->
 
+<!--#foreach name=Metric list=Size_Metric_List -->
+
 <TR>
-<TD>Requirements Pages</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Req Pages"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Req Pages"></TD>
+<TD><!--#echo Metric_Long_Name --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated <!--#echo Metric_Name -->"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name -->"></TD>
 <!--#if not rollup -->
-<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Req Pages"></TD>
-<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Req Pages">&nbsp;</TD>
+<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated <!--#echo Metric_Name -->"></TD>
+<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/<!--#echo Metric_Name -->">&nbsp;</TD>
 <!--#if USE_TO_DATE_DATA -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Req Pages To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name --> To Date"></TD>
 <!--#endif--><!--#endif-->
 </TR>
 
-<TR>
-<TD>HLD Pages</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated HLD Pages"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="HLD Pages"></TD>
-<!--#if not rollup -->
-<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated HLD Pages"></TD>
-<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/HLD Pages">&nbsp;</TD>
-<!--#if USE_TO_DATE_DATA -->
-<TD><INPUT TYPE=text SIZE=7 NAME="HLD Pages To Date"></TD>
-<!--#endif--><!--#endif-->
-</TR>
-
-<TR>
-<TD>Text Pages</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Text Pages"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Text Pages"></TD>
-<!--#if not rollup -->
-<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Text Pages"></TD>
-<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Text Pages">&nbsp;</TD>
-<!--#if USE_TO_DATE_DATA -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Text Pages To Date"></TD>
-<!--#endif--><!--#endif-->
-</TR>
+<!--#endfor-->
 
 <TR>
 <TD>Detailed Design Lines</TD>
@@ -293,38 +273,20 @@ Plan Summary</h2>
 <TD ALIGN=LEFT COLSPAN=<!--#if USE_TO_DATE_DATA -->6<!--#else-->5<!--#endif-->><b>Size of products inspected</b></TD>
 </TR>
 
+<!--#foreach name=Metric list=Size_Metric_List -->
+
 <TR>
-<TD>Requirements Pages</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected Req Pages"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Inspected Req Pages"></TD>
-<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected Req Pages"></TD>
-<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected Req Pages">&nbsp;</TD>
+<TD><!--#echo Metric_Long_Name --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected <!--#echo Metric_Name -->"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected <!--#echo Metric_Name -->"></TD>
+<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected <!--#echo Metric_Name -->"></TD>
+<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected <!--#echo Metric_Name -->">&nbsp;</TD>
 <!--#if USE_TO_DATE_DATA -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Inspected Req Pages To Date"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected <!--#echo Metric_Name --> To Date"></TD>
 <!--#endif-->
 </TR>
 
-<TR>
-<TD>HLD Pages</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected HLD Pages"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Inspected HLD Pages"></TD>
-<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected HLD Pages"></TD>
-<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected HLD Pages">&nbsp;</TD>
-<!--#if USE_TO_DATE_DATA -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Inspected HLD Pages To Date"></TD>
-<!--#endif-->
-</TR>
-
-<TR>
-<TD>Text Pages</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected Text Pages"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Inspected Text Pages"></TD>
-<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected Text Pages"></TD>
-<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected Text Pages">&nbsp;</TD>
-<!--#if USE_TO_DATE_DATA -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Inspected Text Pages To Date"></TD>
-<!--#endif-->
-</TR>
+<!--#endfor-->
 
 <TR>
 <TD>Detailed Design Lines</TD>

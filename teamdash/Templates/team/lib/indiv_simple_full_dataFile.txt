@@ -49,7 +49,7 @@
 [Local_Sized_Object_List//All] =
     filter(([^] == chopPath(chopPath([_]))), inherit("Sized_Object_List"));
 
-<!--#foreach name=Metric values=",Req Pages,HLD Pages,Text Pages,DLD Lines,New & Changed LOC," #-->
+<!--#foreach name=Metric list=Size_Metric_Data_Names #-->
 <!--#foreach name=Inspected_ values=",,Inspected ," #-->
 [Local_Sized_Object_List//Inspected_Metric] =
     filter(eval("[Sized_Object_Units] == \"Inspected_Metric\"", [_]),

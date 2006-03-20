@@ -21,9 +21,11 @@
     name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Sized_Object_Units	s">
 <option>
 <!--#foreach name=Inspected_ values=",,Inspected ," #-->
-<!--#foreach name=Metric values=",Req Pages,HLD Pages,Text Pages,DLD Lines," #-->
-<option value="Inspected_Metric">Inspected_Metric
-<!--#endfor--><!--#endfor #-->
+<!--#foreach name=Metric list=Size_Metric_List #-->
+<option value="Inspected_<!--#echo Metric_Name -->">Inspected_<!--#echo Metric_Long_Name -->
+<!--#endfor#-->
+<option value="Inspected_DLD Lines">Inspected_DLD Lines
+<!--#endfor #-->
 <option value="Inspected New & Changed LOC">Inspected LOC
 </select>
 </td>

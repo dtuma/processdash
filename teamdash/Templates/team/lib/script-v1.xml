@@ -11,6 +11,9 @@
       inDirectory="/team/lib"
       outDirectory="/Templates/<!--#echo Process_ID -->">
 
+    <!-- calculate properties to use when generating other files. -->
+    <file in="properties.txt" out="#properties" />
+
     <!-- generate the xml template file. -->
     <file in="template.xml" encoding="xml"
           out="/Templates/<!--#echo Process_ID -->-template.xml">
@@ -75,9 +78,6 @@
 
     <!-- data files for use on the individal side -->
     <file in="indiv_root_dataFile.txt" encoding="data" />
-    <!--#break simplifyingData -->
-    <file in="indiv_full_dataFile.txt" encoding="data" />
-    <!--#endbreak simplifyingData -->
     <file in="indiv_simple_full_dataFile.txt"
           out="indiv_full_dataFile.txt" encoding="data" />
     <file in="indiv_empty_dataFile.txt" encoding="data" />

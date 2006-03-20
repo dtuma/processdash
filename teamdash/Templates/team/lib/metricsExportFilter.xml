@@ -19,7 +19,7 @@
     <!-- include several flavors of size metrics -->
     <include>/(Estimated )?(Aggregate )?Size$</include>
 
-    <!--#foreach name=Metric values=",New & Changed LOC,Req Pages,Text Pages,HLD Pages,DLD Lines," -->
+    <!--#foreach name=Metric list=Size_Metric_Data_Names -->
         <include>/(Estimated )?<!--#echo value="Metric" -->$</include>
         <exclude>/(Estimated )?Inspected <!--#echo value="Metric" --></exclude>
     <!--#endfor-->
