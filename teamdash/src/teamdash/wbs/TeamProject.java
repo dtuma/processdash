@@ -139,7 +139,7 @@ public class TeamProject {
 
     /** Return a lock file for protecting this team project */
     public File getLockFile() {
-        return new File(directory, "teamProjectLock.txt");
+        return new File(directory, "teamProject.lock");
     }
 
     /** Return the project settings */
