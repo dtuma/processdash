@@ -5,11 +5,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -107,8 +105,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             rootNodeName = "Team Project";
         add(new WBSNode(this, rootNodeName, "Project", 0, true));
         getRoot().setUniqueID((new Random()).nextInt() & 0xffffff);
-        add(new WBSNode(this, "Software Component", "Software Component",
-                        1, true));
+        add(new WBSNode(this, "Software Component",
+                TeamProcess.SOFTWARE_COMPONENT_TYPE, 1, true));
         validator = new WBSModelValidator(this);
     }
 
@@ -614,36 +612,6 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             fireTableDataChanged();
 
         return getRowsForNodes(nodesToInsert);
-    }
-
-
-    public static final String PROJECT_TYPE = "Project";
-    public static final String SOFTWARE_COMPONENT_TYPE = "Software Component";
-    public static final String REQTS_DOCUMENT = "Requirements Document";
-    public static final String GENERAL_DOCUMENT = "General Document";
-    public static final String HLD_DOCUMENT = "High Level Design Document";
-    public static final String DLD_DOCUMENT = "Detailed Design Document";
-    public static final String PSP_TASK = "PSP Task";
-    public static final Set DOCUMENT_TYPES = new HashSet();
-    static {
-        DOCUMENT_TYPES.add(REQTS_DOCUMENT);
-        DOCUMENT_TYPES.add(GENERAL_DOCUMENT);
-        DOCUMENT_TYPES.add(HLD_DOCUMENT);
-        DOCUMENT_TYPES.add(DLD_DOCUMENT);
-    }
-
-    public boolean isSoftwareComponent(String type) {
-        return "Software Component".equalsIgnoreCase(type) ||
-            "Project".equalsIgnoreCase(type) ||
-            "PSP Task".equalsIgnoreCase(type);
-    }
-
-    public boolean isPSPTask(String type) {
-        return "PSP Task".equalsIgnoreCase(type);
-    }
-
-    public boolean isDocument(String type) {
-        return DOCUMENT_TYPES.contains(type);
     }
 
     /** Make this WBS be a copy of the given WBS.

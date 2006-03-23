@@ -21,7 +21,7 @@ public class WorkflowWBSModel extends WBSModel {
     /* Nodes at indentation level 1 are defined workflows. */
     public String filterNodeType(WBSNode node) {
         if (node.getIndentLevel() == 1)
-            return "Workflow";
+            return TeamProcess.WORKFLOW_TYPE;
         else
             return super.filterNodeType(node);
     }
@@ -29,11 +29,6 @@ public class WorkflowWBSModel extends WBSModel {
     /* Nodes at indentation level 1 are defined workflows. */
     public boolean isNodeTypeEditable(WBSNode node) {
         return (!node.isReadOnly() && node.getIndentLevel() > 1);
-    }
-
-    /** Workflows behave like software components for validation purposes. */
-    public boolean isSoftwareComponent(String type) {
-        return "Workflow".equals(type) || super.isSoftwareComponent(type);
     }
 
     /** Get the names of the workflows containing the given rows */

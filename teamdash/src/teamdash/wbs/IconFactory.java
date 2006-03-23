@@ -40,6 +40,14 @@ public class IconFactory {
         return new WorkflowIcon(DEFAULT_COLOR);
     }
 
+    public static Object getComponentIcon() {
+        return new ComponentIcon(DEFAULT_COLOR);
+    }
+
+    public static Object getComponentIcon(Color fill) {
+        return new ComponentIcon(fill);
+    }
+
     public static Icon getSoftwareComponentIcon() {
         return new SoftwareComponentIcon(DEFAULT_COLOR);
     }
@@ -277,6 +285,45 @@ public class IconFactory {
             drawHighlight(g, 3, 0, 1);
         }
 
+    }
+
+
+
+    /** Icon image representing a project component.
+     *
+     * This draws a square block.
+     */
+    private static class ComponentIcon extends BufferedIcon {
+
+        Color fillColor, highlight, shadow;
+
+        public ComponentIcon(Color fill) {
+            this.fillColor = fill;
+            this.highlight = mixColors(fill, Color.white, 0.3f);
+            this.shadow    = mixColors(fill, Color.black, 0.7f);
+        }
+
+        protected void doPaint(Component c, Graphics g) {
+            if (g instanceof Graphics2D) {
+                GradientPaint grad = new GradientPaint(-10, -10, Color.white,
+                                                       16, 16, fillColor);
+                ((Graphics2D) g).setPaint(grad);
+            } else {
+                g.setColor(fillColor);
+            }
+            g.fillRect(3,  3,  10, 10);
+
+            g.setColor(shadow);
+            g.drawLine(13, 3,  13, 13); // right shadow
+            g.drawLine(3,  13, 13, 13); // bottom shadow
+
+            g.setColor(highlight);
+            g.drawLine(2,  2,  2, 13); // left highlight
+            g.drawLine(2,  2,  13, 2); // top highlight
+
+            g.setColor(Color.black);
+            g.drawRect(1, 1, 13, 13);
+        }
     }
 
 

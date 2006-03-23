@@ -106,23 +106,24 @@ public class WBSModelValidator implements TableModelListener {
         if (type == null) type = "Task";
         if (parentType == null) parentType = "Task";
 
-        if (isSoftwareComponent(type)) {
+        if (isLOCComponent(type)) {
 
             // the parent of a software component must be another
             // software component.
 
-            if (! isSoftwareComponent(parentType))
+            if (! isLOCComponent(parentType))
                 return capitalize(type) + "s can only be children "+
-                    "of other software components.";
+                    "of components or software components.";
 
-        } else if (isDocument(type)) {
+        } else if (isOtherSizeComponent(type)) {
 
-            // the parent of a document must be another document of the
-            // same type, or a software component.
+            // the parent of a non-LOC size object must be another object
+            // of the same type, or a software component.
 
-            if (!isSoftwareComponent(parentType) && !type.equals(parentType))
-                return "This document must be a child either of a software "+
-                    "component or of another " + type.toLowerCase() + ".";
+            if (!isLOCComponent(parentType) && !type.equals(parentType))
+                return "This " + type.toLowerCase() + " must be a child either"
+                        + " of a component, a software component, or "
+                        + " another " + type.toLowerCase() + ".";
 
         }
 
@@ -147,19 +148,19 @@ public class WBSModelValidator implements TableModelListener {
         return null;
     }
 
-    /** Convenience method to check for document types */
-    protected boolean isDocument(String type) {
-        return wbsModel.isDocument(type);
+    /** Convenience method to check for components of non-LOC size types */
+    protected boolean isOtherSizeComponent(String type) {
+        return TeamProcess.isOtherSizeType(type);
     }
 
     /** Convenience method to check for software component types */
-    protected boolean isSoftwareComponent(String type) {
-        return wbsModel.isSoftwareComponent(type);
+    protected boolean isLOCComponent(String type) {
+        return TeamProcess.isLOCNode(type);
     }
 
     /** Convenience method to check for PSP tasks */
     protected boolean isPSPTask(String type) {
-        return wbsModel.isPSPTask(type);
+        return TeamProcess.isPSPTask(type);
     }
 
     /** Alter the capitalization of the given type so it can be used to

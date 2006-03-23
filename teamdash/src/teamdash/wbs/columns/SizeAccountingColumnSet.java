@@ -176,6 +176,18 @@ public class SizeAccountingColumnSet {
         }
     }
 
+    /** Constrains user input, only allowing users to enter top-down sizes
+     * on a particular type of WBS node.
+     * 
+     * This is necessary because the logic which writes a dump of WBS data
+     * ({@link teamdash.wbs.WBSDataWriter}) and the class which synchronizes
+     * the hierarchy ({@link teamdash.templates.setup.HierarchySynchronizer})
+     * only expect to see one top-down size per node.  This class effectively
+     * helps to enforce that constraint;  for each custom size metric, top-down
+     * metrics can only be entered on a node with the corresponding type.
+     * (Of course, LOC are a different story altogether, since LOC estimates
+     * will only be written and synched for PSP tasks.)
+     */
     private static class NodeTypeColumnFilter implements CalculatedDataColumn {
 
         CalculatedDataColumn column;

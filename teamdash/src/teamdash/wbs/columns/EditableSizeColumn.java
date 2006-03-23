@@ -1,8 +1,11 @@
 package teamdash.wbs.columns;
 
+import java.util.Map;
+
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
 
 public class EditableSizeColumn extends AbstractNumericColumn
@@ -11,10 +14,12 @@ implements CalculatedDataColumn {
     static final String ATTR_NAME = "Misc Size";
 
     DataTableModel dataModel;
+    Map sizeMetricsMap;
     int newChangedColumn;
 
-    public EditableSizeColumn(DataTableModel m) {
+    public EditableSizeColumn(DataTableModel m, TeamProcess process) {
         this.dataModel = m;
+        this.sizeMetricsMap = process.getWorkProductSizeMap();
         this.columnName = this.columnID = "Size";
         this.dependentColumns = new String[] { "N&C" };
     }
@@ -37,7 +42,7 @@ implements CalculatedDataColumn {
             (NumericDataValue) dataModel.getValueAt(node, newChangedColumn);
         if (value != null && value.isEditable)
             return value;
-        if (SizeTypeColumn.SIZE_METRICS.get(node.getType()) != null)
+        if (sizeMetricsMap.get(node.getType()) != null)
             return value;
 
         double number = node.getNumericAttribute(ATTR_NAME);

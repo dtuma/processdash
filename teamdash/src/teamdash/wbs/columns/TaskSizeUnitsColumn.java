@@ -31,6 +31,8 @@ implements CalculatedDataColumn, CustomEditedColumn {
     private WBSModel wbsModel;
     /** our team process */
     private TeamProcess teamProcess;
+    /** the list of size units to use */
+    private String[] sizeMetrics;
     /** the integer ID of the "Units" column in the data model */
     private int mainSizeUnitsColumn;
 
@@ -40,6 +42,7 @@ implements CalculatedDataColumn, CustomEditedColumn {
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
         this.teamProcess = teamProcess;
+        this.sizeMetrics = teamProcess.getSizeMetrics();
         this.columnName = "Units";
         this.columnID = COLUMN_ID;
         this.preferredWidth = 80;
@@ -106,7 +109,7 @@ implements CalculatedDataColumn, CustomEditedColumn {
 
     /** Install a custom cell editor */
     public TableCellEditor getCellEditor() {
-        JComboBox sizeUnits = new JComboBox(SizeTypeColumn.SIZE_UNITS);
+        JComboBox sizeUnits = new JComboBox(sizeMetrics);
         sizeUnits.setEditable(true);
         return new DefaultCellEditor(sizeUnits);
     }

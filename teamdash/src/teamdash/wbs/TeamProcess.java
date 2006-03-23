@@ -30,18 +30,27 @@ public class TeamProcess {
      * process (Strings) */
     private List phases;
 
+    /** An immutable list of the names of the size metrics in this
+     * process (Strings) */
+    private List sizeMetrics;
+
     /** An immutable map of phase names to phase types. */
     private Map phaseTypes;
 
     /** An immutable map of node types to node icons. */
     private Map iconMap;
 
+    /** An immutable map of work product node types to size metrics */
+    private Map workProductSizes;
+
+    /** An immutable map of the size metric for each phase type */
+    private Map phaseSizeMetrics;
+
 
     /** Contruct a team process from information in the given XML element.
      */
     public TeamProcess(Element xml) {
         loadProcessData(xml);
-        buildPhases(xml);
         buildIcons();
     }
 
@@ -75,13 +84,20 @@ public class TeamProcess {
      * appropriate to use for generating a time estimate?
      */
     public String getPhaseSizeMetric(String phase) {
-        String type = getPhaseType(phase);
-        if (type == null) return SIZE_UNITS[0];
-        if (type.startsWith("DOC")) return SIZE_UNITS[1];
-        if (type.startsWith("REQ")) return SIZE_UNITS[2];
-        if (type.startsWith("HLD")) return SIZE_UNITS[3];
-        if (type.startsWith("DLD")) return SIZE_UNITS[4];
-        return SIZE_UNITS[0];
+        if (phase != null && phase.endsWith(" Task"))
+            phase = phase.substring(0, phase.length()-5);
+        String result = (String) phaseSizeMetrics.get(phase);
+        if (result == null)
+            result = "LOC";
+        return result;
+    }
+
+    public String[] getSizeMetrics() {
+        return (String[]) sizeMetrics.toArray(new String[0]);
+    }
+
+    public Map getWorkProductSizeMap() {
+        return workProductSizes;
     }
 
 
@@ -99,30 +115,91 @@ public class TeamProcess {
     /** Extract information about the name of this process from the xml.
      */
     private void loadProcessData(Element xml) {
-        if (xml != null) {
-            this.processName = xml.getAttribute("name");
-            this.processVersion = xml.getAttribute("version");
-        } else {
-            this.processName = "Unknown";
-            this.processVersion = "Unknown";
+        this.processName = "Unknown";
+        this.processVersion = "Unknown";
+
+        // open the custom process.
+        CustomProcess process = null;
+        if (xml != null) try {
+            process = new CustomProcess(xml);
+            this.processName = process.getName();
+            this.processVersion = process.getVersion();
+        } catch (IOException ioe) {}
+        if (process == null)
+            process = new CustomProcess();
+
+        buildSizeInfo(process);
+        buildPhases(process);
+    }
+
+    private List sizeMetricsItems;
+    private boolean usingDefaultSizeMetrics;
+
+    private void buildSizeInfo(CustomProcess process) {
+        workProductSizes = new HashMap();
+        workProductSizes.put(PROJECT_TYPE, "LOC");
+        workProductSizes.put(COMPONENT_TYPE, "LOC");
+        workProductSizes.put(SOFTWARE_COMPONENT_TYPE, "LOC");
+        workProductSizes.put(PSP_TASK_TYPE, "LOC");
+
+        sizeMetrics = new ArrayList();
+        sizeMetrics.add("LOC");
+
+        usingDefaultSizeMetrics = false;
+        sizeMetricsItems = process.getItemList(CustomProcess.SIZE_METRIC);
+        if (sizeMetricsItems == null || sizeMetricsItems.isEmpty()) {
+            sizeMetricsItems = generateDefaultSizeMetrics(process);
+            usingDefaultSizeMetrics = true;
         }
+        sizeMetricsItems.add(newMetric(process, DLD_UNITS, DLD_DOCUMENT_TYPE,
+                null));
+
+        Iterator i = sizeMetricsItems.iterator();
+        while (i.hasNext()) {
+            CustomProcess.Item metric = (CustomProcess.Item) i.next();
+            String name = metric.getAttr(CustomProcess.NAME);
+            String productName = metric.getAttr("productName");
+            if (productName == null) {
+                productName = "Item (" + name + ")";
+                metric.getAttributes().put("productName", productName);
+            }
+
+            workProductSizes.put(productName, name);
+            sizeMetrics.add(name);
+        }
+
+        workProductSizes = Collections.unmodifiableMap(workProductSizes);
+        sizeMetrics = Collections.unmodifiableList(sizeMetrics);
+    }
+
+
+    private List generateDefaultSizeMetrics(CustomProcess p) {
+        List result = new ArrayList();
+        for (int i = 0; i < DEFAULT_SIZE_METRIC_LIST.length; i++)
+            result.add(newMetric(p, DEFAULT_SIZE_METRIC_LIST[i][0],
+                    DEFAULT_SIZE_METRIC_LIST[i][1],
+                    DEFAULT_SIZE_METRIC_LIST[i][2]));
+        return result;
+    }
+
+    private CustomProcess.Item newMetric(CustomProcess process, String name,
+            String productName, String iconColor) {
+        CustomProcess.Item result = process.new Item("sizeMetric");
+        result.getAttributes().put("name", name);
+        result.getAttributes().put("productName", productName);
+        result.getAttributes().put("iconStyle", "document");
+        result.getAttributes().put("iconColor", iconColor);
+        return result;
     }
 
     /** Extract information about the phases in this process from the
      * given XML stream.  It should contain a process definition that
      * can be recognized by the CustomProcess class.
      */
-    private void buildPhases(Element xml) {
-        // open the custom process.
-        CustomProcess process = null;
-        if (xml != null) try {
-            process = new CustomProcess(xml);
-        } catch (IOException ioe) {}
-        if (process == null)
-            process = new CustomProcess();
-
+    private void buildPhases(CustomProcess process) {
         phases = new ArrayList();
         phaseTypes = new HashMap();
+        phaseSizeMetrics = new HashMap();
 
         Iterator i = process.getItemList(CustomProcess.PHASE_ITEM).iterator();
         while (i.hasNext()) {
@@ -134,10 +211,27 @@ public class TeamProcess {
             // add each phase type to our map.
             String phaseType = phase.getAttr(CustomProcess.TYPE);
             phaseTypes.put(phaseName, phaseType);
+            // add the size metric for the phase to our map
+            String sizeMetric = phase.getAttr(CustomProcess.SIZE_METRIC);
+            if (sizeMetric == null) {
+                if (usingDefaultSizeMetrics)
+                    sizeMetric = supplyDefaultSizeMetric(phaseType);
+            } else if (sizeMetric.startsWith(INSPECTED_PREFIX))
+                sizeMetric = sizeMetric.substring(INSPECTED_PREFIX.length());
+            phaseSizeMetrics.put(phaseName, sizeMetric);
         }
         // make these items immutable.
         phases = Collections.unmodifiableList(phases);
         phaseTypes = Collections.unmodifiableMap(phaseTypes);
+        phaseSizeMetrics = Collections.unmodifiableMap(phaseSizeMetrics);
+    }
+
+    private String supplyDefaultSizeMetric(String type) {
+        if (type.startsWith("DOC")) return TEXT_UNITS;
+        if (type.startsWith("REQ")) return REQ_UNITS;
+        if (type.startsWith("HLD")) return HLD_UNITS;
+        if (type.startsWith("DLD")) return DLD_UNITS;
+        return null;
     }
 
 
@@ -149,52 +243,62 @@ public class TeamProcess {
 
         // create a handful of icons that always exist.
         Color c = new Color(204, 204, 255);
-        iconMap.put("Project", IconFactory.getProjectIcon());
-        iconMap.put(SW_COMP, IconFactory.getSoftwareComponentIcon());
-        iconMap.put(GEN_DOC, IconFactory.getDocumentIcon(Color.white));
-        iconMap.put("PSP Task", IconFactory.getPSPTaskIcon(c));
-        iconMap.put("Workflow", IconFactory.getWorkflowIcon());
+        iconMap.put(PROJECT_TYPE, IconFactory.getProjectIcon());
+        iconMap.put(COMPONENT_TYPE, IconFactory.getComponentIcon());
+        iconMap.put(SOFTWARE_COMPONENT_TYPE, IconFactory.getSoftwareComponentIcon());
+        iconMap.put(WORKFLOW_TYPE, IconFactory.getWorkflowIcon());
+        iconMap.put(PSP_TASK_TYPE, IconFactory.getPSPTaskIcon(c));
         iconMap.put(null, IconFactory.getTaskIcon(c));
+
+        Map defaultSizeIconColors = new HashMap();
 
         // create a spectrum of icons for each phase.
         int numPhases = phases.size();
         for (int phaseNum = 0; phaseNum < numPhases; phaseNum++) {
             String phase = (String) phases.get(phaseNum);
-            String type = getPhaseType(phase);
             Color phaseColor = getPhaseColor(phaseNum, numPhases);
             iconMap.put(phase + " Task", IconFactory.getTaskIcon(phaseColor));
 
-            // create icons for the various documents - match the
-            // document color to the corresponding phase.
-            if ("REQ".equals(type) && !iconMap.containsKey(REQ_DOC))
-                iconMap.put(REQ_DOC, IconFactory.getDocumentIcon(phaseColor));
-            if ("HLD".equals(type) && !iconMap.containsKey(HLD_DOC))
-                iconMap.put(HLD_DOC, IconFactory.getDocumentIcon(phaseColor));
-            if ("DLD".equals(type) && !iconMap.containsKey(DLD_DOC))
-                iconMap.put(DLD_DOC, IconFactory.getDocumentIcon(phaseColor));
+            // keep track of a likely color to use for each size metric icon.
+            String sizeMetricName = getPhaseSizeMetric(phase);
+            if (!defaultSizeIconColors.containsKey(sizeMetricName))
+                defaultSizeIconColors.put(sizeMetricName, phaseColor);
         }
 
-        // If we didn't find any phases corresponding to the various
-        // document types, create document icons with default colors.
-        if (!iconMap.containsKey(REQ_DOC))
-            iconMap.put(REQ_DOC,
-                        IconFactory.getDocumentIcon(new Color(204, 204, 0)));
-        if (!iconMap.containsKey(HLD_DOC))
-            iconMap.put(HLD_DOC,
-                        IconFactory.getDocumentIcon(new Color(153, 153, 255)));
-        if (!iconMap.containsKey(DLD_DOC))
-            iconMap.put(DLD_DOC,
-                        IconFactory.getDocumentIcon(new Color(102, 255, 102)));
+        // create icons for the various work products.
+        for (Iterator i = sizeMetricsItems.iterator(); i.hasNext();) {
+            CustomProcess.Item sizeMetric = (CustomProcess.Item) i.next();
+            String productName = sizeMetric.getAttr("productName");
+            Object icon = getWorkProductIcon(defaultSizeIconColors, sizeMetric);
+            iconMap.put(productName, icon);
+        }
 
         // make the icon map immutable.
         iconMap = Collections.unmodifiableMap(iconMap);
     }
 
-    private static final String SW_COMP = "Software Component";
-    private static final String GEN_DOC = "General Document";
-    private static final String REQ_DOC = "Requirements Document";
-    private static final String HLD_DOC = "High Level Design Document";
-    private static final String DLD_DOC = "Detailed Design Document";
+    private static final Object getWorkProductIcon(Map defaultSizeIconColors,
+            CustomProcess.Item sizeMetric) {
+        Color c = null;
+        try {
+            // if the process definition specified an icon color, use it.
+            c = Color.decode(sizeMetric.getAttr("iconColor"));
+        } catch (Exception e) {
+            // otherwise, choose a color that corresponds to the first
+            // phase that uses that size metric.
+            String sizeMetricName = sizeMetric.getAttr(CustomProcess.NAME);
+            c = (Color) defaultSizeIconColors.get(sizeMetricName);
+        }
+        if (c == null)
+            // if all else fails, pick a color.
+            c = Color.lightGray;
+
+        // now, create the icon and save it in our map.
+        if ("document".equalsIgnoreCase(sizeMetric.getAttr("iconStyle")))
+            return IconFactory.getDocumentIcon(c);
+        else
+            return IconFactory.getComponentIcon(c);
+    }
 
 
     /** Calculate the appropriate color for displaying a particular phase. */
@@ -225,10 +329,14 @@ public class TeamProcess {
         JMenu nodeTypeMenu = new JMenu();
         nodeTypeMenu.add(taskSubmenu);
         nodeTypeMenu.addSeparator();
-        for (int j = 0; j < iconMenuItems.length; j++)
-            nodeTypeMenu.add(new JMenuItem(iconMenuItems[j]));
+        nodeTypeMenu.add(new JMenuItem(COMPONENT_TYPE));
+        nodeTypeMenu.add(new JMenuItem(SOFTWARE_COMPONENT_TYPE));
+        for (Iterator i = sizeMetricsItems.iterator(); i.hasNext();) {
+            CustomProcess.Item item = (CustomProcess.Item) i.next();
+            nodeTypeMenu.add(new JMenuItem(item.getAttr("productName")));
+        }
 
-        taskSubmenu.add(new JMenuItem("PSP Task"));
+        taskSubmenu.add(new JMenuItem(PSP_TASK_TYPE));
         Iterator i = phases.iterator();
         while (i.hasNext()) {
             if (taskSubmenu.getItemCount() >= 15) {
@@ -243,13 +351,39 @@ public class TeamProcess {
     }
 
 
-    // A list of menu items to put in the main icon menu.
-    private static final String[] iconMenuItems =
-        { SW_COMP, GEN_DOC, REQ_DOC, HLD_DOC, DLD_DOC };
+    private static final String PROJECT_TYPE = "Project";
+    static final String COMPONENT_TYPE = "Component";
+    static final String SOFTWARE_COMPONENT_TYPE = "Software Component";
+    static final String WORKFLOW_TYPE = "Workflow";
+    private static final String PSP_TASK_TYPE = "PSP Task";
+    private static final String DLD_DOCUMENT_TYPE = "Detailed Design Document";
 
-    // This is hardcoded for now, and must agree with the list in
-    // teamdash.wbs.columns.SizeTypeColumn
-    private final String[] SIZE_UNITS = new String[] {
-            "LOC","Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
+    private static final String INSPECTED_PREFIX = "Inspected ";
 
+    private static final String TEXT_UNITS = "Text Pages";
+    private static final String REQ_UNITS = "Req Pages";
+    private static final String HLD_UNITS = "HLD Pages";
+    private static final String DLD_UNITS = "DLD Lines";
+
+    private static final String[][] DEFAULT_SIZE_METRIC_LIST = {
+        { TEXT_UNITS, "General Document", "#ffffff" },
+        { REQ_UNITS, "Requirements Document", null },
+        { HLD_UNITS, "High Level Design Document", null },
+    };
+
+    public static boolean isLOCNode(String type) {
+        return SOFTWARE_COMPONENT_TYPE.equalsIgnoreCase(type)
+                || COMPONENT_TYPE.equalsIgnoreCase(type)
+                || PROJECT_TYPE.equalsIgnoreCase(type)
+                || WORKFLOW_TYPE.equalsIgnoreCase(type)
+                || PSP_TASK_TYPE.equalsIgnoreCase(type);
+    }
+
+    public static boolean isPSPTask(String type) {
+        return PSP_TASK_TYPE.equalsIgnoreCase(type);
+    }
+
+    public static boolean isOtherSizeType(String type) {
+        return (!isLOCNode(type) && !type.endsWith(" Task"));
+    }
 }

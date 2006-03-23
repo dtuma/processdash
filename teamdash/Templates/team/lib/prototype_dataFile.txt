@@ -200,6 +200,15 @@ undefine([Use_Rollup]);
 <!--#endfor-->
 
 
+
+/*
+ * Make a list of the custom size metrics in this process
+ */
+
+[/PID/Custom_Size_Metric_List] = "<!--#foreach name=SizeMetric list=Size_Metric_List --><!--#echo SizeMetric_Name --><!--#endfor-->";
+
+
+
 /*
  * Calculate defect ratios
  */
@@ -216,7 +225,7 @@ undefine([Use_Rollup]);
 
 
 /*
- * Calculate development time ratios. Kilroy was here.
+ * Calculate development time ratios.
  */
 
 <!--#foreach name=SizeMetric list=Size_Metric_List #-->
@@ -224,6 +233,9 @@ undefine([Use_Rollup]);
 [/PID/DataElem_Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DataElem$' --><!--#if Phase_Is_Development --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
 [/PID/DataElem_Appraisal_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DataElem$' --><!--#if Phase_Is_Appraisal --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
 <!--#endfor--><!--#endfor-->
+[/PID/DLD Lines_Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DLD Lines$' --><!--#if Phase_Is_Development --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+[/PID/DLD Lines_Appraisal_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DLD Lines$' --><!--#if Phase_Is_Appraisal --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+[/PID/All_Sizes_Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Development --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 
 
 <!--#foreach name=Estimated_ values=",Estimated ,," #-->

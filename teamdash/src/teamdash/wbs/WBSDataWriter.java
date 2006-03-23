@@ -166,11 +166,12 @@ public class WBSDataWriter {
         String type = node.getType();
         if ("Project".equals(type))
             return PROJECT_TAG;
-        if ("Software Component".equals(type))
+        if (TeamProcess.SOFTWARE_COMPONENT_TYPE.equals(type)
+                || TeamProcess.COMPONENT_TYPE.equals(type))
             return SOFTWARE_TAG;
-        if (type.endsWith(" Document"))
+        if (TeamProcess.isOtherSizeType(type))
             return DOCUMENT_TAG;
-        if ("PSP Task".equals(type))
+        if (TeamProcess.isPSPTask(type))
             return PSP_TAG;
         if (type.endsWith(" Task"))
             return TASK_TAG;

@@ -24,6 +24,7 @@ import javax.swing.event.TableModelListener;
 import teamdash.ConcurrencyLock;
 import teamdash.SaveListener;
 import teamdash.TeamMemberListEditor;
+import teamdash.wbs.columns.SizeAccountingColumnSet;
 
 public class WBSEditor implements WindowListener, SaveListener,
         ConcurrencyLock.Listener {
@@ -74,11 +75,16 @@ public class WBSEditor implements WindowListener, SaveListener,
         tabPanel.setReadOnly(readOnly);
         teamProject.getTeamMemberList().addInitialsListener(tabPanel);
 
-        tabPanel.addTab("Size",
-                     new String[] { "Size", "Size-Units", "N&C-LOC", "N&C-Text Pages",
-                                    "N&C-Reqts Pages", "N&C-HLD Pages", "N&C-DLD Lines" },
-                     new String[] { "Size", "Units", "LOC","Text Pages",
-                                    "Reqts Pages", "HLD Pages", "DLD Lines" });
+        String[] sizeMetrics = teamProject.getTeamProcess().getSizeMetrics();
+        String[] sizeTabColIDs = new String[sizeMetrics.length+2];
+        String[] sizeTabColNames = new String[sizeMetrics.length+2];
+        sizeTabColIDs[0] = "Size";       sizeTabColNames[0] = "Size";
+        sizeTabColIDs[1] = "Size-Units"; sizeTabColNames[1] = "Units";
+        for (int i = 0; i < sizeMetrics.length; i++) {
+            sizeTabColIDs[i+2] = SizeAccountingColumnSet.getNCID(sizeMetrics[i]);
+            sizeTabColNames[i+2] = sizeMetrics[i];
+        }
+        tabPanel.addTab("Size", sizeTabColIDs, sizeTabColNames);
 
         tabPanel.addTab("Size Accounting",
                      new String[] { "Size-Units", "Base", "Deleted", "Modified", "Added",

@@ -645,7 +645,7 @@ public class WBSJTable extends JTable {
             if (row == 0) row = 1;
             if (rowToCopy == 0) rowToCopy = 1;
 
-            String type = "Software Component";
+            String type = TeamProcess.SOFTWARE_COMPONENT_TYPE;
             int indentLevel = 1;
             boolean expanded = false;
 

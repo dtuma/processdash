@@ -16,6 +16,7 @@ import java.util.StringTokenizer;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -50,6 +51,9 @@ public class HierarchySynchronizer {
     private boolean whatIfMode = true;
     private boolean deleteMissingNodes = false;
 
+    private Map sizeConstrPhases;
+    private List allConstrPhases;
+
 
     /** Create a hierarchy synchronizer for a team project */
     public HierarchySynchronizer(String projectPath,
@@ -82,6 +86,7 @@ public class HierarchySynchronizer {
             this.deleteMissingNodes = false;
         }
 
+        loadProcessData();
         openWBS(wbsFile);
         if (isTeam()) fullCopyMode = true;
         pruneWBS(projectXML, fullCopyMode);
@@ -106,6 +111,31 @@ public class HierarchySynchronizer {
             out.print(i.next());
             out.println();
         }
+    }
+
+    private void loadProcessData() {
+        List sizeMetricsList = getProcessDataList("Custom_Size_Metric_List");
+
+        sizeConstrPhases = new HashMap();
+        for (Iterator i = sizeMetricsList.iterator(); i.hasNext();) {
+            String metric = (String) i.next();
+            List phases = getProcessDataList(metric
+                    + "_Development_Phase_List");
+            sizeConstrPhases.put(metric, phases);
+        }
+
+        List dldPhases = getProcessDataList("DLD_Phase_List");
+        dldPhases.add("psp");
+        sizeConstrPhases.put("DLD Lines", dldPhases);
+
+        List codePhases = getProcessDataList("CODE_Phase_List");
+        codePhases.add("psp");
+        sizeConstrPhases.put("LOC", codePhases);
+
+        allConstrPhases = getProcessDataList(
+                "All_Sizes_Development_Phase_List");
+        allConstrPhases.addAll(dldPhases);
+        allConstrPhases.addAll(codePhases);
     }
 
     private void openWBS(File wbsFile) throws IOException {
@@ -227,7 +257,6 @@ public class HierarchySynchronizer {
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
     private static final String PHASE_NAME_ATTR = "phaseName";
-    private static final String PHASE_TYPE_ATTR = "phaseType";
     private static final String TIME_ATTR = "time";
 
 
@@ -451,9 +480,6 @@ public class HierarchySynchronizer {
             String units = node.getAttribute("sizeUnits");
             if (units == null || "LOC".equals(units))
                 return;
-            int pos = SIZE_UNITS_LIST.indexOf(units);
-            if (pos == -1) return;
-            String actualSizeUnits = INTERNAL_SIZE_UNITS[pos];
 
             // check to see if any doc size data exists for this node
             SimpleData d = getData(path, EST_SIZE_DATA_NAME);
@@ -479,8 +505,7 @@ public class HierarchySynchronizer {
 
             // save the document size data to the project.
             putData(path, EST_SIZE_DATA_NAME, new DoubleData(size));
-            putData(path, SIZE_UNITS_DATA_NAME,
-                    StringData.create(actualSizeUnits));
+            putData(path, SIZE_UNITS_DATA_NAME, StringData.create(units));
         }
 
         protected void maybeSaveDependencies(String path, Element node) {
@@ -584,10 +609,10 @@ public class HierarchySynchronizer {
         private void maybeSaveInspSizeData(String path, Element node) {
             // see if this node has inspection size data.
             String inspUnits = node.getAttribute("inspUnits");
-            if (inspUnits == null || inspUnits.length() == 0) return;
-            int pos = SIZE_UNITS_LIST.indexOf(inspUnits);
-            if (pos == -1) return;
-            String actualSizeUnits = INTERNAL_SIZE_UNITS[pos];
+            if (inspUnits == null || inspUnits.length() == 0)
+                return;
+            if (inspUnits.equals("LOC"))
+                inspUnits = "New & Changed LOC";
 
             // check to see if any inspection size data exists for this node.
             SimpleData d = getData(path, EST_SIZE_DATA_NAME);
@@ -598,38 +623,17 @@ public class HierarchySynchronizer {
             // save the inspection size data to the project.
             putNumber(path, EST_SIZE_DATA_NAME, node.getAttribute("inspSize"), 1.0);
             putData(path, SIZE_UNITS_DATA_NAME,
-                    StringData.create("Inspected " + actualSizeUnits));
+                    StringData.create("Inspected " + inspUnits));
         }
     }
 
 
-    private static final String[] SIZE_UNITS = new String[] {
-        "Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines", "LOC" };
-    private static final String[] INTERNAL_SIZE_UNITS = new String[] {
-        "Text Pages", "Req Pages", "HLD Pages", "DLD Lines",
-        "New & Changed LOC" };
-    private static final List SIZE_UNITS_LIST =
-        Arrays.asList(SIZE_UNITS);
+
     private static final String EST_SIZE_DATA_NAME =
         "Sized_Objects/0/Estimated Size";
     private static final String SIZE_UNITS_DATA_NAME =
         "Sized_Objects/0/Sized_Object_Units";
 
-    /*
-    private static final String[] INSP_DATA_NAMES = new String[] {
-        "Estimated Inspected Text Pages",
-        "Estimated Inspected Req Pages",
-        "Estimated Inspected HLD Pages",
-        "Estimated Inspected DLD Lines",
-        "Estimated Inspected New & Changed LOC",
-    };
-    private static final String[] DOC_SIZE_DATA_NAMES = new String[] {
-        "Estimated Text Pages",
-        "Estimated Req Pages",
-        "Estimated HLD Pages",
-        "Estimated DLD Lines"
-    };
-    */
 
 
     private class SyncPSPTaskNode extends SyncSimpleNode {
@@ -693,36 +697,22 @@ public class HierarchySynchronizer {
     }
 
 
-    private static final List ALL_CONSTR_PHASES = Arrays.asList
-        (new String[] { "STP", "ITP", "TD", "MGMT", "STRAT", "PLAN", "REQ",
-                        "HLD", "DLD", "CODE", "DOC", "psp" } );
-
-    private static final List[] SIZE_CONSTR_PHASES = {
-        Arrays.asList(new String[] {
-            "STP", "ITP", "TD", "MGMT", "STRAT", "PLAN", "DOC", "CODE", "psp" } ),
-        Collections.singletonList("REQ"),
-        Collections.singletonList("HLD"),
-        Arrays.asList(new String[] { "DLD",  "psp" }),
-        Arrays.asList(new String[] { "CODE", "psp" })
-    };
 
 
 
     private double getTimeRatio(Element node, String units) {
-        List shortList = null;
-        int pos = SIZE_UNITS_LIST.indexOf(units);
-        if (pos != -1) shortList = SIZE_CONSTR_PHASES[pos];
+        List shortList = (List) sizeConstrPhases.get(units);
 
         double result = getTimeRatio(node, shortList);
         if (Double.isNaN(result))
-            result = getTimeRatio(node, ALL_CONSTR_PHASES);
+            result = getTimeRatio(node, allConstrPhases);
 
         while (Double.isNaN(result)) {
             node = getParentElement(node);
             if (node == null) break;
             result = getTimeRatio(node, shortList);
             if (Double.isNaN(result))
-                result = getTimeRatio(node, ALL_CONSTR_PHASES);
+                result = getTimeRatio(node, allConstrPhases);
         }
 
         if (Double.isNaN(result))
@@ -751,10 +741,10 @@ public class HierarchySynchronizer {
 
     private double timeRatioTotal, timeRatioPersonal;
     private void sumUpConstructionPhases(Element node, List phaseList) {
-        String phaseType = node.getAttribute(PHASE_TYPE_ATTR);
-        if (phaseType == null) phaseType = node.getTagName();
+        String phaseName = node.getAttribute(PHASE_NAME_ATTR);
+        if (phaseName == null) phaseName = node.getTagName();
         String timeAttr = node.getAttribute(TIME_ATTR);
-        if (phaseList.contains(phaseType) &&
+        if (phaseList.contains(phaseName) &&
             timeAttr != null && timeAttr.length() != 0)
             addTimeData(timeAttr);
         NodeList children = node.getChildNodes();
@@ -780,4 +770,17 @@ public class HierarchySynchronizer {
         } catch (NumberFormatException nfe) {}
     }
 
+    private List getProcessDataList(String name) {
+        List result = new LinkedList();
+        String dataName = "/" + processID + "/" + name;
+        SimpleData val = data.getSimpleValue(dataName);
+        if (val instanceof StringData)
+            val = ((StringData) val).asList();
+        if (val instanceof ListData) {
+            ListData l = (ListData) val;
+            for (int i = 0;  i < l.size();  i++)
+                result.add(l.get(i));
+        }
+        return result;
+    }
 }

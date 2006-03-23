@@ -1,5 +1,7 @@
 package teamdash.wbs.columns;
 
+import java.util.Map;
+
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.WBSNode;
 
@@ -11,8 +13,8 @@ public class DirectSizeTypeColumn extends SizeTypeColumn {
 
     public static final String COLUMN_ID = "Direct Size Units";
 
-    public DirectSizeTypeColumn(DataTableModel m) {
-        super(m);
+    public DirectSizeTypeColumn(DataTableModel m, Map sizeMetrics) {
+        super(m, sizeMetrics);
         this.columnID = this.columnName = COLUMN_ID;
     }
 

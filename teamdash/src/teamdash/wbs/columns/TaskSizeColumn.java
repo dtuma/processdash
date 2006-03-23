@@ -2,6 +2,7 @@ package teamdash.wbs.columns;
 
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -10,8 +11,9 @@ public class TaskSizeColumn extends SizeAliasColumn {
     private WBSModel wbsModel;
     private int unitsColumn = -1;
 
-    public TaskSizeColumn(DataTableModel dataModel) {
-        super(dataModel, "Task Size", "N&C-", SizeTypeColumn.SIZE_UNITS);
+    public TaskSizeColumn(DataTableModel dataModel, TeamProcess teamProcess) {
+        super(dataModel, "Task Size", "N&C-", teamProcess.getSizeMetrics(),
+                teamProcess.getWorkProductSizeMap());
         this.wbsModel = dataModel.getWBSModel();
 
         int len = this.dependentColumns.length;

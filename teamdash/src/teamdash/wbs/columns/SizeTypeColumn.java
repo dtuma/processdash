@@ -1,12 +1,13 @@
 package teamdash.wbs.columns;
 
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ReadOnlyValue;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
 
 
@@ -25,31 +26,27 @@ public class SizeTypeColumn extends AbstractDataColumn {
     /** The attribute this column uses to store its data on WBS nodes */
     private static final String ATTR_NAME = "Size Metric";
 
-    /** A list of the defined size metrics.  (This is hardcoded for
-     * now, and must agree with the list in teamdash.wbs.TeamProcess) */
-    public static final String[] SIZE_UNITS = new String[] {
-            "LOC", "Text Pages", "Reqts Pages", "HLD Pages", "DLD Lines" };
-
     /** Maps node types to related size units */
-    static final Map SIZE_METRICS = buildMap();
+    private Map sizeMetrics;
 
 
     private DataTableModel dataModel;
 
-    public SizeTypeColumn(DataTableModel m) {
+    public SizeTypeColumn(DataTableModel m, Map sizeMetrics) {
         this.dataModel = m;
+        this.sizeMetrics = sizeMetrics;
         this.columnID = COLUMN_ID;
         this.columnName = "Units";
     }
 
 
     public boolean isCellEditable(WBSNode node) {
-        return SIZE_METRICS.get(node.getType()) == null;
+        return sizeMetrics.get(node.getType()) == null;
     }
 
 
     public Object getValueAt(WBSNode node) {
-        Object result = SIZE_METRICS.get(node.getType());
+        Object result = sizeMetrics.get(node.getType());
         if (result == null)
             result = node.getAttribute(ATTR_NAME);
         else
@@ -69,70 +66,62 @@ public class SizeTypeColumn extends AbstractDataColumn {
 
 
 
-        private static Map buildMap() {
-        Map sizeMetrics = new HashMap();
-        sizeMetrics.put("Project", "LOC");
-        sizeMetrics.put("Software Component", "LOC");
-        sizeMetrics.put("PSP Task", "LOC");
-        sizeMetrics.put("General Document", "Text Pages");
-        sizeMetrics.put("Requirements Document", "Reqts Pages");
-        sizeMetrics.put("High Level Design Document", "HLD Pages");
-        sizeMetrics.put("Detailed Design Document", "DLD Lines");
-        return Collections.unmodifiableMap(sizeMetrics);
-    }
-
-
-
     /** Create all of the required columns for size metrics, and add them
      * to the given data model.
      */
-    public static void createSizeColumns(DataTableModel dataModel) {
+    public static void createSizeColumns(DataTableModel dataModel,
+            TeamProcess teamProcess) {
+        Map sizeMetrics = teamProcess.getWorkProductSizeMap();
+
         // create the size type columns.
-        dataModel.addDataColumn(new SizeTypeColumn(dataModel));
-        dataModel.addDataColumn(new DirectSizeTypeColumn(dataModel));
+        dataModel.addDataColumn(new SizeTypeColumn(dataModel, sizeMetrics));
+        dataModel.addDataColumn(new DirectSizeTypeColumn(dataModel, sizeMetrics));
 
         // create an editable size column.
-        dataModel.addDataColumn(new EditableSizeColumn(dataModel));
+        dataModel.addDataColumn(new EditableSizeColumn(dataModel, teamProcess));
 
         // create LOC accounting columns.
-        SizeAccountingColumnSet.create
-            (dataModel, "LOC", new LOCPruner(), null);
+        SizeAccountingColumnSet.create(dataModel, "LOC",
+                new WorkProductSizePruner(teamProcess, Collections
+                        .singleton("LOC")), null);
 
-        // create size accounting columns for various document types.
-        Iterator i = SIZE_METRICS.entrySet().iterator();
+        // create size accounting columns for various non-LOC size metrics.
+        Iterator i = sizeMetrics.entrySet().iterator();
         Map.Entry e;
         while (i.hasNext()) {
             e = (Map.Entry) i.next();
-            if ("LOC".equals(e.getValue())) continue;
+            String objType = (String) e.getKey();
+            String metric = (String) e.getValue();
 
-            String docType = (String) e.getKey();
-            String id = (String) e.getValue();
+            if ("LOC".equals(metric)) continue;
 
-            SizeAccountingColumnSet.create
-                (dataModel, id, new DocSizePruner(docType), docType); //null);
+            Pruner pruner = new WorkProductSizePruner(teamProcess, Arrays
+                    .asList(new Object[] { "LOC", metric }));
+            SizeAccountingColumnSet.create(dataModel, metric, pruner, objType);
         }
 
         // create aliasing columns
+        String[] sizeUnits = teamProcess.getSizeMetrics();
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Base", SizeAccountingColumnSet.getBaseID(""),
-             SIZE_UNITS));
+             sizeUnits, sizeMetrics));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Deleted", SizeAccountingColumnSet.getDeletedID(""),
-             SIZE_UNITS));
+             sizeUnits, sizeMetrics));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Modified", SizeAccountingColumnSet.getModifiedID(""),
-             SIZE_UNITS));
+             sizeUnits, sizeMetrics));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Added", SizeAccountingColumnSet.getAddedID(""),
-             SIZE_UNITS));
+             sizeUnits, sizeMetrics));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Reused", SizeAccountingColumnSet.getReusedID(""),
-             SIZE_UNITS));
+             sizeUnits, sizeMetrics));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "N&C", SizeAccountingColumnSet.getNCID(""),
-             SIZE_UNITS));
+             sizeUnits, sizeMetrics));
         dataModel.addDataColumn(new SizeAliasColumn
             (dataModel, "Total", SizeAccountingColumnSet.getTotalID(""),
-             SIZE_UNITS));
+             sizeUnits, sizeMetrics));
     }
 }

@@ -1,5 +1,7 @@
 package teamdash.wbs.columns;
 
+import java.util.Map;
+
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
@@ -13,11 +15,13 @@ implements CalculatedDataColumn {
 
     DataTableModel dataModel;
     String accountingID;
+    Map sizeTypes;
     String[] sizeUnits;
     int [] columns;
 
     public SizeAliasColumn(DataTableModel m, String name,
-                           String accountingID, String [] sizeUnits)
+                           String accountingID, String [] sizeUnits,
+                           Map sizeTypes)
     {
         this.dataModel = m;
         this.columnName = this.columnID = name;
@@ -30,6 +34,7 @@ implements CalculatedDataColumn {
             columns[i] = -1;
             dependentColumns[i] = accountingID + sizeUnits[i];
         }
+        this.sizeTypes = sizeTypes;
     }
 
     public boolean recalculate() { return true; }
@@ -44,7 +49,7 @@ implements CalculatedDataColumn {
     }
 
     protected String getSizeUnit(WBSNode node) {
-        return (String) SizeTypeColumn.SIZE_METRICS.get(node.getType());
+        return (String) sizeTypes.get(node.getType());
     }
 
     protected int getSizeColumn(WBSNode node) {

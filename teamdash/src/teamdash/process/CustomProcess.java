@@ -22,14 +22,16 @@ import teamdash.XMLUtils;
 
 public class CustomProcess {
 
-        public static final String PHASE_ITEM = "phase";
-        public static final String LONG_NAME = "longName";
-        public static final String NAME = "name";
-        public static final String TYPE = "type";
-        public static final String READ_ONLY = "readOnly";
+    public static final String PHASE_ITEM = "phase";
+    public static final String LONG_NAME = "longName";
+    public static final String NAME = "name";
+    public static final String TYPE = "type";
+    public static final String READ_ONLY = "readOnly";
+    public static final String SIZE_METRIC = "sizeMetric";
 
 
-        public static String[] PHASE_TYPES = {
+
+    public static String[] PHASE_TYPES = {
         "MGMT", "STRAT", "PLAN", "REQ", "STP", "REQINSP", "HLD", "ITP",
         "HLDRINSP", "DLD", "DLDR", "TD", "DLDINSP", "CODE", "CR", "COMP",
         "CODEINSP", "UT", "PM", "IT", "ST", "DOC", "AT", "PL" };
@@ -37,53 +39,53 @@ public class CustomProcess {
     public class Item {
 
         private String itemName;
-                private Map attrs;
+        private Map attrs;
 
-                public Item(String itemName) {
-                        this.itemName = itemName;
-                        this.attrs = new TreeMap();
-                }
+        public Item(String itemName) {
+            this.itemName = itemName;
+            this.attrs = new TreeMap();
+        }
 
-                public Item(Element xml) {
-                        this.itemName = xml.getTagName();
-                        this.attrs = new TreeMap();
+        public Item(Element xml) {
+            this.itemName = xml.getTagName();
+            this.attrs = new TreeMap();
 
             NamedNodeMap xmlAttrs = xml.getAttributes();
             for (int i=0; i < xmlAttrs.getLength();   i++) {
                 Node n = xmlAttrs.item(i);
                 attrs.put(n.getNodeName(), n.getNodeValue());
             }
-                }
+        }
 
         public Map getAttributes() {
-                return attrs;
+            return attrs;
         }
 
         public String getAttr(String name) {
-                return (String) attrs.get(name);
+            return (String) attrs.get(name);
         }
 
         public void putAttr(String name, String value) {
-                attrs.put(name, value);
+            attrs.put(name, value);
         }
 
-                protected void writeXMLAttrs(Writer out) throws IOException {
-                        for (Iterator iter = attrs.entrySet().iterator(); iter.hasNext();) {
-                                Map.Entry e = (Map.Entry) iter.next();
-                                out.write((String) e.getKey());
-                                out.write("='");
-                    out.write(XMLUtils.escapeAttribute((String) e.getValue()));
-                    out.write("' ");
-                        }
-                }
+        protected void writeXMLAttrs(Writer out) throws IOException {
+            for (Iterator iter = attrs.entrySet().iterator(); iter.hasNext();) {
+                Map.Entry e = (Map.Entry) iter.next();
+                out.write((String) e.getKey());
+                out.write("='");
+                out.write(XMLUtils.escapeAttribute((String) e.getValue()));
+                out.write("' ");
+            }
+        }
 
-                protected void writeXMLSettings(Writer out) throws IOException {
-                        out.write("    <");
-                        out.write(itemName);
-                        out.write(" ");
+        protected void writeXMLSettings(Writer out) throws IOException {
+            out.write("    <");
+            out.write(itemName);
+            out.write(" ");
             writeXMLAttrs(out);
             out.write("/>\n");
-                }
+        }
     }
 
 
@@ -96,12 +98,12 @@ public class CustomProcess {
     public CustomProcess() {
         List phaseList = getItemList(PHASE_ITEM);
         for (int i = 0;   i < defaultPhases.length;   i++) {
-                Item phase = new Item(PHASE_ITEM);
-                phase.putAttr(LONG_NAME, defaultPhases[i][0]);
-                phase.putAttr(NAME, defaultPhases[i][1]);
-                phase.putAttr(TYPE, defaultPhases[i][2]);
-                if (defaultPhases[i][3] != null)
-                        phase.putAttr(READ_ONLY, "true");
+            Item phase = new Item(PHASE_ITEM);
+            phase.putAttr(LONG_NAME, defaultPhases[i][0]);
+            phase.putAttr(NAME, defaultPhases[i][1]);
+            phase.putAttr(TYPE, defaultPhases[i][2]);
+            if (defaultPhases[i][3] != null)
+                phase.putAttr(READ_ONLY, "true");
 
             phaseList.add(phase);
         }
@@ -124,11 +126,11 @@ public class CustomProcess {
 
         NodeList elements = root.getChildNodes();
         for (int i=0;   i < elements.getLength();   i++) {
-                if (elements.item(i) instanceof Element) {
-                        Element e = (Element) elements.item(i);
-                        List l = getItemList(e.getTagName());
-                        l.add(new Item(e));
-                }
+            if (elements.item(i) instanceof Element) {
+                Element e = (Element) elements.item(i);
+                List l = getItemList(e.getTagName());
+                l.add(new Item(e));
+            }
         }
     }
 
@@ -212,8 +214,8 @@ public class CustomProcess {
     public List getItemList(String type) {
         List result = (List) itemLists.get(type);
         if (result == null) {
-                result = new ArrayList();
-                itemLists.put(type, result);
+            result = new ArrayList();
+            itemLists.put(type, result);
         }
         return result;
     }
@@ -247,10 +249,10 @@ public class CustomProcess {
         out.write(XMLUtils.escapeAttribute(generatorScript));
         out.write("'>\n");
         for (Iterator iter = itemLists.values().iterator(); iter.hasNext();) {
-                List items = (List) iter.next();
-                Iterator i = items.iterator();
-                while (i.hasNext())
-                    ((Item) i.next()).writeXMLSettings(out);
+            List items = (List) iter.next();
+            Iterator i = items.iterator();
+            while (i.hasNext())
+                ((Item) i.next()).writeXMLSettings(out);
         }
         out.write("</custom-process>\n");
     }
@@ -291,26 +293,26 @@ public class CustomProcess {
 
     public static String bouncyCapsToUnderlines(String text) {
         if (text == null || text.length() == 0)
-                return "";
+            return "";
 
         StringBuffer result = new StringBuffer();
         result.append(Character.toUpperCase(text.charAt(0)));
         boolean lastLetterWasLowerCase = false;
         for (int i=1;  i < text.length();   i++) {
-                if (Character.isUpperCase(text.charAt(i))) {
-                        if (lastLetterWasLowerCase || nextLetterIsLowerCase(text, i))
-                                result.append('_');
-                        lastLetterWasLowerCase = false;
-                } else {
-                        lastLetterWasLowerCase = true;
-                }
-                result.append(text.charAt(i));
+            if (Character.isUpperCase(text.charAt(i))) {
+                if (lastLetterWasLowerCase || nextLetterIsLowerCase(text, i))
+                    result.append('_');
+                lastLetterWasLowerCase = false;
+            } else {
+                lastLetterWasLowerCase = true;
+            }
+            result.append(text.charAt(i));
         }
         return result.toString();
     }
 
-        private static boolean nextLetterIsLowerCase(String text, int i) {
-                return i+1 < text.length()
-                                && Character.isLowerCase(text.charAt(i+1));
-        }
+    private static boolean nextLetterIsLowerCase(String text, int i) {
+        return i+1 < text.length()
+        && Character.isLowerCase(text.charAt(i+1));
+    }
 }
