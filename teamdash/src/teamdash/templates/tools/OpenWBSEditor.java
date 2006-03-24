@@ -122,8 +122,8 @@ public class OpenWBSEditor extends TinyCGIBase {
         out.print("/'>\n");
 
         out.print("<information>\n");
-        out.print("<title>Work Breakdown Structure Editor</title>\n");
-        out.print("<vendor>Software Process Dashboard Initiative</vendor>\n");
+        out.print("<title>WBS Editor</title>\n");
+        out.print("<vendor>Tuma Solutions, LLC</vendor>\n");
         out.print("<description>Work Breakdown Structure Editor</description>\n");
         out.print("</information>\n");
 

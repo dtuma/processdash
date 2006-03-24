@@ -37,8 +37,8 @@
       <manifest>
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
 	<attribute name="Dash-Pkg-ID" value="teamTools"/>
-	<attribute name="Dash-Pkg-Version" value="2.0.0"/>
-	<attribute name="Dash-Pkg-Requires-Version" value="1.7b.20050531+"/>
+	<attribute name="Dash-Pkg-Version" value="2.3.0"/>
+	<attribute name="Dash-Pkg-Requires-Version" value="1.7b.20060324+"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
@@ -64,7 +64,7 @@
       </fileset>
     </jar>
 
-    <signjar jar="TeamTools.jar" alias="processdash-full-permissions"
+    <signjar jar="TeamTools.jar" alias="tuma-solutions"
 	storepass="${env.TDKSPW}"/>
   </target>
 
