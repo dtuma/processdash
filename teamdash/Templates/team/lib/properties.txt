@@ -18,3 +18,16 @@ Size_Metric_Data_Names=LIST=,\
 <!--#if SizeMetric_Units eq SizeUnit_Id #-->
 Phase_Size_Uses_SizeUnit=true
 <!--#endif--><!--#endfor--><!--#endif--><!--#endfor--><!--#endfor--><!--#endfor-->
+
+
+# tweak size metrics for inspection phases
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#if Phase_Is_Inspection -->
+<!--#if Phase_Size_Metric =~ '^Inspected ' -->
+<!--#elif Phase_Size_Metric -->
+Phase_Size_Metric=Inspected <!--#echo Phase_Size_Metric -->
+<!--#else -->
+Phase_Size_Metric=Inspected New & Changed LOC
+<!--#endif--><!--#endif--><!--#endfor-->
+

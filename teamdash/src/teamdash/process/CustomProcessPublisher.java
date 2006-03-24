@@ -313,9 +313,16 @@ public class CustomProcessPublisher {
         setParam(id + "_ID", phaseID);
 
         String phaseType = phase.getAttr(CustomProcess.TYPE);
+        if (phaseType != null && phaseType.trim().length() != 0)
+            phaseType = phaseType.trim().toUpperCase();
+        else
+            phaseType = "DEVELOP";
+
         if (TemplateAutoData.isAppraisalPhaseType(phaseType)) {
             setParam(id + "_Is_Appraisal", "t");
             setParam(id + "_Is_Quality", "t");
+            if (phaseType.endsWith("INSP"))
+                setParam(id + "_Is_Inspection", "t");
         } else if (TemplateAutoData.isFailurePhaseType(phaseType)) {
             setParam(id + "_Is_Failure", "t");
             setParam(id + "_Is_Quality", "t");
