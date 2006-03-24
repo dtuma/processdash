@@ -255,7 +255,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu("File");
         result.setMnemonic('F');
         result.add(new SaveAction());
-        result.add(new ImportFromCsvAction());
+        if (!isMode(MODE_BOTTOM_UP))
+            result.add(new ImportFromCsvAction());
         result.add(new CloseAction());
         return result;
     }
@@ -432,6 +433,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         public ImportFromCsvAction() {
             super("Import from MS Project CSV file");
             putValue(MNEMONIC_KEY, new Integer('I'));
+            setEnabled(readOnly == false);
         }
 
         public void actionPerformed(ActionEvent e) {
