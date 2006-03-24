@@ -26,14 +26,20 @@
 package net.sourceforge.processdash.ui.web.dash;
 
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.templates.DashPackage;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+
+
 
 
 
@@ -64,20 +70,55 @@ public class DisplayConfig extends TinyCGIBase {
     }
 
     private void printUserConfig() {
-        printRes("<HTML><HEAD><TITLE>${Title}</TITLE></HEAD>");
+        printRes("<HTML><HEAD><TITLE>${Title}</TITLE>");
+        out.print("<STYLE> .indent { margin-left: 1cm } </STYLE></HEAD>");
         printRes("<BODY><H1>${Header}</H1>");
 
         printRes("<P>${Config_File_Header}");
-        out.print("<PRE>     ");
+        out.print("<PRE class='indent'>");
         out.println(DashController.getSettingsFileName());
         out.println("</PRE></P>");
 
         printRes("<P>${Data_Dir_Header}");
-        out.print("<PRE>     ");
+        out.print("<PRE class='indent'>");
         out.println(ProcessDashboard.getDefaultDirectory());
         out.println("</PRE></P>");
 
+        printRes("<P>${Add_On.Header}<br>&nbsp;");
+
+        List packages = TemplateLoader.getPackages();
+        if (packages == null || packages.size() < 2)
+            printRes("<P class='indent'><i>${Add_On.None}</i>");
+        else {
+            printRes("<table border class='indent' cellpadding='5'><tr>"
+                    + "<th>${Add_On.Name}</th>" //
+                    + "<th>${Add_On.Version}</th>"
+                    + "<th>${Add_On.Filename}</th></tr>");
+            for (Iterator i = packages.iterator(); i.hasNext();) {
+                DashPackage pkg = (DashPackage) i.next();
+                if ("pspdash".equals(pkg.id))
+                    continue;
+                out.print("<tr><td>");
+                out.print(HTMLUtils.escapeEntities(pkg.name));
+                out.print("</td><td>");
+                out.print(HTMLUtils.escapeEntities(pkg.version));
+                out.print("</td><td>");
+                out.print(HTMLUtils
+                        .escapeEntities(cleanupFilename(pkg.filename)));
+                out.println("</td></tr>");
+            }
+        }
+
         out.println("</BODY></HTML>");
+    }
+
+    private String cleanupFilename(String filename) {
+        if (filename.startsWith("file:")) {
+            filename = HTMLUtils.urlDecode(filename.substring(5));
+            File f = new File(filename);
+            filename = f.getPath();
+        }
+        return filename;
     }
 
     private void printRes(String text) {
