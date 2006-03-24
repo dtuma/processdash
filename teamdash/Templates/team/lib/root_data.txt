@@ -40,19 +40,15 @@
 <!--#foreach name=PHASE list=Phase_List #-->
 
 [<!--#echo PHASE_Name -->/Estimated % Phase Yield] =
-    <!--#if PHASE_Type eq 'COMP' --> 0.50;
-    <!--#elif PHASE_Type =~ '^(DLDR|CR|.*INSP)$' --> 0.70;
-    <!--#elif PHASE_Type =~ '^(IT|ST)$' --> 0.80;
-    <!--#elif PHASE_Type eq 'UT' --> 0.90;
+    <!--#if PHASE_Est_Yield --> <!--#echo PHASE_Est_Yield -->;
+    <!--#elif PHASE_Is_After_Development --> 0;
+    <!--#elif PHASE_Is_Appraisal --> 0.80;
+    <!--#elif PHASE_Is_Failure --> 0.50;
     <!--#else--> 0;
     <!--#endif-->
 [<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour] = 
-    <!--#if   PHASE_Type eq 'REQ'  --> 0.25;
-    <!--#elif PHASE_Type eq 'HLD'  --> 0.25;
-    <!--#elif PHASE_Type eq 'DLD'  --> 0.75;
-    <!--#elif PHASE_Type eq 'CODE' --> 2;
-    <!--#elif PHASE_Type eq 'COMP' --> 0.3;
-    <!--#elif PHASE_Type eq 'UT'   --> 0.067;
+    <!--#if PHASE_Est_Defect_Inj_Rate --> <!--#echo 
+        PHASE_Est_Defect_Inj_Rate -->;
     <!--#else--> 0;
     <!--#endif-->
 <!--#endfor-->

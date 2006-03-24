@@ -29,6 +29,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.TemplateAutoData;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -42,6 +43,8 @@ public class CustomProcessPublisher {
 
     private static final String SETTINGS_FILENAME = "settings.xml";
     private static final String EXT_FILE_PREFIX = "extfile:";
+    private static final String PARAM_ITEM = "param";
+    private static final String VALUE = "value";
 
     public static CustomProcess open(File openFile) {
         try {
@@ -236,6 +239,8 @@ public class CustomProcessPublisher {
 
             if (CustomProcess.PHASE_ITEM.equals(itemType))
                 initPhase(item, itemID);
+            else if (PARAM_ITEM.equals(itemType))
+                initParam(item);
 
             setupItem(item, itemID, itemNum);
 
@@ -262,6 +267,16 @@ public class CustomProcessPublisher {
             String attrName = CustomProcess.bouncyCapsToUnderlines(
                     (String) e.getKey());
             String attrValue = (String) e.getValue();
+
+            if (attrName.startsWith("Is_")) {
+                // normalize boolean attributes
+                if (attrValue != null && attrValue.length() > 0
+                        && "tTyY".indexOf(attrValue.charAt(0)) != -1)
+                    attrValue = "t";
+                else
+                    attrValue = "";
+            }
+
             setParam(id + "_" + attrName, attrValue);
 
             if (attrName.endsWith("Filename")
@@ -309,6 +324,21 @@ public class CustomProcessPublisher {
         } else if (TemplateAutoData.isOverheadPhaseType(phaseType)) {
             setParam(id + "_Is_Overhead", "t");
         }
+        if ("plan".equalsIgnoreCase(phaseType)
+                || !TemplateAutoData.isOverheadPhaseType(phaseType)) {
+            setParam(id + "_Is_Defect_Injection", "t");
+            setParam(id + "_Is_Defect_Removal", "t");
+        }
+        if ("at".equalsIgnoreCase(phaseType) || "pl".equalsIgnoreCase(phaseType))
+            setParam(id + "_Is_After_Development", "t");
+    }
+
+    private void initParam(CustomProcess.Item item) {
+        String name = item.getAttr(CustomProcess.NAME);
+        String value = item.getAttr(VALUE);
+        if (value == null)
+            value = "t";
+        setParam(CustomProcess.bouncyCapsToUnderlines(name), value);
     }
 
     protected void setParam(String parameter, String value) {
@@ -347,7 +377,7 @@ public class CustomProcessPublisher {
             return null;
         URL extFile = new URL(extBase, filename);
         URLConnection conn = extFile.openConnection();
-        return WebServer.slurpContents(conn.getInputStream(), true);
+        return FileUtils.slurpContents(conn.getInputStream(), true);
     }
 
     protected String processContent(String content) throws IOException {

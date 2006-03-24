@@ -171,7 +171,7 @@ undefine([Use_Rollup]);
  * Calculate the number of defects injected / removed in development.
  */
 
-[/PID/Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Type ne 'AT' #--><!--#if Phase_Type ne 'PL' #--><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+[/PID/Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if !Phase_Is_After_Development #--><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 
 [Total Development /Estimated Defects Injected] =
     sumFor("Estimated Defects Injected", [/PID/Development_Phase_List]);

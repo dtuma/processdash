@@ -105,7 +105,7 @@
 <table>
 
 <!--#foreach name=PHASE list=Phase_List #-->
-<!--#if PHASE_Type !~ '^(MGMT|STRAT|PM)$' -->
+<!--#if PHASE_Is_Defect_Removal -->
 
 <tr>
 <td class=indented><!--#echo PHASE_Long_Name --></td>
@@ -123,7 +123,7 @@
 <table>
 
 <!--#foreach name=PHASE list=Phase_List #-->
-<!--#if PHASE_Type !~ '^(MGMT|STRAT|PM)$' -->
+<!--#if PHASE_Is_Defect_Injection -->
 
 <tr>
 <td class=indented><!--#echo PHASE_Long_Name --></td>

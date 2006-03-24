@@ -418,7 +418,7 @@ Plan Summary</h2>
 </TR>
 
 <!--#foreach name=Phase list=Phase_List -->
-<!--#if Phase_Type !~ '^(MGMT|STRAT|PM)$' -->
+<!--#if Phase_Is_Defect_Injection -->
 <!--#if not rollup -->[!--#if [<!--#echo var=Phase_Name encoding=dir -->/node] || [<!--#echo var=Phase_Name encoding=dir -->/Estimated Defects Injected] || [<!--#echo var=Phase_Name encoding=dir -->/Defects Injected] --]<!--#endif-->
 <TR>
 <TD class=indented><!--#echo Phase_Long_Name --></TD>
@@ -488,7 +488,7 @@ Plan Summary</h2>
 </TR>
 
 <!--#foreach name=Phase list=Phase_List -->
-<!--#if Phase_Type !~ '^(MGMT|STRAT|PM)$' -->
+<!--#if Phase_Is_Defect_Removal -->
 <!--#if not rollup -->[!--#if [<!--#echo var=Phase_Name encoding=dir -->/node] || [<!--#echo var=Phase_Name encoding=dir -->/Defects Removed] --]<!--#endif-->
 <TR>
 <TD class=indented><!--#echo Phase_Long_Name --></TD>

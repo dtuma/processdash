@@ -281,7 +281,7 @@ Quality Summary</h2>
 </TR>
 
 <!--#foreach name=PHASE list=Phase_List #-->
-<!--#if PHASE_Type !~ '^(MGMT|STRAT|PM)$' -->
+<!--#if PHASE_Is_Defect_Removal -->
 
 <TR>
 <TD class=indented><!--#echo PHASE_Long_Name --></TD>
@@ -337,7 +337,7 @@ Quality Summary</h2>
 </TR>
 
 <!--#foreach name=Phase list=Phase_List #-->
-<!--#if Phase_Type !~ '^(MGMT|STRAT|PM)$' -->
+<!--#if Phase_Is_Defect_Injection -->
 
 <TR>
 <TD class=indented><!--#echo Phase_Long_Name --></TD>
@@ -368,7 +368,7 @@ Quality Summary</h2>
 </TR>
 
 <!--#foreach name=Phase list=Phase_List #-->
-<!--#if Phase_Type !~ '^(MGMT|STRAT|PM)$' -->
+<!--#if Phase_Is_Defect_Removal -->
 
 <TR>
 <TD class=indented><!--#echo Phase_Long_Name --></TD>
