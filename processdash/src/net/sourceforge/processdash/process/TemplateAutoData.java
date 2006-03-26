@@ -269,7 +269,7 @@ public class TemplateAutoData extends AutoData {
     }
 
     static PhaseTypeSet appraisalPhaseTypes = new PhaseTypeSet(new String[] {
-        "appraisal", "reqinsp", "hldr", "hldrinsp",
+        "appraisal", "review", "insp", "reqinsp", "hldr", "hldrinsp",
         "dldr", "dldinsp", "cr", "codeinsp" });
     static PhaseTypeSet failurePhaseTypes = new PhaseTypeSet(new String[] {
         "failure", "comp", "ut", "it", "st", "at", "pl" });
