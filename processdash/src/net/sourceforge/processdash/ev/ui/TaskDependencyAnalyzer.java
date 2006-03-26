@@ -26,7 +26,10 @@
 package net.sourceforge.processdash.ev.ui;
 
 import java.awt.Font;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 
 import javax.naming.ldap.HasControls;
@@ -35,6 +38,7 @@ import javax.swing.JComponent;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 public class TaskDependencyAnalyzer {
@@ -132,6 +136,9 @@ public class TaskDependencyAnalyzer {
             descr.append(nvl(d.getDisplayName()));
             if (!d.isUnresolvable()) {
                 descr.append(sep).append(nvl(d.getAssignedTo()));
+                Date pd = d.getPlannedDate();
+                if (pd != null && d.getPercentComplete() < 1)
+                    descr.append(sep).append(DATE_FORMAT.format(pd));
                 descr.append(sep).append(
                         EVSchedule.formatPercent(d.getPercentComplete()));
             }
@@ -142,6 +149,9 @@ public class TaskDependencyAnalyzer {
             descr.append("</body></html>");
         return descr.toString();
     }
+
+    private static DateFormat DATE_FORMAT = SimpleDateFormat
+            .getDateInstance(DateFormat.SHORT);
 
     private String nvl(String s) {
         return (s == null ? "" : HTMLUtils.escapeEntities(s));

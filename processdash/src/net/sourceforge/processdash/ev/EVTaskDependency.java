@@ -26,6 +26,7 @@
 package net.sourceforge.processdash.ev;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,6 +61,8 @@ public class EVTaskDependency {
 
     private double percentComplete;
 
+    private Date plannedDate;
+
     public EVTaskDependency(String taskID, String displayName) {
         this.taskID = taskID;
         this.displayName = displayName;
@@ -71,6 +74,7 @@ public class EVTaskDependency {
         this.taskListName = getAttr(e, TASK_LIST_ATTR);
         this.assignedTo = getAttr(e, ASSIGNED_TO_ATTR);
         this.percentComplete = XMLUtils.getXMLNum(e, PERCENT_COMPLETE_ATTR);
+        this.plannedDate = XMLUtils.getXMLDate(e, PLAN_DATE_ATTR);
     }
 
     public String getDisplayName() {
@@ -97,15 +101,20 @@ public class EVTaskDependency {
         return percentComplete;
     }
 
+    public Date getPlannedDate() {
+        return plannedDate;
+    }
+
     public boolean isUnresolvable() {
         return unresolvable;
     }
 
     public void setResolvedDetails(boolean unresolvable, String assignedTo,
-            double percentComplete, String displayName) {
+            double percentComplete, Date planDate, String displayName) {
         this.unresolvable = unresolvable;
         this.assignedTo = assignedTo;
         this.percentComplete = percentComplete;
+        this.plannedDate = planDate;
         if (!unresolvable && displayName != null && displayName.length() > 1)
             this.displayName = displayName;
     }
@@ -138,6 +147,8 @@ public class EVTaskDependency {
             if (percentComplete > 0)
                 addAttr(out, PERCENT_COMPLETE_ATTR, Double
                         .toString(percentComplete));
+            if (plannedDate != null)
+                addAttr(out, PLAN_DATE_ATTR, XMLUtils.saveDate(plannedDate));
         }
         out.append("/>");
         if (indent != null)
@@ -312,5 +323,7 @@ public class EVTaskDependency {
     private static final String ASSIGNED_TO_ATTR = "who";
 
     private static final String PERCENT_COMPLETE_ATTR = "pctComplete";
+
+    private static final String PLAN_DATE_ATTR = "planDate";
 
 }
