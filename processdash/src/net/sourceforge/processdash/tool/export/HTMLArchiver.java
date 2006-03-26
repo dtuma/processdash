@@ -206,8 +206,8 @@ public class HTMLArchiver {
     protected int findFormScriptStart(StringBuffer html) {
         int pos = StringUtils.indexOf(html, "/data.js");
         if (pos == -1) return -1;
-        int beg = StringUtils.lastIndexOf(html, "<script", pos);
-        if (beg == -1) beg = StringUtils.lastIndexOf(html, "<SCRIPT", pos);
+        int beg = Math.max(StringUtils.lastIndexOf(html, "<script", pos),
+                StringUtils.lastIndexOf(html, "<SCRIPT", pos));
         return beg;
     }
 
