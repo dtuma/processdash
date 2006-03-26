@@ -44,6 +44,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -80,30 +81,30 @@ public class EVTaskListData extends EVTaskList
     private void addTasksFromData(DataRepository data, String taskListName) {
         // search for tasks that belong to the named task list.
         SortedMap tasks = new TreeMap(DataComparator.getInstance());
-        String ordinalPrefix = "/" + TASK_ORDINAL_PREFIX + taskListName;
-        Iterator i = data.getKeys();
-        String dataName, path;
-        SimpleData value;
-        while (i.hasNext()) {
-            dataName = (String) i.next();
-            if (!dataName.endsWith(ordinalPrefix)) continue;
-            value = data.getSimpleValue(dataName);
-            path = dataName.substring
-                (0, dataName.length() - ordinalPrefix.length());
-
-            // If this is an imported data item not corresponding to any
-            // real hierarchy node, ignore it.
-            if (hierarchy.findExistingKey(path) == null) continue;
-            tasks.put(value, path);
-        }
+        String ordinalDataName = TASK_ORDINAL_PREFIX + taskListName;
+        findTasksInHierarchy(tasks, ordinalDataName, PropertyKey.ROOT);
 
         // now add each task found to the task list.
-        i = tasks.values().iterator();
+        Iterator i = tasks.values().iterator();
         boolean willNeedChangeNotification = (recalcListeners != null);
         while (i.hasNext())
             addTask((String) i.next(), data, hierarchy, null,
                     willNeedChangeNotification);
     }
+
+    private void findTasksInHierarchy(SortedMap tasks, String ordinalDataName,
+            PropertyKey key) {
+        String path = key.path();
+        String dataName = DataRepository.createDataName(path, ordinalDataName);
+        SimpleData value = data.getSimpleValue(dataName);
+        if (value != null)
+            tasks.put(value, path);
+
+        for (int i = 0; i < hierarchy.getNumChildren(key); i++)
+            findTasksInHierarchy(tasks, ordinalDataName, hierarchy.getChildKey(
+                    key, i));
+    }
+
     private EVSchedule getSchedule(DataRepository data, String taskListName) {
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
         String dataName =

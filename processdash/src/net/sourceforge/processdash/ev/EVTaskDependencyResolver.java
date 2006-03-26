@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.ev;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -40,7 +39,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 
@@ -67,6 +65,8 @@ public class EVTaskDependencyResolver {
     private Map nameCache;
 
     private Map taskCache;
+
+    private SortedSet listCache;
 
     private long lastRefresh;
 
@@ -146,10 +146,12 @@ public class EVTaskDependencyResolver {
         findTasksInHierarchy(newNameCache, PropertyKey.ROOT);
 
         Map newTaskCache = new Hashtable();
-        findTasksInTaskLists(newTaskCache);
+        SortedSet newListCache = new TreeSet();
+        findTasksInTaskLists(newTaskCache, listCache, newListCache);
 
         this.nameCache = newNameCache;
         this.taskCache = newTaskCache;
+        this.listCache = newListCache;
         this.lastRefresh = System.currentTimeMillis();
     }
 
@@ -182,22 +184,51 @@ public class EVTaskDependencyResolver {
         return (id != null && id.indexOf(type) != -1);
     }
 
-    private void findTasksInTaskLists(Map newCache) {
+    private void findTasksInTaskLists(Map newCache, SortedSet listCache,
+            SortedSet newListCache) {
         String[] taskListNames = EVTaskList.findTaskLists(context.getData(),
                 false, true);
-        for (int i = 0; i < taskListNames.length; i++) {
-            String taskListName = taskListNames[i];
-            EVTaskList tl = EVTaskList.openExisting(taskListName, context
-                    .getData(), context.getHierarchy(), context.getCache(),
-                    false);
-            if (tl != null) {
-                TaskListInfo info = new TaskListInfo(taskListName, tl);
-                registerTasks(newCache, info, (EVTask) tl.getRoot());
-                addToCache(newCache, getPseudoTaskIdForTaskList(tl.getID()),
-                        info);
+
+        if (listCache != null)
+            for (Iterator i = listCache.iterator(); i.hasNext();) {
+                TaskListInfo info = (TaskListInfo) i.next();
+                registerListName(newCache, newListCache, info.getTaskListName());
+            }
+
+        for (int i = 0; i < taskListNames.length; i++)
+            registerListName(newCache, newListCache, taskListNames[i]);
+
+    }
+
+    private void registerListName(Map newCache, SortedSet newListCache,
+            String taskListName) {
+        if (containsTaskInfo(newListCache, taskListName))
+            return;
+
+        EVTaskList tl = EVTaskList.openExisting(taskListName, context
+                .getData(), context.getHierarchy(), context.getCache(),
+                false);
+        if (tl != null)
+            registerList(newCache, newListCache, taskListName, tl);
+    }
+
+    private void registerList(Map newCache, SortedSet newListCache,
+            String taskListName, EVTaskList tl) {
+        TaskListInfo info = new TaskListInfo(taskListName, tl);
+        newListCache.add(info);
+        registerTasks(newCache, info, (EVTask) tl.getRoot());
+        addToCache(newCache, getPseudoTaskIdForTaskList(tl.getID()),
+                info);
+
+        if (tl instanceof EVTaskListRollup) {
+            EVTaskListRollup rollup = (EVTaskListRollup) tl;
+            for (int i = rollup.getChildCount(rollup.getRoot());  i-- > 0; ) {
+                EVTaskList cl = rollup.getSubSchedule(i);
+                registerList(newCache, newListCache, cl.taskListName, cl);
             }
         }
     }
+
 
     private void registerTasks(Map cache, TaskListInfo info, EVTask task) {
         List taskIDs = task.getTaskIDs();
@@ -226,6 +257,16 @@ public class EVTaskDependencyResolver {
     }
 
 
+    private static boolean containsTaskInfo(Collection c, String name) {
+        for (Iterator i = c.iterator(); i.hasNext();) {
+            TaskInfo info = (TaskInfo) i.next();
+            if (name.equals(info.name))
+                return true;
+        }
+        return false;
+    }
+
+
     private static class TaskInfo implements Comparable {
 
         public String name;
@@ -241,6 +282,10 @@ public class EVTaskDependencyResolver {
             TaskInfo that = (TaskInfo) o;
             if (this.name.equals(that.name))
                 return 0;
+
+            else if (this.prefLevel == that.prefLevel)
+                return this.name.compareTo(that.name);
+
             else
                 // if this is better than that, return a negative number
                 // to sort best items at the front of lists.
