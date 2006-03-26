@@ -32,12 +32,18 @@
 	document.write("<a href='" + url + "'>" + textToHTML(url) + "</a>");
     }
 
+    function writeToolsLink() { writeHrefLink("team_tools.shtm"); }
+
     function writePlanLink() { writeHrefLink("team_summary.shtm"); }
 
     function writeJoinLink() { writeHrefLink("setup/join.shtm");   }
 
     function writeMailtoLink() {
 	var url = getExtURL("setup/join.shtm");
+	var dblSlashPos = url.lastIndexOf("//");
+	if (dblSlashPos != -1) {
+            url = url.substring(0, dblSlashPos) + "/+/" + url.substring(dblSlashPos+2);
+        }
         document.write("<a href='mailto:?subject=Join%20Team%20Project&body=A%20new%20team%20project%20has%20been%20created%3b%20please%20visit%0d%0a%20%20%20%20"+eesc(url)+"%0d%0ato%20join%20this%20project%2e'>click on this link</a>");
     }
 
@@ -95,6 +101,10 @@
 is running.  If you shut down the dashboard, people trying to visit
 these hyperlinks will see a &quot;Page Not Found / Cannot Find
 Server&quot; error message.)</i></b>
+
+
+<p>You can view this page from another computer by visiting:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script> writeToolsLink(); </script>
 
 
 <p>Members of your team (and other interested individuals) can view

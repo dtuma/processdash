@@ -22,6 +22,13 @@
 	elem.className = classname;
     }
 
+    function fixURL(url) {
+        var sepPos = url.lastIndexOf("/+/");
+        if (sepPos != -1)
+            url = url.substring(0, sepPos) + "//" + url.substring(sepPos+3);
+        return url;
+    }
+
     function textToHTML(text) {
         return text.replace(/&/, "&amp;").replace(/</, "&lt;")
             .replace(/>/, "&gt;").replace(/"/, "&quot;"); //");
@@ -71,7 +78,7 @@ Project Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
 
 <script>
     document.write("<input type='hidden' name='Team_URL' value='");
-    document.write(textToHTML(window.location.href));
+    document.write(textToHTML(fixURL(window.location.href)));
     document.write("'>");
 </script>
 
