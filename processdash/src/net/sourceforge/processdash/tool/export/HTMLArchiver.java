@@ -165,6 +165,8 @@ public class HTMLArchiver {
                         } else {
                             URL u = new URL(baseURL, subURI);
                             safeURL = getMappedURI(u.getFile());
+                            if (u.getRef() != null)
+                                safeURL = safeURL + "#" + u.getRef();
                             extra = "";
                         }
 
@@ -390,6 +392,13 @@ public class HTMLArchiver {
         getForAttr(normalizedHTML, "href", result);
         getForAttr(normalizedHTML, "SRC", result);
         getForAttr(normalizedHTML, "src", result);
+
+        // if any HREF atributes are just anchor jumps, remove them.
+        for (Iterator i = result.iterator(); i.hasNext();) {
+            String item = (String) i.next();
+            if (item.startsWith("#"))
+                i.remove();
+        }
 
         return result;
     }
