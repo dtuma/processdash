@@ -79,12 +79,14 @@
 
        <!--#endbreak comment-->
 
+    <!--#if not VVIS -->
     <html ID="sump" href="PID/rollup_plan_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
     <html ID="sumq" href="PID/rollup_quality_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
     <html ID="charts" href="PID/charts.shtm"
         title="<!--#echo Full_Name --> Analysis Charts"/>
+    <!--#endif-->
 
   </template>
 
@@ -146,12 +148,14 @@
 
        <!--#endbreak comment-->
 
+    <!--#if not VVIS -->
     <html ID="sump" href="PID/rollup_plan_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
     <html ID="sumq" href="PID/rollup_quality_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
     <html ID="charts" href="PID/charts.shtm"
         title="<!--#echo Full_Name --> Analysis Charts"/>
+    <!--#endif-->
 
   </template>
 
@@ -373,10 +377,12 @@
 
     <html ID="sump" href="PID/rollup_plan_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
+    <!--#if not VVIS -->
     <html ID="sumq" href="PID/rollup_quality_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
     <html ID="charts" href="PID/charts.shtm"
         title="<!--#echo Full_Name --> Analysis Charts"/>
+    <!--#endif-->
     <!-- html ID="config" title="Edit Data Rollup Filter"
           href="PID/rollup_filter.shtm"/ -->
 

@@ -66,7 +66,24 @@
 </tr>
 <!--#endif-->
 
+<!--#if VVIS --><!--#if not indiv -->
+
+<tr>
+<td COLSPAN=2>On summary form, display phases for
+<select name="Phase_Display_Filter	s">
+<option value="All">All disciplines
+<!--#foreach name=Group list=Group_List #-->
+<option><!--#echo Group_Name -->
+<!--#endfor-->
+</select></td>
+</tr>
+
+<!--#endif--><!--#endif-->
+
 </table>
+
+
+<!--#if not VVIS -->
 
 <h2>Quality Profile Parameters</h2>
 
@@ -98,7 +115,6 @@
 </tr>
 
 </table>
-
 
 <h2>Estimated Phase Yields</h2>
 
@@ -136,6 +152,7 @@
 </table>
 
 
+<!--#endif-->
 
 </form>
 

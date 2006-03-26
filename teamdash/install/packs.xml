@@ -4,7 +4,7 @@
             <description>Tools enabling team leaders to create and manage team projects.</description>
 
             <file targetdir="$INSTALL_PATH" override="true" 
-	          src="${teamdash.dir}/TSP-v1.zip"/>
+	          src="${teamdash.dir}/${teamProcess.zip}"/>
             <file targetdir="$INSTALL_PATH" override="true" 
 	          src="${teamdash.dir}/TeamTools.jar"/>
 

@@ -75,3 +75,8 @@
  */
 [/Enable_EV_Week_form] = TAG;
 
+<!--#if VVIS -->
+
+[Phase_Display_Filter] = "All";
+
+<!--#endif-->

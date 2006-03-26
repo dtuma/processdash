@@ -6,7 +6,7 @@
 
 <generation-script name="script-v2"
       id="Team" version="2.3.0"
-      requiresDashboard="1.7b.20060324+"
+      requiresDashboard="1.7b.20060325+"
       startingJar="/team/lib/TeamProcessCGI.jar"
       inDirectory="/team/lib"
       outDirectory="/Templates/<!--#echo Process_ID -->">
@@ -87,8 +87,10 @@
     <file in="expanding_indiv_plan_summary.htm" encoding="html"
           out="plan_summary.shtm"/>
     <file in="summary_redirect.htm" out="summary.shtm"/>
+    <!--#if not VVIS -->
     <file in="quality_summary.htm" encoding="html"
           out="quality_summary.shtm"/>
+    <!--#endif-->
 
     <!-- scripts for use on the individual side -->
     <file in="process_script.htm" encoding="html" out="script.htm"/>
@@ -102,6 +104,7 @@
 
 
     <!-- forms shared by team nodes and rollup templates -->
+    <!--#if not VVIS -->
     <file in="plan_summary.htm" encoding="html"
           out="rollup_plan_summary.shtm">
 	<param name="rollup" value="true"/>
@@ -110,6 +113,13 @@
           out="rollup_quality_summary.shtm">
 	<param name="rollup" value="true"/>
     </file>
+    <!--#else-->
+    <file in="matrix_plan_summary.htm" encoding="html"
+          out="rollup_plan_summary.shtm">
+	<param name="rollup" value="true"/>
+    </file>
+    <file in="phasePie.rpt" encoding="none" />
+    <!--#endif-->
     <file in="defect_analysis.htm" encoding="html"
           out="/Templates/reports/analysis/<!--#echo Process_ID -->_defect_reports.shtm"/>
     <file in="autoExport.js" encoding="none"/>
@@ -148,9 +158,11 @@
     </file>
 
     <!-- the html page displaying charts -->
+    <!--#if not VVIS -->
     <file in="charts.htm" encoding="none" out="charts.shtm">
         <param name="PID" replace="true" value="<!--#echo var=Process_ID -->"/>
     </file>
+    <!--#endif-->
 
     <!-- Icon used for navigating the hierarchy -->
     <file in="hier.png" encoding="binary" />

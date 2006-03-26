@@ -6,6 +6,7 @@
     [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
 )
 
+[Project_Path_Prefix] = [../Project_Path_Prefix];
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
 
 
@@ -15,3 +16,9 @@
 [Rollup_Filter] =
      "[Project_WBS_ID] == [{Project_WBS_ID}] || <!--#echo null #-->
       startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID])";
+
+<!--#if VVIS -->
+
+[Phase_Display_Filter] = [../Phase_Display_Filter];
+
+<!--#endif-->

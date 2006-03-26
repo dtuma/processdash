@@ -6,6 +6,7 @@
     [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
 )
 
+[Project_Path_Prefix] = [../Project_Path_Prefix];
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
 [Project_WBS_Subpath] = [../Project_WBS_Subpath] &/ pathTail([^]);
 [Subproject_WBS_ID_List] = [../Subproject_WBS_ID_List];
@@ -18,3 +19,9 @@
     "m\n^(" & join("|", [Subproject_WBS_ID_List]) & ")\\Q" & 
     [Project_WBS_Subpath] & "\\E(/.+)?$\n";
 [Rollup_Filter] = "match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";
+
+<!--#if VVIS -->
+
+[Phase_Display_Filter] = [../Phase_Display_Filter];
+
+<!--#endif-->

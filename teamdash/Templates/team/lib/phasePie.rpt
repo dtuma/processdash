@@ -1,0 +1,33 @@
+[!--#server-parsed --]
+
+for=.
+skipRowHdr=true
+chart=pie
+width=650
+height=300
+titleFontSize=12.0
+hideLegend=1
+wedgeLabelFontSize=6.0
+initGradColor=#ffffff
+finalGradColor=#ffffff
+interiorGap=40
+
+
+[!--#incr num --]
+
+[!--#foreach name=DataElement list=dataElem --]
+
+<!--#foreach name=PHASE list=Phase_List -->
+
+<!--#if PHASE_Group -->[!--#if [Phase_Display_Filter] eq 'All' || '<!--#echo PHASE_Group -->' =~ [Phase_Display_Filter] --]<!--#endif-->
+[!--#if [<!--#echo PHASE_Name -->/DataElement] --]
+
+[!--#incr num --]
+h[!--#echo num --]==<!--#echo PHASE_Long_Name -->
+d[!--#echo num --]==<!--#echo PHASE_Name -->/DataElement
+
+[!--#endif--]
+<!--#if PHASE_Group -->[!--#endif--]<!--#endif-->
+
+<!--#endfor-->
+[!--#endfor--]

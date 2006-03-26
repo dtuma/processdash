@@ -6,6 +6,15 @@
   <property name="TeamProcessCGI.jar"
       value="Templates/team/lib/TeamProcessCGI.jar"/>
 
+  <target name="-defaultValues">
+    <property name="teamProcess.xml" value="tsp/settings.xml"/>
+    <property name="teamProcess.zip" value="TSP-v1.zip"/>
+  </target>
+
+  <target name="vvis">
+    <property name="teamProcess.xml" value="vvis.xml"/>
+    <property name="teamProcess.zip" value="VVGDP-v1.zip"/>
+  </target>
 
   <target name="filelist.txt">
     <pathconvert property=".filelistbasedir" pathsep="," dirsep="/">
@@ -38,7 +47,7 @@
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
 	<attribute name="Dash-Pkg-ID" value="teamTools"/>
 	<attribute name="Dash-Pkg-Version" value="2.3.0"/>
-	<attribute name="Dash-Pkg-Requires-Version" value="1.7b.20060324+"/>
+	<attribute name="Dash-Pkg-Requires-Version" value="1.7b.20060325+"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
@@ -68,18 +77,18 @@
 	storepass="${env.TDKSPW}"/>
   </target>
 
-  <target name="TSP" depends="jar">
+  <target name="TeamProcess" depends="-defaultValues,jar">
     <java classname="teamdash.process.GenerateProcess" fork="true">
       <classpath>
         <pathelement location="TeamTools.jar"/>	
         <pathelement location="${pspdash.jar}"/>
       </classpath>
-      <arg value="tsp/settings.xml"/>
+      <arg value="${teamProcess.xml}"/>
       <arg value="."/>
     </java>
   </target>
 
-  <target name="installer" depends="jar,TSP">
+  <target name="installer" depends="jar,TeamProcess">
     <pathconvert property="teamdash.dir" dirSep="/">
       <path><pathelement location="."/></path>
     </pathconvert>
@@ -105,9 +114,9 @@
     </ant>
   </target>
 
-  <target name="publish" depends="TSP">
+  <target name="publish" depends="TeamProcess">
     <copy todir="${processdash.dir}/dist">
-      <fileset dir="." includes="TSP-v1.zip TeamTools.jar"/>
+      <fileset dir="." includes="${teamProcess.zip} TeamTools.jar"/>
     </copy>
   </target>
 
