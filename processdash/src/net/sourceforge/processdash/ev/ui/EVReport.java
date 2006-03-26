@@ -1105,15 +1105,6 @@ public class EVReport extends CGIChartBase {
 
     static class DependencyCellRenderer implements HTMLTableWriter.CellRenderer {
 
-        private static final String STOP_URI = "/Images/stop.gif";
-        private static final String CHECK_URI = "/Images/check.gif";
-        private static final String[] indicators = new String[] {
-                "<span style='color:red; font-weight:bold'>"
-                        + getRes(0, "Text") + "</span>",
-                "<img src='" + STOP_URI + "' border='0' width='14' height='14'>",
-                "<img src='" + CHECK_URI + "' border='0' width='14' height='14'>",
-        };
-
         boolean plainText;
 
         public DependencyCellRenderer(boolean plainText) {
@@ -1121,33 +1112,27 @@ public class EVReport extends CGIChartBase {
         }
 
         public String getInnerHtml(Object value, int row, int column) {
-            TaskDependencyAnalyzer analyzer = new TaskDependencyAnalyzer(value);
+            TaskDependencyAnalyzer.HTML analyzer =
+                new TaskDependencyAnalyzer.HTML(value);
             int status = analyzer.getStatus();
             if (status == TaskDependencyAnalyzer.NO_DEPENDENCIES)
                 return null;
             else if (plainText)
-                return getRes(status, "Text");
+                return analyzer.getRes("Text");
 
             StringBuffer result = new StringBuffer();
             result.append("<a class='noLine' href='#'"
-                    + " title='" + getRes(status, "Explanation_All")
-                    + "' onclick='togglePopupInfo(this); return false;'>");
-            result.append(indicators[status]);
+                    + " onclick='togglePopupInfo(this); return false;'>");
+            result.append(analyzer.getHtmlIndicator());
             result.append("</a><div class='popupInfo'>");
             result.append(analyzer.getHtmlTable(
-                            "onclick='togglePopupInfo(this.parentNode)'",
-                            STOP_URI, CHECK_URI, " &bull; ", false, true));
+                            "onclick='togglePopupInfo(this.parentNode)'"));
             result.append("</div>");
             return result.toString();
         }
 
         public String getAttributes(Object value, int row, int column) {
             return "style='text-align:center'";
-        }
-
-        private static String getRes(int status, String type) {
-            String subkey = TaskDependencyAnalyzer.RES_KEYS[status];
-            return resources.getHTML("Dependency." + subkey + "." + type);
         }
 
     }

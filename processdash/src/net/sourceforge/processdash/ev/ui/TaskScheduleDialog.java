@@ -666,19 +666,11 @@ public class TaskScheduleDialog
         class DependencyCellRenderer extends DefaultTableCellRenderer {
 
             private Color[] colors;
-            private Font boldFont;
-            private Icon stopIcon, checkIcon;
-            private URL stopURL, checkURL;
 
             public DependencyCellRenderer(Color selRO, Color deselRO,
                     Color sel, Color desel) {
 
                 colors = new Color[] { sel, desel, selRO, deselRO };
-
-                stopURL = getClass().getResource("stop.png");
-                stopIcon = new ImageIcon(stopURL);
-                checkURL = getClass().getResource("check.png");
-                checkIcon = new ImageIcon(checkURL);
             }
 
             public Component getTableCellRendererComponent(JTable table,
@@ -697,43 +689,12 @@ public class TaskScheduleDialog
                 setBackground(colors[(isSelected ? 0:1) + (isEditable ? 0:2)]);
                 setHorizontalAlignment(SwingConstants.CENTER);
 
-                TaskDependencyAnalyzer analyzer = new TaskDependencyAnalyzer(
-                        value);
-                setToolTipText(analyzer.getHtmlTable(null, stopURL.toString(),
-                        checkURL.toString(), SEP, true, false));
-
-                switch (analyzer.getStatus()) {
-
-                case TaskDependencyAnalyzer.NO_DEPENDENCIES:
-                    setIcon(null);
-                    break;
-
-                case TaskDependencyAnalyzer.HAS_ERROR:
-                    setIcon(null);
-                    setText(resources.getString("Dependency.Unresolved.Text"));
-                    setForeground(Color.red);
-                    setFont(getBold(table));
-                    break;
-
-                case TaskDependencyAnalyzer.HAS_INCOMPLETE:
-                    setIcon(stopIcon);
-                    break;
-
-                case TaskDependencyAnalyzer.ALL_COMPLETE:
-                    setIcon(checkIcon);
-                    break;
-                }
+                TaskDependencyAnalyzer.GUI analyzer =
+                    new TaskDependencyAnalyzer.GUI(value);
+                analyzer.syncLabel(this);
 
                 return result;
             }
-
-            private Font getBold(JComponent comp) {
-                if (boldFont == null)
-                    boldFont = comp.getFont().deriveFont(Font.BOLD);
-                return boldFont;
-            }
-
-            private static final String SEP = "  \u25AA  ";
         }
 
     public boolean editCellAt(int row, int column, EventObject e) {

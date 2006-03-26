@@ -25,20 +25,21 @@
 
 package net.sourceforge.processdash.ev.ui;
 
-import java.awt.Font;
+import java.awt.Color;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 
-import javax.naming.ldap.HasControls;
-import javax.swing.JComponent;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 public class TaskDependencyAnalyzer {
@@ -106,7 +107,8 @@ public class TaskDependencyAnalyzer {
 
         StringBuffer descr = new StringBuffer();
         if (includeBodyTags)
-            descr.append("<html><body>");
+            descr.append("<html><body><b>").append(getRes("Explanation_All"))
+                    .append("</b>");
         descr.append("<table");
         if (tableAttrs != null)
             descr.append(" ").append(tableAttrs);
@@ -158,8 +160,96 @@ public class TaskDependencyAnalyzer {
     }
 
     private String getTooltip(int which) {
-        String key = "Dependency." + RES_KEYS[which] + ".Explanation";
-        return "title='" + resources.getHTML(key) + "' ";
+        return "title='" + getRes(which, "Explanation", true) + "' ";
     }
+
+    public String getRes(String type) {
+        return getRes(getStatus(), type, true);
+    }
+
+    private static String getRes(int which, String type, boolean html) {
+        String key = "Dependency." + RES_KEYS[which] + "." + type;
+        return (html ? resources.getHTML(key) : resources.getString(key));
+    }
+
+    public static class GUI extends TaskDependencyAnalyzer {
+
+        public GUI(Object dependencies) {
+            super(dependencies);
+        }
+
+        public String getHtmlTable(String tableAttrs) {
+            return super.getHtmlTable(tableAttrs, GUI_STOP_URL.toString(),
+                    GUI_CHECK_URL.toString(), GUI_SEP, true, false);
+        }
+
+        public void syncLabel(JLabel label) {
+            label.setToolTipText(getHtmlTable(null));
+
+            switch (getStatus()) {
+
+            case TaskDependencyAnalyzer.NO_DEPENDENCIES:
+                label.setIcon(null);
+                label.setText(null);
+                break;
+
+            case TaskDependencyAnalyzer.HAS_ERROR:
+                label.setIcon(null);
+                label.setText("<html><body><b style='color:red'>"
+                        + getRes("Text") + "</b></body></html>");
+                break;
+
+            case TaskDependencyAnalyzer.HAS_INCOMPLETE:
+                label.setIcon(GUI_STOP_ICON);
+                label.setText(null);
+                break;
+
+            case TaskDependencyAnalyzer.ALL_COMPLETE:
+                label.setIcon(GUI_CHECK_ICON);
+                label.setText(null);
+                break;
+            }
+
+        }
+    }
+
+    private static final URL GUI_STOP_URL = TaskDependencyAnalyzer.class
+            .getResource("stop.png");
+    private static final Icon GUI_STOP_ICON = new ImageIcon(GUI_STOP_URL);
+    private static final URL GUI_CHECK_URL = TaskDependencyAnalyzer.class
+            .getResource("check.png");
+    private static final Icon GUI_CHECK_ICON = new ImageIcon(GUI_CHECK_URL);
+    private static final String GUI_SEP = "  \u25AA  ";
+
+    public static class HTML extends TaskDependencyAnalyzer {
+
+        public HTML(Object dependencies) {
+            super(dependencies);
+        }
+
+        public String getHtmlTable(String tableAttrs) {
+            return super.getHtmlTable(tableAttrs, HTML_STOP_URI,
+                    HTML_CHECK_URI, HTML_SEP, false, true);
+        }
+
+        public String getHtmlIndicator() {
+            return HTML_INDICATORS[getStatus()];
+        }
+    }
+
+    private static final String HTML_STOP_URI = "/Images/stop.gif";
+    private static final String HTML_CHECK_URI = "/Images/check.gif";
+    private static final String HTML_SEP = " &bull; ";
+    private static final String[] HTML_INDICATORS = new String[] {
+            "<span style='color:red; font-weight:bold' title='"
+                    + getRes(0, "Explanation_All", true) + "'>"
+                    + getRes(0, "Text", true) + "</span>",
+            "<img src='" + TaskDependencyAnalyzer.HTML_STOP_URI
+                    + "' border='0' width='14' height='14' title='"
+                    + getRes(1, "Explanation_All", true) + "'>",
+            "<img src='" + TaskDependencyAnalyzer.HTML_CHECK_URI
+                    + "' border='0' width='14' height='14' title='"
+                    + getRes(2, "Explanation_All", true) + "'>"
+    };
 
 }

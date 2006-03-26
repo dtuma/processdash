@@ -324,6 +324,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         addToMainWindow(script_button, 0);
         hierarchy_menubar = new JMenuBar();
         addToMainWindow(hierarchy_menubar, 1.0);
+        DependencyIndicator dependencyIndicator = new DependencyIndicator(this,
+                activeTaskModel);
+        addToMainWindow(dependencyIndicator, 0);
         completion_button = new CompletionButton(this, activeTaskModel);
         addToMainWindow(completion_button, 0);
 
@@ -354,6 +357,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         hierarchy = new HierarchyMenu
             (this, hierarchy_menubar, activeTaskModel, PropertyKey.ROOT);
+        dependencyIndicator.update();
         if (Settings.getVal(COMPLETION_FLAG_SETTING) == null) {
             hierarchy.cleanupCompletionFlags();
             InternalSettings.set(COMPLETION_FLAG_SETTING, "true");

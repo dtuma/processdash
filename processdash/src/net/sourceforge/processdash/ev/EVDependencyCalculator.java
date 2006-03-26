@@ -60,6 +60,13 @@ public class EVDependencyCalculator {
         this.taskList = taskList;
     }
 
+    public void recalculate(Collection dependencies) {
+        Set taskListNames = new HashSet();
+        getTaskListNamesForDependencies(dependencies, taskListNames);
+        Map taskLists = openTaskLists(taskListNames);
+        updateDependencies(taskLists, dependencies);
+    }
+
     public void recalculate() {
         String myName = taskList.taskListName;
         EVTask root = (EVTask) taskList.getRoot();
@@ -89,6 +96,66 @@ public class EVDependencyCalculator {
         }
         return result;
     }
+
+    private void getTaskListNamesForDependencies(Collection dependencies,
+            Collection names) {
+        if (!hasValue(dependencies))
+            return;
+
+        for (Iterator i = dependencies.iterator(); i.hasNext();) {
+            EVTaskDependency d = (EVTaskDependency) i.next();
+            String taskListName = d.getTaskListName();
+            if (taskListName == null) {
+                String taskID = d.getTaskID();
+                List taskLists = EVTaskDependencyResolver.getInstance()
+                        .getTaskListsContaining(taskID);
+                if (hasValue(taskLists)) {
+                    taskListName = (String) taskLists.get(0);
+                    d.setTaskListName(taskListName);
+                }
+            }
+            if (taskListName != null)
+                names.add(taskListName);
+        }
+    }
+
+
+    private void updateDependencies(Map taskLists, Collection dependencies) {
+        if (hasValue(dependencies))
+            for (Iterator i = dependencies.iterator(); i.hasNext();) {
+                EVTaskDependency d = (EVTaskDependency) i.next();
+                updateDependency(taskLists, d);
+            }
+    }
+
+    private void updateDependency(Map taskLists, EVTaskDependency d) {
+        String assignedTo = d.getAssignedTo();
+        double percentComplete = d.getPercentComplete();
+        Date planDate = d.getPlannedDate();
+        boolean unresolvable = (assignedTo == null && percentComplete == 0);
+        String displayName = d.getDisplayName();
+
+        String taskListName = d.getTaskListName();
+        if (taskListName != null) {
+            EVTaskList taskList = (EVTaskList) taskLists.get(taskListName);
+            if (taskList != null) {
+                StatusCollector c = new StatusCollector(d.getTaskID(),
+                        taskList.getRootName(), taskList.getID());
+                c.visit((EVTask) taskList.getRoot());
+                if (c.foundTask) {
+                    unresolvable = false;
+                    assignedTo = c.getAssignedTo();
+                    percentComplete = c.getPercentComplete();
+                    planDate = c.getPlannedDate();
+                    displayName = c.getTaskDisplayName();
+                }
+            }
+        }
+
+        d.setResolvedDetails(unresolvable, assignedTo, percentComplete,
+                planDate, displayName);
+    }
+
 
     private abstract class EVTaskVistor {
 
@@ -127,25 +194,7 @@ public class EVDependencyCalculator {
         }
 
         protected void enter(EVTask t) {
-            List dependencies = t.getDependencies();
-            if (!hasValue(dependencies))
-                return;
-
-            for (Iterator i = dependencies.iterator(); i.hasNext();) {
-                EVTaskDependency d = (EVTaskDependency) i.next();
-                String taskListName = d.getTaskListName();
-                if (taskListName == null) {
-                    String taskID = d.getTaskID();
-                    List taskLists = EVTaskDependencyResolver.getInstance()
-                            .getTaskListsContaining(taskID);
-                    if (hasValue(taskLists)) {
-                        taskListName = (String) taskLists.get(0);
-                        d.setTaskListName(taskListName);
-                    }
-                }
-                if (taskListName != null)
-                    names.add(taskListName);
-            }
+            getTaskListNamesForDependencies(t.getDependencies(), names);
         }
     }
 
@@ -157,40 +206,7 @@ public class EVDependencyCalculator {
         }
 
         protected void enter(EVTask t) {
-            List dependencies = t.getDependencies();
-            if (hasValue(dependencies))
-                for (Iterator i = dependencies.iterator(); i.hasNext();) {
-                    EVTaskDependency d = (EVTaskDependency) i.next();
-                    update(d);
-                }
-        }
-
-        private void update(EVTaskDependency d) {
-            String assignedTo = d.getAssignedTo();
-            double percentComplete = d.getPercentComplete();
-            Date planDate = d.getPlannedDate();
-            boolean unresolvable = (assignedTo == null && percentComplete == 0);
-            String displayName = d.getDisplayName();
-
-            String taskListName = d.getTaskListName();
-            if (taskListName != null) {
-                EVTaskList taskList = (EVTaskList) taskLists.get(taskListName);
-                if (taskList != null) {
-                    StatusCollector c = new StatusCollector(d.getTaskID(),
-                            taskList.getRootName(), taskList.getID());
-                    c.visit((EVTask) taskList.getRoot());
-                    if (c.foundTask) {
-                        unresolvable = false;
-                        assignedTo = c.getAssignedTo();
-                        percentComplete = c.getPercentComplete();
-                        planDate = c.getPlannedDate();
-                        displayName = c.getTaskDisplayName();
-                    }
-                }
-            }
-
-            d.setResolvedDetails(unresolvable, assignedTo, percentComplete,
-                    planDate, displayName);
+            updateDependencies(taskLists, t.getDependencies());
         }
 
     }

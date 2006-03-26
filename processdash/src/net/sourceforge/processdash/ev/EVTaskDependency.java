@@ -28,6 +28,7 @@ package net.sourceforge.processdash.ev;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -262,6 +263,25 @@ public class EVTaskDependency {
             saveDependencies(data, taskPath, list);
 
         return madeChange;
+    }
+
+    public static List getAllDependencies(DataContext data, String taskPath) {
+        if (taskPath == null || taskPath.length() == 0)
+            return null;
+
+        LinkedHashMap result = new LinkedHashMap();
+
+        while (taskPath != null && taskPath.length() > 1) {
+            List taskDep = getDependencies(data, taskPath);
+            if (taskDep != null)
+                for (Iterator i = taskDep.iterator(); i.hasNext();) {
+                    EVTaskDependency d = (EVTaskDependency) i.next();
+                    result.put(d.taskID, d);
+                }
+            taskPath = DataRepository.chopPath(taskPath);
+        }
+
+        return new LinkedList(result.values());
     }
 
     public static List getDependencies(DataContext data, String taskPath) {
