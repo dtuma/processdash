@@ -100,8 +100,7 @@ public class EVWeekReport extends TinyCGIBase {
                                        "No such task/schedule");
 
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
-                evModel, getDataRepository(), getPSPProperties(),
-                getObjectCache());
+                getDataRepository(), getPSPProperties(), getObjectCache());
         evModel.setDependencyCalculator(depCalc);
 
         evModel.recalc();

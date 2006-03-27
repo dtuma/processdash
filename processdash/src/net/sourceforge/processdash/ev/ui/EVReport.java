@@ -218,8 +218,7 @@ public class EVReport extends CGIChartBase {
                                        "No such task/schedule");
 
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
-                evModel, getDataRepository(), getPSPProperties(),
-                getObjectCache());
+                getDataRepository(), getPSPProperties(), getObjectCache());
         evModel.setDependencyCalculator(depCalc);
 
         evModel.recalc();

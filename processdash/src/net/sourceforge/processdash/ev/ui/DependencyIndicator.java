@@ -91,7 +91,7 @@ public class DependencyIndicator extends JLabel implements
 
         public Worker(DashboardContext context) {
             super(Worker.class.getName());
-            calc = new EVDependencyCalculator(null, context.getData(), context
+            calc = new EVDependencyCalculator(context.getData(), context
                     .getHierarchy(), context.getCache());
             setDaemon(true);
             start();

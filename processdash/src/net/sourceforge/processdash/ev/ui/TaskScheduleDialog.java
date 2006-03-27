@@ -156,7 +156,7 @@ public class TaskScheduleDialog
                     (taskListName, dash.getData(), dash.getHierarchy(), true);
         }
 
-        EVDependencyCalculator depCalc = new EVDependencyCalculator(model,
+        EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 dash.getData(), dash.getHierarchy(), dash.getCache());
         model.setDependencyCalculator(depCalc);
 

@@ -49,74 +49,75 @@ public class EVDependencyCalculator {
 
     private ObjectCache cache;
 
-    private EVTaskList taskList;
 
-
-    public EVDependencyCalculator(EVTaskList taskList, DataRepository data,
-            DashHierarchy hier, ObjectCache cache) {
+    public EVDependencyCalculator(DataRepository data, DashHierarchy hier,
+            ObjectCache cache) {
         this.data = data;
         this.hier = hier;
         this.cache = cache;
-        this.taskList = taskList;
     }
 
     public void recalculate(Collection dependencies) {
-        Set taskListNames = new HashSet();
-        getTaskListNamesForDependencies(dependencies, taskListNames);
-        Map taskLists = openTaskLists(taskListNames);
+        Map taskLists = new HashMap();
+        openTaskListsForDependencies(taskLists, dependencies);
         updateDependencies(taskLists, dependencies);
     }
 
-    public void recalculate() {
-        String myName = taskList.taskListName;
+    public void recalculate(EVTaskList taskList) {
         EVTask root = (EVTask) taskList.getRoot();
+        Map taskLists = new HashMap();
+        taskLists.put(taskList.taskListName, taskList);
 
-        // scan the tree and make a list of the EV schedules we need to open.
-        Set taskListNames = new TaskListNameCollector(root).names;
-        taskListNames.remove(myName);
-
-        // open those task lists
-        Map taskLists = openTaskLists(taskListNames);
-        taskLists.put(myName, taskList);
+        // scan the tree and open the necessary EV schedules.
+        new TaskListCollector(taskLists).visit(root);
 
         // use them to update dependency information
         new DependencyUpdater(taskLists).visit(root);
     }
 
-    private Map openTaskLists(Set taskListNames) {
-        Map result = new HashMap();
-        for (Iterator i = taskListNames.iterator(); i.hasNext();) {
-            String name = (String) i.next();
-            EVTaskList taskList = EVTaskList.openExisting(name, data, hier,
-                    cache, false);
-            if (taskList != null) {
-                taskList.recalc();
-                result.put(name, taskList);
-            }
-        }
-        return result;
+    private void openTaskListsForDependencies(Map taskLists,
+            Collection dependencies) {
+        if (hasValue(dependencies))
+            for (Iterator i = dependencies.iterator(); i.hasNext();)
+                openTaskListForDependency(taskLists,
+                        (EVTaskDependency) i.next());
     }
 
-    private void getTaskListNamesForDependencies(Collection dependencies,
-            Collection names) {
-        if (!hasValue(dependencies))
+    private void openTaskListForDependency(Map taskLists, EVTaskDependency d) {
+        // first, try to honor the task list named by the dependency.
+        // (This policy may need to be revisited.)
+        String taskListName = d.getTaskListName();
+        if (openTaskList(taskLists, taskListName))
             return;
 
-        for (Iterator i = dependencies.iterator(); i.hasNext();) {
-            EVTaskDependency d = (EVTaskDependency) i.next();
-            String taskListName = d.getTaskListName();
-            if (taskListName == null) {
-                String taskID = d.getTaskID();
-                List taskLists = EVTaskDependencyResolver.getInstance()
-                        .getTaskListsContaining(taskID);
-                if (hasValue(taskLists)) {
-                    taskListName = (String) taskLists.get(0);
-                    d.setTaskListName(taskListName);
-                }
-            }
-            if (taskListName != null)
-                names.add(taskListName);
+        // try to find the best task list for this dependency.
+        String taskID = d.getTaskID();
+        List lists = EVTaskDependencyResolver.getInstance()
+                .getTaskListsContaining(taskID);
+        if (hasValue(lists)) {
+            taskListName = (String) lists.get(0);
+            d.setTaskListName(taskListName);
+            openTaskList(taskLists, taskListName);
         }
+    }
+
+    private boolean openTaskList(Map taskLists, String taskListName) {
+        if (taskListName != null) {
+            if (taskLists.containsKey(taskListName))
+                // we've already opened that task list (or attempted to)
+                return taskLists.get(taskListName) != null;
+
+            EVTaskList tl = EVTaskList.openExisting(taskListName,
+                    data, hier, cache, false);
+            taskLists.put(taskListName, tl);
+            if (tl != null) {
+                // we were able to successfully open the task list.
+                tl.recalc();
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
@@ -184,17 +185,16 @@ public class EVDependencyCalculator {
         }
     }
 
-    private class TaskListNameCollector extends EVTaskVistor {
+    private class TaskListCollector extends EVTaskVistor {
 
-        Set names;
+        Map taskLists;
 
-        public TaskListNameCollector(EVTask root) {
-            names = new HashSet();
-            visit(root);
+        public TaskListCollector(Map taskLists) {
+            this.taskLists = taskLists;
         }
 
         protected void enter(EVTask t) {
-            getTaskListNamesForDependencies(t.getDependencies(), names);
+            openTaskListsForDependencies(taskLists, t.getDependencies());
         }
     }
 

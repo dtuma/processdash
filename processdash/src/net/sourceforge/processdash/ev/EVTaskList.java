@@ -455,7 +455,7 @@ public class EVTaskList extends AbstractTreeTableModel
         if (calculator != null)
             calculator.recalculate();
         if (dependencyCalculator != null)
-            dependencyCalculator.recalculate();
+            dependencyCalculator.recalculate(this);
         totalPlanValue = schedule.getMetrics().totalPlan();
         EVTask taskRoot = (EVTask) root;
         totalActualTime = taskRoot.actualCurrentTime;

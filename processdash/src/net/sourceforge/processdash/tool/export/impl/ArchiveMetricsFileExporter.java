@@ -236,8 +236,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
             if (tl == null)
                 continue;
 
-            tl.setDependencyCalculator(new EVDependencyCalculator(tl, ctx
-                    .getData(), ctx.getHierarchy(), ctx.getCache()));
+            tl.setDependencyCalculator(new EVDependencyCalculator(
+                    ctx.getData(), ctx.getHierarchy(), ctx.getCache()));
             tl.recalc();
 
             if (merged)
