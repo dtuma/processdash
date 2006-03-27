@@ -102,7 +102,7 @@ public class TaskDependencyAnalyzer {
     public String getHtmlTable(String tableAttrs, String stopUrl,
             String checkUrl, String sep, boolean includeBodyTags,
             boolean includeTooltips) {
-        if (dependencies == null)
+        if (dependencies == null || getStatus() == NO_DEPENDENCIES)
             return null;
 
         StringBuffer descr = new StringBuffer();
