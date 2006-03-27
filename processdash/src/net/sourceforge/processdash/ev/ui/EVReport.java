@@ -807,7 +807,7 @@ public class EVReport extends CGIChartBase {
     static final String POPUP_HEADER =
         "<style>\n" +
         "a.noLine { text-decoration: none }\n" +
-        ".popupInfo { position: relative; height: 0 }\n" +
+        ".popupInfo { position: relative; height: 0; z-index: 1; }\n" +
         ".popupInfo table { " +
         "position: absolute; right: 0; display: none; " +
         "border: 1px solid black; background-color: #ccccff }\n" +
@@ -815,7 +815,8 @@ public class EVReport extends CGIChartBase {
         "<script>\n" +
         "var lastPopup = null;\n" +
         "function togglePopupInfo(elm) {\n" +
-        "   var table = elm.parentNode.getElementsByTagName(\"DIV\")[0].childNodes[0];\n" +
+        "   var div = elm.parentNode.getElementsByTagName(\"DIV\")[0];\n" +
+        "   var table = div.childNodes[0];\n" +
         "   if (table.style.display == \"block\") {\n" +
         "      table.style.display = \"none\";\n" +
         "      lastPopup = null;\n" +
@@ -824,6 +825,14 @@ public class EVReport extends CGIChartBase {
         "         lastPopup.style.display = \"none\";\n" +
         "      table.style.display = \"block\";\n" +
         "      lastPopup = table;\n" +
+        "      if (table.offsetWidth > div.offsetLeft) {\n" +
+        "         var cells = table.getElementsByTagName(\"TD\");\n" +
+        "         for (var i = 0; i < cells.length; i++) {\n" +
+//      "            cells[i].style.verticalAlign = \"top\";\n" +
+        "            cells[i].style.whiteSpace = \"normal\";\n" +
+        "         }\n" +
+        "         table.width = div.offsetLeft;\n"+
+        "      }\n" +
         "   }\n" +
         "}\n" +
         "</script>\n";
