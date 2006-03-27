@@ -15,10 +15,18 @@ import java.util.regex.Pattern;
 
 public class WBSClipSelection implements Transferable, ClipboardOwner {
 
-    public static final DataFlavor WBS_LIST_FLAVOR = new DataFlavor(
-            DataFlavor.javaJVMLocalObjectMimeType + "; class="
+    private static class WBSListDataFlavor extends DataFlavor {
+        public WBSListDataFlavor() {
+            // by subclassing DataFlavor, we help it to determine the
+            // appropriate classloader that should be used to load the
+            // WBSClipData class, named in the mime type below.
+            super(DataFlavor.javaJVMLocalObjectMimeType + "; class="
                     + WBSClipData.class.getName(),
-            "Work Breakdown Structure Data");
+                    "Work Breakdown Structure Data");
+        }
+    }
+
+    public static final DataFlavor WBS_LIST_FLAVOR = new WBSListDataFlavor();
 
     public static final DataFlavor WBS_FLAVOR = new DataFlavor(
             WBSClipData.class, "Work Breakdown Structure Data");
