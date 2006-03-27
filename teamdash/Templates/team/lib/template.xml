@@ -67,6 +67,7 @@
       defineRollup="no"
       dataFile="PID/master_node_dataFile.txt"
       constraints="ME{}"
+      <!--#if VVIS -->href="none"<!--#endif-->
       ><!--#break comment-->
          We alter the constraints to make this node immovable and
 	 uneditable.  We also change the 'required parent' list to '}',
@@ -136,6 +137,7 @@
       defineRollup="no"
       dataFile="PID/team_node_dataFile.txt"
       constraints="ME{}"
+      <!--#if VVIS -->href="none"<!--#endif-->
       ><!--#break comment-->
          We alter the constraints to make this node immovable and
 	 uneditable.  We also change the 'required parent' list to '}',
