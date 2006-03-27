@@ -31,6 +31,8 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -203,8 +205,8 @@ public class TaskScheduleChooser
         list.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     if (e.getClickCount() == 2) {
-                        if (e.isShiftDown())
-                            showReportForSelectedTaskList();
+                        if (e.isShiftDown() || e.getButton() == MouseEvent.BUTTON3)
+                            showReportForTaskList(e);
                         else
                             openSelectedTaskList();
                     }
@@ -291,26 +293,53 @@ public class TaskScheduleChooser
         else if (e.getSource() == deleteButton)
             deleteSelectedTaskList();
         else if (e.getSource() == reportButton)
-            showReportForSelectedTaskList();
+            showReportForTaskList(null);
         else if (e.getSource() == cancelButton)
             dialog.dispose();
     }
 
     protected void openSelectedTaskList() {
-        dialog.getContentPane().setCursor
-            (Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        open(dash, (String) list.getSelectedValue());
-        if (dialog != null) dialog.dispose();
-    }
-
-    protected void showReportForSelectedTaskList() {
-        dialog.getContentPane().setCursor(
-                Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         String taskListName = (String) list.getSelectedValue();
-        TaskScheduleDialog.showReport(taskListName);
-        if (dialog != null)dialog.dispose();
+        if (taskListName != null)
+            try {
+                dialog.getContentPane().setCursor(
+                        Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                open(dash, taskListName);
+                if (dialog != null)
+                    dialog.dispose();
+            } catch (Exception e) {
+                dialog.getContentPane().setCursor(null);
+                JOptionPane.showMessageDialog(list,
+                        resources.getStrings("Unexpected_Error.Message"),
+                        resources.getString("Unexpected_Error.Title"),
+                        JOptionPane.ERROR_MESSAGE);
+            }
     }
 
+    /** Will display the report for the currently selected task list.
+     * 
+     * If no task list is currently selected, the given mouse event (if
+     * non-null) will be checked.  If it occurred over a task list name,
+     * the report for that task list will be displayed.
+     */
+    protected void showReportForTaskList(MouseEvent e) {
+        String taskListName = (String) list.getSelectedValue();
+        if (taskListName == null && e != null)
+            taskListName = getItemAtPoint(list, e.getPoint());
+        if (taskListName != null) {
+            TaskScheduleDialog.showReport(taskListName);
+            if (dialog != null) dialog.dispose();
+        }
+    }
+
+    private String getItemAtPoint(JList list, Point point) {
+        if (list == null || point == null) return null;
+        int pos = list.locationToIndex(point);
+        if (pos == -1) return null;
+        Rectangle r = list.getCellBounds(pos, pos);
+        if (r == null || !r.contains(point)) return null;
+        return (String) list.getModel().getElementAt(pos);
+    }
     protected void renameSelectedTaskList() {
         String taskListName = (String) list.getSelectedValue();
         if (taskListName == null) return;
