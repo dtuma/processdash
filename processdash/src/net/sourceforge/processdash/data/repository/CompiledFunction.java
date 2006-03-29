@@ -25,8 +25,14 @@
 
 package net.sourceforge.processdash.data.repository;
 
-import net.sourceforge.processdash.data.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Vector;
+
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.MalformedValueException;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.compiler.CompiledScript;
@@ -35,25 +41,44 @@ import net.sourceforge.processdash.data.compiler.ExecutionException;
 import net.sourceforge.processdash.data.compiler.ListStack;
 
 public class CompiledFunction implements SaveableData, AliasedData,
-                                  ActiveExpressionContext.Listener
-{
-    private static final SimpleData UNCALCULATED_VALUE =
-        new DoubleData(Double.NaN, false);
+        DataListener {
 
-    protected String name = null, prefix, aliasFor;
+
+    /** The name of the data element we are calculating */
+    protected String name = null;
+
+    /** The data name prefix for performing calculations */
+    protected String prefix;
+
+    /** The script to run to perform the calculation */
     protected CompiledScript script;
-    protected DataRepository data;
-    protected ActiveExpressionContext context = null;
-    protected ListStack stack = null;
-    protected SimpleData value = UNCALCULATED_VALUE;
-    protected boolean currentlyCalculating = false;
 
-    public CompiledFunction(String name, String script,
-                            DataRepository r, String prefix)
-        throws MalformedValueException
-    {
+    /** The data repository */
+    protected DataRepository data;
+
+    /** The value we obtained when we ran our calculation last. */
+    protected SimpleData value;
+
+    /** Track the aliased name of our final value.
+     * {@see net.sourceforge.processdash.data.repository.AliasedData } */
+    protected String aliasFor;
+
+    /** True if we have ever told anyone our calculated value. */
+    protected volatile boolean valueQueried = false;
+
+    /** A list of the names of all data elements in the repository that we
+     * are currently listening to. */
+    protected Set currentSubscriptions;
+
+    /** A mutex that helps us keep track of the need to recalculate */
+    protected DirtyTracker extChanges = new DirtyTracker();
+
+
+    public CompiledFunction(String name, String script, DataRepository r,
+            String prefix) throws MalformedValueException {
         try {
-            if (script.charAt(0) == '{') script = script.substring(1);
+            if (script.charAt(0) == '{')
+                script = script.substring(1);
             this.script = Compiler.compile(script);
             this.data = r;
             this.name = name;
@@ -64,94 +89,202 @@ public class CompiledFunction implements SaveableData, AliasedData,
     }
 
     public CompiledFunction(String name, CompiledScript script,
-                            DataRepository r, String prefix) {
+            DataRepository r, String prefix) {
         this.script = script;
         this.data = r;
         this.name = name;
         this.prefix = prefix;
     }
 
-    public CompiledScript getScript() { return script; }
-
-    public void expressionContextChanged() {
-        recalc();
+    public CompiledScript getScript() {
+        return script;
     }
 
     protected void recalc() {
-        boolean needsNotify = (value != UNCALCULATED_VALUE);
-
-        if (context == null) synchronized(this) {
-            if (context == null)
-                context=new ActiveExpressionContext(name, prefix, data, this);
-            if (stack == null)
-                stack = new ListStack();
+        Set calcNameSet = (Set) CURRENTLY_CALCULATING.get();
+        if (calcNameSet.contains(name)) {
+            System.err.println("Encountered recursively defined data "
+                    + "when calculating " + name + " - ABORTING");
+            return; // break out of infinite loops.
         }
 
-        Object calculationInfo;
-        synchronized (stack) {
-            synchronized (context) {
-                if (currentlyCalculating) {
-                    System.err.println("Encountered recursively defined data "+
-                                       "when calculating "+name+" - ABORTING");
-                    return;             // break out of infinite loops.
-                }
-
-                context.startCalculation();
-                stack.clear();
-                try {
-                    currentlyCalculating = true;
-                    script.run(stack, context);
-                    currentlyCalculating = false;
-                    aliasFor = (String) stack.peekDescriptor();
-                    value = (SimpleData) stack.pop();
-                    if (value != null && aliasFor == null)
-                        value = (SimpleData) value.getEditable(false);
-                } catch (ExecutionException e) {
-                    System.err.println("Error executing " + name + ": " + e);
-                    value = null;
-                }
-                calculationInfo = context.endCalculation();
+        if (valueQueried == false || currentSubscriptions == null) {
+            synchronized (this) {
+                if (currentSubscriptions == null)
+                    currentSubscriptions = Collections
+                            .synchronizedSet(new HashSet(4));
             }
         }
 
-        if (needsNotify)
+        SimpleData oldValue = value;
+        SimpleData newValue = null;
+        String newAlias = null;
+        SubscribingExpressionContext context = null;
+
+        // attempt to perform the calculation up to 10 times.  (This should
+        // be more than generous - even one retry should be rare.)
+        int retryCount = 10;
+        while (retryCount-- > 0 && extChanges.isDirty()) {
+            context = new SubscribingExpressionContext(data, prefix, this,
+                    name, currentSubscriptions);
+            ListStack stack = new ListStack();
+            int changeCount = -1;
+
+            try {
+                calcNameSet.add(name);
+                changeCount = extChanges.getUnhandledChangeCount();
+                script.run(stack, context);
+                newAlias = (String) stack.peekDescriptor();
+                newValue = (SimpleData) stack.pop();
+                if (newValue != null && newAlias == null)
+                    newValue = (SimpleData) newValue.getEditable(false);
+            } catch (ExecutionException e) {
+                System.err.println("Error executing " + name + ": " + e);
+                newValue = null;
+            } finally {
+                calcNameSet.remove(name);
+            }
+
+            if (extChanges.maybeClearDirty(changeCount, newValue, newAlias))
+                break;
+            else if (retryCount > 0)
+                System.err.println("Retrying calculating " + name);
+        }
+
+        if (retryCount <= 0)
+            System.err.println("Ran out of retries while calculating " + name);
+
+        context.removeOldSubscriptions();
+
+        if (valueQueried && !eq(oldValue, value))
             data.valueRecalculated(name, this);
 
-        if (calculationInfo != null)
-            context.performSubscriptions(calculationInfo);
     }
+
+    private boolean eq(SimpleData a, SimpleData b) {
+        if (a == b)
+            return true;
+        if (a == null || b == null)
+            return false;
+        return (a.isEditable() == b.isEditable()
+                && a.isDefined() == b.isDefined()
+                && a.equals(b));
+    }
+
+    public void dataValueChanged(DataEvent e) {
+        setDirty();
+    }
+
+    public void dataValuesChanged(Vector v) {
+        setDirty();
+    }
+
+    private void setDirty() {
+        extChanges.setDirty();
+        data.valueRecalculated(name, this);
+    }
+
 
     // The following methods define the SaveableData interface.
 
-    public boolean isEditable() { return false; }
-    public void setEditable(boolean e) {}
-    public boolean isDefined() { return true; }
-    public void setDefined(boolean d) {}
-    public String saveString() { return script.saveString(); }
+    public boolean isEditable() {
+        return false;
+    }
+
+    public void setEditable(boolean e) {
+    }
+
+    public boolean isDefined() {
+        return true;
+    }
+
+    public void setDefined(boolean d) {
+    }
+
+    public String saveString() {
+        return script.saveString();
+    }
 
     public String getAliasedDataName() {
-        if (value == UNCALCULATED_VALUE)
+        if (extChanges.isDirty())
             recalc();
 
+        valueQueried = true;
         return aliasFor;
+
     }
 
     public SimpleData getSimpleValue() {
-        if (value == UNCALCULATED_VALUE)
+        if (extChanges.isDirty())
             recalc();
 
+        valueQueried = true;
         return value;
     }
 
     public void dispose() {
-        name = null;
+        name = prefix = aliasFor = null;
         script = null;
-        stack = null;
+        data = null;
         value = null;
-        ActiveExpressionContext c = context;
-        context = null;
-        if (c != null) c.dispose();
+        currentSubscriptions = null;
+        extChanges = null;
     }
 
-    public SaveableData getEditable(boolean editable) { return this; }
+    public SaveableData getEditable(boolean editable) {
+        return this;
+    }
+
+    /** Class for tracking the need to recalculate.
+     * 
+     * This class tracks the number of external change notifications received.
+     * Before a calculation, this value is queried.  If the calculation
+     * finishes and this count hasn't changed, then the calculation is
+     * considered a success.  If the count <b>did</b> change during the
+     * calculation, it means that we received an external change notification
+     * while calculating. Thus, the calculated value is suspect and should be
+     * recomputed.
+     * 
+     * As a side note, this work is performed by this object instead of by
+     * the CompiledFunction object, because we want to avoid holding
+     * synchronization locks on the CompiledFunction object whenever possible.
+     * (This helps avoid potential deadlocks within the DataRepository.)
+     */
+    protected class DirtyTracker {
+
+        private int unhandledChangeCount = 1;
+
+        public synchronized void setDirty() {
+            unhandledChangeCount++;
+        }
+
+        public synchronized boolean isDirty() {
+            return unhandledChangeCount > 0;
+        }
+
+        public synchronized int getUnhandledChangeCount() {
+            return unhandledChangeCount;
+        }
+
+        public synchronized boolean maybeClearDirty(int newHandledCount,
+                SimpleData newValue, String newAlias) {
+
+            if (newHandledCount == unhandledChangeCount) {
+                value = newValue;
+                aliasFor = newAlias;
+                unhandledChangeCount = 0;
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    /** A list of the data names that are currently being calculated by this
+     * thread (to prevent infinite circular recursion)
+     */
+    protected static ThreadLocal CURRENTLY_CALCULATING = new ThreadLocal() {
+        protected Object initialValue() {
+            return new HashSet();
+        }};
 }
