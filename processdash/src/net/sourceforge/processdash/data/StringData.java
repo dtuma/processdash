@@ -126,10 +126,16 @@ public class StringData implements SimpleData {
     }
 
     private int cmp(SimpleData val) {
-        String v1 = getString(), v2 = ((StringData)val).getString();
-        v1 = (v1 == null ? "" : v1.toLowerCase());
-        v2 = (v2 == null ? "" : v2.toLowerCase());
-        return v1.compareTo(v2);
+        String v1 = nvl(getString());
+        String v2 = nvl(((StringData)val).getString());
+        int result = v1.compareToIgnoreCase(v2);
+        if (result != 0)
+            return result;
+        else
+            return v1.compareTo(v2);
+    }
+    private String nvl(String s) {
+        return (s == null ? "" : s);
     }
     public boolean equals(SimpleData val) {
         return ((val instanceof StringData) && (cmp(val) == 0));
