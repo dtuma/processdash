@@ -219,6 +219,7 @@ Plan Summary</h2>
 
 <!--#endfor-->
 
+<!--#if Process_Uses_DLD_Lines -->
 <TR>
 <TD>Detailed Design Lines</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated DLD Lines"></TD>
@@ -230,6 +231,7 @@ Plan Summary</h2>
 <TD><INPUT TYPE=text SIZE=7 NAME="DLD Lines To Date"></TD>
 <!--#endif--><!--#endif-->
 </TR>
+<!--#endif-->
 
 <!--#if rollup -->
 <!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,New &amp; Changed,Total,New Reused,Object," -->
@@ -288,6 +290,7 @@ Plan Summary</h2>
 
 <!--#endfor-->
 
+<!--#if Process_Uses_DLD_Lines -->
 <TR>
 <TD>Detailed Design Lines</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected DLD Lines"></TD>
@@ -298,6 +301,7 @@ Plan Summary</h2>
 <TD><INPUT TYPE=text SIZE=7 NAME="Inspected DLD Lines To Date"></TD>
 <!--#endif-->
 </TR>
+<!--#endif-->
 
 <TR>
 <TD>New &amp; Changed LOC</TD>

@@ -134,6 +134,7 @@ public class TeamProcess {
 
     private List sizeMetricsItems;
     private boolean usingDefaultSizeMetrics;
+    private boolean usesDLDLines;
 
     private void buildSizeInfo(CustomProcess process) {
         workProductSizes = new HashMap();
@@ -151,8 +152,10 @@ public class TeamProcess {
             sizeMetricsItems = generateDefaultSizeMetrics(process);
             usingDefaultSizeMetrics = true;
         }
-        sizeMetricsItems.add(newMetric(process, DLD_UNITS, DLD_DOCUMENT_TYPE,
-                null));
+        usesDLDLines = processUsesDLDLines(process, usingDefaultSizeMetrics);
+        if (usesDLDLines)
+            sizeMetricsItems.add(newMetric(process, DLD_UNITS,
+                    DLD_DOCUMENT_TYPE, null));
 
         Iterator i = sizeMetricsItems.iterator();
         while (i.hasNext()) {
@@ -171,7 +174,6 @@ public class TeamProcess {
         workProductSizes = Collections.unmodifiableMap(workProductSizes);
         sizeMetrics = Collections.unmodifiableList(sizeMetrics);
     }
-
 
     private List generateDefaultSizeMetrics(CustomProcess p) {
         List result = new ArrayList();
@@ -192,9 +194,33 @@ public class TeamProcess {
         return result;
     }
 
-    /** Extract information about the phases in this process from the
-     * given XML stream.  It should contain a process definition that
-     * can be recognized by the CustomProcess class.
+    private boolean processUsesDLDLines(CustomProcess process,
+            boolean mightBeLegacy) {
+        boolean sawSizeMetric = false;
+        Iterator i = process.getItemList(CustomProcess.PHASE_ITEM).iterator();
+        while (i.hasNext()) {
+            CustomProcess.Item phase =
+                (CustomProcess.Item) i.next();
+            String sizeMetric = phase.getAttr(CustomProcess.SIZE_METRIC);
+            if (DLD_UNITS.equals(sizeMetric))
+                return true;
+            else if (sizeMetric != null && sizeMetric.length() > 0)
+                sawSizeMetric = true;
+        }
+
+        if (sawSizeMetric == false && mightBeLegacy)
+            // this process doesn't mention size metrics at all.  It's probably
+            // an older process definition.  To preserve legacy operations,
+            // return true.
+            return true;
+
+        else
+            // this process definition does mention size metrics, but none
+            // of them were DLD Lines.
+            return false;
+    }
+
+    /** Extract information from the list of phases in this process.
      */
     private void buildPhases(CustomProcess process) {
         phases = new ArrayList();
@@ -230,7 +256,7 @@ public class TeamProcess {
         if (type.startsWith("DOC")) return TEXT_UNITS;
         if (type.startsWith("REQ")) return REQ_UNITS;
         if (type.startsWith("HLD")) return HLD_UNITS;
-        if (type.startsWith("DLD")) return DLD_UNITS;
+        if (type.startsWith("DLD") && usesDLDLines) return DLD_UNITS;
         return null;
     }
 
