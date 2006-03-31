@@ -6,12 +6,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import teamdash.TeamMember;
+import teamdash.TeamMemberList;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -32,6 +35,8 @@ public class CsvNodeDataImporter {
 
     private BufferedReader in;
 
+    private TeamMemberList team;
+
     private char delimiter;
 
     private String[] fieldNamesInFile;
@@ -39,14 +44,17 @@ public class CsvNodeDataImporter {
     private int[] columnPos;
 
 
-    public List getNodesFromCsvFile(File f) throws IOException, ParseException {
+    public List getNodesFromCsvFile(File f, TeamMemberList teamList)
+            throws IOException, ParseException {
         in = new BufferedReader(new FileReader(f));
+        team = teamList;
 
         parseHeaderLine();
         List result = parseData();
 
         in.close();
         in = null;
+        team = null;
 
         return result;
     }
@@ -155,8 +163,10 @@ public class CsvNodeDataImporter {
 
     private void parseDurationInfo(WBSNode node, String[] fields) {
         double duration = parseDurationAsHours(fields, DURATION);
-        if (duration > 0)
+        if (duration > 0) {
             node.setAttribute(TIME_PER_PERSON_ATTR, Double.toString(duration));
+            node.setAttribute(DURATION_TEMP, fields[columnPos[DURATION]]);
+        }
     }
 
     private void parseResourcesInfo(WBSNode node, String[] fields) {
@@ -191,11 +201,12 @@ public class CsvNodeDataImporter {
                     // this node is a parent node.
                     node.setAttribute(TIME_PER_PERSON_ATTR, null);
                     node.setAttribute(NUM_PEOPLE_ATTR, null);
-                    node.setAttribute(INITIALS_TEMP, null);
                 } else {
                     // this node is a leaf node.
                     tweakInitialsData(node);
                 }
+                node.setAttribute(INITIALS_TEMP, null);
+                node.setAttribute(DURATION_TEMP, null);
                 nextNode = node;
             }
         }
@@ -204,16 +215,40 @@ public class CsvNodeDataImporter {
     private void tweakInitialsData(WBSNode node) {
         String initials = (String) node.getAttribute(INITIALS_TEMP);
         Object timePerPerson = node.getAttribute(TIME_PER_PERSON_ATTR);
-        node.setAttribute(INITIALS_TEMP, null);
         if (initials == null || timePerPerson == null)
             return;
 
+        String duration = (String) node.getAttribute(DURATION_TEMP);
         String[] intialsList = initials.split(",");
         for (int i = 0; i < intialsList.length; i++) {
-            String init = intialsList[i].trim().toLowerCase();
-            if (init.length() > 0)
-                node.setAttribute(init + INDIV_TIME_SUFFIX, timePerPerson);
+            TeamMember m = getTeamMember(intialsList[i]);
+            if (m != null) {
+                String init = m.getInitials();
+                Object time = timePerPerson;
+
+                Double hoursPerWeek = m.getHoursPerWeek();
+                if (hoursPerWeek != null
+                        && hoursPerWeek.doubleValue() != 0
+                        && hoursPerWeek.doubleValue() != 20)
+                    time = Double.toString(parseDurationAsCustomHours(duration,
+                            hoursPerWeek));
+
+                node.setAttribute(init + INDIV_TIME_SUFFIX, time);
+            }
         }
+    }
+
+    private TeamMember getTeamMember(String initials) {
+        initials = initials.trim();
+        if (initials.length() == 0)
+            return null;
+
+        for (Iterator i = team.getTeamMembers().iterator(); i.hasNext();) {
+            TeamMember m = (TeamMember) i.next();
+            if (initials.equalsIgnoreCase(m.getInitials()))
+                return m;
+        }
+        return null;
     }
 
     private int getIntField(String[] fields, int colID, int defaultValue) {
@@ -235,14 +270,25 @@ public class CsvNodeDataImporter {
         if (val.length() == 0)
             return 0;
 
+        return parseDurationAsHours(val, DURATION_MULTIPLIERS);
+    }
+
+    private double parseDurationAsCustomHours(String val, Double hoursPerWeek) {
+        double[] multipliers = (double[]) DURATION_MULTIPLIERS.clone();
+        for (int i = 4; i < multipliers.length; i++)
+            multipliers[i] *= (hoursPerWeek.doubleValue() / 20.0);
+        return parseDurationAsHours(val, multipliers);
+    }
+
+    private double parseDurationAsHours(String val, double[] multipliers) {
         Matcher m = DURATION_PATTERN.matcher(val);
         if (!m.matches())
             return 0;
 
         double result = Double.parseDouble(m.group(1));
-        for (int group = 2; group < DURATION_MULTIPLIERS.length; group++)
+        for (int group = 2; group < multipliers.length; group++)
             if (m.group(group) != null)
-                result *= DURATION_MULTIPLIERS[group];
+                result *= multipliers[group];
 
         return result;
     }
@@ -312,6 +358,7 @@ public class CsvNodeDataImporter {
     private static final String POSSIBLE_DELIMITERS = "\t, ";
     private static final String TYPE = WBSNode.UNKNOWN_TYPE;
     private static final String INITIALS_TEMP = "Initials_Working_Data";
+    private static final String DURATION_TEMP = "Duration_Working_Data";
 
     private static final String TIME_PER_PERSON_ATTR = TeamTimeColumn.TPP_ATTR;
     private static final String NUM_PEOPLE_ATTR = TeamTimeColumn.NUM_PEOPLE_ATTR;

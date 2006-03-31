@@ -438,7 +438,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         public void actionPerformed(ActionEvent e) {
             CsvNodeDataImporterUI ui = new CsvNodeDataImporterUI();
-            ui.run(tabPanel.wbsTable);
+            ui.run(tabPanel.wbsTable, teamProject.getTeamMemberList());
         }
     }
 

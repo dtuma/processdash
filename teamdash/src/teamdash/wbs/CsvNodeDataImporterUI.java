@@ -9,13 +9,14 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
+import teamdash.TeamMemberList;
 import teamdash.wbs.CsvNodeDataImporter.ParseException;
 
 /** Interact with the user to find and import data from an MS Project CSV file.
  */
 public class CsvNodeDataImporterUI {
 
-    public void run(WBSJTable table) {
+    public void run(WBSJTable table, TeamMemberList team) {
         File f = selectFile(table);
         if (f == null)
             return;
@@ -23,7 +24,7 @@ public class CsvNodeDataImporterUI {
         List newNodes = null;
         try {
             CsvNodeDataImporter importer = new CsvNodeDataImporter();
-            newNodes = importer.getNodesFromCsvFile(f);
+            newNodes = importer.getNodesFromCsvFile(f, team);
         } catch (IOException e) {
             showError("Could not open and read from the file '" + f + "'");
         } catch (ParseException e) {
