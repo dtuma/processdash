@@ -232,9 +232,11 @@ undefine([Use_Rollup]);
 <!--#foreach name=DataElem list=SizeMetric_Name #-->
 [/PID/DataElem_Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DataElem$' --><!--#if Phase_Is_Development --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
 [/PID/DataElem_Appraisal_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DataElem$' --><!--#if Phase_Is_Appraisal --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+[/PID/DataElem_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DataElem$' --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 <!--#endfor--><!--#endfor-->
 [/PID/DLD Lines_Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DLD Lines$' --><!--#if Phase_Is_Development --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
 [/PID/DLD Lines_Appraisal_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Size_Metric =~ 'DLD Lines$' --><!--#if Phase_Is_Appraisal --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+[/PID/New & Changed LOC_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if not Phase_Size_Metric || Phase_Size_Metric =~ '(New & Changed LOC|DLD Lines)$' --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 [/PID/All_Sizes_Development_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Development --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 
 
@@ -258,6 +260,28 @@ undefine([Use_Rollup]);
 <!--#endfor-->
 
 [/PID/DRP_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Quality --><!--#if not Phase_Size_Metric || Phase_Size_Metric =~ ' (LOC|Lines)$' --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
+
+
+/*
+ * Productivity calculations for individual size metrics
+ */
+
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+
+[Estimated_New & Changed LOC Productivity] =
+      [Estimated_New & Changed LOC] /
+      sumFor("Estimated_Time", [/PID/New & Changed LOC_Phase_List]);
+[Estimated_End to End New & Changed LOC Productivity] =
+      [Estimated_New & Changed LOC] / [Estimated_Time];
+<!--#foreach name=Metric list=Size_Metric_List #-->
+[Estimated_<!--#echo Metric_Name --> Productivity] =
+      [Estimated_<!--#echo Metric_Name -->] /
+      sumFor("Estimated_Time", [/PID/<!--#echo Metric_Name -->_Phase_List]);
+[Estimated_End to End <!--#echo Metric_Name --> Productivity] =
+      [Estimated_<!--#echo Metric_Name -->] / [Estimated_Time];
+<!--#endfor-->
+
+<!--#endfor-->
 
 
 /*

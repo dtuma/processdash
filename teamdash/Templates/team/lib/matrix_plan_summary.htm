@@ -91,38 +91,11 @@ Plan Summary</h2>
 <TABLE cellpadding=2 cellspacing=0>
 
 <TR>
-<TD><B>Summary</B></TD>
+<TD></TD>
 <TD ALIGN=CENTER class=includesSubtask><B>Plan</B></TD>
 <TD ALIGN=CENTER class=includesSubtask><B>Actual</B></TD>
 <!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
 <TD ALIGN=CENTER><B>To Date</B></TD>
-<!--#endif--><!--#endif-->
-</TR>
-
-<TR>
-<TD>Productivity (LOC/Hr)</TD>
-<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Estimated Productivity"></TD>
-<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Productivity"></TD>
-<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Productivity To Date"></TD>
-<!--#endif--><!--#endif-->
-</TR>
-
-<TR>
-<TD>Time Estimating Error</TD>
-<TD class=includesSubtask>&nbsp;</TD>
-<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Time Estimating Error	%"></TD>
-<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Time Estimating Error To Date	%"></TD>
-<!--#endif--><!--#endif-->
-</TR>
-
-<TR>
-<TD>Size Estimating Error</TD>
-<TD class=includesSubtask>&nbsp;</TD>
-<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Size Estimating Error	%"></TD>
-<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
-<TD><INPUT TYPE=text SIZE=7 NAME="Size Estimating Error To Date	%"></TD>
 <!--#endif--><!--#endif-->
 </TR>
 
@@ -153,31 +126,62 @@ Plan Summary</h2>
 <!--#endif-->
 
 <TR>
-<TD>CPI (Cost-Performance Index)</TD>
+<TD class='indented'>Estimating Error</TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Time Estimating Error	%"></TD>
+<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Time Estimating Error To Date	%"></TD>
+<!--#endif--><!--#endif-->
+</TR>
+
+<TR>
+<TD class='indented'>Cost-Performance Index</TD>
 <TD class=includesSubtask>&nbsp;</TD>
 <TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="CPI"></TD>
 </TR>
 
 <TR>
-<TD>Appraisal COQ</TD>
+<TD>Productivity</TD>
+<TD></TD>
+<TD></TD>
+</TR>
+
+<!--#foreach name=Metric list=Size_Metric_List -->
+
+<TR>
+<TD class='indented'><!--#echo Metric_Long_Name --> / Hour</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated <!--#echo Metric_Name --> Productivity"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name --> Productivity"></TD>
+</TR>
+
+<!--#endfor-->
+
+<TR>
+<TD class='indented'>New &amp; Changed LOC / Hour</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New &amp; Changed LOC Productivity"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New &amp; Changed LOC Productivity"></TD>
+</TR>
+
+<TR>
+<TD>Cost of Quality</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated % COQ"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="% COQ"></TD>
+</TR>
+
+<TR>
+<TD class='indented'>Appraisal COQ</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated % Appraisal COQ"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="% Appraisal COQ"></TD>
 </TR>
 
 <TR>
-<TD>Failure COQ</TD>
+<TD class='indented'>Failure COQ</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated % Failure COQ"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="% Failure COQ"></TD>
 </TR>
 
-<TR>
-<TD>Total COQ</TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Estimated % COQ"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="% COQ"></TD>
-</TR>
-
-
 </TABLE>
+
 
 <H2>Size</H2>
 
@@ -187,6 +191,7 @@ Plan Summary</h2>
 <TD></TD>
 <TD ALIGN=CENTER><B>Plan</B></TD>
 <TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER title="Estimating Error"><B>Est.Err.%</B></TD>
 </TR>
 
 <!--#foreach name=Metric list=Size_Metric_List -->
@@ -195,6 +200,7 @@ Plan Summary</h2>
 <TD><!--#echo Metric_Long_Name --></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated <!--#echo Metric_Name -->"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name -->"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name --> Estimating Error	%"></TD>
 </TR>
 
 <!--#endfor-->
@@ -204,6 +210,7 @@ Plan Summary</h2>
 <TD>Detailed Design Lines</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated DLD Lines"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="DLD Lines"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="DLD Lines Estimating Error"></TD>
 </TR>
 <!--#endif-->
 
@@ -211,9 +218,12 @@ Plan Summary</h2>
 <TD>New &amp; Changed LOC</TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="Estimated New &amp; Changed LOC"></TD>
 <TD><INPUT TYPE=text SIZE=7 NAME="New &amp; Changed LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New &amp; Changed LOC Estimating Error"></TD>
 </TR>
 
 </TABLE>
+
+
 
 <H2>Time / Defects</H2>
 
