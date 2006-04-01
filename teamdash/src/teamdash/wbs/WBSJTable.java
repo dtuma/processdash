@@ -496,7 +496,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public CutAction() {
-            super("Cut", IconFactory.getCutIcon());
+            super("Cut WBS Items", IconFactory.getCutIcon());
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -535,7 +535,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public CopyAction() {
-            super("Copy", IconFactory.getCopyIcon());
+            super("Copy WBS Items", IconFactory.getCopyIcon());
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -569,7 +569,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public PasteAction() {
-            super("Paste", IconFactory.getPasteIcon());
+            super("Paste WBS Items", IconFactory.getPasteIcon());
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
