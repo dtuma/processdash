@@ -33,7 +33,6 @@ import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,7 +51,6 @@ import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
-import net.sourceforge.processdash.ev.EVTaskListMerger;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
@@ -89,8 +87,6 @@ public class EVReport extends CGIChartBase {
     public static final String COMBINED_CHART = "combined";
     public static final String FAKE_MODEL_NAME = "/  ";
 
-
-    private static final int MED = EVMetrics.MEDIUM;
 
     private static Resources resources = Resources.getDashBundle("EV");
 
@@ -514,11 +510,11 @@ public class EVReport extends CGIChartBase {
             }
         });
 
-        result.add(new CsvDateColumn("Start_Date") {
-            public Date getNodeDate(EVTask node) {
-                return node.getPlanStartDate();
-            }
-        });
+//        result.add(new CsvDateColumn("Start_Date") {
+//            public Date getNodeDate(EVTask node) {
+//                return node.getPlanStartDate();
+//            }
+//        });
 
         result.add(new CsvDateColumn("Finish_Date") {
             public Date getNodeDate(EVTask node) {
@@ -536,11 +532,11 @@ public class EVReport extends CGIChartBase {
             }
         });
 
-        result.add(new CsvDateColumn("Actual_Start") {
-            public Date getNodeDate(EVTask node) {
-                return nullToNA(node.getActualStartDate());
-            }
-        });
+//        result.add(new CsvDateColumn("Actual_Start") {
+//            public Date getNodeDate(EVTask node) {
+//                return nullToNA(node.getActualStartDate());
+//            }
+//        });
 
         result.add(new CsvDateColumn("Finish_Date") {
             public Date getNodeDate(EVTask node) {
@@ -548,13 +544,13 @@ public class EVReport extends CGIChartBase {
             }
         });
 
-        result.add(new CsvHoursColumn("Scheduled_Work") {
+        result.add(new CsvHoursColumn("Duration") { // "Scheduled_Work") {
             public double getNodeMinutes(EVTask node) {
                 return node.getPlanValue();
             }
         });
 
-        result.add(new CsvHoursColumn("Actual_Work") {
+        result.add(new CsvHoursColumn("Actual_Duration") { // "Actual_Work") {
             public double getNodeMinutes(EVTask node) {
                 return node.getActualDirectTime();
             }
@@ -662,7 +658,6 @@ public class EVReport extends CGIChartBase {
      */
     public void writeHTML() throws IOException {
         String taskListHTML = WebServer.encodeHtmlEntities(taskListName);
-        String taskListURL = HTMLUtils.urlEncode(taskListName);
 
         out.print(StringUtils.findAndReplace
                   (HEADER_HTML, TITLE_VAR,
