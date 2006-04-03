@@ -48,7 +48,6 @@ import java.awt.image.RGBImageFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.EventObject;
 import java.util.Iterator;
@@ -56,7 +55,28 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JTree;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
+import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -77,13 +97,11 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
-import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.time.TimeLogTableModel;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.ui.Browser;
@@ -94,6 +112,7 @@ import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
 import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -495,8 +514,6 @@ public class TaskScheduleDialog
         return result;
     }
 
-    private Box newVBox(Component a, Component b) {
-        return newVBox(a, b, null, null, null); }
     private Box newVBox(Component a, Component b, Component c) {
         return newVBox(a, b, c, null, null); }
     private Box newVBox(Component a, Component b, Component c, Component d) {
@@ -587,6 +604,7 @@ public class TaskScheduleDialog
                 new TaskJTreeTableCellRenderer(getTree().getCellRenderer());
             getTree().setCellRenderer(r);
             ToolTipManager.sharedInstance().registerComponent(getTree());
+            new ToolTipTimingCustomizer().install(this);
         }
 
         public TableCellRenderer getCellRenderer(int row, int column) {
@@ -916,7 +934,6 @@ public class TaskScheduleDialog
             }
             g.drawImage(image, x, y, null);
             if (decoration != null) {
-                int decorationHeight = decoration.getIconHeight();
                 decoration.paintIcon(c, g, 0, decorationOffset);
             }
         }

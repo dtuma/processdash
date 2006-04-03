@@ -33,7 +33,6 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
@@ -43,6 +42,7 @@ import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 
 public class DependencyIndicator extends JLabel implements
         PropertyChangeListener {
@@ -61,6 +61,7 @@ public class DependencyIndicator extends JLabel implements
         this.taskModel = taskModel;
         this.worker = new Worker(dash);
 
+        new ToolTipTimingCustomizer().install(this);
         taskModel.addPropertyChangeListener(this);
     }
 
@@ -157,4 +158,5 @@ public class DependencyIndicator extends JLabel implements
         public int getIconWidth() { return 11; }
         public void paintIcon(Component c, Graphics g, int x, int y) { }
     };
+
 }
