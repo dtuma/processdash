@@ -25,13 +25,12 @@
 
 package net.sourceforge.processdash.data.repository;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
-import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.MalformedValueException;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -101,6 +100,10 @@ public class CompiledFunction implements SaveableData, AliasedData,
     }
 
     protected void recalc() {
+        if (extChanges == null)
+            // we have been disposed.  Don't try to recalc.
+            return;
+
         Set calcNameSet = (Set) CURRENTLY_CALCULATING.get();
         if (calcNameSet.contains(name)) {
             System.err.println("Encountered recursively defined data "
@@ -180,8 +183,10 @@ public class CompiledFunction implements SaveableData, AliasedData,
     }
 
     private void setDirty() {
-        extChanges.setDirty();
-        data.valueRecalculated(name, this);
+        if (extChanges != null) {
+            extChanges.setDirty();
+            data.valueRecalculated(name, this);
+        }
     }
 
 
@@ -206,7 +211,7 @@ public class CompiledFunction implements SaveableData, AliasedData,
     }
 
     public String getAliasedDataName() {
-        if (extChanges.isDirty())
+        if (extChanges != null && extChanges.isDirty())
             recalc();
 
         valueQueried = true;
@@ -215,7 +220,7 @@ public class CompiledFunction implements SaveableData, AliasedData,
     }
 
     public SimpleData getSimpleValue() {
-        if (extChanges.isDirty())
+        if (extChanges != null && extChanges.isDirty())
             recalc();
 
         valueQueried = true;
@@ -227,8 +232,22 @@ public class CompiledFunction implements SaveableData, AliasedData,
         script = null;
         data = null;
         value = null;
-        currentSubscriptions = null;
+        valueQueried = false;
         extChanges = null;
+        if (currentSubscriptions != null) {
+            try {
+                synchronized (currentSubscriptions) {
+                    for (Iterator i = currentSubscriptions.iterator();
+                            i.hasNext();) {
+                        String s = (String) i.next();
+                        data.removeDataListener(s, this);
+                    }
+                    currentSubscriptions.clear();
+                }
+            } catch (NullPointerException npe) {
+            }
+            currentSubscriptions = null;
+        }
     }
 
     public SaveableData getEditable(boolean editable) {
