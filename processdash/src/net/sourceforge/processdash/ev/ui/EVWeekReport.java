@@ -27,7 +27,6 @@ package net.sourceforge.processdash.ev.ui;
 
 
 import java.io.IOException;
-import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -40,8 +39,6 @@ import java.util.Map;
 import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
@@ -49,9 +46,7 @@ import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
-import net.sourceforge.processdash.ev.ui.EVReport.DependencyCellRenderer;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.ui.TimeLogEditor;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -324,39 +319,30 @@ public class EVWeekReport extends TinyCGIBase {
                     timeRemaining += printDueLine(tasks, i, cpi, rend,
                             showAssignedTo);
 
-            interpOut("<tr><td align=right colspan=6><b>${Due_Tasks.Total}" +
-                        "&nbsp;</b></td><td class='timefmt'>");
+            out.print("<tr><td align=right colspan=");
+            out.print(showAssignedTo ? "7" : "6");
+            interpOut("><b>${Due_Tasks.Total}"
+                    + "&nbsp;</b></td><td class='timefmt'>");
             out.print(formatTime(timeRemaining));
             out.println("</td></tr>\n</table>");
         }
-
 
         interpOut("<h3>${Dependencies.Header}</h3>\n");
         if (upcomingDependencies.isEmpty())
             interpOut("<p><i>${None}</i>\n");
         else {
-            interpOut("<table border=1 name='dependTask'><tr>" +
-                      "<td></td>"+
-                      "<td class=header>${Columns.Assigned_To}</td>"+
-                      "<td class=header " +
-                          "title='${Columns.Percent_Complete_Tooltip}'>" +
-                          "${Columns.Percent_Complete}</td>"+
-                      "<td class=header>${Columns.Needed_For}</td>"+
-                      "<td class=header>${Columns.Planned_Date}</td>"+
-                      "</tr>\n");
-
             for (Iterator i = upcomingDependencies.entrySet().iterator(); i.hasNext();) {
                 Map.Entry e = (Map.Entry) i.next();
                 EVTaskDependency d = (EVTaskDependency) e.getKey();
                 List dependentTasks = (List) e.getValue();
-                printUpcomingDependencyLines(d, dependentTasks, tasks);
+                printUpcomingDependencies(d, dependentTasks, tasks,
+                        showAssignedTo);
             }
-
-            out.println("</table>");
         }
 
+        if (!exportingToExcel())
+            interpOut(EXPORT_HTML);
 
-        interpOut(EXPORT_HTML);
         out.print(FOOTER_HTML);
     }
 
@@ -518,30 +504,59 @@ public class EVWeekReport extends TinyCGIBase {
         return forecastTimeRemaining > 0 ? forecastTimeRemaining : 0;
     }
 
-    protected void printUpcomingDependencyLines(EVTaskDependency d,
-            List dependentTasks, TableModel tasks) {
+    protected void printUpcomingDependencies(EVTaskDependency d,
+            List dependentTasks, TableModel tasks, boolean showAssignedTo) {
 
-        out.print("<tr><td class=left>");
-        out.print(encodeHTML(d.getDisplayName()));
-        out.print("</td><td class='left'>");
-        out.print(encodeHTML(d.getAssignedTo()));
-        out.print("</td><td>");
-        out.print(formatPercent(d.getPercentComplete()));
-        out.print("</td>");
+        boolean isExcel = exportingToExcel();
 
-        boolean firstRow = true;
+        out.print("<div>");
+        if (!isExcel) {
+            out.print("<a href='#' onclick='toggleDep(this); return false;'>");
+            out.print("<img src='/Images/minus.png' width=9 height=9 border=0>");
+            out.print("</a>&nbsp;");
+        }
+
+        out.println(encodeHTML(d.getDisplayName()));
+
+        if (!isExcel) {
+            out.print("<span style='display:none'>");
+            out.print(TaskDependencyAnalyzer.getBriefDetails(d,
+                    TaskDependencyAnalyzer.HTML_SEP));
+            out.println("</span>");
+        }
+
+        out.println("<div class='dependDetail'>");
+        interpOut("<b>${Columns.Percent_Complete_Tooltip}:</b> ");
+        out.println(formatPercent(d.getPercentComplete()));
+        interpOut("<br><b>${Columns.Planned_Date}:</b> ");
+        out.println(encodeHTML(d.getPlannedDate()));
+        interpOut("<br><b>${Columns.Assigned_To}:</b> ");
+        out.println(encodeHTML(d.getAssignedTo()));
+
+        // Now, print a table of the dependent tasks.
+        interpOut("<table border=1 class='dependList'><tr>"
+                + "<td class=header>${Columns.Needed_For}</td>");
+        if (showAssignedTo)
+            interpOut("<td class=header>${Columns.Assigned_To}</td>");
+        interpOut("<td class=header>${Columns.Planned_Date}</td></tr>\n");
+
         for (Iterator j = dependentTasks.iterator(); j.hasNext();) {
             int i = ((Integer) j.next()).intValue();
-            if (!firstRow)
-                out.print("<tr><td colspan='3'></td>");
             out.print("<td class='left'>");
             out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
+            if (showAssignedTo) {
+                out.print("</td><td class='left'>");
+                out.print(encodeHTML
+                          (tasks.getValueAt(i, EVTaskList.ASSIGNED_TO_COLUMN)));
+            }
             out.print("</td><td>");
             out.print(encodeHTML
                     (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
             out.println("</td></tr>");
-            firstRow = false;
         }
+
+        out.println("</table></div></div>");
+        out.println("<br>");
     }
 
 
@@ -558,7 +573,26 @@ public class EVWeekReport extends TinyCGIBase {
                            " vertical-align:bottom }\n" +
         "span.nav { font-size: medium;  font-style: italic; " +
                            " font-weight: normal }\n" +
+        "div.dependDetail { margin-left: 1cm }\n" +
+        "table.dependList { margin-top: 7px; margin-bottom: 15px }\n" +
         "</style>\n"+
+        "<script>\n" +
+        "function toggleDep(elem) {\n" +
+        "   var parent = elem.parentNode;\n" +
+        "   var span = parent.getElementsByTagName(\"SPAN\")[0];\n" +
+        "   var div = parent.getElementsByTagName(\"DIV\")[0];\n" +
+        "   var img = elem.getElementsByTagName(\"IMG\")[0];\n" +
+        "   if (span.style.display == \"none\") {\n" +
+        "      span.style.display = \"inline\";\n" +
+        "      div.style.display = \"none\";\n" +
+        "      img.src = \"/Images/plus.png\";\n" +
+        "   } else {\n" +
+        "      span.style.display = \"none\";\n" +
+        "      div.style.display = \"block\";\n" +
+        "      img.src = \"/Images/minus.png\";\n" +
+        "   }\n" +
+        "}\n" +
+        "</script>\n" +
         EVReport.POPUP_HEADER +
         "</head><body><h1>%title%</h1>\n";
 
@@ -571,9 +605,6 @@ public class EVWeekReport extends TinyCGIBase {
 
     private String formatTime(double time) {
         return FormatUtil.formatTime(time);
-    }
-    private String formatEV(double ev) {
-        return formatPercent(ev / totalPlanTime);
     }
     private String formatPercent(double pct) {
         return FormatUtil.formatPercent(pct);

@@ -25,7 +25,6 @@
 
 package net.sourceforge.processdash.ev.ui;
 
-import java.awt.Color;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -136,14 +135,7 @@ public class TaskDependencyAnalyzer {
             }
             descr.append("<td style='text-align:left' nowrap>");
             descr.append(nvl(d.getDisplayName()));
-            if (!d.isUnresolvable()) {
-                descr.append(sep).append(nvl(d.getAssignedTo()));
-                Date pd = d.getPlannedDate();
-                if (pd != null && d.getPercentComplete() < 1)
-                    descr.append(sep).append(DATE_FORMAT.format(pd));
-                descr.append(sep).append(
-                        EVSchedule.formatPercent(d.getPercentComplete()));
-            }
+            descr.append(getBriefDetails(d, sep));
             descr.append("</td></tr>");
         }
         descr.append("</table>");
@@ -152,10 +144,24 @@ public class TaskDependencyAnalyzer {
         return descr.toString();
     }
 
+    public static String getBriefDetails(EVTaskDependency d, String sep) {
+        if (d.isUnresolvable())
+            return "";
+
+        StringBuffer result = new StringBuffer();
+        result.append(sep).append(nvl(d.getAssignedTo()));
+        Date pd = d.getPlannedDate();
+        if (pd != null && d.getPercentComplete() < 1)
+            result.append(sep).append(DATE_FORMAT.format(pd));
+        result.append(sep).append(
+                EVSchedule.formatPercent(d.getPercentComplete()));
+        return result.toString();
+    }
+
     private static DateFormat DATE_FORMAT = SimpleDateFormat
             .getDateInstance(DateFormat.SHORT);
 
-    private String nvl(String s) {
+    private static String nvl(String s) {
         return (s == null ? "" : HTMLUtils.escapeEntities(s));
     }
 
@@ -239,7 +245,7 @@ public class TaskDependencyAnalyzer {
 
     private static final String HTML_STOP_URI = "/Images/stop.gif";
     private static final String HTML_CHECK_URI = "/Images/check.gif";
-    private static final String HTML_SEP = " &bull; ";
+    static final String HTML_SEP = " &bull; ";
     private static final String[] HTML_INDICATORS = new String[] {
             "<span style='color:red; font-weight:bold' title='"
                     + getRes(0, "Explanation_All", true) + "'>"
