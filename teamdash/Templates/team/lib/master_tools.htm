@@ -2,6 +2,7 @@
 <head>
 <title>Master Project Tools and Settings</title>
 <link rel=stylesheet type="text/css" href="style.css">
+<script src="fixSlash.js"></script>
 <script>
 
     function eesc(str) {
@@ -24,6 +25,10 @@
 	url = url.replace(/localhost/,
 	                  "[!--#include file='/dash/serverName.class' --]");
 	url = url.replace(/master_tools.shtm/, file);
+	var dblSlashPos = url.lastIndexOf("//");
+	if (dblSlashPos != -1) {
+            url = url.substring(0, dblSlashPos) + "/+/" + url.substring(dblSlashPos+2);
+        }
 	return url;
     }
 
@@ -35,13 +40,6 @@
     function writeToolsLink() { writeHrefLink("master_tools.shtm"); }
 
     function writePlanLink() { writeHrefLink("team_summary.shtm"); }
-
-    function writeJoinLink() { writeHrefLink("setup/join.shtm");   }
-
-    function writeMailtoLink() {
-	var url = getExtURL("setup/join.shtm");
-        document.write("<a href='mailto:?subject=Join%20Team%20Project&body=A%20new%20team%20project%20has%20been%20created%3b%20please%20visit%0d%0a%20%20%20%20"+eesc(url)+"%0d%0ato%20join%20this%20project%2e'>click on this link</a>");
-    }
 
 </script>
 
