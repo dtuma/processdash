@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -63,8 +63,8 @@ public class EVWeekReport extends TinyCGIBase {
 
     private static final String EFF_DATE_PARAM = "eff";
 
-        private static final int MINUTES_PER_WEEK =
-                7 /*days*/ * 24 /*hours*/ * 60 /*minutes*/;
+    private static final long MILLIS_PER_WEEK = 7L /*days*/ * 24 /*hours*/
+            * 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*millis*/;
 
     private double totalPlanTime;
 
@@ -248,7 +248,10 @@ public class EVWeekReport extends TinyCGIBase {
                      weekSlice.getCumEarnedValue(totalPlanTime));
         out.print("</tr>\n");
 
-        double numWeeks = metrics.elapsed() / MINUTES_PER_WEEK;
+        double numWeeks = Double.NaN;
+        if (startDate != null)
+            numWeeks = (effDate.getTime() - startDate.getTime())
+                    / (double) MILLIS_PER_WEEK;
         interpOut("<tr><td class=left>${Summary.Average_per_Week}" +
                         "</td><td></td>");
         double planTimePerWeek =
