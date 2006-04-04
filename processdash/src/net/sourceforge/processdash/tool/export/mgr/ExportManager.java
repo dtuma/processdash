@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
+// Copyright (C) 2005-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.tool.export.mgr;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -51,7 +50,6 @@ import net.sourceforge.processdash.ui.lib.ProgressDialog;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 public class ExportManager extends AbstractManager {
 
@@ -200,6 +198,7 @@ public class ExportManager extends AbstractManager {
 
         p.run();
         System.out.println("Completed user-scheduled data export.");
+        Runtime.getRuntime().gc();
     }
 
     private Collection getExportInstructionsFromData() {

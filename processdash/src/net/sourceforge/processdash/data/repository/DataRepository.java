@@ -52,13 +52,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -99,6 +97,7 @@ public class DataRepository implements Repository, DataContext {
 
         /** a mapping of data names (Strings) to data values (DataElements) */
         Hashtable data = new Hashtable(8000, (float) 0.5);
+//    HashTree data = new HashTree(8000);
 
         /** a backwards mapping of the above hashtable for data values that happen
          *  to be DataListeners.  key is a DataListener, value is a String. */
@@ -128,8 +127,8 @@ public class DataRepository implements Repository, DataContext {
          *  a DataFile object - only autorealize data for this file. */
         Object realizeDeferredDataFor = Boolean.FALSE;
 
-        private static Logger logger = Logger.getLogger(
-                    DataRepository.class.getName());
+        private static Logger logger = Logger.getLogger(DataRepository.class
+                .getName());
 
         private class DataRealizer extends Thread {
             Stack dataElements = null;
@@ -231,9 +230,6 @@ public class DataRepository implements Repository, DataContext {
         // The DataElement class tracks the state of a single piece of data.
         private class DataElement {
 
-            // The name of this element.
-            private String name;
-
             // the value of this element.  When data elements are created but not
             // initialized, their value is set to null.  Elements with null values
             // will not be saved out to any datafile.
@@ -259,13 +255,7 @@ public class DataRepository implements Repository, DataContext {
             //
             Vector dataListenerList = null;
 
-            // a preconstructed event for dispatching to listeners (so a new event
-            // need not be constructed each time).
-            //
-            private volatile DataEvent event = null;
-
             public DataElement(String name) {
-                this.name = name;
             }
 
             public SaveableData getValue() {
@@ -285,7 +275,6 @@ public class DataRepository implements Repository, DataContext {
             }
 
             public synchronized void setValue(SaveableData d) {
-                event = null;
                 simpleValue = null;
                 if (deferred = ((value = d) instanceof DeferredData))
                     if (realizeDeferredDataFor == datafile ||
@@ -314,21 +303,9 @@ public class DataRepository implements Repository, DataContext {
 
             public void maybeRealize() { if (deferred) realize(); }
 
-            public DataEvent getDataChangedEvent() {
-                DataEvent result = event;
-                if (result == null || result.getID() != DataEvent.VALUE_CHANGED)
-                    event = result = new DataEvent(DataRepository.this, name,
-                                                   DataEvent.VALUE_CHANGED,
-                                                   getSimpleValue());
-                return result;
-            }
-
-            public DataEvent getDataAddedEvent() {
-                DataEvent result = event;
-                if (result == null || result.getID() != DataEvent.DATA_ADDED)
-                    event = result = new DataEvent(DataRepository.this, name,
-                                                   DataEvent.DATA_ADDED, null);
-                return result;
+            public DataEvent getDataChangedEvent(String name) {
+                  return new DataEvent(DataRepository.this, name,
+                          DataEvent.VALUE_CHANGED, getSimpleValue());
             }
         }
 
@@ -524,7 +501,7 @@ public class DataRepository implements Repository, DataContext {
                     while (names.hasMoreElements()) {
                         name = (String) names.nextElement();
                         d    = (DataElement) elements.get(name);
-                        dataEvents.addElement(d.getDataChangedEvent());
+                        dataEvents.addElement(d.getDataChangedEvent(name));
                     }
 
                                           // send the data events via dataValuesChanged()
@@ -646,20 +623,20 @@ public class DataRepository implements Repository, DataContext {
 
             public void dataIsConsistent() {
                 synchronized (runLock) {
-                       try {
-                     // Perform all requested work.
-                     MAX_DIRTY = Integer.MAX_VALUE;
-                     deferDeletions = true;
-                     while (!itemsToFreeze.isEmpty() || !itemsToThaw.isEmpty()) {
-                         freezeAll();
-                         thawAll();
-                     }
-                     deferDeletions = false;
-                     processedDeferredDataListenerDeletions();
-                     MAX_DIRTY = 10;
-                     saveAllDatafiles();
+                    try {
+                        // Perform all requested work.
+                        MAX_DIRTY = Integer.MAX_VALUE;
+                        deferDeletions = true;
+                        while (!itemsToFreeze.isEmpty() || !itemsToThaw.isEmpty()) {
+                            freezeAll();
+                            thawAll();
+                        }
+                        deferDeletions = false;
+                        processedDeferredDataListenerDeletions();
+                        MAX_DIRTY = 10;
+                        saveAllDatafiles();
                     } catch (Throwable t) {
-                          logger.log(Level.WARNING, "DataFreezer got exception", t);
+                        logger.log(Level.WARNING, "DataFreezer got exception", t);
                     } finally {
                         runLock.notifyAll();
                     }
@@ -670,10 +647,10 @@ public class DataRepository implements Repository, DataContext {
                 if (!terminate)
                     synchronized (waitLock) {
                         while (!terminate && itemsToFreeze.isEmpty() && itemsToThaw.isEmpty()) {
-                                  try {
-                                      waitLock.wait();
-                                          } catch (InterruptedException e) {
-                                          }
+                            try {
+                                waitLock.wait();
+                            } catch (InterruptedException e) {
+                            }
                         }
                     }
             }
@@ -686,17 +663,17 @@ public class DataRepository implements Repository, DataContext {
 
             public boolean flush() {
                 if (terminate)
-                        return false;
+                    return false;
 
                 boolean result = false;
                 synchronized (runLock) {
-                        while (!itemsToFreeze.isEmpty() || !itemsToThaw.isEmpty()) {
-                               try {
-                                      result = true;
-                                              runLock.wait();
-                                       } catch (InterruptedException e) {
-                                       }
+                    while (!itemsToFreeze.isEmpty() || !itemsToThaw.isEmpty()) {
+                        try {
+                            result = true;
+                            runLock.wait();
+                        } catch (InterruptedException e) {
                         }
+                    }
                 }
                 return result;
             }
@@ -741,15 +718,13 @@ public class DataRepository implements Repository, DataContext {
                 stopWaitingForWork();
             }
 
-            public void dataAdded(DataEvent e) {
-                String dataName = e.getName();
+            public void dataAdded(String dataName) {
                 if (isFreezeFlagElement(dataName) &&
                     !frozenDataSets.containsKey(dataName))
                     frozenDataSets.put(dataName, new FrozenDataSet(dataName));
             }
 
-            public void dataRemoved(DataEvent e) {
-                String dataName = e.getName();
+            public void dataRemoved(String dataName) {
                 if (!isFreezeFlagElement(dataName)) return;
                 FrozenDataSet set = (FrozenDataSet) frozenDataSets.remove(dataName);
                 if (set != null)
@@ -837,9 +812,9 @@ public class DataRepository implements Repository, DataContext {
                 synchronized (itemsToThaw) {
                     synchronized (itemsToFreeze) {
                         for (Iterator iter = dataNames.iterator(); iter.hasNext();) {
-                                                String dataName = (String) iter.next();
-                                                if (itemsToThaw.remove(dataName) == false)
-                                    itemsToFreeze.add(dataName);
+                            String dataName = (String) iter.next();
+                            if (itemsToThaw.remove(dataName) == false)
+                                itemsToFreeze.add(dataName);
                         }
                     }
                 }
@@ -855,9 +830,9 @@ public class DataRepository implements Repository, DataContext {
                 synchronized (itemsToThaw) {
                     synchronized (itemsToFreeze) {
                         for (Iterator iter = dataNames.iterator(); iter.hasNext();) {
-                                                String dataName = (String) iter.next();
-                                                if (itemsToFreeze.remove(dataName) == false)
-                                    itemsToThaw.add(dataName);
+                            String dataName = (String) iter.next();
+                            if (itemsToFreeze.remove(dataName) == false)
+                                itemsToThaw.add(dataName);
                         }
                     }
                 }
@@ -881,7 +856,7 @@ public class DataRepository implements Repository, DataContext {
                     this.freezeFlagName = freezeFlagName;
 
                     logger.log(Level.FINE, "Creating FrozenDataSet for {0}",
-                                    freezeFlagName);
+                            freezeFlagName);
 
                     // Fetch the prefix and the regular expression.
                     int pos = freezeFlagName.indexOf(FREEZE_FLAG_TAG);
@@ -913,17 +888,17 @@ public class DataRepository implements Repository, DataContext {
 
                 private void freezeAll(Set dataItems) {
                     logger.log(Level.FINE, "Need to freeze data elements for flag {0}",
-                                    freezeFlagName);
+                            freezeFlagName);
                     synchronized (dataItems) {
-                          freeze(dataItems);
+                        freeze(dataItems);
                     }
                 }
 
                 private void thawAll(Set dataItems) {
                     logger.log(Level.FINE, "Need to thaw data elements for flag {0}",
-                                    freezeFlagName);
+                            freezeFlagName);
                     synchronized (dataItems) {
-                          thaw(dataItems);
+                        thaw(dataItems);
                     }
                 }
 
@@ -1005,12 +980,11 @@ public class DataRepository implements Repository, DataContext {
                  *     On the other hand, it might be frozen by one but not the
                  *     other, triggering this scenario.
                  */
-                public void dataAdded(DataEvent e) {
-                    String dataName = e.getName();
+                public void dataAdded(String dataName) {
                     try {
                         if (isFreezeFlagElement(dataName))
                             return;           // don't freeze freeze flags!
-                        if (!perl.match(freezeRegexp, e.getName()))
+                        if (!perl.match(freezeRegexp, dataName))
                             return;           // only freeze data which matches the regexp.
 
                     } catch (Perl5Util.RegexpException m) {
@@ -1035,8 +1009,8 @@ public class DataRepository implements Repository, DataContext {
                     }
                 }
 
-                public void dataRemoved(DataEvent e) {
-                    dataItems.remove(e.getName());
+                public void dataRemoved(String dataName) {
+                    dataItems.remove(dataName);
                 }
             }
         }
@@ -1213,7 +1187,7 @@ public class DataRepository implements Repository, DataContext {
                 // move - but none of that stuff should be moving.
                 if (value instanceof SimpleData) {
                     newName = newPrefix + name.substring(oldPrefixLen);
-                    newName = newName.intern();
+                    newName = intern(newName, false);
                     //System.out.println("renaming " + name + " to " + newName);
                     putValue(newName, value.getSimpleValue());
                     putValue(name, null);
@@ -1381,9 +1355,7 @@ public class DataRepository implements Repository, DataContext {
                     Iterator k = getKeys();
                     String name;
                     DataElement element;
-                    DataListener dl;
                     Vector elementsToRemove = new Vector();
-                    Hashtable affectedServerThreads = new Hashtable();
 
                                           // build a list of all the data elements of
                                           // this datafile.
@@ -1434,7 +1406,7 @@ public class DataRepository implements Repository, DataContext {
             //                    (value == null ? "null" : value.saveString()));
 
             if (notify && !name.startsWith(anonymousPrefix))
-                repositoryListenerList.dispatch(d.getDataAddedEvent());
+                repositoryListenerList.dispatchAdded(name);
 
             return d;
         }
@@ -1450,26 +1422,18 @@ public class DataRepository implements Repository, DataContext {
             // if the named object existed in the repository,
             if (removedElement != null) {
 
-                SimpleData oldValue;
+                if (removedElement.getImmediateValue() != null)
+                    removedElement.getImmediateValue().dispose();
 
-                if (removedElement.getImmediateValue() == null)
-                    oldValue = null;
-                else if (removedElement.getImmediateValue() instanceof DeferredData)
-                    oldValue = null;
-                else {
-                    oldValue = removedElement.getSimpleValue();
-                    removedElement.getValue().dispose();
-                }
-                                        // notify any data listeners
+                                          // notify any data listeners
                 removedElement.setValue(null);
                 dataNotifier.dataChanged(name, removedElement);
 
                                         // notify any repository listeners
                 if (!name.startsWith(anonymousPrefix))
-                    repositoryListenerList.dispatch
-                        (new DataEvent(this, name, DataEvent.DATA_REMOVED, oldValue));
+                    repositoryListenerList.dispatchRemoved(name);
 
-                            // flag the element's datafile as having been modified
+                          // flag the element's datafile as having been modified
                 if (removedElement.datafile != null)
                     datafileModified(removedElement.datafile);
 
@@ -1692,11 +1656,11 @@ public class DataRepository implements Repository, DataContext {
 
         private void waitForCalculations() {
             while (dataFreezer.flush() || dataNotifier.flush()) {
-                    // do nothing.
+                // do nothing.
             }
-            }
+        }
 
-            public String getAliasedName(String name) {
+        public String getAliasedName(String name) {
             DataElement d = (DataElement) data.get(name);
             String aliasName = null;
             if (d != null && d.getValue() instanceof AliasedData)
@@ -2072,10 +2036,7 @@ public class DataRepository implements Repository, DataContext {
 
             //debug("loadDatafile("+filename+")");
             // Initialize data, file, and read buffer.
-            String inheritedDatafile = null;
             BufferedReader in = new BufferedReader(datafile);
-            String line, name, value;
-            int equalsPosition;
             FileLoader loader = new FileLoader(dest);
             String defineDecls = null;
             if (filename != null)
@@ -2428,10 +2389,8 @@ public class DataRepository implements Repository, DataContext {
 
                 int retryCount = 10;
                 while (!successful && retryCount-- > 0) try {
-                    boolean dataEditable;
-
                     Map.Entry defn;
-                    String localName, name, value;
+                    String localName, name;
                     Object valueObj;
                     SaveableData o;
                     DataElement d;
@@ -2504,6 +2463,7 @@ public class DataRepository implements Repository, DataContext {
             } finally {
                 finishInconsistency();
             }
+            Runtime.getRuntime().gc();
         }
 
         private Hashtable mountedPhantomData = new Hashtable();
@@ -2570,9 +2530,6 @@ public class DataRepository implements Repository, DataContext {
         }
         private DataFile PHANTOM_DATAFILE = null;
 
-        private final Object OPENDATAFILE_ERROR_DEPTH_LOCK = new Object();
-        private volatile int OPENDATAFILE_ERROR_DEPTH = 0;
-
         private static volatile int MAX_DIRTY = 10;
 
 
@@ -2582,6 +2539,12 @@ public class DataRepository implements Repository, DataContext {
         }
 
         public Iterator getKeys() {
+            return getKeysImpl(data);
+        }
+        private Iterator getKeysImpl(HashTree data) {
+            return data.getAllKeys();
+        }
+        private Iterator getKeysImpl(Hashtable data) {
             ArrayList l = new ArrayList();
             synchronized (data) {
                 l.addAll(data.keySet());
@@ -2935,7 +2898,7 @@ public class DataRepository implements Repository, DataContext {
                 while (k.hasNext()) {
                     if ((name = (String) k.next()).startsWith(prefix)) {
                         DataElement d = (DataElement) data.get(name);
-                        if (d != null) rl.dataAdded(d.getDataAddedEvent());
+                        if (d != null) rl.dataAdded(name);
                     }
                 }
 
@@ -2944,7 +2907,7 @@ public class DataRepository implements Repository, DataContext {
                 while (k.hasNext())
                     if (!(name = (String) k.next()).startsWith(anonymousPrefix)) {
                         DataElement d = (DataElement) data.get(name);
-                        if (d != null) rl.dataAdded(d.getDataAddedEvent());
+                        if (d != null) rl.dataAdded(name);
                     }
 
             // debug("addRepositoryListener done");
@@ -3102,7 +3065,7 @@ public class DataRepository implements Repository, DataContext {
 
         public static String createDataName(String prefix, String name) {
             if (name == null) return null;
-            if (name.startsWith("/")) return name.intern();
+            if (name.startsWith("/")) return intern(name, true);
             while (name.startsWith(PARENT_PREFIX)) {
                 prefix = chopPath(prefix);
                 if (prefix == null) {
@@ -3115,7 +3078,7 @@ public class DataRepository implements Repository, DataContext {
             buf.append(prefix);
             if (!prefix.endsWith("/")) buf.append("/");
             buf.append(name);
-            return buf.toString().intern();
+            return intern(buf.toString(), false);
         }
 
         private Comparator nodeComparator = null;
@@ -3130,5 +3093,9 @@ public class DataRepository implements Repository, DataContext {
                 result = name1.compareTo(name2);
 
             return result;
+        }
+
+        private static String intern(String s, boolean recommendNew) {
+            return StringUtils.intern(s, recommendNew);
         }
 }

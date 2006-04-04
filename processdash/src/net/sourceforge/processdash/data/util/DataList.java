@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -213,11 +213,11 @@ abstract class DataList {
         }
 
 
-        public void dataAdded(DataEvent e) {
+        public void dataAdded(String name) {
             try {
-                if (perl.match(re, e.getName())) {
-                    dataList.put(e.getName(), new DataListValue(null)); // needed?
-                    data.addActiveDataListener(e.getName(), this, customerName);
+                if (perl.match(re, name)) {
+                    dataList.put(name, new DataListValue(null)); // needed?
+                    data.addActiveDataListener(name, this, customerName);
                 }
             } catch (Perl5Util.RegexpException m) {
                 System.err.println("RegexpException: " + re);
@@ -225,9 +225,9 @@ abstract class DataList {
             }
         }
 
-        public void dataRemoved(DataEvent e) {
-            if (dataList.remove(e.getName()) != null) {
-                data.removeDataListener(e.getName(), this);
+        public void dataRemoved(String name) {
+            if (dataList.remove(name) != null) {
+                data.removeDataListener(name, this);
                 recalc();
             }
         }
@@ -396,12 +396,11 @@ abstract class DataList {
         }
 
 
-        public void dataAdded(DataEvent e) {
+        public void dataAdded(String dataName) {
             String condExpr = null;
-            String dataName = e.getName();
             try {
                 synchronized (perl) {
-                    if (!perl.match(re, e.getName()))
+                    if (!perl.match(re, dataName))
                         return;
 
                     // use pattern substitution to compute expression for conditional
@@ -457,8 +456,8 @@ abstract class DataList {
             return null;
         }
 
-        public void dataRemoved(DataEvent e) {
-            String dataName = e.getName(), dataCondName;
+        public void dataRemoved(String dataName) {
+            String dataCondName;
             if (condDataList.remove(dataName) != null) {
                 data.removeDataListener(dataName, this);
                 dataCondName = lookupConditionName(dataName);

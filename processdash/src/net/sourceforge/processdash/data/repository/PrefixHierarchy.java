@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -112,17 +112,20 @@ class PrefixHierarchy {
 
 
 
-    /** dispatch event @param e to any interested listeners.
-     */
-    public void dispatch(DataEvent e) { dispatch(e, e.getName()); }
+    public void dispatchAdded(String dataName) {
+        dispatch(true, dataName, dataName);
+    }
+    public void dispatchRemoved(String dataName) {
+        dispatch(false, dataName, dataName);
+    }
 
 
 
     // Perform the work associated with dispatching data event e .
     //
-    private void dispatch(DataEvent e, String name) {
-        dispatchToListeners(e);
-        dispatchToChildren(e, name);
+    private void dispatch(boolean added, String fullName, String localName) {
+        dispatchToListeners(added, fullName);
+        dispatchToChildren(added, fullName, localName);
     }
 
 
@@ -130,23 +133,19 @@ class PrefixHierarchy {
     // If we have a list of listeners, notify them of this event. Otherwise,
     // do nothing.
     //
-    private void dispatchToListeners(DataEvent e) {
+    private void dispatchToListeners(boolean added, String dataName) {
 
         if (listeners == null) return;
 
         int i = listeners.size();
 
-        switch (e.getID()) {
-        case DataEvent.DATA_ADDED:
+        if (added)
             while (i-- != 0 )
-                ((RepositoryListener) listeners.elementAt(i)).dataAdded(e);
-            break;
+                ((RepositoryListener) listeners.elementAt(i)).dataAdded(dataName);
 
-        case DataEvent.DATA_REMOVED:
+        else
             while (i-- != 0)
-                ((RepositoryListener) listeners.elementAt(i)).dataRemoved(e);
-            break;
-        }
+                ((RepositoryListener) listeners.elementAt(i)).dataRemoved(dataName);
     }
 
 
@@ -154,15 +153,16 @@ class PrefixHierarchy {
     // If we have any children, find the one child that is interested in this
     // event, and dispatch it to that child.
     //
-    private void dispatchToChildren(DataEvent e, String name) {
+    private void dispatchToChildren(boolean added, String fullName,
+            String localName) {
         if (children == null) return;
 
         Enumeration prefixes = children.keys();
         String prefix;
         while (prefixes.hasMoreElements())
-            if (name.startsWith(prefix = (String) prefixes.nextElement())) {
+            if (localName.startsWith(prefix = (String) prefixes.nextElement())) {
                 ((PrefixHierarchy) children.get(prefix)).dispatch
-                    (e, name.substring(prefix.length()));
+                    (added, fullName, localName.substring(prefix.length()));
                 break;
             }
     }

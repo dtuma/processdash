@@ -420,4 +420,11 @@ public class StringUtils
             return outerMap.getString(innerMap.getString(str));
         }
     }
+
+    public static String intern(String s, boolean recommendNew) {
+        // create this routine to provide a single point for a consistent String
+        // interning policy.  For now, stick with the java platform intern
+        // support, but anticipate moving to another approach in the future.
+        return s.intern();
+    }
 }

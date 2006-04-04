@@ -61,6 +61,7 @@ public class DumpDataElements extends TinyCGIBase implements TinyCGIHighVolume {
             dumpXml(filter);
         else
             dumpText(filter);
+        Runtime.getRuntime().gc();
     }
 
     private void dumpXml(Vector filter) throws IOException {

@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -326,7 +326,7 @@ public class HashTree {
 
         int slashPos = key.indexOf(SEPARATOR_CHAR);
         if (slashPos == -1)
-            return contents.put(key, value);
+            return contents.put(StringUtils.intern(key, true), value);
 
         slashPos++;
         if (slashPos == key.length()) {
@@ -334,14 +334,14 @@ public class HashTree {
             child.root = this.root;
             // note - the next line assumes only one parent per node.
             child.parent = this;
-            return contents.put(key, value);
+            return contents.put(StringUtils.intern(key, true), value);
         }
 
         String subKey = key.substring(0, slashPos);
         HashTree subHash = (HashTree) contents.get(subKey);
         if (subHash == null) {
             subHash = newHashTreeNode();
-            contents.put(subKey.intern(), subHash);
+            contents.put(StringUtils.intern(subKey, true), subHash);
         }
 
         return subHash.putImpl(key.substring(slashPos), value);
