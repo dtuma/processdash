@@ -223,7 +223,7 @@ public class EVCalculatorRollup extends EVCalculator {
         }
         sum.intervalsComplete();
         // System.out.println("created " + sum.samples.size() + " cost samples");
-        sum.debugPrint(5);
+        // sum.debugPrint(5);
         schedule.getMetrics().setCostConfidenceInterval(sum);
         schedule.getMetrics().setTimeErrConfidenceInterval(null);
         schedule.getMetrics().setDateConfidenceInterval(null);
