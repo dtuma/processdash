@@ -27,7 +27,6 @@ package net.sourceforge.processdash.ev;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,10 +40,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import net.sourceforge.processdash.util.XMLUtils;
 
 /** This class produces a merged view of a rolled-up earned value schedule
  * for a project.
@@ -398,7 +393,12 @@ public class EVTaskListMerger {
         // target node.
         for (Iterator i = leavesToMerge.iterator(); i.hasNext();) {
             EVTask node = (EVTask) i.next();
-            newNode.add((EVTask) node.clone());
+            EVTask tempChild = (EVTask) node.clone();
+            // EVTasks will ignore requests to add nodes that are already
+            // in their list of children.  Short-circuit that logic by
+            // choosing a new, random name for this temporary node.
+            tempChild.name = tempChild.fullName = uniqueNodeName();
+            newNode.add(tempChild);
         }
 
         // now that we've added the nodes to merge as our children, we can
@@ -721,6 +721,18 @@ public class EVTaskListMerger {
     private static boolean hasValue(Collection c) {
         return c != null && !c.isEmpty();
     }
+
+    /** Generate a fairly unique node name.
+     * 
+     * A different value will be returned on each call to this method.
+     * No guarantees are made that the name is unique within the final,
+     * merged tree (if some user created an item called "node1" in their
+     * EV schedule, for example).
+     */
+    private String uniqueNodeName() {
+        return "node" + uniqueNumber++;
+    }
+    int uniqueNumber = 1;
 
 
 
