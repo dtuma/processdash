@@ -530,8 +530,7 @@ Authors:
       depends="jar,javahelp-addon,import-addon,pspForEng-addon"/>
 
   <target name="dist-src" depends="ant-tasks">
-    <cvszip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"
-        cvsroot="${cvsroot}"/>
+    <svnzip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"/>
   </target>
 
   <target name="dist-all" depends="dist,dist-src,installer"/>

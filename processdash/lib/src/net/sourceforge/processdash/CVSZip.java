@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -70,6 +70,9 @@ public class CVSZip extends Task {
     private void validate() throws BuildException {
         if (startDir == null)
             throw new BuildException("dir attribute must be specified.");
+        if (!startDir.isDirectory())
+            throw new BuildException("cannot find directory '"
+                    + startDir.getPath() + "'");
         if (destFile == null)
             throw new BuildException("dest attribute must be specified.");
     }
@@ -101,22 +104,25 @@ public class CVSZip extends Task {
     private void writeFiles(ZipOutputStream out, File dir, String dirPath)
         throws IOException
     {
-        List entries = getCVSEntries(dir);
+        List entries = getVersionedFiles(dir);
+        Collections.sort(entries);
         Iterator i = entries.iterator();
         while (i.hasNext()) {
             String filename = (String) i.next();
-            String path = dirPath + '/' + filename;
+            String path = dirPath + '/' + filename.replace('\\', '/');
             File file = new File(dir, filename);
-            if (file.isDirectory())
-                writeFiles(out, file, path);
-            else if (file.isFile() && file.canRead())
+            if (file.isDirectory()) {
+                if (shouldWriteFilesRecurse)
+                    writeFiles(out, file, path);
+            } else if (file.isFile() && file.canRead())
                 writeFile(out, file, path);
             else
                 throw new BuildException("Cannot read the file \""+file+"\".");
         }
     }
+    protected boolean shouldWriteFilesRecurse = true;
 
-        private List getCVSEntries(File dir) throws IOException {
+    protected List getVersionedFiles(File dir) throws IOException {
         File cvsDir = new File(dir, "CVS");
         File entriesFile = new File(cvsDir, "Entries");
         if (!entriesFile.exists())
@@ -135,12 +141,11 @@ public class CVSZip extends Task {
             result.add(filename);
         }
         if (includeCvsDirs) {
-                result.add("CVS/Root");
-                result.add("CVS/Repository");
-                result.add("CVS/Entries");
+            result.add("CVS/Root");
+            result.add("CVS/Repository");
+            result.add("CVS/Entries");
         }
 
-        Collections.sort(result);
         return result;
     }
 
@@ -153,14 +158,14 @@ public class CVSZip extends Task {
         out.putNextEntry(entry);
 
         if (cvsRoot != null && path.endsWith("/CVS/Root")) {
-                out.write(cvsRoot.getBytes());
+            out.write(cvsRoot.getBytes());
         } else {
-                InputStream in = new FileInputStream(file);
-                int bytesRead;
-                while ((bytesRead = in.read(BUF)) != -1)
-                    out.write(BUF, 0, bytesRead);
+            InputStream in = new FileInputStream(file);
+            int bytesRead;
+            while ((bytesRead = in.read(BUF)) != -1)
+                out.write(BUF, 0, bytesRead);
 
-                in.close();
+            in.close();
         }
 
         out.closeEntry();
