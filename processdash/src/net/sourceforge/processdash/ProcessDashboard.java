@@ -27,8 +27,6 @@ package net.sourceforge.processdash;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -43,7 +41,6 @@ import java.io.*;
 import java.net.URL;
 import javax.swing.*;
 import javax.swing.Timer;
-import javax.swing.plaf.FontUIResource;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -65,7 +62,6 @@ import net.sourceforge.processdash.process.ui.*;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.templates.*;
-import net.sourceforge.processdash.tool.export.*;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.ui.*;
@@ -116,7 +112,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     private static String versionNumber;
 
-    private static final String TEMPLATES_CLASSPATH = "Templates/";
     public static final int DEFAULT_WEB_PORT = 2468;
 
     public ProcessDashboard(String title) {
@@ -692,6 +687,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         if (saveMetricsData() == false)
             recordUnsavedItem(unsavedData, "Metrics_Data");
 
+        if (saveSettingsData() == false)
+            recordUnsavedItem(unsavedData, "Settings_Data");
+
         return unsavedData;
     }
 
@@ -723,6 +721,12 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 logErr("prop write failed.", e);
             return false;
         }
+    }
+
+    public boolean saveSettingsData() {
+        if (InternalSettings.isDirty())
+            InternalSettings.saveSettings();
+        return InternalSettings.isDirty() == false;
     }
 
 
@@ -763,21 +767,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     public static void dropSplashScreen() {
         if (ss != null) ss.okayToDispose();
         ss = null;
-    }
-
-    private static final String[] MENU_FONT_KEYS = {
-        "MenuBar.font", "Menu.font", "MenuItem.font", "PopupMenu.font",
-        "CheckBoxMenuItem.font", "RadioButtonMenuItem.font",
-        "ToolBar.font", "MenuItem.acceleratorFont" };
-
-    private static void changeMenuFont() {
-        try {
-            Font f = (FontUIResource) UIManager.get(MENU_FONT_KEYS[0]);
-            f = f.deriveFont(Font.PLAIN);
-            f = new FontUIResource(f);
-            for (int i = 0;   i < MENU_FONT_KEYS.length;   i++)
-                UIManager.put(MENU_FONT_KEYS[i], f);
-        } catch (Exception e) {}
     }
 
     private static void logErr(String msg, Throwable t) {

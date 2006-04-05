@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,16 +27,16 @@ package net.sourceforge.processdash;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.InputStream;
 import java.io.FileInputStream;
-import java.security.AccessControlException;
+import java.io.InputStream;
+import java.io.Writer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-import net.sourceforge.processdash.security.DashboardPermission;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.util.FileProperties;
+import net.sourceforge.processdash.util.RobustFileWriter;
 
 public class InternalSettings extends Settings {
 
@@ -45,6 +45,7 @@ public class InternalSettings extends Settings {
     private static PropertyChangeSupport propSupport =
         new PropertyChangeSupport(InternalSettings.class);
     public static final String sep = System.getProperty("file.separator");
+    private static boolean dirty;
 
 
     public static void initialize(String settingsFile) {
@@ -98,7 +99,7 @@ public class InternalSettings extends Settings {
         fsettings.setDateStamping(false);
 
         String filename = getSettingsFilename();
-        boolean needToSave = false;
+        dirty = false;
 
         try {
             if (settingsFile != null && settingsFile.length() != 0) {
@@ -125,13 +126,13 @@ public class InternalSettings extends Settings {
 
             homedir = cwd;
             settingsFile = homedir + sep + filename;
-            needToSave = true;
+            dirty = true;
         }
         InternalSettings.settingsFile = settingsFile;
         fsettings.setFilename(settingsFile);
         fsettings.setHeader(PROPERTIES_FILE_HEADER);
         fsettings.setKeepingStrangeKeys(true);
-        if (needToSave) saveSettings();
+        if (dirty) saveSettings();
     }
     private static final String getSettingsFilename() {
         if (System.getProperty("os.name").toUpperCase().startsWith("WIN"))
@@ -172,6 +173,7 @@ public class InternalSettings extends Settings {
         }
 
         serializable = null;
+        dirty = true;
 
         saveSettings();
 
@@ -192,14 +194,21 @@ public class InternalSettings extends Settings {
         return result;
     }
 
-    private static void saveSettings() {
+    static void saveSettings() {
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
                 if (fsettings != null) try {
-                    fsettings.writeToFile();
+                    Writer out = new RobustFileWriter(fsettings.getFilename());
+                    fsettings.store(out);
+                    out.close();
+                    dirty = false;
                 } catch (Exception e) { }
                 return null;
             }});
+    }
+
+    public static boolean isDirty() {
+        return dirty;
     }
 
     public static void addPropertyChangeListener(PropertyChangeListener l) {
