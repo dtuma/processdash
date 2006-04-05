@@ -68,12 +68,14 @@ public class TeamProject {
     }
 
     /** Save the team project */
-    public void save() {
+    public boolean save() {
+        boolean result = true;
         if (!readOnly) {
-            saveTeamList();
-            saveWBS();
-            saveWorkflows();
+            result = saveTeamList() && result;
+            result = saveWBS() && result;
+            result = saveWorkflows() && result;
         }
+        return result;
     }
 
     /** Return the name of the project */
@@ -228,7 +230,7 @@ public class TeamProject {
     }
 
     /** Save the list of team members */
-    void saveTeamList() {
+    boolean saveTeamList() {
         if (!readOnly)
             try {
                 File f = new File(directory, TEAM_LIST_FILENAME);
@@ -237,7 +239,9 @@ public class TeamProject {
                 out.close();
             } catch (Exception e) {
                 e.printStackTrace();
+                return false;
             }
+        return true;
     }
 
     /** Open the team process */
@@ -293,7 +297,7 @@ public class TeamProject {
     }
 
     /** Save the work breakdown structure */
-    void saveWBS() {
+    boolean saveWBS() {
         if (!readOnly)
             try {
                 File f = new File(directory, WBS_FILENAME);
@@ -302,7 +306,9 @@ public class TeamProject {
                 out.close();
             } catch (Exception e) {
                 e.printStackTrace();
+                return false;
             }
+        return true;
     }
 
 
@@ -322,7 +328,7 @@ public class TeamProject {
     }
 
     /** Save the common workflows */
-    void saveWorkflows() {
+    boolean saveWorkflows() {
         if (!readOnly)
             try {
                 File f = new File(directory, FLOW_FILENAME);
@@ -331,7 +337,9 @@ public class TeamProject {
                 out.close();
             } catch (Exception e) {
                 e.printStackTrace();
+                return false;
             }
+        return true;
     }
 
 

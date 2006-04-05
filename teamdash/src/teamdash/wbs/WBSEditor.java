@@ -296,22 +296,46 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
 
-    private void save() {
+    private boolean save() {
         if (!readOnly) {
             tabPanel.stopCellEditing();
-            teamProject.save();
-            writeData();
+            if (teamProject.save() == false || writeData() == false) {
+                showSaveErrorMessage();
+                return false;
+            }
         }
+        return true;
     }
 
-    private void writeData() {
+    private boolean writeData() {
         if (!readOnly)
             try {
                 dataWriter.write(dataDumpFile);
             } catch (Exception e) {
                 e.printStackTrace();
+                return false;
             }
+        return true;
     }
+
+    private void showSaveErrorMessage() {
+        SAVE_ERROR_MSG[6] = "      "
+                + teamProject.getLockFile().getParentFile().getAbsolutePath();
+        JOptionPane.showMessageDialog(frame, SAVE_ERROR_MSG,
+                "Unable to Save", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private static final String[] SAVE_ERROR_MSG = {
+        "The Work Breakdown Structure Editor encountered an unexpected error",
+        "and was unable to save data. This problem might have been caused by",
+        "poor network connectivity, or by read-only file permissions. Please",
+        "check to ensure that you can write to the following location:",
+        "",
+        " ",
+        "Then, try saving again. If you shut down the Work Breakdown Structure",
+        "Editor without resolving this problem, any changes you have made will",
+        "be lost."
+    };
 
     /** Give the user a chance to save data before the window closes.
      * 
@@ -334,7 +358,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                 return false;
 
             case JOptionPane.YES_OPTION:
-                save();
+                if (save() == false)
+                    return false;
                 break;
         }
 

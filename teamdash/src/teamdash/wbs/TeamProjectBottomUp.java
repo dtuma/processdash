@@ -58,10 +58,11 @@ public class TeamProjectBottomUp extends TeamProject {
         // project editable.
     }
 
-    public void save() {
+    public boolean save() {
         // do nothing.  The read-only status of the parent project
         // ought to have the same effect, but we don't want to take
         // any chances.
+        return true;
     }
 
     public void reload() {
