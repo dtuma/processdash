@@ -326,27 +326,15 @@ Authors:
   <target name="ant-tasks">
     <javac srcdir="${libsrc}" destdir="${libsrc}" debug="true"
            includeAntRuntime="yes"/>
-    <taskdef name="i18n-orphans"
-        classname="net.sourceforge.processdash.i18n.OrphanedResources"
-	classpath="${libsrc}"/>
-    <taskdef name="i18n-generateTranslator"
-        classname="net.sourceforge.processdash.i18n.GenerateTranslator"
-	classpath="${libsrc}"/>
-    <taskdef name="i18n-updateLangpack"
-        classname="net.sourceforge.processdash.i18n.UpdateIzPackResourceFile"
-	classpath="${libsrc}"/>
-    <taskdef name="cvszip"
-        classname="net.sourceforge.processdash.CVSZip"
-	classpath="${libsrc}"/>
-    <taskdef name="mergeJars"
-        classname="net.sourceforge.processdash.MergeJars"
-	classpath="${libsrc}"/>
+    <taskdef file="${libsrc}/net/sourceforge/processdash/taskdef.properties"
+             classpath="${libsrc}"/>
   </target>
 
 
 
-  <target name="jar" depends="init,compile,javahelp,l10n-tool,jarsurf-list"
-          description="Make the jarfile for distribution">
+  <target name="jar" description="Make the jarfile for distribution"
+          depends="ant-tasks,init,compile,javahelp,l10n-tool,jarsurf-list">
+    <svnRevInfo property="svnRevision"/>
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
@@ -357,6 +345,7 @@ Authors:
         <attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
         <attribute name="Dash-Pkg-URL"
                    value="http://processdash.sourceforge.net/cgi-bin/update"/>
+        <attribute name="Dash-Svn-Revision" value="${svnRevision}"/>
       </manifest>
 
       <!-- include the compiled files and cgi scripts -->
