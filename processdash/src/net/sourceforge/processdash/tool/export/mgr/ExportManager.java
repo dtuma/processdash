@@ -54,6 +54,7 @@ import org.w3c.dom.Element;
 public class ExportManager extends AbstractManager {
 
     public static final String EXPORT_DATANAME = DataImporter.EXPORT_DATANAME;
+    public static final String EXPORT_TIMES_SETTING = "export.timesOfDay";
 
     private static final String EXPORT_INSTRUCTIONS_SUFFIX = "/Instructions";
 

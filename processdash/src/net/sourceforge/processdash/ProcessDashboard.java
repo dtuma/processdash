@@ -732,32 +732,55 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     private void startAutoExporter() {
         int millisPerHour = 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*milliseconds*/;
-        int millisPerDay = millisPerHour * 24;
-
-        int currentHourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        int initialDelay = (24 - currentHourOfDay) * millisPerHour;
 
         ActionListener periodicTaskInitiator = (ActionListener) EventHandler
                 .create(ActionListener.class, this, "startPeriodicTasks");
-        Timer t = new Timer(millisPerDay, periodicTaskInitiator);
-        t.setInitialDelay(initialDelay);
+        Timer t = new Timer(millisPerHour, periodicTaskInitiator);
         t.start();
     }
 
 
     public void startPeriodicTasks() {
+        int currentHourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        final boolean doExport = hourMatchesSetting(currentHourOfDay,
+                ExportManager.EXPORT_TIMES_SETTING);
+        final boolean doBackup = hourMatchesSetting(currentHourOfDay,
+                FileBackupManager.BACKUP_TIMES_SETTING);
+        if (doExport == false && doBackup == false)
+            // nothing to do
+            return;
+
         Thread t = new Thread("Process Dashboard Periodic Task Executor") {
             public void run() {
-                performPeriodicTasks();
+                performPeriodicTasks(doExport, doBackup);
             }
         };
         t.start();
     }
 
-    public void performPeriodicTasks() {
-        ExportManager.getInstance().exportAll(this, this);
-        FileBackupManager.maybeRun(property_directory,
-                FileBackupManager.RUNNING, getOwnerName(data));
+    private boolean hourMatchesSetting(int hour, String settingName) {
+        String settingVal = Settings.getVal(settingName);
+        if (settingVal == null || settingVal.trim().length() == 0)
+            return false;
+        if ("*".equals(settingVal.trim()))
+            return true;
+
+        String[] times = settingVal.split("\\D+");  // split on non-digits
+        for (int i = 0; i < times.length; i++)
+            try {
+                if (hour == Integer.parseInt(times[i]))
+                    return true;
+            } catch (NumberFormatException nfe) {}
+
+        return false;
+    }
+
+    private void performPeriodicTasks(boolean doExport, boolean doBackup) {
+        if (doExport)
+            ExportManager.getInstance().exportAll(this, this);
+        if (doBackup)
+            FileBackupManager.maybeRun(property_directory,
+                    FileBackupManager.RUNNING, getOwnerName(data));
     }
 
     public static String getVersionNumber() { return versionNumber; }

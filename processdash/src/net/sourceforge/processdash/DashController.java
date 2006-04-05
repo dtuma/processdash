@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,7 +26,6 @@
 package net.sourceforge.processdash;
 
 import java.awt.Frame;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -35,11 +34,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.Vector;
 
 import javax.swing.SwingUtilities;
 
-import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskListData;
@@ -51,10 +48,8 @@ import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
-import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
-import net.sourceforge.processdash.tool.export.mgr.ExportMetricsFileInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 
@@ -326,15 +321,17 @@ public class DashController {
         // enable earned value rollups.
         InternalSettings.set(EV_ROLLUP, "true");
 
+        // export more often.
+        InternalSettings.set(EXPORT_TIMES, "*");
+
         // listen on any address, if we aren't already.
         InternalSettings.set(WebServer.HTTP_ALLOWREMOTE_SETTING, "true");
 
         // listen on a repeatable port.
-        String port = Settings.getVal(ProcessDashboard.HTTP_PORT_SETTING);
+        String port = Settings.getVal(HTTP_PORT);
         if (port == null) {
             int portNum = getAvailablePort();
-            InternalSettings.set(ProcessDashboard.HTTP_PORT_SETTING,
-                                 Integer.toString(portNum));
+            InternalSettings.set(HTTP_PORT, Integer.toString(portNum));
         }
     }
 
@@ -360,6 +357,8 @@ public class DashController {
     }
 
     private static final String EV_ROLLUP = "ev.enableRollup";
+    private static final String EXPORT_TIMES =
+        ExportManager.EXPORT_TIMES_SETTING;
     private static final String HTTP_PORT = ProcessDashboard.HTTP_PORT_SETTING;
     private static final int[] PORT_PATTERNS = {
         1000, 1111, 1001, 1010, 1100, 1011, 1101, 1110 };

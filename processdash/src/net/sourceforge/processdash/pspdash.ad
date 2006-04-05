@@ -157,6 +157,11 @@ chart.finalGradColor=#7777ff
 chart.3d=true
 
 logging.enabled=true
+
 backup.enabled=true
 backup.keepBackupsNumDays=10
+backup.timesOfDay=0
+
+export.timesOfDay=0
+
 forms.useHoursMinutes=true

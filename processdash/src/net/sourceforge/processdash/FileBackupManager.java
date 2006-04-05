@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003,2005 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,15 +26,29 @@
 
 package net.sourceforge.processdash;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
-import java.util.zip.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
-import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.ui.*;
+import net.sourceforge.processdash.ui.ConsoleWindow;
 import net.sourceforge.processdash.util.FileUtils;
 
 
@@ -45,13 +59,15 @@ import net.sourceforge.processdash.util.FileUtils;
  * the error log (log.txt).
  *
  * Do this each time the dashboard starts or shuts down.
- * Also do it at midnight.
+ * Also do it at periodically, as configured by the user.
  */
 public class FileBackupManager {
 
     public static final int STARTUP = 0;
     public static final int RUNNING = 1;
     public static final int SHUTDOWN = 2;
+
+    public static final String BACKUP_TIMES_SETTING = "backup.timesOfDay";
 
     private static OutputStream logFile = null;
     private static final String LOG_FILE_NAME = "log.txt";
@@ -414,5 +430,6 @@ public class FileBackupManager {
         System.err.println(msg);
         t.printStackTrace();
     }
+
 
 }
