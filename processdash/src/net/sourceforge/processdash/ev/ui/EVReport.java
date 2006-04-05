@@ -709,9 +709,12 @@ public class EVReport extends CGIChartBase {
         out.print(EXPORT_HTML1B);
 
         if (!parameters.containsKey("EXPORT")) {
-            out.print(EXPORT_HTML2A);
-            out.print(getResource("Report.Export_Charts"));
-            out.print(EXPORT_HTML2B);
+            String text = resources.interpolate(EXPORT_HTML2,
+                    HTMLUtils.ESC_ENTITIES);
+            String filenamePat = HTMLUtils
+                    .urlEncode(resources.getString("Report.Archive_Filename"));
+            text = StringUtils.findAndReplace(text, "FILENAME", filenamePat);
+            out.write(text);
         }
 
         if (getDataRepository().getValue("/Enable_EV_Week_form") != null) {
@@ -858,8 +861,10 @@ public class EVReport extends CGIChartBase {
         "<img src='ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
     static final String EXPORT_HTML1A = "<a href=\"../reports/excel.iqy\"><i>";
     static final String EXPORT_HTML1B = "</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
-    static final String EXPORT_HTML2A = "<a href='ev.xls'><i>";
-    static final String EXPORT_HTML2B = "</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
+    static final String EXPORT_HTML2 = "<a href='ev.xls'><i>"
+            + "${Report.Export_Charts}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;"
+            + "<a href='../dash/archive.class?filename=FILENAME'><i>"
+            + "${Report.Export_Archive}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
     static final String OPT_FOOTER_HTML1 = "<a href='week.class'><i>";
     static final String OPT_FOOTER_HTML2 = "</i></a>";
     static final String FOOTER_HTML2 = "</body></html>";

@@ -149,7 +149,7 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
     private String getURI() {
         String referer = (String) env.get("HTTP_REFERER");
 
-        // if the query parameter "URI" is set, return the value.
+        // if the query parameter "uri" is set, return the value.
         String uri = (String) parameters.get("uri");
 
         if (uri != null) {
@@ -161,9 +161,9 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
 
         uri = (String) env.get("REQUEST_URI");
 
-        // If no query parameters were sent to this request, use the
+        // If the "uri" parameter was not sent to this request, use the
         // uri of the referer.
-        if ((uri.indexOf('?') == -1) && (referer != null)) {
+        if (referer != null) {
             try {
                 if (referer.endsWith("?"))
                     referer = referer.substring(0, referer.length()-1);
