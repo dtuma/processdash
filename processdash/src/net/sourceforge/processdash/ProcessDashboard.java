@@ -120,7 +120,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         getContentPane().setLayout(new GridBagLayout());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
-        addComponentListener(new ResizeWatcher());
 
         // load app defaults and user settings.
         InternalSettings.initialize("");
@@ -365,6 +364,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         brokenData.done();
         TemplateLoader.showTemplateErrors();
+        addComponentListener(new ResizeWatcher());
     }
     private Component addToMainWindow(Component component, double weight) {
         GridBagConstraints g = new GridBagConstraints();
@@ -625,8 +625,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     protected boolean quit() {
         List unsavedData = saveAllData();
         if (unsavedData.isEmpty() == false
-                && warnUserAboutUnsavedData(unsavedData) == false)
+                && warnUserAboutUnsavedData(unsavedData) == false) {
+            InternalSettings.setDisableChanges(false);
             return false;
+        }
 
         logger.fine("Performing auto exports");
         ExportManager.getInstance().exportAll(this, this);
@@ -724,6 +726,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     }
 
     public boolean saveSettingsData() {
+        InternalSettings.setDisableChanges(true);
         if (InternalSettings.isDirty())
             InternalSettings.saveSettings();
         return InternalSettings.isDirty() == false;

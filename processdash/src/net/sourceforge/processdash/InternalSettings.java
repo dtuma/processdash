@@ -46,6 +46,7 @@ public class InternalSettings extends Settings {
         new PropertyChangeSupport(InternalSettings.class);
     public static final String sep = System.getProperty("file.separator");
     private static boolean dirty;
+    private static boolean disableChanges;
 
 
     public static void initialize(String settingsFile) {
@@ -99,7 +100,7 @@ public class InternalSettings extends Settings {
         fsettings.setDateStamping(false);
 
         String filename = getSettingsFilename();
-        dirty = false;
+        dirty = disableChanges = false;
 
         try {
             if (settingsFile != null && settingsFile.length() != 0) {
@@ -158,8 +159,12 @@ public class InternalSettings extends Settings {
         set0(name, value, null);
     }
 
-    private static void set0(String name, String value, String comment) {
+    private static synchronized void set0(String name, String value,
+              String comment) {
         checkPermission("write."+name);
+
+        if (disableChanges)
+            return;
 
         String oldValue = fsettings.getProperty(name);
 
@@ -194,7 +199,7 @@ public class InternalSettings extends Settings {
         return result;
     }
 
-    static void saveSettings() {
+    static synchronized void saveSettings() {
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
                 if (fsettings != null) try {
@@ -207,8 +212,12 @@ public class InternalSettings extends Settings {
             }});
     }
 
-    public static boolean isDirty() {
+    public static synchronized boolean isDirty() {
         return dirty;
+    }
+
+    static synchronized void setDisableChanges(boolean disable) {
+        disableChanges = disable;
     }
 
     public static void addPropertyChangeListener(PropertyChangeListener l) {
