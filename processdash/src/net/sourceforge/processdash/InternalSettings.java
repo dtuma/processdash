@@ -34,6 +34,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.FileProperties;
 import net.sourceforge.processdash.util.RobustFileWriter;
@@ -48,6 +50,8 @@ public class InternalSettings extends Settings {
     private static boolean dirty;
     private static boolean disableChanges;
 
+    private static final Logger logger = Logger
+              .getLogger(InternalSettings.class.getName());
 
     public static void initialize(String settingsFile) {
         checkPermission("initialize");
@@ -206,7 +210,9 @@ public class InternalSettings extends Settings {
                     fsettings.store(out);
                     out.close();
                     dirty = false;
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Unable to save settings file.", e);
+                }
                 return null;
             }});
     }
@@ -217,6 +223,8 @@ public class InternalSettings extends Settings {
 
     static synchronized void setDisableChanges(boolean disable) {
         disableChanges = disable;
+        logger.info("Settings changes "
+                + (disableChanges ? "disabled." : "enabled."));
     }
 
     public static void addPropertyChangeListener(PropertyChangeListener l) {
