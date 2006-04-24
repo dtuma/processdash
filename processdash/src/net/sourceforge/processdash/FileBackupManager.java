@@ -140,17 +140,17 @@ public class FileBackupManager {
         File newBackupTempFile = new File(backupDir, NEW_BACKUP_TEMP_FILENAME);
 
         ZipOutputStream newBackupOut = new ZipOutputStream(
-                                new BufferedOutputStream(
-                                                new FileOutputStream(newBackupTempFile)));
-                newBackupOut.setLevel(9);
+                new BufferedOutputStream(
+                        new FileOutputStream(newBackupTempFile)));
+        newBackupOut.setLevel(9);
 
         if (mostRecentBackupFile != null) {
             ZipInputStream oldBackupIn = new ZipInputStream(
-                                        new BufferedInputStream(new FileInputStream(
-                                                        mostRecentBackupFile)));
+                    new BufferedInputStream(new FileInputStream(
+                            mostRecentBackupFile)));
             ZipOutputStream oldBackupOut = new ZipOutputStream(
-                                        new BufferedOutputStream(new FileOutputStream(
-                                                        oldBackupTempFile)));
+                    new BufferedOutputStream(new FileOutputStream(
+                            oldBackupTempFile)));
             oldBackupOut.setLevel(9);
             oldBackupIsEmpty = true;
 
@@ -161,15 +161,15 @@ public class FileBackupManager {
                 File file = new File(dataDir, filename);
 
                 if (dataFiles.remove(filename)) {
-                        // this file is in the old backup zipfile AND in the backup
-                        // directory.  Compare the two versions and back up the
-                        // file appropriately.
+                    // this file is in the old backup zipfile AND in the backup
+                    // directory.  Compare the two versions and back up the
+                    // file appropriately.
                     backupFile(oldEntry, oldBackupIn, oldBackupOut,
                                newBackupOut, file);
                 } else {
-                        // this file is in the old backup, but is no longer present
-                        // in the backup directory.  Copy it over to the new version
-                        // of the old backup
+                    // this file is in the old backup, but is no longer present
+                    // in the backup directory.  Copy it over to the new version
+                    // of the old backup
                     oldBackupIsEmpty = false;
                     copyZipEntry(oldBackupIn, oldBackupOut, oldEntry, null);
                 }
@@ -194,8 +194,8 @@ public class FileBackupManager {
         // backup all the files that are present in the backup directory that
         // weren't in the old backup zipfile.
         for (Iterator iter = dataFiles.iterator(); iter.hasNext();) {
-                        String filename = (String) iter.next();
-                File file = new File(dataDir, filename);
+            String filename = (String) iter.next();
+            File file = new File(dataDir, filename);
             backupFile(null, null, null, newBackupOut, file);
         }
 
@@ -220,7 +220,7 @@ public class FileBackupManager {
     }
     private static final Pattern BACKUP_FILENAME_PATTERN =
         Pattern.compile("pdash-\\d+-(startup|checkpoint|shutdown)\\.zip",
-                        Pattern.CASE_INSENSITIVE);
+                Pattern.CASE_INSENSITIVE);
 
 
     private static File findMostRecentBackupFile(File[] backupFiles) {
@@ -233,14 +233,14 @@ public class FileBackupManager {
 
     private static List getDataFiles(File dataDir) {
         String[] files = dataDir.list(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                                        return inBackupSet(dir, name);
-                                }});
+            public boolean accept(File dir, String name) {
+                return inBackupSet(dir, name);
+            }});
         if (files == null)
-                return null;
+            return null;
         else {
-                Arrays.sort(files);
-                return new ArrayList(Arrays.asList(files));
+            Arrays.sort(files);
+            return new ArrayList(Arrays.asList(files));
         }
     }
 
@@ -407,18 +407,22 @@ public class FileBackupManager {
     };
 
     private static boolean inBackupSet(File dir, String name) {
+        if (name.equalsIgnoreCase(LOG_FILE_NAME)
+                && (new File(dir, name)).length() > 0)
+            // backup the log file if it contains anything.
+            return true;
+
+        name = name.toLowerCase();
         if (name.endsWith(".dat") ||    // backup data files
             name.endsWith(".def") ||    // backup defect logs
             name.equals("time.log") ||  // backup the time log
-            name.equals(WorkingTimeLog.TIME_LOG_FILENAME) ||
-            name.equals(WorkingTimeLog.TIME_LOG_MOD_FILENAME) ||
+            name.equalsIgnoreCase(WorkingTimeLog.TIME_LOG_FILENAME) ||
+            name.equalsIgnoreCase(WorkingTimeLog.TIME_LOG_MOD_FILENAME) ||
             name.equals("state") ||     // backup the state file
             name.equals(".pspdash") ||  // backup the user settings
             name.equals("pspdash.ini"))
             return true;
-        if (name.equals(LOG_FILE_NAME) && (new File(dir, name)).length() > 0)
-            // backup the log file if it contains anything.
-            return true;
+
         return false;
     }
 
