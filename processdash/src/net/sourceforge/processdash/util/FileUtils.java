@@ -30,7 +30,6 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,8 +43,7 @@ public class FileUtils {
             throws IOException {
         InputStream in = new BufferedInputStream(new CheckedInputStream(
                 new FileInputStream(file), verify));
-        int b;
-        while ((b = in.read()) != -1)
+        while (in.read() != -1)
             ; // do nothing
         in.close();
 
@@ -71,13 +69,15 @@ public class FileUtils {
     }
 
     public static void copyFile(File src, File dest) throws IOException {
-        InputStream inputStream = new FileInputStream(src);
+        InputStream inputStream = new BufferedInputStream(new FileInputStream(
+                src));
         copyFile(inputStream, dest);
         inputStream.close();
     }
 
     public static void copyFile(InputStream src, File dest) throws IOException {
-        OutputStream outputStream = new FileOutputStream(dest);
+        OutputStream outputStream = new BufferedOutputStream(
+                new FileOutputStream(dest));
         copyFile(src, outputStream);
         outputStream.close();
     }
@@ -118,7 +118,6 @@ public class FileUtils {
         s = new String(s.getBytes());
 
         StringBuffer result = new StringBuffer(s);
-        char c;
         for (int i = result.length();   i-- > 0; )
             if (-1 == ULTRA_SAFE_CHARS.indexOf(result.charAt(i)))
                 result.setCharAt(i, '_');
