@@ -133,7 +133,6 @@ public class InternalSettings extends Settings {
         fsettings.setFilename(settingsFile);
         fsettings.setHeader(PROPERTIES_FILE_HEADER);
         fsettings.setKeepingStrangeKeys(true);
-        if (dirty) saveSettings();
     }
     private static final String getSettingsFilename() {
         if (System.getProperty("os.name").toUpperCase().startsWith("WIN"))
