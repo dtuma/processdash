@@ -717,11 +717,10 @@ public class EVReport extends CGIChartBase {
             out.write(text);
         }
 
-        if (getDataRepository().getValue("/Enable_EV_Week_form") != null) {
-            out.print(OPT_FOOTER_HTML1);
-            out.print(getResource("Report.Show_Weekly_View"));
-            out.print(OPT_FOOTER_HTML2);
-        }
+        out.print(WEEK_FOOTER_HTML1);
+        out.print(getResource("Report.Show_Weekly_View"));
+        out.print(WEEK_FOOTER_HTML2);
+
         out.print("</p>");
         out.print(FOOTER_HTML2);
     }
@@ -865,8 +864,8 @@ public class EVReport extends CGIChartBase {
             + "${Report.Export_Charts}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;"
             + "<a href='../dash/archive.class?filename=FILENAME'><i>"
             + "${Report.Export_Archive}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
-    static final String OPT_FOOTER_HTML1 = "<a href='week.class'><i>";
-    static final String OPT_FOOTER_HTML2 = "</i></a>";
+    static final String WEEK_FOOTER_HTML1 = "<a href='week.class'><i>";
+    static final String WEEK_FOOTER_HTML2 = "</i></a>";
     static final String FOOTER_HTML2 = "</body></html>";
     static final String EXCEL_TIME_TD = "<td class='timefmt'>";
 
