@@ -325,7 +325,9 @@ Authors:
 
   <target name="ant-tasks">
     <javac srcdir="${libsrc}" destdir="${libsrc}" debug="true"
-           includeAntRuntime="yes"/>
+           includeAntRuntime="yes">
+      <exclude name="net/sourceforge/processdash/ExtractAllBackups.java"/>
+    </javac>
     <taskdef file="${libsrc}/net/sourceforge/processdash/taskdef.properties"
              classpath="${libsrc}"/>
   </target>
