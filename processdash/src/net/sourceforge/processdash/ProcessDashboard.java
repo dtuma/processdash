@@ -163,7 +163,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         // create the data repository.
         data = new DataRepository();
-        data.setRealizationPolicy(Settings.getVal("autoRealization"));
         if ("true".equalsIgnoreCase(Settings.getVal("dataFreezing.disabled")))
             data.disableFreezing();
         templates = TemplateLoader.loadTemplates(data);

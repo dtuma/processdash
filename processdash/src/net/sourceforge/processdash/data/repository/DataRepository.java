@@ -60,7 +60,6 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -121,71 +120,8 @@ public class DataRepository implements Repository, DataContext {
         Set dataElementNameSet_ext =
             Collections.unmodifiableSet(dataElementNameSet);
 
-        /** Sets the policy for auto-realization of deferred data. Possible values:
-         *  Boolean.TRUE - auto realize all data
-         *  Boolean.FALSE - don't auto realize any data
-         *  a DataFile object - only autorealize data for this file. */
-        Object realizeDeferredDataFor = Boolean.FALSE;
-
         private static Logger logger = Logger.getLogger(DataRepository.class
                 .getName());
-
-        private class DataRealizer extends Thread {
-            Stack dataElements = null;
-            boolean terminate = false;
-
-            public DataRealizer() {
-                super("DataRealizer");
-                dataElements = new Stack();
-                setPriority(MIN_PRIORITY);
-                setDaemon(true);
-            }
-
-            // when adding an element to the data Realizer, also restart it.
-            public void addElement(DataElement e) {
-                dataElements.push(e);
-                interrupt();
-            }
-
-            public void run() {
-                // run this thread until ordered to terminate
-                while (!terminate) {
-
-                    // if there is no data to realize, suspend this thread
-                    if (dataElements.isEmpty()) {
-                        dataNotifier.highPriority();
-                        try { sleep(Long.MAX_VALUE); } catch (InterruptedException i) {}
-                    } else try { // otherwise realize the data
-                        sleep(100);
-                        ((DataElement) dataElements.pop()).maybeRealize();
-                    } catch (Exception e) {}
-                }
-
-                // when terminating, clean up the dataElements stack
-                while (!dataElements.isEmpty()){
-                    dataElements.pop();
-                }
-            }
-
-            // command the process to terminate, and resume just in case it is
-            // suspended
-            public void terminate() {
-                terminate = true;
-                interrupt();
-            }
-
-        }
-
-        DataRealizer dataRealizer;
-
-        public void setRealizationPolicy(String policy) {
-            if ("full".equalsIgnoreCase(policy))
-                realizeDeferredDataFor = Boolean.TRUE;
-            else if ("min".equalsIgnoreCase(policy))
-                realizeDeferredDataFor = "";
-            else
-                realizeDeferredDataFor = Boolean.FALSE;
-        }
 
 
         private class DataSaver extends Thread {
@@ -235,8 +171,6 @@ public class DataRepository implements Repository, DataContext {
             // will not be saved out to any datafile.
             //
             private SaveableData value = null;
-            private volatile SimpleData simpleValue = null;
-            private boolean deferred = false;
 
             // the datafile to which this element should be saved.  If this value
             // is null, the element will not be saved out to any datafile.
@@ -259,49 +193,21 @@ public class DataRepository implements Repository, DataContext {
             }
 
             public SaveableData getValue() {
-                if (deferred) realize();
                 return value;
             }
 
             public SimpleData getSimpleValue() {
                 if (value == null) return null;
-                if (simpleValue != null) return simpleValue;
-                if (deferred) realize();
-                return (simpleValue = value.getSimpleValue());
-            }
-
-            public SaveableData getImmediateValue() {
-                return value;
+                return value.getSimpleValue();
             }
 
             public synchronized void setValue(SaveableData d) {
-                simpleValue = null;
-                if (deferred = ((value = d) instanceof DeferredData))
-                    if (realizeDeferredDataFor == datafile ||
-                        realizeDeferredDataFor == Boolean.TRUE)
-                        dataRealizer.addElement(this);
-            }
-
-            private synchronized void realize() {
-                // since realize can be entered from several places, ensure someone
-                // else didn't run it just before this call.
-                if (deferred) {
-                    deferred = false;
-                    try {
-                        value = ((DeferredData) value).realize();
-                    } catch (ClassCastException e) {
-                    } catch (MalformedValueException e) {
-                        value = new MalformedData(value.saveString());
-                    }
-                }
+                value = d;
             }
 
             public synchronized void disposeValue() {
                 if (value != null) value.dispose();
-                deferred = false;
             }
-
-            public void maybeRealize() { if (deferred) realize(); }
 
             public DataEvent getDataChangedEvent(String name) {
                   return new DataEvent(DataRepository.this, name,
@@ -744,7 +650,7 @@ public class DataRepository implements Repository, DataContext {
                 // Make certain no data values are currently in a state of flux
                 dataNotifier.flush();
 
-                // This will realize the value if it is deferred
+                // Retrieve the value of the element
                 SaveableData value = element.getValue();
 
                 // For now, lets add this in - don't doubly freeze data.  Supporting
@@ -787,7 +693,7 @@ public class DataRepository implements Repository, DataContext {
                 if (element == null) return;
                 logger.log(Level.FINE, "Thawing data element {0}", dataName);
 
-                SaveableData value = element.getImmediateValue(), thawedValue;
+                SaveableData value = element.getValue(), thawedValue;
                 if (value instanceof FrozenData) {
                     //System.out.println("thawing " + dataName);
                     // Thaw the value.
@@ -1035,10 +941,8 @@ public class DataRepository implements Repository, DataContext {
 
         public DataRepository() {
             includedFileCache.put("<dataFile.txt>", globalDataDefinitions);
-            dataRealizer = new DataRealizer();
             dataNotifier = new DataNotifier();
             dataFreezer  = new DataFreezer();
-            dataRealizer.start();
             dataNotifier.start();
             dataFreezer.start();
         }
@@ -1085,18 +989,10 @@ public class DataRepository implements Repository, DataContext {
             waitForCalculations();
             // Command the data freezer to terminate.
             if (dataFreezer != null) dataFreezer.terminate();
-            // Command data realizer to terminate
-            dataRealizer.terminate();
             try {
-                long start = System.currentTimeMillis();
-                // wait up to 6 seconds total for both of the threads to die.
+                // wait up to 6 seconds total for the DataFreezer thread to die.
                 logger.finer("Waiting for DataFreezer");
-                dataFreezer.join(4000);
-                long elapsed = System.currentTimeMillis() - start;
-                long wait = 6000 - elapsed;
-                if (wait < 0) wait = 1000;
-                logger.finer("Waiting for DataRealizer");
-                dataRealizer.join(wait);
+                dataFreezer.join(6000);
             } catch (InterruptedException e) {}
 
             saveAllDatafiles();
@@ -1179,7 +1075,7 @@ public class DataRepository implements Repository, DataContext {
                     // only remap data which lives in the global datafile.
                     continue;
 
-                value = element.getImmediateValue();
+                value = element.getValue();
 
                 // At this point, we will not rename data elements unless they
                 // are SimpleData.  Non-simple data (e.g., functions, etc) needs
@@ -1255,14 +1151,7 @@ public class DataRepository implements Repository, DataContext {
             DataElement  de;
             SimpleData sd;
 
-                                      // first, realize all elements.
-            while (k.hasNext()) {
-                name = (String) k.next();
-                ((DataElement)data.get(name)).maybeRealize();
-            }
-
-                                      // next, print out all element values.
-            k = getKeys();
+                                      // print out all element values.
             while (k.hasNext()) {
                 name = (String) k.next();
                 if (net.sourceforge.processdash.hier.Filter.matchesFilter(filt, name)) {
@@ -1306,14 +1195,7 @@ public class DataRepository implements Repository, DataContext {
             String name;
             DataElement element;
 
-                                      // first, realize all elements.
-            while (k.hasNext()) {
-                name = (String) k.next();
-                ((DataElement)data.get(name)).maybeRealize();
-            }
-
-                                      // next, print out all element values.
-            k = getKeys();
+                                      // print out all element values.
             while (k.hasNext()) {
                 name = (String) k.next();
                 element = (DataElement)data.get(name);
@@ -1422,8 +1304,8 @@ public class DataRepository implements Repository, DataContext {
             // if the named object existed in the repository,
             if (removedElement != null) {
 
-                if (removedElement.getImmediateValue() != null)
-                    removedElement.getImmediateValue().dispose();
+                if (removedElement.getValue() != null)
+                    removedElement.getValue().dispose();
 
                                           // notify any data listeners
                 removedElement.setValue(null);
@@ -1485,22 +1367,6 @@ public class DataRepository implements Repository, DataContext {
                 d.setValue(new MalformedData(value));
             }
         }
-
-
-//     private void maybeRealize(DataElement d) {
-//
-//       if ((d != null) && (d.value instanceof DeferredData))
-//      synchronized (d) {
-//        try {
-//          d.value = ((DeferredData) d.value).realize();
-//        } catch (ClassCastException e) {
-//          // d.value isn't a DeferredData anymore .. someone beat us to it.
-//        } catch (MalformedValueException e) {
-//          printError(e);
-//          d.value = null;
-//        }
-//      }
-//     }
 
 
         public SaveableData getValue(String name) {
@@ -2182,7 +2048,7 @@ public class DataRepository implements Repository, DataContext {
 
         private void putGlobalValue(String name, Object valueObj) {
             DataElement e = (DataElement) data.get(name);
-            if (e != null && e.getImmediateValue() != null)
+            if (e != null && e.getValue() != null)
                 return;                 // don't overwrite existing values?
 
             SaveableData o = instantiateValue(name, "", valueObj, false);
@@ -2384,8 +2250,6 @@ public class DataRepository implements Repository, DataContext {
                     datafilePath = dataFile.file.getPath();
                     fileEditable = dataFile.canWrite;
                 }
-                if (dataPrefix.equals(realizeDeferredDataFor))
-                    realizeDeferredDataFor = dataFile;
 
                 int retryCount = 10;
                 while (!successful && retryCount-- > 0) try {
@@ -2421,14 +2285,9 @@ public class DataRepository implements Repository, DataContext {
                             putValue(name, o);
                             d.datafile = dataFile;
                         }
-                        // this is necessary because the mechanisms above which set the
-                        // value of a DataElement do so AFTER setting the datafile.
-                        if (dataFile==realizeDeferredDataFor && o instanceof DeferredData)
-                            dataRealizer.addElement(d);
 
                         if (registerDataNames &&
-                            (o instanceof DoubleData || o instanceof DeferredData ||
-                             o instanceof CompiledFunction))
+                            (o instanceof DoubleData || o instanceof CompiledFunction))
                             dataElementNameSet.add(localName);
                     }
 
@@ -2608,8 +2467,7 @@ public class DataRepository implements Repository, DataContext {
                     // Make a quick check on the element and datafile validity
                     // before taking the time to get the value
                     if ((element != null) && (element.datafile == datafile)) {
-                        // don't realize the data if it is still deferred.
-                        value = element.getImmediateValue();
+                        value = element.getValue();
                         if (value != null) {
                             name = name.substring(prefixLength);
                             defaultValueNames.remove(name);
