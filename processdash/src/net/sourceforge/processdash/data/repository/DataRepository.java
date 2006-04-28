@@ -2463,7 +2463,6 @@ public class DataRepository implements Repository, DataContext {
             } finally {
                 finishInconsistency();
             }
-            Runtime.getRuntime().gc();
         }
 
         private Hashtable mountedPhantomData = new Hashtable();
