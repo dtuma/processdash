@@ -25,6 +25,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -373,8 +374,8 @@ public class HierarchySynchronizer {
                 Element node) throws HierarchyAlterationException {
 
             try {
-                EVTaskDependency.addTaskIDs(data, pathPrefix,
-                        node.getAttribute(TASK_ID_ATTR));
+                String projIDs = node.getAttribute(TASK_ID_ATTR);
+                setTaskIDs(pathPrefix, cleanupProjectIDs(projIDs));
             } catch (Exception e) {}
 
             return super.syncNode(alterer, pathPrefix, node);
@@ -422,7 +423,7 @@ public class HierarchySynchronizer {
              String taskID = node.getAttribute(TASK_ID_ATTR);
              try {
                  putData(path, WBS_ID_DATA_NAME, StringData.create(nodeID));
-                 EVTaskDependency.addTaskIDs(data, path, taskID);
+                 setTaskIDs(path, taskID);
             } catch (Exception e) {}
             if (!isTeam()) {
                 maybeSaveDocSize(path, node);
@@ -783,4 +784,33 @@ public class HierarchySynchronizer {
         }
         return result;
     }
+
+    private void setTaskIDs(String path, String ids) {
+        List currentIDs = EVTaskDependency.getTaskIDs(data, path);
+        if (currentIDs != null && !currentIDs.isEmpty()) {
+            String currentStr = StringUtils.join(currentIDs, ",");
+            if (currentStr.equals(ids))
+                // The repository already agrees with what we want to set.
+                // Nothing needs to be done.
+                return;
+
+            // The repository doesn't agree with our list of IDs.  To be safe,
+            // delete all of the IDs in the repository, so we can add the
+            // correct list of IDs below.
+            for (Iterator i = currentIDs.iterator(); i.hasNext();) {
+                String id = (String) i.next();
+                EVTaskDependency.removeTaskID(data, path, id);
+            }
+        }
+
+        EVTaskDependency.addTaskIDs(data, path, ids);
+    }
+
+    private String cleanupProjectIDs(String ids) {
+        if (ids == null)
+            return null;
+        else
+            return ids.replaceAll(":\\d+", ":root");
+    }
+
 }
