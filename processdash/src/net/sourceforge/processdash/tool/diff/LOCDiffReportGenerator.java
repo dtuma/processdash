@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -45,7 +45,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -209,7 +208,6 @@ public abstract class LOCDiffReportGenerator {
             if (b != null) inB = new BufferedReader(new InputStreamReader(b));
 
             int charA = -2, charB = -2;
-            int count = 0;
             while (true) {
                 if (inA != null && charA != -1) charA = inA.read();
                 if (inB != null && charB != -1) charB = inB.read();
@@ -295,9 +293,9 @@ public abstract class LOCDiffReportGenerator {
             .append("</td></tr>\n");
 
         // add to the redlines output.
-        redlinesOut.print("<hr><DIV onMouseOver=\"window.defaultStatus='");
-        redlinesOut.print(EscapeString.escape(htmlName, '\\', "\""));
-        redlinesOut.print("'\"><h1><a name='file");
+        redlinesOut.print("<hr><DIV title=\"");
+        redlinesOut.print(htmlName);
+        redlinesOut.print("\"><h1><a name='file");
         redlinesOut.print(counter++);
         redlinesOut.print("'>");
         redlinesOut.print(label);
@@ -318,24 +316,6 @@ public abstract class LOCDiffReportGenerator {
     }
 
 
-    protected static final String SCRIPT = "<SCRIPT LANGUAGE=\"JavaScript\">\n" +
-            "    function updateFilename(e) {\n" +
-            "      for (var i = document.anchors.length;  i > 0; ) {\n" +
-            "        i--;\n" +
-            "        if (document.anchors[i].y < e.pageY) {\n" +
-            "            window.defaultStatus = document.anchors[i].text;\n" +
-            "            return;\n" +
-            "        }\n" +
-            "      }\n" +
-            "      window.defaultStatus = \"${Report.Metrics}\";\n" +
-            "    }\n\n" +
-            "    if (navigator.appName == \"Netscape\") {\n" +
-            "        window.captureEvents(Event.MOUSEMOVE);\n" +
-            "        window.onMouseMove=updateFilename;\n" +
-            "    }\n" +
-            "</SCRIPT>\n";
-
-
     protected void intlWrite(BufferedWriter out, String text) throws IOException {
         out.write(resources.interpolate(text, HTMLUtils.ESC_ENTITIES));
     }
@@ -352,13 +332,11 @@ public abstract class LOCDiffReportGenerator {
                   "<meta http-equiv=\"Content-Type\""+
                   " content=\"text/html; charset=" +
                   outputCharset + "\">\n" +
-                  SCRIPT + "<style>\n");
+                  "<style>\n");
         out.write(LOCDiff.getCssText());
-        intlWrite(out,
-                  "</style></head>\n" +
+        out.write("</style></head>\n" +
                   "<body bgcolor='#ffffff'>\n" +
-                  "<div onMouseOver=\"window.defaultStatus=" +
-                  "'${Report.Metrics}'\">\n");
+                  "<div>\n");
 
         if (addedTable.length() > 0) {
             intlWrite(out,
