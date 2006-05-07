@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.tool.export.impl;
 
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,11 +36,12 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.IteratorFilter;
+import net.sourceforge.processdash.util.PatternList;
 
 public class DefaultDataExportFilter extends IteratorFilter {
 
-        private static Logger logger = Logger.getLogger(
-                        DefaultDataExportFilter.class.getName());
+    private static Logger logger = Logger.getLogger(
+            DefaultDataExportFilter.class.getName());
 
     private boolean skipToDateData = true;
 
@@ -57,9 +57,9 @@ public class DefaultDataExportFilter extends IteratorFilter {
 
     private List excludes = null;
 
-    private List includePatterns = null;
+    private PatternList includePatterns = null;
 
-    private List excludePatterns = null;
+    private PatternList excludePatterns = null;
 
     public DefaultDataExportFilter(Iterator dataElements) {
         super(dataElements);
@@ -110,48 +110,48 @@ public class DefaultDataExportFilter extends IteratorFilter {
     }
 
     public List getIncludes() {
-                return includes;
-        }
+        return includes;
+    }
 
-        public void setIncludes(List includes) {
-                this.includes = includes;
-        }
+    public void setIncludes(List includes) {
+        this.includes = includes;
+    }
 
-        public List getExcludes() {
-                return excludes;
-        }
+    public List getExcludes() {
+        return excludes;
+    }
 
-        public void setExcludes(List excludes) {
-                this.excludes = excludes;
-        }
+    public void setExcludes(List excludes) {
+        this.excludes = excludes;
+    }
 
-        public void init() {
-                includePatterns = setupPatterns(includes);
-                excludePatterns = setupPatterns(excludes);
+    public void init() {
+        includePatterns = setupPatterns(includes);
+        excludePatterns = setupPatterns(excludes);
         super.init();
     }
 
-        protected boolean includeInResults(Object o) {
+    protected boolean includeInResults(Object o) {
         ExportedDataValue v = (ExportedDataValue) o;
         if (isExcluded(v) || isNotIncluded(v) || isExportInstruction(v)
-                        || isSkippableToDateData(v) || isSkippableNodeLeaf(v)
-                        || isSkippableProcessAutoData(v) || isSkippableDoubleData(v))
+                || isSkippableToDateData(v) || isSkippableNodeLeaf(v)
+                || isSkippableProcessAutoData(v) || isSkippableDoubleData(v))
             return false;
         else
             return true;
     }
 
-        private boolean isExcluded(ExportedDataValue v) {
-                return (excludePatterns != null
-                                && matchesPattern(excludePatterns, v.getName()));
-        }
+    private boolean isExcluded(ExportedDataValue v) {
+        return (excludePatterns != null
+                && excludePatterns.matches(v.getName()));
+    }
 
     private boolean isNotIncluded(ExportedDataValue v) {
         return (includePatterns != null
-                        && !matchesPattern(includePatterns, v.getName()));
-        }
+                && !includePatterns.matches(v.getName()));
+    }
 
-        private boolean isExportInstruction(ExportedDataValue v) {
+    private boolean isExportInstruction(ExportedDataValue v) {
         return (v.getName().indexOf(ExportManager.EXPORT_DATANAME) != -1);
     }
 
@@ -194,31 +194,21 @@ public class DefaultDataExportFilter extends IteratorFilter {
         return false;
     }
 
-    private List setupPatterns(List regexps) {
+    private PatternList setupPatterns(List regexps) {
         if (regexps == null || regexps.isEmpty())
-                return null;
+            return null;
         else {
-                List result = new LinkedList();
-                for (Iterator iter = regexps.iterator(); iter.hasNext();) {
-                                String re = (String) iter.next();
-                        try {
-                                        Pattern pat = Pattern.compile(re);
-                                        result.add(pat);
-                                } catch (Exception e) {
-                                        logger.log(Level.WARNING, "Bad regular expression ''{0}''",
-                                                        re);
-                                }
+            PatternList result = new PatternList();
+            for (Iterator iter = regexps.iterator(); iter.hasNext();) {
+                String re = (String) iter.next();
+                try {
+                    result.addRegexp(re);
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Bad regular expression ''{0}''",
+                            re);
                 }
-                return result.isEmpty() ? null : result;
+            }
+            return result;
         }
-        }
-
-    private boolean matchesPattern(List patterns, String text) {
-        for (Iterator iter = patterns.iterator(); iter.hasNext();) {
-                        Pattern p = (Pattern) iter.next();
-                        if (p.matcher(text).find())
-                                return true;
-                }
-        return false;
     }
 }

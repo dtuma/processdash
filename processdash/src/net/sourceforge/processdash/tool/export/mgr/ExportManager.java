@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,9 +28,11 @@ package net.sourceforge.processdash.tool.export.mgr;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,7 +42,9 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListXML;
 import net.sourceforge.processdash.tool.export.DataImporter;
@@ -61,7 +65,7 @@ public class ExportManager extends AbstractManager {
     private static ExportManager INSTANCE = null;
 
     private static Logger logger = Logger.getLogger(ExportManager.class
-                        .getName());
+            .getName());
 
     public static ExportManager getInstance() {
         return INSTANCE;
@@ -89,8 +93,7 @@ public class ExportManager extends AbstractManager {
         // System.out.println(instr);
         // }
 
-        data.putValue("//Export_Manager/Supports_pdash_format",
-                        ImmutableDoubleData.TRUE);
+        storeCapabilityData(data);
     }
 
     public ProcessDashboard getProcessDashboard() {
@@ -206,7 +209,11 @@ public class ExportManager extends AbstractManager {
         Collection result = new LinkedList();
 
         DataRepository data = dashboard.getData();
-        for (Iterator iter = data.getKeys(); iter.hasNext();) {
+        Object hints = new DataNameFilter.PrefixLocal() {
+            public boolean acceptPrefixLocalName(String p, String localName) {
+                return localName.endsWith(EXPORT_DATANAME);
+            }};
+        for (Iterator iter = data.getKeys(null, hints); iter.hasNext();) {
             String name = (String) iter.next();
             AbstractInstruction instr = getExportInstructionFromData(name);
             if (instr != null)
@@ -218,65 +225,65 @@ public class ExportManager extends AbstractManager {
 
     public AbstractInstruction getExportInstructionFromData(String name) {
         if (!name.endsWith("/"+EXPORT_DATANAME))
-                return null;
+            return null;
         SimpleData dataVal = data.getSimpleValue(name);
         if (dataVal == null || !dataVal.test())
             return null;
         String filename = Settings.translateFile(dataVal.format());
 
         String path = name.substring(0,
-                        name.length() - EXPORT_DATANAME.length() - 1);
+                name.length() - EXPORT_DATANAME.length() - 1);
         Vector filter = new Vector();
-                filter.add(path);
+        filter.add(path);
 
         AbstractInstruction instr = new ExportMetricsFileInstruction(
-                                filename, filter);
+                filename, filter);
 
         String instrDataname = name + EXPORT_INSTRUCTIONS_SUFFIX;
         SimpleData instrVal = data.getSimpleValue(instrDataname);
         if (instrVal != null && instrVal.test())
-                addXmlDataToInstruction(instr, instrVal.format());
+            addXmlDataToInstruction(instr, instrVal.format());
 
         return instr;
     }
 
     private void addXmlDataToInstruction(AbstractInstruction instr,
-                        String instrVal) {
-                String xml = instrVal;
-                if (instrVal.startsWith("file:")) {
-                        try {
-                                String uri = instrVal.substring(5);
-                                byte[] xmlData = dashboard.getWebServer().getRawRequest(uri);
-                                xml = new String(xmlData, "UTF-8");
-                        } catch (Exception e) {
-                                logger.log(Level.WARNING,
-                                                "Couldn't open XML instructions file", e);
-                                return;
-                        }
-                }
-
-                try {
-                        Element elem = XMLUtils.parse(xml).getDocumentElement();
-                        instr.mergeXML(elem);
-                } catch (Exception e) {
-                        logger.log(Level.WARNING, "Couldn't understand XML instruction", e);
-                }
+            String instrVal) {
+        String xml = instrVal;
+        if (instrVal.startsWith("file:")) {
+            try {
+                String uri = instrVal.substring(5);
+                byte[] xmlData = dashboard.getWebServer().getRawRequest(uri);
+                xml = new String(xmlData, "UTF-8");
+            } catch (Exception e) {
+                logger.log(Level.WARNING,
+                        "Couldn't open XML instructions file", e);
+                return;
+            }
         }
 
-        /**
-         * If the named schedule were to be exported to a file, what would the data
-         * element be named?
-         */
-    public static String exportedScheduleDataName(String owner,
-            String scheduleName) {
-                return exportedScheduleDataPrefix(owner, scheduleName) + "/"
-                + EVTaskListXML.XML_DATA_NAME;
+        try {
+            Element elem = XMLUtils.parse(xml).getDocumentElement();
+            instr.mergeXML(elem);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Couldn't understand XML instruction", e);
+        }
     }
 
-        public static String exportedScheduleDataPrefix(String owner, String scheduleName) {
-                return EVTaskList.MAIN_DATA_PREFIX
-                + exportedScheduleName(owner, scheduleName);
-        }
+    /**
+     * If the named schedule were to be exported to a file, what would the data
+     * element be named?
+     */
+    public static String exportedScheduleDataName(String owner,
+            String scheduleName) {
+        return exportedScheduleDataPrefix(owner, scheduleName) + "/"
+            + EVTaskListXML.XML_DATA_NAME;
+    }
+
+    public static String exportedScheduleDataPrefix(String owner, String scheduleName) {
+        return EVTaskList.MAIN_DATA_PREFIX
+            + exportedScheduleName(owner, scheduleName);
+    }
 
     public static String exportedScheduleName(String owner, String scheduleName) {
         owner = (owner == null ? "?????" : safeName(owner));
@@ -291,4 +298,13 @@ public class ExportManager extends AbstractManager {
         return n.replace('/', '_').replace(',', '_');
     }
 
+    private static void storeCapabilityData(DataRepository data) {
+        try {
+            Map capabilities = Collections.singletonMap(
+                    "Supports_pdash_format", ImmutableDoubleData.TRUE);
+            data.mountPhantomData("//Export_Manager", capabilities);
+        } catch (InvalidDatafileFormat e) {
+            logger.log(Level.WARNING, "Unexpected error", e);
+        }
+    }
 }

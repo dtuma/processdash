@@ -27,6 +27,8 @@ package net.sourceforge.processdash.hier;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.RandomAccess;
 import java.util.Vector;
 
 /**
@@ -44,6 +46,25 @@ public class Filter {
     public static boolean matchesFilter(Collection theFilter, String name) {
         if (theFilter == null)
             return true;
+
+        if (theFilter instanceof List) {
+            List theFilterList = (List) theFilter;
+            int size = theFilter.size();
+            if (size == 1)
+                // super-optimization for single-element lists (our most
+                // common case)
+                return pathMatches(name, (String) theFilterList.get(0));
+
+            else if (theFilter instanceof RandomAccess) {
+                // optimization for random access lists (avoid creating an
+                // iterator instance below)
+                for (int i=size;  i-- > 0;)
+                    if (pathMatches(name, (String) theFilterList.get(i)))
+                        return true;
+                return false;
+            }
+        }
+
         for (Iterator iter = theFilter.iterator(); iter.hasNext();) {
             String oneFilter = (String) iter.next();
             if (pathMatches(name, oneFilter))
@@ -58,12 +79,35 @@ public class Filter {
 
     public static boolean pathMatches(String path, String prefix,
             boolean includeChildren) {
+        // this method gets called a LOT, often in tight loops.  Optimize it
+        // like crazy.
+        if (path == null)
+            return false;
+
+        int prefixLen = prefix.length();
+        int pathLen = path.length();
+        if (pathLen < prefixLen)
+            // this can't be a match if the prefix is longer than the path.
+            return false;
+
+        // The String.startsWith() method walks through the two strings from
+        // front to back, comparing characters.  Since our prefixes often share
+        // a lot of common initial strings (e.g. "/Project"), that test may
+        // make it a long way into the prefix before discovering a character
+        // mismatch.  If the prefix mismatches, it will be MUCH rarer for the
+        // final character in the prefix to exactly match the corresponding
+        // character in the path.  Check that first and potentially avoid the
+        // more time-consuming startsWith() check.
+        if (prefixLen > 0
+                && path.charAt(prefixLen-1) != prefix.charAt(prefixLen-1))
+            return false;
+
         if (!path.startsWith(prefix))
             return false;
 
-        if (path.length() > prefix.length()) {
+        if (pathLen > prefixLen) {
             if (includeChildren) {
-                if (path.charAt(prefix.length()) != '/')
+                if (path.charAt(prefixLen) != '/')
                     return false;
             } else
                 return false;

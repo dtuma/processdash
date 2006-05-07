@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.CompiledFunction;
 
 
 public class CompiledScript implements Serializable {
@@ -87,6 +88,14 @@ public class CompiledScript implements Serializable {
         if (!committed) throw new IllegalStateException();
         return (instructions.size() == 1 &&
                 instructions.get(0) instanceof PushConstant);
+    }
+
+    public boolean matches(Object o) {
+        if (o instanceof CompiledFunction) {
+            CompiledFunction cf = (CompiledFunction) o;
+            return cf.getScript() == this;
+        }
+        return false;
     }
 
     void setSaveString(String str) throws IllegalStateException {

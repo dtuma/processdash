@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,7 +30,9 @@ package net.sourceforge.processdash.process;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,11 +40,12 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListFunction;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.compiler.CompiledScript;
+import net.sourceforge.processdash.data.repository.DataRenamingOperation;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.DefinitionFactory;
-import net.sourceforge.processdash.net.http.*;
-import net.sourceforge.processdash.templates.*;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 
 
@@ -208,11 +211,8 @@ public class RollupAutoData extends AutoData {
         if (name.indexOf("FreezeFlag") != -1) return true;
 
         // skip renaming operations.
-        if (value instanceof String &&
-            (((String) value).startsWith
-                 (DataRepository.SIMPLE_RENAME_PREFIX)  ||
-             ((String) value).startsWith
-                 (DataRepository.PATTERN_RENAME_PREFIX))) return true;
+        if (value instanceof DataRenamingOperation
+                || DataRenamingOperation.isOperation(value)) return true;
 
         // All other data is fit to roll up.
         return false;

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -86,8 +86,16 @@ class SearchFactory implements ListFunction, Serializable {
         } catch (CompilationException ce) {
             return null;
         }
-        return new SearchFunction(name, DataRepository.createDataName(prefix, start),
-                                  tag, script, data, prefix);
+        return new SearchFunction(this, name, DataRepository.createDataName(
+                prefix, start), tag, script, data, prefix);
+    }
+
+    public boolean matches(Object o) {
+        if (o instanceof SearchFunction) {
+            SearchFunction sf = (SearchFunction) o;
+            return sf.factory == this;
+        }
+        return false;
     }
 
     private String expressionStr = null;

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -67,15 +67,8 @@ class FrozenUtil {
         return result.toString();
     }
 
-    /** Make certain to properly set formerEditable BEFORE calling
-     *  this routine!
-     */
-    public void setFormer(String former, String defaultVal) {
-        if (formerEditable == false &&
-            defaultVal != null && defaultVal.startsWith("="))
-            defaultVal = defaultVal.substring(1);
-
-        if (former.equals(defaultVal))
+    public void setFormer(String former, boolean isDefaultVal) {
+        if (isDefaultVal)
             formerSaveString = DEFAULT;
         else
             formerSaveString = former;

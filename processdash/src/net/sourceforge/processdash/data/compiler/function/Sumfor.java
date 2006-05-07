@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
@@ -50,7 +51,6 @@ public class Sumfor extends AbstractFunction {
         Iterator i = collapseLists(arguments, 1).iterator();
         String path, dataName, alias;
         alias = NO_ALIAS_YET;
-        boolean editable;
         SimpleData sVal = null;
         while (i.hasNext()) {
             path = asStringVal(i.next());
@@ -65,6 +65,8 @@ public class Sumfor extends AbstractFunction {
         }
         if (alias != null && alias != NO_ALIAS_YET && sVal != null)
             return new DescribedValue(sVal, context.resolveName(alias));
+        else if (result == 0)
+            return ImmutableDoubleData.READ_ONLY_ZERO;
         else
             return new DoubleData(result);
     }

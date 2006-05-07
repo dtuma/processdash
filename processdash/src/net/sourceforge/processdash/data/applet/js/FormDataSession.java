@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,11 +26,15 @@
 package net.sourceforge.processdash.data.applet.js;
 
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Logger;
+
+import javax.swing.Timer;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
 
@@ -140,12 +144,14 @@ public class FormDataSession implements FormDataListener {
     private static Map SESSION_CACHE = new HashMap();
     private synchronized static String getNextSessionID(FormDataSession session) {
         String nextID = Integer.toString(++SESSION_ID);
+        session.touch();
         SESSION_CACHE.put(nextID, session);
+        DISPOSAL_TIMER.restart();
         return nextID;
     }
 
-    private static long TIMEOUT_DURATION = 4l /*iterations*/ * 
-        Math.max(HandleForm.REFRESH_DELAY, 15) /*seconds*/ * 1000 /*millis*/;
+    private static int TIMEOUT_DURATION = 2 /*iterations*/ * 
+        Math.max(HandleForm.REFRESH_DELAY, 15000) /*milliseconds*/;
 
     public synchronized static FormDataSession getSession(String sessionID) {
         FormDataSession result = null;
@@ -162,7 +168,20 @@ public class FormDataSession implements FormDataListener {
                 i.remove();
             }
         }
+        if (!SESSION_CACHE.isEmpty())
+            DISPOSAL_TIMER.restart();
         return result;
+    }
+
+    private static final Timer DISPOSAL_TIMER = new Timer(
+            TIMEOUT_DURATION + 1000,
+            new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    getSession("null");
+                }
+            });
+    static {
+        DISPOSAL_TIMER.setRepeats(false);
     }
 
     private static Logger log = Logger.getLogger(FormDataSession.class.getName());

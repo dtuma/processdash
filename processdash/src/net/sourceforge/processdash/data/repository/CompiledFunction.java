@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,12 +25,13 @@
 
 package net.sourceforge.processdash.data.repository;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
+import java.util.logging.Logger;
 
+import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.MalformedValueException;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -38,10 +39,14 @@ import net.sourceforge.processdash.data.compiler.CompiledScript;
 import net.sourceforge.processdash.data.compiler.Compiler;
 import net.sourceforge.processdash.data.compiler.ExecutionException;
 import net.sourceforge.processdash.data.compiler.ListStack;
+import net.sourceforge.processdash.util.LightweightSet;
+import net.sourceforge.processdash.util.LightweightSynchronizedSet;
 
 public class CompiledFunction implements SaveableData, AliasedData,
         DataListener {
 
+    protected static final SimpleData VALUE_NEVER_QUERIED =
+        new ImmutableStringData("", false, false);
 
     /** The name of the data element we are calculating */
     protected String name = null;
@@ -56,18 +61,16 @@ public class CompiledFunction implements SaveableData, AliasedData,
     protected DataRepository data;
 
     /** The value we obtained when we ran our calculation last. */
-    protected SimpleData value;
+    protected SimpleData value = VALUE_NEVER_QUERIED;
 
     /** Track the aliased name of our final value.
      * {@see net.sourceforge.processdash.data.repository.AliasedData } */
     protected String aliasFor;
 
-    /** True if we have ever told anyone our calculated value. */
-    protected volatile boolean valueQueried = false;
-
     /** A list of the names of all data elements in the repository that we
      * are currently listening to. */
-    protected Set currentSubscriptions;
+    protected LightweightSet currentSubscriptions =
+        new LightweightSynchronizedSet();
 
     /** A mutex that helps us keep track of the need to recalculate */
     protected DirtyTracker extChanges = new DirtyTracker();
@@ -100,23 +103,15 @@ public class CompiledFunction implements SaveableData, AliasedData,
     }
 
     protected void recalc() {
-        if (extChanges == null)
+        if (isDisposed())
             // we have been disposed.  Don't try to recalc.
             return;
 
         Set calcNameSet = (Set) CURRENTLY_CALCULATING.get();
         if (calcNameSet.contains(name)) {
-            System.err.println("Encountered recursively defined data "
+            logger.warning("Encountered recursively defined data "
                     + "when calculating " + name + " - ABORTING");
             return; // break out of infinite loops.
-        }
-
-        if (valueQueried == false || currentSubscriptions == null) {
-            synchronized (this) {
-                if (currentSubscriptions == null)
-                    currentSubscriptions = Collections
-                            .synchronizedSet(new HashSet(4));
-            }
         }
 
         SimpleData oldValue = value;
@@ -142,7 +137,7 @@ public class CompiledFunction implements SaveableData, AliasedData,
                 if (newValue != null && newAlias == null)
                     newValue = (SimpleData) newValue.getEditable(false);
             } catch (ExecutionException e) {
-                System.err.println("Error executing " + name + ": " + e);
+                logger.warning("Error executing " + name + ": " + e);
                 newValue = null;
             } finally {
                 calcNameSet.remove(name);
@@ -150,16 +145,17 @@ public class CompiledFunction implements SaveableData, AliasedData,
 
             if (extChanges.maybeClearDirty(changeCount, newValue, newAlias))
                 break;
-            else if (retryCount > 0)
-                System.err.println("Retrying calculating " + name);
+             else if (retryCount > 0)
+                logger.finer("Retrying calculating " + name);
         }
 
         if (retryCount <= 0)
-            System.err.println("Ran out of retries while calculating " + name);
+            logger.warning("Ran out of retries while calculating " + name);
 
         context.removeOldSubscriptions();
+        currentSubscriptions.trimToSize();
 
-        if (valueQueried && !eq(oldValue, value))
+        if (oldValue != VALUE_NEVER_QUERIED && !eq(oldValue, value))
             data.valueRecalculated(name, this);
 
     }
@@ -183,7 +179,7 @@ public class CompiledFunction implements SaveableData, AliasedData,
     }
 
     private void setDirty() {
-        if (extChanges != null) {
+        if (isDisposed() == false) {
             extChanges.setDirty();
             data.valueRecalculated(name, this);
         }
@@ -211,43 +207,59 @@ public class CompiledFunction implements SaveableData, AliasedData,
     }
 
     public String getAliasedDataName() {
-        if (extChanges != null && extChanges.isDirty())
+        if (isDisposed() == false && extChanges.isDirty())
             recalc();
 
-        valueQueried = true;
         return aliasFor;
 
     }
 
     public SimpleData getSimpleValue() {
-        if (extChanges != null && extChanges.isDirty())
+        if (isDisposed() == false && extChanges.isDirty())
             recalc();
 
-        valueQueried = true;
         return value;
+    }
+
+    protected boolean isDisposed() {
+        return name == null;
     }
 
     public void dispose() {
         name = prefix = aliasFor = null;
         script = null;
-        data = null;
         value = null;
-        valueQueried = false;
         extChanges = null;
+
         if (currentSubscriptions != null) {
-            try {
-                synchronized (currentSubscriptions) {
-                    for (Iterator i = currentSubscriptions.iterator();
-                            i.hasNext();) {
-                        String s = (String) i.next();
-                        data.removeDataListener(s, this);
+            if (data.deferDeletions)
+                // If the DataRepository is currently deferring deletions
+                // (probably indicating that a freezing operation is underway)
+                // then use the deleteDataListener() method, so the "deletion
+                // deferral" can be applied to us.  Otherwise, we would
+                // frustrate the freezing process by triggering the destruction
+                // of many data elements that are about to be frozen next.
+                data.deleteDataListener(this);
+
+            else
+                // If the DataRepository is not currently deferring deletions,
+                // help it by explicitly naming the items that we listen to,
+                // and request to be removed as a listener from each one.
+                try {
+                    synchronized (currentSubscriptions) {
+                        for (Iterator i = currentSubscriptions.iterator();
+                                i.hasNext();) {
+                            String s = (String) i.next();
+                            data.removeDataListener(s, this);
+                        }
+                        currentSubscriptions.clear();
                     }
-                    currentSubscriptions.clear();
+                } catch (NullPointerException npe) {
                 }
-            } catch (NullPointerException npe) {
-            }
-            currentSubscriptions = null;
+
+                currentSubscriptions = null;
         }
+        data = null;
     }
 
     public SaveableData getEditable(boolean editable) {
@@ -298,6 +310,9 @@ public class CompiledFunction implements SaveableData, AliasedData,
             }
         }
     }
+
+    private static final Logger logger = Logger
+            .getLogger(CompiledFunction.class.getName());
 
     /** A list of the data names that are currently being calculated by this
      * thread (to prevent infinite circular recursion)

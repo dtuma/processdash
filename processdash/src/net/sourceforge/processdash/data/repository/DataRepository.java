@@ -1,5 +1,5 @@
+// Copyright (C) 1998-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,46 +26,59 @@
 package net.sourceforge.processdash.data.repository;
 
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.FileInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.PushbackReader;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Collections;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
-
-
-import net.sourceforge.processdash.data.*;
+import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.FrozenData;
+import net.sourceforge.processdash.data.MalformedData;
+import net.sourceforge.processdash.data.MalformedValueException;
+import net.sourceforge.processdash.data.SaveableData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.TagData;
+import net.sourceforge.processdash.data.ValueFactory;
 import net.sourceforge.processdash.data.compiler.CompilationException;
 import net.sourceforge.processdash.data.compiler.CompiledScript;
 import net.sourceforge.processdash.data.compiler.Compiler;
@@ -75,32 +88,35 @@ import net.sourceforge.processdash.data.compiler.ListStack;
 import net.sourceforge.processdash.data.compiler.analysis.DepthFirstAdapter;
 import net.sourceforge.processdash.data.compiler.lexer.Lexer;
 import net.sourceforge.processdash.data.compiler.lexer.LexerException;
-import net.sourceforge.processdash.data.compiler.node.ASearchDeclaration;
-import net.sourceforge.processdash.data.compiler.node.ASimpleSearchDeclaration;
 import net.sourceforge.processdash.data.compiler.node.AIncludeDeclaration;
 import net.sourceforge.processdash.data.compiler.node.ANewStyleDeclaration;
 import net.sourceforge.processdash.data.compiler.node.AOldStyleDeclaration;
 import net.sourceforge.processdash.data.compiler.node.AReadOnlyAssignop;
+import net.sourceforge.processdash.data.compiler.node.ASearchDeclaration;
+import net.sourceforge.processdash.data.compiler.node.ASimpleSearchDeclaration;
 import net.sourceforge.processdash.data.compiler.node.AUndefineDeclaration;
 import net.sourceforge.processdash.data.compiler.node.Start;
 import net.sourceforge.processdash.data.compiler.node.TIdentifier;
 import net.sourceforge.processdash.data.compiler.node.TStringLiteral;
 import net.sourceforge.processdash.data.compiler.parser.Parser;
 import net.sourceforge.processdash.data.compiler.parser.ParserException;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.util.CppFilterReader;
+import net.sourceforge.processdash.util.EscapeString;
+import net.sourceforge.processdash.util.RobustFileWriter;
 
 public class DataRepository implements Repository, DataContext {
 
     public static final String anonymousPrefix = "///Anonymous";
 
         /** a mapping of data names (Strings) to data values (DataElements) */
-        Hashtable data = new Hashtable(8000, (float) 0.5);
+        Hashtable data = new Hashtable(8000);
 //    HashTree data = new HashTree(8000);
 
         /** a backwards mapping of the above hashtable for data values that happen
          *  to be DataListeners.  key is a DataListener, value is a String. */
-        Hashtable activeData = new Hashtable(2000, (float) 0.5);
+        Map activeData = Collections.synchronizedMap(new WeakHashMap(2000));
 
         Set dataListenersForDeferredRemoval =
             Collections.synchronizedSet(new HashSet());
@@ -124,7 +140,7 @@ public class DataRepository implements Repository, DataContext {
                 .getName());
 
 
-        private class DataSaver extends Thread {
+        private class DataSaver extends Thread implements DataConsistencyObserver {
             public DataSaver() {
                 super("DataSaver");
                 setDaemon(true);
@@ -133,21 +149,27 @@ public class DataRepository implements Repository, DataContext {
             public void run() {
                 while (true) try {
                     sleep(120000);         // save dirty datafiles every 2 minutes
-                    saveAllDatafiles();
-                    System.gc();
+                    addDataConsistencyObserver(this);
                 } catch (InterruptedException ie) {}
+            }
+            public void dataIsConsistent() {
+                saveAllDatafiles();
+                System.gc();
             }
         }
 
         DataSaver dataSaver = new DataSaver();
 
 
-        private class DataFile {
+        private class DataFile implements Comparable {
             String prefix;
             String inheritsFrom;
+            Map inheritedDefinitions;
             File file;
+            volatile boolean isRemoved = false;
             boolean canWrite;
-            int dirtyCount;
+            boolean isImported = false;
+            volatile int dirtyCount;
 
             public DataFile(String prefix, File file) {
                 this.prefix = prefix;
@@ -160,58 +182,136 @@ public class DataRepository implements Repository, DataContext {
                 file = null;
                 canWrite = false;
             }
+
+            public int compareTo(Object o) {
+                DataFile that = (DataFile) o;
+                return that.prefix.length() - this.prefix.length();
+            }
         }
 
 
-        // The DataElement class tracks the state of a single piece of data.
+        /** The DataElement class tracks the state of a single piece of data. */
         private class DataElement {
 
-            // the value of this element.  When data elements are created but not
-            // initialized, their value is set to null.  Elements with null values
-            // will not be saved out to any datafile.
-            //
+            /** The name of this element */
+            private String name;
+
+            /** True if the name of this element matches the name of a default
+             * value inherited by our {@link DataFile}.
+             */
+            private boolean isDefaultName;
+
+            /** The value of this element.
+             * 
+             * When data elements are created but not initialized, their value is
+             * set to null.  Elements with null values generally are not saved out
+             * to any datafile.
+             */
             private SaveableData value = null;
 
-            // the datafile to which this element should be saved.  If this value
-            // is null, the element will not be saved out to any datafile.
-            //
+            /** True if the value of this data element came directly from the
+             * default values inherited by our {@link DataFile}.
+             */
+            private boolean isDefaultValue;
+
+            /** The datafile to which this element should be saved.
+             * 
+             * If this value is null, the element will not be saved out to any
+             * datafile.
+             */
             DataFile datafile = null;
 
-            // a list of objects that are interested in changes to the value of this
-            // element.  SPECIAL MEANINGS:
-            //    1) a null value indicates that no objects have *ever* expressed an
-            //       interest in this data element.
-            //    2) a Vector with objects in it is a list of objects that should be
-            //       notified if the value of this data element changes.
-            //    3) an empty Vector indicates that, although some object(s) once
-            //       expressed interest in this data element, no objects are
-            //       interested any longer.
-            //
-            Vector dataListenerList = null;
+            /** A value indicating the last time this element's value was read.
+             */
+            volatile byte timestamp;
 
-            public DataElement(String name) {
+            /** A collection of objects that are interested in changes to the value
+             * of this element.
+             * 
+             * SPECIAL MEANINGS:<ol>
+             *  <li> a null value indicates that no objects have <b>ever</b>
+             *       expressed an interest in this data element.</li>
+             *  <li> a Vector with objects in it is a list of objects that should be
+             *       notified if the value of this data element changes.</li>
+             *  <li> an empty Vector indicates that, although some object(s) once
+             *       expressed interest in this data element, no objects are
+             *       interested any longer.</li>
+             *  </ol>
+             */
+            Vector dataListeners = null;
+
+
+            /** Create a new data element */
+            public DataElement(DataFile datafile, String name, boolean isDefaultName) {
+                this.datafile = datafile;
+                this.name = name;
+                this.isDefaultName = isDefaultName;
+                this.timestamp = currentGeneration;
             }
 
-            public SaveableData getValue() {
+            public boolean isDefaultName() {
+                return isDefaultName;
+            }
+
+            public synchronized SaveableData getValue() {
                 return value;
             }
 
-            public SimpleData getSimpleValue() {
-                if (value == null) return null;
+            public synchronized boolean isDefaultValue() {
+                return isDefaultValue;
+            }
+
+            public synchronized SimpleData getSimpleValue() {
+                if (value == null)
+                    return null;
                 return value.getSimpleValue();
             }
 
-            public synchronized void setValue(SaveableData d) {
-                value = d;
+            public synchronized void setValue(SaveableData d, boolean isDefault) {
+                this.value = d;
+                this.isDefaultValue = isDefault;
             }
 
             public synchronized void disposeValue() {
-                if (value != null) value.dispose();
+                if (value != null) {
+                    try {
+                        value.dispose();
+                    } catch (Exception e) {}
+                    activeData.remove(value);
+                }
             }
 
             public DataEvent getDataChangedEvent(String name) {
-                  return new DataEvent(DataRepository.this, name,
-                          DataEvent.VALUE_CHANGED, getSimpleValue());
+                return new DataEvent(DataRepository.this, name,
+                        DataEvent.VALUE_CHANGED, getSimpleValue());
+            }
+
+            public synchronized void addDataListener(DataListener dl) {
+                if (dataListeners == null)
+                    dataListeners = new Vector();
+                if (!dataListeners.contains(dl))
+                    dataListeners.add(dl);
+            }
+
+            public void removeDataListener(DataListener dl) {
+                synchronized (this) {
+                    if (dataListeners == null || dataListeners.remove(dl) == false)
+                        return;
+                }
+                maybeDelete(name, this, true);
+            }
+
+            public void removeDataListeners(Set listenersToRemove) {
+                synchronized (this) {
+                    if (dataListeners == null
+                            || dataListeners.removeAll(listenersToRemove) == false)
+                        return;
+                }
+                maybeDelete(name, this, true);
+            }
+
+            public boolean hasListeners() {
+                return (dataListeners != null && !dataListeners.isEmpty());
             }
         }
 
@@ -255,6 +355,7 @@ public class DataRepository implements Repository, DataContext {
                 activeListeners = new Hashtable();
                 setPriority(MIN_PRIORITY);
                 setDaemon(true);
+                start();
             }
 
             public void highPriority() {
@@ -275,31 +376,25 @@ public class DataRepository implements Repository, DataContext {
                 if (d == null) return;
                 if (circularData.get(name) != null) return;
 
-                Vector dataListenerList = d.dataListenerList;
-
-                if (dataListenerList == null ||
-                    dataListenerList.size() == 0)
+                List dataListenerList = d.dataListeners;
+                if (dataListenerList == null || dataListenerList.isEmpty())
                     return;
 
-                DataListener dl;
-                String listenerName;
-                boolean notifyActiveListener;
-                for (int i = dataListenerList.size();  i > 0; ) try {
-                    dl = ((DataListener) dataListenerList.elementAt(--i));
+                for (int i = dataListenerList.size();  i-- > 0; ) try {
+                    DataListener dl = (DataListener) dataListenerList.get(i);
                     if (dataListenersForDeferredRemoval.contains(dl))
                         continue;
-                    listenerName = (String) activeData.get(dl);
-                    if (listenerName == null)
-                        notifyActiveListener = false;
-                    else if (activeListeners.put(listenerName, dl) != null)
-                        notifyActiveListener = false;
-                    else
-                        notifyActiveListener = true;
+
+                    String listenerName = (String) activeData.get(dl);
+                    boolean notifyActiveListener = (listenerName != null
+                            && activeListeners.put(listenerName, dl) == null);
+
                     getElementsForDataListener(dl).put(name, d);
-                    if (notifyActiveListener) dataChanged(listenerName, null);
-                } catch (ArrayIndexOutOfBoundsException e) {
+                    if (notifyActiveListener)
+                        dataChanged(listenerName, null);
+                } catch (IndexOutOfBoundsException ie) {
                     // Someone has been messing with dataListenerList while we're
-                    // iterating through it.  No matter...the worst that can happen
+                    // iterating through it. No matter...the worst that can happen
                     // is that we will notify someone who doesn't care anymore, and
                     // that is harmless.
                 }
@@ -313,7 +408,6 @@ public class DataRepository implements Repository, DataContext {
                     elements = ((Hashtable) notifications.get(dl));
                     if (elements == null) {
                         notifications.put(dl, elements = new Hashtable(2));
-                        checkConsistency();
                     }
                 }
                 return elements;
@@ -338,10 +432,7 @@ public class DataRepository implements Repository, DataContext {
             }
 
             public void deleteDataListener(DataListener dl) {
-                synchronized (notifications) {
-                    notifications.remove(dl);
-                    checkConsistency();
-                }
+                notifications.remove(dl);
                 String listenerName = (String) activeData.get(dl);
                 if (listenerName != null)
                     activeListeners.remove(listenerName);
@@ -425,23 +516,7 @@ public class DataRepository implements Repository, DataContext {
                     }
                 } finally {
                     synchronized (elements) { elements.notifyAll(); }
-                    checkConsistency();
                 }
-            }
-
-            private volatile boolean notifierIsInconsistent = false;
-            private final boolean ENABLE_NOTIFICATION_BASED_INCONSISTENCY = false;
-            private void checkConsistency() {
-                if (ENABLE_NOTIFICATION_BASED_INCONSISTENCY)
-                    synchronized (notifications) {
-                        boolean isInconsistent = !notifications.isEmpty();
-                        if (isInconsistent == notifierIsInconsistent) return;
-                        notifierIsInconsistent = isInconsistent;
-                        if (notifierIsInconsistent)
-                            startInconsistency();
-                        else
-                            finishInconsistency();
-                    }
             }
 
             private boolean fireEvent() {
@@ -479,9 +554,8 @@ public class DataRepository implements Repository, DataContext {
         DataNotifier dataNotifier;
 
 
-        private static Perl5Util perl = PerlPool.get();
         private class DataFreezer extends Thread implements RepositoryListener,
-                                                            DataConsistencyObserver
+                DataConsistencyObserver, DataNameFilter.PrefixLocal
         {
 
             /** Keys in this hashtable are the String names of freeze tag
@@ -510,6 +584,7 @@ public class DataRepository implements Repository, DataContext {
                 itemsToFreeze = Collections.synchronizedSet(new LinkedHashSet());
                 itemsToThaw = Collections.synchronizedSet(new LinkedHashSet());
                 addRepositoryListener(this, "");
+                start();
             }
 
             public void run() {
@@ -624,10 +699,26 @@ public class DataRepository implements Repository, DataContext {
                 stopWaitingForWork();
             }
 
+            public boolean acceptPrefixLocalName(String prefix, String localName) {
+                return localName.indexOf(FREEZE_FLAG_TAG2) != -1;
+            }
+
             public void dataAdded(String dataName) {
-                if (isFreezeFlagElement(dataName) &&
-                    !frozenDataSets.containsKey(dataName))
-                    frozenDataSets.put(dataName, new FrozenDataSet(dataName));
+                if (isFreezeFlagElement(dataName))
+                    synchronized (frozenDataSets) {
+                        if (!frozenDataSets.containsKey(dataName))
+                              try {
+                                  FrozenDataSet s;
+                                  if (USE_OCD_FREEZING_LOGIC)
+                                      s = new OCDFrozenDataSet(dataName);
+                                  else
+                                      s = new SimpleFrozenDataSet(dataName);
+                                  frozenDataSets.put(dataName, s);
+                              } catch (PatternSyntaxException pse) {
+                                  logger.log(Level.WARNING, "The regular expression "
+                                          + "for {0} is malformed.", dataName);
+                              }
+                    }
             }
 
             public void dataRemoved(String dataName) {
@@ -643,9 +734,8 @@ public class DataRepository implements Repository, DataContext {
 
             /** Perform the work required to freeze a data value. */
             private void performFreeze(String dataName) {
-                DataElement element = (DataElement) data.get(dataName);
+                DataElement element = getOrCreateDefaultDataElement(dataName);
                 if (element == null) return;
-                logger.log(Level.FINE, "Freezing data element {0}", dataName);
 
                 // Make certain no data values are currently in a state of flux
                 dataNotifier.flush();
@@ -666,46 +756,58 @@ public class DataRepository implements Repository, DataContext {
                 if (value instanceof FrozenData)
                     return;
 
-                //System.out.println("freezing " + dataName);
-
                 // Determine the prefix of the data element.
                 String prefix = "";
-                if (element.datafile != null)
+                if (element.datafile != null) {
+                    // don't freeze data elements in imported files.
+                    if (element.datafile.isImported) return;
                     prefix = element.datafile.prefix;
-
-                // Lookup the default value of this data element.
-                String defVal = lookupDefaultValue(dataName, element);
+                }
 
                 // Don't freeze null data elements when there is no default value.
-                if (value == null && defVal == null) return;
+                if (value == null && !element.isDefaultName()) return;
 
                 // Create the frozen version of the value.
-                SaveableData frozenValue = new FrozenData
-                    (dataName, value, DataRepository.this, prefix, defVal);
+                SaveableData frozenValue = new FrozenData(dataName, value,
+                            DataRepository.this, prefix, element.isDefaultValue());
 
-                // Save the frozen value to the repository.
-                putValue(dataName, frozenValue);
+                // Make one last check to ensure that some other thread hasn't
+                // disposed of or altered the element we were freezing.
+                if (element.getValue() == value && data.get(dataName) == element) {
+                    // Save the frozen value to the repository.
+                    logger.log(Level.FINE, "Freezing data element {0}", dataName);
+                    putValue(dataName, frozenValue, IS_NOT_DEFAULT_VAL);
+
+                } else {
+                    // If another thread disposed of the element or altered its value
+                    // while this method was running, start over from the beginning.
+                    performFreeze(dataName);
+                }
             }
 
             /** Perform the work required to thaw a data value. */
             private void performThaw(String dataName) {
                 DataElement element = (DataElement) data.get(dataName);
                 if (element == null) return;
+                if (element.datafile != null && element.datafile.isImported) return;
                 logger.log(Level.FINE, "Thawing data element {0}", dataName);
 
                 SaveableData value = element.getValue(), thawedValue;
                 if (value instanceof FrozenData) {
-                    //System.out.println("thawing " + dataName);
                     // Thaw the value.
                     FrozenData fd = (FrozenData) value;
                     thawedValue = fd.thaw();
-                    if (thawedValue == FrozenData.DEFAULT)
-                        thawedValue = instantiateValue
-                            (dataName, fd.getPrefix(),
-                             lookupDefaultValueObject(dataName, element), false);
+                    boolean isDefaultVal = (thawedValue == FrozenData.DEFAULT);
+                    if (isDefaultVal) {
+                        boolean fileIsReadOnly = (element.datafile == null ? false
+                                : !element.datafile.canWrite);
+                        thawedValue = instantiateValue(dataName, fd.getPrefix(),
+                                lookupDefaultValueObject(dataName, element),
+                                fileIsReadOnly);
+                    }
 
                     // Save the thawed value to the repository.
-                    putValue(dataName, thawedValue);
+                    putValue(dataName, thawedValue, isDefaultVal);
                 }
             }
 
@@ -745,12 +847,15 @@ public class DataRepository implements Repository, DataContext {
                 stopWaitingForWork();
             }
 
-            private class FrozenDataSet implements DataListener,
-                                                   RepositoryListener,
-                                                   DataConsistencyObserver {
+            private abstract class FrozenDataSet {
+                public abstract void dispose();
+            }
+
+            private class OCDFrozenDataSet extends FrozenDataSet implements
+                      DataListener, RepositoryListener, DataConsistencyObserver {
 
                 String freezeFlagName;
-                String freezeRegexp;
+                Pattern freezeRegexp;
                 Set dataItems;
                 int currentState = FDS_GRANDFATHERED;
                 boolean observedFlagValue;
@@ -758,7 +863,8 @@ public class DataRepository implements Repository, DataContext {
                 Set tentativeFreezables;
                 char[] buffer = null;
 
-                public FrozenDataSet(String freezeFlagName) {
+                public OCDFrozenDataSet(String freezeFlagName)
+                            throws PatternSyntaxException {
                     this.freezeFlagName = freezeFlagName;
 
                     logger.log(Level.FINE, "Creating FrozenDataSet for {0}",
@@ -769,8 +875,8 @@ public class DataRepository implements Repository, DataContext {
                     if (pos == -1) return; // shouldn't happen!
 
                     String prefix = freezeFlagName.substring(0, pos+1);
-                    this.freezeRegexp = "m\n^" + ValueFactory.regexpQuote(prefix) +
-                        freezeFlagName.substring(pos+FREEZE_FLAG_TAG.length()) + "$\n";
+                    this.freezeRegexp = Pattern.compile(ValueFactory.regexpQuote(prefix)
+                            + freezeFlagName.substring(pos + FREEZE_FLAG_TAG.length()));
 
                     this.initializing = true;
                     this.tentativeFreezables = new HashSet();
@@ -790,6 +896,10 @@ public class DataRepository implements Repository, DataContext {
                 private void freeze(Collection itemNames) {
                     if (initializing) tentativeFreezables.addAll(itemNames);
                     else DataFreezer.this.freeze(itemNames);
+                }
+                private void freeze(String itemName) {
+                    if (initializing) tentativeFreezables.add(itemName);
+                    else DataFreezer.this.freeze(Collections.singleton(itemName));
                 }
 
                 private void freezeAll(Set dataItems) {
@@ -887,20 +997,13 @@ public class DataRepository implements Repository, DataContext {
                  *     other, triggering this scenario.
                  */
                 public void dataAdded(String dataName) {
-                    try {
-                        if (isFreezeFlagElement(dataName))
-                            return;           // don't freeze freeze flags!
-                        if (!perl.match(freezeRegexp, dataName))
-                            return;           // only freeze data which matches the regexp.
+                    if (isFreezeFlagElement(dataName))
+                        return;           // don't freeze freeze flags!
+                    if (!freezeRegexp.matcher(dataName).matches())
+                        return;           // only freeze data which matches the regexp.
 
-                    } catch (Perl5Util.RegexpException m) {
-                        //The user has given a bogus pattern!
-                        System.out.println("The regular expression for " + freezeFlagName +
-                                           " is malformed.");
-                        dispose();
-                        return;
-                    }
-                    SaveableData value = getValue(dataName);
+                    DataElement e = (DataElement) data.get(dataName);
+                    SaveableData value = (e == null ? null : e.getValue());
                     boolean valueIsFrozen = (value instanceof FrozenData);
 
                     synchronized (this) {
@@ -908,7 +1011,7 @@ public class DataRepository implements Repository, DataContext {
                             freezeAll(dataItems);
                             currentState = FDS_FROZEN;
                         } else if (currentState == FDS_FROZEN && !valueIsFrozen) {
-                            freeze(Collections.singletonList(dataName));
+                            freeze(dataName);
                         }
 
                         dataItems.add(dataName);
@@ -919,8 +1022,118 @@ public class DataRepository implements Repository, DataContext {
                     dataItems.remove(dataName);
                 }
             }
+
+            private class SimpleFrozenDataSet extends FrozenDataSet implements
+                      DataListener, DataConsistencyObserver {
+
+                private String freezeFlagName;
+                private int currentState;
+                private volatile boolean initializing;
+
+                public SimpleFrozenDataSet(String freezeFlagName) {
+                    logger.log(Level.FINE, "Creating FrozenDataSet for {0}",
+                            freezeFlagName);
+
+                    this.freezeFlagName = freezeFlagName;
+                    this.currentState = FDS_GRANDFATHERED;
+                    this.initializing = true;
+                    addDataListener(freezeFlagName, this, DO_NOT_NOTIFY);
+                    addDataConsistencyObserver(this);
+                }
+
+                public synchronized void dispose() {
+                    removeDataListener(freezeFlagName, this);
+                    frozenDataSets.remove(freezeFlagName);
+                }
+
+                // The next two methods implement the DataListener interface.
+
+                public void dataValueChanged(DataEvent e) {
+                    if (freezeFlagName.equals(e.getName()))
+                        addDataConsistencyObserver(this);
+                }
+
+                public void dataValuesChanged(Vector v) {
+                    if (v == null || v.size() == 0) return;
+                    for (int i = v.size();  i > 0; )
+                        dataValueChanged((DataEvent) v.elementAt(--i));
+                }
+
+                /** Respond to a change in the value of the freeze flag.
+                 */
+                public synchronized void dataIsConsistent() {
+                    //System.out.println(freezeFlagName + " = "+ observedFlagValue);
+                    SimpleData flagValue = getSimpleValue(freezeFlagName);
+                    boolean flagState = (flagValue != null && flagValue.test());
+                    int newState = (flagState ? FDS_FROZEN : FDS_THAWED);
+
+                    if (initializing) {
+                        initializing = false;
+                        currentState = newState;
+
+                    } else if (currentState != newState) {
+                        currentState = newState;
+                        Collection items = getItemsInFrozenDataSet();
+                        if (items == null)
+                            dispose();
+                        else if (newState == FDS_FROZEN) {
+                            logger.log(Level.FINE,
+                                      "Freezing data elements for flag {0}",
+                                      freezeFlagName);
+                            freeze(items);
+                        } else if (newState == FDS_THAWED) {
+                            logger.log(Level.FINE,
+                                    "Thawing data elements for flag {0}",
+                                    freezeFlagName);
+                            thaw(items);
+                        }
+                    }
+                }
+
+                private Collection getItemsInFrozenDataSet() {
+                      // Fetch the prefix and the regular expression.
+                      int prefixLen = freezeFlagName.indexOf(FREEZE_FLAG_TAG);
+                      if (prefixLen == -1)
+                          return null; // shouldn't happen!
+
+                      String prefix = freezeFlagName.substring(0, prefixLen);
+                      Pattern freezeRegexp;
+                      try {
+                          String re = freezeFlagName.substring(prefixLen
+                                  + FREEZE_FLAG_TAG.length());
+                          freezeRegexp = Pattern.compile(re);
+                      } catch (PatternSyntaxException pse) {
+                          logger.log(Level.WARNING, "The regular expression "
+                                  + "for {0} is malformed.", freezeFlagName);
+                          return null;
+                      }
+
+                      logger.log(Level.FINER,
+                              "Searching for data items matching flag {0}",
+                              freezeFlagName);
+                      Collection result = new ArrayList();
+                      for (Iterator i = getKeys(prefix, null); i.hasNext();) {
+                          String dataName = (String) i.next();
+                          if (dataName.length() <= prefixLen
+                                  || !Filter.pathMatches(dataName, prefix)
+                                  || isFreezeFlagElement(dataName)
+                                  || PercentageFunction.isPercentageDataName(dataName))
+                              continue;
+                          String dataNameTail = dataName.substring(prefixLen + 1);
+                          if (freezeRegexp.matcher(dataNameTail).matches()) {
+                              result.add(dataName);
+                              logger.log(Level.FINER, "Found data item: {0}",
+                                      dataName);
+                          }
+                      }
+
+                      return result;
+                    }
+            }
         }
+        private static final boolean USE_OCD_FREEZING_LOGIC = false;
         private static final String FREEZE_FLAG_TAG = "/FreezeFlag/";
+        private static final String FREEZE_FLAG_TAG2 = FREEZE_FLAG_TAG.substring(1);
         private static final int FDS_FROZEN = 0;
         private static final int FDS_GRANDFATHERED = 1;
         private static final int FDS_THAWED = 2;
@@ -934,17 +1147,189 @@ public class DataRepository implements Repository, DataContext {
             }
         }
 
+        private static final int JANITOR_DATA_AGE_SECONDS = Integer.getInteger(
+                DataRepository.class.getName() + ".dataAge", 10).intValue();
+        private static final int JANITOR_DATA_ELEM_COUNT =  Integer.getInteger(
+                DataRepository.class.getName() + ".dataCount", 30000).intValue();
+        private static final int JANITOR_DATA_LIFESPAN =  Integer.getInteger(
+                DataRepository.class.getName() + ".dataGenerations", 3).intValue();
+
+        private static final int MAX_NEW_ITEMS_PER_GENERATION =
+            JANITOR_DATA_ELEM_COUNT / JANITOR_DATA_LIFESPAN;
+        private static final int JANITOR_GENERATION_TIME =
+            (JANITOR_DATA_AGE_SECONDS * 1000) / JANITOR_DATA_LIFESPAN;
+
+        volatile byte currentGeneration = 0;
+
+        private class DataJanitor extends Thread {
+
+            volatile long newItemsInCurrentGeneration = 0;
+
+            volatile boolean workToDo = false;
+
+            private Logger logger = Logger.getLogger(DataRepository.class.getName()
+                    + ".Janitor");
+
+            public DataJanitor() {
+                super("DataJanitor");
+                setPriority((NORM_PRIORITY + MAX_PRIORITY) / 2);
+                setDaemon(true);
+                start();
+            }
+
+            public void run() {
+                while (true) {
+                    if (!workToDo)
+                        waitForWork(JANITOR_GENERATION_TIME);
+
+                    currentGeneration++;
+
+                    runCleanup();
+                }
+            }
+
+            /** Perform an explicitly requested, complete cleaning of the elements
+             * starting with any of the given prefixes.
+             * 
+             * @param prefixes  a list of prefixes to match, or null to match any
+             *    prefix.
+             */
+            public void cleanup(Collection prefixes) {
+                int sizeBefore = data.size();
+                long timeBefore = System.currentTimeMillis();
+                checkMemory();
+
+                for (Iterator i = getInternalKeys(); i.hasNext();) {
+                    String dataName = (String) i.next();
+                    DataElement d = (DataElement) data.get(dataName);
+                    if (isDefaultElement(d) && !d.hasListeners()
+                            && Filter.matchesFilter(prefixes, dataName)) {
+                        cleanup(d);
+                    }
+                }
+
+                debugCleanupResults("cleanup", sizeBefore, timeBefore);
+            }
+
+            private void debugCleanupResults(String when, int sizeBefore,
+                    long timeBefore) {
+                int sizeAfter = data.size();
+                long timeAfter = System.currentTimeMillis();
+                if (logger.isLoggable(Level.FINER)) {
+                    if (sizeBefore != sizeAfter)
+                        logger.finer("janitor." + when + ": sizeBefore="
+                                + sizeBefore + ", sizeAfter=" + sizeAfter
+                                + ", timeToGC=" + (timeAfter - timeBefore) + "ms");
+                    else
+                        logger.finer("janitor." + when + ": no change; size="
+                                + sizeBefore + ", timeToGC="
+                                + (timeAfter - timeBefore) + "ms");
+                }
+            }
+
+            private synchronized void newWork() {
+                workToDo = true;
+                notifyAll();
+            }
+
+            private synchronized void waitForWork(int delay) {
+                if (workToDo == false)
+                    try {
+                        wait(delay);
+                    } catch (InterruptedException e) {
+                    }
+            }
+
+            private DataElement touch(DataElement e) {
+                if (e != null)
+                    e.timestamp = currentGeneration;
+                return e;
+            }
+
+            private DataElement itemWasCreated(DataElement e) {
+                if (newItemsInCurrentGeneration++ > MAX_NEW_ITEMS_PER_GENERATION)
+                    newWork();
+                return e;
+            }
+
+            private void runCleanup() {
+                workToDo = false;
+                newItemsInCurrentGeneration = 0;
+
+                int cleanedCount = 0;
+                int potentiallyCleanableCount = 0;
+                int cleanableCount = 0;
+
+                int sizeBefore = data.size();
+                long timeBefore = System.currentTimeMillis();
+                checkMemory();
+
+                for (Iterator i = getInternalKeys(); i.hasNext();) {
+                    String dataName = (String) i.next();
+                    DataElement d = (DataElement) data.get(dataName);
+                    if (isDefaultElement(d)) {
+                        potentiallyCleanableCount++;
+                        if (!d.hasListeners()) {
+                            cleanableCount++;
+                            int age = currentGeneration - d.timestamp;
+                            if (age > JANITOR_DATA_LIFESPAN) {
+                                cleanup(d);
+                                cleanedCount++;
+                            }
+                        }
+                    }
+                }
+
+                debugCleanupResults("runCleanup", sizeBefore, timeBefore);
+
+                if (cleanableCount == 0 && workToDo == false
+                        && newItemsInCurrentGeneration == 0) {
+                    // if we didn't find anything to clean, and no new items have
+                    // arrived since we started this method, go into a deep sleep.
+                    logger.finest("Nothing to do: deep sleeping...");
+                    waitForWork(JANITOR_GENERATION_TIME * 50);
+                    logger.finest("Waking up from deep sleep. dataSize="
+                            + data.size());
+
+                } else if ((potentiallyCleanableCount - cleanedCount
+                                > JANITOR_DATA_ELEM_COUNT)
+                        && cleanableCount > 10) {
+                    // if there is LOTS of stuff to clean up, but we didn't
+                    // accomplish much on this iteration, start a new generation
+                    // right away.
+                    logger.finest("Lots of work! Restarting immediately.");
+                    workToDo = true;
+                }
+            }
+
+            private final boolean isDefaultElement(DataElement e) {
+                return (e != null
+                        && e.isDefaultValue()
+                        && !shouldCreateEagerly(e.getValue()));
+            }
+
+            private void cleanup(DataElement e) {
+                synchronized (e) {
+                    data.remove(e.name);
+                    e.disposeValue();
+                }
+            }
+        }
+
+        private DataJanitor janitor;
+
 
 
         URL [] templateURLs = null;
 
 
+
         public DataRepository() {
+            INTERN_MAP = data;
             includedFileCache.put("<dataFile.txt>", globalDataDefinitions);
             dataNotifier = new DataNotifier();
             dataFreezer  = new DataFreezer();
-            dataNotifier.start();
-            dataFreezer.start();
+            janitor = new DataJanitor();
         }
 
         public void startServer(ServerSocket socket) {
@@ -963,24 +1348,32 @@ public class DataRepository implements Repository, DataContext {
 
         public boolean areDatafilesDirty() {
             if (!saveDisabled) {
-                for (Iterator i = datafiles.iterator(); i.hasNext();) {
-                    DataFile datafile = (DataFile) i.next();
-                    if (datafile.file != null && datafile.dirtyCount > 0)
-                        return true;
+                synchronized (datafiles) {
+                    for (Iterator i = datafiles.iterator(); i.hasNext();) {
+                        DataFile datafile = (DataFile) i.next();
+                        if (datafile.file != null && datafile.dirtyCount > 0)
+                            return true;
+                    }
                 }
             }
             return false;
         }
 
         public void saveAllDatafiles() {
-            DataFile datafile;
+            List files;
+            synchronized (datafiles) {
+                files = new ArrayList(datafiles);
+            }
 
-            for (int i = datafiles.size();   i-- != 0; ) try {
-                datafile = (DataFile)datafiles.elementAt(i);
-                if (datafile.dirtyCount > 0)
-                    saveDatafile(datafile);
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
+            for (Iterator i = files.iterator(); i.hasNext();) {
+                DataFile datafile = (DataFile) i.next();
+                try {
+                    if (datafile.dirtyCount > 0)
+                        saveDatafile(datafile);
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE,
+                            "Encountered error when saving datafiles", e);
+                }
             }
         }
 
@@ -1002,6 +1395,33 @@ public class DataRepository implements Repository, DataContext {
                 secondaryDataServer.quit();
         }
 
+        /** Set this flag to true when performing memory measurement testing.
+         */
+        private static final boolean ENABLE_MEMORY_CHECKS = false;
+        private static URL MEM_CHECK_URL;
+        static {
+            if (ENABLE_MEMORY_CHECKS) {
+                String propName = DataRepository.class.getName() + ".memCheckURL";
+                String memCheckUrl = System.getProperty(propName);
+                if (memCheckUrl != null)
+                    try {
+                        MEM_CHECK_URL = new URL(memCheckUrl);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+            }
+        }
+        private void checkMemory() {
+            if (ENABLE_MEMORY_CHECKS && MEM_CHECK_URL != null) {
+                try {
+                    MEM_CHECK_URL.openConnection().connect();
+                } catch (Exception e) {};
+            }
+        }
+
+        public void gc(Collection prefixes) {
+            janitor.cleanup(prefixes);
+        }
 
         public void setDatafileSearchURLs(URL[] templateURLs) {
             this.templateURLs = templateURLs;
@@ -1009,44 +1429,21 @@ public class DataRepository implements Repository, DataContext {
 
 
         public synchronized void renameData (String oldPrefix, String newPrefix) {
+            DataFile datafile = getDataFileForPrefix(oldPrefix, true);
 
-            DataFile datafile = null;
-            String datafileName = null;
-
-                                      // find the datafile associated with 'prefix'
-            for (int index = datafiles.size();  index-- > 0; ) {
-                datafile = (DataFile) datafiles.elementAt(index);
-                if (datafile.prefix.equals(oldPrefix) && datafile.file != null) {
-                    datafileName = datafile.file.getPath();
-                    break;
-                }
-            }
-
-            if (datafileName != null) {
-
-                // I'm commenting out this call, and the resume() call below, because they
-                // are deprecated and no longer supported in JDK1.2;  But even worse, they
-                // these two lines really had no effect in JDK1.1.  They look like they shut
-                // down the dataServer, but in reality, all they do is prevent it from accepting
-                // new connections from clients.  (None of the repositoryThreads are suspended.)
-                // dataServer.suspend();
-
+            if (datafile != null) {
+                String datafileName = datafile.file.getPath();
                 remapIDs(oldPrefix, newPrefix);
 
-                                        // close the datafile, then
-                closeDatafile(oldPrefix);
-
-                try {
-                                        // open it again with the new prefix.
+                closeDatafile(oldPrefix);     // close the datafile, then
+                try {                         // open it again with the new prefix.
                     openDatafile(newPrefix, datafileName);
                 } catch (Exception e) {
-                    printError(e);
+                    logger.log(Level.SEVERE, "Problem reopening datafile", e);
                 }
 
-                // dataServer.resume();
-
             } else {
-                datafile = guessDataFile(oldPrefix+"/foo");
+                datafile = guessDataFile(oldPrefix+"/foo", REQUIRE_WRITABLE);
                 if (datafile != null && datafile.prefix.length() == 0)
                     remapDataNames(oldPrefix, newPrefix);
             }
@@ -1062,14 +1459,16 @@ public class DataRepository implements Repository, DataContext {
             oldPrefix = oldPrefix + "/";
             newPrefix = newPrefix + "/";
             int oldPrefixLen = oldPrefix.length();
-            Iterator k = getKeys();
+            Iterator k = getInternalKeys();
             while (k.hasNext()) {
                 name = (String) k.next();
                 if (!name.startsWith(oldPrefix))
                     continue;
 
                 element = (DataElement) data.get(name);
-                if (element.datafile == null ||
+                if (element == null ||
+                    element.isDefaultName() ||
+                    element.datafile == null ||
                     element.datafile.prefix == null ||
                     element.datafile.prefix.length() > 0)
                     // only remap data which lives in the global datafile.
@@ -1085,8 +1484,8 @@ public class DataRepository implements Repository, DataContext {
                     newName = newPrefix + name.substring(oldPrefixLen);
                     newName = intern(newName, false);
                     //System.out.println("renaming " + name + " to " + newName);
-                    putValue(newName, value.getSimpleValue());
-                    putValue(name, null);
+                    putValue(newName, value.getSimpleValue(), IS_NOT_DEFAULT_VAL);
+                    putValue(name, null, IS_NOT_DEFAULT_VAL);
                 }
             }
         }
@@ -1146,6 +1545,8 @@ public class DataRepository implements Repository, DataContext {
 
         public synchronized void dumpRepository(PrintWriter out, Collection filt,
                 boolean dataStyle) {
+            gc(null);
+
             Iterator k = getKeys();
             String name, value;
             DataElement  de;
@@ -1156,8 +1557,8 @@ public class DataRepository implements Repository, DataContext {
                 name = (String) k.next();
                 if (net.sourceforge.processdash.hier.Filter.matchesFilter(filt, name)) {
                     try {
-                        de = (DataElement)data.get(name);
-                        if (de.datafile != null) {
+                        de = getOrCreateDefaultDataElement(name);
+                        if (de != null && de.datafile != null) {
                             value = null;
                             sd = de.getSimpleValue();
                             if (sd == null) continue;
@@ -1185,59 +1586,64 @@ public class DataRepository implements Repository, DataContext {
 //          System.err.println("Data error:"+e.toString()+" for:"+name);
                     }
                 }
+
                 Thread.yield();
             }
         }
 
 
-        public synchronized void dumpRepository () {
-            Iterator k = getKeys();
-            String name;
-            DataElement element;
+        public synchronized void dumpRepositoryListeners(Writer out)
+                throws IOException {
 
-                                      // print out all element values.
-            while (k.hasNext()) {
-                name = (String) k.next();
-                element = (DataElement)data.get(name);
-                System.out.print(name);
-                System.out.print("=" + element.getValue());
-                if (element.dataListenerList != null)
-                    System.out.print(", listeners=" + element.dataListenerList);
-                System.out.println();
+            // print out all element values.
+            for (Iterator i = getInternalKeys(); i.hasNext();) {
+                String name = (String) i.next();
+                DataElement element = (DataElement) data.get(name);
+                if (element == null)
+                    continue;
+
+                out.write(name);
+                out.write("=" + element.getValue());
+                if (element.dataListeners != null)
+                    out.write(", listeners=" + element.dataListeners);
+                out.write("\n");
             }
         }
 
-        public synchronized void closeDatafile (String prefix) {
-            //System.out.println("closeDatafile("+prefix+")");
+        public synchronized void closeDatafile(String prefix) {
+            logger.log(Level.FINE, "Closing datafile for prefix {0}", prefix);
+
+            gc(Collections.singleton(prefix));
 
             startInconsistency();
 
             try {
-                DataFile datafile = null;
-
-                                        // find the datafile associated with 'prefix'
-                Enumeration datafileList = datafiles.elements();
-                while (datafileList.hasMoreElements()) {
-                    DataFile file = (DataFile) datafileList.nextElement();
-                    if (file.prefix.equals(prefix)) {
-                        datafile = file;
-                        break;
-                    }
-                }
-
+                // find the datafile associated with 'prefix'
+                DataFile datafile = getDataFileForPrefix(prefix, false);
 
                 if (datafile != null) {
 
                     remapIDs(prefix, "///deleted//" + prefix);
 
                                           // save previous changes to the datafile.
+                                          // FIXME: if this fails due to file I/O, the
+                                          // unsaved changes will be lost.
                     if (datafile.dirtyCount > 0)
                         saveDatafile(datafile);
 
-                    Iterator k = getKeys();
+                                            // remove 'datafile' from the list of
+                                            // datafiles in this repository.
+                    datafile.isRemoved = true;
+                    datafiles.removeElement(datafile);
+
+                    Iterator k = getInternalKeys();
                     String name;
                     DataElement element;
                     Vector elementsToRemove = new Vector();
+
+                    Set inheritedDataNames = new HashSet();
+                    if (datafile.inheritedDefinitions != null)
+                        inheritedDataNames.addAll(datafile.inheritedDefinitions.keySet());
 
                                           // build a list of all the data elements of
                                           // this datafile.
@@ -1247,6 +1653,9 @@ public class DataRepository implements Repository, DataContext {
                         if (element != null && element.datafile == datafile) {
                             elementsToRemove.addElement(name);
                             elementsToRemove.addElement(element);
+
+                            String localName = name.substring(prefix.length() + 1);
+                            inheritedDataNames.remove(localName);
                         }
                     }
 
@@ -1264,30 +1673,34 @@ public class DataRepository implements Repository, DataContext {
                         name    = (String) elementsToRemove.elementAt(--i);
                         removeValue(name);
                     }
-                                          // remove 'datafile' from the list of
-                                          // datafiles in this repository.
-                    datafiles.removeElement(datafile);
+
+                                          // fire removal events for all of the inherited
+                                          // data elements that are no longer in the
+                                          // repository.
+                    for (Iterator i = inheritedDataNames.iterator(); i.hasNext();) {
+                        String localName = (String) i.next();
+                        name = prefix + "/" + localName;
+                        repositoryListenerList.dispatchRemoved(name);
+                    }
                 }
 
             } catch (Exception e) {
-                printError(e);
+                logger.log(Level.SEVERE, "Problem closing datafile", e);
             } finally {
                 finishInconsistency();
             }
         }
 
-        private DataElement add(String name, SaveableData value, DataFile f,
-                                boolean notify) {
+        private DataElement add(String name, boolean isDefaultName,
+                SaveableData value, boolean isDefaultValue, DataFile datafile,
+                boolean notify) {
 
                                     // Add the element to the table
-            DataElement d = new DataElement(name);
-            d.setValue(value);
-            d.datafile = f;
+            DataElement d = new DataElement(datafile, name, isDefaultName);
+            d.setValue(value, isDefaultValue);
             data.put(name, d);
-            // System.out.println("DataRepository adding " + name + "=" +
-            //                    (value == null ? "null" : value.saveString()));
 
-            if (notify && !name.startsWith(anonymousPrefix))
+            if (notify && !isDefaultName && !name.startsWith(anonymousPrefix))
                 repositoryListenerList.dispatchAdded(name);
 
             return d;
@@ -1304,11 +1717,10 @@ public class DataRepository implements Repository, DataContext {
             // if the named object existed in the repository,
             if (removedElement != null) {
 
-                if (removedElement.getValue() != null)
-                    removedElement.getValue().dispose();
+                removedElement.disposeValue();
 
-                                          // notify any data listeners
-                removedElement.setValue(null);
+                                        // notify any data listeners
+                removedElement.setValue(null, false);
                 dataNotifier.dataChanged(name, removedElement);
 
                                         // notify any repository listeners
@@ -1321,32 +1733,79 @@ public class DataRepository implements Repository, DataContext {
 
                                           // disown the element from its datafile,
                 removedElement.datafile = null;
-                if (removedElement.getValue() != null)
-                    removedElement.getValue().dispose();
-                removedElement.setValue(null);     // erase its previous value,
-                maybeDelete(name, removedElement); // and discard if appropriate.
+                removedElement.disposeValue();
+                removedElement.setValue(null, false);  // erase its previous value,
+                maybeDelete(name, removedElement, true); // and discard if appropriate.
             }
         }
 
 
+        /** Determine which data file an element with the given name would be
+         * placed in.
+         */
+        private DataFile guessDataFile(String name, boolean requireWritable) {
 
-        private DataFile guessDataFile(String name) {
-
-            DataFile datafile;
-            DataFile result = null;
-
-            if (name.indexOf("//") == -1)
-                for (int i = datafiles.size();   i-- != 0; ) {
-                    datafile = (DataFile)datafiles.elementAt(i);
-                    if (datafile.file == null) continue;
-                    if (!datafile.canWrite) continue;
-                    if (name.startsWith(datafile.prefix + "/") &&
-                        ((result == null) ||
-                         (datafile.prefix.length() > result.prefix.length())))
-                        result = datafile;
+            int pos = name.indexOf("//");
+            if (pos == -1 || isLegacyDoubleSlashDataName(name, pos))
+                synchronized (datafiles) {
+                    for (Iterator i = datafiles.iterator(); i.hasNext();) {
+                        DataFile datafile = (DataFile) i.next();
+                        if (requireWritable) {
+                            if (datafile.file == null)
+                                continue;
+                            if (!datafile.canWrite)
+                                continue;
+                        }
+                        if (name.length() > datafile.prefix.length()
+                                && Filter.pathMatches(name, datafile.prefix, true))
+                            return datafile;
+                    }
                 }
 
-            return result;
+            return null;
+        }
+
+        private boolean isLegacyDoubleSlashDataName(String name, int pos) {
+            for (int i = 0; i < LEGACY_DOUBLE_SLASH_PREFIXES.length; i++) {
+                String prefix = LEGACY_DOUBLE_SLASH_PREFIXES[i];
+                if (name.regionMatches(pos - prefix.length(), prefix, 0,
+                        prefix.length()))
+                    return true;
+            }
+
+            for (int i = 0; i < LEGACY_DOUBLE_SLASH_SUFFIXES.length; i++) {
+                String suffix = LEGACY_DOUBLE_SLASH_SUFFIXES[i];
+                if (name.regionMatches(pos+2, suffix, 0, suffix.length()))
+                    return true;
+            }
+
+            return false;
+        }
+        private static final String[] LEGACY_DOUBLE_SLASH_PREFIXES = {
+            "Local_Sized_Object_List"
+        };
+        private static final String[] LEGACY_DOUBLE_SLASH_SUFFIXES = {
+            "Export_Manager"
+        };
+
+        /** Return the datafile whose prefix exactly matches the given prefix.
+         * 
+         * @param prefix the data file prefix to look for.
+         * @param requireNonNullFile if true, only items with a non-null file
+         *          will be considered a match.
+         * @return the matching datafile
+         */
+        private DataFile getDataFileForPrefix(String prefix,
+                boolean requireNonNullFile) {
+            synchronized (datafiles) {
+                for (Iterator i = datafiles.iterator(); i.hasNext();) {
+                    DataFile f = (DataFile) i.next();
+                    if (f.prefix.equals(prefix))
+                        if (requireNonNullFile == false || f.file != null)
+                            return f;
+                }
+            }
+            return null;
         }
 
 
@@ -1355,43 +1814,104 @@ public class DataRepository implements Repository, DataContext {
 
             DataElement d = (DataElement)data.get(name);
 
-            if (d == null || d.getValue() == null) try {
-                SaveableData v = ValueFactory.create(name, value, this, prefix);
+            // if this name represents a default value that has lazily not yet been
+            // constructed, do not create the default value.
+            if (d == null && lookupDefaultValueObject(name, null) != null)
+                return;
+
+            if (d == null || d.getValue() == null) {
+                SaveableData v;
+                try {
+                    v = ValueFactory.create(name, value, this, prefix);
+                } catch (MalformedValueException e) {
+                    v = new MalformedData(value);
+                }
                 if (d == null) {
-                    DataFile f = guessDataFile(name);
-                    d = add(name, v, f, true);
-                    datafileModified(f);
+                    DataFile f = guessDataFile(name, REQUIRE_WRITABLE);
+                    d = add(name, IS_NOT_DEFAULT_NAME, v, IS_DEFAULT_VAL, f,
+                            DO_NOTIFY);
                 } else
-                    putValue(name, v);
-            } catch (MalformedValueException e) {
-                d.setValue(new MalformedData(value));
+                    putValue(name, v, IS_DEFAULT_VAL);
             }
         }
 
 
         public SaveableData getValue(String name) {
-
-            DataElement d = (DataElement)data.get(name);
-            if (d != null)
-                return d.getValue();
+            DataElement d = getOrCreateDefaultDataElement(name);
+            if (d == null)
+                return null;
             else
-                return maybeCreatePercentage(name);
+                return d.getValue();
         }
+
+        private DataElement getOrCreateDefaultDataElement(String dataName) {
+            DataElement d = (DataElement)data.get(dataName);
+            if (d == null)
+                d = maybeCreateDefaultData(dataName);
+            if (d == null)
+                d = maybeCreatePercentage(dataName);
+            return janitor.touch(d);
+        }
+
+        /** only call this routine if the item doesn't already exist.
+         * If the name designates a lazy default value, automatically creates that
+         * value and returns it.
+         */
+        private DataElement maybeCreateDefaultData(String name) {
+            if (name == null)
+                return null;
+
+            DataFile f = guessDataFile(name, DO_NOT_REQUIRE_WRITABLE);
+            if (f == null)
+                return null;
+            else if (f.isImported)
+                return getImportedFileNullElement(f);
+            else if (f.inheritedDefinitions == null)
+                return null;
+
+            String localName = name.substring(f.prefix.length() + 1);
+            Object defaultValueObject = f.inheritedDefinitions.get(localName);
+            if (defaultValueObject == null)
+                return null;
+
+            SaveableData value = instantiateValue(name, f.prefix,
+                    defaultValueObject, !f.canWrite);
+            return janitor.itemWasCreated(add(name, IS_DEFAULT_NAME, value,
+                    IS_DEFAULT_VAL, f, DO_NOT_NOTIFY));
+        }
+
+        private DataElement getImportedFileNullElement(DataFile dataFile) {
+            if (dataFile == null || !dataFile.isImported)
+                return null;
+            String dataName = createDataName(dataFile.prefix,
+                    IMPORTED_NULL_ELEMENT_NAME);
+            synchronized (data) {
+                DataElement result = (DataElement) data.get(dataName);
+                if (result == null)
+                    result = add(dataName, IS_DEFAULT_NAME, null, IS_DEFAULT_VAL,
+                            dataFile, false);
+                return result;
+            }
+        }
+        private static final String IMPORTED_NULL_ELEMENT_NAME =
+            "Imported_File_Null_Token";
 
         /** only call this routine if the item doesn't already exist.
          * If the item looks like a percentage, automatically creates the
          * percentage on the fly and returns it.
          */
-        private SaveableData maybeCreatePercentage(String name) {
+        private DataElement maybeCreatePercentage(String name) {
 
-            if (name == null) return null;
-            if (name.indexOf(PercentageFunction.PERCENTAGE_FLAG) == -1)
+            if (!PercentageFunction.isPercentageDataName(name))
                 return null;
 
             try {
+                // Note: this is creating the new percentage object in the null
+                // datafile.  This helps prevent it from being saved, but if the
+                // user edits it, it will never be saved.  Is this correct?
                 SaveableData result = new PercentageFunction(name, this);
-                add(name, result, null, false);
-                return result;
+                return add(name, IS_DEFAULT_NAME, result, IS_DEFAULT_VAL, null,
+                        DO_NOT_NOTIFY);
             } catch (MalformedValueException mve) {
                 return null;
             }
@@ -1437,49 +1957,73 @@ public class DataRepository implements Repository, DataContext {
         private int recursion_depth = 0;
 
         public void putValue(String name, SaveableData value) {
+            putValue(name, value, IS_NOT_DEFAULT_VAL, MAYBE_MODIFYING_DATAFILE);
+        }
 
+        protected void putValue(String name, SaveableData value,
+                boolean isDefaultValue) {
+            putValue(name, value, isDefaultValue, MAYBE_MODIFYING_DATAFILE);
+        }
+        protected void putValue(String name, SaveableData value,
+                boolean isDefaultValue, boolean checkDatafileModification) {
 
             if (recursion_depth < MAX_RECURSION_DEPTH) {
                 recursion_depth++;
                 DataElement d = (DataElement)data.get(name);
 
                 if (d != null) {
-
-
                                         // change the value of the data element.
                     SaveableData oldValue = d.getValue();
-                    d.setValue(value);
+                    d.setValue(value, isDefaultValue);
 
                                           // possibly mark the datafile as modified.
-                    if (d.datafile != null &&
+                    if (checkDatafileModification &&
+                        d.datafile != null &&
                         value != oldValue &&
                         (oldValue == null || value == null ||
                          !value.saveString().equals(oldValue.saveString()))) {
 
                         // This data element has been changed and should be saved.
 
-                        if (d.datafile == PHANTOM_DATAFILE)
+                        if (PHANTOM_DATAFILES.contains(d.datafile))
                             // move the item OUT of the phantom datafile so it will be saved.
-                            d.datafile = guessDataFile(name);
+                            d.datafile = guessDataFile(name, REQUIRE_WRITABLE);
 
                         datafileModified(d.datafile);
                     }
 
                                           // possibly throw away the old value.
                     if (oldValue != null && oldValue != value)
-                        oldValue.dispose();
+                        try {
+                            oldValue.dispose();
+                        } catch (Exception ex) {}
 
-                                            // notify any listeners registed for the change
+                                          // notify any listeners registed for the change
                     dataNotifier.dataChanged(name, d);
 
                                           // check if this element is no longer needed.
-                    maybeDelete(name, d);
+                    maybeDelete(name, d, false);
 
                 } else {
                     //  if the value was not already in the repository, add it.
-                    DataFile f = guessDataFile(name);
-                    add(name, value, f, true);
-                    datafileModified(f);
+
+                    // if we're writing a default value, it must be for a default name.
+                    boolean isDefaultName = isDefaultValue;
+
+                    // determine the data file for this element.
+                    DataFile f = guessDataFile(name, REQUIRE_WRITABLE);
+
+                    // if we aren't writing a default value, check to see if one would
+                    // have been provided by the datafile.  (That is, are we overwriting
+                    // a default value that has not yet been lazily constructed?)
+                    if (!isDefaultValue && f != null && f.inheritedDefinitions != null) {
+                        String localName = name.substring(f.prefix.length() + 1);
+                        isDefaultName = f.inheritedDefinitions.containsKey(localName);
+                    }
+
+                    add(name, isDefaultName, value, isDefaultValue, f, DO_NOTIFY);
+                    if (!isDefaultValue && checkDatafileModification)
+                        datafileModified(f);
                 }
 
                 recursion_depth--;
@@ -1499,8 +2043,6 @@ public class DataRepository implements Repository, DataContext {
 
                 recursion_depth++;
 
-                // let the data element know that it is changing.
-                d.setValue(value);
                 // notify any listeners registed for the change
                 dataNotifier.dataChanged(name, d);
 
@@ -1517,7 +2059,7 @@ public class DataRepository implements Repository, DataContext {
         public void userPutValue(String name, SaveableData value) {
             waitForCalculations();
             String aliasName = getAliasedName(name);
-            putValue(aliasName, value);
+            putValue(aliasName, value, IS_NOT_DEFAULT_VAL);
         }
 
         private void waitForCalculations() {
@@ -1527,7 +2069,7 @@ public class DataRepository implements Repository, DataContext {
         }
 
         public String getAliasedName(String name) {
-            DataElement d = (DataElement) data.get(name);
+            DataElement d = getOrCreateDefaultDataElement(name);
             String aliasName = null;
             if (d != null && d.getValue() instanceof AliasedData)
                 aliasName = ((AliasedData) d.getValue()).getAliasedDataName();
@@ -1541,14 +2083,25 @@ public class DataRepository implements Repository, DataContext {
         public void restoreDefaultValue(String name) {
 
             DataElement d = (DataElement) data.get(name);
+
+            if (d == null)
+                // either the item either doesn't exist, or it is already a
+                // lazy default value.
+                return;
+
             Object defaultValue = lookupDefaultValueObject(name, d);
 
             SaveableData value = null;
             if (defaultValue != null) {
-                String prefix = (d.datafile == null ? "" : d.datafile.prefix);
-                value = instantiateValue(name, prefix, defaultValue, false);
+                String prefix = "";
+                boolean readOnly = false;
+                if (d.datafile != null) {
+                    prefix = d.datafile.prefix;
+                    readOnly = !d.datafile.canWrite;
+                }
+                value = instantiateValue(name, prefix, defaultValue, readOnly);
             }
-            putValue(name, value);
+            putValue(name, value, defaultValue != null);
         }
 
 
@@ -1590,7 +2143,7 @@ public class DataRepository implements Repository, DataContext {
             try {
                 CompiledFunction f = new CompiledFunction
                     (name, Compiler.compile(expression), this, prefix);
-                putValue(name, f);
+                putValue(name, f, IS_NOT_DEFAULT_VAL);
             } catch (CompilationException e) {
                 throw new MalformedValueException();
             }
@@ -1647,12 +2200,8 @@ public class DataRepository implements Repository, DataContext {
                     result.putAll(defaultDefns.getDefinitions(DataRepository.this));
 
                 if (!isImaginaryDatafileName(datafile))
-                // the null in the next line is a bug! it has no effect on
-                // #include <> statements, but effectively prevents #include ""
-                // statements from working (in other words, include directives
-                // relative to the current file.  Such directives are not
-                // currently used by the dashboard, so nothing will break.)
-                    loadDatafile(datafile, findDatafile(datafile, null), result, true);
+                    loadDatafile(datafile, findDatafile(datafile), result,
+                            DO_FOLLOW_INCLUDES, DO_CLOSE);
 
                 // Although we aren't technically done creating this datafile,
                 // we need to store it in the cache before calling
@@ -1666,6 +2215,9 @@ public class DataRepository implements Repository, DataContext {
                     insertRollupDefinitions(result, rollupID);
                 }
 
+                // prepare renaming operations for later use
+                DataRenamingOperation.initRenamingOperations(result);
+
                 result = Collections.unmodifiableMap(result);
                 includedFileCache.put(datafile, result);
                 definitionsDirty = true;
@@ -1675,7 +2227,7 @@ public class DataRepository implements Repository, DataContext {
         }
 
         private void insertRollupDefinitions(Map definitions, String rollupID) {
-            // FIXME: handle lists
+            // It would be nice to accept a list of rollupIDs
             try {
                 String aliasDatafile = getAliasDatafileName(rollupID);
 
@@ -1693,43 +2245,33 @@ public class DataRepository implements Repository, DataContext {
 
 
         Object lookupDefaultValueObject(String dataName, DataElement element) {
-            // if the user didn't bother to look up the data element, look
-            // it up for them.
+            DataFile datafile = null;
+
+            // if the data element is null, try looking it up.
             if (element == null) element = (DataElement)data.get(dataName);
 
-            if (element == null ||                   // if there is no such element,
-                element.datafile == null ||   // the element has no datafile, or its
-                element.datafile.inheritsFrom == null)  // datafile doesn't inherit,
-                return null;                        // then the default value is null.
+            if (element == null)
+                datafile = guessDataFile(dataName, DO_NOT_REQUIRE_WRITABLE);
+            else
+                datafile = element.datafile;
 
-            DataFile datafile = element.datafile;
-            Map defaultValues = getIncludedFileDefinitions(datafile.inheritsFrom);
-            if (defaultValues == null)
+            if (datafile == null || datafile.inheritedDefinitions == null)
+                // if the element has no datafile, or its datafile doesn't have any
+                // inherited definitions, then the default value is null.
                 return null;
+
+            Map defaultValues = datafile.inheritedDefinitions;
 
             int prefixLength = datafile.prefix.length() + 1;
             String nameWithinDataFile = dataName.substring(prefixLength);
             Object defaultVal = defaultValues.get(nameWithinDataFile);
             return defaultVal;
         }
-        String lookupDefaultValue(String dataName, DataElement element) {
-            Object defaultVal = lookupDefaultValueObject(dataName, element);
-            if (defaultVal == null) return null;
-            if (defaultVal instanceof String) return (String) defaultVal;
-            if (defaultVal instanceof SimpleData)
-                return ((SimpleData) defaultVal).saveString();
-            if (defaultVal instanceof CompiledScript)
-                return ((CompiledScript) defaultVal).saveString();
-            return null;
-        }
 
 
 
-        private InputStream findDatafile(String path, File currentFile) throws
+        private InputStream findDatafile(String path) throws
             FileNotFoundException {
-            InputStream result = null;
-            File file = null;
-
                                       // find file in search path?
             if (path.startsWith("<")) {
                                               // strip <> chars
@@ -1743,7 +2285,7 @@ public class DataRepository implements Repository, DataContext {
                     u = new URL(templateURLs[i], path);
                     conn = u.openConnection();
                     conn.connect();
-                    result = conn.getInputStream();
+                    InputStream result = conn.getInputStream();
                     return result;
                 } catch (IOException ioe) { }
 
@@ -1751,18 +2293,6 @@ public class DataRepository implements Repository, DataContext {
                                         // URL - give up.
                 throw new FileNotFoundException("<" + path + ">");
             }
-
-            if (path.startsWith("\""))
-                path = path.substring(1, path.length()-1);
-
-                                        // try opening the path as given.
-            if ((file = new File(path)).exists()) return new FileInputStream(file);
-
-                                      // if that fails, try opening it in the
-                                      // same directory as currentFile.
-            if (currentFile != null &&
-                (file = new File(currentFile.getParent(), path)).exists())
-                return new FileInputStream(file);
 
             throw new FileNotFoundException(path);    // fail.
         }
@@ -1775,15 +2305,19 @@ public class DataRepository implements Repository, DataContext {
         }
         private class FileLoader extends DepthFirstAdapter {
             private String inheritedDatafile = null;
+            private boolean followIncludes;
             private Map dest;
-            public FileLoader(Map dest) { this.dest = dest; }
+            public FileLoader(Map dest, boolean followIncludes) {
+                this.dest = dest;
+                this.followIncludes = followIncludes;
+            }
             public String getInheritedDatafile() { return inheritedDatafile; }
 
             private void putVal(String name, Object value) {
                 if (name.startsWith("/"))
                     putGlobalValue(name, value);
-                else if (value == null ||
-                         value.equals("null") || value.equals("=null"))
+                else if ((value == null || value.equals("null")
+                        || value.equals("=null")) && followIncludes)
                     dest.remove(name);
                 else
                     dest.put(name, value);
@@ -1836,6 +2370,15 @@ public class DataRepository implements Repository, DataContext {
 
             /** Process an include directive. */
             public void caseAIncludeDeclaration(AIncludeDeclaration node) {
+                if (followIncludes == false) {
+                    if (inheritedDatafile != null)
+                        throw new LoadingException(new InvalidDatafileFormat(
+                                "Multiple includes found when followIncludes==false"));
+                    if (node.getExcludeClause() != null)
+                        throw new LoadingException(new InvalidDatafileFormat(
+                                "Exclude clause found when followIncludes==false"));
+                }
+
                 String line = node.getIncludeDirective().getText();
                 inheritedDatafile = line.substring(includeTag.length()).trim();
 
@@ -1847,6 +2390,9 @@ public class DataRepository implements Repository, DataContext {
                             ("datafile #include directives with relative" +
                              " paths are no longer supported."));
                 }
+
+                if (followIncludes == false)
+                    return;
 
                 try {
                     Map cachedIncludeFile =
@@ -1891,19 +2437,20 @@ public class DataRepository implements Repository, DataContext {
         // call to loadDatafile is made, using the same Hashtable.  Return the
         // name of the include file, if one was found.
 
-        private String loadDatafile(String file, InputStream datafile,
-                                    Map dest, boolean close)
+        private String loadDatafile(String file, InputStream datafile, Map dest,
+                boolean followIncludes, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            return loadDatafile(file, new InputStreamReader(datafile), dest, close);
+            return loadDatafile(file, new InputStreamReader(datafile), dest,
+                    followIncludes, close);
         }
-        private String loadDatafile(String filename, Reader datafile,
-                                    Map dest, boolean close)
+        private String loadDatafile(String filename, Reader datafile, Map dest,
+                boolean followIncludes, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
             //debug("loadDatafile("+filename+")");
             // Initialize data, file, and read buffer.
             BufferedReader in = new BufferedReader(datafile);
-            FileLoader loader = new FileLoader(dest);
+            FileLoader loader = new FileLoader(dest, followIncludes);
             String defineDecls = null;
             if (filename != null)
                 defineDecls = (String) defineDeclarations.get(filename);
@@ -1946,7 +2493,8 @@ public class DataRepository implements Repository, DataContext {
 
         public void parseDatafile(String contents, Map dest)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            loadDatafile(null, new StringReader(contents), dest, true);
+            loadDatafile(null, new StringReader(contents), dest, DO_FOLLOW_INCLUDES,
+                    DO_CLOSE);
         }
 
         private final Hashtable defineDeclarations = new Hashtable();
@@ -1998,10 +2546,13 @@ public class DataRepository implements Repository, DataContext {
         }
 
         private Hashtable globalDataDefinitions = new Hashtable();
+        private boolean globalDataIsMounted = false;
 
         public void addGlobalDefinitions(InputStream datafile, boolean close)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
-            loadDatafile(null, datafile, globalDataDefinitions, close);
+            loadDatafile(null, datafile, globalDataDefinitions, DO_FOLLOW_INCLUDES,
+                    close);
+            DataRenamingOperation.initRenamingOperations(globalDataDefinitions);
         }
 
         private SaveableData instantiateValue(String name, String dataPrefix,
@@ -2030,8 +2581,7 @@ public class DataRepository implements Repository, DataContext {
                 try {
                     o = ValueFactory.createQuickly(name, value, this, dataPrefix);
                 } catch (MalformedValueException mfe) {
-                    // TODO: temporary fix to allow old PSP for Engineers add-on to
-                    // work in 1.7
+                    // temporary fix to allow old PSP for Engineers add-on to work in 1.7
                     if ("![(&&\tCompleted)]".equals(value)) {
                         valueObj = Compiler.compile("[Completed]");
                         o = new CompiledFunction(name, (CompiledScript) valueObj,
@@ -2046,134 +2596,61 @@ public class DataRepository implements Repository, DataContext {
             return o;
         }
 
+        private boolean instantiatedDataMatches(Object valueObj, SaveableData val) {
+            if (valueObj == val) {
+                // exact same object?  matches.
+                return true;
+
+            } else if (valueObj == null || val == null) {
+                // one object is null but the other isn't
+                return false;
+
+            } else if (valueObj instanceof SimpleData) {
+                // compare SimpleData for equality.
+                return ((SimpleData) valueObj).equals(val);
+
+            } else if (valueObj instanceof CompiledScript) {
+                // compare CompiledScript for match.
+                return ((CompiledScript) valueObj).matches(val);
+
+            } else if (valueObj instanceof SearchFactory) {
+                // compare SearchFactory for match.
+                return ((SearchFactory) valueObj).matches(val);
+
+            } else if (valueObj instanceof String) {
+                // compare save strings of old-style data.
+                String valueObjStr = (String) valueObj;
+                if (valueObjStr.startsWith("="))
+                    valueObjStr = valueObjStr.substring(1);
+                String valStr = val.saveString();
+                if (valStr != null && valStr.startsWith("="))
+                    valStr = valStr.substring(1);
+                return valueObjStr.equals(valStr);
+            }
+
+            return false;
+        }
+
         private void putGlobalValue(String name, Object valueObj) {
             DataElement e = (DataElement) data.get(name);
             if (e != null && e.getValue() != null)
                 return;                 // don't overwrite existing values?
 
-            SaveableData o = instantiateValue(name, "", valueObj, false);
+            String localName = name.substring(1);
+            valueObj = DataRenamingOperation.maybeInitRenamingOperation(
+                    localName, valueObj);
+            globalDataDefinitions.put(localName, valueObj);
+            definitionsDirty = true;
 
-            if (o != null) {
-                globalDataDefinitions.put(name.substring(1), valueObj);
-                definitionsDirty = true;
-                putValue(name, o);
+            if (e != null) {
+                SaveableData o = instantiateValue(name, "", valueObj, false);
+                if (o != null)
+                    putValue(name, o, IS_DEFAULT_VAL);
+            } else if (!(valueObj instanceof DataRenamingOperation)) {
+                if (globalDataIsMounted)
+                    repositoryListenerList.dispatchAdded(name);
             }
         }
-
-        /** Perform renaming operations found in the values map.
-         *
-         * A simple renaming operation is a mapping whose value begins
-         * with "<=".  The key is the new name for the data, and the rest
-         * of the value is the original name.  So the following lines in a
-         * datafile: <pre>
-         *    foo="bar
-         *    baz=<=foo
-         * </pre> would be equivalent to the single line `baz="bar'.
-         * Simple renaming operations are correctly transitive, so <pre>
-         *   foo=1
-         *   bar=<=foo
-         *   baz=<=bar
-         * </pre> is equivalent to `baz=1'. This will work correctly, no matter
-         * what order the lines appear in.
-         *
-         * Pattern match renaming operations are mappings whose value
-         * begins with >~.  The key is a pattern to match, and the value
-         * is the substitution expression.  So <pre>
-         *    foo 1="one
-         *    foo 2="two
-         *    foo ([0-9])+=>~$1/foo
-         * </pre> would be equivalent to the lines <pre>
-         *    1/foo="one
-         *    2/foo="two
-         * </pre> The pattern must match the original name of the element - not
-         * any renamed variant.  Therefore, pattern match renaming operations
-         * <b>cannot</b> be chained.  A pattern match operation <b>can</b> be
-         * the <b>first</b> renaming operation in a transitive chain, but will
-         * neverbe used as the second or subsequent operations in a chain.
-         *
-         * Finally, renaming operations can influence dataFiles below them in
-         * the datafile inheritance chain.  This is, in fact, the #1 reason for
-         * the renaming mechanism.  It allows a process datafile to rename
-         * elements that appear in end-user project datafiles.
-         *
-         * @return true if any renames took place.
-         */
-        private boolean performRenames(Hashtable values)
-         throws InvalidDatafileFormat {
-            boolean dataWasRenamed = false;
-            Hashtable renamingOperations = new Hashtable(),
-                patternRenamingOperations = new Hashtable();
-
-            // Perform a pass through the value map looking for renaming operations.
-            Iterator i = values.entrySet().iterator();
-            String name, value;
-            Map.Entry e;
-            while (i.hasNext()) {
-                e = (Map.Entry) i.next();
-                name = (String) e.getKey();
-                if (!(e.getValue() instanceof String)) continue;
-                value = (String) e.getValue();
-
-                if (value.startsWith(SIMPLE_RENAME_PREFIX)) {
-                    renamingOperations.put
-                        (name, value.substring(SIMPLE_RENAME_PREFIX.length()));
-                    i.remove();
-                } else if (value.startsWith(PATTERN_RENAME_PREFIX)) {
-                    patternRenamingOperations.put
-                        (name, value.substring(PATTERN_RENAME_PREFIX.length()));
-                    i.remove();
-                }
-            }
-
-            // For each pattern-style renaming operation, find data names that
-            // match the pattern and add the corresponding renaming operation to
-            // the regular naming operation list.
-            i = patternRenamingOperations.entrySet().iterator();
-            String re;
-            while (i.hasNext()) {
-                e = (Map.Entry) i.next();
-                name = (String) e.getKey();
-                value = (String) e.getValue();
-
-                re = "s\n^" + name + "$\n" + value + "\n";
-                // scan the value map for matching names.
-                Enumeration valueNames = values.keys();
-                String valueName, valueRename;
-                while (valueNames.hasMoreElements()) {
-                    valueName = (String) valueNames.nextElement();
-                    try {
-                        valueRename = perl.substitute(re, valueName);
-                        if (!valueName.equals(valueRename))
-                            renamingOperations.put(valueRename, valueName);
-                    } catch (Perl5Util.RegexpException mpe) {
-                        throw new InvalidDatafileFormat
-                            ("Malformed renaming operation '" + name +
-                             "=" + PATTERN_RENAME_PREFIX + value + "'");
-                    }
-                }
-            }
-
-            // Now perform the renaming operations.
-            String oldName, newName;
-            Object val;
-            i = renamingOperations.entrySet().iterator();
-            while (!renamingOperations.isEmpty()) {
-                newName = (String) renamingOperations.keySet().iterator().next();
-                oldName = (String) renamingOperations.remove(newName);
-                val     = values.remove(oldName);
-                while (val == null &&
-                       (oldName = (String) renamingOperations.remove(oldName)) != null)
-                    val = values.remove(oldName);
-
-                if (val != null) {
-                    values.put(newName, val);
-                    dataWasRenamed = true;
-                }
-            }
-            return dataWasRenamed;
-        }
-        public static final String SIMPLE_RENAME_PREFIX = "<=";
-        public static final String PATTERN_RENAME_PREFIX = ">~";
 
 
         private Map filterDefinitions(Map definitions,
@@ -2182,22 +2659,18 @@ public class DataRepository implements Repository, DataContext {
             Map result = new HashMap(definitions);
 
             // delete all the specified identifiers from the map.
-            Iterator i = identifiers.iterator();
-            String identifier;
-            while (i.hasNext()) {
-                identifier = (String) i.next();
+            for (Iterator i = identifiers.iterator(); i.hasNext();) {
+                String identifier = (String) i.next();
                 result.remove(identifier);
             }
 
             // remove data elements which match any of the regular expressions.
-            Iterator r = regularExpressions.iterator();
-            String regExp;
-            while (r.hasNext()) {
-                regExp = "m\n^" + r.next() + "$\n";
-                i = result.keySet().iterator();
-                while (i.hasNext()) {
-                    identifier = (String) i.next();
-                    if (perl.match(regExp, identifier))
+            for (Iterator r = regularExpressions.iterator(); r.hasNext();) {
+                String regExp = (String) r.next();
+                Pattern p = Pattern.compile(regExp);
+                for (Iterator i = result.keySet().iterator(); i.hasNext();) {
+                    String identifier = (String) i.next();
+                    if (p.matcher(identifier).matches())
                         i.remove();
                 }
             }
@@ -2208,24 +2681,30 @@ public class DataRepository implements Repository, DataContext {
         public void openDatafile(String dataPrefix, String datafilePath)
             throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
-            // debug("openDatafile");
+            logger.log(Level.FINE, "Opening datafile {0}", datafilePath);
 
             Hashtable values = new Hashtable();
 
             DataFile dataFile = new DataFile(dataPrefix, new File(datafilePath));
             dataFile.inheritsFrom =
                 loadDatafile(null, new FileInputStream(dataFile.file),
-                             values, true);
+                             values, DO_NOT_FOLLOW_INCLUDES, DO_CLOSE);
+            if (dataFile.inheritsFrom != null)
+                dataFile.inheritedDefinitions =
+                    loadIncludedFileDefinitions(dataFile.inheritsFrom);
 
             // perform any renaming operations that were requested in the datafile
-            boolean dataModified = performRenames(values);
+            boolean dataModified = DataRenamingOperation.performRenames(values,
+                    dataFile.inheritedDefinitions);
 
                                     // only add the datafile element if the
                                     // loadDatafile process was successful
-            datafiles.addElement(dataFile);
+            addDataFile(dataFile);
 
                                     // mount the data in the repository.
             mountData(dataFile, dataPrefix, values);
+
+            logger.log(Level.FINE, "Done opening datafile {0}", datafilePath);
 
             if (dataModified)       // possibly mark the file as modified.
                 datafileModified(dataFile);
@@ -2237,79 +2716,153 @@ public class DataRepository implements Repository, DataContext {
             try {
                 startInconsistency();
 
-                // register the names of data elements in this file IF it is a
-                // regular datafile and is not global data.
-                boolean registerDataNames =
-                    (dataFile!=null && dataFile.file!=null && dataPrefix.length()>0);
-
-                boolean dataModified = false, successful = false;
+                boolean registerDataNames = false;
                 String datafilePath = "internal data";
                 boolean fileEditable = true;
 
+                // if this is a regular file,
                 if (dataFile != null && dataFile.file != null) {
                     datafilePath = dataFile.file.getPath();
                     fileEditable = dataFile.canWrite;
+                    // register the names of data elements in this file IF it is
+                    // not global data.
+                    registerDataNames = dataPrefix.length() > 0;
                 }
 
+                Map defaultData = dataFile.inheritedDefinitions;
+                if (defaultData == null)
+                    defaultData = Collections.EMPTY_MAP;
+
+                boolean successful = false;
+                boolean datafileModified = false;
                 int retryCount = 10;
                 while (!successful && retryCount-- > 0) try {
-                    Map.Entry defn;
-                    String localName, name;
-                    Object valueObj;
-                    SaveableData o;
-                    DataElement d;
 
-                    Iterator dataDefinitions = values.entrySet().iterator();
-                    while (dataDefinitions.hasNext()) {
-                        defn = (Map.Entry) dataDefinitions.next();
-                        localName = (String) defn.getKey();
-                        valueObj = defn.getValue();
-                        name = createDataName(dataPrefix, localName);
-                        o = instantiateValue(name, dataPrefix, valueObj, !fileEditable);
-
-                        // is anyone still using this functionality???
-                        if (valueObj instanceof String &&
-                            "@now".equalsIgnoreCase((String) valueObj))
-                            dataModified = true;
+                    // First, create all the values that are listed explicitly in the
+                    // values map.
+                    for (Iterator i = values.entrySet().iterator(); i.hasNext();) {
+                        Map.Entry defn = (Map.Entry) i.next();
+                        String localName = (String) defn.getKey();
+                        Object valueObj = defn.getValue();
+                        String dataName = createDataName(dataPrefix, localName);
+                        SaveableData o = instantiateValue(dataName, dataPrefix, valueObj,
+                                !fileEditable);
 
                         if (o instanceof MalformedData)
-                            System.err.println("Data value for '"+name+"' in file '"+
-                                               datafilePath+"' is malformed.");
+                            logger.warning("Data value for '" + dataName + "' in file '"
+                                    + datafilePath + "' is malformed.");
 
-                        d = (DataElement)data.get(name);
+                        DataElement d = (DataElement)data.get(dataName);
                         if (d == null) {
-                            if (o != null) d = add(name, o, dataFile, true);
+                            boolean isDefaultName = defaultData.containsKey(localName);
+                            if (o != null || isDefaultName)
+                                d = add(dataName, isDefaultName, o, IS_NOT_DEFAULT_VAL,
+                                        dataFile, DO_NOTIFY);
                         } else {
-                                              // this prevents the putValue logic from
-                            d.datafile = null;  // marking the datafile as modified
-                            putValue(name, o);
-                            d.datafile = dataFile;
+                            putValue(dataName, o, IS_NOT_DEFAULT_VAL,
+                                    NOT_MODIFYING_DATAFILE);
+                            d = (DataElement)data.get(dataName);
+                            if (d != null)
+                                d.datafile = dataFile;
                         }
 
-                        if (registerDataNames &&
-                            (o instanceof DoubleData || o instanceof CompiledFunction))
+                        if (registerDataNames && (o instanceof DoubleData
+                                || o instanceof CompiledFunction))
                             dataElementNameSet.add(localName);
                     }
 
-                    if (dataModified)
-                        datafileModified(dataFile);
+                    // Next, handle the default values that this datafile inherits.
+                    for (Iterator i = defaultData.entrySet().iterator(); i.hasNext();) {
+                        Map.Entry defn = (Map.Entry) i.next();
+                        String localName = (String) defn.getKey();
+                        Object valueObj = defn.getValue();
+
+                        // if we already processed an explicit value with this same
+                        // name, do nothing.
+                        if (values.containsKey(localName))
+                            continue;
+
+                        // Ignore renaming operations; they are not relevant.
+                        if (valueObj instanceof DataRenamingOperation)
+                            continue;
+
+                        boolean shouldCreateEagerly = shouldCreateEagerly(valueObj);
+                        if ("@now".equals(valueObj))
+                            shouldCreateEagerly = datafileModified = true;
+
+                        String dataName = createDataName(dataPrefix, localName);
+                        DataElement d = (DataElement)data.get(dataName);
+                        if (d == null) {
+                            // this data element does not already exist in the repository.
+                            // most such items do not need to be created; we can let them
+                            // be lazily created later if needed.
+
+                            if (shouldCreateEagerly) {
+                                // the item doesn't exist, but we should create it anyway.
+                                SaveableData o = instantiateValue(dataName,
+                                        dataPrefix, valueObj, !fileEditable);
+                                if (o != null)
+                                    d = add(dataName, IS_DEFAULT_NAME, o, IS_DEFAULT_VAL,
+                                            dataFile, DO_NOT_NOTIFY);
+                            }
+
+                        } else {
+                            // a matching data element exists.
+                            d.datafile = dataFile;
+
+                            if (instantiatedDataMatches(valueObj, d.getValue())) {
+                                // the data element already has the proper value. (This
+                                // will be common, as clients registering data listeners
+                                // will cause lazy data to spring to life even as this
+                                // for loop is executing.) Nothing needs to be done.
+
+                            } else if (!d.hasListeners()) {
+                                // This element has the wrong value, but no one is
+                                // listening to it.  Revert the element to a lazy
+                                // default value.
+                                janitor.cleanup(d);
+
+                            } else {
+                                // This element has the wrong value, and clients are
+                                // listening to it.  Create and save the correct value.
+                                SaveableData o = instantiateValue(dataName,
+                                        dataPrefix, valueObj, !fileEditable);
+                                putValue(dataName, o, IS_DEFAULT_VAL,
+                                        NOT_MODIFYING_DATAFILE);
+                                d.isDefaultName = true;
+                            }
+                        }
+
+                        // send an event stating that the element is added. (Elsewhere in
+                        // DataRepository, added events are never sent for data elements
+                        // with default names (because it cannot tell whether the item is
+                        // springing forth for the first time, or a subsequent time).
+                        repositoryListenerList.dispatchAdded(dataName);
+
+                        if (registerDataNames && (valueObj instanceof DoubleData
+                                || valueObj instanceof CompiledScript))
+                            dataElementNameSet.add(localName);
+                    }
 
                     // make a call to getID.  We don't need the resulting value, but
                     // having made the call will cause an ID to be mapped for this
                     // prefix.  This is necessary to allow users to bring up HTML pages
                     // from their browser's history or bookmark list.
-                    //
                     getID(dataPrefix);
-                    // debug("openDatafile done");
+
+                    if (defaultData == globalDataDefinitions)
+                        globalDataIsMounted = true;
+                    if (datafileModified)
+                        datafileModified(dataFile);
+
                     successful = true;
 
                 } catch (Throwable e) {
                     if (retryCount > 0) {
                         // Try again to open this datafile. Most errors are transient,
                         // caused by incredibly infrequent thread-related problems.
-                        debug("when opening "+datafilePath+" caught error "+e+
-                              ", retrying.");
-                        e.printStackTrace();
+                        logger.log(Level.WARNING, "when opening "
+                                + datafilePath + " caught error; retrying.", e);
                     } else {
                         // We've done our best, but after 10 tries, we still can't open
                         // this datafile.  Give up and throw an exception.
@@ -2322,6 +2875,14 @@ public class DataRepository implements Repository, DataContext {
             } finally {
                 finishInconsistency();
             }
+        }
+
+        protected boolean shouldCreateEagerly(Object defaultValueObject) {
+            if (defaultValueObject instanceof TagData
+                    || defaultValueObject instanceof FrozenData)
+                return true;
+
+            return false;
         }
 
         private Hashtable mountedPhantomData = new Hashtable();
@@ -2341,7 +2902,10 @@ public class DataRepository implements Repository, DataContext {
             // It is important to mount the data with *some* datafile - if a
             // data element's datafile is null, it is considered transient and
             // can be deleted at any time if no one is listening to its value.
-            mountData(getPhantomDataFile(), dataPrefix, values);
+            DataFile f = getPhantomDataFile(dataPrefix);
+            f.inheritedDefinitions = values;
+            addDataFile(f);
+            mountData(f, dataPrefix, Collections.EMPTY_MAP);
 
             if (mountedPhantomData != null) {
                 mountedPhantomData.put(dataPrefix, values);
@@ -2358,67 +2922,234 @@ public class DataRepository implements Repository, DataContext {
             }
         }
         private void mountImportedDataImpl(String dataPrefix, Map values)
-            throws InvalidDatafileFormat
-        {
+                throws InvalidDatafileFormat {
             String prefixToDiscard = null;
-            for (int i = datafiles.size();   i-- != 0; )
-                if (dataPrefix.equals(((DataFile)datafiles.elementAt(i)).prefix)) {
-                    DataFile previousDataFile = (DataFile)datafiles.elementAt(i);
-                    prefixToDiscard = previousDataFile.prefix;
-                    prefixToDiscard = prefixToDiscard.replace('/', '\\');
-                    prefixToDiscard = '\u0001' + prefixToDiscard.substring(1);
-                    previousDataFile.prefix = prefixToDiscard;
-                    break;
-                }
+            DataFile previousDataFile = getDataFileForPrefix(dataPrefix, false);
+            if (previousDataFile != null) {
+                prefixToDiscard = previousDataFile.prefix;
+                prefixToDiscard = prefixToDiscard.replace('/', '\\');
+                prefixToDiscard = '\u0001' + prefixToDiscard.substring(1);
+                previousDataFile.prefix = prefixToDiscard;
+            }
 
             DataFile dataFile = new DataFile(dataPrefix, null);
-            datafiles.addElement(dataFile);
+            dataFile.isImported = true;
+            addDataFile(dataFile);
             mountData(dataFile, dataPrefix, values);
 
-            if (prefixToDiscard != null)
+            if (prefixToDiscard != null) {
+                // reassociate the null element with the new data file (instead
+                // of the old one)
+                DataElement e = getImportedFileNullElement(dataFile);
+                e.datafile = dataFile;
+
+                // discard elements that were present in the old data file, that
+                // no longer exist
                 closeDatafile(prefixToDiscard);
+
+                // send a dataChanged event for the null element, indicating that
+                // the imported file has changed.
+                dataNotifier.dataChanged(e.name, e);
+            }
         }
 
-        private DataFile getPhantomDataFile() {
-            if (PHANTOM_DATAFILE == null) {
-                DataFile d = new DataFile("", null);
-                PHANTOM_DATAFILE = d;
-            }
-            return PHANTOM_DATAFILE;
+        private DataFile getPhantomDataFile(String prefix) {
+            DataFile d = new DataFile(prefix, null);
+            PHANTOM_DATAFILES.add(d);
+            return d;
         }
-        private DataFile PHANTOM_DATAFILE = null;
+        private Set PHANTOM_DATAFILES = Collections.synchronizedSet(new HashSet());
 
         private static volatile int MAX_DIRTY = 10;
 
+        private void addDataFile(DataFile df) {
+            synchronized (datafiles) {
+                datafiles.add(df);
+                Collections.sort(datafiles);
+            }
+        }
 
         private void datafileModified(DataFile datafile) {
             if (datafile != null && ++datafile.dirtyCount > MAX_DIRTY)
                 saveDatafile(datafile);
         }
 
-        public Iterator getKeys() {
-            return getKeysImpl(data);
-        }
-        private Iterator getKeysImpl(HashTree data) {
-            return data.getAllKeys();
-        }
-        private Iterator getKeysImpl(Hashtable data) {
-            ArrayList l = new ArrayList();
+        private Iterator getInternalKeys() {
+            List l = new ArrayList();
             synchronized (data) {
                 l.addAll(data.keySet());
             }
             return l.iterator();
         }
 
+        public Iterator getKeys() {
+            return getKeys(null, null);
+        }
+        public Iterator getKeys(Object prefixes, Object hints) {
+            return new AllDataNamesIterator(prefixes, hints);
+        }
+
+        private class AllDataNamesIterator implements Iterator {
+            private Set explicitDataNames;
+            private List files;
+            private DataNameFilter.PrefixLocal prefixLocalFilter;
+
+            private DataFile workingDatafile;
+            private Iterator workingDefaultLocalNames;
+            private Iterator workingExplicitNames;
+
+            public AllDataNamesIterator(Object prefix, Object hints) {
+                synchronized (data) {
+                    explicitDataNames = new HashSet(data.keySet());
+                }
+                synchronized (datafiles) {
+                    files = new LinkedList(datafiles);
+                }
+
+                for (Iterator i = files.iterator(); i.hasNext();) {
+                    DataFile f = (DataFile) i.next();
+                    if (f.inheritedDefinitions == null
+                            || f.inheritedDefinitions.isEmpty())
+                        i.remove();
+                    else if (prefixesMightMatch(prefix, f.prefix) == false)
+                        i.remove();
+                }
+
+                if (hints instanceof DataNameFilter.PrefixLocal)
+                    prefixLocalFilter = (DataNameFilter.PrefixLocal) hints;
+
+                loadNextWorkingFile();
+            }
+            private boolean prefixesMightMatch(Object prefixes, String prefixB) {
+                if (prefixes instanceof String)
+                    return prefixesMightMatch((String) prefixes, prefixB);
+
+                if (prefixes instanceof Collection) {
+                    for (Iterator i = ((Collection) prefixes).iterator(); i.hasNext();)
+                        if (prefixesMightMatch(i.next(), prefixB))
+                            return true;
+                    return false;
+                }
+
+                return true;
+            }
+            private boolean prefixesMightMatch(String prefixA, String prefixB) {
+                if (prefixA == null || prefixB == null)
+                    return true;
+                else
+                    return prefixA.startsWith(prefixB)
+                            || prefixB.startsWith(prefixA);
+            }
+            public boolean hasNext() {
+                return files.isEmpty() == false
+                        || explicitDataNames.isEmpty() == false
+                        || hasNextWorkingDefaultLocalName()
+                        || hasNextWorkingExplicitName();
+            }
+            private boolean hasNextWorkingDefaultLocalName() {
+                return (workingDatafile != null
+                        && workingDatafile.isRemoved == false
+                        && workingDefaultLocalNames.hasNext());
+            }
+            private boolean hasNextWorkingExplicitName() {
+                return (workingExplicitNames != null
+                        && workingExplicitNames.hasNext());
+            }
+            public Object next() {
+                // first, try to return one of the default names inherited by the
+                // working datafile.
+                while (hasNextWorkingDefaultLocalName()) {
+                    String prefix = workingDatafile.prefix;
+                    Map.Entry e = (Map.Entry) workingDefaultLocalNames.next();
+                    if (e.getValue() instanceof DataRenamingOperation)
+                        continue;
+                    String localName = (String) e.getKey();
+                    if (prefixLocalFilter != null
+                            && !prefixLocalFilter.acceptPrefixLocalName(prefix,
+                                    localName))
+                        continue;
+                    String result = createDataName(prefix, localName);
+                    explicitDataNames.remove(result);
+                    return result;
+                }
+
+                // If we just ran out of default names for the working datafile,
+                // create the list of explicit names present in that datafile.
+                if (workingExplicitNames == null)
+                    loadWorkingExplicitNames();
+
+                // return the next explicit name we know about, that is still
+                // present in the data map.
+                while (hasNextWorkingExplicitName()) {
+                    String result = (String) workingExplicitNames.next();
+                    if (workingDatafile == null
+                            || Filter.pathMatches(result, workingDatafile.prefix)) {
+                        workingExplicitNames.remove();
+                        if (data.containsKey(result))
+                            return result;
+                    }
+                }
+
+                if (!files.isEmpty() || !explicitDataNames.isEmpty()) {
+                    loadNextWorkingFile();
+                    return next();
+                } else {
+                    // in certain very rare occasions, another thread might
+                    // have closed a file or deleted a data element since our
+                    // hasNext() method was called last, and we might no longer
+                    // have any data to return.  We can't violate the contract
+                    // of Iterator, so we'll just return an imaginary data name.
+                    return anonymousPrefix + "/No_More_Data_Elements";
+                }
+            }
+            private void loadNextWorkingFile() {
+                if (files.isEmpty()) {
+                    workingDatafile = null;
+                    workingDefaultLocalNames = null;
+                } else {
+                    workingDatafile = (DataFile) files.remove(0);
+                    workingDefaultLocalNames = workingDatafile
+                            .inheritedDefinitions.entrySet().iterator();
+                }
+                workingExplicitNames = null;
+            }
+            private void loadWorkingExplicitNames() {
+                if (workingDatafile != null) {
+                    if (ORDER_NAMES_BY_PREFIX)
+                        workingExplicitNames = explicitDataNames.iterator();
+                    else
+                        workingExplicitNames = null;
+
+                } else {
+                    // if there is no working datafile, list the explicit names
+                    // that have not yet been returned.
+                    workingExplicitNames = explicitDataNames.iterator();
+                    // explicitDataNames = Collections.EMPTY_SET;
+                }
+            }
+
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        }
+        /** If true, {@link AllDataNamesIterator} will group explicit data names
+         * next to implicit data names, according to datafile prefixes.  Testing
+         * seems to suggest that this provides no memory advantage, but slows down
+         * the operation of the iterator.
+         */
+        private static final boolean ORDER_NAMES_BY_PREFIX = false;
+
+
         protected boolean saveDisabled = false;
 
-        // saveDataFile - saves a set of data to the appropriate data file.  In
-        // order to minimize data loss, data is first written to two temporary
-        // files, out and backup.  Once this is successful, out is renamed to
-        // the actual datafile.  Once the rename is successful, backup is
-        // deleted.
+        /** Saves a set of data to the appropriate data file.
+         * 
+         * @param datafile the datafile to save
+         */
         private void saveDatafile(DataFile datafile) {
-            if (datafile == null || datafile.file == null || saveDisabled) return;
+            if (datafile == null || datafile.file == null || datafile.isRemoved
+                      || saveDisabled)
+                  return;
 
             // this flag should stay false until we are absolutely certain
             // that we have successfully saved the datafile.
@@ -2430,21 +3161,12 @@ public class DataRepository implements Repository, DataContext {
                 // debug("saveDatafile");
 
                 Set valuesToSave = new TreeSet();
-                Map defaultValues = null;
 
                 // if the data file has an include statement, lookup the associated
                 // default values defined by the included file.
-                if (datafile.inheritsFrom != null) {
-                    defaultValues = getIncludedFileDefinitions(datafile.inheritsFrom);
-                    if (defaultValues == null)
-                        System.err.println("No inherited definitions for " +
-                                           datafile.inheritsFrom);
-                }
+                Map defaultValues = datafile.inheritedDefinitions;
                 if (defaultValues == null)
-                    defaultValues = new HashMap();
-
-                // make a set of all the data element names defined in defaultValues
-                Set defaultValueNames = new HashSet(defaultValues.keySet());
+                    defaultValues = Collections.EMPTY_MAP;
 
                 // optimistically mark the datafile as "clean" at the beginning of
                 // the save operation.  This way, if the datafile is modified
@@ -2452,106 +3174,69 @@ public class DataRepository implements Repository, DataContext {
                 // and the datafile will be saved again in the future.
                 datafile.dirtyCount = 0;
 
-                Iterator k = getKeys();
-                String name = null, valStr, defaultValStr;
-                Object defaultVal;
-                DataElement element;
-                SaveableData value;
                 int prefixLength = datafile.prefix.length() + 1;
 
-                // write the data elements to the two temporary output files.
-                while (k.hasNext()) {
-                    name = (String)k.next();
-                    element = (DataElement)data.get(name);
+                for (Iterator i = getInternalKeys(); i.hasNext();) {
+                    String name = (String) i.next();
+                    DataElement element = (DataElement)data.get(name);
 
-                    // Make a quick check on the element and datafile validity
-                    // before taking the time to get the value
-                    if ((element != null) && (element.datafile == datafile)) {
-                        value = element.getValue();
-                        if (value != null) {
-                            name = name.substring(prefixLength);
-                            defaultValueNames.remove(name);
+                    if (element == null
+                            || element.datafile != datafile
+                            || element.isDefaultValue())
+                        // if there is no such element, if it doesn't belong to this
+                        // DataFile, or if it has a default value, skip it.
+                        continue;
 
-                            valStr = value.saveString();
-                            if (valStr == null || valStr.length() == 0) continue;
-                            if (!value.isEditable()) valStr = "=" + valStr;
-                            defaultVal = defaultValues.get(name);
-                            defaultValStr = null;
-                            if (defaultVal instanceof String)
-                                defaultValStr = (String) defaultVal;
-                            else if (defaultVal instanceof SimpleData) {
-                                defaultValStr = ((SimpleData) defaultVal).saveString();
-                                if (!((SimpleData) defaultVal).isEditable())
-                                    defaultValStr = "=" + defaultValStr;
-                            } else if (defaultVal instanceof SearchFactory)
-                                continue;
-                            else if
-                                (defaultVal instanceof CompiledScript &&
-                                 value instanceof CompiledFunction &&
-                                 ((CompiledFunction) value).getScript() == defaultVal)
-                                continue;
+                    SaveableData value = element.getValue();
+                    String valStr = null;
+                    boolean editable = true;
 
-                            if (valStr.equals(defaultValStr))
-                                continue;
-
-                            valuesToSave.add(name + "=" + valStr);
-                        }
-                    }
-                }
-                k = defaultValueNames.iterator();
-                while (k.hasNext()) {
-                    name = (String) k.next();
-                    defaultVal = defaultValues.get(name);
-
-                    if (defaultVal == null) continue;
-                    if (defaultVal instanceof String) {
-                        defaultValStr = (String) defaultVal;
-                        if (defaultValStr.equals("null") ||
-                            defaultValStr.equals("=null") ||
-                            defaultValStr.startsWith(SIMPLE_RENAME_PREFIX) ||
-                            defaultValStr.startsWith(PATTERN_RENAME_PREFIX))
-                            continue;
+                    if (value != null) {
+                        valStr = value.saveString();
+                        editable = value.isEditable();
+                    } else if (element.isDefaultName()) {
+                        // store the fact that the default is overwritten with null
+                        valStr = "null";
                     }
 
-                    valuesToSave.add(name+"=null");
+                    if (valStr == null || valStr.length() == 0)
+                        continue;
+
+                    name = name.substring(prefixLength);
+                    valuesToSave.add(name + (editable ? "=" : "==") + valStr);
                 }
 
-
-                // Create temporary files
+                // Write the saved values
                 BufferedWriter out;
-
                 try {
                     out = new BufferedWriter(new RobustFileWriter(datafile.file));
                 } catch (IOException e) {
-                    System.err.println("IOException " + e + " while opening " +
-                                       datafile.file.getPath() + "; save aborted");
+                    logger.log(Level.SEVERE, "Encountered exception while opening "
+                            + datafile.file.getPath() + "; save aborted", e);
                     return;
                 }
 
                 try {
-                    // if the data file has an include statement, write it to the
-                    // the two temporary output files.
+                    // if the data file has an include statement, write it to the file
                     if (datafile.inheritsFrom != null) {
                         out.write(includeTag + datafile.inheritsFrom);
                         out.newLine();
                     }
 
-                    // If the data file has a prefix, write it as a comment to the
-                    // two temporary output files.
+                    // If the data file has a prefix, write it as a comment to the file
                     if (datafile.prefix != null && datafile.prefix.length() > 0) {
                         out.write("= Data for " + datafile.prefix);
                         out.newLine();
                     }
 
-                    k = valuesToSave.iterator();
-                    while (k.hasNext()) {
-                        out.write((String) k.next());
+                    for (Iterator i = valuesToSave.iterator(); i.hasNext();) {
+                        out.write((String) i.next());
                         out.newLine();
                     }
 
                 } catch (IOException e) {
-                    System.err.println("IOException " + e + " while writing to " +
-                                       datafile.file.getPath() + "; save aborted");
+                    logger.log(Level.SEVERE, "Encountered exception while writing to "
+                            + datafile.file.getPath() + "; save aborted", e);
                     return;
                 }
 
@@ -2563,113 +3248,103 @@ public class DataRepository implements Repository, DataContext {
                     saveSuccessful = true;
                     System.err.println("Saved " + datafile.file.getPath());
                 } catch (IOException e) {
-                    System.err.println("IOException " + e + " while closing " +
-                                       datafile.file.getPath());
+                    logger.log(Level.SEVERE, "Encountered exception while closing "
+                            + datafile.file.getPath() + "; save aborted", e);
                 }
 
-                // debug("saveDatafile done");
             } finally {
-                if (!saveSuccessful)               // if we couldn't successfully save
-                    datafile.dirtyCount = MAX_DIRTY; // the datafile, mark it as dirty.
+                // if we couldn't successfully save the datafile, mark it as dirty.
+                if (!saveSuccessful)
+                    datafile.dirtyCount = 1000;
             } }
-        }
-
-
-
-        public String makeUniqueName(String baseName) {
-            // debug("makeUniqueName");
-                int id = 0;
-
-                if (baseName == null) baseName = "///Internal_Name";
-
-                while (data.get(baseName + id) != null) id++;
-
-                putValue(baseName + id, null);
-
-        // debug("makeUniqueName done");
-            return (baseName + id);
         }
 
 
 
 
         public void addDataListener(String name, DataListener dl) {
-            addDataListener(name, dl, true);
+            addDataListener(name, dl, DO_NOTIFY);
         }
 
-        public void addDataListener(String name, DataListener dl, boolean notify) {
+        /** Register an object to receive notifications about changes in a data
+         * value.
+         * 
+         * Note: If the named data element does not exist, and it would have been
+         * in an imported data file, this method will <b>not</b> register a
+         * listener on the named data element.  Instead, it will register a
+         * listener on a "proxy" element associated with the imported datafile.
+         * The name of this proxy element will be returned.
+         * 
+         * @param name the name of the data value to watch
+         * @param dl the listener to notify
+         * @param notify if true, a notification will be sent immediately as part
+         *    of the processing of this request
+         * @return the name of the element to which the notification was added.
+         *    (Will usually be the same as <code>name</code>, except as noted
+         *    above.)
+         */
+        public String addDataListener(String name, DataListener dl, boolean notify) {
             DataElement d;
             synchronized (data) {
                 // lookup the element.
-                d = (DataElement)data.get(name);
+                d = getOrCreateDefaultDataElement(name);
 
-                // if we didn't find the element, try autocreating a percentage.
-                if (d == null && maybeCreatePercentage(name) != null)
-                    d = (DataElement)data.get(name);
-
-                // the item doesn't exist. Create an entry for it with the value null.
+                // If the item doesn't exist, either as an explicit or default value,
+                // create an entry for it with the value null.
                 if (d == null)
-                    d = add(name, null, guessDataFile(name), true);
-            }
+                    d = add(name, IS_NOT_DEFAULT_NAME, null, IS_NOT_DEFAULT_VAL,
+                            guessDataFile(name, REQUIRE_WRITABLE), DO_NOTIFY);
 
-            if (d.dataListenerList == null) d.dataListenerList = new Vector();
-            if (!d.dataListenerList.contains(dl))
-                d.dataListenerList.addElement(dl);
+                d.addDataListener(dl);
+            }
 
             if (notify)
                 dataNotifier.addEvent(name, d, dl);
+
+            return d.name;
         }
 
-        public void addActiveDataListener
+        public String addActiveDataListener
             (String name, DataListener dl, String dataListenerName) {
-            addActiveDataListener(name, dl, dataListenerName, true);
+            return addActiveDataListener(name, dl, dataListenerName, true);
         }
 
-        public void addActiveDataListener
+        public String addActiveDataListener
             (String name, DataListener dl, String dataListenerName, boolean notify) {
-            addDataListener(name, dl, notify);
+            String result = addDataListener(name, dl, notify);
             activeData.put(dl, dataListenerName);
+            return result;
         }
 
 
-        private void maybeDelete(String name, DataElement d) {
+        private void maybeDelete(String name, DataElement d,
+                boolean deleteDefaultValues) {
 
-            if (d.dataListenerList == null) {
-                if (d.getValue() == null)
+            // never discard elements that override a default value in a file.
+            if (d.isDefaultName() && !d.isDefaultValue() && d.datafile != null)
+                return;
+
+            if (d.dataListeners == null) {    // if no one cares about this element
+                if (d.getValue() == null)         // and it has no value,
                     data.remove(name);            // throw it away.
 
-            } else if (d.dataListenerList.isEmpty())
-
-                                              // if no one cares about this element,
-                if (d.getValue() == null)       // and it has no value,
-                    data.remove(name);            // throw it away.
-
-                                                  // if no one cares about this element
-                else if (d.datafile == null) {  // and it has no datafile,
-                    data.remove(name);            // throw it away and
-                    d.getValue().dispose();       // dispose of its value.
-                }
-
+            } else if (d.dataListeners.isEmpty()) {
+                               // if no one cares about this element any longer,
+                if (d.getValue() == null                 // and it has no value,
+                        || d.datafile == null            // or it has no datafile,
+                        || (deleteDefaultValues &&       // or it is a discardable
+                                janitor.isDefaultElement(d)))    // default value,
+                    janitor.cleanup(d);          // ask the janitor to discard it.
+            }
         }
 
 
         public void removeDataListener(String name, DataListener dl) {
-            // debug("removeDataListener");
-                DataElement d = (DataElement)data.get(name);
-
-                if (d != null)
-                    if (d.dataListenerList != null) {
-
-                        // remove the specified data listener from the list of data
-                        // listeners for this element.  NOTE! We do not delete the
-                        // dataListenerList here if it becomes empty...see the comments on
-                        // the dataListenerList element of the DataElement construct.
-
-                        d.dataListenerList.removeElement(dl);
-                        dataNotifier.removeDataListener(name, dl);
-                        maybeDelete(name, d);
-                    }
-                // debug("removeDataListener done");
+            DataElement d = (DataElement)data.get(name);
+            if (d != null) {
+                d.removeDataListener(dl);
+                dataNotifier.removeDataListener(name, dl);
+            }
         }
         public void removeActiveDataListener(DataListener dl) {
             activeData.remove(dl);
@@ -2684,20 +3359,12 @@ public class DataRepository implements Repository, DataContext {
                 return;
             }
 
-            Iterator dataElements = getKeys();
-            String name = null;
-            DataElement element = null;
-            Vector listenerList = null;
-
-                      // walk the hashtable, removing this datalistener.
-            while (dataElements.hasNext()) {
-                name = (String) dataElements.next();
-                element = (DataElement) data.get(name);
-                if (element != null) {
-                    listenerList = element.dataListenerList;
-                    if (listenerList != null && listenerList.removeElement(dl))
-                        maybeDelete(name, element);
-                }
+            // walk the hashtable, removing this datalistener.
+            for (Iterator i = getInternalKeys(); i.hasNext();) {
+                String name = (String) i.next();
+                DataElement element = (DataElement) data.get(name);
+                if (element != null)
+                    element.removeDataListener(dl);
             }
             dataNotifier.deleteDataListener(dl);
             activeData.remove(dl);
@@ -2705,25 +3372,19 @@ public class DataRepository implements Repository, DataContext {
         }
 
         void processedDeferredDataListenerDeletions() {
-            if (dataListenersForDeferredRemoval.isEmpty())
-                return;
-            Set listenersToRemove = new HashSet(dataListenersForDeferredRemoval);
-
-            Iterator dataElements = getKeys();
-            String name = null;
-            DataElement element = null;
-            Vector listenerList = null;
+            Set listenersToRemove ;
+            synchronized (dataListenersForDeferredRemoval) {
+                if (dataListenersForDeferredRemoval.isEmpty())
+                    return;
+                listenersToRemove = new HashSet(dataListenersForDeferredRemoval);
+            }
 
                       // walk the hashtable, removing this datalistener.
-            while (dataElements.hasNext()) {
-                name = (String) dataElements.next();
-                element = (DataElement) data.get(name);
-                if (element != null) {
-                    listenerList = element.dataListenerList;
-                    if (listenerList != null &&
-                        listenerList.removeAll(listenersToRemove))
-                        maybeDelete(name, element);
-                }
+            for (Iterator i = getInternalKeys(); i.hasNext();) {
+                String name = (String) i.next();
+                DataElement element = (DataElement) data.get(name);
+                if (element != null)
+                    element.removeDataListeners(listenersToRemove);
             }
             for (Iterator i = listenersToRemove.iterator(); i.hasNext();) {
                 DataListener dl = (DataListener) i.next();
@@ -2744,7 +3405,7 @@ public class DataRepository implements Repository, DataContext {
 
                                     // notify the listener of all the elements
                                     // already in the repository.
-            Iterator k = getKeys();
+            Iterator k = getKeys(prefix, rl);
             String name;
 
 
@@ -2752,20 +3413,15 @@ public class DataRepository implements Repository, DataContext {
 
                                     // if they have specified a prefix, notify them
                                     // of all the data beginning with that prefix.
-                while (k.hasNext()) {
-                    if ((name = (String) k.next()).startsWith(prefix)) {
-                        DataElement d = (DataElement) data.get(name);
-                        if (d != null) rl.dataAdded(name);
-                    }
-                }
+                while (k.hasNext())
+                    if ((name = (String) k.next()).startsWith(prefix))
+                        rl.dataAdded(name);
 
             else                    // if they have specified no prefix, only
                                     // notify them of data that is NOT anonymous.
                 while (k.hasNext())
-                    if (!(name = (String) k.next()).startsWith(anonymousPrefix)) {
-                        DataElement d = (DataElement) data.get(name);
-                        if (d != null) rl.dataAdded(name);
-                    }
+                    if (!(name = (String) k.next()).startsWith(anonymousPrefix))
+                        rl.dataAdded(name);
 
             // debug("addRepositoryListener done");
         }
@@ -2831,27 +3487,6 @@ public class DataRepository implements Repository, DataContext {
             }
         }
 
-        public Vector listDataNames(String prefix) {
-            Vector result = new Vector();
-            Iterator names = getKeys();
-            String name;
-            while (names.hasNext()) {
-                name = (String) names.next();
-                if (name.startsWith(prefix))
-                    result.addElement(name);
-            }
-            return result;
-        }
-
-        private void debug(String msg) {
-            System.out.println(msg);
-        }
-
-        private void printError(Exception e) {
-            System.err.println("Exception: " + e);
-            e.printStackTrace(System.err);
-        }
-
         public String getID(String prefix) {
             // if we already have a mapping for this prefix, return it.
             String ID = (String) PathIDMap.get(prefix);
@@ -2865,16 +3500,14 @@ public class DataRepository implements Repository, DataContext {
 
                                       // find the datafile associated with 'prefix'
             String datafileName = "null";
-            for (int index = datafiles.size();  index-- > 0; ) {
-                DataFile datafile = (DataFile) datafiles.elementAt(index);
-                if (datafile.prefix.equals(prefix)) {
-                    if (datafile.file == null)
-                        datafileName = "";
-                    else
-                        datafileName = datafile.file.getPath();
-                    break;
-                }
+            DataFile datafile = getDataFileForPrefix(prefix, false);
+            if (datafile != null) {
+                if (datafile.file == null)
+                    datafileName = "";
+                else
+                    datafileName = datafile.file.getPath();
             }
+
                                       // compute the hash of the datafileName.
             int IDNum = datafileName.hashCode();
             ID = Integer.toString(IDNum);
@@ -2953,6 +3586,28 @@ public class DataRepository implements Repository, DataContext {
         }
 
         private static String intern(String s, boolean recommendNew) {
-            return StringUtils.intern(s, recommendNew);
+            if (INTERN_MAP != null) {
+                DataElement e = (DataElement) INTERN_MAP.get(s);
+                if (e != null)
+                    return e.name;
+            }
+            return s;
         }
+        private static Map INTERN_MAP = null;
+
+        // the following boolean constants are declared to provide readability
+        // in the code above.
+        private static final boolean IS_DEFAULT_NAME = true;
+        private static final boolean IS_NOT_DEFAULT_NAME = false;
+        private static final boolean IS_DEFAULT_VAL = true;
+        private static final boolean IS_NOT_DEFAULT_VAL = false;
+        private static final boolean DO_NOTIFY = true;
+        private static final boolean DO_NOT_NOTIFY = false;
+        private static final boolean DO_FOLLOW_INCLUDES = true;
+        private static final boolean DO_NOT_FOLLOW_INCLUDES = false;
+        private static final boolean DO_CLOSE = true;
+        private static final boolean MAYBE_MODIFYING_DATAFILE = true;
+        private static final boolean NOT_MODIFYING_DATAFILE = false;
+        private static final boolean REQUIRE_WRITABLE = true;
+        private static final boolean DO_NOT_REQUIRE_WRITABLE = false;
 }

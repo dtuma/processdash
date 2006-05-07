@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -39,11 +39,12 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.compiler.CompiledScript;
 
 
-public class SearchFunction implements SaveableData, RepositoryListener, DataListener,
-                                Comparator
+public class SearchFunction implements SaveableData, RepositoryListener,
+        DataListener, Comparator, DataNameFilter.PrefixLocal
 {
+    protected SearchFactory factory;
     protected String name = null, prefix = null;
-    protected String start, tag;
+    protected String start, tag, tag2;
     protected CompiledScript script;
     protected DataRepository data;
     protected ListData value, externalValue;
@@ -54,12 +55,13 @@ public class SearchFunction implements SaveableData, RepositoryListener, DataLis
     protected Set condList = Collections.synchronizedSet(new HashSet());
 
 
-    public SearchFunction(String name, String start, String tag,
-                          CompiledScript expression,
-                          DataRepository data, String prefix) {
+    public SearchFunction(SearchFactory factory, String name, String start,
+            String tag, CompiledScript expression, DataRepository data,
+            String prefix) {
+        this.factory = factory;
         this.name = name;
         this.start = start;
-        this.tag = maybeAddSlash(tag);
+        storeTag(tag);
         this.script = expression;
         this.data = data;
         this.prefix = prefix;
@@ -72,11 +74,16 @@ public class SearchFunction implements SaveableData, RepositoryListener, DataLis
         data.addRepositoryListener(this, start);
     }
 
-    private String maybeAddSlash(String name) {
-        if (name.startsWith("/") || name.startsWith(" ") || name.length() == 0)
-            return name;
-        else
-            return "/" + name;
+    private void storeTag(String tagName) {
+        if (tagName.startsWith("/")) {
+            tag = tagName;
+            tag2 = tagName.substring(1);
+        } else if (tagName.startsWith(" ") || tagName.length() == 0) {
+            tag = tag2 = tagName;
+        } else {
+            tag = "/" + tagName;
+            tag2 = tagName;
+        }
     }
 
     private static final String CONDITION_NAME = "_SearchCondition_///";
@@ -139,6 +146,10 @@ public class SearchFunction implements SaveableData, RepositoryListener, DataLis
         }
     }
 
+    public boolean acceptPrefixLocalName(String prefix, String localName) {
+        return (localName.equals(tag2) || localName.endsWith(tag));
+    }
+
     public void dataAdded(String dataName) {
         String dataPrefix = getTagPrefix(dataName);
         if (dataPrefix == null) return;
@@ -150,15 +161,15 @@ public class SearchFunction implements SaveableData, RepositoryListener, DataLis
             return;             // Guard against infinite loops.
         */
         if (script == null) {
+            // Listen for changes to the data value.
+            data.addActiveDataListener(dataName, this, name, false);
+
             // We don't have a script - just check to ensure that the
             // element is defined, and then add it.
             if (test2(data.getSimpleValue(dataName))) {
                 if (doAdd(dataPrefix))
                     doNotify();
             }
-
-            // Listen for changes to the data value.
-            data.addActiveDataListener(dataName, this, name);
 
         } else {
             // We need to see if this element matches the expression.
@@ -170,15 +181,15 @@ public class SearchFunction implements SaveableData, RepositoryListener, DataLis
             // Keep a list of the conditions we're watching.
             condList.add(condName);
 
+            // Listen for changes to this condition expression.
+            data.addActiveDataListener(condName, this, name, false);
+
             // If the condition evaluates to true, add this prefix to our
             // value.
             if (test(condition.getSimpleValue())) {
                 if (doAdd(dataPrefix))
                     doNotify();
             }
-
-            // Listen for changes to this condition expression.
-            data.addActiveDataListener(condName, this, name);
         }
 
         eventThreads.remove(Thread.currentThread());

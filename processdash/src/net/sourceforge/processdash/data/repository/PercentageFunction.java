@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,8 +27,8 @@ package net.sourceforge.processdash.data.repository;
 
 import java.util.Vector;
 
-import net.sourceforge.processdash.data.*;
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.MalformedValueException;
 import net.sourceforge.processdash.data.NumberData;
 
 
@@ -115,7 +115,7 @@ class PercentageFunction extends DoubleData implements DataListener {
             value = numeratorValue / denominatorValue;
 
         if (myName != null)
-            data.putValue(myName, this);
+            data.valueRecalculated(myName, this);
     }
 
     private double getDoubleValue(DataEvent e) {
@@ -138,5 +138,9 @@ class PercentageFunction extends DoubleData implements DataListener {
             data.removeActiveDataListener(this);
             data = null;
         }
+    }
+
+    static boolean isPercentageDataName(String name) {
+        return (name != null && name.indexOf(PERCENTAGE_FLAG) > 0);
     }
 }

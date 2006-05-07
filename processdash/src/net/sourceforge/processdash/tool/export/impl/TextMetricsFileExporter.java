@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -116,14 +116,12 @@ public class TextMetricsFileExporter implements Runnable {
         out.close();
         if (fail)
             dest.delete();
+
+        ctx.getData().gc(filter);
     }
 
     private static String TASK_ORD_PREF = "/"
             + EVTaskListData.TASK_ORDINAL_PREFIX;
-
-    private static String safeName(String n) {
-        return n.replace('/', '_').replace(',', '_');
-    }
 
     private static Object toAbbrevString(TimeLogEntry tle) {
         return ("!" + FormatUtil.formatDateTime(tle.getStartTime()) + "!," + tle

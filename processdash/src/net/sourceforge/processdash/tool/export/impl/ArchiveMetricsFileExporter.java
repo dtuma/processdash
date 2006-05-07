@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -86,13 +85,15 @@ public class ArchiveMetricsFileExporter implements Runnable,
         this.metricsExcludes = metricsExcludes;
     }
 
-        public void run() {
+    public void run() {
         try {
             doExport();
         } catch (Exception ioe) {
             ioe.printStackTrace();
             dest.delete();
         }
+
+        ctx.getData().gc(filter);
     }
 
     private void doExport() throws IOException {

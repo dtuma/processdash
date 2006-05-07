@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -62,7 +62,7 @@ public class FrozenData implements SaveableData {
      * data element.
      */
     public FrozenData(String name, SaveableData thawedVal,
-                      DataRepository data, String prefix, String defaultVal) {
+                      DataRepository data, String prefix, boolean isDefault) {
         this.name = name;
         this.data = data;
         this.prefix = prefix;
@@ -71,11 +71,11 @@ public class FrozenData implements SaveableData {
         if (thawedVal == null) {
             value = null;
             util.formerEditable = true;
-            util.setFormer("null", defaultVal);
+            util.setFormer("null", isDefault);
         } else {
             value = thawedVal.getSimpleValue();
             util.formerEditable = thawedVal.isEditable();
-            util.setFormer(thawedVal.saveString(), defaultVal);
+            util.setFormer(thawedVal.saveString(), isDefault);
         }
         if (value == null)
             util.currentSaveString = "null";

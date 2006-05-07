@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -47,8 +47,6 @@ public class RepositoryClient extends Thread implements Repository {
     PrintWriter out = null;
     ObjectInputStream in = null;
     private String dataPath = null;
-    private volatile Vector dataNameList = null;
-    private Object dataNameListLock = new Object();
     private volatile boolean isRunning = false;
     private Vector repositoryClientListeners = new Vector();
 
@@ -113,13 +111,11 @@ public class RepositoryClient extends Thread implements Repository {
 
         dataListenerList = dataEvents = null;
         dataPath = null;
-        dataNameList = null;
-        dataNameListLock = null;
     }
 
-    private void debug(String msg) {
-        System.out.println("RepositoryClient: " + msg);
-    }
+//  private void debug(String msg) {
+//    System.out.println("RepositoryClient: " + msg);
+//  }
 
     private void printError(Exception e) {
         System.err.println("Exception: " + e);
@@ -130,9 +126,6 @@ public class RepositoryClient extends Thread implements Repository {
 
         Object o = null;
         DataEvent e = null;
-        int id;
-        String name = null;
-        String value = null;
         Enumeration enumeration = null;
 
         while (isRunning) try {
@@ -140,7 +133,6 @@ public class RepositoryClient extends Thread implements Repository {
             try {
                 o = in.readObject();
                 e = (DataEvent) o;
-            } catch (ClassCastException ex) { dataNameList = (Vector) o; continue;
             } catch (Exception ex) { isRunning = false; break; }
 
             // debug("got dataValueChanged on " + e.getName());
@@ -372,32 +364,6 @@ public class RepositoryClient extends Thread implements Repository {
             printError(e);
         }
         return false;
-    }
-
-
-    public Vector listDataNames(String prefix) throws RemoteException {
-        synchronized(dataNameListLock) {
-            PrintWriter out = null;
-            synchronized (this) { out = this.out; }
-            if (out == null) throw new RemoteException();
-            dataNameList = null;
-
-            try {
-                synchronized (out) {
-                    out.println("listDataNames");
-                    out.println(prefix);
-                    out.flush();
-                }
-            } catch (Exception e) {
-                printError(e);
-                throw new RemoteException();
-            }
-
-            while (dataNameList == null)
-                try { sleep(100); } catch (Exception e) {}
-
-            return dataNameList;
-        }
     }
 
 

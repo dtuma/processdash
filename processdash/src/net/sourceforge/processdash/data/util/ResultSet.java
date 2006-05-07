@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -229,9 +229,8 @@ public class ResultSet {
         String dataName =
             DataRepository.createDataName(FAKE_DATA_NAME, forParam);
         if (data.getValue(dataName) == null) {
-            data.putValue
-                (dataName,
-                 new SearchFunction(dataName, "", forParam, null, data, ""));
+            data.putValue(dataName, new SearchFunction(null, dataName, "",
+                    forParam, null, data, ""));
             // this keeps the search function from disappearing on us.
             data.addDataListener(dataName, NULL_LISTENER);
         }
@@ -447,7 +446,6 @@ public class ResultSet {
         if (basePrefix == null) basePrefix = "";
         int baseLen = basePrefix.length();
         if (baseLen > 0) baseLen++; // remove / as well
-        SimpleData value;
 
         for (int p=0;  p < prefixList.size();  p++) {
             // get the next prefix

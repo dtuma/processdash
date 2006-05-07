@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -104,9 +104,9 @@ public class RepositoryServer extends Thread {
             } catch (Exception e) {}
         }
 
-        private void debug(String msg) {
-            // System.out.println("RepositoryServerThread: " + msg);
-        }
+//    private void debug(String msg) {
+//      System.out.println("RepositoryServerThread: " + msg);
+//    }
 
         private void printError(Exception e) {
             if (threadIsRunning) {
@@ -172,14 +172,6 @@ public class RepositoryServer extends Thread {
                     value = in.readLine();        // debug("    arg is "+value);
                     prefix = in.readLine();       // debug("    arg is "+prefix);
                     data.maybeCreateValue(dataName, value, prefix);
-                }
-
-                else if (methodName.equals("listDataNames")) {
-                    prefix = in.readLine();       // debug("    arg is "+prefix);
-                    Vector dataNames = data.listDataNames(prefix);
-                    synchronized (out) {
-                        out.writeObject(dataNames);
-                    }
                 }
 
                 else if (methodName.equals("logMessage")) {
@@ -269,9 +261,9 @@ public class RepositoryServer extends Thread {
     }
 
 
-    private void debug(String msg) {
-        // System.out.println("RepositoryServer: " + msg);
-    }
+//  private void debug(String msg) {
+//    System.out.println("RepositoryServer: " + msg);
+//  }
 
     private void printError(Exception e) {
         if (serverIsRunning) {
