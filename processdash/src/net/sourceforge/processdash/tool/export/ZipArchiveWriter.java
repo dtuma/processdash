@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -52,6 +52,10 @@ public class ZipArchiveWriter implements ArchiveWriter {
     // implementation of ArchiveWriter
     //////////////////////////////////////////////////////////////
 
+    public boolean supportsAnchors() {
+        return true;
+    }
+
     public void startArchive(OutputStream out) throws IOException {
         init(out);
     }
@@ -61,7 +65,7 @@ public class ZipArchiveWriter implements ArchiveWriter {
     }
 
     public void addFile(String uri, String contentType, byte[] content,
-                        int offset)
+            int offset)
         throws IOException
     {
         writeEntry(uri, contentType, content, offset);

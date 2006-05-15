@@ -1,5 +1,5 @@
+// Copyright (C) 2004-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,6 +31,10 @@ import java.io.OutputStream;
 
 
 public interface ArchiveWriter {
+
+
+    /** Can this writer support anchors in hyperlinks? */
+    public boolean supportsAnchors();
 
 
     /** Start writing an archive */

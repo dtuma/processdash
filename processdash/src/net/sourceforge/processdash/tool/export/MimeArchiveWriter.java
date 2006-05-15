@@ -1,5 +1,5 @@
+// Copyright (C) 2004-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -64,6 +64,10 @@ public class MimeArchiveWriter implements ArchiveWriter {
     //////////////////////////////////////////////////////////////
     // implementation of ArchiveWriter
     //////////////////////////////////////////////////////////////
+
+    public boolean supportsAnchors() {
+        return false;
+    }
 
     public void startArchive(OutputStream out) {
         init(out);

@@ -1,5 +1,5 @@
+// Copyright (C) 2004-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,11 +30,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.FormToHTML;
@@ -57,6 +61,9 @@ public class HTMLArchiver {
     protected DataRepository data;
     protected ArchiveWriter writer;
     protected Map requestContents;
+    private Set itemsToWrite;
+    private boolean postponeWritingAdditionalItems = false;
+    private boolean supportAnchors;
 
 
     public static void archive(WebServer webServer, DataRepository data,
@@ -75,6 +82,7 @@ public class HTMLArchiver {
         this.webServer = webServer;
         this.data = data;
         this.requestContents = new HashMap();
+        this.itemsToWrite = new HashSet();
 
         switch (outputMode) {
             case OUTPUT_JAR:
@@ -84,8 +92,14 @@ public class HTMLArchiver {
                 this.writer = new ZipArchiveWriter(); break;
 
             case OUTPUT_MIME: default:
+                // the first entry in the MIME archive MUST be the HTML page
+                // we want to appear in the browser, so it is important not
+                // to write something else first.
+                postponeWritingAdditionalItems = true;
                 this.writer = new MimeArchiveWriter(); break;
         }
+
+        supportAnchors = writer.supportsAnchors();
     }
 
     protected void run(OutputStream outStream, String startingURI)
@@ -93,22 +107,48 @@ public class HTMLArchiver {
     {
         writer.startArchive(outStream);
         getMappedURI(startingURI);
-        writeItemAndRecurse(startingURI);
+        itemsToWrite.add(startingURI);
+        String currentPrefix = "";
+        while (!itemsToWrite.isEmpty()) {
+            String uri = getNextUriToWrite(currentPrefix);
+            currentPrefix = extractPrefix(uri);
+            writeItem(uri);
+            Thread.yield();
+        }
         writer.finishArchive();
         outStream.flush();
+        data.gc(null);
     }
 
-    /** Add an item to the MIME archive, and recursively add any items it
-     * refers to.
+    private String getNextUriToWrite(String currentPrefix) {
+        // first, try to find an writeable item with the same prefix.  (This
+        // can help to keep the memory usage of the data repository low.)
+        for (Iterator u = itemsToWrite.iterator(); u.hasNext();) {
+            String uriToWrite = (String) u.next();
+            String prefix = extractPrefix(uriToWrite);
+            if (prefix.equals(currentPrefix))
+                return uriToWrite;
+        }
+        // If there were no more items with the same prefix, return any
+        // writable item at random.  But first, encourage the repository to
+        // clean up calculations made for the old prefix.
+        data.gc(Collections.singleton(currentPrefix));
+        String result = (String) itemsToWrite.iterator().next();
+        logger.log(Level.FINE, "Switching to prefix {0}", extractPrefix(result));
+        return result;
+    }
+
+    /** Add an item to the archive.
      *
      * @param uri the URI of the item to add.
      */
-    protected void writeItemAndRecurse(String uri) {
-        //System.out.println("writeItemAndRecurse("+uri+")");
+    protected void writeItem(String uri) {
+        itemsToWrite.remove(uri);
         if (seenURIs.contains(uri))
             return;
 
         seenURIs.add(uri);
+        logger.log(Level.FINER, "writing item ''{0}''", uri);
 
         try {
             RequestResult item = openURI(uri);
@@ -131,6 +171,41 @@ public class HTMLArchiver {
             // couldn't open file. this could easily happen if the uri
             // did not name an internal dashboard uri; just move along.
         }
+        postponeWritingAdditionalItems = false;
+    }
+
+    /** Add an item to the archive if it is not HTML content.
+     * 
+     * While an HTML page is being processed for archival, it is necessary to
+     * load the items it refers to, to determine their mime type.  If the items
+     * loaded in this manner are not HTML, they can immediately be added to the
+     * archive verbatim.  This eliminates the need to hold their content in
+     * memory any longer than necessary.
+     */
+    protected void writeIfNotHtml(String uri) {
+        if (postponeWritingAdditionalItems)
+            return;
+
+        if (seenURIs.contains(uri))
+            return;
+
+        try {
+            RequestResult item = openURI(uri);
+            if (!item.getContentType().startsWith("text/html")) {
+                seenURIs.add(uri);
+                itemsToWrite.remove(uri);
+                logger.log(Level.FINER, "writing item ''{0}''", uri);
+
+                writer.addFile(uri, item.getContentType(),
+                               item.getContents(),
+                               item.getHeaderLength());
+                item.clearContents();
+            }
+
+        } catch (IOException ioe) {
+            // couldn't open file. this could easily happen if the uri
+            // did not name an internal dashboard uri; just move along.
+        }
     }
 
 
@@ -144,7 +219,7 @@ public class HTMLArchiver {
             StringBuffer html = new StringBuffer(htmlContent);
             stripHTMLComments(html);
 
-            ArrayList references = getReferencedItems(htmlContent);
+            Set references = getReferencedItems(htmlContent);
             URL baseURL = new URL("http://ignored" + uri);
             if (references != null) {
                 Iterator i = references.iterator();
@@ -164,8 +239,10 @@ public class HTMLArchiver {
                             extra = " target='_blank'";
                         } else {
                             URL u = new URL(baseURL, subURI);
-                            safeURL = getMappedURI(u.getFile());
-                            if (u.getRef() != null)
+                            String absoluteURI = u.getFile();
+                            writeIfNotHtml(absoluteURI);
+                            safeURL = getMappedURI(absoluteURI);
+                            if (supportAnchors && u.getRef() != null)
                                 safeURL = safeURL + "#" + u.getRef();
                             extra = "";
                         }
@@ -197,7 +274,9 @@ public class HTMLArchiver {
                         if (subURI.indexOf("/data.js") != -1) continue;
                         if (subURI.indexOf(".iqy")     != -1) continue;
                         URL u = new URL(baseURL, subURI);
-                        writeItemAndRecurse(u.getFile());
+                        String refUri = u.getFile();
+                        if (!seenURIs.contains(refUri))
+                            itemsToWrite.add(refUri);
 
                     } catch (Exception e) {}
             }
@@ -383,10 +462,10 @@ public class HTMLArchiver {
     }
 
 
-    protected ArrayList getReferencedItems(String html) {
+    protected Set getReferencedItems(String html) {
         String normalizedHTML = normalizeHTML(html);
 
-        ArrayList result = new ArrayList();
+        Set result = new HashSet();
 
         getForAttr(normalizedHTML, "HREF", result);
         getForAttr(normalizedHTML, "href", result);
@@ -432,7 +511,7 @@ public class HTMLArchiver {
     }
 
 
-    protected static void getForAttr(String text, String attr, ArrayList v) {
+    protected static void getForAttr(String text, String attr, Collection v) {
         int pos = 0;
         int end;
         int nextSpace;
@@ -486,6 +565,16 @@ public class HTMLArchiver {
 
     protected String getMappedURI(String uri) throws IOException {
         return writer.mapURI(uri, getContentType(uri));
+    }
+
+    private String extractPrefix(String uri) {
+        int dblSlashPos = uri.indexOf("//");
+        if (dblSlashPos == -1)
+            dblSlashPos = uri.indexOf("/+/");
+        if (dblSlashPos == -1)
+            return "";
+        else
+            return uri.substring(0, dblSlashPos);
     }
 
     protected String getExportURI(String uri) {
@@ -551,4 +640,6 @@ public class HTMLArchiver {
 
     }
 
+    private static final Logger logger = Logger.getLogger(HTMLArchiver.class
+            .getName());
 }
