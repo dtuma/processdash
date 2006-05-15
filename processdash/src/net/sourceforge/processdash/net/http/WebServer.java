@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,20 +25,53 @@
 
 package net.sourceforge.processdash.net.http;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.*;
-import java.net.*;
-import java.security.AccessControlException;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.PushbackInputStream;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Properties;
+import java.util.SimpleTimeZone;
+import java.util.StringTokenizer;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,8 +89,6 @@ import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.ui.Browser;
-import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.Base64;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -141,7 +172,7 @@ public class WebServer {
     private static final String DASH_CHARSET = HTTPUtils.DEFAULT_CHARSET;
     static final String HEADER_CHARSET = DASH_CHARSET;
     private static String OUTPUT_CHARSET = DASH_CHARSET;
-        private static String DEFAULT_EXTERNAL_HOSTNAME = "localhost";
+    private static String DEFAULT_EXTERNAL_HOSTNAME = "localhost";
 
     private static final Logger logger =
         Logger.getLogger(WebServer.class.getName());
@@ -189,8 +220,9 @@ public class WebServer {
         return (ResourcePool) cgiCache.get(path);
     }
 
-    private class TinyWebThread extends Thread implements HTTPHeaderWriter {
+    private class TinyWebThread implements Runnable, HTTPHeaderWriter {
 
+        Thread runnerThread = null;
         Socket clientSocket = null;
         InputStream inputStream = null;
         BufferedReader in = null;
@@ -207,7 +239,8 @@ public class WebServer {
         private class TinyWebThreadException extends Exception {};
 
         public TinyWebThread(Socket clientSocket) {
-            super("TinyWebThread-"+nextThreadNum());
+            runnerThread = new Thread(this, "TinyWebThread-"+nextThreadNum());
+            runnerThread.setDaemon(true);
             try {
                 this.clientSocket = clientSocket;
                 this.inputStream = new BufferedInputStream
@@ -221,10 +254,11 @@ public class WebServer {
             } catch (IOException ioe) {
                 this.inputStream = null;
             }
+            serverThreads.addElement(this);
+            runnerThread.start();
         }
 
         public TinyWebThread(String uri) {
-            super("TinyWebThread-"+nextThreadNum());
             this.clientSocket = null;
             String request = "GET " + uri + " HTTP/1.0\r\n\r\n";
             this.inputStream = new ByteArrayInputStream(request.getBytes());
@@ -264,8 +298,8 @@ public class WebServer {
         }
 
         public synchronized void close() {
-            if (isRunning)
-                this.interrupt();
+            if (isRunning && runnerThread != null)
+                runnerThread.interrupt();
             serverThreads.remove(this);
 
             try {
@@ -281,26 +315,26 @@ public class WebServer {
         }
 
         public void run() {
-                boolean isClientRequest = (clientSocket != null);
-                try {
-                        if (isClientRequest)
-                                effectiveClientSocket.set(clientSocket);
-                    if (inputStream != null) {
-                        isRunning = true;
-                        try {
-                            handleRequest();
-                        } catch (TinyWebThreadException twte) {
-                            if (exceptionEncountered == null)
-                                exceptionEncountered = twte;
-                        }
-                        isRunning = false;
+            boolean isClientRequest = (clientSocket != null);
+            try {
+                if (isClientRequest)
+                    effectiveClientSocket.set(clientSocket);
+                if (inputStream != null) {
+                    isRunning = true;
+                    try {
+                        handleRequest();
+                    } catch (TinyWebThreadException twte) {
+                        if (exceptionEncountered == null)
+                            exceptionEncountered = twte;
                     }
-
-                    close();
-                } finally {
-                        if (isClientRequest)
-                                effectiveClientSocket.set(null);
+                    isRunning = false;
                 }
+
+                close();
+            } finally {
+                if (isClientRequest)
+                    effectiveClientSocket.set(null);
+            }
         }
 
         private void handleRequest() throws TinyWebThreadException {
@@ -416,10 +450,10 @@ public class WebServer {
              throws TinyWebThreadException
          {
              URLConnection result = (URLConnection) AccessController
-                 .doPrivileged(new PrivilegedAction() {
-                        public Object run() {
-                            return WebServer.this.resolveURL(url);
-                        }});
+                     .doPrivileged(new PrivilegedAction() {
+                 public Object run() {
+                     return WebServer.this.resolveURL(url);
+                 }});
 
              if (result == null)
                  sendError(404, "Not Found", "File '" + url + "' not found.");
@@ -457,7 +491,6 @@ public class WebServer {
              // the cgi script environment.
              String line, header;
              StringBuffer text = new StringBuffer();
-             int pos;
              while (null != (line = readLine(inputStream))) {
                  if (line.length() == 0) break;
                  header = parseHeader(line,text).toUpperCase().replace('-','_');
@@ -704,17 +737,17 @@ public class WebServer {
             return getScript(conn, null);
         }
         private TinyCGI getScript(final URLConnection conn,
-                        final String className) {
+                final String className) {
             CGIPool pool = null;
             synchronized (cgiCache) {
                 pool = (CGIPool) cgiCache.get(path);
                 if (pool == null) {
-                                        pool = (CGIPool) AccessController.doPrivileged(
-                                                        new PrivilegedAction() {
-                                                                public Object run() {
-                                                                        return createCgiPool(conn, className);
-                                                                }});
-                                    cgiCache.put(path, pool);
+                    pool = (CGIPool) AccessController.doPrivileged(
+                            new PrivilegedAction() {
+                                public Object run() {
+                                    return createCgiPool(conn, className);
+                                }});
+                    cgiCache.put(path, pool);
                 }
             }
 
@@ -724,28 +757,28 @@ public class WebServer {
                 return (TinyCGI) pool.get();
         }
 
-                private CGIPool createCgiPool(URLConnection conn, String className) {
-                        CGIPool pool = null;
-                        try {
-                            ClassLoader cgiLoader = getLoader(conn);
-                            Class clz = null;
-                            if (className == null) {
-                                className = conn.getURL().getFile();
-                                int beg = className.lastIndexOf('/');
-                                int end = className.indexOf('.', beg);
-                                className = className.substring(beg + 1, end);
-                            }
-                            clz = cgiLoader.loadClass(className);
-                            pool = new CGIPool(path, clz);
-                        } catch (Throwable t) {
-                            // temporary fix to allow the old PSP for Engineers
-                            // add-on to work with v1.7
-                            String file = conn.getURL().getFile();
-                            if (file != null && file.endsWith("/sizeest.class"))
-                                pool = new CGIPool(path, net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate.class);
-                        }
-                        return pool;
+        private CGIPool createCgiPool(URLConnection conn, String className) {
+            CGIPool pool = null;
+            try {
+                ClassLoader cgiLoader = getLoader(conn);
+                Class clz = null;
+                if (className == null) {
+                    className = conn.getURL().getFile();
+                    int beg = className.lastIndexOf('/');
+                    int end = className.indexOf('.', beg);
+                    className = className.substring(beg + 1, end);
                 }
+                clz = cgiLoader.loadClass(className);
+                pool = new CGIPool(path, clz);
+            } catch (Throwable t) {
+                // temporary fix to allow the old PSP for Engineers
+                // add-on to work with v1.7
+                String file = conn.getURL().getFile();
+                if (file != null && file.endsWith("/sizeest.class"))
+                    pool = new CGIPool(path, net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate.class);
+            }
+            return pool;
+        }
 
         private void doneWithScript(Object script) {
             CGIPool pool = (CGIPool) cgiCache.get(path);
@@ -832,8 +865,8 @@ public class WebServer {
 
             else {
                 discardHeader();
-                                sendHeaders(200, "OK", mime_type, getContentLength(conn),
-                                getLastModified(conn), null);
+                sendHeaders(200, "OK", mime_type, getContentLength(conn),
+                        getLastModified(conn), null);
 
                 while (-1 != (numBytes = content.read(buffer))) {
                     outputStream.write(buffer, 0, numBytes);
@@ -843,22 +876,22 @@ public class WebServer {
             }
         }
 
-                private int getContentLength(final URLConnection conn) {
-                        return ((Integer) AccessController.doPrivileged(
-                                        new PrivilegedAction() {
-                                                public Object run() {
-                                                        return new Integer(conn.getContentLength());
-                                                }
-                                        })).intValue();
-                }
+        private int getContentLength(final URLConnection conn) {
+            return ((Integer) AccessController.doPrivileged(
+                    new PrivilegedAction() {
+                        public Object run() {
+                            return new Integer(conn.getContentLength());
+                        }
+                    })).intValue();
+        }
 
-                private long getLastModified(final URLConnection conn) {
-                        return ((Long) AccessController.doPrivileged(
-                                        new PrivilegedAction() {
-                                                public Object run() {
-                                                return new Long(conn.getLastModified());
-                                                }})).longValue();
-                }
+        private long getLastModified(final URLConnection conn) {
+            return ((Long) AccessController.doPrivileged(
+                    new PrivilegedAction() {
+                        public Object run() {
+                            return new Long(conn.getLastModified());
+                        }})).longValue();
+        }
 
         private boolean containsServerParseOverride(String scanBuf) {
             return (scanBuf.indexOf(SERVER_PARSE_OVERRIDE) != -1);
@@ -1401,7 +1434,7 @@ public class WebServer {
         // if the user is forbidding remote connections, then "localhost" is
         // the only address we'll respond to, period.
         if (allowingRemoteConnections == ALLOW_REMOTE_NEVER)
-                return "localhost";
+            return "localhost";
 
         // if the user has set a host they want to use, return that value.
         String result = Settings.getVal("http.hostname");
@@ -1493,15 +1526,15 @@ public class WebServer {
         if (internalRequestNesting > 50)
             throw new IOException("Infinite recursion - aborting.");
 
-                synchronized(this) { internalRequestNesting++; }
-                TinyWebThread t = new TinyWebThread(uri);
-                byte [] result = null;
-                try {
-                    result = t.getOutput();
-                } finally {
-                    synchronized(this) { internalRequestNesting--; }
-                    if (t != null) t.dispose();
-                }
+        synchronized(this) { internalRequestNesting++; }
+        TinyWebThread t = new TinyWebThread(uri);
+        byte [] result = null;
+        try {
+            result = t.getOutput();
+        } finally {
+            synchronized(this) { internalRequestNesting--; }
+            if (t != null) t.dispose();
+        }
 
         if (!skipHeaders)
             return result;
@@ -1645,8 +1678,8 @@ public class WebServer {
 
     public static void setOutputCharset(String charsetName) {
         try {
-                // do a quick check to make certain that the charset name is valid
-                "test".getBytes(charsetName);
+            // do a quick check to make certain that the charset name is valid
+            "test".getBytes(charsetName);
             OUTPUT_CHARSET = charsetName;
         } catch (UnsupportedEncodingException uee) {}
     }
@@ -1854,10 +1887,7 @@ public class WebServer {
 
                 try {
                     Socket clientSocket = serverSocket.accept();
-
-                    TinyWebThread serverThread = new TinyWebThread(clientSocket);
-                    serverThreads.addElement(serverThread);
-                    serverThread.start();
+                    new TinyWebThread(clientSocket);
 
                 } catch (IOException e) { }
             }
