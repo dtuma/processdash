@@ -255,6 +255,10 @@ public class StringUtils
     }
     public static int indexOf(StringBuffer buf, String str, int fromIndex,
                               boolean ignoreCase) {
+        if (ignoreCase == false)
+            // this method didn't exist in Java 1.3, but does now.
+            return buf.indexOf(str, fromIndex);
+
         int count = buf.length();
         int max = count - str.length();
         if (fromIndex >= count) {
@@ -306,41 +310,8 @@ public class StringUtils
     /** Performs the equivalent of buf.toString().lastIndexOf(str, fromIndex),
      *  but is much more memory efficient. */
     public static int lastIndexOf(StringBuffer buf, String str, int fromIndex) {
-        int count = buf.length();
-        int rightIndex = count - str.length();
-        if (fromIndex < 0) return -1;
-        if (fromIndex > rightIndex) fromIndex = rightIndex;
-
-        /* Empty string always matches. */
-        if (str.length() == 0) return fromIndex;
-
-        int strLastIndex = str.length() - 1;
-        char strLastChar = str.charAt(strLastIndex);
-        int min = str.length() - 1;
-        int i = min + fromIndex;
-
-    startSearchForLastChar:
-        while (true) {
-            /* Look for the last character */
-            while (i >= min && buf.charAt(i) != strLastChar)
-                i--;
-            if (i < min) return -1;
-
-            /* Found last character, now look at the rest of str. */
-            int j = i - 1;
-            int start = j - (str.length() - 1);
-            int k = strLastIndex - 1;
-
-            while (j > start) {
-                if (buf.charAt(j--) != str.charAt(k--)) {
-                    i--;
-                    /* Look for str's last char again. */
-                    continue startSearchForLastChar;
-                }
-            }
-
-            return start + 1;    /* Found whole string. */
-        }
+        // This method didn't exist in Java 1.3, but does now.
+        return buf.lastIndexOf(str, fromIndex);
     }
 
 
