@@ -30,29 +30,36 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /** This class holds a collection of regular expressions, and can tell
  * whether a given string matches any one of the expressions in the list.
  * 
- * This class includes optimizations for beginning-of-string and end-of-string
- * matches:  if the only regular expression characters found are an initial
- * "^" and/or a final "$" (or neither of these), then the comparisons will
- * be made using (much faster) native String operations instead of Pattern
- * objects.
+ * This class includes optimizations for certain common regular expression
+ * constructs.  If no regular expression characters are found, or if the only
+ * constructs encountered are one of the following:
+ * <ul>
+ * <li>an initial "<tt>^</tt>", to match beginning of string</li>
+ * <li>a final "<tt>$</tt>", to match end-of-string</li>
+ * <li>a set of pipe-delimited choices "<tt>(foo|bar|baz)</tt>"</li>
+ * <li>an optional group "<tt>(foo)?</tt>"</li>
+ * </ul>
+ * then the tests will be made using (much faster) native String operations
+ * instead of Pattern objects.
  */
 public class PatternList {
 
-    private boolean alwaysTrue = false;
+    protected boolean alwaysTrue = false;
 
-    private List startsWithItems;
+    protected List startsWithItems;
 
-    private List endsWithItems;
+    protected List endsWithItems;
 
-    private List containsItems;
+    protected List containsItems;
 
-    private List equalsItems;
+    protected List equalsItems;
 
-    private List regexpItems;
+    protected List regexpItems;
 
     public PatternList() {
     }
@@ -64,12 +71,21 @@ public class PatternList {
         }
     }
 
-    public void addRegexp(String regexp) {
+    public void addRegexp(String regexp) throws PatternSyntaxException {
         if (!isPlainString(regexp)) {
             if (".*".equals(regexp))
                 alwaysTrue = true;
-            else
-                regexpItems = addToList(regexpItems, Pattern.compile(regexp));
+            else {
+                List brokenDown = tryToBreakDown(regexp);
+                if (brokenDown != null) {
+                    for (Iterator i = brokenDown.iterator(); i.hasNext();) {
+                        addRegexp((String) i.next());
+                    }
+                } else {
+                    regexpItems = addToList(regexpItems, Pattern
+                            .compile(regexp));
+                }
+            }
         }
 
         else if (regexp.startsWith("^")) {
@@ -83,6 +99,8 @@ public class PatternList {
             if (regexp.endsWith("$"))
                 endsWithItems = addToList(endsWithItems, trim(regexp, false,
                         true));
+            else if (regexp.length() == 0)
+                alwaysTrue = true;
             else
                 containsItems = addToList(containsItems, regexp);
         }
@@ -130,7 +148,7 @@ public class PatternList {
         return false;
     }
 
-    private List addToList(List l, Object o) {
+    protected List addToList(List l, Object o) {
         if (l == null)
             l = new ArrayList();
         l.add(o);
@@ -145,12 +163,60 @@ public class PatternList {
         return s;
     }
 
-    private boolean isPlainString(String s) {
-        for (int i = s.length(); i-- > 0;)
-            if (POTENTIAL_REGEXP_CHARS.indexOf(s.charAt(i)) != -1)
-                return false;
-        return true;
+    protected List tryToBreakDown(String s) {
+        if (!mightBeSimpleRegexp(s))
+            return null;
+
+        s = StringUtils.findAndReplace(s, ")?", "|)");
+        try {
+            return breakDownSimplePattern(null, s);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    private static final String POTENTIAL_REGEXP_CHARS = "()[]\\|.?*+{}";
+    protected List breakDownSimplePattern(List l, String s) throws Exception {
+        if (isPlainString(s))
+            return addToList(l, s);
+
+        int end = s.indexOf(')');
+        if (end != -1) {
+            int beg = s.lastIndexOf('(', end);
+            if (beg == -1)
+                throw new Exception("can't break down");
+
+            String[] choices = s.substring(beg+1, end).split("\\|", -1);
+            for (int i = 0; i < choices.length; i++) {
+                String oneChoice = s.substring(0, beg) + choices[i]
+                        + s.substring(end + 1);
+                l = breakDownSimplePattern(l, oneChoice);
+            }
+        } else if (s.indexOf('|') != -1) {
+            String[] choices = s.split("\\|", -1);
+            for (int i = 0; i < choices.length; i++) {
+                l = breakDownSimplePattern(l, choices[i]);
+            }
+        } else {
+            throw new Exception("can't break down");
+        }
+
+        return l;
+    }
+
+    protected boolean isPlainString(String s) {
+        return containsRegexpChars(s, -1) == false;
+    }
+
+    protected boolean mightBeSimpleRegexp(String s) {
+        return containsRegexpChars(s, 3) == false;
+    }
+
+    protected boolean containsRegexpChars(String s, int cutoff) {
+        for (int i = s.length(); i-- > 0;)
+            if (POTENTIAL_REGEXP_CHARS.indexOf(s.charAt(i)) > cutoff)
+                return true;
+        return false;
+    }
+
+    private static final String POTENTIAL_REGEXP_CHARS = "()|?[]\\.*+{}";
 }
