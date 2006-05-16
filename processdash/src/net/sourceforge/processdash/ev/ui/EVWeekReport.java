@@ -601,7 +601,7 @@ public class EVWeekReport extends TinyCGIBase {
 
     static final String EXPORT_HTML =
         "<p class='doNotPrint'>" +
-        "<a href=\"excel.iqy?uri=week.class&fullPage\">" +
+        "<a href=\"excel.iqy?fullPage\">" +
         "<i>${Export_to_Excel}</i></a></p>";
     static final String FOOTER_HTML = "</body></html>";
 
