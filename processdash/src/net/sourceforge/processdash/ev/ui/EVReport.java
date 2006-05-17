@@ -518,7 +518,10 @@ public class EVReport extends CGIChartBase {
 
         result.add(new CsvDateColumn("Finish_Date") {
             public Date getNodeDate(EVTask node) {
-                return node.getPlanDate();
+                Date result = node.getActualDate();
+                if (result == null)
+                    result = node.getPlanDate();
+                return result;
             }
         });
 
@@ -537,12 +540,12 @@ public class EVReport extends CGIChartBase {
 //                return nullToNA(node.getActualStartDate());
 //            }
 //        });
-
-        result.add(new CsvDateColumn("Finish_Date") {
-            public Date getNodeDate(EVTask node) {
-                return nullToNA(node.getActualDate());
-            }
-        });
+//
+//        result.add(new CsvDateColumn("Actual_Finish") {
+//            public Date getNodeDate(EVTask node) {
+//                return nullToNA(node.getActualDate());
+//            }
+//        });
 
         result.add(new CsvHoursColumn("Duration") { // "Scheduled_Work") {
             public double getNodeMinutes(EVTask node) {
@@ -728,11 +731,12 @@ public class EVReport extends CGIChartBase {
     private void printTaskStyleLink() {
         if (!exportingToExcel()) {
             boolean isFlat = isFlatView();
-            out.print("&nbsp;&nbsp;<span class='hlink'><a href='ev.class"
+            out.print("&nbsp;&nbsp;<span class='hlink'>"
+                    + "<span class='doNotPrint'><a href='ev.class"
                     + (isFlat ? "" : "?flat") + "#tasks'>");
             out.print(resources.getHTML(isFlat ? "Report.Tree_View"
                     : "Report.Flat_View"));
-            out.print("</a></span>");
+            out.print("</a></span></span>");
         }
     }
 
@@ -862,6 +866,8 @@ public class EVReport extends CGIChartBase {
     static final String EXPORT_HTML1B = "</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
     static final String EXPORT_HTML2 = "<a href='ev.xls'><i>"
             + "${Report.Export_Charts}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;"
+            + "<a href='ev-project-instr.htm'><i>"
+            + "${Report.Export_Project}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;"
             + "<a href='../dash/archive.class?filename=FILENAME'><i>"
             + "${Report.Export_Archive}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
     static final String WEEK_FOOTER_HTML1 = "<a href='week.class'><i>";
