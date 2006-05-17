@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -108,7 +108,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     private ActiveTaskModel activeTaskModel;
 
     private static final Logger logger = Logger
-                        .getLogger(ProcessDashboard.class.getName());
+            .getLogger(ProcessDashboard.class.getName());
 
     private static String versionNumber;
 
@@ -122,12 +122,19 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         addWindowListener(this);
 
         // load app defaults and user settings.
-        InternalSettings.initialize("");
+        try {
+            InternalSettings.initialize("");
+        } catch (Exception e) {
+            logErr("Unable to read settings file", e);
+            displayStartupIOError("Errors.Read_File_Error.Settings_File",
+                    e.getMessage());
+            System.exit(0);
+        }
         propertiesFile = Settings.getFile("stateFile");
         File prop_file = new File(propertiesFile);
         try {
-                        prop_file = prop_file.getCanonicalFile();
-                } catch (IOException ioe) {}
+            prop_file = prop_file.getCanonicalFile();
+        } catch (IOException ioe) {}
         propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
         DefectAnalyzer.setDataDirectory(property_directory);
@@ -191,10 +198,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         if (lostPSPFiles.repair(this)==false) {
 
             // if the lost data files could not be repaired, exit the dashboard
-                logger.severe
-                ("Dashboard was terminated due to user request. " +
-                 "The following bad data files were found in the "+
-                 "psp data directory:\n" + lostPSPFiles.printOut());
+            logger.severe
+            ("Dashboard was terminated due to user request. " +
+                    "The following bad data files were found in the "+
+                    "psp data directory:\n" + lostPSPFiles.printOut());
             System.exit(0);
         }
 
@@ -396,7 +403,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     private class HttpPortSettingListener implements PropertyChangeListener {
 
         public HttpPortSettingListener() {
-                setBrowserDefaults();
+            setBrowserDefaults();
         }
 
         public void propertyChange(PropertyChangeEvent evt) {
@@ -408,26 +415,29 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 } catch (Exception e) {}
         }
 
-                private void setBrowserDefaults() {
-                        Browser.setDefaults(
-                                        webServer.getHostName(false),
-                                        webServer.getPort());
-                }
+        private void setBrowserDefaults() {
+            Browser.setDefaults(
+                    webServer.getHostName(false),
+                    webServer.getPort());
+        }
     }
 
     private String getWebCharset() {
-                String charsetName = Settings.getVal("http.charset");
+        String charsetName = Settings.getVal("http.charset");
 
-                if (charsetName == null)
-                        charsetName = HTTPUtils.DEFAULT_CHARSET;
-                else if ("auto".equals(charsetName))
-                        charsetName = (Translator.isTranslating() ? "UTF-8"
-                                        : HTTPUtils.DEFAULT_CHARSET);
+        if (charsetName == null)
+            charsetName = HTTPUtils.DEFAULT_CHARSET;
+        else if ("auto".equals(charsetName))
+            charsetName = (Translator.isTranslating() ? "UTF-8"
+                    : HTTPUtils.DEFAULT_CHARSET);
 
-                return charsetName;
-        }
+        return charsetName;
+    }
 
     private void displayStartupIOError(String resourceKey, String filename) {
+        if (resources == null)
+            resources = Resources.getDashBundle("ProcessDashboard");
+
         try {
             File f = new File(filename);
             filename = f.getAbsolutePath();
@@ -454,7 +464,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             brokenData.logError(prefix);
         } catch (Exception exc) {
             logErr("when opening datafile, '" + dataFile + "' for path '"
-                                          + prefix + "', caught exception:", exc);
+                    + prefix + "', caught exception:", exc);
         }
     }
 
@@ -564,7 +574,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                     Math.min(result.width, maxWidth),
                     minSize.width);
         return result;
-        }
+    }
 
     private class ResizeWatcher extends ComponentAdapter {
         public void componentResized(ComponentEvent e) {
@@ -719,7 +729,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             props.save(propertiesFile, "hierarchical work breakdown structure");
             return true;
         } catch (Exception e) {
-                logErr("prop write failed.", e);
+            logErr("prop write failed.", e);
             return false;
         }
     }

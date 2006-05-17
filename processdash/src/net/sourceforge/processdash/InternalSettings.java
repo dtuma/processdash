@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,7 +27,9 @@ package net.sourceforge.processdash;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.security.AccessController;
@@ -53,7 +55,7 @@ public class InternalSettings extends Settings {
     private static final Logger logger = Logger
               .getLogger(InternalSettings.class.getName());
 
-    public static void initialize(String settingsFile) {
+    public static void initialize(String settingsFilename) throws IOException {
         checkPermission("initialize");
 
         if (settings != null)
@@ -106,35 +108,56 @@ public class InternalSettings extends Settings {
         String filename = getSettingsFilename();
         dirty = disableChanges = false;
 
-        try {
-            if (settingsFile != null && settingsFile.length() != 0) {
-                in = new FileInputStream(settingsFile);
-                fsettings.setFilename(settingsFile);
+        File settingsFile;
+        if (settingsFilename != null && settingsFilename.length() != 0) {
+            // if the caller has specified a particular settings file, use it.
+            settingsFile = new File(settingsFilename);
+        } else {
+            // search for an existing settings file
+            String cwdFilename = cwd + sep + filename;
+            File cwdFile = new File(cwdFilename);
+            String homeFilename = home + sep + filename;
+            File homeFile = new File(homeFilename);
+            if (cwdFile.isFile()) {
+                // first, look in the current working directory.
+                settingsFile = cwdFile;
+                settingsFilename = cwdFilename;
+                homedir = cwd;
+            } else if (homeFile.isFile()) {
+                // next, check the user's home directory.
+                settingsFile = homeFile;
+                settingsFilename = homeFilename;
+                homedir = home;
             } else {
-                try {
-                    homedir = cwd;
-                    in = new FileInputStream(settingsFile=(homedir + sep + filename));
-                } catch (Exception e1) {
-                    homedir = home;
-                    in = new FileInputStream(settingsFile=(homedir + sep + filename));
-                }
+                // if no file was found, default to the current working directory.
+                System.out.println("could not read user preferences file from any of");
+                System.out.println("     " + cwdFilename);
+                System.out.println("     " + homeFilename);
+                System.out.println("...using system-wide defaults.");
+                settingsFile = cwdFile;
+                settingsFilename = cwdFilename;
+                homedir = cwd;
             }
-
-            settings.load(in);
-            in.close();
-
-        } catch (Exception e) {
-            System.out.println("could not read user preferences file from any of");
-            System.out.println("     " + cwd + sep + filename);
-            System.out.println("     " + home + sep + filename);
-            System.out.println("...using system-wide defaults.");
-
-            homedir = cwd;
-            settingsFile = homedir + sep + filename;
-            dirty = true;
         }
-        InternalSettings.settingsFile = settingsFile;
-        fsettings.setFilename(settingsFile);
+
+        if (!settingsFile.isFile()) {
+            // if the file doesn't exist, make a note that we need to save it.
+            dirty = true;
+        } else {
+            try {
+                in = new FileInputStream(settingsFile);
+                fsettings.load(in);
+                in.close();
+            } catch (Exception e) {
+                // the settings file exists, but we were unable to read it.  Throw
+                // an exception whose message is the filename we tried to read.
+                IOException ioe = new IOException(settingsFilename);
+                ioe.initCause(e);
+                throw ioe;
+            }
+        }
+        InternalSettings.settingsFile = settingsFilename;
+        fsettings.setFilename(settingsFilename);
         fsettings.setHeader(PROPERTIES_FILE_HEADER);
         fsettings.setKeepingStrangeKeys(true);
     }
