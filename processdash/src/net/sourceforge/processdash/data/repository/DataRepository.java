@@ -399,7 +399,7 @@ public class DataRepository implements Repository, DataContext {
                     // that is harmless.
                 }
 
-                if (suspended) synchronized(this) { notify(); }
+                if (suspended) synchronized (this) { notify(); }
             }
 
             private Hashtable getElementsForDataListener(DataListener dl) {
@@ -678,7 +678,7 @@ public class DataRepository implements Repository, DataContext {
              *  the set is empty.
              */
             private String pop(Set set) {
-                synchronized(set) {
+                synchronized (set) {
                     if (set.isEmpty())
                         return null;
                     else {
@@ -1691,20 +1691,55 @@ public class DataRepository implements Repository, DataContext {
             }
         }
 
+        private class DataElementAlreadyExistsException extends Exception {
+            public DataElement elem;
+            public DataElementAlreadyExistsException(DataElement elem) {
+                System.out.println("DataElementAlreadyExistsException"+elem.name);
+                this.elem = elem;
+            }
+
+        }
+
+        /** Add a DataElement to the repository.
+         * 
+         * @param name the name of the data element
+         * @param isDefaultName true if the name represents a data element that
+         *    could possibly be auto-created from the definitions inherited by
+         *    the element's DataFile.
+         * @param value the value for the data element
+         * @param isDefaultValue true if the value was auto-created from the
+         *    definitions inherited by the element's DataFile.
+         * @param datafile the DataFile for the element
+         * @param notify true if a dataAdded event should be sent to registered
+         *    RepositoryListeners
+         * @return the DataElement that was added to the repository.
+         * @throws DataElementAlreadyExistsException if a data element is already
+         *    present in the repository with that name.
+         */
         private DataElement add(String name, boolean isDefaultName,
                 SaveableData value, boolean isDefaultValue, DataFile datafile,
-                boolean notify) {
+                boolean notify) throws DataElementAlreadyExistsException {
 
                                     // Add the element to the table
             DataElement d = new DataElement(datafile, name, isDefaultName);
             d.setValue(value, isDefaultValue);
-            data.put(name, d);
+            synchronized (data) {
+                DataElement displaced = (DataElement) data.put(name, d);
+                if (displaced != null) {
+                    // restore the displaced data element. Then throw an exception
+                    // to our caller indicating that they cannot add the element,
+                    // because it already exists.
+                    data.put(name, displaced);
+                    throw new DataElementAlreadyExistsException(displaced);
+                }
+            }
 
             if (notify && !isDefaultName && !name.startsWith(anonymousPrefix))
                 repositoryListenerList.dispatchAdded(name);
 
             return d;
         }
+
 
 
         /** remove the named data element.
@@ -1828,9 +1863,14 @@ public class DataRepository implements Repository, DataContext {
                 }
                 if (d == null) {
                     DataFile f = guessDataFile(name, REQUIRE_WRITABLE);
-                    d = add(name, IS_NOT_DEFAULT_NAME, v, IS_DEFAULT_VAL, f,
-                            DO_NOTIFY);
-                } else
+                    try {
+                        add(name, IS_NOT_DEFAULT_NAME, v, IS_DEFAULT_VAL, f,
+                                DO_NOTIFY);
+                    } catch (DataElementAlreadyExistsException e) {
+                        d = e.elem;
+                    }
+                }
+                if (d != null && d.getValue() == null)
                     putValue(name, v, IS_DEFAULT_VAL);
             }
         }
@@ -1846,18 +1886,31 @@ public class DataRepository implements Repository, DataContext {
 
         private DataElement getOrCreateDefaultDataElement(String dataName) {
             DataElement d = (DataElement)data.get(dataName);
-            if (d == null)
-                d = maybeCreateDefaultData(dataName);
-            if (d == null)
-                d = maybeCreatePercentage(dataName);
+            if (d == null) {
+                try {
+                    d = maybeCreateDefaultData(dataName);
+                } catch (DataElementAlreadyExistsException e) {
+                    d = e.elem;
+                }
+            }
+            if (d == null) {
+                try {
+                    d = maybeCreatePercentage(dataName);
+                } catch (DataElementAlreadyExistsException e) {
+                    d = e.elem;
+                }
+            }
             return janitor.touch(d);
         }
 
-        /** only call this routine if the item doesn't already exist.
-         * If the name designates a lazy default value, automatically creates that
-         * value and returns it.
+        /** If the name designates a lazy default value, automatically creates that
+         * value and returns it.  Otherwise, returns null.
+         * 
+         * @throws DataElementAlreadyExistsException if a data element with
+         *   that name already exists
          */
-        private DataElement maybeCreateDefaultData(String name) {
+        private DataElement maybeCreateDefaultData(String name)
+                throws DataElementAlreadyExistsException {
             if (name == null)
                 return null;
 
@@ -1880,27 +1933,43 @@ public class DataRepository implements Repository, DataContext {
                     IS_DEFAULT_VAL, f, DO_NOT_NOTIFY));
         }
 
+        /** Return a DataElement which can act as a placeholder for null values
+         * in an imported data file.
+         *
+         * Each imported file has a corresponding null placeholder.  If the
+         * placeholder has already been created for the given file, it will be
+         * returned.  If not, it will be created.
+         * 
+         * @param dataFile an imported data file
+         * @return the null placeholder DataElement
+         */
         private DataElement getImportedFileNullElement(DataFile dataFile) {
             if (dataFile == null || !dataFile.isImported)
                 return null;
             String dataName = createDataName(dataFile.prefix,
                     IMPORTED_NULL_ELEMENT_NAME);
-            synchronized (data) {
-                DataElement result = (DataElement) data.get(dataName);
-                if (result == null)
+            DataElement result = (DataElement) data.get(dataName);
+            if (result == null) {
+                try {
                     result = add(dataName, IS_DEFAULT_NAME, null, IS_DEFAULT_VAL,
                             dataFile, false);
-                return result;
+                } catch (DataElementAlreadyExistsException e) {
+                    result = e.elem;
+                }
             }
+            return result;
         }
         private static final String IMPORTED_NULL_ELEMENT_NAME =
             "Imported_File_Null_Token";
 
-        /** only call this routine if the item doesn't already exist.
-         * If the item looks like a percentage, automatically creates the
+        /** If the item looks like a percentage, automatically creates the
          * percentage on the fly and returns it.
+         * 
+         * @throws DataElementAlreadyExistsException if a data element with
+         *   that name already exists
          */
-        private DataElement maybeCreatePercentage(String name) {
+        private DataElement maybeCreatePercentage(String name)
+                throws DataElementAlreadyExistsException {
 
             if (!PercentageFunction.isPercentageDataName(name))
                 return null;
@@ -1954,7 +2023,7 @@ public class DataRepository implements Repository, DataContext {
 
 
         private static final int MAX_RECURSION_DEPTH = 100;
-        private int recursion_depth = 0;
+        private volatile int recursion_depth = 0;
 
         public void putValue(String name, SaveableData value) {
             putValue(name, value, IS_NOT_DEFAULT_VAL, MAYBE_MODIFYING_DATAFILE);
@@ -1967,7 +2036,15 @@ public class DataRepository implements Repository, DataContext {
         protected void putValue(String name, SaveableData value,
                 boolean isDefaultValue, boolean checkDatafileModification) {
 
-            if (recursion_depth < MAX_RECURSION_DEPTH) {
+            if (recursion_depth >= MAX_RECURSION_DEPTH) {
+                System.err.println
+                    ("DataRepository detected circular dependency in data,\n" +
+                     "    bailed out after " + MAX_RECURSION_DEPTH + " iterations.");
+                new Exception().printStackTrace(System.err);
+                return;
+            }
+
+            try {
                 recursion_depth++;
                 DataElement d = (DataElement)data.get(name);
 
@@ -2021,17 +2098,20 @@ public class DataRepository implements Repository, DataContext {
                         isDefaultName = f.inheritedDefinitions.containsKey(localName);
                     }
 
-                    add(name, isDefaultName, value, isDefaultValue, f, DO_NOTIFY);
-                    if (!isDefaultValue && checkDatafileModification)
-                        datafileModified(f);
+                    try {
+                        add(name, isDefaultName, value, isDefaultValue, f, DO_NOTIFY);
+                        if (!isDefaultValue && checkDatafileModification)
+                            datafileModified(f);
+                    } catch (DataElementAlreadyExistsException e) {
+                        // this rare occurrence means that some other thread created this
+                        // DataElement in the time since we tried to retrieve it and found
+                        // that it was missing.  The best course of action is to retry the
+                        // operation.
+                        putValue(name, value, isDefaultValue, checkDatafileModification);
+                    }
                 }
-
+            } finally {
                 recursion_depth--;
-            } else {
-                System.err.println
-                    ("DataRepository detected circular dependency in data,\n" +
-                     "    bailed out after " + MAX_RECURSION_DEPTH + " iterations.");
-                new Exception().printStackTrace(System.err);
             }
         }
 
@@ -2041,12 +2121,15 @@ public class DataRepository implements Repository, DataContext {
                 DataElement d = (DataElement)data.get(name);
                 if (d == null || d.getValue() != value) return;
 
-                recursion_depth++;
+                try {
+                    recursion_depth++;
 
-                // notify any listeners registed for the change
-                dataNotifier.dataChanged(name, d);
+                    // notify any listeners registed for the change
+                    dataNotifier.dataChanged(name, d);
 
-                recursion_depth--;
+                } finally {
+                    recursion_depth--;
+                }
 
             } else {
                 System.err.println
@@ -2755,10 +2838,16 @@ public class DataRepository implements Repository, DataContext {
                         DataElement d = (DataElement)data.get(dataName);
                         if (d == null) {
                             boolean isDefaultName = defaultData.containsKey(localName);
-                            if (o != null || isDefaultName)
-                                d = add(dataName, isDefaultName, o, IS_NOT_DEFAULT_VAL,
-                                        dataFile, DO_NOTIFY);
-                        } else {
+                            if (o != null || isDefaultName) {
+                                try {
+                                    add(dataName, isDefaultName, o, IS_NOT_DEFAULT_VAL,
+                                            dataFile, DO_NOTIFY);
+                                } catch (DataElementAlreadyExistsException e) {
+                                    d = e.elem;
+                                }
+                            }
+                        }
+                        if (d != null) {
                             putValue(dataName, o, IS_NOT_DEFAULT_VAL,
                                     NOT_MODIFYING_DATAFILE);
                             d = (DataElement)data.get(dataName);
@@ -2801,12 +2890,18 @@ public class DataRepository implements Repository, DataContext {
                                 // the item doesn't exist, but we should create it anyway.
                                 SaveableData o = instantiateValue(dataName,
                                         dataPrefix, valueObj, !fileEditable);
-                                if (o != null)
-                                    d = add(dataName, IS_DEFAULT_NAME, o, IS_DEFAULT_VAL,
-                                            dataFile, DO_NOT_NOTIFY);
+                                if (o != null) {
+                                    try {
+                                        add(dataName, IS_DEFAULT_NAME, o, IS_DEFAULT_VAL,
+                                                dataFile, DO_NOT_NOTIFY);
+                                    } catch (DataElementAlreadyExistsException e) {
+                                        d = e.elem;
+                                    }
+                                }
                             }
+                        }
 
-                        } else {
+                        if (d != null) {
                             // a matching data element exists.
                             d.datafile = dataFile;
 
@@ -3157,7 +3252,7 @@ public class DataRepository implements Repository, DataContext {
 
             // synchronize to prevent two different threads from trying to save
             // the same datafile concurrently.
-            synchronized(datafile) { try {
+            synchronized (datafile) { try {
                 // debug("saveDatafile");
 
                 Set valuesToSave = new TreeSet();
@@ -3285,18 +3380,22 @@ public class DataRepository implements Repository, DataContext {
          */
         public String addDataListener(String name, DataListener dl, boolean notify) {
             DataElement d;
-            synchronized (data) {
-                // lookup the element.
-                d = getOrCreateDefaultDataElement(name);
 
-                // If the item doesn't exist, either as an explicit or default value,
-                // create an entry for it with the value null.
-                if (d == null)
+            // lookup the element.
+            d = getOrCreateDefaultDataElement(name);
+
+            // If the item doesn't exist, either as an explicit or default value,
+            // create an entry for it with the value null.
+            if (d == null) {
+                try {
                     d = add(name, IS_NOT_DEFAULT_NAME, null, IS_NOT_DEFAULT_VAL,
                             guessDataFile(name, REQUIRE_WRITABLE), DO_NOTIFY);
-
-                d.addDataListener(dl);
+                } catch (DataElementAlreadyExistsException e) {
+                    d = e.elem;
+                }
             }
+
+            d.addDataListener(dl);
 
             if (notify)
                 dataNotifier.addEvent(name, d, dl);
