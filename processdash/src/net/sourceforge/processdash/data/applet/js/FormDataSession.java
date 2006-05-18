@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.Timer;
@@ -57,15 +58,18 @@ public class FormDataSession implements FormDataListener {
         formDataEvents = new LinkedList();
         sessionID = getNextSessionID(this);
         touch();
+        log.log(Level.FINE, "Created FormDataSession, id={0}", sessionID);
     }
 
     public void dispose() {
-        log.entering("FormDataSession", "dispose");
+        log.log(Level.FINE, "Disposing FormDataSession, id={0}", sessionID);
         if (mgr != null) {
             mgr.dispose(true);
             mgr = null;
         }
-        formDataEvents.clear();
+        synchronized (formDataEvents) {
+            formDataEvents.clear();
+        }
     }
 
     public void registerField(String id, String name, String type) {
@@ -85,13 +89,16 @@ public class FormDataSession implements FormDataListener {
     public synchronized void paintData(String id, String value, boolean readOnly) {
         log.entering("FormDataSession", "paintData",
                      new Object[] { id, value, Boolean.valueOf(readOnly) });
-        Iterator i = formDataEvents.iterator();
-        while (i.hasNext()) {
-            FormDataEvent e = (FormDataEvent) i.next();
-            if (e.id.equals(id)) i.remove();
+
+        synchronized (formDataEvents) {
+            Iterator i = formDataEvents.iterator();
+            while (i.hasNext()) {
+                FormDataEvent e = (FormDataEvent) i.next();
+                if (e.id.equals(id)) i.remove();
+            }
+            formDataEvents.add
+                (new FormDataEvent(++currentCoupon, id, value, readOnly));
         }
-        formDataEvents.add
-            (new FormDataEvent(++currentCoupon, id, value, readOnly));
         notify();
     }
 
@@ -104,12 +111,15 @@ public class FormDataSession implements FormDataListener {
     public FormDataEvent getNextEvent(int lastCoupon, boolean delay) {
         // Iterate through all past events and return the first one with
         // a coupon number higher than the given number.
-        Iterator i = formDataEvents.iterator();
         FormDataEvent e = null;
-        while (i.hasNext()) {
-            e = (FormDataEvent) i.next();
-            if (e != null && e.getCoupon() > lastCoupon) return e;
+        synchronized (formDataEvents) {
+            Iterator i = formDataEvents.iterator();
+            while (i.hasNext()) {
+                e = (FormDataEvent) i.next();
+                if (e != null && e.getCoupon() > lastCoupon) return e;
+            }
         }
+
         // if no event was found because the queue is empty, return null.
         if (e == null) return null;
 
@@ -125,7 +135,10 @@ public class FormDataSession implements FormDataListener {
                 wait(EVENT_DELAY);
             }
         } catch (InterruptedException ie) {}
-        FormDataEvent le = (FormDataEvent) formDataEvents.getLast();
+        FormDataEvent le;
+        synchronized (formDataEvents) {
+            le = (FormDataEvent) formDataEvents.getLast();
+        }
         if (le != e)
             // if a new event has arrived, find and return it.
             return getNextEvent(lastCoupon, delay);
@@ -177,6 +190,7 @@ public class FormDataSession implements FormDataListener {
             TIMEOUT_DURATION + 1000,
             new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    log.finer("FormDataSession disposal timer running");
                     getSession("null");
                 }
             });
