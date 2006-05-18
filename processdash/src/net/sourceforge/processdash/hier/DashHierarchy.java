@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,37 +25,42 @@
 
 package net.sourceforge.processdash.hier;
 
+import java.awt.ItemSelectable;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.EventObject;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedWriter;
-import java.io.Reader;
-import java.io.Writer;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.ItemSelectable;
+
 import javax.swing.JOptionPane;
 import javax.swing.event.EventListenerList;
 
-import net.sourceforge.processdash.i18n.*;
-import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.DefectLogID;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -72,10 +77,6 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     protected int nextDefectLogNumber = 0;
     public    String dataPath = null;
 
-
-    private void debug(String msg) {
-        System.out.println(msg);
-    }
 
     public DashHierarchy (String baseDataPath) {
         super();
@@ -294,7 +295,6 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
             if (responsibleForData(key))
                 fireDataFileChange(new PendingDataChange(key.path()));
 
-            int numChildren = val.getNumChildren ();
             for (int idx = val.getNumChildren() - 1; idx >= 0; idx--) {
                 remove (val.getChild (idx));
             }
@@ -890,7 +890,6 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     public Vector getScriptIDs(PropertyKey key) {
         Vector v = new Vector();    Prop val;    String scriptFile, templateID;
         PropertyKey tempKey = key;
-        PropertyKey parentKey = null;
         ScriptID defaultScript = null;
 
         // Find and add all applicable scripts.
@@ -996,9 +995,10 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         public void hierarchyChanged(Event e);
     }
 
-    HashSet listeners = null;
+    Set listeners = null;
     public synchronized void addHierarchyListener(Listener l) {
-        if (listeners == null) listeners = new HashSet();
+        if (listeners == null)
+            listeners = Collections.synchronizedSet(new HashSet());
         listeners.add(l);
     }
     public void removeHierarchyListener(Listener l) {
@@ -1007,7 +1007,10 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     public void fireHierarchyChanged() {
         if (listeners != null  && !listeners.isEmpty()) {
             Event e = new Event(this);
-            Iterator i = listeners.iterator();
+            Iterator i;
+            synchronized (listeners) {
+                i = new ArrayList(listeners).iterator();
+            }
             while (i.hasNext())
                 ((Listener) i.next()).hierarchyChanged(e);
         }
