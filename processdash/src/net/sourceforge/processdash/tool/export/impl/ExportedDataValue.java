@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,7 +25,6 @@
 
 package net.sourceforge.processdash.tool.export.impl;
 
-import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 
 public interface ExportedDataValue {
@@ -33,7 +32,5 @@ public interface ExportedDataValue {
     public String getName();
 
     public SimpleData getSimpleValue();
-
-    public SaveableData getSaveableValue();
 
 }

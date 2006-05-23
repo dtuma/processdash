@@ -225,6 +225,11 @@ public class DataRepository implements Repository, DataContext {
              */
             volatile byte timestamp;
 
+            /** A count of the number of clients who are currently using this
+             * element, and want to prevent it from being disposed of prematurely.
+             */
+            volatile byte disposalLockCount;
+
             /** A collection of objects that are interested in changes to the value
              * of this element.
              * 
@@ -247,6 +252,7 @@ public class DataRepository implements Repository, DataContext {
                 this.name = name;
                 this.isDefaultName = isDefaultName;
                 this.timestamp = currentGeneration;
+                this.disposalLockCount = 0;
             }
 
             public boolean isDefaultName() {
@@ -261,10 +267,17 @@ public class DataRepository implements Repository, DataContext {
                 return isDefaultValue;
             }
 
-            public synchronized SimpleData getSimpleValue() {
-                if (value == null)
-                    return null;
-                return value.getSimpleValue();
+            public SimpleData getSimpleValue() {
+                try {
+                    synchronized (this) {
+                        lockFromDisposal();
+                        if (value == null)
+                            return null;
+                    }
+                    return value.getSimpleValue();
+                } finally {
+                    unlockForDisposal();
+                }
             }
 
             public synchronized void setValue(SaveableData d, boolean isDefault) {
@@ -272,7 +285,19 @@ public class DataRepository implements Repository, DataContext {
                 this.isDefaultValue = isDefault;
             }
 
-            public synchronized void disposeValue() {
+            public void disposeValue() {
+                SaveableData value;
+                synchronized (this) {
+                    if (disposalLockCount > 0)
+                        // if some other thread is currently using this element,
+                        // give them a moment or two (but no more) to finish.
+                        // Don't wait forever, in case someone just forgot to
+                        // clean up their lock.
+                        try { wait(500); } catch (InterruptedException e) {}
+                    value = this.value;
+                    this.value = null;
+                }
+
                 if (value != null) {
                     try {
                         value.dispose();
@@ -312,6 +337,15 @@ public class DataRepository implements Repository, DataContext {
 
             public boolean hasListeners() {
                 return (dataListeners != null && !dataListeners.isEmpty());
+            }
+
+            public synchronized void lockFromDisposal() {
+                disposalLockCount++;
+            }
+
+            public synchronized void unlockForDisposal() {
+                if (--disposalLockCount == 0)
+                    notifyAll();
             }
         }
 
@@ -737,6 +771,20 @@ public class DataRepository implements Repository, DataContext {
                 DataElement element = getOrCreateDefaultDataElement(dataName);
                 if (element == null) return;
 
+                try {
+                    element.lockFromDisposal();
+                    performFreeze(dataName, element);
+                } finally {
+                    element.unlockForDisposal();
+                }
+            }
+
+            /** Perform the work required to freeze a data element.
+             * 
+             * The caller should lock the element from disposal before calling this
+             * method, and unlock it afterward.
+             */
+            private void performFreeze(String dataName, DataElement element) {
                 // Make certain no data values are currently in a state of flux
                 dataNotifier.flush();
 
@@ -1272,7 +1320,8 @@ public class DataRepository implements Repository, DataContext {
                         if (!d.hasListeners()) {
                             cleanableCount++;
                             int age = currentGeneration - d.timestamp;
-                            if (age > JANITOR_DATA_LIFESPAN) {
+                            if (age > JANITOR_DATA_LIFESPAN
+                                    && d.disposalLockCount == 0) {
                                 cleanup(d);
                                 cleanedCount++;
                             }
@@ -1310,8 +1359,10 @@ public class DataRepository implements Repository, DataContext {
 
             private void cleanup(DataElement e) {
                 synchronized (e) {
-                    data.remove(e.name);
-                    e.disposeValue();
+                    if (e.disposalLockCount == 0) {
+                        data.remove(e.name);
+                        e.disposeValue();
+                    }
                 }
             }
         }
@@ -1530,20 +1581,20 @@ public class DataRepository implements Repository, DataContext {
         }
 
 
-        public synchronized void dumpRepository(PrintWriter out, Vector filt) {
+        public void dumpRepository(PrintWriter out, Vector filt) {
             dumpRepository(out, (Collection) filt, false);
         }
 
-        public synchronized void dumpRepository(PrintWriter out, Collection filt) {
+        public void dumpRepository(PrintWriter out, Collection filt) {
             dumpRepository(out, filt, false);
         }
 
-        public synchronized void dumpRepository(PrintWriter out, Vector filt,
+        public void dumpRepository(PrintWriter out, Vector filt,
                 boolean dataStyle) {
             dumpRepository(out, (Collection) filt, dataStyle);
         }
 
-        public synchronized void dumpRepository(PrintWriter out, Collection filt,
+        public void dumpRepository(PrintWriter out, Collection filt,
                 boolean dataStyle) {
             gc(null);
 
@@ -1592,8 +1643,7 @@ public class DataRepository implements Repository, DataContext {
         }
 
 
-        public synchronized void dumpRepositoryListeners(Writer out)
-                throws IOException {
+        public void dumpRepositoryListeners(Writer out) throws IOException {
 
             // print out all element values.
             for (Iterator i = getInternalKeys(); i.hasNext();) {
@@ -1884,6 +1934,14 @@ public class DataRepository implements Repository, DataContext {
                 return d.getValue();
         }
 
+        public final SimpleData getSimpleValue(String name) {
+            DataElement d = getOrCreateDefaultDataElement(name);
+            if (d == null)
+                return null;
+            else
+                return d.getSimpleValue();
+        }
+
         private DataElement getOrCreateDefaultDataElement(String dataName) {
             DataElement d = (DataElement)data.get(dataName);
             if (d == null) {
@@ -1984,15 +2042,6 @@ public class DataRepository implements Repository, DataContext {
             } catch (MalformedValueException mve) {
                 return null;
             }
-        }
-
-
-        public final SimpleData getSimpleValue(String name) {
-            SaveableData value = getValue(name);
-            if (value == null)
-                return null;
-            else
-                return value.getSimpleValue();
         }
 
 
@@ -2154,8 +2203,15 @@ public class DataRepository implements Repository, DataContext {
         public String getAliasedName(String name) {
             DataElement d = getOrCreateDefaultDataElement(name);
             String aliasName = null;
-            if (d != null && d.getValue() instanceof AliasedData)
-                aliasName = ((AliasedData) d.getValue()).getAliasedDataName();
+            if (d != null) {
+                try {
+                    d.lockFromDisposal();
+                    if (d.getValue() instanceof AliasedData)
+                        aliasName = ((AliasedData) d.getValue()).getAliasedDataName();
+                } finally {
+                    d.unlockForDisposal();
+                }
+            }
 
             if (aliasName != null)
                 return getAliasedName(aliasName);

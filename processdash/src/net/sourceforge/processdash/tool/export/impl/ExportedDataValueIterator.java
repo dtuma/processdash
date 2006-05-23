@@ -27,7 +27,6 @@ package net.sourceforge.processdash.tool.export.impl;
 
 import java.util.Collection;
 
-import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.Filter;
@@ -75,10 +74,6 @@ public class ExportedDataValueIterator extends IteratorFilter {
 
         public SimpleData getSimpleValue() {
             return data.getSimpleValue(name);
-        }
-
-        public SaveableData getSaveableValue() {
-            return data.getValue(name);
         }
 
     }
