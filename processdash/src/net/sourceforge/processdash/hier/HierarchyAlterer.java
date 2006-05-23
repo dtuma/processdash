@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -34,6 +34,7 @@ import java.util.StringTokenizer;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.TagData;
+import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
 
@@ -254,7 +255,9 @@ public class HierarchyAlterer implements ItemListener {
     }
 
     public static final String NODE_TAG = "/node";
+    public static final String NODE_TAG2 = NODE_TAG.substring(1);
     public static final String LEAF_TAG = "/leaf";
+    public static final String LEAF_TAG2 = LEAF_TAG.substring(1);
 
 
     /** Make a list of all the "leaf" and "node" data elements in the
@@ -262,7 +265,7 @@ public class HierarchyAlterer implements ItemListener {
      */
     private static void readNodesAndLeaves(HashSet nodesAndLeaves,
                                            DataRepository data) {
-        Iterator dataNames = data.getKeys();
+        Iterator dataNames = data.getKeys(null, DATA_NAME_HINT);
         String name;
 
         while (dataNames.hasNext()) {
@@ -318,4 +321,12 @@ public class HierarchyAlterer implements ItemListener {
     }
 
 
+    private static class NodeAndLeafDataNameHint implements
+            DataNameFilter.PrefixLocal {
+        public boolean acceptPrefixLocalName(String prefix, String localName) {
+            return localName.endsWith(NODE_TAG2)
+                    || localName.endsWith(LEAF_TAG2);
+        }
+    }
+    private static final Object DATA_NAME_HINT = new NodeAndLeafDataNameHint();
 }
