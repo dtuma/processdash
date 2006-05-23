@@ -18,6 +18,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 To further contact the author please email jpmccar@gjt.org
 
+
+Modifications, copyright 2003-2006 Tuma Solutions, LLC; distributed under the
+LGPL, as described above.
+
 */
 /*
     changes:
@@ -255,9 +259,17 @@ public class StringUtils
     }
     public static int indexOf(StringBuffer buf, String str, int fromIndex,
                               boolean ignoreCase) {
-        if (ignoreCase == false)
-            // this method didn't exist in Java 1.3, but does now.
-            return buf.indexOf(str, fromIndex);
+        return indexOf((CharSequence) buf, str, fromIndex, ignoreCase);
+    }
+    public static int indexOf(CharSequence buf, String str, int fromIndex,
+            boolean ignoreCase) {
+
+        if (ignoreCase == false) {
+            if (buf instanceof String)
+                return ((String) buf).indexOf(str, fromIndex);
+            else if (buf instanceof StringBuffer)
+                return ((StringBuffer) buf).indexOf(str, fromIndex);
+        }
 
         int count = buf.length();
         int max = count - str.length();
@@ -312,6 +324,89 @@ public class StringUtils
     public static int lastIndexOf(StringBuffer buf, String str, int fromIndex) {
         // This method didn't exist in Java 1.3, but does now.
         return buf.lastIndexOf(str, fromIndex);
+    }
+
+    /** Return true if one CharSequence starts with the other.
+     * 
+     * This performs the equivalent of String.startsWith, but accepts arbitrary
+     * CharSequence objects.  (Thus, it works for StringBuffer arguments.)
+     */
+    public static boolean startsWith(CharSequence str, CharSequence prefix) {
+        return startsWith(str, prefix, 0);
+    }
+
+    /** Return true if one CharSequence starts with the other, starting at a
+     * particular point in the string.
+     * 
+     * This performs the equivalent of String.startsWith, but accepts arbitrary
+     * CharSequence objects.  (Thus, it works for StringBuffer arguments.)
+     */
+    public static boolean startsWith(CharSequence str, CharSequence prefix,
+            int offset) {
+        // guard against null arguments
+        if (str == null || prefix == null)
+            return false;
+
+        // quick optimization for pure string args
+        if (str instanceof String && prefix instanceof String)
+            return ((String) str).startsWith((String) prefix, offset);
+
+        // quick test to see if lengths make a "startsWith" impossible
+        if (str.length() < prefix.length() + offset)
+            return false;
+
+        // walk over the characters in question, looking for mismatches.
+        int j = prefix.length() + offset;
+        for (int i = prefix.length();  i-- > 0;)
+            if (str.charAt(--j) != prefix.charAt(i))
+                return false;
+
+        // must be a match.
+        return true;
+    }
+
+    /** Return true if one CharSequence ends with the other.
+     * 
+     * This performs the equivalent of String.endsWith, but accepts arbitrary
+     * CharSequence objects.  (Thus, it works for StringBuffer arguments.)
+     */
+    public static boolean endsWith(CharSequence str, CharSequence suffix) {
+        // guard against null arguments
+        if (str == null || suffix == null)
+            return false;
+
+        // quick optimization for pure string args
+        if (str instanceof String && suffix instanceof String)
+            return ((String) str).endsWith((String) suffix);
+
+        // quick test to see if lengths make an "endsWith" impossible
+        if (str.length() < suffix.length())
+            return false;
+
+        // walk over the characters in question, looking for mismatches.
+        int j = str.length();
+        for (int i = suffix.length();  i-- > 0;)
+            if (str.charAt(--j) != suffix.charAt(i))
+                return false;
+
+        // must be a match.
+        return true;
+    }
+
+    /** Return true if one CharSequence contains the same sequence of characters
+     * as another.
+     * 
+     * This performs the equivalent of String.equals, but accepts arbitrary
+     * CharSequence objects.  (Thus, it works for StringBuffer arguments.)
+     */
+    public static boolean equals(CharSequence a, CharSequence b) {
+        if (a == b)
+            return true;
+        if (a == null || b == null)
+            return false;
+        if (a.length() != b.length())
+            return false;
+        return startsWith(a, b);
     }
 
 
