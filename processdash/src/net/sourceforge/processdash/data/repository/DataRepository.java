@@ -2917,6 +2917,7 @@ public class DataRepository implements Repository, DataContext {
                     }
 
                     // Next, handle the default values that this datafile inherits.
+                    String dataPrefixSlash = dataPrefix + "/";
                     for (Iterator i = defaultData.entrySet().iterator(); i.hasNext();) {
                         Map.Entry defn = (Map.Entry) i.next();
                         String localName = (String) defn.getKey();
@@ -2935,7 +2936,7 @@ public class DataRepository implements Repository, DataContext {
                         if ("@now".equals(valueObj))
                             shouldCreateEagerly = datafileModified = true;
 
-                        String dataName = createDataName(dataPrefix, localName);
+                        String dataName = dataPrefixSlash + localName;
                         DataElement d = (DataElement)data.get(dataName);
                         if (d == null) {
                             // this data element does not already exist in the repository.
@@ -2960,6 +2961,7 @@ public class DataRepository implements Repository, DataContext {
                         if (d != null) {
                             // a matching data element exists.
                             d.datafile = dataFile;
+                            dataName = d.name;
 
                             if (instantiatedDataMatches(valueObj, d.getValue())) {
                                 // the data element already has the proper value. (This
