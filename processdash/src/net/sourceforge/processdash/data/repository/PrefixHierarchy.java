@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,6 +28,8 @@ package net.sourceforge.processdash.data.repository;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 
@@ -113,19 +115,19 @@ class PrefixHierarchy {
 
 
     public void dispatchAdded(String dataName) {
-        dispatch(true, dataName, dataName);
+        dispatch(true, dataName, 0);
     }
     public void dispatchRemoved(String dataName) {
-        dispatch(false, dataName, dataName);
+        dispatch(false, dataName, 0);
     }
 
 
 
     // Perform the work associated with dispatching data event e .
     //
-    private void dispatch(boolean added, String fullName, String localName) {
+    private void dispatch(boolean added, String fullName, int prefixLen) {
         dispatchToListeners(added, fullName);
-        dispatchToChildren(added, fullName, localName);
+        dispatchToChildren(added, fullName, prefixLen);
     }
 
 
@@ -154,17 +156,18 @@ class PrefixHierarchy {
     // event, and dispatch it to that child.
     //
     private void dispatchToChildren(boolean added, String fullName,
-            String localName) {
+            int prefixLen) {
         if (children == null) return;
 
-        Enumeration prefixes = children.keys();
-        String prefix;
-        while (prefixes.hasMoreElements())
-            if (localName.startsWith(prefix = (String) prefixes.nextElement())) {
-                ((PrefixHierarchy) children.get(prefix)).dispatch
-                    (added, fullName, localName.substring(prefix.length()));
+        for (Iterator i = children.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String prefix = (String) e.getKey();
+            if (fullName.startsWith(prefix, prefixLen)) {
+                PrefixHierarchy child = (PrefixHierarchy) e.getValue();
+                child.dispatch(added, fullName, prefixLen + prefix.length());
                 break;
             }
+        }
     }
 
 
