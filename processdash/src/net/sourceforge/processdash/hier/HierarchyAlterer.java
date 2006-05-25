@@ -26,11 +26,15 @@
 package net.sourceforge.processdash.hier;
 
 
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.beans.EventHandler;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
+
+import javax.swing.Timer;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.TagData;
@@ -43,9 +47,15 @@ import net.sourceforge.processdash.hier.ui.HierarchyEditor;
 public class HierarchyAlterer implements ItemListener {
 
     private ProcessDashboard dashboard;
+    private Timer eventDispatchTimer;
+    private int eventDispatchChangeCount;
 
     public HierarchyAlterer(ProcessDashboard dashboard) {
         this.dashboard = dashboard;
+        this.eventDispatchTimer = new Timer(EVENT_DISPATCH_DELAY,
+                (ActionListener) EventHandler.create(ActionListener.class,
+                        this, "dispatchHierarchyChangedEvent"));
+        this.eventDispatchTimer.setRepeats(false);
     }
 
     public class HierarchyAlterationException extends Exception {
@@ -70,9 +80,8 @@ public class HierarchyAlterer implements ItemListener {
         dashboard.getHierarchy().removeItemListener(this);
         updateNodesAndLeaves(dashboard.getData(), dashboard.getHierarchy());
         dashboard.getData().finishInconsistency();
-        dashboard.getHierarchy().fireHierarchyChanged();
+        dispatchOrScheduleHierarchyChangedEvent();
     }
-
 
 
     /** Create a plain hierarchy node at the specified path.
@@ -329,4 +338,33 @@ public class HierarchyAlterer implements ItemListener {
         }
     }
     private static final Object DATA_NAME_HINT = new NodeAndLeafDataNameHint();
+
+    /** Number of milliseconds to delay before delivering a hiearchy changed
+     * notification event - nonzero to prevent unnecessary overnotification
+     * during a period of heavy hierarchy alteration */
+    private static final int EVENT_DISPATCH_DELAY = 300;
+
+    /** Max number of alterations to make before deciding to unequivocally
+     * send a hierarchy changed event (regardless of event dispatch delay
+     * considerations) */
+    private static final int EVENT_COUNT_THRESHHOLD = 30;
+
+
+
+
+
+    private void dispatchOrScheduleHierarchyChangedEvent() {
+        if (++eventDispatchChangeCount >= EVENT_COUNT_THRESHHOLD) {
+            eventDispatchTimer.stop();
+            dispatchHierarchyChangedEvent();
+        } else {
+            eventDispatchTimer.restart();
+        }
+    }
+
+    public void dispatchHierarchyChangedEvent() {
+        eventDispatchChangeCount = 0;
+        dashboard.getHierarchy().fireHierarchyChanged();
+    }
+
 }
