@@ -45,7 +45,7 @@ public class LightweightSet extends ArrayList implements Set {
     }
 
     public LightweightSet(Collection c) {
-        super(1);
+        super(c.size());
         addAll(c);
     }
 
