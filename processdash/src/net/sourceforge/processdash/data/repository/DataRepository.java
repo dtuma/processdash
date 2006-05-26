@@ -50,7 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Enumeration;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -379,7 +379,7 @@ public class DataRepository implements Repository, DataContext {
             Hashtable activeListeners = null;
 
             /** a list of misbehaved data which appears to be circularly defined. */
-            Hashtable circularData = new Hashtable();
+            Set circularData;
 
             private volatile boolean suspended = false;
 
@@ -387,6 +387,7 @@ public class DataRepository implements Repository, DataContext {
                 super("DataNotifier");
                 notifications = new Hashtable();
                 activeListeners = new Hashtable();
+                circularData = Collections.synchronizedSet(new HashSet());
                 setPriority(MIN_PRIORITY);
                 setDaemon(true);
                 start();
@@ -405,10 +406,9 @@ public class DataRepository implements Repository, DataContext {
              * our internal data structures.
              */
             public void dataChanged(String name, DataElement d) {
-                if (name == null) return;
+                if (name == null || circularData.contains(name)) return;
                 if (d == null) d = (DataElement) data.get(name);
                 if (d == null) return;
-                if (circularData.get(name) != null) return;
 
                 List dataListenerList = d.dataListeners;
                 if (dataListenerList == null || dataListenerList.isEmpty())
@@ -472,6 +472,11 @@ public class DataRepository implements Repository, DataContext {
                     activeListeners.remove(listenerName);
             }
 
+            /** Send one data listener a data changed event, indicating all of
+             * the items they are listening to that have changed.
+             * 
+             * @param dl the listener to notify.
+             */
             private void fireEvent(DataListener dl) {
                 if (dl == null) return;
 
@@ -479,76 +484,116 @@ public class DataRepository implements Repository, DataContext {
                 if (elements == null) return;
 
                 String listenerName = (String) activeData.get(dl);
+                if (listenerName != null && circularData.contains(listenerName)) {
+                    notifications.remove(dl);
+                    return;
+                }
 
                 synchronized (elements) {
                     if (notifications.get(dl) == null) return;
 
                     Thread t = (Thread) elements.get(CIRCULARITY_TOKEN);
 
-                    if (t == null)
-                        elements.put(CIRCULARITY_TOKEN, Thread.currentThread());
-                    else if (t != Thread.currentThread()) {
-                        //System.out.println("waiting for other thread...");
-                        try { elements.wait(1000); } catch (InterruptedException ie) {}
-                        //System.out.println("waiting done.");
-                        return;
-                    } else {
-                        if (listenerName != null) {
-                            System.err.println("Infinite recursion encountered while " +
-                                               "recalculating " + listenerName +
-                                               " - ABORTING");
-                            circularData.put(listenerName, Boolean.TRUE);
+                    if (t != null) {
+                        if (t != Thread.currentThread()) {
+                            //System.out.println("waiting for other thread...");
+                            try { elements.wait(1000); } catch (InterruptedException ie) {}
+                            //System.out.println("waiting done.");
+                            return;
+                        } else {
+                            // circular dependencies between active data listeners
+                            // exist. Break the circular dependency and abort.
+                            if (listenerName != null) {
+                                logger.log(Level.WARNING, "Infinite recursion "
+                                          + "encountered while recalculating {0} "
+                                          + "- ABORTING", listenerName);
+                                circularData.add(listenerName);
+                            }
+                            return;
                         }
+                    }
+
+                    // record the fact that we are the thread currently handling this
+                    // element notification list
+                    elements.put(CIRCULARITY_TOKEN, Thread.currentThread());
+                }
+
+                try {                 // run through the elements to see if any are
+                                      // also expected to change, and do those first.
+                    for (Iterator i = elements.keySet().iterator(); i.hasNext();) {
+                        String name = (String) i.next();
+                        if (name == CIRCULARITY_TOKEN) continue;
+                        DataListener activeListener =
+                            (DataListener) activeListeners.get(name);
+                        if (activeListener != null)
+                            fireEvent(activeListener);
+                    }
+                } catch (ConcurrentModificationException cme) {
+                    // The loop above is designed to optimize the event delivery
+                    // process. It attempts impose minimal overhead by iterating
+                    // over the list of elements directly instead of making a copy.
+                    // That opens the door to the slight possibility of a
+                    // ConcurrentModificationException.  If one occurs, just proceed
+                    // without optimizing the delivery of this particular event.
+                    logger.log(Level.FINEST, "Caught cme while optimizing event "
+                              + "delivery for {0}", listenerName);
+                } finally {
+                    Hashtable currentElements;
+                    synchronized (notifications) {
+                        currentElements = (Hashtable) notifications.remove(dl);
+                        if (currentElements != elements && currentElements != null) {
+                            // Eeek!  While we've been doing the work above, someone
+                            // changed the notifications map behind our back, and
+                            // replaced the element list with a different one. (I'm
+                            // not sure if this can ever happen, but it doesn't hurt
+                            // to be paranoid.)  Undo the damage.
+                            notifications.put(dl, currentElements);
+                        }
+                    }
+                    elements.remove(CIRCULARITY_TOKEN);
+                    if (listenerName != null)
+                        activeListeners.remove(listenerName);
+                    if (currentElements == null) {
+                        // this is an indication that the data listener in question
+                        // has apparently been deleted in the time since we started
+                        // this method.  We can skip the task of delivering events.
                         return;
                     }
                 }
-
-                String name;
-                DataElement d;
-                DataListener activeListener;
-
-                                        // run through the elements to see if any are
-                                        // also expected to change, and do those first.
-                Enumeration names = elements.keys();
-                while (names.hasMoreElements()) {
-                    name = (String) names.nextElement();
-                    if (name == CIRCULARITY_TOKEN) continue;
-                    d    = (DataElement) elements.get(name);
-                    activeListener = (DataListener) activeListeners.get(name);
-                    if (activeListener != null)
-                        fireEvent(activeListener);
-                }
-
-                                        // Build a list of data events to send
-                elements = ((Hashtable) notifications.remove(dl));
-                if (listenerName != null)
-                    activeListeners.remove(listenerName);
-                if (elements == null) return;
 
                 try {
-                    elements.remove(CIRCULARITY_TOKEN);
-                    Vector dataEvents = new Vector();
-                    names = elements.keys();
-                    while (names.hasMoreElements()) {
-                        name = (String) names.nextElement();
-                        d    = (DataElement) elements.get(name);
-                        dataEvents.addElement(d.getDataChangedEvent(name));
+                    // Now, send the data changed event to this data listener.
+                    if (elements.size() == 1) {
+                        // if there is only one changed element, we can use the
+                        // singular form of the data notification method, and avoid
+                        // creating a Vector object.
+                        Map.Entry e = (Map.Entry) elements.entrySet().iterator().next();
+                        String name = (String) e.getKey();
+                        DataElement d = (DataElement) e.getValue();
+                        dl.dataValueChanged(d.getDataChangedEvent(name));
+                    } else if (elements.size() > 1) {
+                        // Build a list of data events to send
+                        Vector dataEvents = new Vector();
+                        for (Iterator i = elements.entrySet().iterator(); i.hasNext();) {
+                            Map.Entry e = (Map.Entry) i.next();
+                            String name = (String) e.getKey();
+                            DataElement d = (DataElement) e.getValue();
+                            dataEvents.addElement(d.getDataChangedEvent(name));
+                            dl.dataValuesChanged(dataEvents);
+                        }
                     }
-
-                                          // send the data events via dataValuesChanged()
-                    try {
-                        dl.dataValuesChanged(dataEvents);
-                    } catch (RemoteException rem) {
-                        System.err.println(rem.getMessage());
-                        System.err.println("    when trying to notify a datalistener.");
-                    } catch (Exception e) {
-                        // Various exceptions, most notably NullPointerException, can
-                        // occur if we erroneously notify a DataListener of changes *after*
-                        // it has unregistered for those changes.  Such mistakes can happen
-                        // due to multithreading, but no harm is done as long as the
-                        // exception is caught here.
-                    }
+                } catch (RemoteException rem) {
+                    logger.log(Level.WARNING,
+                            "Error when trying to notify a datalistener", rem);
+                } catch (Exception e) {
+                    // Various exceptions, most notably NullPointerException, can
+                    // occur if we erroneously notify a DataListener of changes *after*
+                    // it has unregistered for those changes.  Such mistakes can happen
+                    // due to multithreading, but no harm is done as long as the
+                    // exception is caught here.
                 } finally {
+                    // notify other threads that might have seen our CIRCULARITY
+                    // TOKEN and are waiting for us to finish.
                     synchronized (elements) { elements.notifyAll(); }
                 }
             }
