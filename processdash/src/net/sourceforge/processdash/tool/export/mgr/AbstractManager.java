@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -103,7 +103,7 @@ public abstract class AbstractManager {
 
     private void parseXmlSetting(String userSetting) throws Exception {
         if (!userSetting.startsWith("<?xml"))
-                userSetting = SETTING_XML_HEADER + userSetting;
+            userSetting = SETTING_XML_HEADER + userSetting;
 
         Element doc = XMLUtils.parse(userSetting).getDocumentElement();
         NodeList instrElems = doc.getChildNodes();
@@ -164,10 +164,12 @@ public abstract class AbstractManager {
     }
 
     protected void doAddInstruction(AbstractInstruction instr) {
-        instructions.add(instr);
-        int pos = instructions.indexOf(instr);
-        fireInstructionAdded(pos);
-        handleAddedInstruction(instr);
+        if (!instructions.contains(instr)) {
+            instructions.add(instr);
+            int pos = instructions.indexOf(instr);
+            fireInstructionAdded(pos);
+            handleAddedInstruction(instr);
+        }
     }
 
     protected abstract void handleAddedInstruction(AbstractInstruction instr);
