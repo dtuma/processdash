@@ -599,12 +599,14 @@ public class DataRepository implements Repository, DataContext {
             }
 
             private boolean fireEvent() {
-                try {
-                    fireEvent((DataListener) notifications.keys().nextElement());
-                    return true;
-                } catch (java.util.NoSuchElementException e) {
-                    return false;
+                if (!notifications.isEmpty()) {
+                    try {
+                        fireEvent((DataListener) notifications.keys().nextElement());
+                        return true;
+                    } catch (java.util.NoSuchElementException e) {
+                    }
                 }
+                return false;
             }
 
             public void run() {
@@ -1296,6 +1298,7 @@ public class DataRepository implements Repository, DataContext {
                     String dataName = (String) i.next();
                     DataElement d = (DataElement) data.get(dataName);
                     if (isDefaultElement(d) && !d.hasListeners()
+                            && d.disposalLockCount == 0
                             && Filter.matchesFilter(prefixes, dataName)) {
                         cleanup(d);
                     }
@@ -1391,7 +1394,8 @@ public class DataRepository implements Repository, DataContext {
                     // if there is LOTS of stuff to clean up, but we didn't
                     // accomplish much on this iteration, start a new generation
                     // right away.
-                    logger.finest("Lots of work! Restarting immediately.");
+                    logger.finest("Lots of work! Restarting quickly.");
+                    waitForWork(200);
                     workToDo = true;
                 }
             }
