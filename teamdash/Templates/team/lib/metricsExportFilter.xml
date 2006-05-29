@@ -13,8 +13,12 @@
     <include>/Completed$</include>
 
     <!-- include basic time and defect information -->
-    <include>/(Estimated )?Time$</include>
-    <include>/Defects (Injected|Removed)$</include>
+    <!--#foreach name=Phase list=Phase_List -->
+    <include>/<!--#echo Phase_Name -->/(Estimated )?Time$</include>
+    <include>/<!--#echo Phase_Name -->/Defects (Injected|Removed)$</include>
+    <!--#endfor-->
+    <include>/Before Development/Defects Injected$</include>
+    <include>/After Development/Defects Removed$</include>
 
     <!-- include several flavors of size metrics -->
     <include>/(Estimated )?(Aggregate )?Size$</include>
