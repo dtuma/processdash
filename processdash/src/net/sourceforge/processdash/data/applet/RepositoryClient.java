@@ -37,6 +37,7 @@ import java.util.Properties;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.*;
 import net.sourceforge.processdash.data.repository.*;
+import net.sourceforge.processdash.util.FormatUtil;
 
 public class RepositoryClient extends Thread implements Repository {
 
@@ -81,6 +82,8 @@ public class RepositoryClient extends Thread implements Repository {
             tagExists = in.readBoolean();
             try {
                 Settings.initialize((Properties) in.readObject());
+                FormatUtil.setDateFormats(Settings.getVal("dateFormat"),
+                        Settings.getVal("dateTimeFormat"));
             } catch (Exception e) {}
 
             if (!tagExists)

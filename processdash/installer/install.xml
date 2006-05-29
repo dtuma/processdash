@@ -84,8 +84,9 @@
             <executable targetfile="$INSTALL_PATH/mergeSettings.jar"
 	         type="jar" stage="postinstall">
 		<args>
-		    <arg value="$EXTERNAL_CONFIG_URL"/>
 		    <arg value="$DATA_PATH"/>
+		    <arg value="$EXTERNAL_CONFIG_URL1"/>
+		    <arg value="$EXTERNAL_CONFIG_URL2"/>
 		</args>
 	    </executable>
 

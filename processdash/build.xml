@@ -3,7 +3,7 @@
 <!-- ===================================================================
 
 PSP Dashboard - Data Automation Tool for PSP-like processes
-Copyright (C) 2003 Software Process Dashboard Initiative
+Copyright (C) 2003-2006 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -64,8 +64,6 @@ Most useful targets:
 
 Authors:
   David Tuma, with help and advice from David Li <david@d11e.com>
-
-   $Id$
 
 ==================================================================== -->
 
@@ -471,13 +469,15 @@ Authors:
     </ant>
   </target>
 
-  <target name="installer-mergeJar" depends="ant-tasks">
+  <target name="installer-mergeJar" depends="compile">
+    <classfileset id="installer-mergeJar-classes" dir="bin2"
+      rootclass="net.sourceforge.processdash.InternalSettings"/>
     <jar destfile="${installer}/files/mergeSettings.jar" duplicate="fail">
       <manifest>
         <attribute name="Main-Class"
-	    value="net.sourceforge.processdash.MergeSettings"/>
+	    value="net.sourceforge.processdash.InternalSettings"/>
       </manifest>
-      <fileset dir="${libsrc}" includes="**/MergeSettings.class"/>
+      <fileset refid="installer-mergeJar-classes"/>
     </jar>
   </target>
 

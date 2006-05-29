@@ -1,5 +1,5 @@
+// Copyright (C) 2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -62,13 +62,36 @@ public class ExternalConfiguration {
     }
 
     private static Properties openConfig() throws Exception {
-        URL iniURL = new URL(getURL());
         Properties result = new Properties();
-        result.load(iniURL.openStream());
+        readConfig(result, getURL1());
+        readConfig(result, getURL2());
         return result;
     }
 
-    public static String getURL() {
+    private static void readConfig(Properties dest, String url) {
+        try {
+            URL iniURL = new URL(url);
+            Properties p = new Properties();
+            p.load(iniURL.openStream());
+            dest.putAll(p);
+        } catch (Exception e) {}
+    }
+
+    public static String getURL1() {
+        // find a "custom-install.ini" file that is inside the installation JAR
+        // file, and return the URL.  If no such file exists, return "none".
+        URL result = ExternalConfiguration.class.getResource("/"
+                + INSTALL_INI_FILENAME);
+        if (result == null)
+            return "none";
+        else
+            return result.toString();
+    }
+
+    public static String getURL2() {
+        // find a "custom-install.ini" file that is contained in the same
+        // directory as the installation JAR file, and return the URL.  If no
+        // such file exists, return "none".
         String myURL = ExternalConfiguration.class.getResource(
                 "ExternalConfiguration.class").toString();
         int exclPos = myURL.indexOf("!/");

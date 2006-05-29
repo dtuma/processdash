@@ -9,6 +9,10 @@ To build the PSP Dashboard, you will need:
      must install JavaHelp 2.0 from Sun.  Set the environment variable
      JAVAHELP_HOME to point to the javahelp installation directory.
 
+   * (optional) to build the installer, you will need to install the
+     bcel library (http://jakarta.apache.org/bcel/) into the "lib"
+     directory of your ant distribution.
+
 Then simply run "ant" on the file "build.xml" in this directory.
 
 

@@ -32,8 +32,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -271,4 +274,52 @@ public class InternalSettings extends Settings {
         defaults.put("http.charset", resources.getString("HTTP_charset_"));
     }
 
+    /** This main method is used to merge settings from one or more external
+     * sources into a user's settings file.  It is typically only called by
+     * the dashboard installer as an optional post-installation step.
+     */
+    public static void main(String[] args) {
+        if (args.length < 2)
+            return;
+        File destDir = new File(args[0]);
+        if (!destDir.isDirectory())
+            return;
+
+        File settingsFile = new File(destDir, getSettingsFilename());
+        try {
+            initialize(settingsFile.getPath());
+
+            for (int i = args.length;  i-- > 1;)
+                tryToMerge(args[i]);
+        } catch (Exception e) {
+        }
+    }
+
+    private static void tryToMerge(String url) {
+        if ("none".equalsIgnoreCase(url))
+            return;
+
+        Properties nullProps = new Properties();
+        FileProperties propsIn = new FileProperties(nullProps, nullProps);
+        try {
+            propsIn.load(new URL(url).openStream());
+        } catch (Exception e) {}
+        if (propsIn.isEmpty())
+            return;
+
+        for (Iterator i = propsIn.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String propKey = ((String) e.getKey()).trim();
+            if (!propKey.startsWith(MERGE_PROP_PREFIX))
+                continue;
+
+            String settingName = propKey.substring(MERGE_PROP_PREFIX.length());
+            if (getVal(settingName) == null) {
+                String settingVal = ((String) e.getValue()).trim();
+                set(settingName, settingVal);
+            }
+        }
+    }
+
+    private static final String MERGE_PROP_PREFIX = "pdash.";
 }

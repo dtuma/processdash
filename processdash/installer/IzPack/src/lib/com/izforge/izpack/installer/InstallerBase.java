@@ -1,5 +1,4 @@
 /*
- *  $Id$
  *  IzPack
  *  Copyright (C) 2001-2003 Jonathan Halliday, Julien Ponge
  *
@@ -155,16 +154,18 @@ public class InstallerBase
             (ScriptParser.USER_NAME, System.getProperty("user.name"));
         installdata.setVariable
             (ScriptParser.FILE_SEPARATOR, File.separator);
-        installdata.setVariable("EXTERNAL_CONFIG_URL",
-            ExternalConfiguration.getURL());
+        installdata.setVariable("EXTERNAL_CONFIG_URL1",
+            ExternalConfiguration.getURL1());
+        installdata.setVariable("EXTERNAL_CONFIG_URL2",
+            ExternalConfiguration.getURL2());
         if (null != variables)
         {
-            Enumeration enum = variables.keys();
+            Enumeration enum_ = variables.keys();
             String varName = null;
             String varValue = null;
-            while (enum.hasMoreElements())
+            while (enum_.hasMoreElements())
             {
-                varName = (String) enum.nextElement();
+                varName = (String) enum_.nextElement();
                 varValue = variables.getProperty(varName);
                 installdata.setVariable(varName, varValue);
             }
