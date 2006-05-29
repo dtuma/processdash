@@ -1,7 +1,9 @@
 package teamdash.templates.setup;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -145,14 +147,18 @@ public class HierarchySynchronizer {
                 ("Could not find the file containing the work breakdown " +
                  "structure for this team project.");
 
+        InputStream in = null;
         try {
-            Document doc = XMLUtils.parse(new FileInputStream(wbsFile));
+            in = new BufferedInputStream(new FileInputStream(wbsFile));
+            Document doc = XMLUtils.parse(in);
             projectXML = doc.getDocumentElement();
         } catch (Exception e) {
             throw new IOException
                 ("The dashboard could not read the file containing the work " +
                  "breakdown structure for this team project.  The file may "+
                  "be corrupt.");
+        } finally {
+            if (in != null) try { in.close(); } catch (Exception e) {}
         }
     }
 
