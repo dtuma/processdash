@@ -3166,7 +3166,7 @@ public class DataRepository implements Repository, DataContext {
 
         private void addDataFile(DataFile df) {
             synchronized (datafiles) {
-                datafiles.add(df);
+                datafiles.add(0, df);
                 Collections.sort(datafiles);
             }
         }
