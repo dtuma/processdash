@@ -35,6 +35,8 @@ import java.util.regex.Pattern;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.data.repository.SimplePrefixLocalDataNameFilter;
+import net.sourceforge.processdash.util.PatternList;
 
 
 public class EVTaskListXML extends EVTaskListXMLAbstract {
@@ -117,7 +119,7 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
         }
 
         // scan all the data elements in the repository.
-        Iterator i = data.getKeys();
+        Iterator i = data.getKeys(null, XML_DATA_NAME_FILTER);
         String dataName;
         result = null;
         while (i.hasNext()) {
@@ -138,6 +140,9 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
 
         return result;
     }
+    private static final Object XML_DATA_NAME_FILTER =
+        new SimplePrefixLocalDataNameFilter(
+                new PatternList().addRegexp(XML_DATA_NAME + "$"));
 
     private static String getXMLString(DataRepository data,
                                        String taskListName)
