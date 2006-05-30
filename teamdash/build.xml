@@ -13,7 +13,7 @@
 
   <target name="vvis">
     <property name="teamProcess.xml" value="vvis.xml"/>
-    <property name="teamProcess.zip" value="VVGDP-v1.zip"/>
+    <property name="teamProcess.zip" value="VVGDP-v2.zip"/>
   </target>
 
   <target name="filelist.txt">
