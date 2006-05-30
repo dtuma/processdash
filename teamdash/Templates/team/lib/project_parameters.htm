@@ -64,6 +64,12 @@
 <td COLSPAN=2>Include all WBS components and documents in sync operations 
 <input type=checkbox name="Sync_Full_WBS"></td>
 </tr>
+
+<!--#else-->
+<tr>
+<td COLSPAN=2>Max levels of drill down in archived plan snapshots:
+<input type=text size=7 name="Export_Max_Node_Depth"></td>
+</tr>
 <!--#endif-->
 
 <!--#if VVIS --><!--#if not indiv -->

@@ -1,11 +1,47 @@
 
 package teamdash.templates.setup;
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
 
 
 public class selectWBSFrame extends selectWBS {
 
     private String processID = null;
+
+    private int maxDepth = -1;
+
+    protected void printTree(DashHierarchy hierarchy, PropertyKey key,
+            int depth, String rootPath) {
+        if (depth == 0)
+            initMaxDepth(rootPath);
+
+        if (maxDepth < 0 || depth <= maxDepth)
+            super.printTree(hierarchy, key, depth, rootPath);
+    }
+
+    private void initMaxDepth(String prefix) {
+        if (!parameters.containsKey("EXPORT")) {
+            // if we aren't currently exporting, display nodes to any arbitrary
+            // depth for drill-down.
+            maxDepth = -1;
+        } else {
+            // when exporting, check to see if the user has configured
+            // a desired depth for drill-down
+            String dataName = DataRepository.createDataName(prefix,
+                    MAX_EXPORT_DEPTH_DATA_NAME);
+            SimpleData data = getDataRepository().getSimpleValue(dataName);
+            if (data instanceof DoubleData) {
+                DoubleData doubleVal = (DoubleData) data;
+                maxDepth = doubleVal.getInteger();
+            } else {
+                maxDepth = DEFAULT_MAX_EXPORT_DEPTH;
+            }
+        }
+    }
 
     protected String getScript() { return ""; }
 
@@ -27,4 +63,7 @@ public class selectWBSFrame extends selectWBS {
         out.print("/summary_frame.shtm\">");
     }
 
+    private static final String MAX_EXPORT_DEPTH_DATA_NAME =
+        "Export_Max_Node_Depth";
+    private static final int DEFAULT_MAX_EXPORT_DEPTH = 2;
 }
