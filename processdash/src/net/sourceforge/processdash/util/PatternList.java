@@ -64,6 +64,12 @@ public class PatternList {
     public PatternList() {
     }
 
+    public PatternList(String[] patterns) {
+        for (int i = 0; i < patterns.length; i++) {
+            addRegexp(patterns[i]);
+        }
+    }
+
     public PatternList(Collection patterns) {
         for (Iterator i = patterns.iterator(); i.hasNext();) {
             String regexp = (String) i.next();
@@ -71,7 +77,7 @@ public class PatternList {
         }
     }
 
-    public void addRegexp(String regexp) throws PatternSyntaxException {
+    public PatternList addRegexp(String regexp) throws PatternSyntaxException {
         if (!isPlainString(regexp)) {
             if (".*".equals(regexp))
                 alwaysTrue = true;
@@ -104,6 +110,8 @@ public class PatternList {
             else
                 containsItems = addToList(containsItems, regexp);
         }
+
+        return this;
     }
 
     public boolean matches(String s) {
