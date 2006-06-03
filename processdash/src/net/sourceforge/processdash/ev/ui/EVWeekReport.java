@@ -45,6 +45,7 @@ import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.TinyCGIException;
@@ -103,6 +104,8 @@ public class EVWeekReport extends TinyCGIBase {
         EVMetrics  metrics = schedule.getMetrics();
         totalPlanTime = metrics.totalPlan();
         boolean showAssignedTo = (evModel instanceof EVTaskListRollup);
+        boolean showTimingIcons = (evModel instanceof EVTaskListData
+                && getParameter("EXPORT") == null);
 
         String effDateParam = getParameter(EFF_DATE_PARAM);
         Date effDateTime = null;
@@ -320,7 +323,7 @@ public class EVWeekReport extends TinyCGIBase {
             for (int i = 0;   i < taskListLen;   i++)
                 if (dueThroughNextWeek[i])
                     timeRemaining += printDueLine(tasks, i, cpi, rend,
-                            showAssignedTo);
+                            showAssignedTo, showTimingIcons);
 
             out.print("<tr><td align=right colspan=");
             out.print(showAssignedTo ? "7" : "6");
@@ -464,11 +467,15 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
     protected double printDueLine(TableModel tasks, int i, double cpi,
-            EVReport.DependencyCellRenderer rend, boolean showAssignedTo) {
+            EVReport.DependencyCellRenderer rend, boolean showAssignedTo,
+            boolean showTimingIcons) {
         double planTime, actualTime, percentSpent, forecastTimeRemaining;
         String time;
+        String taskPath = (String) tasks.getValueAt(i, EVTaskList.TASK_COLUMN);
         out.print("<tr><td class=left>");
-        out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
+        out.print(encodeHTML(taskPath));
+        if (showTimingIcons)
+            out.write(EVReport.getTimingLink(taskPath));
         out.print("</td><td class='timefmt'>");
         time = (String) tasks.getValueAt(i, EVTaskList.PLAN_TIME_COLUMN);
         planTime = parseTime(time);

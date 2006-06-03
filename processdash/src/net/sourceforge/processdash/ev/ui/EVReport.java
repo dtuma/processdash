@@ -51,6 +51,7 @@ import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
@@ -879,6 +880,10 @@ public class EVReport extends CGIChartBase {
     void writeTaskTable(EVTaskList taskList) throws IOException {
         HTMLTableWriter writer = new HTMLTableWriter();
         TableModel table = customizeTaskTableWriter(writer, taskList);
+        if (taskList instanceof EVTaskListData
+                && parameters.get("EXPORT") == null)
+            writer.setCellRenderer(EVTaskList.TASK_COLUMN,
+                    new TaskNameWithTimingIconRenderer());
         writer.writeTable(out, table);
     }
 
@@ -1116,6 +1121,16 @@ public class EVReport extends CGIChartBase {
     Pattern HOURS_MINUTES_PATTERN = Pattern.compile("\\d+:\\d\\d");
 
 
+    static class TaskNameWithTimingIconRenderer extends
+            HTMLTableWriter.DefaultHTMLTableCellRenderer {
+
+        public String getInnerHtml(Object value, int row, int column) {
+            return super.getInnerHtml(value, row, column)
+                    + getTimingLink((String) value);
+        }
+    }
+
+
     static class DependencyCellRenderer implements HTMLTableWriter.CellRenderer {
 
         boolean plainText;
@@ -1160,6 +1175,17 @@ public class EVReport extends CGIChartBase {
 
     final static String getResource(String key) {
         return encodeHTML(resources.getString(key)).replace('\n', ' ');
+    }
+
+    static String getTimingLink(String path) {
+        if (path == null || path.length() == 0)
+            return "";
+
+        return "&nbsp;<a class=doNotPrint href=\""
+                + WebServer.urlEncodePath(path)
+                + "//control/setPath.class?start\"><img border=\"0\" alt=\""
+                + resources.getHTML("Start_timing")
+                + "\" src=\"/control/startTiming.png\"></A>";
     }
 
     private class FakeChartData extends AbstractDataset implements XYDataset {
