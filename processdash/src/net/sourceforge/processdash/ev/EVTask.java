@@ -1186,11 +1186,13 @@ public class EVTask implements Cloneable, DataListener {
             pruningFlag != ANCESTOR_PRUNED)
             result.append("' prune='").append(pruningFlag);
         if (hasValue(taskIDs))
-            result.append("' tid='").append(StringUtils.join(taskIDs, ","));
+            result.append("' tid='").append(XMLUtils.escapeAttribute(
+                    StringUtils.join(taskIDs, ",")));
         if (hasValue(assignedTo))
-            result.append("' who='").append(StringUtils.join(assignedTo, ","));
+            result.append("' who='").append(XMLUtils.escapeAttribute(
+                    StringUtils.join(assignedTo, ",")));
         if (XMLUtils.hasValue(flag))
-            result.append("' flag='").append(flag);
+            result.append("' flag='").append(XMLUtils.escapeAttribute(flag));
 
         String newline = (whitespace ? "\n" : "");
 
