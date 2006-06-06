@@ -185,7 +185,7 @@ public class StringUtils
             // if the string buffer is now less than the break point
             // add what's left to the working array and break
             // out of it all..
-            if (sb.length() < breakPoint)
+            if (sb.length() <= breakPoint)
             {
                 if (shouldTrim)
                 {
