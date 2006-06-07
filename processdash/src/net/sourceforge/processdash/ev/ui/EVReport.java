@@ -44,6 +44,10 @@ import java.util.regex.Pattern;
 import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
@@ -87,6 +91,8 @@ public class EVReport extends CGIChartBase {
     public static final String VALUE_CHART2 = "value2";
     public static final String COMBINED_CHART = "combined";
     public static final String FAKE_MODEL_NAME = "/  ";
+    private static final String CUSTOMIZE_PARAM = "customize";
+    static final String CUSTOMIZE_SHOW_ASSIGN_TO = "showAssignedTo";
 
 
     private static Resources resources = Resources.getDashBundle("EV");
@@ -140,6 +146,7 @@ public class EVReport extends CGIChartBase {
     protected void writeContents() throws IOException {
         // load the user requested earned value model.
         getEVModel();
+        loadCustomizationSettings();
 
         String chartType = getParameter(CHART_PARAM);
         if (chartType == null) {
@@ -151,6 +158,8 @@ public class EVReport extends CGIChartBase {
                     writeXls();
                 else if (parameters.get(CSV_PARAM) != null)
                     writeCsv();
+                else if (parameters.get(CUSTOMIZE_PARAM) != null)
+                    storeCustomizationSettings();
                 else
                     writeHTML();
             } else if (TIME_CHART.equals(tableType))
@@ -657,6 +666,61 @@ public class EVReport extends CGIChartBase {
     }
 
 
+    // handle the storage and retrieval of customization settings.
+
+    public void storeCustomizationSettings() throws IOException {
+        out.println("<html><head><script>");
+        if (parameters.containsKey("OK")) {
+            storeCustomizationSetting(CUSTOMIZE_SHOW_ASSIGN_TO);
+            touchSettingsTimestamp();
+            out.println("window.opener.location.reload();");
+        }
+        out.println("window.close();");
+        out.println("</script></head>");
+        // the text below generally will never appear to the user (the
+        // javascript should close this window immediately)
+        out.println("<body>Changes saved.</body></html>");
+    }
+    private void storeCustomizationSetting(String setting) {
+        setValue("settings//" + setting,
+                parameters.containsKey(setting) ? ImmutableDoubleData.TRUE
+                        : ImmutableDoubleData.FALSE);
+    }
+    private void touchSettingsTimestamp() {
+        setValue("settings//timestamp", new DateData());
+    }
+    private SimpleData getValue(String name) {
+        String dataName = DataRepository.createDataName(getPrefix(), name);
+        return getDataRepository().getSimpleValue(dataName);
+    }
+    private void setValue(String name, SimpleData val) {
+        String dataName = DataRepository.createDataName(getPrefix(), name);
+        getDataRepository().putValue(dataName, val);
+    }
+    private boolean usingCustomizationSettings;
+    private void loadCustomizationSettings() {
+        usingCustomizationSettings = isTimestampRecent();
+    }
+    private boolean isTimestampRecent() {
+        DateData settingsTimestamp = (DateData) getValue("settings//timestamp");
+        if (settingsTimestamp == null)
+            return false;
+        long when = settingsTimestamp.getValue().getTime();
+        long delta = System.currentTimeMillis() - when;
+        if (10000 < delta && delta < MAX_SETTINGS_AGE)
+            touchSettingsTimestamp();
+        return (delta < MAX_SETTINGS_AGE);
+    }
+    private static final long MAX_SETTINGS_AGE =
+            60 /*mins*/* 60 /*sec*/* 1000 /*millis*/;
+    boolean getSettingVal(String name) {
+        boolean defaultVal = Settings.getBool("ev."+name, true);
+        if (!usingCustomizationSettings)
+            return defaultVal;
+        SimpleData val = getValue("settings//" + name);
+        return (val != null ? val.test() : defaultVal);
+    }
+
     /** Generate a page of HTML displaying the Task and Schedule templates,
      *  and including img tags referencing charts.
      */
@@ -666,6 +730,8 @@ public class EVReport extends CGIChartBase {
         out.print(StringUtils.findAndReplace
                   (HEADER_HTML, TITLE_VAR,
                    resources.format("Report.Title_FMT", taskListHTML)));
+        printCustomizationLink();
+        out.print("</h1>\n");
         if (!exportingToExcel()) {
             out.print(SEPARATE_CHARTS_HTML);
             out.print(TREE_ICON_HEADER);
@@ -728,6 +794,20 @@ public class EVReport extends CGIChartBase {
         out.print("</p>");
         out.print(FOOTER_HTML2);
     }
+
+    private void printCustomizationLink() {
+        if (!parameters.containsKey("EXPORT")) {
+            out.print("&nbsp;&nbsp;<span class='hlink'>"
+                    + "<span class='doNotPrint'><a href='ev-customize.shtm");
+            if ((evModel instanceof EVTaskListRollup))
+                out.print("?isRollup");
+            out.print("' target='customize' onClick='openCustomizeWindow();'>");
+            out.print(HTMLUtils.escapeEntities(resources
+                    .getDlgString("Customize")));
+            out.print("</a></span></span>");
+        }
+    }
+
 
     private void printTaskStyleLink() {
         if (!exportingToExcel()) {
@@ -847,8 +927,15 @@ public class EVReport extends CGIChartBase {
         HTMLTreeTableWriter.getCssInfo() +
         "</style>\n" +
         POPUP_HEADER +
+        "<script>\n" +
+        "function openCustomizeWindow() {\n" +
+        "    var newWind = window.open ('', 'customize',\n" +
+        "        'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=200');\n" +
+        "    newWind.focus();\n" +
+        "}\n" +
+        "</script>\n" +
         "<script language='javascript1.2' src='treetable.js'></script>" +
-        "</head><body><h1>%title%</h1>\n";
+        "</head><body><h1>%title%";
     static final String TREE_ICON_HEADER =
         "<span style='display:none'>" +
         "<img id='folder-open' src='/Images/folder-open.gif'>" +
@@ -911,7 +998,8 @@ public class EVReport extends CGIChartBase {
         writer.setTableName("TASK");
         writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
                 new DependencyCellRenderer(exportingToExcel()));
-        if (!(taskList instanceof EVTaskListRollup))
+        if (!(taskList instanceof EVTaskListRollup)
+                || getSettingVal(CUSTOMIZE_SHOW_ASSIGN_TO) == false)
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
         return table;
     }

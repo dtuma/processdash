@@ -39,6 +39,9 @@ import java.util.Map;
 import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
@@ -94,6 +97,7 @@ public class EVWeekReport extends TinyCGIBase {
         if (evModel == null)
             throw new TinyCGIException(404, "Not Found",
                                        "No such task/schedule");
+        loadCustomizationSettings();
 
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 getDataRepository(), getPSPProperties(), getObjectCache());
@@ -103,7 +107,8 @@ public class EVWeekReport extends TinyCGIBase {
         EVSchedule schedule = evModel.getSchedule();
         EVMetrics  metrics = schedule.getMetrics();
         totalPlanTime = metrics.totalPlan();
-        boolean showAssignedTo = (evModel instanceof EVTaskListRollup);
+        boolean showAssignedTo = (evModel instanceof EVTaskListRollup)
+                && getSettingVal(EVReport.CUSTOMIZE_SHOW_ASSIGN_TO);
         boolean showTimingIcons = (evModel instanceof EVTaskListData
                 && getParameter("EXPORT") == null);
 
@@ -567,6 +572,41 @@ public class EVWeekReport extends TinyCGIBase {
 
         out.println("</table></div></div>");
         out.println("<br>");
+    }
+
+    private boolean usingCustomizationSettings;
+    private void loadCustomizationSettings() {
+        usingCustomizationSettings = isTimestampRecent();
+    }
+    private boolean isTimestampRecent() {
+        DateData settingsTimestamp = (DateData) getValue("settings//timestamp");
+        if (settingsTimestamp == null)
+            return false;
+        long when = settingsTimestamp.getValue().getTime();
+        long delta = System.currentTimeMillis() - when;
+        if (10000 < delta && delta < MAX_SETTINGS_AGE)
+            touchSettingsTimestamp();
+        return (delta < MAX_SETTINGS_AGE);
+    }
+    private static final long MAX_SETTINGS_AGE =
+            60 /*mins*/* 60 /*sec*/* 1000 /*millis*/;
+    boolean getSettingVal(String name) {
+        boolean defaultVal = Settings.getBool("ev."+name, true);
+        if (!usingCustomizationSettings)
+            return defaultVal;
+        SimpleData val = getValue(name);
+        return (val != null ? val.test() : defaultVal);
+    }
+    private void touchSettingsTimestamp() {
+        setValue("settings//timestamp", new DateData());
+    }
+    private SimpleData getValue(String name) {
+        String dataName = DataRepository.createDataName(getPrefix(), name);
+        return getDataRepository().getSimpleValue(dataName);
+    }
+    private void setValue(String name, SimpleData val) {
+        String dataName = DataRepository.createDataName(getPrefix(), name);
+        getDataRepository().putValue(dataName, val);
     }
 
 
