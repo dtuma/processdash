@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,21 +25,26 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeMap;
 import java.util.Map;
 import java.util.MissingResourceException;
-import java.text.MessageFormat;
-import javax.swing.table.*;
-import javax.swing.event.*;
+import java.util.TreeMap;
+
+import javax.swing.event.EventListenerList;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.ev.ci.*;
+import net.sourceforge.processdash.ev.ci.AbstractConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.TargetedConfidenceInterval;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.FormatUtil;
 
@@ -480,11 +485,13 @@ public class EVMetrics implements TableModel {
 
 
     protected abstract class MetricFormatter {
+        String key;
         String metricName;
         MessageFormat shortFormat, medFormat, fullFormat;
         Object[] args = null;
 
         public MetricFormatter(String key) {
+            this.key = key;
             FormatResources fmt = getFormatResources(key);
             metricName = fmt.metricName;
             shortFormat = fmt.shortFormat;
@@ -498,6 +505,7 @@ public class EVMetrics implements TableModel {
         public String getShort() { return shortFormat.format(args); }
         public String getMed() { return medFormat.format(args); }
         public String getFull() { return fullFormat.format(args); }
+        public String getKey() { return key; }
 
         protected abstract void recalc();
     }
@@ -753,6 +761,9 @@ public class EVMetrics implements TableModel {
      * Examples: 40% of the total work has been accomplished. */
     public static final int FULL   = 3;
 
+    /** Return the String ID for the metric */
+    public static final int METRIC_ID = -1;
+
 
     private static String NAME_HEADING =
         resources.getString("Metrics.Column_Heading.Name");
@@ -784,6 +795,7 @@ public class EVMetrics implements TableModel {
         case SHORT: return f.getShort();
         case MEDIUM: return f.getMed();
         case FULL: return f.getFull();
+        case METRIC_ID: return f.getKey();
         }
         return null;
     }

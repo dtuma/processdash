@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -108,7 +108,7 @@ public class EVWeekReport extends TinyCGIBase {
         EVMetrics  metrics = schedule.getMetrics();
         totalPlanTime = metrics.totalPlan();
         boolean showAssignedTo = (evModel instanceof EVTaskListRollup)
-                && getSettingVal(EVReport.CUSTOMIZE_SHOW_ASSIGN_TO);
+                && (getSettingVal(EVReport.CUSTOMIZE_HIDE_ASSIGN_TO) == false);
         boolean showTimingIcons = (evModel instanceof EVTaskListData
                 && getParameter("EXPORT") == null);
 
@@ -228,7 +228,7 @@ public class EVWeekReport extends TinyCGIBase {
         }
 
         interpOut("<h3>${Summary.Header}</h3>" +
-                        "<table border=1 name='summary'><tr>" +
+                "<table border=1 name='summary'><tr>" +
                 "<td></td><td></td>"+
                 "<td class=header colspan=3>${Summary.Direct_Hours}</td><td></td>" +
                 "<td class=header colspan=3>${Summary.Earned_Value}</td></tr>\n" +
@@ -242,7 +242,7 @@ public class EVWeekReport extends TinyCGIBase {
 
         interpOut("<tr><td class=left>${Summary.This_Week}</td><td></td>");
         printTimeData(weekSlice.getPlanDirectTime(),
-                              weekSlice.getActualDirectTime());
+                weekSlice.getActualDirectTime());
         out.print("<td></td>");
         printPctData(weekSlice.getPlanValue(totalPlanTime),
                      weekSlice.getEarnedValue(totalPlanTime));
@@ -261,24 +261,24 @@ public class EVWeekReport extends TinyCGIBase {
             numWeeks = (effDate.getTime() - startDate.getTime())
                     / (double) MILLIS_PER_WEEK;
         interpOut("<tr><td class=left>${Summary.Average_per_Week}" +
-                        "</td><td></td>");
+                "</td><td></td>");
         double planTimePerWeek =
-                parseTime(weekSlice.getCumPlanTime()) / numWeeks;
+            parseTime(weekSlice.getCumPlanTime()) / numWeeks;
         double actualTimePerWeek =
-                parseTime(weekSlice.getCumActualTime()) / numWeeks;
+            parseTime(weekSlice.getCumActualTime()) / numWeeks;
         printTimeData(formatTime(planTimePerWeek),
                       formatTime(actualTimePerWeek));
         out.print("<td></td>");
         double planEVPerWeek =
-                parsePercent(weekSlice.getCumPlanValue(totalPlanTime)) / numWeeks;
+            parsePercent(weekSlice.getCumPlanValue(totalPlanTime)) / numWeeks;
         double actualEVPerWeek =
-                parsePercent(weekSlice.getCumEarnedValue(totalPlanTime)) / numWeeks;
+            parsePercent(weekSlice.getCumEarnedValue(totalPlanTime)) / numWeeks;
         printPctData(formatPercent(planEVPerWeek),
                      formatPercent(actualEVPerWeek));
         out.print("</tr>\n");
 
         interpOut("<tr><td class=left>${Summary.Completed_Tasks_To_Date}" +
-                        "</td><td></td>");
+                "</td><td></td>");
         printData(formatTime(completedTasksTotalPlanTime),
                   formatTime(completedTasksTotalActualTime),
                   1.0 / cpi, "timefmt");
@@ -404,7 +404,7 @@ public class EVWeekReport extends TinyCGIBase {
     }
     private double parsePercent(String pct) {
         try {
-                return FormatUtil.parsePercent(pct);
+            return FormatUtil.parsePercent(pct);
         } catch (Exception e) {
             return 0;
         }
@@ -420,12 +420,12 @@ public class EVWeekReport extends TinyCGIBase {
                   null);
     }
     protected void printData(String plan, String actual, double fraction,
-                String className) {
+            String className) {
         String td;
         if (className == null)
-                td = "<td>";
+            td = "<td>";
         else
-                td = "<td class='" + className + "'>";
+            td = "<td class='" + className + "'>";
         out.print(td);
         out.print(plan);
         out.print("</td>");
@@ -591,10 +591,10 @@ public class EVWeekReport extends TinyCGIBase {
     private static final long MAX_SETTINGS_AGE =
             60 /*mins*/* 60 /*sec*/* 1000 /*millis*/;
     boolean getSettingVal(String name) {
-        boolean defaultVal = Settings.getBool("ev."+name, true);
+        boolean defaultVal = Settings.getBool("ev."+name, false);
         if (!usingCustomizationSettings)
             return defaultVal;
-        SimpleData val = getValue(name);
+        SimpleData val = getValue("settings//" + name);
         return (val != null ? val.test() : defaultVal);
     }
     private void touchSettingsTimestamp() {

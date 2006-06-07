@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -92,7 +92,9 @@ public class EVReport extends CGIChartBase {
     public static final String COMBINED_CHART = "combined";
     public static final String FAKE_MODEL_NAME = "/  ";
     private static final String CUSTOMIZE_PARAM = "customize";
-    static final String CUSTOMIZE_SHOW_ASSIGN_TO = "showAssignedTo";
+    static final String CUSTOMIZE_HIDE_PLAN_LINE = "hidePlanLine";
+    static final String CUSTOMIZE_HIDE_FORECAST_LINE = "hideForecastLine";
+    static final String CUSTOMIZE_HIDE_ASSIGN_TO = "hideAssignedTo";
 
 
     private static Resources resources = Resources.getDashBundle("EV");
@@ -671,7 +673,9 @@ public class EVReport extends CGIChartBase {
     public void storeCustomizationSettings() throws IOException {
         out.println("<html><head><script>");
         if (parameters.containsKey("OK")) {
-            storeCustomizationSetting(CUSTOMIZE_SHOW_ASSIGN_TO);
+            storeCustomizationSetting(CUSTOMIZE_HIDE_PLAN_LINE);
+            storeCustomizationSetting(CUSTOMIZE_HIDE_FORECAST_LINE);
+            storeCustomizationSetting(CUSTOMIZE_HIDE_ASSIGN_TO);
             touchSettingsTimestamp();
             out.println("window.opener.location.reload();");
         }
@@ -714,7 +718,7 @@ public class EVReport extends CGIChartBase {
     private static final long MAX_SETTINGS_AGE =
             60 /*mins*/* 60 /*sec*/* 1000 /*millis*/;
     boolean getSettingVal(String name) {
-        boolean defaultVal = Settings.getBool("ev."+name, true);
+        boolean defaultVal = Settings.getBool("ev."+name, false);
         if (!usingCustomizationSettings)
             return defaultVal;
         SimpleData val = getValue("settings//" + name);
@@ -756,10 +760,11 @@ public class EVReport extends CGIChartBase {
             out.print("</b></td></tr></table>\n");
         }
 
-
+        boolean hidePlan = getSettingVal(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideForecast = getSettingVal(CUSTOMIZE_HIDE_FORECAST_LINE);
         out.print("<table name='STATS'>");
         for (int i = 0;   i < m.getRowCount();   i++)
-            writeMetric(m, i);
+            writeMetric(m, i, hidePlan, hideForecast);
         out.print("</table>");
 
         out.print("<h2><a name='tasks'></a>"+getResource("TaskList.Title"));
@@ -822,7 +827,12 @@ public class EVReport extends CGIChartBase {
     }
 
 
-    protected void writeMetric(EVMetrics m, int i) {
+    protected void writeMetric(EVMetrics m, int i, boolean hidePlan,
+            boolean hideForecast) {
+        String metricID = (String) m.getValueAt(i, EVMetrics.METRIC_ID);
+        if (hidePlan && metricID.indexOf("Plan_") != -1) return;
+        if (hideForecast && metricID.indexOf("Forecast_") != -1) return;
+
         String name = (String) m.getValueAt(i, EVMetrics.NAME);
         if (name == null) return;
         String number = (String) m.getValueAt(i, EVMetrics.SHORT);
@@ -999,7 +1009,7 @@ public class EVReport extends CGIChartBase {
         writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
                 new DependencyCellRenderer(exportingToExcel()));
         if (!(taskList instanceof EVTaskListRollup)
-                || getSettingVal(CUSTOMIZE_SHOW_ASSIGN_TO) == false)
+                || getSettingVal(CUSTOMIZE_HIDE_ASSIGN_TO))
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
         return table;
     }
@@ -1034,6 +1044,12 @@ public class EVReport extends CGIChartBase {
         // Create the data for the chart to draw.
         xydata = evModel.getSchedule().getTimeChartData();
 
+        // possibly hide lines on the chart, at user request.
+        boolean hidePlan = getSettingVal(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideForecast = getSettingVal(CUSTOMIZE_HIDE_FORECAST_LINE);
+        if (hidePlan || hideForecast)
+            xydata = new EVDatasetFilter(xydata, hidePlan, hideForecast, 2);
+
         // Alter the appearance of the chart.
         maybeWriteParam
             ("title", resources.getString("Report.Time_Chart_Title"));
@@ -1046,6 +1062,12 @@ public class EVReport extends CGIChartBase {
         // Create the data for the chart to draw.
         xydata = evModel.getSchedule().getValueChartData();
 
+        // possibly hide lines on the chart, at user request.
+        boolean hidePlan = getSettingVal(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideForecast = getSettingVal(CUSTOMIZE_HIDE_FORECAST_LINE);
+        if (hidePlan || hideForecast)
+            xydata = new EVDatasetFilter(xydata, hidePlan, hideForecast, 2);
+
         // Alter the appearance of the chart.
         maybeWriteParam("title", resources.getString("Report.EV_Chart_Title"));
 
@@ -1055,6 +1077,12 @@ public class EVReport extends CGIChartBase {
     public void writeCombinedChart() throws IOException {
         // Create the data for the chart to draw.
         xydata = evModel.getSchedule().getCombinedChartData();
+
+        // possibly hide lines on the chart, at user request.
+        boolean hidePlan = getSettingVal(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideForecast = getSettingVal(CUSTOMIZE_HIDE_FORECAST_LINE);
+        if (hidePlan || hideForecast)
+            xydata = new EVDatasetFilter(xydata, hidePlan, hideForecast, 3);
 
         // Alter the appearance of the chart.
         maybeWriteParam("title", "Cost & Schedule");

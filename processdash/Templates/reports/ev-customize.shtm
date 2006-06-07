@@ -34,11 +34,28 @@
 <form action="ev.class" method="GET">
 <input type="hidden" name="customize" value="1">
 
+<table>
+
+<tr><td valign="top"><input name="hidePlanLine"
+        <!--#if [settings//hidePlanLine] -->checked<!--#endif-->
+        type="checkbox"></td>
+    <td>Hide &quot;<b>Plan</b>&quot; chart lines (and corresponding
+        metrics)</td></tr>
+
+<tr><td valign="top"><input name="hideForecastLine"
+        <!--#if [settings//hideForecastLine] -->checked<!--#endif-->
+        type="checkbox"></td>
+    <td>Hide &quot;<b>Forecast</b>&quot; chart lines (and corresponding
+        metrics)</td></tr>
+
 <!--#if isRollup -->
-<p><input name="showAssignedTo"
-    <!--#if [settings//showAssignedTo] ne '0' -->checked<!--#endif-->
-    type="checkbox"> Show &quot;<b>Assigned To</b>&quot; column</p>
+<tr><td valign="top"><input name="hideAssignedTo"
+        <!--#if [settings//hideAssignedTo] -->checked<!--#endif-->
+        type="checkbox"></td>
+    <td>Hide &quot;<b>Assigned To</b>&quot; column</td></tr>
 <!--#endif-->
+
+</table>
 
 <table width="100%"><tr><td width="100%" align="right">
     <input type="submit" name="OK" value="OK">
