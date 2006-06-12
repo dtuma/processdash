@@ -421,7 +421,8 @@ public class CustomProcessPublisher {
                 System.err.println("Warning: could not find file "
                         + fnfe.getMessage() + " - skipping");
             } catch (IOException ioe) {
-                System.err.println(ioe);
+                System.err.println("While processing " + file.getAttribute("in")
+                                + ", caught exception " + ioe);
             }
         }
     }
