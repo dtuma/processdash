@@ -80,11 +80,28 @@ function elementIterate(funcObj) {
     numForms = document.forms.length;
     for (formNum = 0; formNum < numForms; formNum++) {
         form = document.forms[formNum];
-        numElements = document.forms[formNum].elements.length;
-        for (elemNum = 0; elemNum < numElements; elemNum++) {
-            funcObj.func(document.forms[formNum].elements[elemNum]);
-        } // for elemNum...
+        if (shouldIgnore(form) == false) {
+            numElements = document.forms[formNum].elements.length;
+            for (elemNum = 0; elemNum < numElements; elemNum++) {
+                funcObj.func(document.forms[formNum].elements[elemNum]);
+            } // for elemNum...
+        } // if shouldIgnore...
     } // for formNum...
+}
+
+function shouldIgnore(elem) {
+  return shouldIgnoreStr(elem.name)
+    || shouldIgnoreStr(elem.id)
+    || shouldIgnoreStr(elem.className);
+}
+
+function shouldIgnoreStr(str) {
+  if (str && str.indexOf("NOT_DATA") != -1)
+    return true;
+  else if (str && str.indexOf("notData") != -1)
+    return true;
+  else
+    return false;
 }
 
 
@@ -559,7 +576,7 @@ function registerElement(elem) {
     if (elem.name.toLowerCase() == "requiredtag")
         requiredTag = elem.value;
 
-    else if (elem.name && elem.name.indexOf("NOT_DATA") == -1) {
+    else if (shouldIgnore(elem) == false) {
         elementList.push(elem);
         switch (elem.type.toLowerCase()) {
 
