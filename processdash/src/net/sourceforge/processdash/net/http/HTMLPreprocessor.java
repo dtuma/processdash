@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,24 +26,34 @@
 package net.sourceforge.processdash.net.http;
 
 
-import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.*;
-
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.StringTokenizer;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.hier.*;
-import net.sourceforge.processdash.i18n.*;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.AutoData;
 import net.sourceforge.processdash.templates.DashPackage;
-import net.sourceforge.processdash.ui.web.*;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.Perl5Util;
+import net.sourceforge.processdash.util.PerlPool;
+import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 
 
@@ -152,7 +162,7 @@ public class HTMLPreprocessor {
 
     /** process an echo directive within the buffer */
     private void processEchoDirective(DirectiveMatch echo) {
-        String var, value, encoding;
+        String var, value;
 
         // Was an explicit value specified? (This is used for performing
         // encodings on strings, and is especially useful when the string
@@ -685,9 +695,19 @@ public class HTMLPreprocessor {
     }
 
     /** process a set directive within the buffer */
-    private void processSetDirective(DirectiveMatch setDir) {
+    private void processSetDirective(DirectiveMatch setDir) throws IOException {
         String varName = setDir.getAttribute("var");
         String valueName = setDir.getAttribute("value");
+
+        if (valueName == null && setDir.getAttribute("inline") != null) {
+            DirectiveMatch setEnd = new DirectiveMatch
+                (setDir.buf, "endset", setDir.end, true);
+            if (setEnd.matches()) {
+                valueName = preprocess(setDir.buf.substring(setDir.end,
+                        setEnd.begin));
+                setDir.buf.replace(setDir.end, setEnd.end, "");
+            }
+        }
 
         params.put(varName, valueName);
         volatileVariables.add(varName);
@@ -767,7 +787,7 @@ public class HTMLPreprocessor {
     private void numberBlocks(StringBuffer text,
                               String blockStart, String blockFinish,
                               String blockMid1, String blockMid2) {
-        DirectiveMatch start, finish, mid;
+        DirectiveMatch start, finish;
         int blockNum = 0;
         String prefix;
 
