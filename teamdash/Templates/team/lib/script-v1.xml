@@ -135,6 +135,10 @@
     <file in="summary_toc.htm" encoding="html"
           out="summary_toc.shtm"/>
 
+    <!-- files used by the team data rollup filter -->
+    <file in="rollup_filter.htm" out="rollup_filter.shtm" encoding="none"/>
+    <file in="filterWBS.js" encoding="none"/>
+
     <!-- data file used by rollups and team nodes -->
     <file in="rollup_dataFile.txt" encoding="data"
           out="rollup_dataFile.txt"/>

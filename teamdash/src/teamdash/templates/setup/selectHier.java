@@ -38,7 +38,8 @@ public class selectHier extends TinyCGIBase {
 
         String rootPrefix = prefix;
 
-        printTree(getPSPProperties(), key, 0, rootPrefix);
+        initialize(getPSPProperties(), key, getRootId(), 0, rootPrefix);
+        printTree(getPSPProperties(), key, getRootId(), 0, rootPrefix);
 
         out.println("</table>");
         String script = getScript();
@@ -49,11 +50,22 @@ public class selectHier extends TinyCGIBase {
         out.println("</body></html>");
     }
 
-    protected void printTree(DashHierarchy hierarchy, PropertyKey key,
-                             int depth, String rootPath) {
-        if (prune(hierarchy, key)) return;
+    private String getRootId() {
+        return "wbs";
+    }
 
-        out.print("<tr><td align=left nowrap>");
+    protected void initialize(DashHierarchy properties, PropertyKey key,
+            String rootId, int i, String rootPrefix) {
+        // do nothing (subclasses may override)
+    }
+
+    protected void printTree(DashHierarchy hierarchy, PropertyKey key,
+                             String id, int depth, String rootPath) {
+        if (prune(hierarchy, key, id, depth, rootPath)) return;
+
+        out.print("<tr id='");
+        out.print(id);
+        out.print("'><td align=left nowrap>");
         for (int i = 0;   i < depth;   i++)
             out.print(SPACER);
         out.print(NODE_IMG);
@@ -67,10 +79,11 @@ public class selectHier extends TinyCGIBase {
         out.print(name);
         out.println("</a></td></tr>");
 
+        id = id + "-";
         int numChildren = hierarchy.getNumChildren(key);
         for (int i = 0;   i < numChildren;   i++)
             printTree(hierarchy, hierarchy.getChildKey(key, i),
-                      depth+1, rootPath);
+                      id + i, depth+1, rootPath);
     }
     private static final String NODE_IMG =
         "<img width=16 height=13 src='/Images/node.png'>";
@@ -98,6 +111,11 @@ public class selectHier extends TinyCGIBase {
         out.println("No project exists with the name");
         out.println(HTMLUtils.escapeEntities(getPrefix()));
         out.println("</BODY></HTML>");
+    }
+
+    protected boolean prune(DashHierarchy hierarchy, PropertyKey key,
+            String id, int depth, String rootPath) {
+        return prune(hierarchy, key);
     }
 
     protected boolean prune(DashHierarchy hierarchy, PropertyKey key) {

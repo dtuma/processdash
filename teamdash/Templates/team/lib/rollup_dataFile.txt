@@ -15,6 +15,16 @@
 
 
 /*
+ * Define a rollup filter that is appropriate for data rollup instances.
+ * Team and master project datafiles will override this definition.
+ */
+[Rollup_WBS_ID_Filter] = "," & inherit("Project_ID") & ",";
+[Rollup_Filter_Regexp] =
+    "m\n^(\\Q" & join("\\E|\\Q", [Rollup_WBS_ID_Filter]) & "\\E)(/.+)?$\n";
+[Rollup_Filter] = "match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";
+
+
+/*
  * Count the number of distinct software projects in this rollup list.
  */
 [Software_Project_List] =

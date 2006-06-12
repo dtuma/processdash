@@ -385,8 +385,8 @@
     <html ID="charts" href="PID/charts.shtm"
         title="<!--#echo Full_Name --> Analysis Charts"/>
     <!--#endif-->
-    <!-- html ID="config" title="Edit Data Rollup Filter"
-          href="PID/rollup_filter.shtm"/ -->
+    <html ID="config" title="Edit Data Rollup Filter"
+          href="PID/rollup_filter.shtm"/>
 
     <phase name="Analyze Rollup Data"/>
   </template>

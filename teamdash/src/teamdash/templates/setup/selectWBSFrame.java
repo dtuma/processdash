@@ -14,13 +14,19 @@ public class selectWBSFrame extends selectWBS {
 
     private int maxDepth = -1;
 
-    protected void printTree(DashHierarchy hierarchy, PropertyKey key,
-            int depth, String rootPath) {
-        if (depth == 0)
-            initMaxDepth(rootPath);
 
-        if (maxDepth < 0 || depth <= maxDepth)
-            super.printTree(hierarchy, key, depth, rootPath);
+    protected void initialize(DashHierarchy hierarchy, PropertyKey key,
+            String id, int depth, String rootPath) {
+        super.initialize(hierarchy, key, id, depth, rootPath);
+        initMaxDepth(rootPath);
+    }
+
+    protected boolean prune(DashHierarchy hierarchy, PropertyKey key,
+            String id, int depth, String rootPath) {
+        if (maxDepth >= 0 && depth > maxDepth)
+            return true;
+        else
+            return super.prune(hierarchy, key, id, depth, rootPath);
     }
 
     private void initMaxDepth(String prefix) {
