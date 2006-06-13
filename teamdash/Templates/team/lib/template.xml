@@ -67,7 +67,7 @@
       defineRollup="no"
       dataFile="PID/master_node_dataFile.txt"
       constraints="ME{}"
-      <!--#if VVIS -->href="none"<!--#endif-->
+      href="none"
       ><!--#break comment-->
          We alter the constraints to make this node immovable and
 	 uneditable.  We also change the 'required parent' list to '}',
@@ -80,6 +80,7 @@
 
        <!--#endbreak comment-->
 
+    <!--#break disablingSubcomponentForms -->
     <!--#if not VVIS -->
     <html ID="sump" href="PID/rollup_plan_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
@@ -88,6 +89,7 @@
     <html ID="charts" href="PID/charts.shtm"
         title="<!--#echo Full_Name --> Analysis Charts"/>
     <!--#endif-->
+    <!--#endbreak disablingSubcomponentForms -->
 
   </template>
 
@@ -137,7 +139,7 @@
       defineRollup="no"
       dataFile="PID/team_node_dataFile.txt"
       constraints="ME{}"
-      <!--#if VVIS -->href="none"<!--#endif-->
+      href="none"
       ><!--#break comment-->
          We alter the constraints to make this node immovable and
 	 uneditable.  We also change the 'required parent' list to '}',
@@ -150,6 +152,7 @@
 
        <!--#endbreak comment-->
 
+    <!--#break disablingSubcomponentForms -->
     <!--#if not VVIS -->
     <html ID="sump" href="PID/rollup_plan_summary.shtm"
         title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
@@ -158,6 +161,7 @@
     <html ID="charts" href="PID/charts.shtm"
         title="<!--#echo Full_Name --> Analysis Charts"/>
     <!--#endif-->
+    <!--#endbreak disablingSubcomponentForms -->
 
   </template>
 
