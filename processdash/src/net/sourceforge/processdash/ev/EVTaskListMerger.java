@@ -1,5 +1,5 @@
+// Copyright (C) 2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -97,7 +97,11 @@ public class EVTaskListMerger {
         Map allTaskKeys = new HashMap();
         getAllTaskKeys(allTaskKeys, (EVTask) taskList.getRoot());
         if (allTaskKeys.isEmpty())
+            // either there are no tasks in this schedule at all, or
+            // everything is pruned.  Nothing to merge.
             return;
+
+        maybeSetupDefaultMerge(allTaskKeys, (EVTask) taskList.getRoot());
 
         // determine the ancestry of our new merged tree, and merge siblings
         // that have similar names.
@@ -174,6 +178,72 @@ public class EVTaskListMerger {
         key.addTask(task);
         // reregister the key in the cache to reflect merging operations above
         registerTaskKey(cache, key);
+    }
+
+
+    /** Some task lists have no task ID information.  This includes EV schedules
+     * for historical projects, as well as EV schedules for informal projects.
+     * For schedules that fall into this category, try to find a way to merge
+     * them in a useful way.
+     */
+    private void maybeSetupDefaultMerge(Map allTaskKeys, EVTask task) {
+        if (isDefaultMergeAppropriate(task) == false)
+            return;
+
+        // create a key to represent all the top-level tasks in the task list.
+        TaskKey key = new TaskKey();
+        addTopLevelTasks(key, task);
+        registerTaskKey(allTaskKeys, key);
+    }
+
+    /** Check to see whether a default merge is appropriate for a given task
+     * list.
+     * 
+     * @param task the root of the task list.  The task list is presumed not
+     *    to contain any task identifiers.
+     * @return true if a default merge is appropriate.
+     */
+    private boolean isDefaultMergeAppropriate(EVTask task) {
+        // if this is not a rollup schedule, a default merge isn't appropriate.
+        if (!EVTaskListRollup.TASK_LIST_FLAG.equals(task.getFlag()))
+            return false;
+
+        // add other potential checks here.  Think about this further before
+        // enabling this feature.
+
+        return false;
+        //return true;
+    }
+
+    /** Find all of the top-level tasks in a task list, and add them to a single
+     * task key.
+     * 
+     * For an individual schedule this return, the tasks that they added to
+     * their task list directly (i.e., as children of the task list root).  For
+     * rollup schedules, this recurses and finds the the top-level tasks for
+     * all subschedules.
+     * 
+     * @param key the destination key to add tasks to
+     * @param task a node in an earned value task list.  (Clients should call
+     *    this with the root node of the task list for correct results.)
+     */
+    private void addTopLevelTasks(TaskKey key, EVTask task) {
+        if (task.isLevelOfEffortTask() || task.isTotallyPruned())
+            // don't include level of effort tasks or pruned tasks in the
+            // merged result.
+            return;
+
+        // if we find a top-level task (indicated by the fact that it isn't
+        // flagged as an "imaginary" nodes at the root of an EVTaskList),
+        // add it to the key.
+        if (task.getFlag() == null)
+            key.addTask(task);
+
+        else {
+            // recurse into children of the given EVTask.
+            for (int i = task.getNumChildren(); i-- > 0;)
+                addTopLevelTasks(key, task.getChild(i));
+        }
     }
 
     /** Register this key in the cache, so it can be looked up by any of its
