@@ -36,6 +36,7 @@
 
 <table>
 
+<!--#break forNow -->
 <tr><td valign="top"><input name="hidePlanLine"
         <!--#if [settings//hidePlanLine] -->checked<!--#endif-->
         type="checkbox"></td>
@@ -47,6 +48,7 @@
         type="checkbox"></td>
     <td>Hide &quot;<b>Forecast</b>&quot; chart lines (and corresponding
         metrics)</td></tr>
+<!--#endbreak forNow -->
 
 <!--#if isRollup -->
 <tr><td valign="top"><input name="hideAssignedTo"

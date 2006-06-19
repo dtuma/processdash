@@ -801,6 +801,9 @@ public class EVReport extends CGIChartBase {
     }
 
     private void printCustomizationLink() {
+        if ((evModel instanceof EVTaskListRollup) == false)
+            return;
+
         if (!parameters.containsKey("EXPORT")) {
             out.print("&nbsp;&nbsp;<span class='hlink'>"
                     + "<span class='doNotPrint'><a href='ev-customize.shtm");
