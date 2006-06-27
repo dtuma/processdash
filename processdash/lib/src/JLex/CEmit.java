@@ -242,7 +242,7 @@ class CEmit
           m_outstream.println("\tprivate static final int YY_NO_STATE = -1;");
 
           m_outstream.println("\tprivate static final int YY_NOT_ACCEPT = 0;");
-          m_outstream.println("\tprivate static final int YY_START = 1;");
+          m_outstream.println("//\tprivate static final int YY_START = 1;");
           m_outstream.println("\tprivate static final int YY_END = 2;");
           m_outstream.println("\tprivate static final int YY_NO_ANCHOR = 4;");
 
@@ -509,7 +509,7 @@ class CEmit
         m_outstream.println("\t\tthrows java.io.IOException {");
         /*m_outstream.println("\t\t{");*/
         m_outstream.println("\t\tint next_read;");
-        m_outstream.println("\t\tint i;");
+        m_outstream.println("//\t\tint i;");
         m_outstream.println("\t\tint j;");
         m_outstream.println();
 
@@ -616,7 +616,7 @@ class CEmit
 
         /* Function: yy_double */
         m_outstream.println("\tprivate char[] yy_double (char buf[]) {");
-        m_outstream.println("\t\tint i;");
+        m_outstream.println("//\t\tint i;");
         m_outstream.println("\t\tchar newbuf[];");
         m_outstream.println("\t\tnewbuf = new char[2*buf.length];");
         m_outstream.println("\t\tSystem.arraycopy(buf, 0, newbuf, 0, buf.length);");
