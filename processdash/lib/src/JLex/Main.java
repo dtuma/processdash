@@ -251,8 +251,11 @@ public class Main
 	   block and permit the Exception to propagate to the top level. 
 	   This gives more information. */
 	try 
-	  {	
-	    lg = new CLexGen(arg[0]);
+	  {
+            if (arg.length == 1)
+                lg = new CLexGen(arg[0]);
+            else
+                lg = new CLexGen(arg[0], arg[1]);
 	    lg.generate();
 	  }
 	catch (Error e)

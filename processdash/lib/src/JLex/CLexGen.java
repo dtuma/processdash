@@ -74,6 +74,16 @@ class CLexGen
      )
       throws java.io.FileNotFoundException, java.io.IOException
       {
+          this(filename, filename+".java");
+      }
+
+  CLexGen 
+    (
+     String filename,
+     String outputFilename
+     )
+      throws java.io.FileNotFoundException, java.io.IOException
+      {
 	/* Successful initialization flag. */
 	m_init_flag = false;
 	
@@ -87,14 +97,14 @@ class CLexGen
 	  }
 
 	/* Open output stream. */
-    File file = new File(filename + ".java");
+    File file = new File(outputFilename);
 	m_outstream 
 	  = new java.io.PrintWriter(new java.io.BufferedWriter(
 		new java.io.FileWriter(file)));
 	if (null == m_outstream)
 	  {
 	    System.out.println("Error: Unable to open output file "
-			       + filename + ".java.");
+			       + outputFilename);
 	    return;
 	  }
 
