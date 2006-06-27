@@ -3105,7 +3105,7 @@ public class DataRepository implements Repository, DataContext {
             // data element's datafile is null, it is considered transient and
             // can be deleted at any time if no one is listening to its value.
             DataFile f = getPhantomDataFile(dataPrefix);
-            f.inheritedDefinitions = values;
+            f.inheritedDefinitions = Collections.unmodifiableMap(values);
             addDataFile(f);
             mountData(f, dataPrefix, Collections.EMPTY_MAP);
 
@@ -3633,6 +3633,38 @@ public class DataRepository implements Repository, DataContext {
         }
 
 
+        private class DataSubcontext implements DataContext {
+
+            private String prefix;
+
+            public DataSubcontext(String prefix) {
+                this.prefix = prefix;
+            }
+
+            private String mapName(String name) {
+                return createDataName(prefix, name);
+            }
+
+            public SaveableData getValue(String name) {
+                return DataRepository.this.getValue(mapName(name));
+            }
+
+            public SimpleData getSimpleValue(String name) {
+                return DataRepository.this.getSimpleValue(mapName(name));
+            }
+
+            public void putValue(String name, SaveableData value) {
+                DataRepository.this.putValue(mapName(name), value);
+            }
+
+        }
+
+        public DataContext getSubcontext(String prefix) {
+            if (prefix == null || prefix.length() == 0 || prefix.equals("/"))
+                return this;
+            else
+                return new DataSubcontext(prefix);
+        }
 
         public void removeRepositoryListener(RepositoryListener rl) {
             // debug("removeRepositoryListener");
@@ -3745,6 +3777,14 @@ public class DataRepository implements Repository, DataContext {
         }
 
         public Set getDataElementNameSet() { return dataElementNameSet_ext; }
+
+        public Map getDefaultDataElementsFor(String prefix) {
+            DataFile dataFile = guessDataFile(prefix+"/foo", false);
+            if (dataFile != null)
+                return dataFile.inheritedDefinitions;
+            else
+                return null;
+        }
 
         public static final String PARENT_PREFIX = "../";
 

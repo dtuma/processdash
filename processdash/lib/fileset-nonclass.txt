@@ -13,6 +13,7 @@ net/sourceforge/processdash/hier/ui/paste.gif
 net/sourceforge/processdash/i18n/DefaultEngine.dat
 net/sourceforge/processdash/log/ui/timing.wav
 net/sourceforge/processdash/net/http/mime_types
+net/sourceforge/processdash/net/cms/SnippetHtmlPostprocessor.dat
 net/sourceforge/processdash/process/leafData.txt
 net/sourceforge/processdash/process/nodeData.txt
 net/sourceforge/processdash/process/processData.txt

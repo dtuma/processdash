@@ -1,0 +1,2 @@
+<b><!--#echo Name.Label --></b>&nbsp;<input type="text" name="$$$_Name" 
+    size="40" value="<!--#echo Name -->" />

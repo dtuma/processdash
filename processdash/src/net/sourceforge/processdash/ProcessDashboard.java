@@ -56,6 +56,7 @@ import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.ui.*;
 import net.sourceforge.processdash.net.cache.*;
+import net.sourceforge.processdash.net.cms.CmsDefaultConfig;
 import net.sourceforge.processdash.net.http.*;
 import net.sourceforge.processdash.process.*;
 import net.sourceforge.processdash.process.ui.*;
@@ -138,6 +139,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
         DefectAnalyzer.setDataDirectory(property_directory);
+        CmsDefaultConfig.setPersistenceDirectory(prop_file.getParentFile());
         try {
             default_directory = prop_file.getParentFile().getCanonicalPath();
         } catch (IOException ioe) {

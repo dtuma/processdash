@@ -2,6 +2,7 @@
 
 [TEMPLATE_ID Tag] == TAG;
 [Process_ID] = "TEMPLATE_ID";
+[Simple Project Tag] == TAG;
 
 [CPI] = [Estimated Time] / [Time];
 

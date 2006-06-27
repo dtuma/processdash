@@ -62,6 +62,9 @@ import net.sourceforge.processdash.util.XMLUtils;
  */
 public class HTMLPreprocessor {
 
+    public static final String RESOURCES_PARAM = "RESOURCES";
+    public static final String REPLACEMENTS_PARAM = "EAGERLY_REPLACE";
+
     WebServer web;
     DataRepository data;
     DashHierarchy props;
@@ -91,6 +94,11 @@ public class HTMLPreprocessor {
         this.prefix = (prefix == null ? "" : prefix);
         this.env = env;
         this.params = params;
+
+        if (env.get(RESOURCES_PARAM) instanceof Resources) {
+            resources = new LinkedList();
+            resources.add(env.get(RESOURCES_PARAM));
+        }
     }
 
 
@@ -98,6 +106,7 @@ public class HTMLPreprocessor {
     public String preprocess(String content) throws IOException {
         StringBuffer text = new StringBuffer(content);
         cachedTestExpressions.clear();
+        maybePerformEagerReplacements(text);
 
         numberBlocks(text, "foreach", "endfor", null, null);
         numberBlocks(text, "fortree", "endtree", null, null);
@@ -131,6 +140,18 @@ public class HTMLPreprocessor {
         return text.toString();
     }
 
+
+    private void maybePerformEagerReplacements(StringBuffer text) {
+        if (env.get(REPLACEMENTS_PARAM) instanceof Map) {
+            Map replacements = (Map) env.get(REPLACEMENTS_PARAM);
+            for (Iterator i = replacements.entrySet().iterator(); i.hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                String find = (String) e.getKey();
+                String replace = (String) e.getValue();
+                StringUtils.findAndReplace(text, find, replace);
+            }
+        }
+    }
 
     /** process an include directive within the buffer */
     private void processIncludeDirective(DirectiveMatch include)
@@ -232,7 +253,7 @@ public class HTMLPreprocessor {
             else if ("dir".equalsIgnoreCase(encoding))
                 value = dirEncode(value);
             else if ("javaStr".equalsIgnoreCase(encoding))
-                value = javaEncode(value);
+                value = StringUtils.javaEncode(value);
             else
                 // default: HTML entity encoding
                 value = HTMLUtils.escapeEntities(value);
@@ -838,24 +859,6 @@ public class HTMLPreprocessor {
             if (endPos != -1) t = t.substring(1, endPos);
         }
         return dirUnencode(t);
-    }
-
-    private static String javaEncode(String s) {
-        StringBuffer result = new StringBuffer();
-        for (int i = 0;   i < s.length();   i++)
-            switch (s.charAt(i)) {
-                case '\b': result.append("\\b"); break;
-                case '\t': result.append("\\t"); break;
-                case '\f': result.append("\\f"); break;
-                case '\r': result.append("\\r"); break;
-                case '\n': result.append("\\n"); break;
-                case '\'': result.append("\\'"); break;
-                case '\"': result.append("\\\""); break;
-                case '\\': result.append("\\\\"); break;
-                default:   result.append(s.charAt(i)); break;
-            }
-
-        return result.toString();
     }
 
     private static String dirEncode(String s) {

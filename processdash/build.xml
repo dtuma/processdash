@@ -90,6 +90,7 @@ Authors:
   <property name="data"       value="${processdash}/data"/>
   <property name="compiler"   value="${data}/compiler"/>
   <property name="i18n"       value="${processdash}/i18n"/>
+  <property name="cms"        value="${processdash}/net/cms"/>
   <property name="templates"  value="Templates"/>
   <property name="resources"  value="${templates}/resources"/>
   <property name="help"       value="${templates}/help"/>
@@ -155,7 +156,7 @@ Authors:
 
 
 
-  <target name="compile" depends="init,parser,translator"
+  <target name="compile" depends="init,parser,translator,lexers"
         description="Compile the main dashboard classes" >
 
     <!-- Compile the java code from ${src} into ${build} -->
@@ -258,6 +259,12 @@ Authors:
     <uptodate property="parser.upToDate"
               srcfile="${compiler}/grammar.txt"
               targetfile="${compiler}/parser/Parser.java"/>
+  </target>
+
+
+  <target name="lexers" depends="init,ant-tasks" 
+          description="Regenerate source code for various lexers if necessary.">
+    <jlexBatch dir="${src}" includes="**/*.lex"/>
   </target>
 
 
@@ -514,6 +521,8 @@ Authors:
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
     <delete quiet="true" file="${i18n}/DefaultEngine*"/>
+    <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.dat"/>
+    <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.java"/>
     <delete quiet="true" dir="${helpsearch}"/>
 
     <delete quiet="true" file="${dist}/pspdash.jar"/>

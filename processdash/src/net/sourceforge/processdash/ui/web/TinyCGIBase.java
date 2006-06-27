@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,15 +26,24 @@
 
 package net.sourceforge.processdash.ui.web;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.StringTokenizer;
 
-import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
@@ -303,6 +312,10 @@ public class TinyCGIBase implements TinyCGI {
         return "<LINK REL='stylesheet' TYPE='text/css' HREF='" + style + "'>";
     }
 
+    /** Get a context for retrieving and setting data */
+    protected DataContext getDataContext() {
+        return getDataRepository().getSubcontext(getPrefix());
+    }
 
     /** Get the data repository servicing this request. */
     protected DataRepository getDataRepository() {

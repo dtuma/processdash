@@ -31,6 +31,8 @@ LGPL, as described above.
 package net.sourceforge.processdash.util;
 
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -493,4 +495,30 @@ public class StringUtils
         // support, but anticipate moving to another approach in the future.
         return s.intern();
     }
+
+    public static String getStackTrace(Throwable t) {
+        if (t == null)
+            return "";
+        StringWriter sw = new StringWriter();
+        t.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
+
+public static String javaEncode(String s) {
+    StringBuffer result = new StringBuffer();
+    for (int i = 0;   i < s.length();   i++)
+        switch (s.charAt(i)) {
+            case '\b': result.append("\\b"); break;
+            case '\t': result.append("\\t"); break;
+            case '\f': result.append("\\f"); break;
+            case '\r': result.append("\\r"); break;
+            case '\n': result.append("\\n"); break;
+            case '\'': result.append("\\'"); break;
+            case '\"': result.append("\\\""); break;
+            case '\\': result.append("\\\\"); break;
+            default:   result.append(s.charAt(i)); break;
+        }
+
+    return result.toString();
+}
 }

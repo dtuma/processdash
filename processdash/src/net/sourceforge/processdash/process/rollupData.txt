@@ -3,6 +3,7 @@
 // Flag this data set as a rollup.
 [Rollup Tag] = tag;
 [ROLLUP_ID Rollup Tag] = tag;
+undefine([Simple Project Tag]);
 
 /*
  * Cancel the "rollup eligible" tag.  (Note - is this really what we

@@ -80,7 +80,9 @@ public class SvnLOCDiff extends LOCDiffReportGenerator {
                 String changeType = m.group(1);
                 boolean hasHistory = "+".equals(m.group(2));
                 String filename = m.group(3);
-                fileList.add(new SvnFile(filename, hasHistory, changeType));
+                File f = new File(baseDirectory, filename);
+                if (!f.isDirectory())
+                    fileList.add(new SvnFile(filename, hasHistory, changeType));
             }
         }
     }
