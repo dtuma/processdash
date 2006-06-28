@@ -144,6 +144,8 @@ public class TaskScheduleDialog
     protected JCheckBox flatViewCheckbox;
     protected JCheckBox mergedViewCheckbox;
 
+    protected boolean disableTaskPruning;
+
     protected JFrame chartDialog = null;
 
     protected Resources resources = Resources.getDashBundle("EV");
@@ -228,6 +230,9 @@ public class TaskScheduleDialog
 
         // possibly hide the direct columns if they aren't needed
         showHideDirectColumns();
+
+        // record user preference for pruning enablement
+        disableTaskPruning = Settings.getBool("ev.disablePruning", false);
 
         boolean isRollup = isRollup();
         if (isRollup)
@@ -1605,7 +1610,8 @@ public class TaskScheduleDialog
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
 
-        boolean enableDelete = (firstRowNum > 0 && firstRowNum == lastRowNum);
+        boolean enableDelete = (disableTaskPruning == false
+                && firstRowNum > 0 && firstRowNum == lastRowNum);
         boolean enableUp     = (firstRowNum > 1);
         boolean enableDown   = (lastRowNum > 0 && lastRowNum < treeTable.getRowCount()-1);
 
@@ -1641,9 +1647,9 @@ public class TaskScheduleDialog
 
         } else if (!isRollup() && selectionPath != null &&
                    selectionPath.getPathCount() > 2) {
-            enableDelete = true;
             isPruned =
                 ((EVTask) selectionPath.getLastPathComponent()).isUserPruned();
+            enableDelete = isPruned || (disableTaskPruning == false);
         }
 
         addTaskButton    .setEnabled(true);
