@@ -3,8 +3,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -13,6 +15,7 @@ import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationExce
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 /** CGI script which synchonizes a dashboard hierarchy with a WBS description.
  * 
@@ -57,6 +60,13 @@ public class sync extends TinyCGIBase {
 
 
 
+    protected void doPost() throws IOException {
+        parseFormData();
+        super.doPost();
+    }
+
+
+
     public void writeContents() throws IOException {
         try {
             // locate the root of the included project.
@@ -73,6 +83,8 @@ public class sync extends TinyCGIBase {
             // start the synchronization process.
             if (parameters.containsKey("run"))
                 synchronize(synch);
+            else if (parameters.containsKey(SAVE_PERMS))
+                savePermissionData();
             else
                 maybeSynchronize(synch);
 
@@ -93,7 +105,7 @@ public class sync extends TinyCGIBase {
     /** Locates the enclosing team project, and sets the values of the
      * {@link #projectRoot} and {@link #processID} fields accordingly.
      * If there is no enclosing team project, both will be set to null.
-         */
+     */
     private void findProject() {
         DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(getPrefix());
@@ -196,6 +208,11 @@ public class sync extends TinyCGIBase {
         synch.sync();
         if (synch.getChanges().isEmpty())
             printChanges(synch.getChanges());
+        else if (isTeam == false
+                && (synch.getTaskDeletions().isEmpty() == false ||
+                    synch.getTaskCompletions().isEmpty() == false))
+            printPermissionsPage(synch.getTaskDeletions(),
+                    synch.getTaskCompletions());
         else
             printWaitPage();
     }
@@ -207,10 +224,120 @@ public class sync extends TinyCGIBase {
     private void synchronize(HierarchySynchronizer synch)
         throws HierarchyAlterationException
     {
+        if (!isTeam)
+            loadPermissionData(synch);
+
         synch.setWhatIfMode(false);
         synch.sync();
         new AsyncExporter(projectRoot).start();
         printChanges(synch.getChanges());
+    }
+
+
+
+    /** Print a page that will ask the user for permission to make
+     * destructive changes to their hierarchy.
+     * @param taskDeletions a list of tasks we would like to delete
+     * @param taskCompletions a list of tasks we would like to mark complete
+     */
+    private void printPermissionsPage(List taskDeletions, List taskCompletions) {
+        out.print("<html><head>\n");
+        out.print("<title>Synchronizing Work Breakdown Structure</title>\n");
+        out.print("<style> .important { color: #800; font-weight: bold; }</style>\n");
+        out.print("</head><body>\n");
+        out.print("<h1>Synchronizing Work Breakdown Structure</h1>\n");
+        out.print("<form action='sync.class' method='post'>\n");
+        out.print("<input type='hidden' name='"+SAVE_PERMS+"' value='1'/>\n");
+        out.print("<p>Several of the tasks in your hierarchy have been "
+                + "deleted from the project's work breakdown structure, or "
+                + "have been reassigned to other individuals.  These tasks "
+                + "can be removed from your project automatically.</p>\n");
+
+        if (!taskDeletions.isEmpty()) {
+            out.print("<h2>Tasks to Delete</h2>\n");
+            out.print("<p>You have not collected any actual metrics against "
+                + "the following tasks, so the synchronization operation can "
+                + "delete them from your hierarchy entirely.  If you wish to "
+                + "keep any of these tasks, <b>uncheck the boxes</b> next to "
+                + "them.  <span class='important'>Any tasks with checkmarks "
+                + "next to them will be deleted when you press the OK "
+                + "button.</span></p>");
+            for (Iterator i = taskDeletions.iterator(); i.hasNext();) {
+                String path = (String) i.next();
+                printPermissionItem(DELETE_PREFIX, path);
+            }
+        }
+
+        if (!taskCompletions.isEmpty()) {
+            out.print("<h2>Tasks to Mark Complete</h2>");
+            out.print("<p>Actual time and/or defects have been collected "
+                + "against the following tasks, so they cannot be deleted "
+                + "outright.  However, the synchronization operation can "
+                + "mark the tasks complete so they no longer affect your "
+                + "earned value.  If you wish to keep any of these tasks "
+                + "open, <b>uncheck the boxes</b> next to them.  <span "
+                + "class='important'>Any tasks with checkmarks next to them "
+                + "will be marked complete when you press the OK "
+                + "button.</span></p>");
+            for (Iterator i = taskCompletions.iterator(); i.hasNext();) {
+                String path = (String) i.next();
+                printPermissionItem(COMPLETE_PREFIX, path);
+            }
+        }
+
+        out.print("<p><input type='submit' name='OK' value='OK'/></p>");
+        out.print("</form></body></html>\n");
+    }
+
+    private void printPermissionItem(String attr, String path) {
+        path = XMLUtils.escapeAttribute(path);
+        out.print("<input type='checkbox' checked='true' name='");
+        out.print(attr);
+        out.print(path);
+        out.print("'/>&nbsp;");
+        out.print(path);
+        out.print("<br/>\n");
+    }
+
+
+
+    /** Parse data from the permissions form, and save it to the repository.
+     */
+    private void savePermissionData() {;
+        ListData delete = new ListData();
+        ListData complete = new ListData();
+        for (Iterator i = parameters.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            if (e.getValue() == null  || "".equals(e.getValue()))
+                continue;
+            String name = (String) e.getKey();
+            if (name.startsWith(DELETE_PREFIX))
+                delete.add(name.substring(DELETE_PREFIX.length()));
+            else if (name.startsWith(COMPLETE_PREFIX))
+                complete.add(name.substring(COMPLETE_PREFIX.length()));
+        }
+        getDataRepository().putValue(getDataName(DELETE_DATANAME), delete);
+        getDataRepository().putValue(getDataName(COMPLETE_DATANAME), complete);
+        printWaitPage();
+    }
+
+
+    /** Load permission data from the repository, and configure the given
+     * HierarchySynchronizer.
+     */
+    private void loadPermissionData(HierarchySynchronizer synch) {
+        Object list = getDataRepository().getSimpleValue(
+                getDataName(DELETE_DATANAME));
+        if (list instanceof ListData)
+            synch.setDeletionPermissions(((ListData) list).asList());
+        list = getDataRepository().getSimpleValue(
+                getDataName(COMPLETE_DATANAME));
+        if (list instanceof ListData)
+            synch.setCompletionPermissions(((ListData) list).asList());
+    }
+
+    private String getDataName(String name) {
+        return DataRepository.createDataName(getPrefix(), name);
     }
 
 
@@ -259,13 +386,13 @@ public class sync extends TinyCGIBase {
 
         private String projectRoot;
 
-                public AsyncExporter(String projectRoot) {
-                        this.projectRoot = projectRoot;
-                }
+        public AsyncExporter(String projectRoot) {
+            this.projectRoot = projectRoot;
+        }
 
-                public void run() {
-                DashController.exportData(projectRoot);
-                }
+        public void run() {
+            DashController.exportData(projectRoot);
+        }
 
     }
 
@@ -313,4 +440,10 @@ public class sync extends TinyCGIBase {
     private static final String WBS_FILE_INACCESSIBLE = "wbsFileInaccessible";
     private static final String INITIALS_MISSING = "initialsMissing";
     private static final String HIER_EDITOR_OPEN = "hierEditorOpen";
+
+    private static final String SAVE_PERMS = "savePerms";
+    private static final String COMPLETE_PREFIX = "COMPLETE:";
+    private static final String DELETE_PREFIX = "DELETE:";
+    private static final String COMPLETE_DATANAME = "complete_ //list";
+    private static final String DELETE_DATANAME = "delete_ //list";
 }

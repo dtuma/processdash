@@ -17,14 +17,15 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.hier.DashHierarchy;
-import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.util.StringUtils;
@@ -42,7 +43,8 @@ public class HierarchySynchronizer {
     public static final String SYNC_MASTER = "(master)";
 
     private DashHierarchy hierarchy;
-    private DataRepository data;
+    private DataRepository dataRepository;
+    private DataContext data;
     private String projectPath;
     private String processID;
     private String initials, initialsPattern;
@@ -51,8 +53,22 @@ public class HierarchySynchronizer {
 
     private String readOnlyNodeID;
     private String taskNodeID;
+
+    /** list of nodes which this object has user permission to delete.
+     * null impllies permission to delete anything; the empty list implies
+     * permission to delete nothing. */
+    private List deletionPermissions = Collections.EMPTY_LIST;
+
+    /** list of nodes which this object has user permission to mark complete.
+     * null impllies permission to complete anything; the empty list implies
+     * permission to complete nothing. */
+    private List completionPermissions = Collections.EMPTY_LIST;
+
+    /** Does the caller just want to find out if anything needs changing? */
     private boolean whatIfMode = true;
-    private boolean deleteMissingNodes = false;
+
+    private List deletionsPerformed;
+    private List completionsPerformed;
 
     private Map sizeConstrPhases;
     private List allConstrPhases;
@@ -69,24 +85,25 @@ public class HierarchySynchronizer {
         this.projectPath = projectPath;
         this.processID = processID;
         this.hierarchy = hierarchy;
-        this.data = data;
+        this.data = this.dataRepository = data;
 
         if (SYNC_TEAM.equals(initials)) { // team
             this.initials = this.initialsPattern = SYNC_TEAM;
             this.readOnlyNodeID = processID + "/TeamNode";
             this.taskNodeID = null;
-            this.deleteMissingNodes = true;
+            this.deletionPermissions = null;
         } else if (SYNC_MASTER.equals(initials)) { // master
             this.initials = this.initialsPattern = SYNC_MASTER;
             this.readOnlyNodeID = processID + "/MasterNode";
             this.taskNodeID = null;
-            this.deleteMissingNodes = true;
+            this.deletionPermissions = null;
         } else { // individual
             this.initials = initials;
             this.initialsPattern = "," + initials.toLowerCase() + "=";
             this.readOnlyNodeID = processID + "/IndivReadOnlyNode";
             this.taskNodeID = processID + "/IndivEmptyNode";
-            this.deleteMissingNodes = false;
+            this.deletionPermissions = Collections.EMPTY_LIST;
+            this.completionPermissions = Collections.EMPTY_LIST;
         }
 
         loadProcessData();
@@ -99,12 +116,28 @@ public class HierarchySynchronizer {
         this.whatIfMode = whatIf;
     }
 
+    public void setDeletionPermissions(List p) {
+        this.deletionPermissions = p;
+    }
+
+    public void setCompletionPermissions(List p) {
+        this.completionPermissions = p;
+    }
+
     public boolean isTeam() {
         return initials == SYNC_TEAM || initials == SYNC_MASTER;
     }
 
     public List getChanges() {
         return changes;
+    }
+
+    public List getTaskDeletions() {
+        return deletionsPerformed;
+    }
+
+    public List getTaskCompletions() {
+        return completionsPerformed;
     }
 
 
@@ -175,7 +208,7 @@ public class HierarchySynchronizer {
         // if this node has no name, prune it.
         String nodeName = e.getAttribute(NAME_ATTR);
         if (nodeName == null || nodeName.trim().length() == 0)
-                return PRUNE;
+            return PRUNE;
 
         // assume this node is prunable until we determine otherwise.
         boolean prunable = true;
@@ -226,9 +259,32 @@ public class HierarchySynchronizer {
         changes = new ArrayList();
         syncActions = buildSyncActions();
         initPhaseIDs();
-        HierarchyAlterer alterer = DashController.getHierarchyAlterer();
 
-        sync(alterer, projectPath, projectXML);
+        SyncWorker syncWorker;
+
+        if (whatIfMode)
+            syncWorker = new SyncWorkerWhatIf(dataRepository);
+        else
+            syncWorker = new SyncWorkerLive(dataRepository,
+                    deletionPermissions, completionPermissions);
+        this.data = syncWorker;
+
+        sync(syncWorker, projectPath, projectXML);
+
+        readChangesFromWorker(syncWorker);
+    }
+
+    private void readChangesFromWorker(SyncWorker worker) {
+        deletionsPerformed = worker.nodesDeleted;
+        for (Iterator i = deletionsPerformed.iterator(); i.hasNext();)
+            changes.add("Deleted '" + i.next() + "'");
+
+        completionsPerformed = worker.nodesCompleted;
+        for (Iterator i = completionsPerformed.iterator(); i.hasNext();)
+            changes.add("Marked '" + i.next() + "' complete");
+
+        if (changes.isEmpty() && !worker.dataChanged.isEmpty())
+            changes.add("Updated miscellaneous project information");
     }
 
     private Map buildSyncActions() {
@@ -248,13 +304,13 @@ public class HierarchySynchronizer {
 
     private Map syncActions;
 
-    private String sync(HierarchyAlterer alterer, String pathPrefix, Element node)
+    private String sync(SyncWorker worker, String pathPrefix, Element node)
         throws HierarchyAlterationException
     {
         String type = node.getTagName();
         SyncNode s = (SyncNode) syncActions.get(type);
         if (s != null) {
-            s.syncNode(alterer, pathPrefix, node);
+            s.syncNode(worker, pathPrefix, node);
             return s.getName(node);
         } else
             return null;
@@ -282,22 +338,20 @@ public class HierarchySynchronizer {
 
     private class SyncNode {
 
-        public boolean syncNode(HierarchyAlterer alterer, String pathPrefix, Element node)
+        public boolean syncNode(SyncWorker worker, String pathPrefix, Element node)
             throws HierarchyAlterationException
         {
-            syncChildren(alterer, pathPrefix, node);
+            syncChildren(worker, pathPrefix, node);
             return true;
         }
 
-        public void syncChildren(HierarchyAlterer alterer, String pathPrefix,
+        public void syncChildren(SyncWorker worker, String pathPrefix,
                                  Element node)
             throws HierarchyAlterationException
         {
             pathPrefix = getPath(pathPrefix, node);
             List hierarchyChildren = getHierarchyChildNames(pathPrefix);
-            List childrenToDelete = Collections.EMPTY_LIST;
-            if (deleteMissingNodes)
-                childrenToDelete = new ArrayList(hierarchyChildren);
+            List childrenToDelete = new ArrayList(hierarchyChildren);
 
             NodeList childNodes = node.getChildNodes();
             int len = childNodes.getLength();
@@ -305,10 +359,19 @@ public class HierarchySynchronizer {
                 Node child = childNodes.item(i);
                 if (child instanceof Element)
                     childrenToDelete.remove
-                        (sync(alterer, pathPrefix, (Element) child));
+                        (sync(worker, pathPrefix, (Element) child));
             }
-            if (deleteMissingNodes && !childrenToDelete.isEmpty())
-                deleteHierarchyChildren(alterer, pathPrefix, childrenToDelete);
+            removeKnownChildren(node, childrenToDelete);
+            if (!childrenToDelete.isEmpty())
+                deleteHierarchyChildren(worker, pathPrefix, childrenToDelete);
+        }
+
+        /** This method presents a list of children which tentatively face
+         * deletion, because they have no corresponding XML Element in the
+         * projDump.xml file.  Subclasses should override this method and
+         * remove children they recognize.
+         */
+        protected void removeKnownChildren(Element node, List childrenToDelete) {
         }
 
         public String getName(Element node) {
@@ -359,7 +422,7 @@ public class HierarchySynchronizer {
         }
 
 
-        private void deleteHierarchyChildren(HierarchyAlterer alterer,
+        private void deleteHierarchyChildren(SyncWorker worker,
                                              String pathPrefix,
                                              List childrenToDelete)
             throws HierarchyAlterationException
@@ -367,16 +430,64 @@ public class HierarchySynchronizer {
             Iterator i = childrenToDelete.iterator();
             while (i.hasNext()) {
                 String nodeToDelete = pathPrefix + "/" + i.next();
-                if (!whatIfMode)
-                    alterer.deleteNode(nodeToDelete);
-                changes.add("Deleted '"+nodeToDelete+"'");
+                if (isTeam())
+                    worker.deleteNode(nodeToDelete);
+                else {
+                    PropertyKey key = hierarchy.findExistingKey(nodeToDelete);
+                    completeOrDeleteNode(worker, key);
+                }
             }
+        }
+
+        private void completeOrDeleteNode(SyncWorker worker, PropertyKey key)
+                throws HierarchyAlterationException {
+            int numChildren = hierarchy.getNumChildren(key);
+            boolean isLeaf = (numChildren == 0);
+            String path = key.path();
+
+            if (!isLeaf && getData(path, WBS_ID_DATA_NAME) == null)
+                // this node has no WBS_ID.  It must have been created
+                // manually by the user.  Don't bother it.
+                return;
+
+            if (isIndividualNodeDeletable(path)) {
+                worker.deleteNode(path);
+
+            } else if (isLeaf) {
+                worker.markLeafComplete(path);
+
+            } else {
+                setTaskIDs(path, "");
+                if (isPSPTask(key))
+                    worker.markPSPTaskComplete(path);
+                else {
+                    for (int i = numChildren;   i-- > 0; )
+                        completeOrDeleteNode(worker,
+                                hierarchy.getChildKey(key, i));
+                }
+            }
+        }
+
+        private boolean isIndividualNodeDeletable(String path) {
+            return (isZero(getData(path, "Time"))
+                    && isZero(getData(path, "Defects Injected"))
+                    && isZero(getData(path, "Defects Removed")));
+        }
+        private boolean isZero(SimpleData d) {
+            if (d instanceof NumberData)
+                return ((NumberData) d).getDouble() == 0;
+            else
+                return (d == null);
+        }
+        private boolean isPSPTask(PropertyKey key) {
+            String templateID = hierarchy.getID(key);
+            return (templateID != null && templateID.startsWith("PSP"));
         }
     }
 
     private class SyncProjectNode extends SyncNode {
 
-        public boolean syncNode(HierarchyAlterer alterer, String pathPrefix,
+        public boolean syncNode(SyncWorker worker, String pathPrefix,
                 Element node) throws HierarchyAlterationException {
 
             try {
@@ -384,7 +495,7 @@ public class HierarchySynchronizer {
                 setTaskIDs(pathPrefix, cleanupProjectIDs(projIDs));
             } catch (Exception e) {}
 
-            return super.syncNode(alterer, pathPrefix, node);
+            return super.syncNode(worker, pathPrefix, node);
         }
 
         public String getName(Element node) { return null; }
@@ -399,29 +510,24 @@ public class HierarchySynchronizer {
             this.suffix = suffix;
         }
 
-        public boolean syncNode(HierarchyAlterer alterer, String pathPrefix, Element node)
+        public boolean syncNode(SyncWorker worker, String pathPrefix, Element node)
             throws HierarchyAlterationException {
             String path = getPath(pathPrefix, node);
             String currentID = getIDForPath(path);
             if (currentID == null) {
-                if (!whatIfMode) {
-                    alterer.addTemplate(path, templateID);
-                    syncData(path, node);
-                }
+                worker.addTemplate(path, templateID);
+                syncData(path, node);
                 changes.add("Created '"+path+"'");
             } else if (templateID.equals(currentID)) {
                 // the node exists with the given name.  Just sync its data.
-                if (!whatIfMode)
-                    syncData(path, node);
-                else
-                    checkForNeedToSyncData(path, node);
+                syncData(path, node);
             } else {
                 // there is a problem.
                 changes.add("Could not create '"+path+"' - existing node is in the way");
                 return false;
             }
 
-            syncChildren(alterer, pathPrefix, node);
+            syncChildren(worker, pathPrefix, node);
             return true;
         }
         public void syncData(String path, Element node) {
@@ -436,9 +542,6 @@ public class HierarchySynchronizer {
                 maybeSaveDependencies(path, node);
             }
         }
-        public void checkForNeedToSyncData(String path, Element node) {
-            maybeSaveDependencies(path, node);
-        }
 
         public String getName(Element node) {
             String result = super.getName(node);
@@ -451,9 +554,7 @@ public class HierarchySynchronizer {
             double time = parseTime(node);
             if (time == 0) return;
 
-            SimpleData d = getData(path, EST_TIME_DATA_NAME);
-            if (d == null || !d.test())
-                putData(path, EST_TIME_DATA_NAME, new DoubleData(time * 60));
+            putData(path, EST_TIME_DATA_NAME, new DoubleData(time * 60));
         }
 
         protected double parseTime(Element node) {
@@ -530,12 +631,23 @@ public class HierarchySynchronizer {
             NodeList nl = node.getChildNodes();
             for (int i = 0;   i < nl.getLength();   i++) {
                 Node child = nl.item(i);
-                if (child instanceof Element
-                        && ((Element) child).getTagName().equals(
-                                DEPENDENCY_TYPE)) {
-                    if (result == null)
-                        result = new LinkedList();
-                    result.add(new EVTaskDependency((Element) nl.item(i)));
+                if (child instanceof Element) {
+                    Element childElem = (Element) child;
+                    if (childElem.getTagName().equals(DEPENDENCY_TYPE)) {
+                        try {
+                            // try to set the source attribute if it isn't
+                            // already present.  This supports project data
+                            // dumps that were saved with an earlier version
+                            // of the dashboard that didn't write the source
+                            // attribute. If this fails because the DOM
+                            // implementation doesn't support mutable
+                            // attributes, just ignore the error and press on.
+                            childElem.setAttribute("source", "wbs");
+                        } catch (Throwable t) {}
+                        if (result == null)
+                            result = new LinkedList();
+                        result.add(new EVTaskDependency(childElem));
+                    }
                 }
             }
 
@@ -552,7 +664,7 @@ public class HierarchySynchronizer {
 
     protected void putData(String dataPrefix, String name, SimpleData value) {
         String dataName = DataRepository.createDataName(dataPrefix, name);
-        data.userPutValue(dataName, value);
+        data.putValue(dataName, value);
     }
 
     private HashMap phaseIDs;
@@ -577,10 +689,10 @@ public class HierarchySynchronizer {
             super(taskNodeID, " Task");
             initPhaseIDs();
         }
-        public boolean syncNode(HierarchyAlterer alterer, String pathPrefix, Element node)
+        public boolean syncNode(SyncWorker worker, String pathPrefix, Element node)
             throws HierarchyAlterationException
         {
-            if (super.syncNode(alterer, pathPrefix, node) == false)
+            if (super.syncNode(worker, pathPrefix, node) == false)
                 return false;
 
             String path = getPath(pathPrefix, node);
@@ -595,15 +707,12 @@ public class HierarchySynchronizer {
             path = path + "/" + phaseName;
             String currentID = getIDForPath(path);
             if (currentID == null) {
-                if (!whatIfMode) {
-                    alterer.addTemplate(path, templateID);
-                    maybeSaveTimeValue(path, node);
-                }
+                worker.addTemplate(path, templateID);
+                maybeSaveTimeValue(path, node);
                 changes.add("Created '"+path+"'");
             } else if (templateID.equals(currentID)) {
                 // the node exists with the given name.
-                if (!whatIfMode)
-                    maybeSaveTimeValue(path, node);
+                maybeSaveTimeValue(path, node);
             } else {
                 // there is a problem.
                 changes.add("Could not create '"+path+"' - existing node is in the way");
@@ -632,6 +741,13 @@ public class HierarchySynchronizer {
             putData(path, SIZE_UNITS_DATA_NAME,
                     StringData.create("Inspected " + inspUnits));
         }
+        protected void removeKnownChildren(Element node, List childrenToDelete) {
+            String phaseName = node.getAttribute(PHASE_NAME_ATTR);
+            childrenToDelete.remove(phaseName);
+            super.removeKnownChildren(node, childrenToDelete);
+        }
+
+
     }
 
 
@@ -674,6 +790,14 @@ public class HierarchySynchronizer {
                           node.getAttribute(sizeAttrNames[i]),
                           (locSizeDataNeedsRatio[i] ? ratio : 1.0));
         }
+
+        protected void removeKnownChildren(Element node, List childrenToDelete) {
+            for (int i = 0; i < PSP_PHASES.length; i++)
+                childrenToDelete.remove(PSP_PHASES[i]);
+            super.removeKnownChildren(node, childrenToDelete);
+        }
+
+
     }
 
     private static final String[] sizeAttrNames = new String[] {
@@ -687,7 +811,9 @@ public class HierarchySynchronizer {
         "New Objects/0/LOC",
         "Reused Objects/0/LOC",
         "Estimated New & Changed LOC" };
-
+    public static final String[] PSP_PHASES = { "Planning", "Design",
+        "Design Review", "Code", "Code Review", "Compile", "Test",
+        "Postmortem" };
 
 
 
@@ -747,6 +873,7 @@ public class HierarchySynchronizer {
 
 
     private double timeRatioTotal, timeRatioPersonal;
+
     private void sumUpConstructionPhases(Element node, List phaseList) {
         String phaseName = node.getAttribute(PHASE_NAME_ATTR);
         if (phaseName == null) phaseName = node.getTagName();
