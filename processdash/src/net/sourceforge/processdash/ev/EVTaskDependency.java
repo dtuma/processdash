@@ -27,10 +27,12 @@ package net.sourceforge.processdash.ev;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +58,8 @@ public class EVTaskDependency {
 
     private String taskListName;
 
+    private String source;
+
     private boolean unresolvable;
 
     private String assignedTo;
@@ -73,6 +77,7 @@ public class EVTaskDependency {
         this.taskID = getAttr(e, TASK_ID_ATTR);
         this.displayName = getAttr(e, DISPLAY_NAME_ATTR);
         this.taskListName = getAttr(e, TASK_LIST_ATTR);
+        this.source = getAttr(e, SOURCE_ATTR);
         this.assignedTo = getAttr(e, ASSIGNED_TO_ATTR);
         this.percentComplete = XMLUtils.getXMLNum(e, PERCENT_COMPLETE_ATTR);
         this.plannedDate = XMLUtils.getXMLDate(e, PLAN_DATE_ATTR);
@@ -92,6 +97,22 @@ public class EVTaskDependency {
 
     public void setTaskListName(String taskListName) {
         this.taskListName = taskListName;
+    }
+
+    /** Get the origin of this dependency.
+     * 
+     * Dependencies that were created manually by a user with the Task and
+     * Schedule dialog will have null for their source.  Dependencies that
+     * were created programatically (such as via a synchronization operation)
+     * will have a source indicating which GUI was used to originally define
+     * the dependency.
+     */
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public String getAssignedTo() {
@@ -143,6 +164,7 @@ public class EVTaskDependency {
         addAttr(out, TASK_ID_ATTR, getTaskID());
         addAttr(out, DISPLAY_NAME_ATTR, getDisplayName());
         addAttr(out, TASK_LIST_ATTR, getTaskListName());
+        addAttr(out, SOURCE_ATTR, getSource());
         if (includeResolvedInformation) {
             addAttr(out, ASSIGNED_TO_ATTR, getAssignedTo());
             if (percentComplete > 0)
@@ -250,11 +272,47 @@ public class EVTaskDependency {
             list = dependencies;
             madeChange = true;
         } else {
+            // keep track of the sources that are adding these dependencies.
+            Set incomingSources = new HashSet();
             for (Iterator i = dependencies.iterator(); i.hasNext();) {
                 EVTaskDependency d = (EVTaskDependency) i.next();
-                if (!list.contains(d)) {
+                incomingSources.add(d.getSource());
+
+                int currPos = list.indexOf(d);
+                if (currPos == -1) {
+                    // the item isn't already in the list.  Add it.
                     list.add(d);
                     madeChange = true;
+
+                } else if (d.getSource() != null) {
+                    // the item is already in the list; check to see if
+                    // the new object is contributing source information that
+                    // wasn't already present
+                    EVTaskDependency curDep =
+                        (EVTaskDependency) list.get(currPos);
+                    if (curDep.getSource() == null) {
+                        // the new item has source data, but the old one
+                        // didn't; replace the old dependency with the new one.
+                        list.set(currPos, d);
+                        madeChange = true;
+                    }
+                }
+            }
+
+            incomingSources.remove(null);
+            if (!incomingSources.isEmpty()) {
+                // if the added dependencies came from programmatic sources,
+                // then we interpret them as a complete list from that source.
+                // scan the existing list to see if it contains items from
+                // the same sources that are no longer applicable.  If so,
+                // remove them.
+                for (Iterator i = list.iterator(); i.hasNext();) {
+                    EVTaskDependency d = (EVTaskDependency) i.next();
+                    if (incomingSources.contains(d.getSource())
+                            && !dependencies.contains(d)) {
+                        i.remove();
+                        madeChange = true;
+                    }
                 }
             }
         }
@@ -339,6 +397,8 @@ public class EVTaskDependency {
     private static final String DISPLAY_NAME_ATTR = "name";
 
     private static final String TASK_LIST_ATTR = "taskList";
+
+    private static final String SOURCE_ATTR = "source";
 
     private static final String ASSIGNED_TO_ATTR = "who";
 
