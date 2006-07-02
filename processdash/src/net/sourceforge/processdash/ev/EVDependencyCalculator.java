@@ -28,7 +28,6 @@ package net.sourceforge.processdash.ev;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.net.cache.ObjectCache;
@@ -157,6 +157,24 @@ public class EVDependencyCalculator {
                 planDate, displayName);
     }
 
+    public void addReverseDependency(EVTask t) {
+        // first, remove the reverse dependency entry if it is present.
+        if (hasValue(t.getDependencies())) {
+            for (Iterator i = t.getDependencies().iterator(); i.hasNext();) {
+                EVTaskDependency d = (EVTaskDependency) i.next();
+                if (d.isReverse())
+                    i.remove();
+            }
+        }
+
+        // now, find any reverse dependencies for this task
+        Set waitingPeople = EVTaskDependencyResolver.getInstance()
+                .getIndividualsWaitingOnTask(null, t.getTaskIDs(),
+                        ProcessDashboard.getOwnerName(data));
+        if (hasValue(waitingPeople))
+            t.getDependencies(true).add(new EVTaskDependency(waitingPeople));
+    }
+
 
     private abstract class EVTaskVistor {
 
@@ -207,6 +225,7 @@ public class EVDependencyCalculator {
 
         protected void enter(EVTask t) {
             updateDependencies(taskLists, t.getDependencies());
+            addReverseDependency(t);
         }
 
     }

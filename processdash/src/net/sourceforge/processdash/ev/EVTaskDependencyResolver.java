@@ -68,12 +68,15 @@ public class EVTaskDependencyResolver {
 
     private SortedSet listCache;
 
+    private Map reverseDependencyCache;
+
     private long lastRefresh;
 
     private EVTaskDependencyResolver(DashboardContext context) {
         this.context = context;
         this.nameCache = new Hashtable();
         this.taskCache = new Hashtable();
+        this.reverseDependencyCache = new Hashtable();
         this.lastRefresh = -1;
     }
 
@@ -132,6 +135,36 @@ public class EVTaskDependencyResolver {
         }
     }
 
+    public Set getIndividualsWaitingOnTask(Set result, Collection taskIDs,
+            String ignoreIndividual) {
+        if (taskIDs == null || taskIDs.isEmpty())
+            return result;
+
+        if (lastRefresh == -1)
+            refreshCache();
+
+        for (Iterator i = taskIDs.iterator(); i.hasNext();) {
+            String id = (String) i.next();
+            Set who = (Set) reverseDependencyCache.get(id);
+            if (containsMoreThanJust(who, ignoreIndividual)) {
+                if (result == null) result = new TreeSet();
+                result.addAll(who);
+                result.remove(ignoreIndividual);
+            }
+        }
+
+        return result;
+    }
+
+    private boolean containsMoreThanJust(Set set, Object object) {
+        if (set == null || set.isEmpty())
+            return false;
+        if (set.size() == 1 && set.contains(object))
+            return false;
+        return true;
+    }
+
+
     private boolean maybeRefreshCache() {
         long now = System.currentTimeMillis();
         if (now - lastRefresh < 5000)
@@ -147,11 +180,14 @@ public class EVTaskDependencyResolver {
 
         Map newTaskCache = new Hashtable();
         SortedSet newListCache = new TreeSet();
-        findTasksInTaskLists(newTaskCache, listCache, newListCache);
+        Map newReverseCache = new Hashtable();
+        findTasksInTaskLists(newTaskCache, listCache, newListCache,
+                newReverseCache);
 
         this.nameCache = newNameCache;
         this.taskCache = newTaskCache;
         this.listCache = newListCache;
+        this.reverseDependencyCache = newReverseCache;
         this.lastRefresh = System.currentTimeMillis();
     }
 
@@ -185,23 +221,25 @@ public class EVTaskDependencyResolver {
     }
 
     private void findTasksInTaskLists(Map newCache, SortedSet listCache,
-            SortedSet newListCache) {
+            SortedSet newListCache, Map newReverseCache) {
         String[] taskListNames = EVTaskList.findTaskLists(context.getData(),
                 false, true);
 
         if (listCache != null)
             for (Iterator i = listCache.iterator(); i.hasNext();) {
                 TaskListInfo info = (TaskListInfo) i.next();
-                registerListName(newCache, newListCache, info.getTaskListName());
+                registerListName(newCache, newListCache, info.getTaskListName(),
+                        newReverseCache);
             }
 
         for (int i = 0; i < taskListNames.length; i++)
-            registerListName(newCache, newListCache, taskListNames[i]);
+            registerListName(newCache, newListCache, taskListNames[i],
+                    newReverseCache);
 
     }
 
     private void registerListName(Map newCache, SortedSet newListCache,
-            String taskListName) {
+            String taskListName, Map newReverseCache) {
         if (containsTaskInfo(newListCache, taskListName))
             return;
 
@@ -209,14 +247,15 @@ public class EVTaskDependencyResolver {
                 .getData(), context.getHierarchy(), context.getCache(),
                 false);
         if (tl != null)
-            registerList(newCache, newListCache, taskListName, tl);
+            registerList(newCache, newListCache, newReverseCache, taskListName,
+                    tl);
     }
 
     private void registerList(Map newCache, SortedSet newListCache,
-            String taskListName, EVTaskList tl) {
+            Map newReverseCache, String taskListName, EVTaskList tl) {
         TaskListInfo info = new TaskListInfo(taskListName, tl);
         newListCache.add(info);
-        registerTasks(newCache, info, (EVTask) tl.getRoot());
+        registerTasks(newCache, newReverseCache, info, (EVTask) tl.getRoot());
         addToCache(newCache, getPseudoTaskIdForTaskList(tl.getID()),
                 info);
 
@@ -224,13 +263,15 @@ public class EVTaskDependencyResolver {
             EVTaskListRollup rollup = (EVTaskListRollup) tl;
             for (int i = rollup.getChildCount(rollup.getRoot());  i-- > 0; ) {
                 EVTaskList cl = rollup.getSubSchedule(i);
-                registerList(newCache, newListCache, cl.taskListName, cl);
+                registerList(newCache, newListCache, newReverseCache,
+                        cl.taskListName, cl);
             }
         }
     }
 
 
-    private void registerTasks(Map cache, TaskListInfo info, EVTask task) {
+    private void registerTasks(Map cache, Map reverseCache,
+            TaskListInfo info, EVTask task) {
         List taskIDs = task.getTaskIDs();
         if (taskIDs != null)
             for (Iterator i = taskIDs.iterator(); i.hasNext();) {
@@ -238,8 +279,15 @@ public class EVTaskDependencyResolver {
                 addToCache(cache, taskID, info);
             }
 
+        List taskDeps = task.getDependencies();
+        if (taskDeps != null)
+            for (Iterator i = taskDeps.iterator(); i.hasNext();) {
+                EVTaskDependency d = (EVTaskDependency) i.next();
+                addToReverseCache(reverseCache, task, d);
+            }
+
         for (int i = task.getNumChildren(); i-- > 0;)
-            registerTasks(cache, info, task.getChild(i));
+            registerTasks(cache, reverseCache, info, task.getChild(i));
     }
 
     private void addToCache(Map cache, Object taskID, TaskInfo value) {
@@ -249,6 +297,24 @@ public class EVTaskDependencyResolver {
             cache.put(taskID, infoList);
         }
         infoList.add(value);
+    }
+
+    private void addToReverseCache(Map reverseCache, EVTask task,
+            EVTaskDependency dependsOn) {
+        String dependsOnId = dependsOn.getTaskID();
+        if (dependsOnId == null)
+            return;
+
+        List assignedIndividuals = task.getAssignedTo();
+        if (assignedIndividuals == null || assignedIndividuals.isEmpty())
+            return;
+
+        SortedSet reverseWho = (SortedSet) reverseCache.get(dependsOnId);
+        if (reverseWho == null) {
+            reverseWho = new TreeSet();
+            reverseCache.put(dependsOnId, reverseWho);
+        }
+        reverseWho.addAll(assignedIndividuals);
     }
 
 
@@ -361,5 +427,5 @@ public class EVTaskDependencyResolver {
     private static final Pattern TASK_ID_PATTERN = Pattern
             .compile("([^/]+)(/.*)?");
     private static final int PAT_GROUP_TASK_ID = 1;
-    private static final int PAT_GROUP_EXTRAPATH = 2;
+    // private static final int PAT_GROUP_EXTRAPATH = 2;
 }

@@ -42,6 +42,7 @@ import java.net.URL;
 import javax.swing.*;
 import javax.swing.Timer;
 
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
@@ -488,6 +489,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     }
 
     public static String getOwnerName(DataRepository data) {
+        return getOwnerName((DataContext) data);
+    }
+    public static String getOwnerName(DataContext data) {
         SimpleData val = data.getSimpleValue("/Owner");
         if (val == null) return null;
         String result = val.format();

@@ -46,10 +46,11 @@ public class TaskDependencyAnalyzer {
     public static final int HAS_ERROR = 0;
     public static final int HAS_INCOMPLETE = 1;
     public static final int ALL_COMPLETE = 2;
-    public static final int NO_DEPENDENCIES = 3;
+    public static final int HAS_REVERSE = 3;
+    public static final int NO_DEPENDENCIES = 4;
 
     public static final String[] RES_KEYS = { "Unresolved", "Incomplete",
-            "Complete", "None" };
+            "Complete", "Reverse" , "None"};
 
     private Collection dependencies;
 
@@ -58,6 +59,8 @@ public class TaskDependencyAnalyzer {
     public boolean hasError;
 
     public boolean hasIncomplete;
+
+    public boolean hasReverse;
 
     private static Resources resources = Resources.getDashBundle("EV");
 
@@ -74,6 +77,7 @@ public class TaskDependencyAnalyzer {
         hasDependency = false;
         hasError = false;
         hasIncomplete = false;
+        hasReverse = false;
 
         if (dependencies != null)
             for (Iterator i = dependencies.iterator(); i.hasNext();) {
@@ -81,6 +85,8 @@ public class TaskDependencyAnalyzer {
                 hasDependency = true;
                 if (d.isUnresolvable()) {
                     hasError = true;
+                } else if (d.isReverse()) {
+                    hasReverse = true;
                 } else if (d.getPercentComplete() < 1.0) {
                     hasIncomplete = true;
                 }
@@ -92,6 +98,8 @@ public class TaskDependencyAnalyzer {
             return HAS_ERROR;
         else if (hasIncomplete)
             return HAS_INCOMPLETE;
+        else if (hasReverse)
+            return HAS_REVERSE;
         else if (hasDependency)
             return ALL_COMPLETE;
         else
@@ -99,8 +107,8 @@ public class TaskDependencyAnalyzer {
     }
 
     public String getHtmlTable(String tableAttrs, String stopUrl,
-            String checkUrl, String sep, boolean includeBodyTags,
-            boolean includeTooltips) {
+            String checkUrl, String reverseUrl, String sep,
+            boolean includeBodyTags, boolean includeTooltips) {
         if (dependencies == null || getStatus() == NO_DEPENDENCIES)
             return null;
 
@@ -122,6 +130,11 @@ public class TaskDependencyAnalyzer {
                         + "color:red; font-weight:bold'>")
                         .append(resources.getHTML("Dependency.Unresolved.Text"))
                         .append("</td>");
+            } else if (d.isReverse()) {
+                if (includeTooltips)
+                    descr.append(getTooltip(HAS_REVERSE));
+                descr.append("style='text-align:center'><img src='")
+                    .append(reverseUrl).append("'></td>");
             } else if (d.getPercentComplete() < 1.0) {
                 if (includeTooltips)
                     descr.append(getTooltip(HAS_INCOMPLETE));
@@ -134,7 +147,10 @@ public class TaskDependencyAnalyzer {
                         .append(checkUrl).append("'></td>");
             }
             descr.append("<td style='text-align:left' nowrap>");
-            descr.append(nvl(d.getDisplayName()));
+            if (EVTaskDependency.REVERSE_PSEUDO_TASK.equals(d.getTaskID()))
+                descr.append(resources.getHTML("Dependency.Reverse.Display"));
+            else
+                descr.append(nvl(d.getDisplayName()));
             descr.append(getBriefDetails(d, sep));
             descr.append("</td></tr>");
         }
@@ -153,8 +169,9 @@ public class TaskDependencyAnalyzer {
         Date pd = d.getPlannedDate();
         if (pd != null && d.getPercentComplete() < 1)
             result.append(sep).append(DATE_FORMAT.format(pd));
-        result.append(sep).append(
-                EVSchedule.formatPercent(d.getPercentComplete()));
+        if (!d.isReverse())
+            result.append(sep).append(
+                    EVSchedule.formatPercent(d.getPercentComplete()));
         return result.toString();
     }
 
@@ -186,7 +203,8 @@ public class TaskDependencyAnalyzer {
 
         public String getHtmlTable(String tableAttrs) {
             return super.getHtmlTable(tableAttrs, GUI_STOP_URL.toString(),
-                    GUI_CHECK_URL.toString(), GUI_SEP, true, false);
+                    GUI_CHECK_URL.toString(), GUI_REVERSE_URL.toString(),
+                    GUI_SEP, true, false);
         }
 
         public void syncLabel(JLabel label) {
@@ -210,6 +228,11 @@ public class TaskDependencyAnalyzer {
                 label.setText(null);
                 break;
 
+            case TaskDependencyAnalyzer.HAS_REVERSE:
+                label.setIcon(GUI_REVERSE_ICON);
+                label.setText(null);
+                break;
+
             case TaskDependencyAnalyzer.ALL_COMPLETE:
                 label.setIcon(GUI_CHECK_ICON);
                 label.setText(null);
@@ -225,6 +248,9 @@ public class TaskDependencyAnalyzer {
     private static final URL GUI_CHECK_URL = TaskDependencyAnalyzer.class
             .getResource("check.png");
     private static final Icon GUI_CHECK_ICON = new ImageIcon(GUI_CHECK_URL);
+    private static final URL GUI_REVERSE_URL = TaskDependencyAnalyzer.class
+            .getResource("group.png");
+    private static final Icon GUI_REVERSE_ICON = new ImageIcon(GUI_REVERSE_URL);
     private static final String GUI_SEP = "  \u25AA  ";
 
     public static class HTML extends TaskDependencyAnalyzer {
@@ -235,7 +261,7 @@ public class TaskDependencyAnalyzer {
 
         public String getHtmlTable(String tableAttrs) {
             return super.getHtmlTable(tableAttrs, HTML_STOP_URI,
-                    HTML_CHECK_URI, HTML_SEP, false, true);
+                    HTML_CHECK_URI, HTML_REVERSE_URI, HTML_SEP, false, true);
         }
 
         public String getHtmlIndicator() {
@@ -245,6 +271,7 @@ public class TaskDependencyAnalyzer {
 
     private static final String HTML_STOP_URI = "/Images/stop.gif";
     private static final String HTML_CHECK_URI = "/Images/check.gif";
+    private static final String HTML_REVERSE_URI = "/Images/group.gif";
     static final String HTML_SEP = " &bull; ";
     private static final String[] HTML_INDICATORS = new String[] {
             "<span style='color:red; font-weight:bold' title='"
@@ -255,7 +282,10 @@ public class TaskDependencyAnalyzer {
                     + getRes(1, "Explanation_All", true) + "'>",
             "<img src='" + TaskDependencyAnalyzer.HTML_CHECK_URI
                     + "' border='0' width='14' height='14' title='"
-                    + getRes(2, "Explanation_All", true) + "'>"
+                    + getRes(2, "Explanation_All", true) + "'>",
+            "<img src='" + TaskDependencyAnalyzer.HTML_REVERSE_URI
+                    + "' border='0' width='14' height='14' title='"
+                    + getRes(3, "Explanation_All", true) + "'>"
     };
 
 }

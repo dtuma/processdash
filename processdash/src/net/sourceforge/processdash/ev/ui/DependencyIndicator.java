@@ -71,7 +71,9 @@ public class DependencyIndicator extends JLabel implements
         setToolTipText(null);
 
         String taskPath = taskModel.getPath();
-        List dependencies = EVTaskDependency.getAllDependencies(data, taskPath);
+        String owner = ProcessDashboard.getOwnerName(data);
+        List dependencies = EVTaskDependency.getAllDependencies(data, taskPath,
+                owner);
         if (dependencies != null && !dependencies.isEmpty()) {
             setIcon(BLANK_ICON);
             window.pack();
@@ -145,6 +147,7 @@ public class DependencyIndicator extends JLabel implements
 
             case TaskDependencyAnalyzer.HAS_ERROR:
             case TaskDependencyAnalyzer.HAS_INCOMPLETE:
+            case TaskDependencyAnalyzer.HAS_REVERSE:
                 a.syncLabel(DependencyIndicator.this);
                 window.pack();
                 break;

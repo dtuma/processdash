@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
@@ -81,6 +83,15 @@ public class EVTaskDependency {
         this.assignedTo = getAttr(e, ASSIGNED_TO_ATTR);
         this.percentComplete = XMLUtils.getXMLNum(e, PERCENT_COMPLETE_ATTR);
         this.plannedDate = XMLUtils.getXMLDate(e, PLAN_DATE_ATTR);
+    }
+
+    public EVTaskDependency(Set waitingIndividuals) {
+        this.taskID = REVERSE_PSEUDO_TASK;
+        this.displayName = this.taskListName = null;
+        this.assignedTo = StringUtils.join(waitingIndividuals, ", ");
+        this.percentComplete = 0;
+        this.plannedDate = null;
+        this.unresolvable = false;
     }
 
     public String getDisplayName() {
@@ -131,6 +142,10 @@ public class EVTaskDependency {
         return unresolvable;
     }
 
+    public boolean isReverse() {
+        return REVERSE_PSEUDO_TASK.equals(taskID);
+    }
+
     public void setResolvedDetails(boolean unresolvable, String assignedTo,
             double percentComplete, Date planDate, String displayName) {
         this.unresolvable = unresolvable;
@@ -158,6 +173,8 @@ public class EVTaskDependency {
     }
     public void getAsXML(StringBuffer out, String indent,
             boolean includeResolvedInformation) {
+        if (isReverse())
+            return;  // don't persist reverse dependency information.
         if (indent != null)
             out.append(indent);
         out.append("<").append(DEPENDENCY_TAG);
@@ -323,11 +340,13 @@ public class EVTaskDependency {
         return madeChange;
     }
 
-    public static List getAllDependencies(DataContext data, String taskPath) {
+    public static List getAllDependencies(DataContext data, String taskPath,
+            String ignoreIndividual) {
         if (taskPath == null || taskPath.length() == 0)
             return null;
 
         LinkedHashMap result = new LinkedHashMap();
+        Set waitingIndividuals = null;
 
         while (taskPath != null && taskPath.length() > 1) {
             List taskDep = getDependencies(data, taskPath);
@@ -336,10 +355,21 @@ public class EVTaskDependency {
                     EVTaskDependency d = (EVTaskDependency) i.next();
                     result.put(d.taskID, d);
                 }
+
+            waitingIndividuals = EVTaskDependencyResolver.getInstance()
+                    .getIndividualsWaitingOnTask(waitingIndividuals,
+                            getTaskIDs(data, taskPath), ignoreIndividual);
+
             taskPath = DataRepository.chopPath(taskPath);
         }
 
-        return new LinkedList(result.values());
+        List resultList = new ArrayList(result.size() + 1);
+        resultList.addAll(result.values());
+
+        if (waitingIndividuals != null && !waitingIndividuals.isEmpty())
+            resultList.add(new EVTaskDependency(waitingIndividuals));
+
+        return resultList;
     }
 
     public static List getDependencies(DataContext data, String taskPath) {
@@ -405,5 +435,7 @@ public class EVTaskDependency {
     private static final String PERCENT_COMPLETE_ATTR = "pctComplete";
 
     private static final String PLAN_DATE_ATTR = "planDate";
+
+    public static final String REVERSE_PSEUDO_TASK = "REVERSE";
 
 }
