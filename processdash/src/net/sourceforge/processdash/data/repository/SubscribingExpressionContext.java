@@ -87,7 +87,7 @@ public class SubscribingExpressionContext implements ExpressionContext {
                 String dataName = (String) i.next();
                 if (!namesSeen.contains(dataName)) {
                     data.removeDataListener(dataName, listener);
-                    currentSubscriptions.remove(dataName);
+                    i.remove();
                 }
             }
         }
