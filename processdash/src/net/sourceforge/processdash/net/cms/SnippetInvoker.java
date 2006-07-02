@@ -145,7 +145,7 @@ public class SnippetInvoker implements SnippetEnvironment {
                 .singletonMap("$$$_", namespace));
 
         StringBuffer queryString = new StringBuffer(this.queryString);
-        addNamespacedParameters(namespace, queryString);
+        addNamespacedParameters(parentParameters, namespace, queryString);
         if (defn.shouldParsePersistedText())
             addParsedParameters(snippet.getPersistedText(), queryString);
 
@@ -168,9 +168,9 @@ public class SnippetInvoker implements SnippetEnvironment {
         }
     }
 
-    private void addNamespacedParameters(String namespace,
-            StringBuffer queryString) {
-        for (Iterator i = parentParameters.entrySet().iterator(); i.hasNext();) {
+    protected static void addNamespacedParameters(Map params,
+            String namespace, StringBuffer queryString) {
+        for (Iterator i = params.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
             String name = (String) e.getKey();
             if (name.startsWith(namespace) && name.endsWith("_ALL")) {
@@ -200,7 +200,8 @@ public class SnippetInvoker implements SnippetEnvironment {
         appendParam(query, name, value);
     }
 
-    private void appendParam(StringBuffer query, String name, String[] values) {
+    protected static void appendParam(StringBuffer query, String name,
+            String[] values) {
         if (values != null) {
             if (name.endsWith("_ALL"))
                 name = name.substring(0, name.length() - 4);
@@ -209,7 +210,8 @@ public class SnippetInvoker implements SnippetEnvironment {
         }
     }
 
-    private void appendParam(StringBuffer query, String name, String value) {
+    protected static void appendParam(StringBuffer query, String name,
+            String value) {
         if (value != null && value.length() != 0)
             query.append(query.length() == 0 ? "?" : "&").append(
                     HTMLUtils.urlEncode(name)).append("=").append(

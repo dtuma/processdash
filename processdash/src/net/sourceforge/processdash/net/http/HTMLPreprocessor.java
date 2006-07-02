@@ -162,6 +162,9 @@ public class HTMLPreprocessor {
         if (isNull(url))
             include.replace(""); // no file specified - delete this directive.
         else {
+            String propagate = include.getAttribute("propagate");
+            url = propagateParameters(url, propagate);
+
             // fetch the requested url (relative to the current url) and
             // replace the include directive with its contents.
             String context = (String) env.get("REQUEST_URI");
@@ -178,6 +181,21 @@ public class HTMLPreprocessor {
                 include.replace(incText);
             }
         }
+    }
+    private String propagateParameters(String url, String propagate) {
+        if (propagate == null || propagate.length() == 0)
+            return url;
+
+        // TODO: allow fancier propagation specification.  For now, just
+        // propagate the query string.
+        String query = (String) env.get("QUERY_STRING");
+        if (query == null || query.length() == 0)
+            return url;
+
+        if (url.indexOf('?') == -1)
+            return url + '?' + query;
+        else
+            return url + '&' + query;
     }
 
 

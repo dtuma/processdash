@@ -207,8 +207,10 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
                 String errDump = StringUtils.getStackTrace(snippet
                         .getInvocationException());
                 out.write("<span class='cmsNoEditMessage'>");
-                out.write(esc(resources.format(key, id, errDump)));
-                out.write("</span>\n");
+                out.write(esc(resources.format(key, id)));
+                out.write("<!-- ");
+                out.write(errDump);
+                out.write(" --></span>\n");
             }
         }
 

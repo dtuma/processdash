@@ -43,7 +43,7 @@ var DashCMS = {
     snippetDiv.id = namespace;
     $('snippetContainer').appendChild(snippetDiv);
     var url = window.location.pathname + "?mode=addNew&ns=" + namespace;
-    new Ajax.Updater(snippetDiv, url, { asynchronous:true, evalScripts:true });
+    new Ajax.Updater(snippetDiv, url, { evalScripts:true });
   },
 
   _snipDivIdPattern: /^(snip|addSnip)[0-9]+_/,
@@ -96,7 +96,7 @@ var DashCMS = {
     var snipID = elem.id.replace(/^[^_]+_/, "");
     var url = window.location.pathname + "?mode=addNew&ns=" + snipDiv.id +
       "&snippetID=" + snipID;
-    new Ajax.Updater(snipDiv, url, { asynchronous:true, evalScripts:true });
+    new Ajax.Updater(snipDiv, url, { evalScripts:true });
   },
 
   showAddItemDescr:
