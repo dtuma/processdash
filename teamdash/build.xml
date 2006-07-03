@@ -16,6 +16,11 @@
     <property name="teamProcess.zip" value="VVGDP-v2.zip"/>
   </target>
 
+  <target name="vvis1">
+    <property name="teamProcess.xml" value="vvis-v1.xml"/>
+    <property name="teamProcess.zip" value="VVGDP-v1.zip"/>
+  </target>
+
   <target name="filelist.txt">
     <pathconvert property=".filelistbasedir" pathsep="," dirsep="/">
       <path id=".jhbasedir.path" path="Templates/team/setup"/>
@@ -101,6 +106,7 @@
     <loadfile property="extraIni" srcFile="install/custom-install.ini">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
+    <property name="extraCoreFiles" value=""/>
 
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="dist-CD">
@@ -110,6 +116,7 @@
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
+      <property name="additional.core.files" value="${extraCoreFiles}"/>
       <property name="qualifier" value="team"/>
     </ant>
   </target>
@@ -118,6 +125,23 @@
     <copy todir="${processdash.dir}/dist">
       <fileset dir="." includes="${teamProcess.zip} TeamTools.jar"/>
     </copy>
+  </target>
+
+  <target name="vvis-dist">
+    <!-- build version 1 of the VVGDP -->
+    <antcall target="TeamProcess">
+      <param name="teamProcess.xml" value="vvis-v1.xml"/>
+    </antcall>
+    <!-- build version 2 of the VVGDP, and the installer -->
+    <property name="teamProcess.xml" value="vvis.xml"/>
+    <property name="teamProcess.zip" value="VVGDP-v2.zip"/>
+    <pathconvert property="teamdash.dir" dirSep="/">
+      <path><pathelement location="."/></path>
+    </pathconvert>
+    <loadfile property="extraCoreFiles" srcFile="install/vvisCore.xml">
+      <filterchain><expandproperties/></filterchain>
+    </loadfile>
+    <antcall target="installer"/>
   </target>
 
   <target name="dist" depends="installer"/>

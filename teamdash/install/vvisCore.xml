@@ -1,0 +1,4 @@
+   <file targetdir="$INSTALL_PATH" override="true" 
+	 src="${teamdash.dir}/VVGDP-v1.zip"/>
+   <file targetdir="$INSTALL_PATH" override="true" 
+	 src="${teamdash.dir}/VVGDP-v2.zip"/>
