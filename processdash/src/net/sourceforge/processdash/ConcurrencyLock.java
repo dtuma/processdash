@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -39,6 +39,8 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.text.MessageFormat;
+import java.util.ResourceBundle;
 
 import javax.swing.JOptionPane;
 
@@ -85,8 +87,7 @@ public class ConcurrencyLock {
                 registerShutdownHook();
             } else {
                 if (notifyOtherDashboard() == false)
-                    showWarningDialog(getPath(lockFile));
-                System.exit(0);
+                    showReadOnlyOptionDialog(getPath(lockFile));
             }
 
         } catch (IOException e) {
@@ -143,6 +144,9 @@ public class ConcurrencyLock {
             int otherPort = Integer.parseInt(in.readLine());
             String otherTimeStamp = in.readLine();
 
+            // keep Eclipse from complaining about unused variable
+            otherTimeStamp = otherTimeStamp + "";
+
             /* Check to see if the other dashboard is running on the same
              * computer that we're running on.  If not, don't try to contact it.
              */
@@ -198,10 +202,39 @@ public class ConcurrencyLock {
         }
     }
 
+    /** Display a dialog to the user indicating that someone on
+     * another machine is already running the dashboard for the
+     * data in the given directory.  Ask if they would like to continue
+     * in read-only mode, or abort.
+     */
+    private void showReadOnlyOptionDialog(String directory) {
+        // We must manually use ResourceBundles until after the
+        // TemplateLoader is initialized.  If we ask for a Resources object,
+        // we will mess up its initialization of the global bundle, and the
+        // rest of the running dashboard process will suffer. (Other methods
+        // in this class can do that, because they are just about to call
+        // System.exit anyway).
+        ResourceBundle r = ResourceBundle.getBundle(
+                "Templates.resources.ProcessDashboard");
+
+        String title = r.getString("Errors.Concurrent_Use_Title");
+        String message = MessageFormat.format(
+                r.getString("Errors.Concurrent_Use_Message_FMT"),
+                new Object[] { directory });
+
+        if (JOptionPane.showConfirmDialog(null, message.split("\n"), title,
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            InternalSettings.setReadOnly(true);
+        } else {
+            showWarningDialog(directory);
+            System.exit(0);
+        }
+
+    }
 
     /** Display a dialog to the user indicating that someone on
      * another machine is already running the dashboard for the
-     * data in the given directory.
+     * data in the given directory, and that the dashboard must exit.
      */
     private void showWarningDialog(String directory) {
         Resources r = Resources.getDashBundle("ProcessDashboard.Errors");

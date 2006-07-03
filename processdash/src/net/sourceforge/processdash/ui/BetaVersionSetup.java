@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,13 +26,22 @@
 
 package net.sourceforge.processdash.ui;
 
-import java.awt.event.*;
-import java.io.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class BetaVersionSetup {
@@ -68,7 +77,7 @@ public class BetaVersionSetup {
 
 
     public static final void runSetup(String property_directory) {
-        if (enable) {
+        if (enable && !Settings.isReadOnly()) {
             // Try to backup all the files in the user's data
             // directory.  This will only happen once, the first time
             // this beta version is run.

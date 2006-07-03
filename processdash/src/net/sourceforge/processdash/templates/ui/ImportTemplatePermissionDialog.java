@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@ import java.util.jar.JarInputStream;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.*;
 import net.sourceforge.processdash.util.*;
@@ -51,6 +52,7 @@ public final class ImportTemplatePermissionDialog {
         PERMISSION.checkPermission();
 
         if (parent == null) return false;
+        if (Settings.isReadOnly()) return false;
         if (!XMLUtils.hasValue(templateJarFilename) &&
             !XMLUtils.hasValue(templateDir))
             return false;

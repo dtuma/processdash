@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 /** Simple persistence service which saves files into a directory on
@@ -53,6 +54,9 @@ public class FilePersistenceService implements PersistenceService {
     }
 
     public OutputStream save(String filename) throws IOException {
+        if (Settings.isReadOnly())
+            return null;
+
         File f = getFile(filename);
         RobustFileOutputStream out = new RobustFileOutputStream(f);
         return out;

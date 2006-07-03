@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -39,9 +39,9 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.ui.TimeLogEditor;
 import net.sourceforge.processdash.util.FormatUtil;
 
 import org.jfree.data.AbstractDataset;
@@ -71,7 +71,7 @@ public class EVSchedule implements TableModel {
         60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
     private static final long DAY_MILLIS = 24L /*hours*/ * HOUR_MILLIS;
     public static final long WEEK_MILLIS = 7 * DAY_MILLIS;
-    private static final long MIDNIGHT = DAY_MILLIS - ADJUSTMENT;
+//    private static final long MIDNIGHT = DAY_MILLIS - ADJUSTMENT;
 
     public class Period implements Cloneable {
         Period previous;
@@ -858,9 +858,9 @@ public class EVSchedule implements TableModel {
 
     protected int findIndexOfFinalPlannedPeriod() {
         for (int i = periods.size();   i-- > 1; ) {
-                Period p = get(i);
-                if (p != null && p.planDirectTime() > 0)
-                        return i;
+            Period p = get(i);
+            if (p != null && p.planDirectTime() > 0)
+                return i;
         }
         return 1;
     }
@@ -1132,7 +1132,7 @@ public class EVSchedule implements TableModel {
 
     public Class getColumnClass(int i) { return colTypes[i]; }
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex < 4;
+        return columnIndex < 4 && !Settings.isReadOnly();
     }
     public Object getValueAt(int rowIndex, int columnIndex) {
         Period p = get(rowIndex+1);
@@ -1245,7 +1245,7 @@ public class EVSchedule implements TableModel {
     private abstract class PlanChartSeries implements ChartSeries {
         public String getSeriesName() { return PLAN_LABEL; }
         public int getItemCount() {
-                return findIndexOfFinalPlannedPeriod()+1;
+            return findIndexOfFinalPlannedPeriod()+1;
         }
         public Number getXValue(int itemIndex) {
             return new Long(get(itemIndex).endDate.getTime()); }

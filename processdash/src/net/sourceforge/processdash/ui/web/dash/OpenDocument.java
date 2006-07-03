@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -196,6 +196,11 @@ public class OpenDocument extends TinyCGIBase {
 
         // Compute the path to the requested file.
         File result = computePath(file, false);
+
+        if (Settings.isReadOnly() && (result == null || !result.exists())) {
+            sendReadOnlyErrorMessage();
+            return;
+        }
 
         if (!metaPathVariables.isEmpty()) {
             // If any meta variables turned up missing, prompt the
@@ -718,6 +723,17 @@ public class OpenDocument extends TinyCGIBase {
         return defValue;
     }
 
+    /** Display an error message, stating that the requested document does
+     * not exist, and we are in read-only mode.
+     */
+    private void sendReadOnlyErrorMessage() {
+        super.writeHeader();
+        String title = resources.getString("Read_Only_Title");
+        String message = resources.getString("Read_Only_Message");
+        out.print
+            ("<html><head><title>"+title+"</title></head>\n" +
+             "<body><h1>"+title+"</h1>\n" + message + "</body></html>");
+    }
 
     /** Display an error message, stating that the XML document list does
      * not contain any file with the requested name.

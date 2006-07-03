@@ -1,5 +1,5 @@
+// Copyright (C) 1999-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,20 +27,25 @@
 package net.sourceforge.processdash.log;
 
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Writer;
 import java.text.ParseException;
 import java.util.EventListener;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.event.EventListenerList;
-
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.util.RobustFileWriter;
 
 
 public class DefectLog {
@@ -121,40 +126,23 @@ public class DefectLog {
      * file.
      */
     private void save(Defect [] defects) {
+        if (Settings.isReadOnly())
+            return;
 
-        String fileSep = System.getProperty("file.separator");
-
-        File defectFile = new File(defectLogFilename);
-
-        // Create temporary files
-        File tempFile = new File(defectFile.getParent()+ fileSep +
-                                 "tttt_" + defectFile.getName());
-        File backupFile = new File(defectFile.getParent()+ fileSep +
-                                 "tttt" + defectFile.getName());
         try {
-            PrintWriter out =
-                new PrintWriter(new BufferedWriter(new FileWriter(tempFile)));
-            PrintWriter backup =
-                new PrintWriter(new BufferedWriter(new FileWriter(backupFile)));
+            File defectFile = new File(defectLogFilename);
+            Writer out = new BufferedWriter(new RobustFileWriter(defectFile));
 
-            // write the defect info to the temporary output files
+            // write the defect info
+            String newLine = System.getProperty("line.separator");
             if (defects != null)
                 for (int i = 0;   i < defects.length;   i++)
                     if (defects[i] != null) {
-                        out.println(defects[i].toString());
-                        backup.println(defects[i].toString());
+                        out.write(defects[i].toString());
+                        out.write(newLine);
                     }
 
-            // close the temporary output files
             out.close();
-            backup.close();
-
-            // rename out to the real datafile
-            defectFile.delete();
-            tempFile.renameTo(defectFile);
-
-            // delete the backup
-            backupFile.delete();
         } catch (IOException e) { System.out.println("IOException: " + e); };
     }
 
@@ -291,11 +279,11 @@ public class DefectLog {
             incrementDataValue(new_phase_removed + DEF_REM_SUFFIX, 1);
     }
 
-    /** Recalculate ALL the data associated with this defect log.
-     * This action is appropriate, for example, if massive changes
-     * have been made to the defect log entries.
-     * @param defects - an array of the new defects in the log.
-     */
+    /* * Recalculate ALL the data associated with this defect log.
+        * This action is appropriate, for example, if massive changes
+        * have been made to the defect log entries.
+        * @param defects - an array of the new defects in the log.
+        * /
     private void updateData(Defect defects[]) {
 
         class PhaseCounter extends Hashtable {
@@ -354,7 +342,7 @@ public class DefectLog {
             val.setEditable(false);
             data.putValue(name, val);
         }
-    }
+    } */
 
     public void performInternalRename(String oldPrefix, String newPrefix) {
         Defect defects[] = readDefects();

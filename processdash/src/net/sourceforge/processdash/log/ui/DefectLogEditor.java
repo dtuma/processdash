@@ -1,5 +1,5 @@
+// Copyright (C) 1999-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,12 +26,43 @@
 
 package net.sourceforge.processdash.log.ui;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.util.*;
-import java.awt.event.*;
-import javax.swing.tree.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.PrintJob;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTree;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
@@ -41,13 +72,15 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
-import net.sourceforge.processdash.i18n.*;
-import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.Defect;
+import net.sourceforge.processdash.log.DefectLog;
+import net.sourceforge.processdash.log.DefectLogID;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.ConfigureButton;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
-import net.sourceforge.processdash.ui.help.*;
+import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.util.FormatUtil;
 
 
@@ -77,15 +110,8 @@ public class DefectLogEditor extends Component
 
     static final String DTS_EDIT_URL = "/dash/dtsEdit.class";
 
-    //
-    // member functions
-    //
-    private static void debug(String msg) {
-        System.out.println("DefectEditor:" + msg);
-    }
 
-
-                                // constructor
+                                  // constructor
     public DefectLogEditor(ProcessDashboard dash,
                         ConfigureButton button,
                         DashHierarchy props) {
@@ -177,7 +203,8 @@ public class DefectLogEditor extends Component
         result.setLayout(new BorderLayout());
         result.setPreferredSize(new Dimension(300, 300));
         result.add("Center", sp);
-        result.add("South", selectorPanel);
+        if (!Settings.isReadOnly())
+            result.add("South", selectorPanel);
         return result;
     }
 
@@ -257,7 +284,6 @@ public class DefectLogEditor extends Component
     public void updateDefectLog (DefectLog dl) {
         //System.out.println("In updateDefectLog");
         Defect[] defects = dl.readDefects();
-        PropertyKey pKey;
         DefectListID dlid;
         Enumeration values = defectLogs.elements();
         while (values.hasMoreElements()) {
@@ -376,10 +402,8 @@ public class DefectLogEditor extends Component
         // apply the filter and load the vector (and the table)
         VTableModel model = (VTableModel)table.table.getModel();
         Object[] row = new Object [9];
-        Defect[] defects;
         DefectListID dli;
         DefectListEntry dle;
-        Defect def;
         PropertyKey pk;
         currentLog.removeAllElements();
         model.setNumRows (0);
@@ -446,6 +470,7 @@ public class DefectLogEditor extends Component
         DefectListEntry dle;
 
         if (cmd.equals("edit")) {
+            if (Settings.isReadOnly()) return;
             dle = getSelectedDefect();
             if (dle != null) {
                 dlg = getDialogForDefect(dle);
@@ -454,6 +479,7 @@ public class DefectLogEditor extends Component
             }
 
         } else if (cmd.equals("delete")) {
+            if (Settings.isReadOnly()) return;
             dle = getSelectedDefect();
             String number = dle.defect.number;
             if (number != null) {
@@ -484,6 +510,7 @@ public class DefectLogEditor extends Component
             }
 
         } else if (cmd.equals("dts")) {
+            if (Settings.isReadOnly()) return;
             if (buildingDtsSelector) return;
             String type = (String) dtsSelector.getSelectedItem();
             if (type == inheritTypeSelection) type = null;
@@ -499,7 +526,6 @@ public class DefectLogEditor extends Component
 
     private JPanel constructEditPanel () {
         JPanel  retPanel = new JPanel(false);
-        JButton button;
 
         String[] columns = new String[] {
             "Project", "ID", "Type", "Injected", "Removed",
@@ -532,7 +558,8 @@ public class DefectLogEditor extends Component
         editButton.setActionCommand ("edit");
         editButton.addActionListener (this);
         editButton.setEnabled (false);
-        btnPanel.add (editButton);
+        if (!Settings.isReadOnly())
+            btnPanel.add (editButton);
 
                                     // Should only be available if one
                                     // entry is selected
@@ -540,7 +567,8 @@ public class DefectLogEditor extends Component
         deleteButton.setActionCommand ("delete");
         deleteButton.addActionListener (this);
         deleteButton.setEnabled (false);
-        btnPanel.add (deleteButton);
+        if (!Settings.isReadOnly())
+            btnPanel.add (deleteButton);
 
         closeButton = new JButton (resources.getString("Close"));
         closeButton.setActionCommand ("close");
@@ -586,10 +614,7 @@ public class DefectLogEditor extends Component
             refreshDefectTypeSelector();
             return;
         }
-        Object [] path = tp.getPath();
-        PropertyKey key = treeModel.getPropKey (useProps, path);
 
-        Prop val = useProps.pget (key);
         applyFilter ();
         refreshDefectTypeSelector();
     }

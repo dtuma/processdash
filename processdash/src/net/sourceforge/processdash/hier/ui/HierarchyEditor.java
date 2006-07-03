@@ -1,5 +1,5 @@
+// Copyright (C) 1999-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 1999-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,15 +26,11 @@
 
 package net.sourceforge.processdash.hier.ui;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.util.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -47,22 +43,59 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import javax.swing.tree.*;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
+import javax.swing.JTree;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.text.JTextComponent;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellEditor;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.hier.*;
-import net.sourceforge.processdash.i18n.*;
-import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.HierarchyAlterer;
+import net.sourceforge.processdash.hier.PendingDataChange;
+import net.sourceforge.processdash.hier.Prop;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.ModifiableTimeLog;
 import net.sourceforge.processdash.log.time.PathRenamer;
-import net.sourceforge.processdash.log.time.TimeLogEntryVO;
-import net.sourceforge.processdash.log.ui.*;
+import net.sourceforge.processdash.log.ui.DefectLogEditor;
 import net.sourceforge.processdash.ui.ConfigureButton;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
-import net.sourceforge.processdash.ui.help.*;
+import net.sourceforge.processdash.ui.help.PCSH;
 
 
 public class HierarchyEditor extends Object implements TreeModelListener, TreeSelectionListener, ItemListener
@@ -184,7 +217,9 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         frame = new JFrame(resource.getString("HierarchyEditor"));
         frame.setTitle(resource.getString("HierarchyEditor"));
         frame.setIconImage(DashboardIconFactory.getWindowIconImage());
-        frame.getContentPane().add("North", buildToolBar());
+        JToolBar toolBar = buildToolBar();
+        if (!Settings.isReadOnly())
+            frame.getContentPane().add("North", toolBar);
         frame.getContentPane().add("Center", panel);
         frame.setJMenuBar(menuBar);
         frame.setBackground(Color.lightGray);
@@ -198,7 +233,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         treeModel.fill (useProps);
         tree.expandRow (0);
         tree.setShowsRootHandles (true);
-        tree.setEditable(true);
+        tree.setEditable(!Settings.isReadOnly());
         tree.setInvokesStopCellEditing(true);
         tree.getSelectionModel().setSelectionMode
             (TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -243,6 +278,8 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     DashHierarchy oldProps = null;
 
     public void saveProperties () {
+        if (Settings.isReadOnly())
+            return;
 
         // FIXME_TIMELOG: dashboard.releaseTimeLogEntry(null);
         // if the user is running their timer while they perform
@@ -390,7 +427,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     private static final Object CONFIRM_CLOSE_MSG =
         resource.getString("HierarchyChangeConfirm");
     public void confirmClose(boolean showCancel) {
-        if (isDirty())
+        if (isDirty() && !Settings.isReadOnly())
             switch (JOptionPane.showConfirmDialog
                     (frame, CONFIRM_CLOSE_MSG, resource.getString("SaveChanges"),
                      showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
@@ -452,7 +489,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
     /** Construct a menu. */
     private JMenuBar constructMenuBar() {
-        JMenu            menu, subMenu;
+        JMenu            menu;
         JMenuBar         menuBar = new JMenuBar();
         JMenuItem        menuItem;
 
@@ -466,13 +503,17 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
                 confirmClose(true);
             }});
 
-        saveMenuItem = menu.add(new JMenuItem(resource.getString("Save")));
+        saveMenuItem = new JMenuItem(resource.getString("Save"));
+        if (!Settings.isReadOnly())
+            menu.add(saveMenuItem);
         saveMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 saveProperties ();
             }});
 
-        revertMenuItem = menu.add(new JMenuItem(resource.getString("Revert")));
+        revertMenuItem = new JMenuItem(resource.getString("Revert"));
+        if (!Settings.isReadOnly())
+            menu.add(revertMenuItem);
         revertMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 tree.getSelectionModel().clearSelection();
@@ -487,7 +528,8 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
         /* Tree related stuff. */
         menu = new JMenu(resource.getString("Edit"));
-        menuBar.add(menu);
+        if (!Settings.isReadOnly())
+            menuBar.add(menu);
 
         deleteMenuItem = menu.add(new JMenuItem(resource.getString("Delete")));
         deleteMenuItem.addActionListener(new RemoveAction());
@@ -578,7 +620,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         addNodeAboveAction.setEnabled (siblings);
         addNodeBelowAction.setEnabled (siblings);
         addNodeChildAction.setEnabled (children);
-        tree.setEditable(editable);
+        tree.setEditable(editable && !Settings.isReadOnly());
         if (templateChildren != null && templateChildren.size() == 0)
             addTemplateMenu.setPopupMenuVisible (false);
         else

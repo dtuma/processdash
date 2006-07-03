@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@
 package net.sourceforge.processdash.process.ui;
 
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -78,11 +79,12 @@ public class DisplayDefectTypeStandard extends TinyCGIBase {
             out.print(HTMLUtils.escapeEntities(description));
             out.println("</TD></TR>");
         }
-        out.println("</TABLE>\n"+
-                    "<p class='doNotPrint'>"+
-                    "<a href='/dash/dtsEdit.class'><i>"+
-                    resources.getHTML("Create_Edit_Link")+
-                    "</i></a></p>");
+        out.println("</TABLE>");
+        if (!Settings.isReadOnly())
+            out.println("<p class='doNotPrint'>"+
+                        "<a href='/dash/dtsEdit.class'><i>"+
+                        resources.getHTML("Create_Edit_Link")+
+                        "</i></a></p>");
         if ("PSP - text".equals(name) || "PSP - numbers".equals(name))
             out.println(COPYRIGHT_NOTICE);
         out.println("</BODY></HTML>");

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -33,6 +33,7 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -96,6 +97,11 @@ public class TaskScheduleChooser
 
 
     public void displayNewTemplateDialog(DashboardContext dash) {
+        if (Settings.isReadOnly()) {
+            Toolkit.getDefaultToolkit().beep();
+            return;
+        }
+
         this.dash = dash;
 
         if (dialog != null) dialog.dispose();
@@ -216,17 +222,17 @@ public class TaskScheduleChooser
                                     BorderLayout.CENTER);
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
-        buttons.add(newButton = new JButton
-            (resources.getDlgString("New")));
+        newButton = new JButton(resources.getDlgString("New"));
+        if (!Settings.isReadOnly()) buttons.add(newButton);
         newButton.addActionListener(this);
 
-        buttons.add(renameButton = new JButton
-            (resources.getDlgString("Rename")));
+        renameButton = new JButton(resources.getDlgString("Rename"));
+        if (!Settings.isReadOnly()) buttons.add(renameButton);
         renameButton.addActionListener(this);
         renameButton.setEnabled(false);
 
-        buttons.add(deleteButton = new JButton
-            (resources.getDlgString("Delete")));
+        deleteButton = new JButton(resources.getDlgString("Delete"));
+        if (!Settings.isReadOnly()) buttons.add(deleteButton);
         deleteButton.addActionListener(this);
         deleteButton.setEnabled(false);
 

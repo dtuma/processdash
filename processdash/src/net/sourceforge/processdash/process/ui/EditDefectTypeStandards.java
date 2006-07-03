@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ package net.sourceforge.processdash.process.ui;
 import java.io.IOException;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.DefectTypeStandard;
@@ -63,6 +64,12 @@ public class EditDefectTypeStandards extends TinyCGIBase {
 
     protected void doPost() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
+
+        if (Settings.isReadOnly()) {
+            out.print("Location: ../reports/dts.class\r\n\r\n");
+            return;
+        }
+
         parseFormData();
         if (parameters.containsKey(SAVE)) {
             save(getParameter(NAME), getParameter(CONTENTS));
@@ -76,6 +83,11 @@ public class EditDefectTypeStandards extends TinyCGIBase {
 
     /** Generate CGI script output. */
     protected void doGet() throws IOException {
+        if (Settings.isReadOnly()) {
+            out.print("Location: ../reports/dts.class\r\n\r\n");
+            return;
+        }
+
         writeHeader();
 
         String action = getParameter(ACTION);

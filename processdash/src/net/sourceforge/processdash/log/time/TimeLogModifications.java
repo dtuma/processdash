@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
@@ -38,8 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.naming.OperationNotSupportedException;
-
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.log.ChangeFlagged;
 import net.sourceforge.processdash.log.IDSource;
 import net.sourceforge.processdash.util.EnumerIterator;
@@ -359,7 +357,7 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
     }
 
     public synchronized boolean save() {
-        if (saveFile == null)
+        if (saveFile == null || Settings.isReadOnly())
             return false;
 
         try {

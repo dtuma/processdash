@@ -37,6 +37,7 @@ import java.util.StringTokenizer;
 import javax.swing.Timer;
 
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -66,6 +67,9 @@ public class HierarchyAlterer implements ItemListener {
         if (dashboard.isHierarchyEditorOpen())
             throw new HierarchyAlterationException
                 ("The hierarchy editor is currently open.");
+        if (Settings.isReadOnly())
+            throw new HierarchyAlterationException
+                ("The dashboard is running in read-only mode.");
 
         dashboard.getData().startInconsistency();
         dashboard.getHierarchy().addItemListener(this);

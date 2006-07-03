@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -165,7 +165,7 @@ public class DashController {
         String dataName = DataRepository.createDataName
             (prefix, ExportManager.EXPORT_DATANAME);
         AbstractInstruction instr = ExportManager.getInstance()
-                                .getExportInstructionFromData(dataName);
+                .getExportInstructionFromData(dataName);
         if (instr != null) {
             Runnable task = ExportManager.getInstance().getExporter(instr);
             if (task != null)
@@ -278,6 +278,9 @@ public class DashController {
     public static boolean alterTemplateID(String prefix,
                                           String oldID,
                                           String newID) {
+        if (Settings.isReadOnly())
+            return false;
+
         PropertyKey key = dash.props.findExistingKey(prefix);
         String actualID = dash.props.getID(key);
         if (oldID == actualID || // handles "null == null" case
@@ -312,12 +315,15 @@ public class DashController {
         return InternalSettings.getSettingsFileName();
     }
     public static void addImportSetting(String prefix, String importDir) {
-                ImportDirectoryInstruction instr = new ImportDirectoryInstruction(
-                                importDir, prefix);
-                ImportManager.getInstance().addInstruction(instr);
-        }
+        ImportDirectoryInstruction instr = new ImportDirectoryInstruction(
+                importDir, prefix);
+        ImportManager.getInstance().addInstruction(instr);
+    }
 
     public static void enableTeamSettings() {
+        if (Settings.isReadOnly())
+            return;
+
         // enable earned value rollups.
         InternalSettings.set(EV_ROLLUP, "true");
 

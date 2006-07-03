@@ -256,8 +256,8 @@ public class TaskScheduleDialog
         Box bottomBox = newVBox
             (sp,
              Box.createVerticalStrut(2),
-             isRollup ? null : buildScheduleButtons(),
-             isRollup ? null : Box.createVerticalStrut(2),
+             isRollup || Settings.isReadOnly() ? null : buildScheduleButtons(),
+             isRollup || Settings.isReadOnly() ? null : Box.createVerticalStrut(2),
              buildMainButtons(isRollup));
 
         JSplitPane jsp = new JSplitPane
@@ -277,7 +277,7 @@ public class TaskScheduleDialog
         frame.show();
 
         // if the task list is empty, open the add task dialog immediately.
-        if (((EVTask) model.getRoot()).isLeaf())
+        if (((EVTask) model.getRoot()).isLeaf() && !Settings.isReadOnly())
             addTask();
         else {
             if (getErrors() != null)
@@ -320,8 +320,10 @@ public class TaskScheduleDialog
         addTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     addTask(); }});
-        result.add(addTaskButton);
-        result.add(Box.createHorizontalGlue());
+        if (!Settings.isReadOnly()) {
+            result.add(addTaskButton);
+            result.add(Box.createHorizontalGlue());
+        }
         // button margins: 2 pixels top and bottom, 14 left and right.
 
         deleteTaskButton = new JButton
@@ -331,8 +333,10 @@ public class TaskScheduleDialog
                 public void actionPerformed(ActionEvent e) {
                     deleteTask(); }});
         deleteTaskButton.setEnabled(false);
-        result.add(deleteTaskButton);
-        result.add(Box.createHorizontalGlue());
+        if (!Settings.isReadOnly()) {
+            result.add(deleteTaskButton);
+            result.add(Box.createHorizontalGlue());
+        }
 
 
         moveUpButton = new JButton
@@ -343,8 +347,10 @@ public class TaskScheduleDialog
                     moveTaskUp(); }});
         moveUpButton.setEnabled(false);
         moveUpButton.setMnemonic('U');
-        result.add(moveUpButton);
-        result.add(Box.createHorizontalGlue());
+        if (!Settings.isReadOnly()) {
+            result.add(moveUpButton);
+            result.add(Box.createHorizontalGlue());
+        }
 
         moveDownButton = new JButton
             (isRollup ? resources.getString("Buttons.Move_Schedule_Down")
@@ -354,8 +360,10 @@ public class TaskScheduleDialog
                     moveTaskDown(); }});
         moveDownButton.setEnabled(false);
         moveDownButton.setMnemonic('D');
-        result.add(moveDownButton);
-        result.add(Box.createHorizontalGlue());
+        if (!Settings.isReadOnly()) {
+            result.add(moveDownButton);
+            result.add(Box.createHorizontalGlue());
+        }
 
         flatViewCheckbox = mergedViewCheckbox = null;
         if (!isRollup) {
@@ -443,7 +451,8 @@ public class TaskScheduleDialog
         collaborateButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     showCollaborationWizard(); }});
-        box.add(collaborateButton);
+        if (!Settings.isReadOnly())
+            box.add(collaborateButton);
 
         box.add(Box.createHorizontalGlue());
 
@@ -503,8 +512,10 @@ public class TaskScheduleDialog
         saveButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     save(); }});
-        box.add(saveButton);
-        box.add(Box.createHorizontalStrut(2));
+        if (!Settings.isReadOnly()) {
+            box.add(saveButton);
+            box.add(Box.createHorizontalStrut(2));
+        }
 
         Dimension size = result.getMinimumSize();
         size.width = 2000;
@@ -1189,6 +1200,8 @@ public class TaskScheduleDialog
      *  then add the selected task to the task list as a child of the
      *  task tree root. */
     protected void addTask() {
+        if (Settings.isReadOnly()) return;
+
         String path = null;
         if (isRollup()) {
             path = chooseTaskList();
@@ -1386,6 +1399,8 @@ public class TaskScheduleDialog
     /** delete the currently selected task.
      */
     protected void deleteTask() {
+        if (Settings.isReadOnly()) return;
+
         TreePath selPath = treeTable.getTree().getSelectionPath();
         if (selPath == null) return;
         if (isFlatView()) {
@@ -1474,6 +1489,9 @@ public class TaskScheduleDialog
      * task tree root.
      */
     protected void moveTaskUp() {
+        if (Settings.isReadOnly())
+            return;
+
         if (isFlatView()) {
             moveTaskUpFlatView();
         } else {
@@ -1512,6 +1530,9 @@ public class TaskScheduleDialog
      * task tree root.
      */
     protected void moveTaskDown() {
+        if (Settings.isReadOnly())
+            return;
+
         if (isFlatView()) {
             moveTaskDownFlatView();
         } else {
@@ -1747,7 +1768,7 @@ public class TaskScheduleDialog
     }
 
     protected void enableScheduleButtons() {
-        if (isRollup()) return;
+        if (isRollup() || Settings.isReadOnly()) return;
 
         boolean enableDelete = false, enableInsert = false;
         int[] rows = scheduleTable.getSelectedRows();

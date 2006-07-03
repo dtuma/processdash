@@ -35,6 +35,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.JCheckBox;
 
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
@@ -87,6 +88,8 @@ public class CompletionButton extends JCheckBox implements ActionListener,
             setSelected(false);
             setEnabled(false);
         }
+        if (Settings.isReadOnly())
+            setEnabled(false);
     }
 
     public void actionPerformed(ActionEvent e) {

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -82,7 +82,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
     // Information for the page which asks the user what type of
     // project they wish to create.
     private static final String TYPE_PAGE = "type";
-    private static final String TYPE_URL = "teamStartType.shtm";
+    // private static final String TYPE_URL = "teamStartType.shtm";
     // Information for the page which asks the team leader which team
     // process they wish to use.
     private static final String PROCESS_PAGE = "process";
@@ -93,6 +93,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String TEAM_URL_PAGE = "teamURL";
     private static final String SHOW_URL_PAGE = "showURL";
     private static final String TEAM_URL_URL = "teamStartTeamURL.shtm";
+    // Information for the page which tells the user they are in read only mode
+    private static final String READ_ONLY_URL = "teamStartReadOnly.shtm";
 
 
     private static final String TEAM_PID = "setup//Process_ID";
@@ -112,7 +114,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static Resources resources = Resources.getDashBundle("TeamStart");
 
     private static final Logger logger = Logger.getLogger(
-                TeamStartBootstrap.class.getName());
+            TeamStartBootstrap.class.getName());
 
 
 
@@ -130,6 +132,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         String page = getParameter(PAGE);
         if (page == null)                         showWelcomePage();
         else if (WELCOME_PAGE.equals(page))       showWelcomePage();
+        else if (Settings.isReadOnly())           showReadOnlyPage();
         else if (TYPE_PAGE.equals(page))          handleTypePage();
         else if (SHOW_PROCESS_PAGE.equals(page))  showTeamProcessesPage();
         else if (PROCESS_PAGE.equals(page))       handleProcessPage();
@@ -181,6 +184,11 @@ public class TeamStartBootstrap extends TinyCGIBase {
     /** Display the welcome page */
     protected void showWelcomePage() {
         printRedirect(WELCOME_URL);
+    }
+
+    /** Display the read-only error page */
+    protected void showReadOnlyPage() {
+        printRedirect(READ_ONLY_URL);
     }
 
     /** Handle values posted from the setup type page */
@@ -336,8 +344,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
         try {
             u = new URL(teamURL);
         } catch (IOException ioe) {
-                logger.log(Level.WARNING, "Caught exception creating team URL "
-                                + teamURL, ioe);
+            logger.log(Level.WARNING, "Caught exception creating team URL "
+                    + teamURL, ioe);
             return resources.getHTML("Errors.Invalid_URL");
         }
 
@@ -348,7 +356,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
             conn.connect();
             doc = XMLUtils.parse(conn.getInputStream());
         } catch (Exception e) {
-                logger.log(Level.WARNING, "Could not connect to team URL "+u, e);
+            logger.log(Level.WARNING, "Could not connect to team URL "+u, e);
             return resources.getHTML("Errors.Cannot_Connect_To_URL");
         }
 
@@ -377,7 +385,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     /** Attempt to join a team project. */
     protected void joinProject() {
-        String teamURL = getValue(TEAM_URL);
+        // String teamURL = getValue(TEAM_URL);
         String templateID = getValue(TEMPLATE_ID);
         String templatePath = getValue(TEMPLATE_PATH);
         String templatePathUNC = getValue(TEMPLATE_UNC);
@@ -385,16 +393,16 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
         String errorMessage = null;
         File templateFile = resolveTemplateLocation(templatePath,
-                        templatePathUNC);
+                templatePathUNC);
 
         if (templateIsLoaded(templateID, templateFile, continuationURI)) {
             // the template is already present in the dashboard.  Test to
-                // make certain our dashboard can understand that template.
-                errorMessage = testContinuation(getPrefix(), continuationURI);
+            // make certain our dashboard can understand that template.
+            errorMessage = testContinuation(getPrefix(), continuationURI);
 
-                // If that went OK, redirect to the continuation URI.
-                if (errorMessage == null)
-                        printRedirect(getPrefix(), continuationURI);
+            // If that went OK, redirect to the continuation URI.
+            if (errorMessage == null)
+                printRedirect(getPrefix(), continuationURI);
 
         } else {
             errorMessage = initiateTemplateLoad
@@ -404,37 +412,37 @@ public class TeamStartBootstrap extends TinyCGIBase {
         }
 
         if (errorMessage != null) {
-                errorMessage = HTMLUtils.escapeEntities(errorMessage);
-                errorMessage = HTMLUtils.urlEncode(errorMessage);
+            errorMessage = HTMLUtils.escapeEntities(errorMessage);
+            errorMessage = HTMLUtils.urlEncode(errorMessage);
             printRedirect(JOIN_ERROR_URL + "?errMsg=" + errorMessage);
         }
     }
 
 
-        private File resolveTemplateLocation(String templatePath,
-                        String templatePathUNC) {
-                File f = new File(templatePath);
-                if (!f.exists()) {
-                        if (templatePathUNC != null && templatePathUNC.length() > 0) {
-                                // Try to find the template file using the UNC path.
-                                NetworkDriveList networkDriveList = new NetworkDriveList();
-                                String altTemplatePath = networkDriveList.fromUNCName(
-                                                templatePathUNC);
-                                if (altTemplatePath != null)
-                                        f = new File(altTemplatePath);
-                        }
-                }
-
-                try {
-                        f = f.getCanonicalFile();
-                } catch (Exception e) {
-                        logger.log(Level.WARNING,
-                                        "Caught exception getting canonical file", e);
-                }
-                logger.finer("resolveTemplateLocation('" + templatePath + "', '"
-                                + templatePathUNC + "') = '" + f + "'");
-                return f;
+    private File resolveTemplateLocation(String templatePath,
+            String templatePathUNC) {
+        File f = new File(templatePath);
+        if (!f.exists()) {
+            if (templatePathUNC != null && templatePathUNC.length() > 0) {
+                // Try to find the template file using the UNC path.
+                NetworkDriveList networkDriveList = new NetworkDriveList();
+                String altTemplatePath = networkDriveList.fromUNCName(
+                        templatePathUNC);
+                if (altTemplatePath != null)
+                    f = new File(altTemplatePath);
+            }
         }
+
+        try {
+            f = f.getCanonicalFile();
+        } catch (Exception e) {
+            logger.log(Level.WARNING,
+                    "Caught exception getting canonical file", e);
+        }
+        logger.finer("resolveTemplateLocation('" + templatePath + "', '"
+                + templatePathUNC + "') = '" + f + "'");
+        return f;
+    }
 
 
     private boolean templateIsLoaded(String templateID,
@@ -443,8 +451,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
     {
         // if we have no loaded template with the given ID, return false.
         if (DashController.getTemplates().get(templateID) == null) {
-                logger.log(Level.FINER, "No template found with ID {0}",
-                                templateID);
+            logger.log(Level.FINER, "No template found with ID {0}",
+                    templateID);
             return false;
         }
 
@@ -462,7 +470,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         // Allow the user to disable the exact matching logic below via
         // a setting.
         if (Settings.getBool("teamStart.relaxTemplateMatchingLogic", false))
-                return true;
+            return true;
 
         // check to see if the continuation URI appears to be provided by
         // the named templatePath
@@ -474,15 +482,15 @@ public class TeamStartBootstrap extends TinyCGIBase {
         logger.log(Level.FINER, "urlJarpath={0}", urlJarpath);
         File urlJarfile = new File(urlJarpath);
         try {
-                File urlJarfileCanon = urlJarfile.getCanonicalFile();
-                File templateJarfileCanon = templateJarfile.getCanonicalFile();
-                if (!urlJarfileCanon.equals(templateJarfileCanon)) {
-                                logger.finer("paths do not match: '" + urlJarfileCanon
-                                                + "' != '" + templateJarfileCanon + "'" );
+            File urlJarfileCanon = urlJarfile.getCanonicalFile();
+            File templateJarfileCanon = templateJarfile.getCanonicalFile();
+            if (!urlJarfileCanon.equals(templateJarfileCanon)) {
+                logger.finer("paths do not match: '" + urlJarfileCanon
+                        + "' != '" + templateJarfileCanon + "'" );
                 return false;
-                        }
+            }
         } catch (IOException ioe) {
-                logger.log(Level.WARNING, "Encountered error comparing paths", ioe);
+            logger.log(Level.WARNING, "Encountered error comparing paths", ioe);
             return false;
         }
 
@@ -548,15 +556,15 @@ public class TeamStartBootstrap extends TinyCGIBase {
         String suffix =
             templatePath.substring(templatePath.length()-4).toLowerCase();
         if (!suffix.equals(".jar") && !suffix.equals(".zip"))
-                return resources.getString("Errors.Only_Jar_Zip");
+            return resources.getString("Errors.Only_Jar_Zip");
 
         // Make certain the file can be found.
         if (!templateFile.isFile())
-                return resources.getString("Errors.Cannot_Find_File");
+            return resources.getString("Errors.Cannot_Find_File");
 
         // Make certain that access permissions allow us to read the file
         if (!templateFile.canRead())
-                return resources.getString("Errors.Cannot_Read_File");
+            return resources.getString("Errors.Cannot_Read_File");
 
         // Check to make certain the file is a valid dashboard package, and
         // is compatible with this version of the dashboard.
@@ -572,19 +580,19 @@ public class TeamStartBootstrap extends TinyCGIBase {
                     requiredVersion = requiredVersion.substring(0,
                             requiredVersion.length() - 1);
                     return resources.format(
-                                "Errors.Version_Mismatch.Need_Upgrade_FMT",
-                                requiredVersion, currentDashVersion);
+                            "Errors.Version_Mismatch.Need_Upgrade_FMT",
+                            requiredVersion, currentDashVersion);
                 } else {
                     return resources.format("Errors.Version_Mismatch.Exact_FMT",
-                                requiredVersion, currentDashVersion);
+                            requiredVersion, currentDashVersion);
                 }
             }
 
         } catch (InvalidDashPackage idp) {
-                return resources.getString("Errors.Invalid_Dash_Package");
+            return resources.getString("Errors.Invalid_Dash_Package");
         } catch (Exception e) {
-                logger.log(Level.WARNING, "Unable to read team process add-on", e);
-                return resources.getString("Errors.Cannot_Read_File");
+            logger.log(Level.WARNING, "Unable to read team process add-on", e);
+            return resources.getString("Errors.Cannot_Read_File");
         }
 
         // Initiate the loading of the template definition.
@@ -593,9 +601,9 @@ public class TeamStartBootstrap extends TinyCGIBase {
     }
 
     /**
-         * The DashController.loadNewTemplate method will block, waiting for user
-         * input, so we must run it in a thread so this CGI script can complete.
-         */
+     * The DashController.loadNewTemplate method will block, waiting for user
+     * input, so we must run it in a thread so this CGI script can complete.
+     */
     private class TemplateLoadTask extends Thread {
         private String templatePath, templateDir;
         public TemplateLoadTask(String templatePath, String templateDir) {

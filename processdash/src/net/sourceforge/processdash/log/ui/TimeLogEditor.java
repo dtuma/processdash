@@ -1,5 +1,5 @@
+// Copyright (C) 1999-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -67,7 +67,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -84,7 +83,6 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.ChangeFlagged;
 import net.sourceforge.processdash.log.time.CommittableModifiableTimeLog;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
@@ -177,7 +175,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public boolean saveRevertOrCancel(boolean showCancel) {
-        if (isDirty()) {
+        if (isDirty() && !Settings.isReadOnly()) {
             int optionType = showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
                     : JOptionPane.YES_NO_OPTION;
             int userChoice = JOptionPane.showConfirmDialog(frame,
@@ -210,27 +208,11 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         tableContainsRows = (tableModel.getRowCount() > 0);
         addButton.setEnabled(tableContainsRows || selectedNodeLoggingAllowed);
 
-            recalcTimer.restart();
+        recalcTimer.restart();
     }
 
-        public void timeLogChanged(TimeLogEvent e) {
-            recalcTimer.restart();
-    }
-
-    private boolean affectsElapsedTime(TimeLogEvent evt) {
-        TimeLogEntry e = evt.getTimeLogEntry();
-        if (e == null)
-            return true;
-
-
-        return false;
-    }
-
-    private boolean isDeletion(TimeLogEntry tle) {
-        if (tle instanceof ChangeFlagged)
-            return ((ChangeFlagged) tle).getChangeFlag() == ChangeFlagged.DELETED;
-        else
-            return false;
+    public void timeLogChanged(TimeLogEvent e) {
+        recalcTimer.restart();
     }
 
     void cancelPostedChanges() {
@@ -593,13 +575,13 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
     protected void setTimeLog(CommittableModifiableTimeLog newTimeLog) {
         if (newTimeLog != timeLog) {
-                if (timeLog != null)
-                        timeLog.removeTimeLogListener(this);
+            if (timeLog != null)
+                timeLog.removeTimeLogListener(this);
 
-                timeLog = newTimeLog;
+            timeLog = newTimeLog;
 
-                if (timeLog != null)
-                        timeLog.addTimeLogListener(this);
+            if (timeLog != null)
+                timeLog.addTimeLogListener(this);
             tableModel.setTimeLog(timeLog);
         }
     }
@@ -755,12 +737,12 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         createRecalcTimer();
     }
 
-        private void createRecalcTimer() {
-                recalcTimer = new Timer(1000, (ActionListener) EventHandler.create(
-                                ActionListener.class, this, "setTimes"));
-                recalcTimer.setRepeats(false);
-                recalcTimer.setInitialDelay(100);
-        }
+    private void createRecalcTimer() {
+        recalcTimer = new Timer(1000, (ActionListener) EventHandler.create(
+                ActionListener.class, this, "setTimes"));
+        recalcTimer.setRepeats(false);
+        recalcTimer.setInitialDelay(100);
+    }
 
     private JScrollPane constructTreePanel() {
         /* Create the JTreeModel. */
@@ -786,10 +768,11 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
     private JPanel constructEditPanel() {
         JPanel retPanel = new JPanel(false);
-        JButton button;
 
         retPanel.setLayout(new BorderLayout());
         tableModel = new TimeLogTableModel();
+        if (Settings.isReadOnly())
+            tableModel.setEditable(false);
         tableModel.addTableModelListener(this);
         table = new TimeLogJTable(tableModel);
         TableUtils.configureTable(table, TimeLogTableModel.COLUMN_WIDTHS,
@@ -801,7 +784,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         createButton(btnPanel, "Delete", "deleteSelectedRow");
         createButton(btnPanel, "Summarize_Button", "summarizeWarning");
 
-        retPanel.add("South", btnPanel);
+        if (!Settings.isReadOnly())
+            retPanel.add("South", btnPanel);
 
         return retPanel;
     }
@@ -811,8 +795,6 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         retPanel.setLayout(new BoxLayout(retPanel, BoxLayout.X_AXIS));
         retPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         DropDownButton button;
-        JButton btn;
-        Insets insets = new Insets(0, 2, 0, 2);
         JLabel label;
 
         retPanel.add(Box.createHorizontalGlue());
@@ -855,8 +837,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         createButton(retPanel, "Time_Card_View_Button", "showTimeCard");
         retPanel.add(Box.createHorizontalStrut(100));
 
-        revertButton = createButton(retPanel, "Revert", "reload");
-        saveButton = createButton(retPanel, "Save", "save");
+        revertButton = createButton(retPanel, "Revert", "reload", true);
+        saveButton = createButton(retPanel, "Save", "save", true);
         createButton(retPanel, "Close", "close");
 
         return retPanel;
@@ -916,9 +898,14 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
 
     private JButton createButton(Container p, String resKey, String action) {
+        return createButton(p, resKey, action, false);
+    }
+    private JButton createButton(Container p, String resKey, String action,
+            boolean hideIfReadOnly) {
         JButton result = new JButton(getResource(resKey));
         result.addActionListener(createActionListener(action));
-        p.add(result);
+        if (hideIfReadOnly == false || Settings.isReadOnly() == false)
+            p.add(result);
         return result;
     }
 
@@ -928,20 +915,20 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
     private class TimeLogJTable extends JTable {
 
-                public TimeLogJTable(TimeLogTableModel tableModel) {
-                        super(tableModel);
-                }
+        public TimeLogJTable(TimeLogTableModel tableModel) {
+            super(tableModel);
+        }
 
-                public boolean editCellAt(int row, int column, EventObject e) {
-                        boolean result = super.editCellAt(row, column, e);
+        public boolean editCellAt(int row, int column, EventObject e) {
+            boolean result = super.editCellAt(row, column, e);
 
-                        if (result == true
-                                        && e instanceof MouseEvent
-                                        && shouldSelectAll(column))
-                                DeferredSelectAllExecutor.register(getEditorComponent());
+            if (result == true
+                    && e instanceof MouseEvent
+                    && shouldSelectAll(column))
+                DeferredSelectAllExecutor.register(getEditorComponent());
 
-                        return result;
-                }
+            return result;
+        }
 
         public Component prepareEditor(TableCellEditor tce, int row, int col) {
             Component result = super.prepareEditor(tce, row, col);
@@ -950,10 +937,10 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
             return result;
         }
 
-                private boolean shouldSelectAll(int column) {
-                        return (column == TimeLogTableModel.COL_ELAPSED
-                                        || column == TimeLogTableModel.COL_INTERRUPT);
-                }
+        private boolean shouldSelectAll(int column) {
+            return (column == TimeLogTableModel.COL_ELAPSED
+                    || column == TimeLogTableModel.COL_INTERRUPT);
+        }
 
     }
 

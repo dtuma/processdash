@@ -613,13 +613,16 @@ public class EVTaskList extends AbstractTreeTableModel
             return true;
 
         case PLAN_TIME_COLUMN:
-            return ((EVTask) node).plannedTimeIsEditable();
+            return Settings.isReadOnly() == false
+                    && ((EVTask) node).plannedTimeIsEditable();
 
         case DATE_COMPLETE_COLUMN:
-            return ((EVTask) node).completionDateIsEditable();
+            return Settings.isReadOnly() == false
+                    && ((EVTask) node).completionDateIsEditable();
 
         case DEPENDENCIES_COLUMN:
-            return (this instanceof EVTaskListData && node != root);
+            return (Settings.isReadOnly() == false
+                    && this instanceof EVTaskListData && node != root);
         }
         return false;
     }

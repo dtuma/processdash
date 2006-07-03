@@ -29,6 +29,9 @@
 <head>
 <title>Team Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='teamStart.css'>
+<!--#if READ_ONLY -->
+<meta http-equiv='Refresh' content='0;URL=teamStartReadOnly.shtm'>
+<!--#endif-->
 </head>
 <body>
 

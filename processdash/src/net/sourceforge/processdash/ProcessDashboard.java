@@ -159,12 +159,15 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             logErr("Couldn't start web server", ioe);
         }
 
+        maybeEnableReadOnlyMode();
+
         // ensure that we have exclusive control of the data in the
         // property_directory
         //
-        concurrencyLock = new ConcurrencyLock(property_directory,
-                                              webServer.getPort(),
-                                              webServer.getTimestamp());
+        if (!Settings.isReadOnly())
+            concurrencyLock = new ConcurrencyLock(property_directory,
+                                                  webServer.getPort(),
+                                                  webServer.getTimestamp());
 
         // run the backup process as soon as possible
         FileBackupManager.maybeRun
@@ -186,7 +189,12 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
         versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
         logger.info("Process Dashboard version " + versionNumber);
-        setTitle(title != null ? title : resources.getString("Window_Title"));
+
+        if (title == null)
+            title = resources.getString("Window_Title");
+        if (Settings.isReadOnly())
+            title = resources.format("ReadOnly.Title_FMT", title);
+        setTitle(title);
 
         // initialize the content roots for the http server.
         webServer.setRoots(TemplateLoader.getTemplateURLs());
@@ -320,9 +328,11 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         addToMainWindow(configure_button, 0);
         PCSH.enableHelpKey(this, "QuickOverview");
         pause_button = new PauseButton(timeLog.getTimeLoggingModel());
-        addToMainWindow(pause_button, 0);
+        if (!Settings.isReadOnly())
+            addToMainWindow(pause_button, 0);
         defect_button = new DefectButton(this);
-        addToMainWindow(defect_button, 0);
+        if (!Settings.isReadOnly())
+            addToMainWindow(defect_button, 0);
         script_button = new ScriptButton(this);
         addToMainWindow(script_button, 0);
         hierarchy_menubar = new JMenuBar();
@@ -432,6 +442,43 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                     : HTTPUtils.DEFAULT_CHARSET);
 
         return charsetName;
+    }
+
+    private void maybeEnableReadOnlyMode() {
+        if (Settings.isReadOnly())
+            return;
+
+        if (Settings.getBool("readOnly", false)) {
+            // if the user has a "readOnly=true" setting, turn on the
+            // read only flag.
+            InternalSettings.setReadOnly(true);
+            return;
+        }
+
+        String setting = Settings.getVal("readOnly");
+        if (setting == null) return;
+        if (setting.toLowerCase().startsWith("recommend")) {
+            // Must manually use ResourceBundles until after the
+            // TemplateLoader is initialized.
+            ResourceBundle res = ResourceBundle.getBundle(
+                    "Templates.resources.ProcessDashboard");
+            JRadioButton readOnlyOption = new JRadioButton(res
+                    .getString("ReadOnly.Recommended.Read_Only_Option"));
+            readOnlyOption.setSelected(true);
+            JRadioButton readWriteOption = new JRadioButton(res
+                    .getString("ReadOnly.Recommended.Read_Write_Option"));
+            ButtonGroup group = new ButtonGroup();
+            group.add(readOnlyOption);
+            group.add(readWriteOption);
+            String title = res.getString("ReadOnly.Recommended.Title");
+            Object[] message = new Object[] {
+                    res.getString("ReadOnly.Recommended.Message").split("\n"),
+                    readOnlyOption, readWriteOption };
+            JOptionPane.showMessageDialog(null, message, title,
+                    JOptionPane.QUESTION_MESSAGE);
+            if (readOnlyOption.isSelected())
+                InternalSettings.setReadOnly(true);
+        }
     }
 
     private void displayStartupIOError(String resourceKey, String filename) {
@@ -677,6 +724,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     public List saveAllData() {
         List unsavedData = new LinkedList();
+        if (Settings.isReadOnly())
+            return unsavedData;
 
         TaskScheduleChooser.closeAll();
 
@@ -812,8 +861,17 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         ensureJRE13();
 
+        if (Boolean.getBoolean("readOnly"))
+            InternalSettings.setReadOnly(true);
+
+        int pos = 0;
+        if (args.length > 0 && "readOnly".equalsIgnoreCase(args[0])) {
+            InternalSettings.setReadOnly(true);
+            pos++;
+        }
+
         ProcessDashboard dash = new ProcessDashboard
-            (args.length > 0 ? args[0] : null);
+            (args.length > pos ? args[pos] : null);
         DashController.setDashboard(dash);
 
         dash.pack();

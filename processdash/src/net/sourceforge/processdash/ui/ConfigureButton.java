@@ -1,5 +1,5 @@
+// Copyright (C) 1999-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,33 +26,38 @@
 
 package net.sourceforge.processdash.ui;
 
-import javax.swing.*;
-
-
-import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.ev.ui.*;
-import net.sourceforge.processdash.hier.DashHierarchy;
-import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.hier.ui.*;
-import net.sourceforge.processdash.i18n.*;
-import net.sourceforge.processdash.log.*;
-import net.sourceforge.processdash.log.time.CommittableModifiableTimeLog;
-import net.sourceforge.processdash.log.time.DashboardTimeLog;
-import net.sourceforge.processdash.log.time.TimeLoggingApprover;
-import net.sourceforge.processdash.log.ui.*;
-import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
-import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
-import net.sourceforge.processdash.tool.probe.*;
-import net.sourceforge.processdash.ui.help.*;
-import net.sourceforge.processdash.util.HTMLUtils;
-
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Properties;
+
+import javax.swing.Action;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.ui.HierarchyEditor;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.i18n.TranslationFilter;
+import net.sourceforge.processdash.i18n.TranslationSorter;
+import net.sourceforge.processdash.i18n.TranslationsSavedListener;
+import net.sourceforge.processdash.log.time.DashboardTimeLog;
+import net.sourceforge.processdash.log.time.TimeLoggingApprover;
+import net.sourceforge.processdash.log.ui.DefectLogEditor;
+import net.sourceforge.processdash.log.ui.TimeLogEditor;
+import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
+import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
+import net.sourceforge.processdash.tool.probe.ProbeDialog;
+import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 public class ConfigureButton extends JMenuBar implements ActionListener, HierarchyEditor.Listener {
@@ -119,8 +124,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
 
         String    s;
         JMenu     menu = new JMenu(resources.getString("Main_Menu_Name"));
-        JMenuItem menuItem;
-        JMenuItem helpItem = null;
         add (menu);
         setMinimumSize(getPreferredSize());
 
@@ -168,8 +171,10 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         toolMenu.enableInputMethods(false);
 
         toolMenu.add(makeMenuItem(PROBE_DIALOG));
-        toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
-        toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
+        if (!Settings.isReadOnly()) {
+            toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
+            toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
+        }
         maybeAddTranslationTool(toolMenu);
     }
 

@@ -34,9 +34,11 @@ import net.sourceforge.processdash.security.DashboardPermission;
 
 public class Settings {
 
+    public static final String READ_ONLY = "READ_ONLY";
     protected static Properties settings = null;
     protected static Properties serializable = null, defaults = null;
     protected static String homedir = null;
+    static boolean readOnly;
 
     public static final String sep = System.getProperty("file.separator");
 
@@ -148,6 +150,10 @@ public class Settings {
             serializable = results;
         }
         return serializable;
+    }
+
+    public static boolean isReadOnly() {
+        return readOnly;
     }
 
     protected static void checkPermission(String action) {

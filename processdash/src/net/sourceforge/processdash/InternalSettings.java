@@ -88,6 +88,7 @@ public class InternalSettings extends Settings {
             }
 
         } catch (Exception e) { e.printStackTrace(); }
+        setReadOnly(readOnly);
 
         //
         Properties propertyComments = new Properties();
@@ -163,6 +164,7 @@ public class InternalSettings extends Settings {
         fsettings.setFilename(settingsFilename);
         fsettings.setHeader(PROPERTIES_FILE_HEADER);
         fsettings.setKeepingStrangeKeys(true);
+
     }
     private static final String getSettingsFilename() {
         if (System.getProperty("os.name").toUpperCase().startsWith("WIN"))
@@ -229,6 +231,9 @@ public class InternalSettings extends Settings {
     }
 
     static synchronized void saveSettings() {
+        if (isReadOnly())
+            return;
+
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
                 if (fsettings != null) try {
@@ -247,9 +252,19 @@ public class InternalSettings extends Settings {
         return dirty;
     }
 
+    static void setReadOnly(boolean ro) {
+        Settings.readOnly = ro;
+        if (defaults != null) {
+            if (ro)
+                defaults.put(READ_ONLY, "true");
+            else
+                defaults.remove(READ_ONLY);
+        }
+    }
+
     static synchronized void setDisableChanges(boolean disable) {
         disableChanges = disable;
-        logger.info("Settings changes "
+        logger.fine("Settings changes "
                 + (disableChanges ? "disabled." : "enabled."));
     }
 

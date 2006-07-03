@@ -68,6 +68,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
@@ -1425,6 +1426,7 @@ public class DataRepository implements Repository, DataContext {
 
 
         public DataRepository() {
+            saveDisabled = Settings.isReadOnly();
             INTERN_MAP = data;
             includedFileCache.put("<dataFile.txt>", globalDataDefinitions);
             dataNotifier = new DataNotifier();
@@ -2911,7 +2913,7 @@ public class DataRepository implements Repository, DataContext {
                 // if this is a regular file,
                 if (dataFile != null && dataFile.file != null) {
                     datafilePath = dataFile.file.getPath();
-                    fileEditable = dataFile.canWrite;
+                    fileEditable = dataFile.canWrite && !Settings.isReadOnly();
                     // register the names of data elements in this file IF it is
                     // not global data.
                     registerDataNames = dataPrefix.length() > 0;

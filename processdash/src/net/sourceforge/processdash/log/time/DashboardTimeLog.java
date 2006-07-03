@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
@@ -144,7 +145,8 @@ public class DashboardTimeLog implements ModifiableTimeLog,
 
     public static boolean timeLoggingAllowed(PropertyKey node,
             DashHierarchy props, DataContext data) {
-        if (node == null || props == null || data == null)
+        if (node == null || props == null || data == null
+                || Settings.isReadOnly())
             return false;
 
         // if the node has children, logging time here is not allowed.

@@ -275,7 +275,7 @@ function gotoUnLockURL() {
  */
 
 function writeExportHTML() {
-    document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<!--#echo Export_To --> ");
+    document.writeln("<!--#echo Export_To --> ");
     document.writeln("<A HREF='/reports/form2html.class'>" +
                      "<!--#echo Export_To_HTML --></A>");
     var url = urlEncode(window.location.pathname +
@@ -297,7 +297,10 @@ function writeHelpLink() {
 function writeFooter() {
     if (!SILENT) {
         document.write('<span class=doNotPrint>');
+	<!--#if !READ_ONLY -->
         document.write(unlockHTML);
+        document.write("&nbsp; &nbsp; &nbsp; &nbsp;");
+	<!--#endif-->
         writeExportHTML();
         writeHelpLink();
         document.write('</span>');

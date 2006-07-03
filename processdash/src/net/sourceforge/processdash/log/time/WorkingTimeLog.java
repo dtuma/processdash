@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,8 +35,7 @@ import java.io.Reader;
 import java.util.Date;
 import java.util.Iterator;
 
-import javax.naming.OperationNotSupportedException;
-
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.log.IDSource;
 import net.sourceforge.processdash.log.SaveableDataSource;
 import net.sourceforge.processdash.util.EnumerIterator;
@@ -115,6 +114,9 @@ public class WorkingTimeLog implements ModifiableTimeLog, IDSource,
     }
 
     private synchronized void maybeCleanup() throws IOException {
+        if (Settings.isReadOnly())
+            return;
+
         File oldStyleFile = getFile(OLD_TIME_LOG_FILENAME);
         if (oldStyleFile.isFile() && oldStyleFile.length() > 0) {
             Iterator currentEntries = realTimeMods.filter(null, null, null);
@@ -144,6 +146,9 @@ public class WorkingTimeLog implements ModifiableTimeLog, IDSource,
 
     private synchronized void doCleanup(Iterator timeLogEntries)
             throws IOException {
+        if (Settings.isReadOnly())
+            return;
+
         // start by writing the output to a temporary file. Although we could
         // actually write directly to the destination file, that would be
         // relying on implementation details (of both TimeLogReader and

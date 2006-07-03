@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,8 +25,6 @@
 
 package net.sourceforge.processdash.log.time;
 
-import java.awt.BorderLayout;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -36,13 +34,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JButton;
-import javax.swing.JPanel;
 import javax.swing.table.AbstractTableModel;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.ChangeFlagged;
-import net.sourceforge.processdash.log.IDSource;
 import net.sourceforge.processdash.util.FormatUtil;
 
 public class TimeLogTableModel extends AbstractTableModel implements
@@ -57,6 +52,8 @@ public class TimeLogTableModel extends AbstractTableModel implements
     private Date filterStart;
 
     private Date filterEnd;
+
+    private boolean isEditable = true;
 
     public static final int COL_ID = -1;
 
@@ -105,6 +102,14 @@ public class TimeLogTableModel extends AbstractTableModel implements
         filterStart = from;
         filterEnd = to;
         refreshFilteredEntries();
+    }
+
+    public boolean isEditable() {
+        return isEditable;
+    }
+
+    public void setEditable(boolean isEditable) {
+        this.isEditable = isEditable;
     }
 
     protected void refreshFilteredEntries() {
@@ -164,7 +169,7 @@ public class TimeLogTableModel extends AbstractTableModel implements
     }
 
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return true;
+        return isEditable;
     }
 
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {

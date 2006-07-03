@@ -55,6 +55,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.event.EventListenerList;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.DefectLogID;
 import net.sourceforge.processdash.process.ScriptID;
@@ -633,6 +634,9 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     }
 
     public void saveXML(String filename, String comment) throws IOException {
+        if (Settings.isReadOnly())
+            return;
+
         BufferedWriter out = new BufferedWriter
             (new RobustFileWriter(filename, "UTF-8"));
         out.write(XML_HEADER);
@@ -657,6 +661,9 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     // final output file.
     public void saveOld (String datafilePath,
                       String comment) throws IOException {
+        if (Settings.isReadOnly())
+            return;
+
         PropertyKey key;
         Prop value;
         File propsFile = new File(datafilePath);
