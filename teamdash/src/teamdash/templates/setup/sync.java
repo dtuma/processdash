@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -69,6 +70,9 @@ public class sync extends TinyCGIBase {
 
     public void writeContents() throws IOException {
         try {
+            if (Settings.getBool("READ_ONLY", false))
+                signalError("generalError", READ_ONLY_MODE_ERR_MESSAGE);
+
             // locate the root of the included project.
             findProject();
 
@@ -446,4 +450,8 @@ public class sync extends TinyCGIBase {
     private static final String DELETE_PREFIX = "DELETE:";
     private static final String COMPLETE_DATANAME = "complete_ //list";
     private static final String DELETE_DATANAME = "delete_ //list";
+
+    private static final String READ_ONLY_MODE_ERR_MESSAGE =
+        "You are currently running the dashboard in read-only mode, so " +
+        "no changes can be made.";
 }

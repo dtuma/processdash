@@ -2,6 +2,9 @@
 <head>
 <title>Edit List of Subprojects</title>
 <link rel=stylesheet type="text/css" href="../style.css">
+<!--#if READ_ONLY -->
+<meta http-equiv='Refresh' content='0;URL=subprojectEdit?readOnly'>
+<!--#endif-->
 <style>
 
 table.subprojectTable {
@@ -38,6 +41,7 @@ function popup() {
 
 </head>
 <body>
+<!--#if !READ_ONLY -->
 
 <h1><!--#echo PATH_TRANSLATED --></h1>
 
@@ -68,5 +72,6 @@ function popup() {
     <!--#echo [Errors//Settings_File] -->
 </p>
 
+<!--#endif !READ_ONLY -->
 </body>
 </html>

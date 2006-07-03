@@ -102,7 +102,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         } else {
             editor = WBSEditor.createAndShowEditor(directory, bottomUp,
-                    showTeam, false);
+                    showTeam, false, Settings.getBool("READ_ONLY", false));
             if (editor != null)
                 editors.put(key, editor);
             else
@@ -143,6 +143,11 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (showTeam)
             out.print("<property name='teamdash.wbs.showTeamMemberList' " +
                         "value='true'/>\n");
+
+        if (Settings.getBool("READ_ONLY", false))
+            out.print("<property name='teamdash.wbs.readOnly' " +
+                        "value='true'/>\n");
+
         out.print("</resources>\n");
 
         out.print("<application-desc>\n");

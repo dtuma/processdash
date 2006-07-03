@@ -393,7 +393,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     public void windowDeactivated(WindowEvent e) {}
 
     public static WBSEditor createAndShowEditor(String directory,
-            boolean bottomUp, boolean showTeamList, boolean exitOnClose) {
+            boolean bottomUp, boolean showTeamList, boolean exitOnClose,
+            boolean forceReadOnly) {
         File dir = new File(directory);
         File dumpFile = new File(dir, "projDump.xml");
         TeamProject proj;
@@ -401,6 +402,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             proj = new TeamProjectBottomUp(dir, "Team Project");
         else
             proj = new TeamProject(dir, "Team Project");
+        if (forceReadOnly)
+            proj.setReadOnly(true);
 
         String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
         try {
@@ -429,7 +432,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         boolean bottomUp = Boolean.getBoolean("teamdash.wbs.bottomUp");
         boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
-        createAndShowEditor(filename, bottomUp, showTeam, true);
+        boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly");
+        createAndShowEditor(filename, bottomUp, showTeam, true, readOnly);
     }
 
     private static void showBadFilenameError(String filename) {

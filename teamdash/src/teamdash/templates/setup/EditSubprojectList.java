@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -72,7 +73,9 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
 
     protected void writeContents() throws IOException {
-        if (parameters.containsKey(DISPLAY_ACTION))
+        if (Settings.getBool("READ_ONLY", false))
+            showReadOnlyError();
+        else if (parameters.containsKey(DISPLAY_ACTION))
             showProjectList();
         else if (parameters.containsKey(ADD_ACTION))
             showAddPage();
@@ -100,6 +103,13 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
     /*
      * Entry methods to show a particular page
      */
+
+    private void showReadOnlyError() {
+        out.write("<html><head><title>Read-Only Mode</title></head>");
+        out.write("<body><h1>Read-Only Mode</h1>");
+        out.write("You are currently running the dashboard in read-only mode."
+                + "  No changes can be made.</body></html>");
+    }
 
     private void showProjectList() {
         Map subprojects = getSubprojects();
