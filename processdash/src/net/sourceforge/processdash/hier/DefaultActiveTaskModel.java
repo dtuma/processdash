@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -126,25 +126,6 @@ public class DefaultActiveTaskModel implements ActiveTaskModel {
         }
 
         return setPhase(parent.getParent(), phase);
-    }
-
-    public boolean setNextPhase() {
-        if (node == null)
-            return false;
-        PropertyKey parent = node.getParent();
-        if (parent == null)
-            return false;
-        Prop parentProp = hierarchy.pget(parent);
-        if (parentProp == null)
-            return false;
-
-        for (int i = 0; i < parentProp.getNumChildren() - 1; i++) {
-            if (node.equals(parentProp.getChild(i))) {
-                return setNode(parentProp.getChild(i + 1));
-            }
-        }
-
-        return false;
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l) {

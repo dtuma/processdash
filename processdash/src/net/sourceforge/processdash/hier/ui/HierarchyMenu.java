@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Vector;
 
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -45,14 +46,15 @@ import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
-import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.TaskNavigationSelector;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.NarrowJMenu;
 
-public class HierarchyMenu implements ActionListener, PropertyChangeListener {
+public class HierarchyMenu implements ActionListener, PropertyChangeListener,
+        TaskNavigationSelector.NavMenuUI {
 
     ProcessDashboard parent;
     ActiveTaskModel activeTaskModel;
@@ -60,10 +62,6 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
     JMenu menu = null;
     HierarchyMenu child = null;
     PropertyKey self = null;
-
-    private void debug(String msg) {
-        // System.out.println(msg);
-    }
 
     public HierarchyMenu(ProcessDashboard dash, JMenuBar menuBar,
             ActiveTaskModel model, PropertyKey useSelf) {
@@ -75,7 +73,6 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
         // if (self != null)
         // debug (self.toString());
 
-        String s;
         DashHierarchy props = parent.getProperties();
 
         int numChildren = props.getNumChildren(self);
@@ -96,9 +93,6 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
             parent.validate();
             parent.pack();
         }
-
-        if (PropertyKey.ROOT.equals(useSelf))
-            activeTaskModel.addPropertyChangeListener(this);
     }
 
     private void addMenuItemsForChildren(DashHierarchy props) {
@@ -112,7 +106,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
 
             if (destMenu.getItemCount()+1 >= maxItemsPerMenu) {
                 JMenu moreMenu = new JMenu(
-                                Resources.getGlobalBundle().getDlgString("More"));
+                        Resources.getGlobalBundle().getDlgString("More"));
                 destMenu.insert(moreMenu, 0);
                 destMenu.insertSeparator(1);
                 destMenu = moreMenu;
@@ -120,9 +114,49 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
 
             destMenu.add(menuItem);
         }
-        }
+    }
 
-        public void delete() {
+    private int getNumChildren() {
+        return (menu == null ? 0 : menu.getMenuComponentCount());
+    }
+
+    public String getDisplayName() {
+        if (self == PropertyKey.ROOT)
+            return null;
+        else
+            return self.path();
+    }
+
+    public boolean selectNext() {
+        // if this is the terminal HierarchyButton without a menu, we
+        // cannot perform selectNext.  Return false.
+        if (child == null) { return false; }
+
+        // otherwise, try to delegate this task to our child.  If the child is
+        // able to perform a selectNext, we're done.
+        if ((child != null) && child.selectNext()) return true;
+
+        // if our child had only one subchild (extremely common in team
+        // projects), then it will never be able to selectNext.  We'll
+        // perform a selectNext on its behalf.  But if our child had
+        // multiple children, stop here.
+        if (child.getNumChildren() > 1) { return false; }
+
+        // calculate the number position of the next item to be selected.
+        DashHierarchy props = parent.getProperties ();
+        int sel = props.getSelectedChild (self) + 1;
+        PropertyKey newSelKey = props.getChildKey(self, sel);
+
+        // if that item is past the end of our list, we cannot perform
+        // selectNext. Return false.
+        if (newSelKey == null) { return false; }
+
+        // select the next item on our menu.
+        activeTaskModel.setNode(newSelKey);
+        return true;
+    }
+
+    public void delete() {
         if (child != null) {
             child.delete();
             child = null;
@@ -131,9 +165,6 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
                 if (menu.getItem(i) instanceof MyMenuItem)
                     ((MyMenuItem) menu.getItem(i)).delete();
             menu = null;
-
-            if (PropertyKey.ROOT.equals(self))
-                activeTaskModel.removePropertyChangeListener(this);
         }
     }
 
@@ -143,6 +174,21 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
      * @return true if a change was made, false if no changes were needed.
      */
     private boolean syncSelectedChildToHierarchy() {
+
+        PropertyKey activeTask = activeTaskModel.getNode();
+        if (activeTask != null && !activeTask.isChildOf(self)) {
+            // The active task is outside our list of descendants!  This can
+            // happen to the topmost HierarchyMenu if it is not anchored at the
+            // root of the hierarchy.  In this case, we need special handling.
+            if (child != null)
+                child.delete();
+
+            menu.setText(activeTask.path());
+            child = new HierarchyMenu(parent, menuBar, activeTaskModel,
+                    activeTask);
+            return true;
+        }
+
         DashHierarchy props = parent.getProperties();
         int numChildren = props.getNumChildren(self);
         if (numChildren == 0)
@@ -165,6 +211,8 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
         child = new HierarchyMenu(parent, menuBar, activeTaskModel, childKey);
         return true;
     }
+
+
 
     private String getCompletedDataname(PropertyKey key) {
         return DataRepository.createDataName(key.path(), "Completed");
@@ -215,37 +263,6 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
     private static final Icon CHECKMARK_ICON = DashboardIconFactory
             .getCheckIcon();
 
-    /**
-     * Scans the hierarchy tree and cleans up "garbage" completion flags that
-     * were left around by completion-button logic in v1.3
-     */
-    public void cleanupCompletionFlags() {
-        cleanupCompletionFlags(parent.getProperties(), PropertyKey.ROOT);
-    }
-
-    protected void cleanupCompletionFlags(DashHierarchy props, PropertyKey key) {
-        Prop val = props.pget(key);
-
-        // no need to cleanup flags defined in project-level datafiles
-        String dataFile = val.getDataFile();
-        if (dataFile != null && dataFile.length() > 0)
-            return;
-
-        // no need to cleanup flags for leaves of the hierarchy
-        int i = props.getNumChildren(key);
-        if (i == 0)
-            return;
-
-        // cleanup the flag for this node in the hierarchy
-        String flagName = getCompletedDataname(key);
-        if (parent.getData().getValue(flagName) != null)
-            parent.getData().putValue(flagName, null);
-
-        // recurse through the hierarchy tree.
-        while (i-- > 0)
-            cleanupCompletionFlags(props, props.getChildKey(key, i));
-    }
-
     public void actionPerformed(ActionEvent e) {
         String childName = ((JMenuItem) e.getSource()).getText();
         PropertyKey newChild = new PropertyKey(self, childName);
@@ -261,4 +278,6 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener {
             child.propertyChange(evt);
     }
 
+    public static final Icon HIER_ICON = new ImageIcon(HierarchyMenu.class
+            .getResource("hier.gif"));
 }

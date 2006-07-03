@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -75,7 +75,6 @@ public class EVTaskListRollup extends EVTaskList {
         super(taskListName, taskListName, false);
         evTaskLists = new Vector(taskLists);
         Iterator i = taskLists.iterator();
-        int count = 0;
         while (i.hasNext()) {
             EVTaskList taskList = (EVTaskList) i.next();
             EVTask taskListRoot = (EVTask) taskList.getRoot();
@@ -142,6 +141,8 @@ public class EVTaskListRollup extends EVTaskList {
             data.putValue(dataName, list);
             taskListName = newName;
         }
+
+        super.save(newName);
     }
 
     public EVTaskList getSubSchedule(int pos) {

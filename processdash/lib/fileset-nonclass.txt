@@ -4,9 +4,11 @@ net/sourceforge/processdash/ev/ui/evCharts*
 net/sourceforge/processdash/ev/ui/check.png
 net/sourceforge/processdash/ev/ui/group.png
 net/sourceforge/processdash/ev/ui/stop.png
+net/sourceforge/processdash/ev/ui/listicon.png
 net/sourceforge/processdash/hier/ui/block-down-arrow.gif
 net/sourceforge/processdash/hier/ui/block-up-arrow.gif
 net/sourceforge/processdash/hier/ui/cut.gif
+net/sourceforge/processdash/hier/ui/hier.gif
 net/sourceforge/processdash/hier/ui/ins-after.gif
 net/sourceforge/processdash/hier/ui/ins-before.gif
 net/sourceforge/processdash/hier/ui/ins-child.gif

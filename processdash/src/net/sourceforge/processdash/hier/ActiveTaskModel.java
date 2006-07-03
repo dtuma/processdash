@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -61,13 +61,6 @@ public interface ActiveTaskModel {
      * if the specified phase does not exist in the current project.)
      */
     public boolean setPhase(String phase);
-
-    /** Attempt to change to the next phase in the currently active "project."
-     * 
-     * @return true if the change was successful.  (The change could fail
-     * if no phase follows the current phase of the current project.)
-     */
-    public boolean setNextPhase();
 
 
     /** Add a listener for changes in the currently active task.

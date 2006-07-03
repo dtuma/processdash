@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -43,6 +44,7 @@ public class HierarchyTreeModel extends DefaultTreeModel
 {
     protected DashHierarchy tree;
     protected Map nodes;
+    protected String rootName;
 
 
     public HierarchyTreeModel(DashHierarchy hierarchy) {
@@ -50,7 +52,27 @@ public class HierarchyTreeModel extends DefaultTreeModel
         tree = hierarchy;
         nodes = new HashMap();
         setRoot(getNodeForKey(PropertyKey.ROOT));
-        tree.addHierarchyListener(this);
+    }
+
+    public String getRootName() {
+        return rootName;
+    }
+
+    public void setRootName(String rootName) {
+        this.rootName = rootName;
+    }
+
+
+    public void addTreeModelListener(TreeModelListener l) {
+        if (listenerList.getListenerCount(TreeModelListener.class) == 0)
+            tree.addHierarchyListener(this);
+        super.addTreeModelListener(l);
+    }
+
+    public void removeTreeModelListener(TreeModelListener l) {
+        super.removeTreeModelListener(l);
+        if (listenerList.getListenerCount(TreeModelListener.class) == 0)
+            tree.removeHierarchyListener(this);
     }
 
     protected synchronized HierarchyTreeNode getNodeForKey(PropertyKey key) {
@@ -141,7 +163,10 @@ public class HierarchyTreeModel extends DefaultTreeModel
         }
 
         public String toString() {
-            return key.name();
+            if (rootName != null && key.equals(PropertyKey.ROOT))
+                return rootName;
+            else
+                return key.name();
         }
 
         public String getPath() {

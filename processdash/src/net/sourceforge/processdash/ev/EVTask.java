@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,9 +31,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import net.sourceforge.processdash.data.DateData;
@@ -371,10 +373,15 @@ public class EVTask implements Cloneable, DataListener {
     protected SimpleData getValue(String name) { return getValue(name, true); }
     protected SimpleData getValue(String name, boolean notify) {
         String dataName = DataRepository.createDataName(fullName, name);
-        if (notify && listener != null)
-            data.addDataListener(dataName, this, false);
+        if (notify && listener != null) {
+            if (listeningToData == null)
+                listeningToData = new HashSet();
+            if (!listeningToData.contains(dataName))
+                data.addDataListener(dataName, this, false);
+        }
         return data.getSimpleValue(dataName);
     }
+    private Set listeningToData = null;
 
 
     public boolean plannedTimeIsEditable() {
@@ -531,6 +538,10 @@ public class EVTask implements Cloneable, DataListener {
             getChild(i).saveDependencyInformation();
     }
 
+    protected void resetActualDate() {
+        if (data != null && fullName != null)
+            setActualDate(getValue(DATE_COMPLETED_DATA_NAME));
+    }
 
     protected void setActualDate(SimpleData date) {
         if (date instanceof DateData) {
@@ -1141,9 +1152,14 @@ public class EVTask implements Cloneable, DataListener {
     }
 
     public void destroy() {
-        if (listener != null) {
+        if (listener != null)
             listener = null;
-            data.deleteDataListener(this);
+        if (listeningToData != null) {
+            for (Iterator i = listeningToData.iterator(); i.hasNext();) {
+                String dataName = (String) i.next();
+                data.removeDataListener(dataName, this);
+                i.remove();
+            }
         }
         for (int i=children.size();   i-- > 0; )
             getChild(i).destroy();

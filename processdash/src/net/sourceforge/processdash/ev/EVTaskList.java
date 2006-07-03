@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@ package net.sourceforge.processdash.ev;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import javax.swing.Timer;
 import javax.swing.event.TableModelListener;
@@ -242,6 +243,44 @@ public class EVTaskList extends AbstractTreeTableModel
         TESTING_TASK_LIST = taskList;
     }
 
+    /** Add a listener who wishes to receive notifications about task list
+     * save events. */
+    public static void addTaskListSaveListener(ActionListener l) {
+        TASK_LIST_SAVE_LISTENERS.add(new WeakReference(l));
+    }
+
+    /** Remove a listener who no longer cares to receive notifications about
+     * task list save events. */
+    public static void removeTaskListSaveListener(ActionListener l) {
+        synchronized (TASK_LIST_SAVE_LISTENERS) {
+            for (Iterator i = TASK_LIST_SAVE_LISTENERS.iterator(); i.hasNext();) {
+                WeakReference ref = (WeakReference) i.next();
+                Object o = ref.get();
+                if (o == null || o == l)
+                    i.remove();
+            }
+        }
+    }
+
+    protected static void fireTaskListSaved(String taskListName) {
+        synchronized (TASK_LIST_SAVE_LISTENERS) {
+            ActionEvent e = null;
+            for (Iterator i = TASK_LIST_SAVE_LISTENERS.iterator(); i.hasNext();) {
+                WeakReference ref = (WeakReference) i.next();
+                ActionListener l = (ActionListener) ref.get();
+                if (l != null) {
+                    if (e == null)
+                        e = new ActionEvent(EVTaskList.class, 0, taskListName);
+                    l.actionPerformed(e);
+                }
+            }
+        }
+    }
+    private static List TASK_LIST_SAVE_LISTENERS = new Vector();
+
+    public String getTaskListName() {
+        return taskListName;
+    }
 
     public String getDisplayName() {
         return getDisplayName(taskListName);
@@ -270,6 +309,13 @@ public class EVTaskList extends AbstractTreeTableModel
         return taskListDataName;
     }
 
+    public static String[] getDisplayNames(String[] taskListNames) {
+        String[] result = new String[taskListNames.length];
+        for (int i = result.length;   i-- > 0;  )
+            result[i] = cleanupName(taskListNames[i]);
+        return result;
+    }
+
     public boolean isEmpty() { return ((EVTask) root).isLeaf(); }
     public boolean isEditable() { return false; }
     public String getRootName() { return ((EVTask) root).name; }
@@ -277,14 +323,15 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     public void save() { save(taskListName); }
-    public void save(String newName) {}
+    public void save(String newName) {
+        fireTaskListSaved(newName);
+    }
 
     public String getAsXML() {
         return getAsXML(false);
     }
     public String getAsXML(boolean whitespace) {
         String newline = (whitespace ? "\n" : "");
-        String indent = (whitespace ? "  " : "");
         StringBuffer result = new StringBuffer();
         result.append("<").append(EV_TASK_LIST_ELEMENT_NAME).append(" rct='")
             .append(calculator.reorderCompletedTasks);
@@ -440,7 +487,7 @@ public class EVTaskList extends AbstractTreeTableModel
         if (recalcListeners.isEmpty()) {
         }
     }
-    protected void dispose() {
+    public void dispose() {
         //System.out.println("disposing!");
         ((EVTask) root).destroy();
     }
@@ -637,8 +684,8 @@ public class EVTaskList extends AbstractTreeTableModel
         if (node == null) return null;
         EVTask n = (EVTask) node;
         switch (column) {
-        case TASK_COLUMN: return ((EVTask) node).getTaskError();
-        case PLAN_TIME_COLUMN: return ((EVTask) node).getPlanTimeError();
+        case TASK_COLUMN: return n.getTaskError();
+        case PLAN_TIME_COLUMN: return n.getPlanTimeError();
         default: return null;
         }
     }
@@ -948,6 +995,7 @@ public class EVTaskList extends AbstractTreeTableModel
         addRecalcListener(result);
         return result;
     }
+
 
     public class MergedTreeModel extends AbstractTreeTableModel implements
             RecalcListener {

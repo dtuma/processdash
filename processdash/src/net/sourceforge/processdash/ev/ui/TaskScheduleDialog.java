@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -720,7 +720,7 @@ public class TaskScheduleDialog
             }
         }
 
-    public boolean editCellAt(int row, int column, EventObject e) {
+        public boolean editCellAt(int row, int column, EventObject e) {
             boolean result = super.editCellAt(row, column, e);
 
             if (result == true && e instanceof MouseEvent)
@@ -1065,8 +1065,7 @@ public class TaskScheduleDialog
         }
 
         public Component prepareEditor(TableCellEditor editor,
-                                       int row,
-                                       int column) {
+                int row, int column) {
             Component result = super.prepareEditor(editor, row, column);
             result.setBackground(selectedEditableColor);
             if (result instanceof JTextComponent)
@@ -1220,7 +1219,7 @@ public class TaskScheduleDialog
             (taskListNames,
              resources.getString("Import_Schedule.New_Schedule_Option"),
              this.taskListName);
-        String[] taskListDisplayNames = getDisplayNames(taskListNames);
+        String[] taskListDisplayNames = EVTaskList.getDisplayNames(taskListNames);
         JList taskLists = new JList(taskListDisplayNames);
         JScrollPane sp = new JScrollPane(taskLists);
         sp.setPreferredSize(new Dimension(200, 200));
@@ -1255,13 +1254,6 @@ public class TaskScheduleDialog
         }
         return result;
     }
-    private String[] getDisplayNames(String[] taskListNames) {
-        String[] result = new String[taskListNames.length];
-        for (int i = result.length;   i-- > 0;  )
-            result[i] = EVTaskList.cleanupName(taskListNames[i]);
-        return result;
-    }
-
     private class FocusHighlighter implements FocusListener {
         JTextField f;
         FocusHighlighter(JTextField field) { f = field; }

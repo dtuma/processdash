@@ -83,7 +83,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     PauseButton pause_button = null;
     ScriptButton script_button = null;
     DefectButton defect_button = null;
-    HierarchyMenu hierarchy = null;
+    TaskNavigationSelector taskNav = null;
     CompletionButton completion_button = null;
     JMenuBar hierarchy_menubar = null;
 
@@ -358,13 +358,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         webServer.setCache(objectCache);
         EVTaskDependencyResolver.init(this);
 
-        hierarchy = new HierarchyMenu
-            (this, hierarchy_menubar, activeTaskModel, PropertyKey.ROOT);
+        taskNav = new TaskNavigationSelector
+            (this, hierarchy_menubar, activeTaskModel);
+        completion_button.setNavSelector(taskNav);
         dependencyIndicator.update();
-        if (Settings.getVal(COMPLETION_FLAG_SETTING) == null) {
-            hierarchy.cleanupCompletionFlags();
-            InternalSettings.set(COMPLETION_FLAG_SETTING, "true");
-        }
         props.addHierarchyListener(new DashHierarchy.Listener() {
                 public void hierarchyChanged(Event e) {
                     saveHierarchy();
@@ -457,8 +454,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     }
 
     private static final String BULLET = "\u2022 ";
-    private static final String COMPLETION_FLAG_SETTING =
-        "internal.ranCompletionFlagCleanup";
 
     public void openDatafile (String prefix, String dataFile) {
         try {
@@ -524,15 +519,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     }
     private void refreshHierarchyImpl() {
         logger.finer("ProcessDashboard.refreshHierarchyImpl starting");
-        hierarchy.delete();
-        hierarchy = new HierarchyMenu
-            (this, hierarchy_menubar, activeTaskModel, PropertyKey.ROOT);
+        taskNav.hierarchyChanged();
         logger.finer("ProcessDashboard.refreshHierarchyImpl finished");
     }
 
-    public HierarchyMenu getHierarchyMenu() {
-        return hierarchy;
-    }
     public ActiveTaskModel getActiveTaskModel() {
         return activeTaskModel;
     }

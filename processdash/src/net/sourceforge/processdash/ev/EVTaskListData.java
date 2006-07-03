@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -176,6 +176,8 @@ public class EVTaskListData extends EVTaskList
         // allow our tasks to do the same thing.
         r.saveStructuralData(newName);
         r.saveDependencyInformation();
+
+        super.save(newName);
     }
 
     public void hierarchyChanged(DashHierarchy.Event e) {
@@ -264,7 +266,13 @@ public class EVTaskListData extends EVTaskList
         return true;
     }
 
-    protected void dispose() {
+    public void recalcLeavesOnly() {
+        this.calculator = new EVCalculatorLeavesOnly((EVTask) root);
+        if (this.recalcTimer != null)
+            this.recalcTimer.setInitialDelay(10);
+    }
+
+    public void dispose() {
         hierarchy.removeHierarchyListener(this);
         super.dispose();
     }
