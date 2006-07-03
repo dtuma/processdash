@@ -115,6 +115,12 @@ Authors:
 	         token="&lt;!-- additional resources --&gt;"
 	         value="${additional.resources}"/>
 
+        <!-- possibly insert additional files to the main pack  -->
+        <property name="additional.core.files" value=""/>
+        <replace file="${install.file}"
+	         token="&lt;!-- additional core files --&gt;"
+	         value="${additional.core.files}"/>
+
         <!-- possibly insert additional pack definitions -->
         <property name="additional.packs" value=""/>
         <replace file="${install.file}"
