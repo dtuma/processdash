@@ -223,16 +223,16 @@ public class TaskScheduleChooser
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
         newButton = new JButton(resources.getDlgString("New"));
-        if (!Settings.isReadOnly()) buttons.add(newButton);
+        if (Settings.isReadWrite()) buttons.add(newButton);
         newButton.addActionListener(this);
 
         renameButton = new JButton(resources.getDlgString("Rename"));
-        if (!Settings.isReadOnly()) buttons.add(renameButton);
+        if (Settings.isReadWrite()) buttons.add(renameButton);
         renameButton.addActionListener(this);
         renameButton.setEnabled(false);
 
         deleteButton = new JButton(resources.getDlgString("Delete"));
-        if (!Settings.isReadOnly()) buttons.add(deleteButton);
+        if (Settings.isReadWrite()) buttons.add(deleteButton);
         deleteButton.addActionListener(this);
         deleteButton.setEnabled(false);
 

@@ -77,7 +77,7 @@ public class BetaVersionSetup {
 
 
     public static final void runSetup(String property_directory) {
-        if (enable && !Settings.isReadOnly()) {
+        if (enable && Settings.isReadWrite()) {
             // Try to backup all the files in the user's data
             // directory.  This will only happen once, the first time
             // this beta version is run.

@@ -1132,7 +1132,7 @@ public class EVSchedule implements TableModel {
 
     public Class getColumnClass(int i) { return colTypes[i]; }
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex < 4 && !Settings.isReadOnly();
+        return columnIndex < 4 && Settings.isReadWrite();
     }
     public Object getValueAt(int rowIndex, int columnIndex) {
         Period p = get(rowIndex+1);

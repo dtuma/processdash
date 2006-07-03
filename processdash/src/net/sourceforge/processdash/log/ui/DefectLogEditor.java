@@ -203,7 +203,7 @@ public class DefectLogEditor extends Component
         result.setLayout(new BorderLayout());
         result.setPreferredSize(new Dimension(300, 300));
         result.add("Center", sp);
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             result.add("South", selectorPanel);
         return result;
     }
@@ -558,7 +558,7 @@ public class DefectLogEditor extends Component
         editButton.setActionCommand ("edit");
         editButton.addActionListener (this);
         editButton.setEnabled (false);
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             btnPanel.add (editButton);
 
                                     // Should only be available if one
@@ -567,7 +567,7 @@ public class DefectLogEditor extends Component
         deleteButton.setActionCommand ("delete");
         deleteButton.addActionListener (this);
         deleteButton.setEnabled (false);
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             btnPanel.add (deleteButton);
 
         closeButton = new JButton (resources.getString("Close"));

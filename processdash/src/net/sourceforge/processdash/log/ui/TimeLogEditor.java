@@ -175,7 +175,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public boolean saveRevertOrCancel(boolean showCancel) {
-        if (isDirty() && !Settings.isReadOnly()) {
+        if (isDirty() && Settings.isReadWrite()) {
             int optionType = showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
                     : JOptionPane.YES_NO_OPTION;
             int userChoice = JOptionPane.showConfirmDialog(frame,
@@ -784,7 +784,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         createButton(btnPanel, "Delete", "deleteSelectedRow");
         createButton(btnPanel, "Summarize_Button", "summarizeWarning");
 
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             retPanel.add("South", btnPanel);
 
         return retPanel;

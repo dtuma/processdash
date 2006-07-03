@@ -218,7 +218,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         frame.setTitle(resource.getString("HierarchyEditor"));
         frame.setIconImage(DashboardIconFactory.getWindowIconImage());
         JToolBar toolBar = buildToolBar();
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             frame.getContentPane().add("North", toolBar);
         frame.getContentPane().add("Center", panel);
         frame.setJMenuBar(menuBar);
@@ -233,7 +233,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         treeModel.fill (useProps);
         tree.expandRow (0);
         tree.setShowsRootHandles (true);
-        tree.setEditable(!Settings.isReadOnly());
+        tree.setEditable(Settings.isReadWrite());
         tree.setInvokesStopCellEditing(true);
         tree.getSelectionModel().setSelectionMode
             (TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -427,7 +427,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     private static final Object CONFIRM_CLOSE_MSG =
         resource.getString("HierarchyChangeConfirm");
     public void confirmClose(boolean showCancel) {
-        if (isDirty() && !Settings.isReadOnly())
+        if (isDirty() && Settings.isReadWrite())
             switch (JOptionPane.showConfirmDialog
                     (frame, CONFIRM_CLOSE_MSG, resource.getString("SaveChanges"),
                      showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
@@ -504,7 +504,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
             }});
 
         saveMenuItem = new JMenuItem(resource.getString("Save"));
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             menu.add(saveMenuItem);
         saveMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -512,7 +512,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
             }});
 
         revertMenuItem = new JMenuItem(resource.getString("Revert"));
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             menu.add(revertMenuItem);
         revertMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -528,7 +528,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
         /* Tree related stuff. */
         menu = new JMenu(resource.getString("Edit"));
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             menuBar.add(menu);
 
         deleteMenuItem = menu.add(new JMenuItem(resource.getString("Delete")));
@@ -620,7 +620,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         addNodeAboveAction.setEnabled (siblings);
         addNodeBelowAction.setEnabled (siblings);
         addNodeChildAction.setEnabled (children);
-        tree.setEditable(editable && !Settings.isReadOnly());
+        tree.setEditable(editable && Settings.isReadWrite());
         if (templateChildren != null && templateChildren.size() == 0)
             addTemplateMenu.setPopupMenuVisible (false);
         else

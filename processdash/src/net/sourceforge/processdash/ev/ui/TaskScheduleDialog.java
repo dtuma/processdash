@@ -277,7 +277,7 @@ public class TaskScheduleDialog
         frame.show();
 
         // if the task list is empty, open the add task dialog immediately.
-        if (((EVTask) model.getRoot()).isLeaf() && !Settings.isReadOnly())
+        if (((EVTask) model.getRoot()).isLeaf() && Settings.isReadWrite())
             addTask();
         else {
             if (getErrors() != null)
@@ -320,10 +320,10 @@ public class TaskScheduleDialog
         addTaskButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     addTask(); }});
-        if (!Settings.isReadOnly()) {
+        if (Settings.isReadWrite())
             result.add(addTaskButton);
-            result.add(Box.createHorizontalGlue());
-        }
+        result.add(Box.createHorizontalGlue());
+
         // button margins: 2 pixels top and bottom, 14 left and right.
 
         deleteTaskButton = new JButton
@@ -333,10 +333,9 @@ public class TaskScheduleDialog
                 public void actionPerformed(ActionEvent e) {
                     deleteTask(); }});
         deleteTaskButton.setEnabled(false);
-        if (!Settings.isReadOnly()) {
+        if (Settings.isReadWrite())
             result.add(deleteTaskButton);
-            result.add(Box.createHorizontalGlue());
-        }
+        result.add(Box.createHorizontalGlue());
 
 
         moveUpButton = new JButton
@@ -347,10 +346,9 @@ public class TaskScheduleDialog
                     moveTaskUp(); }});
         moveUpButton.setEnabled(false);
         moveUpButton.setMnemonic('U');
-        if (!Settings.isReadOnly()) {
+        if (Settings.isReadWrite())
             result.add(moveUpButton);
-            result.add(Box.createHorizontalGlue());
-        }
+        result.add(Box.createHorizontalGlue());
 
         moveDownButton = new JButton
             (isRollup ? resources.getString("Buttons.Move_Schedule_Down")
@@ -360,10 +358,9 @@ public class TaskScheduleDialog
                     moveTaskDown(); }});
         moveDownButton.setEnabled(false);
         moveDownButton.setMnemonic('D');
-        if (!Settings.isReadOnly()) {
+        if (Settings.isReadWrite())
             result.add(moveDownButton);
-            result.add(Box.createHorizontalGlue());
-        }
+        result.add(Box.createHorizontalGlue());
 
         flatViewCheckbox = mergedViewCheckbox = null;
         if (!isRollup) {
@@ -451,7 +448,7 @@ public class TaskScheduleDialog
         collaborateButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     showCollaborationWizard(); }});
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             box.add(collaborateButton);
 
         box.add(Box.createHorizontalGlue());
@@ -512,7 +509,7 @@ public class TaskScheduleDialog
         saveButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     save(); }});
-        if (!Settings.isReadOnly()) {
+        if (Settings.isReadWrite()) {
             box.add(saveButton);
             box.add(Box.createHorizontalStrut(2));
         }

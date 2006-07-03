@@ -155,6 +155,9 @@ public class Settings {
     public static boolean isReadOnly() {
         return readOnly;
     }
+    public static boolean isReadWrite() {
+        return !readOnly;
+    }
 
     protected static void checkPermission(String action) {
         if (System.getSecurityManager() != null) {

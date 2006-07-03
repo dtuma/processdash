@@ -2913,7 +2913,7 @@ public class DataRepository implements Repository, DataContext {
                 // if this is a regular file,
                 if (dataFile != null && dataFile.file != null) {
                     datafilePath = dataFile.file.getPath();
-                    fileEditable = dataFile.canWrite && !Settings.isReadOnly();
+                    fileEditable = dataFile.canWrite && Settings.isReadWrite();
                     // register the names of data elements in this file IF it is
                     // not global data.
                     registerDataNames = dataPrefix.length() > 0;

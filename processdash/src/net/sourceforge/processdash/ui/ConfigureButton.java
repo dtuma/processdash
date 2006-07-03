@@ -171,7 +171,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         toolMenu.enableInputMethods(false);
 
         toolMenu.add(makeMenuItem(PROBE_DIALOG));
-        if (!Settings.isReadOnly()) {
+        if (Settings.isReadWrite()) {
             toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
             toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
         }

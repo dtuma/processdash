@@ -328,10 +328,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         addToMainWindow(configure_button, 0);
         PCSH.enableHelpKey(this, "QuickOverview");
         pause_button = new PauseButton(timeLog.getTimeLoggingModel());
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             addToMainWindow(pause_button, 0);
         defect_button = new DefectButton(this);
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             addToMainWindow(defect_button, 0);
         script_button = new ScriptButton(this);
         addToMainWindow(script_button, 0);

@@ -80,7 +80,7 @@ public class DisplayDefectTypeStandard extends TinyCGIBase {
             out.println("</TD></TR>");
         }
         out.println("</TABLE>");
-        if (!Settings.isReadOnly())
+        if (Settings.isReadWrite())
             out.println("<p class='doNotPrint'>"+
                         "<a href='/dash/dtsEdit.class'><i>"+
                         resources.getHTML("Create_Edit_Link")+
