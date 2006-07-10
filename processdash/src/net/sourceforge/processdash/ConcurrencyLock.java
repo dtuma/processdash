@@ -86,7 +86,9 @@ public class ConcurrencyLock {
                 writeLockInfo(port, timeStamp);
                 registerShutdownHook();
             } else {
-                if (notifyOtherDashboard() == false)
+                if (notifyOtherDashboard())
+                    System.exit(0);
+                else
                     showReadOnlyOptionDialog(getPath(lockFile));
             }
 
