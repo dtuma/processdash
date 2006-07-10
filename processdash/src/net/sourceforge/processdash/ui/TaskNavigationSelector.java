@@ -162,18 +162,38 @@ public class TaskNavigationSelector {
                 resources.getStrings("Hierarchy.Dialog.Prompt"), sp };
         if (JOptionPane.showConfirmDialog(menu, message, title,
                 JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-            TreePath selectedPath = tree.getSelectionPath();
-            if (selectedPath == null)
-                return;
-            HierarchyTreeModel.HierarchyTreeNode node =
-                (HierarchyTreeNode) selectedPath.getLastPathComponent();
-            String path = node.getPath();
-            InternalSettings.set(NAVIGATOR_TYPE_SETTING, HIERARCHY_TYPE);
-            InternalSettings.set(HIERARCHY_ROOT_PATH_SETTING, path);
-            createNavigator();
+            String path = getSelectedPathForHierarchyNavigator(tree);
+            if (path != null) {
+                InternalSettings.set(NAVIGATOR_TYPE_SETTING, HIERARCHY_TYPE);
+                InternalSettings.set(HIERARCHY_ROOT_PATH_SETTING, path);
+                createNavigator();
+            }
         }
 
         tree.setModel(null);
+    }
+
+    private String getSelectedPathForHierarchyNavigator(JTree tree) {
+        TreePath selectedPath = tree.getSelectionPath();
+        if (selectedPath == null)
+            // no node was selected
+            return null;
+
+        HierarchyTreeNode node = (HierarchyTreeNode) selectedPath
+                .getLastPathComponent();
+        if (node == null)
+            // not sure if this can happen, but be safe.
+            return null;
+
+        if (node.getChildCount() == 0)
+            // don't allow the user to select leaf nodes.  The HierarchyMenu
+            // class can't handle that very well.
+            node = (HierarchyTreeNode) node.getParent();
+
+        if (node == null)
+            return null;
+        else
+            return node.getPath();
     }
 
     public void chooseTaskListNavigator() {

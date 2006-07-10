@@ -62,14 +62,21 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
     JMenu menu = null;
     HierarchyMenu child = null;
     PropertyKey self = null;
+    boolean isFirstMenu;
 
     public HierarchyMenu(ProcessDashboard dash, JMenuBar menuBar,
             ActiveTaskModel model, PropertyKey useSelf) {
+        this(dash, menuBar, model, useSelf, true);
+    }
+
+    private HierarchyMenu(ProcessDashboard dash, JMenuBar menuBar,
+            ActiveTaskModel model, PropertyKey useSelf, boolean isFirstMenu) {
         super();
         this.parent = dash;
         this.menuBar = menuBar;
         this.activeTaskModel = model;
         this.self = useSelf;
+        this.isFirstMenu = isFirstMenu;
         // if (self != null)
         // debug (self.toString());
 
@@ -176,7 +183,8 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
     private boolean syncSelectedChildToHierarchy() {
 
         PropertyKey activeTask = activeTaskModel.getNode();
-        if (activeTask != null && !activeTask.isChildOf(self)) {
+        if (isFirstMenu && activeTask != null && !activeTask.isChildOf(self)
+                && !activeTask.equals(self) && !self.isChildOf(activeTask)) {
             // The active task is outside our list of descendants!  This can
             // happen to the topmost HierarchyMenu if it is not anchored at the
             // root of the hierarchy.  In this case, we need special handling.
@@ -185,7 +193,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
 
             menu.setText(activeTask.path());
             child = new HierarchyMenu(parent, menuBar, activeTaskModel,
-                    activeTask);
+                    activeTask, false);
             return true;
         }
 
@@ -208,7 +216,8 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
 
         menu.setText(childKey.name());
 
-        child = new HierarchyMenu(parent, menuBar, activeTaskModel, childKey);
+        child = new HierarchyMenu(parent, menuBar, activeTaskModel, childKey,
+                false);
         return true;
     }
 
