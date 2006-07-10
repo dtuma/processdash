@@ -759,7 +759,8 @@ public class WebServer {
                                 public Object run() {
                                     return createCgiPool(conn, className);
                                 }});
-                    cgiCache.put(path, pool);
+                    if (pool != null)
+                        cgiCache.put(path, pool);
                 }
             }
 
@@ -788,6 +789,8 @@ public class WebServer {
                 String file = conn.getURL().getFile();
                 if (file != null && file.endsWith("/sizeest.class"))
                     pool = new CGIPool(path, net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate.class);
+                else
+                    t.printStackTrace();
             }
             return pool;
         }
