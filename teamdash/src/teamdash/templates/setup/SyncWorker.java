@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -106,12 +107,15 @@ public abstract class SyncWorker implements DataContext {
                 // the value has changed. save the new value.
                 doPutValue(name, value);
                 noteDataChange(name);
+                return;
             }
         }
 
         String syncName = name + SYNC_VAL_SUFFIX;
         SimpleData lastSyncVal = getSimpleValue(syncName);
-        if (dataEquals(currVal, lastSyncVal)) {
+        if (currVal == null
+                || dataEquals(currVal, ImmutableDoubleData.EDITABLE_ZERO)
+                || dataEquals(currVal, lastSyncVal)) {
             if (dataEquals(currVal, value))
                 // all three numbers are in agreement. Nothing needs to be done.
                 return;
