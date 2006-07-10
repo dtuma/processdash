@@ -149,7 +149,8 @@ public class EVTaskDependencyResolver {
             if (containsMoreThanJust(who, ignoreIndividual)) {
                 if (result == null) result = new TreeSet();
                 result.addAll(who);
-                result.remove(ignoreIndividual);
+                if (ignoreIndividual != null)
+                    result.remove(ignoreIndividual);
             }
         }
 
@@ -159,7 +160,7 @@ public class EVTaskDependencyResolver {
     private boolean containsMoreThanJust(Set set, Object object) {
         if (set == null || set.isEmpty())
             return false;
-        if (set.size() == 1 && set.contains(object))
+        if (set.size() == 1 && object != null && set.contains(object))
             return false;
         return true;
     }
