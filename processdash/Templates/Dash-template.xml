@@ -75,4 +75,12 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri>/dash/snippets/projectSettings.shtm</uri>
   </snippet>
 
+  <snippet id="pdash.metricsTable" version="1.0">
+    <resources>Analysis.MetricsTable</resources>
+    <context>Simple Project Tag</context>
+    <context>Rollup Tag</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/metricsTable</uri>
+  </snippet>
+
 </dashboard-process-template>

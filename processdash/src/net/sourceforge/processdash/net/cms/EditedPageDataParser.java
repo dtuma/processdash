@@ -27,9 +27,12 @@ package net.sourceforge.processdash.net.cms;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -125,6 +128,8 @@ public class EditedPageDataParser implements EditPageParameters,
     }
 
     private void parseParameters(SnippetInstanceTO snippet, String ns) {
+        canonicalizeEnumOrdinals(ns);
+
         StringBuffer text = new StringBuffer();
         for (Iterator i = parameters.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
@@ -141,6 +146,48 @@ public class EditedPageDataParser implements EditPageParameters,
         }
         if (text.length() > 0)
             snippet.setPersistedText(text.substring(1));
+    }
+
+    private void canonicalizeEnumOrdinals(String ns) {
+        Map renamedEnums = new HashMap();
+        for (Iterator i = parameters.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String name = (String) e.getKey();
+            if (name.startsWith(ns) && name.endsWith("Enum_ALL")) {
+                String itemType = name.substring(ns.length(), name.length() - 8);
+                String[] values = (String[]) e.getValue();
+                for (int j = 0; j < values.length; j++) {
+                    String newItemNum = String.valueOf(j+1);
+                    if (!newItemNum.equals(values[j])) {
+                        String oldItemSpace = ns + itemType + values[j] + "_";
+                        String newItemSpace = ns + itemType + newItemNum + "_";
+                        renamedEnums.put(oldItemSpace, newItemSpace);
+                        values[j] = newItemNum;
+                    }
+                }
+            }
+        }
+        if (renamedEnums.isEmpty())
+            return;
+
+        Set names = new HashSet(parameters.keySet());
+        Map renamedValues = new HashMap();
+        for (Iterator i = names.iterator(); i.hasNext();) {
+            String name = (String) i.next();
+            String newName = name;
+            for (Iterator j = renamedEnums.entrySet().iterator(); j.hasNext();) {
+                Map.Entry e = (Map.Entry) j.next();
+                String oldItemSpace = (String) e.getKey();
+                String newItemSpace = (String) e.getValue();
+                if (name.startsWith(oldItemSpace)) {
+                    newName = newItemSpace + name.substring(oldItemSpace.length());
+                    Object val = parameters.remove(name);
+                    renamedValues.put(newName, val);
+                    break;
+                }
+            }
+        }
+        parameters.putAll(renamedValues);
     }
 
     private void invokeSnippet(SnippetInstanceTO snippet, String ns) {

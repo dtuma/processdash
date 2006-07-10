@@ -53,6 +53,8 @@ public class CmsContentDispatcher extends TinyCGIBase {
     }
 
     protected void dispatch() throws IOException {
+        SnippetDefinitionManager.initialize();
+
         // extract the name of the file we should display.  For now, we
         // strip the "/cms/" prefix from the beginning, then hardcode an
         // assumption on an XML file.
@@ -157,7 +159,6 @@ public class CmsContentDispatcher extends TinyCGIBase {
     }
 
     private void lookupSnippets(PageContentTO page) {
-        SnippetDefinitionManager.initialize();
         for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             snip.setDefinition(SnippetDefinitionManager.getSnippet(snip

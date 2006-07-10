@@ -7,8 +7,7 @@
     background-image: url("/Images/blueGradient.gif");
     background-repeat: repeat-x;
     background-position: center;
-    margin-top: 15px;
-    margin-bottom: 0px;
+    margin: 0px;
     cursor: move;
     color: white;
     font-weight: bold;
@@ -29,6 +28,9 @@
     margin-left: 10px;
     margin-right: 3px;
     margin-top: 2px;
+    width: 14px;
+    height: 14px;
+    background-image: url("/Images/delete.gif");
 }
 
 .cmsEditingRegion {
@@ -86,4 +88,62 @@ td.cmsNewItemDescription {
 
 td.cmsNewItemDescription div {
     font-style: italic;
+}
+
+.cmsIndent {
+    margin-left: 1cm;
+}
+
+
+/* styles used by the metrics editing autocompletion logic */
+
+div#cmsAutocomplete {
+    position:absolute;
+    z-index: 1;
+    width:250px;
+    background-color:white;
+    border:1px solid #888;
+    margin:0px;
+    padding:0px;
+    top:0px;
+}
+
+div.cmsAutocompleteOverflow {
+    height: 250px;
+    overflow: scroll;    
+}
+
+div#cmsAutocomplete ul {
+    list-style-type:none;
+    margin:0px;
+    padding:0px;
+}
+
+div#cmsAutocomplete ul li {
+    list-style-type:none;
+    display:block;
+    margin:0;
+    padding:2px;
+    cursor:pointer;
+}
+
+div#cmsAutocomplete ul li.selected {
+    background-color: #ffb;
+}
+
+div.cmsListContainer {
+    background-color: #ffffc0;
+    padding: 5px;
+    width: 700px;
+    position: relative;
+}
+
+div.metric {
+    border: 1px solid black;
+    background-color: #ccccff;
+    padding: 1px 5px;
+    margin-bottom: 5px;
+    font-size: smaller;
+    cursor: move;
+    position: relative;
 }

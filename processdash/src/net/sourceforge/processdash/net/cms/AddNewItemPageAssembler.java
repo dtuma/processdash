@@ -46,11 +46,13 @@ import net.sourceforge.processdash.util.StringUtils;
 public class AddNewItemPageAssembler extends EditSinglePageAssembler {
 
 
+    public static final String DEFAULTS_PARAM = "defaults";
+
     public void service(Writer out, PageContentTO page) throws IOException {
         // turn on the "defaults" parameter (which will get propagated to
         // the snippet).  This allows the snippet to generate content
         // based on reasonable defaults, instead of persisted text.
-        parameters.put("defaults", "true");
+        parameters.put(DEFAULTS_PARAM, "true");
 
         // reset the mode to "edit", so snippets will render correctly
         // (previously, mode is "addNew" if this assembler was chosen)

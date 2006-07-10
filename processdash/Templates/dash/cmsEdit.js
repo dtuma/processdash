@@ -175,8 +175,95 @@ var DashCMS = {
     this._fixupSortable();
   },
 
-  sortable: null,
+  _autocompleteMatch:
+  function(text, tokens) {
+    for (var i=0;  i < tokens.length;   i++)
+      if (text.indexOf(tokens[i]) == -1) return false;
+    return true;
+  },
 
-  namespaceNum: 0
+  autocompletionSelector:
+  function(instance) {
+    var ret = [];
+    var idNum = this.autocompleteNum++;
+    var tokens = instance.getToken().toLowerCase().split(" ");
+    for (var i = 0;   i < instance.options.array.length;  i++) {
+      var elem = instance.options.array[i];
+      if (this._autocompleteMatch(elem.toLowerCase(), tokens)) {
+	var elemId = "";
+	if (instance.options.internalValues)
+	  elemId = " id='cmsac" + idNum + "_" + 
+	    instance.options.internalValues[i] + "'";
+	ret.push("<li" + elemId + ">" + elem + "</li>");
+      }
+    }
+    if (ret.length > 10) {
+      Element.addClassName(instance.update, "cmsAutocompleteOverflow");
+      instance.update.scrollTop = 0;
+    } else {
+      Element.removeClassName(instance.update, "cmsAutocompleteOverflow");
+    }
+    return "<ul>" + ret.join('') + "</ul>";
+  },
+
+  autocompletionPost:
+  function(userFunctionName, inputField, selectedItem) {
+    var guiID = inputField.id;
+    var fieldID = guiID.substring(4);
+    var val = inputField.value;
+
+    if (selectedItem.id)
+      val = selectedItem.id.replace(/^[^_]+_/, "");
+
+    $(fieldID).value = val;
+
+    if (userFunctionName != null) try {
+      var userFunc = eval(userFunctionName);
+      if (userFunc != null) 
+	userFunc.apply(DashCMS, [$(fieldID), inputField]);
+    } catch (e) {}
+  },
+
+  addAutocompleteToList:
+  function(hiddenField, displayField) {
+    var id = hiddenField.id.substring(4);
+    var uriId = id + "_uri";
+    var uri = $(uriId).value;
+    uri = uri.replace(/_VALUE_/, encodeURIComponent(hiddenField.value));
+    uri = uri.replace(/_DISPLAY_/, encodeURIComponent(displayField.value));
+    uri = uri.replace(/_ITEM_/, "add" + DashCMS.namespaceNum++, "g");
+    
+    var baseUri = window.location.pathname;
+    var slashPos = baseUri.indexOf("//");
+    if (slashPos == -1) slashPos = baseUri.indexOf("/+/");
+    if (slashPos != -1)
+      uri = baseUri.substring(0, slashPos) + "//" + uri;
+    else
+      uri = "/" + uri;
+
+    hiddenField.value = "";
+    displayField.value = "";
+    displayField.blur();
+
+    var containerId = id + "_container";
+    new Ajax.Updater(containerId, uri, { insertion:Insertion.Bottom,
+      method:'get',
+      onComplete:DashCMS.fixupSortableList.bind(DashCMS, containerId) });
+  },
+
+  fixupSortableList:
+  function(containerId, ajax) {
+    var oldSortable = this.subSortables[containerId];
+    if (oldSortable != null) oldSortable.destroy();
+    var newSortable = Sortable.create(containerId, {tag:'div'});
+    this.subSortables[containerId] = newSortable;
+    this._fixupSortable();
+  },
+
+  sortable: null,
+  subSortables: {},
+
+  namespaceNum: 0,
+  autocompleteNum: 0
 
 };

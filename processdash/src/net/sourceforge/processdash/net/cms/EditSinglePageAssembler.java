@@ -57,6 +57,10 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
             out.write('\n');
         }
 
+        if (isInternetExplorer())
+            // workaround IE bug for floated content
+            out.write("<style> .IEWidth { width: 100% } </style>\n");
+
         out.write("</head>\n");
         out.write("<body>\n");
 
@@ -88,7 +92,19 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
 
 
+    private boolean isInternetExplorer() {
+        String userAgent = (String) environment.get("HTTP_USER_AGENT");
+        return (userAgent.indexOf("MSIE") != -1);
+    }
+
+
+
     private void writeFormStart(Writer out) throws IOException {
+        // Write a autocompletion div that any editor on the page can reuse.
+        out.write("<div id='cmsAutocomplete' style='display:none'>&nbsp;"
+                + "</div>\n\n");
+
+        // write the start of the form
         out.write("<form method=\"POST\" action=\"");
         out.write(CmsContentDispatcher.getSimpleSelfUri(environment, true));
         out.write("\">\n\n");
@@ -165,12 +181,12 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         }
 
         if (wrapWithDiv) {
-            out.write("<div id='");
+            out.write("<div class='cmsEditedItem' id='");
             out.write(ns);
             out.write("'>");
         }
 
-        out.write("<div class='cmsEditingTitle'>");
+        out.write("<div class='cmsEditingTitle IEWidth'>");
         writeTitleButtonLink(out, "Delete_Item", "deleteSnippet",
                 "/Images/delete.gif", "cmsEditingTitleDeleteButton");
         //        writeTitleButtonLink(out, "Move_Item_Down", "moveSnippetDown", "/Images/down.gif", "cmsEditingTitleButton");

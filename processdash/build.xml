@@ -111,6 +111,7 @@ Authors:
   <property name="jfreechart.jar" value="${lib}/jfreechart-0.9.15.jar"/>
   <property name="jcommon.jar"    value="${lib}/jcommon-0.9.0.jar"/>
   <property name="kxml.jar"       value="${lib}/kxml-2.2.1-mod.jar"/>
+  <property name="json.jar"       value="${lib}/json_simple.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
   <property name="cvsroot"
@@ -127,6 +128,7 @@ Authors:
     <pathelement location="${jfreechart.jar}"/>
     <pathelement location="${jcommon.jar}"/>
     <pathelement location="${kxml.jar}"/>
+    <pathelement location="${json.jar}"/>
   </path>
 
 

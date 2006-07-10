@@ -1,0 +1,13 @@
+<div class="metric IEWidth" id="$$$_###_div">
+<a href="#" onclick="Element.remove('$$$_###_div'); return false;"
+   class="cmsEditingTitleDeleteButton" style="margin-top:1px"></a>
+
+<!--#echo DisplayName -->
+
+<input type='hidden' name='$$$_###_DisplayName'
+       value='<!--#echo DisplayName -->'/>
+<input type='hidden' name='$$$_###_DataName'
+       value='<!--#echo DataName -->'/>
+<!--###-->
+
+</div>

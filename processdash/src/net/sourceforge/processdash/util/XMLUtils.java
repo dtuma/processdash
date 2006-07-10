@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,7 +25,6 @@
 
 package net.sourceforge.processdash.util;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -175,6 +174,9 @@ public class XMLUtils {
     };
 
     public static String escapeAttribute(String value) {
+        if (value == null)
+            return "";
+
         StringBuffer result = new StringBuffer(value.length());
         char[] chars = value.toCharArray();
         for (int i = 0; i < chars.length; i++) {
@@ -285,9 +287,9 @@ public class XMLUtils {
         List result = new LinkedList();
         NodeList childNodes = node.getChildNodes();
         for (int i= 0;  i < childNodes.getLength();  i++) {
-                Node oneChild = childNodes.item(i);
-                if (oneChild instanceof Element)
-                        result.add(oneChild);
+            Node oneChild = childNodes.item(i);
+            if (oneChild instanceof Element)
+                result.add(oneChild);
         }
         return result;
     }
