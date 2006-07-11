@@ -54,7 +54,7 @@ import net.sourceforge.processdash.i18n.Resources;
 public class TaskNavigationSelector {
 
     public interface NavMenuUI extends PropertyChangeListener {
-        public String getDisplayName();
+        public String getNavMenuDisplayName();
         public boolean selectNext();
         public void delete();
     }
@@ -131,7 +131,7 @@ public class TaskNavigationSelector {
         currentNavigator = new HierarchyMenu(dash, menuBar, activeTaskModel,
                 key);
         menu.setIcon(HierarchyMenu.HIER_ICON);
-        menu.setToolTipText(currentNavigator.getDisplayName());
+        menu.setToolTipText(currentNavigator.getNavMenuDisplayName());
     }
 
 
@@ -141,7 +141,7 @@ public class TaskNavigationSelector {
             currentNavigator = new TaskListNavigator(menuBar, dash,
                     activeTaskModel, taskListName);
             menu.setIcon(TaskListNavigator.TASK_LIST_ICON);
-            menu.setToolTipText(currentNavigator.getDisplayName());
+            menu.setToolTipText(currentNavigator.getNavMenuDisplayName());
         } catch (IllegalArgumentException e) {
             createHierarchyNavigator();
         }
@@ -225,6 +225,20 @@ public class TaskNavigationSelector {
                 createNavigator();
             }
         }
+    }
+
+    public static String prettifyPath(PropertyKey node) {
+        if (node == null)
+            return null;
+        else
+            return prettifyPath(node.path());
+    }
+
+    public static String prettifyPath(String path) {
+        if (path == null)
+            return null;
+        else
+            return path.replaceAll("/", " / ").trim();
     }
 
     private static final String NAVIGATOR_TYPE_SETTING = "navigator.type";

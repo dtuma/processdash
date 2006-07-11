@@ -141,7 +141,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         new TaskListOpener().start();
     }
 
-    public String getDisplayName() {
+    public String getNavMenuDisplayName() {
         return EVTaskList.cleanupName(taskListName);
     }
 
@@ -203,7 +203,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
     */
 
     public boolean selectNext() {
-        String currentTask = menu.getText();
+        String currentTask = menu.getActionCommand();
         for (int i = 0; i < menu.getMenuComponentCount(); i++) {
             if (menu.getMenuComponent(i) instanceof TaskJMenuItem) {
                 TaskJMenuItem item = (TaskJMenuItem) menu.getMenuComponent(i);
@@ -293,7 +293,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         private String path;
 
         public TaskJMenuItem(String text) {
-            super(text);
+            super(TaskNavigationSelector.prettifyPath(text));
             this.path = text;
             setActionCommand(text);
             addActionListener(TaskListNavigator.this);
@@ -310,8 +310,9 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
     private void syncTaskToModel() {
         String currentPath = activeTaskModel.getPath();
-        if (currentPath != null && !currentPath.equals(menu.getText())) {
-            menu.setText(currentPath);
+        if (currentPath != null && !currentPath.equals(menu.getActionCommand())) {
+            menu.setActionCommand(currentPath);
+            menu.setText(TaskNavigationSelector.prettifyPath(currentPath));
             Window window = SwingUtilities.getWindowAncestor(menu);
             if (window != null)
                 window.pack();

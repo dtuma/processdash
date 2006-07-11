@@ -127,11 +127,11 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
         return (menu == null ? 0 : menu.getMenuComponentCount());
     }
 
-    public String getDisplayName() {
+    public String getNavMenuDisplayName() {
         if (self == PropertyKey.ROOT)
             return null;
         else
-            return self.path();
+            return TaskNavigationSelector.prettifyPath(self);
     }
 
     public boolean selectNext() {
@@ -191,7 +191,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
             if (child != null)
                 child.delete();
 
-            menu.setText(activeTask.path());
+            menu.setText(TaskNavigationSelector.prettifyPath(activeTask));
             child = new HierarchyMenu(parent, menuBar, activeTaskModel,
                     activeTask, false);
             return true;
