@@ -924,7 +924,8 @@ public class HierarchySynchronizer {
 
     private void sumUpConstructionPhases(Element node, List phaseList) {
         String phaseName = node.getAttribute(PHASE_NAME_ATTR);
-        if (phaseName == null) phaseName = node.getTagName();
+        if (phaseName == null || phaseName.length() == 0)
+            phaseName = node.getTagName();
         String timeAttr = node.getAttribute(TIME_ATTR);
         if (phaseList.contains(phaseName) &&
             timeAttr != null && timeAttr.length() != 0)
