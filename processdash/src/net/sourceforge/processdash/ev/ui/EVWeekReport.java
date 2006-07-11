@@ -365,7 +365,8 @@ public class EVWeekReport extends TinyCGIBase {
         if (deps != null) {
             for (Iterator j = deps.iterator(); j.hasNext();) {
                 EVTaskDependency d = (EVTaskDependency) j.next();
-                if (!d.isUnresolvable() && d.getPercentComplete() < 1) {
+                if (!d.isUnresolvable() && !d.isReverse()
+                        && d.getPercentComplete() < 1) {
                     List l = (List) upcomingDependencies.get(d);
                     if (l == null) {
                         l = new LinkedList();
