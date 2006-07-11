@@ -383,6 +383,7 @@ Authors:
       <zipfileset src="${jcommon.jar}"/>
       <zipfileset src="${jfreechart.jar}"/>
       <zipfileset src="${kxml.jar}"/>
+      <zipfileset src="${json.jar}"/>
       <zipfileset src="${lib}/jfreechart_ja.zip"/>
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
       <zipfileset src="${lib}/distlib.jar" excludes="**/*.java"/>

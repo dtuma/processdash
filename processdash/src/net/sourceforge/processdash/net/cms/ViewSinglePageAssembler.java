@@ -62,13 +62,15 @@ public class ViewSinglePageAssembler extends AbstractSinglePageAssembler {
 
         out.write("<h1>");
 
-        out.write("<span class='cmsToolbar'><a href='");
-        out.write(getEditURI(environment));
-        out.write("' title='");
-        out.write(resources.getHTML("Edit_Hyperlink.Description"));
-        out.write("'><img src='/Images/edit22.gif' " +
-                        "width='22' height='22' border='0'/></a>");
-        out.write("</span>\n");
+        if (parameters.get("EXPORT") == null) {
+            out.write("<span class='cmsToolbar'><a href='");
+            out.write(getEditURI(environment));
+            out.write("' title='");
+            out.write(resources.getHTML("Edit_Hyperlink.Description"));
+            out.write("'><img src='/Images/edit32.gif' " +
+                            "width='32' height='32' border='0'/></a>");
+            out.write("</span>\n");
+        }
 
         out.write(esc(AnalysisPage.localizePrefix(prefix)));
         out.write("</h1>\n");
@@ -76,13 +78,15 @@ public class ViewSinglePageAssembler extends AbstractSinglePageAssembler {
         out.write("<h2>");
         out.write(pageTitle);
         out.write("</h2>\n\n");
+        out.write("<form>\n\n");
 
         for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             writeSnippet(out, snip);
         }
 
-        out.write("<script src='/data.js' type='text/javascript'/>\n");
+        out.write("</form>\n\n");
+        out.write("<script src='/data.js' type='text/javascript'> </script>\n");
         out.write("</body>\n");
         out.write("</html>\n");
     }

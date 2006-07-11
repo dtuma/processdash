@@ -82,13 +82,14 @@ public class TableOfMetrics extends TinyCGIBase {
         out.write("</p>\n\n");
 
         // write a section allowing the user to select the metrics to display
-        out.write("<p><b>");
+        out.write("<b>");
         out.write(resources.getHTML("Metrics_Prompt"));
-        out.write("</b><br/>");
+        out.write("</b><div class='cmsIndent'>");
         AutocompletingListEditor.writeEditor(out, getTinyWebServer(),
                 "/dash/snippets/metricSimple.shtm", "$$$_", ITEM_TYPE,
                 DATA_NAME_ATTR, DISPLAY_NAME_ATTR, parameters, null,
                 getListOfMetrics(), resources.getHTML("Add_Metric_Prompt"));
+        out.write("</div>");
     }
 
     private Collection getListOfMetrics() {
@@ -140,9 +141,11 @@ public class TableOfMetrics extends TinyCGIBase {
         if (label != null)
             out.write(HTMLUtils.escapeEntities(label));
         out.write("</th>\n");
+        boolean pad = true;
         for (Iterator i = columns.iterator(); i.hasNext();) {
             MetricsTableColumn col = (MetricsTableColumn) i.next();
-            col.writeHeader(out, resources);
+            col.writeHeader(out, resources, pad);
+            pad = false;
         }
         out.write("</tr>\n");
 
@@ -165,9 +168,11 @@ public class TableOfMetrics extends TinyCGIBase {
         out.write(HTMLUtils.escapeEntities(display));
         out.write("</td>\n");
 
+        boolean pad = true;
         for (Iterator i = columns.iterator(); i.hasNext();) {
             MetricsTableColumn col = (MetricsTableColumn) i.next();
-            col.writeCell(out, data, dataName);
+            col.writeCell(out, data, dataName, pad);
+            pad = false;
         }
 
         out.write("</tr>\n");
@@ -177,4 +182,6 @@ public class TableOfMetrics extends TinyCGIBase {
             MetricsTableColumn.PLAN,
             MetricsTableColumn.ACTUAL,
             MetricsTableColumn.TO_DATE, };
+
+
 }

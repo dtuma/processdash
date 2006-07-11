@@ -75,16 +75,22 @@ public class MetricsTableColumn {
         return getBool(parameters, paramName);
     }
 
-    public void writeHeader(Writer out, Resources resources)
+    public void writeHeader(Writer out, Resources resources, boolean pad)
             throws IOException {
-        out.write("<th>");
+        out.write("<th");
+        if (pad)
+            out.write(PADDING_LEFT);
+        out.write(">");
         out.write(resources.getHTML(resourceKey));
         out.write("</th>\n");
     }
 
-    public void writeCell(Writer out, DataContext data, String baseDataName)
-            throws IOException {
-        out.write("<td>");
+    public void writeCell(Writer out, DataContext data, String baseDataName,
+            boolean pad) throws IOException {
+        out.write("<td");
+        if (pad)
+            out.write(PADDING_LEFT);
+        out.write(">");
         String dataName = getDataName(baseDataName);
         if (dataName != null && data.getValue(dataName) != null) {
             out.write("<input type=\"text\" size=\"7\" name=\"");
@@ -128,7 +134,14 @@ public class MetricsTableColumn {
             return super.getDataName(baseDataName);
         }
     };
+    static final MetricsTableColumn ACTUAL_PCT = new MetricsTableColumn(
+            "ShowActualPctCol", "Actual_%", false, "%/", "");
 
     static final MetricsTableColumn TO_DATE = new MetricsTableColumn(
             "ShowToDateCol", "To_Date", true, "", " To Date");
+
+    static final MetricsTableColumn TO_DATE_PCT = new MetricsTableColumn(
+            "ShowToDatePctCol", "To_Date_%", true, "%/", " To Date");
+
+    static final String PADDING_LEFT = " style='padding-left: 10px'";
 }
