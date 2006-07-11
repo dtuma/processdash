@@ -618,12 +618,22 @@ public class HierarchySynchronizer {
 
         protected void maybeSaveDependencies(String path, Element node) {
             List deps = readDependenciesFromNode(node);
-            if (deps != null
-                    && EVTaskDependency.addTaskDependencies(data, path, deps,
+            if (deps != null) {
+                // We found dependencies; add them to this node.
+                if (EVTaskDependency.addTaskDependencies(data, path, deps,
                             whatIfMode))
-                changes.add("Updated task dependencies for '" + path + "'");
-        }
+                    changes.add("Updated task dependencies for '" + path + "'");
 
+            } else {
+                List currentDeps = EVTaskDependency.getDependencies(data, path);
+                if (currentDeps != null && !currentDeps.isEmpty())
+                    // We found no dependencies in the project dump, but there
+                    // *are* dependencies for this node in the dashboard.  We
+                    // need to cross reference manually, and remove any old
+                    // synced dependencies from this node in the dashboard.
+                    removePastSyncedDependencies(currentDeps, path);
+            }
+        }
 
         protected List readDependenciesFromNode(Element node) {
             List result = null;
@@ -653,8 +663,46 @@ public class HierarchySynchronizer {
 
             return result;
         }
+
+        protected void removePastSyncedDependencies(List deps, String path) {
+            boolean madeChange = false;
+
+            if (REMOVE_DEPENDENCIES_BY_SOURCE == false) {
+                // if we have no way of detecting the sources of
+                // dependencies, make the most likely assumption: they
+                // came from a past sync and all need to be deleted.
+                // (This unfortunate choice will only affect individuals who
+                // have not upgraded their dashboard installation.)
+                deps = Collections.EMPTY_LIST;
+                madeChange = true;
+
+            } else {
+                // scan existing dependencies, and remove any that came from
+                // the WBS.  Then save the resulting list.
+                for (Iterator i = deps.iterator(); i.hasNext();) {
+                    EVTaskDependency d = (EVTaskDependency) i.next();
+                    if ("wbs".equals(d.getSource())) {
+                        i.remove();
+                        madeChange = true;
+                    }
+                }
+            }
+
+            if (madeChange) {
+                EVTaskDependency.saveDependencies(data, path, deps);
+                changes.add("Updated task dependencies for '" + path + "'");
+            }
+        }
     }
 
+    private static boolean REMOVE_DEPENDENCIES_BY_SOURCE = true;
+    static {
+        try {
+            EVTaskDependency.class.getMethod("getSource", null).getName();
+        } catch (Throwable t) {
+            REMOVE_DEPENDENCIES_BY_SOURCE = false;
+        }
+    }
 
 
     private SimpleData getData(String dataPrefix, String name) {
