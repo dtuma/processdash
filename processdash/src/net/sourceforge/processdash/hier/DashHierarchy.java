@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 1999-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -409,10 +410,16 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     public static final String IMAGINARY_UNLESS_ATTR = "imaginaryUnless";
 
     public static final String TEMPLATE_NODE_NAME = "template";
+    public static final String PHASE_NODE_NAME = "phase";
+    public static final String NODE_NODE_NAME = "node";
     public static final String HTML_NODE_NAME = "html";
     public static final String ID_ATTR = "ID";
     public static final String NO_DATAFILE = "none";
     public static final String NO_HREF = "none";
+
+    private static final String[] TEMPLATE_NODE_NAMES = {
+        TEMPLATE_NODE_NAME, PHASE_NODE_NAME, NODE_NODE_NAME };
+    static { Arrays.sort(TEMPLATE_NODE_NAMES); }
 
     public static final String XML_HEADER =
         "<?xml version='1.0' encoding='UTF-8'?>";
@@ -516,9 +523,13 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         for (int i=0;   i < len;   i++) {
             Node n = children.item(i);
             if (n instanceof Element) {
-                val.addChild(loadXMLNode((Element) n, templates, key, templateKey),-1);
-                if ("true".equals(((Element) n).getAttribute(SELECTED_ATTR)))
-                    val.setSelectedChild(val.getNumChildren() - 1);
+                Element elem = (Element) n;
+                if (Arrays.binarySearch(TEMPLATE_NODE_NAMES,
+                        elem.getTagName().toLowerCase()) >= 0) {
+                    val.addChild(loadXMLNode(elem, templates, key, templateKey),-1);
+                    if ("true".equals(elem.getAttribute(SELECTED_ATTR)))
+                        val.setSelectedChild(val.getNumChildren() - 1);
+                }
             }
         }
 
