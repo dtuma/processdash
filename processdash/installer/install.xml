@@ -134,9 +134,10 @@
 		  
             <!-- copy the pspForEng data files into the data directory. -->
             <fileset targetdir="$DATA_PATH" override="false"
-                  dir="../Templates/pspForEng/userdata">
+                  dir="../Templates/@userDataDir@">
                 <include name="*.dat"/>
                 <include name="*.def"/>
+                <include name="pspdash.ini"/>
                 <include name="state"/>
                 <include name="time.log"/>
             </fileset>

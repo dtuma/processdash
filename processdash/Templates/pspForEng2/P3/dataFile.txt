@@ -1,0 +1,4 @@
+#include <psp1/dataFile.txt>
+#include <pspForEng2/progData.txt>
+undefine([Use_Rollup]);
+undefine([PROBE_NO_TIME]);

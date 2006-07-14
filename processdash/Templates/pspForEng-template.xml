@@ -44,5 +44,7 @@ This file exists for the sole purpose of precaching names for the
                       href="pspForEng/7A/sizeest.class"/>
     <html ID="size8A" title="PSP2.1 Size Estimating Template"
                       href="pspForEng/8A/sizeest.class"/>
+    <html ID="sizeP5" title="PSP2 Size Estimating Template"
+                      href="pspForEng2/P5/sizeest.class"/>
   </template>
 </dashboard-process-template>

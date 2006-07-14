@@ -63,6 +63,7 @@ public class PspForEngFilter extends TinyCGIBase {
     private void writeFilteredContents(byte[] contents) throws IOException {
         // retrieve applicable parameters
         String filterToken = getParameter("filterToken");
+        boolean tweakManualCalcs = !parameters.containsKey("ignoreManualFor");
 
         // filter the file
         InputStream inStr = new ByteArrayInputStream(contents);
@@ -71,7 +72,7 @@ public class PspForEngFilter extends TinyCGIBase {
 
         String line;
         while ((line = in.readLine()) != null) {
-            line = filterLine(line, filterToken);
+            line = filterLine(line, tweakManualCalcs, filterToken);
             if (line != null) {
                 out.write(line);
                 out.write("\r\n");
@@ -79,11 +80,12 @@ public class PspForEngFilter extends TinyCGIBase {
         }
     }
 
-    private String filterLine(String line, String filterToken) {
-        if (line.indexOf(filterToken) != -1)
+    private String filterLine(String line, boolean tweakManualCalcs,
+            String filterToken) {
+        if (filterToken != null && line.indexOf(filterToken) != -1)
             return null;
 
-        if (line.indexOf("MANUALFOR") != -1) {
+        if (tweakManualCalcs && line.indexOf("MANUALFOR") != -1) {
             Matcher m = MANUAL_FOR_PATTERN.matcher(line);
             line = m.replaceAll("NAME=\"$2$1 ");
         }

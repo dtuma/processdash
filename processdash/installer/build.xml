@@ -126,6 +126,12 @@ Authors:
         <replace file="${install.file}"
 	         token="&lt;!-- additional packs --&gt;"
 	         value="${additional.packs}"/>
+
+        <!-- provide the choice to build an installer for the -->
+	<!-- old-style PSP course (with 10 assignments) -->
+	<property name="pspForEng.userdata" value="pspForEng2/userdata"/>
+        <replace file="${install.file}" token="@userDataDir@"
+	         value="${pspForEng.userdata}"/>
     </target>
 
 

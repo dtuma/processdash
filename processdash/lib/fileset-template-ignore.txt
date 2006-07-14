@@ -21,6 +21,7 @@ Templates/PSP1_0_1-template.xml
 Templates/PSP1_0_1.template
 Templates/pspForEng*
 Templates/pspForEng/
+Templates/pspForEng2/
 Templates/pspForMSE*
 Templates/pspForMSE/
 Templates/reports/excel.iqy
