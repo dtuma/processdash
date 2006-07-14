@@ -107,8 +107,11 @@ public class TableOfMetrics extends TinyCGIBase {
         return items;
     }
 
+    private static final String[] PROBE_DATA = { "/Beta0", "/Beta1", "/Range",
+            "/Interval Percent", "/R Squared", "/LPI", "/UPI" };
+
     private static final Pattern REMOVE_QUALIFIERS = Pattern
-            .compile("(Estimated | To Date)");
+            .compile("(Estimated (?!.*(" + getProbeStrings() + ")$)| To Date)");
 
 
     private void writeTable() throws IOException {
@@ -185,15 +188,37 @@ public class TableOfMetrics extends TinyCGIBase {
         Object result = SPECIAL_DATA.get(dataName);
         if (result != null)
             return result;
-        else
-            return dataName;
+
+        for (int i = 0; i < PROBE_DATA.length; i++)
+            if (dataName.endsWith(PROBE_DATA[i]))
+                return new EstOnlyMetric(dataName);
+
+        return dataName;
+    }
+
+    private static String getProbeStrings() {
+        StringBuffer result = new StringBuffer();
+        for (int i = 0; i < PROBE_DATA.length; i++)
+             result.append('|').append(PROBE_DATA[i]);
+        return result.substring(1);
+    }
+
+    private static class EstOnlyMetric implements
+            MetricsTableColumn.SpecialDataElement {
+        private String dataName;
+        public EstOnlyMetric(String dataName) { this.dataName = dataName; }
+        public String getDataName(MetricsTableColumn column) {
+            if (column == MetricsTableColumn.PLAN)
+                return dataName;
+            else
+                return null;
+        }
     }
 
     private static final MetricsTableColumn[] COLUMNS = {
             MetricsTableColumn.PLAN,
             MetricsTableColumn.ACTUAL,
             MetricsTableColumn.TO_DATE, };
-
 
     private static final Map SPECIAL_DATA = new HashMap();
 
@@ -218,5 +243,4 @@ public class TableOfMetrics extends TinyCGIBase {
                     return null;
             }});
     }
-
 }
