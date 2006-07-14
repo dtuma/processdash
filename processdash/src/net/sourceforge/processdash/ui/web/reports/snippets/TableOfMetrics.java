@@ -28,6 +28,7 @@ package net.sourceforge.processdash.ui.web.reports.snippets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -102,6 +103,7 @@ public class TableOfMetrics extends TinyCGIBase {
             String dataName = (String) i.next();
             items.add(REMOVE_QUALIFIERS.matcher(dataName).replaceAll(""));
         }
+        items.addAll(SPECIAL_DATA.keySet());
         return items;
     }
 
@@ -163,6 +165,7 @@ public class TableOfMetrics extends TinyCGIBase {
             return;
         if (display == null || display.length() == 0)
             display = Translator.translate(dataName);
+        Object dataElem = lookupSpecialDataElement(dataName);
 
         out.write("<tr><td>");
         out.write(HTMLUtils.escapeEntities(display));
@@ -171,11 +174,19 @@ public class TableOfMetrics extends TinyCGIBase {
         boolean pad = true;
         for (Iterator i = columns.iterator(); i.hasNext();) {
             MetricsTableColumn col = (MetricsTableColumn) i.next();
-            col.writeCell(out, data, dataName, pad);
+            col.writeCell(out, data, dataElem, pad);
             pad = false;
         }
 
         out.write("</tr>\n");
+    }
+
+    private Object lookupSpecialDataElement(String dataName) {
+        Object result = SPECIAL_DATA.get(dataName);
+        if (result != null)
+            return result;
+        else
+            return dataName;
     }
 
     private static final MetricsTableColumn[] COLUMNS = {
@@ -183,5 +194,29 @@ public class TableOfMetrics extends TinyCGIBase {
             MetricsTableColumn.ACTUAL,
             MetricsTableColumn.TO_DATE, };
 
+
+    private static final Map SPECIAL_DATA = new HashMap();
+
+    static {
+        SPECIAL_DATA.put("Estimated Time", new MetricsTableColumn.SpecialDataElement() {
+            public String getDataName(MetricsTableColumn column) {
+                if (column == MetricsTableColumn.PLAN)
+                    return "Estimated Time";
+                else if (column == MetricsTableColumn.TO_DATE)
+                    return "Estimated Time To Date";
+                else
+                    return null;
+            }});
+
+        SPECIAL_DATA.put("Actual Time", new MetricsTableColumn.SpecialDataElement() {
+            public String getDataName(MetricsTableColumn column) {
+                if (column == MetricsTableColumn.ACTUAL)
+                    return "Time";
+                else if (column == MetricsTableColumn.TO_DATE)
+                    return "Time To Date";
+                else
+                    return null;
+            }});
+    }
 
 }

@@ -36,6 +36,12 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class MetricsTableColumn {
 
+    public interface SpecialDataElement {
+
+        String getDataName(MetricsTableColumn column);
+
+    }
+
     private String paramName;
 
     private String resourceKey;
@@ -85,7 +91,7 @@ public class MetricsTableColumn {
         out.write("</th>\n");
     }
 
-    public void writeCell(Writer out, DataContext data, String baseDataName,
+    public void writeCell(Writer out, DataContext data, Object baseDataName,
             boolean pad) throws IOException {
         out.write("<td");
         if (pad)
@@ -98,6 +104,17 @@ public class MetricsTableColumn {
             out.write("\"/>");
         }
         out.write("</td>\n");
+    }
+
+    public String getDataName(Object dataName) {
+        if (dataName instanceof SpecialDataElement)
+            return getDataName((SpecialDataElement) dataName);
+        else
+            return getDataName(dataName.toString());
+    }
+
+    public String getDataName(SpecialDataElement e) {
+        return e.getDataName(this);
     }
 
     public String getDataName(String baseDataName) {
@@ -126,14 +143,8 @@ public class MetricsTableColumn {
             "ShowPlanCol", "Plan", true, "Estimated ", "");
 
     static final MetricsTableColumn ACTUAL = new MetricsTableColumn(
-            "ShowActualCol", "Actual", true, "", "") {
+            "ShowActualCol", "Actual", true, "", "");
 
-        public String getDataName(String baseDataName) {
-            if (baseDataName.indexOf("Estimated ") != -1) return null;
-            if (baseDataName.indexOf(" To Date") != -1) return null;
-            return super.getDataName(baseDataName);
-        }
-    };
     static final MetricsTableColumn ACTUAL_PCT = new MetricsTableColumn(
             "ShowActualPctCol", "Actual_%", false, "%/", "");
 
