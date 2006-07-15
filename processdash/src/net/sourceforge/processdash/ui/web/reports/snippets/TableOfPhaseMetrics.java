@@ -53,6 +53,8 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class TableOfPhaseMetrics extends TinyCGIBase {
 
+    private static final String LABEL_ATTR = "Label";
+
     private static final String DISPLAY_NAME_ATTR = "DisplayName";
 
     private static final String DATA_NAME_ATTR = "DataName";
@@ -203,8 +205,10 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
                 out.write(" colspan=\"");
                 out.write(Integer.toString(columns.size()));
                 out.write("\">");
-                String metricName = (String) metrics[i].get(DISPLAY_NAME_ATTR);
-                out.write(esc(Translator.translate(metricName)));
+                String metricName = (String) metrics[i].get(LABEL_ATTR);
+                if (metricName == null || metricName.trim().length() == 0)
+                    metricName = (String) metrics[i].get(DISPLAY_NAME_ATTR);
+                out.write(esc(metricName));
                 out.write("</th>\n");
             }
             out.write("</tr>\n<tr><th></th>");

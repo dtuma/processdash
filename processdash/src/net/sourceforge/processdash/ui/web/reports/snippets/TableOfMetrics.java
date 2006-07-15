@@ -47,6 +47,8 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class TableOfMetrics extends TinyCGIBase {
 
+    private static final String LABEL_ATTR = "Label";
+
     private static final String DISPLAY_NAME_ATTR = "DisplayName";
 
     private static final String DATA_NAME_ATTR = "DataName";
@@ -162,12 +164,16 @@ public class TableOfMetrics extends TinyCGIBase {
     }
 
     private void writeTableRow(Map metric, List columns, DataContext data) throws IOException {
-        String display = (String) metric.get(DISPLAY_NAME_ATTR);
         String dataName = (String) metric.get(DATA_NAME_ATTR);
         if (dataName == null || dataName.length() == 0)
             return;
+
+        String display = (String) metric.get(LABEL_ATTR);
+        if (display == null || display.length() == 0)
+            display = (String) metric.get(DISPLAY_NAME_ATTR);
         if (display == null || display.length() == 0)
             display = Translator.translate(dataName);
+
         Object dataElem = lookupSpecialDataElement(dataName);
 
         out.write("<tr><td>");

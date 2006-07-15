@@ -188,7 +188,7 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
         out.write("<div class='cmsEditingTitle IEWidth'>");
         writeTitleButtonLink(out, "Delete_Item", "deleteSnippet",
-                "/Images/delete.gif", "cmsEditingTitleDeleteButton");
+                "cmsDeleteButton");
         //        writeTitleButtonLink(out, "Move_Item_Down", "moveSnippetDown", "/Images/down.gif", "cmsEditingTitleButton");
         //        writeTitleButtonLink(out, "Move_Item_Up", "moveSnippetUp", "/Images/up.gif", "cmsEditingTitleButton");
         out.write(getSnippetDisplayName(snippet));
@@ -239,11 +239,11 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
 
     private static void writeTitleButtonLink(Writer out, String resKey,
-            String script, String imgSrc, String linkClass) throws IOException {
+            String script, String linkClass) throws IOException {
         out.write("<a href='#' class='" + linkClass + "' title=\"");
         out.write(resources.getHTML("Edit_Page." + resKey + ".Tooltip"));
-        out.write("\" onclick='DashCMS." + script + "(this); return false'/>");
-        out.write("<img border='0' src='" + imgSrc + "'/></a>");
+        out.write("\" onclick='DashCMS." + script
+                + "(this); return false'/></a>");
     }
 
 

@@ -23,7 +23,7 @@
     margin-top: 2px;
 }
 
-.cmsEditingTitleDeleteButton {
+.cmsDeleteButton {
     float: right;
     margin-left: 10px;
     margin-right: 3px;
@@ -31,6 +31,17 @@
     width: 14px;
     height: 14px;
     background-image: url("/Images/delete.gif");
+    font-size: 1pt;
+}
+
+.cmsEditButton14 {
+    float: right;
+    margin-right: 3px;
+    margin-top: 2px;
+    width: 14px;
+    height: 14px;
+    background-image: url("/Images/edit14.gif");
+    font-size: 1pt;
 }
 
 .cmsEditingRegion {
