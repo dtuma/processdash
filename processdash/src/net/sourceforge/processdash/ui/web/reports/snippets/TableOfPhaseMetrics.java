@@ -46,14 +46,13 @@ import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.net.cms.AddNewItemPageAssembler;
 import net.sourceforge.processdash.net.cms.AutocompletingListEditor;
 import net.sourceforge.processdash.net.cms.SnippetDataEnumerator;
+import net.sourceforge.processdash.net.cms.TranslatingAutocompleter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class TableOfPhaseMetrics extends TinyCGIBase {
-
-    private static final String LABEL_ATTR = "Label";
 
     private static final String DISPLAY_NAME_ATTR = "DisplayName";
 
@@ -109,7 +108,7 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
         out.write("</b><div class='cmsIndent'>");
         AutocompletingListEditor.writeEditor(out, getTinyWebServer(),
                 "/dash/snippets/metricSimple.shtm", "$$$_", ITEM_TYPE,
-                DATA_NAME_ATTR, DISPLAY_NAME_ATTR, parameters, null,
+                DATA_NAME_ATTR, null, parameters, null,
                 getListOfMetrics(), resources.getHTML("Add_Metric_Prompt"));
         out.write("</div>");
     }
@@ -205,9 +204,11 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
                 out.write(" colspan=\"");
                 out.write(Integer.toString(columns.size()));
                 out.write("\">");
-                String metricName = (String) metrics[i].get(LABEL_ATTR);
-                if (metricName == null || metricName.trim().length() == 0)
-                    metricName = (String) metrics[i].get(DISPLAY_NAME_ATTR);
+                String metricName = (String) metrics[i].get(DISPLAY_NAME_ATTR);
+                if (metricName == null || metricName.trim().length() == 0) {
+                    String dataName = (String) metrics[i].get(DATA_NAME_ATTR);
+                    metricName = TranslatingAutocompleter.translateDataName(dataName);
+                }
                 out.write(esc(metricName));
                 out.write("</th>\n");
             }

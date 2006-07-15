@@ -59,7 +59,7 @@ import net.sourceforge.processdash.util.StringUtils;
  */
 public class SnippetDataEnumerator extends TinyCGIBase {
 
-    public static final String INSERT_TOKEN = "<!--###-->";
+    public static final String INSERT_TOKEN = "<!-- ### -->";
 
     protected void writeContents() throws IOException {
         String uri = getParameter("uri");

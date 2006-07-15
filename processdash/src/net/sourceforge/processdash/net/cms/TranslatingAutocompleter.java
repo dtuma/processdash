@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.json.simple.JSONArray;
@@ -58,7 +59,7 @@ public class TranslatingAutocompleter {
         Map sorted = new TreeMap();
         for (Iterator i = internalValues.iterator(); i.hasNext();) {
             String s = (String) i.next();
-            String t = Translator.translate(s).replaceAll("/", " / ");
+            String t = translateDataName(s);
             sorted.put(t, s);
         }
         ArrayList sortedDisplay = new ArrayList(sorted.keySet());
@@ -66,6 +67,12 @@ public class TranslatingAutocompleter {
 
         writeEditor(out, fieldName, fieldValue, fieldAttrs, sortedDisplay,
                 sortedInternal, onCompleteFunction);
+    }
+
+
+    public static String translateDataName(String s) {
+        String t = Translator.translate(s);
+        return StringUtils.findAndReplace(t, "/", " / ");
     }
 
 

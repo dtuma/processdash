@@ -220,7 +220,7 @@ var DashCMS = {
     if (userFunctionName != null) try {
       var userFunc = eval(userFunctionName);
       if (userFunc != null) 
-	userFunc.apply(DashCMS, [$(fieldID), inputField]);
+			  userFunc.apply(DashCMS, [$(fieldID), inputField]);
     } catch (e) {}
   },
 

@@ -38,16 +38,14 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.net.cms.AutocompletingListEditor;
 import net.sourceforge.processdash.net.cms.SnippetDataEnumerator;
+import net.sourceforge.processdash.net.cms.TranslatingAutocompleter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class TableOfMetrics extends TinyCGIBase {
-
-    private static final String LABEL_ATTR = "Label";
 
     private static final String DISPLAY_NAME_ATTR = "DisplayName";
 
@@ -90,7 +88,7 @@ public class TableOfMetrics extends TinyCGIBase {
         out.write("</b><div class='cmsIndent'>");
         AutocompletingListEditor.writeEditor(out, getTinyWebServer(),
                 "/dash/snippets/metricSimple.shtm", "$$$_", ITEM_TYPE,
-                DATA_NAME_ATTR, DISPLAY_NAME_ATTR, parameters, null,
+                DATA_NAME_ATTR, null, parameters, null,
                 getListOfMetrics(), resources.getHTML("Add_Metric_Prompt"));
         out.write("</div>");
     }
@@ -168,11 +166,9 @@ public class TableOfMetrics extends TinyCGIBase {
         if (dataName == null || dataName.length() == 0)
             return;
 
-        String display = (String) metric.get(LABEL_ATTR);
+        String display = (String) metric.get(DISPLAY_NAME_ATTR);
         if (display == null || display.length() == 0)
-            display = (String) metric.get(DISPLAY_NAME_ATTR);
-        if (display == null || display.length() == 0)
-            display = Translator.translate(dataName);
+            display = TranslatingAutocompleter.translateDataName(dataName);
 
         Object dataElem = lookupSpecialDataElement(dataName);
 
