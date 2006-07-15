@@ -46,6 +46,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.process.AutoData;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -111,6 +112,7 @@ public class HTMLPreprocessor {
         numberBlocks(text, "foreach", "endfor", null, null);
         numberBlocks(text, "fortree", "endtree", null, null);
         numberBlocks(text, "if", "endif", "else", "elif");
+        numberBlocks(text, "replace", "endreplace", null, null);
 
         DirectiveMatch dir;
         int pos = 0;
@@ -129,6 +131,8 @@ public class HTMLPreprocessor {
                 processSetDirective(dir);
             else if ("break".equals(dir.directive))
                 processBreakDirective(dir);
+            else if (blockMatch("replace", dir.directive))
+                processReplaceDirective(dir);
             else if (blockMatch("fortree", dir.directive))
                 processForTreeDirective(dir);
             else if ("resources".equals(dir.directive))
@@ -201,8 +205,15 @@ public class HTMLPreprocessor {
 
     /** process an echo directive within the buffer */
     private void processEchoDirective(DirectiveMatch echo) {
-        String var, value;
+        String value = getEchoText(echo);
 
+        // replace the echo directive with the resulting value.
+        echo.replace(value);
+    }
+
+    /** Get the effective text specified by an echo-like directive */
+    private String getEchoText(DirectiveMatch echo) {
+        String value;
         // Was an explicit value specified? (This is used for performing
         // encodings on strings, and is especially useful when the string
         // in question came from interpolating a foreach statement.)
@@ -211,7 +222,7 @@ public class HTMLPreprocessor {
         if (isNull(value)) {
             // was a variable name specified? If so, look up the associated
             // string value.
-            var = echo.getAttribute("var");
+            String var = echo.getAttribute("var");
             if (isNull(var)) var = echo.contents.trim();
             value = (isNull(var) ? "" : getString(var));
         }
@@ -243,9 +254,7 @@ public class HTMLPreprocessor {
         encodings = echo.getAttribute("encoding");
         if (encodings == null) encodings = defaultEchoEncoding;
         value = applyEncodings(value, encodings);
-
-        // replace the echo directive with the resulting value.
-        echo.replace(value);
+        return value;
     }
     public void setDefaultEchoEncoding(String enc) {
         defaultEchoEncoding = enc;
@@ -272,6 +281,8 @@ public class HTMLPreprocessor {
                 value = dirEncode(value);
             else if ("javaStr".equalsIgnoreCase(encoding))
                 value = StringUtils.javaEncode(value);
+            else if ("translate".equalsIgnoreCase(encoding))
+                value = Translator.translate(value);
             else
                 // default: HTML entity encoding
                 value = HTMLUtils.escapeEntities(value);
@@ -769,6 +780,78 @@ public class HTMLPreprocessor {
         }
         breakDir.buf.replace(breakDir.end, breakEnd.end, "");
         breakDir.replace("");
+    }
+
+    /** process a replace directive within the buffer */
+    private void processReplaceDirective(DirectiveMatch replaceDir) throws IOException {
+        String blockNum = blockNum("replace", replaceDir.directive);
+        DirectiveMatch replaceEnd = new DirectiveMatch
+            (replaceDir.buf, blockNum + "endreplace", replaceDir.end, true);
+        if (!replaceEnd.matches()) {
+            // if the endreplace is missing, delete this directive and abort.
+            System.err.println
+                ("replace directive without matching endreplace - aborting.");
+            replaceDir.replace("");
+            return;
+        }
+
+        // check for the presence of if/unless attributes and possibly do
+        // nothing if they say so.
+        String unlessExpr = replaceDir.getAttribute("unless");
+        String ifExpr = replaceDir.getAttribute("if");
+        if ((unlessExpr != null && ifTest(cleanup(unlessExpr)) == true)
+                || (ifExpr != null && ifTest(cleanup(ifExpr)) == false)) {
+            replaceEnd.replace("");
+            replaceDir.replace("");
+            return;
+        }
+
+        // find the token or regular expression the user wants to replace
+        String regexp = replaceDir.getAttribute("regexp");
+        String token = replaceDir.getAttribute("token");
+        if (regexp == null && token == null) {
+            System.err.println
+            ("replace directive without token or regexp - aborting.");
+            replaceEnd.replace("");
+            replaceDir.replace("");
+            return;
+        }
+
+        // what replacement text does the user want?  This supports all
+        // the same attributes as the echo directive (value, var, encoding)
+        String text = getEchoText(replaceDir);
+
+        // does the user want this replacement to happen *after*
+        // other processing has taken place?
+        boolean post = (replaceDir.getAttribute("post") != null);
+
+        // get the content that appears between the two matching directives.
+        String content = replaceDir.buf.substring(replaceDir.end,
+                replaceEnd.begin);
+
+        // if the user wants replacement to happen after other processing,
+        // make a recursive preprocess call to perform that other processing.
+        if (post)
+            content = preprocess(content);
+
+        // perform token or regexp replacement, as applicable.
+        if (token != null)
+            content = StringUtils.findAndReplace(content, cleanup(token), text);
+        else if (regexp != null)
+            content = content.replaceAll(cleanup(regexp), text);
+
+        // place the resulting content into the buffer
+        if (post) {
+            // insert the content in such a way that processing will pick up
+            // with the character *after* the already processed content.
+            replaceDir.buf.replace(replaceDir.end, replaceEnd.end, "");
+            replaceDir.replace(content);
+        } else {
+            // insert the content in such a way that subsequent processing will
+            // start with the first character of the new content.
+            replaceDir.buf.replace(replaceDir.end, replaceEnd.end, content);
+            replaceDir.replace("");
+        }
     }
 
     /** process a resources directive within the buffer */
