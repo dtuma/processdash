@@ -33,6 +33,7 @@ import java.util.Set;
 
 import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 /** Page assembler that can render HTML for viewing a page of CMS content.
  */
@@ -124,7 +125,7 @@ public class ViewSinglePageAssembler extends AbstractSinglePageAssembler {
     }
 
     private String getPageTitle(PageContentTO page) {
-        if (page.getPageTitle() != null)
+        if (XMLUtils.hasValue(page.getPageTitle()))
             return esc(page.getPageTitle());
         else
             return resources.getHTML("Page_Title.Empty");

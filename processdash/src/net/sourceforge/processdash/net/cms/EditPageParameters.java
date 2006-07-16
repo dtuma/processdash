@@ -49,6 +49,11 @@ public interface EditPageParameters {
      * by a past snippet instance. (The namespace should be appended.) */
     String SNIPPET_VERBATIM_TEXT_ = "snippetVerbatimText";
 
+    /** Prefix for form field name holding the id of the persister that
+     * generated verbatim persisted text in the past. (The namespace should
+     * be appended.) */
+    String SNIPPET_VERBATIM_PERSISTER_ = "snippetVerbatimPersister";
+
     /** Prefix for form field name flagging that a snippet instance has been
      * discarded by the user. (The namespace should be appended.) */
     String SNIPPET_DISCARDED_ = "snippetDiscarded";

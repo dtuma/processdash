@@ -28,8 +28,8 @@ package net.sourceforge.processdash.util;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -284,8 +284,8 @@ public class XMLUtils {
      * node.
      */
     public static List getChildElements(Node node) {
-        List result = new LinkedList();
         NodeList childNodes = node.getChildNodes();
+        List result = new ArrayList(childNodes.getLength());
         for (int i= 0;  i < childNodes.getLength();  i++) {
             Node oneChild = childNodes.item(i);
             if (oneChild instanceof Element)

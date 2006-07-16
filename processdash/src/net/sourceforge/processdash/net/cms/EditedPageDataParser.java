@@ -27,18 +27,14 @@ package net.sourceforge.processdash.net.cms;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.data.DataContext;
-import net.sourceforge.processdash.util.HTMLUtils;
 
 /** Parses data posted by an editing page, and constructs the page content
  * described by that page.
@@ -48,6 +44,9 @@ public class EditedPageDataParser implements EditPageParameters,
 
     private static final Logger logger = Logger
             .getLogger(EditedPageDataParser.class.getName());
+
+    private static final ParamDataPersister PERSISTER =
+            new XmlParamDataPersisterV1();
 
     protected Map environment;
 
@@ -113,6 +112,7 @@ public class EditedPageDataParser implements EditPageParameters,
         snip.setSnippetVersion(getParameter(SNIPPET_VERSION_ + ns));
         if (parameters.containsKey(SNIPPET_VERBATIM_TEXT_ + ns)) {
             snip.setPersistedText(getParameter(SNIPPET_VERBATIM_TEXT_ + ns));
+            snip.setPersisterID(getParameter(SNIPPET_VERBATIM_PERSISTER_+ ns));
         } else {
             SnippetDefinition defn = SnippetDefinitionManager.getSnippet(snip
                     .getSnippetID());
@@ -128,66 +128,11 @@ public class EditedPageDataParser implements EditPageParameters,
     }
 
     private void parseParameters(SnippetInstanceTO snippet, String ns) {
-        canonicalizeEnumOrdinals(ns);
-
-        StringBuffer text = new StringBuffer();
-        for (Iterator i = parameters.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            String name = (String) e.getKey();
-            if (name.startsWith(ns) && name.endsWith("_ALL")) {
-                name = HTMLUtils.urlEncode(name.substring(ns.length(), name
-                        .length() - 4));
-                String[] values = (String[]) e.getValue();
-                for (int j = 0; j < values.length; j++) {
-                    text.append("&").append(name).append("=").append(
-                            HTMLUtils.urlEncode(values[j]));
-                }
-            }
-        }
-        if (text.length() > 0)
-            snippet.setPersistedText(text.substring(1));
-    }
-
-    private void canonicalizeEnumOrdinals(String ns) {
-        Map renamedEnums = new HashMap();
-        for (Iterator i = parameters.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            String name = (String) e.getKey();
-            if (name.startsWith(ns) && name.endsWith("Enum_ALL")) {
-                String itemType = name.substring(ns.length(), name.length() - 8);
-                String[] values = (String[]) e.getValue();
-                for (int j = 0; j < values.length; j++) {
-                    String newItemNum = String.valueOf(j+1);
-                    if (!newItemNum.equals(values[j])) {
-                        String oldItemSpace = ns + itemType + values[j] + "_";
-                        String newItemSpace = ns + itemType + newItemNum + "_";
-                        renamedEnums.put(oldItemSpace, newItemSpace);
-                        values[j] = newItemNum;
-                    }
-                }
-            }
-        }
-        if (renamedEnums.isEmpty())
-            return;
-
-        Set names = new HashSet(parameters.keySet());
-        Map renamedValues = new HashMap();
-        for (Iterator i = names.iterator(); i.hasNext();) {
-            String name = (String) i.next();
-            String newName = name;
-            for (Iterator j = renamedEnums.entrySet().iterator(); j.hasNext();) {
-                Map.Entry e = (Map.Entry) j.next();
-                String oldItemSpace = (String) e.getKey();
-                String newItemSpace = (String) e.getValue();
-                if (name.startsWith(oldItemSpace)) {
-                    newName = newItemSpace + name.substring(oldItemSpace.length());
-                    Object val = parameters.remove(name);
-                    renamedValues.put(newName, val);
-                    break;
-                }
-            }
-        }
-        parameters.putAll(renamedValues);
+        Map filteredParams = filterParamMap(parameters, new TreeMap(), ns,
+                null, false, true);
+        String text = PERSISTER.getTextToPersist(filteredParams);
+        snippet.setPersistedText(text);
+        snippet.setPersisterID(PERSISTER.getIdentifier());
     }
 
     private void invokeSnippet(SnippetInstanceTO snippet, String ns) {
@@ -196,6 +141,7 @@ public class EditedPageDataParser implements EditPageParameters,
             SnippetInvoker invoker = getInvoker();
             String text = invoker.invoke(snippet);
             snippet.setPersistedText(text);
+            snippet.setPersisterID(null);
         } catch (IOException e) {
             logger.log(Level.WARNING, "Unable to save data for snippet '"
                     + snippet.getSnippetID() + "'", e);
@@ -207,5 +153,47 @@ public class EditedPageDataParser implements EditPageParameters,
             invoker = new SnippetInvoker(environment, parameters, prefix,
                     dataContext);
         return invoker;
+    }
+
+    /** Search through a map for keys matching a certain prefix and/or suffix,
+     * and copy the matching entries into another map.
+     * 
+     * @param src the Map to search.
+     * @param dest the Map to place matching entries in
+     * @param prefix a prefix to look for in key names; null means no prefix
+     * @param suffix a suffix to look for in key names; null means no suffix
+     * @param removeFromOriginal if true, items found will be removed from the
+     *     src map as they are added to the dest map
+     * @param trim if true, the prefix and/or suffix will be stripped from the
+     *     key when placing the entries into dest
+     * @return the dest map
+     */
+    public static Map filterParamMap(Map src, Map dest,
+            String prefix, String suffix, boolean removeFromOriginal,
+            boolean trim) {
+
+        for (Iterator i = src.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            if (e.getKey() instanceof String) {
+                String name = (String) e.getKey();
+                if (prefix != null) {
+                    if (!name.startsWith(prefix))
+                        continue;
+                    else if (trim)
+                        name = name.substring(prefix.length());
+                }
+                if (suffix != null) {
+                    if (!name.endsWith(suffix))
+                        continue;
+                    else if (trim)
+                        name = name.substring(0, name.length() - suffix.length());
+                }
+
+                dest.put(name, e.getValue());
+                if (removeFromOriginal)
+                    i.remove();
+            }
+        }
+        return dest;
     }
 }

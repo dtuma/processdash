@@ -215,6 +215,8 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         } else {
             writeHidden(out, SNIPPET_VERBATIM_TEXT_ + ns, snippet
                     .getPersistedText());
+            writeHidden(out, SNIPPET_VERBATIM_PERSISTER_ + ns,
+                    snippet.getPersisterID());
 
             if (status != SnippetInvoker.STATUS_NOT_RUN) {
                 String key = "Edit_Page.Errors."
@@ -265,12 +267,12 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
             String id) throws IOException {
         out.write("<input type='hidden' name='");
         out.write(name);
-        if (id != null) {
+        if (XMLUtils.hasValue(id)) {
             out.write("' id='");
             out.write(XMLUtils.escapeAttribute(id));
         }
         out.write("' value='");
-        if (value != null)
+        if (XMLUtils.hasValue(value))
             out.write(XMLUtils.escapeAttribute(value));
         out.write("'/>");
     }

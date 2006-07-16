@@ -28,12 +28,12 @@ package net.sourceforge.processdash.net.cms;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 /** When a snippet instance needs to manage a list of data, this class helps
  * with the associated HTML rendering.
@@ -101,7 +101,7 @@ public class SnippetDataEnumerator extends TinyCGIBase {
             String queryString, String itemID) throws IOException {
 
         StringBuffer query = new StringBuffer();
-        if (queryString != null && queryString.length() != 0)
+        if (XMLUtils.hasValue(queryString))
             query.append('?').append(queryString);
 
         String itemSpace = itemType + itemID + "_";
@@ -152,18 +152,8 @@ public class SnippetDataEnumerator extends TinyCGIBase {
         for (int i = 0; i < idList.length; i++) {
             String itemID = idList[i];
             String itemSpace = itemType + itemID + "_";
-
-            Map itemAttrs = new HashMap();
-            for (Iterator j = parameters.entrySet().iterator(); j.hasNext();) {
-                Map.Entry e = (Map.Entry) j.next();
-                String name = (String) e.getKey();
-                if (name.startsWith(itemSpace)) {
-                    name = name.substring(itemSpace.length());
-                    itemAttrs.put(name, e.getValue());
-                }
-            }
-
-            result[i] = itemAttrs;
+            result[i] = EditedPageDataParser.filterParamMap(parameters,
+                    new HashMap(), itemSpace, null, false, true);
         }
 
         return result;

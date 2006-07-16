@@ -72,6 +72,7 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
             snip.setSnippetID(e.getAttribute(TYPE_ATTR));
             snip.setSnippetVersion(e.getAttribute(VERSION_ATTR));
             snip.setPersistedText(XMLUtils.getTextContents(e));
+            snip.setPersisterID(e.getAttribute(PERSISTER_ATTR));
             contentSnippets.add(snip);
         }
         result.setContentSnippets(contentSnippets);
@@ -106,8 +107,10 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
                 ser.startTag(null, SNIPPET_TAG);
                 ser.attribute(null, TYPE_ATTR, snip.getSnippetID());
                 ser.attribute(null, VERSION_ATTR, snip.getSnippetVersion());
-                if (snip.getPersistedText() != null)
-                    ser.text(snip.getPersistedText());
+                if (XMLUtils.hasValue(snip.getPersisterID()))
+                    ser.attribute(null, PERSISTER_ATTR, snip.getPersisterID());
+                if (XMLUtils.hasValue(snip.getPersistedText()))
+                    ser.cdsect(snip.getPersistedText());
                 ser.endTag(null, SNIPPET_TAG);
                 ser.ignorableWhitespace(NEWLINE + NEWLINE);
             }
@@ -125,7 +128,7 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
 
     private static final String ENCODING = "UTF-8";
 
-    private static final String NEWLINE = "\n";
+    private static final String NEWLINE = "\r\n";
 
     private static final String DOC_ROOT_ELEM = "pdashCmsPage";
 
@@ -136,5 +139,7 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
     private static final String TYPE_ATTR = "type";
 
     private static final String VERSION_ATTR = "version";
+
+    private static final String PERSISTER_ATTR = "persister";
 
 }
