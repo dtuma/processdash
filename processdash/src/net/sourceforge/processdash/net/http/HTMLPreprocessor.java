@@ -166,8 +166,7 @@ public class HTMLPreprocessor {
         if (isNull(url))
             include.replace(""); // no file specified - delete this directive.
         else {
-            String propagate = include.getAttribute("propagate");
-            url = propagateParameters(url, propagate);
+            url = appendFileParameters(url, include);
 
             // fetch the requested url (relative to the current url) and
             // replace the include directive with its contents.
@@ -186,21 +185,78 @@ public class HTMLPreprocessor {
             }
         }
     }
-    private String propagateParameters(String url, String propagate) {
-        if (propagate == null || propagate.length() == 0)
-            return url;
+    private String appendFileParameters(String url, DirectiveMatch include) {
+        while (hasTrailingParam(include)) {
+            DirectiveMatch param = new DirectiveMatch(include.buf, "parameter",
+                    include.end, true);
+            // if we don't find a "parameter" directive, we're done.
+            if (!param.matches())
+                return url;
+            // if there is anything but whitespace between the end of the include
+            // directive and the beginning of the parameter directive, then the
+            // parameter doesn't belong to us, and we're done.
+            if (!StringUtils.isWhiteSpace(include.buf.subSequence(include.end,
+                    param.begin)))
+                return url;
 
-        // TODO: allow fancier propagation specification.  For now, just
-        // propagate the query string.
-        String query = (String) env.get("QUERY_STRING");
-        if (query == null || query.length() == 0)
-            return url;
+            include.buf.replace(include.end, param.end, "");
 
-        if (url.indexOf('?') == -1)
-            return url + '?' + query;
-        else
-            return url + '&' + query;
+            String paramName = param.getAttribute("name");
+            if (paramName == null || paramName.length() == 0)
+                continue;
+
+            if ("query_string".equalsIgnoreCase(paramName))
+                url = appendParam(url, (String) env.get("QUERY_STRING"));
+
+            else {
+                String query = HTMLUtils.urlEncode(paramName);
+
+                String encoding = param.getAttribute("encoding");
+                if (encoding == null)
+                    param.attributes.put("encoding", "url");
+                else if (encoding.indexOf("url") == -1)
+                    param.attributes.put("encoding", encoding + ",url");
+                String text = getEchoText(param);
+                if (StringUtils.hasValue(text))
+                    query = query + '=' + text;
+
+                url = appendParam(url, query);
+            }
+        }
+        return url;
     }
+    private boolean hasTrailingParam(DirectiveMatch include) {
+        StringBuffer buf = include.buf;
+        int i = include.end;
+        while (true) {
+            if (i >= buf.length())
+                return false;
+
+            char c = buf.charAt(i);
+            if (Character.isWhitespace(c))
+                i++;
+            else if (c == '<')
+                break;
+            else
+                return false;
+        }
+        int end = i + PARAM_DIRECTIVE.length();
+        return (end <= buf.length() && StringUtils.equals(PARAM_DIRECTIVE, buf
+                .subSequence(i, end)));
+    }
+    private static final String PARAM_DIRECTIVE = "<!--#parameter";
+    private String appendParam(String url, String params) {
+        if (!StringUtils.hasValue(params))
+            return url;
+
+        if ("?&".indexOf(params.charAt(0)) != -1)
+            params = params.substring(1);
+        if (url.indexOf('?') == -1)
+            return url + '?' + params;
+        else
+            return url + '&' + params;
+    }
+
 
 
     /** process an echo directive within the buffer */
