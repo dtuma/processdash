@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -62,7 +62,7 @@ public class InterpreterFactory {
             result = new StringInterpreter(r, n.name, readOnly);
         else if (n.hasFlag('n'))
             result = new DoubleInterpreter(r, n.name, n.digitFlag(), readOnly);
-        else if (n.hasFlag('%') || n.name.indexOf('%') != -1)
+        else if (isPercentInputName(n))
             result = new PercentInterpreter(r, n.name, n.digitFlag(), readOnly);
         else if (n.hasFlag('d'))
             result = new DateInterpreter(r, n.name, readOnly);
@@ -82,20 +82,36 @@ public class InterpreterFactory {
         return result;
     }
 
-    public static boolean isTimeInputName(InputName n) {
-            if (useHoursMinutes == false)
-                    return false;
-            if (n.hasFlag('t'))
-                    return true;
-            if (TIME_PATTERN.matcher(n.name).find()
-                                  && !FALSE_TIME_PATTERN.matcher(n.name).find())
-                    return true;
+    public static boolean isPercentInputName(InputName n) {
+        if (n.hasFlag('%'))
+            return true;
+        if (n.hasFlag('s') || n.hasFlag('n') || n.hasFlag('d') || n.hasFlag('t'))
             return false;
+        for (int i = 0; i < PERCENT_NAMES.length; i++) {
+            if (n.name.indexOf(PERCENT_NAMES[i]) != -1)
+                return true;
+        }
+        return false;
+    }
+    private static final String[] PERCENT_NAMES = {
+        "%", "Percent", "Estimating Error", "Yield"
+    };
+
+    public static boolean isTimeInputName(InputName n) {
+        if (useHoursMinutes == false)
+            return false;
+        if (n.hasFlag('t'))
+            return true;
+        if (n.name.indexOf("Time") != -1
+                && TIME_PATTERN.matcher(n.name).find()
+                && !FALSE_TIME_PATTERN.matcher(n.name).find())
+            return true;
+        return false;
     }
 
     private static Pattern TIME_PATTERN = Pattern.compile("\\bTime\\b");
     private static Pattern FALSE_TIME_PATTERN =
-            Pattern.compile("/(Beta0|Beta1|R Squared)$");
+        Pattern.compile("Estimating Error|/(Beta0|Beta1|R Squared)$");
 
     private static String instantiate(String name,
                                       String defaultValue,

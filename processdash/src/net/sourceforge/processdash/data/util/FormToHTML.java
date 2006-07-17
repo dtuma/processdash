@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -45,8 +45,8 @@ import net.sourceforge.processdash.util.StringUtils;
  */
 public class FormToHTML {
 
-        public static void translate(StringBuffer text, DataRepository data,
-                                 String prefix) {
+    public static void translate(StringBuffer text, DataRepository data,
+            String prefix) {
         int beg, end, end2;
 
         // dashboard forms have clearly delineated table cells because
@@ -118,12 +118,12 @@ public class FormToHTML {
 
 
     private static final String EXCEL_TIME_FMT_CLASS = "excelTimeFmt";
-        private static final String EXCEL_CLASS_DECL = " class='" +
-                EXCEL_TIME_FMT_CLASS + "'";
-        private static final String EXCEL_TIME_FMT_STYLE =
-                        "vnd.ms-excel.numberformat: [h]\\:mm";
-        private static final String EXCEL_STYLE_DECL = " style='" +
-                        EXCEL_TIME_FMT_STYLE + "'";
+    private static final String EXCEL_CLASS_DECL = " class='" +
+        EXCEL_TIME_FMT_CLASS + "'";
+    private static final String EXCEL_TIME_FMT_STYLE =
+        "vnd.ms-excel.numberformat: [h]\\:mm";
+    private static final String EXCEL_STYLE_DECL = " style='" +
+        EXCEL_TIME_FMT_STYLE + "'";
 
     private static final String EXTRA_STYLE_DECL =
         " table { border: 1px solid grey; border-collapse: collapse } " +
@@ -181,7 +181,7 @@ public class FormToHTML {
         else if (value instanceof NumberData) {
             int numDigits = inputName.digitFlag();
             double val = ((NumberData) value).getDouble();
-            if (inputName.hasFlag('%') || inputName.name.indexOf('%') != -1)
+            if (InterpreterFactory.isPercentInputName(inputName))
                 result = FormatUtil.formatPercent(val, numDigits);
             else if (InterpreterFactory.isTimeInputName(inputName)) {
                 result = FormatUtil.formatTime(val, true);
@@ -197,58 +197,57 @@ public class FormToHTML {
         end = beg + result.length();
 
         if (isTimeValue)
-                end += insertTimeFormattingForExcel(text, beg);
+            end += insertTimeFormattingForExcel(text, beg);
 
         // return the new value of end
         return end;
     }
 
-        private static int insertTimeFormattingForExcel(StringBuffer text, int end) {
-                int beg = StringUtils.lastIndexOf(text, "<", end);
-                if (beg == -1) return 0;
+    private static int insertTimeFormattingForExcel(StringBuffer text, int end) {
+        int beg = StringUtils.lastIndexOf(text, "<", end);
+        if (beg == -1) return 0;
 
-                // take a look at the sequence of characters from the previous "<"
-                // to the end of input, and see if that looks like a <td> tag.
-                CharSequence possibleTag = text.subSequence(beg, end);
-                Matcher m = TD_TAG_PATTERN.matcher(possibleTag);
-                if (!m.matches())
-                        // the newly replaced text doesn't appear to be inside a <td>
-                        // tag.  Do nothing and exit.
-                        return 0;
+        // take a look at the sequence of characters from the previous "<"
+        // to the end of input, and see if that looks like a <td> tag.
+        CharSequence possibleTag = text.subSequence(beg, end);
+        Matcher m = TD_TAG_PATTERN.matcher(possibleTag);
+        if (!m.matches())
+            // the newly replaced text doesn't appear to be inside a <td>
+            // tag.  Do nothing and exit.
+            return 0;
 
-                int contentBeg = beg + m.start(1);
-                int contentEnd = beg + m.end(1);
-                String tagContents = m.group(1);
+        int contentBeg = beg + m.start(1);
+        String tagContents = m.group(1);
 
-                m = CLASS_ATTR_PATTERN.matcher(tagContents);
-                if (!m.find()) {
-                        // there is no "class" attribute present.  Add one.
-                        text.insert(contentBeg, EXCEL_CLASS_DECL);
-                        return EXCEL_CLASS_DECL.length();
-                }
-
-                // The tag already has a "class" attribute, and Excel isn't
-                // standards-conformant enough (surprise, surprise) to recognize
-                // multiple whitespace-delimited class names.  So we'll need to fall
-                // back and use the "style" attribute.
-
-                m = STYLE_ATTR_PATTERN.matcher(tagContents);
-                if (m.find()) {
-                        // the tag contents already contains a "style" attribute.  We just
-                        // need to amend it.
-                        int insertPos = contentBeg + m.end();
-                        text.insert(insertPos, EXCEL_TIME_FMT_STYLE + "; ");
-                        return EXCEL_TIME_FMT_STYLE.length() + 2;
-                } else {
-                        // the tag does not contain a "style" attribute.  Add one.
-                        text.insert(contentBeg, EXCEL_STYLE_DECL);
-                        return EXCEL_STYLE_DECL.length();
-                }
+        m = CLASS_ATTR_PATTERN.matcher(tagContents);
+        if (!m.find()) {
+            // there is no "class" attribute present.  Add one.
+            text.insert(contentBeg, EXCEL_CLASS_DECL);
+            return EXCEL_CLASS_DECL.length();
         }
-        private static Pattern TD_TAG_PATTERN =
-                Pattern.compile("<t[dh]([^<>]*)>\\s*", Pattern.CASE_INSENSITIVE);
-        private static Pattern CLASS_ATTR_PATTERN =
-                Pattern.compile("\\s+class\\s*=", Pattern.CASE_INSENSITIVE);
-        private static Pattern STYLE_ATTR_PATTERN =
-                Pattern.compile("\\s+style\\s*=\\s*['\"]", Pattern.CASE_INSENSITIVE);
+
+        // The tag already has a "class" attribute, and Excel isn't
+        // standards-conformant enough (surprise, surprise) to recognize
+        // multiple whitespace-delimited class names.  So we'll need to fall
+        // back and use the "style" attribute.
+
+        m = STYLE_ATTR_PATTERN.matcher(tagContents);
+        if (m.find()) {
+            // the tag contents already contains a "style" attribute.  We just
+            // need to amend it.
+            int insertPos = contentBeg + m.end();
+            text.insert(insertPos, EXCEL_TIME_FMT_STYLE + "; ");
+            return EXCEL_TIME_FMT_STYLE.length() + 2;
+        } else {
+            // the tag does not contain a "style" attribute.  Add one.
+            text.insert(contentBeg, EXCEL_STYLE_DECL);
+            return EXCEL_STYLE_DECL.length();
+        }
+    }
+    private static Pattern TD_TAG_PATTERN =
+        Pattern.compile("<t[dh]([^<>]*)>\\s*", Pattern.CASE_INSENSITIVE);
+    private static Pattern CLASS_ATTR_PATTERN =
+        Pattern.compile("\\s+class\\s*=", Pattern.CASE_INSENSITIVE);
+    private static Pattern STYLE_ATTR_PATTERN =
+        Pattern.compile("\\s+style\\s*=\\s*['\"]", Pattern.CASE_INSENSITIVE);
 }
