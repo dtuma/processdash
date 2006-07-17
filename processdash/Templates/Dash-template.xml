@@ -81,6 +81,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <context>Rollup Tag</context>
     <mode>edit</mode>
     <uri>/dash/snippets/metricsTable</uri>
+    <uri mode="edit">/dash/snippets/metricsTableEdit.shtm</uri>
   </snippet>
 
   <snippet id="pdash.metricsPhaseTable" version="1.0">
@@ -89,6 +90,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <context>Rollup Tag</context>
     <mode>edit</mode>
     <uri>/dash/snippets/metricsPhaseTable</uri>
+    <uri mode="edit">/dash/snippets/metricsPhaseTableEdit.shtm</uri>
   </snippet>
 
 </dashboard-process-template>

@@ -27,11 +27,13 @@ package net.sourceforge.processdash.net.cms;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -41,8 +43,47 @@ import net.sourceforge.processdash.util.XMLUtils;
  * @author Tuma
  *
  */
-public class AutocompletingListEditor {
+public class AutocompletingListEditor extends TinyCGIBase {
 
+    protected void writeContents() throws IOException {
+        String listItemUri = getRequiredParam("itemUri");
+        String namespace = getOptionalParam("ns", "$$$_");
+        String itemType = getOptionalParam("itemType", "Metric");
+        String internalValParam =  getOptionalParam("valParam", "DataName");
+        String displayValParam = getParameter("displayParam");
+        String prompt = getParameter("newItemPrompt");
+
+        String valuesUri = getRequiredParam("valuesUri");
+        List values = readValues(valuesUri);
+
+        writeEditor(out, getTinyWebServer(), listItemUri, namespace, itemType,
+                internalValParam, displayValParam, parameters, null, values,
+                prompt);
+    }
+
+    protected String getRequiredParam(String name) throws IOException {
+        String result = getParameter(name);
+        if (result == null || result.trim().length() == 0)
+            throw new IOException(name + " must be specified");
+        return result;
+    }
+
+    protected String getOptionalParam(String name, String defaultVal) {
+        String result = getParameter(name);
+        if (result == null || result.trim().length() == 0)
+            return defaultVal;
+        else
+            return result;
+    }
+
+    private List readValues(String valuesUri) throws IOException {
+        if (!valuesUri.startsWith("/"))
+            valuesUri = "/" + valuesUri;
+        String fullUri = valuesUri;
+        if (valuesUri.indexOf("//") == -1 && valuesUri.indexOf("/+/") == -1)
+            fullUri = WebServer.urlEncodePath(getPrefix()) + "/" + valuesUri;
+        return Arrays.asList(getRequestAsString(fullUri).split("\n"));
+    }
 
     public static void writeEditor(Writer out, WebServer webServer,
             String listItemUri, String namespace, String itemType,

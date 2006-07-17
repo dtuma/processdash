@@ -1,0 +1,42 @@
+<b><!--#echo Label_Prompt --></b>&nbsp;<input type="text" name="$$$_Label"
+    value="<!--#echo Label -->" size="50"/></p>
+
+<p><b><!--#echo Columns_Prompt --></b><br/>
+<!--#foreach name="Which" values=",Plan,Actual,ActualPct,ToDate,ToDatePct," #-->
+<input type="checkbox" name="$$$_ShowWhichCol"
+    <!--#if ShowWhichCol -->checked="true"
+    <!--#elif defaults --><!--#if 'Which' ne 'ActualPct' -->checked="true"
+    <!--#endif--><!--#endif-->
+    class="cmsIndent" />&nbsp;<!--#echo Snippet.Columns.Which_Label -->
+<!--#endfor--></p>
+
+<p><b><!--#echo Phases.Prompt --></b><br/>
+<!--#foreach name="Which" values=",All,Appraisal,Failure,Quality," #-->
+<input type="radio" name="$$$_PhaseRows" value="Which"
+    <!--#if PhaseRows eq 'Which' -->checked="true"
+    <!--#elif defaults --><!--#if 'Which' eq 'All' -->checked="true"
+    <!--#endif--><!--#endif#-->
+
+    <!--#if 'Which' eq 'All' -->onclick="$('$$$_ShowTotalRow').disabled=false;"
+    <!--#else-->onclick="$('$$$_ShowTotalRow').disabled=true;"
+    <!--#endif-->
+
+    class="cmsIndent">&nbsp;<!--#echo Phases.Which -->
+<!--#endfor--><br/>
+
+<input type="checkbox" name="$$$_ShowTotalRow" id="$$$_ShowTotalRow"
+    <!--#if ShowTotalRow || defaults -->checked="true" <!--#endif#-->
+    <!--#if !defaults --><!--#if PhaseRows ne 'All' -->disabled="true"
+    <!--#endif--><!--#endif#-->
+    class="cmsIndent">&nbsp;<!--#echo Show_Total_Row --></p>
+
+<b><!--#echo Metrics_Prompt --></b>
+<div class='cmsIndent'><!--#include file="editList" -->
+    <!--#parameter name="QUERY_STRING" -->
+    <!--#parameter name="itemUri" encoding="relUri"
+                   value="metricSimple.shtm" -->
+    <!--#parameter name="valuesUri" encoding="relUri"
+                   value="listMetrics?unqualified&phases" -->
+    <!--#parameter name="newItemPrompt" encoding="html"
+                   var="Add_Metric_Prompt" -->
+</div>

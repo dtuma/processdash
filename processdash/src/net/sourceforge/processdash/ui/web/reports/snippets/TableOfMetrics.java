@@ -34,16 +34,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.cms.AutocompletingListEditor;
 import net.sourceforge.processdash.net.cms.SnippetDataEnumerator;
 import net.sourceforge.processdash.net.cms.TranslatingAutocompleter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.XMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class TableOfMetrics extends TinyCGIBase {
 
@@ -59,59 +57,19 @@ public class TableOfMetrics extends TinyCGIBase {
             .getDashBundle("Analysis.MetricsTable");
 
     protected void writeContents() throws IOException {
-        String mode = getParameter("mode");
-        if ("edit".equalsIgnoreCase(mode))
-            writeEditor();
+        if (parameters.containsKey("listMetrics"))
+            out.write(StringUtils.join(getListOfMetrics(), "\n"));
         else
             writeTable();
     }
 
-    private void writeEditor() throws IOException {
-        // write a field to let the user give the table a label.
-        out.write("<b>");
-        out.write(resources.getHTML("Label_Prompt"));
-        out.write("</b>&nbsp;<input type=\"text\" name='$$$_Label' value=\"");
-        out.write(XMLUtils.escapeAttribute(getParameter(LABEL_PARAM)));
-        out.write("\" size=\"50\"/></p>\n\n");
-
-        // write checkboxes allowing the user to select the columns to show
-        out.write("<p><b>");
-        out.write(resources.getHTML("Columns_Prompt"));
-        out.write("</b><br/>");
-        for (int i = 0; i < COLUMNS.length; i++)
-            COLUMNS[i].writeCheckbox(out, resources, parameters);
-        out.write("</p>\n\n");
-
-        // write a section allowing the user to select the metrics to display
-        out.write("<b>");
-        out.write(resources.getHTML("Metrics_Prompt"));
-        out.write("</b><div class='cmsIndent'>");
-        AutocompletingListEditor.writeEditor(out, getTinyWebServer(),
-                "/dash/snippets/metricSimple.shtm", "$$$_", ITEM_TYPE,
-                DATA_NAME_ATTR, null, parameters, null,
-                getListOfMetrics(), resources.getHTML("Add_Metric_Prompt"));
-        out.write("</div>");
-    }
-
     private Collection getListOfMetrics() {
-        List working = new ArrayList();
-        DataNameCollector.run(getDataRepository(), getPrefix(), null, null,
-                true, true, working);
-
-        Set items = new HashSet(working.size());
-        for (Iterator i = working.iterator(); i.hasNext();) {
-            String dataName = (String) i.next();
-            items.add(REMOVE_QUALIFIERS.matcher(dataName).replaceAll(""));
-        }
+        Set items = new HashSet();
+        DataNameCollector.run(getDataRepository(), getPrefix(), true, true,
+                false, items);
         items.addAll(SPECIAL_DATA.keySet());
         return items;
     }
-
-    private static final String[] PROBE_DATA = { "/Beta0", "/Beta1", "/Range",
-            "/Interval Percent", "/R Squared", "/LPI", "/UPI" };
-
-    private static final Pattern REMOVE_QUALIFIERS = Pattern
-            .compile("(Estimated (?!.*(" + getProbeStrings() + ")$)| To Date)");
 
 
     private void writeTable() throws IOException {
@@ -191,18 +149,11 @@ public class TableOfMetrics extends TinyCGIBase {
         if (result != null)
             return result;
 
-        for (int i = 0; i < PROBE_DATA.length; i++)
-            if (dataName.endsWith(PROBE_DATA[i]))
+        for (int i = 0; i < DataNameCollector.PROBE_DATA.length; i++)
+            if (dataName.endsWith(DataNameCollector.PROBE_DATA[i]))
                 return new EstOnlyMetric(dataName);
 
         return dataName;
-    }
-
-    private static String getProbeStrings() {
-        StringBuffer result = new StringBuffer();
-        for (int i = 0; i < PROBE_DATA.length; i++)
-             result.append('|').append(PROBE_DATA[i]);
-        return result.substring(1);
     }
 
     private static class EstOnlyMetric implements

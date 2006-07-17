@@ -432,6 +432,17 @@ public class StringUtils
         return result.substring(delim.length());
     }
 
+    public static boolean hasValue(String s) {
+        return (s != null && s.length() > 0);
+    }
+
+    public static boolean isWhiteSpace(CharSequence seq) {
+        for (int i = 0;   i < seq.length();  i++)
+            if (!Character.isWhitespace(seq.charAt(i)))
+                return false;
+        return true;
+    }
+
 
     public static final String VAR_START_PAT = "${";
     public static final String VAR_END_PAT = "}";

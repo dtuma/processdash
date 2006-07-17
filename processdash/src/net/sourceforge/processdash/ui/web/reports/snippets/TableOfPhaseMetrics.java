@@ -28,14 +28,10 @@ package net.sourceforge.processdash.ui.web.reports.snippets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
@@ -43,14 +39,10 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
-import net.sourceforge.processdash.net.cms.AddNewItemPageAssembler;
-import net.sourceforge.processdash.net.cms.AutocompletingListEditor;
 import net.sourceforge.processdash.net.cms.SnippetDataEnumerator;
 import net.sourceforge.processdash.net.cms.TranslatingAutocompleter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.StringUtils;
-import net.sourceforge.processdash.util.XMLUtils;
 
 public class TableOfPhaseMetrics extends TinyCGIBase {
 
@@ -66,90 +58,6 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
             .getDashBundle("Analysis.MetricsPhaseTable");
 
     protected void writeContents() throws IOException {
-        String mode = getParameter("mode");
-        if ("edit".equalsIgnoreCase(mode))
-            writeEditor();
-        else
-            writeTable();
-    }
-
-    private void writeEditor() throws IOException {
-
-
-        // write a field to let the user give the table a label.
-        out.write("<b>");
-        out.write(resources.getHTML("Label_Prompt"));
-        out.write("</b>&nbsp;<input type=\"text\" name='$$$_Label' value=\"");
-        out.write(XMLUtils.escapeAttribute(getParameter(LABEL_PARAM)));
-        out.write("\" size=\"50\"/></p>\n\n");
-
-        // write checkboxes allowing the user to select the columns to show
-        out.write("<p><b>");
-        out.write(resources.getHTML("Columns_Prompt"));
-        out.write("</b><br/>");
-        for (int i = 0; i < COLUMNS.length; i++)
-            COLUMNS[i].writeCheckbox(out, resources, parameters);
-        out.write("</p>\n\n");
-
-        // write radio buttons allowing the user to select a subset of phases
-        out.write("<p><b>");
-        out.write(resources.getHTML("Phases.Prompt"));
-        out.write("</b><br/>");
-        String selectedPhaseList = getSelectedPhaseList();
-        for (int i = 0; i < PHASES.length; i++)
-            writePhaseRadioButton(selectedPhaseList, PHASES[i][0]);
-        out.write("<br/>\n");
-        writeShowTotalCheckbox(selectedPhaseList);
-        out.write("</p>\n\n");
-
-        // write a section allowing the user to select the metrics to display
-        out.write("<b>");
-        out.write(resources.getHTML("Metrics_Prompt"));
-        out.write("</b><div class='cmsIndent'>");
-        AutocompletingListEditor.writeEditor(out, getTinyWebServer(),
-                "/dash/snippets/metricSimple.shtm", "$$$_", ITEM_TYPE,
-                DATA_NAME_ATTR, null, parameters, null,
-                getListOfMetrics(), resources.getHTML("Add_Metric_Prompt"));
-        out.write("</div>");
-    }
-
-    private void writePhaseRadioButton(String selectedPhaseList, String phaseID) {
-        out.write("<input type=\"radio\" name=\"$$$_PhaseRows\" value=\"");
-        out.write(phaseID);
-        if (phaseID.equals(selectedPhaseList))
-            out.write("\" checked=\"true");
-        out.write("\" onclick=\"$('$$$_ShowTotalRow').disabled=");
-        out.write(ALL_PHASES.equals(phaseID) ? "false" : "true");
-        out.write(";\" class=\"cmsIndent\">&nbsp;");
-        out.write(resources.getHTML("Phases." + phaseID));
-        out.write("\n");
-    }
-
-    private void writeShowTotalCheckbox(String selectedPhaseList) {
-        boolean useDefaults = parameters.containsKey(
-                AddNewItemPageAssembler.DEFAULTS_PARAM);
-        out.write("<input type=\"checkbox\" name=\"$$$_ShowTotalRow\"");
-        if (useDefaults || parameters.containsKey("ShowTotalRow"))
-            out.write(" checked=\"true\"");
-        if (!useDefaults && !ALL_PHASES.equals(selectedPhaseList))
-            out.write(" disabled=\"true\"");
-        out.write(" class=\"cmsIndent\" id=\"$$$_ShowTotalRow\">&nbsp;");
-        out.write(resources.getHTML("Show_Total_Row"));
-    }
-
-    private Collection getListOfMetrics() {
-        List phases = getList(PHASES[0][1]);
-        String regex = "(\\Q" + StringUtils.join(phases, "\\E|\\Q")
-                + "\\E)/(Estimated )?(.*)( To Date)?";
-
-        Set result = new HashSet();
-        DataNameCollector.run(getDataRepository(), getPrefix(),
-                Pattern.compile(regex), "$3", true, true, result);
-        return result;
-    }
-
-
-    private void writeTable() throws IOException {
         DataContext dataContext = getDataContext();
 
         // retrieve the label the user wants displayed

@@ -1,0 +1,20 @@
+<b><!--#echo Label_Prompt --></b>&nbsp;<input type="text" name='$$$_Label'
+     value="<!--#echo Label -->" size="50"/></p>
+
+<p><b><!--#echo Columns_Prompt --></b><br/>
+<!--#foreach name="Which" values=",Plan,Actual,ToDate," #-->
+<input type="checkbox" name="$$$_ShowWhichCol"
+    <!--#if ShowWhichCol || defaults -->checked="true"<!--#endif-->
+    class="cmsIndent" />&nbsp;<!--#echo Snippet.Columns.Which_Label -->
+<!--#endfor--></p>
+
+<b><!--#echo Metrics_Prompt --></b>
+<div class='cmsIndent'><!--#include file="editList" -->
+    <!--#parameter name="QUERY_STRING" -->
+    <!--#parameter name="itemUri" encoding="relUri" 
+                   value="metricSimple.shtm" -->
+    <!--#parameter name="valuesUri" encoding="relUri"
+                   value="metricsTable?listMetrics" -->
+    <!--#parameter name="newItemPrompt" var="Add_Metric_Prompt"
+                   encoding="html" -->
+</div>
