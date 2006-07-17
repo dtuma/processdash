@@ -309,13 +309,19 @@ public class HTMLPreprocessor {
         if (encodings != null) defaultEchoEncoding = encodings;
         encodings = echo.getAttribute("encoding");
         if (encodings == null) encodings = defaultEchoEncoding;
-        value = applyEncodings(value, encodings);
+
+        String context = (String) env.get("REQUEST_URI");
+        value = applyEncodings(value, encodings, context);
         return value;
     }
     public void setDefaultEchoEncoding(String enc) {
         defaultEchoEncoding = enc;
     }
     public static String applyEncodings(String value, String encodings) {
+        return applyEncodings(value, encodings, "/");
+    }
+    private static String applyEncodings(String value, String encodings,
+            String baseUri) {
         if (encodings == null || "none".equalsIgnoreCase(encodings))
             return value;
         StringTokenizer tok = new StringTokenizer(encodings, ",");
@@ -339,6 +345,8 @@ public class HTMLPreprocessor {
                 value = StringUtils.javaEncode(value);
             else if ("translate".equalsIgnoreCase(encoding))
                 value = Translator.translate(value);
+            else if ("relUri".equalsIgnoreCase(encoding))
+                value = resolveRelativeURI(baseUri, value);
             else
                 // default: HTML entity encoding
                 value = HTMLUtils.escapeEntities(value);
@@ -347,6 +355,16 @@ public class HTMLPreprocessor {
         return value;
     }
 
+
+    private static String resolveRelativeURI(String baseUri, String value) {
+        try {
+            URL u = new URL("http://ignored" + baseUri);
+            u = new URL(u, value);
+            return u.getFile();
+        } catch (Exception e) {
+            return value;
+        }
+    }
 
     /** process a foreach directive within the buffer */
     private void processForeachDirective(DirectiveMatch foreach) {
