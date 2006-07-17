@@ -29,13 +29,17 @@ package net.sourceforge.processdash.ev.ui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.text.DecimalFormatSymbols;
 import java.util.EventObject;
 
 import javax.swing.Box;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -58,6 +62,8 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.Legend;
 import org.jfree.chart.axis.Axis;
+import org.jfree.data.DatasetChangeEvent;
+import org.jfree.data.DatasetChangeListener;
 import org.jfree.data.XYDataset;
 
 
@@ -110,14 +116,14 @@ public class TaskScheduleChart extends JFrame
     }
 
     private ChartPanel buildChart(XYDataset data, String units) {
-        JFreeChart chart = createChart(data);
+        EVDatasetFilter filteredData = new EVDatasetFilter(
+                data, false, false, 0);
+        JFreeChart chart = createChart(filteredData);
         if (units != null && units.length() != 0)
             chart.getXYPlot().getRangeAxis().setLabel(units);
         charts[numCharts]    = chart;
         legends[numCharts++] = chart.getLegend();
-        ChartPanel panel = new ChartPanel(chart);
-        panel.setMouseZoomable(true, false);
-        return panel;
+        return new EVChartPanel(chart, filteredData);
     }
 
     public static JFreeChart createChart(XYDataset data) {
@@ -222,6 +228,49 @@ public class TaskScheduleChart extends JFrame
         a.setTickMarksVisible(!chromeless);
         a.setLabel(chromeless ? null : units);
     }
+
+
+    private class EVChartPanel extends ChartPanel {
+        private EVDatasetFilter filteredData;
+        public EVChartPanel(JFreeChart chart, EVDatasetFilter filteredData) {
+            super(chart);
+            setMouseZoomable(true, false);
+
+            this.filteredData = filteredData;
+            getPopupMenu().insert(new JPopupMenu.Separator(), 0);
+            filteredData.getSourceDataset().addChangeListener(
+                    new DatasetChangeListener() {
+                        public void datasetChanged(DatasetChangeEvent event) {
+                            reloadSeriesMenus();
+                        }});
+            reloadSeriesMenus();
+        }
+        private void reloadSeriesMenus() {
+            JPopupMenu menu = getPopupMenu();
+            while (menu.getComponent(0) instanceof ShowChartLineMenuItem)
+                menu.remove(0);
+            XYDataset data = filteredData.getSourceDataset();
+            for (int i = data.getSeriesCount();   i-- > 0; )
+                menu.insert(new ShowChartLineMenuItem(filteredData, i), 0);
+        }
+    }
+    private class ShowChartLineMenuItem extends JCheckBoxMenuItem implements
+            ActionListener {
+        private EVDatasetFilter data;
+        private int seriesNum;
+        public ShowChartLineMenuItem(EVDatasetFilter data, int seriesNum) {
+            this.data = data;
+            this.seriesNum = seriesNum;
+            String seriesName = data.getSourceDataset().getSeriesName(seriesNum);
+            setText(resources.format("Show_Line_FMT", seriesName));
+            setSelected(data.isSeriesHidden(seriesNum) == false);
+            addActionListener(this);
+        }
+        public void actionPerformed(ActionEvent e) {
+            data.setSeriesHidden(seriesNum, isSelected() == false);
+        }
+    }
+
 
 
     private class DescriptionPane extends JTextArea

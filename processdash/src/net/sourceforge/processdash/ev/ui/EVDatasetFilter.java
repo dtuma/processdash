@@ -25,6 +25,12 @@
 
 package net.sourceforge.processdash.ev.ui;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+import org.jfree.data.DatasetChangeEvent;
 import org.jfree.data.DatasetChangeListener;
 import org.jfree.data.DatasetGroup;
 import org.jfree.data.XYDataset;
@@ -32,9 +38,8 @@ import org.jfree.data.XYDataset;
 public class EVDatasetFilter implements XYDataset {
 
     private XYDataset source;
-    private boolean hidePlan;
-    private boolean hideForecast;
-    private int forecastIndex;
+    private boolean[] hideSeries;
+    private List listeners;
 
     /** Create a dataset to filter one or more series out of another earned
      * value dataset.
@@ -50,26 +55,34 @@ public class EVDatasetFilter implements XYDataset {
     public EVDatasetFilter(XYDataset source, boolean hidePlan,
             boolean hideForecast, int forecastIndex) {
         this.source = source;
-        this.hidePlan = hidePlan;
-        this.hideForecast = hideForecast;
-        this.forecastIndex = forecastIndex;
+
+        this.hideSeries = new boolean[source.getSeriesCount() + 5];
+        Arrays.fill(hideSeries, false);
+        if (hidePlan)
+            hideSeries[0] = true;
+        if (hideForecast)
+            Arrays.fill(hideSeries, forecastIndex, hideSeries.length, true);
+
+        this.listeners = new ArrayList();
     }
 
     public int getSeriesCount() {
         int seriesCount = source.getSeriesCount();
-        if (hideForecast)
-            seriesCount = Math.min(seriesCount, forecastIndex);
-        if (hidePlan)
-            seriesCount--;
+        for (int i = seriesCount;   i-- > 0;  )
+            if (hideSeries[i])
+                seriesCount--;
         return seriesCount;
     }
 
 
     private int mapSeries(int series) {
-        if (hidePlan)
-            return series + 1;
-        else
-            return series;
+        for (int i = 0; i < hideSeries.length; i++) {
+            if (hideSeries[i] == false)
+                if (series-- == 0)
+                    return i;
+        }
+        // shouldn't happen
+        return -1;
     }
 
     public String getSeriesName(int series) {
@@ -88,14 +101,37 @@ public class EVDatasetFilter implements XYDataset {
         return source.getYValue(mapSeries(series), item);
     }
 
+    public boolean isSeriesHidden(int series) {
+        return hideSeries[series];
+    }
 
+    public void setSeriesHidden(int series, boolean hidden) {
+        if (hideSeries[series] != hidden) {
+            hideSeries[series] = hidden;
+            fireDatasetChanged();
+        }
+    }
+
+    public XYDataset getSourceDataset() {
+        return source;
+    }
 
     public void addChangeListener(DatasetChangeListener listener) {
+        listeners.add(listener);
         source.addChangeListener(listener);
     }
 
     public void removeChangeListener(DatasetChangeListener listener) {
+        listeners.remove(listener);
         source.removeChangeListener(listener);
+    }
+
+    protected void fireDatasetChanged() {
+        DatasetChangeEvent e = new DatasetChangeEvent(this, this);
+        for (Iterator i = listeners.iterator(); i.hasNext();) {
+            DatasetChangeListener l = (DatasetChangeListener) i.next();
+            l.datasetChanged(e);
+        }
     }
 
     public DatasetGroup getGroup() {
