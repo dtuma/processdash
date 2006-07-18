@@ -159,7 +159,7 @@ public class SnippetInvoker implements SnippetEnvironment {
             String results = webServer.getRequestAsString(fullUri.toString(),
                     extraEnvironment);
             snippet.setStatus(SnippetInvoker.STATUS_OK);
-            snippet.setUri(uri);
+            snippet.setUri(fullUri.toString());
             return results;
         } catch (IOException ioe) {
             snippet.setStatus(SnippetInvoker.STATUS_INTERNAL_ERROR);

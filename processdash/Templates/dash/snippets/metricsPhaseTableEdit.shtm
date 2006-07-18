@@ -10,10 +10,10 @@
     class="cmsIndent" />&nbsp;<!--#echo Snippet.Columns.Which_Label -->
 <!--#endfor--></p>
 
-<p><b><!--#echo Phases.Prompt --></b><br/>
+<p><b><!--#echo Phases_Prompt --></b><br/>
 <!--#foreach name="Which" values=",All,Appraisal,Failure,Quality," #-->
-<input type="radio" name="$$$_PhaseRows" value="Which"
-    <!--#if PhaseRows eq 'Which' -->checked="true"
+<input type="radio" name="$$$_PhaseGroup" value="Which"
+    <!--#if PhaseGroup eq 'Which' -->checked="true"
     <!--#elif defaults --><!--#if 'Which' eq 'All' -->checked="true"
     <!--#endif--><!--#endif#-->
 
@@ -21,12 +21,12 @@
     <!--#else-->onclick="$('$$$_ShowTotalRow').disabled=true;"
     <!--#endif-->
 
-    class="cmsIndent">&nbsp;<!--#echo Phases.Which -->
+    class="cmsIndent">&nbsp;<!--#echo Snippet.Phases.Which -->
 <!--#endfor--><br/>
 
 <input type="checkbox" name="$$$_ShowTotalRow" id="$$$_ShowTotalRow"
     <!--#if ShowTotalRow || defaults -->checked="true" <!--#endif#-->
-    <!--#if !defaults --><!--#if PhaseRows ne 'All' -->disabled="true"
+    <!--#if !defaults --><!--#if PhaseGroup ne 'All' -->disabled="true"
     <!--#endif--><!--#endif#-->
     class="cmsIndent">&nbsp;<!--#echo Show_Total_Row --></p>
 

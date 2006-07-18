@@ -43,10 +43,10 @@ public class PieChart extends CGIChartBase {
     public JFreeChart createChart() {
         CategoryDataset catData = data.catDataSource();
         PieDataset pieData = null;
-        if (catData.getRowCount() == 1)
-            pieData = DatasetUtilities.createPieDatasetForRow(catData, 0);
-        else
+        if (catData.getColumnCount() == 1)
             pieData = DatasetUtilities.createPieDatasetForColumn(catData, 0);
+        else
+            pieData = DatasetUtilities.createPieDatasetForRow(catData, 0);
 
         JFreeChart chart = null;
         if (get3DSetting()) {

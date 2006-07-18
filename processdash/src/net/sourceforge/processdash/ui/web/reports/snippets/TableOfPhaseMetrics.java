@@ -176,7 +176,7 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
     }
 
     private String getSelectedPhaseList() {
-        String result = getParameter("PhaseRows");
+        String result = getParameter("PhaseGroup");
         if (result == null)
             result = ALL_PHASES;
         return result;

@@ -1,6 +1,6 @@
-<!--
+<!--#server-parsed --><!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,25 +23,29 @@
 // Hill AFB, UT 84056-5843
 // 
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
--->
-<HTML>
+--><!--#resources bundle="Analysis" -->
+<html>
 
-<HEAD>
-<SCRIPT LANGUAGE="JavaScript">
+<head>
+<title>Chart</title>
 
-// Determine whether the current browser is Netscape.
-function isNetscape() { return (window.navigator.appName == "Netscape"); }
-
-// Return the width (in pixels) of the user's window.
-function W() {
-    return (isNetscape() ? window.innerWidth : document.body.clientWidth); }
-
-// Return the height (in pixels) of the user's window.
-function H() {
-    return (isNetscape() ? window.innerHeight-2 : document.body.clientHeight);}
+<script language="JavaScript">
 
 // Construct a value for the SRC attribute of an image.
 function imgSrc() {
+    var w,h;
+    if (self.innerHeight) {     // all except Explorer
+	w = self.innerWidth;
+	h = self.innerHeight;
+    } else if (document.documentElement    // Explorer 6 Strict Mode
+            && document.documentElement.clientHeight) {
+	w = document.documentElement.clientWidth;
+	h = document.documentElement.clientHeight;
+    } else if (document.body) {            // other Explorers
+	w = document.body.clientWidth;
+	h = document.body.clientHeight;
+    }
+
     var chart = "line.class";
     if (window.location.search.indexOf("chart=xy") != -1)
         chart = "xy.class";
@@ -51,38 +55,25 @@ function imgSrc() {
         chart = "bar.class";
     else if (window.location.search.indexOf("chart=radar") != -1)
         chart = "radar.class";
-    return (chart + window.location.search + "&width="+W() + "&height="+H());
+    return (chart + window.location.search + "&width="+w + "&height="+h);
 }
-
-// Display a message in the status bar
-function displayMessage() {
-    window.status =
-        "Resize window to resize chart; click on chart to view data";
-    return true;
-}
-// Remove the message from the status bar.
-function noMessage() { window.status = ""; return true; }
 
 // Resize the chart, in response to the window/frame being resized.
 function resizeChart() { 
-    if (isNetscape())
-        window.location.reload();
-    else
-        document.images[0].src = imgSrc();
+    var image = document.getElementsByTagName("IMG")[0];
+    image.src = imgSrc();
 }
 window.onresize = resizeChart;
-window.onunload = noMessage;
 
-</SCRIPT>
-<title>Chart</title>
-</HEAD>
+</script>
+
+</head>
 
 <BODY LEFTMARGIN="0" TOPMARGIN="0" MARGINHEIGHT="0" MARGINWIDTH="0" SCROLL="no">
 
 <SCRIPT>
     document.write("<A HREF='table.class" + window.location.search + "' ");
-    document.write("ONMOUSEOVER='return displayMessage()' ");
-    document.write("ONMOUSEOUT='return noMessage()'>");
+    document.write(" title=\"<!--#echo var=Full_Page_Detail_Instruction encoding='html,javaStr' -->\">");
     document.write("<IMG BORDER=0 SRC='" + imgSrc() + "'></A>");
 </SCRIPT>
 </BODY>
