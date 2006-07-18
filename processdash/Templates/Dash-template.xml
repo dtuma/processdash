@@ -102,4 +102,12 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/phaseChartEdit.shtm</uri>
   </snippet>
 
+  <snippet id="pdash.histXYChart" version="1.0">
+    <resources>Analysis.HistXYChart</resources>
+    <context>Rollup Tag</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/histXYChart</uri>
+    <uri mode="edit">/dash/snippets/histXYChartEdit.shtm</uri>
+  </snippet>
+
 </dashboard-process-template>

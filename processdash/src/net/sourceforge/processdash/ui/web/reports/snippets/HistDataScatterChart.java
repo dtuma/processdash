@@ -27,26 +27,18 @@ package net.sourceforge.processdash.ui.web.reports.snippets;
 
 import java.io.IOException;
 
-public class PhaseChart extends AbstractChartSnippet {
+public class HistDataScatterChart extends AbstractChartSnippet {
 
     protected void writeContents() throws IOException {
         StringBuffer args = getQueryParams();
-
-        String chartType = getParameter("ChartType");
-        chartType = (chartType == null ? "pie" : chartType.toLowerCase());
-
-        String phases = getParameter("PhaseGroup");
-        if (phases == null || "All".equals(phases))
-            phases = "[Phase_List]";
-        else
-            phases = "[" + phases + "_Phase_List]";
-        appendParam(args, "for", phases);
-        appendParam(args, "h0", "Phase");
-        appendParam(args, "units", getParameter("YAxisLabel"));
+        appendParam(args, "for", "[Rollup_List]");
+        copyParam(args, "ShowTrend", "trend");
 
         String query = args.toString();
-
-        writeSmallChart(chartType, query);
+        if (query.indexOf("&d2") == -1) {
+            out.write("<!-- at least two metrics must be specified -->\n\n");
+        } else {
+            writeSmallChart("xy", query);
+        }
     }
-
 }

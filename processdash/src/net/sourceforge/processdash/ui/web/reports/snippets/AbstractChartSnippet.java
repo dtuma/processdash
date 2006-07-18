@@ -66,4 +66,22 @@ public class AbstractChartSnippet extends TinyCGIBase {
         }
     }
 
+    protected void writeSmallChart(String chartType, String query) {
+        out.write("<a href=\"../../reports/");
+        if (parameters.containsKey("EXPORT"))
+            out.write("table.class");
+        else
+            out.write("full.htm");
+        out.write("?chart=");
+        out.write(chartType);
+        out.write(query);
+        out.write("\" title=\"");
+        out.write(resources.getHTML("More_Detail_Here_Instruction"));
+        out.write("\"><img src=\"../../reports/");
+        out.write(chartType);
+        out.write(".class?qf=small.rpt");
+        out.write(query);
+        out.write("\"/></a>\n");
+    }
+
 }
