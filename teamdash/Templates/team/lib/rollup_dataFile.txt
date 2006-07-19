@@ -3,6 +3,7 @@
 //
 
 #include <ROLLUP:<!--#echo Process_ID -->>;
+undefine([Historical Data Tag]);
 
 /*
  * We need to redefine the rollup project list to include PSP projects.
