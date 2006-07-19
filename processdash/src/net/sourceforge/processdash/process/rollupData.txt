@@ -3,6 +3,7 @@
 // Flag this data set as a rollup.
 [Rollup Tag] = tag;
 [ROLLUP_ID Rollup Tag] = tag;
+[Historical Data Tag] = tag;
 undefine([Simple Project Tag]);
 
 /*

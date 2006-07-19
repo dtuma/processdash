@@ -43,12 +43,18 @@ public class AbstractChartSnippet extends TinyCGIBase {
         copyParam(result, "Title", "title");
         Map[] metrics = SnippetDataEnumerator.getEnumeratedValues(parameters,
                 "Metric");
-        for (int i = 0; i < metrics.length; i++) {
-            int n = i + 1;
-            appendParam(result, "d" + n, metrics[i].get("DataName"));
-            appendParam(result, "h" + n, metrics[i].get("DisplayName"));
-        }
+        if (metrics != null)
+            for (int i = 0; i < metrics.length; i++) {
+                int n = i + 1;
+                appendParam(result, "d" + n, metrics[i].get("DataName"));
+                appendParam(result, "h" + n, metrics[i].get("DisplayName"));
+                appendExtraMetricParams(result, metrics[i], n);
+            }
         return result;
+    }
+
+    protected void appendExtraMetricParams(StringBuffer result, Map map, int i) {
+        // subclasses may override
     }
 
     protected void copyParam(StringBuffer buf, String srcAttr, String destAttr) {
@@ -67,6 +73,10 @@ public class AbstractChartSnippet extends TinyCGIBase {
     }
 
     protected void writeSmallChart(String chartType, String query) {
+        writeSmallChart(chartType, query, "");
+    }
+    protected void writeSmallChart(String chartType, String query,
+            String extraQueryForSmallVersion) {
         out.write("<a href=\"../../reports/");
         if (parameters.containsKey("EXPORT"))
             out.write("table.class");
@@ -81,6 +91,7 @@ public class AbstractChartSnippet extends TinyCGIBase {
         out.write(chartType);
         out.write(".class?qf=small.rpt");
         out.write(query);
+        out.write(extraQueryForSmallVersion);
         out.write("\"/></a>\n");
     }
 

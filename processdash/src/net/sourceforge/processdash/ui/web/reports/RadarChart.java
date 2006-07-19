@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,7 +26,11 @@
 package net.sourceforge.processdash.ui.web.reports;
 
 
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
+import net.sourceforge.processdash.util.FormatUtil;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.CategoryDataset;
@@ -40,6 +44,7 @@ public class RadarChart extends CGIChartBase {
 
     /** Create a radar chart. */
     public JFreeChart createChart() {
+        maybeScaleDataAxes();
         CategoryDataset catData = data.catDataSource();
         PieDataset pieData = null;
         if (catData.getRowCount() == 1)
@@ -63,6 +68,31 @@ public class RadarChart extends CGIChartBase {
         } catch (NumberFormatException e) {}
 
         return chart;
+    }
+
+    private void maybeScaleDataAxes() {
+        for (int i = 0;  i < data.numCols();  i++) {
+            int n = i+1;
+            double targetVal = 0;
+            try {
+                String target = getParameter("t" + n);
+                targetVal = FormatUtil.parseNumber(target);
+            } catch (Exception e) {
+                continue;
+            };
+            boolean reverse = parameters.containsKey("r" + n);
+
+            SimpleData d = data.getData(1, n);
+            if (d instanceof NumberData) {
+                NumberData num = (NumberData) d;
+                double val = num.getDouble();
+                if (reverse)
+                    val = 2.0 / (1.0 + (val / targetVal));
+                else
+                    val = val / targetVal;
+                data.setData(1, n, new DoubleData(val));
+            }
+        }
     }
 
 }

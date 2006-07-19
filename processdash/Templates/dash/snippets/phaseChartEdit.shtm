@@ -28,7 +28,7 @@
     <!--#elif defaults --><!--#if 'Which' eq 'All' -->checked="true"
     <!--#endif--><!--#endif#-->
     class="cmsIndent">&nbsp;<!--#echo Snippet.Phases.Which -->
-<!--#endfor--><br/>
+<!--#endfor--></p>
 
 <b><!--#echo Metrics_Prompt --></b>
 <div class='cmsIndent'><!--#include file="editList" -->

@@ -100,8 +100,16 @@
  * Calculations for the quality profile
  */
 
+[Design vs Code/Time Ratio] = [Design/Time] / [Code/Time];
+[Design vs Code/Estimated Time Ratio] = 
+    [Design/Estimated Time] / [Code/Estimated Time];
+
 [Quality_Profile_1] = iff([Code/Time], 
     [Design/Time] / ([Code/Time] * inherit("Target Design/Code Ratio")), 1);
+
+[Code Review vs Code/Time Ratio] = [Code Review/Time] / [Code/Time];
+[Code Review vs Code/Estimated Time Ratio] =
+    [Code Review/Estimated Time] / [Code/Estimated Time];
 
 [Quality_Profile_2] = iff([Code/Time],
     [Code Review/Time] / ([Code/Time] *
@@ -115,9 +123,25 @@
     2 / (1 + [Test/Defect Density] /
 	 inherit("Target Test Defect Density")), 1);
 
+[Design Review vs Design/Time Ratio] = [Design Review/Time] / [Design/Time];
+[Design Review vs Design/Estimated Time Ratio] =
+    [Design Review/Estimated Time] / [Design/Estimated Time];
+
 [Quality_Profile_5] = iff([Design/Time], 
     [Design Review/Time]  / ([Design/Time] *
 			     inherit("Target Design Review/Design Ratio")), 1);
+
+
+// Additional ratios that might be useful for quality analysis
+
+[HLD Review vs HLD/Time Ratio] = [HLD Review/Time] / [HLD/Time];
+[HLD Review vs HLD/Estimated Time Ratio] =
+    [HLD Review/Estimated Time] / [HLD/Estimated Time];
+
+[HLD vs Design/Time Ratio] = [HLD/Time] / [Design/Time];
+[HLD vs Design/Estimated Time Ratio] = 
+    [HLD/Estimated Time] / [Design/Estimated Time];
+
 
 /*
  * Design and Code Review Yields
