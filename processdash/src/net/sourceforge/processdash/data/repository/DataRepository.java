@@ -107,7 +107,8 @@ import net.sourceforge.processdash.util.CppFilterReader;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
-public class DataRepository implements Repository, DataContext {
+public class DataRepository implements Repository, DataContext,
+        DataConsistencyEventSource {
 
     public static final String anonymousPrefix = "///Anonymous";
 

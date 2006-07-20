@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,14 +26,11 @@
 package net.sourceforge.processdash.log.time;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
-import sun.security.validator.SimpleValidator;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
@@ -41,15 +38,15 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.NumberFunction;
 import net.sourceforge.processdash.data.SaveableData;
-import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.repository.CompiledFunction;
+import net.sourceforge.processdash.data.repository.DataConsistencyEventSource;
+import net.sourceforge.processdash.data.repository.DataConsistencyObserver;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.ChangeFlagged;
 
-public class TimingMetricsRecorder implements TimeLogListener {
+public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyObserver {
 
     private ModifiableTimeLog timeLog;
 
@@ -78,7 +75,7 @@ public class TimingMetricsRecorder implements TimeLogListener {
     }
 
     public void refreshMetrics() {
-        saveTiming(null);
+        queueTiming(null);
     }
 
     public void dispose() {
@@ -108,7 +105,10 @@ public class TimingMetricsRecorder implements TimeLogListener {
         } else if (!pathsToCompute.contains(null)) {
             pathsToCompute.add(basePath);
         }
-        processQueue();
+        if (data instanceof DataConsistencyEventSource)
+            ((DataConsistencyEventSource) data).addDataConsistencyObserver(this);
+        else
+            processQueue();
     }
 
     protected void processQueue() {
@@ -203,7 +203,7 @@ public class TimingMetricsRecorder implements TimeLogListener {
         else
             startingKey = hierarchy.findExistingKey(path);
         if (startingKey != null)
-                initMapFromHierarchy(startingKey, result);
+            initMapFromHierarchy(startingKey, result);
     }
 
     private void initMapFromHierarchy(PropertyKey key, Map result) {
@@ -260,5 +260,8 @@ public class TimingMetricsRecorder implements TimeLogListener {
             setStartTimeElements(path.substring(0, slashPos), startTime);
     }
 
+    public void dataIsConsistent() {
+        processQueue();
+    }
 
 }
