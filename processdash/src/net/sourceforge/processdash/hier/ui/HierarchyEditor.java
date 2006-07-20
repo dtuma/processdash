@@ -164,31 +164,54 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
                 newChange.oldPrefix == null)
                 pendingVector.addElement(newChange);
 
-            else {                    // step backward through changes
-                for (int i = pendingVector.size(); i-- > 0; ) {
-                    existingChange = (PendingDataChange) pendingVector.elementAt(i);
+            else {
+                // check to see if this change will result in a new or renamed node
+                // whose name matches one of the names originally present in the
+                // hierarchy before modifications began.  If so, don't merge this
+                // change with any other change, or we might clobber the original
+                // data in the process.
+                boolean foundPotentialClobber = false;
+                if (newChange.newPrefix != null) {
+                    for (Iterator i = pendingVector.iterator(); i.hasNext();) {
+                        existingChange = (PendingDataChange) i.next();
+                        if (newChange.newPrefix.equals(existingChange.oldPrefix)) {
+                            foundPotentialClobber = true;
+                            break;
+                        }
+                    }
+                }
 
-                                          // if we find an existing change whose
-                                          // "final prefix" (newPrefix) matches the
-                                          // "initial prefix" (oldPrefix) of this change,
-                    if (newChange.oldPrefix.equals(existingChange.newPrefix)) {
+                // step backward through changes, looking for past changes that might
+                // merge with this one to reduce the amount of data churn.  Examples:
+                // a node created and then immediately renamed (a typical use case),
+                // a node renamed several times (only the final name is relevant),
+                // a node created then deleted (an effective no-op)
+                if (foundPotentialClobber == false) {
+                    for (int i = pendingVector.size(); i-- > 0; ) {
+                        existingChange = (PendingDataChange) pendingVector.elementAt(i);
 
-                                          // merge the two changes.
-                        if (newChange.changeType == PendingDataChange.CHANGE) {
-                            existingChange.newPrefix = newChange.newPrefix;
-                            if (existingChange.changeType == PendingDataChange.CHANGE &&
-                                existingChange.oldPrefix.equals(existingChange.newPrefix))
-                                pendingVector.removeElementAt(i);
-                            newChange = null;   break;
-                        } else              // newChange.changeType is DELETE
-                            if (existingChange.changeType == PendingDataChange.CREATE) {
-                                pendingVector.removeElementAt(i);
+                                            // if we find an existing change whose
+                                            // "final prefix" (newPrefix) matches the
+                                            // "initial prefix" (oldPrefix) of this change,
+                        if (newChange.oldPrefix.equals(existingChange.newPrefix)) {
+
+                                            // merge the two changes.
+                            if (newChange.changeType == PendingDataChange.CHANGE) {
+                                existingChange.newPrefix = newChange.newPrefix;
+                                if (existingChange.changeType == PendingDataChange.CHANGE &&
+                                    existingChange.oldPrefix.equals(existingChange.newPrefix))
+                                    pendingVector.removeElementAt(i);
                                 newChange = null;   break;
-                            } else {          // existingChange.changeType is CHANGE
-                                newChange.oldPrefix = existingChange.oldPrefix;
-                                pendingVector.setElementAt(newChange, i);
-                                newChange = null;   break;
-                            }
+                            } else              // newChange.changeType is DELETE
+                                if (existingChange.changeType == PendingDataChange.CREATE) {
+                                    pendingVector.removeElementAt(i);
+                                    newChange = null;   break;
+                                } else {          // existingChange.changeType is CHANGE
+                                    newChange.oldPrefix = existingChange.oldPrefix;
+                                    pendingVector.setElementAt(newChange, i);
+                                    newChange = null;   break;
+                                }
+                        }
                     }
                 }
                 if (newChange != null)
