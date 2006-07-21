@@ -53,19 +53,21 @@ import org.w3c.dom.Element;
 
 public class EVMetrics implements TableModel {
 
-    /** The total planned time for all tasks in an EVModel, in minutes. */
+    /** The total planned time for all tasks in an EVModel, in minutes.
+     * (aka Budget At Completion, or BAC) */
     protected double totalPlanTime = 0.0;
 
-    /** The total planned time for all <b>completed</b> tasks in an
-     *  EVModel, in minutes.  */
+    /** The total planned time for all <b>completed</b> tasks in an EVModel,
+     * in minutes.  (aka Budgeted Cost for Work Performed, or BCWP) */
     protected double earnedValueTime = 0.0;
 
     /** The total actual time for all <b>completed</b> tasks in an
-     *  EVModel, in minutes.  */
+     *  EVModel, in minutes.  (aka Actual Cost for Work Performed, or ACWP) */
     protected double actualTime = 0.0;
 
     /** The total planned time for all tasks that were planned to be
-     * completed as of today, in minutes.  */
+     * completed as of today, in minutes.  (aka Budgeted Cost for Work
+     * Scheduled, or BCWS) */
     protected double planTime = 0.0;
 
     /** The start date of this EVModel */
@@ -281,9 +283,13 @@ public class EVMetrics implements TableModel {
     }
 
 
+    /** BCWP */
     public double earnedValue() { return earnedValueTime; }
+    /** ACWP */
     public double actual()      { return actualTime;      }
+    /** BCWS */
     public double plan()        { return planTime;        }
+    /** BAC */
     public double totalPlan()   { return totalPlanTime;   }
     public Date startDate()     { return startDate;       }
     public Date currentDate()   { return currentDate;     }
