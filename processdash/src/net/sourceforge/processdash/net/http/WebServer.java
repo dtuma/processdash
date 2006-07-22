@@ -1019,10 +1019,14 @@ public class WebServer {
             // unconditionally allow internal requests.
             if (effectiveClientSocket == null) return;
 
-            // unconditionally serve up items in the root directory
-            // (This includes "style.css", "DataApplet.*", "data.js")
-            // and the Images/ directory.
-            if (path.indexOf('/') == -1 || path.startsWith("Images/")) return;
+            // unconditionally serve up items that are not project specific.
+            // this includes items in the root directory (e.g. "style.css",
+            // "data.js"), and items in the "Images", "js", and "help"
+            // subdirectories.
+            if (path.indexOf('/') == -1
+                    || path.startsWith("Images/")
+                    || path.startsWith("help/")
+                    || path.startsWith("js/")) return;
 
             // unconditionally serve requests that originate from the
             // local host.
