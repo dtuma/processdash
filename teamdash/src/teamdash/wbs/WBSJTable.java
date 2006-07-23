@@ -597,6 +597,8 @@ public class WBSJTable extends JTable {
 
             if (nodesToInsert == cutList)
                 wbsModel.deleteNodes(cutList, false);
+            else
+                nodesToInsert = WBSNode.cloneNodeList(nodesToInsert);
             cutList = null;
 
             int pos = wbsModel.getRowForNode(beforeNode);
