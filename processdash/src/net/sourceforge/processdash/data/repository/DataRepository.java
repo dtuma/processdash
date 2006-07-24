@@ -3695,18 +3695,26 @@ public class DataRepository implements Repository, DataContext,
         }
 
         public void finishInconsistency() {
+            finishInconsistency(false);
+        }
+        public void finishInconsistency(boolean wait) {
+            ConsistencyNotifier notifier = null;
             synchronized (consistencyListeners) {
                 if (--inconsistencyDepth == 0 &&
-                    !consistencyListeners.isEmpty()) {
-                    ConsistencyNotifier notifier =
-                        new ConsistencyNotifier(consistencyListeners);
+                        !consistencyListeners.isEmpty()) {
+                    notifier = new ConsistencyNotifier(consistencyListeners);
                     consistencyListeners.clear();
-                    notifier.start();
                 }
+            }
+            if (notifier != null) {
+                if (wait)
+                    notifier.run();
+                else
+                    new Thread(notifier).start();
             }
         }
 
-        private class ConsistencyNotifier extends Thread {
+        private class ConsistencyNotifier implements Runnable {
             private Set listenersToNotify;
 
             public ConsistencyNotifier(Set listeners) {

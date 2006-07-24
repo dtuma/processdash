@@ -44,8 +44,9 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.EventObject;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.swing.Box;
@@ -297,7 +298,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         if (td != null) // need to add a day so search is inclusive
             td = new Date(td.getTime() + DAY_IN_MILLIS);
 
-        Hashtable nodeTimes = new Hashtable();
+        Map nodeTimes = new HashMap();
         long totalTime = collectTime(treeModel.getRoot(), getTimes(fd, td),
                 nodeTimes);
         setTimes(treeModel.getRoot(), nodeTimes, totalTime, totalTime);
@@ -307,8 +308,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
             timeCardDialog.recalc();
     }
 
-    private Hashtable getTimes(Date fd, Date td) {
-        Hashtable result = new Hashtable();
+    private Map getTimes(Date fd, Date td) {
+        Map result = new HashMap();
         try {
             for (Iterator i = timeLog.filter(null, fd, td); i.hasNext();) {
                 TimeLogEntry tle = (TimeLogEntry) i.next();
@@ -325,7 +326,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         return result;
     }
 
-    private long collectTime(Object node, Hashtable timesIn, Hashtable timesOut) {
+    private long collectTime(Object node, Map timesIn, Map timesOut) {
         long t = 0; // time for this node
 
         // recursively compute total time for each
@@ -336,8 +337,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
         // fetch and add time spent in this node
         Object[] path = treeModel.getPathToRoot((TreeNode) node);
-        long[] l = (long[]) timesIn.get(treeModel.getPropKey(useProps, path)
-                .path());
+        PropertyKey key = treeModel.getPropKey(useProps, path);
+        long[] l = (long[]) (key == null ? null : timesIn.get(key.path()));
         if (l != null)
             t += l[0];
 
@@ -346,7 +347,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         return t;
     }
 
-    private void setTimes(Object node, Hashtable times, long parentTime,
+    private void setTimes(Object node, Map times, long parentTime,
             long totalTime) {
 
         long t = ((Long) times.get(node)).longValue();
@@ -634,7 +635,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     private boolean timeLoggingAllowed(PropertyKey key) {
-        return approver.isTimeLoggingAllowed(key.path());
+        return key != null && approver.isTimeLoggingAllowed(key.path());
     }
 
     // DateChangeAction responds to user input in a date field.

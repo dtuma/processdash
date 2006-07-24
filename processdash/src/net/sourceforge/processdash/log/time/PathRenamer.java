@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,29 +25,12 @@
 
 package net.sourceforge.processdash.log.time;
 
-import java.util.Iterator;
 import java.util.List;
 
-import net.sourceforge.processdash.hier.Filter;
+import net.sourceforge.processdash.hier.PathRenamingInstruction;
 import net.sourceforge.processdash.log.ChangeFlagged;
 
 public class PathRenamer {
-
-    public static String renamePath(List renamingInstructions, String path) {
-        if (path == null)
-            return null;
-
-        for (Iterator iter = renamingInstructions.iterator(); iter.hasNext();) {
-            PathRenamingInstruction instr = (PathRenamingInstruction) iter
-                    .next();
-            if (Filter.pathMatches(path, instr.getOldPath(), true)) {
-                path = instr.getNewPath()
-                        + path.substring(instr.getOldPath().length());
-            }
-        }
-
-        return path;
-    }
 
     public static boolean isRenamingOperation(TimeLogEntry tle) {
         if (tle instanceof ChangeFlaggedTimeLogEntry) {
@@ -66,7 +49,8 @@ public class PathRenamer {
         return getRenameModification(instr.getOldPath(), instr.getNewPath());
     }
 
-    public static ChangeFlaggedTimeLogEntry getRenameModification(String oldPath, String newPath) {
+    public static ChangeFlaggedTimeLogEntry getRenameModification(
+            String oldPath, String newPath) {
         String path = oldPath + "\n" + newPath;
         return new TimeLogEntryVO(0, path, null, 0, 0, null,
                 ChangeFlagged.BATCH_MODIFICATION);
@@ -95,7 +79,8 @@ public class PathRenamer {
             return null;
 
         String oldPath = tle.getPath();
-        String newPath = renamePath(renamingOperations, oldPath);
+        String newPath = PathRenamingInstruction.renamePath(renamingOperations,
+                oldPath);
 
         if (oldPath == newPath)
             return null;

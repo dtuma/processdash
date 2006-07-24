@@ -1,5 +1,5 @@
+// Copyright (C) 2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,25 +23,26 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.log.time;
+package net.sourceforge.processdash.util;
 
-public class PathRenamingInstruction {
 
-    private String oldPath;
+public class ComparableValue implements Comparable {
 
-    private String newPath;
+    private Object value;
+    private int ordinal;
 
-    public PathRenamingInstruction(String oldPath, String newPath) {
-        this.oldPath = oldPath;
-        this.newPath = newPath;
+    public ComparableValue(Object value, int ordinal) {
+        this.value = value;
+        this.ordinal = ordinal;
     }
 
-    public String getNewPath() {
-        return newPath;
+    public int compareTo(Object o) {
+        ComparableValue that = (ComparableValue) o;
+        return this.ordinal - that.ordinal;
     }
 
-    public String getOldPath() {
-        return oldPath;
+    public Object getValue() {
+        return value;
     }
 
 }

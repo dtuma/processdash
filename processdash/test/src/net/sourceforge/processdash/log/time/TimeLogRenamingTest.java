@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,18 +25,15 @@
 
 package net.sourceforge.processdash.log.time;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.sourceforge.processdash.hier.PathRenamingInstruction;
 import net.sourceforge.processdash.log.ChangeFlagged;
-import net.sourceforge.processdash.log.time.AbstractTimeLogTest.MockBaseTimeLog;
 import net.sourceforge.processdash.util.FileUtils;
-import junit.framework.TestCase;
 
 public class TimeLogRenamingTest extends AbstractTimeLogTest {
 
@@ -44,11 +41,11 @@ public class TimeLogRenamingTest extends AbstractTimeLogTest {
 
     private File tempDir;
 
-    private List eventsReceived;
+    // private List eventsReceived;
 
     protected void setUp() throws Exception {
         super.setUp();
-        eventsReceived = new LinkedList();
+        // eventsReceived = new LinkedList();
         tempDir = null;
     }
 
@@ -59,7 +56,7 @@ public class TimeLogRenamingTest extends AbstractTimeLogTest {
         super.tearDown();
     }
 
-    private static final String RENAME1 = "/Project\n/Foo/Bar/Baz";
+    // private static final String RENAME1 = "/Project\n/Foo/Bar/Baz";
 
     // /*
     // * Things to test:
@@ -92,7 +89,7 @@ public class TimeLogRenamingTest extends AbstractTimeLogTest {
     }
 
     private void assertRename(String expected, String path, List renames) {
-        assertEquals(expected, PathRenamer.renamePath(renames, path));
+        assertEquals(expected, PathRenamingInstruction.renamePath(renames, path));
     }
 
     public void testIsRenamingOperation() {
@@ -239,7 +236,7 @@ public class TimeLogRenamingTest extends AbstractTimeLogTest {
         Object[][] result = new Object[originalContent.length][];
         for (int i = 0; i < result.length; i++) {
             Object[] row = (Object[]) originalContent[i].clone();
-            row[0] = PathRenamer.renamePath(instructions, (String) row[0]);
+            row[0] = PathRenamingInstruction.renamePath(instructions, (String) row[0]);
             result[i] = row;
         }
         return result;

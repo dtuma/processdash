@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.hier.PathRenamingInstruction;
 import net.sourceforge.processdash.log.ChangeFlagged;
 import net.sourceforge.processdash.log.IDSource;
 import net.sourceforge.processdash.util.EnumerIterator;
@@ -107,10 +108,10 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
 
     public void clear() {
         synchronized (this) {
-                modifications.clear();
-                batchRenames.clear();
-                if (saveFile == null || saveFile.delete())
-                    dirty = false;
+            modifications.clear();
+            batchRenames.clear();
+            if (saveFile == null || saveFile.delete())
+                dirty = false;
         }
 
         fireTimeLogChanged();
@@ -122,10 +123,10 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
             mods.addAll(modifications.values());
 
             synchronized (this) {
-                    modifications.clear();
-                    batchRenames.clear();
-                    if (saveFile == null || saveFile.delete())
-                        dirty = false;
+                modifications.clear();
+                batchRenames.clear();
+                if (saveFile == null || saveFile.delete())
+                    dirty = false;
             }
 
             ((ModifiableTimeLog) parent).addModifications(mods.iterator());
@@ -147,10 +148,10 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
             return;
 
         synchronized (this) {
-                while (iter.hasNext()) {
-                    TimeLogEntry tle = (TimeLogEntry) iter.next();
-                    addModificationImpl(tle);
-                }
+            while (iter.hasNext()) {
+                TimeLogEntry tle = (TimeLogEntry) iter.next();
+                addModificationImpl(tle);
+            }
         }
 
         fireTimeLogChanged();
@@ -211,9 +212,9 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
     protected void processBatchChange(ChangeFlaggedTimeLogEntry mod, boolean addToList) {
         PathRenamingInstruction instr = PathRenamer.toInstruction(mod);
         synchronized (this) {
-                if (addToList)
-                    batchRenames.add(instr);
-                processBatchRename(instr);
+            if (addToList)
+                batchRenames.add(instr);
+            processBatchRename(instr);
         }
         fireEntryAdded(mod);
     }
@@ -339,19 +340,19 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
 
     protected void load() throws IOException {
         synchronized (this) {
-                modifications = new LinkedHashMap();
+            modifications = new LinkedHashMap();
 
-                if (saveFile != null && saveFile.isFile()) {
-                    for (Iterator iter = new TimeLogReader(saveFile); iter.hasNext();) {
-                        TimeLogEntry tle = (TimeLogEntry) iter.next();
-                        if (PathRenamer.isRenamingOperation(tle))
-                            batchRenames.add(PathRenamer.toInstruction(tle));
-                        else
-                            modifications.put(new Long(tle.getID()), tle);
-                    }
+            if (saveFile != null && saveFile.isFile()) {
+                for (Iterator iter = new TimeLogReader(saveFile); iter.hasNext();) {
+                    TimeLogEntry tle = (TimeLogEntry) iter.next();
+                    if (PathRenamer.isRenamingOperation(tle))
+                        batchRenames.add(PathRenamer.toInstruction(tle));
+                    else
+                        modifications.put(new Long(tle.getID()), tle);
                 }
+            }
 
-                this.dirty = false;
+            this.dirty = false;
         }
         fireTimeLogChanged();
     }

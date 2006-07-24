@@ -1,5 +1,5 @@
+// Copyright (C) 2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -279,18 +279,26 @@ public class EVTaskDependency {
 
     public static boolean addTaskDependencies(DataContext data,
             String taskPath, List dependencies, boolean whatIfMode) {
-
         if (dependencies == null || dependencies.isEmpty())
             return false;
 
+        return setTaskDependencies(data, taskPath, dependencies, null,
+                whatIfMode);
+    }
+
+    public static boolean setTaskDependencies(DataContext data,
+            String taskPath, List dependencies, String source,
+            boolean whatIfMode) {
+
         boolean madeChange = false;
         List list = getDependencies(data, taskPath);
-        if (list == null) {
+        if (list == null || list.isEmpty()) {
             list = dependencies;
-            madeChange = true;
+            madeChange = (dependencies != null && !dependencies.isEmpty());
         } else {
             // keep track of the sources that are adding these dependencies.
             Set incomingSources = new HashSet();
+            incomingSources.add(source);
             for (Iterator i = dependencies.iterator(); i.hasNext();) {
                 EVTaskDependency d = (EVTaskDependency) i.next();
                 incomingSources.add(d.getSource());
