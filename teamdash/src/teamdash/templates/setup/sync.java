@@ -85,7 +85,7 @@ public class sync extends TinyCGIBase {
                  getPSPProperties(), getDataRepository());
 
             // start the synchronization process.
-            if (parameters.containsKey("run"))
+            if (parameters.containsKey(RUN_PARAM))
                 synchronize(synch);
             else if (parameters.containsKey(SAVE_PERMS))
                 savePermissionData();
@@ -226,15 +226,37 @@ public class sync extends TinyCGIBase {
     /** Synchronize the hierarchy and display the results.
      */
     private void synchronize(HierarchySynchronizer synch)
-        throws HierarchyAlterationException
+        throws HierarchyAlterationException, IOException
     {
         if (!isTeam)
             loadPermissionData(synch);
 
         synch.setWhatIfMode(false);
         synch.sync();
-        new AsyncExporter(projectRoot).start();
-        printChanges(synch.getChanges());
+        if (synch.isFollowOnWorkNeeded()) {
+            saveChangeList(synch);
+            parameters.remove(RUN_PARAM);
+            parameters.remove(SAVE_PERMS);
+            writeContents();
+
+        } else {
+            new AsyncExporter(projectRoot).start();
+            printChanges(synch.getChanges());
+        }
+    }
+
+
+
+    private void saveChangeList(HierarchySynchronizer synch) {
+        ListData changes = (ListData) getDataContext().getSimpleValue(
+                CHANGES_DATANAME);
+        if (changes == null)
+            changes = new ListData();
+
+        for (Iterator i = synch.getChanges().iterator(); i.hasNext();)
+            changes.add(String.valueOf(i.next()));
+
+        getDataContext().putValue(CHANGES_DATANAME, changes);
     }
 
 
@@ -307,7 +329,7 @@ public class sync extends TinyCGIBase {
 
     /** Parse data from the permissions form, and save it to the repository.
      */
-    private void savePermissionData() {;
+    private void savePermissionData() {
         ListData delete = new ListData();
         ListData complete = new ListData();
         for (Iterator i = parameters.entrySet().iterator(); i.hasNext();) {
@@ -364,16 +386,23 @@ public class sync extends TinyCGIBase {
 
     /** Print a list of changes made by a synchronization operation.
      */
-    private void printChanges(List list) {
+    private void printChanges(List changeList) {
+        ListData oldChanges = (ListData) getDataContext().getSimpleValue(
+                CHANGES_DATANAME);
+        if (oldChanges != null) {
+            changeList.addAll(0, oldChanges.asList());
+            getDataContext().putValue(CHANGES_DATANAME, null);
+        }
+
         out.print("<html><head><title>Synchronization Complete</title></head>");
         out.print("<body><h1>Synchronization Complete</h1>");
-        if (list.isEmpty())
+        if (changeList.isEmpty())
             out.print("<p>Your hierarchy is up to date - no changes "+
                       "were necessary.");
         else {
             out.print("<p>The following changes were made to your hierarchy:");
             out.print("<ul>");
-            Iterator i = list.iterator();
+            Iterator i = changeList.iterator();
             while (i.hasNext()) {
                 out.print("<li>");
                 out.print(HTMLUtils.escapeEntities(String.valueOf(i.next())));
@@ -445,11 +474,13 @@ public class sync extends TinyCGIBase {
     private static final String INITIALS_MISSING = "initialsMissing";
     private static final String HIER_EDITOR_OPEN = "hierEditorOpen";
 
+    private static final String RUN_PARAM = "run";
     private static final String SAVE_PERMS = "savePerms";
     private static final String COMPLETE_PREFIX = "COMPLETE:";
     private static final String DELETE_PREFIX = "DELETE:";
     private static final String COMPLETE_DATANAME = "complete_ //list";
     private static final String DELETE_DATANAME = "delete_ //list";
+    private static final String CHANGES_DATANAME = "changes_ //list";
 
     private static final String READ_ONLY_MODE_ERR_MESSAGE =
         "You are currently running the dashboard in read-only mode, so " +

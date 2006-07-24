@@ -1,14 +1,17 @@
 package teamdash.templates.setup;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.PathRenamingInstruction;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 
 public abstract class SyncWorker implements DataContext {
@@ -25,6 +28,34 @@ public abstract class SyncWorker implements DataContext {
 
     protected List dataChanged = new ArrayList();
 
+    protected boolean nodesWereRenamed = false;
+
+    /** A list of PathRenamingOperations which can be applied to a path to
+     * <b>undo</b> the node renames that have occurred.  That is, applying
+     * these path renaming operations to a final node or data name will produce
+     * the name that the node/data element would have had before the renames
+     * took place.
+     */
+    protected List renameOperations = new ArrayList();
+
+    public String getOriginalPath(String path) {
+        return PathRenamingInstruction.renamePath(renameOperations, path);
+    }
+    public List getOriginalPaths(List paths) {
+        if (paths == null || paths.isEmpty())
+            return paths;
+
+        List result = new ArrayList();
+        for (Iterator i = paths.iterator(); i.hasNext();) {
+            String onePath = (String) i.next();
+            result.add(getOriginalPath(onePath));
+        }
+        return result;
+    }
+
+    public boolean nodesWereRenamed() {
+        return nodesWereRenamed;
+    }
 
     public void addTemplate(String path, String templateID)
             throws HierarchyAlterationException {
@@ -36,10 +67,30 @@ public abstract class SyncWorker implements DataContext {
             throws HierarchyAlterationException;
 
     public void deleteNode(String path) throws HierarchyAlterationException {
-        if (deletionPermissions == null || deletionPermissions.contains(path)) {
+        if (deletionPermissions == null
+                || deletionPermissions.contains(getOriginalPath(path))) {
             doDeleteNode(path);
             nodesDeleted.add(path);
         }
+    }
+
+    public void renameNode(String oldPath, String newPath)
+            throws HierarchyAlterationException {
+        doRenameNode(oldPath, newPath);
+        nodesWereRenamed = true;
+        PathRenamingInstruction instr = new PathRenamingInstruction(newPath,
+                oldPath);
+        renameOperations.add(0, instr);
+    }
+
+    protected abstract void doRenameNode(String oldPath, String newPath)
+            throws HierarchyAlterationException;
+
+    public abstract boolean reorderNodes(String parentPath, List childNames)
+            throws HierarchyAlterationException;
+
+    public void setTemplateId(String nodePath, String templateID)
+            throws HierarchyAlterationException {
     }
 
     protected abstract void doDeleteNode(String path)
@@ -47,21 +98,43 @@ public abstract class SyncWorker implements DataContext {
 
     public void markLeafComplete(String path) {
         if (completionPermissions == null
-                || completionPermissions.contains(path)) {
+                || completionPermissions.contains(getOriginalPath(path))) {
             String completionDataName = dataName(path, "Completed");
             if (getSimpleValue(completionDataName) != null)
                 return;
 
             SimpleData actualTime = getSimpleValue(dataName(path, "Time"));
-            doPutValue(dataName(path, "Estimated Time"), actualTime);
-            doPutValue(completionDataName, new DateData());
+            if (actualTime instanceof NumberData) {
+                double time = ((NumberData) actualTime).getDouble();
+                DoubleData estimatedTime = new DoubleData(time, true);
+                doPutValue(dataName(path, "Estimated Time"), estimatedTime);
+                doPutValue(dataName(path, "Estimated Time" + SYNC_VAL_SUFFIX),
+                        estimatedTime);
+            }
+            DateData now = new DateData();
+            doPutValue(completionDataName, now);
+            doPutValue(completionDataName+SYNC_VAL_SUFFIX, now);
             nodesCompleted.add(path);
+        }
+    }
+
+    public boolean markLeafIncomplete(String path) {
+        String completionDataName = dataName(path, "Completed");
+        String syncDataName = completionDataName + SYNC_VAL_SUFFIX;
+        SimpleData completionDate = getSimpleValue(completionDataName);
+        SimpleData syncDate = getSimpleValue(syncDataName);
+        if (completionDate != null && dataEquals(completionDate, syncDate)) {
+            doPutValue(completionDataName, null);
+            doPutValue(syncDataName, null);
+            return true;
+        } else {
+            return false;
         }
     }
 
     public void markPSPTaskComplete(String path) {
         if (completionPermissions == null
-                || completionPermissions.contains(path)) {
+                || completionPermissions.contains(getOriginalPath(path))) {
             String completionDataName = dataName(path, "Completed");
             if (getSimpleValue(completionDataName) != null)
                 return;
@@ -75,14 +148,27 @@ public abstract class SyncWorker implements DataContext {
         }
     }
 
+    public boolean markPSPTaskIncomplete(String path) {
+        boolean madeChange = false;
+        for (int i = 0; i < HierarchySynchronizer.PSP_PHASES.length; i++) {
+            String phasePath = path + "/" + HierarchySynchronizer.PSP_PHASES[i];
+            if (markLeafIncomplete(phasePath))
+                madeChange = true;
+        }
+        return madeChange;
+    }
+
     protected String dataName(String path, String name) {
         return DataRepository.createDataName(path, name);
     }
 
     protected void markPhaseComplete(String path, String phase) {
         String completionDataName = dataName(dataName(path, phase), "Completed");
-        if (getSimpleValue(completionDataName) == null)
-            doPutValue(completionDataName, new DateData());
+        if (getSimpleValue(completionDataName) == null) {
+            DateData now = new DateData();
+            doPutValue(completionDataName, now);
+            doPutValue(completionDataName+SYNC_VAL_SUFFIX, now);
+        }
     }
     protected void noteDataChange(String dataName) {
         dataChanged.add(dataName);
@@ -147,5 +233,4 @@ public abstract class SyncWorker implements DataContext {
             return ((SimpleData) valueA).equals((SimpleData) valueB);
         return valueA.equals(valueB);
     }
-
 }
