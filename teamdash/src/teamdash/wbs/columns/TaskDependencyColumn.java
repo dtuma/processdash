@@ -73,7 +73,7 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
         this.iconMap = iconMap;
         this.columnID = COLUMN_ID;
         this.columnName = COLUMN_NAME;
-        this.preferredWidth = 200;
+        this.preferredWidth = 400;
 
         dataModel.getWBSModel().addTableModelListener(
                 new InsertedNodeDependencyRelinker());

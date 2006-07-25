@@ -107,8 +107,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                         "Hrs/Indiv", "# People", "Time", "Assigned To" });
 
         tabPanel.addTab("Task Details",
-                new String[] { "Dependencies" },
-                new String[] { "Task Dependencies" });
+                new String[] { "Labels", "Dependencies" },
+                new String[] { "Task Labels", "Task Dependencies" });
 
         //String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         //table.addTab("Defects", s, s);

@@ -13,6 +13,7 @@ import teamdash.XMLUtils;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.TaskDependencyColumn;
+import teamdash.wbs.columns.TaskLabelColumn;
 
 
 /** This class writes out an XML data file describing the work breakdown
@@ -42,6 +43,8 @@ public class WBSDataWriter {
     private int[] sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
     /** This column number of the direct size units column */
     private int directSizeUnitsColumn;
+    /** The column number of the task labels column */
+    private int labelsColumn;
     /** The column number of the task dependencies column */
     private int dependencyColumn;
     /** Maps XML tag names to objects capable of writing their attributes.
@@ -67,6 +70,8 @@ public class WBSDataWriter {
                 dataModel.findColumn(SIZE_COLUMN_IDS[i]);
         directSizeUnitsColumn =
             dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
+        labelsColumn =
+            dataModel.findColumn(TaskLabelColumn.COLUMN_ID);
         dependencyColumn =
             dataModel.findColumn(TaskDependencyColumn.COLUMN_ID);
         attributeWriters = buildAttributeWriters();
@@ -115,6 +120,7 @@ public class WBSDataWriter {
         writeAttr(out, NAME_ATTR, node.getName());
         writeAttr(out, ID_ATTR, node.getUniqueID());
         writeAttr(out, TASK_ID_ATTR, MasterWBSUtil.getNodeIDs(node, projectID));
+        writeAttr(out, LABELS_ATTR, getLabelSaveString(node));
 
         // write attributes specific to this XML tag type
         AttributeWriter aw = (AttributeWriter) attributeWriters.get(tagName);
@@ -140,6 +146,18 @@ public class WBSDataWriter {
             writeIndent(out, depth);
             out.write("</" + tagName + ">\n");
         }
+    }
+
+
+
+    private String getLabelSaveString(WBSNode node) {
+        String result = (String) WrappedValue.unwrap(dataModel.getValueAt(node,
+                labelsColumn));
+
+        if (result != null)
+            result = result.replaceAll(", ", ",");
+
+        return result;
     }
 
 
@@ -382,6 +400,7 @@ public class WBSDataWriter {
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
+    private static final String LABELS_ATTR = "labels";
     private static final String DEP_SRC_ATTR = "source";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";

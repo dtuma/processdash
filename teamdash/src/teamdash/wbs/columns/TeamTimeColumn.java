@@ -15,7 +15,7 @@ import teamdash.wbs.ErrorValue;
 import teamdash.wbs.IntList;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReadOnlyValue;
-import teamdash.wbs.ItalicCellRenderer;
+import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -590,7 +590,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     private static final String EFFECTIVE_RATE_MESSAGE =
         "Effective (calculated) rate";
     private static final TableCellRenderer RATE_RENDERER =
-        new ItalicCellRenderer(EFFECTIVE_RATE_MESSAGE);
+        new ItalicNumericCellRenderer(EFFECTIVE_RATE_MESSAGE);
 
 
     /** A column representing the task time per individual */

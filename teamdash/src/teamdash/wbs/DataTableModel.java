@@ -16,6 +16,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 
 import teamdash.TeamMemberList;
+import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.NullDataColumn;
 import teamdash.wbs.columns.PhaseColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
@@ -260,6 +261,7 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new TaskSizeColumn(this, teamProcess));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new TeamTimeColumn(this));
+        addDataColumn(new TaskLabelColumn(this));
         addDataColumn(new TaskDependencyColumn(this, dependencySource,
                 teamProcess.getIconMap()));
         memberColumnManager = new TeamMemberColumnManager(this, teamList);

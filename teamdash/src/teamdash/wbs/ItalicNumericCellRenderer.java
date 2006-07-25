@@ -6,19 +6,19 @@ import java.awt.Font;
 
 import javax.swing.JTable;
 
-/** Special cell renderer for strings that can italicize displayed values.
+/** Special cell renderer for numbers that can italicize displayed values.
  * 
  * The presence of a certain error message is interpreted as a flag that the
  * value should be displayed in italics (rather than in a bold colored font,
- * like the regular {@link DataTableCellRenderer} would do).
+ * like the regular {@link DataTableCellNumericRenderer} would do).
  */
-public class ItalicCellRenderer extends DataTableCellRenderer {
+public class ItalicNumericCellRenderer extends DataTableCellNumericRenderer {
 
 
     private Font italic = null;
     private String messageToItalicize;
 
-    public ItalicCellRenderer(String messageToItalicize) {
+    public ItalicNumericCellRenderer(String messageToItalicize) {
         this.messageToItalicize = messageToItalicize;
     }
 
@@ -33,18 +33,15 @@ public class ItalicCellRenderer extends DataTableCellRenderer {
         Component result = super.getTableCellRendererComponent
             (table, value, isSelected, hasFocus, row, column);
 
-        if (value instanceof ErrorValue) {
-            ErrorValue err = (ErrorValue) value;
-            if (err.error != null &&
-                err.error.equals(messageToItalicize)) {
-                result.setForeground(Color.black);
-                result.setFont(getItalicFont(result));
-            }
+        NumericDataValue num = (NumericDataValue) value;
+        if (num.errorMessage != null &&
+            num.errorMessage.equals(messageToItalicize)) {
+            result.setForeground(Color.black);
+            result.setFont(getItalicFont(result));
         }
 
         return result;
     }
-
 
     /** Create and cache an appropriate italic font. */
     protected Font getItalicFont(Component c) {
