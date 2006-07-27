@@ -57,6 +57,13 @@ public class StringData implements SimpleData {
         while ((pos = s.indexOf('\\')) != -1) {
             val.append(s.substring(0, pos));
             switch (s.charAt(pos+1)) {
+                case '\r': case '\n':
+                    // a backslash immediately before an EOL is a continuation
+                    // line.  Advance past any whitespace following the EOL.
+                    while (pos+2 < s.length() && s.charAt(pos+2) <= ' ')
+                        pos++;
+                    break;
+
                 case 'n':         val.append('\n'); break;
                 case 'r':         val.append('\r'); break;
                 case '\\':        val.append('\\'); break;

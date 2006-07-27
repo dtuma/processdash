@@ -19,13 +19,14 @@ Helpers
     cr = 13;
     lf = 10;
     tab = 9;
+    eol_pat = cr | lf | cr lf;
 
     escape_sequence = '\' ''' | '\"' | '\\' | '\r' | '\n' | '\t' | '\[' | '\]' | '\/';
 
     i_char = [not_crlf - [['[' + ']'] + '\']] | escape_sequence; //'
     i_char_sequence = i_char+;
 
-    s_char = [not_crlf - ['"' + '\']] | escape_sequence; //'
+    s_char = [not_crlf - ['"' + '\']] | escape_sequence | ('\' eol_pat);
     s_char_sequence = s_char+;
 
     old_style_continue_char = [not_crlf - ['=' + 9]];
@@ -85,7 +86,7 @@ States
 
 Tokens
 
-    {b, i->b} eol = cr | lf | cr lf;
+    {b, i->b} eol = eol_pat;
 
     {b->i, i} comma = ',';
     {b->i, i} l_par = '(';
