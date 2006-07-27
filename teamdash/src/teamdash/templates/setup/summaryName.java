@@ -32,18 +32,57 @@ public class summaryName extends selectWBS {
         out.print("<h1>");
         out.print(HTMLUtils.escapeEntities(projectRoot));
         out.println("</h1>");
-        out.print("<h2><a target='contents' href=\"");
+        out.print("<h2>");
+
+        writeFilterIcon(projectRoot);
+        writeHierarchyIcon(prefix, projectRoot);
+
+        out.println("</h2></body></html>");
+    }
+
+    /** Print the icon and text for choosing a filter
+     */
+    private void writeFilterIcon(String projectRoot) {
+        boolean exporting = parameters.containsKey("EXPORT");
+        String currentFilter = selectLabelFilter.getCurrentFilter(
+                getDataRepository(), projectRoot);
+        if (currentFilter == null
+                || (exporting && currentFilter.length() == 0))
+            // if filtering doesn't make sense, or if we're exporting and no
+            // filter is in effect, print nothing.
+            return;
+
+        if (!exporting)
+            out.print("<a target='contents' href=\"selectLabelFilter\">");
+
+        out.print("<img border=0 src='/Images/filter.png' "
+                + "style='margin-right:2px' width='16' height='23' ");
+        if (!exporting)
+            out.print("title='Choose label filter'></a>");
+        else
+            out.print("title='Filter is in effect'>");
+
+        out.print(HTMLUtils.escapeEntities(currentFilter));
+        if (currentFilter.length() > 0)
+            out.print("&nbsp;&nbsp;&nbsp;");
+        else
+            out.print(" ");
+    }
+
+    /** Print the icon and text for navigating the hierarchy
+     */
+    private void writeHierarchyIcon(String prefix, String projectRoot) {
+        out.print("<a target='contents' href=\"");
         out.print(WebServer.urlEncodePath(projectRoot));
         out.print("//");
         out.print(processID);
-        out.print("/setup/selectWBSFrame.class\">");
-        out.print("<img border=0 src='../hier.png' alt='Navigate Hierarchy' "+
+        out.print("/setup/selectWBSFrame.class");
+        out.print("\"><img border=0 src='../hier.png' title='Navigate Hierarchy' "+
                   "style='margin-right:2px' width=16 height=23></a>");
         if (prefix.equals(projectRoot))
             out.print("/");
         else
-            out.print(prefix.substring(projectRoot.length()+1));
-        out.println("</h2></body></html>");
+            out.print(HTMLUtils.escapeEntities(prefix.substring(projectRoot
+                    .length() + 1)));
     }
-
 }
