@@ -2521,8 +2521,10 @@ public class DataRepository implements Repository, DataContext,
                 try {
                     script = Compiler.compile(node.getValue());
                 } catch (CompilationException ce) {
-                    throw new LoadingException
-                        (new InvalidDatafileFormat(ce.getMessage()));
+                    logger.severe("When parsing value for data element '" + name
+                            + "', encountered error: " + ce.getMessage());
+                    putVal(name, new MalformedData(null));
+                    return;
                 }
                 if (!script.isConstant())
                     putVal(name, script);
