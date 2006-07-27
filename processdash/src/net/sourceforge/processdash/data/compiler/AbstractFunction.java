@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -79,8 +79,6 @@ public class AbstractFunction implements Function {
 
     protected static List collapseLists(List arguments, int pos) {
         List result = new ArrayList();
-        SimpleData arg;
-        ListData argList;
         for (; pos < arguments.size();  pos++)
             appendToList(result, getArg(arguments, pos));
         return result;

@@ -1,0 +1,84 @@
+
+Package net.sourceforge.processdash.util.glob;
+
+Helpers
+
+    all = [0 .. 0xffff];
+    whitechar = [0 .. ' '];
+    comma = ',';
+    pipe = '|';
+    lpar = '(';
+    rpar = ')';
+    
+    match_term_char = [all - [whitechar + [[comma + pipe] + [lpar + rpar]]]];
+    initial_match_term_char = [match_term_char - '-'];
+
+
+    a = ['a' + 'A'];
+    b = ['b' + 'B'];
+    c = ['c' + 'C'];
+    d = ['d' + 'D'];
+    e = ['e' + 'E'];
+    f = ['f' + 'F'];
+    g = ['g' + 'G'];
+    h = ['h' + 'H'];
+    i = ['i' + 'I'];
+    j = ['j' + 'J'];
+    k = ['k' + 'K'];
+    l = ['l' + 'L'];
+    m = ['m' + 'M'];
+    n = ['n' + 'N'];
+    o = ['o' + 'O'];
+    p = ['p' + 'P'];
+    q = ['q' + 'Q'];
+    r = ['r' + 'R'];
+    s = ['s' + 'S'];
+    t = ['t' + 'T'];
+    u = ['u' + 'U'];
+    v = ['v' + 'V'];
+    w = ['w' + 'W'];
+    x = ['x' + 'X'];
+    y = ['y' + 'Y'];
+    z = ['z' + 'Z'];
+
+
+    and = a n d;
+    or = o r;
+    not = n o t;
+
+
+
+Tokens
+
+    l_par = lpar;
+    r_par = rpar;
+    logic_or = or | pipe+;
+    logic_and = and | '&&';
+    logic_not = not | '-';
+    ignored = comma | whitechar+;
+    match_term = initial_match_term_char match_term_char*;
+
+
+Ignored Tokens
+
+    ignored, logic_and;
+
+
+Productions
+
+  expression =
+    and_expression or_clause*;
+
+  or_clause =
+    logic_or and_expression;
+
+  and_expression =
+    unary_expr+;
+
+  unary_expr =
+    {simple} term |
+    {unary_not} logic_not term;
+
+  term =
+    {glob_match} match_term |
+    {parenthetical} l_par expression r_par;

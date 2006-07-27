@@ -1,5 +1,6 @@
 package net.sourceforge.processdash.util;
 
+import net.sourceforge.processdash.util.glob.GlobEngineTest;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -14,6 +15,7 @@ public class AllUtilTests {
         suite.addTestSuite(TestFormatUtil.class);
         suite.addTestSuite(TimeNumberFormatTest.class);
         suite.addTestSuite(PatternListTest.class);
+        suite.addTestSuite(GlobEngineTest.class);
         //$JUnit-END$
         return suite;
     }

@@ -89,6 +89,7 @@ Authors:
   <property name="processdash" value="${src}/net/sourceforge/processdash"/>
   <property name="data"       value="${processdash}/data"/>
   <property name="compiler"   value="${data}/compiler"/>
+  <property name="glob"       value="${processdash}/util/glob"/>
   <property name="i18n"       value="${processdash}/i18n"/>
   <property name="cms"        value="${processdash}/net/cms"/>
   <property name="templates"  value="Templates"/>
@@ -158,7 +159,7 @@ Authors:
 
 
 
-  <target name="compile" depends="init,parser,translator,lexers"
+  <target name="compile" depends="init,parser,globParser,translator,lexers"
         description="Compile the main dashboard classes" >
 
     <!-- Compile the java code from ${src} into ${build} -->
@@ -237,7 +238,7 @@ Authors:
 
 
   <target name="parser" depends="init,-parser-depend"
-          description="Regenerate source code for the parser if necessary."
+          description="Regenerate source code for the data parser if needed."
           unless="parser.upToDate">
     <!-- erase the previously generated compiler classes -->
     <delete quiet="true" dir="${compiler}/lexer"/>
@@ -259,10 +260,36 @@ Authors:
   </target>
 
   <target name="-parser-depend"
-          description="Check to see if the parser needs regenerating.">
+          description="Check to see if the data parser needs regenerating.">
     <uptodate property="parser.upToDate"
               srcfile="${compiler}/grammar.txt"
               targetfile="${compiler}/parser/Parser.java"/>
+  </target>
+
+
+
+  <target name="globParser" depends="init,-globParser-depend"
+          description="Regenerate source code for the glob parser if needed."
+          unless="globParser.upToDate">
+    <!-- erase the previously generated compiler classes -->
+    <delete quiet="true" dir="${glob}/lexer"/>
+    <delete quiet="true" dir="${glob}/parser"/>
+    <delete quiet="true" dir="${glob}/node"/>
+    <delete quiet="true" dir="${glob}/analysis"/>
+    <!-- run the sablecc code generator -->
+    <java classpath="${lib}/sablecc.jar" fork="true"
+          classname="org.sablecc.sablecc.SableCC">
+      <arg value="-d"/>
+      <arg file="${src}"/>
+      <arg file="${glob}/grammar.txt"/>
+    </java>
+  </target>
+
+  <target name="-globParser-depend"
+          description="Check to see if the glob parser needs regenerating.">
+    <uptodate property="globParser.upToDate"
+              srcfile="${glob}/grammar.txt"
+              targetfile="${glob}/parser/Parser.java"/>
   </target>
 
 
@@ -525,6 +552,10 @@ Authors:
     <delete quiet="true" dir="${compiler}/parser"/>
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
+    <delete quiet="true" dir="${glob}/lexer"/>
+    <delete quiet="true" dir="${glob}/parser"/>
+    <delete quiet="true" dir="${glob}/node"/>
+    <delete quiet="true" dir="${glob}/analysis"/>
     <delete quiet="true" file="${i18n}/DefaultEngine*"/>
     <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.dat"/>
     <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.java"/>
