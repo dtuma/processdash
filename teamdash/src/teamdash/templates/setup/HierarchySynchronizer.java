@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.DataContext;
@@ -344,7 +346,16 @@ public class HierarchySynchronizer {
     }
 
     public void sync() throws HierarchyAlterationException {
+        ListData labelData = null;
+        if (isTeam())
+            // for a team, get label data for all nodes in a project before
+            // we prune the non-team nodes
+            labelData = getLabelData(projectXML);
         pruneWBS(projectXML, fullCopyMode, getNonprunableIDs());
+        if (!isTeam())
+            // for an individual, collect label data after pruning so we
+            // only see labels that are relevant to our tasks.
+            labelData = getLabelData(projectXML);
 
         changes = new ArrayList();
         syncActions = buildSyncActions();
@@ -362,11 +373,52 @@ public class HierarchySynchronizer {
                     deletionPermissions, completionPermissions);
         this.data = syncWorker;
 
+        putData(projectPath, LABEL_LIST_DATA_NAME, labelData);
+
         sync(syncWorker, projectPath, projectXML);
 
         processDeferredDeletions(syncWorker);
 
         readChangesFromWorker(syncWorker);
+    }
+
+    private ListData getLabelData(Element projectXML) {
+        Map labelData = new TreeMap();
+        collectLabelData(projectXML, labelData);
+        ListData labelList = new ListData();
+        labelList.add("label:");
+        for (Iterator iter = labelData.entrySet().iterator(); iter.hasNext();) {
+            Map.Entry e = (Map.Entry) iter.next();
+            String label = (String) e.getKey();
+            labelList.add("label:" + label);
+            Set taskIDs = (Set) e.getValue();
+            for (Iterator i = taskIDs.iterator(); i.hasNext();)
+                labelList.add((String) i.next());
+        }
+        return labelList;
+    }
+
+    private void collectLabelData(Element node, Map dest) {
+        String nodeID = node.getAttribute(TASK_ID_ATTR);
+        String labels = node.getAttribute(LABELS_ATTR);
+        if (XMLUtils.hasValue(nodeID) && XMLUtils.hasValue(labels)) {
+            String[] labelList = labels.split(",");
+            Set idSet = new HashSet(Arrays.asList(nodeID.split("\\s*,\\s*")));
+            idSet.remove("");
+            for (int i = 0; i < labelList.length; i++) {
+                String oneLabel = labelList[i];
+                if (XMLUtils.hasValue(oneLabel)) {
+                    Set taskIDs = (Set) dest.get(oneLabel);
+                    if (taskIDs == null)
+                        dest.put(oneLabel, taskIDs = new TreeSet());
+                    taskIDs.addAll(idSet);
+                }
+            }
+        }
+
+        List children = XMLUtils.getChildElements(node);
+        for (Iterator i = children.iterator(); i.hasNext();)
+            collectLabelData((Element) i.next(), dest);
     }
 
     private void processDeferredDeletions(SyncWorker worker)
@@ -480,6 +532,7 @@ public class HierarchySynchronizer {
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
+    private static final String LABELS_ATTR = "labels";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String TIME_ATTR = "time";
     private static final String PRUNED_ATTR = "PRUNED";
@@ -496,6 +549,8 @@ public class HierarchySynchronizer {
 
     private static final String WBS_ID_DATA_NAME = "WBS_Unique_ID";
     private static final String EST_TIME_DATA_NAME = "Estimated Time";
+    private static final String LABEL_LIST_DATA_NAME =
+        "Synchronized_Task_Labels";
 
 
     private class SyncNode {

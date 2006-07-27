@@ -10,6 +10,7 @@
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
 [Project_WBS_Subpath] = [../Project_WBS_Subpath] &/ pathTail([^]);
 [Subproject_WBS_ID_List] = [../Subproject_WBS_ID_List];
+[Filtered_Task_Labels] = [../Filtered_Task_Labels];
 
 
 /*
@@ -18,7 +19,11 @@
 [Rollup_Filter_Regexp] =
     "m\n^(" & join("|", [Subproject_WBS_ID_List]) & ")\\Q" & 
     [Project_WBS_Subpath] & "\\E(/.+)?$\n";
-[Rollup_Filter] = "match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";
+[Rollup_Filter] = 
+    "(!defined([{Filtered_Task_Labels}]) \
+        || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
+     && match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";
+
 
 <!--#if VVIS -->
 

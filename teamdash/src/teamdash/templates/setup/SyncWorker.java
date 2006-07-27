@@ -184,8 +184,13 @@ public abstract class SyncWorker implements DataContext {
         SaveableData currVal = getValue(name);
 
         if (!(value instanceof NumberData)) {
-            // this isn't a number.  Just check for equality with the current value.
-            if (dataEquals(currVal, value))
+            // This isn't a number.  Just check for equality with the current
+            // value.  Note that we place value first and currVal second; this
+            // is important.  A ListData element turns into a StringData
+            // element after a shutdown/restart cycle;  if the new value is a
+            // list, and the currVal is a string, the order below will result
+            // in a positive match (while the reverse order would return false)
+            if (dataEquals(value, currVal))
                 // no need to store the new value if it matches the current value.
                 return;
             else {

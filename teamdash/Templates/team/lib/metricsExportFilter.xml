@@ -6,6 +6,7 @@
     <include><!--#echo Process_ID --> (Rollup Eligible|Tag)$</include>
     <include>/Project_WBS_ID$</include>
     <include>/WBS_Unique_ID$</include>
+    <include>/EV_Task_IDs$</include>
     <include>/Project_ID$</include>
     <include>/Indiv_Initials$</include>
     <include>/PSP Rollup Eligible$</include>

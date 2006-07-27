@@ -18,3 +18,23 @@
 [Related_EV_Schedule/Master] =
     iff(! [Master_Project_Path], "",
        "MERGED:" & indirect([Master_Project_Path] &/ "Project_Schedule_Name"));
+
+
+/*
+ * Data elements for label-based filtering
+ */
+
+[Task_Labels] = [Synchronized_Task_Labels];
+[Filtered_Task_Labels] = globSearch([Label//Filter], [Task_Labels]);
+
+
+/*
+ * Redefine the rollup filter to include items from this project, and
+ * respect the label-based filter if it is in effect.
+ */
+[Rollup_Filter] =
+    "(!defined([{Filtered_Task_Labels}]) \
+        || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
+     && ([Project_WBS_ID] == [{Project_WBS_ID}] \
+        || startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID]))";
+

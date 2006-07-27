@@ -71,18 +71,21 @@ public class TaskLabelColumn extends AbstractDataColumn implements
         if (val == null || val.trim().length() == 0) {
             val = " ";
         } else {
-            String[] labels = val.split(",");
-            for (int i = 0; i < labels.length; i++)
-                labels[i] = labels[i].trim();
+            // labels are separated by commas and/or whitespace.  They also
+            // may not contain several other characters (which are reserved
+            // for use by the search expression logic)
+            String[] labels = val.split("[,\u0000- |()]+");
             Arrays.sort(labels, String.CASE_INSENSITIVE_ORDER);
             StringBuffer result = new StringBuffer();
             for (int i = 0; i < labels.length; i++)
-                result.append(i > 0 ? ", " : "").append(labels[i]);
+                if (labels[i].length() > 0)
+                    result.append(", ").append(labels[i]);
             val = result.toString();
             if (val.length() == 0)
                 val = " ";
+            else
+                val = val.substring(2);
         }
-
 
         String inheritedValue = (String) node.getAttribute(INHERITED_VALUE_ATTR);
         if (val != null && val.equals(inheritedValue))

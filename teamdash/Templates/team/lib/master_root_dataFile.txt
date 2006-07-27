@@ -11,10 +11,18 @@
 [Project_WBS_Subpath] = "";
 [Subproject_WBS_ID_List] = listFor("Project_WBS_ID", [Subproject_Path_List]);
 
+[Task_Labels] = list(
+    [Synchronized_Task_Labels],
+    listFor("Task_Labels", [Subproject_Path_List]));
+[Filtered_Task_Labels] = globSearch([Label//Filter], [Task_Labels]);
+
 
 /*
  * Redefine the rollup filter to include items from all subprojects.
  */
 [Rollup_Filter_Regexp] =
     "m\n^(" & join("|", [Subproject_WBS_ID_List]) & ")(/.+)?$\n";
-[Rollup_Filter] = "match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";
+[Rollup_Filter] = 
+    "(!defined([{Filtered_Task_Labels}]) \
+        || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
+     && match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";

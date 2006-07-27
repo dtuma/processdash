@@ -8,14 +8,18 @@
 
 [Project_Path_Prefix] = [../Project_Path_Prefix];
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
+[Filtered_Task_Labels] = [../Filtered_Task_Labels];
 
 
 /*
- * Redefine the rollup filter to include items from this project.
+ * Redefine the rollup filter to include items from this project, and
+ * respect the label-based filter if it is in effect.
  */
 [Rollup_Filter] =
-     "[Project_WBS_ID] == [{Project_WBS_ID}] || <!--#echo null #-->
-      startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID])";
+    "(!defined([{Filtered_Task_Labels}]) \
+        || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
+     && ([Project_WBS_ID] == [{Project_WBS_ID}] \
+        || startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID]))";
 
 <!--#if VVIS -->
 

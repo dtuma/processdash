@@ -156,6 +156,8 @@ public class WBSDataWriter {
 
         if (result != null)
             result = result.replaceAll(", ", ",");
+        else
+            result = NO_LABELS_VAL;
 
         return result;
     }
@@ -401,6 +403,7 @@ public class WBSDataWriter {
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
     private static final String LABELS_ATTR = "labels";
+    private static final String NO_LABELS_VAL = "none";
     private static final String DEP_SRC_ATTR = "source";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";
