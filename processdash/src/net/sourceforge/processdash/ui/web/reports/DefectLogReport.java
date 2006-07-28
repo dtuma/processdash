@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,8 +27,6 @@
 package net.sourceforge.processdash.ui.web.reports;
 
 
-import java.util.HashSet;
-
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.Defect;
@@ -45,7 +43,6 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         Resources.getDashBundle("Defects.Report");
 
     private String typeFilt, injFilt, remFilt;
-    private HashSet projectList;
 
     private static final String HEADER_TEXT =
         "<HTML><HEAD><TITLE>${Title}%for owner%%for path%</TITLE>%css%\n" +
@@ -119,7 +116,7 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
             DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
                                path, parameters, this);
         else
-            DefectAnalyzer.run(getPSPProperties(), path, this);
+            DefectAnalyzer.run(getPSPProperties(), path, true, this);
 
         out.println(resources.interpolate(TABLE_END_TEXT, HTMLUtils.ESC_ENTITIES));
 

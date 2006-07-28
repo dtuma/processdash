@@ -1,5 +1,5 @@
+// Copyright (C) 2004-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -46,7 +46,8 @@ import net.sourceforge.processdash.util.HashTree;
 
 public class ImportedDefectManager implements DefectXmlConstantsv1 {
 
-    private static final String DEFECT_LIST_ELEM = "/defects";
+    private static final String DEFECT_LIST_SUFFIX = "/defects";
+    private static final String DEFECT_LIST_ELEM = DEFECT_LIST_SUFFIX.substring(1);
 
     static HashTree importedDefects = new HashTree();
 
@@ -81,7 +82,7 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
     }
 
     private static List getList(HashTree context, String path) {
-        String name = path.substring(1) + DEFECT_LIST_ELEM;
+        String name = path.substring(1) + DEFECT_LIST_SUFFIX;
         List result = (List) context.get(name);
         if (result == null) {
             result = new LinkedList();
@@ -99,7 +100,7 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
     }
 
     public static void run(DashHierarchy props, DataRepository data,
-            String[] prefixes, DefectAnalyzer.Task t) {
+            String[] prefixes, boolean includeChildren, DefectAnalyzer.Task t) {
         Map wbsIdMap = buildWbsIdMap(props, data);
 
         Set keys = new HashSet();
@@ -108,19 +109,24 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
             String prefix = prefixes[i] + "/";
             HashTree context = (HashTree) importedDefects.get(prefix);
             if (context != null) {
-                Iterator j = context.getAllKeys();
-                while (j.hasNext())
-                    keys.add(prefix + j.next());
+                if (includeChildren) {
+                    Iterator j = context.getAllKeys();
+                    while (j.hasNext())
+                        keys.add(prefix + j.next());
+                } else {
+                    if (context.get(DEFECT_LIST_ELEM) != null)
+                        keys.add(prefix + DEFECT_LIST_ELEM);
+                }
             }
         }
 
         List defects = new LinkedList();
         for (Iterator i = keys.iterator(); i.hasNext();) {
             String key = (String) i.next();
-            if (key.endsWith(DEFECT_LIST_ELEM)) {
+            if (key.endsWith(DEFECT_LIST_SUFFIX)) {
                 List defectList = (List) importedDefects.get(key);
                 String defectPath = key.substring(0, key.length()
-                        - DEFECT_LIST_ELEM.length());
+                        - DEFECT_LIST_SUFFIX.length());
                 defectPath = rerootPath(data, defectPath, wbsIdMap);
                 for (Iterator j = defectList.iterator(); j.hasNext();) {
                     defects.add(new DefectToAnalyze(defectPath, (Defect) j

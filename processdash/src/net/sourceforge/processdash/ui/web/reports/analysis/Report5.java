@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -111,6 +111,7 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
         int slashPos = scriptName.lastIndexOf('/');
         if (slashPos != -1) scriptName = scriptName.substring(slashPos + 1);
         boolean strict = parameters.containsKey("strict");
+        boolean nokids = parameters.containsKey(DefectAnalyzer.NO_CHILDREN_PARAM);
 
         for (int i = 0;   i < PARAM_FLAG.length;   i++) {
             out.print("<P><IMG WIDTH=500 HEIGHT=400 SRC=\"");
@@ -118,6 +119,7 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
             out.print("?type=");
             out.print(PARAM_FLAG[i]);
             if (strict) out.print("&strict");
+            if (nokids) out.print("&" + DefectAnalyzer.NO_CHILDREN_PARAM);
             out.print("&qf="+PATH_TO_REPORTS+"compProj.rpt");
             out.print("&categoryLabels=vertical&width=500&height=400\"></P>");
         }

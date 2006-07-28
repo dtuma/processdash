@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,7 +29,6 @@ package net.sourceforge.processdash.ui.web.reports.analysis;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -232,8 +231,10 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         if (parameters.containsKey("hideD22"))
             return;
 
+        boolean includeChildren = !parameters
+                .containsKey(DefectAnalyzer.NO_CHILDREN_PARAM);
         DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
-                           projects, this);
+                           projects, includeChildren, this);
 
         eliminateEmptyValues();
         if (count == null) return;

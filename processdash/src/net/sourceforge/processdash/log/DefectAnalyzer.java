@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -48,6 +48,8 @@ public class DefectAnalyzer {
         void analyze(String path, Defect d);
     }
 
+    public static final String NO_CHILDREN_PARAM = "noChildren";
+
     public static void run(DashHierarchy props,
                            DataRepository data,
                            String prefix,
@@ -55,13 +57,15 @@ public class DefectAnalyzer {
                            Task t) {
         String [] prefixes = ResultSet.getPrefixList
             (data, queryParameters, prefix);
-        run(props, data, prefixes, t);
+        boolean includeChildren = !queryParameters.containsKey(NO_CHILDREN_PARAM);
+        run(props, data, prefixes, includeChildren, t);
     }
 
-    public static void run(DashHierarchy props, DataRepository data, String[] prefixes, Task t) {
+    public static void run(DashHierarchy props, DataRepository data,
+            String[] prefixes, boolean includeChildren, Task t) {
         for (int i = 0;   i < prefixes.length;   i++)
-            run(props, prefixes[i], t);
-        ImportedDefectManager.run(props, data, prefixes, t);
+            run(props, prefixes[i], includeChildren, t);
+        ImportedDefectManager.run(props, data, prefixes, includeChildren, t);
     }
 
     /** Perform some analysis task on all the defects under a given node
@@ -69,11 +73,14 @@ public class DefectAnalyzer {
      *
      * @param props The PSPProperties object to be walked.
      * @param path  The path of the node in the hierarchy where the analysis
-     *    should start.  The named node and all its children will be analyzed.
+     *    should start.
+     * @param includeChildren if true, the node and all its children will be
+     *    analyzed;  if false, only the node itself will be visited.
      * @param t An analysis task to perform.  Every defect encountered will
      *    be passed to the task, in turn.
      */
-    public static void run(DashHierarchy props, String path, Task t) {
+    public static void run(DashHierarchy props, String path,
+            boolean includeChildren, Task t) {
         PropertyKey pKey;
         if (path == null || path.length() == 0)
             pKey = PropertyKey.ROOT;
@@ -81,7 +88,7 @@ public class DefectAnalyzer {
             pKey = props.findExistingKey(path);
 
         if (pKey != null)
-            run(props, pKey, t);
+            run(props, pKey, includeChildren, t);
     }
 
     /** Perform some analysis task on all the defects under a given node
@@ -89,12 +96,14 @@ public class DefectAnalyzer {
      *
      * @param props The PSPProperties object to be walked.
      * @param pKey  The PropertyKey of the node in the hierarchy where the
-     *    analysis should start.  The node and all its children will be
-     *    analyzed.
+     *    analysis should start.
+     * @param includeChildren if true, the node and all its children will be
+     *    analyzed;  if false, only the node itself will be visited.
      * @param t An analysis task to perform.  Every defect encountered will
      *    be passed to the task, in turn.
      */
-    public static void run(DashHierarchy props, PropertyKey pKey, Task t) {
+    public static void run(DashHierarchy props, PropertyKey pKey,
+            boolean includeChildren, Task t) {
         Prop prop = props.pget (pKey);
         String path = pKey.path();
         String defLogName = prop.getDefectLog ();
@@ -111,8 +120,9 @@ public class DefectAnalyzer {
         }
 
         // recursively analyze all the children of this node.
-        for (int i = 0; i < prop.getNumChildren(); i++)
-            run(props, prop.getChild(i), t);
+        if (includeChildren)
+            for (int i = 0; i < prop.getNumChildren(); i++)
+                run(props, prop.getChild(i), includeChildren, t);
     }
 
     private static String dataDirectory;

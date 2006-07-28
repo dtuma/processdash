@@ -1,5 +1,5 @@
+// Copyright (C) 2004-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -54,7 +54,8 @@ public class DefectExporterXMLv1 implements DefectExporter,
 
         for (Iterator i = filter.iterator(); i.hasNext();) {
             String path = (String) i.next();
-            DefectAnalyzer.run(hierarchy, path, new DefectWriter(out, path));
+            DefectAnalyzer.run(hierarchy, path, true,
+                    new DefectWriter(out, path));
         }
 
         out.println("</defects>");
@@ -65,11 +66,11 @@ public class DefectExporterXMLv1 implements DefectExporter,
 
         private PrintWriter out;
 
-        private String basePath;
+        // private String basePath;
 
         public DefectWriter(PrintWriter out, String basePath) {
             this.out = out;
-            this.basePath = basePath + "/";
+            // this.basePath = basePath + "/";
         }
 
         public void analyze(String path, Defect d) {
