@@ -47,6 +47,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVLabelFilter;
@@ -94,9 +95,11 @@ public class EVReport extends CGIChartBase {
     public static final String COMBINED_CHART = "combined";
     public static final String FAKE_MODEL_NAME = "/  ";
     private static final String CUSTOMIZE_PARAM = "customize";
+    private static final String LABEL_FILTER_PARAM = "labelFilter";
     static final String CUSTOMIZE_HIDE_PLAN_LINE = "hidePlanLine";
     static final String CUSTOMIZE_HIDE_FORECAST_LINE = "hideForecastLine";
     static final String CUSTOMIZE_HIDE_ASSIGN_TO = "hideAssignedTo";
+    static final String CUSTOMIZE_LABEL_FILTER = LABEL_FILTER_PARAM;
 
 
     private static Resources resources = Resources.getDashBundle("EV");
@@ -675,9 +678,10 @@ public class EVReport extends CGIChartBase {
     public void storeCustomizationSettings() throws IOException {
         out.println("<html><head><script>");
         if (parameters.containsKey("OK")) {
-            storeCustomizationSetting(CUSTOMIZE_HIDE_PLAN_LINE);
-            storeCustomizationSetting(CUSTOMIZE_HIDE_FORECAST_LINE);
-            storeCustomizationSetting(CUSTOMIZE_HIDE_ASSIGN_TO);
+            storeCustomizationSetting(CUSTOMIZE_HIDE_PLAN_LINE, true);
+            storeCustomizationSetting(CUSTOMIZE_HIDE_FORECAST_LINE, true);
+            storeCustomizationSetting(CUSTOMIZE_HIDE_ASSIGN_TO, true);
+            storeCustomizationSetting(CUSTOMIZE_LABEL_FILTER, false);
             touchSettingsTimestamp();
             out.println("window.opener.location.reload();");
         }
@@ -687,10 +691,15 @@ public class EVReport extends CGIChartBase {
         // javascript should close this window immediately)
         out.println("<body>Changes saved.</body></html>");
     }
-    private void storeCustomizationSetting(String setting) {
-        setValue("settings//" + setting,
-                parameters.containsKey(setting) ? ImmutableDoubleData.TRUE
-                        : ImmutableDoubleData.FALSE);
+    private void storeCustomizationSetting(String setting, boolean isBool) {
+        SimpleData val = null;
+        if (isBool)
+            val = (parameters.containsKey(setting) ? ImmutableDoubleData.TRUE
+                    : ImmutableDoubleData.FALSE);
+        else if (parameters.get(setting) instanceof String)
+            val = StringData.create(getParameter(setting));
+
+        setValue("settings//" + setting, val);
     }
     private void touchSettingsTimestamp() {
         setValue("settings//timestamp", new DateData());
@@ -804,7 +813,13 @@ public class EVReport extends CGIChartBase {
     }
 
     private EVTaskFilter printFilterInfo() {
-        String filter = getParameter("labelFilter");
+        String filter = null;
+        if (parameters.containsKey(LABEL_FILTER_PARAM))
+            filter = getParameter(LABEL_FILTER_PARAM);
+        else if (usingCustomizationSettings) {
+            SimpleData val = getValue("settings//" + CUSTOMIZE_LABEL_FILTER);
+            filter = (val == null ? null : val.format());
+        }
         if (!StringUtils.hasValue(filter))
             return null;
 
@@ -829,9 +844,13 @@ public class EVReport extends CGIChartBase {
     private void printCustomizationLink() {
         if (!parameters.containsKey("EXPORT")) {
             out.print("&nbsp;&nbsp;<span class='hlink'>"
-                    + "<span class='doNotPrint'><a href='ev-customize.shtm");
+                    + "<span class='doNotPrint'><a href='ev-customize.shtm?a");
             if ((evModel instanceof EVTaskListRollup))
-                out.print("?isRollup");
+                out.print("&isRollup");
+            if (!parameters.containsKey(LABEL_FILTER_PARAM)
+                    && EVLabelFilter.taskListContainsLabelData(evModel,
+                            getDataRepository()))
+                out.print("&showLabelFilter");
             out.print("' target='customize' onClick='openCustomizeWindow();'>");
             out.print(HTMLUtils.escapeEntities(resources
                     .getDlgString("Customize")));
@@ -843,14 +862,15 @@ public class EVReport extends CGIChartBase {
     private void printTaskStyleLink() {
         if (!exportingToExcel()) {
             boolean isFlat = isFlatView();
-            String filter = getParameter("labelFilter");
+            String filter = getParameter(LABEL_FILTER_PARAM);
             out.print("&nbsp;&nbsp;<span class='hlink'>"
                     + "<span class='doNotPrint'><a href='ev.class");
             if (!isFlat)
                 out.print("?flat");
             if (filter != null) {
                 out.print(isFlat ? '?' : '&');
-                out.print("labelFilter=" + HTMLUtils.urlEncode(filter));
+                out.print(LABEL_FILTER_PARAM + "="
+                        + HTMLUtils.urlEncode(filter));
             }
             out.print("#tasks'>");
             out.print(resources.getHTML(isFlat ? "Report.Tree_View"

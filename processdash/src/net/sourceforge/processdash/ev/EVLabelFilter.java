@@ -68,7 +68,8 @@ public class EVLabelFilter implements EVTaskFilter {
         collectMatchingTasks((EVTask) taskList.getRoot(), false);
     }
 
-    private void collectLabelPaths(EVTask task, boolean isLocal, Set paths) {
+    private static void collectLabelPaths(EVTask task, boolean isLocal,
+            Set paths) {
         List ids = task.getTaskIDs();
         if (ids != null && !ids.isEmpty()) {
             if (isLocal) {
@@ -88,7 +89,7 @@ public class EVLabelFilter implements EVTaskFilter {
         }
     }
 
-    private List getLabelDataForPath(DataRepository data, String path) {
+    private static List getLabelDataForPath(DataRepository data, String path) {
         if (path == null)
             return null;
 
@@ -111,8 +112,17 @@ public class EVLabelFilter implements EVTaskFilter {
 
 
     private boolean collectMatchingTasks(EVTask task, boolean parentMatches) {
-
-        boolean selfMatches = taskIDsMatch(task.getTaskIDs());
+        boolean selfMatches;
+        List taskIDs = task.getTaskIDs();
+        if (taskIDs == null || taskIDs.isEmpty())
+            // if this node has no task IDs, then it is either (a) a phase
+            // underneath a defined parent task, or (b) a set of nodes that
+            // the user defined themselves to hierarchically subdivide their
+            // work.  In either case, it should inherit its matching status
+            // from its parent.
+            selfMatches = parentMatches;
+        else
+            selfMatches = taskIDsMatch(taskIDs);
 
         boolean childMatches = false;
         for (int i = task.getNumChildren(); i-- > 0;)
@@ -120,7 +130,7 @@ public class EVLabelFilter implements EVTaskFilter {
                 childMatches = true;
 
         boolean isMatchingLeaf = (parentMatches && task.isLeaf()
-                && task.getTaskIDs() == null);
+                && taskIDs == null);
 
         boolean foundMatch = selfMatches || childMatches || isMatchingLeaf;
 
@@ -142,5 +152,21 @@ public class EVLabelFilter implements EVTaskFilter {
 
     public boolean include(EVTask t) {
         return matchingTasks.contains(t);
+    }
+
+    public static boolean taskListContainsLabelData(EVTaskList taskList,
+            DataRepository data) {
+        boolean isLocal = (taskList instanceof EVTaskListData);
+
+        Set labelPaths = new HashSet();
+        collectLabelPaths((EVTask) taskList.getRoot(), isLocal, labelPaths);
+
+        for (Iterator i = labelPaths.iterator(); i.hasNext();) {
+            List labelData = getLabelDataForPath(data, (String) i.next());
+            if (labelData != null && !labelData.isEmpty())
+                return true;
+        }
+
+        return false;
     }
 }
