@@ -49,11 +49,13 @@ import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
+import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
+import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
@@ -380,7 +382,7 @@ public class EVReport extends CGIChartBase {
             writeCsvColumnHeaders(columns);
         }
 
-        TreeTableModel merged = evModel.getMergedModel(false);
+        TreeTableModel merged = evModel.getMergedModel(false, null);
         EVTask root = (EVTask) merged.getRoot();
         prepCsvColumns(columns, root, root, 1);
         writeCsvRows(columns, root, 1);
@@ -769,11 +771,12 @@ public class EVReport extends CGIChartBase {
 
         out.print("<h2><a name='tasks'></a>"+getResource("TaskList.Title"));
         printTaskStyleLink();
+        EVTaskFilter taskFilter = printFilterInfo();
         out.print("</h2>\n");
         if (isFlatView())
-            writeTaskTable(evModel);
+            writeTaskTable(evModel, taskFilter);
         else
-            writeTaskTree(evModel);
+            writeTaskTree(evModel, taskFilter);
 
         out.print("<h2>"+getResource("Schedule.Title")+"</h2>\n");
         writeScheduleTable(s);
@@ -800,6 +803,29 @@ public class EVReport extends CGIChartBase {
         out.print(FOOTER_HTML2);
     }
 
+    private EVTaskFilter printFilterInfo() {
+        String filter = getParameter("labelFilter");
+        if (!StringUtils.hasValue(filter))
+            return null;
+
+        try {
+            EVTaskFilter result = new EVLabelFilter(evModel, filter,
+                    getDataRepository());
+
+            out.print("<img border=0 src='/Images/filter.png' "
+                + "style='margin-left:1cm; margin-right:2px' "
+                + "width='16' height='23' title=\"");
+            out.print(resources.getHTML("Report.Filter_Tooltip"));
+            out.print("\">");
+            out.print(HTMLUtils.escapeEntities(filter));
+
+            return result;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+
     private void printCustomizationLink() {
         if (!parameters.containsKey("EXPORT")) {
             out.print("&nbsp;&nbsp;<span class='hlink'>"
@@ -817,9 +843,16 @@ public class EVReport extends CGIChartBase {
     private void printTaskStyleLink() {
         if (!exportingToExcel()) {
             boolean isFlat = isFlatView();
+            String filter = getParameter("labelFilter");
             out.print("&nbsp;&nbsp;<span class='hlink'>"
-                    + "<span class='doNotPrint'><a href='ev.class"
-                    + (isFlat ? "" : "?flat") + "#tasks'>");
+                    + "<span class='doNotPrint'><a href='ev.class");
+            if (!isFlat)
+                out.print("?flat");
+            if (filter != null) {
+                out.print(isFlat ? '?' : '&');
+                out.print("labelFilter=" + HTMLUtils.urlEncode(filter));
+            }
+            out.print("#tasks'>");
             out.print(resources.getHTML(isFlat ? "Report.Tree_View"
                     : "Report.Flat_View"));
             out.print("</a></span></span>");
@@ -974,9 +1007,10 @@ public class EVReport extends CGIChartBase {
     static final String EXCEL_TIME_TD = "<td class='timefmt'>";
 
 
-    void writeTaskTable(EVTaskList taskList) throws IOException {
+    void writeTaskTable(EVTaskList taskList, EVTaskFilter filter)
+            throws IOException {
         HTMLTableWriter writer = new HTMLTableWriter();
-        TableModel table = customizeTaskTableWriter(writer, taskList);
+        TableModel table = customizeTaskTableWriter(writer, taskList, filter);
         if (taskList instanceof EVTaskListData
                 && parameters.get("EXPORT") == null)
             writer.setCellRenderer(EVTaskList.TASK_COLUMN,
@@ -984,10 +1018,11 @@ public class EVReport extends CGIChartBase {
         writer.writeTable(out, table);
     }
 
-    void writeTaskTree(EVTaskList taskList) throws IOException {
-        TreeTableModel tree = taskList.getMergedModel();
+    void writeTaskTree(EVTaskList taskList, EVTaskFilter filter)
+            throws IOException {
+        TreeTableModel tree = taskList.getMergedModel(true, filter);
         HTMLTreeTableWriter writer = new HTMLTreeTableWriter();
-        customizeTaskTableWriter(writer, taskList);
+        customizeTaskTableWriter(writer, taskList, null);
         writer.writeTree(out, tree);
 
         int depth = Settings.getInt("ev.showHierarchicalDepth", 3);
@@ -1002,8 +1037,8 @@ public class EVReport extends CGIChartBase {
     }
 
     private TableModel customizeTaskTableWriter(HTMLTableWriter writer,
-            EVTaskList taskList) {
-        TableModel table = taskList.getSimpleTableModel();
+            EVTaskList taskList, EVTaskFilter filter) {
+        TableModel table = taskList.getSimpleTableModel(filter);
         customizeTableWriter(writer, table, EVTaskList.toolTips);
         writer.setTableName("TASK");
         writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,

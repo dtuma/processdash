@@ -63,13 +63,17 @@ public class EVTaskListMerger {
 
     private boolean simplify;
 
+    private EVTaskFilter filter;
+
     private EVTask mergedRoot;
 
     /** Create and calculate a merged task model for the given task list.
      */
-    public EVTaskListMerger(EVTaskList taskList, boolean simplify) {
+    public EVTaskListMerger(EVTaskList taskList, boolean simplify,
+            EVTaskFilter filter) {
         this.taskList = taskList;
         this.simplify = simplify;
+        this.filter = filter;
         this.mergedRoot = new EVTask(taskList.getRootName());
         this.mergedRoot.flag = TASK_LIST_FLAG;
         recalculate();
@@ -122,6 +126,10 @@ public class EVTaskListMerger {
         if (task.isLevelOfEffortTask() || task.isTotallyPruned())
             // don't include level of effort tasks or pruned tasks in the
             // merged result.
+            return;
+
+        if (filter != null && !filter.include(task))
+            // if we have a filter, see if it includes this task.
             return;
 
         // the "imaginary" nodes that are created as the root of an EVTaskList
@@ -233,6 +241,10 @@ public class EVTaskListMerger {
             // merged result.
             return;
 
+        if (filter != null && !filter.include(task))
+            // if we have a filter, see if it includes this task.
+            return;
+
         // if we find a top-level task (indicated by the fact that it isn't
         // flagged as an "imaginary" nodes at the root of an EVTaskList),
         // add it to the key.
@@ -270,6 +282,10 @@ public class EVTaskListMerger {
     private void defineParentage(Map allTaskKeys, TaskKey parent, EVTask task) {
         if (task.isLevelOfEffortTask() || task.isTotallyPruned())
             // we don't do level of effort tasks or pruned tasks, remember?
+            return;
+
+        if (filter != null && !filter.include(task))
+            // skip filtered tasks, remember?
             return;
 
         // find the TaskKey for this EVTask, and set its parent.

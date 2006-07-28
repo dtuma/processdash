@@ -242,7 +242,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
             tl.recalc();
 
             if (merged)
-                tl = new EVTaskListMerged(tl, false);
+                tl = new EVTaskListMerged(tl, false, null);
 
             schedules.put(taskScheduleName, tl);
         }

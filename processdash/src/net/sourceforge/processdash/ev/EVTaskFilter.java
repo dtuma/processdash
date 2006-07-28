@@ -25,30 +25,8 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.util.EventObject;
+public interface EVTaskFilter {
 
-public class EVTaskListMerged extends EVTaskList {
+    public boolean include(EVTask t);
 
-    private EVTaskListMerger merger;
-
-    public EVTaskListMerged(EVTaskList tl, boolean simplify,
-            EVTaskFilter filter) {
-        super(tl.taskListName, tl.getDisplayName(), false);
-        merger = new EVTaskListMerger(tl, simplify, filter);
-        this.root = merger.getMergedTaskRoot();
-        this.schedule = tl.schedule;
-        this.taskListID = tl.taskListID;
-        this.calculator = tl.calculator;
-        tl.addRecalcListener(new Recalculator());
-    }
-
-    private class Recalculator implements RecalcListener {
-
-        public void evRecalculated(EventObject e) {
-            merger.recalculate();
-            fireTreeStructureChanged(this, new Object[] { root }, new int[0],
-                    null);
-        }
-
-    }
 }

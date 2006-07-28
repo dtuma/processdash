@@ -749,13 +749,18 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public TableModel getSimpleTableModel() {
-        return new SimpleTableModel();
+        return getSimpleTableModel(null);
+    }
+    public TableModel getSimpleTableModel(EVTaskFilter filter) {
+        return new SimpleTableModel(filter);
     }
 
     private class SimpleTableModel implements TableModel {
+        private EVTaskFilter filter;
         private List rowList = null;
 
-        public SimpleTableModel() {
+        public SimpleTableModel(EVTaskFilter filter) {
+            this.filter = filter;
             if (calculator != null)
                 rowList = calculator.getEVLeaves();
             if (rowList == null || rowList.isEmpty())
@@ -770,6 +775,8 @@ public class EVTaskList extends AbstractTreeTableModel
                 EVTask task = (EVTask) i.next();
                 if (task.isChronologicallyPruned() &&
                     task.actualDirectTime == 0)
+                    i.remove();
+                else if (filter != null && !filter.include(task))
                     i.remove();
             }
             return result;
@@ -989,11 +996,12 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public TreeTableModel getMergedModel() {
         boolean simple = Settings.getBool("ev.simplifiedMerge", true);
-        return getMergedModel(simple);
+        return getMergedModel(simple, null);
     }
 
-    public TreeTableModel getMergedModel(boolean simple) {
-        EVTaskListMerger merger = new EVTaskListMerger(EVTaskList.this, simple);
+    public TreeTableModel getMergedModel(boolean simple, EVTaskFilter filter) {
+        EVTaskListMerger merger = new EVTaskListMerger(EVTaskList.this, simple,
+                filter);
         MergedTreeModel result = new MergedTreeModel(merger);
         addRecalcListener(result);
         return result;
