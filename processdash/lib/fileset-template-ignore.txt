@@ -8,11 +8,14 @@
 **/.xvpics/
 **/Thumbs.db
 **/SCR-*.htm
+Templates/data.js
 Templates/DCR.template
 Templates/help/createBroker.class.link
 Templates/help/help.config
 Templates/help/javaHelp-manifest.txt
 Templates/help/make*.xslt
+Templates/help/style.css
+Templates/help/style-prod.css
 Templates/Import-template.xml
 Templates/import/
 Templates/Insp.template

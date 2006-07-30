@@ -399,14 +399,14 @@ Authors:
       <fileset dir="${src}" includesfile="${lib}/fileset-nonclass.txt"/>
 
       <!-- include the template files -->
-      <fileset dir=".">
-        <include name="Templates/"/>
-	<exclude name="Templates/data.js"/> <!-- temp change -->
-        <excludesfile name="${lib}/fileset-template-ignore.txt"/>
-      </fileset>
+      <fileset dir="." includes="Templates/" 
+          excludesfile="${lib}/fileset-template-ignore.txt"/>
 
+      <!-- rename certain template files -->
       <zipfileset dir="." includes="Templates/data2.js"
-               fullpath="Templates/data.js"/> <!-- temp change -->
+               fullpath="Templates/data.js"/>
+      <zipfileset dir="." includes="Templates/help/style-prod.css"
+               fullpath="Templates/help/style.css"/>
 
       <!-- include the contents of the libraries we use -->
       <zipfileset src="${jcommon.jar}"/>
