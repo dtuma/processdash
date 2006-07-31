@@ -94,10 +94,12 @@ public class EditedPageDataParser implements EditPageParameters,
 
         String[] snippetNamespaces = (String[]) parameters.get(SNIPPET_INSTANCE
                 + "_ALL");
-        for (int i = 0; i < snippetNamespaces.length; i++) {
-            SnippetInstanceTO snip = parseSnippet(snippetNamespaces[i]);
-            if (snip != null)
-                snippets.add(snip);
+        if (snippetNamespaces != null) {
+            for (int i = 0; i < snippetNamespaces.length; i++) {
+                SnippetInstanceTO snip = parseSnippet(snippetNamespaces[i]);
+                if (snip != null)
+                    snippets.add(snip);
+            }
         }
 
         page.setContentSnippets(snippets);

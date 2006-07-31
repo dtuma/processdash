@@ -43,6 +43,7 @@ import net.sourceforge.processdash.net.cms.SnippetDataEnumerator;
 import net.sourceforge.processdash.net.cms.TranslatingAutocompleter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class TableOfPhaseMetrics extends TinyCGIBase {
 
@@ -52,6 +53,8 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
 
     private static final String ITEM_TYPE = "Metric";
 
+    private static final String HEADING_PARAM = "Heading";
+
     private static final String LABEL_PARAM = "Label";
 
     private static final Resources resources = Resources
@@ -60,7 +63,8 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
     protected void writeContents() throws IOException {
         DataContext dataContext = getDataContext();
 
-        // retrieve the label the user wants displayed
+        // retrieve the heading and label the user wants displayed
+        String heading = getParameter(HEADING_PARAM);
         String label = getParameter(LABEL_PARAM);
 
         // retrieve the list of columns the user wants to display
@@ -97,6 +101,13 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
         if (metrics == null) {
             out.write("<!-- no metrics selected;  no table to display -->\n\n");
             return;
+        }
+
+        // write out heading if requested
+        if (StringUtils.hasValue(heading)) {
+            out.write("<h2>");
+            out.write(HTMLUtils.escapeEntities(heading));
+            out.write("</h2>\n\n");
         }
 
         // write the header row of the table

@@ -34,6 +34,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
@@ -50,6 +52,8 @@ public class TableOfMetrics extends TinyCGIBase {
     private static final String DATA_NAME_ATTR = "DataName";
 
     private static final String ITEM_TYPE = "Metric";
+
+    private static final String HEADING_PARAM = "Heading";
 
     private static final String LABEL_PARAM = "Label";
 
@@ -75,7 +79,8 @@ public class TableOfMetrics extends TinyCGIBase {
     private void writeTable() throws IOException {
         DataContext dataContext = getDataContext();
 
-        // retrieve the label the user wants displayed
+        // retrieve the heading and label the user wants displayed
+        String heading = getParameter(HEADING_PARAM);
         String label = getParameter(LABEL_PARAM);
 
         // retrieve the list of columns the user wants to display
@@ -97,6 +102,13 @@ public class TableOfMetrics extends TinyCGIBase {
         if (metrics == null) {
             out.write("<!-- no metrics selected;  no table to display -->\n\n");
             return;
+        }
+
+        // write out heading if requested
+        if (StringUtils.hasValue(heading)) {
+            out.write("<h2>");
+            out.write(HTMLUtils.escapeEntities(heading));
+            out.write("</h2>\n\n");
         }
 
         // write the header row of the table
@@ -130,8 +142,12 @@ public class TableOfMetrics extends TinyCGIBase {
 
         Object dataElem = lookupSpecialDataElement(dataName);
 
-        out.write("<tr><td>");
-        out.write(HTMLUtils.escapeEntities(display));
+        out.write("<tr><td");
+        int indentLevel = countInitialSpaces(display);
+        if (indentLevel > 0)
+            out.write(" style='padding-left: " + indentLevel + "em'");
+        out.write(">");
+        out.write(HTMLUtils.escapeEntities(display.trim()));
         out.write("</td>\n");
 
         boolean pad = true;
@@ -143,6 +159,15 @@ public class TableOfMetrics extends TinyCGIBase {
 
         out.write("</tr>\n");
     }
+
+    private int countInitialSpaces(String text) {
+        Matcher m = INITIAL_WHITESPACE.matcher(text);
+        if (m.find())
+            return m.group().length();
+        else
+            return 0;
+    }
+    private static final Pattern INITIAL_WHITESPACE = Pattern.compile("^\\s+");
 
     private Object lookupSpecialDataElement(String dataName) {
         Object result = SPECIAL_DATA.get(dataName);
