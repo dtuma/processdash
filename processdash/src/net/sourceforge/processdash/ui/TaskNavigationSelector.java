@@ -50,6 +50,8 @@ import net.sourceforge.processdash.hier.ui.HierarchyMenu;
 import net.sourceforge.processdash.hier.ui.HierarchyTreeModel;
 import net.sourceforge.processdash.hier.ui.HierarchyTreeModel.HierarchyTreeNode;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 
 public class TaskNavigationSelector {
 
@@ -89,6 +91,7 @@ public class TaskNavigationSelector {
 
     private void buildMenu() {
         this.menu = new JMenu();
+        new ToolTipTimingCustomizer().install(this.menu);
         menuBar.add(menu);
 
         JMenuItem useHierarchy = new JMenuItem();
@@ -154,6 +157,10 @@ public class TaskNavigationSelector {
         model.setRootName(resources.getString("Hierarchy.Root_Node_Name"));
         JTree tree = new JTree(model);
         tree.setRootVisible(true);
+        tree.setSelectionInterval(0, 0);
+        tree.setToggleClickCount(4);
+        new JOptionPaneClickHandler().install(tree);
+
         JScrollPane sp = new JScrollPane(tree);
         sp.setPreferredSize(new Dimension(200, 200));
 
@@ -210,6 +217,7 @@ public class TaskNavigationSelector {
 
         String[] displayNames = EVTaskList.getDisplayNames(taskListNames);
         JList taskLists = new JList(displayNames);
+        new JOptionPaneClickHandler().install(taskLists);
         JScrollPane sp = new JScrollPane(taskLists);
         sp.setPreferredSize(new Dimension(200, 200));
         String title = resources.getString("Task_List.Dialog.Title");
