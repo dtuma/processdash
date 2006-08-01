@@ -85,6 +85,14 @@ public interface TinyCGI {
      *         <code>SCRIPT_NAME</code> would be /psp0/script.htm .  To get
      *         the full path to the script, use <code>SCRIPT_PATH</code>.
      *
+     *     <DT><code>REMOTE_HOST</code>
+     *     <DD>is not a String; it is an object whose toString() method will
+     *         lazily look up the remote host name.
+     *
+     *     <DT><code>SERVER_NAME</code>
+     *     <DD>is not a String; it is an object whose toString() method will
+     *         lazily look up the effective server name.
+     *
      *     <DT><code>PSP_PROPERTIES</code>
      *     <DD>is an extra variable in the environment, pointing to the
      *         <code>PSPProperties</code> hierarchy.

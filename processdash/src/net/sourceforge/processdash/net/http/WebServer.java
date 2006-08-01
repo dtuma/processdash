@@ -665,14 +665,16 @@ public class WebServer {
             env.put("QUERY_STRING", query);
             Socket effectiveClientSocket = getEffectiveClientSocket();
             if (effectiveClientSocket != null) {
+                logger.finest("Getting remote host information");
                 env.put("REMOTE_PORT",
                         Integer.toString(effectiveClientSocket.getPort()));
                 InetAddress addr = effectiveClientSocket.getInetAddress();
-                env.put("REMOTE_HOST", addr.getHostName());
+                env.put("REMOTE_HOST", new InetAddrHostName(addr));
                 env.put("REMOTE_ADDR", addr.getHostAddress());
                 addr = effectiveClientSocket.getLocalAddress();
-                env.put("SERVER_NAME", addr.getHostName());
+                env.put("SERVER_NAME", new InetAddrHostName(addr));
                 env.put("SERVER_ADDR", addr.getHostAddress());
+                logger.finest("Got remote host information");
             }
             env.put(TinyCGI.TINY_WEB_SERVER, WebServer.this);
 
@@ -682,6 +684,18 @@ public class WebServer {
                     if (!env.containsKey(e.getKey()))
                         env.put(e.getKey(), e.getValue());
                 }
+            }
+        }
+
+        private class InetAddrHostName {
+            private InetAddress addr;
+
+            public InetAddrHostName(InetAddress addr) {
+                this.addr = addr;
+            }
+
+            public String toString() {
+                return addr.getHostName();
             }
         }
 
