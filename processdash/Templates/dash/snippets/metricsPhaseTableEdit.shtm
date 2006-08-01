@@ -6,12 +6,16 @@
 
 <p><b><!--#echo Columns_Prompt --></b><br/>
 <!--#foreach name="Which" values=",Plan,Actual,ActualPct,ToDate,ToDatePct," #-->
+<!--#if not [Rollup Tag] || 'Which' !~ 'ToDate' #-->
 <input type="checkbox" name="$$$_ShowWhichCol"
     <!--#if ShowWhichCol -->checked="true"
     <!--#elif defaults --><!--#if 'Which' ne 'ActualPct' -->checked="true"
     <!--#endif--><!--#endif-->
     class="cmsIndent" />&nbsp;<!--#echo Snippet.Columns.Which_Label -->
-<!--#endfor--></p>
+<!--#else#-->
+<input type="hidden" name="$$$_ShowWhichCol"
+    value="<!--#echo ShowWhichCol -->"/>
+<!--#endif--><!--#endfor--></p>
 
 <p><b><!--#echo Phases_Prompt --></b><br/>
 <!--#foreach name="Which" values=",All,Appraisal,Failure,Quality," #-->

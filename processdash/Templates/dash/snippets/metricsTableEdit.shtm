@@ -6,10 +6,14 @@
 
 <p><b><!--#echo Columns_Prompt --></b><br/>
 <!--#foreach name="Which" values=",Plan,Actual,ToDate," #-->
+<!--#if not [Rollup Tag] || 'Which' !~ 'ToDate' #-->
 <input type="checkbox" name="$$$_ShowWhichCol"
     <!--#if ShowWhichCol || defaults -->checked="true"<!--#endif-->
     class="cmsIndent" />&nbsp;<!--#echo Snippet.Columns.Which_Label -->
-<!--#endfor--></p>
+<!--#else#-->
+<input type="hidden" name="$$$_ShowWhichCol"
+    value="<!--#echo ShowWhichCol -->"/>
+<!--#endif--><!--#endfor--></p>
 
 <b><!--#echo Metrics_Prompt --></b>
 <div class='cmsIndent'><!--#include file="editList" -->
