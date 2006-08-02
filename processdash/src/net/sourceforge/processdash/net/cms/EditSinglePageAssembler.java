@@ -43,6 +43,8 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
     protected void writePage(Writer out, Set headerItems, PageContentTO page)
             throws IOException {
 
+        out.write(HTML_STRICT_DOCTYPE);
+
         out.write("<html>\n");
         out.write("<head>\n");
 
@@ -59,7 +61,7 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
         if (isInternetExplorer())
             // workaround IE bug for floated content
-            out.write("<style> .IEWidth { width: 100% } </style>\n");
+            out.write("<style> .IEFloatHack { height: 1% } </style>\n");
 
         out.write("</head>\n");
         out.write("<body>\n");
@@ -83,7 +85,7 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
         writeFormEnd(out);
 
-        out.write("<script>DashCMS.initPage();</script>\n");
+        out.write("<script type=\"text/javascript\">DashCMS.initPage();</script>\n");
 
         out.write("</body>\n");
         out.write("</html>\n");
@@ -107,8 +109,6 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         out.write("<form method=\"POST\" action=\"");
         out.write(CmsContentDispatcher.getSimpleSelfUri(environment, true));
         out.write("\">\n\n");
-        writeHidden(out, "mode", "edit");
-        writeHidden(out, "action", "save", "formActionParam");
     }
 
 
@@ -128,6 +128,9 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
                 + "onclick='DashCMS.cancelEdit();'>");
         out.write(resources.getHTML("Cancel"));
         out.write("</button>\n");
+
+        writeHidden(out, "mode", "edit");
+        writeHidden(out, "action", "save", "formActionParam");
 
         out.write("</div>\n\n");
         out.write("</form>\n\n");
@@ -160,10 +163,7 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         addScript(headerItems, "/js/scriptaculous.js");
         addScript(headerItems, "/dash/cmsEdit.js");
         addStyleSheet(headerItems, "/dash/cmsEdit.css");
-        addStyleSheet(headerItems, "/dash/fixedPosition.css");
-        headerItems.add("<!--[if gte IE 5.5]><![if lt IE 7]><link "
-                + "href=\"/dash/fixedPositionIE.css\" rel=\"stylesheet\" "
-                + "type=\"text/css\"><![endif]><![endif]-->");
+        addFixedPositionCssItems(headerItems);
     }
 
 
@@ -187,7 +187,7 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
             out.write("'>");
         }
 
-        out.write("<div class='cmsEditingTitle IEWidth'>");
+        out.write("<div class='cmsEditingTitle IEFloatHack'>");
         writeTitleButtonLink(out, "Delete_Item", "deleteSnippet",
                 "cmsDeleteButton");
         writeTitleButtonLink(out, "Move_Item_Down", "moveSnippetDown",
@@ -277,7 +277,7 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         out.write("' value='");
         if (XMLUtils.hasValue(value))
             out.write(XMLUtils.escapeAttribute(value));
-        out.write("'/>");
+        out.write("'>");
     }
 
     private String getPageTitle() {

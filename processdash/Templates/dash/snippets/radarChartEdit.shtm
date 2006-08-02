@@ -1,7 +1,7 @@
 <b><!--#echo Title_Prompt --></b>&nbsp;<input type="text" name="$$$_Title"
-    value="<!--#echo Title -->" size="50"/></p>
+    value="<!--#echo Title -->" size="50"/>
 
-<b><!--#echo Metrics_Prompt --></b>
+<p class="cmsNoBottomMargin"><b><!--#echo Metrics_Prompt --></b></p>
 <div class='cmsIndent'><!--#include file="editList" -->
     <!--#parameter name="QUERY_STRING" -->
     <!--#parameter name="itemUri" encoding="relUri"

@@ -1,7 +1,7 @@
 <b><!--#echo Title_Prompt --></b>&nbsp;<input type="text" name="$$$_Title"
-    value="<!--#echo Title -->" size="50"/></p>
+    value="<!--#echo Title -->" size="50">
 
-<b><!--#echo Metrics_Prompt --></b>
+<p class="cmsNoBottomMargin"><b><!--#echo Metrics_Prompt --></b></p>
 <div class='cmsIndent'><!--#include file="editList" -->
     <!--#parameter name="QUERY_STRING" -->
     <!--#parameter name="itemUri" encoding="relUri"
@@ -11,11 +11,11 @@
                    var="Add_Metric_Prompt" -->
 </div>
 
-<p><b><!--#echo Show_Trend.Prompt --></b><br/>
+<p class="cmsNoBottomMargin"><b><!--#echo Show_Trend.Prompt --></b><br/>
 <!--#foreach name="Which" values=",linear,average,none," #-->
-<input type="radio" name="$$$_ShowTrend" value="Which"
-    <!--#if ShowTrend eq 'Which' -->checked="true"
+<span class="cmsIndent"><input type="radio" name="$$$_ShowTrend"
+    <!--#if ShowTrend eq 'Which' -->checked
     <!--#elif defaults --><!--#if 'Which' eq 'linear' -->checked="true"
     <!--#endif--><!--#endif#-->
-    class="cmsIndent">&nbsp;<!--#echo Show_Trend.Which -->
+    value="Which">&nbsp;<!--#echo Show_Trend.Which --></span>
 <!--#endfor--></p>

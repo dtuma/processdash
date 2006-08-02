@@ -1,41 +1,41 @@
 <b><!--#echo Heading_Prompt --></b>&nbsp;<input type="text" name="$$$_Heading"
-     value="<!--#echo Heading -->" size="50"/></p>
+     value="<!--#echo Heading -->" size="50">
 
 <p><b><!--#echo Label_Prompt --></b>&nbsp;<input type="text" name="$$$_Label"
-    value="<!--#echo Label -->" size="50"/></p>
+    value="<!--#echo Label -->" size="50"></p>
 
 <p><b><!--#echo Columns_Prompt --></b><br/>
 <!--#foreach name="Which" values=",Plan,Actual,ActualPct,ToDate,ToDatePct," #-->
 <!--#if not [Rollup Tag] || 'Which' !~ 'ToDate' #-->
-<input type="checkbox" name="$$$_ShowWhichCol"
-    <!--#if ShowWhichCol -->checked="true"
-    <!--#elif defaults --><!--#if 'Which' ne 'ActualPct' -->checked="true"
-    <!--#endif--><!--#endif-->
-    class="cmsIndent" />&nbsp;<!--#echo Snippet.Columns.Which_Label -->
+<span class="cmsIndent"><input type="checkbox" name="$$$_ShowWhichCol"
+    <!--#if ShowWhichCol -->checked
+    <!--#elif defaults --><!--#if 'Which' ne 'ActualPct' -->checked
+    <!--#endif--><!--#endif#-->
+    >&nbsp;<!--#echo Snippet.Columns.Which_Label --></span>
 <!--#else#-->
 <input type="hidden" name="$$$_ShowWhichCol"
-    value="<!--#echo ShowWhichCol -->"/>
+    value="<!--#echo ShowWhichCol -->">
 <!--#endif--><!--#endfor--></p>
 
 <p><b><!--#echo Phases_Prompt --></b><br/>
 <!--#foreach name="Which" values=",All,Appraisal,Failure,Quality," #-->
-<input type="radio" name="$$$_PhaseGroup" value="Which"
-    <!--#if PhaseGroup eq 'Which' -->checked="true"
-    <!--#elif defaults --><!--#if 'Which' eq 'All' -->checked="true"
+<span class="cmsIndent"><input type="radio" name="$$$_PhaseGroup"
+    <!--#if PhaseGroup eq 'Which' -->checked
+    <!--#elif defaults --><!--#if 'Which' eq 'All' -->checked
     <!--#endif--><!--#endif#-->
 
     <!--#if 'Which' eq 'All' -->onclick="$('$$$_ShowTotalRow').disabled=false;"
     <!--#else-->onclick="$('$$$_ShowTotalRow').disabled=true;"
-    <!--#endif-->
+    <!--#endif#-->
 
-    class="cmsIndent">&nbsp;<!--#echo Snippet.Phases.Which -->
+    value="Which">&nbsp;<!--#echo Snippet.Phases.Which --></span>
 <!--#endfor--><br/>
 
-<input type="checkbox" name="$$$_ShowTotalRow" id="$$$_ShowTotalRow"
-    <!--#if ShowTotalRow || defaults -->checked="true" <!--#endif#-->
-    <!--#if !defaults --><!--#if PhaseGroup ne 'All' -->disabled="true"
+<span class="cmsIndent"><input type="checkbox" name="$$$_ShowTotalRow"
+    <!--#if ShowTotalRow || defaults -->checked <!--#endif#-->
+    <!--#if !defaults --><!--#if PhaseGroup ne 'All' -->disabled
     <!--#endif--><!--#endif#-->
-    class="cmsIndent">&nbsp;<!--#echo Show_Total_Row --></p>
+    id="$$$_ShowTotalRow">&nbsp;<!--#echo Show_Total_Row --></span></p>
 
 <b><!--#echo Metrics_Prompt --></b>
 <div class='cmsIndent'><!--#include file="editList" -->

@@ -1,33 +1,32 @@
 <b><!--#echo Title_Prompt --></b>&nbsp;<input type="text" name="$$$_Title"
-    value="<!--#echo Title -->" size="50"/></p>
+    value="<!--#echo Title -->" size="50">
 
 <p><b><!--#echo Type_Prompt --></b><br/>
 <!--#foreach name="Which" values=",Pie,Line,Bar," #-->
-<input type="radio" name="$$$_ChartType" value="Which"
-    <!--#if ChartType eq 'Which' -->checked="true"
-    <!--#elif defaults --><!--#if 'Which' eq 'Pie' -->checked="true"
+<span class="cmsIndent"><input type="radio" name="$$$_ChartType"
+    <!--#if ChartType eq 'Which' -->checked
+    <!--#elif defaults --><!--#if 'Which' eq 'Pie' -->checked
     <!--#endif--><!--#endif#-->
 
     <!--#if 'Which' eq 'Pie' -->onclick="Element.hide('$$$_YAxisSel');"
     <!--#else-->onclick="Element.show('$$$_YAxisSel');"
     <!--#endif#-->
-
-    class="cmsIndent">&nbsp;<!--#echo Snippet.Charts.Which -->
-<!--#endfor--><br/>
+    value="Which">&nbsp;<!--#echo Snippet.Charts.Which --></span>
+<!--#endfor--></p>
 
 <p id="$$$_YAxisSel"
     <!--#if ChartType eq 'Pie' || defaults #-->
     style="display:none"<!--#endif#-->
     ><b><!--#echo Y_Axis_Prompt #--></b>&nbsp;<input type="text" size="50"
-    name="$$$_YAxisLabel" value="<!--#echo YAxisLabel -->" /></p>
+    name="$$$_YAxisLabel" value="<!--#echo YAxisLabel -->"></p>
 
 <p><b><!--#echo Phases_Prompt --></b><br/>
 <!--#foreach name="Which" values=",All,Appraisal,Failure,Quality," #-->
-<input type="radio" name="$$$_PhaseGroup" value="Which"
-    <!--#if PhaseGroup eq 'Which' -->checked="true"
-    <!--#elif defaults --><!--#if 'Which' eq 'All' -->checked="true"
+<span class="cmsIndent"><input type="radio" name="$$$_PhaseGroup"
+    <!--#if PhaseGroup eq 'Which' -->checked
+    <!--#elif defaults --><!--#if 'Which' eq 'All' -->checked
     <!--#endif--><!--#endif#-->
-    class="cmsIndent">&nbsp;<!--#echo Snippet.Phases.Which -->
+    value="Which">&nbsp;<!--#echo Snippet.Phases.Which --></span>
 <!--#endfor--></p>
 
 <b><!--#echo Metrics_Prompt --></b>

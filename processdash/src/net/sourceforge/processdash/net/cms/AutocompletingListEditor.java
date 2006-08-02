@@ -136,7 +136,7 @@ public class AutocompletingListEditor extends TinyCGIBase {
                     "DashCMS.addAutocompleteToList.bind(DashCMS)");
 
         out.write("</div>");
-        out.write("<script>DashCMS.fixupSortableList('");
+        out.write("<script type=\"text/javascript\">DashCMS.fixupSortableList('");
         out.write(namespace);
         out.write(itemType);
         out.write("_container', null);</script>");

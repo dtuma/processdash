@@ -1,5 +1,5 @@
 <!--#resources bundle='CMS' -->
-<div class="metric IEWidth" id="$$$_###_div">
+<div class="metric IEFloatHack" id="$$$_###_div">
 <a href="#" onclick="Element.remove('$$$_###_div'); return false;"
    title="<!--#echo Edit_Page.Delete_Item.Tooltip -->"
    class="cmsDeleteButton" style="margin-top:1px"></a>
@@ -19,8 +19,8 @@
        value='<!--#echo DataName -->'/>
 <!-- ### -->
 
-<span <!--#if !DisplayName -->style="display:none"<!--#endif--> 
-    style="white-space:nowrap" class="cmsIndent" id="$$$_###_editReg">
+<span style="<!--#if !DisplayName -->display:none; <!--#endif#-->
+    white-space:nowrap" class="cmsIndent" id="$$$_###_editReg">
 <b><!--#echo Edit_Page.Label_Prompt --></b>&nbsp;<input 
     type='text' size='30' name='$$$_###_DisplayName'
     value="<!--#echo DisplayName -->"/>

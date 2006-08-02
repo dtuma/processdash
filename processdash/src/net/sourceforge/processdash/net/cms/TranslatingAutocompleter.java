@@ -93,7 +93,7 @@ public class TranslatingAutocompleter {
         }
 
         // write a field for the user to interact with
-        out.write("<input type='text' autocomplete='off' id='GUI_");
+        out.write("<input type='text' id='GUI_");
         out.write(esc(fieldName));
         out.write("' value='");
         out.write(esc(displayValue));
@@ -123,7 +123,7 @@ public class TranslatingAutocompleter {
         internalValuesJson.addAll(internalValues);
 
         // write the script to setup the autocompletion
-        out.write("<script>new Autocompleter.Local('GUI_");
+        out.write("<script type=\"text/javascript\">new Autocompleter.Local('GUI_");
         out.write(esc(fieldName));
         out.write("', 'cmsAutocomplete', ");
         out.write(valuesJson.toString());

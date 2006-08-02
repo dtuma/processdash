@@ -44,6 +44,10 @@ public abstract class AbstractSinglePageAssembler implements PageAssembler,
     protected static final Resources resources = Resources
             .getDashBundle("CMS.Snippet");
 
+    protected static final String HTML_STRICT_DOCTYPE =
+        "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n" +
+        "    \"http://www.w3.org/TR/html4/strict.dtd\">\n";
+
     // collect information, via the Needs interfaces.
 
     protected Map environment;
@@ -126,15 +130,28 @@ public abstract class AbstractSinglePageAssembler implements PageAssembler,
     }
 
     protected void addStyleSheet(Set headerItems, String uri) {
-        String item = "<link href=\"" + uri
+        headerItems.add(getStyleSheetLink(uri));
+    }
+
+    private String getStyleSheetLink(String uri) {
+        return "<link href=\"" + uri
                 + "\" rel=\"stylesheet\" type=\"text/css\">";
-        headerItems.add(item);
     }
 
     protected void addScript(Set headerItems, String uri) {
-        String item = "<script src=\"" + uri
+        headerItems.add(getScriptElem(uri));
+    }
+
+    private String getScriptElem(String uri) {
+        return "<script src=\"" + uri
                 + "\" type=\"text/javascript\"></script>";
-        headerItems.add(item);
+    }
+
+    protected void addFixedPositionCssItems(Set headerItems) {
+        addStyleSheet(headerItems, "/dash/fixedPosition.css");
+        headerItems.add("<!--[if gte IE 5.5]><![if lt IE 7]>"
+                + getStyleSheetLink("/dash/fixedPositionIE.css")
+                + "<![endif]><![endif]-->");
     }
 
     /** Convience routine */

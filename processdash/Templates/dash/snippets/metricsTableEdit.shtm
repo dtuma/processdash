@@ -1,18 +1,18 @@
 <b><!--#echo Heading_Prompt --></b>&nbsp;<input type="text" name="$$$_Heading"
-     value="<!--#echo Heading -->" size="50"/></p>
+     value="<!--#echo Heading -->" size="50">
 
 <p><b><!--#echo Label_Prompt --></b>&nbsp;<input type="text" name="$$$_Label"
-     value="<!--#echo Label -->" size="50"/></p>
+     value="<!--#echo Label -->" size="50"></p>
 
 <p><b><!--#echo Columns_Prompt --></b><br/>
 <!--#foreach name="Which" values=",Plan,Actual,ToDate," #-->
 <!--#if not [Rollup Tag] || 'Which' !~ 'ToDate' #-->
-<input type="checkbox" name="$$$_ShowWhichCol"
-    <!--#if ShowWhichCol || defaults -->checked="true"<!--#endif-->
-    class="cmsIndent" />&nbsp;<!--#echo Snippet.Columns.Which_Label -->
+<span class="cmsIndent"><input type="checkbox" name="$$$_ShowWhichCol"
+    <!--#if ShowWhichCol || defaults -->checked<!--#endif#-->
+    >&nbsp;<!--#echo Snippet.Columns.Which_Label --></span>
 <!--#else#-->
 <input type="hidden" name="$$$_ShowWhichCol"
-    value="<!--#echo ShowWhichCol -->"/>
+    value="<!--#echo ShowWhichCol -->">
 <!--#endif--><!--#endfor--></p>
 
 <b><!--#echo Metrics_Prompt --></b>

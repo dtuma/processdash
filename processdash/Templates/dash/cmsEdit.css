@@ -92,6 +92,14 @@
     margin-bottom: 15px;
 }
 
+.cmsNoTopMargin {
+    margin-top: 0px;
+}
+
+.cmsNoBottomMargin {
+    margin-bottom: 0px;
+}
+
 .cmsMetadataSection {
     padding-bottom: 15px;
     margin-bottom: 25px;
