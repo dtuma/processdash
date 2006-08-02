@@ -43,7 +43,8 @@ var DashCMS = {
     snippetDiv.id = namespace;
     $('snippetContainer').appendChild(snippetDiv);
     var url = window.location.pathname + "?mode=addNew&ns=" + namespace;
-    new Ajax.Updater(snippetDiv, url, { evalScripts:true });
+    new Ajax.Updater(snippetDiv, url, { evalScripts:true,
+        onComplete: Element.scrollTo.bind(Element, snippetDiv) });
   },
 
   _snipDivIdPattern: /^(snip|addSnip)[0-9]+_/,

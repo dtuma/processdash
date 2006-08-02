@@ -81,7 +81,6 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
         out.write("</div>\n\n");
 
-        writeAddNewSnippetLink(out);
         writeFormEnd(out);
 
         out.write("<script>DashCMS.initPage();</script>\n");
@@ -114,15 +113,12 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
 
 
-    private void writeAddNewSnippetLink(Writer out) throws IOException {
-        out.write("<div class='cmsAddNewSnippet'>\n");
+    private void writeFormEnd(Writer out) throws IOException {
+        out.write("<div id='fixedFooter' class='cmsButtonRow'>\n");
+
         out.write("<a href='#' onclick='DashCMS.addSnippet(); return false'>");
         out.write(resources.getHTML("Edit_Page.Add_Snippet"));
-        out.write("</a></div>\n\n");
-    }
-
-    private void writeFormEnd(Writer out) throws IOException {
-        out.write("<div class='cmsButtonRow'>\n");
+        out.write("</a>\n\n");
 
         out.write("<button type='submit' name='submit' value='save'>");
         out.write(resources.getHTML("Save"));
@@ -135,6 +131,7 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
         out.write("</div>\n\n");
         out.write("</form>\n\n");
+        out.write("<div style='height:4em'>&nbsp;</div>\n\n");
     }
 
 
@@ -163,6 +160,10 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         addScript(headerItems, "/js/scriptaculous.js");
         addScript(headerItems, "/dash/cmsEdit.js");
         addStyleSheet(headerItems, "/dash/cmsEdit.css");
+        addStyleSheet(headerItems, "/dash/fixedPosition.css");
+        headerItems.add("<!--[if gte IE 5.5]><![if lt IE 7]><link "
+                + "href=\"/dash/fixedPositionIE.css\" rel=\"stylesheet\" "
+                + "type=\"text/css\"><![endif]><![endif]-->");
     }
 
 
@@ -189,8 +190,10 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         out.write("<div class='cmsEditingTitle IEWidth'>");
         writeTitleButtonLink(out, "Delete_Item", "deleteSnippet",
                 "cmsDeleteButton");
-        //        writeTitleButtonLink(out, "Move_Item_Down", "moveSnippetDown", "/Images/down.gif", "cmsEditingTitleButton");
-        //        writeTitleButtonLink(out, "Move_Item_Up", "moveSnippetUp", "/Images/up.gif", "cmsEditingTitleButton");
+        writeTitleButtonLink(out, "Move_Item_Down", "moveSnippetDown",
+                "cmsMoveDownButton");
+        writeTitleButtonLink(out, "Move_Item_Up", "moveSnippetUp",
+                "cmsMoveUpButton");
         out.write(getSnippetDisplayName(snippet));
         out.write("</div>");
 

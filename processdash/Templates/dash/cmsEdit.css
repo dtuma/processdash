@@ -34,6 +34,28 @@
     font-size: 1pt;
 }
 
+.cmsMoveUpButton {
+    float: right;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 2px;
+    width: 14px;
+    height: 14px;
+    background-image: url("/Images/up.gif");
+    font-size: 1pt;
+}
+
+.cmsMoveDownButton {
+    float: right;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 2px;
+    width: 14px;
+    height: 14px;
+    background-image: url("/Images/down.gif");
+    font-size: 1pt;
+}
+
 .cmsEditButton14 {
     float: right;
     margin-right: 3px;
@@ -76,11 +98,13 @@
     border-bottom: 1px solid silver;
 }
 
-.cmsButtonRow {
-    margin-top: 30px;
+div#fixedFooter.cmsButtonRow {
+    background-color: #ffffc0;
+    border-top: 2px solid black;
+    padding: 10px;
 }
 .cmsButtonRow button {
-    margin-right: 15px;
+    margin-left: 15px;
 }
 
 .cmsNoEditMessage {
