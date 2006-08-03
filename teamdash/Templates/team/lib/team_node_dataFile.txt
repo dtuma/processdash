@@ -5,6 +5,7 @@
 #include <<!--#echo Process_ID -->/rollup_dataFile.txt> exclude (
     [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
 )
+undefine([Simple Project Tag]);
 
 [Project_Path_Prefix] = [../Project_Path_Prefix];
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);

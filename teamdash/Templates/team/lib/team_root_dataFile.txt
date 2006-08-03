@@ -6,6 +6,7 @@
     [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
 )
 #include <<!--#echo Process_ID -->/root_data.txt>
+undefine([Simple Project Tag]);
 
 [EXPORT_FILE] = 
     iff([Team_Data_Directory] == "", "",
