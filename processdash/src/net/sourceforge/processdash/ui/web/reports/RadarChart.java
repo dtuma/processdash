@@ -86,7 +86,9 @@ public class RadarChart extends CGIChartBase {
             if (d instanceof NumberData) {
                 NumberData num = (NumberData) d;
                 double val = num.getDouble();
-                if (reverse)
+                if (Double.isInfinite(val) || Double.isNaN(val))
+                    val = 1.0;
+                else if (reverse)
                     val = 2.0 / (1.0 + (val / targetVal));
                 else
                     val = val / targetVal;
