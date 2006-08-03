@@ -119,4 +119,54 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/histXYChartEdit.shtm</uri>
   </snippet>
 
+  <snippet id="pdash.defectDensity" version="1.0">
+    <resources>Analysis.DefectDensity</resources>
+    <context>Historical Data Tag</context>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report3?for=auto&amp;R3chromeless&amp;noDisclaimer&amp;hideD22</uri>
+    <uri mode="edit">/dash/snippets/heading.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectFixTimes" version="1.0">
+    <resources>Analysis.DefectFixTimes</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report3?for=auto&amp;R3chromeless&amp;noDisclaimer&amp;hideD21</uri>
+    <uri mode="edit">/dash/snippets/heading.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectsByPhaseAndType" version="1.0">
+    <resources>Analysis.DefectsByPhaseAndType</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report4?for=auto&amp;R4chromeless&amp;noDisclaimer&amp;hideD24</uri>
+    <uri mode="edit">/dash/snippets/r4edit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectsByCompiler" version="1.0">
+    <resources>Analysis.DefectsByCompiler</resources>
+    <context>Has Compile Phase</context>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report4?for=auto&amp;R4chromeless&amp;noDisclaimer&amp;hideD23</uri>
+    <uri mode="edit">/dash/snippets/r4edit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectsParetoCount" version="1.0">
+    <resources>Analysis.DefectsParetoCount</resources>
+    <context>*</context>
+    <uri>/reports/analysis/report5?for=auto&amp;imgType=defectCount</uri>
+  </snippet>
+
+  <snippet id="pdash.defectsParetoFixTime" version="1.0">
+    <resources>Analysis.DefectsParetoFixTime</resources>
+    <context>*</context>
+    <uri>/reports/analysis/report5?for=auto&amp;imgType=fixTime</uri>
+  </snippet>
+
+  <snippet id="pdash.defectLog" version="1.0">
+    <resources>Defects.Report</resources>
+    <context>*</context>
+    <uri>/reports/defectlog.class?for=auto&amp;noDisclaimer</uri>
+  </snippet>
+
 </dashboard-process-template>

@@ -1,0 +1,2 @@
+<b><!--#echo Heading_Prompt --></b>&nbsp;<input type="text" name="$$$_Heading"
+     value="<!--#echo Heading -->" size="50">

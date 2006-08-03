@@ -77,8 +77,11 @@ public class AbstractChartSnippet extends TinyCGIBase {
     }
     protected void writeSmallChart(String chartType, String query,
             String extraQueryForSmallVersion) {
+        Object exporting = parameters.get("EXPORT");
+        if ("excel".equals(exporting)) return;
+
         out.write("<a href=\"../../reports/");
-        if (parameters.containsKey("EXPORT"))
+        if (exporting != null)
             out.write("table.class");
         else
             out.write("full.htm");

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -100,7 +100,7 @@ public class HTMLUtils {
         if (contents == null || contents.length() == 0) return result;
 
         String attrs = contents, name, value;
-        int equalsPos, spacePos;
+        int equalsPos;
         while ((equalsPos = attrs.indexOf('=')) != -1) {
             name = attrs.substring(0, equalsPos).trim();
             attrs = attrs.substring(equalsPos+1).trim();
@@ -142,5 +142,37 @@ public class HTMLUtils {
         if (result == -1) result = t.indexOf('\r');
         if (result == -1) result = t.indexOf('\n');
         return result;
+    }
+
+    public static String appendQuery(String uri, String name, String value) {
+        if (uri == null || value == null)
+            return uri;
+        StringBuffer result = new StringBuffer(uri);
+        appendQuery(result, name, value);
+        return result.toString();
+    }
+
+    public static void appendQuery(StringBuffer uri, String name, String value) {
+        if (uri != null && value != null) {
+            uri.append(uri.indexOf("?") == -1 ? '?' : '&');
+            uri.append(urlEncode(name)).append('=').append(urlEncode(value));
+        }
+    }
+
+    public static String appendQuery(String uri, String query) {
+        StringBuffer result = new StringBuffer(uri);
+        appendQuery(result, query);
+        return result.toString();
+    }
+
+    public static void appendQuery(StringBuffer uri, String query) {
+        if (query == null)
+            return;
+
+        while (query.length() > 0 && "?&".indexOf(query.charAt(0)) != -1)
+            query = query.substring(1);
+
+        if (query.length() > 0)
+            uri.append(uri.indexOf("?") == -1 ? '?' : '&').append(query);
     }
 }

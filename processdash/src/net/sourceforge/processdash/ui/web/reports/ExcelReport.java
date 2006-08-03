@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,10 +30,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -104,10 +103,7 @@ public class ExcelReport extends TinyCGIBase {
 
     private String getURI() {
         String uri = getURIImpl();
-        if (uri.indexOf('?') == -1)
-            return uri + "?EXPORT=" + EXPORT_TAG;
-        else
-            return uri + "&EXPORT=" + EXPORT_TAG;
+        return HTMLUtils.appendQuery(uri, "EXPORT", EXPORT_TAG);
     }
 
     private String getURIImpl() {
@@ -142,10 +138,10 @@ public class ExcelReport extends TinyCGIBase {
         String uri = getURI();
         int pos = uri.indexOf("//");
         if (pos != -1)
-                // work around bug in Excel 2003. (Excel can't handle the
-                // double slash that appears in dashboard URLs.)
-                uri = uri.substring(0, pos) + "/+/" + uri.substring(pos+2);
-                return "http://" + host + ":" + port + uri;
+            // work around bug in Excel 2003. (Excel can't handle the
+            // double slash that appears in dashboard URLs.)
+            uri = uri.substring(0, pos) + "/+/" + uri.substring(pos+2);
+        return "http://" + host + ":" + port + uri;
     }
 
 }

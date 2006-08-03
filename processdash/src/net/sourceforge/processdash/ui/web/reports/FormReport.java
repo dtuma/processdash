@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -39,7 +39,10 @@ import net.sourceforge.processdash.util.HTMLUtils;
 public class FormReport extends TinyCGIBase {
 
     protected void writeContents() throws IOException {
-        String uri = getURI(), prefix = "";
+        String uri = getURI();
+        uri = HTMLUtils.appendQuery(uri, "EXPORT", getParameter("EXPORT"));
+
+        String prefix = "";
         int slashPos = uri.indexOf("//");
         if (slashPos != -1)
             prefix = HTMLUtils.urlDecode(uri.substring(0, slashPos));

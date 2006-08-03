@@ -111,7 +111,7 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
         }
 
         // write the header row of the table
-        out.write("<table><tr><th align=\"left\">");
+        out.write("<p><table><tr><th align=\"left\">");
         if (label != null)
             out.write(esc(label));
         out.write("</th>\n");
@@ -153,7 +153,7 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
                 && ALL_PHASES.equals(phaseList))
             writeTableRow(null, metrics, columns, dataContext);
 
-        out.write("</table>\n\n");
+        out.write("</table></p>\n\n");
     }
 
     private void writeTableRow(String phase, Map[] metrics, List columns,

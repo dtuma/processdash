@@ -46,6 +46,9 @@ import net.sourceforge.processdash.util.HTMLUtils;
 public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
+    private static final String CHROMELESS = "R3chromeless";
+
+
     private static final String TOTAL_CATEGORY_KEY = "TOTAL_CATEGORY_KEY";
 
 
@@ -73,30 +76,36 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         if (!parameters.containsKey(INCLUDABLE_PARAM)) {
             out.print
                 ("<HTML><head>" +
-                 "<link rel=stylesheet type=\"text/css\" href=\"/style.css\">"+
-                 "<style>\n" +
-                 "TD        { text-align: center }\n" +
-                 "TD.header { font-weight: bold;  font-size: large }\n" +
-                 "TD.task   { text-align: left; white-space: nowrap }\n" +
-                 "TD.subcat { text-align: right; white-space: nowrap }\n" +
-                 "</style>\n" +
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">"+
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"/reports/defectReports.css\">"+
                  "<title>");
             out.print(resources.getHTML("R3.Title"));
-            out.print("</title>\n</head>\n<BODY>\n<H1>");
-            out.print(HTMLUtils.escapeEntities(localizePrefix(getPrefix())));
-            out.print("</H1>\n");
+            out.print("</title>\n</head>\n<BODY>\n");
+
+            if (!parameters.containsKey(CHROMELESS)) {
+                out.print("<H1>");
+                out.print(HTMLUtils.escapeEntities(localizePrefix(getPrefix())));
+                out.print("</H1>\n");
+            }
         }
-        out.print("<H2>");
-        out.print(resources.getHTML("R3.Title"));
-        out.print("</H2>\n");
+        String title = getParameter("Heading");
+        if (title == null && !parameters.containsKey(CHROMELESS))
+            title = resources.getString("R3.Title");
+        if (title != null && title.length() > 0) {
+            out.print("<h2>");
+            out.print(HTMLUtils.escapeEntities(title));
+            out.print("</h2>\n");
+        }
     }
 
 
     protected void writeHTMLFooter() {
         if (!parameters.containsKey(INCLUDABLE_PARAM)) {
-            out.print("<P><A HREF=\"" + PATH_TO_REPORTS + "excel.iqy\"><I>");
-            out.print(resources.getHTML("Export_to_Excel"));
-            out.println("</I></A>");
+            if (!parameters.containsKey(CHROMELESS)) {
+                out.print("<P><A HREF=\"" + PATH_TO_REPORTS + "excel.iqy\"><I>");
+                out.print(resources.getHTML("Export_to_Excel"));
+                out.println("</I></A>");
+            }
             out.println("</BODY></HTML>");
         }
     }
@@ -124,6 +133,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         TOTAL_INJ = injLen-1;
         TOTAL_REM = remLen-1;
 
+        DefectAnalyzer.refineParams(parameters, getDataContext());
         projects = ResultSet.getPrefixList
             (getDataRepository(), parameters, getPrefix());
 
@@ -140,15 +150,15 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         failurePhases = getProcessListPlain("Failure_Phase_List");
 
         // open table
-        out.println("<TABLE NAME=D21 BORDER>");
+        out.println("<p><table name='D21' border class='R3table'>");
 
         // write top-level headers
         out.println("<TR>");
-        printRes("<TD class=header colspan=4>${R3.D21.Defect_Densities}</TD>");
+        printRes("<TD class='R3header' colspan=4>${R3.D21.Defect_Densities}</TD>");
 
         if (failurePhases.size() > 0) {
             int colSpan = failurePhases.size() * 2;
-            out.print("<TD class=header colspan=" + colSpan + ">");
+            out.print("<TD class='R3header' colspan=" + colSpan + ">");
             out.print(resources.getHTML("R3.D21.Phase_Defects"));
             out.println("</TD>");
         }
@@ -165,13 +175,13 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         writeTableD21Row(null);
 
         // close the table
-        out.println("</TABLE>");
+        out.println("</table></p>");
     }
 
 
     private void writeTableD21ColHeaders() {
         out.println("<TR>");
-        printRes("<TD class='task'>${Project/Task}</TD>");
+        printRes("<TD class='R3task'>${Project/Task}</TD>");
 
         String sizeLabel = Translator.translate(sizeMetric);
         out.println("<TD>" + HTMLUtils.escapeEntities(sizeLabel) + "</TD>");
@@ -198,7 +208,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
     private void writeTableD21Row(String project) {
         out.println("<TR>");
-        out.print("<TD class='task'>");
+        out.print("<TD class='R3task'>");
         if (project == null)
             out.print(resources.getString("Totals"));
         else
@@ -245,10 +255,10 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
                 numRemCategories++;
 
         // write table header
-        out.println("<P><TABLE NAME=D22 BORDER><TR>");
+        out.println("<P><table name='D22' border class='R3table'><TR>");
         out.print("<TD colspan=");
         out.print(Integer.toString(numRemCategories+2));
-        printRes(" class=header>${R3.D22.Title}</TD></TR>");
+        printRes(" class='R3header'>${R3.D22.Title}</TD></TR>");
 
         // write column header row
         out.println("<TR><TD colspan=2></TD>");
@@ -273,7 +283,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
             out.println("</TD>");
 
             // write total fix times
-            printRes("<TD class='subcat'>${R3.D22.Total_Fix_Time}</TD>");
+            printRes("<TD class='R3subcat'>${R3.D22.Total_Fix_Time}</TD>");
             for (int r = 0;   r < removalCategories.size();   r++) {
                 if (removalCategories.get(r) != null)
                     out.println("<TD>" + time(i, r) + "</TD>");
@@ -281,7 +291,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
             out.println("</TR>");
 
             // write total defect count
-            printRes("<TR><TD class='subcat'>${R3.D22.Total_Defects}</TD>");
+            printRes("<TR><TD class='R3subcat'>${R3.D22.Total_Defects}</TD>");
             for (int r = 0;   r < removalCategories.size();   r++) {
                 if (removalCategories.get(r) != null)
                     out.println("<TD>" + count(i, r) + "</TD>");
@@ -289,7 +299,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
             out.println("</TR>");
 
             // write average fix times
-            printRes("<TR><TD class='subcat'>${R3.D22.Average_Fix_Time}</TD>");
+            printRes("<TR><TD class='R3subcat'>${R3.D22.Average_Fix_Time}</TD>");
             for (int r = 0;   r < removalCategories.size();   r++) {
                 if (removalCategories.get(r) != null)
                     out.println("<TD>" + avgTime(i, r) + "</TD>");
@@ -297,7 +307,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
             out.println("</TR>");
         }
 
-        out.println("</TABLE>");
+        out.println("</table></p>");
     }
 
 

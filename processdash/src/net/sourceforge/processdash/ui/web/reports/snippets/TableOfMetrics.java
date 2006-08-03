@@ -112,7 +112,7 @@ public class TableOfMetrics extends TinyCGIBase {
         }
 
         // write the header row of the table
-        out.write("<table><tr><th align=\"left\">");
+        out.write("<p><table><tr><th align=\"left\">");
         if (label != null)
             out.write(HTMLUtils.escapeEntities(label));
         out.write("</th>\n");
@@ -128,7 +128,7 @@ public class TableOfMetrics extends TinyCGIBase {
         for (int i = 0; i < metrics.length; i++)
             writeTableRow(metrics[i], columns, dataContext);
 
-        out.write("</table>\n\n");
+        out.write("</table></p>\n\n");
     }
 
     private void writeTableRow(Map metric, List columns, DataContext data) throws IOException {

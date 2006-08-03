@@ -29,6 +29,8 @@ package net.sourceforge.processdash.log;
 import java.util.Map;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -135,5 +137,30 @@ public class DefectAnalyzer {
         dataDirectory = d;
         if (!dataDirectory.endsWith(Settings.sep))
             dataDirectory = dataDirectory + Settings.sep;
+    }
+
+    /** Some html content may request a defect analysis with the parameter
+     * "for=auto".  This is a request for the defect logic to figure out the
+     * most appropriate query parameters to use.  This method performs that
+     * task, replacing the "for" parameter with an appropriate value based
+     * on the active data context.
+     */
+    public static void refineParams(Map parameters, DataContext data) {
+        if (!"auto".equals(parameters.get("for")))
+            return;
+
+        if (hasTag(data, "Rollup Tag")) {
+            parameters.put("for", "[Rollup_List]");
+            if (hasTag(data, "Historical Data Tag"))
+                parameters.put("order", "Completed");
+            if (hasTag(data, "Exclude Children of Rollup_List for Defects"))
+                parameters.put(NO_CHILDREN_PARAM, "t");
+        } else {
+            parameters.put("for", ".");
+        }
+    }
+
+    static boolean hasTag(DataContext data, String name) {
+        return data.getSimpleValue(name) instanceof TagData;
     }
 }

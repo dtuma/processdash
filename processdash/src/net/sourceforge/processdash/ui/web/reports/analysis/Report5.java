@@ -81,10 +81,26 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
     }
 
     protected void writeContents() throws IOException {
-        if (getParameter("type") == null)
+        if (getParameter("imgType") != null)
+            writeImgTag();
+        else if (getParameter("type") == null)
             writeHtmlContents();
         else
             super.writeContents();
+    }
+
+    private void writeImgTag() {
+        if ("excel".equals(parameters.get("EXPORT")))
+            return;
+
+        String query = (String) env.get("QUERY_STRING");
+        query = StringUtils.findAndReplace(query, "imgType=", "type=");
+
+        out.print("<p><img width='500' height='400' src=\"");
+        out.print(getScriptName());
+        out.print("?");
+        out.print(HTMLUtils.escapeEntities(query));
+        out.print("&categoryLabels=vertical&width=500&height=400\"></p>\n\n");
     }
 
     private static final String HTML_HEADER =
@@ -107,15 +123,12 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
         }
         out.print(resources.interpolate(TITLE_TEXT, HTMLUtils.ESC_ENTITIES));
 
-        String scriptName = (String) env.get("SCRIPT_NAME");
-        int slashPos = scriptName.lastIndexOf('/');
-        if (slashPos != -1) scriptName = scriptName.substring(slashPos + 1);
         boolean strict = parameters.containsKey("strict");
         boolean nokids = parameters.containsKey(DefectAnalyzer.NO_CHILDREN_PARAM);
 
         for (int i = 0;   i < PARAM_FLAG.length;   i++) {
             out.print("<P><IMG WIDTH=500 HEIGHT=400 SRC=\"");
-            out.print(scriptName);
+            out.print(getScriptName());
             out.print("?type=");
             out.print(PARAM_FLAG[i]);
             if (strict) out.print("&strict");
@@ -126,6 +139,13 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
 
         if (!parameters.containsKey(AnalysisPage.INCLUDABLE_PARAM))
             out.print("</BODY></HTML>");
+    }
+
+    private String getScriptName() {
+        String scriptName = (String) env.get("SCRIPT_NAME");
+        int slashPos = scriptName.lastIndexOf('/');
+        if (slashPos != -1) scriptName = scriptName.substring(slashPos + 1);
+        return scriptName;
     }
 
     /** Create a vertical bar chart. */
@@ -150,6 +170,7 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
     /** create the data upon which this chart is based. */
     protected void buildData() {
         initValues();
+        DefectAnalyzer.refineParams(parameters, getDataContext());
         DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
                            getPrefix(), parameters, this);
 

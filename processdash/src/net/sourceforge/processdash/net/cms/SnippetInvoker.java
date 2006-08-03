@@ -150,8 +150,8 @@ public class SnippetInvoker implements SnippetEnvironment {
             addParsedParameters(snippet.getPersistedText(), queryString);
 
         StringBuffer fullUri = new StringBuffer();
-        fullUri.append(WebServer.urlEncodePath(prefix)).append("/").append(uri)
-                .append(queryString);
+        fullUri.append(WebServer.urlEncodePath(prefix)).append("/").append(uri);
+        HTMLUtils.appendQuery(fullUri, queryString.toString());
 
         WebServer webServer = (WebServer) parentEnv
                 .get(TinyCGI.TINY_WEB_SERVER);
@@ -185,10 +185,7 @@ public class SnippetInvoker implements SnippetEnvironment {
             StringBuffer queryString) {
         if (persistedText != null && persistedText.length() > 0) {
             String params = PARAM_PERSISTER.getQueryString(persistedText);
-            if (queryString.length() > 0)
-                queryString.append(params);
-            else if (params.length() > 0)
-                queryString.append('?').append(params.substring(1));
+            HTMLUtils.appendQuery(queryString, params);
         }
     }
 
@@ -210,9 +207,7 @@ public class SnippetInvoker implements SnippetEnvironment {
     protected static void appendParam(StringBuffer query, String name,
             String value) {
         if (XMLUtils.hasValue(value))
-            query.append(query.length() == 0 ? "?" : "&").append(
-                    HTMLUtils.urlEncode(name)).append("=").append(
-                    HTMLUtils.urlEncode(value));
+            HTMLUtils.appendQuery(query, name, value);
     }
 
     /** Query parameters that should be propagated from the parent HTTP request

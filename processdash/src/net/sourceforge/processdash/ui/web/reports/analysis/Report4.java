@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -44,6 +44,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
 
+    private static final String CHROMELESS = "R4chromeless";
 
     private static final String TOTAL = resources.getString("Total");
 
@@ -59,26 +60,19 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
     private static final String HEADER_TEXT =
-        "<HTML><HEAD><TITLE>${R4.Title}</TITLE>%css%\n" +
-        "<STYLE>\n" +
-        "    TABLE { empty-cells: show }\n" +
-        "    TD { text-align:center; vertical-align: baseline }\n" +
-        "    .header { font-weight: bold; vertical-align:bottom }\n" +
-        "    .footnote { font-size: small; font-style:italic }\n" +
-        "    @media print { .doNotPrint { display: none } }\n" +
-        "</STYLE></HEAD>\n" +
-        "<BODY><H1>%path%</H1>";
-    private static final String TITLE_TEXT =
-        "<H2>${R4.Title}</H2>";
+        "<HTML><HEAD><TITLE>${R4.Title}</TITLE>\n" +
+        "<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">"+
+        "<link rel=\"stylesheet\" type=\"text/css\" href=\"/reports/defectReports.css\">"+
+        "</HEAD>\n" +
+        "<BODY>";
 
     protected static final String FOOTNOTE =
-        "<P class=footnote><span class=doNotPrint>" +
-        "${R4.Strict_Footnote_HTML}</span></P>";
+        "<p class='R4footnote'><span class='doNotPrint'>" +
+        "${R4.Strict_Footnote_HTML}</span></p>";
 
     private static final String D24_HEADER =
-        "<H3>${R4.D24.Title}</H3>\r\n" +
-        "<TABLE NAME=D24 BORDER>\r\n" +
-        "<TR class=header><TD>${R4.D24.Defect_Type}</TD>\r\n" +
+        "<p><table name='D24' border class='R4table'>\r\n" +
+        "<TR class='R4header'><TD>${R4.D24.Defect_Type}</TD>\r\n" +
         "<TD VALIGN=bottom>${R4.D24.Compile_Entry}</TD>" +
         "<TD VALIGN=bottom>${R4.D24.Compile_Found}</TD>" +
         "<TD VALIGN=bottom>${R4.D24.Compile_Percent}</TD></TR>\n";
@@ -90,14 +84,16 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
         strict = (parameters.get("strict") != null);
 
         initValues();
+        DefectAnalyzer.refineParams(parameters, getDataContext());
         DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
                            path, parameters, this);
         eliminateEmptyValues();
 
         writeHTMLHeader(path);
 
-        writeTableD23();
-        if (hasCompile)
+        if (!parameters.containsKey("hideD23"))
+            writeTableD23();
+        if (!parameters.containsKey("hideD24"))
             writeTableD24();
 
         writeHTMLFooter();
@@ -106,21 +102,27 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
 
     protected void writeHTMLHeader(String path) {
         if (!parameters.containsKey(INCLUDABLE_PARAM)) {
-            String header = resources.interpolate
-                (HEADER_TEXT, HTMLUtils.ESC_ENTITIES);
-            header = StringUtils.findAndReplace
-                (header, "%css%", cssLinkHTML());
-            header = StringUtils.findAndReplace
-                (header, "%path%",
-                 HTMLUtils.escapeEntities(AnalysisPage.localizePrefix(path)));
-            out.println(header);
+            printRes(HEADER_TEXT);
+            if (!parameters.containsKey(CHROMELESS)) {
+                out.print("<h1>");
+                out.print(HTMLUtils.escapeEntities(AnalysisPage.localizePrefix(path)));
+                out.print("</h1>");
+            }
         }
-        printRes(TITLE_TEXT);
+        String title = getParameter("Heading");
+        if (title == null && !parameters.containsKey(CHROMELESS))
+            title = resources.getString("R4.Title");
+        if (title != null && title.length() > 0) {
+            out.print("<h2>");
+            out.print(HTMLUtils.escapeEntities(title));
+            out.print("</h2>\n");
+        }
     }
 
 
     private void writeHTMLFooter() {
-        if (!parameters.containsKey(INCLUDABLE_PARAM)) {
+        if (!parameters.containsKey(INCLUDABLE_PARAM)
+                && !parameters.containsKey(CHROMELESS)) {
             printRes("<P class='doNotPrint'><A HREF=\"" +
                      PATH_TO_REPORTS+"excel.iqy\"><I>" +
                      "${Export_to_Excel}</I></A></P>");
@@ -136,8 +138,9 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
                 footnote = StringUtils.findAndReplace(footnote, "<a>", anchor);
                 out.println("<P><HR>" + footnote);
             }
-            out.println("</BODY></HTML>");
         }
+        if (!parameters.containsKey(INCLUDABLE_PARAM))
+            out.println("</BODY></HTML>");
     }
 
 
@@ -158,15 +161,16 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
         }
         writeD23Row(defectLogParam, TOTAL, totals);
 
-        out.println("</TABLE>");
+        out.println("</table></p>");
     }
 
 
     private void writeD23Header() {
-        out.print("<H3>");
-        out.print(resources.getHTML("R4.D23.Title"));
-        out.println("</H3>");
-        out.println("<TABLE NAME=D23 BORDER><TR class=header><TD></TD>");
+        if (!parameters.containsKey(CHROMELESS))
+            printRes("<H3>${R4.D23.Title}</H3>");
+
+        out.print("<p><table name='D23' class='R4table' border>");
+        out.println("<TR class='R4header'><TD></TD>");
 
         int injLen = injCategories.size();
         String txt =
@@ -240,6 +244,14 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
     private void writeTableD24() {
+        if (!hasCompile) {
+            out.println("<!-- this process has no compile phase; "
+                    + "this report is not relevant -->");
+            return;
+        }
+
+        if (!parameters.containsKey(CHROMELESS))
+            printRes("<H3>${R4.D24.Title}</H3>\r\n");
         printRes(D24_HEADER);
 
         Iterator defectTypes = defectCounts.keySet().iterator();
@@ -250,7 +262,7 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
         }
         writeD24Row(TOTAL, totals);
 
-        out.println("</TABLE>");
+        out.println("</table></p>");
     }
 
     protected void writeD24Row(String label, int [] row) {

@@ -27,6 +27,7 @@
 package net.sourceforge.processdash.ui.web.reports;
 
 
+
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.Defect;
@@ -45,28 +46,25 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
     private String typeFilt, injFilt, remFilt;
 
     private static final String HEADER_TEXT =
-        "<HTML><HEAD><TITLE>${Title}%for owner%%for path%</TITLE>%css%\n" +
-        "<STYLE>\n" +
-        "    @media print { TD { font-size: 8pt } }\n" +
-        "    TABLE { empty-cells: show }\n" +
-        "    .header { font-weight: bold }\n" +
-        "    TD { vertical-align: baseline }\n" +
-        "</STYLE></HEAD>\n" +
-        "<BODY><H1>${Title}%for path%</H1>\n";
+        "<HTML><HEAD><TITLE>${Title}%for owner%%for path%</TITLE>\n" +
+        "<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">"+
+        "<link rel=\"stylesheet\" type=\"text/css\" href=\"/reports/defectReports.css\">"+
+        "</HEAD>\n" +
+        "<BODY><H1>${Title}%for path%</H1><!-- cutStart -->\n";
     private static final String START_TEXT =
-        "<TABLE BORDER><TR class=header>\n" +
-        "<TD>${Project}</TD>\n" +
-        "<TD>${Date}</TD>\n" +
-        "<TD>${ID}</TD>\n" +
-        "<TD>${Type}</TD>\n" +
-        "<TD>${Injected}</TD>\n" +
-        "<TD>${Removed}</TD>\n" +
-        "<TD>${FixTime}</TD>\n" +
-        "<TD>${FixDefect}</TD>\n" +
-        "<TD>${Description}</TD></TR>";
+        "<p><table border class='defectLog'><tr>\n" +
+        "<th>${Project}</th>\n" +
+        "<th>${Date}</th>\n" +
+        "<th>${ID}</th>\n" +
+        "<th>${Type}</th>\n" +
+        "<th>${Injected}</th>\n" +
+        "<th>${Removed}</th>\n" +
+        "<th>${FixTime}</th>\n" +
+        "<th>${FixDefect}</th>\n" +
+        "<th>${Description}</th></tr>";
 
     private static final String TABLE_END_TEXT =
-        "</TABLE>" +
+        "</table></p><!-- cutEnd -->" +
         "<P class='doNotPrint'><A HREF=\"excel.iqy\"><I>" +
         "${Export_to_Excel}</I></A></P>" ;
 
@@ -86,7 +84,6 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
             (HEADER_TEXT, HTMLUtils.ESC_ENTITIES);
         header = StringUtils.findAndReplace(header, "%for owner%", owner);
         header = StringUtils.findAndReplace(header, "%for path%", title);
-        header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
         out.print(header);
 
         typeFilt = getParameter("type");
@@ -112,10 +109,11 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         out.print(resources.interpolate(START_TEXT, HTMLUtils.ESC_ENTITIES));
 
         String forParam = getParameter("for");
-        if (forParam != null && forParam.length() > 0)
+        if (forParam != null && forParam.length() > 0) {
+            DefectAnalyzer.refineParams(parameters, getDataContext());
             DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
                                path, parameters, this);
-        else
+        } else
             DefectAnalyzer.run(getPSPProperties(), path, true, this);
 
         out.println(resources.interpolate(TABLE_END_TEXT, HTMLUtils.ESC_ENTITIES));
