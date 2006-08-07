@@ -37,6 +37,10 @@ public interface EditPageParameters {
      * holding its namespace */
     String SNIPPET_INSTANCE = "snippetInstance";
 
+    /** Prefix for form field name indicating the instance ID of a snippet
+     * instance. (The namespace should be appended.) */
+    String SNIPPET_INSTANCE_ID_ = "instanceID";
+
     /** Prefix for form field name indicating the id of a snippet instance.
      * (The namespace should be appended.) */
     String SNIPPET_ID_ = "snippetId";

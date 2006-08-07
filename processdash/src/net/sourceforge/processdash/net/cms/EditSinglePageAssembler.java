@@ -211,6 +211,7 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         writeHidden(out, SNIPPET_INSTANCE, ns);
         writeHidden(out, SNIPPET_ID_ + ns, id);
         writeHidden(out, SNIPPET_VERSION_ + ns, version);
+        writeHidden(out, SNIPPET_INSTANCE_ID_ + ns, snippet.getInstanceID());
 
         if (status == SnippetInvoker.STATUS_OK) {
             out.write(snippet.getGeneratedContent());

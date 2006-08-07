@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.util.XMLUtils;
 
 /** Parses data posted by an editing page, and constructs the page content
  * described by that page.
@@ -57,6 +58,8 @@ public class EditedPageDataParser implements EditPageParameters,
     protected DataContext dataContext;
 
     protected SnippetInvoker invoker;
+
+    protected int nextInstanceID = 100;
 
     public void setData(DataContext dataContext) {
         this.dataContext = dataContext;
@@ -112,6 +115,17 @@ public class EditedPageDataParser implements EditPageParameters,
         SnippetInstanceTO snip = new SnippetInstanceTO();
         snip.setSnippetID(getParameter(SNIPPET_ID_ + ns));
         snip.setSnippetVersion(getParameter(SNIPPET_VERSION_ + ns));
+
+        String instId = getParameter(SNIPPET_INSTANCE_ID_ + ns);
+        if (XMLUtils.hasValue(instId))
+            try {
+                nextInstanceID = Math.max(nextInstanceID,
+                        Integer.parseInt(instId) + 1);
+            } catch (NumberFormatException nfe) {}
+        else
+            instId = Integer.toString(nextInstanceID++);
+        snip.setInstanceID(instId);
+
         if (parameters.containsKey(SNIPPET_VERBATIM_TEXT_ + ns)) {
             snip.setPersistedText(getParameter(SNIPPET_VERBATIM_TEXT_ + ns));
             snip.setPersisterID(getParameter(SNIPPET_VERBATIM_PERSISTER_+ ns));

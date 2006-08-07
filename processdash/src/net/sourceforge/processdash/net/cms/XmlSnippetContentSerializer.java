@@ -71,6 +71,7 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
             SnippetInstanceTO snip = new SnippetInstanceTO();
             snip.setSnippetID(e.getAttribute(TYPE_ATTR));
             snip.setSnippetVersion(e.getAttribute(VERSION_ATTR));
+            snip.setInstanceID(e.getAttribute(INSTANCE_ID_ATTR));
             snip.setPersistedText(XMLUtils.getTextContents(e));
             snip.setPersisterID(e.getAttribute(PERSISTER_ATTR));
             contentSnippets.add(snip);
@@ -105,6 +106,7 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
             for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
                 SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
                 ser.startTag(null, SNIPPET_TAG);
+                ser.attribute(null, INSTANCE_ID_ATTR, snip.getInstanceID());
                 ser.attribute(null, TYPE_ATTR, snip.getSnippetID());
                 ser.attribute(null, VERSION_ATTR, snip.getSnippetVersion());
                 if (XMLUtils.hasValue(snip.getPersisterID()))
@@ -137,6 +139,8 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
     private static final String SNIPPET_TAG = "snippet";
 
     private static final String TYPE_ATTR = "type";
+
+    private static final String INSTANCE_ID_ATTR = "instanceId";
 
     private static final String VERSION_ATTR = "version";
 

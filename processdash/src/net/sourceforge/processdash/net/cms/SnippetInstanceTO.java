@@ -33,6 +33,8 @@ public class SnippetInstanceTO {
 
     private String snippetVersion;
 
+    private String instanceID;
+
     private String persisterID;
 
     private String persistedText;
@@ -67,6 +69,16 @@ public class SnippetInstanceTO {
     /** Sets the version of the snippet which created this instance */
     public void setSnippetVersion(String snippetVersion) {
         this.snippetVersion = snippetVersion;
+    }
+
+    /** Gets the unique ID of this instance of this snippet */
+    public String getInstanceID() {
+        return instanceID;
+    }
+
+    /** Sets the unique ID of this instance of this snippet */
+    public void setInstanceID(String instanceID) {
+        this.instanceID = instanceID;
     }
 
     /** Gets a string identifying the component which generated the persistent
