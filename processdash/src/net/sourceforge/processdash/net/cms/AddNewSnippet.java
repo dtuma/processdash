@@ -84,15 +84,26 @@ public class AddNewSnippet extends TinyCGIBase {
 
     private TreeSet getSortedSnippets() {
         DataContext ctx = getDataContext();
+        String[] deny = (String[]) parameters.get("deny_ALL");
 
         Set allSnippets = SnippetDefinitionManager.getAllSnippets();
         TreeSet snippets = new TreeSet();
         for (Iterator i = allSnippets.iterator(); i.hasNext();) {
             SnippetDefinition d = (SnippetDefinition) i.next();
-            if (!d.shouldHide() && d.matchesContext(ctx))
+            if (!d.shouldHide() && !denied(d, deny) && d.matchesContext(ctx))
                 snippets.add(new SnipData(d));
         }
         return snippets;
+    }
+
+    private boolean denied(SnippetDefinition d, String[] denialList) {
+        if (denialList != null) {
+            for (int i = 0; i < denialList.length; i++) {
+                if (d.getId().equals(denialList[i]))
+                    return true;
+            }
+        }
+        return false;
     }
 
     private static class SnipData implements Comparable {

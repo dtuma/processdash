@@ -85,7 +85,11 @@ public class AddNewItemPageAssembler extends EditSinglePageAssembler {
         // write the HTML fragment for the single snippet editor.
         SnippetInstanceTO snip = (SnippetInstanceTO) page
                 .getContentSnippets().get(0);
-        writeSnippet(out, snip, false);
+        String altNameKey = (String) parameters.get("altNameKey");
+        if (altNameKey != null)
+            snip.setAlternateName(snip.getDefinition().getResources()
+                    .getString(altNameKey));
+        writeSnippet(out, snip, EDIT_STYLE_UNWRAPPED);
 
         // write javascript to notify the page that an item has been added.
         out.write("<script type='text/javascript'>");

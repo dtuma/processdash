@@ -28,56 +28,28 @@ package net.sourceforge.processdash.net.cms;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
-import net.sourceforge.processdash.util.StringUtils;
-import net.sourceforge.processdash.util.XMLUtils;
 
 /** Page assembler that can render HTML for viewing a page of CMS content.
  */
-public class ViewSinglePageAssembler extends AbstractSinglePageAssembler {
+public class ViewSinglePageAssembler extends AbstractViewPageAssembler {
 
     protected void writePage(Writer out, Set headerItems, PageContentTO page)
             throws IOException {
 
         out.write("<html>\n");
-        out.write("<head>\n");
-
-        String pageTitle = getPageTitle(page);
-        out.write("<title>");
-        out.write(pageTitle);
-        out.write("</title>\n");
-
-        out.write("\n");
-
-        for (Iterator i = headerItems.iterator(); i.hasNext();) {
-            String item = (String) i.next();
-            out.write(item);
-            out.write('\n');
-        }
-
-        out.write("</head>\n");
+        writeHead(out, headerItems, page);
         out.write("<body>\n");
 
         out.write("<h1>");
-
-        if (parameters.get("EXPORT") == null) {
-            out.write("<span class='cmsToolbar'><a href='");
-            out.write(getEditURI(environment));
-            out.write("' title='");
-            out.write(resources.getHTML("Edit_Hyperlink.Description"));
-            out.write("'><img src='/Images/edit32.gif' " +
-                            "width='32' height='32' border='0'/></a>");
-            out.write("</span>\n");
-        }
-
+        writeEditLink(out);
         out.write(esc(AnalysisPage.localizePrefix(prefix)));
         out.write("</h1>\n");
 
         out.write("<h2>");
-        out.write(pageTitle);
+        out.write(getPageTitle(page));
         out.write("</h2>\n\n");
         out.write("<form>\n\n");
 
@@ -90,45 +62,6 @@ public class ViewSinglePageAssembler extends AbstractSinglePageAssembler {
         out.write("<script src='/data.js' type='text/javascript'> </script>\n");
         out.write("</body>\n");
         out.write("</html>\n");
-    }
-
-
-
-
-    private String getEditURI(Map env) {
-        // TODO: do we need to preserve other query parameter values?
-        return CmsContentDispatcher.getSimpleSelfUri(env, true) + "?mode=edit";
-    }
-
-
-    private void writeSnippet(Writer out, SnippetInstanceTO snippet)
-            throws IOException {
-
-        int status = snippet.getStatus();
-        if (status == -1)
-            ; // Hmmm...do nothing.
-
-        else if (status == SnippetInvoker.STATUS_OK)
-            out.write(snippet.getGeneratedContent());
-
-        else {
-            String key = "View_Page.Errors."
-                    + SnippetInvoker.STATUS_RESOURCE_KEYS[status] + "_FMT";
-            String id = snippet.getSnippetID();
-            String errDump = StringUtils.getStackTrace(snippet
-                    .getInvocationException());
-            out.write("<!-- ");
-            out.write(esc(resources.format(key, id)));
-            out.write(esc(errDump));
-            out.write(" -->\n");
-        }
-    }
-
-    private String getPageTitle(PageContentTO page) {
-        if (XMLUtils.hasValue(page.getPageTitle()))
-            return esc(page.getPageTitle());
-        else
-            return resources.getHTML("Page_Title.Empty");
     }
 
 }

@@ -42,9 +42,17 @@ var DashCMS = {
     var snippetDiv = document.createElement("div");
     snippetDiv.id = namespace;
     $('snippetContainer').appendChild(snippetDiv);
-    var url = window.location.pathname + "?mode=addNew&ns=" + namespace;
+    var url = window.location.pathname + "?mode=addNew&ns=" + namespace +
+      this._addNewExtraArgs.replace(/NS_/, namespace);
     new Ajax.Updater(snippetDiv, url, { evalScripts:true,
         onComplete: Element.scrollTo.bind(Element, snippetDiv) });
+  },
+
+  _addNewExtraArgs: "",
+
+  setAddNewExtraArgs:
+	function(args) {
+    this._addNewExtraArgs = args;
   },
 
   _snipDivIdPattern: /^(snip|addSnip)[0-9]+_/,

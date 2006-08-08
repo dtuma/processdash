@@ -38,7 +38,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 
 /** Abstract base class for renderers that generate a single page of content.
  */
-public abstract class AbstractSinglePageAssembler implements PageAssembler,
+public abstract class AbstractPageAssembler implements PageAssembler,
         Needs.Environment, Needs.Parameters, Needs.Prefix, Needs.Data {
 
     protected static final Resources resources = Resources
@@ -110,23 +110,61 @@ public abstract class AbstractSinglePageAssembler implements PageAssembler,
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             setSnippetNamespace(snip, "snip" + (num++) + "_");
 
-            try {
-                String snipContent = invoker.invoke(snip);
-                if (snipContent != null) {
-                    SnippetHtmlPostprocessor post = new SnippetHtmlPostprocessor(snip
-                            .getNamespace(), selfURI, snip.getUri(),
-                            shouldClobberForms(), snipContent);
-                    headerItems.addAll(post.getHeaderItems());
-                    snip.setGeneratedContent(post.getResults());
-                } else {
+            if (shouldInvokeSnippet(page, snip)) {
+                try {
+                    String snipContent = invoker.invoke(snip);
+                    if (snipContent != null) {
+                        SnippetHtmlPostprocessor post = new SnippetHtmlPostprocessor(snip
+                                .getNamespace(), selfURI, snip.getUri(),
+                                shouldClobberForms(), snipContent);
+                        headerItems.addAll(post.getHeaderItems());
+                        snip.setGeneratedContent(post.getResults());
+                    } else {
+                        snip.setGeneratedContent(null);
+                    }
+                } catch (IOException ioe) {
                     snip.setGeneratedContent(null);
                 }
-            } catch (IOException ioe) {
+            } else {
                 snip.setGeneratedContent(null);
             }
         }
 
         writePage(out, headerItems, page);
+    }
+
+    /** Return true if the SnippetInvoker should be run on the given snippet.
+     * 
+     * Page assemblers which do not display all of the snippets on a page may
+     * choose to override this, returning false for snippets that will not
+     * be displayed, to speed the rendering of pages.
+     */
+    protected boolean shouldInvokeSnippet(PageContentTO page,
+            SnippetInstanceTO snip) {
+        return true;
+    }
+
+    protected void writeHead(Writer out, Set headerItems, PageContentTO page) throws IOException {
+        out.write("<head>\n");
+
+        String pageTitle = getPageTitle(page);
+        out.write("<title>");
+        out.write(pageTitle);
+        out.write("</title>\n");
+
+        out.write("\n");
+
+        for (Iterator i = headerItems.iterator(); i.hasNext();) {
+            String item = (String) i.next();
+            out.write(item);
+            out.write('\n');
+        }
+
+        out.write("</head>\n");
+    }
+
+    protected String getPageTitle(PageContentTO page) {
+        return "";
     }
 
     protected void addStyleSheet(Set headerItems, String uri) {
@@ -152,6 +190,12 @@ public abstract class AbstractSinglePageAssembler implements PageAssembler,
         headerItems.add("<!--[if gte IE 5.5]><![if lt IE 7]>"
                 + getStyleSheetLink("/dash/fixedPositionIE.css")
                 + "<![endif]><![endif]-->");
+    }
+
+    protected void addIEFloatHack(Set headerItems) {
+        headerItems.add("<!--[if IE]>"
+                + "<style> .IEFloatHack { height: 1% } </style>"
+                + "<![endif]-->\n");
     }
 
     /** Convience routine */

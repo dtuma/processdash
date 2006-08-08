@@ -28,6 +28,7 @@ package net.sourceforge.processdash.net.cms;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import net.sourceforge.processdash.net.http.WebServer;
@@ -37,7 +38,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 /** Page Assember that displays a form for editing a page of content.
  */
-public class EditSinglePageAssembler extends AbstractSinglePageAssembler
+public class EditSinglePageAssembler extends AbstractPageAssembler
         implements EditPageParameters {
 
     protected void writePage(Writer out, Set headerItems, PageContentTO page)
@@ -46,42 +47,18 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         out.write(HTML_STRICT_DOCTYPE);
 
         out.write("<html>\n");
-        out.write("<head>\n");
-
-        String pageTitle = getPageTitle();
-        out.write("<title>");
-        out.write(pageTitle);
-        out.write("</title>\n");
-
-        for (Iterator i = headerItems.iterator(); i.hasNext();) {
-            String item = (String) i.next();
-            out.write(item);
-            out.write('\n');
-        }
-
-        if (isInternetExplorer())
-            // workaround IE bug for floated content
-            out.write("<style> .IEFloatHack { height: 1% } </style>\n");
-
-        out.write("</head>\n");
+        writeHead(out, headerItems, page);
         out.write("<body>\n");
 
         out.write("<h1>");
-        out.write(pageTitle);
+        out.write(getPageTitle());
         out.write("</h1>\n\n");
 
         writeFormStart(out);
 
         writePageMetadataEditors(out, page);
 
-        out.write("<div id='snippetContainer'>\n\n");
-
-        for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
-            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-            writeSnippet(out, snip, true);
-        }
-
-        out.write("</div>\n\n");
+        writePageSnippetEditors(out, page);
 
         writeFormEnd(out);
 
@@ -93,27 +70,43 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
 
 
-    private boolean isInternetExplorer() {
-        String userAgent = (String) environment.get("HTTP_USER_AGENT");
-        return (userAgent.indexOf("MSIE") != -1);
+    protected void writePageSnippetEditors(Writer out, PageContentTO page)
+            throws IOException {
+        List contentSnippets = page.getContentSnippets();
+
+        writeSnippetEditors(out, contentSnippets);
     }
 
 
 
-    private void writeFormStart(Writer out) throws IOException {
+    protected void writeSnippetEditors(Writer out, List snippets)
+            throws IOException {
+        out.write("<div id='snippetContainer'>\n\n");
+
+        for (Iterator i = snippets.iterator(); i.hasNext();) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+            writeSnippet(out, snip, EDIT_STYLE_WRAPPED);
+        }
+
+        out.write("</div>\n\n");
+    }
+
+
+
+    protected void writeFormStart(Writer out) throws IOException {
         // Write a autocompletion div that any editor on the page can reuse.
         out.write("<div id='cmsAutocomplete' style='display:none'>&nbsp;"
                 + "</div>\n\n");
 
         // write the start of the form
-        out.write("<form method=\"POST\" action=\"");
+        out.write("<form method=\"POST\" target=\"_top\" action=\"");
         out.write(CmsContentDispatcher.getSimpleSelfUri(environment, true));
         out.write("\">\n\n");
     }
 
 
 
-    private void writeFormEnd(Writer out) throws IOException {
+    protected void writeFormEnd(Writer out) throws IOException {
         out.write("<div id='fixedFooter' class='cmsButtonRow'>\n");
 
         out.write("<a href='#' onclick='DashCMS.addSnippet(); return false'>");
@@ -164,13 +157,21 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
         addScript(headerItems, "/dash/cmsEdit.js");
         addStyleSheet(headerItems, "/dash/cmsEdit.css");
         addFixedPositionCssItems(headerItems);
+        addIEFloatHack(headerItems);
     }
 
 
+    protected static final int EDIT_STYLE_UNWRAPPED = 0;
+    protected static final int EDIT_STYLE_WRAPPED = 1;
+    protected static final int EDIT_STYLE_CHROMELESS = 2;
+    protected static final int EDIT_STYLE_INVISIBLE = 3;
 
-    protected static void writeSnippet(Writer out,
-            SnippetInstanceTO snippet, boolean wrapWithDiv)
-            throws IOException {
+    protected static void writeSnippet(Writer out, SnippetInstanceTO snippet,
+            int style) throws IOException {
+
+        boolean wrapWithDiv = (style == EDIT_STYLE_WRAPPED);
+        boolean invisible = (style == EDIT_STYLE_INVISIBLE);
+        boolean chromeless = (style == EDIT_STYLE_CHROMELESS);
 
         int status = snippet.getStatus();
         String ns = snippet.getNamespace();
@@ -181,39 +182,38 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
             version = snippet.getDefinition().getVersion();
         }
 
-        if (wrapWithDiv) {
-            out.write("<div class='cmsEditedItem' id='");
-            out.write(ns);
-            out.write("'>");
+        if (wrapWithDiv)
+            writeDivWrapperStart(out, ns);
+
+        if (!invisible && !chromeless) {
+            out.write("<div class='cmsEditingTitle IEFloatHack'>");
+            writeTitleButtonLink(out, "Delete_Item", "deleteSnippet",
+                    "cmsDeleteButton");
+            writeTitleButtonLink(out, "Move_Item_Down", "moveSnippetDown",
+                    "cmsMoveDownButton");
+            writeTitleButtonLink(out, "Move_Item_Up", "moveSnippetUp",
+                    "cmsMoveUpButton");
+            out.write(getSnippetDisplayName(snippet));
+            out.write("</div>");
+
+            out.write("<div class='cmsDeleteMessage' style='display:none'>\n");
+            writeHidden(out, SNIPPET_DISCARDED_ + ns, "");
+            String deleteMessage = resources
+                    .getString("Edit_Page.Delete_Item.Message_HTML");
+            deleteMessage = StringUtils
+                    .findAndReplace(deleteMessage, "<a>",
+                            "<a href='#' onclick='DashCMS.undeleteSnippet(this); return false;'>");
+            out.write(deleteMessage);
+            out.write("</div>");
+
+            out.write("<div class='cmsEditingRegion'>");
         }
-
-        out.write("<div class='cmsEditingTitle IEFloatHack'>");
-        writeTitleButtonLink(out, "Delete_Item", "deleteSnippet",
-                "cmsDeleteButton");
-        writeTitleButtonLink(out, "Move_Item_Down", "moveSnippetDown",
-                "cmsMoveDownButton");
-        writeTitleButtonLink(out, "Move_Item_Up", "moveSnippetUp",
-                "cmsMoveUpButton");
-        out.write(getSnippetDisplayName(snippet));
-        out.write("</div>");
-
-        out.write("<div class='cmsDeleteMessage' style='display:none'>\n");
-        writeHidden(out, SNIPPET_DISCARDED_ + ns, "");
-        String deleteMessage = resources
-                .getString("Edit_Page.Delete_Item.Message_HTML");
-        deleteMessage = StringUtils
-                .findAndReplace(deleteMessage, "<a>",
-                        "<a href='#' onclick='DashCMS.undeleteSnippet(this); return false;'>");
-        out.write(deleteMessage);
-        out.write("</div>");
-
-        out.write("<div class='cmsEditingRegion'>");
         writeHidden(out, SNIPPET_INSTANCE, ns);
         writeHidden(out, SNIPPET_ID_ + ns, id);
         writeHidden(out, SNIPPET_VERSION_ + ns, version);
         writeHidden(out, SNIPPET_INSTANCE_ID_ + ns, snippet.getInstanceID());
 
-        if (status == SnippetInvoker.STATUS_OK) {
+        if (status == SnippetInvoker.STATUS_OK && !invisible) {
             out.write(snippet.getGeneratedContent());
 
         } else {
@@ -222,7 +222,7 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
             writeHidden(out, SNIPPET_VERBATIM_PERSISTER_ + ns,
                     snippet.getPersisterID());
 
-            if (status != SnippetInvoker.STATUS_NOT_RUN) {
+            if (status != SnippetInvoker.STATUS_NOT_RUN && !invisible) {
                 String key = "Edit_Page.Errors."
                         + SnippetInvoker.STATUS_RESOURCE_KEYS[status]
                         + "_FMT";
@@ -236,10 +236,20 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
             }
         }
 
-        out.write("</div>");
+        if (!invisible && !chromeless)
+            out.write("</div>");
 
         if (wrapWithDiv)
             out.write("</div>");
+    }
+
+
+
+    protected static void writeDivWrapperStart(Writer out, String ns)
+            throws IOException {
+        out.write("<div class='cmsEditedItem' id='");
+        out.write(ns);
+        out.write("'>");
     }
 
 
@@ -255,14 +265,16 @@ public class EditSinglePageAssembler extends AbstractSinglePageAssembler
 
 
     private static String getSnippetDisplayName(SnippetInstanceTO snippet) {
-        if (snippet.getDefinition() != null)
+        if (snippet.getAlternateName() != null)
+            return HTMLUtils.escapeEntities(snippet.getAlternateName());
+        else if (snippet.getDefinition() != null)
             return snippet.getDefinition().getNameHtml();
         else
             return resources.format("Edit_Page.Unrecognized_Snippet.Name_FMT",
                     snippet.getSnippetID());
     }
 
-    private static void writeHidden(Writer out, String name, String value)
+    protected static void writeHidden(Writer out, String name, String value)
             throws IOException {
         writeHidden(out, name, value, null);
     }

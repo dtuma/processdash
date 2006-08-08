@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 /** Master servlet which receives cms content requests, and dispatches to
@@ -81,9 +82,13 @@ public class CmsContentDispatcher extends TinyCGIBase {
         ActionHandler h = selectActionHandler(action);
         initialize(h, filename);
         String newDestQuery = h.service(out, filename);
-        if (newDestQuery != null)
-            out.write("Location: " + getSimpleSelfUri(env, true) + newDestQuery
-                    + "\r\n\r\n");
+        if (newDestQuery != null) {
+            StringBuffer destUri = new StringBuffer(getSimpleSelfUri(env, true));
+            HTMLUtils.appendQuery(destUri, newDestQuery);
+            HTMLUtils.appendQuery(destUri, FramesetPageAssemblers
+                    .getExtraSaveParams(parameters));
+            out.write("Location: " + destUri + "\r\n\r\n");
+        }
 
         return true;
     }
@@ -118,14 +123,26 @@ public class CmsContentDispatcher extends TinyCGIBase {
     private PageAssembler selectPageAssembler(PageContentTO page)
             throws IOException {
         String mode = getParameter("mode");
-        if (mode == null || "view".equals(mode))
-            return new ViewSinglePageAssembler();
-        else if ("edit".equals(mode))
-            return new EditSinglePageAssembler();
-        else if ("addNew".equals(mode))
-            return new AddNewItemPageAssembler();
-        else
+        PageAssembler result = null;
+
+        if (mode == null || "view".equals(mode)) {
+            result = FramesetPageAssemblers.getViewAssembler(page, parameters);
+            if (result == null)
+                result = new ViewSinglePageAssembler();
+
+        } else if ("edit".equals(mode)) {
+            result = FramesetPageAssemblers.getEditAssembler(page, parameters);
+            if (result == null)
+                result = new EditSinglePageAssembler();
+
+        } else if ("addNew".equals(mode)) {
+            result = new AddNewItemPageAssembler();
+        }
+
+        if (result == null)
             throw new IOException("Unsupported mode");
+        else
+            return result;
     }
 
     private PageContentTO getPageContent(String filename) throws IOException {

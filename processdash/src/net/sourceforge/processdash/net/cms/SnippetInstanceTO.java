@@ -51,6 +51,8 @@ public class SnippetInstanceTO {
 
     private String generatedContent;
 
+    private String alternateName;
+
     /** Returns the ID of the snippet which created this instance */
     public String getSnippetID() {
         return snippetID;
@@ -171,5 +173,16 @@ public class SnippetInstanceTO {
     public void setGeneratedContent(String generatedContent) {
         this.generatedContent = generatedContent;
     }
+
+    /** Gets an alternate name to display for this snippet */
+    public String getAlternateName() {
+        return alternateName;
+    }
+
+    /** Sets an alternate name to display for this snippet */
+    public void setAlternateName(String alternateName) {
+        this.alternateName = alternateName;
+    }
+
 
 }
