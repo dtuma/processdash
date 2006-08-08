@@ -24,6 +24,7 @@
   <mapID target="Licenses" url="Topics/Overview/Licenses.html" />
   <mapID target="GPL" url="Topics/Overview/gpl.html" />
   <mapID target="LGPL" url="Topics/Overview/lgpl.html" />
+  <mapID target="MIT" url="Topics/Overview/License-MIT.html" />
   <mapID target="JRegex" url="Topics/Overview/License-jregex.html" />
   <mapID target="SunBerkeley" url="Topics/Overview/License-SunBerkeley.html" />
   <mapID target="VisualNumerics" url="Topics/Overview/License-Sfun.html" />

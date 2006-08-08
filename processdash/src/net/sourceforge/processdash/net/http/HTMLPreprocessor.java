@@ -173,6 +173,11 @@ public class HTMLPreprocessor {
             String context = (String) env.get("REQUEST_URI");
             String incText = new String
                 (web.getRequest(context, url, true), "UTF-8");
+
+            // If the page author wants us to extract only a certain piece of
+            // the file, discard the rest.
+            incText = cutHtml(incText, include.getAttribute("cutToken"));
+
             // does the page author want us to parse the included text
             // for directives, or just insert it verbatim?
             if (include.getAttribute("parse") != null) {
@@ -185,6 +190,7 @@ public class HTMLPreprocessor {
             }
         }
     }
+
     private String appendFileParameters(String url, DirectiveMatch include) {
         while (hasTrailingParam(include)) {
             DirectiveMatch param = new DirectiveMatch(include.buf, "parameter",
@@ -255,6 +261,21 @@ public class HTMLPreprocessor {
             return url + '?' + params;
         else
             return url + '&' + params;
+    }
+    private String cutHtml(String text, String cutToken) {
+        if (StringUtils.hasValue(cutToken)) {
+            String begToken = "<!-- cutStart:" + cutToken + " -->";
+            int beg = text.indexOf(begToken);
+            if (beg != -1)
+                text = text.substring(beg + begToken.length());
+
+            String endToken =  "<!-- cutEnd:" + cutToken + " -->";
+            int end = text.indexOf(endToken);
+            if (end != -1)
+                text = text.substring(0, end);
+        }
+
+        return text;
     }
 
 

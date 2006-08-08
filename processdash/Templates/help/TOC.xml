@@ -22,6 +22,7 @@
       <tocitem image="BookIcon" target="Licenses" text="License Information">
         <tocitem image="PageIcon" target="GPL" text="GNU General Public License"/>
         <tocitem image="PageIcon" target="LGPL" text="GNU Lesser General Public License"/>
+        <tocitem image="PageIcon" target="MIT" text="MIT License"/>
         <tocitem image="PageIcon" target="JRegex" text="JRegex"/>
         <tocitem image="PageIcon" target="SunBerkeley" text="Sun Microsystems"/>
         <tocitem image="PageIcon" target="VisualNumerics" text="Visual Numerics"/>
