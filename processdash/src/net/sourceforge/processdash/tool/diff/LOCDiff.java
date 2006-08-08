@@ -252,11 +252,11 @@ public class LOCDiff {
     protected static final int DELETE = 2;
 
     private static final String[] ROW_BEGIN = {
-        "<tr><td>&nbsp;</td><td>",
+        "<tr><td>&nbsp;</td><td><pre>",
         "<tr><td class='locAddHdr'>&nbsp;</td>"+
-            "<td class='locAddBody'>",
+            "<td class='locAddBody'><pre>",
         "<tr><td class='locDelHdr'>&nbsp;</td>"+
-            "<td class='locDelBody'>" };
+            "<td class='locDelBody'><pre>" };
 
 //    private static final String[] ROW_END = {
 //        "</tt></td></tr>",
@@ -277,7 +277,7 @@ public class LOCDiff {
             out.print(fixupLine(lines[lineNum].toString(), type));
             if (++lineNum < endIndex) out.println();
         }
-        out.println("</td></tr>");
+        out.println("</pre></td></tr>");
     }
 
     static final String COMMENT_START_STR =
@@ -524,6 +524,10 @@ public class LOCDiff {
                 "}\n" +
                 "td.nowrap { " +
                     "white-space: nowrap " +
+                "}\n" +
+                "pre { " +
+                    "margin-top: 0px; " +
+                    "margin-bottom: 0px " +
                 "}\n" +
                 "table.locDiff td { " +
                     "white-space: pre; " +
