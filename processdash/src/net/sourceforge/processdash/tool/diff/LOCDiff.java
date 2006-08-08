@@ -91,7 +91,7 @@ public class LOCDiff {
     public int getTotal()    { return total;    }
     public LanguageFilter getFilter() { return filter; }
 
-    private void debug(String contents, String filename) {
+    void debug(String contents, String filename) {
         try {
             FileWriter fos = new FileWriter("c:\\temp\\" + filename);
             fos.write(contents);
@@ -409,7 +409,6 @@ public class LOCDiff {
 
         if (languageFilters != null) {
             Iterator i = languageFilters.iterator();
-            String filterName;
             int currentRating, resultRating = 0;
             while (i.hasNext()) {
                 LanguageFilter currentFilter = null;
@@ -520,7 +519,13 @@ public class LOCDiff {
     }
 
     public static String getCssText() {
-        return "table.locDiff td { " +
+        return "body { " +
+                    "background-color: #ffffff " +
+                "}\n" +
+                "td.nowrap { " +
+                    "white-space: nowrap " +
+                "}\n" +
+                "table.locDiff td { " +
                     "white-space: pre; " +
                     "font-family: monospace; " +
                     "font-size: 10pt " +

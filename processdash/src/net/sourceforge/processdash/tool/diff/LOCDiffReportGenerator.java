@@ -57,6 +57,10 @@ public abstract class LOCDiffReportGenerator {
         public InputStream getContentsAfter() throws IOException;
     }
 
+    protected static final String HTML_STRICT_DOCTYPE =
+        "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n" +
+        "    \"http://www.w3.org/TR/html4/strict.dtd\">\n";
+
     protected static Resources resources = Resources.getDashBundle("LOCDiff");
 
 
@@ -248,7 +252,7 @@ public abstract class LOCDiffReportGenerator {
 
         // Don't try to compare binary files.
         if (filesAreBinary) {
-            fileTable.append("<tr><td nowrap>").append(htmlName);
+            fileTable.append("<tr><td class='nowrap'>").append(htmlName);
             if (fileTable == modifiedTable)
                 fileTable.append("</td><td></td><td></td><td></td><td>");
             fileTable.append("</td><td></td><td>")
@@ -278,7 +282,7 @@ public abstract class LOCDiffReportGenerator {
         total    += diff.getTotal();
 
         // add to the LOC table.
-        fileTable.append("<tr><td nowrap><a href='#file")
+        fileTable.append("<tr><td class='nowrap'><a href='#file")
             .append(counter).append("'>").append(htmlName).append("</a>");
         if (fileTable != addedTable)
             fileTable.append("</td><td>").append(diff.getBase());
@@ -327,15 +331,15 @@ public abstract class LOCDiffReportGenerator {
             (new OutputStreamWriter(outStream, outputCharset));
 
         intlWrite(out,
-                  "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\">\n" +
+                  HTML_STRICT_DOCTYPE +
                   "<html><head><title>${Report.Title}</title>\n" +
                   "<meta http-equiv=\"Content-Type\""+
                   " content=\"text/html; charset=" +
                   outputCharset + "\">\n" +
-                  "<style>\n");
+                  "<style type=\"text/css\">\n");
         out.write(LOCDiff.getCssText());
         out.write("</style></head>\n" +
-                  "<body bgcolor='#ffffff'>\n" +
+                  "<body>\n" +
                   "<div>\n");
 
         if (addedTable.length() > 0) {
@@ -370,7 +374,7 @@ public abstract class LOCDiffReportGenerator {
             out.write("</table><br><br>");
         }
 
-        out.write("<table name=METRICS BORDER>\n");
+        out.write("<table border>\n");
         if (modifiedTable.length() > 0 || deletedTable.length() > 0) {
             intlWrite(out, "<tr><td>${Report.Base}:&nbsp;</td><td>");
             out.write(Long.toString(base));
