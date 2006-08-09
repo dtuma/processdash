@@ -80,6 +80,10 @@ public class AbstractChartSnippet extends TinyCGIBase {
         Object exporting = parameters.get("EXPORT");
         if ("excel".equals(exporting)) return;
 
+        query = HTMLUtils.escapeEntities(query);
+        extraQueryForSmallVersion = HTMLUtils
+                .escapeEntities(extraQueryForSmallVersion);
+
         out.write("<a href=\"../../reports/");
         if (exporting != null)
             out.write("table.class");
