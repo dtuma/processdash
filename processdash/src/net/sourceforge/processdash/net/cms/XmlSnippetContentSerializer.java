@@ -119,10 +119,10 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
         Iterator headerSnippets = page.getHeaderSnippets();
         if (headerSnippets.hasNext()) {
             ser.startTag(null, PAGE_HEADING_TAG);
-            ser.ignorableWhitespace(NEWLINE);
+            ser.ignorableWhitespace(NEWLINE + NEWLINE);
             writeSnippets(ser, headerSnippets);
             ser.endTag(null, PAGE_HEADING_TAG);
-            ser.ignorableWhitespace(NEWLINE + NEWLINE);
+            ser.ignorableWhitespace(NEWLINE + NEWLINE + NEWLINE);
         }
 
         Iterator contentSnippets = page.getContentSnippets();
