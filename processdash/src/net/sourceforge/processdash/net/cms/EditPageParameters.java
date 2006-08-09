@@ -49,9 +49,9 @@ public interface EditPageParameters {
      * (The namespace should be appended.) */
     String SNIPPET_VERSION_ = "snippetVersion";
 
-    /** Prefix for form field name indicating that a snippet is a header.
-     * (The namespace should be appended.) */
-    String SNIPPET_IS_HEADER_ = "snippetIsHeader";
+    /** Prefix for form field name indicating the region of the page to which
+     * a snippet belongs. (The namespace should be appended.) */
+    String SNIPPET_PAGE_REGION_ = "snippetPageRegion";
 
     /** Prefix for form field name holding the verbatim text that was persisted
      * by a past snippet instance. (The namespace should be appended.) */

@@ -28,7 +28,6 @@ package net.sourceforge.processdash.net.cms;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -69,12 +68,9 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
 
     private void writeHeaderElements(Writer out, PageContentTO page)
             throws IOException {
-        List snippets = page.getContentSnippets();
-
-        for (Iterator i = snippets.iterator(); i.hasNext();) {
+        for (Iterator i = page.getHeaderSnippets(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-            if (snip.isHeaderSnippet())
-                writeSnippet(out, snip, EDIT_STYLE_CHROMELESS);
+            writeSnippet(out, snip, EDIT_STYLE_CHROMELESS);
         }
     }
 
@@ -82,14 +78,12 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
 
     protected void writePageSnippetEditors(Writer out, PageContentTO page)
             throws IOException {
-        List snippets = page.getContentSnippets();
 
         out.write("<div id='snippetContainer'>\n\n");
 
-        for (Iterator i = snippets.iterator(); i.hasNext();) {
+        for (Iterator i = page.getContentSnippets(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-            if (!snip.isHeaderSnippet())
-                writeSnippet(out, snip, EDIT_STYLE_WRAPPED);
+            writeSnippet(out, snip, EDIT_STYLE_WRAPPED);
         }
 
         out.write("</div>\n\n");
@@ -216,8 +210,8 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
         writeHidden(out, SNIPPET_VERSION_ + ns, version);
         writeHidden(out, SNIPPET_INSTANCE_ID_ + ns, snippet.getInstanceID());
         writeHidden(out, SNIPPET_DISCARDED_ + ns, "");
-        if (snippet.isHeaderSnippet())
-            writeHidden(out, SNIPPET_IS_HEADER_ + ns, "t");
+        writeHidden(out, SNIPPET_PAGE_REGION_ + ns,
+                Integer.toString(snippet.getPageRegion()));
 
         if (status == SnippetInvoker.STATUS_OK && !invisible) {
             out.write(snippet.getGeneratedContent());

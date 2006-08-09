@@ -84,7 +84,7 @@ public abstract class AbstractViewPageAssembler extends AbstractPageAssembler {
 
         else if (status == SnippetInvoker.STATUS_OK) {
             String generatedContent = snippet.getGeneratedContent();
-            if (snippet.isHeaderSnippet())
+            if (snippet.getPageRegion() == PageContentTO.REGION_HEADER)
                 generatedContent = insertEditLink(generatedContent);
             out.write(generatedContent);
 

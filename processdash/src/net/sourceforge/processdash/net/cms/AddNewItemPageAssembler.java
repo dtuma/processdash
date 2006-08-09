@@ -73,7 +73,7 @@ public class AddNewItemPageAssembler extends EditSinglePageAssembler {
     }
 
 
-    protected void maybeAddHeaderSnippet(List snippets) {
+    protected void maybeAddHeaderSnippet(PageContentTO page) {
         // add nothing
     }
 
@@ -94,8 +94,7 @@ public class AddNewItemPageAssembler extends EditSinglePageAssembler {
             writeHeaderItemScript(out, headerItems);
 
         // write the HTML fragment for the single snippet editor.
-        SnippetInstanceTO snip = (SnippetInstanceTO) page
-                .getContentSnippets().get(0);
+        SnippetInstanceTO snip = (SnippetInstanceTO) page.getSnippets().get(0);
         String altNameKey = (String) parameters.get("altNameKey");
         if (altNameKey != null)
             snip.setAlternateName(snip.getDefinition().getResources()

@@ -27,6 +27,7 @@ package net.sourceforge.processdash.net.cms;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -118,20 +119,20 @@ public abstract class AbstractPageAssembler implements PageAssembler,
         Set headerItems = new LinkedHashSet();
         addPageSpecificHeaderItems(headerItems);
 
-        List snippets = page.getContentSnippets();
-        maybeAddHeaderSnippet(snippets);
+        maybeAddHeaderSnippet(page);
 
         int num = 0;
-        for (Iterator i = snippets.iterator(); i.hasNext();) {
+        for (Iterator i = page.getSnippets().iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             setSnippetNamespace(snip, "snip" + (num++) + "_");
 
-            if (shouldInvokeSnippet(page, snip)) {
+            if (shouldInvokeSnippet(snip)) {
                 try {
                     String snipContent = invoker.invoke(snip);
                     if (snipContent != null) {
-                        SnippetHtmlPostprocessor post = new SnippetHtmlPostprocessor(snip
-                                .getNamespace(), selfURI, snip.getUri(),
+                        SnippetHtmlPostprocessor post =
+                            new SnippetHtmlPostprocessor(
+                                snip.getNamespace(), selfURI, snip.getUri(),
                                 shouldClobberForms(), snipContent);
                         headerItems.addAll(post.getHeaderItems());
                         snip.setGeneratedContent(post.getResults());
@@ -149,17 +150,21 @@ public abstract class AbstractPageAssembler implements PageAssembler,
         writePage(out, headerItems, page);
     }
 
-    protected void maybeAddHeaderSnippet(List snippets) {
-        if (!containsHeaderSnippet(snippets)) {
+    protected void maybeAddHeaderSnippet(PageContentTO page) {
+        if (!containsHeaderSnippet(page)) {
             SnippetInstanceTO headerSnip = getDefaultHeaderSnippet();
             headerSnip.setInstanceID(AUTO_HEADER_INSTANCE_ID);
+            List snippets = page.getSnippets();
+            if (snippets == null)
+                page.setSnippets(snippets = new ArrayList());
             snippets.add(0, headerSnip);
         }
     }
-    private boolean containsHeaderSnippet(List snippets) {
-        for (Iterator i = snippets.iterator(); i.hasNext();) {
+    private boolean containsHeaderSnippet(PageContentTO page) {
+        Iterator i = page.getHeaderSnippets();
+        while (i.hasNext()) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-            if (snip.isHeaderSnippet() && snip.getDefinition() != null) {
+            if (snip.getDefinition() != null) {
                 String mode = (String) parameters.get("mode");
                 if (mode == null || "view".equals(mode)
                         || snip.getDefinition().getModes().contains(mode))
@@ -173,7 +178,7 @@ public abstract class AbstractPageAssembler implements PageAssembler,
         String snipID = getDefaultHeaderSnippetID();
         snip.setSnippetID(snipID);
         snip.setDefinition(SnippetDefinitionManager.getSnippet(snipID));
-        snip.setHeaderSnippet(true);
+        snip.setPageRegion(PageContentTO.REGION_HEADER);
         return snip;
     }
     protected String getDefaultHeaderSnippetID() {
@@ -200,8 +205,21 @@ public abstract class AbstractPageAssembler implements PageAssembler,
      * choose to override this, returning false for snippets that will not
      * be displayed, to speed the rendering of pages.
      */
-    protected boolean shouldInvokeSnippet(PageContentTO page,
-            SnippetInstanceTO snip) {
+    protected boolean shouldInvokeSnippet(SnippetInstanceTO snip) {
+        switch (snip.getPageRegion()) {
+        case PageContentTO.REGION_HEADER:
+            return shouldInvokerHeaderSnippet(snip);
+        case PageContentTO.REGION_CONTENT:
+            return shouldInvokeContentSnippet(snip);
+        default:
+            return true;
+        }
+    }
+    protected boolean shouldInvokerHeaderSnippet(SnippetInstanceTO snip) {
+        return true;
+    }
+
+    protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
         return true;
     }
 

@@ -53,7 +53,7 @@ public class SnippetInstanceTO {
 
     private String alternateName;
 
-    private boolean isHeaderSnippet;
+    private int pageRegion = PageContentTO.REGION_CONTENT;
 
     /** Returns the ID of the snippet which created this instance */
     public String getSnippetID() {
@@ -186,14 +186,14 @@ public class SnippetInstanceTO {
         this.alternateName = alternateName;
     }
 
-    /** Return true if this snippet should appear in the page header */
-    public boolean isHeaderSnippet() {
-        return isHeaderSnippet;
+    /** Get the region of the page to which this snippet belongs. */
+    public int getPageRegion() {
+        return pageRegion;
     }
 
-    /** Set whether this snippet should appear in the page header */
-    public void setHeaderSnippet(boolean isHeaderSnippet) {
-        this.isHeaderSnippet = isHeaderSnippet;
+    /** Set the region of the page to which this snippet belongs. */
+    public void setPageRegion(int pageRegion) {
+        this.pageRegion = pageRegion;
     }
 
 }

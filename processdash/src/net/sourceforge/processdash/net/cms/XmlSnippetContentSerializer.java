@@ -75,24 +75,24 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
             snip.setInstanceID(e.getAttribute(INSTANCE_ID_ATTR));
             snip.setPersistedText(XMLUtils.getTextContents(e));
             snip.setPersisterID(e.getAttribute(PERSISTER_ATTR));
-            snip.setHeaderSnippet(isWithinHeaderSection(e));
+            snip.setPageRegion(getPageRegion(e));
             contentSnippets.add(snip);
         }
-        result.setContentSnippets(contentSnippets);
+        result.setSnippets(contentSnippets);
 
         return result;
     }
 
-    private boolean isWithinHeaderSection(Node node) {
+    private int getPageRegion(Node node) {
         while (node != null) {
             node = node.getParentNode();
             if (node instanceof Element) {
                 Element elem = (Element) node;
                 if (PAGE_HEADING_TAG.equals(elem.getTagName()))
-                    return true;
+                    return PageContentTO.REGION_HEADER;
             }
         }
-        return false;
+        return PageContentTO.REGION_CONTENT;
     }
 
     public void format(PageContentTO page, OutputStream out) throws IOException {
@@ -116,18 +116,17 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
         ser.endTag(null, PAGE_TITLE_TAG);
         ser.ignorableWhitespace(NEWLINE + NEWLINE);
 
-        List snippets = page.getContentSnippets();
-
-        List headers = extractHeaderSnippets(snippets);
-        if (headers != null && !headers.isEmpty()) {
+        Iterator headerSnippets = page.getHeaderSnippets();
+        if (headerSnippets.hasNext()) {
             ser.startTag(null, PAGE_HEADING_TAG);
             ser.ignorableWhitespace(NEWLINE);
-            writeSnippets(ser, headers);
+            writeSnippets(ser, headerSnippets);
             ser.endTag(null, PAGE_HEADING_TAG);
             ser.ignorableWhitespace(NEWLINE + NEWLINE);
         }
 
-        writeSnippets(ser, snippets);
+        Iterator contentSnippets = page.getContentSnippets();
+        writeSnippets(ser, contentSnippets);
 
         ser.endTag(null, DOC_ROOT_ELEM);
         ser.ignorableWhitespace(NEWLINE);
@@ -136,28 +135,10 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
         out.close();
     }
 
-    private List extractHeaderSnippets(List snippets) {
-        if (snippets == null)
-            return null;
-
-        List headers = new ArrayList();
-        for (Iterator i = snippets.iterator(); i.hasNext();) {
-            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-            if (snip.isHeaderSnippet()) {
-                headers.add(snip);
-                i.remove();
-            }
-        }
-        return headers;
-    }
-
-    private void writeSnippets(XmlSerializer ser, List snippets)
+    private void writeSnippets(XmlSerializer ser, Iterator snippets)
             throws IOException {
-        if (snippets == null || snippets.isEmpty())
-            return;
-
-        for (Iterator i = snippets.iterator(); i.hasNext();) {
-            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+        while (snippets.hasNext()) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) snippets.next();
             ser.startTag(null, SNIPPET_TAG);
             ser.attribute(null, INSTANCE_ID_ATTR, snip.getInstanceID());
             ser.attribute(null, TYPE_ATTR, snip.getSnippetID());

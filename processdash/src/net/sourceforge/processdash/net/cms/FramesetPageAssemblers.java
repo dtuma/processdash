@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -118,8 +117,7 @@ public class FramesetPageAssemblers {
     private static class FramesetPageAssembler extends
             AbstractViewPageAssembler {
 
-        protected boolean shouldInvokeSnippet(PageContentTO page,
-                SnippetInstanceTO snip) {
+        protected boolean shouldInvokeSnippet(SnippetInstanceTO snip) {
             return false;
         }
 
@@ -133,11 +131,13 @@ public class FramesetPageAssemblers {
                     false);
 
             out.write("<frame name=\"toc\" src=\"");
-            out.write(HTMLUtils.appendQuery(selfUrl, FRAME_PARAM, FRAME_TOC));
+            out.write(HTMLUtils.escapeEntities(HTMLUtils.appendQuery(selfUrl,
+                    FRAME_PARAM, FRAME_TOC)));
             out.write("\">\n");
 
             out.write("<frame name=\"contents\" src=\"");
-            out.write(HTMLUtils.appendQuery(selfUrl, FRAME_PARAM, FRAME_CONTENT));
+            out.write(HTMLUtils.escapeEntities(HTMLUtils.appendQuery(selfUrl,
+                    FRAME_PARAM, FRAME_CONTENT)));
             out.write("\" scrolling=\"yes\">\n");
 
             out.write("</frameset>\n");
@@ -156,10 +156,8 @@ public class FramesetPageAssemblers {
             super.setParameters(parameters);
         }
 
-        protected boolean shouldInvokeSnippet(PageContentTO page,
-                SnippetInstanceTO snip) {
-            return PageSectionHelper.isSectionHeading(snip)
-                    || snip.isHeaderSnippet();
+        protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
+            return PageSectionHelper.isSectionHeading(snip);
         }
 
         protected String getEditURI(Map env) {
@@ -175,22 +173,22 @@ public class FramesetPageAssemblers {
             writeHead(out, headerItems, page);
             out.write("<body>\n");
 
-            for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
+            // write the page header items
+            for (Iterator i = page.getHeaderSnippets(); i.hasNext();) {
                 SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-                if (snip.isHeaderSnippet())
-                    out.write(insertEditLink(snip.getGeneratedContent()));
+                writeSnippet(out, snip);
             }
 
+            // write a hyperlink for each page section.
             String selfUrl = CmsContentDispatcher.getSimpleSelfUri(environment,
                     true);
-            String singlePageUrl = HTMLUtils.appendQuery(selfUrl, FRAME_PARAM,
-                    FRAME_NONE);
-            selfUrl = HTMLUtils.appendQuery(selfUrl, FRAME_PARAM, FRAME_CONTENT);
-            for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
+            String contentUrl = HTMLUtils.appendQuery(selfUrl, FRAME_PARAM,
+                    FRAME_CONTENT);
+            for (Iterator i = page.getContentSnippets(); i.hasNext();) {
                 SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
                 if (PageSectionHelper.isSectionHeading(snip)) {
                     out.write("<p><a target=\"contents\" href=\"");
-                    String sectionUrl = HTMLUtils.appendQuery(selfUrl,
+                    String sectionUrl = HTMLUtils.appendQuery(contentUrl,
                             SECTION_ID_PARAM, snip.getInstanceID());
                     out.write(HTMLUtils.escapeEntities(sectionUrl));
                     out.write("\">");
@@ -201,12 +199,14 @@ public class FramesetPageAssemblers {
 
             out.write("<hr>\n");
 
+            // write a link at the bottom to view the page without frames
+            String singlePageUrl = HTMLUtils.appendQuery(selfUrl, FRAME_PARAM,
+                    FRAME_NONE);
             String anchorHtml = "<a target=\"_top\" href=\""
-                    + HTMLUtils.escapeEntities(singlePageUrl) + "\">";
+                + HTMLUtils.escapeEntities(singlePageUrl) + "\">";
             String html = resources.getString("No_Frames_HTML");
             html = StringUtils.findAndReplace(html, "<A>", anchorHtml);
             html = StringUtils.findAndReplace(html, "<a>", anchorHtml);
-
             out.write("<p>");
             out.write(html);
             out.write("</p>\n\n");
@@ -220,7 +220,7 @@ public class FramesetPageAssemblers {
     /** A PageAssembler that can display the content for a single section
      * of a page. */
     private static class SectionContentAssembler extends
-            AbstractViewPageAssembler {
+            ViewSinglePageAssembler {
 
         private PageSectionHelper sectionHelper;
 
@@ -230,9 +230,8 @@ public class FramesetPageAssemblers {
             sectionHelper = new PageSectionHelper(sectionID);
         }
 
-        protected boolean shouldInvokeSnippet(PageContentTO page,
-                SnippetInstanceTO snip) {
-            return sectionHelper.test(snip) || snip.isHeaderSnippet();
+        protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
+            return sectionHelper.test(snip);
         }
 
         protected String getEditURI(Map env) {
@@ -240,27 +239,9 @@ public class FramesetPageAssemblers {
                     env, false), "mode", "edit");
         }
 
-        protected void writePage(Writer out, Set headerItems, PageContentTO page)
-                throws IOException {
-
-            //out.write(HTML_TRANSITIONAL_DOCTYPE);
-            out.write("<html>\n");
-            writeHead(out, headerItems, page);
-            out.write("<body>\n");
-            out.write("<div><form>\n\n");
-
-            for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
-                SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-                writeSnippet(out, snip);
-            }
-
-            out.write("</form></div>\n\n");
-            out.write("<script src='/data.js' type='text/javascript'> </script>\n");
-            out.write("</body>\n");
-            out.write("</html>\n");
-        }
-
         protected String getEditLinkTarget() {
+            // open the editor for this section in the same frame where it
+            // was being viewed.
             return null;
         }
 
@@ -273,16 +254,14 @@ public class FramesetPageAssemblers {
     private static class EditTocPageAssembler extends
             EditSinglePageAssembler {
 
-        protected boolean shouldInvokeSnippet(PageContentTO page,
-                SnippetInstanceTO snip) {
-            boolean result = PageSectionHelper.isSectionHeading(snip);
-            if (result) {
+        protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
+            boolean isSectionHeading = PageSectionHelper.isSectionHeading(snip);
+            if (isSectionHeading) {
                 addFlagParam(snip, "Edit_TOC_Mode", parameters);
                 snip.setAlternateName(resources
                         .getString("SectionHeading.TOC_Label"));
-            } else if (snip.isHeaderSnippet())
-                result = true;
-            return result;
+            }
+            return isSectionHeading;
         }
 
         protected void writePageSnippetEditors(Writer out, PageContentTO page)
@@ -290,11 +269,8 @@ public class FramesetPageAssemblers {
 
             boolean sectionsHaveStarted = false;
 
-            List contentSnippets = page.getContentSnippets();
-            for (Iterator i = contentSnippets.iterator(); i.hasNext();) {
+            for (Iterator i = page.getContentSnippets(); i.hasNext();) {
                 SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-                if (snip.isHeaderSnippet())
-                    continue;
                 boolean isSectionHeading = PageSectionHelper
                         .isSectionHeading(snip);
 
@@ -345,19 +321,19 @@ public class FramesetPageAssemblers {
             sectionHelper = new PageSectionHelper(sectionID);
         }
 
-        protected boolean shouldInvokeSnippet(PageContentTO page,
-                SnippetInstanceTO snip) {
+        protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
             int status = sectionHelper.getStatus(snip);
             if (status == PageSectionHelper.STATUS_START)
                 addFlagParam(snip, "Edit_Single_Section_Mode", parameters);
 
             return (status == PageSectionHelper.STATUS_START
-                    || status == PageSectionHelper.STATUS_DURING
-                    || snip.isHeaderSnippet());
+                    || status == PageSectionHelper.STATUS_DURING);
         }
 
         protected void writePageMetadataEditors(Writer out, PageContentTO page)
                 throws IOException {
+            // don't allow the user to edit the page title when editing a single
+            // section.  But record it so we don't lose the value.
             writeHidden(out, PAGE_TITLE, page.getPageTitle());
         }
 
@@ -368,12 +344,9 @@ public class FramesetPageAssemblers {
 
             out.write("<div class='cmsMetadataSection'>\n\n");
 
-            List contentSnippets = page.getContentSnippets();
-            for (Iterator i = contentSnippets.iterator(); i.hasNext();) {
+            for (Iterator i = page.getContentSnippets(); i.hasNext();) {
                 SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
                 int snipStatus = sectionHelper.getStatus(snip);
-                if (snip.isHeaderSnippet())
-                    continue;
 
                 if (snipStatus == PageSectionHelper.STATUS_END)
                     // close the snippetContainer div
@@ -449,7 +422,7 @@ public class FramesetPageAssemblers {
 
     /** Return true if the given page contains at least one section heading. */
     private static boolean hasSectionHeading(PageContentTO page) {
-        for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
+        for (Iterator i = page.getSnippets().iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             if (PageSectionHelper.isSectionHeading(snip))
                 return true;

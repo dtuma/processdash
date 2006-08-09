@@ -159,7 +159,8 @@ public class CmsContentDispatcher extends TinyCGIBase {
         if (snippetID == null)
             snippetID = "pdash.addNew";
         snip.setSnippetID(snippetID);
-        page.setContentSnippets(Collections.singletonList(snip));
+        snip.setPageRegion(PageContentTO.REGION_CONTENT);
+        page.setSnippets(Collections.singletonList(snip));
         return page;
     }
 
@@ -176,7 +177,7 @@ public class CmsContentDispatcher extends TinyCGIBase {
     }
 
     private void lookupSnippets(PageContentTO page) {
-        for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
+        for (Iterator i = page.getSnippets().iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             snip.setDefinition(SnippetDefinitionManager.getSnippet(snip
                     .getSnippetID()));

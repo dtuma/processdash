@@ -43,7 +43,7 @@ public class ViewSinglePageAssembler extends AbstractViewPageAssembler {
         out.write("<body>\n");
         out.write("<div><form>\n\n");
 
-        for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
+        for (Iterator i = page.getSnippets().iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             writeSnippet(out, snip);
         }

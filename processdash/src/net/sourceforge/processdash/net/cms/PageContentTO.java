@@ -25,15 +25,23 @@
 
 package net.sourceforge.processdash.net.cms;
 
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+
+import net.sourceforge.processdash.util.IteratorFilter;
 
 /** Object that holds data about a CMS page.
  */
 public class PageContentTO {
 
+    public static final int REGION_HEADER = 1;
+
+    public static final int REGION_CONTENT = 2;
+
     private String pageTitle;
 
-    private List contentSnippets;
+    private List snippets;
 
     /** Gets the title of the page */
     public String getPageTitle() {
@@ -47,18 +55,58 @@ public class PageContentTO {
 
     /** Get a list of
      * {@link net.sourceforge.processdash.net.cms.SnippetInstanceTO} objects,
-     * describing the snippet instances that make up this page's content.
+     * describing all of the snippet instances that are present on this page.
      */
-    public List getContentSnippets() {
-        return contentSnippets;
+    public List getSnippets() {
+        return snippets;
     }
 
     /** Set the list of
      * {@link net.sourceforge.processdash.net.cms.SnippetInstanceTO} objects,
-     * describing the snippet instances that make up this page's content.
+     * describing all of the snippet instances that are present on this page.
      */
-    public void setContentSnippets(List contentSnippets) {
-        this.contentSnippets = contentSnippets;
+    public void setSnippets(List contentSnippets) {
+        this.snippets = contentSnippets;
     }
 
+    /** Return an iterator containing the snippets in a given region of
+     * the page.
+     * 
+     * @param region one of {@link PageContentTO#REGION_HEADER} or
+     *    {@link PageContentTO#REGION_CONTENT}
+     * @return an iterator returning
+     * {@link net.sourceforge.processdash.net.cms.SnippetInstanceTO} objects
+     */
+    public Iterator getSnippets(int region) {
+        if (snippets == null || snippets.isEmpty())
+            return Collections.EMPTY_LIST.iterator();
+        else
+            return new PageRegionIterator(region);
+    }
+
+    /** Return an iterator containing the snippets in the header region of
+     * the page. */
+    public Iterator getHeaderSnippets() {
+        return getSnippets(REGION_HEADER);
+    }
+
+    /** Return an iterator containing the snippets in the content region of
+     * the page. */
+    public Iterator getContentSnippets() {
+        return getSnippets(REGION_CONTENT);
+    }
+
+
+    private class PageRegionIterator extends IteratorFilter {
+        int region;
+        public PageRegionIterator(int region) {
+            super(snippets.iterator());
+            this.region = region;
+            init();
+        }
+        protected boolean includeInResults(Object o) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) o;
+            return snip.getPageRegion() == region;
+        }
+    }
 }

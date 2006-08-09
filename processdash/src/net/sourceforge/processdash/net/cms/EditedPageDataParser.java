@@ -81,6 +81,10 @@ public class EditedPageDataParser implements EditPageParameters,
         return (String) parameters.get(name);
     }
 
+    protected int getIntParameter(String name) {
+        return Integer.parseInt((String) parameters.get(name));
+    }
+
     public PageContentTO parsePostedPageContent() {
         PageContentTO page = new PageContentTO();
         parsePageMetaData(page);
@@ -105,7 +109,7 @@ public class EditedPageDataParser implements EditPageParameters,
             }
         }
 
-        page.setContentSnippets(snippets);
+        page.setSnippets(snippets);
     }
 
     private SnippetInstanceTO parseSnippet(String ns) {
@@ -115,8 +119,7 @@ public class EditedPageDataParser implements EditPageParameters,
         SnippetInstanceTO snip = new SnippetInstanceTO();
         snip.setSnippetID(getParameter(SNIPPET_ID_ + ns));
         snip.setSnippetVersion(getParameter(SNIPPET_VERSION_ + ns));
-        snip.setHeaderSnippet(XMLUtils.hasValue(getParameter(SNIPPET_IS_HEADER_
-                + ns)));
+        snip.setPageRegion(getIntParameter(SNIPPET_PAGE_REGION_ + ns));
 
         String instId = getParameter(SNIPPET_INSTANCE_ID_ + ns);
         if (AbstractPageAssembler.AUTO_HEADER_INSTANCE_ID.equals(instId))
