@@ -1,0 +1,7 @@
+<input type="checkbox" name="$$$_Show_Num_Defects"
+    <!--#if Show_Num_Defects || defaults -->checked<!--#endif#-->
+    >&nbsp;<b><!--#echo Show_Num_Defects_Prompt --></b>
+
+<p class="cmsNoBottomMargin"><input type="checkbox" name="$$$_Show_Fix_Time"
+    <!--#if Show_Fix_Time || defaults -->checked<!--#endif#-->
+    >&nbsp;<b><!--#echo Show_Fix_Time_Prompt --></b></p>

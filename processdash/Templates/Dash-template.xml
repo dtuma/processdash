@@ -163,16 +163,12 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/r4edit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.defectsParetoCount" version="1.0">
-    <resources>Analysis.DefectsParetoCount</resources>
+  <snippet id="pdash.defectsPareto" version="1.0">
+    <resources>Analysis.DefectsPareto</resources>
     <context>*</context>
-    <uri>/reports/analysis/report5?for=auto&amp;imgType=defectCount</uri>
-  </snippet>
-
-  <snippet id="pdash.defectsParetoFixTime" version="1.0">
-    <resources>Analysis.DefectsParetoFixTime</resources>
-    <context>*</context>
-    <uri>/reports/analysis/report5?for=auto&amp;imgType=fixTime</uri>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report5?snippet</uri>
+    <uri mode="edit">/dash/snippets/defectsParetoEdit.shtm</uri>
   </snippet>
 
   <snippet id="pdash.defectLog" version="1.0">

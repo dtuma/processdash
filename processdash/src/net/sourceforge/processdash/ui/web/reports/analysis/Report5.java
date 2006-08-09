@@ -81,26 +81,29 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
     }
 
     protected void writeContents() throws IOException {
-        if (getParameter("imgType") != null)
-            writeImgTag();
+        if (parameters.containsKey("snippet"))
+            writeSnippet();
         else if (getParameter("type") == null)
             writeHtmlContents();
         else
             super.writeContents();
     }
 
-    private void writeImgTag() {
+    private void writeSnippet() {
         if ("excel".equals(parameters.get("EXPORT")))
             return;
 
-        String query = (String) env.get("QUERY_STRING");
-        query = StringUtils.findAndReplace(query, "imgType=", "type=");
-
-        out.print("<p><img width='500' height='400' src=\"");
-        out.print(getScriptName());
-        out.print("?");
-        out.print(HTMLUtils.escapeEntities(query));
-        out.print("&categoryLabels=vertical&width=500&height=400\"></p>\n\n");
+        for (int i = 0; i < KEYS.length; i++) {
+            String paramName = "Show_" + KEYS[i];
+            Object paramVal = parameters.get(paramName);
+            if (paramVal != null && !"".equals(paramVal)) {
+                out.print("<p><img width='500' height='400' src=\"");
+                out.print(getScriptName());
+                out.print("?for=auto&amp;width=500&amp;height=400&amp;type=");
+                out.print(PARAM_FLAG[i]);
+                out.print("&amp;categoryLabels=vertical\"></p>\n\n");
+            }
+        }
     }
 
     private static final String HTML_HEADER =
