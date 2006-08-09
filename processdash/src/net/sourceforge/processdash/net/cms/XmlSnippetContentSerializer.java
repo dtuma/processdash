@@ -36,6 +36,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParserException;
@@ -74,11 +75,24 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
             snip.setInstanceID(e.getAttribute(INSTANCE_ID_ATTR));
             snip.setPersistedText(XMLUtils.getTextContents(e));
             snip.setPersisterID(e.getAttribute(PERSISTER_ATTR));
+            snip.setHeaderSnippet(isWithinHeaderSection(e));
             contentSnippets.add(snip);
         }
         result.setContentSnippets(contentSnippets);
 
         return result;
+    }
+
+    private boolean isWithinHeaderSection(Node node) {
+        while (node != null) {
+            node = node.getParentNode();
+            if (node instanceof Element) {
+                Element elem = (Element) node;
+                if (PAGE_HEADING_TAG.equals(elem.getTagName()))
+                    return true;
+            }
+        }
+        return false;
     }
 
     public void format(PageContentTO page, OutputStream out) throws IOException {
@@ -102,28 +116,59 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
         ser.endTag(null, PAGE_TITLE_TAG);
         ser.ignorableWhitespace(NEWLINE + NEWLINE);
 
-        if (page.getContentSnippets() != null) {
-            for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
-                SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-                ser.startTag(null, SNIPPET_TAG);
-                ser.attribute(null, INSTANCE_ID_ATTR, snip.getInstanceID());
-                ser.attribute(null, TYPE_ATTR, snip.getSnippetID());
-                ser.attribute(null, VERSION_ATTR, snip.getSnippetVersion());
-                if (XMLUtils.hasValue(snip.getPersisterID()))
-                    ser.attribute(null, PERSISTER_ATTR, snip.getPersisterID());
-                if (XMLUtils.hasValue(snip.getPersistedText()))
-                    ser.cdsect(snip.getPersistedText());
-                ser.endTag(null, SNIPPET_TAG);
-                ser.ignorableWhitespace(NEWLINE + NEWLINE);
-            }
+        List snippets = page.getContentSnippets();
+
+        List headers = extractHeaderSnippets(snippets);
+        if (headers != null && !headers.isEmpty()) {
+            ser.startTag(null, PAGE_HEADING_TAG);
+            ser.ignorableWhitespace(NEWLINE);
+            writeSnippets(ser, headers);
+            ser.endTag(null, PAGE_HEADING_TAG);
+            ser.ignorableWhitespace(NEWLINE + NEWLINE);
         }
 
+        writeSnippets(ser, snippets);
 
         ser.endTag(null, DOC_ROOT_ELEM);
         ser.ignorableWhitespace(NEWLINE);
         ser.endDocument();
 
         out.close();
+    }
+
+    private List extractHeaderSnippets(List snippets) {
+        if (snippets == null)
+            return null;
+
+        List headers = new ArrayList();
+        for (Iterator i = snippets.iterator(); i.hasNext();) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+            if (snip.isHeaderSnippet()) {
+                headers.add(snip);
+                i.remove();
+            }
+        }
+        return headers;
+    }
+
+    private void writeSnippets(XmlSerializer ser, List snippets)
+            throws IOException {
+        if (snippets == null || snippets.isEmpty())
+            return;
+
+        for (Iterator i = snippets.iterator(); i.hasNext();) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+            ser.startTag(null, SNIPPET_TAG);
+            ser.attribute(null, INSTANCE_ID_ATTR, snip.getInstanceID());
+            ser.attribute(null, TYPE_ATTR, snip.getSnippetID());
+            ser.attribute(null, VERSION_ATTR, snip.getSnippetVersion());
+            if (XMLUtils.hasValue(snip.getPersisterID()))
+                ser.attribute(null, PERSISTER_ATTR, snip.getPersisterID());
+            if (XMLUtils.hasValue(snip.getPersistedText()))
+                ser.cdsect(snip.getPersistedText());
+            ser.endTag(null, SNIPPET_TAG);
+            ser.ignorableWhitespace(NEWLINE + NEWLINE);
+        }
     }
 
 
@@ -135,6 +180,8 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
     private static final String DOC_ROOT_ELEM = "pdashCmsPage";
 
     private static final String PAGE_TITLE_TAG = "pageTitle";
+
+    private static final String PAGE_HEADING_TAG = "pageHeading";
 
     private static final String SNIPPET_TAG = "snippet";
 

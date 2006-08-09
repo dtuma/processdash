@@ -213,7 +213,10 @@ public class SnippetInvoker implements SnippetEnvironment {
     /** Query parameters that should be propagated from the parent HTTP request
      * to the snippet */
     private static final String[] PROPAGATED_PARAMS = { "mode", "action",
-            "EXPORT", "defaults" };
+            "EXPORT", "defaults", AbstractPageAssembler.PAGE_URI_PARAM,
+            AbstractPageAssembler.PAGE_TITLE_PARAM,
+            AbstractPageAssembler.LOCALIZED_PREFIX_PARAM };
+
 
     private static final ParamDataPersister PARAM_PERSISTER =
         new XmlParamDataPersisterV1();

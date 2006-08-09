@@ -30,6 +30,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,7 +63,17 @@ public class AddNewItemPageAssembler extends EditSinglePageAssembler {
     }
 
 
+    protected void addPageSpecificParameters(Map params, PageContentTO page) {
+        // add nothing
+    }
+
+
     protected void addPageSpecificHeaderItems(Set headerItems) {
+        // add nothing
+    }
+
+
+    protected void maybeAddHeaderSnippet(List snippets) {
         // add nothing
     }
 

@@ -30,8 +30,6 @@ import java.io.Writer;
 import java.util.Iterator;
 import java.util.Set;
 
-import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
-
 /** Page assembler that can render HTML for viewing a page of CMS content.
  */
 public class ViewSinglePageAssembler extends AbstractViewPageAssembler {
@@ -39,26 +37,18 @@ public class ViewSinglePageAssembler extends AbstractViewPageAssembler {
     protected void writePage(Writer out, Set headerItems, PageContentTO page)
             throws IOException {
 
+        //out.write(HTML_TRANSITIONAL_DOCTYPE);
         out.write("<html>\n");
         writeHead(out, headerItems, page);
         out.write("<body>\n");
-
-        out.write("<h1>");
-        writeEditLink(out);
-        out.write(esc(AnalysisPage.localizePrefix(prefix)));
-        out.write("</h1>\n");
-
-        out.write("<h2>");
-        out.write(getPageTitle(page));
-        out.write("</h2>\n\n");
-        out.write("<form>\n\n");
+        out.write("<div><form>\n\n");
 
         for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             writeSnippet(out, snip);
         }
 
-        out.write("</form>\n\n");
+        out.write("</form></div>\n\n");
         out.write("<script src='/data.js' type='text/javascript'> </script>\n");
         out.write("</body>\n");
         out.write("</html>\n");

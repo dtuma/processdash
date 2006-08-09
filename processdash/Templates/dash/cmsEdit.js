@@ -77,11 +77,11 @@ var DashCMS = {
     }
 
     var deleteMsg = snipDiv.getElementsByTagName("DIV")[1];
-    var deleteField = deleteMsg.getElementsByTagName("INPUT")[0];
     var editRegion = snipDiv.getElementsByTagName("DIV")[2];
+    this._setDiscardFields(snipDiv, "t");
     Element.show(deleteMsg);
-    deleteField.value = "t";
     Element.hide(editRegion);
+
   },
 
   undeleteSnippet:
@@ -90,11 +90,17 @@ var DashCMS = {
     if (snipDiv == null) return;
 
     var deleteMsg = snipDiv.getElementsByTagName("DIV")[1];
-    var deleteField = deleteMsg.getElementsByTagName("INPUT")[0];
     var editRegion = snipDiv.getElementsByTagName("DIV")[2];
+    this._setDiscardFields(snipDiv, "");
     Element.hide(deleteMsg);
-    deleteField.value = "";
     Element.show(editRegion);
+  },
+
+  _setDiscardFields:
+  function(snipDiv,value) {
+    var deleteFields = $A(snipDiv.getElementsByTagName("INPUT")).findAll(
+      function(field) { return /^snippetDiscarded/.test(field.name); } );
+    deleteFields.each( function(field) { field.value = value; } );
   },
 
   selectSnippet:

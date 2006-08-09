@@ -115,9 +115,13 @@ public class EditedPageDataParser implements EditPageParameters,
         SnippetInstanceTO snip = new SnippetInstanceTO();
         snip.setSnippetID(getParameter(SNIPPET_ID_ + ns));
         snip.setSnippetVersion(getParameter(SNIPPET_VERSION_ + ns));
+        snip.setHeaderSnippet(XMLUtils.hasValue(getParameter(SNIPPET_IS_HEADER_
+                + ns)));
 
         String instId = getParameter(SNIPPET_INSTANCE_ID_ + ns);
-        if (XMLUtils.hasValue(instId))
+        if (AbstractPageAssembler.AUTO_HEADER_INSTANCE_ID.equals(instId))
+            return null;
+        else if (XMLUtils.hasValue(instId))
             try {
                 nextInstanceID = Math.max(nextInstanceID,
                         Integer.parseInt(instId) + 1);

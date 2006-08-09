@@ -29,11 +29,14 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 /** Abstract base class for renderers that generate a single page of content.
@@ -41,12 +44,20 @@ import net.sourceforge.processdash.util.HTMLUtils;
 public abstract class AbstractPageAssembler implements PageAssembler,
         Needs.Environment, Needs.Parameters, Needs.Prefix, Needs.Data {
 
+    protected static final String AUTO_HEADER_INSTANCE_ID = "auto";
+    public static final String PAGE_URI_PARAM = "cmsPageUri";
+    public static final String PAGE_TITLE_PARAM = "cmsPageTitle";
+    public static final String LOCALIZED_PREFIX_PARAM = "cmsLocalizedPrefix";
+
     protected static final Resources resources = Resources
             .getDashBundle("CMS.Snippet");
 
     protected static final String HTML_STRICT_DOCTYPE =
         "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n" +
         "    \"http://www.w3.org/TR/html4/strict.dtd\">\n";
+    protected static final String HTML_TRANSITIONAL_DOCTYPE =
+        "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n" +
+        "    \"http://www.w3.org/TR/html4/loose.dtd\">\n";
 
     // collect information, via the Needs interfaces.
 
@@ -98,6 +109,8 @@ public abstract class AbstractPageAssembler implements PageAssembler,
      */
     public void service(Writer out, PageContentTO page) throws IOException {
 
+        addPageSpecificParameters(parameters, page);
+
         SnippetInvoker invoker = new SnippetInvoker(environment, parameters,
                 prefix, dataContext);
         String selfURI = CmsContentDispatcher.getSimpleSelfUri(environment,
@@ -105,8 +118,11 @@ public abstract class AbstractPageAssembler implements PageAssembler,
         Set headerItems = new LinkedHashSet();
         addPageSpecificHeaderItems(headerItems);
 
+        List snippets = page.getContentSnippets();
+        maybeAddHeaderSnippet(snippets);
+
         int num = 0;
-        for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
+        for (Iterator i = snippets.iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             setSnippetNamespace(snip, "snip" + (num++) + "_");
 
@@ -131,6 +147,51 @@ public abstract class AbstractPageAssembler implements PageAssembler,
         }
 
         writePage(out, headerItems, page);
+    }
+
+    protected void maybeAddHeaderSnippet(List snippets) {
+        if (!containsHeaderSnippet(snippets)) {
+            SnippetInstanceTO headerSnip = getDefaultHeaderSnippet();
+            headerSnip.setInstanceID(AUTO_HEADER_INSTANCE_ID);
+            snippets.add(0, headerSnip);
+        }
+    }
+    private boolean containsHeaderSnippet(List snippets) {
+        for (Iterator i = snippets.iterator(); i.hasNext();) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+            if (snip.isHeaderSnippet() && snip.getDefinition() != null) {
+                String mode = (String) parameters.get("mode");
+                if (mode == null || "view".equals(mode)
+                        || snip.getDefinition().getModes().contains(mode))
+                    return true;
+            }
+        }
+        return false;
+    }
+    protected SnippetInstanceTO getDefaultHeaderSnippet() {
+        SnippetInstanceTO snip = new SnippetInstanceTO();
+        String snipID = getDefaultHeaderSnippetID();
+        snip.setSnippetID(snipID);
+        snip.setDefinition(SnippetDefinitionManager.getSnippet(snipID));
+        snip.setHeaderSnippet(true);
+        return snip;
+    }
+    protected String getDefaultHeaderSnippetID() {
+        return "pdash.pageHeading";
+    }
+
+    protected void addPageSpecificParameters(Map params, PageContentTO page) {
+        params.put(PAGE_URI_PARAM, getPageUri());
+        params.put(PAGE_TITLE_PARAM, page.getPageTitle());
+        params.put(LOCALIZED_PREFIX_PARAM,
+                AnalysisPage.localizePrefix(prefix));
+    }
+
+    private String getPageUri() {
+        String result = (String) environment.get("SCRIPT_NAME");
+        result = result.substring(WebServer.CMS_URI_PREFIX.length());
+        result = HTMLUtils.urlDecode(result);
+        return result;
     }
 
     /** Return true if the SnippetInvoker should be run on the given snippet.

@@ -29,49 +29,66 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
 
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
 public abstract class AbstractViewPageAssembler extends AbstractPageAssembler {
 
-    protected void writeEditLink(Writer out) throws IOException {
-        writeEditLink(out, "32", "_top");
-    }
 
-    protected void writeEditLink(Writer out, String iconSize, String target)
-            throws IOException {
-        if (parameters.get("EXPORT") == null) {
-            out.write("<span class='cmsToolbar'><a href='");
-            out.write(getEditURI(environment));
-            if (target != null)
-                out.write("' target='" + target);
-            out.write("' title='");
-            out.write(resources.getHTML("Edit_Hyperlink.Description"));
-            out.write("'>");
-            out.write(StringUtils.findAndReplace(EDIT_ICON_IMG_HTML, "##",
-                    iconSize));
-            out.write("</a></span>\n");
-        }
+    protected String insertEditLink(String html) {
+        if (html == null || html.length() == 0) return "";
+        if (parameters.containsKey("EXPORT")) return html;
+
+        int pos = html.indexOf("<!-- editLink");
+        if (pos == -1) return html;
+        int end = html.indexOf("-->", pos);
+        if (end == -1) return html;
+
+        StringBuffer link = new StringBuffer();
+        link.append("<span class='cmsToolbar'><a href='");
+        link.append(HTMLUtils.escapeEntities(getEditURI(environment)));
+        String target = getEditLinkTarget();
+        if (target != null)
+            link.append("' target='").append(target);
+        link.append("' title='");
+        link.append(resources.getHTML("Edit_Hyperlink.Description"));
+        link.append("'>");
+        link.append(EDIT_ICON_IMG_HTML);
+        link.append("</a></span>\n");
+
+        int size=32;
+        if (html.lastIndexOf("Med", end) > pos) size = 22;
+        else if (html.lastIndexOf("Small", end) > pos) size = 14;
+        StringUtils.findAndReplace(link, "##", Integer.toString(size));
+
+        return html.substring(0, pos) + link + html.substring(end+3);
     }
     private static final String EDIT_ICON_IMG_HTML =
         "<img src='/Images/edit##.gif' width='##' height='##' border='0'/>";
 
     protected String getEditURI(Map env) {
-        // TODO: do we need to preserve other query parameter values?
         return CmsContentDispatcher.getSimpleSelfUri(env, true) + "?mode=edit";
+    }
+
+    protected String getEditLinkTarget() {
+        return "_top";
     }
 
     protected void writeSnippet(Writer out, SnippetInstanceTO snippet)
             throws IOException {
 
         int status = snippet.getStatus();
-        if (status == -1)
+        if (status == SnippetInvoker.STATUS_NOT_RUN)
             ; // Hmmm...do nothing.
 
-        else if (status == SnippetInvoker.STATUS_OK)
-            out.write(snippet.getGeneratedContent());
+        else if (status == SnippetInvoker.STATUS_OK) {
+            String generatedContent = snippet.getGeneratedContent();
+            if (snippet.isHeaderSnippet())
+                generatedContent = insertEditLink(generatedContent);
+            out.write(generatedContent);
 
-        else {
+        } else {
             String key = "View_Page.Errors."
                     + SnippetInvoker.STATUS_RESOURCE_KEYS[status] + "_FMT";
             String id = snippet.getSnippetID();

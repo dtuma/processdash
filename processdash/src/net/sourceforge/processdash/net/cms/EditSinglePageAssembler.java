@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -44,17 +43,15 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
     protected void writePage(Writer out, Set headerItems, PageContentTO page)
             throws IOException {
 
-        out.write(HTML_STRICT_DOCTYPE);
+        out.write(HTML_TRANSITIONAL_DOCTYPE);
 
         out.write("<html>\n");
         writeHead(out, headerItems, page);
         out.write("<body>\n");
 
-        out.write("<h1>");
-        out.write(getPageTitle());
-        out.write("</h1>\n\n");
-
         writeFormStart(out);
+
+        writeHeaderElements(out, page);
 
         writePageMetadataEditors(out, page);
 
@@ -70,22 +67,29 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
 
 
 
-    protected void writePageSnippetEditors(Writer out, PageContentTO page)
+    private void writeHeaderElements(Writer out, PageContentTO page)
             throws IOException {
-        List contentSnippets = page.getContentSnippets();
+        List snippets = page.getContentSnippets();
 
-        writeSnippetEditors(out, contentSnippets);
+        for (Iterator i = snippets.iterator(); i.hasNext();) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+            if (snip.isHeaderSnippet())
+                writeSnippet(out, snip, EDIT_STYLE_CHROMELESS);
+        }
     }
 
 
 
-    protected void writeSnippetEditors(Writer out, List snippets)
+    protected void writePageSnippetEditors(Writer out, PageContentTO page)
             throws IOException {
+        List snippets = page.getContentSnippets();
+
         out.write("<div id='snippetContainer'>\n\n");
 
         for (Iterator i = snippets.iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-            writeSnippet(out, snip, EDIT_STYLE_WRAPPED);
+            if (!snip.isHeaderSnippet())
+                writeSnippet(out, snip, EDIT_STYLE_WRAPPED);
         }
 
         out.write("</div>\n\n");
@@ -99,7 +103,7 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
                 + "</div>\n\n");
 
         // write the start of the form
-        out.write("<form method=\"POST\" target=\"_top\" action=\"");
+        out.write("<div><form method=\"POST\" target=\"_top\" action=\"");
         out.write(CmsContentDispatcher.getSimpleSelfUri(environment, true));
         out.write("\">\n\n");
     }
@@ -126,7 +130,7 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
         writeHidden(out, "action", "save", "formActionParam");
 
         out.write("</div>\n\n");
-        out.write("</form>\n\n");
+        out.write("</form></div>\n\n");
         out.write("<div style='height:4em'>&nbsp;</div>\n\n");
     }
 
@@ -197,7 +201,6 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
             out.write("</div>");
 
             out.write("<div class='cmsDeleteMessage' style='display:none'>\n");
-            writeHidden(out, SNIPPET_DISCARDED_ + ns, "");
             String deleteMessage = resources
                     .getString("Edit_Page.Delete_Item.Message_HTML");
             deleteMessage = StringUtils
@@ -212,6 +215,9 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
         writeHidden(out, SNIPPET_ID_ + ns, id);
         writeHidden(out, SNIPPET_VERSION_ + ns, version);
         writeHidden(out, SNIPPET_INSTANCE_ID_ + ns, snippet.getInstanceID());
+        writeHidden(out, SNIPPET_DISCARDED_ + ns, "");
+        if (snippet.isHeaderSnippet())
+            writeHidden(out, SNIPPET_IS_HEADER_ + ns, "t");
 
         if (status == SnippetInvoker.STATUS_OK && !invisible) {
             out.write(snippet.getGeneratedContent());
@@ -222,7 +228,8 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
             writeHidden(out, SNIPPET_VERBATIM_PERSISTER_ + ns,
                     snippet.getPersisterID());
 
-            if (status != SnippetInvoker.STATUS_NOT_RUN && !invisible) {
+            if (status != SnippetInvoker.STATUS_NOT_RUN
+                    && !invisible && !chromeless) {
                 String key = "Edit_Page.Errors."
                         + SnippetInvoker.STATUS_RESOURCE_KEYS[status]
                         + "_FMT";
@@ -274,6 +281,7 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
                     snippet.getSnippetID());
     }
 
+
     protected static void writeHidden(Writer out, String name, String value)
             throws IOException {
         writeHidden(out, name, value, null);
@@ -293,12 +301,11 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
         out.write("'>");
     }
 
-    private String getPageTitle() {
-        String pageName = (String) environment.get("SCRIPT_NAME");
-        pageName = pageName.substring(WebServer.CMS_URI_PREFIX.length());
-        pageName = HTMLUtils.urlDecode(pageName);
 
-        String title = resources.format("Edit_Page.Title_FMT", pageName);
+    protected String getPageTitle(PageContentTO page) {
+        String pageName = (String) parameters.get(PAGE_URI_PARAM);
+        String title = resources.format("Snippet.PageHeading.Title_FMT",
+                pageName);
         return esc(title);
     }
 

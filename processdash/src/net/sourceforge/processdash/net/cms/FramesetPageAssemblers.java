@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -159,7 +158,8 @@ public class FramesetPageAssemblers {
 
         protected boolean shouldInvokeSnippet(PageContentTO page,
                 SnippetInstanceTO snip) {
-            return PageSectionHelper.isSectionHeading(snip);
+            return PageSectionHelper.isSectionHeading(snip)
+                    || snip.isHeaderSnippet();
         }
 
         protected String getEditURI(Map env) {
@@ -170,14 +170,16 @@ public class FramesetPageAssemblers {
         protected void writePage(Writer out, Set headerItems, PageContentTO page)
                 throws IOException {
 
+            //out.write(HTML_TRANSITIONAL_DOCTYPE);
             out.write("<html>\n");
             writeHead(out, headerItems, page);
             out.write("<body>\n");
 
-            out.write("<h2>");
-            writeEditLink(out, "22", "_top");
-            out.write(getPageTitle(page));
-            out.write("</h2>\n\n");
+            for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
+                SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+                if (snip.isHeaderSnippet())
+                    out.write(insertEditLink(snip.getGeneratedContent()));
+            }
 
             String selfUrl = CmsContentDispatcher.getSimpleSelfUri(environment,
                     true);
@@ -230,7 +232,7 @@ public class FramesetPageAssemblers {
 
         protected boolean shouldInvokeSnippet(PageContentTO page,
                 SnippetInstanceTO snip) {
-            return sectionHelper.test(snip);
+            return sectionHelper.test(snip) || snip.isHeaderSnippet();
         }
 
         protected String getEditURI(Map env) {
@@ -241,30 +243,27 @@ public class FramesetPageAssemblers {
         protected void writePage(Writer out, Set headerItems, PageContentTO page)
                 throws IOException {
 
+            //out.write(HTML_TRANSITIONAL_DOCTYPE);
             out.write("<html>\n");
             writeHead(out, headerItems, page);
             out.write("<body>\n");
-
-            out.write("<h1>");
-            writeEditLink(out, "32", null);
-            out.write(esc(AnalysisPage.localizePrefix(prefix)));
-            out.write("</h1>\n");
-
-            out.write("<h2>");
-            out.write(getPageTitle(page));
-            out.write("</h2>\n\n");
-            out.write("<form>\n\n");
+            out.write("<div><form>\n\n");
 
             for (Iterator i = page.getContentSnippets().iterator(); i.hasNext();) {
                 SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
                 writeSnippet(out, snip);
             }
 
-            out.write("</form>\n\n");
+            out.write("</form></div>\n\n");
             out.write("<script src='/data.js' type='text/javascript'> </script>\n");
             out.write("</body>\n");
             out.write("</html>\n");
         }
+
+        protected String getEditLinkTarget() {
+            return null;
+        }
+
     }
 
 
@@ -281,7 +280,8 @@ public class FramesetPageAssemblers {
                 addFlagParam(snip, "Edit_TOC_Mode", parameters);
                 snip.setAlternateName(resources
                         .getString("SectionHeading.TOC_Label"));
-            }
+            } else if (snip.isHeaderSnippet())
+                result = true;
             return result;
         }
 
@@ -293,6 +293,8 @@ public class FramesetPageAssemblers {
             List contentSnippets = page.getContentSnippets();
             for (Iterator i = contentSnippets.iterator(); i.hasNext();) {
                 SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+                if (snip.isHeaderSnippet())
+                    continue;
                 boolean isSectionHeading = PageSectionHelper
                         .isSectionHeading(snip);
 
@@ -350,7 +352,8 @@ public class FramesetPageAssemblers {
                 addFlagParam(snip, "Edit_Single_Section_Mode", parameters);
 
             return (status == PageSectionHelper.STATUS_START
-                    || status == PageSectionHelper.STATUS_DURING);
+                    || status == PageSectionHelper.STATUS_DURING
+                    || snip.isHeaderSnippet());
         }
 
         protected void writePageMetadataEditors(Writer out, PageContentTO page)
@@ -369,6 +372,8 @@ public class FramesetPageAssemblers {
             for (Iterator i = contentSnippets.iterator(); i.hasNext();) {
                 SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
                 int snipStatus = sectionHelper.getStatus(snip);
+                if (snip.isHeaderSnippet())
+                    continue;
 
                 if (snipStatus == PageSectionHelper.STATUS_END)
                     // close the snippetContainer div

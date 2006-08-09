@@ -61,6 +61,16 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri>/dash/snippets/addNew</uri>
   </snippet>
 
+  <snippet id="pdash.pageHeading" version="1.0" hide="true">
+    <resources>CMS.Snippet.PageHeading</resources>
+    <context>*</context>
+    <mode>toc</mode>
+    <mode>edit</mode>
+    <uri>/dash/snippets/pageHeading.shtm</uri>
+    <uri mode="toc">/dash/snippets/pageHeadingTOC.shtm</uri>
+    <uri mode="edit">/dash/snippets/pageHeadingEdit.shtm</uri>
+  </snippet>
+
   <snippet id="pdash.sectionHeading" version="1.0">
     <resources>CMS.Snippet.SectionHeading</resources>
     <context>*</context>
