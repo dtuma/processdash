@@ -251,6 +251,11 @@ public class HTMLArchiver {
                             (html, "'"+subURI+"'", "'"+safeURL+"'"+extra);
                         StringUtils.findAndReplace
                             (html, "\""+subURI+"\"", "\""+safeURL+"\""+extra);
+                        subURI = HTMLUtils.escapeEntities(subURI);
+                        StringUtils.findAndReplace
+                            (html, "'"+subURI+"'", "'"+safeURL+"'"+extra);
+                        StringUtils.findAndReplace
+                            (html, "\""+subURI+"\"", "\""+safeURL+"\""+extra);
 
                     } catch (Exception e) {}
             }
@@ -532,14 +537,15 @@ public class HTMLArchiver {
                 end = text.indexOf(delim, pos + 1);
 
                 if (end != -1)
-                    v.add(text.substring(pos + 1, end));
+                    v.add(HTMLUtils.unescapeEntities(text.substring(pos + 1,
+                            end)));
 
                 pos = end + 1;
             } else {
                 nextSpace = text.indexOf(' ', pos);
                 tagEnd = text.indexOf('>', pos);
                 end = Math.min(nextSpace, tagEnd);
-                v.add(text.substring(pos, end));
+                v.add(HTMLUtils.unescapeEntities(text.substring(pos, end)));
                 pos = end + 1;
             }
         }

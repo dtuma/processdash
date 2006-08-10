@@ -34,16 +34,16 @@
 // Construct a value for the SRC attribute of an image.
 function imgSrc() {
     var w,h;
-    if (self.innerHeight) {     // all except Explorer
-	w = self.innerWidth;
-	h = self.innerHeight;
+    if (document.body && document.body.clientWidth) {
+	w = document.body.clientWidth;
+	h = document.body.clientHeight;
     } else if (document.documentElement    // Explorer 6 Strict Mode
             && document.documentElement.clientHeight) {
 	w = document.documentElement.clientWidth;
 	h = document.documentElement.clientHeight;
-    } else if (document.body) {            // other Explorers
-	w = document.body.clientWidth;
-	h = document.body.clientHeight;
+    } else if (self.innerHeight) {     // all except Explorer
+	w = self.innerWidth;
+	h = self.innerHeight;
     }
 
     var chart = "line.class";

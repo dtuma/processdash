@@ -231,6 +231,8 @@ public class CmsContentDispatcher extends TinyCGIBase {
             int queryPos = requestUri.indexOf('?');
             if (queryPos != -1)
                 requestUri = requestUri.substring(0, queryPos);
+        } else {
+            requestUri = HTMLUtils.removeParam(requestUri, "EXPORT");
         }
 
         return requestUri;

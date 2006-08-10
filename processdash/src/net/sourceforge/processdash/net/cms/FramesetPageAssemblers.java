@@ -184,7 +184,7 @@ public class FramesetPageAssemblers {
             out.write("<frame name=\"contents\" src=\"");
             out.write(HTMLUtils.escapeEntities(HTMLUtils.appendQuery(selfUrl,
                     FRAME_PARAM, FRAME_CONTENT)));
-            out.write("\" scrolling=\"yes\">\n");
+            out.write("\">\n");
 
             out.write("</frameset>\n");
             out.write("</html>\n");
@@ -248,19 +248,21 @@ public class FramesetPageAssemblers {
                 }
             }
 
-            out.write("<hr>\n");
+            if (!parameters.containsKey("EXPORT")) {
+                out.write("<hr>\n");
 
-            // write a link at the bottom to view the page without frames
-            String singlePageUrl = HTMLUtils.appendQuery(selfUrl, FRAME_PARAM,
-                    FRAME_NONE);
-            String anchorHtml = "<a target=\"_top\" href=\""
-                + HTMLUtils.escapeEntities(singlePageUrl) + "\">";
-            String html = resources.getString("No_Frames_HTML");
-            html = StringUtils.findAndReplace(html, "<A>", anchorHtml);
-            html = StringUtils.findAndReplace(html, "<a>", anchorHtml);
-            out.write("<p>");
-            out.write(html);
-            out.write("</p>\n\n");
+                // write a link at the bottom to view the page without frames
+                String singlePageUrl = HTMLUtils.appendQuery(selfUrl,
+                        FRAME_PARAM, FRAME_NONE);
+                String anchorHtml = "<a target=\"_top\" href=\""
+                    + HTMLUtils.escapeEntities(singlePageUrl) + "\">";
+                String html = resources.getString("No_Frames_HTML");
+                html = StringUtils.findAndReplace(html, "<A>", anchorHtml);
+                html = StringUtils.findAndReplace(html, "<a>", anchorHtml);
+                out.write("<p>");
+                out.write(html);
+                out.write("</p>\n\n");
+            }
 
             out.write("</body>\n</html>\n");
         }
@@ -489,6 +491,8 @@ public class FramesetPageAssemblers {
         StringBuffer uri = new StringBuffer(frameUri);
         HTMLUtils.removeParam(uri, FRAME_PARAM);
         HTMLUtils.appendQuery(uri, FRAME_PARAM, FRAME_TOP);
+        if (params.containsKey("EXPORT"))
+            HTMLUtils.removeParam(uri, SECTION_ID_PARAM);
         params.put(SnippetEnvironment.FULL_PAGE_URI, uri.toString());
         params.put(SnippetEnvironment.FULL_PAGE_TARGET, TOP_FRAME_NAME);
     }

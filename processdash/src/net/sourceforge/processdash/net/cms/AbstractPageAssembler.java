@@ -189,6 +189,7 @@ public abstract class AbstractPageAssembler implements PageAssembler,
 
         String pageUri = (String) environment.get("REQUEST_URI");
         pageUri = HTMLUtils.removeParam(pageUri, "mode");
+        pageUri = HTMLUtils.removeParam(pageUri, "EXPORT");
         params.put(CURRENT_FRAME_URI, pageUri);
         params.put(FULL_PAGE_URI, pageUri);
         params.put(FULL_PAGE_TARGET, "_top");

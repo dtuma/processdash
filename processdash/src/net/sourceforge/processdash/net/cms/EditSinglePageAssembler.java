@@ -46,7 +46,7 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
 
         out.write("<html>\n");
         writeHead(out, headerItems, page);
-        out.write("<body>\n");
+        out.write("<body scroll=\"yes\">\n");
 
         writeFormStart(out);
 
