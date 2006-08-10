@@ -402,4 +402,17 @@
 
 
 
+<!--======================================================================
+    Snippets used by the team process.
+  =======================================================================-->
+
+  <snippet id="PID.teamSummaryPageHeader" version="1.0">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PID Team Root Tag</context>
+    <context>PID Team Node Tag</context>
+    <context>PID Master Root Tag</context>
+    <context>PID Master Node Tag</context>
+    <uri>/PID/setup/summaryName.class</uri>
+  </snippet>
+
 </dashboard-process-template>

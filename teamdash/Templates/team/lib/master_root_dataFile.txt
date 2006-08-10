@@ -7,6 +7,7 @@
 )
 #include <<!--#echo Process_ID -->/root_data.txt>
 undefine([Simple Project Tag]);
+[<!--#echo Process_ID --> Master Root Tag] = tag;
 
 
 [Project_WBS_Subpath] = "";

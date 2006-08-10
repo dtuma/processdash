@@ -29,7 +29,7 @@ public class summaryName extends selectWBS {
         out.println(" h1   { margin: 0pt; padding: 0pt }");
         out.println(" h2   { margin: 0pt; padding: 0pt }");
         out.println("</style></head><body>");
-        out.print("<h1>");
+        out.print("<h1 style='margin-top:0pt'><!-- editLink -->");
         out.print(HTMLUtils.escapeEntities(projectRoot));
         out.println("</h1>");
         out.print("<h2>");
@@ -37,7 +37,14 @@ public class summaryName extends selectWBS {
         writeFilterIcon(projectRoot);
         writeHierarchyIcon(prefix, projectRoot);
 
-        out.println("</h2></body></html>");
+        out.println("</h2>");
+        String cmsPageTitle = getParameter("cmsPageTitle");
+        if (cmsPageTitle != null) {
+            out.print("<h2>");
+            out.print(HTMLUtils.escapeEntities(cmsPageTitle));
+            out.println("</h2>");
+        }
+        out.println("</body></html>");
     }
 
     /** Print the icon and text for choosing a filter
@@ -53,7 +60,7 @@ public class summaryName extends selectWBS {
             return;
 
         if (!exporting)
-            out.print("<a target='contents' href=\"selectLabelFilter\">");
+            writeHyperlink("selectLabelFilter", getSnippetParams(false, false));
 
         out.print("<img border=0 src='/Images/filter.png' "
                 + "style='margin-right:2px' width='16' height='23' ");
@@ -72,17 +79,51 @@ public class summaryName extends selectWBS {
     /** Print the icon and text for navigating the hierarchy
      */
     private void writeHierarchyIcon(String prefix, String projectRoot) {
-        out.print("<a target='contents' href=\"");
-        out.print(WebServer.urlEncodePath(projectRoot));
-        out.print("//");
-        out.print(processID);
-        out.print("/setup/selectWBSFrame.class");
-        out.print("\"><img border=0 src='../hier.png' title='Navigate Hierarchy' "+
+        String href = WebServer.urlEncodePath(projectRoot) + "//" + processID
+                + "/setup/selectWBSFrame.class";
+        writeHyperlink(href, getSnippetParams(true, true));
+
+        out.print("<img border=0 src='../hier.png' title='Navigate Hierarchy' "+
                   "style='margin-right:2px' width=16 height=23></a>");
         if (prefix.equals(projectRoot))
             out.print("/");
         else
             out.print(HTMLUtils.escapeEntities(prefix.substring(projectRoot
                     .length() + 1)));
+    }
+
+
+    private String getSnippetParams(boolean fullPage, boolean stripPrefix) {
+        String uri = getParameter(fullPage ? "cmsFullPageUri"
+                : "cmsSnippetCurrentFrameUri");
+        if (uri == null)
+            return null;
+
+        if (stripPrefix) {
+            int pos = uri.indexOf("//");
+            if (pos == -1) pos = uri.indexOf("/+/") + 1;
+            if (pos > 0)
+                uri = uri.substring(pos+1);
+        }
+        String result = "?destUri=" + HTMLUtils.urlEncode(uri);
+
+        if (fullPage) {
+            String target = getParameter("cmsFullPageTarget");
+            if (target == null) target = "_top";
+            result = result + "&target=" + HTMLUtils.urlEncode(target);
+        }
+
+        return result;
+    }
+
+    private void writeHyperlink(String href, String snippetParams) {
+        out.print("<a href=\"");
+        out.print(href);
+        if (snippetParams == null)
+            out.print("\" target=\"contents\">");
+        else {
+            out.print(snippetParams);
+            out.print("\">");
+        }
     }
 }

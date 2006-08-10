@@ -21,6 +21,8 @@ public class selectLabelFilter extends selectWBS {
         if (projectRootKey == null) { error(); return; }
         String projectRoot = projectRootKey.path();
 
+        String snippetDestUri = getParameter("destUri");
+
         out.print("<html><head><title>Choose Label Filter</title>\n"
                 + "<link rel=stylesheet type='text/css' href='/style.css'>\n"
                 + "</head><body><h3>Choose Label Filter</h3>\n"
@@ -29,8 +31,15 @@ public class selectLabelFilter extends selectWBS {
                 + "the work breakdown structure whose labels match the filter "
                 + "will be included.</p>");
 
-        out.print("<form action='selectLabelFilter' method='POST' target='topFrame'>\n"
-                + "<table><tr>"
+        out.print("<form action='selectLabelFilter' method='POST'");
+        if (snippetDestUri == null)
+            out.print(" target='topFrame'>\n");
+        else {
+            out.print(">\n<input type='hidden' name='destUri' value=\"");
+            out.print(HTMLUtils.escapeEntities(snippetDestUri));
+            out.print("\">\n");
+        }
+        out.print("<table><tr>"
                 + "<td><b>Label Filter:</b>&nbsp;</td>"
                 + "<td><input type='text' name='filter' size='80' value='");
         String currentFilter = getCurrentFilter(getDataRepository(),
@@ -83,7 +92,10 @@ public class selectLabelFilter extends selectWBS {
             getDataRepository().putValue(dataName,
                     StringData.create(newFilter.trim()));
 
-        out.write("Location: ../summary_frame.shtm\r\n\r\n");
+        String destUri = getParameter("destUri");
+        if (destUri == null)
+            destUri = "../summary_frame.shtm";
+        out.write("Location: " + destUri + "\r\n\r\n");
     }
 
 

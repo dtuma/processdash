@@ -6,6 +6,7 @@
     [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
 )
 undefine([Simple Project Tag]);
+[<!--#echo Process_ID --> Master Node Tag] = tag;
 
 [Project_Path_Prefix] = [../Project_Path_Prefix];
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);

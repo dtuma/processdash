@@ -10,7 +10,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 
 public class selectWBSFrame extends selectWBS {
 
-    private String processID = null;
+    private String destUri = null;
 
     private int maxDepth = -1;
 
@@ -19,6 +19,7 @@ public class selectWBSFrame extends selectWBS {
             String id, int depth, String rootPath) {
         super.initialize(hierarchy, key, id, depth, rootPath);
         initMaxDepth(rootPath);
+        destUri = null;
     }
 
     protected boolean prune(DashHierarchy hierarchy, PropertyKey key,
@@ -52,21 +53,35 @@ public class selectWBSFrame extends selectWBS {
     protected String getScript() { return ""; }
 
     protected void printLink(String rootPath, String relPath) {
-        if (processID == null) {
-            String scriptName = (String) env.get("SCRIPT_NAME");
-            int slashPos = scriptName.indexOf('/', 1);
-            processID = scriptName.substring(1, slashPos);
-        }
-
-        out.print("<a target='topFrame' href=\"");
+        String target = getParameter("target");
+        if (target == null) target = "topFrame";
+        out.print("<a target='" + target + "' href=\"");
         out.print(WebServer.urlEncodePath(rootPath));
         if (relPath != null && relPath.length() > 0) {
             out.print("/");
             out.print(WebServer.urlEncodePath(relPath));
         }
-        out.print("//");
-        out.print(processID);
-        out.print("/summary_frame.shtm\">");
+        out.print("/");
+        out.print(getDestUri());
+        out.print("\">");
+    }
+
+    /** Get the uri of the dashboard resource which should be displayed
+     * at the new prefix  (e.g  "/PID/summary_frame.shtm") */
+    protected String getDestUri() {
+        if (destUri == null)
+            // first, check to see if a destUri was specified.
+            destUri = getParameter("destUri");
+
+        if (destUri == null) {
+            // build the default destUri based on our process ID.
+            String scriptName = (String) env.get("SCRIPT_NAME");
+            int slashPos = scriptName.indexOf('/', 1);
+            String processID = scriptName.substring(1, slashPos);
+            destUri = "/" + processID + "/summary_frame.shtm";
+        }
+
+        return destUri;
     }
 
     private static final String MAX_EXPORT_DEPTH_DATA_NAME =
