@@ -38,9 +38,11 @@ import net.sourceforge.processdash.util.StringUtils;
 public class FramesetPageAssemblers {
 
     private static final String FRAME_PARAM = "frame";
+    private static final String FRAME_TOP = "top";
     private static final String FRAME_TOC = "toc";
     private static final String FRAME_CONTENT = "content";
     private static final String FRAME_NONE = "none";
+    private static final String TOP_FRAME_NAME = "topFrame";
 
     private static final String SECTION_ID_PARAM = "section";
 
@@ -65,8 +67,10 @@ public class FramesetPageAssemblers {
             return new TocPageAssembler();
         else if (FRAME_CONTENT.equals(frameParam))
             return new SectionContentAssembler();
-        else
+        else if (FRAME_TOP.equals(frameParam))
             return new FramesetPageAssembler();
+        else
+            return new HiddenFramesetPageAssembler();
     }
 
 
@@ -113,6 +117,47 @@ public class FramesetPageAssemblers {
 
 
 
+    /** A PageAssembler that can display an enclosing, placeholder frameset.
+     * 
+     * Internet Explorer's handling of MTHML files cannot handle "target=_top"
+     * hyperlinks.  So when an element wants to replace the entire frameset,
+     * we can't replace "_top".  This class creates a placeholder frameset
+     * which has no obvious/visible appearance, but it defines a frame called
+     * "topFrame" which we can target to replace to change the entire page.
+     */
+    private static class HiddenFramesetPageAssembler extends
+            AbstractViewPageAssembler {
+
+        protected boolean shouldInvokeSnippet(SnippetInstanceTO snip) {
+            return false;
+        }
+
+        protected void writePage(Writer out, Set headerItems, PageContentTO page)
+                throws IOException {
+            out.write("<html>\n");
+            writeHead(out, Collections.EMPTY_SET, page);
+
+            out.write("<frameset cols=\"1,*\" frameborder=\"0\" border=\"0\" "
+                    + "framespacing=\"0\">\n");
+            String selfUrl = CmsContentDispatcher.getSimpleSelfUri(environment,
+                    false);
+
+            out.write("<frame name=\"empty\" src=\"about:blank\" noresize " +
+                        "scrolling=\"no\" frameborder=\"0\">\n");
+
+            out.write("<frame name=\"" + TOP_FRAME_NAME + "\" src=\"");
+            out.write(HTMLUtils.escapeEntities(HTMLUtils.appendQuery(selfUrl,
+                    FRAME_PARAM, FRAME_TOP)));
+            out.write("\" frameborder=\"0\" noresize>\n");
+
+            out.write("</frameset>\n");
+            out.write("</html>\n");
+        }
+
+    }
+
+
+
     /** A PageAssembler that can display the top-level frameset */
     private static class FramesetPageAssembler extends
             AbstractViewPageAssembler {
@@ -129,11 +174,12 @@ public class FramesetPageAssemblers {
             out.write("<frameset cols=\"153,*\">\n");
             String selfUrl = CmsContentDispatcher.getSimpleSelfUri(environment,
                     false);
+            selfUrl = HTMLUtils.removeParam(selfUrl, FRAME_PARAM);
 
             out.write("<frame name=\"toc\" src=\"");
             out.write(HTMLUtils.escapeEntities(HTMLUtils.appendQuery(selfUrl,
                     FRAME_PARAM, FRAME_TOC)));
-            out.write("\">\n");
+            out.write("\" frameborder=\"0\">\n");
 
             out.write("<frame name=\"contents\" src=\"");
             out.write(HTMLUtils.escapeEntities(HTMLUtils.appendQuery(selfUrl,
@@ -154,6 +200,11 @@ public class FramesetPageAssemblers {
         public void setParameters(Map parameters) {
             parameters.put("mode", "toc");
             super.setParameters(parameters);
+        }
+
+        protected void addPageSpecificParameters(Map params, PageContentTO page) {
+            super.addPageSpecificParameters(params, page);
+            setFrameUriParams(params);
         }
 
         protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
@@ -228,6 +279,11 @@ public class FramesetPageAssemblers {
             super.setParameters(parameters);
             String sectionID = (String) parameters.get(SECTION_ID_PARAM);
             sectionHelper = new PageSectionHelper(sectionID);
+        }
+
+        protected void addPageSpecificParameters(Map params, PageContentTO page) {
+            super.addPageSpecificParameters(params, page);
+            setFrameUriParams(params);
         }
 
         protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
@@ -319,6 +375,11 @@ public class FramesetPageAssemblers {
             super.setParameters(parameters);
             String sectionID = (String) parameters.get(SECTION_ID_PARAM);
             sectionHelper = new PageSectionHelper(sectionID);
+        }
+
+        protected void addPageSpecificParameters(Map params, PageContentTO page) {
+            super.addPageSpecificParameters(params, page);
+            setFrameUriParams(params);
         }
 
         protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
@@ -417,6 +478,19 @@ public class FramesetPageAssemblers {
         String ns = snip.getNamespace();
         parameters.put(ns + paramName, "t");
         parameters.put(ns + paramName + "_ALL", new String[] { "t" });
+    }
+
+
+    /** Setup the FULL_PAGE_URI and FULL_PAGE_TARGET parameters on behalf
+     * of a PageAssembler that is displaying content in frames.
+     */
+    private static void setFrameUriParams(Map params) {
+        String frameUri = (String) params.get(SnippetEnvironment.CURRENT_FRAME_URI);
+        StringBuffer uri = new StringBuffer(frameUri);
+        HTMLUtils.removeParam(uri, FRAME_PARAM);
+        HTMLUtils.appendQuery(uri, FRAME_PARAM, FRAME_TOP);
+        params.put(SnippetEnvironment.FULL_PAGE_URI, uri.toString());
+        params.put(SnippetEnvironment.FULL_PAGE_TARGET, TOP_FRAME_NAME);
     }
 
 

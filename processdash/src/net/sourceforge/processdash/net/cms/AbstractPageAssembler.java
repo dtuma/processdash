@@ -43,13 +43,10 @@ import net.sourceforge.processdash.util.HTMLUtils;
 /** Abstract base class for renderers that generate a single page of content.
  */
 public abstract class AbstractPageAssembler implements PageAssembler,
-        Needs.Environment, Needs.Parameters, Needs.Prefix, Needs.Data {
+        SnippetEnvironment, Needs.Environment, Needs.Parameters, Needs.Prefix,
+        Needs.Data {
 
     protected static final String AUTO_HEADER_INSTANCE_ID = "auto";
-    public static final String PAGE_URI_PARAM = "cmsPageUri";
-    public static final String PAGE_TITLE_PARAM = "cmsPageTitle";
-    public static final String LOCALIZED_PREFIX_PARAM = "cmsLocalizedPrefix";
-
     protected static final Resources resources = Resources
             .getDashBundle("CMS.Snippet");
 
@@ -186,13 +183,18 @@ public abstract class AbstractPageAssembler implements PageAssembler,
     }
 
     protected void addPageSpecificParameters(Map params, PageContentTO page) {
-        params.put(PAGE_URI_PARAM, getPageUri());
+        params.put(PAGE_FILENAME_PARAM, getPageFilename());
         params.put(PAGE_TITLE_PARAM, page.getPageTitle());
-        params.put(LOCALIZED_PREFIX_PARAM,
-                AnalysisPage.localizePrefix(prefix));
+        params.put(LOCALIZED_PREFIX_PARAM, AnalysisPage.localizePrefix(prefix));
+
+        String pageUri = (String) environment.get("REQUEST_URI");
+        pageUri = HTMLUtils.removeParam(pageUri, "mode");
+        params.put(CURRENT_FRAME_URI, pageUri);
+        params.put(FULL_PAGE_URI, pageUri);
+        params.put(FULL_PAGE_TARGET, "_top");
     }
 
-    private String getPageUri() {
+    private String getPageFilename() {
         String result = (String) environment.get("SCRIPT_NAME");
         result = result.substring(WebServer.CMS_URI_PREFIX.length());
         result = HTMLUtils.urlDecode(result);

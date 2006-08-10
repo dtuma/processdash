@@ -32,15 +32,51 @@ import net.sourceforge.processdash.net.http.HTMLPreprocessor;
 public interface SnippetEnvironment {
 
     /** Key that maps to the text persisted by a former snippet instance. */
-    public String PERSISTED_TEXT = "Snippet_Persisted_Text";
+    public String PERSISTED_TEXT = "cmsSnippetPersistedText";
 
     /** Key that maps to the id of the snippet that created persisted text */
-    public String SNIPPET_ID = "Snippet_ID";
+    public String SNIPPET_ID = "cmsSnippetID";
 
     /** Key that mapps to the version the snippet that created persisted text */
-    public String SNIPPET_VERSION = "Snippet_Version";
+    public String SNIPPET_VERSION = "cmsSnippetVersion";
 
     /** Key that maps to the resource bundle named by the snippet declaration */
     public String RESOURCES = HTMLPreprocessor.RESOURCES_PARAM;
+
+
+    /** Key that maps to the title of the current page, as designated by the
+     * user */
+    public static final String PAGE_TITLE_PARAM = "cmsPageTitle";
+
+    /** Key that maps to a localized version of the current prefix.
+     * 
+     * Example: if the user is visiting the page /To+Date/PSP/All//cms/foo/bar,
+     * and their language is English, this would map to the string
+     * "All PSP Data To Date".
+     */
+    public static final String LOCALIZED_PREFIX_PARAM = "cmsLocalizedPrefix";
+
+    /** Key that maps to the filename of the cms page the user is viewing or
+     * editing.
+     * 
+     * Example: if the user is visiting the page /To+Date/PSP/All//cms/foo/bar,
+     * this would map to the string "/foo/bar".
+     */
+    public static final String PAGE_FILENAME_PARAM = "cmsPageFilename";
+
+    /** Key that maps to a URI that can be used to regenerate the current
+     * frame.
+     * 
+     * If the user is not viewing the current page in frames, this will contain
+     * the same value as {@link FULL_PAGE_URI}.
+     */
+    public String CURRENT_FRAME_URI = "cmsSnippetCurrentFrameUri";
+
+    /** Key that maps to a URI that can be used to regenerate the entire page */
+    public String FULL_PAGE_URI = "cmsFullPageUri";
+
+    /** Key that maps to the value which should be used as a frame target when
+     * replacing the entire page */
+    public String FULL_PAGE_TARGET = "cmsFullPageTarget";
 
 }

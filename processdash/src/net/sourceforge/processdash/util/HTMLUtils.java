@@ -175,4 +175,50 @@ public class HTMLUtils {
         if (query.length() > 0)
             uri.append(uri.indexOf("?") == -1 ? '?' : '&').append(query);
     }
+
+    public static String removeParam(String uri, String paramName) {
+        int pos = uri.indexOf("?") + 1;
+        if (pos == 0) return uri;
+        String paramStart = paramName + "=";
+        if (uri.indexOf(paramStart, pos) == -1) return uri;
+
+        StringBuffer result = new StringBuffer(uri);
+        removeParam(result, paramStart, pos);
+        return result.toString();
+    }
+
+    public static void removeParam(StringBuffer uri, String paramName) {
+        int pos = uri.indexOf("?") + 1;
+        if (pos == 0) return;
+        String paramStart = paramName + "=";
+        if (uri.indexOf(paramStart, pos) == -1) return;
+
+        removeParam(uri, paramStart, pos);
+    }
+
+    private static void removeParam(StringBuffer uri, String paramStart,
+            int pos) {
+        // pos always points at the 1st character following either '?' or a '&'
+        while (pos < uri.length()) {
+            // point end at the character following the next '&', or at 0 if
+            // there are no more parameters.
+            int end = uri.indexOf("&", pos) + 1;
+
+            if (StringUtils.startsWith(uri, paramStart, pos)) {
+                if (end == 0)
+                    // strip off the final parameter, and also the '?' or '&'
+                    // that preceeded it.
+                    uri.setLength(pos-1);
+                else
+                    // delete this parameter, up through the following '&'
+                    uri.replace(pos, end, "");
+            } else {
+                // this parameter is not one we're looking for.
+                if (end == 0)
+                    break;   // no more parameters? exit the loop.
+                else
+                    pos = end; // advance to start looking at the next param.
+            }
+        }
+    }
 }

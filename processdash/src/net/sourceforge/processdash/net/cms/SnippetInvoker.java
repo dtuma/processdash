@@ -213,9 +213,9 @@ public class SnippetInvoker implements SnippetEnvironment {
     /** Query parameters that should be propagated from the parent HTTP request
      * to the snippet */
     private static final String[] PROPAGATED_PARAMS = { "mode", "action",
-            "EXPORT", "defaults", AbstractPageAssembler.PAGE_URI_PARAM,
-            AbstractPageAssembler.PAGE_TITLE_PARAM,
-            AbstractPageAssembler.LOCALIZED_PREFIX_PARAM };
+            "EXPORT", "defaults", PAGE_FILENAME_PARAM, PAGE_TITLE_PARAM,
+            LOCALIZED_PREFIX_PARAM, CURRENT_FRAME_URI, FULL_PAGE_URI,
+            FULL_PAGE_TARGET };
 
 
     private static final ParamDataPersister PARAM_PERSISTER =
