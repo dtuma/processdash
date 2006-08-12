@@ -749,7 +749,7 @@ public class EVReport extends CGIChartBase {
         out.print("</h1>\n");
         if (!exportingToExcel()) {
             out.print(SEPARATE_CHARTS_HTML);
-            out.print(TREE_ICON_HEADER);
+            out.print(HTMLTreeTableWriter.TREE_ICON_HEADER);
         }
 
         EVSchedule s = evModel.getSchedule();
@@ -843,7 +843,7 @@ public class EVReport extends CGIChartBase {
 
     private void printCustomizationLink() {
         if (!parameters.containsKey("EXPORT")) {
-            out.print("&nbsp;&nbsp;<span class='hlink'>"
+            out.print("&nbsp;&nbsp;<span " + HEADER_LINK_STYLE + ">"
                     + "<span class='doNotPrint'><a href='ev-customize.shtm?a");
             if ((evModel instanceof EVTaskListRollup))
                 out.print("&isRollup");
@@ -863,7 +863,7 @@ public class EVReport extends CGIChartBase {
         if (!exportingToExcel()) {
             boolean isFlat = isFlatView();
             String filter = getParameter(LABEL_FILTER_PARAM);
-            out.print("&nbsp;&nbsp;<span class='hlink'>"
+            out.print("&nbsp;&nbsp;<span " + HEADER_LINK_STYLE + ">"
                     + "<span class='doNotPrint'><a href='ev.class");
             if (!isFlat)
                 out.print("?flat");
@@ -949,46 +949,12 @@ public class EVReport extends CGIChartBase {
 
     static final String TITLE_VAR = "%title%";
     static final String POPUP_HEADER =
-        "<style>\n" +
-        "a.noLine { text-decoration: none }\n" +
-        ".popupInfo { position: relative; height: 0; z-index: 1; }\n" +
-        ".popupInfo table { " +
-        "position: absolute; right: 0; display: none; " +
-        "border: 1px solid black; background-color: #ccccff }\n" +
-        "</style>\n" +
-        "<script>\n" +
-        "var lastPopup = null;\n" +
-        "function togglePopupInfo(elm) {\n" +
-        "   var div = elm.parentNode.getElementsByTagName(\"DIV\")[0];\n" +
-        "   var table = div.childNodes[0];\n" +
-        "   if (table.style.display == \"block\") {\n" +
-        "      table.style.display = \"none\";\n" +
-        "      lastPopup = null;\n" +
-        "   } else { \n" +
-        "      if (lastPopup != null && lastPopup != table)\n" +
-        "         lastPopup.style.display = \"none\";\n" +
-        "      table.style.display = \"block\";\n" +
-        "      lastPopup = table;\n" +
-        "      if (table.offsetWidth > div.offsetLeft) {\n" +
-        "         var cells = table.getElementsByTagName(\"TD\");\n" +
-        "         for (var i = 0; i < cells.length; i++) {\n" +
-//      "            cells[i].style.verticalAlign = \"top\";\n" +
-        "            cells[i].style.whiteSpace = \"normal\";\n" +
-        "         }\n" +
-        "         table.width = div.offsetLeft;\n"+
-        "      }\n" +
-        "   }\n" +
-        "}\n" +
-        "</script>\n";
+        "<link rel=stylesheet type='text/css' href='/lib/popup.css'>\n" +
+        "<script type='text/javascript' src='/lib/popup.js'></script>\n";
     static final String HEADER_HTML =
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
-        "<style>\n" +
-        "td.timefmt { vnd.ms-excel.numberformat: [h]\\:mm }\n" +
-        "span.hlink { font-size: medium;  font-style: italic; " +
-        " font-weight: normal }\n" +
-        HTMLTreeTableWriter.getCssInfo() +
-        "</style>\n" +
+        HTMLTreeTableWriter.TREE_HEADER_ITEMS +
         POPUP_HEADER +
         "<script>\n" +
         "function openCustomizeWindow() {\n" +
@@ -997,13 +963,9 @@ public class EVReport extends CGIChartBase {
         "    newWind.focus();\n" +
         "}\n" +
         "</script>\n" +
-        "<script language='javascript1.2' src='treetable.js'></script>" +
         "</head><body><h1>%title%";
-    static final String TREE_ICON_HEADER =
-        "<span style='display:none'>" +
-        "<img id='folder-open' src='/Images/folder-open.gif'>" +
-        "<img id='folder-closed' src='/Images/folder-closed.gif'>" +
-        "</span>\n";
+    static final String HEADER_LINK_STYLE = " style='font-size: medium; " +
+        "font-style: italic; font-weight: normal' ";
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
     static final String SEPARATE_CHARTS_HTML =
@@ -1024,7 +986,7 @@ public class EVReport extends CGIChartBase {
     static final String WEEK_FOOTER_HTML1 = "<a href='week.class'><i>";
     static final String WEEK_FOOTER_HTML2 = "</i></a>";
     static final String FOOTER_HTML2 = "</body></html>";
-    static final String EXCEL_TIME_TD = "<td class='timefmt'>";
+    static final String EXCEL_TIME_TD = "<td class='timeFmt'>";
 
 
     void writeTaskTable(EVTaskList taskList, EVTaskFilter filter)
@@ -1283,7 +1245,7 @@ public class EVReport extends CGIChartBase {
         public String getAttributes(Object value, int row, int column) {
             if (value instanceof String
                     && HOURS_MINUTES_PATTERN.matcher((String) value).matches())
-                return "class='timefmt'";
+                return "class='timeFmt'";
             else
                 return null;
         }
@@ -1320,7 +1282,7 @@ public class EVReport extends CGIChartBase {
                 return analyzer.getRes("Text");
 
             StringBuffer result = new StringBuffer();
-            result.append("<a class='noLine' href='#'"
+            result.append("<a style='text-decoration: none' href='#'"
                     + " onclick='togglePopupInfo(this); return false;'>");
             result.append(analyzer.getHtmlIndicator());
             result.append("</a><div class='popupInfo'>");

@@ -281,7 +281,7 @@ public class EVWeekReport extends TinyCGIBase {
                 "</td><td></td>");
         printData(formatTime(completedTasksTotalPlanTime),
                   formatTime(completedTasksTotalActualTime),
-                  1.0 / cpi, "timefmt");
+                  1.0 / cpi, "timeFmt");
         out.print("<td></td><td></td><td></td><td></td></tr>\n");
 
         interpOut("</table>\n<h3>${Completed_Tasks.Header}</h3>\n");
@@ -333,7 +333,7 @@ public class EVWeekReport extends TinyCGIBase {
             out.print("<tr><td align=right colspan=");
             out.print(showAssignedTo ? "7" : "6");
             interpOut("><b>${Due_Tasks.Total}"
-                    + "&nbsp;</b></td><td class='timefmt'>");
+                    + "&nbsp;</b></td><td class='timeFmt'>");
             out.print(formatTime(timeRemaining));
             out.println("</td></tr>\n</table>");
         }
@@ -413,7 +413,7 @@ public class EVWeekReport extends TinyCGIBase {
     protected void printTimeData(String plan, String actual) {
         printData(plan, actual,
                   (double) parseTime(actual) / (double) parseTime(plan),
-                  "timefmt");
+                  "timeFmt");
     }
     protected void printPctData(String plan, String actual) {
         printData(plan, actual,
@@ -446,11 +446,11 @@ public class EVWeekReport extends TinyCGIBase {
         String time;
         out.print("<tr><td class=left>");
         out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
-        out.print("</td><td class='timefmt'>");
+        out.print("</td><td class='timeFmt'>");
         time = (String) tasks.getValueAt(i, EVTaskList.PLAN_TIME_COLUMN);
         planTime = parseTime(time);
         out.print(time);
-        out.print("</td><td class='timefmt'>");
+        out.print("</td><td class='timeFmt'>");
         time = (String) tasks.getValueAt(i, EVTaskList.ACT_TIME_COLUMN);
         actualTime = parseTime(time);
         out.print(time);
@@ -482,11 +482,11 @@ public class EVWeekReport extends TinyCGIBase {
         out.print(encodeHTML(taskPath));
         if (showTimingIcons)
             out.write(EVReport.getTimingLink(taskPath));
-        out.print("</td><td class='timefmt'>");
+        out.print("</td><td class='timeFmt'>");
         time = (String) tasks.getValueAt(i, EVTaskList.PLAN_TIME_COLUMN);
         planTime = parseTime(time);
         out.print(time);
-        out.print("</td><td class='timefmt'>");
+        out.print("</td><td class='timeFmt'>");
         time = (String) tasks.getValueAt(i, EVTaskList.ACT_TIME_COLUMN);
         actualTime = parseTime(time);
         out.print(time);
@@ -513,7 +513,7 @@ public class EVWeekReport extends TinyCGIBase {
             forecastTimeRemaining = planTime - actualTime;
 
         if (forecastTimeRemaining > 0)
-            out.print("<td class='timefmt'>" + formatTime(forecastTimeRemaining));
+            out.print("<td class='timeFmt'>" + formatTime(forecastTimeRemaining));
         else
             out.print("<td class='error'>0:00&nbsp;&nbsp;???");
         out.println("</td></tr>");
@@ -619,7 +619,6 @@ public class EVWeekReport extends TinyCGIBase {
         "<style> td { text-align:right } td.left { text-align:left } "+
         "td.center { text-align: center } " +
         "td.error  { font-style: italic;  color: red }\n" +
-        "td.timefmt { vnd.ms-excel.numberformat: [h]\\:mm }\n" +
         "td.header { text-align:center; font-weight:bold; "+
                            " vertical-align:bottom }\n" +
         "span.nav { font-size: medium;  font-style: italic; " +

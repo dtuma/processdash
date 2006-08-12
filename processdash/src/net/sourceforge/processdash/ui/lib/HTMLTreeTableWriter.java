@@ -51,6 +51,14 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
         this.nodeColumn = nodeColumn;
     }
 
+    public String getTreeName() {
+        return treeName;
+    }
+
+    public void setTreeName(String treeName) {
+        this.treeName = treeName;
+    }
+
     public void writeTree(Writer out, TreeTableModel t) throws IOException {
         // create a JTree for this tree table
         tree = new JTree(t);
@@ -131,10 +139,10 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
                     .append(30 * indent + iconWidth) //
                     .append("px; position: relative'>");
             if (isLeaf)
-                result.append("<img class='doc' src='/Images/document.gif'"
-                        + " width='12' height='14'>");
+                result.append("<img class='treeTableDoc' width='12'"
+                        +" height='14' src='/Images/document.gif'>");
             else
-                result.append("<a href='#' class='folder' "
+                result.append("<a href='#' class='treeTableFolder' "
                         + "onclick='toggleRows(this); return false;'>"
                         + "<img border='0' src='/Images/folder-closed.gif'"
                         + " width='26' height='14'></a>");
@@ -148,8 +156,16 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
     }
 
-    public static String getCssInfo() {
-        return "a.folder { position: absolute;  vertical-align: baseline; left: -30; top: 2; }\n"
-              + "img.doc { position: absolute;  vertical-align: baseline; left: -15; top: 2; }\n";
-    }
+
+
+    public static final String TREE_ICON_HEADER =
+        "<span style='display:none'>" +
+        "<img alt='tree-table-folder-open' src='/Images/folder-open.gif'>" +
+        "<img alt='tree-table-folder-closed' src='/Images/folder-closed.gif'>" +
+        "</span>\n";
+
+    public static final String TREE_HEADER_ITEMS =
+        "<link rel=stylesheet type='text/css' href='/lib/treetable.css'>\n" +
+        "<script type='text/javascript' src='/lib/treetable.js'></script>\n";
+
 }

@@ -26,6 +26,9 @@ OL { margin-top: 0pt; margin-bottom: 0pt }
 /* style for read only items on a form */
 .readOnlyElem { background-color: #CCCCCC }
 
+/* style hint to Excel for time formatting */
+.timeFmt { vnd.ms-excel.numberformat: [h]\:mm }
+
 /* styles for the span containing CMS control buttons */
 .cmsToolbar { float: right;  margin-left: 20px; margin-bottom: 20px }
 @media print { .cmsToolbar { display: none } }

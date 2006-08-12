@@ -150,8 +150,8 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
 
     protected void addPageSpecificHeaderItems(Set headerItems) {
         super.addPageSpecificHeaderItems(headerItems);
-        addScript(headerItems, "/js/prototype.js");
-        addScript(headerItems, "/js/scriptaculous.js");
+        addScript(headerItems, "/lib/prototype.js");
+        addScript(headerItems, "/lib/scriptaculous.js");
         addScript(headerItems, "/dash/cmsEdit.js");
         addStyleSheet(headerItems, "/dash/cmsEdit.css");
         addFixedPositionCssItems(headerItems);

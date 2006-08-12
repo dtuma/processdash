@@ -1,0 +1,13 @@
+a.treeTableFolder {
+    position: absolute;
+    vertical-align: baseline;
+    left: -30;
+    top: 2;
+}
+
+img.treeTableDoc {
+    position: absolute;
+    vertical-align: baseline;
+    left: -15;
+    top: 2;
+}

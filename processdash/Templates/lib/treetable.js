@@ -6,7 +6,7 @@
 
 function toggleRows(elm) {
    var rows = document.getElementsByTagName("TR");
-   setImage(elm, "folder-closed");
+   setImage(elm, "tree-table-folder-closed");
    var newDisplay = "none";
    var thisID = elm.parentNode.parentNode.parentNode.id + "-";
    // Are we expanding or contracting? If the first child is hidden, we expand
@@ -16,7 +16,7 @@ function toggleRows(elm) {
          if (r.style.display == "none") {
             if (document.all) newDisplay = "block"; //IE4+ specific code
             else newDisplay = "table-row"; //Netscape and Mozilla
-            setImage(elm, "folder-open");
+            setImage(elm, "tree-table-folder-open");
          }
          break;
       }
@@ -32,7 +32,7 @@ function toggleRows(elm) {
          var cell = lookForChild(s, "TD");
          var tier = lookForChild(cell, "DIV");
          var folder = lookForChild(tier, "A");
-         setImage(folder, "folder-closed");
+         setImage(folder, "tree-table-folder-closed");
       }
    }
 }
@@ -46,8 +46,15 @@ function lookForChild(elem, tagName) {
 
 function setImage(elm, imgID) {
    var image = lookForChild(elm, "IMG");
-   if (image != null)
-	image.src = document.getElementById(imgID).src;
+   if (image == null) return;
+
+   var allImages = document.getElementsByTagName("IMG");
+   for (var i = 0;  i < allImages.length;  i++) {
+      if (allImages[i].alt == imgID) {
+         image.src = allImages[i].src;
+         return;
+      }     
+   }
 }
 
 function matchStart(target, pattern, matchDirectChildrenOnly) {
