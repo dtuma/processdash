@@ -79,8 +79,8 @@ public abstract class AbstractViewPageAssembler extends AbstractPageAssembler {
             throws IOException {
 
         int status = snippet.getStatus();
-        if (status == SnippetInvoker.STATUS_NOT_RUN)
-            ; // Hmmm...do nothing.
+        if (status < SnippetInvoker.STATUS_OK)
+            ; // Do nothing.
 
         else if (status == SnippetInvoker.STATUS_OK) {
             String generatedContent = snippet.getGeneratedContent();

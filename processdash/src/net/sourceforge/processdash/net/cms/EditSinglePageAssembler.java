@@ -222,7 +222,7 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
             writeHidden(out, SNIPPET_VERBATIM_PERSISTER_ + ns,
                     snippet.getPersisterID());
 
-            if (status != SnippetInvoker.STATUS_NOT_RUN
+            if (status > SnippetInvoker.STATUS_OK
                     && !invisible && !chromeless) {
                 String key = "Edit_Page.Errors."
                         + SnippetInvoker.STATUS_RESOURCE_KEYS[status]

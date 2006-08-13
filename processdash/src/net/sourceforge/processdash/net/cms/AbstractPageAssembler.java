@@ -140,7 +140,9 @@ public abstract class AbstractPageAssembler implements PageAssembler,
                     snip.setGeneratedContent(null);
                 }
             } else {
+                snip.setStatus(SnippetInvoker.STATUS_NOT_RUN);
                 snip.setGeneratedContent(null);
+                invoker.test(snip);
             }
         }
 

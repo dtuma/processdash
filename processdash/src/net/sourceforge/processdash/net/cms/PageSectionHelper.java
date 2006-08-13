@@ -25,6 +25,8 @@
 
 package net.sourceforge.processdash.net.cms;
 
+import java.util.List;
+
 import net.sourceforge.processdash.util.StringUtils;
 
 public class PageSectionHelper {
@@ -84,6 +86,41 @@ public class PageSectionHelper {
         }
         return status;
     }
+
+    /** Find any nonempty sections on the page which contain only invalid
+     * snippets (snippets which can not be run for any reason), and hide
+     * the headings for those sections.
+     * 
+     * Hiding is performed by setting the generated content to null and the
+     * status to {@link SnippetInvoker#STATUS_HIDDEN}.
+     * 
+     * @param page
+     */
+    public static void hideInvalidSections(PageContentTO page) {
+        List snippets = page.getSnippets();
+        int sectionStatus = EMPTY_SECTION;
+        for (int i = snippets.size();  i-- > 0; ) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) snippets.get(i);
+            if (snip.getPageRegion() != PageContentTO.REGION_CONTENT)
+                continue;
+
+            if (isSectionHeading(snip)) {
+                if (sectionStatus > SnippetInvoker.STATUS_OK) {
+                    snip.setStatus(SnippetInvoker.STATUS_HIDDEN);
+                    snip.setGeneratedContent(null);
+                }
+                sectionStatus = EMPTY_SECTION;
+            } else {
+                int oneStatus = snip.getStatus();
+                if (sectionStatus == EMPTY_SECTION)
+                    sectionStatus = oneStatus;
+                else if (oneStatus <= SnippetInvoker.STATUS_OK)
+                    sectionStatus = SnippetInvoker.STATUS_OK;
+            }
+        }
+
+    }
+    private static int EMPTY_SECTION = -100;
 
     public static boolean isSectionHeading(SnippetInstanceTO snip) {
         return SECTION_HEADING_SNIP_ID.equals(snip.getSnippetID());

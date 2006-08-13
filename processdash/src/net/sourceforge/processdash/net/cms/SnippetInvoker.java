@@ -42,10 +42,18 @@ import net.sourceforge.processdash.util.XMLUtils;
  */
 public class SnippetInvoker implements SnippetEnvironment {
 
+    /** Status indicating that a snippet has been hidden */
+    public static final int STATUS_HIDDEN = -2;
+
     /** Status indicating that a snippet has not yet been invoked. */
     public static final int STATUS_NOT_RUN = -1;
 
-    /** Status indicating that a snippet completed successfully */
+    /** Status indicating that a snippet completed successfully.
+     * 
+     * Note: numbers greater than this value indicate error conditions;
+     * numbers less than this value indicate that a snippet was skipped
+     * or hidden for some programmatic reason.
+     */
     public static final int STATUS_OK = 0;
 
     /** Status indicating that a snippet could not be invoked, because no
@@ -111,16 +119,10 @@ public class SnippetInvoker implements SnippetEnvironment {
      * @throws IOException if an error was encountered
      */
     public String invoke(SnippetInstanceTO snippet) throws IOException {
+        if (!test(snippet))
+            return null;
 
         SnippetDefinition defn = snippet.getDefinition();
-        if (defn == null) {
-            snippet.setStatus(SnippetInvoker.STATUS_NO_DEFINITION);
-            return null;
-        } else if (!defn.matchesContext(dataContext)) {
-            snippet.setStatus(SnippetInvoker.STATUS_CONTEXT_MISMATCH);
-            return null;
-        }
-
         if (XMLUtils.hasValue(mode)
                 && !"view".equalsIgnoreCase(mode)
                 && !defn.getModes().contains(mode)) {
@@ -143,6 +145,9 @@ public class SnippetInvoker implements SnippetEnvironment {
         extraEnvironment.put(RESOURCES, defn.getResources());
         extraEnvironment.put(HTMLPreprocessor.REPLACEMENTS_PARAM, Collections
                 .singletonMap("$$$_", namespace));
+        for (int i = 0; i < PROPAGATE_TO_ENV.length; i++)
+            extraEnvironment.put(PROPAGATE_TO_ENV[i], parentParameters
+                    .get(PROPAGATE_TO_ENV[i]));
 
         StringBuffer queryString = new StringBuffer(this.queryString);
         addNamespacedParameters(parentParameters, namespace, queryString);
@@ -166,6 +171,26 @@ public class SnippetInvoker implements SnippetEnvironment {
             snippet.setInvocationException(ioe);
             throw ioe;
         }
+    }
+
+    /** Check to see if the given snippet is valid for the current context.
+     * 
+     * @param snippet a snippet to test.
+     * @return  true if the definition for this snippet matches the context
+     *    of this invoker.  If false is returned, the snippet's status will
+     *    be set to indicate the problem.
+     */
+    public boolean test(SnippetInstanceTO snippet) {
+        SnippetDefinition defn = snippet.getDefinition();
+        if (defn == null) {
+            snippet.setStatus(SnippetInvoker.STATUS_NO_DEFINITION);
+            return false;
+        } else if (!defn.matchesContext(dataContext)) {
+            snippet.setStatus(SnippetInvoker.STATUS_CONTEXT_MISMATCH);
+            return false;
+        }
+
+        return true;
     }
 
     protected static void addNamespacedParameters(Map params,
@@ -213,9 +238,12 @@ public class SnippetInvoker implements SnippetEnvironment {
     /** Query parameters that should be propagated from the parent HTTP request
      * to the snippet */
     private static final String[] PROPAGATED_PARAMS = { "mode", "action",
-            "EXPORT", "defaults", PAGE_FILENAME_PARAM, PAGE_TITLE_PARAM,
-            LOCALIZED_PREFIX_PARAM, CURRENT_FRAME_URI, FULL_PAGE_URI,
-            FULL_PAGE_TARGET };
+            "EXPORT", "defaults" };
+    /** Values that should be propagated from the query parameters of the
+     * parent HTTP request to the environment of the snippet */
+    private static final String[] PROPAGATE_TO_ENV = { PAGE_FILENAME_PARAM,
+            PAGE_TITLE_PARAM, LOCALIZED_PREFIX_PARAM, CURRENT_FRAME_URI,
+            FULL_PAGE_URI, FULL_PAGE_TARGET };
 
 
     private static final ParamDataPersister PARAM_PERSISTER =

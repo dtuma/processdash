@@ -107,6 +107,11 @@ public class EditedPageDataParser implements EditPageParameters,
                 if (snip != null)
                     snippets.add(snip);
             }
+            for (Iterator i = snippets.iterator(); i.hasNext();) {
+                SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+                if (!XMLUtils.hasValue(snip.getInstanceID()))
+                    snip.setInstanceID(Integer.toString(nextInstanceID++));
+            }
         }
 
         page.setSnippets(snippets);
@@ -129,8 +134,6 @@ public class EditedPageDataParser implements EditPageParameters,
                 nextInstanceID = Math.max(nextInstanceID,
                         Integer.parseInt(instId) + 1);
             } catch (NumberFormatException nfe) {}
-        else
-            instId = Integer.toString(nextInstanceID++);
         snip.setInstanceID(instId);
 
         if (parameters.containsKey(SNIPPET_VERBATIM_TEXT_ + ns)) {

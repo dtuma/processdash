@@ -43,6 +43,7 @@ public class ViewSinglePageAssembler extends AbstractViewPageAssembler {
         out.write("<body>\n");
         out.write("<div><form>\n\n");
 
+        PageSectionHelper.hideInvalidSections(page);
         for (Iterator i = page.getSnippets().iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             writeSnippet(out, snip);

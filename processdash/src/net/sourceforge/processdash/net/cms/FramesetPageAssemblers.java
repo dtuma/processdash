@@ -175,6 +175,7 @@ public class FramesetPageAssemblers {
             String selfUrl = CmsContentDispatcher.getSimpleSelfUri(environment,
                     false);
             selfUrl = HTMLUtils.removeParam(selfUrl, FRAME_PARAM);
+            selfUrl = ensureValidSectionParam(selfUrl, page);
 
             out.write("<frame name=\"toc\" src=\"");
             out.write(HTMLUtils.escapeEntities(HTMLUtils.appendQuery(selfUrl,
@@ -190,6 +191,40 @@ public class FramesetPageAssemblers {
             out.write("</html>\n");
         }
 
+        private String ensureValidSectionParam(String url, PageContentTO page) {
+            String sectionId = (String) parameters.get(SECTION_ID_PARAM);
+            String firstValidSectionId = null;
+
+            PageSectionHelper.hideInvalidSections(page);
+            for (Iterator i = page.getContentSnippets(); i.hasNext();) {
+                SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+
+                // if this snip is a section heading that was not hidden by
+                // the hideInvalidSections call above,
+                if (PageSectionHelper.isSectionHeading(snip)
+                        && snip.getStatus() != SnippetInvoker.STATUS_HIDDEN) {
+
+                    if (sectionId != null
+                            && sectionId.equals(snip.getInstanceID()))
+                        // if the URL named this section, all is well.  Just
+                        // return the URL unchanged.
+                        return url;
+
+                    else if (firstValidSectionId == null)
+                        // if we've just found the first valid section heading,
+                        // remember its instance ID for later.
+                        firstValidSectionId = snip.getInstanceID();
+                }
+            }
+
+            // if we reached here, then the URL either didn't name a section,
+            // or the section named was invalid.  Set the section heading
+            // parameter to indicate the first valid section we found.
+            url = HTMLUtils.removeParam(url, SECTION_ID_PARAM);
+            url = HTMLUtils.appendQuery(url, SECTION_ID_PARAM,
+                    firstValidSectionId);
+            return url;
+        }
     }
 
 
@@ -218,6 +253,7 @@ public class FramesetPageAssemblers {
 
         protected void writePage(Writer out, Set headerItems, PageContentTO page)
                 throws IOException {
+            PageSectionHelper.hideInvalidSections(page);
 
             //out.write(HTML_TRANSITIONAL_DOCTYPE);
             out.write("<html>\n");
@@ -237,7 +273,8 @@ public class FramesetPageAssemblers {
                     FRAME_CONTENT);
             for (Iterator i = page.getContentSnippets(); i.hasNext();) {
                 SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-                if (PageSectionHelper.isSectionHeading(snip)) {
+                if (PageSectionHelper.isSectionHeading(snip)
+                        && snip.getStatus() == SnippetInvoker.STATUS_OK) {
                     out.write("<p><a target=\"contents\" href=\"");
                     String sectionUrl = HTMLUtils.appendQuery(contentUrl,
                             SECTION_ID_PARAM, snip.getInstanceID());
