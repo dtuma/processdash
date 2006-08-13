@@ -38,7 +38,7 @@ public class summaryName extends selectWBS {
         writeHierarchyIcon(prefix, projectRoot);
 
         out.println("</h2>");
-        String cmsPageTitle = getParameter("cmsPageTitle");
+        String cmsPageTitle = (String) env.get("cmsPageTitle");
         if (cmsPageTitle != null) {
             out.print("<h2>");
             out.print(HTMLUtils.escapeEntities(cmsPageTitle));
@@ -94,7 +94,7 @@ public class summaryName extends selectWBS {
 
 
     private String getSnippetParams(boolean fullPage, boolean stripPrefix) {
-        String uri = getParameter(fullPage ? "cmsFullPageUri"
+        String uri = (String) env.get(fullPage ? "cmsFullPageUri"
                 : "cmsSnippetCurrentFrameUri");
         if (uri == null)
             return null;
@@ -108,7 +108,7 @@ public class summaryName extends selectWBS {
         String result = "?destUri=" + HTMLUtils.urlEncode(uri);
 
         if (fullPage) {
-            String target = getParameter("cmsFullPageTarget");
+            String target = (String) env.get("cmsFullPageTarget");
             if (target == null) target = "_top";
             result = result + "&target=" + HTMLUtils.urlEncode(target);
         }
