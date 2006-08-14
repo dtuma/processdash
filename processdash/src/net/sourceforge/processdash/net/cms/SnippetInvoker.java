@@ -241,8 +241,8 @@ public class SnippetInvoker implements SnippetEnvironment {
             "EXPORT", "defaults" };
     /** Values that should be propagated from the query parameters of the
      * parent HTTP request to the environment of the snippet */
-    private static final String[] PROPAGATE_TO_ENV = { PAGE_FILENAME_PARAM,
-            PAGE_TITLE_PARAM, LOCALIZED_PREFIX_PARAM, CURRENT_FRAME_URI,
+    private static final String[] PROPAGATE_TO_ENV = { CMS_PAGE_FILENAME,
+            CMS_PAGE_TITLE, CMS_LOCALIZED_PREFIX, CURRENT_FRAME_URI,
             FULL_PAGE_URI, FULL_PAGE_TARGET };
 
 

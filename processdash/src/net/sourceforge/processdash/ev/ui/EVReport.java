@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.table.TableModel;
@@ -62,6 +63,7 @@ import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
+import net.sourceforge.processdash.net.cms.SnippetEnvironment;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
@@ -96,6 +98,7 @@ public class EVReport extends CGIChartBase {
     public static final String FAKE_MODEL_NAME = "/  ";
     private static final String CUSTOMIZE_PARAM = "customize";
     private static final String LABEL_FILTER_PARAM = "labelFilter";
+    static final String TASKLIST_PARAM = "tl";
     static final String CUSTOMIZE_HIDE_PLAN_LINE = "hidePlanLine";
     static final String CUSTOMIZE_HIDE_FORECAST_LINE = "hideForecastLine";
     static final String CUSTOMIZE_HIDE_ASSIGN_TO = "hideAssignedTo";
@@ -148,6 +151,8 @@ public class EVReport extends CGIChartBase {
     EVTaskList evModel = null;
     /** The name of the task list that creates that earned value model */
     String taskListName = null;
+    /** True if we are rendering a snippet, to be embedded on a larger page */
+    boolean isSnippet = false;
 
     /** Generate CGI output. */
     protected void writeContents() throws IOException {
@@ -194,20 +199,13 @@ public class EVReport extends CGIChartBase {
 
 
     private void getEVModel() throws TinyCGIException {
-        taskListName = getPrefix();
-        if (taskListName == null || taskListName.length() < 2)
+        taskListName = getTaskListName();
+        if (taskListName == null)
             throw new TinyCGIException(400, "schedule name missing");
         else if (FAKE_MODEL_NAME.equals(taskListName)) {
             evModel = null;
             return;
         }
-        taskListName = taskListName.substring(1);
-
-        // strip the "publishing prefix" if it is present.
-        if (taskListName.startsWith("ev /"))
-            taskListName = taskListName.substring(4);
-        else if (taskListName.startsWith("evr /"))
-            taskListName = taskListName.substring(5);
 
         long now = System.currentTimeMillis();
 
@@ -241,6 +239,58 @@ public class EVReport extends CGIChartBase {
             lastRecalcTime = now;
             lastEVModel = evModel;
         }
+    }
+
+
+    private String getTaskListName() {
+        String result = getParameter(TASKLIST_PARAM);
+        if ("auto".equals(result))
+            return getAutoTaskList(getDataRepository(), getPrefix());
+        else if (result != null && result.length() > 0)
+            return result;
+        else {
+            result = getPrefix();
+            if (result == null || result.length() < 2)
+                return null;
+
+            // strip the initial slash
+            result = result.substring(1);
+
+            // strip the "publishing prefix" if it is present.
+            if (result.startsWith("ev /"))
+                result = result.substring(4);
+            else if (result.startsWith("evr /"))
+                result = result.substring(5);
+            return result;
+        }
+    }
+
+
+    /** Attempt to automatically determine the task list to use for a
+     * particular project.
+     * 
+     * @param data the data repository
+     * @param prefix the prefix of the project in question
+     * @return the name of a task list, if a suitable one was found; otherwise,
+     *     null.
+     */
+    public static String getAutoTaskList(DataRepository data, String prefix) {
+        // check and see whether this prefix names a project which has
+        // explicitly specified a schedule (typical for team projects)
+        String dataName = DataRepository.createDataName(prefix,
+                "Project_Schedule_Name");
+        SimpleData val = data.getSimpleValue(dataName);
+        if (val != null && val.test())
+            return val.format();
+
+        // check and see whether there is exactly one task list that contains
+        // the prefix in question.
+        List taskLists = EVTaskList.getTaskListNamesForPath(data, prefix);
+        if (taskLists != null && taskLists.size() == 1)
+            return (String) taskLists.get(0);
+
+        // we can't guess.  Give up.
+        return null;
     }
 
 
@@ -705,16 +755,22 @@ public class EVReport extends CGIChartBase {
         setValue("settings//timestamp", new DateData());
     }
     private SimpleData getValue(String name) {
-        String dataName = DataRepository.createDataName(getPrefix(), name);
+        String dataName = DataRepository.createDataName("/" + taskListName, name);
         return getDataRepository().getSimpleValue(dataName);
     }
     private void setValue(String name, SimpleData val) {
-        String dataName = DataRepository.createDataName(getPrefix(), name);
+        String dataName = DataRepository.createDataName("/" + taskListName, name);
         getDataRepository().putValue(dataName, val);
     }
     private boolean usingCustomizationSettings;
     private void loadCustomizationSettings() {
+        if (parameters.containsKey("labelFilterAuto"))
+            lookupLabelFilter();
         usingCustomizationSettings = isTimestampRecent();
+    }
+    private void lookupLabelFilter() {
+        SimpleData val = getDataContext().getSimpleValue("Label//Filter");
+        parameters.put(LABEL_FILTER_PARAM, val == null ? "" : val.format());
     }
     private boolean isTimestampRecent() {
         DateData settingsTimestamp = (DateData) getValue("settings//timestamp");
@@ -740,15 +796,19 @@ public class EVReport extends CGIChartBase {
      *  and including img tags referencing charts.
      */
     public void writeHTML() throws IOException {
+        isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
         String taskListHTML = WebServer.encodeHtmlEntities(taskListName);
+        String title = resources.format("Report.Title_FMT", taskListHTML);
 
-        out.print(StringUtils.findAndReplace
-                  (HEADER_HTML, TITLE_VAR,
-                   resources.format("Report.Title_FMT", taskListHTML)));
+        out.print(StringUtils.findAndReplace(HEADER_HTML, TITLE_VAR,
+                title));
+        out.print(isSnippet ? "<h2>" : "<h1>");
+        out.print(title);
         printCustomizationLink();
-        out.print("</h1>\n");
+        out.print(isSnippet ? "</h2>" : "</h1>");
+
         if (!exportingToExcel()) {
-            out.print(SEPARATE_CHARTS_HTML);
+            interpOutLink(SEPARATE_CHARTS_HTML);
             out.print(HTMLTreeTableWriter.TREE_ICON_HEADER);
         }
 
@@ -778,7 +838,7 @@ public class EVReport extends CGIChartBase {
             writeMetric(m, i, hidePlan, hideForecast);
         out.print("</table>");
 
-        out.print("<h2><a name='tasks'></a>"+getResource("TaskList.Title"));
+        out.print("<h2><a name='$$$_tasks'></a>"+getResource("TaskList.Title"));
         printTaskStyleLink();
         EVTaskFilter taskFilter = printFilterInfo();
         out.print("</h2>\n");
@@ -791,26 +851,43 @@ public class EVReport extends CGIChartBase {
         writeScheduleTable(s);
 
         out.print("<p class='doNotPrint'>");
-        out.print(EXPORT_HTML1A);
-        out.print(getResource("Report.Export_Text"));
-        out.print(EXPORT_HTML1B);
+        if (!isSnippet)
+            interpOutLink(EXPORT_TEXT_LINK);
+        else
+            out.print(FORCE_EXCEL_EXPORT_SCRIPT);
 
         if (!parameters.containsKey("EXPORT")) {
-            String text = resources.interpolate(EXPORT_HTML2,
-                    HTMLUtils.ESC_ENTITIES);
-            String filenamePat = HTMLUtils
-                    .urlEncode(resources.getString("Report.Archive_Filename"));
-            text = StringUtils.findAndReplace(text, "FILENAME", filenamePat);
-            out.write(text);
+            interpOutLink(EXPORT_CHARTS_LINK);
+            interpOutLink(EXPORT_MSPROJ_LINK);
+            if (!isSnippet) {
+                String link = EXPORT_ARCHIVE_LINK;
+                String filenamePat = HTMLUtils.urlEncode(
+                        resources.getString("Report.Archive_Filename"));
+                link = StringUtils.findAndReplace(link, "FILENAME", filenamePat);
+                interpOutLink(link);
+            }
         }
 
-        out.print(WEEK_FOOTER_HTML1);
-        out.print(getResource("Report.Show_Weekly_View"));
-        out.print(WEEK_FOOTER_HTML2);
+        interpOutLink(SHOW_WEEK_LINK);
 
         out.print("</p>");
-        out.print(FOOTER_HTML2);
+        out.print("</body></html>");
     }
+
+    private void interpOutLink(String html) {
+        html = StringUtils.findAndReplace(html, "@@@", getEffectivePrefix());
+        html = resources.interpolate(html, HTMLUtils.ESC_ENTITIES);
+        out.print(html);
+    }
+
+
+    private String getEffectivePrefix() {
+        if (parameters.containsKey(TASKLIST_PARAM))
+            return "/" + HTMLUtils.urlEncode(taskListName) + "//reports/";
+        else
+            return "";
+    }
+
 
     private EVTaskFilter printFilterInfo() {
         String filter = null;
@@ -844,7 +921,9 @@ public class EVReport extends CGIChartBase {
     private void printCustomizationLink() {
         if (!parameters.containsKey("EXPORT")) {
             out.print("&nbsp;&nbsp;<span " + HEADER_LINK_STYLE + ">"
-                    + "<span class='doNotPrint'><a href='ev-customize.shtm?a");
+                    + "<span class='doNotPrint'><a href='");
+            out.print(getEffectivePrefix());
+            out.print("ev-customize.shtm?a");
             if ((evModel instanceof EVTaskListRollup))
                 out.print("&isRollup");
             if (!parameters.containsKey(LABEL_FILTER_PARAM)
@@ -855,6 +934,13 @@ public class EVReport extends CGIChartBase {
             out.print(HTMLUtils.escapeEntities(resources
                     .getDlgString("Customize")));
             out.print("</a></span></span>");
+            out.print("<script>\n" +
+                    "function openCustomizeWindow() {\n" +
+                    "    var newWind = window.open ('', 'customize',\n" +
+                    "        'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=200');\n" +
+                    "    newWind.focus();\n" +
+                    "}\n" +
+                    "</script>\n");
         }
     }
 
@@ -864,20 +950,34 @@ public class EVReport extends CGIChartBase {
             boolean isFlat = isFlatView();
             String filter = getParameter(LABEL_FILTER_PARAM);
             out.print("&nbsp;&nbsp;<span " + HEADER_LINK_STYLE + ">"
-                    + "<span class='doNotPrint'><a href='ev.class");
-            if (!isFlat)
-                out.print("?flat");
-            if (filter != null) {
-                out.print(isFlat ? '?' : '&');
-                out.print(LABEL_FILTER_PARAM + "="
-                        + HTMLUtils.urlEncode(filter));
+                    + "<span class='doNotPrint'><a href=\"");
+
+            StringBuffer href = new StringBuffer();
+
+            String uri = (String) env.get(SnippetEnvironment.CURRENT_FRAME_URI);
+            href.append(uri == null ? "ev.class" : uri);
+
+            if (isFlat) {
+                if (uri != null) {
+                    Matcher m = FLAT_PARAM_PATTERN.matcher(uri);
+                    if (m.find())
+                        HTMLUtils.removeParam(href, m.group());
+                }
+            } else {
+                href.append(href.indexOf("?") == -1 ? '?' : '&');
+                href.append(isSnippet ? "$$$_flat=t" : "flat=t");
             }
-            out.print("#tasks'>");
+
+            HTMLUtils.appendQuery(href, LABEL_FILTER_PARAM, filter);
+            out.print(href.toString());
+
+            out.print("#$$$_tasks\">");
             out.print(resources.getHTML(isFlat ? "Report.Tree_View"
                     : "Report.Flat_View"));
             out.print("</a></span></span>");
         }
     }
+    private Pattern FLAT_PARAM_PATTERN = Pattern.compile("[^&?]*flat");
 
 
     protected void writeMetric(EVMetrics m, int i, boolean hidePlan,
@@ -956,36 +1056,32 @@ public class EVReport extends CGIChartBase {
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         HTMLTreeTableWriter.TREE_HEADER_ITEMS +
         POPUP_HEADER +
-        "<script>\n" +
-        "function openCustomizeWindow() {\n" +
-        "    var newWind = window.open ('', 'customize',\n" +
-        "        'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=200');\n" +
-        "    newWind.focus();\n" +
-        "}\n" +
-        "</script>\n" +
-        "</head><body><h1>%title%";
+        "</head><body>";
     static final String HEADER_LINK_STYLE = " style='font-size: medium; " +
         "font-style: italic; font-weight: normal' ";
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
     static final String SEPARATE_CHARTS_HTML =
         "<pre>"+
-        "<img src='ev.class?"+CHART_PARAM+"="+VALUE_CHART+COLOR_PARAMS+"'>" +
-        "<img src='ev.class?"+CHART_PARAM+"="+TIME_CHART+COLOR_PARAMS+
+        "<img src='@@@ev.class?"+CHART_PARAM+"="+VALUE_CHART+COLOR_PARAMS+"'>" +
+        "<img src='@@@ev.class?"+CHART_PARAM+"="+TIME_CHART+COLOR_PARAMS+
         "&width=320&hideLegend'></pre>\n";
     static final String COMBINED_CHARTS_HTML =
-        "<img src='ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
-    static final String EXPORT_HTML1A = "<a href=\"../reports/excel.iqy\"><i>";
-    static final String EXPORT_HTML1B = "</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
-    static final String EXPORT_HTML2 = "<a href='ev.xls'><i>"
-            + "${Report.Export_Charts}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;"
-            + "<a href='ev-project-instr.htm'><i>"
-            + "${Report.Export_Project}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;"
-            + "<a href='../dash/archive.class?filename=FILENAME'><i>"
+        "<img src='@@@ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
+    static final String EXPORT_TEXT_LINK = "<a href=\"@@@excel.iqy\"><i>"
+            + "${Report.Export_Text}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
+    static final String EXPORT_CHARTS_LINK = "<a href='@@@ev.xls'><i>"
+            + "${Report.Export_Charts}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
+    static final String EXPORT_MSPROJ_LINK =
+            "<a href='@@@ev-project-instr.htm'><i>"
+            + "${Report.Export_Project}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
+    static final String EXPORT_ARCHIVE_LINK =
+            "<a href='../dash/archive.class?filename=FILENAME'><i>"
             + "${Report.Export_Archive}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
-    static final String WEEK_FOOTER_HTML1 = "<a href='week.class'><i>";
-    static final String WEEK_FOOTER_HTML2 = "</i></a>";
-    static final String FOOTER_HTML2 = "</body></html>";
+    static final String SHOW_WEEK_LINK ="<a href='@@@week.class'><i>"
+            + "${Report.Show_Weekly_View}</i></a>";
+    static final String FORCE_EXCEL_EXPORT_SCRIPT = "<script "
+            + "type='text/javascript'>var SHOW_EXCEL_EXPORT = true;</script>\n";
     static final String EXCEL_TIME_TD = "<td class='timeFmt'>";
 
 
@@ -1005,6 +1101,7 @@ public class EVReport extends CGIChartBase {
         TreeTableModel tree = taskList.getMergedModel(true, filter);
         HTMLTreeTableWriter writer = new HTMLTreeTableWriter();
         customizeTaskTableWriter(writer, taskList, null);
+        writer.setTreeName("$$$_t");
         writer.writeTree(out, tree);
 
         int depth = Settings.getInt("ev.showHierarchicalDepth", 3);

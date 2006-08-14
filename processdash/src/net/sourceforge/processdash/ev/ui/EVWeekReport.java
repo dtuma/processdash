@@ -78,14 +78,10 @@ public class EVWeekReport extends TinyCGIBase {
     protected void writeContents() throws IOException {
 
         // Get the name of the earned value model to report on.
-        String taskListName = getPrefix();
-        if (taskListName == null || taskListName.length() < 2)
+        String taskListName = getTaskListName();
+        if (taskListName == null)
             throw new IOException("No EV task list specified.");
-        taskListName = taskListName.substring(1);
 
-        // strip the "publishing prefix" if it is present.
-        if (taskListName.startsWith("ev /"))
-            taskListName = taskListName.substring(4);
 
         // Load and recalculate the named earned value model.
         EVTaskList evModel = EVTaskList.openExisting
@@ -355,6 +351,30 @@ public class EVWeekReport extends TinyCGIBase {
             interpOut(EXPORT_HTML);
 
         out.print(FOOTER_HTML);
+    }
+
+
+    private String getTaskListName() {
+        String result = getParameter(EVReport.TASKLIST_PARAM);
+        if ("auto".equals(result))
+            return EVReport.getAutoTaskList(getDataRepository(), getPrefix());
+        else if (result != null && result.length() > 0)
+            return result;
+        else {
+            result = getPrefix();
+            if (result == null || result.length() < 2)
+                return null;
+
+            // strip the initial slash
+            result = result.substring(1);
+
+            // strip the "publishing prefix" if it is present.
+            if (result.startsWith("ev /"))
+                result = result.substring(4);
+            else if (result.startsWith("evr /"))
+                result = result.substring(5);
+            return result;
+        }
     }
 
 

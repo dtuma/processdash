@@ -30,16 +30,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.ev.EVTask;
-import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.Prop;
@@ -92,7 +90,6 @@ public class DashController {
                 public void run() { showTaskScheduleImpl(path); } } );
     }
     private static void showTaskScheduleImpl(String path) {
-        String origPath = path;
 
         // if no path was given, just display a chooser dialog to the user.
         if (path == null || path.length() == 0) {
@@ -101,57 +98,8 @@ public class DashController {
             return;
         }
 
-        // chop trailing "/" if it is present.
-        if (path.endsWith("/")) path = path.substring(0, path.length()-1);
-
-        // Make a list of data name prefixes that could indicate the
-        // name of the task list for this path.
-        ArrayList prefixList = new ArrayList();
-        while (path != null) {
-            prefixList.add(path);
-            path = DataRepository.chopPath(path);
-        }
-        String[] prefixes = (String[]) prefixList.toArray(new String[0]);
-
-        // Search the data repository for elements that begin with any of
-        // the prefixes we just contructed.
-        String dataName, prefix, ord_pref = "/"+EVTaskListData.TASK_ORDINAL_PREFIX;
-        Iterator i = dash.data.getKeys();
-        ArrayList taskLists = new ArrayList();
-
-    DATA_ELEMENT_SEARCH:
-        while (i.hasNext()) {
-            dataName = (String) i.next();
-            for (int j = prefixes.length;  j-- > 0; ) {
-                prefix = prefixes[j];
-
-                if (!dataName.startsWith(prefix))
-                    // if the dataname doesn't start with this prefix, it
-                    // won't start with any of the others either.  Go to the
-                    // next data element.
-                    continue DATA_ELEMENT_SEARCH;
-
-                if (!dataName.regionMatches(prefix.length(), ord_pref,
-                                            0, ord_pref.length()))
-                    // If the prefix isn't followed by the ordinal tag
-                    // "/TST_", try the next prefix.
-                    continue;
-
-                // we've found a match! Compute the resulting task list
-                // name and add it to our list.
-                dataName = dataName.substring
-                    (prefix.length() + ord_pref.length());
-                taskLists.add(dataName);
-            }
-        }
-
-        // Discard any task lists which have prune the given task
-        i = taskLists.iterator();
-        while (i.hasNext()) {
-            String taskListName = (String) i.next();
-            if (EVTask.taskIsPruned(dash.data, taskListName, origPath))
-                i.remove();
-        }
+        List taskLists = EVTaskList.getTaskListNamesForPath(dash.data,
+                path);
 
         raiseWindow();
         if (taskLists.size() == 1)

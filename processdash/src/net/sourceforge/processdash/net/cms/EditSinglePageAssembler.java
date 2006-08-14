@@ -297,7 +297,7 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
 
 
     protected String getPageTitle(PageContentTO page) {
-        String pageName = (String) parameters.get(PAGE_FILENAME_PARAM);
+        String pageName = (String) parameters.get(CMS_PAGE_FILENAME);
         String title = resources.format("Snippet.PageHeading.Title_FMT",
                 pageName);
         return esc(title);

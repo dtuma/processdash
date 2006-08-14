@@ -177,4 +177,10 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri>/reports/defectlog.class?for=auto&amp;noDisclaimer</uri>
   </snippet>
 
+  <snippet id="pdash.evReport" version="1.0">
+    <resources>EV.Report.Snippet</resources>
+    <context>EV Project Tag</context>
+    <uri>/reports/ev.class?tl=auto&amp;labelFilterAuto</uri>
+  </snippet>
+
 </dashboard-process-template>

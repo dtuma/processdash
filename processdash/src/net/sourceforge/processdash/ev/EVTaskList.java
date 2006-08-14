@@ -236,6 +236,69 @@ public class EVTaskList extends AbstractTreeTableModel
         return result;
     }
 
+    /** Find task lists which contain a given hierarchy task.
+     * 
+     * @param data the data repository
+     * @param path the path to a project in the hierarchy
+     * @return a list of the names of task lists that contain the given task.
+     */
+    public static List getTaskListNamesForPath(DataRepository data, String path) {
+        String origPath = path;
+
+        // chop trailing "/" if it is present.
+        if (path.endsWith("/")) path = path.substring(0, path.length()-1);
+
+        // Make a list of data name prefixes that could indicate the
+        // name of the task list for this path.
+        ArrayList prefixList = new ArrayList();
+        while (path != null) {
+            prefixList.add(path);
+            path = DataRepository.chopPath(path);
+        }
+        String[] prefixes = (String[]) prefixList.toArray(new String[0]);
+
+        // Search the data repository for elements that begin with any of
+        // the prefixes we just contructed.
+        String dataName, prefix, ord_pref = "/"+EVTaskListData.TASK_ORDINAL_PREFIX;
+        Iterator i = data.getKeys();
+        ArrayList taskLists = new ArrayList();
+
+    DATA_ELEMENT_SEARCH:
+        while (i.hasNext()) {
+            dataName = (String) i.next();
+            for (int j = prefixes.length;  j-- > 0; ) {
+                prefix = prefixes[j];
+
+                if (!dataName.startsWith(prefix))
+                    // if the dataname doesn't start with this prefix, it
+                    // won't start with any of the others either.  Go to the
+                    // next data element.
+                    continue DATA_ELEMENT_SEARCH;
+
+                if (!dataName.regionMatches(prefix.length(), ord_pref,
+                                            0, ord_pref.length()))
+                    // If the prefix isn't followed by the ordinal tag
+                    // "/TST_", try the next prefix.
+                    continue;
+
+                // we've found a match! Compute the resulting task list
+                // name and add it to our list.
+                dataName = dataName.substring
+                    (prefix.length() + ord_pref.length());
+                taskLists.add(dataName);
+            }
+        }
+
+        // Discard any task lists which have prune the given task
+        i = taskLists.iterator();
+        while (i.hasNext()) {
+            String taskListName = (String) i.next();
+            if (EVTask.taskIsPruned(data, taskListName, origPath))
+                i.remove();
+        }
+        return taskLists;
+    }
+
     private static String TESTING_TASK_LIST_NAME = null;
     private static EVTaskList TESTING_TASK_LIST = null;
     public static void setTestingTaskList(String name, EVTaskList taskList) {

@@ -46,7 +46,7 @@ public interface SnippetEnvironment {
 
     /** Key that maps to the title of the current page, as designated by the
      * user */
-    public static final String PAGE_TITLE_PARAM = "cmsPageTitle";
+    public static final String CMS_PAGE_TITLE = "cmsPageTitle";
 
     /** Key that maps to a localized version of the current prefix.
      * 
@@ -54,7 +54,7 @@ public interface SnippetEnvironment {
      * and their language is English, this would map to the string
      * "All PSP Data To Date".
      */
-    public static final String LOCALIZED_PREFIX_PARAM = "cmsLocalizedPrefix";
+    public static final String CMS_LOCALIZED_PREFIX = "cmsLocalizedPrefix";
 
     /** Key that maps to the filename of the cms page the user is viewing or
      * editing.
@@ -62,7 +62,7 @@ public interface SnippetEnvironment {
      * Example: if the user is visiting the page /To+Date/PSP/All//cms/foo/bar,
      * this would map to the string "/foo/bar".
      */
-    public static final String PAGE_FILENAME_PARAM = "cmsPageFilename";
+    public static final String CMS_PAGE_FILENAME = "cmsPageFilename";
 
     /** Key that maps to a URI that can be used to regenerate the current
      * frame.

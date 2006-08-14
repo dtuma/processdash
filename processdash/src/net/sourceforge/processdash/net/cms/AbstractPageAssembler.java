@@ -185,9 +185,9 @@ public abstract class AbstractPageAssembler implements PageAssembler,
     }
 
     protected void addPageSpecificParameters(Map params, PageContentTO page) {
-        params.put(PAGE_FILENAME_PARAM, getPageFilename());
-        params.put(PAGE_TITLE_PARAM, page.getPageTitle());
-        params.put(LOCALIZED_PREFIX_PARAM, AnalysisPage.localizePrefix(prefix));
+        params.put(CMS_PAGE_FILENAME, getPageFilename());
+        params.put(CMS_PAGE_TITLE, page.getPageTitle());
+        params.put(CMS_LOCALIZED_PREFIX, AnalysisPage.localizePrefix(prefix));
 
         String pageUri = (String) environment.get("REQUEST_URI");
         pageUri = HTMLUtils.removeParam(pageUri, "mode");

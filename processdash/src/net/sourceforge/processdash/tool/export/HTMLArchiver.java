@@ -62,6 +62,7 @@ public class HTMLArchiver {
     protected ArchiveWriter writer;
     protected Map requestContents;
     private Set itemsToWrite;
+    private Set excelPartsWritten;
     private boolean postponeWritingAdditionalItems = false;
     private boolean supportAnchors;
 
@@ -83,6 +84,7 @@ public class HTMLArchiver {
         this.data = data;
         this.requestContents = new HashMap();
         this.itemsToWrite = new HashSet();
+        this.excelPartsWritten = new HashSet();
 
         switch (outputMode) {
             case OUTPUT_JAR:
@@ -351,6 +353,9 @@ public class HTMLArchiver {
         String safeURL = getMappedURI(forUri);
         String excelURL = makeExcelURL(safeURL);
 
+        if (excelPartsWritten.contains(excelURL))
+            return excelURL;
+
         // hide portions that are marked with the "doNotPrint" style.
         hideNonPrintingElements(content);
 
@@ -373,6 +378,7 @@ public class HTMLArchiver {
         String charset = HTTPUtils.getCharset(htmlContentType);
         String contentType = "application/vnd.ms-excel; charset=" + charset;
         writeTextFile(excelURL, contentType, content);
+        excelPartsWritten.add(excelURL);
 
         // undo the damage we did earlier
         StringUtils.findAndReplace(content, "<dis_img", "<img");
@@ -570,7 +576,12 @@ public class HTMLArchiver {
     }
 
     protected String getMappedURI(String uri) throws IOException {
-        return writer.mapURI(uri, getContentType(uri));
+        try {
+            return writer.mapURI(uri, getContentType(uri));
+        } catch (IOException ioe) {
+            logger.fine("Unable to map uri " + uri);
+            throw ioe;
+        }
     }
 
     private String extractPrefix(String uri) {

@@ -50,6 +50,7 @@ var debug = false;
 if (debug) { document.write("running data.js<P>"); }
 
 var SILENT;
+var SHOW_EXCEL_EXPORT;
 
 var ieVersion = 0;
 var nsVersion = 0;
@@ -276,14 +277,15 @@ function gotoUnLockURL() {
 
 function writeExportHTML() {
     document.writeln("<!--#echo Export_To --> ");
-    document.writeln("<A HREF='/reports/form2html.class'>" +
-                     "<!--#echo Export_To_HTML --></A>");
+    if (pageContainsElements) {
+        document.writeln("<A HREF='/reports/form2html.class'>" +
+                         "<!--#echo Export_To_HTML --></A>");
+    }
     var url = urlEncode(window.location.pathname +
                         window.location.hash +
                         window.location.search);
     url = "/reports/form2html.class?uri=" + url;
     url = urlEncode(url);
-
     document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+
                      "&fullPage'><!--#echo Export_To_Excel --></A>");
 }
@@ -295,14 +297,20 @@ function writeHelpLink() {
 }
 
 function writeFooter() {
-    if (!SILENT) {
+    if (!SILENT || SHOW_EXCEL_EXPORT) {
         document.write('<span class=doNotPrint>');
-	<!--#if !READ_ONLY -->
-        document.write(unlockHTML);
-        document.write("&nbsp; &nbsp; &nbsp; &nbsp;");
-	<!--#endif-->
+        <!--#if !READ_ONLY -->
+        if (pageContainsElements) {
+            document.write(unlockHTML);
+            document.write("&nbsp; &nbsp; &nbsp; &nbsp;");
+        }
+        <!--#endif-->
+
         writeExportHTML();
-        writeHelpLink();
+
+        if (pageContainsElements) {
+            writeHelpLink();
+        }
         document.write('</span>');
     }
 }
@@ -767,6 +775,8 @@ function setupData() {
         registerData();
 
         if (debug) document.writeln("<p>writing footer.");
+        writeFooter();
+    } else if (SHOW_EXCEL_EXPORT) {
         writeFooter();
     }
 }
