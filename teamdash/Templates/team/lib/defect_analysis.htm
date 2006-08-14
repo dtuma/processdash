@@ -1,10 +1,10 @@
 [!--#server-parsed --]
 <html>
 <head>
-<link rel=stylesheet type="text/css" href="style.css">
+<link rel=stylesheet type="text/css" 
+      href="/<!--#echo Process_ID -->/style.css">
 <title><!--#echo Full_Name --> Project Defect Reports</title>
 [!--#if not EXPORT --]
-  <SCRIPT SRC="autoExport.js"></script>
   [!--#set var='url_args' value='for=[Rollup_List]&noChildren&noDisclaimer' --]
 [!--#else--]
   [!--#set var='url_args' value='for=[Rollup_List]&noChildren&noDisclaimer&EXPORT' --]
