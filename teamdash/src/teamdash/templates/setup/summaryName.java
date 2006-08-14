@@ -23,7 +23,7 @@ public class summaryName extends selectWBS {
         String projectRoot = projectRootKey.path();
 
         out.println("<html><head>");
-        out.println("<link rel=stylesheet type='text/css' href='style.css'>");
+        out.println("<link rel=stylesheet type='text/css' href='/style.css'>");
         out.println("<style>");
         out.println(" body { margin: 0pt; padding: 2px }");
         out.println(" h1   { margin: 0pt; padding: 0pt }");
